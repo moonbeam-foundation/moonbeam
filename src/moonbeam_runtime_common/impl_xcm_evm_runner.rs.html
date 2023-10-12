@@ -296,7 +296,7 @@
 					pallet_ethereum::catch_exec_info(<span class="kw-2">&amp;mut </span>execution_info, || {
 						CallDispatcher::dispatch(
 							RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact { xcm_transaction }),
-							pallet_ethereum_xcm::RawOrigin::XcmEthereumTransaction(source.into()).into(),
+							RawOrigin::Signed(source.into()).into(),
 						)
 						.map_err(|DispatchErrorWithPostInfo { error, .. }| RunnerError {
 							error,

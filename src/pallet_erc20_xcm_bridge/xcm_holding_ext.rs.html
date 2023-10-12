@@ -300,7 +300,7 @@
 	<span class="kw">fn </span>execute(
 		origin: <span class="kw">impl </span>Into&lt;xcm::latest::MultiLocation&gt;,
 		pre: <span class="self">Self</span>::Prepared,
-		hash: xcm::latest::XcmHash,
+		hash: <span class="kw-2">&amp;mut </span>xcm::latest::XcmHash,
 		weight_credit: xcm::latest::Weight,
 	) -&gt; xcm::latest::Outcome {
 		<span class="kw">let </span><span class="kw-2">mut </span>erc20s_origins = Default::default();

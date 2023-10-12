@@ -248,6 +248,13 @@
 <a href="#248" id="248">248</a>
 <a href="#249" id="249">249</a>
 <a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -269,21 +276,22 @@
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">use </span>fp_evm::PrecompileHandle;
-<span class="kw">use </span>frame_support::codec::Decode;
 <span class="kw">use </span>frame_support::traits::ConstU32;
 <span class="kw">use </span>frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo, Weight},
+	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	traits::OriginTrait,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
-<span class="kw">use </span>parity_scale_codec::{DecodeLimit, MaxEncodedLen};
+<span class="kw">use </span>parity_scale_codec::{Decode, DecodeLimit, MaxEncodedLen};
 <span class="kw">use </span>precompile_utils::precompile_set::SelectorFilter;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, U256};
+<span class="kw">use </span>sp_runtime::traits::Dispatchable;
 <span class="kw">use </span>sp_std::boxed::Box;
 <span class="kw">use </span>sp_std::marker::PhantomData;
 <span class="kw">use </span>sp_std::vec;
 <span class="kw">use </span>sp_std::vec::Vec;
+<span class="kw">use </span>sp_weights::Weight;
 <span class="kw">use </span>xcm::{latest::prelude::<span class="kw-2">*</span>, VersionedXcm, MAX_XCM_DECODE_DEPTH};
 <span class="kw">use </span>xcm_executor::traits::ConvertOrigin;
 <span class="kw">use </span>xcm_executor::traits::WeightBounds;
@@ -368,7 +376,7 @@
 				})<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>account: H160 = origin
-			.as_signed()
+			.into_signer()
 			.ok_or(
 				RevertReason::custom(<span class="string">&quot;Failed multilocation conversion&quot;</span>).in_field(<span class="string">&quot;multilocation&quot;</span>),
 			)<span class="question-mark">?
@@ -393,11 +401,17 @@
 
 		<span class="kw">let </span><span class="kw-2">mut </span>trader = &lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::Trader::new();
 
+		<span class="kw">let </span>ctx = XcmContext {
+			origin: <span class="prelude-val">Some</span>(multilocation),
+			message_id: XcmHash::default(),
+			topic: <span class="prelude-val">None</span>,
+		};
 		<span class="comment">// buy_weight returns unused assets
 		</span><span class="kw">let </span>unused = trader
 			.buy_weight(
 				Weight::from_parts(weight_per_second, DEFAULT_PROOF_SIZE),
 				<span class="macro">vec!</span>[multiasset.clone()].into(),
+				<span class="kw-2">&amp;</span>ctx,
 			)
 			.map_err(|<span class="kw">_</span>| {
 				RevertReason::custom(<span class="string">&quot;Asset not supported as fee payment&quot;</span>).in_field(<span class="string">&quot;multilocation&quot;</span>)
@@ -466,7 +480,7 @@
 			max_weight: Weight::from_parts(weight, DEFAULT_PROOF_SIZE),
 		};
 
-		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
@@ -493,7 +507,7 @@
 			message: Box::new(xcm),
 		};
 
-		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}

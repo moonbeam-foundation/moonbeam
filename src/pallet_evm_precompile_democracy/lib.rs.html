@@ -499,6 +499,12 @@
 <a href="#499" id="499">499</a>
 <a href="#500" id="500">500</a>
 <a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -520,8 +526,9 @@
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">use </span>fp_evm::PrecompileHandle;
-<span class="kw">use </span>frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+<span class="kw">use </span>frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 <span class="kw">use </span>frame_support::traits::{Bounded, ConstU32, Currency, QueryPreimage};
+<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
 <span class="kw">use </span>pallet_democracy::{
 	AccountVote, Call <span class="kw">as </span>DemocracyCall, Conviction, ReferendumInfo, Vote, VoteThreshold,
 };
@@ -529,7 +536,7 @@
 <span class="kw">use </span>pallet_preimage::Call <span class="kw">as </span>PreimageCall;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{Get, H160, H256, U256};
-<span class="kw">use </span>sp_runtime::traits::{Hash, StaticLookup};
+<span class="kw">use </span>sp_runtime::traits::{Dispatchable, Hash, StaticLookup};
 <span class="kw">use </span>sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
@@ -589,7 +596,7 @@
 	Runtime::RuntimeCall: From&lt;DemocracyCall&lt;Runtime&gt;&gt;,
 	Runtime::RuntimeCall: From&lt;PreimageCall&lt;Runtime&gt;&gt;,
 	Runtime::Hash: From&lt;H256&gt; + Into&lt;H256&gt;,
-	Runtime::BlockNumber: Into&lt;U256&gt;,
+	BlockNumberFor&lt;Runtime&gt;: Into&lt;U256&gt;,
 {
 	<span class="comment">// The accessors are first. They directly return their result.
 	</span><span class="attr">#[precompile::public(<span class="string">&quot;publicPropCount()&quot;</span>)]
@@ -738,7 +745,7 @@
 			value,
 		};
 
-		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		log2(
 			handle.context().address,
@@ -771,7 +778,7 @@
 			proposal: prop_index,
 		};
 
-		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		log2(
 			handle.context().address,
@@ -819,7 +826,7 @@
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = DemocracyCall::&lt;Runtime&gt;::vote { ref_index, vote };
 
-		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		log2(
 			handle.context().address,
@@ -851,7 +858,7 @@
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = DemocracyCall::&lt;Runtime&gt;::remove_vote { index: ref_index };
 
-		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
@@ -884,7 +891,12 @@
 			balance: amount,
 		};
 
-		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
+			handle,
+			<span class="prelude-val">Some</span>(origin).into(),
+			call,
+			SYSTEM_ACCOUNT_SIZE,
+		)<span class="question-mark">?</span>;
 
 		log2(
 			handle.context().address,
@@ -904,7 +916,7 @@
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = DemocracyCall::&lt;Runtime&gt;::undelegate {};
 
-		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		log2(
 			handle.context().address,
@@ -932,7 +944,7 @@
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = DemocracyCall::&lt;Runtime&gt;::unlock { target };
 
-		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
@@ -954,7 +966,7 @@
 		<span class="kw">let </span>call = PreimageCall::&lt;Runtime&gt;::note_preimage {
 			bytes: encoded_proposal.into(),
 		};
-		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
@@ -989,7 +1001,7 @@
 		<span class="kw">let </span>call = PreimageCall::&lt;Runtime&gt;::note_preimage {
 			bytes: encoded_proposal.into(),
 		};
-		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}

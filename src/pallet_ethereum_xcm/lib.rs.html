@@ -345,14 +345,14 @@
 <span class="kw">use </span>fp_ethereum::{TransactionData, ValidatedTransaction};
 <span class="kw">use </span>fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransactionError};
 <span class="kw">use </span>frame_support::{
-	codec::{Decode, Encode, MaxEncodedLen},
 	dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo},
-	scale_info::TypeInfo,
 	traits::{EnsureOrigin, Get},
 	weights::Weight,
 };
 <span class="kw">use </span>frame_system::pallet_prelude::OriginFor;
 <span class="kw">use </span>pallet_evm::{AddressMapping, GasWeightMapping};
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+<span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>sp_runtime::{traits::UniqueSaturatedInto, DispatchErrorWithPostInfo, RuntimeDebug};
 <span class="kw">use </span>sp_std::{marker::PhantomData, prelude::<span class="kw-2">*</span>};
 

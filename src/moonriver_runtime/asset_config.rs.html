@@ -340,6 +340,7 @@
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -365,6 +366,7 @@
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
+<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbeam_weights;
 <span class="kw">use </span>pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 <span class="kw">use </span>sp_runtime::traits::Hash <span class="kw">as </span>THash;
 
@@ -447,7 +449,7 @@
 	<span class="kw">type </span>Freezer = ();
 	<span class="kw">type </span>Extra = ();
 	<span class="kw">type </span>AssetAccountDeposit = ConstU128&lt;{ currency::deposit(<span class="number">1</span>, <span class="number">18</span>) }&gt;;
-	<span class="kw">type </span>WeightInfo = pallet_assets::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_assets::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>RemoveItemsLimit = ConstU32&lt;{ REMOVE_ITEMS_LIMIT }&gt;;
 	<span class="kw">type </span>AssetIdParameter = Compact&lt;AssetId&gt;;
 	<span class="kw">type </span>CreateOrigin = AsEnsureOriginWithArg&lt;EnsureNever&lt;AccountId&gt;&gt;;
@@ -463,7 +465,7 @@
 	<span class="kw">type </span>Balance = Balance;
 	<span class="kw">type </span>AssetId = AssetId;
 	<span class="kw">type </span>Currency = Balances;
-	<span class="kw">type </span>ForceOrigin = AssetsForceOrigin;
+	<span class="kw">type </span>ForceOrigin = EnsureNever&lt;AccountId&gt;;
 	<span class="kw">type </span>AssetDeposit = AssetDeposit;
 	<span class="kw">type </span>MetadataDepositBase = MetadataDepositBase;
 	<span class="kw">type </span>MetadataDepositPerByte = MetadataDepositPerByte;
@@ -472,7 +474,7 @@
 	<span class="kw">type </span>Freezer = ();
 	<span class="kw">type </span>Extra = ();
 	<span class="kw">type </span>AssetAccountDeposit = ConstU128&lt;{ currency::deposit(<span class="number">1</span>, <span class="number">18</span>) }&gt;;
-	<span class="kw">type </span>WeightInfo = pallet_assets::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_assets::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>RemoveItemsLimit = ConstU32&lt;{ REMOVE_ITEMS_LIMIT }&gt;;
 	<span class="kw">type </span>AssetIdParameter = Compact&lt;AssetId&gt;;
 	<span class="kw">type </span>CreateOrigin = AsEnsureOriginWithArg&lt;EnsureNever&lt;AccountId&gt;&gt;;
@@ -651,7 +653,7 @@
 	<span class="kw">type </span>LocalAssetIdCreator = LocalAssetIdCreator;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>LocalAssetDeposit = AssetDeposit;
-	<span class="kw">type </span>WeightInfo = pallet_asset_manager::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_asset_manager::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="comment">// Instruct how to go from an H160 to an AssetID

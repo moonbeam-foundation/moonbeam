@@ -276,14 +276,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">mod </span>moonbeam_xcm_benchmarks_fungible;
-<span class="kw">mod </span>moonbeam_xcm_benchmarks_generic;
+</span><span class="kw">pub mod </span>fungible;
+<span class="kw">pub mod </span>generic;
 
-<span class="kw">use </span><span class="kw">crate</span>::weights::moonbeam_xcm_benchmarks_generic::WeightInfo;
+<span class="kw">pub use </span><span class="kw">crate</span>::weights::generic::WeightInfo;
 <span class="kw">use </span>core::cmp::min;
 <span class="kw">use </span>frame_support::weights::Weight;
-<span class="kw">use </span>moonbeam_xcm_benchmarks_fungible::WeightInfo <span class="kw">as </span>XcmFungibleWeight;
-<span class="kw">use </span>moonbeam_xcm_benchmarks_generic::SubstrateWeight <span class="kw">as </span>XcmGeneric;
+<span class="kw">use </span>fungible::WeightInfo <span class="kw">as </span>XcmFungibleWeight;
+<span class="kw">use </span>generic::SubstrateWeight <span class="kw">as </span>XcmGeneric;
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm::{
 	latest::{prelude::<span class="kw-2">*</span>, Weight <span class="kw">as </span>XCMWeight},

@@ -226,6 +226,16 @@
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -247,8 +257,7 @@
 <span class="kw">use </span>frame_support::traits::Currency;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 <span class="kw">use </span>scale_info::TypeInfo;
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>sp_runtime::PerThing;
 <span class="kw">use </span>sp_runtime::{Perbill, RuntimeDebug};
 <span class="kw">use </span>substrate_fixed::transcendental::pow <span class="kw">as </span>floatpow;
@@ -263,9 +272,19 @@
 	BLOCKS_PER_YEAR / blocks_per_round
 }
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize))]
-#[derive(
-	Eq, PartialEq, Clone, Copy, Encode, Decode, Default, RuntimeDebug, MaxEncodedLen, TypeInfo,
+<span class="attr">#[derive(
+	Eq,
+	PartialEq,
+	Clone,
+	Copy,
+	Encode,
+	Decode,
+	Default,
+	Deserialize,
+	RuntimeDebug,
+	MaxEncodedLen,
+	Serialize,
+	TypeInfo,
 )]
 </span><span class="kw">pub struct </span>Range&lt;T&gt; {
 	<span class="kw">pub </span>min: T,
@@ -327,8 +346,9 @@
 	}
 }
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize))]
-#[derive(Eq, PartialEq, Clone, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
+<span class="attr">#[derive(
+	Eq, PartialEq, Clone, Encode, Decode, Default, Deserialize, RuntimeDebug, Serialize, TypeInfo,
+)]
 </span><span class="kw">pub struct </span>InflationInfo&lt;Balance&gt; {
 	<span class="doccomment">/// Staking expectations
 	</span><span class="kw">pub </span>expect: Range&lt;Balance&gt;,

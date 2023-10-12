@@ -808,115 +808,6 @@
 <a href="#808" id="808">808</a>
 <a href="#809" id="809">809</a>
 <a href="#810" id="810">810</a>
-<a href="#811" id="811">811</a>
-<a href="#812" id="812">812</a>
-<a href="#813" id="813">813</a>
-<a href="#814" id="814">814</a>
-<a href="#815" id="815">815</a>
-<a href="#816" id="816">816</a>
-<a href="#817" id="817">817</a>
-<a href="#818" id="818">818</a>
-<a href="#819" id="819">819</a>
-<a href="#820" id="820">820</a>
-<a href="#821" id="821">821</a>
-<a href="#822" id="822">822</a>
-<a href="#823" id="823">823</a>
-<a href="#824" id="824">824</a>
-<a href="#825" id="825">825</a>
-<a href="#826" id="826">826</a>
-<a href="#827" id="827">827</a>
-<a href="#828" id="828">828</a>
-<a href="#829" id="829">829</a>
-<a href="#830" id="830">830</a>
-<a href="#831" id="831">831</a>
-<a href="#832" id="832">832</a>
-<a href="#833" id="833">833</a>
-<a href="#834" id="834">834</a>
-<a href="#835" id="835">835</a>
-<a href="#836" id="836">836</a>
-<a href="#837" id="837">837</a>
-<a href="#838" id="838">838</a>
-<a href="#839" id="839">839</a>
-<a href="#840" id="840">840</a>
-<a href="#841" id="841">841</a>
-<a href="#842" id="842">842</a>
-<a href="#843" id="843">843</a>
-<a href="#844" id="844">844</a>
-<a href="#845" id="845">845</a>
-<a href="#846" id="846">846</a>
-<a href="#847" id="847">847</a>
-<a href="#848" id="848">848</a>
-<a href="#849" id="849">849</a>
-<a href="#850" id="850">850</a>
-<a href="#851" id="851">851</a>
-<a href="#852" id="852">852</a>
-<a href="#853" id="853">853</a>
-<a href="#854" id="854">854</a>
-<a href="#855" id="855">855</a>
-<a href="#856" id="856">856</a>
-<a href="#857" id="857">857</a>
-<a href="#858" id="858">858</a>
-<a href="#859" id="859">859</a>
-<a href="#860" id="860">860</a>
-<a href="#861" id="861">861</a>
-<a href="#862" id="862">862</a>
-<a href="#863" id="863">863</a>
-<a href="#864" id="864">864</a>
-<a href="#865" id="865">865</a>
-<a href="#866" id="866">866</a>
-<a href="#867" id="867">867</a>
-<a href="#868" id="868">868</a>
-<a href="#869" id="869">869</a>
-<a href="#870" id="870">870</a>
-<a href="#871" id="871">871</a>
-<a href="#872" id="872">872</a>
-<a href="#873" id="873">873</a>
-<a href="#874" id="874">874</a>
-<a href="#875" id="875">875</a>
-<a href="#876" id="876">876</a>
-<a href="#877" id="877">877</a>
-<a href="#878" id="878">878</a>
-<a href="#879" id="879">879</a>
-<a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a>
-<a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a>
-<a href="#885" id="885">885</a>
-<a href="#886" id="886">886</a>
-<a href="#887" id="887">887</a>
-<a href="#888" id="888">888</a>
-<a href="#889" id="889">889</a>
-<a href="#890" id="890">890</a>
-<a href="#891" id="891">891</a>
-<a href="#892" id="892">892</a>
-<a href="#893" id="893">893</a>
-<a href="#894" id="894">894</a>
-<a href="#895" id="895">895</a>
-<a href="#896" id="896">896</a>
-<a href="#897" id="897">897</a>
-<a href="#898" id="898">898</a>
-<a href="#899" id="899">899</a>
-<a href="#900" id="900">900</a>
-<a href="#901" id="901">901</a>
-<a href="#902" id="902">902</a>
-<a href="#903" id="903">903</a>
-<a href="#904" id="904">904</a>
-<a href="#905" id="905">905</a>
-<a href="#906" id="906">906</a>
-<a href="#907" id="907">907</a>
-<a href="#908" id="908">908</a>
-<a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
-<a href="#918" id="918">918</a>
-<a href="#919" id="919">919</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1190,23 +1081,23 @@
 					<span class="kw">let </span>is_transactional = <span class="bool-val">false</span>;
 					<span class="kw">let </span>validate = <span class="bool-val">true</span>;
 
-					<span class="kw">let </span><span class="kw-2">mut </span>estimated_transaction_len = data.len() +
-						<span class="comment">// to: 20
-						// from: 20
-						// value: 32
-						// gas_limit: 32
+					<span class="comment">// Estimated encoded transaction size must be based on the heaviest transaction
+					// type (EIP1559Transaction) to be compatible with all transaction types.
+					</span><span class="kw">let </span><span class="kw-2">mut </span>estimated_transaction_len = data.len() +
+						<span class="comment">// pallet ethereum index: 1
+						// transact call index: 1
+						// Transaction enum variant: 1
+						// chain_id 8 bytes
 						// nonce: 32
-						// 1 byte transaction action variant
-						// chain id 8 bytes
+						// max_priority_fee_per_gas: 32
+						// max_fee_per_gas: 32
+						// gas_limit: 32
+						// action: 21 (enum varianrt + call address)
+						// value: 32
+						// access_list: 1 (empty vec size)
 						// 65 bytes signature
-						</span><span class="number">210</span>;
+						</span><span class="number">258</span>;
 
-					<span class="kw">if </span>max_fee_per_gas.is_some() {
-						estimated_transaction_len += <span class="number">32</span>;
-					}
-					<span class="kw">if </span>max_priority_fee_per_gas.is_some() {
-						estimated_transaction_len += <span class="number">32</span>;
-					}
 					<span class="kw">if </span>access_list.is_some() {
 						estimated_transaction_len += access_list.encoded_size();
 					}
@@ -1497,38 +1388,10 @@
 					<span class="kw">use </span>frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
 					<span class="kw">use </span>moonbeam_xcm_benchmarks::generic::benchmarking <span class="kw">as </span>MoonbeamXcmBenchmarks;
 					<span class="kw">use </span>frame_support::traits::StorageInfoTrait;
-					<span class="kw">use </span>frame_system_benchmarking::Pallet <span class="kw">as </span>SystemBench;
-					<span class="kw">use </span>pallet_crowdloan_rewards::Pallet <span class="kw">as </span>PalletCrowdloanRewardsBench;
-					<span class="kw">use </span>pallet_parachain_staking::Pallet <span class="kw">as </span>ParachainStakingBench;
-					<span class="kw">use </span>pallet_author_mapping::Pallet <span class="kw">as </span>PalletAuthorMappingBench;
-					<span class="kw">use </span>pallet_author_slot_filter::Pallet <span class="kw">as </span>PalletAuthorSlotFilter;
-					<span class="kw">use </span>pallet_moonbeam_orbiters::Pallet <span class="kw">as </span>PalletMoonbeamOrbiters;
-					<span class="kw">use </span>pallet_author_inherent::Pallet <span class="kw">as </span>PalletAuthorInherent;
-					<span class="kw">use </span>pallet_asset_manager::Pallet <span class="kw">as </span>PalletAssetManagerBench;
-					<span class="kw">use </span>pallet_xcm_transactor::Pallet <span class="kw">as </span>XcmTransactorBench;
-					<span class="kw">use </span>pallet_randomness::Pallet <span class="kw">as </span>RandomnessBench;
 					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
-					<span class="kw">use </span>pallet_conviction_voting::Pallet <span class="kw">as </span>PalletConvictionVotingBench;
 
 					<span class="kw">let </span><span class="kw-2">mut </span>list = Vec::&lt;BenchmarkList&gt;::new();
-
-					<span class="macro">list_benchmark!</span>(list, extra, frame_system, SystemBench::&lt;Runtime&gt;);
-					<span class="macro">list_benchmark!</span>(list, extra, parachain_staking, ParachainStakingBench::&lt;Runtime&gt;);
-					<span class="macro">list_benchmark!</span>(list, extra, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::&lt;Runtime&gt;);
-					<span class="macro">list_benchmark!</span>(list, extra, pallet_author_mapping, PalletAuthorMappingBench::&lt;Runtime&gt;);
-					<span class="macro">list_benchmark!</span>(list, extra, pallet_author_slot_filter, PalletAuthorSlotFilter::&lt;Runtime&gt;);
-					<span class="macro">list_benchmark!</span>(list, extra, pallet_moonbeam_orbiters, PalletMoonbeamOrbiters::&lt;Runtime&gt;);
-					<span class="macro">list_benchmark!</span>(list, extra, pallet_author_inherent, PalletAuthorInherent::&lt;Runtime&gt;);
-					<span class="macro">list_benchmark!</span>(list, extra, pallet_asset_manager, PalletAssetManagerBench::&lt;Runtime&gt;);
-					<span class="macro">list_benchmark!</span>(list, extra, xcm_transactor, XcmTransactorBench::&lt;Runtime&gt;);
-					<span class="macro">list_benchmark!</span>(list, extra, pallet_randomness, RandomnessBench::&lt;Runtime&gt;);
-					<span class="macro">list_benchmark!</span>(
-						list,
-						extra,
-						moonbeam_xcm_benchmarks_generic,
-						MoonbeamXcmGenericBench::&lt;Runtime&gt;
-					);
-					<span class="macro">list_benchmark!</span>(list, extra, pallet_conviction_voting, PalletConvictionVotingBench::&lt;Runtime&gt;);
+					<span class="macro">list_benchmarks!</span>(list, extra);
 
 					<span class="kw">let </span>storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1538,9 +1401,8 @@
 				<span class="kw">fn </span>dispatch_benchmark(
 					config: frame_benchmarking::BenchmarkConfig,
 				) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;frame_benchmarking::BenchmarkBatch&gt;, sp_runtime::RuntimeString&gt; {
-					<span class="kw">use </span>frame_benchmarking::{
-						add_benchmark, BenchmarkBatch, Benchmarking, TrackedStorageKey,
-					};
+					<span class="kw">use </span>frame_benchmarking::{add_benchmark, BenchmarkBatch, Benchmarking};
+					<span class="kw">use </span>frame_support::traits::TrackedStorageKey;
 
 					<span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
 					<span class="kw">use </span>frame_benchmarking::BenchmarkError;
@@ -1651,21 +1513,11 @@
 							-&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation, MultiAsset), BenchmarkError&gt; {
 							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
 						}
+
+						<span class="kw">fn </span>alias_origin() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation), BenchmarkError&gt; {
+							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
+						}
 					}
-
-					<span class="kw">use </span>moonbeam_xcm_benchmarks::generic::benchmarking <span class="kw">as </span>MoonbeamXcmBenchmarks;
-
-					<span class="kw">use </span>pallet_crowdloan_rewards::Pallet <span class="kw">as </span>PalletCrowdloanRewardsBench;
-					<span class="kw">use </span>pallet_parachain_staking::Pallet <span class="kw">as </span>ParachainStakingBench;
-					<span class="kw">use </span>pallet_author_mapping::Pallet <span class="kw">as </span>PalletAuthorMappingBench;
-					<span class="kw">use </span>pallet_author_slot_filter::Pallet <span class="kw">as </span>PalletAuthorSlotFilter;
-					<span class="kw">use </span>pallet_moonbeam_orbiters::Pallet <span class="kw">as </span>PalletMoonbeamOrbiters;
-					<span class="kw">use </span>pallet_author_inherent::Pallet <span class="kw">as </span>PalletAuthorInherent;
-					<span class="kw">use </span>pallet_asset_manager::Pallet <span class="kw">as </span>PalletAssetManagerBench;
-					<span class="kw">use </span>pallet_xcm_transactor::Pallet <span class="kw">as </span>XcmTransactorBench;
-					<span class="kw">use </span>pallet_randomness::Pallet <span class="kw">as </span>RandomnessBench;
-					<span class="kw">use </span>pallet_conviction_voting::Pallet <span class="kw">as </span>PalletConvictionVotingBench;
-					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
 
 					<span class="kw">let </span>whitelist: Vec&lt;TrackedStorageKey&gt; = <span class="macro">vec!</span>[
 						<span class="comment">// Block Number
@@ -1720,77 +1572,7 @@
 					<span class="kw">let </span><span class="kw-2">mut </span>batches = Vec::&lt;BenchmarkBatch&gt;::new();
 					<span class="kw">let </span>params = (<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;</span>whitelist);
 
-					<span class="macro">add_benchmark!</span>(
-						params,
-						batches,
-						parachain_staking,
-						ParachainStakingBench::&lt;Runtime&gt;
-					);
-					<span class="macro">add_benchmark!</span>(
-					params,
-						batches,
-						pallet_crowdloan_rewards,
-						PalletCrowdloanRewardsBench::&lt;Runtime&gt;
-					);
-					<span class="macro">add_benchmark!</span>(
-						params,
-						batches,
-						pallet_author_mapping,
-						PalletAuthorMappingBench::&lt;Runtime&gt;
-					);
-					<span class="macro">add_benchmark!</span>(params, batches, frame_system, SystemBench::&lt;Runtime&gt;);
-					<span class="macro">add_benchmark!</span>(
-						params,
-						batches,
-						pallet_author_slot_filter,
-						PalletAuthorSlotFilter::&lt;Runtime&gt;
-					);
-					<span class="macro">add_benchmark!</span>(
-						params,
-						batches,
-						pallet_moonbeam_orbiters,
-						PalletMoonbeamOrbiters::&lt;Runtime&gt;
-					);
-					<span class="macro">add_benchmark!</span>(
-						params,
-						batches,
-						pallet_author_inherent,
-						PalletAuthorInherent::&lt;Runtime&gt;
-					);
-					<span class="macro">add_benchmark!</span>(
-						params,
-						batches,
-						pallet_asset_manager,
-						PalletAssetManagerBench::&lt;Runtime&gt;
-					);
-					<span class="macro">add_benchmark!</span>(
-						params,
-						batches,
-						xcm_transactor,
-						XcmTransactorBench::&lt;Runtime&gt;
-					);
-
-					<span class="macro">add_benchmark!</span>(
-						params,
-						batches,
-						pallet_randomness,
-						RandomnessBench::&lt;Runtime&gt;
-					);
-
-					<span class="macro">add_benchmark!</span>(
-						params,
-						batches,
-						moonbeam_xcm_benchmarks_generic,
-						MoonbeamXcmGenericBench::&lt;Runtime&gt;
-					);
-
-					<span class="macro">add_benchmark!</span>(
-						params,
-						batches,
-						pallet_conviction_voting,
-						PalletConvictionVotingBench::&lt;Runtime&gt;
-					);
-
+					<span class="macro">add_benchmarks!</span>(params, batches);
 
 					<span class="kw">if </span>batches.is_empty() {
 						<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Benchmark not found for this pallet.&quot;</span>.into());

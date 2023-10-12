@@ -252,7 +252,7 @@
 //! the &quot;Migration&quot; trait declared in the pallet-migrations crate.
 
 </span><span class="kw">use </span>frame_support::{
-	dispatch::GetStorageVersion,
+	pallet_prelude::GetStorageVersion,
 	traits::{Hash <span class="kw">as </span>PreimageHash, OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };

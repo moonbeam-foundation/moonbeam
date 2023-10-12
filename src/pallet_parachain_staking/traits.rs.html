@@ -64,6 +64,27 @@
 <a href="#64" id="64">64</a>
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -82,7 +103,9 @@
 
 </span><span class="doccomment">//! traits for parachain-staking
 
-</span><span class="kw">use </span>frame_support::pallet_prelude::Weight;
+</span><span class="kw">use </span><span class="kw">crate</span>::weights::WeightInfo;
+<span class="kw">use </span>frame_support::{dispatch::PostDispatchInfo, pallet_prelude::Weight};
+<span class="kw">use </span>sp_runtime::DispatchErrorWithPostInfo;
 
 <span class="kw">pub trait </span>OnCollatorPayout&lt;AccountId, Balance&gt; {
 	<span class="kw">fn </span>on_collator_payout(
@@ -128,6 +151,25 @@
 		amount: <span class="kw">crate</span>::BalanceOf&lt;Runtime&gt;,
 	) -&gt; Weight {
 		<span class="kw">crate</span>::Pallet::&lt;Runtime&gt;::mint_collator_reward(for_round, collator_id, amount)
+	}
+}
+
+<span class="kw">pub trait </span>OnInactiveCollator&lt;Runtime: <span class="kw">crate</span>::Config&gt; {
+	<span class="kw">fn </span>on_inactive_collator(
+		collator_id: Runtime::AccountId,
+		round: <span class="kw">crate</span>::RoundIndex,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, DispatchErrorWithPostInfo&lt;PostDispatchInfo&gt;&gt;;
+}
+
+<span class="kw">impl</span>&lt;Runtime: <span class="kw">crate</span>::Config&gt; OnInactiveCollator&lt;Runtime&gt; <span class="kw">for </span>() {
+	<span class="kw">fn </span>on_inactive_collator(
+		collator_id: &lt;Runtime&gt;::AccountId,
+		_round: <span class="kw">crate</span>::RoundIndex,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, DispatchErrorWithPostInfo&lt;PostDispatchInfo&gt;&gt; {
+		<span class="kw">crate</span>::Pallet::&lt;Runtime&gt;::go_offline_inner(collator_id)<span class="question-mark">?</span>;
+		<span class="prelude-val">Ok</span>(&lt;Runtime <span class="kw">as </span><span class="kw">crate</span>::Config&gt;::WeightInfo::go_offline(
+			<span class="kw">crate</span>::MAX_CANDIDATES,
+		))
 	}
 }
 </code></pre></div></section></main></body></html>

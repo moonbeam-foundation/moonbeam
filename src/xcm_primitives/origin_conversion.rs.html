@@ -126,13 +126,13 @@
 	sp_std::marker::PhantomData&lt;(Origin, AccountId, Network)&gt;,
 );
 <span class="kw">impl</span>&lt;Origin: OriginTrait + Clone, AccountId: Into&lt;[u8; <span class="number">20</span>]&gt;, Network: Get&lt;NetworkId&gt;&gt;
-	xcm_executor::traits::Convert&lt;Origin, MultiLocation&gt;
+	sp_runtime::traits::TryConvert&lt;Origin, MultiLocation&gt;
 	<span class="kw">for </span>SignedToAccountId20&lt;Origin, AccountId, Network&gt;
 <span class="kw">where
 	</span>Origin::PalletsOrigin: From&lt;frame_system::RawOrigin&lt;AccountId&gt;&gt;
 		+ TryInto&lt;frame_system::RawOrigin&lt;AccountId&gt;, Error = Origin::PalletsOrigin&gt;,
 {
-	<span class="kw">fn </span>convert(o: Origin) -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, Origin&gt; {
+	<span class="kw">fn </span>try_convert(o: Origin) -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, Origin&gt; {
 		o.try_with_caller(|caller| <span class="kw">match </span>caller.try_into() {
 			<span class="prelude-val">Ok</span>(frame_system::RawOrigin::Signed(who)) =&gt; <span class="prelude-val">Ok</span>(AccountKey20 {
 				key: who.into(),

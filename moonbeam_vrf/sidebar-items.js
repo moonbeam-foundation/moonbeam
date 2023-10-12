@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["vrf_pre_digest"]};
+window.SIDEBAR_ITEMS = {"fn":["vrf_pre_digest"],"struct":["VrfDigestsProvider"]};

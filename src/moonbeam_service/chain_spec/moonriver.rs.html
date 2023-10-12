@@ -374,6 +374,17 @@
 <a href="#374" id="374">374</a>
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -404,9 +415,9 @@
 <span class="kw">use </span>moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
-	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
-	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, SystemConfig,
+	EthereumChainIdConfig, EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig,
+	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
+	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SystemConfig,
 	TechCommitteeCollectiveConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
 	HOURS, WASM_BINARY,
 };
@@ -418,7 +429,7 @@
 <span class="kw">use </span>sp_runtime::{Perbill, Percent};
 
 <span class="doccomment">/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-</span><span class="kw">pub type </span>ChainSpec = sc_service::GenericChainSpec&lt;GenesisConfig, Extensions&gt;;
+</span><span class="kw">pub type </span>ChainSpec = sc_service::GenericChainSpec&lt;RuntimeGenesisConfig, Extensions&gt;;
 
 <span class="doccomment">/// Generate a chain spec for use with the development service.
 </span><span class="kw">pub fn </span>development_chain_spec(mnemonic: <span class="prelude-ty">Option</span>&lt;String&gt;, num_accounts: <span class="prelude-ty">Option</span>&lt;u32&gt;) -&gt; ChainSpec {
@@ -612,18 +623,19 @@
 	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
 	chain_id: u64,
-) -&gt; GenesisConfig {
+) -&gt; RuntimeGenesisConfig {
 	<span class="comment">// This is the simplest bytecode to revert without returning any data.
 	// We will pre-deploy it under all of our precompiles to ensure they can be called from
 	// within contracts.
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	</span><span class="kw">let </span>revert_bytecode = <span class="macro">vec!</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xFD</span>];
 
-	GenesisConfig {
+	RuntimeGenesisConfig {
 		system: SystemConfig {
 			code: WASM_BINARY
 				.expect(<span class="string">&quot;WASM binary was not build, please build it!&quot;</span>)
 				.to_vec(),
+			..Default::default()
 		},
 		balances: BalancesConfig {
 			balances: endowed_accounts
@@ -637,8 +649,12 @@
 		},
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
+			..Default::default()
 		},
-		ethereum_chain_id: EthereumChainIdConfig { chain_id },
+		ethereum_chain_id: EthereumChainIdConfig {
+			chain_id,
+			..Default::default()
+		},
 		evm: EVMConfig {
 			<span class="comment">// We need _some_ code inserted at the precompile address so that
 			// the evm will actually call the address.
@@ -655,8 +671,11 @@
 					)
 				})
 				.collect(),
+			..Default::default()
 		},
-		ethereum: EthereumConfig {},
+		ethereum: EthereumConfig {
+			..Default::default()
+		},
 		democracy: DemocracyConfig::default(),
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
@@ -689,6 +708,7 @@
 		},
 		author_filter: AuthorFilterConfig {
 			eligible_count: EligibilityValue::new_unchecked(<span class="number">50</span>),
+			..Default::default()
 		},
 		author_mapping: AuthorMappingConfig {
 			mappings: candidates
@@ -702,11 +722,13 @@
 		migrations: Default::default(),
 		maintenance_mode: MaintenanceModeConfig {
 			start_in_maintenance_mode: <span class="bool-val">false</span>,
+			..Default::default()
 		},
 		<span class="comment">// This should initialize it to whatever we have set in the pallet
 		</span>polkadot_xcm: PolkadotXcmConfig::default(),
 		transaction_payment: TransactionPaymentConfig {
 			multiplier: Multiplier::from(<span class="number">10u128</span>),
+			..Default::default()
 		},
 	}
 }

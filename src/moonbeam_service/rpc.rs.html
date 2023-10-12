@@ -448,6 +448,35 @@
 <a href="#448" id="448">448</a>
 <a href="#449" id="449">449</a>
 <a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -474,11 +503,14 @@
 <span class="kw">use </span>sp_block_builder::BlockBuilder;
 
 <span class="kw">use </span><span class="kw">crate</span>::client::RuntimeApiCollection;
-<span class="kw">use </span>cumulus_primitives_core::ParaId;
+<span class="kw">use </span>cumulus_primitives_core::{ParaId, PersistedValidationData};
+<span class="kw">use </span>cumulus_primitives_parachain_inherent::ParachainInherentData;
+<span class="kw">use </span>cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 <span class="kw">use </span>fc_mapping_sync::{kv::MappingSyncWorker, SyncStrategy};
 <span class="kw">use </span>fc_rpc::{
-	EthBlockDataCacheTask, EthTask, OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override,
-	SchemaV2Override, SchemaV3Override, StorageOverride,
+	pending::ConsensusDataProvider, EthBlockDataCacheTask, EthTask, OverrideHandle,
+	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, SchemaV3Override,
+	StorageOverride,
 };
 <span class="kw">use </span>fc_rpc_core::types::{CallRequest, FeeHistoryCache, FilterPool};
 <span class="kw">use </span>fp_storage::EthereumStorageSchema;
@@ -626,6 +658,7 @@
 			fc_mapping_sync::EthereumBlockNotification&lt;Block&gt;,
 		&gt;,
 	&gt;,
+	pending_consenus_data_provider: Box&lt;<span class="kw">dyn </span>ConsensusDataProvider&lt;Block&gt;&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;RpcModule&lt;()&gt;, Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync&gt;&gt;
 <span class="kw">where
 	</span>BE: Backend&lt;Block&gt; + <span class="lifetime">&#39;static</span>,
@@ -637,7 +670,7 @@
 	C: CallApiAt&lt;Block&gt;,
 	C: Send + Sync + <span class="lifetime">&#39;static</span>,
 	A: ChainApi&lt;Block = Block&gt; + <span class="lifetime">&#39;static</span>,
-	C::Api: RuntimeApiCollection&lt;StateBackend = BE::State&gt;,
+	C::Api: RuntimeApiCollection,
 	P: TransactionPool&lt;Block = Block&gt; + <span class="lifetime">&#39;static</span>,
 {
 	<span class="kw">use </span>fc_rpc::{
@@ -692,6 +725,29 @@
 	}
 	<span class="kw">let </span>convert_transaction: <span class="prelude-ty">Option</span>&lt;Never&gt; = <span class="prelude-val">None</span>;
 
+	<span class="kw">let </span>pending_create_inherent_data_providers = <span class="kw">move </span>|<span class="kw">_</span>, <span class="kw">_</span>| <span class="kw">async move </span>{
+		<span class="kw">let </span>timestamp = sp_timestamp::InherentDataProvider::from_system_time();
+		<span class="comment">// Create a dummy parachain inherent data provider which is required to pass
+		// the checks by the para chain system. We use dummy values because in the &#39;pending context&#39;
+		// neither do we have access to the real values nor do we need them.
+		</span><span class="kw">let </span>(relay_parent_storage_root, relay_chain_state) =
+			RelayStateSproofBuilder::default().into_state_root_and_proof();
+		<span class="kw">let </span>vfp = PersistedValidationData {
+			<span class="comment">// This is a hack to make `cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases`
+			// happy. Relay parent number can&#39;t be bigger than u32::MAX.
+			</span>relay_parent_number: u32::MAX,
+			relay_parent_storage_root,
+			..Default::default()
+		};
+		<span class="kw">let </span>parachain_inherent_data = ParachainInherentData {
+			validation_data: vfp,
+			relay_chain_state: relay_chain_state,
+			downward_messages: Default::default(),
+			horizontal_messages: Default::default(),
+		};
+		<span class="prelude-val">Ok</span>((timestamp, parachain_inherent_data))
+	};
+
 	io.merge(
 		Eth::new(
 			Arc::clone(<span class="kw-2">&amp;</span>client),
@@ -708,6 +764,8 @@
 			fee_history_limit,
 			<span class="number">10</span>,
 			forced_parent_hashes,
+			pending_create_inherent_data_providers,
+			<span class="prelude-val">Some</span>(pending_consenus_data_provider),
 		)
 		.replace_config::&lt;MoonbeamEthConfig&lt;C, BE&gt;&gt;()
 		.into_rpc(),
@@ -718,7 +776,7 @@
 			EthFilter::new(
 				client.clone(),
 				frontier_backend.clone(),
-				fc_rpc::TxPool::new(client.clone(), graph.clone()),
+				graph.clone(),
 				filter_pool,
 				<span class="number">500_usize</span>, <span class="comment">// max stored filters
 				</span>max_past_logs,

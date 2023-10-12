@@ -422,6 +422,47 @@
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
 <a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -444,7 +485,8 @@
 // This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes
 // UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter
 
-</span><span class="kw">use </span>frame_support::{
+</span><span class="kw">use </span>cumulus_primitives_core::XcmContext;
+<span class="kw">use </span>frame_support::{
 	pallet_prelude::Weight,
 	traits::{tokens::fungibles::Mutate, Get},
 	weights::constants::WEIGHT_REF_TIME_PER_SECOND,
@@ -480,6 +522,7 @@
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		weight: Weight,
 		payment: xcm_executor::Assets,
+		_context: <span class="kw-2">&amp;</span>XcmContext,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;xcm_executor::Assets, XcmError&gt; {
 		<span class="comment">// can only call one time
 		</span><span class="kw">if </span><span class="self">self</span>.<span class="number">1</span>.is_some() {
@@ -539,7 +582,7 @@
 	}
 
 	<span class="comment">// Refund weight. We will refund in whatever asset is stored in self.
-	</span><span class="kw">fn </span>refund_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, weight: Weight) -&gt; <span class="prelude-ty">Option</span>&lt;MultiAsset&gt; {
+	</span><span class="kw">fn </span>refund_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, weight: Weight, _context: <span class="kw-2">&amp;</span>XcmContext) -&gt; <span class="prelude-ty">Option</span>&lt;MultiAsset&gt; {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>((id, prev_amount, units_per_second)) = <span class="self">self</span>.<span class="number">1</span>.clone() {
 			<span class="kw">let </span>weight = weight.min(<span class="self">self</span>.<span class="number">0</span>);
 			<span class="self">self</span>.<span class="number">0 </span>-= weight;
@@ -618,13 +661,15 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>cumulus_primitives_core::XcmHash;
 	<span class="kw">use </span>xcm::latest::{AssetId, Fungibility, Junction, Junctions};
 	<span class="kw">use </span>xcm_executor::Assets;
 
-	<span class="kw">const </span>ARBITRARY_ID: AssetId = AssetId::Concrete(MultiLocation {
+	<span class="kw">const </span>ARBITRARY_ML: MultiLocation = MultiLocation {
 		parents: <span class="number">0u8</span>,
 		interior: Junctions::Here,
-	});
+	};
+	<span class="kw">const </span>ARBITRARY_ID: AssetId = AssetId::Concrete(ARBITRARY_ML);
 
 	<span class="kw">impl </span>UnitsToWeightRatio&lt;MultiLocation&gt; <span class="kw">for </span>() {
 		<span class="kw">fn </span>payment_is_supported(_asset_type: MultiLocation) -&gt; bool {
@@ -642,17 +687,23 @@
 		<span class="kw">let </span>amount = <span class="number">1000u128</span>;
 
 		<span class="kw">let </span><span class="kw-2">mut </span>payment = Assets::new();
+		<span class="kw">let </span>multilocation = MultiLocation {
+			parents: <span class="number">0u8</span>,
+			interior: Junctions::Here,
+		};
 		payment.subsume(MultiAsset {
-			id: AssetId::Concrete(MultiLocation {
-				parents: <span class="number">0u8</span>,
-				interior: Junctions::Here,
-			}),
+			id: AssetId::Concrete(multilocation),
 			fun: Fungibility::Fungible(amount),
 		});
 
 		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
+		<span class="kw">let </span>ctx = XcmContext {
+			origin: <span class="prelude-val">Some</span>(multilocation),
+			message_id: XcmHash::default(),
+			topic: <span class="prelude-val">None</span>,
+		};
 		<span class="kw">let </span>unused = trader
-			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone())
+			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone(), <span class="kw-2">&amp;</span>ctx)
 			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
 		<span class="macro">assert!</span>(unused.is_empty());
 		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>.into());
@@ -664,15 +715,21 @@
 
 		<span class="comment">// should be able to buy once
 		</span><span class="kw">let </span><span class="kw-2">mut </span>asset_one_payment = Assets::new();
+		<span class="kw">let </span>multilocation = MultiLocation {
+			parents: <span class="number">0u8</span>,
+			interior: Junctions::X1(Junction::Parachain(<span class="number">1000</span>)),
+		};
 		asset_one_payment.subsume(MultiAsset {
-			id: AssetId::Concrete(MultiLocation {
-				parents: <span class="number">0u8</span>,
-				interior: Junctions::X1(Junction::Parachain(<span class="number">1000</span>)),
-			}),
+			id: AssetId::Concrete(multilocation),
 			fun: Fungibility::Fungible(<span class="number">100u128</span>),
 		});
+		<span class="kw">let </span>ctx = XcmContext {
+			origin: <span class="prelude-val">Some</span>(multilocation),
+			message_id: XcmHash::default(),
+			topic: <span class="prelude-val">None</span>,
+		};
 		<span class="kw">let </span>buy_one_results = trader
-			.buy_weight(<span class="number">100u64</span>.into(), asset_one_payment.clone())
+			.buy_weight(<span class="number">100u64</span>.into(), asset_one_payment.clone(), <span class="kw-2">&amp;</span>ctx)
 			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
 		<span class="macro">assert_eq!</span>(buy_one_results.fungible.len(), <span class="number">0</span>); <span class="comment">// no unused amount
 		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">100u64</span>.into());
@@ -690,15 +747,21 @@
 
 		<span class="comment">// but not twice
 		</span><span class="kw">let </span><span class="kw-2">mut </span>asset_two_payment = xcm_executor::Assets::new();
+		<span class="kw">let </span>multi_location = MultiLocation {
+			parents: <span class="number">0u8</span>,
+			interior: Junctions::X1(Junction::Parachain(<span class="number">1001</span>)),
+		};
 		asset_two_payment.subsume(MultiAsset {
-			id: AssetId::Concrete(MultiLocation {
-				parents: <span class="number">0u8</span>,
-				interior: Junctions::X1(Junction::Parachain(<span class="number">1001</span>)),
-			}),
+			id: AssetId::Concrete(multi_location),
 			fun: Fungibility::Fungible(<span class="number">10_000u128</span>),
 		});
+		<span class="kw">let </span>ctx = XcmContext {
+			origin: <span class="prelude-val">Some</span>(multi_location),
+			message_id: XcmHash::default(),
+			topic: <span class="prelude-val">None</span>,
+		};
 		<span class="macro">assert_eq!</span>(
-			trader.buy_weight(<span class="number">10_000u64</span>.into(), asset_two_payment.clone()),
+			trader.buy_weight(<span class="number">10_000u64</span>.into(), asset_two_payment.clone(), <span class="kw-2">&amp;</span>ctx),
 			<span class="prelude-val">Err</span>(XcmError::NotWithdrawable),
 		);
 
@@ -728,14 +791,19 @@
 		});
 
 		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
+		<span class="kw">let </span>ctx = XcmContext {
+			origin: <span class="prelude-val">Some</span>(ARBITRARY_ML),
+			message_id: XcmHash::default(),
+			topic: <span class="prelude-val">None</span>,
+		};
 		<span class="kw">let </span>unused = trader
-			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone())
+			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone(), <span class="kw-2">&amp;</span>ctx)
 			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
 		<span class="macro">assert!</span>(unused.is_empty());
 		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>.into());
 
 		<span class="macro">assert_eq!</span>(
-			trader.refund_weight(<span class="number">1000u64</span>.into()),
+			trader.refund_weight(<span class="number">1000u64</span>.into(), <span class="kw-2">&amp;</span>ctx),
 			<span class="prelude-val">Some</span>(MultiAsset {
 				fun: Fungibility::Fungible(<span class="number">1000</span>),
 				id: ARBITRARY_ID,
@@ -754,14 +822,19 @@
 		});
 
 		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
+		<span class="kw">let </span>ctx = XcmContext {
+			origin: <span class="prelude-val">Some</span>(ARBITRARY_ML),
+			message_id: XcmHash::default(),
+			topic: <span class="prelude-val">None</span>,
+		};
 		<span class="kw">let </span>unused = trader
-			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone())
+			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone(), <span class="kw-2">&amp;</span>ctx)
 			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
 		<span class="macro">assert!</span>(unused.is_empty());
 		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>.into());
 
 		<span class="macro">assert_eq!</span>(
-			trader.refund_weight(<span class="number">100u64</span>.into()),
+			trader.refund_weight(<span class="number">100u64</span>.into(), <span class="kw-2">&amp;</span>ctx),
 			<span class="prelude-val">Some</span>(MultiAsset {
 				fun: Fungibility::Fungible(<span class="number">100</span>),
 				id: ARBITRARY_ID,
@@ -774,7 +847,7 @@
 
 		<span class="comment">// can call again
 		</span><span class="macro">assert_eq!</span>(
-			trader.refund_weight(<span class="number">200u64</span>.into()),
+			trader.refund_weight(<span class="number">200u64</span>.into(), <span class="kw-2">&amp;</span>ctx),
 			<span class="prelude-val">Some</span>(MultiAsset {
 				fun: Fungibility::Fungible(<span class="number">200</span>),
 				id: ARBITRARY_ID,
@@ -795,17 +868,21 @@
 			id: ARBITRARY_ID,
 			fun: Fungibility::Fungible(amount),
 		});
-
+		<span class="kw">let </span>ctx = XcmContext {
+			origin: <span class="prelude-val">Some</span>(ARBITRARY_ML),
+			message_id: XcmHash::default(),
+			topic: <span class="prelude-val">None</span>,
+		};
 		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
 		<span class="kw">let </span>unused = trader
-			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone())
+			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone(), <span class="kw-2">&amp;</span>ctx)
 			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
 		<span class="macro">assert!</span>(unused.is_empty());
 		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>.into());
 
 		<span class="comment">// can&#39;t call with more weight
 		</span><span class="macro">assert_eq!</span>(
-			trader.refund_weight(<span class="number">9999u64</span>.into()),
+			trader.refund_weight(<span class="number">9999u64</span>.into(), <span class="kw-2">&amp;</span>ctx),
 			<span class="prelude-val">Some</span>(MultiAsset {
 				fun: Fungibility::Fungible(<span class="number">1000</span>),
 				id: ARBITRARY_ID,
@@ -824,9 +901,14 @@
 			fun: Fungibility::Fungible(amount),
 		});
 
+		<span class="kw">let </span>ctx = XcmContext {
+			origin: <span class="prelude-val">Some</span>(ARBITRARY_ML),
+			message_id: XcmHash::default(),
+			topic: <span class="prelude-val">None</span>,
+		};
 		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
 		<span class="kw">let </span>unused = trader
-			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone())
+			.buy_weight((amount <span class="kw">as </span>u64).into(), payment.clone(), <span class="kw-2">&amp;</span>ctx)
 			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
 		<span class="macro">assert!</span>(unused.is_empty());
 		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>.into());
@@ -837,7 +919,7 @@
 
 		<span class="comment">// can&#39;t call with more weight
 		</span><span class="macro">assert_eq!</span>(
-			trader.refund_weight(<span class="number">1500u64</span>.into()),
+			trader.refund_weight(<span class="number">1500u64</span>.into(), <span class="kw-2">&amp;</span>ctx),
 			<span class="prelude-val">Some</span>(MultiAsset {
 				fun: Fungibility::Fungible(<span class="number">1000</span>),
 				id: ARBITRARY_ID,

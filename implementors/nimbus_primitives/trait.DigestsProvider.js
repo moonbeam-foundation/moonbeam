@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"moonbeam_vrf":[["impl&lt;B, C&gt; DigestsProvider&lt;Public, H256&gt; for <a class=\"struct\" href=\"moonbeam_vrf/struct.VrfDigestsProvider.html\" title=\"struct moonbeam_vrf::VrfDigestsProvider\">VrfDigestsProvider</a>&lt;B, C&gt;<span class=\"where fmt-newline\">where\n    B: Block&lt;Hash = H256&gt;,\n    C: ProvideRuntimeApi&lt;B&gt;,\n    C::Api: VrfApi&lt;B&gt;,</span>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

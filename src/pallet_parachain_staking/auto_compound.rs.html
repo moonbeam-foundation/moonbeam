@@ -411,6 +411,9 @@
 <a href="#411" id="411">411</a>
 <a href="#412" id="412">412</a>
 <a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -434,14 +437,13 @@
 	CandidateInfo, Config, DelegatorState, Error, Event, Pallet, Total,
 };
 <span class="kw">use </span><span class="kw">crate</span>::types::{Bond, BondAdjust, Delegator};
+<span class="kw">use </span>frame_support::dispatch::DispatchResultWithPostInfo;
 <span class="kw">use </span>frame_support::ensure;
 <span class="kw">use </span>frame_support::traits::Get;
-<span class="kw">use </span>frame_support::{dispatch::DispatchResultWithPostInfo, RuntimeDebug};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>sp_runtime::traits::Saturating;
-<span class="kw">use </span>sp_runtime::BoundedVec;
-<span class="kw">use </span>sp_runtime::Percent;
+<span class="kw">use </span>sp_runtime::{BoundedVec, Percent, RuntimeDebug};
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Represents the auto-compounding amount for a delegation.
@@ -474,6 +476,10 @@
 		&gt;,
 	) -&gt; <span class="self">Self </span>{
 		<span class="self">Self</span>(sorted_delegations)
+	}
+
+	<span class="kw">pub fn </span>get_auto_compounding_delegation_count(candidate: <span class="kw-2">&amp;</span>T::AccountId) -&gt; usize {
+		&lt;AutoCompoundingDelegationsStorage&lt;T&gt;&gt;::decode_len(candidate).unwrap_or_default()
 	}
 
 	<span class="doccomment">/// Retrieves an instance of [AutoCompoundingDelegations] storage as [AutoCompoundDelegations].
@@ -618,7 +624,7 @@
 
 		<span class="kw">if </span>!auto_compound.is_zero() {
 			<span class="macro">ensure!</span>(
-				<span class="self">Self</span>::get_storage(<span class="kw-2">&amp;</span>candidate).len()
+				<span class="self">Self</span>::get_auto_compounding_delegation_count(<span class="kw-2">&amp;</span>candidate) <span class="kw">as </span>u32
 					&lt;= candidate_auto_compounding_delegation_count_hint,
 				&lt;Error&lt;T&gt;&gt;::TooLowCandidateAutoCompoundingDelegationCountToDelegate,
 			);

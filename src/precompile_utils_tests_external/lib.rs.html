@@ -449,6 +449,8 @@
 <a href="#449" id="449">449</a>
 <a href="#450" id="450">450</a>
 <a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -485,26 +487,21 @@
 	<span class="kw">use </span>sp_core::{H256, U256};
 	<span class="kw">use </span>sp_runtime::{
 		traits::{BlakeTwo256, IdentityLookup},
-		Perbill,
+		BuildStorage, Perbill,
 	};
 
 	<span class="kw">pub type </span>AccountId = MockAccount;
 	<span class="kw">pub type </span>Balance = u128;
-	<span class="kw">pub type </span>BlockNumber = u32;
 
-	<span class="kw">type </span>UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic&lt;Runtime&gt;;
-	<span class="kw">type </span>Block = frame_system::mocking::MockBlock&lt;Runtime&gt;;
+	<span class="kw">type </span>Block = frame_system::mocking::MockBlockU32&lt;Runtime&gt;;
 
 	<span class="macro">construct_runtime!</span>(
-		<span class="kw">pub enum </span>Runtime <span class="kw">where
-			</span>Block = Block,
-			NodeBlock = Block,
-			UncheckedExtrinsic = UncheckedExtrinsic,
+		<span class="kw">pub enum </span>Runtime
 		{
-			System: frame_system::{Pallet, Call, Config, Storage, Event&lt;T&gt;},
-			Balances: pallet_balances::{Pallet, Call, Storage, Event&lt;T&gt;},
-			Evm: pallet_evm::{Pallet, Call, Storage, Event&lt;T&gt;},
-			Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+			System: frame_system,
+			Balances: pallet_balances,
+			Evm: pallet_evm,
+			Timestamp: pallet_timestamp,
 		}
 	);
 
@@ -520,14 +517,13 @@
 		<span class="kw">type </span>BaseCallFilter = Everything;
 		<span class="kw">type </span>DbWeight = ();
 		<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
-		<span class="kw">type </span>Index = u64;
-		<span class="kw">type </span>BlockNumber = BlockNumber;
+		<span class="kw">type </span>Nonce = u64;
+		<span class="kw">type </span>Block = Block;
 		<span class="kw">type </span>RuntimeCall = RuntimeCall;
 		<span class="kw">type </span>Hash = H256;
 		<span class="kw">type </span>Hashing = BlakeTwo256;
 		<span class="kw">type </span>AccountId = AccountId;
 		<span class="kw">type </span>Lookup = IdentityLookup&lt;<span class="self">Self</span>::AccountId&gt;;
-		<span class="kw">type </span>Header = sp_runtime::generic::Header&lt;BlockNumber, BlakeTwo256&gt;;
 		<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 		<span class="kw">type </span>BlockHashCount = BlockHashCount;
 		<span class="kw">type </span>Version = ();
@@ -555,7 +551,7 @@
 		<span class="kw">type </span>ExistentialDeposit = ExistentialDeposit;
 		<span class="kw">type </span>AccountStore = System;
 		<span class="kw">type </span>WeightInfo = ();
-		<span class="kw">type </span>HoldIdentifier = ();
+		<span class="kw">type </span>RuntimeHoldReason = ();
 		<span class="kw">type </span>FreezeIdentifier = ();
 		<span class="kw">type </span>MaxHolds = ();
 		<span class="kw">type </span>MaxFreezes = ();
@@ -653,6 +649,7 @@
 			<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 			_ref_time: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 			_proof_size: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+			_storage_growth: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;(), fp_evm::ExitError&gt; {
 			<span class="prelude-val">Ok</span>(())
 		}
@@ -673,6 +670,8 @@
 	<span class="kw">pub type </span>PCall = MockPrecompileCall;
 
 	<span class="kw">const </span>MAX_POV_SIZE: u64 = <span class="number">5 </span>* <span class="number">1024 </span>* <span class="number">1024</span>;
+	<span class="doccomment">/// Block storage limit in bytes. Set to 40 KB.
+	</span><span class="kw">const </span>BLOCK_STORAGE_LIMIT: u64 = <span class="number">40 </span>* <span class="number">1024</span>;
 
 	<span class="macro">parameter_types! </span>{
 		<span class="kw">pub </span>BlockGasLimit: U256 = U256::from(u64::MAX);
@@ -681,6 +680,10 @@
 		<span class="kw">pub </span>GasLimitPovSizeRatio: u64 = {
 			<span class="kw">let </span>block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
 			block_gas_limit.saturating_div(MAX_POV_SIZE)
+		};
+		<span class="kw">pub </span>GasLimitStorageGrowthRatio: u64 = {
+			<span class="kw">let </span>block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
+			block_gas_limit.saturating_div(BLOCK_STORAGE_LIMIT)
 		};
 	}
 
@@ -703,6 +706,7 @@
 		<span class="kw">type </span>FindAuthor = ();
 		<span class="kw">type </span>OnCreate = ();
 		<span class="kw">type </span>GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+		<span class="kw">type </span>GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 		<span class="kw">type </span>Timestamp = Timestamp;
 		<span class="kw">type </span>WeightInfo = pallet_evm::weights::SubstrateWeight&lt;Runtime&gt;;
 	}
@@ -728,8 +732,8 @@
 	<span class="kw">impl </span>ExtBuilder {
 		<span class="attr">#[cfg(test)]
 		</span><span class="kw">fn </span>build(<span class="self">self</span>) -&gt; sp_io::TestExternalities {
-			<span class="kw">let </span>t = frame_system::GenesisConfig::default()
-				.build_storage::&lt;Runtime&gt;()
+			<span class="kw">let </span>t = frame_system::GenesisConfig::&lt;Runtime&gt;::default()
+				.build_storage()
 				.expect(<span class="string">&quot;Frame system builds valid default genesis config&quot;</span>);
 
 			<span class="kw">let </span><span class="kw-2">mut </span>ext = sp_io::TestExternalities::new(t);

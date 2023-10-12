@@ -259,6 +259,17 @@
 <a href="#259" id="259">259</a>
 <a href="#260" id="260">260</a>
 <a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -293,6 +304,7 @@
 <span class="kw">use </span>pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_democracy::DemocracyPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_gmp::GmpPrecompile;
+<span class="kw">use </span>pallet_evm_precompile_identity::IdentityPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_modexp::Modexp;
 <span class="kw">use </span>pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_preimage::PreimagePrecompile;
@@ -304,7 +316,7 @@
 <span class="kw">use </span>pallet_evm_precompile_sha3fips::Sha3FIPS256;
 <span class="kw">use </span>pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 <span class="kw">use </span>pallet_evm_precompile_xcm_transactor::{
-	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2,
+	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2, v3::XcmTransactorPrecompileV3,
 };
 <span class="kw">use </span>pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 <span class="kw">use </span>pallet_evm_precompile_xtokens::XtokensPrecompile;
@@ -493,6 +505,16 @@
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
 	PrecompileAt&lt;AddressU64&lt;<span class="number">2070</span>&gt;, GmpPrecompile&lt;R&gt;, SubcallWithMaxNesting&lt;<span class="number">0</span>&gt;&gt;,
+	PrecompileAt&lt;
+		AddressU64&lt;<span class="number">2071</span>&gt;,
+		XcmTransactorPrecompileV3&lt;R&gt;,
+		(CallableByContract, CallableByPrecompile),
+	&gt;,
+	PrecompileAt&lt;
+		AddressU64&lt;<span class="number">2072</span>&gt;,
+		IdentityPrecompile&lt;R&gt;,
+		(CallableByContract, CallableByPrecompile),
+	&gt;,
 );
 
 <span class="doccomment">/// The PrecompileSet installed in the Moonbase runtime.

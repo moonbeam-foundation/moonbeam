@@ -370,11 +370,6 @@
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
 <a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -423,13 +418,10 @@
 	+ nimbus_primitives::NimbusApi&lt;Block&gt;
 	+ cumulus_primitives_core::CollectCollationInfo&lt;Block&gt;
 	+ session_keys_primitives::VrfApi&lt;Block&gt;
-<span class="kw">where
-	</span>&lt;<span class="self">Self </span><span class="kw">as </span>sp_api::ApiExt&lt;Block&gt;&gt;::StateBackend: sp_api::StateBackend&lt;BlakeTwo256&gt;,
 {
 }
 
-<span class="kw">impl</span>&lt;Api&gt; RuntimeApiCollection <span class="kw">for </span>Api
-<span class="kw">where
+<span class="kw">impl</span>&lt;Api&gt; RuntimeApiCollection <span class="kw">for </span>Api <span class="kw">where
 	</span>Api: sp_transaction_pool::runtime_api::TaggedTransactionQueue&lt;Block&gt;
 		+ sp_api::ApiExt&lt;Block&gt;
 		+ sp_block_builder::BlockBuilder&lt;Block&gt;
@@ -444,8 +436,7 @@
 		+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi&lt;Block&gt;
 		+ nimbus_primitives::NimbusApi&lt;Block&gt;
 		+ cumulus_primitives_core::CollectCollationInfo&lt;Block&gt;
-		+ session_keys_primitives::VrfApi&lt;Block&gt;,
-	&lt;<span class="self">Self </span><span class="kw">as </span>sp_api::ApiExt&lt;Block&gt;&gt;::StateBackend: sp_api::StateBackend&lt;BlakeTwo256&gt;,
+		+ session_keys_primitives::VrfApi&lt;Block&gt;
 {
 }
 
@@ -464,7 +455,7 @@
 	</span>Block: BlockT,
 	Backend: BackendT&lt;Block&gt;,
 	Backend::State: sp_api::StateBackend&lt;BlakeTwo256&gt;,
-	<span class="self">Self</span>::Api: RuntimeApiCollection&lt;StateBackend = Backend::State&gt;,
+	<span class="self">Self</span>::Api: RuntimeApiCollection,
 {
 }
 
@@ -480,7 +471,7 @@
 		+ Send
 		+ Sync
 		+ CallApiAt&lt;Block, StateBackend = Backend::State&gt;,
-	Client::Api: RuntimeApiCollection&lt;StateBackend = Backend::State&gt;,
+	Client::Api: RuntimeApiCollection,
 {
 }
 
@@ -504,10 +495,9 @@
 	<span class="doccomment">/// Execute whatever should be executed with the given client instance.
 	</span><span class="kw">fn </span>execute_with_client&lt;Client, Api, Backend&gt;(<span class="self">self</span>, client: Arc&lt;Client&gt;) -&gt; <span class="self">Self</span>::Output
 	<span class="kw">where
-		</span>&lt;Api <span class="kw">as </span>sp_api::ApiExt&lt;Block&gt;&gt;::StateBackend: sp_api::StateBackend&lt;BlakeTwo256&gt;,
-		Backend: sc_client_api::Backend&lt;Block&gt;,
+		</span>Backend: sc_client_api::Backend&lt;Block&gt;,
 		Backend::State: sp_api::StateBackend&lt;BlakeTwo256&gt;,
-		Api: <span class="kw">crate</span>::RuntimeApiCollection&lt;StateBackend = Backend::State&gt;,
+		Api: <span class="kw">crate</span>::RuntimeApiCollection,
 		Client: AbstractClient&lt;Block, Backend, Api = Api&gt; + <span class="lifetime">&#39;static</span>;
 }
 

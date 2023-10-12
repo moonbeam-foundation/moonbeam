@@ -691,6 +691,7 @@
 <a href="#691" id="691">691</a>
 <a href="#692" id="692">692</a>
 <a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -747,10 +748,11 @@
 </span><span class="kw">pub mod </span>tests;
 <span class="kw">pub mod </span>weights;
 
+<span class="kw">pub use </span><span class="kw">crate</span>::weights::WeightInfo;
+
 <span class="attr">#[pallet]
 </span><span class="kw">pub mod </span>pallet {
-
-	<span class="kw">use </span><span class="kw">crate</span>::weights::WeightInfo;
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 	<span class="kw">use </span>frame_support::{
 		pallet_prelude::<span class="kw-2">*</span>,
 		traits::{Currency, ReservableCurrency},

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["XcmWeight"]};
+window.SIDEBAR_ITEMS = {"mod":["fungible","generic"],"struct":["XcmWeight"]};

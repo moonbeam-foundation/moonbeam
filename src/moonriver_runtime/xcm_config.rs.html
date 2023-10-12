@@ -697,9 +697,6 @@
 <a href="#697" id="697">697</a>
 <a href="#698" id="698">698</a>
 <a href="#699" id="699">699</a>
-<a href="#700" id="700">700</a>
-<a href="#701" id="701">701</a>
-<a href="#702" id="702">702</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -725,32 +722,31 @@
 	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-<span class="kw">use </span>pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
-<span class="kw">use </span>sp_runtime::{
-	traits::{Hash <span class="kw">as </span>THash, PostDispatchInfoOf},
-	DispatchErrorWithPostInfo,
-};
-
 <span class="kw">use </span>frame_support::{
-	dispatch::Weight,
 	parameter_types,
 	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
 };
+<span class="kw">use </span>moonbeam_runtime_common::{weights <span class="kw">as </span>moonbeam_weights, xcm::AllowTopLevelPaidExecution};
+<span class="kw">use </span>pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
+<span class="kw">use </span>sp_runtime::{
+	traits::{Hash <span class="kw">as </span>THash, MaybeEquivalence, PostDispatchInfoOf},
+	DispatchErrorWithPostInfo,
+};
+<span class="kw">use </span>sp_weights::Weight;
 
 <span class="kw">use </span>frame_system::{EnsureRoot, RawOrigin};
 <span class="kw">use </span>sp_core::{ConstU32, H160, H256};
 
 <span class="kw">use </span>xcm_builder::{
-	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
-	CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter, NoChecking,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
-	WeightInfoBounds, WithComputedOrigin,
+	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AsPrefixedGeneralIndex,
+	ConvertedConcreteId, CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter,
+	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
+	TakeWeightCredit, UsingComponents, WeightInfoBounds, WithComputedOrigin,
 };
 
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>xcm_executor::traits::{CallDispatcher, JustTry};
+<span class="kw">use </span>xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 <span class="kw">use </span>orml_xcm_support::MultiNativeAsset;
 <span class="kw">use </span>xcm_primitives::{
@@ -817,12 +813,10 @@
 
 <span class="doccomment">/// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
 </span><span class="kw">pub struct </span>LocationToH160;
-<span class="kw">impl </span>xcm_executor::traits::Convert&lt;MultiLocation, H160&gt; <span class="kw">for </span>LocationToH160 {
-	<span class="kw">fn </span>convert(location: MultiLocation) -&gt; <span class="prelude-ty">Result</span>&lt;H160, MultiLocation&gt; {
-		&lt;LocationToAccountId <span class="kw">as </span>xcm_executor::traits::Convert&lt;MultiLocation, AccountId&gt;&gt;::convert(
-			location,
-		)
-		.map(Into::into)
+<span class="kw">impl </span>ConvertLocation&lt;H160&gt; <span class="kw">for </span>LocationToH160 {
+	<span class="kw">fn </span>convert_location(location: <span class="kw-2">&amp;</span>MultiLocation) -&gt; <span class="prelude-ty">Option</span>&lt;H160&gt; {
+		&lt;LocationToAccountId <span class="kw">as </span>ConvertLocation&lt;AccountId&gt;&gt;::convert_location(location)
+			.map(Into::into)
 	}
 }
 
@@ -948,7 +942,7 @@
 	WithComputedOrigin&lt;
 		(
 			<span class="comment">// If the message is one that immediately attemps to pay for execution, then allow it.
-			</span>AllowTopLevelPaidExecutionFrom&lt;Everything&gt;,
+			</span>AllowTopLevelPaidExecution,
 			<span class="comment">// Subscriptions for version tracking are OK.
 			</span>AllowSubscriptionsFrom&lt;Everything&gt;,
 		),
@@ -1044,6 +1038,7 @@
 	<span class="kw">type </span>MessageExporter = ();
 	<span class="kw">type </span>UniversalAliases = Nothing;
 	<span class="kw">type </span>SafeCallFilter = SafeCallFilter;
+	<span class="kw">type </span>Aliasers = Nothing;
 }
 
 <span class="kw">type </span>XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper&lt;
@@ -1091,7 +1086,7 @@
 	<span class="kw">type </span>MaxRemoteLockConsumers = ConstU32&lt;<span class="number">0</span>&gt;;
 	<span class="kw">type </span>RemoteLockConsumerIdentifier = ();
 	<span class="comment">// TODO pallet-xcm weights
-	</span><span class="kw">type </span>WeightInfo = pallet_xcm::TestWeightInfo;
+	</span><span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_xcm::WeightInfo&lt;Runtime&gt;;
 	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
 	</span><span class="kw">type </span>ReachableDest = ReachableDest;
 	<span class="kw">type </span>AdminOrigin = EnsureRoot&lt;AccountId&gt;;
@@ -1110,7 +1105,7 @@
 	<span class="kw">type </span>ExecuteOverweightOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>ControllerOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
-	<span class="kw">type </span>WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight&lt;<span class="self">Self</span>&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::cumulus_pallet_xcmp_queue::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>PriceForSiblingDelivery = ();
 }
 
@@ -1203,7 +1198,7 @@
 <span class="kw">impl</span>&lt;AssetXConverter&gt; sp_runtime::traits::Convert&lt;CurrencyId, <span class="prelude-ty">Option</span>&lt;MultiLocation&gt;&gt;
 	<span class="kw">for </span>CurrencyIdtoMultiLocation&lt;AssetXConverter&gt;
 <span class="kw">where
-	</span>AssetXConverter: xcm_executor::traits::Convert&lt;MultiLocation, AssetId&gt;,
+	</span>AssetXConverter: MaybeEquivalence&lt;MultiLocation, AssetId&gt;,
 {
 	<span class="kw">fn </span>convert(currency: CurrencyId) -&gt; <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; {
 		<span class="kw">match </span>currency {
@@ -1216,7 +1211,7 @@
 				<span class="kw">let </span>multi: MultiLocation = SelfReserve::get();
 				<span class="prelude-val">Some</span>(multi)
 			}
-			CurrencyId::ForeignAsset(asset) =&gt; AssetXConverter::reverse_ref(asset).ok(),
+			CurrencyId::ForeignAsset(asset) =&gt; AssetXConverter::convert_back(<span class="kw-2">&amp;</span>asset),
 			CurrencyId::LocalAssetReserve(asset) =&gt; {
 				<span class="kw">let </span><span class="kw-2">mut </span>location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
@@ -1346,7 +1341,7 @@
 	<span class="kw">type </span>BaseXcmWeight = BaseXcmWeight;
 	<span class="kw">type </span>AssetTransactor = AssetTransactors;
 	<span class="kw">type </span>ReserveProvider = AbsoluteAndRelativeReserve&lt;SelfLocationAbsolute&gt;;
-	<span class="kw">type </span>WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_xcm_transactor::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	<span class="kw">type </span>MaxHrmpFee = xcm_builder::Case&lt;MaxHrmpRelayFee&gt;;
 	<span class="kw">type </span>HrmpEncoder = moonbeam_relay_encoder::kusama::KusamaEncoder;
@@ -1383,12 +1378,11 @@
 	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
 	</span><span class="kw">impl </span>From&lt;MultiLocation&gt; <span class="kw">for </span>CurrencyId {
 		<span class="kw">fn </span>from(location: MultiLocation) -&gt; CurrencyId {
-			<span class="kw">use </span>xcm_executor::traits::Convert <span class="kw">as </span>XConvert;
 			<span class="kw">use </span>xcm_primitives::AssetTypeGetter;
 
 			<span class="comment">// If it does not exist, for benchmarking purposes, we create the association
-			</span><span class="kw">let </span>asset_id = <span class="kw">if let </span><span class="prelude-val">Ok</span>(asset_id) =
-				AsAssetType::&lt;AssetId, AssetType, AssetManager&gt;::convert_ref(<span class="kw-2">&amp;</span>location)
+			</span><span class="kw">let </span>asset_id = <span class="kw">if let </span><span class="prelude-val">Some</span>(asset_id) =
+				AsAssetType::&lt;AssetId, AssetType, AssetManager&gt;::convert_location(<span class="kw-2">&amp;</span>location)
 			{
 				asset_id
 			} <span class="kw">else </span>{

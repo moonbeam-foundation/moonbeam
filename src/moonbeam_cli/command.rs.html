@@ -953,46 +953,6 @@
 <a href="#953" id="953">953</a>
 <a href="#954" id="954">954</a>
 <a href="#955" id="955">955</a>
-<a href="#956" id="956">956</a>
-<a href="#957" id="957">957</a>
-<a href="#958" id="958">958</a>
-<a href="#959" id="959">959</a>
-<a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a>
-<a href="#962" id="962">962</a>
-<a href="#963" id="963">963</a>
-<a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
-<a href="#966" id="966">966</a>
-<a href="#967" id="967">967</a>
-<a href="#968" id="968">968</a>
-<a href="#969" id="969">969</a>
-<a href="#970" id="970">970</a>
-<a href="#971" id="971">971</a>
-<a href="#972" id="972">972</a>
-<a href="#973" id="973">973</a>
-<a href="#974" id="974">974</a>
-<a href="#975" id="975">975</a>
-<a href="#976" id="976">976</a>
-<a href="#977" id="977">977</a>
-<a href="#978" id="978">978</a>
-<a href="#979" id="979">979</a>
-<a href="#980" id="980">980</a>
-<a href="#981" id="981">981</a>
-<a href="#982" id="982">982</a>
-<a href="#983" id="983">983</a>
-<a href="#984" id="984">984</a>
-<a href="#985" id="985">985</a>
-<a href="#986" id="986">986</a>
-<a href="#987" id="987">987</a>
-<a href="#988" id="988">988</a>
-<a href="#989" id="989">989</a>
-<a href="#990" id="990">990</a>
-<a href="#991" id="991">991</a>
-<a href="#992" id="992">992</a>
-<a href="#993" id="993">993</a>
-<a href="#994" id="994">994</a>
-<a href="#995" id="995">995</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1027,16 +987,11 @@
 };
 <span class="kw">use </span>sc_service::{
 	config::{BasePath, PrometheusConfig},
-	DatabaseSource,
+	DatabaseSource, PartialComponents,
 };
 <span class="kw">use </span>sp_core::hexdisplay::HexDisplay;
 <span class="kw">use </span>sp_runtime::traits::{AccountIdConversion, Block <span class="kw">as _</span>};
 <span class="kw">use </span>std::{io::Write, net::SocketAddr};
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-</span><span class="kw">use </span>try_runtime_cli::block_building_info::substrate_info;
-<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-</span><span class="kw">const </span>SLOT_DURATION: u64 = <span class="number">12</span>;
 
 <span class="kw">fn </span>load_spec(
 	id: <span class="kw-2">&amp;</span>str,
@@ -1133,8 +1088,10 @@
 	<span class="kw">fn </span>load_spec(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; std::result::Result&lt;Box&lt;<span class="kw">dyn </span>sc_service::ChainSpec&gt;, String&gt; {
 		load_spec(id, <span class="self">self</span>.run.parachain_id.unwrap_or(<span class="number">1000</span>).into(), <span class="kw-2">&amp;</span><span class="self">self</span>.run)
 	}
+}
 
-	<span class="kw">fn </span>native_runtime_version(spec: <span class="kw-2">&amp;</span>Box&lt;<span class="kw">dyn </span>sc_service::ChainSpec&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>RuntimeVersion {
+<span class="kw">impl </span>Cli {
+	<span class="kw">fn </span>runtime_version(spec: <span class="kw-2">&amp;</span>Box&lt;<span class="kw">dyn </span>sc_service::ChainSpec&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>RuntimeVersion {
 		<span class="kw">match </span>spec {
 			<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
 			</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; <span class="kw">return </span><span class="kw-2">&amp;</span>moonbeam_service::moonriver_runtime::VERSION,
@@ -1188,10 +1145,6 @@
 			</span><span class="kw">_ </span>=&gt; polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter())
 				.load_spec(id),
 		}
-	}
-
-	<span class="kw">fn </span>native_runtime_version(chain_spec: <span class="kw-2">&amp;</span>Box&lt;<span class="kw">dyn </span>ChainSpec&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>RuntimeVersion {
-		polkadot_cli::Cli::native_runtime_version(chain_spec)
 	}
 }
 
@@ -1401,7 +1354,7 @@
 				params.parachain_id.unwrap_or(<span class="number">1000</span>).into(),
 				<span class="kw-2">&amp;</span>cli.run,
 			)<span class="question-mark">?</span>;
-			<span class="kw">let </span>state_version = Cli::native_runtime_version(<span class="kw-2">&amp;</span>chain_spec).state_version();
+			<span class="kw">let </span>state_version = Cli::runtime_version(<span class="kw-2">&amp;</span>chain_spec).state_version();
 
 			<span class="kw">let </span>output_buf = <span class="kw">match </span>chain_spec {
 				<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
@@ -1486,7 +1439,7 @@
 							<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
 							</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; {
 								<span class="kw">return </span>runner.sync_run(|config| {
-									cmd.run::&lt;moonbeam_service::moonriver_runtime::Block, moonbeam_service::MoonriverExecutor&gt;(
+									cmd.run::&lt;moonbeam_service::moonriver_runtime::Block, moonbeam_service::HostFunctions&gt;(
 										config,
 									)
 								})
@@ -1494,7 +1447,7 @@
 							<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
 							</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; {
 								<span class="kw">return </span>runner.sync_run(|config| {
-									cmd.run::&lt;moonbeam_service::moonbeam_runtime::Block, moonbeam_service::MoonbeamExecutor&gt;(
+									cmd.run::&lt;moonbeam_service::moonbeam_runtime::Block, moonbeam_service::HostFunctions&gt;(
 										config,
 									)
 								})
@@ -1502,7 +1455,7 @@
 							<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
 							</span><span class="kw">_ </span>=&gt; {
 								<span class="kw">return </span>runner.sync_run(|config| {
-									cmd.run::&lt;moonbeam_service::moonbase_runtime::Block, moonbeam_service::MoonbaseExecutor&gt;(
+									cmd.run::&lt;moonbeam_service::moonbase_runtime::Block, moonbeam_service::HostFunctions&gt;(
 										config,
 									)
 								})
@@ -1512,7 +1465,7 @@
 						}
 					} <span class="kw">else if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>) {
 						<span class="kw">return </span>runner.sync_run(|config| {
-							cmd.run::&lt;moonbeam_service::moonbase_runtime::Block, moonbeam_service::MoonbaseExecutor&gt;(
+							cmd.run::&lt;moonbeam_service::moonbase_runtime::Block, moonbeam_service::HostFunctions&gt;(
 								config,
 							)
 						});
@@ -1631,89 +1584,62 @@
 				}
 			}
 		}
-		<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-		</span><span class="prelude-val">Some</span>(Subcommand::TryRuntime(cmd)) =&gt; {
+		<span class="prelude-val">Some</span>(Subcommand::TryRuntime) =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;The `try-runtime` subcommand has been migrated to a \
+			standalone CLI (https://github.com/paritytech/try-runtime-cli). It is no longer \
+			being maintained here and will be removed entirely some time after January 2024. \
+			Please remove this subcommand from your runtime and use the standalone CLI.&quot;
+			</span>.into()),
+		<span class="prelude-val">Some</span>(Subcommand::Key(cmd)) =&gt; <span class="prelude-val">Ok</span>(cmd.run(<span class="kw-2">&amp;</span>cli)<span class="question-mark">?</span>),
+		<span class="prelude-val">Some</span>(Subcommand::PrecompileWasm(cmd)) =&gt; {
 			<span class="kw">let </span>runner = cli.create_runner(cmd)<span class="question-mark">?</span>;
-			<span class="kw">let </span>chain_spec = <span class="kw-2">&amp;</span>runner.config().chain_spec;
-			<span class="kw">match </span>chain_spec {
+			<span class="kw">let </span>rpc_config = cli.run.new_rpc_config();
+			runner.async_run(|<span class="kw-2">mut </span>config| <span class="kw">match </span><span class="kw-2">&amp;</span>config.chain_spec {
 				<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
-				</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; runner.async_run(|config| {
-					<span class="kw">let </span>registry = config.prometheus_config.as_ref().map(|cfg| <span class="kw-2">&amp;</span>cfg.registry);
-					<span class="kw">let </span>task_manager =
-						sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
-							.map_err(|e| {
-								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
-							})<span class="question-mark">?</span>;
-
-					<span class="kw">let </span>info_provider = substrate_info(SLOT_DURATION);
-					<span class="prelude-val">Ok</span>((
-						cmd.run::&lt;
-							moonbeam_service::moonriver_runtime::Block,
-							sp_wasm_interface::ExtendedHostFunctions&lt;
-								sp_io::SubstrateHostFunctions,
-								&lt;moonbeam_service::MoonriverExecutor
-									<span class="kw">as </span>sc_service::NativeExecutionDispatch&gt;::ExtendHostFunctions,
-						&gt;, <span class="kw">_</span>&gt;(<span class="prelude-val">Some</span>(info_provider)),
+				</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; {
+					<span class="kw">let </span>PartialComponents {
 						task_manager,
-					))
-				}),
+						backend,
+						..
+					} = moonbeam_service::new_partial::&lt;
+						moonbeam_service::moonriver_runtime::RuntimeApi,
+						moonbeam_service::MoonriverExecutor,
+					&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+
+					<span class="prelude-val">Ok</span>((cmd.run(backend, config.chain_spec), task_manager))
+				}
 				<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
-				</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; runner.async_run(|config| {
-					<span class="kw">let </span>registry = config.prometheus_config.as_ref().map(|cfg| <span class="kw-2">&amp;</span>cfg.registry);
-					<span class="kw">let </span>task_manager =
-						sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
-							.map_err(|e| {
-								sc_cli::Error::Service(sc_service::Error::Prometheus(e))
-							})<span class="question-mark">?</span>;
-
-					<span class="kw">let </span>info_provider = substrate_info(SLOT_DURATION);
-					<span class="prelude-val">Ok</span>((
-						cmd.run::&lt;
-							moonbeam_service::moonbeam_runtime::Block,
-							sp_wasm_interface::ExtendedHostFunctions&lt;
-								sp_io::SubstrateHostFunctions,
-								&lt;moonbeam_service::MoonbeamExecutor
-									<span class="kw">as </span>sc_service::NativeExecutionDispatch&gt;::ExtendHostFunctions,
-						&gt;, <span class="kw">_</span>&gt;(<span class="prelude-val">Some</span>(info_provider)),
+				</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; {
+					<span class="kw">let </span>PartialComponents {
 						task_manager,
-					))
-				}),
+						backend,
+						..
+					} = moonbeam_service::new_partial::&lt;
+						moonbeam_service::moonbeam_runtime::RuntimeApi,
+						moonbeam_service::MoonbeamExecutor,
+					&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+
+					<span class="prelude-val">Ok</span>((cmd.run(backend, config.chain_spec), task_manager))
+				}
 				<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
 				</span><span class="kw">_ </span>=&gt; {
-					runner.async_run(|config| {
-						<span class="comment">// we don&#39;t need any of the components of new_partial, just a runtime, or a task
-						// manager to do `async_run`.
-						</span><span class="kw">let </span>registry = config.prometheus_config.as_ref().map(|cfg| <span class="kw-2">&amp;</span>cfg.registry);
-						<span class="kw">let </span>task_manager =
-							sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
-								.map_err(|e| {
-									sc_cli::Error::Service(sc_service::Error::Prometheus(e))
-								})<span class="question-mark">?</span>;
+					<span class="kw">let </span>PartialComponents {
+						task_manager,
+						backend,
+						..
+					} = moonbeam_service::new_partial::&lt;
+						moonbeam_service::moonbase_runtime::RuntimeApi,
+						moonbeam_service::MoonbaseExecutor,
+					&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
-						<span class="kw">let </span>info_provider = substrate_info(SLOT_DURATION);
-						<span class="prelude-val">Ok</span>((
-							cmd.run::&lt;
-								moonbeam_service::moonbase_runtime::Block,
-								sp_wasm_interface::ExtendedHostFunctions&lt;
-									sp_io::SubstrateHostFunctions,
-									&lt;moonbeam_service::MoonbaseExecutor
-										<span class="kw">as </span>sc_service::NativeExecutionDispatch&gt;::ExtendHostFunctions,
-							&gt;, <span class="kw">_</span>&gt;(<span class="prelude-val">Some</span>(info_provider)),
-							task_manager,
-						))
-					})
+					<span class="prelude-val">Ok</span>((cmd.run(backend, config.chain_spec), task_manager))
 				}
 				<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
 				</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
-			}
+			})
 		}
-		<span class="attr">#[cfg(not(feature = <span class="string">&quot;try-runtime&quot;</span>))]
-		</span><span class="prelude-val">Some</span>(Subcommand::TryRuntime) =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;TryRuntime wasn&#39;t enabled when building the node. \
-				You can enable it at build time with `--features try-runtime`.&quot;
-			</span>.into()),
-		<span class="prelude-val">Some</span>(Subcommand::Key(cmd)) =&gt; <span class="prelude-val">Ok</span>(cmd.run(<span class="kw-2">&amp;</span>cli)<span class="question-mark">?</span>),
 		<span class="prelude-val">None </span>=&gt; {
 			<span class="kw">let </span>runner = cli.create_runner(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>cli.run).normalize())<span class="question-mark">?</span>;
+			<span class="kw">let </span>collator_options = cli.run.collator_options();
 			runner.run_node_until_exit(|config| <span class="kw">async move </span>{
 				<span class="kw">let </span>hwbench = <span class="kw">if </span>!cli.run.no_hardware_benchmarks {
 					config.database.path().map(|database_path| {
@@ -1737,8 +1663,9 @@
 				// 2. by specifying &quot;dev-service&quot; in the chain spec&#39;s &quot;relay-chain&quot; field.
 				// NOTE: the --dev flag triggers the dev service by way of number 2
 				</span><span class="kw">let </span>relay_chain_id = extension.map(|e| e.relay_chain.as_str());
-				<span class="kw">let </span>dev_service =
-					config.chain_spec.is_dev() || relay_chain_id == <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>);
+				<span class="kw">let </span>dev_service = cli.run.dev_service
+					|| config.chain_spec.is_dev()
+					|| relay_chain_id == <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>);
 
 				<span class="kw">if </span>dev_service {
 					<span class="comment">// When running the dev service, just use Alice&#39;s author inherent
@@ -1783,42 +1710,14 @@
 				);
 
 				<span class="kw">let </span>parachain_account =
-					AccountIdConversion::&lt;polkadot_primitives::v4::AccountId&gt;::into_account_truncating(<span class="kw-2">&amp;</span>id);
-
-				<span class="kw">let </span>state_version =
-					RelayChainCli::native_runtime_version(<span class="kw-2">&amp;</span>config.chain_spec).state_version();
-
-				<span class="kw">let </span>genesis_state = <span class="kw">match </span><span class="kw-2">&amp;</span>config.chain_spec {
-					<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
-					</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; {
-						<span class="kw">let </span>block: moonbeam_service::moonriver_runtime::Block =
-							generate_genesis_block(<span class="kw-2">&amp;**</span>spec, state_version)<span class="question-mark">?</span>;
-						<span class="macro">format!</span>(<span class="string">&quot;0x{:?}&quot;</span>, HexDisplay::from(<span class="kw-2">&amp;</span>block.header().encode()))
-					}
-					<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
-					</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; {
-						<span class="kw">let </span>block: moonbeam_service::moonbeam_runtime::Block =
-							generate_genesis_block(<span class="kw-2">&amp;**</span>spec, state_version)<span class="question-mark">?</span>;
-						<span class="macro">format!</span>(<span class="string">&quot;0x{:?}&quot;</span>, HexDisplay::from(<span class="kw-2">&amp;</span>block.header().encode()))
-					}
-					<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
-					</span><span class="kw">_ </span>=&gt; {
-						<span class="kw">let </span>block: moonbeam_service::moonbase_runtime::Block =
-							generate_genesis_block(<span class="kw-2">&amp;*</span>config.chain_spec, state_version)<span class="question-mark">?</span>;
-						<span class="macro">format!</span>(<span class="string">&quot;0x{:?}&quot;</span>, HexDisplay::from(<span class="kw-2">&amp;</span>block.header().encode()))
-					}
-					<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
-					</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
-				};
+					AccountIdConversion::&lt;polkadot_primitives::v5::AccountId&gt;::into_account_truncating(<span class="kw-2">&amp;</span>id);
 
 				<span class="kw">let </span>tokio_handle = config.tokio_handle.clone();
 				<span class="kw">let </span>polkadot_config =
 					SubstrateCli::create_configuration(<span class="kw-2">&amp;</span>polkadot_cli, <span class="kw-2">&amp;</span>polkadot_cli, tokio_handle)
 						.map_err(|err| <span class="macro">format!</span>(<span class="string">&quot;Relay chain argument error: {}&quot;</span>, err))<span class="question-mark">?</span>;
 
-				<span class="macro">info!</span>(<span class="string">&quot;Parachain id: {:?}&quot;</span>, id);
 				<span class="macro">info!</span>(<span class="string">&quot;Parachain Account: {}&quot;</span>, parachain_account);
-				<span class="macro">info!</span>(<span class="string">&quot;Parachain genesis state: {}&quot;</span>, genesis_state);
 				<span class="macro">info!</span>(
 					<span class="string">&quot;Is collating: {}&quot;</span>,
 					<span class="kw">if </span>config.role.is_authority() {
@@ -1841,7 +1740,14 @@
 					</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; moonbeam_service::start_node::&lt;
 						moonbeam_service::moonriver_runtime::RuntimeApi,
 						moonbeam_service::MoonriverExecutor,
-					&gt;(config, polkadot_config, id, rpc_config, hwbench)
+					&gt;(
+						config,
+						polkadot_config,
+						collator_options,
+						id,
+						rpc_config,
+						hwbench,
+					)
 					.<span class="kw">await
 					</span>.map(|r| r.<span class="number">0</span>)
 					.map_err(Into::into),
@@ -1849,7 +1755,14 @@
 					</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; moonbeam_service::start_node::&lt;
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
 						moonbeam_service::MoonbeamExecutor,
-					&gt;(config, polkadot_config, id, rpc_config, hwbench)
+					&gt;(
+						config,
+						polkadot_config,
+						collator_options,
+						id,
+						rpc_config,
+						hwbench,
+					)
 					.<span class="kw">await
 					</span>.map(|r| r.<span class="number">0</span>)
 					.map_err(Into::into),
@@ -1857,7 +1770,14 @@
 					</span><span class="kw">_ </span>=&gt; moonbeam_service::start_node::&lt;
 						moonbeam_service::moonbase_runtime::RuntimeApi,
 						moonbeam_service::MoonbaseExecutor,
-					&gt;(config, polkadot_config, id, rpc_config, hwbench)
+					&gt;(
+						config,
+						polkadot_config,
+						collator_options,
+						id,
+						rpc_config,
+						hwbench,
+					)
 					.<span class="kw">await
 					</span>.map(|r| r.<span class="number">0</span>)
 					.map_err(Into::into),

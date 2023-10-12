@@ -665,6 +665,8 @@
 <a href="#665" id="665">665</a>
 <a href="#666" id="666">666</a>
 <a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -684,10 +686,11 @@
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">use </span>fp_evm::PrecompileHandle;
-<span class="kw">use </span>frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+<span class="kw">use </span>frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 <span class="kw">use </span>frame_support::traits::{
 	schedule::DispatchTime, Bounded, Currency, Get, OriginTrait, VoteTally,
 };
+<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>pallet_referenda::{
 	Call <span class="kw">as </span>ReferendaCall, DecidingCount, Deposit, Pallet <span class="kw">as </span>Referenda, ReferendumCount,
@@ -696,6 +699,7 @@
 <span class="kw">use </span>parity_scale_codec::{Encode, MaxEncodedLen};
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, H256, U256};
+<span class="kw">use </span>sp_runtime::traits::Dispatchable;
 <span class="kw">use </span>sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 <span class="attr">#[cfg(test)]
@@ -710,7 +714,7 @@
 &gt;&gt;::Balance;
 <span class="kw">type </span>TrackIdOf&lt;Runtime&gt; = &lt;&lt;Runtime <span class="kw">as </span>pallet_referenda::Config&gt;::Tracks <span class="kw">as </span>TracksInfo&lt;
 	BalanceOf&lt;Runtime&gt;,
-	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::BlockNumber,
+	BlockNumberFor&lt;Runtime&gt;,
 &gt;&gt;::Id;
 <span class="kw">type </span>BoundedCallOf&lt;Runtime&gt; = Bounded&lt;&lt;Runtime <span class="kw">as </span>pallet_referenda::Config&gt;::RuntimeCall&gt;;
 
@@ -808,7 +812,7 @@
 		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;ReferendaCall&lt;Runtime&gt;&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash: Into&lt;H256&gt;,
-	Runtime::BlockNumber: Into&lt;U256&gt;,
+	BlockNumberFor&lt;Runtime&gt;: Into&lt;U256&gt;,
 	Runtime::AccountId: Into&lt;H160&gt;,
 	TrackIdOf&lt;Runtime&gt;: TryFrom&lt;u16&gt; + TryInto&lt;u16&gt;,
 	BalanceOf&lt;Runtime&gt;: Into&lt;U256&gt;,
@@ -926,7 +930,7 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		track_id: u16,
 		proposal: BoundedCallOf&lt;Runtime&gt;,
-		enactment_moment: DispatchTime&lt;Runtime::BlockNumber&gt;,
+		enactment_moment: DispatchTime&lt;BlockNumberFor&lt;Runtime&gt;&gt;,
 	) -&gt; EvmResult&lt;u32&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;referendum-precompile&quot;</span>,
@@ -954,7 +958,7 @@
 		}
 		.into();
 
-		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(referendum_index)
 	}
@@ -1069,7 +1073,7 @@
 
 		<span class="kw">let </span>get_closed_ref_info =
 			|status,
-			 moment: Runtime::BlockNumber,
+			 moment: BlockNumberFor&lt;Runtime&gt;,
 			 submission_deposit: <span class="prelude-ty">Option</span>&lt;Deposit&lt;Runtime::AccountId, BalanceOf&lt;Runtime&gt;&gt;&gt;,
 			 decision_deposit: <span class="prelude-ty">Option</span>&lt;Deposit&lt;Runtime::AccountId, BalanceOf&lt;Runtime&gt;&gt;&gt;|
 			 -&gt; ClosedReferendumInfo {
@@ -1230,7 +1234,7 @@
 
 		<span class="kw">let </span>call = ReferendaCall::&lt;Runtime&gt;::place_decision_deposit { index }.into();
 
-		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Once the deposit has been succesfully placed, it is available in the ReferendumStatus.
 		</span><span class="kw">let </span>ongoing_referendum = Referenda::&lt;Runtime&gt;::ensure_ongoing(index).map_err(|<span class="kw">_</span>| {
@@ -1283,7 +1287,7 @@
 
 		<span class="kw">let </span>call = ReferendaCall::&lt;Runtime&gt;::refund_decision_deposit { index }.into();
 
-		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>event = log1(
 			handle.context().address,
 			SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED,
@@ -1319,7 +1323,7 @@
 
 		<span class="kw">let </span>call = ReferendaCall::&lt;Runtime&gt;::refund_submission_deposit { index }.into();
 
-		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>event = log1(
 			handle.context().address,

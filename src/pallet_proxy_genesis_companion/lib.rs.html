@@ -120,6 +120,7 @@
 <span class="attr">#[pallet]
 </span><span class="kw">pub mod </span>pallet {
 	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
+	<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 	<span class="kw">use </span>sp_std::vec::Vec;
 
 	<span class="doccomment">/// Pallet for configuring proxy at genesis
@@ -144,12 +145,11 @@
 			T::AccountId,
 			T::AccountId,
 			&lt;T <span class="kw">as </span>Config&gt;::ProxyType,
-			T::BlockNumber,
+			BlockNumberFor&lt;T&gt;,
 		)&gt;,
 	}
 
-	<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-	</span><span class="kw">impl</span>&lt;T: Config&gt; Default <span class="kw">for </span>GenesisConfig&lt;T&gt; {
+	<span class="kw">impl</span>&lt;T: Config&gt; Default <span class="kw">for </span>GenesisConfig&lt;T&gt; {
 		<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
 			<span class="self">Self </span>{
 				proxies: Vec::new(),
@@ -158,7 +158,7 @@
 	}
 
 	<span class="attr">#[pallet::genesis_build]
-	</span><span class="kw">impl</span>&lt;T: Config&gt; GenesisBuild&lt;T&gt; <span class="kw">for </span>GenesisConfig&lt;T&gt; {
+	</span><span class="kw">impl</span>&lt;T: Config&gt; BuildGenesisConfig <span class="kw">for </span>GenesisConfig&lt;T&gt; {
 		<span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) {
 			<span class="kw">for </span>(delegator, delegatee, proxy_type, delay) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.proxies {
 				pallet_proxy::Pallet::&lt;T&gt;::add_proxy_delegate(

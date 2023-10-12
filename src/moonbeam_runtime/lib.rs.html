@@ -1705,6 +1705,94 @@
 <a href="#1705" id="1705">1705</a>
 <a href="#1706" id="1706">1706</a>
 <a href="#1707" id="1707">1707</a>
+<a href="#1708" id="1708">1708</a>
+<a href="#1709" id="1709">1709</a>
+<a href="#1710" id="1710">1710</a>
+<a href="#1711" id="1711">1711</a>
+<a href="#1712" id="1712">1712</a>
+<a href="#1713" id="1713">1713</a>
+<a href="#1714" id="1714">1714</a>
+<a href="#1715" id="1715">1715</a>
+<a href="#1716" id="1716">1716</a>
+<a href="#1717" id="1717">1717</a>
+<a href="#1718" id="1718">1718</a>
+<a href="#1719" id="1719">1719</a>
+<a href="#1720" id="1720">1720</a>
+<a href="#1721" id="1721">1721</a>
+<a href="#1722" id="1722">1722</a>
+<a href="#1723" id="1723">1723</a>
+<a href="#1724" id="1724">1724</a>
+<a href="#1725" id="1725">1725</a>
+<a href="#1726" id="1726">1726</a>
+<a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
+<a href="#1733" id="1733">1733</a>
+<a href="#1734" id="1734">1734</a>
+<a href="#1735" id="1735">1735</a>
+<a href="#1736" id="1736">1736</a>
+<a href="#1737" id="1737">1737</a>
+<a href="#1738" id="1738">1738</a>
+<a href="#1739" id="1739">1739</a>
+<a href="#1740" id="1740">1740</a>
+<a href="#1741" id="1741">1741</a>
+<a href="#1742" id="1742">1742</a>
+<a href="#1743" id="1743">1743</a>
+<a href="#1744" id="1744">1744</a>
+<a href="#1745" id="1745">1745</a>
+<a href="#1746" id="1746">1746</a>
+<a href="#1747" id="1747">1747</a>
+<a href="#1748" id="1748">1748</a>
+<a href="#1749" id="1749">1749</a>
+<a href="#1750" id="1750">1750</a>
+<a href="#1751" id="1751">1751</a>
+<a href="#1752" id="1752">1752</a>
+<a href="#1753" id="1753">1753</a>
+<a href="#1754" id="1754">1754</a>
+<a href="#1755" id="1755">1755</a>
+<a href="#1756" id="1756">1756</a>
+<a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
+<a href="#1763" id="1763">1763</a>
+<a href="#1764" id="1764">1764</a>
+<a href="#1765" id="1765">1765</a>
+<a href="#1766" id="1766">1766</a>
+<a href="#1767" id="1767">1767</a>
+<a href="#1768" id="1768">1768</a>
+<a href="#1769" id="1769">1769</a>
+<a href="#1770" id="1770">1770</a>
+<a href="#1771" id="1771">1771</a>
+<a href="#1772" id="1772">1772</a>
+<a href="#1773" id="1773">1773</a>
+<a href="#1774" id="1774">1774</a>
+<a href="#1775" id="1775">1775</a>
+<a href="#1776" id="1776">1776</a>
+<a href="#1777" id="1777">1777</a>
+<a href="#1778" id="1778">1778</a>
+<a href="#1779" id="1779">1779</a>
+<a href="#1780" id="1780">1780</a>
+<a href="#1781" id="1781">1781</a>
+<a href="#1782" id="1782">1782</a>
+<a href="#1783" id="1783">1783</a>
+<a href="#1784" id="1784">1784</a>
+<a href="#1785" id="1785">1785</a>
+<a href="#1786" id="1786">1786</a>
+<a href="#1787" id="1787">1787</a>
+<a href="#1788" id="1788">1788</a>
+<a href="#1789" id="1789">1789</a>
+<a href="#1790" id="1790">1790</a>
+<a href="#1791" id="1791">1791</a>
+<a href="#1792" id="1792">1792</a>
+<a href="#1793" id="1793">1793</a>
+<a href="#1794" id="1794">1794</a>
+<a href="#1795" id="1795">1795</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1747,7 +1835,7 @@
 <span class="kw">pub use </span>frame_support::traits::Get;
 <span class="kw">use </span>frame_support::{
 	construct_runtime,
-	dispatch::{DispatchClass, GetDispatchInfo},
+	dispatch::{DispatchClass, GetDispatchInfo, PostDispatchInfo},
 	ensure,
 	pallet_prelude::DispatchResult,
 	parameter_types,
@@ -1769,6 +1857,7 @@
 	Index, Signature,
 };
 <span class="kw">use </span>moonbeam_rpc_primitives_txpool::TxPoolResponse;
+<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbeam_weights;
 <span class="kw">use </span>pallet_balances::NegativeImbalance;
 <span class="kw">use </span>pallet_ethereum::Call::transact;
 <span class="kw">use </span>pallet_ethereum::{PostLogContent, Transaction <span class="kw">as </span>EthereumTransaction};
@@ -1777,13 +1866,16 @@
 	FeeCalculator, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction <span class="kw">as </span>OnChargeEVMTransactionT, Runner,
 };
-<span class="kw">pub use </span>pallet_parachain_staking::{InflationInfo, Range};
+<span class="kw">pub use </span>pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 <span class="kw">use </span>pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 <span class="kw">use </span>scale_info::TypeInfo;
+<span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>smallvec::smallvec;
 <span class="kw">use </span>sp_api::impl_runtime_apis;
 <span class="kw">use </span>sp_core::{OpaqueMetadata, H160, H256, U256};
+<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+</span><span class="kw">use </span>sp_runtime::TryRuntimeError;
 <span class="kw">use </span>sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
@@ -1793,7 +1885,8 @@
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill, SaturatedConversion,
+	ApplyExtrinsicResult, DispatchErrorWithPostInfo, FixedPointNumber, Perbill, Permill,
+	Perquintill, SaturatedConversion,
 };
 <span class="kw">use </span>sp_std::{convert::TryFrom, prelude::<span class="kw-2">*</span>};
 
@@ -1882,7 +1975,7 @@
 	spec_name: <span class="macro">create_runtime_str!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	impl_name: <span class="macro">create_runtime_str!</span>(<span class="string">&quot;moonbeam&quot;</span>),
 	authoring_version: <span class="number">3</span>,
-	spec_version: <span class="number">2500</span>,
+	spec_version: <span class="number">2600</span>,
 	impl_version: <span class="number">0</span>,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: <span class="number">2</span>,
@@ -1939,15 +2032,13 @@
 	<span class="doccomment">/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
 	</span><span class="kw">type </span>Lookup = IdentityLookup&lt;AccountId&gt;;
 	<span class="doccomment">/// The index type for storing how many extrinsics an account has signed.
-	</span><span class="kw">type </span>Index = Index;
+	</span><span class="kw">type </span>Nonce = Index;
 	<span class="doccomment">/// The index type for blocks.
-	</span><span class="kw">type </span>BlockNumber = BlockNumber;
+	</span><span class="kw">type </span>Block = Block;
 	<span class="doccomment">/// The type for hashing blocks and tries.
 	</span><span class="kw">type </span>Hash = Hash;
 	<span class="doccomment">/// The hashing algorithm used.
 	</span><span class="kw">type </span>Hashing = BlakeTwo256;
-	<span class="doccomment">/// The header type.
-	</span><span class="kw">type </span>Header = generic::Header&lt;BlockNumber, BlakeTwo256&gt;;
 	<span class="doccomment">/// The ubiquitous event type.
 	</span><span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="doccomment">/// The ubiquitous origin type.
@@ -1977,7 +2068,7 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>RuntimeCall = RuntimeCall;
 	<span class="kw">type </span>PalletsOrigin = OriginCaller;
-	<span class="kw">type </span>WeightInfo = pallet_utility::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_utility::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_timestamp::Config <span class="kw">for </span>Runtime {
@@ -1985,7 +2076,7 @@
 	</span><span class="kw">type </span>Moment = u64;
 	<span class="kw">type </span>OnTimestampSet = ();
 	<span class="kw">type </span>MinimumPeriod = ConstU64&lt;<span class="number">6000</span>&gt;;
-	<span class="kw">type </span>WeightInfo = pallet_timestamp::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_balances::Config <span class="kw">for </span>Runtime {
@@ -2001,9 +2092,9 @@
 	<span class="kw">type </span>AccountStore = System;
 	<span class="kw">type </span>FreezeIdentifier = ();
 	<span class="kw">type </span>MaxFreezes = ConstU32&lt;<span class="number">0</span>&gt;;
-	<span class="kw">type </span>HoldIdentifier = ();
+	<span class="kw">type </span>RuntimeHoldReason = RuntimeHoldReason;
 	<span class="kw">type </span>MaxHolds = ConstU32&lt;<span class="number">0</span>&gt;;
-	<span class="kw">type </span>WeightInfo = pallet_balances::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_balances::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">pub struct </span>DealWithFees&lt;R&gt;(sp_std::marker::PhantomData&lt;R&gt;);
@@ -2071,7 +2162,7 @@
 	<span class="kw">type </span>FeeMultiplierUpdate = SlowAdjustingFeeUpdate&lt;Runtime&gt;;
 }
 
-<span class="kw">impl </span>pallet_ethereum_chain_id::Config <span class="kw">for </span>Runtime {}
+<span class="kw">impl </span>pallet_evm_chain_id::Config <span class="kw">for </span>Runtime {}
 
 <span class="doccomment">/// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
@@ -2109,6 +2200,8 @@
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
 	</span><span class="kw">pub const </span>GasLimitPovSizeRatio: u64 = <span class="number">4</span>;
+	<span class="doccomment">/// The amount of gas per storage (in bytes).
+	</span><span class="kw">pub </span>GasLimitStorageGrowthRatio: u64 = <span class="number">0</span>;
 }
 
 <span class="kw">pub struct </span>TransactionPaymentAsGasPrice;
@@ -2196,8 +2289,9 @@
 	<span class="kw">type </span>FindAuthor = FindAuthorAdapter&lt;AuthorInherent&gt;;
 	<span class="kw">type </span>OnCreate = ();
 	<span class="kw">type </span>GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	<span class="kw">type </span>GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	<span class="kw">type </span>Timestamp = Timestamp;
-	<span class="kw">type </span>WeightInfo = pallet_evm::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_evm::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2212,13 +2306,13 @@
 	<span class="kw">type </span>MaximumWeight = MaximumSchedulerWeight;
 	<span class="kw">type </span>ScheduleOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>MaxScheduledPerBlock = ConstU32&lt;<span class="number">50</span>&gt;;
-	<span class="kw">type </span>WeightInfo = pallet_scheduler::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_scheduler::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>OriginPrivilegeCmp = EqualPrivilegeOnly;
 	<span class="kw">type </span>Preimages = Preimage;
 }
 
 <span class="kw">impl </span>pallet_preimage::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>WeightInfo = pallet_preimage::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_preimage::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>ManagerOrigin = EnsureRoot&lt;AccountId&gt;;
@@ -2257,7 +2351,7 @@
 	<span class="kw">type </span>Burn = ();
 	<span class="kw">type </span>BurnDestination = ();
 	<span class="kw">type </span>MaxApprovals = ConstU32&lt;<span class="number">100</span>&gt;;
-	<span class="kw">type </span>WeightInfo = pallet_treasury::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_treasury::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>SpendFunds = ();
 	<span class="kw">type </span>ProposalBondMaximum = ();
 	<span class="kw">type </span>SpendOrigin = frame_support::traits::NeverEnsureOrigin&lt;Balance&gt;; <span class="comment">// Same as Polkadot
@@ -2293,7 +2387,7 @@
 	<span class="kw">type </span>Slashed = Treasury;
 	<span class="kw">type </span>ForceOrigin = IdentityForceOrigin;
 	<span class="kw">type </span>RegistrarOrigin = IdentityRegistrarOrigin;
-	<span class="kw">type </span>WeightInfo = pallet_identity::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_identity::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">pub struct </span>TransactionConverter;
@@ -2401,6 +2495,26 @@
 	}
 }
 
+<span class="kw">pub struct </span>OnInactiveCollator;
+<span class="kw">impl </span>pallet_parachain_staking::OnInactiveCollator&lt;Runtime&gt; <span class="kw">for </span>OnInactiveCollator {
+	<span class="kw">fn </span>on_inactive_collator(
+		collator_id: AccountId,
+		round: pallet_parachain_staking::RoundIndex,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, DispatchErrorWithPostInfo&lt;PostDispatchInfo&gt;&gt; {
+		<span class="kw">let </span>extra_weight = <span class="kw">if </span>!MoonbeamOrbiters::is_orbiter(round, collator_id.clone()) {
+			ParachainStaking::go_offline_inner(collator_id)<span class="question-mark">?</span>;
+			&lt;Runtime <span class="kw">as </span>pallet_parachain_staking::Config&gt;::WeightInfo::go_offline(
+				pallet_parachain_staking::MAX_CANDIDATES,
+			)
+		} <span class="kw">else </span>{
+			Weight::zero()
+		};
+
+		<span class="prelude-val">Ok</span>(&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get()
+			.reads(<span class="number">1</span>)
+			.saturating_add(extra_weight))
+	}
+}
 <span class="kw">type </span>MonetaryGovernanceOrigin =
 	EitherOfDiverse&lt;EnsureRoot&lt;AccountId&gt;, governance::custom_origins::GeneralAdmin&gt;;
 
@@ -2410,6 +2524,8 @@
 	<span class="kw">type </span>MonetaryGovernanceOrigin = MonetaryGovernanceOrigin;
 	<span class="doccomment">/// Minimum round length is 2 minutes (10 * 12 second block times)
 	</span><span class="kw">type </span>MinBlocksPerRound = ConstU32&lt;<span class="number">10</span>&gt;;
+	<span class="doccomment">/// If a collator doesn&#39;t produce any block on this number of rounds, it is notified as inactive
+	</span><span class="kw">type </span>MaxOfflineRounds = ConstU32&lt;<span class="number">1</span>&gt;;
 	<span class="doccomment">/// Rounds before the collator leaving the candidates request can be executed
 	</span><span class="kw">type </span>LeaveCandidatesDelay = ConstU32&lt;{ <span class="number">4 </span>* <span class="number">7 </span>}&gt;;
 	<span class="doccomment">/// Rounds before the candidate bond increase/decrease can be executed
@@ -2437,8 +2553,9 @@
 	<span class="kw">type </span>BlockAuthor = AuthorInherent;
 	<span class="kw">type </span>OnCollatorPayout = ();
 	<span class="kw">type </span>PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
+	<span class="kw">type </span>OnInactiveCollator = OnInactiveCollator;
 	<span class="kw">type </span>OnNewRound = OnNewRound;
-	<span class="kw">type </span>WeightInfo = pallet_parachain_staking::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>MaxCandidates = ConstU32&lt;<span class="number">200</span>&gt;;
 }
 
@@ -2447,14 +2564,14 @@
 	<span class="kw">type </span>AccountLookup = MoonbeamOrbiters;
 	<span class="kw">type </span>CanAuthor = AuthorFilter;
 	<span class="kw">type </span>AuthorId = AccountId;
-	<span class="kw">type </span>WeightInfo = pallet_author_inherent::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_author_inherent::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_author_slot_filter::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>RandomnessSource = Randomness;
 	<span class="kw">type </span>PotentialAuthors = ParachainStaking;
-	<span class="kw">type </span>WeightInfo = pallet_author_slot_filter::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_author_slot_filter::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2477,7 +2594,7 @@
 	<span class="kw">type </span>SignatureNetworkIdentifier = SignatureNetworkIdentifier;
 	<span class="kw">type </span>VestingBlockNumber = relay_chain::BlockNumber;
 	<span class="kw">type </span>VestingBlockProvider = RelaychainDataProvider&lt;<span class="self">Self</span>&gt;;
-	<span class="kw">type </span>WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_crowdloan_rewards::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="comment">// This is a simple session key manager. It should probably either work with, or be replaced
@@ -2487,13 +2604,24 @@
 	<span class="kw">type </span>DepositCurrency = Balances;
 	<span class="kw">type </span>DepositAmount = ConstU128&lt;{ <span class="number">100 </span>* currency::GLMR * currency::SUPPLY_FACTOR }&gt;;
 	<span class="kw">type </span>Keys = session_keys_primitives::VrfId;
-	<span class="kw">type </span>WeightInfo = pallet_author_mapping::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_author_mapping::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="doccomment">/// The type used to represent the kinds of proxying allowed.
-</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
-#[derive(
-	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
+</span><span class="attr">#[derive(
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	MaxEncodedLen,
+	TypeInfo,
+	Serialize,
+	Deserialize,
 )]
 </span><span class="kw">pub enum </span>ProxyType {
 	<span class="doccomment">/// All calls can be proxied. This is the trivial/most permissive filter.
@@ -2708,7 +2836,7 @@
 	<span class="comment">// Additional storage item size of 21 bytes (20 bytes AccountId + 1 byte sizeof(ProxyType)).
 	</span><span class="kw">type </span>ProxyDepositFactor = ConstU128&lt;{ currency::deposit(<span class="number">0</span>, <span class="number">21</span>) }&gt;;
 	<span class="kw">type </span>MaxProxies = ConstU32&lt;<span class="number">32</span>&gt;;
-	<span class="kw">type </span>WeightInfo = pallet_proxy::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_proxy::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>MaxPending = ConstU32&lt;<span class="number">32</span>&gt;;
 	<span class="kw">type </span>CallHasher = BlakeTwo256;
 	<span class="kw">type </span>AnnouncementDepositBase = ConstU128&lt;{ currency::deposit(<span class="number">1</span>, <span class="number">8</span>) }&gt;;
@@ -2870,6 +2998,12 @@
 	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
 		AllPalletsWithSystem::on_runtime_upgrade()
 	}
+
+	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>try_on_runtime_upgrade(checks: bool) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, TryRuntimeError&gt; {
+		AllPalletsWithSystem::try_on_runtime_upgrade(checks)
+	}
+
 	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sp_runtime::DispatchError&gt; {
 		AllPalletsWithSystem::pre_upgrade()
@@ -2935,7 +3069,7 @@
 	<span class="kw">type </span>RotatePeriod = ConstU32&lt;<span class="number">1</span>&gt;;
 	<span class="doccomment">/// Round index type.
 	</span><span class="kw">type </span>RoundIndex = pallet_parachain_staking::RoundIndex;
-	<span class="kw">type </span>WeightInfo = pallet_moonbeam_orbiters::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_moonbeam_orbiters::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="doccomment">/// Only callable after `set_validation_data` is called which forms this proof the same way
@@ -2993,7 +3127,7 @@
 	<span class="kw">type </span>MaxBlockDelay = ConstU32&lt;<span class="number">2_000</span>&gt;;
 	<span class="kw">type </span>BlockExpirationDelay = ConstU32&lt;<span class="number">10_000</span>&gt;;
 	<span class="kw">type </span>EpochExpirationDelay = ConstU64&lt;<span class="number">10_000</span>&gt;;
-	<span class="kw">type </span>WeightInfo = pallet_randomness::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_randomness::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_root_testing::Config <span class="kw">for </span>Runtime {}
@@ -3013,40 +3147,37 @@
 	<span class="kw">type </span>DepositBase = DepositBase;
 	<span class="kw">type </span>DepositFactor = DepositFactor;
 	<span class="kw">type </span>MaxSignatories = MaxSignatories;
-	<span class="kw">type </span>WeightInfo = pallet_multisig::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="macro">construct_runtime! </span>{
-	<span class="kw">pub enum </span>Runtime <span class="kw">where
-		</span>Block = Block,
-		NodeBlock = opaque::Block,
-		UncheckedExtrinsic = UncheckedExtrinsic
+	<span class="kw">pub enum </span>Runtime
 	{
 		<span class="comment">// System support stuff.
-		</span>System: frame_system::{Pallet, Call, Storage, Config, Event&lt;T&gt;} = <span class="number">0</span>,
+		</span>System: frame_system::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">0</span>,
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event&lt;T&gt;} = <span class="number">1</span>,
 		<span class="comment">// Previously 2: pallet_randomness_collective_flip
 		</span>Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = <span class="number">3</span>,
-		ParachainInfo: parachain_info::{Pallet, Storage, Config} = <span class="number">4</span>,
+		ParachainInfo: parachain_info::{Pallet, Storage, Config&lt;T&gt;} = <span class="number">4</span>,
 		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = <span class="number">5</span>,
 
 		<span class="comment">// Monetary stuff.
 		</span>Balances: pallet_balances::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">10</span>,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config, Event&lt;T&gt;} = <span class="number">11</span>,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">11</span>,
 
 		<span class="comment">// Consensus support.
 		</span>ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">20</span>,
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = <span class="number">21</span>,
-		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config} = <span class="number">22</span>,
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config&lt;T&gt;} = <span class="number">22</span>,
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config&lt;T&gt;, Storage, Event&lt;T&gt;} = <span class="number">23</span>,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">24</span>,
 
 		<span class="comment">// Handy utilities.
 		</span>Utility: pallet_utility::{Pallet, Call, Event} = <span class="number">30</span>,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">31</span>,
-		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = <span class="number">32</span>,
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config&lt;T&gt;, Storage, Event} = <span class="number">32</span>,
 		Identity: pallet_identity::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">33</span>,
-		Migrations: pallet_migrations::{Pallet, Storage, Config, Event&lt;T&gt;} = <span class="number">34</span>,
+		Migrations: pallet_migrations::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">34</span>,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config&lt;T&gt;} = <span class="number">35</span>,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">36</span>,
 
@@ -3054,9 +3185,9 @@
 		// Sudo: pallet_sudo::{Pallet, Call, Config&lt;T&gt;, Storage, Event&lt;T&gt;} = 40,
 
 		// Ethereum compatibility.
-		</span>EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = <span class="number">50</span>,
-		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event&lt;T&gt;} = <span class="number">51</span>,
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = <span class="number">52</span>,
+		</span>EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config&lt;T&gt;} = <span class="number">50</span>,
+		EVM: pallet_evm::{Pallet, Config&lt;T&gt;, Call, Storage, Event&lt;T&gt;} = <span class="number">51</span>,
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config&lt;T&gt;} = <span class="number">52</span>,
 
 		<span class="comment">// Governance stuff.
 		</span>Scheduler: pallet_scheduler::{Pallet, Storage, Event&lt;T&gt;, Call} = <span class="number">60</span>,
@@ -3078,7 +3209,7 @@
 			pallet_collective::&lt;Instance4&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Origin&lt;T&gt;, Config&lt;T&gt;} = <span class="number">73</span>,
 
 		<span class="comment">// Treasury stuff.
-		</span>Treasury: pallet_treasury::{Pallet, Storage, Config, Event&lt;T&gt;, Call} = <span class="number">80</span>,
+		</span>Treasury: pallet_treasury::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;, Call} = <span class="number">80</span>,
 
 		<span class="comment">// Crowdloan stuff.
 		</span>CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config&lt;T&gt;, Storage, Event&lt;T&gt;} = <span class="number">90</span>,
@@ -3087,7 +3218,7 @@
 		</span>XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Storage, Event&lt;T&gt;} = <span class="number">100</span>,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event&lt;T&gt;, Origin} = <span class="number">101</span>,
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">102</span>,
-		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event&lt;T&gt;, Origin, Config} = <span class="number">103</span>,
+		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event&lt;T&gt;, Origin, Config&lt;T&gt;} = <span class="number">103</span>,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">104</span>,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">105</span>,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">106</span>,
@@ -3100,6 +3231,45 @@
 		<span class="comment">// Randomness
 		</span>Randomness: pallet_randomness::{Pallet, Call, Storage, Event&lt;T&gt;, Inherent} = <span class="number">120</span>,
 	}
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+</span><span class="kw">use </span>{
+	moonbeam_xcm_benchmarks::generic::benchmarking <span class="kw">as </span>MoonbeamXcmBenchmarks,
+	MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench,
+};
+<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+</span><span class="kw">mod </span>benches {
+	<span class="macro">frame_benchmarking::define_benchmarks!</span>(
+		[pallet_utility, Utility]
+		[pallet_timestamp, Timestamp]
+		[pallet_balances, Balances]
+		[pallet_evm, EVM]
+		[pallet_assets, Assets]
+		[pallet_collective, CouncilCollective]
+		[pallet_parachain_staking, ParachainStaking]
+		[pallet_scheduler, Scheduler]
+		[pallet_democracy, Democracy]
+		[pallet_treasury, Treasury]
+		[pallet_author_inherent, AuthorInherent]
+		[pallet_author_slot_filter, AuthorFilter]
+		[pallet_crowdloan_rewards, CrowdloanRewards]
+		[pallet_author_mapping, AuthorMapping]
+		[pallet_proxy, Proxy]
+		[pallet_identity, Identity]
+		[cumulus_pallet_xcmp_queue, XcmpQueue]
+		[pallet_xcm, PolkadotXcm]
+		[pallet_asset_manager, AssetManager]
+		[pallet_xcm_transactor, XcmTransactor]
+		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
+		[pallet_randomness, Randomness]
+		[pallet_conviction_voting, ConvictionVoting]
+		[pallet_referenda, Referenda]
+		[pallet_preimage, Preimage]
+		[pallet_whitelist, Whitelist]
+		[pallet_multisig, Multisig]
+		[moonbeam_xcm_benchmarks::weights::generic, MoonbeamXcmGenericBench::&lt;Runtime&gt;]
+	);
 }
 
 <span class="doccomment">/// Block type as expected by this runtime.
@@ -3275,9 +3445,7 @@
 	// need to be Boxed.
 	</span><span class="kw">fn </span>call_max_size() {
 		<span class="kw">const </span>CALL_ALIGN: u32 = <span class="number">1024</span>;
-		<span class="macro">assert!</span>(
-			std::mem::size_of::&lt;pallet_ethereum_chain_id::Call&lt;Runtime&gt;&gt;() &lt;= CALL_ALIGN <span class="kw">as </span>usize
-		);
+		<span class="macro">assert!</span>(std::mem::size_of::&lt;pallet_evm_chain_id::Call&lt;Runtime&gt;&gt;() &lt;= CALL_ALIGN <span class="kw">as </span>usize);
 		<span class="macro">assert!</span>(std::mem::size_of::&lt;pallet_evm::Call&lt;Runtime&gt;&gt;() &lt;= CALL_ALIGN <span class="kw">as </span>usize);
 		<span class="macro">assert!</span>(std::mem::size_of::&lt;pallet_ethereum::Call&lt;Runtime&gt;&gt;() &lt;= CALL_ALIGN <span class="kw">as </span>usize);
 		<span class="macro">assert!</span>(
@@ -3381,6 +3549,14 @@
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(pallet_proxy, AnnouncementDepositFactor, u128),
 			Balance::from(<span class="number">560 </span>* MILLIGLMR)
+		);
+	}
+
+	<span class="attr">#[test]
+	</span><span class="kw">fn </span>max_offline_rounds_lower_or_eq_than_reward_payment_delay() {
+		<span class="macro">assert!</span>(
+			<span class="macro">get!</span>(pallet_parachain_staking, MaxOfflineRounds, u32)
+				&lt;= <span class="macro">get!</span>(pallet_parachain_staking, RewardPaymentDelay, u32)
 		);
 	}
 

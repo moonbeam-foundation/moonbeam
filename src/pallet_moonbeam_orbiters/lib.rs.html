@@ -746,7 +746,7 @@
 	}
 
 	<span class="attr">#[pallet::genesis_build]
-	</span><span class="kw">impl</span>&lt;T: Config&gt; GenesisBuild&lt;T&gt; <span class="kw">for </span>GenesisConfig&lt;T&gt; {
+	</span><span class="kw">impl</span>&lt;T: Config&gt; BuildGenesisConfig <span class="kw">for </span>GenesisConfig&lt;T&gt; {
 		<span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) {
 			<span class="macro">assert!</span>(
 				<span class="self">self</span>.min_orbiter_deposit &gt; Zero::zero(),
@@ -758,7 +758,7 @@
 
 	<span class="attr">#[pallet::hooks]
 	</span><span class="kw">impl</span>&lt;T: Config&gt; Hooks&lt;BlockNumberFor&lt;T&gt;&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
-		<span class="kw">fn </span>on_initialize(<span class="kw">_</span>: T::BlockNumber) -&gt; Weight {
+		<span class="kw">fn </span>on_initialize(<span class="kw">_</span>: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 			<span class="comment">// Prune old OrbiterPerRound entries
 			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(round_to_prune) =
 				CurrentRound::&lt;T&gt;::get().checked_sub(<span class="kw-2">&amp;</span>T::MaxRoundArchive::get())

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["IdentityPrecompileCall"],"struct":["Additional","Data","IdentityFields","IdentityInfo","IdentityPrecompile","Judgement","Registrar","Registration","SubsOf","SuperOf"]};

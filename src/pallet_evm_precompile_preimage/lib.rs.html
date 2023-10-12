@@ -109,6 +109,7 @@
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -128,12 +129,13 @@
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">use </span>fp_evm::PrecompileHandle;
-<span class="kw">use </span>frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+<span class="kw">use </span>frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 <span class="kw">use </span>frame_support::traits::ConstU32;
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>pallet_preimage::Call <span class="kw">as </span>PreimageCall;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{Hasher, H256};
+<span class="kw">use </span>sp_runtime::traits::Dispatchable;
 <span class="kw">use </span>sp_std::{marker::PhantomData, vec::Vec};
 
 <span class="attr">#[cfg(test)]
@@ -187,7 +189,7 @@
 
 		<span class="kw">let </span>call = PreimageCall::&lt;Runtime&gt;::note_preimage { bytes }.into();
 
-		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		event.record(handle)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(hash)
@@ -213,7 +215,7 @@
 
 		<span class="kw">let </span>call = PreimageCall::&lt;Runtime&gt;::unnote_preimage { hash }.into();
 
-		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call, <span class="number">0</span>)<span class="question-mark">?</span>;
 
 		event.record(handle)<span class="question-mark">?</span>;
 

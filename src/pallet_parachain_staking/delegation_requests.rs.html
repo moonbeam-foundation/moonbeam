@@ -552,9 +552,6 @@
 <a href="#552" id="552">552</a>
 <a href="#553" id="553">553</a>
 <a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a>
-<a href="#557" id="557">557</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -579,16 +576,13 @@
 };
 <span class="kw">use </span><span class="kw">crate</span>::weights::WeightInfo;
 <span class="kw">use crate</span>::{auto_compound::AutoCompoundDelegations, AddGet, Delegator};
+<span class="kw">use </span>frame_support::dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo};
 <span class="kw">use </span>frame_support::ensure;
 <span class="kw">use </span>frame_support::traits::Get;
 <span class="kw">use </span>frame_support::BoundedVec;
-<span class="kw">use </span>frame_support::{
-	dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo},
-	RuntimeDebug,
-};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>scale_info::TypeInfo;
-<span class="kw">use </span>sp_runtime::traits::Saturating;
+<span class="kw">use </span>sp_runtime::{traits::Saturating, RuntimeDebug};
 
 <span class="doccomment">/// An action that can be performed upon a delegation
 </span><span class="attr">#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]

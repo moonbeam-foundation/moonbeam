@@ -1196,6 +1196,57 @@
 <a href="#1196" id="1196">1196</a>
 <a href="#1197" id="1197">1197</a>
 <a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
+<a href="#1239" id="1239">1239</a>
+<a href="#1240" id="1240">1240</a>
+<a href="#1241" id="1241">1241</a>
+<a href="#1242" id="1242">1242</a>
+<a href="#1243" id="1243">1243</a>
+<a href="#1244" id="1244">1244</a>
+<a href="#1245" id="1245">1245</a>
+<a href="#1246" id="1246">1246</a>
+<a href="#1247" id="1247">1247</a>
+<a href="#1248" id="1248">1248</a>
+<a href="#1249" id="1249">1249</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1279,12 +1330,13 @@
 
 <span class="kw">pub mod </span>migrations;
 <span class="kw">pub mod </span>weights;
+<span class="kw">pub use </span><span class="kw">crate</span>::weights::WeightInfo;
 
 <span class="kw">type </span>CurrencyIdOf&lt;T&gt; = &lt;T <span class="kw">as </span>Config&gt;::CurrencyId;
 
 <span class="attr">#[pallet]
 </span><span class="kw">pub mod </span>pallet {
-
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 	<span class="kw">use </span><span class="kw">crate</span>::weights::WeightInfo;
 	<span class="kw">use </span><span class="kw">crate</span>::CurrencyIdOf;
 	<span class="kw">use </span>cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
@@ -1536,6 +1588,7 @@
 		HrmpHandlerNotImplemented,
 		TooMuchFeeUsed,
 		ErrorValidating,
+		RefundNotSupportedWithTransactInfo,
 	}
 
 	<span class="attr">#[pallet::event]
@@ -1666,6 +1719,8 @@
 			</span>inner_call: Vec&lt;u8&gt;,
 			<span class="comment">// weight information to be used
 			</span>weight_info: TransactWeights,
+			<span class="comment">// add RefundSurplus and DepositAsset appendix
+			</span>refund: bool,
 		) -&gt; DispatchResult {
 			<span class="kw">let </span>who = ensure_signed(origin)<span class="question-mark">?</span>;
 
@@ -1693,6 +1748,7 @@
 					<span class="self">Self</span>::take_weight_from_transact_info(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
+						refund,
 					)
 				},
 				|v| <span class="prelude-val">Ok</span>(v),
@@ -1706,6 +1762,16 @@
 				total_weight.clone(),
 			)<span class="question-mark">?</span>;
 
+			<span class="comment">// If refund is true, the appendix instruction will be a deposit back to the sovereign
+			</span><span class="kw">let </span>appendix = refund
+				.then(|| -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, DispatchError&gt; {
+					<span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[
+						RefundSurplus,
+						<span class="self">Self</span>::deposit_instruction(T::SelfLocation::get(), <span class="kw-2">&amp;</span>dest, <span class="number">1u32</span>)<span class="question-mark">?</span>,
+					])
+				})
+				.transpose()<span class="question-mark">?</span>;
+
 			<span class="self">Self</span>::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
 				<span class="prelude-val">Some</span>(who.clone()),
@@ -1714,7 +1780,7 @@
 				OriginKind::SovereignAccount,
 				total_weight,
 				weight_info.transact_required_weight_at_most,
-				<span class="prelude-val">None</span>,
+				appendix,
 			)<span class="question-mark">?</span>;
 
 			<span class="comment">// Deposit event
@@ -1751,6 +1817,8 @@
 			</span>origin_kind: OriginKind,
 			<span class="comment">// weight information to be used
 			</span>weight_info: TransactWeights,
+			<span class="comment">// add RefundSurplus and DepositAsset appendix
+			</span>refund: bool,
 		) -&gt; DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 
@@ -1766,6 +1834,7 @@
 					<span class="self">Self</span>::take_weight_from_transact_info(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
+						refund,
 					)
 				},
 				|v| <span class="prelude-val">Ok</span>(v),
@@ -1779,6 +1848,16 @@
 				total_weight.clone(),
 			)<span class="question-mark">?</span>;
 
+			<span class="comment">// If refund is true, the appendix instruction will be a deposit back to the sovereign
+			</span><span class="kw">let </span>appendix = refund
+				.then(|| -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, DispatchError&gt; {
+					<span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[
+						RefundSurplus,
+						<span class="self">Self</span>::deposit_instruction(T::SelfLocation::get(), <span class="kw-2">&amp;</span>dest, <span class="number">1u32</span>)<span class="question-mark">?</span>,
+					])
+				})
+				.transpose()<span class="question-mark">?</span>;
+
 			<span class="comment">// Grab the destination
 			</span><span class="self">Self</span>::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
@@ -1788,7 +1867,7 @@
 				origin_kind,
 				total_weight,
 				weight_info.transact_required_weight_at_most,
-				<span class="prelude-val">None</span>,
+				appendix,
 			)<span class="question-mark">?</span>;
 
 			<span class="comment">// Deposit event
@@ -1864,6 +1943,8 @@
 			</span>call: Vec&lt;u8&gt;,
 			<span class="comment">// weight information to be used
 			</span>weight_info: TransactWeights,
+			<span class="comment">// add RefundSurplus and DepositAsset appendix
+			</span>refund: bool,
 		) -&gt; DispatchResult {
 			<span class="kw">let </span>who = ensure_signed(origin)<span class="question-mark">?</span>;
 
@@ -1879,6 +1960,7 @@
 					<span class="self">Self</span>::take_weight_from_transact_info_signed(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
+						refund,
 					)
 				},
 				|v| <span class="prelude-val">Ok</span>(v),
@@ -1892,6 +1974,17 @@
 				total_weight.clone(),
 			)<span class="question-mark">?</span>;
 
+			<span class="comment">// If refund is true, the appendix instruction will be a deposit back to the sender
+			</span><span class="kw">let </span>appendix = refund
+				.then(|| -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, DispatchError&gt; {
+					<span class="kw">let </span>sender = T::AccountIdToMultiLocation::convert(who.clone());
+					<span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[
+						RefundSurplus,
+						<span class="self">Self</span>::deposit_instruction(sender, <span class="kw-2">&amp;</span>dest, <span class="number">1u32</span>)<span class="question-mark">?</span>,
+					])
+				})
+				.transpose()<span class="question-mark">?</span>;
+
 			<span class="comment">// Grab the destination
 			</span><span class="self">Self</span>::transact_in_dest_chain_asset_signed(
 				dest.clone(),
@@ -1901,7 +1994,7 @@
 				OriginKind::SovereignAccount,
 				total_weight,
 				weight_info.transact_required_weight_at_most,
-				<span class="prelude-val">None</span>,
+				appendix,
 			)<span class="question-mark">?</span>;
 
 			<span class="comment">// Deposit event
@@ -2008,6 +2101,7 @@
 					<span class="self">Self</span>::take_weight_from_transact_info(
 						destination.clone(),
 						weight_info.transact_required_weight_at_most,
+						<span class="bool-val">false</span>,
 					)
 				},
 				|v| <span class="prelude-val">Ok</span>(v),
@@ -2100,7 +2194,7 @@
 			origin_kind: OriginKind,
 			total_weight: Weight,
 			transact_required_weight_at_most: Weight,
-			_with_appendix: <span class="prelude-ty">Option</span>&lt;Vec&lt;Instruction&lt;()&gt;&gt;&gt;,
+			with_appendix: <span class="prelude-ty">Option</span>&lt;Vec&lt;Instruction&lt;()&gt;&gt;&gt;,
 		) -&gt; DispatchResult {
 			<span class="comment">// Convert origin to multilocation
 			</span><span class="kw">let </span>origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
@@ -2118,7 +2212,7 @@
 				call,
 				transact_required_weight_at_most,
 				origin_kind,
-				<span class="prelude-val">None</span>,
+				with_appendix,
 			)<span class="question-mark">?</span>;
 
 			<span class="comment">// We append DescendOrigin as the first instruction in the message
@@ -2322,7 +2416,11 @@
 		</span><span class="kw">pub fn </span>take_weight_from_transact_info(
 			dest: MultiLocation,
 			dest_weight: Weight,
+			refund: bool,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, DispatchError&gt; {
+			<span class="comment">// this is due to TransactInfo only has info of cases where RefundSurplus is not used
+			// so we have to ensure &#39;refund&#39; is false
+			</span><span class="macro">ensure!</span>(!refund, Error::&lt;T&gt;::RefundNotSupportedWithTransactInfo);
 			<span class="comment">// Grab transact info for the destination provided
 			</span><span class="kw">let </span>transactor_info = TransactInfoWithWeightLimit::&lt;T&gt;::get(<span class="kw-2">&amp;</span>dest)
 				.ok_or(Error::&lt;T&gt;::TransactorInfoNotSet)<span class="question-mark">?</span>;
@@ -2343,7 +2441,11 @@
 		</span><span class="kw">pub fn </span>take_weight_from_transact_info_signed(
 			dest: MultiLocation,
 			dest_weight: Weight,
+			refund: bool,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, DispatchError&gt; {
+			<span class="comment">// this is due to TransactInfo only has info of cases where RefundSurplus is not used
+			// so we have to ensure &#39;refund&#39; is false
+			</span><span class="macro">ensure!</span>(!refund, Error::&lt;T&gt;::RefundNotSupportedWithTransactInfo);
 			<span class="comment">// Grab transact info for the destination provided
 			</span><span class="kw">let </span>transactor_info = TransactInfoWithWeightLimit::&lt;T&gt;::get(<span class="kw-2">&amp;</span>dest)
 				.ok_or(Error::&lt;T&gt;::TransactorInfoNotSet)<span class="question-mark">?</span>;

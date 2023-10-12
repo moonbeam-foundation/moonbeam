@@ -902,6 +902,21 @@
 <a href="#902" id="902">902</a>
 <a href="#903" id="903">903</a>
 <a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -929,12 +944,12 @@
 };
 <span class="kw">use </span>frame_support::traits::{ConstBool, Get, OriginTrait};
 <span class="kw">use </span>frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>sp_runtime::traits::Bounded;
+<span class="kw">use </span>sp_runtime::traits::{Bounded, Dispatchable};
 <span class="kw">use </span>sp_std::vec::Vec;
 
 <span class="kw">use </span>sp_core::{MaxEncodedLen, H160, H256, U256};
@@ -1181,6 +1196,7 @@
 					id: asset_id.clone().into(),
 					delegate: Runtime::Lookup::unlookup(spender.clone()),
 				},
+				<span class="number">0</span>,
 			)<span class="question-mark">?</span>;
 		}
 		<span class="comment">// Dispatch call (if enough gas).
@@ -1192,6 +1208,7 @@
 				delegate: Runtime::Lookup::unlookup(spender),
 				amount,
 			},
+			<span class="number">0</span>,
 		)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
@@ -1223,6 +1240,7 @@
 					target: Runtime::Lookup::unlookup(to),
 					amount: value,
 				},
+				SYSTEM_ACCOUNT_SIZE,
 			)<span class="question-mark">?</span>;
 		}
 
@@ -1270,6 +1288,7 @@
 						destination: Runtime::Lookup::unlookup(to),
 						amount: value,
 					},
+					SYSTEM_ACCOUNT_SIZE,
 				)<span class="question-mark">?</span>;
 			} <span class="kw">else </span>{
 				<span class="comment">// Dispatch call (if enough gas).
@@ -1281,6 +1300,7 @@
 						target: Runtime::Lookup::unlookup(to),
 						amount: value,
 					},
+					SYSTEM_ACCOUNT_SIZE,
 				)<span class="question-mark">?</span>;
 			}
 		}
@@ -1455,6 +1475,7 @@
 					beneficiary: Runtime::Lookup::unlookup(to),
 					amount: value,
 				},
+				SYSTEM_ACCOUNT_SIZE,
 			)<span class="question-mark">?</span>;
 		}
 
@@ -1500,6 +1521,7 @@
 					who: Runtime::Lookup::unlookup(from),
 					amount: value,
 				},
+				<span class="number">0</span>,
 			)<span class="question-mark">?</span>;
 		}
 
@@ -1540,6 +1562,7 @@
 					id: asset_id.into(),
 					who: Runtime::Lookup::unlookup(account),
 				},
+				<span class="number">0</span>,
 			)<span class="question-mark">?</span>;
 		}
 
@@ -1571,6 +1594,7 @@
 					id: asset_id.into(),
 					who: Runtime::Lookup::unlookup(account),
 				},
+				<span class="number">0</span>,
 			)<span class="question-mark">?</span>;
 		}
 
@@ -1598,6 +1622,7 @@
 				pallet_assets::Call::&lt;Runtime, Instance&gt;::freeze_asset {
 					id: asset_id.into(),
 				},
+				<span class="number">0</span>,
 			)<span class="question-mark">?</span>;
 		}
 
@@ -1625,6 +1650,7 @@
 				pallet_assets::Call::&lt;Runtime, Instance&gt;::thaw_asset {
 					id: asset_id.into(),
 				},
+				<span class="number">0</span>,
 			)<span class="question-mark">?</span>;
 		}
 
@@ -1658,6 +1684,7 @@
 					id: asset_id.into(),
 					owner: Runtime::Lookup::unlookup(owner),
 				},
+				<span class="number">0</span>,
 			)<span class="question-mark">?</span>;
 		}
 
@@ -1698,6 +1725,7 @@
 					admin: Runtime::Lookup::unlookup(admin),
 					freezer: Runtime::Lookup::unlookup(freezer),
 				},
+				<span class="number">0</span>,
 			)<span class="question-mark">?</span>;
 		}
 
@@ -1731,6 +1759,7 @@
 					symbol: symbol.into(),
 					decimals,
 				},
+				<span class="number">0</span>,
 			)<span class="question-mark">?</span>;
 		}
 
@@ -1758,6 +1787,7 @@
 				pallet_assets::Call::&lt;Runtime, Instance&gt;::clear_metadata {
 					id: asset_id.into(),
 				},
+				<span class="number">0</span>,
 			)<span class="question-mark">?</span>;
 		}
 
