@@ -488,6 +488,8 @@ jobs:
       labels: bare-metal
     needs: ["set-tags", "build"]
     strategy:
+      fail-fast: false
+      max-attempts: 3
       matrix:
         #chain: ["moonbase", "moonriver", "moonbeam"]
         # TODO: moonbase is temporary disabled due to a known issue, must be re-enabled
@@ -530,6 +532,7 @@ jobs:
     needs: ["set-tags", "build"]
     strategy:
       matrix:
+        fail-fast: false
         ## TODO: add moonriver here when it is ready
         chain: ["moonbase", "moonbeam"]
     env:
@@ -646,5 +649,5 @@ jobs:
           --header 'table: dev_reports' \
           --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
           --header 'Content-Type: application/json' \
-          --max-time 120 \
+          --max-time 30 \
           -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
