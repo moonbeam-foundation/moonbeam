@@ -4,7 +4,13 @@
   "chainType": "Live",
   "bootNodes": [
     "/dns4/frag3-moonbase-alpha-boot-0.g.moonbase.moonbeam.network/tcp/30333/p2p/12D3KooWR8LYVd9gJYwTRhvKVxm8u7yAxV7pne7nuGd3QwsMAEzj",
-    "/dns4/mtla-moonbase-alpha-boot-0.a.moonbase.moonbeam.network/tcp/30333/p2p/12D3KooWLkGLsJMmQDCXDitJn6y6ZTPXqmcQ7bkMDKpsx6YWiZDD"
+    "/dns4/mtla-moonbase-alpha-boot-0.a.moonbase.moonbeam.network/tcp/30333/p2p/12D3KooWLkGLsJMmQDCXDitJn6y6ZTPXqmcQ7bkMDKpsx6YWiZDD",
+    "/dns/eu-02.unitedbloc.com/tcp/35060/p2p/12D3KooWG8KzsySP5pEoG5oh1MzjYJhq7QZRbNHKZiGWF7FNQHuk",
+    "/dns/eu-03.unitedbloc.com/tcp/37060/p2p/12D3KooWGkQhFJZAVYhDi5bp3hUm3QouwGmYugvqNLuS77TKyNZd",
+    "/dns/eu-01.unitedbloc.com/tcp/35060/p2p/12D3KooWAu26xXQy9Q8P9rXim3yAGkAZ38BS3xrF2J7uZUbz1A8n",
+    "/dns/apac-01.unitedbloc.com/tcp/35060/p2p/12D3KooWH1zRsVBRtTNiEbKHSees6ESw7UPFJBws3StgXcqTUQDt",
+    "/dns/sa-01.unitedbloc.com/tcp/35060/p2p/12D3KooWKbo2qnyNdea2uR55z7dfg1BVDJw15Xr9xkUHd1csQnG2",
+    "/dns/na-01a.unitedbloc.com/tcp/30333/p2p/12D3KooWEe1hn1YMxqzhacCDYrQVrNHyP8MXZSSjHkTwnGmKXRhh"
   ],
   "telemetryEndpoints": [
     ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]
