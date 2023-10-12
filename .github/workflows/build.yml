@@ -361,7 +361,6 @@ jobs:
           timeout: 30000
 
   typescript-tracing-tests:
-    if: github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -490,10 +489,7 @@ jobs:
     needs: ["set-tags", "build"]
     strategy:
       matrix:
-        #chain: ["moonbase", "moonriver", "moonbeam"]
-        # TODO: moonbase is temporary disabled due to a known issue, must be re-enabled
-        # https://github.com/AcalaNetwork/chopsticks/issues/407
-        chain: ["moonriver", "moonbeam"]
+        chain: ["moonbase", "moonriver", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1

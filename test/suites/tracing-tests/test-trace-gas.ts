@@ -50,7 +50,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "should return 21630 gasUsed for 0 loop",
+      title: "should return 21466 gasUsed for 0 loop",
       test: async function () {
         const trace = await customDevRpcRequest("trace_filter", [
           {
@@ -66,7 +66,7 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "should return 245542 gasUsed for 100 loop",
+      title: "should return 82978 gasUsed for 100 loop",
       test: async function () {
         const trace = await customDevRpcRequest("trace_filter", [
           {
@@ -83,7 +83,7 @@ describeSuite({
 
     it({
       id: "T03",
-      title: "should return 2068654 gasUsed for 1000 loop",
+      title: "should return 422290 gasUsed for 1000 loop",
       test: async function () {
         const trace = await customDevRpcRequest("trace_filter", [
           {
