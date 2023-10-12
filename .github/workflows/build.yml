@@ -489,7 +489,6 @@ jobs:
     needs: ["set-tags", "build"]
     strategy:
       fail-fast: false
-      max-attempts: 3
       matrix:
         #chain: ["moonbase", "moonriver", "moonbeam"]
         # TODO: moonbase is temporary disabled due to a known issue, must be re-enabled
@@ -524,7 +523,11 @@ jobs:
         run: |
           cd test
           pnpm install
-          pnpm moonwall test upgrade_${{matrix.chain}}
+      - uses: nick-fields/retry@v2
+        with:
+          max_attempts: 3
+          retry_on: error
+          command: pnpm moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
     runs-on:
