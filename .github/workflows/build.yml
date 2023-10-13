@@ -526,6 +526,7 @@ jobs:
       - uses: nick-fields/retry@v2
         with:
           max_attempts: 3
+          timeout_minutes: 2
           retry_on: error
           command: pnpm moonwall test upgrade_${{matrix.chain}}
 
