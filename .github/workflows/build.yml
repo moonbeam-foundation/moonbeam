@@ -490,10 +490,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        #chain: ["moonbase", "moonriver", "moonbeam"]
-        # TODO: moonbase is temporary disabled due to a known issue, must be re-enabled
-        # https://github.com/AcalaNetwork/chopsticks/issues/407
-        chain: ["moonriver", "moonbeam"]
+        chain: ["moonbase", "moonriver", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
