@@ -114,7 +114,6 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
 pub mod asset_config;
 pub mod governance;
-pub mod relay_indices;
 pub mod xcm_config;
 use governance::councils::*;
 
@@ -1063,7 +1062,7 @@ where
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		vec![Box::new(
 			moonbeam_runtime_common::migrations::PopulateRelayIndices::<Runtime>(
-				crate::relay_indices::POLKADOT_RELAY_INDICES,
+				moonbeam_relay_encoder::polkadot::POLKADOT_RELAY_INDICES,
 				Default::default(),
 			),
 		)]

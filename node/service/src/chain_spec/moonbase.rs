@@ -358,7 +358,7 @@ pub fn testnet_genesis(
 			..Default::default()
 		},
 		xcm_transactor: XcmTransactorConfig {
-			relay_indices: moonbase_runtime::relay_indices::WESTEND_RELAY_INDICES,
+			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
 			..Default::default()
 		},
 	}

@@ -18,7 +18,7 @@ pub mod parachain;
 pub mod relay_chain;
 pub mod statemint_like;
 use cumulus_primitives_core::ParaId;
-use moonbase_runtime::relay_indices::WESTEND_RELAY_INDICES;
+use moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES;
 use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::{AccountId32, BuildStorage};
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain, TestExt};

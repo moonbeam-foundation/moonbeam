@@ -6959,6 +6959,7 @@ dependencies = [
  "moonbeam-core-primitives",
  "moonbeam-finality-rpc",
  "moonbeam-primitives-ext",
+ "moonbeam-relay-encoder",
  "moonbeam-rpc-debug",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",

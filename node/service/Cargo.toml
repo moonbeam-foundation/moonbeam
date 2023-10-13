@@ -34,6 +34,7 @@ moonbeam-cli-opt = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-finality-rpc = { workspace = true }
 moonbeam-primitives-ext = { workspace = true }
+moonbeam-relay-encoder = { workspace = true }
 moonbeam-rpc-debug = { workspace = true }
 moonbeam-rpc-primitives-debug = { workspace = true }
 moonbeam-rpc-primitives-txpool = { workspace = true }
