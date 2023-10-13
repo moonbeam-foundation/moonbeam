@@ -43,6 +43,10 @@ macro_rules! impl_on_charge_evm_transaction {
 				EVMCurrencyAdapter::<<T as pallet_evm::Config>::Currency, ()>::withdraw_fee(who, fee)
 			}
 
+			fn can_withdraw(who: &H160, amount: U256) -> Result<(), pallet_evm::Error<T>> {
+				EVMCurrencyAdapter::<<T as pallet_evm::Config>::Currency, ()>::can_withdraw(who, amount)
+			}
+
 			fn correct_and_deposit_fee(
 				who: &H160,
 				corrected_fee: U256,
