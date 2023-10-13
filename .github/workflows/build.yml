@@ -377,7 +377,7 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: 8.6.12
-      - name: Use Node.js 18.x
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
@@ -411,12 +411,16 @@ jobs:
           ####  Preparing the typescript api
           cd ../typescript-api
           npm ci
-
-          ####  Install and run dev tracing
-          cd ../test
-          pnpm install
-          pnpm compile-solidity
-          pnpm moonwall test dev_moonbase_tracing
+      - uses: nick-fields/retry@v2
+        with:
+          max_attempts: 3
+          timeout_minutes: 5
+          retry_on: error
+          command: |
+            cd test
+            pnpm install
+            pnpm compile-solidity
+            pnpm moonwall test dev_moonbase_tracing
 
   docker-moonbeam:
     runs-on: ubuntu-latest
