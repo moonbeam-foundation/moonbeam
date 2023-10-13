@@ -395,10 +395,7 @@ jobs:
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
           mkdir -p test/moonbase-overrides/
           mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm test/moonbase-overrides/
-      - name: Typescript tracing tests (against dev service)
-        env:
-          DEBUG_COLOURS: "1"
-          NODE_OPTIONS: "--max-old-space-size=12288"
+      - name: Preparing the repository
         run: |
           chmod uog+x build/moonbeam
           chmod uog+x target/release/moonbeam
@@ -411,7 +408,11 @@ jobs:
           ####  Preparing the typescript api
           cd ../typescript-api
           npm ci
-      - uses: nick-fields/retry@v2
+      - name: Running Tracing Tests (with retry)
+        env:
+          DEBUG_COLOURS: "1"
+          NODE_OPTIONS: "--max-old-space-size=12288"
+        uses: nick-fields/retry@v2
         with:
           max_attempts: 3
           timeout_minutes: 5
@@ -524,7 +525,8 @@ jobs:
         run: |
           cd test
           pnpm install
-      - uses: nick-fields/retry@v2
+      - name: Run Upgrade Test (with retry)
+        uses: nick-fields/retry@v2
         with:
           max_attempts: 3
           timeout_minutes: 2
