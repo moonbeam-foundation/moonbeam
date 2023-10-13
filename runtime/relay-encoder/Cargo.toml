@@ -59,3 +59,7 @@ std = [
 	"sp-std/std",
 	"xcm-primitives/std",
 ]
+
+runtime-benchmarks = [
+	"polkadot-runtime/runtime-benchmarks",
+]

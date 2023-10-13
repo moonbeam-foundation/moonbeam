@@ -16,38 +16,44 @@
 
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Default, Encode, Decode, TypeInfo, PartialEq, Eq)]
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(
+	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
+)]
 pub struct RelayChainIndices {
 	pub pallets: PalletIndices,
 	pub calls: CallIndices,
 }
 
-#[derive(Clone, Copy, Debug, Default, Encode, Decode, TypeInfo, PartialEq, Eq)]
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(
+	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
+)]
 pub struct PalletIndices {
 	pub staking: u8,
 	pub utility: u8,
 	pub hrmp: u8,
 }
 
-#[derive(Clone, Copy, Debug, Default, Encode, Decode, TypeInfo, PartialEq, Eq)]
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(
+	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
+)]
 pub struct CallIndices {
 	pub staking: StakingIndices,
 	pub utility: UtilityIndices,
 	pub hrmp: HrmpIndices,
 }
 
-#[derive(Clone, Copy, Debug, Default, Encode, Decode, TypeInfo, PartialEq, Eq)]
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(
+	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
+)]
 pub struct UtilityIndices {
 	pub as_derivative: u8,
 }
 
-#[derive(Clone, Copy, Debug, Default, Encode, Decode, TypeInfo, PartialEq, Eq)]
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(
+	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
+)]
 pub struct StakingIndices {
 	pub bond: u8,
 	pub bond_extra: u8,
@@ -61,8 +67,9 @@ pub struct StakingIndices {
 	pub rebond: u8,
 }
 
-#[derive(Clone, Copy, Debug, Default, Encode, Decode, TypeInfo, PartialEq, Eq)]
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(
+	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
+)]
 pub struct HrmpIndices {
 	pub init_open_channel: u8,
 	pub accept_open_channel: u8,

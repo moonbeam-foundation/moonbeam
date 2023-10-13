@@ -31,14 +31,14 @@ use ethereum_types::{H160, U256};
 use fp_ethereum::{TransactionData, ValidatedTransaction};
 use fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransactionError};
 use frame_support::{
-	codec::{Decode, Encode, MaxEncodedLen},
 	dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo},
-	scale_info::TypeInfo,
 	traits::{EnsureOrigin, Get},
 	weights::Weight,
 };
 use frame_system::pallet_prelude::OriginFor;
 use pallet_evm::{AddressMapping, GasWeightMapping};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use scale_info::TypeInfo;
 use sp_runtime::{traits::UniqueSaturatedInto, DispatchErrorWithPostInfo, RuntimeDebug};
 use sp_std::{marker::PhantomData, prelude::*};
 

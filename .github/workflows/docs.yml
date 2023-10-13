@@ -8,13 +8,14 @@ on:
 jobs:
   deploy-docs:
     name: Deploy docs
-    runs-on: ubuntu-latest
+    runs-on: bare-metal
 
     steps:
-      - name: Install tooling
-        run: |
-          sudo apt-get install -y protobuf-compiler
-          protoc --version
+      # The protobuf compiler should be pre-installed on bare-metal
+      #- name: Install tooling
+      #  run: sudo apt-get install -y protobuf-compiler
+      - name: Check tooling
+        run: protoc --version
       - name: Checkout repository
         uses: actions/checkout@v3
 

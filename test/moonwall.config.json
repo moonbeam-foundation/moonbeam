@@ -3,11 +3,33 @@
   "label": "MasterConfig 🌔",
   "defaultTestTimeout": 120000,
   "scriptsDir": "scripts/",
+  "additionalRepos": [
+    {
+      "name": "polkadot-sdk",
+      "ghAuthor": "paritytech",
+      "ghRepo": "polkadot-sdk",
+      "binaries": [
+        {
+          "name": "polkadot",
+          "defaultArgs": []
+        },
+        {
+          "name": "polkadot-execute-worker",
+          "defaultArgs": []
+        },
+        {
+          "name": "polkadot-prepare-worker",
+          "defaultArgs": []
+        }
+      ]
+    }
+  ],
   "environments": [
     {
       "name": "zombie_moonbeam",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbeam*"],
+      "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
         "type": "zombie",
@@ -20,6 +42,7 @@
       "name": "zombie_moonbase",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbase*", "**/*common*"],
+      "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
         "type": "zombie",
@@ -32,6 +55,7 @@
       "name": "zombie_common",
       "testFileDir": ["suites/para"],
       "include": ["**/*common*"],
+      "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "type": "zombie",
         "zombieSpec": {
@@ -44,7 +68,8 @@
       "contracts": "contracts/",
       "testFileDir": ["/suites/smoke"],
       "runScripts": ["compile-contracts.ts compile"],
-      "reporters": ["basic", "html"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": { "json": "./tmp/testResults.json" },
       "multiThreads": false,
       "foundation": {
         "type": "read_only",
@@ -96,7 +121,8 @@
       "testFileDir": ["/suites/smoke"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
-      "reporters": ["basic", "html"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": { "json": "./tmp/testResults.json" },
       "multiThreads": false,
       "foundation": {
         "type": "read_only",
@@ -148,7 +174,8 @@
       "testFileDir": ["/suites/smoke"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
-      "reporters": ["basic", "html"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": { "json": "./tmp/testResults.json" },
       "multiThreads": false,
       "foundation": {
         "type": "read_only",
@@ -200,7 +227,8 @@
       "testFileDir": ["/suites/smoke"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
-      "reporters": ["basic", "html"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": { "json": "./tmp/testResults.json" },
       "envVars": ["DEBUG_COLORS=1"],
       "multiThreads": false,
       "foundation": {
@@ -277,8 +305,50 @@
       "testFileDir": ["suites/dev/"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
-      "runScripts": ["compile-contracts.ts compile"],
-      "multiThreads": true,
+      "runScripts": [
+        "compile-contracts.ts compile",
+        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
+      ],
+      "multiThreads": false,
+      "envVars": ["DEBUG_COLORS=1"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": { "json": "./tmp/testResults.json" },
+      "foundation": {
+        "type": "dev",
+        "launchSpec": [
+          {
+            "name": "moonbeam",
+            "binPath": "../target/release/moonbeam",
+            "newRpcBehaviour": true,
+            "options": [
+              "--ethapi=txpool",
+              "--no-hardware-benchmarks",
+              "--no-telemetry",
+              "--wasmtime-precompiled=wasm",
+              "--reserved-only",
+              "--no-grandpa",
+              "--no-prometheus",
+              "--force-authoring",
+              "--rpc-cors=all",
+              "--alice",
+              "--chain=moonbase-dev",
+              "--sealing=manual",
+              "--tmp"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "dev_moonbase_tracing",
+      "testFileDir": ["suites/tracing-tests"],
+      "include": ["**/*test*"],
+      "contracts": "contracts/",
+      "runScripts": [
+        "compile-contracts.ts compile",
+        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
+      ],
+      "multiThreads": false,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["html", "basic"],
       "foundation": {
@@ -289,11 +359,10 @@
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
             "options": [
-              "--execution=Native",
-              "--wasm-execution=interpreted-i-know-what-i-do",
-              "--ethapi=txpool",
+              "--ethapi=txpool,debug,trace",
               "--no-hardware-benchmarks",
               "--no-telemetry",
+              "--wasmtime-precompiled=wasm",
               "--reserved-only",
               "--no-grandpa",
               "--no-prometheus",
@@ -302,7 +371,9 @@
               "--alice",
               "--chain=moonbase-dev",
               "--sealing=manual",
-              "--tmp"
+              "--tmp",
+              "--wasm-runtime-overrides=moonbase-overrides",
+              "--blocks-pruning=archive"
             ]
           }
         ]
@@ -364,6 +435,7 @@
           {
             "name": "mb",
             "type": "parachain",
+            "allowUnresolvedImports": true,
             "configPath": "./configs/moonbeam.yml"
           }
         ]
@@ -386,6 +458,7 @@
           {
             "name": "mb",
             "type": "parachain",
+            "allowUnresolvedImports": true,
             "configPath": "./configs/moonriver.yml"
           }
         ]
@@ -408,6 +481,7 @@
           {
             "name": "mb",
             "type": "parachain",
+            "allowUnresolvedImports": true,
             "configPath": "./configs/alphanet.yml"
           }
         ]

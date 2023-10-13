@@ -409,21 +409,22 @@ pub mod pallet {
 	}
 
 	#[pallet::genesis_config]
-	pub struct GenesisConfig {
+	pub struct GenesisConfig<T> {
 		pub relay_indices: RelayChainIndices,
+		pub _phantom: PhantomData<T>,
 	}
 
-	#[cfg(feature = "std")]
-	impl Default for GenesisConfig {
+	impl<T> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
 				relay_indices: RelayChainIndices::default(),
+				_phantom: Default::default(),
 			}
 		}
 	}
 
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig {
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
 		fn build(&self) {
 			<RelayIndices<T>>::put(self.relay_indices);
 		}

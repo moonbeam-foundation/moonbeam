@@ -126,7 +126,7 @@ describeDevMoonbeam("Trace ERC20 xcm", (context) => {
 
     // Mock the reception of the xcm message
     await injectHrmpMessageAndSeal(context, paraId, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 

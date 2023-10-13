@@ -20,6 +20,10 @@ pub mod statemint_like;
 
 use cumulus_primitives_core::ParaId;
 use pallet_xcm_transactor::relay_indices::*;
+use sp_runtime::traits::AccountIdConversion;
+use sp_runtime::{AccountId32, BuildStorage};
+use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain, TestExt};
+
 use polkadot_runtime_parachains::configuration::{
 	GenesisConfig as ConfigurationGenesisConfig, HostConfiguration,
 };
@@ -27,10 +31,7 @@ use polkadot_runtime_parachains::paras::{
 	GenesisConfig as ParasGenesisConfig, ParaGenesisArgs, ParaKind,
 };
 use sp_core::{H160, U256};
-use sp_runtime::traits::AccountIdConversion;
-use sp_runtime::AccountId32;
 use std::{collections::BTreeMap, str::FromStr};
-use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain, TestExt};
 
 pub const PARAALICE: [u8; 20] = [1u8; 20];
 pub const RELAYALICE: AccountId32 = AccountId32::new([0u8; 32]);
@@ -140,8 +141,8 @@ pub const INITIAL_EVM_NONCE: u32 = 1;
 pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	use parachain::{MsgQueue, Runtime, System};
 
-	let mut t = frame_system::GenesisConfig::default()
-		.build_storage::<Runtime>()
+	let mut t = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
@@ -150,27 +151,26 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	.assimilate_storage(&mut t)
 	.unwrap();
 
-	frame_support::traits::GenesisBuild::<Runtime>::assimilate_storage(
-		&pallet_xcm_transactor::GenesisConfig {
-			// match relay runtime construct_runtime order in xcm_mock::relay_chain
-			relay_indices: RelayChainIndices {
-				pallets: PalletIndices {
-					hrmp: 6u8,
-					..Default::default()
+	pallet_xcm_transactor::GenesisConfig::<Runtime> {
+		// match relay runtime construct_runtime order in xcm_mock::relay_chain
+		relay_indices: RelayChainIndices {
+			pallets: PalletIndices {
+				hrmp: 6u8,
+				..Default::default()
+			},
+			calls: CallIndices {
+				hrmp: HrmpIndices {
+					init_open_channel: 0u8,
+					accept_open_channel: 1u8,
+					close_channel: 2u8,
+					cancel_open_request: 6u8,
 				},
-				calls: CallIndices {
-					hrmp: HrmpIndices {
-						init_open_channel: 0u8,
-						accept_open_channel: 1u8,
-						close_channel: 2u8,
-						cancel_open_request: 6u8,
-					},
-					..Default::default()
-				},
+				..Default::default()
 			},
 		},
-		&mut t,
-	)
+		..Default::default()
+	}
+	.assimilate_storage(&mut t)
 	.unwrap();
 
 	// EVM accounts are self-sufficient.
@@ -187,13 +187,11 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 		},
 	);
 
-	frame_support::traits::GenesisBuild::<Runtime>::assimilate_storage(
-		&pallet_evm::GenesisConfig {
-			accounts: evm_accounts,
-		},
-		&mut t,
-	)
-	.unwrap();
+	let genesis_config = pallet_evm::GenesisConfig::<Runtime> {
+		accounts: evm_accounts,
+		..Default::default()
+	};
+	genesis_config.assimilate_storage(&mut t).unwrap();
 
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| {
@@ -206,8 +204,8 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 pub fn statemint_ext(para_id: u32) -> sp_io::TestExternalities {
 	use statemint_like::{MsgQueue, Runtime, System};
 
-	let mut t = frame_system::GenesisConfig::default()
-		.build_storage::<Runtime>()
+	let mut t = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
@@ -227,8 +225,8 @@ pub fn statemint_ext(para_id: u32) -> sp_io::TestExternalities {
 pub fn relay_ext(paras: Vec<u32>) -> sp_io::TestExternalities {
 	use relay_chain::{Runtime, System};
 
-	let mut t = frame_system::GenesisConfig::default()
-		.build_storage::<Runtime>()
+	let mut t = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
@@ -242,21 +240,16 @@ pub fn relay_ext(paras: Vec<u32>) -> sp_io::TestExternalities {
 		.map(|&para_id| (para_id.into(), mock_para_genesis_info()))
 		.collect();
 
-	frame_support::traits::GenesisBuild::<Runtime>::assimilate_storage(
-		&ConfigurationGenesisConfig {
-			config: mock_relay_config(),
-		},
-		&mut t,
-	)
-	.unwrap();
+	let genesis_config = ConfigurationGenesisConfig::<Runtime> {
+		config: mock_relay_config(),
+	};
+	genesis_config.assimilate_storage(&mut t).unwrap();
 
-	frame_support::traits::GenesisBuild::<Runtime>::assimilate_storage(
-		&ParasGenesisConfig {
-			paras: para_genesis,
-		},
-		&mut t,
-	)
-	.unwrap();
+	let genesis_config = ParasGenesisConfig::<Runtime> {
+		paras: para_genesis,
+		..Default::default()
+	};
+	genesis_config.assimilate_storage(&mut t).unwrap();
 
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| {

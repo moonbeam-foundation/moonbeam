@@ -105,7 +105,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         });
 
@@ -212,13 +212,13 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         });
 
         const chargedWeight = await weightMessage(
           context,
-          polkadotJs.createType("XcmVersionedXcm", xcmMessage)
+          polkadotJs.createType("StagingXcmVersionedXcm", xcmMessage)
         );
         // We are charging chargedWeight
         // chargedWeight * 50000 = chargedFee
@@ -252,7 +252,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessageToClaimAssets,
         });
 
@@ -265,7 +265,7 @@ describeSuite({
 
         const chargedWeightForClaim = await weightMessage(
           context,
-          polkadotJs.createType("XcmVersionedXcm", xcmMessageToClaimAssets)
+          polkadotJs.createType("StagingXcmVersionedXcm", xcmMessageToClaimAssets)
         );
         // We are charging chargedWeightForClaim
         // chargedWeightForClaim * 50000 = chargedFeeForClaim
@@ -280,7 +280,7 @@ describeSuite({
 
         // Mock again the reception of the initial xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         });
 
@@ -317,7 +317,7 @@ describeSuite({
           .as_v3();
 
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessageFailedClaim,
         });
 
