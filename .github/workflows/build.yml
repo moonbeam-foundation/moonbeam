@@ -528,7 +528,9 @@ jobs:
           max_attempts: 3
           timeout_minutes: 2
           retry_on: error
-          command: pnpm moonwall test upgrade_${{matrix.chain}}
+          command: |
+            cd test
+            pnpm moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
     runs-on:
