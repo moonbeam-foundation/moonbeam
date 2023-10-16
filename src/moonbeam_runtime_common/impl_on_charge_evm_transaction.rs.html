@@ -62,6 +62,10 @@
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
 <a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -105,6 +109,10 @@
 
 			<span class="kw">fn </span>withdraw_fee(who: <span class="kw-2">&amp;</span>H160, fee: U256) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::LiquidityInfo, pallet_evm::Error&lt;T&gt;&gt; {
 				EVMCurrencyAdapter::&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency, ()&gt;::withdraw_fee(who, fee)
+			}
+
+			<span class="kw">fn </span>can_withdraw(who: <span class="kw-2">&amp;</span>H160, amount: U256) -&gt; <span class="prelude-ty">Result</span>&lt;(), pallet_evm::Error&lt;T&gt;&gt; {
+				EVMCurrencyAdapter::&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency, ()&gt;::can_withdraw(who, amount)
 			}
 
 			<span class="kw">fn </span>correct_and_deposit_fee(
