@@ -801,19 +801,25 @@ where
 
 		let keystore = params.keystore_container.keystore();
 		move |deny_unsafe, subscription_task_executor| {
-			let mut forced_parent_hashes = BTreeMap::new();
-			// Fixes for https://github.com/paritytech/frontier/pull/570
-			// #1648995
-			forced_parent_hashes.insert(
-				H256::from_str(
-					"0x4f38af62c0ce9f2c66c38135b24cf900b4bd7e4044700aa85522358e1365f734",
-				)
-				.expect("must be valid hash"),
-				H256::from_str(
-					"0x0d0fd88778aec08b3a83ce36387dbf130f6f304fc91e9a44c9605eaf8a80ce5d",
-				)
-				.expect("must be valid hash"),
-			);
+			#[cfg(feature = "moonbase-native")]
+			let forced_parent_hashes = {
+				let mut forced_parent_hashes = BTreeMap::new();
+				// Fixes for https://github.com/paritytech/frontier/pull/570
+				// #1648995
+				forced_parent_hashes.insert(
+					H256::from_str(
+						"0x4f38af62c0ce9f2c66c38135b24cf900b4bd7e4044700aa85522358e1365f734",
+					)
+					.expect("must be valid hash"),
+					H256::from_str(
+						"0x0d0fd88778aec08b3a83ce36387dbf130f6f304fc91e9a44c9605eaf8a80ce5d",
+					)
+					.expect("must be valid hash"),
+				);
+				Some(forced_parent_hashes)
+			};
+			#[cfg(not(feature = "moonbase-native"))]
+			let forced_parent_hashes = None;
 
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
@@ -837,7 +843,7 @@ where
 				xcm_senders: None,
 				block_data_cache: block_data_cache.clone(),
 				overrides: overrides.clone(),
-				forced_parent_hashes: Some(forced_parent_hashes),
+				forced_parent_hashes,
 			};
 			let pending_consensus_data_provider = Box::new(PendingConsensusDataProvider::new(
 				client.clone(),
