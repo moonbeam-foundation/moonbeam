@@ -28,7 +28,7 @@ use sp_core::ConstU32;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_builder::HashedDescriptionDescribeFamilyAllTerminal;
-use xcm_executor::traits::Convert;
+use xcm_executor::traits::ConvertLocation;
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
@@ -1269,9 +1269,9 @@ fn transact_through_derivative_with_custom_fee_weight() {
 		let event_found: Option<parachain::RuntimeEvent> = parachain::para_events()
 			.iter()
 			.find_map(|event| match event.clone() {
-				parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped(_, _, _)) => {
-					Some(event.clone())
-				}
+				parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped {
+					..
+				}) => Some(event.clone()),
 				_ => None,
 			});
 		// Assert that the events do not contain the assets being trapped
@@ -1422,9 +1422,9 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 		let event_found: Option<parachain::RuntimeEvent> = parachain::para_events()
 			.iter()
 			.find_map(|event| match event.clone() {
-				parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped(_, _, _)) => {
-					Some(event.clone())
-				}
+				parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped {
+					..
+				}) => Some(event.clone()),
 				_ => None,
 			});
 		// Assert that the events do not contain the assets being trapped
@@ -1990,30 +1990,19 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	});
 
 	let expected_supported_version: relay_chain::RuntimeEvent =
-		pallet_xcm::Event::SupportedVersionChanged(
-			MultiLocation {
+		pallet_xcm::Event::SupportedVersionChanged {
+			location: MultiLocation {
 				parents: 0,
 				interior: X1(Parachain(1)),
 			},
-			1,
-		)
+			version: 1,
+		}
 		.into();
 
 	Relay::execute_with(|| {
 		// Assert that the events vector contains the version change
 		assert!(relay_chain::relay_events().contains(&expected_supported_version));
 	});
-
-	let expected_version_notified: parachain::RuntimeEvent =
-		pallet_xcm::Event::VersionChangeNotified(
-			MultiLocation {
-				parents: 1,
-				interior: Here,
-			},
-			2,
-			vec![].into(),
-		)
-		.into();
 
 	// ParaA changes version to 2, and calls on_runtime_upgrade. This should notify the targets
 	// of the new version change
@@ -2025,18 +2014,24 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		// Initialize block, to call on_initialize and notify targets
 		parachain::para_roll_to(2);
 		// Expect the event in the parachain
-		assert!(parachain::para_events().contains(&expected_version_notified));
+		assert!(parachain::para_events().iter().any(|e| matches!(
+			e,
+			parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::VersionChangeNotified {
+				result: 2,
+				..
+			})
+		)));
 	});
 
 	// This event should have been seen in the relay
 	let expected_supported_version_2: relay_chain::RuntimeEvent =
-		pallet_xcm::Event::SupportedVersionChanged(
-			MultiLocation {
+		pallet_xcm::Event::SupportedVersionChanged {
+			location: MultiLocation {
 				parents: 0,
 				interior: X1(Parachain(1)),
 			},
-			2,
-		)
+			version: 2,
+		}
 		.into();
 
 	Relay::execute_with(|| {
@@ -2113,13 +2108,13 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	});
 
 	let expected_supported_version: parachain::RuntimeEvent =
-		pallet_xcm::Event::SupportedVersionChanged(
-			MultiLocation {
+		pallet_xcm::Event::SupportedVersionChanged {
+			location: MultiLocation {
 				parents: 1,
 				interior: X1(Parachain(2)),
 			},
-			0,
-		)
+			version: 0,
+		}
 		.into();
 
 	ParaA::execute_with(|| {
@@ -2159,17 +2154,6 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 
-	let expected_version_notified: parachain::RuntimeEvent =
-		pallet_xcm::Event::VersionChangeNotified(
-			MultiLocation {
-				parents: 1,
-				interior: X1(Parachain(1)),
-			},
-			2,
-			vec![].into(),
-		)
-		.into();
-
 	// ParaB changes version to 2, and calls on_runtime_upgrade. This should notify the targets
 	// of the new version change
 	ParaB::execute_with(|| {
@@ -2180,18 +2164,24 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		// Initialize block, to call on_initialize and notify targets
 		parachain::para_roll_to(2);
 		// Expect the event in the parachain
-		assert!(parachain::para_events().contains(&expected_version_notified));
+		assert!(parachain::para_events().iter().any(|e| matches!(
+			e,
+			parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::VersionChangeNotified {
+				result: 2,
+				..
+			})
+		)));
 	});
 
 	// This event should have been seen in para A
 	let expected_supported_version_2: parachain::RuntimeEvent =
-		pallet_xcm::Event::SupportedVersionChanged(
-			MultiLocation {
+		pallet_xcm::Event::SupportedVersionChanged {
+			location: MultiLocation {
 				parents: 1,
 				interior: X1(Parachain(2)),
 			},
-			2,
-		)
+			version: 2,
+		}
 		.into();
 
 	// Para A should have received the version change
@@ -2502,7 +2492,7 @@ fn test_statemine_like() {
 	let sov = xcm_builder::SiblingParachainConvertsVia::<
 		polkadot_parachain::primitives::Sibling,
 		statemine_like::AccountId,
-	>::convert_ref(dest_para)
+	>::convert_location(&dest_para)
 	.unwrap();
 
 	let statemine_asset_a_balances = MultiLocation::new(
@@ -3089,7 +3079,7 @@ fn transact_through_signed_multilocation() {
 	let derived = xcm_builder::Account32Hash::<
 		relay_chain::KusamaNetwork,
 		relay_chain::AccountId,
-	>::convert_ref(descend_origin_multilocation)
+	>::convert_location(&descend_origin_multilocation)
 	.unwrap();
 
 	Relay::execute_with(|| {
@@ -3180,7 +3170,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight() {
 	let derived = xcm_builder::Account32Hash::<
 		relay_chain::KusamaNetwork,
 		relay_chain::AccountId,
-	>::convert_ref(descend_origin_multilocation)
+	>::convert_location(&descend_origin_multilocation)
 	.unwrap();
 
 	Relay::execute_with(|| {
@@ -3271,7 +3261,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 	let derived = xcm_builder::Account32Hash::<
 		relay_chain::KusamaNetwork,
 		relay_chain::AccountId,
-	>::convert_ref(descend_origin_multilocation)
+	>::convert_location(&descend_origin_multilocation)
 	.unwrap();
 
 	Relay::execute_with(|| {
@@ -3382,10 +3372,11 @@ fn transact_through_signed_multilocation_para_to_para() {
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
-		descend_origin_multilocation,
-	)
-	.unwrap();
+	let derived =
+		HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_location(
+			&descend_origin_multilocation,
+		)
+		.unwrap();
 
 	ParaB::execute_with(|| {
 		// free execution, full amount received
@@ -3480,10 +3471,11 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
-		descend_origin_multilocation,
-	)
-	.unwrap();
+	let derived =
+		HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_location(
+			&descend_origin_multilocation,
+		)
+		.unwrap();
 
 	ParaB::execute_with(|| {
 		// free execution, full amount received
@@ -3592,10 +3584,11 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
-		descend_origin_multilocation,
-	)
-	.unwrap();
+	let derived =
+		HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_location(
+			&descend_origin_multilocation,
+		)
+		.unwrap();
 
 	let mut parachain_b_alice_balances_before = 0;
 	ParaB::execute_with(|| {
@@ -3719,10 +3712,11 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
-		descend_origin_multilocation,
-	)
-	.unwrap();
+	let derived =
+		HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_location(
+			&descend_origin_multilocation,
+		)
+		.unwrap();
 
 	let mut parachain_b_alice_balances_before = 0;
 	ParaB::execute_with(|| {
@@ -3842,10 +3836,11 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 		.reanchor(&para_b_location, ancestry.interior)
 		.unwrap();
 
-	let derived = HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_ref(
-		descend_origin_multilocation,
-	)
-	.unwrap();
+	let derived =
+		HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_location(
+			&descend_origin_multilocation,
+		)
+		.unwrap();
 
 	let transfer_recipient = evm_account();
 	let mut transfer_recipient_balance_before = 0;

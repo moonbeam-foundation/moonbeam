@@ -18,9 +18,10 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{ConstU128, Everything, GenesisBuild, MapSuccess, OnFinalize, OnInitialize},
+	traits::{ConstU128, Everything, MapSuccess, OnFinalize, OnInitialize},
 	PalletId,
 };
+use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
 use precompile_utils::{
 	precompile_set::*,
@@ -30,30 +31,25 @@ use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, Replace},
-	Permill,
+	BuildStorage, Permill,
 };
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
-pub type BlockNumber = u32;
+pub type BlockNumber = BlockNumberFor<Runtime>;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-type Block = frame_system::mocking::MockBlock<Runtime>;
+type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Evm: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
+	pub enum Runtime	{
+		System: frame_system,
+		Balances: pallet_balances,
+		Evm: pallet_evm,
+		Timestamp: pallet_timestamp,
+		Treasury: pallet_treasury,
 		CouncilCollective:
-			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>},
+			pallet_collective::<Instance1>,
 	}
 );
 
@@ -65,14 +61,13 @@ impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
-	type Index = u64;
-	type BlockNumber = BlockNumber;
+	type Nonce = u64;
+	type Block = Block;
 	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -102,7 +97,7 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
-	type HoldIdentifier = ();
+	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
@@ -265,8 +260,8 @@ impl ExtBuilder {
 	/// Build the test externalities for use in tests
 	#[allow(unused)]
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Runtime> {

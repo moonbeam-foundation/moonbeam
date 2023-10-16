@@ -23,33 +23,31 @@ use super::{
 	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-use moonbeam_runtime_common::weights as moonbeam_weights;
+use frame_support::{
+	parameter_types,
+	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
+};
+use moonbeam_runtime_common::{weights as moonbeam_weights, xcm::AllowTopLevelPaidExecution};
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 use sp_runtime::{
 	traits::{Hash as THash, PostDispatchInfoOf},
 	DispatchErrorWithPostInfo,
 };
-
-use frame_support::{
-	dispatch::Weight,
-	parameter_types,
-	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
-};
+use sp_weights::Weight;
 
 use frame_system::{EnsureRoot, RawOrigin};
 use sp_core::{ConstU32, H160, H256};
 
 use xcm_builder::{
-	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
-	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter, NoChecking,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
-	WeightInfoBounds, WithComputedOrigin,
+	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AsPrefixedGeneralIndex,
+	ConvertedConcreteId, CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter,
+	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
+	TakeWeightCredit, UsingComponents, WeightInfoBounds, WithComputedOrigin,
 };
 
 use xcm::latest::prelude::*;
-use xcm_executor::traits::{CallDispatcher, JustTry};
+use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
@@ -114,12 +112,10 @@ pub type LocationToAccountId = (
 
 /// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
 pub struct LocationToH160;
-impl xcm_executor::traits::Convert<MultiLocation, H160> for LocationToH160 {
-	fn convert(location: MultiLocation) -> Result<H160, MultiLocation> {
-		<LocationToAccountId as xcm_executor::traits::Convert<MultiLocation, AccountId>>::convert(
-			location,
-		)
-		.map(Into::into)
+impl ConvertLocation<H160> for LocationToH160 {
+	fn convert_location(location: &MultiLocation) -> Option<H160> {
+		<LocationToAccountId as ConvertLocation<AccountId>>::convert_location(location)
+			.map(Into::into)
 	}
 }
 
@@ -239,7 +235,7 @@ pub type XcmBarrier = (
 	WithComputedOrigin<
 		(
 			// If the message is one that immediately attemps to pay for execution, then allow it.
-			AllowTopLevelPaidExecutionFrom<Everything>,
+			AllowTopLevelPaidExecution,
 			// Subscriptions for version tracking are OK.
 			AllowSubscriptionsFrom<Everything>,
 		),
@@ -335,6 +331,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
+	type Aliasers = Nothing;
 }
 
 type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
@@ -493,7 +490,7 @@ pub struct CurrencyIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomDat
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>>
 	for CurrencyIdtoMultiLocation<AssetXConverter>
 where
-	AssetXConverter: xcm_executor::traits::Convert<MultiLocation, AssetId>,
+	AssetXConverter: sp_runtime::traits::MaybeEquivalence<MultiLocation, AssetId>,
 {
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
@@ -501,7 +498,7 @@ where
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
-			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			CurrencyId::ForeignAsset(asset) => AssetXConverter::convert_back(&asset),
 			// No transactor matches this yet, so even if we have this enum variant the transfer will fail
 			CurrencyId::LocalAssetReserve(asset) => {
 				let mut location = LocalAssetsPalletLocation::get();
@@ -674,12 +671,11 @@ mod testing {
 	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
 	impl From<MultiLocation> for CurrencyId {
 		fn from(location: MultiLocation) -> CurrencyId {
-			use xcm_executor::traits::Convert as XConvert;
 			use xcm_primitives::AssetTypeGetter;
 
 			// If it does not exist, for benchmarking purposes, we create the association
-			let asset_id = if let Ok(asset_id) =
-				AsAssetType::<AssetId, AssetType, AssetManager>::convert_ref(&location)
+			let asset_id = if let Some(asset_id) =
+				AsAssetType::<AssetId, AssetType, AssetManager>::convert_location(&location)
 			{
 				asset_id
 			} else {

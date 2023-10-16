@@ -17,6 +17,7 @@ import type {
   CumulusPalletParachainSystemError,
   CumulusPalletParachainSystemEvent,
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
+  CumulusPalletParachainSystemRelayStateSnapshotRelayDispachQueueSize,
   CumulusPalletXcmError,
   CumulusPalletXcmEvent,
   CumulusPalletXcmOrigin,
@@ -92,6 +93,7 @@ import type {
   PalletAssetManagerCall,
   PalletAssetManagerError,
   PalletAssetManagerEvent,
+  PalletAssetsAccountStatus,
   PalletAssetsApproval,
   PalletAssetsAssetAccount,
   PalletAssetsAssetDetails,
@@ -114,6 +116,7 @@ import type {
   PalletBalancesCall,
   PalletBalancesError,
   PalletBalancesEvent,
+  PalletBalancesIdAmount,
   PalletBalancesReasons,
   PalletBalancesReserveData,
   PalletCollectiveCall,
@@ -172,7 +175,6 @@ import type {
   PalletMaintenanceModeCall,
   PalletMaintenanceModeError,
   PalletMaintenanceModeEvent,
-  PalletMigrationsCall,
   PalletMigrationsError,
   PalletMigrationsEvent,
   PalletMoonbeamOrbitersCall,
@@ -207,6 +209,7 @@ import type {
   PalletParachainStakingInflationInflationInfo,
   PalletParachainStakingParachainBondConfig,
   PalletParachainStakingRoundInfo,
+  PalletParachainStakingSetBoundedOrderedSet,
   PalletParachainStakingSetOrderedSet,
   PalletPreimageCall,
   PalletPreimageError,
@@ -274,10 +277,10 @@ import type {
   PolkadotCorePrimitivesOutboundHrmpMessage,
   PolkadotParachainPrimitivesHrmpChannelId,
   PolkadotParachainPrimitivesXcmpMessageFormat,
-  PolkadotPrimitivesV2AbridgedHostConfiguration,
-  PolkadotPrimitivesV2AbridgedHrmpChannel,
-  PolkadotPrimitivesV2PersistedValidationData,
-  PolkadotPrimitivesV2UpgradeRestriction,
+  PolkadotPrimitivesV4AbridgedHostConfiguration,
+  PolkadotPrimitivesV4AbridgedHrmpChannel,
+  PolkadotPrimitivesV4PersistedValidationData,
+  PolkadotPrimitivesV4UpgradeRestriction,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
   SpArithmeticArithmeticError,
   SpCoreEcdsaSignature,
@@ -367,6 +370,7 @@ declare module "@polkadot/types/types/registry" {
     CumulusPalletParachainSystemError: CumulusPalletParachainSystemError;
     CumulusPalletParachainSystemEvent: CumulusPalletParachainSystemEvent;
     CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot: CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot;
+    CumulusPalletParachainSystemRelayStateSnapshotRelayDispachQueueSize: CumulusPalletParachainSystemRelayStateSnapshotRelayDispachQueueSize;
     CumulusPalletXcmError: CumulusPalletXcmError;
     CumulusPalletXcmEvent: CumulusPalletXcmEvent;
     CumulusPalletXcmOrigin: CumulusPalletXcmOrigin;
@@ -442,6 +446,7 @@ declare module "@polkadot/types/types/registry" {
     PalletAssetManagerCall: PalletAssetManagerCall;
     PalletAssetManagerError: PalletAssetManagerError;
     PalletAssetManagerEvent: PalletAssetManagerEvent;
+    PalletAssetsAccountStatus: PalletAssetsAccountStatus;
     PalletAssetsApproval: PalletAssetsApproval;
     PalletAssetsAssetAccount: PalletAssetsAssetAccount;
     PalletAssetsAssetDetails: PalletAssetsAssetDetails;
@@ -464,6 +469,7 @@ declare module "@polkadot/types/types/registry" {
     PalletBalancesCall: PalletBalancesCall;
     PalletBalancesError: PalletBalancesError;
     PalletBalancesEvent: PalletBalancesEvent;
+    PalletBalancesIdAmount: PalletBalancesIdAmount;
     PalletBalancesReasons: PalletBalancesReasons;
     PalletBalancesReserveData: PalletBalancesReserveData;
     PalletCollectiveCall: PalletCollectiveCall;
@@ -522,7 +528,6 @@ declare module "@polkadot/types/types/registry" {
     PalletMaintenanceModeCall: PalletMaintenanceModeCall;
     PalletMaintenanceModeError: PalletMaintenanceModeError;
     PalletMaintenanceModeEvent: PalletMaintenanceModeEvent;
-    PalletMigrationsCall: PalletMigrationsCall;
     PalletMigrationsError: PalletMigrationsError;
     PalletMigrationsEvent: PalletMigrationsEvent;
     PalletMoonbeamOrbitersCall: PalletMoonbeamOrbitersCall;
@@ -557,6 +562,7 @@ declare module "@polkadot/types/types/registry" {
     PalletParachainStakingInflationInflationInfo: PalletParachainStakingInflationInflationInfo;
     PalletParachainStakingParachainBondConfig: PalletParachainStakingParachainBondConfig;
     PalletParachainStakingRoundInfo: PalletParachainStakingRoundInfo;
+    PalletParachainStakingSetBoundedOrderedSet: PalletParachainStakingSetBoundedOrderedSet;
     PalletParachainStakingSetOrderedSet: PalletParachainStakingSetOrderedSet;
     PalletPreimageCall: PalletPreimageCall;
     PalletPreimageError: PalletPreimageError;
@@ -624,10 +630,10 @@ declare module "@polkadot/types/types/registry" {
     PolkadotCorePrimitivesOutboundHrmpMessage: PolkadotCorePrimitivesOutboundHrmpMessage;
     PolkadotParachainPrimitivesHrmpChannelId: PolkadotParachainPrimitivesHrmpChannelId;
     PolkadotParachainPrimitivesXcmpMessageFormat: PolkadotParachainPrimitivesXcmpMessageFormat;
-    PolkadotPrimitivesV2AbridgedHostConfiguration: PolkadotPrimitivesV2AbridgedHostConfiguration;
-    PolkadotPrimitivesV2AbridgedHrmpChannel: PolkadotPrimitivesV2AbridgedHrmpChannel;
-    PolkadotPrimitivesV2PersistedValidationData: PolkadotPrimitivesV2PersistedValidationData;
-    PolkadotPrimitivesV2UpgradeRestriction: PolkadotPrimitivesV2UpgradeRestriction;
+    PolkadotPrimitivesV4AbridgedHostConfiguration: PolkadotPrimitivesV4AbridgedHostConfiguration;
+    PolkadotPrimitivesV4AbridgedHrmpChannel: PolkadotPrimitivesV4AbridgedHrmpChannel;
+    PolkadotPrimitivesV4PersistedValidationData: PolkadotPrimitivesV4PersistedValidationData;
+    PolkadotPrimitivesV4UpgradeRestriction: PolkadotPrimitivesV4UpgradeRestriction;
     SessionKeysPrimitivesVrfVrfCryptoPublic: SessionKeysPrimitivesVrfVrfCryptoPublic;
     SpArithmeticArithmeticError: SpArithmeticArithmeticError;
     SpCoreEcdsaSignature: SpCoreEcdsaSignature;

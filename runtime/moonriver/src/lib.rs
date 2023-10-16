@@ -80,6 +80,7 @@ use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::TryRuntimeError;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
+	serde::{Deserialize, Serialize},
 	traits::{
 		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
 		PostDispatchInfoOf, UniqueSaturatedInto, Zero,
@@ -237,15 +238,13 @@ impl frame_system::Config for Runtime {
 	/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
 	type Lookup = IdentityLookup<AccountId>;
 	/// The index type for storing how many extrinsics an account has signed.
-	type Index = Index;
+	type Nonce = Index;
 	/// The index type for blocks.
-	type BlockNumber = BlockNumber;
-	/// The type for hashing blocks and tries.
-	type Hash = Hash;
+	type Block = Block;
 	/// The hashing algorithm used.
 	type Hashing = BlakeTwo256;
-	/// The header type.
-	type Header = generic::Header<BlockNumber, BlakeTwo256>;
+	/// The output of the `Hashing` function.
+	type Hash = H256;
 	/// The ubiquitous event type.
 	type RuntimeEvent = RuntimeEvent;
 	/// The ubiquitous origin type.
@@ -299,7 +298,7 @@ impl pallet_balances::Config for Runtime {
 	type AccountStore = System;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ConstU32<0>;
-	type HoldIdentifier = ();
+	type RuntimeHoldReason = RuntimeHoldReason;
 	type MaxHolds = ConstU32<0>;
 	type WeightInfo = moonbeam_weights::pallet_balances::WeightInfo<Runtime>;
 }
@@ -818,9 +817,20 @@ impl pallet_author_mapping::Config for Runtime {
 }
 
 /// The type used to represent the kinds of proxying allowed.
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(
-	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	MaxEncodedLen,
+	TypeInfo,
+	Serialize,
+	Deserialize,
 )]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
@@ -1357,45 +1367,42 @@ impl pallet_multisig::Config for Runtime {
 }
 
 construct_runtime! {
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = opaque::Block,
-		UncheckedExtrinsic = UncheckedExtrinsic
+	pub enum Runtime
 	{
 		// System support stuff.
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 0,
+		System: frame_system::{Pallet, Call, Storage, Config<T>, Event<T>} = 0,
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 1,
 		// Previously 2: pallet_randomness_collective_flip
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
-		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 4,
+		ParachainInfo: parachain_info::{Pallet, Storage, Config<T>} = 4,
 		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 5,
 
 		// Monetary stuff.
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config, Event<T>} = 11,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config<T>, Event<T>} = 11,
 
 		// Consensus support.
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 20,
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 21,
-		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config} = 22,
+		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config<T>} = 22,
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 23,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 24,
 
 		// Handy utilities.
 		Utility: pallet_utility::{Pallet, Call, Event} = 30,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 31,
-		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = 32,
+		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config<T>, Storage, Event} = 32,
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 33,
-		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 34,
+		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 34,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 36,
 
 		// Sudo was previously index 40
 
 		// Ethereum compatibility
-		EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config} = 50,
-		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 52,
+		EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config<T>} = 50,
+		EVM: pallet_evm::{Pallet, Config<T>, Call, Storage, Event<T>} = 51,
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config<T>} = 52,
 
 		// Governance stuff.
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 60,
@@ -1417,7 +1424,7 @@ construct_runtime! {
 			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 73,
 
 		// Treasury stuff.
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 80,
+		Treasury: pallet_treasury::{Pallet, Storage, Config<T>, Event<T>, Call} = 80,
 
 		// Crowdloan stuff.
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 90,
@@ -1426,7 +1433,7 @@ construct_runtime! {
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Storage, Event<T>} = 100,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 101,
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 102,
-		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event<T>, Origin, Config} = 103,
+		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event<T>, Origin, Config<T>} = 103,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,

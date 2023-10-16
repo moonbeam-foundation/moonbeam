@@ -28,11 +28,11 @@ use moonbase_runtime::EligibilityValue;
 use moonbeam_runtime::{
 	currency::GLMR, currency::SUPPLY_FACTOR, AccountId, AuthorFilterConfig, AuthorMappingConfig,
 	Balance, BalancesConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig,
-	EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
+	EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisAccount, InflationInfo,
 	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
-	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, SystemConfig,
-	TechCommitteeCollectiveConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
-	HOURS, WASM_BINARY,
+	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
+	SystemConfig, TechCommitteeCollectiveConfig, TransactionPaymentConfig,
+	TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
@@ -42,7 +42,7 @@ use sp_core::ecdsa;
 use sp_runtime::{Perbill, Percent};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
+pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions>;
 
 /// Generate a chain spec for use with the development service.
 pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32>) -> ChainSpec {
@@ -236,18 +236,19 @@ pub fn testnet_genesis(
 	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
 	chain_id: u64,
-) -> GenesisConfig {
+) -> RuntimeGenesisConfig {
 	// This is the simplest bytecode to revert without returning any data.
 	// We will pre-deploy it under all of our precompiles to ensure they can be called from
 	// within contracts.
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 
-	GenesisConfig {
+	RuntimeGenesisConfig {
 		system: SystemConfig {
 			code: WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
+			..Default::default()
 		},
 		balances: BalancesConfig {
 			balances: endowed_accounts
@@ -261,8 +262,12 @@ pub fn testnet_genesis(
 		},
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
+			..Default::default()
 		},
-		ethereum_chain_id: EthereumChainIdConfig { chain_id },
+		ethereum_chain_id: EthereumChainIdConfig {
+			chain_id,
+			..Default::default()
+		},
 		evm: EVMConfig {
 			// We need _some_ code inserted at the precompile address so that
 			// the evm will actually call the address.
@@ -279,8 +284,11 @@ pub fn testnet_genesis(
 					)
 				})
 				.collect(),
+			..Default::default()
 		},
-		ethereum: EthereumConfig {},
+		ethereum: EthereumConfig {
+			..Default::default()
+		},
 		democracy: DemocracyConfig::default(),
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
@@ -313,6 +321,7 @@ pub fn testnet_genesis(
 		},
 		author_filter: AuthorFilterConfig {
 			eligible_count: EligibilityValue::new_unchecked(50),
+			..Default::default()
 		},
 		author_mapping: AuthorMappingConfig {
 			mappings: candidates
@@ -326,11 +335,13 @@ pub fn testnet_genesis(
 		migrations: Default::default(),
 		maintenance_mode: MaintenanceModeConfig {
 			start_in_maintenance_mode: false,
+			..Default::default()
 		},
 		// This should initialize it to whatever we have set in the pallet
 		polkadot_xcm: PolkadotXcmConfig::default(),
 		transaction_payment: TransactionPaymentConfig {
 			multiplier: Multiplier::from(8u128),
+			..Default::default()
 		},
 	}
 }

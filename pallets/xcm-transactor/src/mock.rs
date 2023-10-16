@@ -27,6 +27,7 @@ use parity_scale_codec::{Decode, Encode};
 use sp_core::{H160, H256};
 use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
+use sp_runtime::BuildStorage;
 use xcm::latest::{
 	opaque, Error as XcmError, Instruction, InteriorMultiLocation,
 	Junction::{AccountKey20, GlobalConsensus, PalletInstance, Parachain},
@@ -43,25 +44,20 @@ use xcm_executor::{
 	traits::{TransactAsset, WeightBounds, WeightTrader},
 	Assets,
 };
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
-	pub enum Test where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
+	pub enum Test
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Event<T>},
+		System: frame_system,
+		Balances: pallet_balances,
+		Timestamp: pallet_timestamp,
+		XcmTransactor: pallet_xcm_transactor,
 	}
 );
 
 pub type Balance = u128;
-pub type BlockNumber = u32;
 pub type AccountId = u64;
 
 parameter_types! {
@@ -78,14 +74,13 @@ impl frame_system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type RuntimeOrigin = RuntimeOrigin;
-	type Index = u64;
+	type Nonce = u64;
 	type RuntimeCall = RuntimeCall;
-	type BlockNumber = BlockNumber;
+	type Block = Block;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type DbWeight = ();
@@ -112,7 +107,7 @@ impl pallet_balances::Config for Test {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
-	type HoldIdentifier = ();
+	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
@@ -187,7 +182,12 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, _weight: Weight, _payment: Assets) -> Result<Assets, XcmError> {
+	fn buy_weight(
+		&mut self,
+		_weight: Weight,
+		_payment: Assets,
+		_context: &XcmContext,
+	) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -437,8 +437,8 @@ impl ExtBuilder {
 		self
 	}
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+		let mut t = frame_system::GenesisConfig::<Test>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Test> {

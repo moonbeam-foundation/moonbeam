@@ -50,7 +50,8 @@ pub mod pallet {
 		AssetId, Error as XcmError, Junction, MultiAsset, MultiLocation, Result as XcmResult,
 		XcmContext,
 	};
-	use xcm_executor::traits::{Convert, Error as MatchError, MatchesFungibles};
+	use xcm_executor::traits::ConvertLocation;
+	use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
 	use xcm_executor::Assets;
 
 	const ERC20_TRANSFER_CALL_DATA_SIZE: usize = 4 + 32 + 32; // selector + from + amount
@@ -61,7 +62,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_evm::Config {
-		type AccountIdConverter: Convert<MultiLocation, H160>;
+		type AccountIdConverter: ConvertLocation<H160>;
 		type Erc20MultilocationPrefix: Get<MultiLocation>;
 		type Erc20TransferGasLimit: Get<u64>;
 		type EvmRunner: Runner<Self>;
@@ -166,8 +167,8 @@ pub mod pallet {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
 
-			let beneficiary = T::AccountIdConverter::convert_ref(who)
-				.map_err(|()| MatchError::AccountIdConversionFailed)?;
+			let beneficiary = T::AccountIdConverter::convert_location(who)
+				.ok_or(MatchError::AccountIdConversionFailed)?;
 
 			let gas_limit = Self::gas_limit_of_erc20_transfer(&what.id);
 
@@ -213,11 +214,11 @@ pub mod pallet {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)?;
 
-			let from = T::AccountIdConverter::convert_ref(from)
-				.map_err(|()| MatchError::AccountIdConversionFailed)?;
+			let from = T::AccountIdConverter::convert_location(from)
+				.ok_or(MatchError::AccountIdConversionFailed)?;
 
-			let to = T::AccountIdConverter::convert_ref(to)
-				.map_err(|()| MatchError::AccountIdConversionFailed)?;
+			let to = T::AccountIdConverter::convert_location(to)
+				.ok_or(MatchError::AccountIdConversionFailed)?;
 
 			let gas_limit = Self::gas_limit_of_erc20_transfer(&asset.id);
 
@@ -244,8 +245,8 @@ pub mod pallet {
 		) -> Result<Assets, XcmError> {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
-			let who = T::AccountIdConverter::convert_ref(who)
-				.map_err(|()| MatchError::AccountIdConversionFailed)?;
+			let who = T::AccountIdConverter::convert_location(who)
+				.ok_or(MatchError::AccountIdConversionFailed)?;
 
 			XcmHoldingErc20sOrigins::with(|erc20s_origins| {
 				erc20s_origins.insert(contract_address, who, amount)

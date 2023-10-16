@@ -19,8 +19,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use fp_evm::PrecompileHandle;
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Bounded, ConstU32, Currency, QueryPreimage};
+use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_democracy::{
 	AccountVote, Call as DemocracyCall, Conviction, ReferendumInfo, Vote, VoteThreshold,
 };
@@ -28,7 +29,7 @@ use pallet_evm::AddressMapping;
 use pallet_preimage::Call as PreimageCall;
 use precompile_utils::prelude::*;
 use sp_core::{Get, H160, H256, U256};
-use sp_runtime::traits::{Hash, StaticLookup};
+use sp_runtime::traits::{Dispatchable, Hash, StaticLookup};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
@@ -88,7 +89,7 @@ where
 	Runtime::RuntimeCall: From<DemocracyCall<Runtime>>,
 	Runtime::RuntimeCall: From<PreimageCall<Runtime>>,
 	Runtime::Hash: From<H256> + Into<H256>,
-	Runtime::BlockNumber: Into<U256>,
+	BlockNumberFor<Runtime>: Into<U256>,
 {
 	// The accessors are first. They directly return their result.
 	#[precompile::public("publicPropCount()")]

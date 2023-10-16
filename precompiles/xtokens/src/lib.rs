@@ -20,18 +20,20 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo, Weight},
+	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
+use sp_runtime::traits::Dispatchable;
 use sp_std::{
 	boxed::Box,
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
 	vec::Vec,
 };
+use sp_weights::Weight;
 use xcm::{
 	latest::{AssetId, Fungibility, MultiAsset, MultiAssets, MultiLocation, WeightLimit},
 	VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation,

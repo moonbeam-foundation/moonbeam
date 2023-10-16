@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, createRawTransfer, sendRawTransaction } from "@moonwall/util";
+import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { ALITH_ADDRESS, createEthersTransaction, sendRawTransaction } from "@moonwall/util";
+import { encodeDeployData } from "viem";
 
 describeSuite({
   id: "D3306",
@@ -9,28 +10,56 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     it({
       id: "T01",
-      title: "shouldn't work for 8193",
+      title:
+        "should be able to send 8192 tx to the pool and have them" +
+        " all published within the following blocks - bigger tx",
+      timeout: 60_000,
       test: async function () {
-        try {
-          for (let i = 0; i < 8193; i++) {
-            const rawTxn = await createRawTransfer(context, BALTATHAR_ADDRESS, 1n, {
+        const { abi, bytecode } = fetchCompiledContract("MultiplyBy7");
+        const deployData = encodeDeployData({
+          abi,
+          bytecode,
+        });
+
+        const txs = await Promise.all(
+          new Array(8192).fill(0).map((_, i) =>
+            createEthersTransaction(context, {
+              data: deployData,
               nonce: i,
               gas: 400000n,
-            });
-            await sendRawTransaction(context, rawTxn);
-          }
-        } catch (e: any) {
-          expect(e.message).toContain("submit transaction to pool failed: Ok(ImmediatelyDropped)");
+            })
+          )
+        );
+        for (const tx of txs) {
+          await context.viem().sendRawTransaction({ serializedTransaction: tx });
         }
 
         const inspectBlob = (await context
           .viem()
           .transport.request({ method: "txpool_inspect" })) as any;
 
-        expect(inspectBlob).toMatchObject({
-          pending: {},
-          queued: {},
-        });
+        const txPoolSize = Object.keys(inspectBlob.pending[ALITH_ADDRESS.toLowerCase()]).length;
+
+        expect(txPoolSize).toBe(8192);
+
+        let blocks = 1;
+        while (true) {
+          await context.createBlock();
+
+          const inspectBlob = (await context
+            .viem()
+            .transport.request({ method: "txpool_inspect" })) as any;
+          const txPoolSize = Object.keys(
+            inspectBlob.pending[ALITH_ADDRESS.toLowerCase()] || {}
+          ).length;
+          log(`Transactions left in pool: ${txPoolSize}`);
+
+          if ((await context.viem().getBlock()).transactions.length == 0) {
+            break;
+          }
+          blocks++;
+        }
+        log(`Transaction pool was emptied in ${blocks} blocks.`);
       },
     });
   },

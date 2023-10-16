@@ -24,3 +24,4 @@ mod impl_self_contained_call;
 mod impl_xcm_evm_runner;
 pub mod migrations;
 pub mod weights;
+pub mod xcm;

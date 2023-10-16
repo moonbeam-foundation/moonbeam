@@ -361,7 +361,6 @@ jobs:
           timeout: 30000
 
   typescript-tracing-tests:
-    if: github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -490,10 +489,7 @@ jobs:
     needs: ["set-tags", "build"]
     strategy:
       matrix:
-        #chain: ["moonbase", "moonriver", "moonbeam"]
-        # TODO: moonbase is temporary disabled due to a known issue, must be re-enabled
-        # https://github.com/AcalaNetwork/chopsticks/issues/407
-        chain: ["moonriver", "moonbeam"]
+        chain: ["moonbase", "moonriver", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
@@ -561,15 +557,6 @@ jobs:
         with:
           name: moonbeam
           path: target/release
-      - name: Retrieve polkadot binary from
-        run: |
-          POLKADOT_VERSION=${{ needs.set-tags.outputs.polkadot_ver }}
-          DOCKER_TAG="parity/polkadot:v${POLKADOT_VERSION}"
-
-          docker rm -f dummy 2> /dev/null | true
-          docker create -ti --name dummy $DOCKER_TAG bash
-          docker cp dummy:/usr/bin/polkadot test/tmp/polkadot
-          docker rm -f dummy
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
           MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
@@ -592,7 +579,6 @@ jobs:
 
           ## Start zombie network and run tests
           chmod uog+x ../target/release/moonbeam
-          chmod uog+x tmp/polkadot
           pnpm moonwall test zombie_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
@@ -630,6 +616,9 @@ jobs:
         with:
           name: moonbeam
           path: target/release
+      - name: Enforce multi thread limit
+        run: |
+          sed -i 's/"multiThreads": true/"multiThreads": 3/g' test/moonwall.config.json
       - name: "Run Moonwall Dev Tests"
         uses: ./.github/workflow-templates/dev-tests
         with:
@@ -647,9 +636,14 @@ jobs:
           destination_dir: "${{ needs.set-tags.outputs.test_s3_dir }}"
           source_dir: "test/html"
           acl: "none"
-      - name: Link To Report
-        if: |
-          github.event.pull_request.head.repo.full_name == github.repository
-              || github.event_name == 'push'
-        shell: bash
-        run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/index.html"
+      - name: Upload to Moonscope
+        if: always()
+        run: |
+          curl --location 'https://api.moonscope.kaki.dev/insert' \
+          -X POST \
+          --header 'moonwallenv: dev_${{ matrix.chain }}' \
+          --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
+          --header 'table: dev_reports' \
+          --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
+          --header 'Content-Type: application/json' \
+          -d@test/tmp/testResults.json
