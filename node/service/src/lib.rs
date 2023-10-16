@@ -808,7 +808,7 @@ where
 				// #1648995
 				forced_parent_hashes.insert(
 					H256::from_str(
-						"0x4f38af62c0ce9f2c66c38135b24cf900b4bd7e4044700aa85522358e1365f734",
+						"0xa352fee3eef9c554a31ec0612af887796a920613358abf3353727760ea14207b",
 					)
 					.expect("must be valid hash"),
 					H256::from_str(
