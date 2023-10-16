@@ -15,15 +15,15 @@
   "license": "ISC",
   "devDependencies": {
     "@moonbeam-network/api-augment": "^0.2400.0",
-    "@moonwall/cli": "^4.2.4",
-    "@moonwall/util": "^4.2.4",
-    "@polkadot/api": "^10.9.1",
-    "@polkadot/api-augment": "^10.9.1",
-    "@polkadot/types": "^10.9.1",
-    "@polkadot/types-codec": "^10.9.1",
+    "@moonwall/cli": "^4.2.5",
+    "@moonwall/util": "^4.2.5",
+    "@polkadot/api": "^10.10.1",
+    "@polkadot/api-augment": "^10.10.1",
+    "@polkadot/types": "^10.10.1",
+    "@polkadot/types-codec": "^10.10.1",
     "@polkadot/util": "^12.5.1",
     "@types/debug": "^4.1.9",
-    "@types/node": "^20.8.5",
+    "@types/node": "^20.8.6",
     "@types/semver": "^7.5.3",
     "bottleneck": "^2.19.5",
     "bun-types": "^0.7.3",
@@ -40,10 +40,10 @@
   "dependencies": {
     "@acala-network/chopsticks": "^0.8.3",
     "@openzeppelin/contracts": "^4.9.3",
-    "@polkadot/api-derive": "^10.9.1",
+    "@polkadot/api-derive": "^10.10.1",
     "@polkadot/apps-config": "^0.132.1",
     "@polkadot/keyring": "^12.5.1",
-    "@polkadot/rpc-provider": "^10.9.1",
+    "@polkadot/rpc-provider": "^10.10.1",
     "@polkadot/util-crypto": "^12.5.1",
     "@substrate/txwrapper-core": "^6.0.1",
     "@substrate/txwrapper-substrate": "^6.0.1",
@@ -61,6 +61,6 @@
     "semver": "^7.5.4",
     "solc": "0.8.21",
     "viem": "^1.16.5",
-    "vitest": "^0.31.4"
+    "vitest": "1.0.0-beta.2"
   }
 }
