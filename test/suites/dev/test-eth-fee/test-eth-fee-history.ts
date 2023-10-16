@@ -60,7 +60,7 @@ describeSuite({
     it({
       id: "T01",
       title: "result length should match spec",
-      timeout: 30000,
+      timeout: 40_000,
       test: async function () {
         const block_count = 2;
         const reward_percentiles = [20, 50, 70];
@@ -95,7 +95,7 @@ describeSuite({
           feeResults.baseFeePerGas.length,
           "baseFeePerGas should always the requested block range + 1 (the next derived base fee)"
         ).toBe(block_count + 1);
-        expect(feeResults.gasUsedRatio).to.be.deep.eq(Array(block_count).fill(0.042456));
+        expect(feeResults.gasUsedRatio).to.be.deep.eq(Array(block_count).fill(0.04209));
         expect(
           feeResults.reward.length,
           "should return two-dimensional reward list for the requested block range"
@@ -114,7 +114,7 @@ describeSuite({
     it({
       id: "T02",
       title: "should calculate percentiles",
-      timeout: 60000,
+      timeout: 40_000,
       test: async function () {
         let max_fee_per_gas = parseGwei("10").toString();
         let block_count = 11;

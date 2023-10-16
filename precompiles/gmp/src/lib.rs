@@ -21,15 +21,15 @@
 use evm::ExitReason;
 use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 use frame_support::{
-	codec::Decode,
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::{traits::Zero, Saturating},
 	traits::ConstU32,
 };
 use pallet_evm::AddressMapping;
-use parity_scale_codec::DecodeLimit;
+use parity_scale_codec::{Decode, DecodeLimit};
 use precompile_utils::{prelude::*, solidity::revert::revert_as_bytes};
 use sp_core::{H160, U256};
+use sp_runtime::traits::Dispatchable;
 use sp_std::boxed::Box;
 use sp_std::{marker::PhantomData, vec::Vec};
 use types::*;

@@ -138,7 +138,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, statemint_para_id, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 
@@ -205,7 +205,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, statemint_para_id, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 
@@ -279,7 +279,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, foreign_para_id, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 
@@ -358,7 +358,7 @@ describeDevMoonbeam(
 
       const chargedWeight = await weightMessage(
         context,
-        context.polkadotApi.createType("XcmVersionedXcm", xcmMessage) as any
+        context.polkadotApi.createType("StagingXcmVersionedXcm", xcmMessage) as any
       );
       // We are charging chargedWeight
       // chargedWeight * 50000 = chargedFee
@@ -366,7 +366,7 @@ describeDevMoonbeam(
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, foreign_para_id, {
-        type: "XcmVersionedXcm",
+        type: "StagingXcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -493,7 +493,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, foreign_para_id, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 
@@ -577,7 +577,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, statemint_para_id, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 
@@ -700,7 +700,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, foreign_para_id, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 
@@ -752,7 +752,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, statemint_para_id, {
-      type: "XcmVersionedXcm",
+      type: "StagingXcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 

@@ -6,7 +6,7 @@ import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers/transactions.js";
 
 describeSuite({
-  id: "D2579",
+  id: "D2583",
   title: "Precompiles - xtokens",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

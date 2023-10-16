@@ -23,13 +23,13 @@ use frame_support::{
 	weights::Weight,
 	ConsensusEngineId, PalletId,
 };
-use frame_system::EnsureRoot;
+use frame_system::{pallet_prelude::BlockNumberFor, EnsureRoot};
 use pallet_evm::{AddressMapping, EnsureAddressTruncated, FeeCalculator};
 use rlp::RlpStream;
 use sp_core::{hashing::keccak_256, H160, H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	AccountId32,
+	AccountId32, BuildStorage,
 };
 
 use super::*;
@@ -39,25 +39,20 @@ use sp_runtime::{
 	transaction_validity::{TransactionValidity, TransactionValidityError},
 };
 
-pub type SignedExtra = (frame_system::CheckSpecVersion<Test>,);
-pub type BlockNumber = u32;
+pub type BlockNumber = BlockNumberFor<Test>;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test, (), SignedExtra>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 frame_support::construct_runtime! {
-	pub enum Test where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
+	pub enum Test
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
-		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin},
-		EthereumXcm: crate::{Pallet, Call, Origin},
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+		System: frame_system,
+		Balances: pallet_balances,
+		Timestamp: pallet_timestamp,
+		EVM: pallet_evm,
+		Ethereum: pallet_ethereum,
+		EthereumXcm: crate,
+		Proxy: pallet_proxy,
 	}
 }
 
@@ -73,14 +68,13 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
-	type Index = u64;
-	type BlockNumber = BlockNumber;
+	type Nonce = u64;
+	type Block = Block;
 	type Hash = H256;
 	type RuntimeCall = RuntimeCall;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId32;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -111,7 +105,7 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 	type MaxReserves = ();
 	type ReserveIdentifier = ();
-	type HoldIdentifier = ();
+	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
@@ -370,8 +364,8 @@ fn address_build(seed: u8) -> AccountInfo {
 // our desired mockup.
 pub fn new_test_ext(accounts_len: usize) -> (Vec<AccountInfo>, sp_io::TestExternalities) {
 	// sc_cli::init_logger("");
-	let mut ext = frame_system::GenesisConfig::default()
-		.build_storage::<Test>()
+	let mut ext = frame_system::GenesisConfig::<Test>::default()
+		.build_storage()
 		.unwrap();
 
 	let pairs = (0..accounts_len)

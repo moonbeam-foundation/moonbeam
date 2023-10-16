@@ -126,6 +126,10 @@ pub mod pallet {
 		/// Minimum number of blocks per round
 		#[pallet::constant]
 		type MinBlocksPerRound: Get<u32>;
+		/// If a collator doesn't produce any block on this number of rounds, it is notified as inactive.
+		/// This value must be less than or equal to RewardPaymentDelay.
+		#[pallet::constant]
+		type MaxOfflineRounds: Get<u32>;
 		/// Number of rounds that candidates remain bonded before exit request is executable
 		#[pallet::constant]
 		type LeaveCandidatesDelay: Get<RoundIndex>;
@@ -170,6 +174,10 @@ pub mod pallet {
 		/// Handler to distribute a collator's reward.
 		/// To use the default implementation of minting rewards, specify the type `()`.
 		type PayoutCollatorReward: PayoutCollatorReward<Self>;
+		/// Handler to notify the runtime when a collator is inactive.
+		/// The default behavior is to mark the collator as offline.
+		/// If you need to use the default implementation, specify the type `()`.
+		type OnInactiveCollator: OnInactiveCollator<Self>;
 		/// Handler to notify the runtime when a new round begin.
 		/// If you don't need it, you can specify the type `()`.
 		type OnNewRound: OnNewRound;
@@ -227,12 +235,16 @@ pub mod pallet {
 		TooLowDelegationCountToAutoCompound,
 		TooLowCandidateAutoCompoundingDelegationCountToAutoCompound,
 		TooLowCandidateAutoCompoundingDelegationCountToDelegate,
+		TooLowCollatorCountToNotifyAsInactive,
+		CannotBeNotifiedAsInactive,
 		TooLowCandidateAutoCompoundingDelegationCountToLeaveCandidates,
 		TooLowCandidateCountWeightHint,
 		TooLowCandidateCountWeightHintGoOffline,
 		CandidateLimitReached,
 		CannotSetAboveMaxCandidates,
 		RemovedCall,
+		MarkingOfflineNotEnabled,
+		CurrentRoundTooLow,
 	}
 
 	#[pallet::event]
@@ -240,7 +252,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Started new round.
 		NewRound {
-			starting_block: T::BlockNumber,
+			starting_block: BlockNumberFor<T>,
 			round: RoundIndex,
 			selected_collators_number: u32,
 			total_balance: BalanceOf<T>,
@@ -412,7 +424,7 @@ pub mod pallet {
 		/// Set blocks per round
 		BlocksPerRoundSet {
 			current_round: RoundIndex,
-			first_block: T::BlockNumber,
+			first_block: BlockNumberFor<T>,
 			old: u32,
 			new: u32,
 			new_per_round_inflation_min: Perbill,
@@ -435,7 +447,7 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_initialize(n: T::BlockNumber) -> Weight {
+		fn on_initialize(n: BlockNumberFor<T>) -> Weight {
 			let mut weight = T::WeightInfo::base_on_initialize();
 
 			let mut round = <Round<T>>::get();
@@ -472,7 +484,7 @@ pub mod pallet {
 			weight = weight.saturating_add(T::DbWeight::get().reads_writes(3, 2));
 			weight
 		}
-		fn on_finalize(_n: T::BlockNumber) {
+		fn on_finalize(_n: BlockNumberFor<T>) {
 			Self::award_points_to_block_author();
 		}
 	}
@@ -496,7 +508,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
 	/// Current round index and next round scheduled transition
-	pub(crate) type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
+	pub(crate) type Round<T: Config> = StorageValue<_, RoundInfo<BlockNumberFor<T>>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn delegator_state)]
@@ -608,7 +620,7 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		CollatorSnapshot<T::AccountId, BalanceOf<T>>,
-		ValueQuery,
+		OptionQuery,
 	>;
 
 	#[pallet::storage]
@@ -645,6 +657,11 @@ pub mod pallet {
 		ValueQuery,
 	>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn marking_offline)]
+	/// Killswitch to enable/disable marking offline feature.
+	pub type EnableMarkingOffline<T: Config> = StorageValue<_, bool, ValueQuery>;
+
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		/// Initialize balance and register all as collators: `(collator AccountId, balance Amount)`
@@ -664,7 +681,6 @@ pub mod pallet {
 		pub num_selected_candidates: u32,
 	}
 
-	#[cfg(feature = "std")]
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
@@ -680,7 +696,7 @@ pub mod pallet {
 	}
 
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
 		fn build(&self) {
 			assert!(self.blocks_per_round > 0, "Blocks per round must be > 0");
 			<InflationConfig<T>>::put(self.inflation_config.clone());
@@ -779,13 +795,13 @@ pub mod pallet {
 			// Choose top TotalSelected collator candidates
 			let (_, v_count, _, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
 			// Start Round 1 at Block 0
-			let round: RoundInfo<T::BlockNumber> =
+			let round: RoundInfo<BlockNumberFor<T>> =
 				RoundInfo::new(1u32, 0u32.into(), self.blocks_per_round);
 			<Round<T>>::put(round);
 			// Snapshot total stake
 			<Staked<T>>::insert(1u32, <Total<T>>::get());
 			<Pallet<T>>::deposit_event(Event::NewRound {
-				starting_block: T::BlockNumber::zero(),
+				starting_block: BlockNumberFor::<T>::zero(),
 				round: 1u32,
 				selected_collators_number: v_count,
 				total_balance: total_staked,
@@ -1374,6 +1390,91 @@ pub mod pallet {
 			}
 
 			Ok(().into())
+		}
+
+		/// Notify a collator is inactive during MaxOfflineRounds
+		#[pallet::call_index(29)]
+		#[pallet::weight(<T as Config>::WeightInfo::notify_inactive_collator())]
+		pub fn notify_inactive_collator(
+			origin: OriginFor<T>,
+			collator: T::AccountId,
+		) -> DispatchResult {
+			ensure!(
+				<EnableMarkingOffline<T>>::get(),
+				<Error<T>>::MarkingOfflineNotEnabled
+			);
+			ensure_signed(origin)?;
+
+			let mut collators_len = 0usize;
+			let max_collators = <TotalSelected<T>>::get();
+
+			if let Some(len) = <SelectedCandidates<T>>::decode_len() {
+				collators_len = len;
+			};
+
+			// Check collators length is not below or eq to 66% of max_collators.
+			// We use saturating logic here with (2/3)
+			// as it is dangerous to use floating point numbers directly.
+			ensure!(
+				collators_len * 3 > (max_collators * 2) as usize,
+				<Error<T>>::TooLowCollatorCountToNotifyAsInactive
+			);
+
+			let round_info = <Round<T>>::get();
+			let max_offline_rounds = T::MaxOfflineRounds::get();
+
+			ensure!(
+				round_info.current > max_offline_rounds,
+				<Error<T>>::CurrentRoundTooLow
+			);
+
+			// Have rounds_to_check = [8,9]
+			// in case we are in round 10 for instance
+			// with MaxOfflineRounds = 2
+			let first_round_to_check = round_info.current.saturating_sub(max_offline_rounds);
+			let rounds_to_check = first_round_to_check..round_info.current;
+
+			// If this counter is eq to max_offline_rounds,
+			// the collator should be notified as inactive
+			let mut inactive_counter: RoundIndex = 0u32;
+
+			// Iter rounds to check
+			//
+			// - The collator has AtStake associated and their AwardedPts are zero
+			//
+			// If the previous condition is met in all rounds of rounds_to_check,
+			// the collator is notified as inactive
+			for r in rounds_to_check {
+				let stake = <AtStake<T>>::get(r, &collator);
+				let pts = <AwardedPts<T>>::get(r, &collator);
+
+				if stake.is_some() && pts.is_zero() {
+					inactive_counter = inactive_counter.saturating_add(1);
+				}
+			}
+
+			if inactive_counter == max_offline_rounds {
+				let _ = T::OnInactiveCollator::on_inactive_collator(
+					collator.clone(),
+					round_info.current.saturating_sub(1),
+				);
+			} else {
+				return Err(<Error<T>>::CannotBeNotifiedAsInactive.into());
+			}
+
+			Ok(().into())
+		}
+
+		/// Enable/Disable marking offline feature
+		#[pallet::call_index(30)]
+		#[pallet::weight(
+			Weight::from_parts(3_000_000u64, 4_000u64)
+				.saturating_add(T::DbWeight::get().writes(1u64))
+		)]
+		pub fn enable_marking_offline(origin: OriginFor<T>, value: bool) -> DispatchResult {
+			ensure_root(origin)?;
+			<EnableMarkingOffline<T>>::set(value);
+			Ok(())
 		}
 	}
 

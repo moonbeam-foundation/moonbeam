@@ -23,7 +23,7 @@ use crate::{
 use crate::{
 	Data, IdentityFields, IdentityInfo, Judgement, Registrar, Registration, SubsOf, SuperOf,
 };
-use frame_support::{assert_ok, dispatch::Dispatchable};
+use frame_support::assert_ok;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_identity::{
 	Event as IdentityEvent, IdentityField, Pallet as IdentityPallet, RegistrarInfo,
@@ -31,7 +31,7 @@ use pallet_identity::{
 use precompile_utils::prelude::*;
 use precompile_utils::testing::*;
 use sp_core::{H160, U256};
-use sp_runtime::traits::Hash;
+use sp_runtime::traits::{Dispatchable, Hash};
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()

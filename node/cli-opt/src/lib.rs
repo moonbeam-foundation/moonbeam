@@ -108,4 +108,5 @@ pub struct RpcConfig {
 	pub relay_chain_rpc_urls: Vec<url::Url>,
 	pub tracing_raw_max_memory_usage: usize,
 	pub frontier_backend_config: FrontierBackendConfig,
+	pub no_prometheus_prefix: bool,
 }

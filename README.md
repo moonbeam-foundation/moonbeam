@@ -27,7 +27,7 @@ Docker images are published for every tagged release. Learn more with `moonbeam 
 docker run --network="host" moonbeamfoundation/moonbeam:v0.31.0 --chain alphanet
 ```
 
-You can find more detailed instructions to [run a full node in our TestNet](https://docs.moonbeam.network/node-operators/networks/full-node/)
+You can find more detailed instructions to [run a full node in our TestNet](https://docs.moonbeam.network/node-operators/networks/run-a-node/overview/)
 
 ## Run a local development node with Docker
 
@@ -40,7 +40,7 @@ service.
 docker run --network="host" moonbeamfoundation/moonbeam:v0.31.0 --dev
 ```
 
-For more information, see our detailed instructions to [run a development node](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/)
+For more information, see our detailed instructions to [run a development node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/)
 
 ### Sealing options
 
@@ -111,7 +111,7 @@ Also, the prefunded default account for testing purposes is:
 
 ## Build the Moonbeam Node
 
-To build Moonbeam, you will need a proper Substrate development environment. If you've never worked with a Substrate-based blockchain before, you should probably try the [Setting Up a Moonbeam Node](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/) docs first.
+To build Moonbeam, you will need a proper Substrate development environment. If you've never worked with a Substrate-based blockchain before, you should probably try the [Getting Started with a Moonbeam Development Node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/) docs first.
 
 If you need a refresher setting up your Substrate environment, see [Substrate's Getting Started Guide](https://substrate.dev/docs/en/knowledgebase/getting-started/).
 
@@ -152,7 +152,7 @@ because it takes 1284 milliseconds for a moonbeam to reach Earth.
 Moonbeam nodes support multiple public chains and testnets, with the following Chain Ids.
 
 | Network Description                | Chain ID    |
-| ---------------------------------- | ----------- |
+|------------------------------------|-------------|
 | Local Parachain TestNet            | 1280        |
 | Local Development TestNet          | 1281        |
 | Reserved for other TestNets        | 1282 - 1283 |
@@ -179,6 +179,7 @@ From substrate:
 
 From frontier:
 
+- _EVM Chain Id_: A place to store the chain id for each Moonbeam network
 - _EVM_: Encapsulates execution logic for an Ethereum Virtual Machine
 - _Ethereum_: Ethereum-style data encoding and access for the EVM.
 
@@ -189,7 +190,6 @@ From cumulus:
 
 The following pallets are stored in `pallets/`. They are designed for Moonbeam's specific requirements:
 
-- _Ethereum Chain Id_: A place to store the chain id for each Moonbeam network
 - _Author Inherent_: Allows block authors to include their identity in a block via an inherent
 - _Parachain Staking_: Minimal staking pallet that selects collators by total amount at stake
 

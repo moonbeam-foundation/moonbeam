@@ -111,7 +111,7 @@ describeSuite({
         const getTransferWeight = async function (limit: bigint) {
           // Mock the reception of the xcm message
           await injectHrmpMessageAndSeal(context, paraId, {
-            type: "XcmVersionedXcm",
+            type: "StagingXcmVersionedXcm",
             payload: new XcmFragment(config)
               .withdraw_asset()
               .clear_origin()

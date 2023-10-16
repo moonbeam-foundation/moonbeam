@@ -25,9 +25,13 @@
 pub mod rpc;
 
 use cumulus_client_cli::CollatorOptions;
-use cumulus_client_consensus_common::{ParachainBlockImport, ParachainConsensus};
+use cumulus_client_consensus_common::{
+	ParachainBlockImport as TParachainBlockImport, ParachainConsensus,
+};
+#[allow(deprecated)]
 use cumulus_client_service::{
-	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
+	prepare_node_config, start_collator, start_full_node, CollatorSybilResistance,
+	StartCollatorParams, StartFullNodeParams,
 };
 use cumulus_primitives_core::relay_chain::CollatorPair;
 use cumulus_primitives_core::ParaId;
@@ -36,22 +40,24 @@ use cumulus_primitives_parachain_inherent::{
 };
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainInterface, RelayChainResult};
-use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node;
-use fc_consensus::FrontierBlockImport;
+use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node_with_rpc;
+use fc_consensus::FrontierBlockImport as TFrontierBlockImport;
 use fc_db::DatabaseSource;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
-use futures::StreamExt;
+use futures::{FutureExt, StreamExt};
 use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
 use moonbeam_cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, RpcConfig};
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
+use moonbeam_vrf::VrfDigestsProvider;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
-use nimbus_consensus::NimbusManualSealConsensusDataProvider;
-use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
-use nimbus_primitives::NimbusId;
+use nimbus_consensus::{
+	BuildNimbusConsensusParams, NimbusConsensus, NimbusManualSealConsensusDataProvider,
+};
+use nimbus_primitives::{DigestsProvider, NimbusId};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
@@ -60,16 +66,19 @@ use sc_consensus::ImportQueue;
 use sc_executor::{
 	HeapAllocStrategy, NativeElseWasmExecutor, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY,
 };
-use sc_network::{config::FullNetworkConfiguration, NetworkBlock, NetworkService};
+use sc_network::{config::FullNetworkConfiguration, NetworkBlock};
+use sc_network_sync::SyncingService;
 use sc_service::config::PrometheusConfig;
 use sc_service::{
 	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, TFullBackend,
 	TFullClient, TaskManager,
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
+use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
-use sp_keystore::KeystorePtr;
+use sp_core::{ByteArray, H256};
+use sp_keystore::{Keystore, KeystorePtr};
 use std::sync::Arc;
 use std::{collections::BTreeMap, path::Path, sync::Mutex, time::Duration};
 use substrate_prometheus_endpoint::Registry;
@@ -82,11 +91,47 @@ type FullClient<RuntimeApi, Executor> =
 	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 type FullBackend = TFullBackend<Block>;
 type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
+type FrontierBlockImport<RuntimeApi, Executor> = TFrontierBlockImport<
+	Block,
+	Arc<FullClient<RuntimeApi, Executor>>,
+	FullClient<RuntimeApi, Executor>,
+>;
+type ParachainBlockImport<RuntimeApi, Executor> =
+	TParachainBlockImport<Block, FrontierBlockImport<RuntimeApi, Executor>, FullBackend>;
+type PartialComponentsResult<RuntimeApi, Executor> = Result<
+	PartialComponents<
+		FullClient<RuntimeApi, Executor>,
+		FullBackend,
+		MaybeSelectChain,
+		sc_consensus::DefaultImportQueue<Block>,
+		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
+		(
+			BlockImportPipeline<
+				FrontierBlockImport<RuntimeApi, Executor>,
+				ParachainBlockImport<RuntimeApi, Executor>,
+			>,
+			Option<FilterPool>,
+			Option<Telemetry>,
+			Option<TelemetryWorkerHandle>,
+			fc_db::Backend<Block>,
+			FeeHistoryCache,
+		),
+	>,
+	ServiceError,
+>;
 
 pub type HostFunctions = (
 	frame_benchmarking::benchmarking::HostFunctions,
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
+
+/// Block Import Pipeline used.
+pub enum BlockImportPipeline<T, E> {
+	/// Used in dev mode to import new blocks as best blocks.
+	Dev(T),
+	/// Used in parachain mode.
+	Parachain(E),
+}
 
 /// A trait that must be implemented by all moon* runtimes executors.
 ///
@@ -317,8 +362,7 @@ where
 	Ok(frontier_backend)
 }
 
-use sp_runtime::{traits::BlakeTwo256, Percent};
-use sp_trie::PrefixedMemoryDB;
+use sp_runtime::{traits::BlakeTwo256, DigestItem, Percent};
 
 pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 
@@ -331,7 +375,7 @@ pub fn new_chain_ops(
 	(
 		Arc<Client>,
 		Arc<FullBackend>,
-		sc_consensus::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		sc_consensus::BasicQueue<Block>,
 		TaskManager,
 	),
 	ServiceError,
@@ -365,7 +409,7 @@ fn new_chain_ops_inner<RuntimeApi, Executor>(
 	(
 		Arc<Client>,
 		Arc<FullBackend>,
-		sc_consensus::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		sc_consensus::BasicQueue<Block>,
 		TaskManager,
 	),
 	ServiceError,
@@ -374,8 +418,7 @@ where
 	Client: From<Arc<crate::FullClient<RuntimeApi, Executor>>>,
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
@@ -395,12 +438,21 @@ where
 }
 
 // If we're using prometheus, use a registry with a prefix of `moonbeam`.
-fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceError> {
+fn set_prometheus_registry(
+	config: &mut Configuration,
+	skip_prefix: bool,
+) -> Result<(), ServiceError> {
 	if let Some(PrometheusConfig { registry, .. }) = config.prometheus_config.as_mut() {
 		let labels = hashmap! {
 			"chain".into() => config.chain_spec.id().into(),
 		};
-		*registry = Registry::new_custom(Some("moonbeam".into()), Some(labels))?;
+		let prefix = if skip_prefix {
+			None
+		} else {
+			Some("moonbeam".into())
+		};
+
+		*registry = Registry::new_custom(prefix, Some(labels))?;
 	}
 
 	Ok(())
@@ -415,40 +467,14 @@ pub fn new_partial<RuntimeApi, Executor>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
-) -> Result<
-	PartialComponents<
-		FullClient<RuntimeApi, Executor>,
-		FullBackend,
-		MaybeSelectChain,
-		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
-		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
-		(
-			ParachainBlockImport<
-				Block,
-				FrontierBlockImport<
-					Block,
-					Arc<FullClient<RuntimeApi, Executor>>,
-					FullClient<RuntimeApi, Executor>,
-				>,
-				FullBackend,
-			>,
-			Option<FilterPool>,
-			Option<Telemetry>,
-			Option<TelemetryWorkerHandle>,
-			fc_db::Backend<Block>,
-			FeeHistoryCache,
-		),
-	>,
-	ServiceError,
->
+) -> PartialComponentsResult<RuntimeApi, Executor>
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 {
-	set_prometheus_registry(config)?;
+	set_prometheus_registry(config, rpc_config.no_prometheus_prefix)?;
 
 	// Use ethereum style for subscription ids
 	config.rpc_id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
@@ -469,16 +495,21 @@ where
 		.map_or(DEFAULT_HEAP_ALLOC_STRATEGY, |h| HeapAllocStrategy::Static {
 			extra_pages: h as _,
 		});
-	let wasm = WasmExecutor::builder()
+	let mut wasm_builder = WasmExecutor::builder()
 		.with_execution_method(config.wasm_method)
 		.with_onchain_heap_alloc_strategy(heap_pages)
 		.with_offchain_heap_alloc_strategy(heap_pages)
 		.with_ignore_onchain_heap_pages(true)
 		.with_max_runtime_instances(config.max_runtime_instances)
-		.with_runtime_cache_size(config.runtime_cache_size)
-		.build();
+		.with_runtime_cache_size(config.runtime_cache_size);
 
-	let executor = NativeElseWasmExecutor::<Executor>::new_with_wasm_executor(wasm);
+	if let Some(ref wasmtime_precompiled_path) = config.wasmtime_precompiled {
+		wasm_builder = wasm_builder.with_wasmtime_precompiled_path(wasmtime_precompiled_path);
+	}
+
+	let wasm_executor = wasm_builder.build();
+
+	let executor = NativeElseWasmExecutor::<Executor>::new_with_wasm_executor(wasm_executor);
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, _>(
@@ -526,24 +557,39 @@ where
 
 	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
-	let parachain_block_import = cumulus_client_consensus_common::ParachainBlockImport::new(
-		frontier_block_import,
-		backend.clone(),
-	);
 
-	// Depending whether we are
-	let import_queue = nimbus_consensus::import_queue(
-		client.clone(),
-		parachain_block_import.clone(),
-		move |_, _| async move {
-			let time = sp_timestamp::InherentDataProvider::from_system_time();
+	let create_inherent_data_providers = move |_, _| async move {
+		let time = sp_timestamp::InherentDataProvider::from_system_time();
+		Ok((time,))
+	};
 
-			Ok((time,))
-		},
-		&task_manager.spawn_essential_handle(),
-		config.prometheus_registry(),
-		!dev_service,
-	)?;
+	let (import_queue, block_import) = if dev_service {
+		(
+			nimbus_consensus::import_queue(
+				client.clone(),
+				frontier_block_import.clone(),
+				create_inherent_data_providers,
+				&task_manager.spawn_essential_handle(),
+				config.prometheus_registry(),
+				!dev_service,
+			)?,
+			BlockImportPipeline::Dev(frontier_block_import),
+		)
+	} else {
+		let parachain_block_import =
+			ParachainBlockImport::new(frontier_block_import, backend.clone());
+		(
+			nimbus_consensus::import_queue(
+				client.clone(),
+				parachain_block_import.clone(),
+				create_inherent_data_providers,
+				&task_manager.spawn_essential_handle(),
+				config.prometheus_registry(),
+				!dev_service,
+			)?,
+			BlockImportPipeline::Parachain(parachain_block_import),
+		)
+	};
 
 	Ok(PartialComponents {
 		backend,
@@ -554,7 +600,7 @@ where
 		transaction_pool,
 		select_chain: maybe_select_chain,
 		other: (
-			parachain_block_import,
+			block_import,
 			filter_pool,
 			telemetry,
 			telemetry_worker_handle,
@@ -575,13 +621,11 @@ async fn build_relay_chain_interface(
 	Arc<(dyn RelayChainInterface + 'static)>,
 	Option<CollatorPair>,
 )> {
-	if !collator_options.relay_chain_rpc_urls.is_empty() {
-		build_minimal_relay_chain_node(
-			polkadot_config,
-			task_manager,
-			collator_options.relay_chain_rpc_urls,
-		)
-		.await
+	if let cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) =
+		collator_options.relay_chain_mode
+	{
+		build_minimal_relay_chain_node_with_rpc(polkadot_config, task_manager, rpc_target_urls)
+			.await
 	} else {
 		build_inprocess_relay_chain(
 			polkadot_config,
@@ -600,7 +644,8 @@ async fn build_relay_chain_interface(
 async fn start_node_impl<RuntimeApi, Executor, BIC>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v4::Id,
+	collator_options: CollatorOptions,
+	id: ParaId,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
 	build_consensus: BIC,
@@ -608,12 +653,12 @@ async fn start_node_impl<RuntimeApi, Executor, BIC>(
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 	BIC: FnOnce(
 		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
 		Arc<sc_client_db::Backend<Block>>,
+		ParachainBlockImport<RuntimeApi, Executor>,
 		Option<&Registry>,
 		Option<TelemetryHandle>,
 		&TaskManager,
@@ -624,20 +669,16 @@ where
 				TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>,
 			>,
 		>,
-		Arc<NetworkService<Block, Hash>>,
+		Arc<SyncingService<Block>>,
 		KeystorePtr,
 		bool,
 	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
 	let mut parachain_config = prepare_node_config(parachain_config);
 
-	let collator_options = CollatorOptions {
-		relay_chain_rpc_urls: rpc_config.relay_chain_rpc_urls.clone(),
-	};
-
 	let params = new_partial(&mut parachain_config, &rpc_config, false)?;
 	let (
-		_frontier_block_import,
+		block_import,
 		filter_pool,
 		mut telemetry,
 		telemetry_worker_handle,
@@ -677,6 +718,7 @@ where
 			para_id: id,
 			relay_chain_interface: relay_chain_interface.clone(),
 			net_config,
+			sybil_resistance_level: CollatorSybilResistance::Resistant,
 		})
 		.await?;
 
@@ -756,6 +798,7 @@ where
 		let block_data_cache = block_data_cache.clone();
 		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 
+		let keystore = params.keystore_container.keystore();
 		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
@@ -781,6 +824,10 @@ where
 				overrides: overrides.clone(),
 				forced_parent_hashes: None,
 			};
+			let pending_consensus_data_provider = Box::new(PendingConsensusDataProvider::new(
+				client.clone(),
+				keystore.clone(),
+			));
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::create_full(
 					deps,
@@ -790,6 +837,7 @@ where
 						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 					}),
 					pubsub_notification_sinks.clone(),
+					pending_consensus_data_provider,
 				)
 				.map_err(Into::into)
 			} else {
@@ -798,6 +846,7 @@ where
 					subscription_task_executor,
 					None,
 					pubsub_notification_sinks.clone(),
+					pending_consensus_data_provider,
 				)
 				.map_err(Into::into)
 			}
@@ -842,16 +891,21 @@ where
 		.overseer_handle()
 		.map_err(|e| sc_service::Error::Application(Box::new(e)))?;
 
+	let BlockImportPipeline::Parachain(block_import) = block_import else {
+			return Err(sc_service::Error::Other(
+				"Block import pipeline is not for parachain".into(),
+			))};
 	if collator {
 		let parachain_consensus = build_consensus(
 			client.clone(),
-			backend.clone(),
+			backend,
+			block_import,
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|t| t.handle()),
 			&task_manager,
 			relay_chain_interface.clone(),
 			transaction_pool,
-			network,
+			sync_service.clone(),
 			params.keystore_container.keystore(),
 			force_authoring,
 		)?;
@@ -876,6 +930,7 @@ where
 			sync_service,
 		};
 
+		#[allow(deprecated)]
 		start_collator(params).await?;
 	} else {
 		let params = StartFullNodeParams {
@@ -890,6 +945,7 @@ where
 			sync_service,
 		};
 
+		#[allow(deprecated)]
 		start_full_node(params)?;
 	}
 
@@ -904,7 +960,8 @@ where
 pub async fn start_node<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v4::Id,
+	collator_options: CollatorOptions,
+	id: ParaId,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
@@ -912,18 +969,20 @@ where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+		RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 {
 	start_node_impl(
 		parachain_config,
 		polkadot_config,
+		collator_options,
 		id,
 		rpc_config,
 		hwbench,
 		|
 			client,
 			backend,
+			block_import,
 			prometheus_registry,
 			telemetry,
 			task_manager,
@@ -931,7 +990,7 @@ where
 			transaction_pool,
 			_sync_oracle,
 			keystore,
-			force_authoring
+			force_authoring,
 		| {
 			let mut proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 				task_manager.spawn_handle(),
@@ -970,22 +1029,12 @@ where
 					Ok((time, parachain_inherent, author, randomness))
 				}
 			};
-			let client_clone = client.clone();
-			let keystore_clone = keystore.clone();
-			let maybe_provide_vrf_digest = move |nimbus_id: NimbusId, parent: Hash|
-				-> Option<sp_runtime::generic::DigestItem> {
-				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
-					&client_clone,
-					&keystore_clone,
-					nimbus_id,
-					parent,
-				)
-			};
+			let maybe_provide_vrf_digest = VrfDigestsProvider::new(client.clone(), keystore.clone());
 
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
 				para_id: id,
 				proposer_factory,
-				block_import: client.clone(),
+				block_import,
 				backend,
 				parachain_client: client.clone(),
 				keystore,
@@ -1010,14 +1059,12 @@ pub async fn new_dev<RuntimeApi, Executor>(
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	Executor: ExecutorT + 'static,
 {
 	use async_io::Timer;
 	use futures::Stream;
 	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
-	use sp_core::H256;
 
 	let sc_service::PartialComponents {
 		client,
@@ -1029,7 +1076,7 @@ where
 		transaction_pool,
 		other:
 			(
-				block_import,
+				block_import_pipeline,
 				filter_pool,
 				mut telemetry,
 				_telemetry_worker_handle,
@@ -1037,6 +1084,14 @@ where
 				fee_history_cache,
 			),
 	} = new_partial::<RuntimeApi, Executor>(&mut config, &rpc_config, true)?;
+
+	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
+		block_import
+	} else {
+		return Err(ServiceError::Other(
+			"Block import pipeline is not dev".to_string(),
+		));
+	};
 
 	let net_config = FullNetworkConfiguration::new(&config.network);
 
@@ -1053,11 +1108,23 @@ where
 		})?;
 
 	if config.offchain_worker.enabled {
-		sc_service::build_offchain_workers(
-			&config,
-			task_manager.spawn_handle(),
-			client.clone(),
-			network.clone(),
+		task_manager.spawn_handle().spawn(
+			"offchain-workers-runner",
+			"offchain-work",
+			sc_offchain::OffchainWorkers::new(sc_offchain::OffchainWorkerOptions {
+				runtime_api_provider: client.clone(),
+				keystore: Some(keystore_container.keystore()),
+				offchain_db: backend.offchain_storage(),
+				transaction_pool: Some(OffchainTransactionPoolFactory::new(
+					transaction_pool.clone(),
+				)),
+				network_provider: network.clone(),
+				is_validator: config.role.is_authority(),
+				enable_http_requests: true,
+				custom_extensions: move |_| vec![],
+			})
+			.run(client.clone(), task_manager.spawn_handle())
+			.boxed(),
 		);
 	}
 
@@ -1269,6 +1336,7 @@ where
 		let block_data_cache = block_data_cache.clone();
 		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 
+		let keystore = keystore_container.keystore();
 		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
@@ -1295,6 +1363,10 @@ where
 				forced_parent_hashes: None,
 			};
 
+			let pending_consensus_data_provider = Box::new(PendingConsensusDataProvider::new(
+				client.clone(),
+				keystore.clone(),
+			));
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::create_full(
 					deps,
@@ -1304,6 +1376,7 @@ where
 						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
 					}),
 					pubsub_notification_sinks.clone(),
+					pending_consensus_data_provider,
 				)
 				.map_err(Into::into)
 			} else {
@@ -1312,6 +1385,7 @@ where
 					subscription_task_executor,
 					None,
 					pubsub_notification_sinks.clone(),
+					pending_consensus_data_provider,
 				)
 				.map_err(Into::into)
 			}
@@ -1383,7 +1457,7 @@ mod tests {
 			..test_config("test")
 		};
 
-		set_prometheus_registry(&mut config).unwrap();
+		set_prometheus_registry(&mut config, false).unwrap();
 		// generate metric
 		let reg = config.prometheus_registry().unwrap();
 		reg.register(counter.clone()).unwrap();
@@ -1391,6 +1465,28 @@ mod tests {
 
 		let actual_metric_name = reg.gather().first().unwrap().get_name().to_string();
 		assert_eq!(actual_metric_name.as_str(), expected_metric_name);
+	}
+
+	#[test]
+	fn test_set_prometheus_registry_skips_moonbeam_prefix() {
+		let counter_name = "my_counter";
+		let counter = Box::new(Counter::new(counter_name, "foobar").unwrap());
+		let mut config = Configuration {
+			prometheus_config: Some(PrometheusConfig::new_with_default_registry(
+				"0.0.0.0:8080".parse().unwrap(),
+				"".into(),
+			)),
+			..test_config("test")
+		};
+
+		set_prometheus_registry(&mut config, true).unwrap();
+		// generate metric
+		let reg = config.prometheus_registry().unwrap();
+		reg.register(counter.clone()).unwrap();
+		counter.inc();
+
+		let actual_metric_name = reg.gather().first().unwrap().get_name().to_string();
+		assert_eq!(actual_metric_name.as_str(), counter_name);
 	}
 
 	#[test]
@@ -1411,7 +1507,7 @@ mod tests {
 			..test_config(input_chain_id)
 		};
 
-		set_prometheus_registry(&mut config).unwrap();
+		set_prometheus_registry(&mut config, false).unwrap();
 		// generate metric
 		let reg = config.prometheus_registry().unwrap();
 		reg.register(counter.clone()).unwrap();
@@ -1557,7 +1653,6 @@ mod tests {
 			chain_spec: Box::new(spec),
 			wasm_method: Default::default(),
 			wasm_runtime_overrides: Default::default(),
-			execution_strategies: Default::default(),
 			rpc_id_provider: None,
 			rpc_max_connections: Default::default(),
 			rpc_cors: None,
@@ -1581,7 +1676,84 @@ mod tests {
 			announce_block: true,
 			base_path: BasePath::new(Path::new("")),
 			informant_output_format: Default::default(),
+			wasmtime_precompiled: None,
 			runtime_cache_size: 2,
 		}
+	}
+}
+
+struct PendingConsensusDataProvider<RuntimeApi, Executor>
+where
+	RuntimeApi: Send + Sync,
+	Executor: ExecutorT + 'static,
+{
+	client: Arc<FullClient<RuntimeApi, Executor>>,
+	keystore: Arc<dyn Keystore>,
+}
+
+impl<RuntimeApi, Executor> PendingConsensusDataProvider<RuntimeApi, Executor>
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Executor: ExecutorT + 'static,
+{
+	pub fn new(client: Arc<FullClient<RuntimeApi, Executor>>, keystore: Arc<dyn Keystore>) -> Self {
+		Self { client, keystore }
+	}
+}
+
+impl<RuntimeApi, Executor> fc_rpc::pending::ConsensusDataProvider<Block>
+	for PendingConsensusDataProvider<RuntimeApi, Executor>
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Executor: ExecutorT + 'static,
+{
+	fn create_digest(
+		&self,
+		parent: &Header,
+		_data: &sp_inherents::InherentData,
+	) -> Result<sp_runtime::Digest, sp_inherents::Error> {
+		let hash = parent.hash();
+		// Get the digest from the best block header.
+		let mut digest = self
+			.client
+			.header(hash)
+			.map_err(|e| sp_inherents::Error::Application(Box::new(e)))?
+			.expect("Best block header should be present")
+			.digest;
+		// Get the nimbus id from the digest.
+		let nimbus_id = digest
+			.logs
+			.iter()
+			.find_map(|x| {
+				if let DigestItem::PreRuntime(nimbus_primitives::NIMBUS_ENGINE_ID, nimbus_id) = x {
+					Some(
+						NimbusId::from_slice(nimbus_id.as_slice())
+							.expect("Nimbus pre-runtime digest should be valid"),
+					)
+				} else {
+					None
+				}
+			})
+			.expect("Nimbus pre-runtime digest should be present");
+		// Remove the old VRF digest.
+		let pos = digest.logs.iter().position(|x| {
+			matches!(
+				x,
+				DigestItem::PreRuntime(session_keys_primitives::VRF_ENGINE_ID, _)
+			)
+		});
+		if let Some(pos) = pos {
+			digest.logs.remove(pos);
+		}
+		// Create the VRF digest.
+		let vrf_digest = VrfDigestsProvider::new(self.client.clone(), self.keystore.clone())
+			.provide_digests(nimbus_id, hash);
+		// Append the VRF digest to the digest.
+		digest.logs.extend(vrf_digest);
+		Ok(digest)
 	}
 }

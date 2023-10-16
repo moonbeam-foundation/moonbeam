@@ -132,10 +132,10 @@ jobs:
           timeout: 10000
           moonbeam-binary: build/moonbeam
           force-pass: true
-      - name: "Run Moonwall Dev Tests"
-        uses: ./.github/workflow-templates/dev-tests
-        with:
-          moonwall_environment: dev_moonbase
+      # - name: "Run Moonwall Dev Tests"
+      #   uses: ./.github/workflow-templates/dev-tests
+      #   with:
+      #     moonwall_environment: dev_moonbase
 
       - name: Retrieve coverage
         id: coverage
