@@ -2860,7 +2860,7 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 	let sov = xcm_builder::SiblingParachainConvertsVia::<
 		polkadot_parachain::primitives::Sibling,
 		statemine_like::AccountId,
-	>::convert_ref(dest_para)
+	>::convert_location(&dest_para)
 	.unwrap();
 
 	ParaA::execute_with(|| {

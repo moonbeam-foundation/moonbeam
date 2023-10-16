@@ -2554,7 +2554,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	let sov = xcm_builder::SiblingParachainConvertsVia::<
 		polkadot_parachain::primitives::Sibling,
 		statemint_like::AccountId,
-	>::convert_ref(dest_para)
+	>::convert_location(&dest_para)
 	.unwrap();
 
 	ParaA::execute_with(|| {
@@ -2724,6 +2724,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	});
 
 	Statemint::execute_with(|| {
+		println!("STATEMINT EVENTS: {:?}", parachain::para_events());
 		// Check that BOB received 100 USDC on statemint
 		assert_eq!(StatemintAssets::account_balances(RELAYBOB), vec![(10, 100)]);
 	});
