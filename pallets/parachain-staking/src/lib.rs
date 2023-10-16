@@ -989,11 +989,11 @@ pub mod pallet {
 			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin.clone())?;
-			let is_governance_origin = T::MonetaryGovernanceOrigin::ensure_origin(origin).is_ok();
 			ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
 			ensure!(!Self::is_delegator(&acc), Error::<T>::DelegatorExists);
 			ensure!(
-				is_governance_origin || bond >= T::MinCandidateStk::get(),
+				bond >= T::MinCandidateStk::get()
+					|| T::MonetaryGovernanceOrigin::ensure_origin(origin).is_ok(),
 				Error::<T>::CandidateBondBelowMin
 			);
 			let mut candidates = <CandidatePool<T>>::get();
