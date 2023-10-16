@@ -32,14 +32,15 @@ use precompile_utils::{
 	testing::{AddressInPrefixedSet, MockAccount},
 };
 use sp_core::H256;
-use sp_runtime::traits::{BlakeTwo256, ConstU32, IdentityLookup};
+use sp_runtime::{
+	traits::{BlakeTwo256, ConstU32, IdentityLookup},
+	BuildStorage,
+};
 
 pub type AccountId = MockAccount;
 pub type AssetId = u128;
 pub type Balance = u128;
-pub type BlockNumber = u32;
-pub type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-pub type Block = frame_system::mocking::MockBlock<Runtime>;
+pub type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 /// The foreign asset precompile address prefix. Addresses that match against this prefix will
 /// be routed to Erc20AssetsPrecompileSet being marked as foreign
@@ -108,14 +109,13 @@ impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
-	type Index = u64;
-	type BlockNumber = BlockNumber;
+	type Nonce = u64;
+	type Block = Block;
 	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -156,7 +156,7 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
-	type HoldIdentifier = ();
+	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
@@ -298,17 +298,14 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
+	pub enum Runtime
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		ForeignAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
-		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		LocalAssets: pallet_assets::<Instance2>::{Pallet, Call, Storage, Event<T>}
+		System: frame_system,
+		Balances: pallet_balances,
+		ForeignAssets: pallet_assets::<Instance1>,
+		Evm: pallet_evm,
+		Timestamp: pallet_timestamp,
+		LocalAssets: pallet_assets::<Instance2>,
 	}
 );
 
@@ -330,8 +327,8 @@ impl ExtBuilder {
 	}
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Runtime> {

@@ -306,7 +306,6 @@ describeSuite({
     it({
       id: "T01",
       title: "should support V1 user action",
-      timeout: 3600 * 1000,
       test: async function () {
         // create payload
         const destination = context
@@ -342,7 +341,6 @@ describeSuite({
     it({
       id: "T02",
       title: "should support V2 user action with fee",
-      timeout: 3600 * 1000,
       test: async function () {
         // create payload
         const destination = context
@@ -383,7 +381,6 @@ describeSuite({
     it({
       id: "T03",
       title: "should pay entire transfer when fee greater than transfer",
-      timeout: 3600 * 1000,
       test: async function () {
         // create payload
         const destination = context
@@ -422,7 +419,6 @@ describeSuite({
     it({
       id: "T04",
       title: "should pay no fee if fee is zero",
-      timeout: 3600 * 1000,
       test: async function () {
         // create payload
         const destination = context

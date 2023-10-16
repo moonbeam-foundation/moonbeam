@@ -63,16 +63,14 @@ pub enum Subcommand {
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
 	/// Try some command against runtime state.
-	#[cfg(feature = "try-runtime")]
-	TryRuntime(try_runtime_cli::TryRuntimeCmd),
-
-	/// Try some command against runtime state. Note: `try-runtime` feature must be enabled.
-	#[cfg(not(feature = "try-runtime"))]
 	TryRuntime,
 
 	/// Key management cli utilities
 	#[clap(subcommand)]
 	Key(KeyCmd),
+
+	/// Precompile the WASM runtime into native code
+	PrecompileWasm(sc_cli::PrecompileWasmCmd),
 }
 
 #[derive(Debug, Parser)]
@@ -230,6 +228,10 @@ pub struct RunCmd {
 	/// telemetry, if telemetry is enabled.
 	#[clap(long)]
 	pub no_hardware_benchmarks: bool,
+
+	/// Removes moonbeam prefix from Prometheus metrics
+	#[clap(long)]
+	pub no_prometheus_prefix: bool,
 }
 
 impl RunCmd {
@@ -254,6 +256,7 @@ impl RunCmd {
 					cache_size: self.frontier_sql_backend_cache_size,
 				},
 			},
+			no_prometheus_prefix: self.no_prometheus_prefix,
 		}
 	}
 }

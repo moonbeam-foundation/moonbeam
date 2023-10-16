@@ -19,12 +19,12 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
-	DelegationAction, Pallet, ParachainBondConfig, ParachainBondInfo, Points, Range, RewardPayment,
-	Round, ScheduledRequest, Staked, TopDelegations,
+	DelegationAction, EnableMarkingOffline, Pallet, ParachainBondConfig, ParachainBondInfo, Points,
+	Range, RewardPayment, Round, ScheduledRequest, Staked, TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
-use frame_system::RawOrigin;
+use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin};
 use sp_runtime::{Perbill, Percent};
 use sp_std::vec::Vec;
 
@@ -203,7 +203,7 @@ fn parachain_staking_on_finalize<T: Config>(author: T::AccountId) {
 /// Run to end block and author
 fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 	let total_rounds = round_delay + 1u32;
-	let round_length: T::BlockNumber = Pallet::<T>::round().length.into();
+	let round_length: BlockNumberFor<T> = Pallet::<T>::round().length.into();
 	let mut now = <frame_system::Pallet<T>>::block_number() + 1u32.into();
 	let end = Pallet::<T>::round().first + (round_length * total_rounds.into());
 	while now < end {
@@ -2192,6 +2192,71 @@ benchmarks! {
 	verify {
 		assert_eq!(T::Currency::free_balance(&collator), original_free_balance + 50u32.into());
 	}
+
+	notify_inactive_collator {
+		use crate::{AtStake, CollatorSnapshot, AwardedPts};
+
+		// Blocks per-round must be greater than TotalSelected
+		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 101u32)?;
+		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
+
+		let mut candidate_count = 1u32;
+		let mut seed = USER_SEED;
+
+		// Create collators up to MaxCandidates
+		for i in 0..(T::MaxCandidates::get() - 3) {
+			seed += i;
+			let collator = create_funded_collator::<T>(
+				"collator",
+				seed,
+				min_candidate_stk::<T>() * 1_000_000u32.into(),
+				true,
+				candidate_count
+			)?;
+			candidate_count += 1;
+		}
+
+		// Create two collators more: the one that will be marked as inactive
+		// and the one that will act as the caller of the extrinsic.
+		seed += 1;
+		let inactive_collator: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			seed,
+			min_candidate_stk::<T>() * 1_000_000u32.into(),
+			true,
+			candidate_count
+		)?;
+		candidate_count += 1;
+
+		seed += 1;
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			seed,
+			min_candidate_stk::<T>() * 1_000_000u32.into(),
+			true,
+			candidate_count
+		)?;
+
+		// Roll to round 2 and call to select_top_candidates.
+		// We do this to be able to have more than 66% of TotalSelected.
+		roll_to_and_author::<T>(2, caller.clone());
+		Pallet::<T>::select_top_candidates(2);
+
+		// Manually change these values for inactive_collator,
+		// so that it can be marked as inactive.
+		<AtStake<T>>::insert(1, &inactive_collator, CollatorSnapshot::default());
+		<AwardedPts<T>>::insert(1, &inactive_collator, 0);
+
+		<AtStake<T>>::insert(2, &inactive_collator, CollatorSnapshot::default());
+		<AwardedPts<T>>::insert(2, &inactive_collator, 0);
+
+		// Enable killswitch
+		<EnableMarkingOffline<T>>::set(true);
+
+	}: _(RawOrigin::Signed(caller), inactive_collator.clone())
+	verify {
+		assert!(!Pallet::<T>::candidate_info(&inactive_collator).expect("must exist").is_active());
+	}
 }
 
 #[cfg(test)]
@@ -2200,10 +2265,11 @@ mod tests {
 	use crate::mock::Test;
 	use frame_support::assert_ok;
 	use sp_io::TestExternalities;
+	use sp_runtime::BuildStorage;
 
 	pub fn new_test_ext() -> TestExternalities {
-		let t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+		let t = frame_system::GenesisConfig::<Test>::default()
+			.build_storage()
 			.unwrap();
 		TestExternalities::new(t)
 	}

@@ -61,7 +61,7 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .createType("XcmVersionedXcm", new XcmFragment(config).withdraw_asset().as_v2())
+            .createType("StagingXcmVersionedXcm", new XcmFragment(config).withdraw_asset().as_v2())
         );
 
         // How much does the buyExecution weight?
@@ -69,7 +69,7 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .createType("XcmVersionedXcm", new XcmFragment(config).buy_execution().as_v2())
+            .createType("StagingXcmVersionedXcm", new XcmFragment(config).buy_execution().as_v2())
         );
 
         // How much does the refundSurplus weight?
@@ -79,7 +79,7 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .createType("XcmVersionedXcm", new XcmFragment(config).refund_surplus().as_v2())
+            .createType("StagingXcmVersionedXcm", new XcmFragment(config).refund_surplus().as_v2())
         );
 
         const refundSurplusPerMessage =
@@ -93,7 +93,7 @@ describeSuite({
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage);
+          .createType("StagingXcmVersionedXcm", xcmMessage);
 
         const totalMessage = [...receivedMessage.toU8a()];
 

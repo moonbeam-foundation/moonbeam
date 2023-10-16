@@ -28,7 +28,7 @@ In order to avoid impacting the gas price, a distinct mechanism is proposed.
 Users **CAN** send tokens to any address "rent deposit".
 
 The destination address **MUST** have sufficient "rent deposit"
-for a Smart Contract to be deployed. The sufficient amount correspond to 1 year of rent
+for a Smart Contract to be deployed. The sufficient amount corresponds to 1 year of rent
 based on the size of the contract plus initial storage data.
 
 Executing a transaction **MUST** burn part of the "rent deposit"

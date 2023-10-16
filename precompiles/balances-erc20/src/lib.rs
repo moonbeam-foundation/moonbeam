@@ -20,8 +20,8 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	sp_runtime::traits::{Bounded, CheckedSub, StaticLookup},
+	dispatch::{GetDispatchInfo, PostDispatchInfo},
+	sp_runtime::traits::{Bounded, CheckedSub, Dispatchable, StaticLookup},
 	storage::types::{StorageDoubleMap, StorageMap, ValueQuery},
 	traits::StorageInstance,
 	Blake2_128Concat,

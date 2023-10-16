@@ -18,12 +18,13 @@ use crate::mock::{
 	events, roll_to, AccountId, Crowdloan, ExtBuilder, PCall, Precompiles, PrecompilesValue,
 	Runtime, RuntimeCall, RuntimeOrigin,
 };
-use frame_support::{assert_ok, dispatch::Dispatchable};
+use frame_support::assert_ok;
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
 use pallet_evm::Call as EvmCall;
 use precompile_utils::{prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
+use sp_runtime::traits::Dispatchable;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()

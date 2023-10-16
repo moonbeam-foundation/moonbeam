@@ -114,7 +114,7 @@ where
 	fn execute(
 		origin: impl Into<xcm::latest::MultiLocation>,
 		pre: Self::Prepared,
-		hash: xcm::latest::XcmHash,
+		hash: &mut xcm::latest::XcmHash,
 		weight_credit: xcm::latest::Weight,
 	) -> xcm::latest::Outcome {
 		let mut erc20s_origins = Default::default();

@@ -1,40 +1,74 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  BALTATHAR_ADDRESS,
-  createRawTransfer,
-  sendRawTransaction,
-} from "@moonwall/util";
+import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { ALITH_ADDRESS, createEthersTransaction, sendRawTransaction } from "@moonwall/util";
+import { encodeDeployData } from "viem";
 
 describeSuite({
   id: "D3305",
   title: "TxPool - Limits",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    // 8192 is the number of tx that can be sent to the Pool
-    // before it throws an error and drops all tx
+    let deployData: string;
+    beforeAll(async () => {
+      const { abi, bytecode } = fetchCompiledContract("MultiplyBy7");
+      deployData = encodeDeployData({
+        abi,
+        bytecode,
+      });
+      const txs = await Promise.all(
+        new Array(8192).fill(0).map((_, i) =>
+          createEthersTransaction(context, {
+            data: deployData,
+            nonce: i,
+          })
+        )
+      );
+      for (const tx of txs) {
+        await context.viem().sendRawTransaction({ serializedTransaction: tx });
+      }
+    });
+
     it({
       id: "T01",
-      title:
-        "should be able to send 8192 tx to the pool " +
-        "and have them all published within the following blocks",
+      title: "should be able to have 8192 tx in the pool",
+      timeout: 30_000,
       test: async function () {
-        for (let i = 0; i < 8192; i++) {
-          // for (let i = 0; i < 8192; i++) {
-          const rawTxn = await createRawTransfer(context, BALTATHAR_ADDRESS, 1n, {
-            nonce: i,
-            gas: 400000n,
-          });
-          await sendRawTransaction(context, rawTxn);
-        }
         const inspectBlob = (await context
           .viem()
           .transport.request({ method: "txpool_inspect" })) as any;
-
         const txPoolSize = Object.keys(inspectBlob.pending[ALITH_ADDRESS.toLowerCase()]).length;
-
         expect(txPoolSize).toBe(8192);
+      },
+    });
+
+    it({
+      id: "T02",
+      title: "should drop the 8193th tx",
+      timeout: 30_000,
+      test: async function () {
+        try {
+          await context.viem().sendRawTransaction({
+            serializedTransaction: await createEthersTransaction(context, {
+              data: deployData,
+              nonce: 8192,
+            }),
+          });
+        } catch (e: any) {
+          expect(e.message).toContain("submit transaction to pool failed: Ok(ImmediatelyDropped)");
+        }
+      },
+    });
+
+    it({
+      id: "T03",
+      title: "should be able have them all published within the following blocks",
+      timeout: 40_000,
+      test: async function () {
+        const { abi, bytecode } = fetchCompiledContract("MultiplyBy7");
+        const deployData = encodeDeployData({
+          abi,
+          bytecode,
+        });
 
         let blocks = 1;
         while (true) {
