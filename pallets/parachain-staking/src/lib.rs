@@ -989,48 +989,7 @@ pub mod pallet {
 			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin.clone())?;
-			ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
-			ensure!(!Self::is_delegator(&acc), Error::<T>::DelegatorExists);
-			ensure!(
-				bond >= T::MinCandidateStk::get()
-					|| T::MonetaryGovernanceOrigin::ensure_origin(origin).is_ok(),
-				Error::<T>::CandidateBondBelowMin
-			);
-			let mut candidates = <CandidatePool<T>>::get();
-			let old_count = candidates.0.len() as u32;
-			ensure!(
-				candidate_count >= old_count,
-				Error::<T>::TooLowCandidateCountWeightHintJoinCandidates
-			);
-			let maybe_inserted_candidate = candidates
-				.try_insert(Bond {
-					owner: acc.clone(),
-					amount: bond,
-				})
-				.map_err(|_| Error::<T>::CandidateLimitReached)?;
-			ensure!(maybe_inserted_candidate, Error::<T>::CandidateExists);
-
-			ensure!(
-				Self::get_collator_stakable_free_balance(&acc) >= bond,
-				Error::<T>::InsufficientBalance,
-			);
-			T::Currency::set_lock(COLLATOR_LOCK_ID, &acc, bond, WithdrawReasons::all());
-			let candidate = CandidateMetadata::new(bond);
-			<CandidateInfo<T>>::insert(&acc, candidate);
-			let empty_delegations: Delegations<T::AccountId, BalanceOf<T>> = Default::default();
-			// insert empty top delegations
-			<TopDelegations<T>>::insert(&acc, empty_delegations.clone());
-			// insert empty bottom delegations
-			<BottomDelegations<T>>::insert(&acc, empty_delegations);
-			<CandidatePool<T>>::put(candidates);
-			let new_total = <Total<T>>::get().saturating_add(bond);
-			<Total<T>>::put(new_total);
-			Self::deposit_event(Event::JoinedCollatorCandidates {
-				account: acc,
-				amount_locked: bond,
-				new_total_amt_locked: new_total,
-			});
-			Ok(().into())
+			Self::join_candidates_inner(acc, bond, candidate_count, false)
 		}
 
 		/// Request to leave the set of candidates. If successful, the account is immediately
@@ -1477,6 +1436,20 @@ pub mod pallet {
 			<EnableMarkingOffline<T>>::set(value);
 			Ok(())
 		}
+
+		/// Force join the set of collator candidates.
+		/// It will skip the minimum required bond check.
+		#[pallet::call_index(31)]
+		#[pallet::weight(<T as Config>::WeightInfo::join_candidates(*candidate_count))]
+		pub fn force_join_candidates(
+			origin: OriginFor<T>,
+			acc: T::AccountId,
+			bond: BalanceOf<T>,
+			candidate_count: u32,
+		) -> DispatchResultWithPostInfo {
+			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
+			Self::join_candidates_inner(acc, bond, candidate_count, true)
+		}
 	}
 
 	/// Represents a payout made via `pay_one_collator_reward`.
@@ -1501,6 +1474,55 @@ pub mod pallet {
 
 		pub fn is_selected_candidate(acc: &T::AccountId) -> bool {
 			<SelectedCandidates<T>>::get().binary_search(acc).is_ok()
+		}
+
+		pub fn join_candidates_inner(
+			acc: T::AccountId,
+			bond: BalanceOf<T>,
+			candidate_count: u32,
+			skip_bond_check: bool,
+		) -> DispatchResultWithPostInfo {
+			ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
+			ensure!(!Self::is_delegator(&acc), Error::<T>::DelegatorExists);
+			ensure!(
+				skip_bond_check || bond >= T::MinCandidateStk::get(),
+				Error::<T>::CandidateBondBelowMin
+			);
+			let mut candidates = <CandidatePool<T>>::get();
+			let old_count = candidates.0.len() as u32;
+			ensure!(
+				candidate_count >= old_count,
+				Error::<T>::TooLowCandidateCountWeightHintJoinCandidates
+			);
+			let maybe_inserted_candidate = candidates
+				.try_insert(Bond {
+					owner: acc.clone(),
+					amount: bond,
+				})
+				.map_err(|_| Error::<T>::CandidateLimitReached)?;
+			ensure!(maybe_inserted_candidate, Error::<T>::CandidateExists);
+
+			ensure!(
+				Self::get_collator_stakable_free_balance(&acc) >= bond,
+				Error::<T>::InsufficientBalance,
+			);
+			T::Currency::set_lock(COLLATOR_LOCK_ID, &acc, bond, WithdrawReasons::all());
+			let candidate = CandidateMetadata::new(bond);
+			<CandidateInfo<T>>::insert(&acc, candidate);
+			let empty_delegations: Delegations<T::AccountId, BalanceOf<T>> = Default::default();
+			// insert empty top delegations
+			<TopDelegations<T>>::insert(&acc, empty_delegations.clone());
+			// insert empty bottom delegations
+			<BottomDelegations<T>>::insert(&acc, empty_delegations);
+			<CandidatePool<T>>::put(candidates);
+			let new_total = <Total<T>>::get().saturating_add(bond);
+			<Total<T>>::put(new_total);
+			Self::deposit_event(Event::JoinedCollatorCandidates {
+				account: acc,
+				amount_locked: bond,
+				new_total_amt_locked: new_total,
+			});
+			Ok(().into())
 		}
 
 		pub fn go_offline_inner(collator: T::AccountId) -> DispatchResultWithPostInfo {
