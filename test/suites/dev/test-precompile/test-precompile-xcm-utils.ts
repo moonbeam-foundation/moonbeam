@@ -9,7 +9,7 @@ import { descendOriginFromAddress20 } from "../../../helpers/xcm.js";
 export const CLEAR_ORIGIN_WEIGHT = 5_194_000n;
 
 describeSuite({
-  id: "D2578",
+  id: "D2582",
   title: "Precompiles - xcm utils",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -182,7 +182,7 @@ describeSuite({
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage) as any;
+          .createType("StagingXcmVersionedXcm", xcmMessage) as any;
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "XcmUtils",
@@ -243,7 +243,7 @@ describeSuite({
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage);
+          .createType("StagingXcmVersionedXcm", xcmMessage);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "XcmUtils",
@@ -310,7 +310,7 @@ describeSuite({
 
         const sentMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage) as any;
+          .createType("StagingXcmVersionedXcm", xcmMessage) as any;
 
         // Try sending it with local view
         const localRawTxn = await context.writePrecompile!({
@@ -406,7 +406,7 @@ describeSuite({
 
         const sentMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage);
+          .createType("StagingXcmVersionedXcm", xcmMessage);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "XcmUtils",

@@ -21,7 +21,6 @@
 use core::marker::PhantomData;
 use fp_evm::Log;
 use frame_support::{
-	dispatch::Dispatchable,
 	dispatch::{GetDispatchInfo, Pays, PostDispatchInfo},
 	sp_runtime::traits::Hash,
 	traits::ConstU32,
@@ -31,6 +30,7 @@ use pallet_evm::AddressMapping;
 use parity_scale_codec::DecodeLimit as _;
 use precompile_utils::prelude::*;
 use sp_core::{Decode, Get, H160, H256};
+use sp_runtime::traits::Dispatchable;
 use sp_std::{boxed::Box, vec::Vec};
 
 #[cfg(test)]

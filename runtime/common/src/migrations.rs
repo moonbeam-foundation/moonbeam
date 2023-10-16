@@ -20,7 +20,7 @@
 //! the "Migration" trait declared in the pallet-migrations crate.
 
 use frame_support::{
-	dispatch::GetStorageVersion,
+	pallet_prelude::GetStorageVersion,
 	traits::{Hash as PreimageHash, OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };

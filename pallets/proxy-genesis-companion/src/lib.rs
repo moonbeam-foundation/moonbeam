@@ -33,6 +33,7 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
+	use frame_system::pallet_prelude::*;
 	use sp_std::vec::Vec;
 
 	/// Pallet for configuring proxy at genesis
@@ -57,11 +58,10 @@ pub mod pallet {
 			T::AccountId,
 			T::AccountId,
 			<T as Config>::ProxyType,
-			T::BlockNumber,
+			BlockNumberFor<T>,
 		)>,
 	}
 
-	#[cfg(feature = "std")]
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
@@ -71,7 +71,7 @@ pub mod pallet {
 	}
 
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
 		fn build(&self) {
 			for (delegator, delegatee, proxy_type, delay) in &self.proxies {
 				pallet_proxy::Pallet::<T>::add_proxy_delegate(

@@ -18,7 +18,7 @@
 
 use evm::ExitReason;
 use fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use pallet_balances::Call as BalancesCall;
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
@@ -28,7 +28,7 @@ use precompile_utils::prelude::*;
 use sp_core::{Get, H160, U256};
 use sp_runtime::{
 	codec::Decode,
-	traits::{ConstU32, StaticLookup, Zero},
+	traits::{ConstU32, Dispatchable, StaticLookup, Zero},
 };
 use sp_std::marker::PhantomData;
 
