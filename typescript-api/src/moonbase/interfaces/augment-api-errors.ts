@@ -168,6 +168,8 @@ declare module "@polkadot/api-base/types/errors" {
       DuplicateVote: AugmentedError<ApiType>;
       /** Account is not a member */
       NotMember: AugmentedError<ApiType>;
+      /** Prime account is not a member */
+      PrimeAccountNotMember: AugmentedError<ApiType>;
       /** Proposal must exist */
       ProposalMissing: AugmentedError<ApiType>;
       /** The close call was made too early, before the end of the voting. */
@@ -514,6 +516,8 @@ declare module "@polkadot/api-base/types/errors" {
       DuplicateVote: AugmentedError<ApiType>;
       /** Account is not a member */
       NotMember: AugmentedError<ApiType>;
+      /** Prime account is not a member */
+      PrimeAccountNotMember: AugmentedError<ApiType>;
       /** Proposal must exist */
       ProposalMissing: AugmentedError<ApiType>;
       /** The close call was made too early, before the end of the voting. */
@@ -540,11 +544,13 @@ declare module "@polkadot/api-base/types/errors" {
       CandidateExists: AugmentedError<ApiType>;
       CandidateLimitReached: AugmentedError<ApiType>;
       CandidateNotLeaving: AugmentedError<ApiType>;
+      CannotBeNotifiedAsInactive: AugmentedError<ApiType>;
       CannotDelegateIfLeaving: AugmentedError<ApiType>;
       CannotDelegateLessThanOrEqualToLowestBottomWhenFull: AugmentedError<ApiType>;
       CannotGoOnlineIfLeaving: AugmentedError<ApiType>;
       CannotSetAboveMaxCandidates: AugmentedError<ApiType>;
       CannotSetBelowMin: AugmentedError<ApiType>;
+      CurrentRoundTooLow: AugmentedError<ApiType>;
       DelegationBelowMin: AugmentedError<ApiType>;
       DelegationDNE: AugmentedError<ApiType>;
       DelegatorAlreadyLeaving: AugmentedError<ApiType>;
@@ -558,6 +564,7 @@ declare module "@polkadot/api-base/types/errors" {
       ExceedMaxDelegationsPerDelegator: AugmentedError<ApiType>;
       InsufficientBalance: AugmentedError<ApiType>;
       InvalidSchedule: AugmentedError<ApiType>;
+      MarkingOfflineNotEnabled: AugmentedError<ApiType>;
       NoWritingSameValue: AugmentedError<ApiType>;
       PendingCandidateRequestAlreadyExists: AugmentedError<ApiType>;
       PendingCandidateRequestNotDueYet: AugmentedError<ApiType>;
@@ -578,6 +585,7 @@ declare module "@polkadot/api-base/types/errors" {
       TooLowCandidateCountWeightHintJoinCandidates: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToLeaveCandidates: AugmentedError<ApiType>;
+      TooLowCollatorCountToNotifyAsInactive: AugmentedError<ApiType>;
       TooLowDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowDelegationCountToLeaveDelegators: AugmentedError<ApiType>;
@@ -785,6 +793,8 @@ declare module "@polkadot/api-base/types/errors" {
       DuplicateVote: AugmentedError<ApiType>;
       /** Account is not a member */
       NotMember: AugmentedError<ApiType>;
+      /** Prime account is not a member */
+      PrimeAccountNotMember: AugmentedError<ApiType>;
       /** Proposal must exist */
       ProposalMissing: AugmentedError<ApiType>;
       /** The close call was made too early, before the end of the voting. */
@@ -823,6 +833,8 @@ declare module "@polkadot/api-base/types/errors" {
       DuplicateVote: AugmentedError<ApiType>;
       /** Account is not a member */
       NotMember: AugmentedError<ApiType>;
+      /** Prime account is not a member */
+      PrimeAccountNotMember: AugmentedError<ApiType>;
       /** Proposal must exist */
       ProposalMissing: AugmentedError<ApiType>;
       /** The close call was made too early, before the end of the voting. */
