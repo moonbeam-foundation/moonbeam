@@ -23,6 +23,9 @@ use frame_support::traits::ConstU32;
 use pallet_evm::AddressMapping;
 use sp_core::H160;
 
+#[cfg(all(feature = "std", test))]
+mod mock;
+
 pub const ARRAY_LIMIT: u32 = 1000;
 type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 

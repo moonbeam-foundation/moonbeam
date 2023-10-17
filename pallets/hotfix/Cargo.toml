@@ -15,6 +15,12 @@ sp-core = { workspace = true }
 # Frontier
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 
+
+[dev-dependencies]
+sp-runtime = { workspace = true, features = ["default"] }
+pallet-balances = { workspace = true, features = [ "default" ] }
+pallet-timestamp = { workspace = true, features = [ "default" ] }
+
 [features]
 default = ["std"]
 std = [
@@ -23,5 +29,8 @@ std = [
     "parity-scale-codec/std",
     "scale-info/std",
     "sp-core/std",
+    "sp-runtime/std",
     "pallet-evm/std",
+    "pallet-balances/std",
+    "pallet-timestamp/std",
 ]
