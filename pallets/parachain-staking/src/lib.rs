@@ -988,11 +988,11 @@ pub mod pallet {
 			bond: BalanceOf<T>,
 			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
+			let acc = ensure_signed(origin.clone())?;
 			ensure!(
 				bond >= T::MinCandidateStk::get(),
 				Error::<T>::CandidateBondBelowMin
 			);
-			let acc = ensure_signed(origin.clone())?;
 			Self::join_candidates_inner(acc, bond, candidate_count)
 		}
 
