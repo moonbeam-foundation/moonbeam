@@ -362,8 +362,8 @@ describeSuite({
           args: [`0x${transferVAA}`],
           rawTxOnly: true,
         });
-        const {result} = await context.createBlock(rawTx,{
-          expectEvents: [context.polkadotJs().events.xTokens.TransferredMultiAssets]
+        const { result } = await context.createBlock(rawTx, {
+          expectEvents: [context.polkadotJs().events.xTokens.TransferredMultiAssets],
         });
 
         expectEVMResult(result!.events, "Succeed", "Returned");
