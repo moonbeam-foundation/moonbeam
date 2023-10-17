@@ -79,6 +79,7 @@ use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_core::{ByteArray, H256};
 use sp_keystore::{Keystore, KeystorePtr};
+use std::str::FromStr;
 use std::sync::Arc;
 use std::{collections::BTreeMap, path::Path, sync::Mutex, time::Duration};
 use substrate_prometheus_endpoint::Registry;
@@ -800,6 +801,26 @@ where
 
 		let keystore = params.keystore_container.keystore();
 		move |deny_unsafe, subscription_task_executor| {
+			#[cfg(feature = "moonbase-native")]
+			let forced_parent_hashes = {
+				let mut forced_parent_hashes = BTreeMap::new();
+				// Fixes for https://github.com/paritytech/frontier/pull/570
+				// #1648995
+				forced_parent_hashes.insert(
+					H256::from_str(
+						"0xa352fee3eef9c554a31ec0612af887796a920613358abf3353727760ea14207b",
+					)
+					.expect("must be valid hash"),
+					H256::from_str(
+						"0x0d0fd88778aec08b3a83ce36387dbf130f6f304fc91e9a44c9605eaf8a80ce5d",
+					)
+					.expect("must be valid hash"),
+				);
+				Some(forced_parent_hashes)
+			};
+			#[cfg(not(feature = "moonbase-native"))]
+			let forced_parent_hashes = None;
+
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -822,7 +843,7 @@ where
 				xcm_senders: None,
 				block_data_cache: block_data_cache.clone(),
 				overrides: overrides.clone(),
-				forced_parent_hashes: None,
+				forced_parent_hashes,
 			};
 			let pending_consensus_data_provider = Box::new(PendingConsensusDataProvider::new(
 				client.clone(),
