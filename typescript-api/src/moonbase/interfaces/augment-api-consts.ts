@@ -17,7 +17,7 @@ import type {
   SpVersionRuntimeVersion,
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
-  XcmV3MultiLocation,
+  StagingXcmV3MultiLocation,
 } from "@polkadot/types/lookup";
 
 export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
@@ -270,6 +270,11 @@ declare module "@polkadot/api-base/types/consts" {
       maxCandidates: u32 & AugmentedConst<ApiType>;
       /** Maximum delegations per delegator */
       maxDelegationsPerDelegator: u32 & AugmentedConst<ApiType>;
+      /**
+       * If a collator doesn't produce any block on this number of rounds, it is notified as
+       * inactive. This value must be less than or equal to RewardPaymentDelay.
+       */
+      maxOfflineRounds: u32 & AugmentedConst<ApiType>;
       /** Maximum top delegations counted per candidate */
       maxTopDelegationsPerCandidate: u32 & AugmentedConst<ApiType>;
       /** Minimum number of blocks per round */
@@ -486,7 +491,7 @@ declare module "@polkadot/api-base/types/consts" {
       /** The actual weight for an XCM message is `T::BaseXcmWeight + T::Weigher::weight(&msg)`. */
       baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /** Self chain location. */
-      selfLocation: XcmV3MultiLocation & AugmentedConst<ApiType>;
+      selfLocation: StagingXcmV3MultiLocation & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };
@@ -498,7 +503,7 @@ declare module "@polkadot/api-base/types/consts" {
        */
       baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /** Self chain location. */
-      selfLocation: XcmV3MultiLocation & AugmentedConst<ApiType>;
+      selfLocation: StagingXcmV3MultiLocation & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };

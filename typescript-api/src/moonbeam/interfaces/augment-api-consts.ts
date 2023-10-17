@@ -17,7 +17,7 @@ import type {
   SpVersionRuntimeVersion,
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
-  XcmV3MultiLocation,
+  StagingXcmV3MultiLocation,
 } from "@polkadot/types/lookup";
 
 export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
@@ -53,8 +53,21 @@ declare module "@polkadot/api-base/types/consts" {
       [key: string]: Codec;
     };
     balances: {
-      /** The minimum amount required to keep an account open. */
+      /**
+       * The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!
+       *
+       * If you _really_ need it to be zero, you can enable the feature `insecure_zero_ed` for this
+       * pallet. However, you do so at your own risk: this will open up a major DoS vector. In case
+       * you have multiple sources of provider references, you may also get unexpected behaviour if
+       * you set this to zero.
+       *
+       * Bottom line: Do yourself a favour and make it at least one!
+       */
       existentialDeposit: u128 & AugmentedConst<ApiType>;
+      /** The maximum number of individual freeze locks that can exist on an account at any time. */
+      maxFreezes: u32 & AugmentedConst<ApiType>;
+      /** The maximum number of holds that can exist on an account at any time. */
+      maxHolds: u32 & AugmentedConst<ApiType>;
       /**
        * The maximum number of locks that should exist on an account. Not strictly enforced, but
        * used for weight estimation.
@@ -80,6 +93,12 @@ declare module "@polkadot/api-base/types/consts" {
        * those successful voters are locked into the consequences that their votes entail.
        */
       voteLockingPeriod: u32 & AugmentedConst<ApiType>;
+      /** Generic const */
+      [key: string]: Codec;
+    };
+    councilCollective: {
+      /** The maximum weight of a dispatch call that can be proposed and executed. */
+      maxProposalWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };
@@ -230,6 +249,12 @@ declare module "@polkadot/api-base/types/consts" {
       /** Generic const */
       [key: string]: Codec;
     };
+    openTechCommitteeCollective: {
+      /** The maximum weight of a dispatch call that can be proposed and executed. */
+      maxProposalWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
+      /** Generic const */
+      [key: string]: Codec;
+    };
     parachainStaking: {
       /** Number of rounds candidate requests to decrease self-bond must wait to be executable */
       candidateBondLessDelay: u32 & AugmentedConst<ApiType>;
@@ -241,8 +266,15 @@ declare module "@polkadot/api-base/types/consts" {
       leaveDelegatorsDelay: u32 & AugmentedConst<ApiType>;
       /** Maximum bottom delegations (not counted) per candidate */
       maxBottomDelegationsPerCandidate: u32 & AugmentedConst<ApiType>;
+      /** Maximum candidates */
+      maxCandidates: u32 & AugmentedConst<ApiType>;
       /** Maximum delegations per delegator */
       maxDelegationsPerDelegator: u32 & AugmentedConst<ApiType>;
+      /**
+       * If a collator doesn't produce any block on this number of rounds, it is notified as
+       * inactive. This value must be less than or equal to RewardPaymentDelay.
+       */
+      maxOfflineRounds: u32 & AugmentedConst<ApiType>;
       /** Maximum top delegations counted per candidate */
       maxTopDelegationsPerCandidate: u32 & AugmentedConst<ApiType>;
       /** Minimum number of blocks per round */
@@ -251,8 +283,6 @@ declare module "@polkadot/api-base/types/consts" {
       minCandidateStk: u128 & AugmentedConst<ApiType>;
       /** Minimum stake for any registered on-chain account to delegate */
       minDelegation: u128 & AugmentedConst<ApiType>;
-      /** Minimum stake for any registered on-chain account to be a delegator */
-      minDelegatorStk: u128 & AugmentedConst<ApiType>;
       /** Minimum number of selected candidates every round */
       minSelectedCandidates: u32 & AugmentedConst<ApiType>;
       /** Number of rounds that delegations remain bonded before revocation request is executable */
@@ -344,7 +374,14 @@ declare module "@polkadot/api-base/types/consts" {
     scheduler: {
       /** The maximum weight that may be scheduled per block for any dispatchables. */
       maximumWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
-      /** The maximum number of scheduled calls in the queue for a single block. */
+      /**
+       * The maximum number of scheduled calls in the queue for a single block.
+       *
+       * NOTE:
+       *
+       * - Dependent pallets' benchmarks might require a higher limit for the setting. Set a higher
+       *   limit under `runtime-benchmarks` feature.
+       */
       maxScheduledPerBlock: u32 & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
@@ -367,6 +404,12 @@ declare module "@polkadot/api-base/types/consts" {
       ss58Prefix: u16 & AugmentedConst<ApiType>;
       /** Get the chain's current version. */
       version: SpVersionRuntimeVersion & AugmentedConst<ApiType>;
+      /** Generic const */
+      [key: string]: Codec;
+    };
+    techCommitteeCollective: {
+      /** The maximum weight of a dispatch call that can be proposed and executed. */
+      maxProposalWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };
@@ -432,6 +475,12 @@ declare module "@polkadot/api-base/types/consts" {
       /** Generic const */
       [key: string]: Codec;
     };
+    treasuryCouncilCollective: {
+      /** The maximum weight of a dispatch call that can be proposed and executed. */
+      maxProposalWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
+      /** Generic const */
+      [key: string]: Codec;
+    };
     utility: {
       /** The limit on the number of batched calls. */
       batchedCallsLimit: u32 & AugmentedConst<ApiType>;
@@ -442,7 +491,7 @@ declare module "@polkadot/api-base/types/consts" {
       /** The actual weight for an XCM message is `T::BaseXcmWeight + T::Weigher::weight(&msg)`. */
       baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /** Self chain location. */
-      selfLocation: XcmV3MultiLocation & AugmentedConst<ApiType>;
+      selfLocation: StagingXcmV3MultiLocation & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };
@@ -454,7 +503,7 @@ declare module "@polkadot/api-base/types/consts" {
        */
       baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /** Self chain location. */
-      selfLocation: XcmV3MultiLocation & AugmentedConst<ApiType>;
+      selfLocation: StagingXcmV3MultiLocation & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };

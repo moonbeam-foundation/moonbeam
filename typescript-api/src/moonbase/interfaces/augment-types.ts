@@ -381,9 +381,12 @@ import type {
 import type {
   EvmAccount,
   EvmCallInfo,
+  EvmCallInfoV2,
   EvmCreateInfo,
+  EvmCreateInfoV2,
   EvmLog,
   EvmVicinity,
+  EvmWeightInfo,
   ExitError,
   ExitFatal,
   ExitReason,
@@ -482,6 +485,8 @@ import type {
 } from "@polkadot/types/interfaces/imOnline";
 import type { CallIndex, LotteryConfig } from "@polkadot/types/interfaces/lottery";
 import type {
+  CustomMetadata15,
+  CustomValueMetadata15,
   ErrorMetadataLatest,
   ErrorMetadataV10,
   ErrorMetadataV11,
@@ -501,6 +506,7 @@ import type {
   ExtrinsicMetadataV12,
   ExtrinsicMetadataV13,
   ExtrinsicMetadataV14,
+  ExtrinsicMetadataV15,
   FunctionArgumentMetadataLatest,
   FunctionArgumentMetadataV10,
   FunctionArgumentMetadataV11,
@@ -535,6 +541,7 @@ import type {
   ModuleMetadataV13,
   ModuleMetadataV9,
   OpaqueMetadata,
+  OuterEnums15,
   PalletCallMetadataLatest,
   PalletCallMetadataV14,
   PalletConstantMetadataLatest,
@@ -642,10 +649,12 @@ import type {
   CoreOccupied,
   CoreState,
   DisputeLocation,
+  DisputeProof,
   DisputeResult,
   DisputeState,
   DisputeStatement,
   DisputeStatementSet,
+  DisputesTimeSlot,
   DoubleVoteReport,
   DownwardMessage,
   ExecutorParam,
@@ -695,6 +704,7 @@ import type {
   ParathreadClaim,
   ParathreadClaimQueue,
   ParathreadEntry,
+  PendingSlashes,
   PersistedValidationData,
   PvfCheckStatement,
   PvfExecTimeoutKind,
@@ -717,6 +727,7 @@ import type {
   SignedAvailabilityBitfield,
   SignedAvailabilityBitfields,
   SigningContext,
+  SlashingOffenceKind,
   SlotRange,
   SlotRange10,
   Statement,
@@ -1475,6 +1486,8 @@ declare module "@polkadot/types/types/registry" {
     CoreState: CoreState;
     CrateVersion: CrateVersion;
     CreatedBlock: CreatedBlock;
+    CustomMetadata15: CustomMetadata15;
+    CustomValueMetadata15: CustomValueMetadata15;
     Data: Data;
     DeferredOffenceOf: DeferredOffenceOf;
     DefunctVoter: DefunctVoter;
@@ -1508,10 +1521,12 @@ declare module "@polkadot/types/types/registry" {
     DispatchResultOf: DispatchResultOf;
     DispatchResultTo198: DispatchResultTo198;
     DisputeLocation: DisputeLocation;
+    DisputeProof: DisputeProof;
     DisputeResult: DisputeResult;
     DisputeState: DisputeState;
     DisputeStatement: DisputeStatement;
     DisputeStatementSet: DisputeStatementSet;
+    DisputesTimeSlot: DisputesTimeSlot;
     DoubleEncodedCall: DoubleEncodedCall;
     DoubleVoteReport: DoubleVoteReport;
     DownwardMessage: DownwardMessage;
@@ -1592,9 +1607,12 @@ declare module "@polkadot/types/types/registry" {
     EventRecord: EventRecord;
     EvmAccount: EvmAccount;
     EvmCallInfo: EvmCallInfo;
+    EvmCallInfoV2: EvmCallInfoV2;
     EvmCreateInfo: EvmCreateInfo;
+    EvmCreateInfoV2: EvmCreateInfoV2;
     EvmLog: EvmLog;
     EvmVicinity: EvmVicinity;
+    EvmWeightInfo: EvmWeightInfo;
     ExecReturnValue: ExecReturnValue;
     ExecutorParam: ExecutorParam;
     ExecutorParams: ExecutorParams;
@@ -1614,6 +1632,7 @@ declare module "@polkadot/types/types/registry" {
     ExtrinsicMetadataV12: ExtrinsicMetadataV12;
     ExtrinsicMetadataV13: ExtrinsicMetadataV13;
     ExtrinsicMetadataV14: ExtrinsicMetadataV14;
+    ExtrinsicMetadataV15: ExtrinsicMetadataV15;
     ExtrinsicOrHash: ExtrinsicOrHash;
     ExtrinsicPayload: ExtrinsicPayload;
     ExtrinsicPayloadUnknown: ExtrinsicPayloadUnknown;
@@ -1899,6 +1918,7 @@ declare module "@polkadot/types/types/registry" {
     OutboundPayload: OutboundPayload;
     OutboundStatus: OutboundStatus;
     Outcome: Outcome;
+    OuterEnums15: OuterEnums15;
     OverweightIndex: OverweightIndex;
     Owner: Owner;
     PageCounter: PageCounter;
@@ -1943,6 +1963,7 @@ declare module "@polkadot/types/types/registry" {
     PendingChange: PendingChange;
     PendingPause: PendingPause;
     PendingResume: PendingResume;
+    PendingSlashes: PendingSlashes;
     Perbill: Perbill;
     Percent: Percent;
     PerDispatchClassU32: PerDispatchClassU32;
@@ -2157,6 +2178,7 @@ declare module "@polkadot/types/types/registry" {
     SiTypeDefVariant: SiTypeDefVariant;
     SiTypeParameter: SiTypeParameter;
     SiVariant: SiVariant;
+    SlashingOffenceKind: SlashingOffenceKind;
     SlashingSpans: SlashingSpans;
     SlashingSpansTo204: SlashingSpansTo204;
     SlashJournalEntry: SlashJournalEntry;
