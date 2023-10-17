@@ -1,24 +1,18 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  ALITH_PRIVATE_KEY,
-  PRECOMPILES,
-  alith,
-  createViemTransaction,
-} from "@moonwall/util";
-import { Contract, ethers, InterfaceAbi } from "ethers";
+import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, alith } from "@moonwall/util";
 import { Enum, Struct, TypeRegistry } from "@polkadot/types";
 import { u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
+import { InterfaceAbi, ethers } from "ethers";
 import { encodeFunctionData } from "viem";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { expectSubstrateEvents } from "../../../helpers/expect.js";
+import { expectEVMResult } from "../../../helpers/eth-transactions";
+import { expectSubstrateEvents } from "../../../helpers/expect";
 import {
   genAssetMeta,
   genRegisterChainVAA,
   genTransferWithPayloadVAA,
-} from "../../../helpers/wormhole.js";
+} from "../../../helpers/wormhole";
 
 /*
   Alphanet 2023-03-17
@@ -62,10 +56,9 @@ describeSuite({
 
   testCases: ({ context, it, log }) => {
     const deploy = async (contractPath: string, initData?: any[]) => {
-      const contract = await context.deployContract(contractPath, {
+      const contract = await context.deployContract!(contractPath, {
         args: initData,
       });
-      const result = await context.createBlock(contract.rawTx);
       return contract;
     };
 
@@ -79,7 +72,7 @@ describeSuite({
         signerPKs,
         GUARDIAN_SET_INDEX,
         whNonce++,
-        123, // sequence
+        123n, // sequence
         amount,
         wethAddress,
         ETHChain,
@@ -195,7 +188,7 @@ describeSuite({
         ETHEmitter,
         GUARDIAN_SET_INDEX,
         whNonce++,
-        1,
+        1n,
         ETHChain
       );
       let rawTx = await context.writeContract!({
@@ -212,7 +205,7 @@ describeSuite({
         signerPKs,
         GUARDIAN_SET_INDEX,
         whNonce++,
-        1,
+        1n,
         wethAddress,
         ETHChain,
         ETHEmitter,
@@ -234,8 +227,8 @@ describeSuite({
           .getTransactionReceipt({ hash: assetMetaResult!.result!.hash as `0x${string}` })
       ).logs[0].address;
       log(
-        `Created Wrapped Asset ${wrappedToken} => ${assetMetaResult.result.hash} (${
-          assetMetaResult.result.error || "good"
+        `Created Wrapped Asset ${wrappedToken} => ${assetMetaResult.result!.hash} (${
+          assetMetaResult.result!.error || "good"
         })`
       );
 
@@ -327,10 +320,10 @@ describeSuite({
           args: [`0x${transferVAA}`],
           rawTxOnly: true,
         });
-        const result = await context.createBlock(rawTx);
+        const block = await context.createBlock(rawTx);
 
-        expectEVMResult(result.result.events, "Succeed", "Returned");
-        const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+        expectEVMResult(block.result!.events, "Succeed", "Returned");
+        const events = expectSubstrateEvents(block, "xTokens", "TransferredMultiAssets");
         const transferFungible = events[0].data[1][0].fun;
         expect(transferFungible.isFungible);
         const transferAmount = transferFungible.asFungible.toBigInt();
@@ -364,10 +357,10 @@ describeSuite({
           args: [`0x${transferVAA}`],
           rawTxOnly: true,
         });
-        const result = await context.createBlock(rawTx);
+        const block = await context.createBlock(rawTx);
 
-        expectEVMResult(result.result.events, "Succeed", "Returned");
-        const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+        expectEVMResult(block.result!.events, "Succeed", "Returned");
+        const events = expectSubstrateEvents(block, "xTokens", "TransferredMultiAssets");
         const transferFungible = events[0].data[1][0].fun;
         expect(transferFungible.isFungible);
         const transferAmount = transferFungible.asFungible.toBigInt();
@@ -404,11 +397,11 @@ describeSuite({
           args: [`0x${transferVAA}`],
           rawTxOnly: true,
         });
-        const result = await context.createBlock(rawTx);
+        const block = await context.createBlock(rawTx);
 
-        expectEVMResult(result.result.events, "Succeed", "Returned");
+        expectEVMResult(block.result!.events, "Succeed", "Returned");
         // there should be no xTokens TransferredMultiAssets event since fee >= amount sent
-        const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+        const events = expectSubstrateEvents(block!, "xTokens", "TransferredMultiAssets");
         expect(events.length).to.eq(0); // TODO: isn't expectSubstrateEvents supposed to expect > 0?
 
         const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
@@ -442,10 +435,10 @@ describeSuite({
           args: [`0x${transferVAA}`],
           rawTxOnly: true,
         });
-        const result = await context.createBlock(rawTx);
+        const block = await context.createBlock(rawTx);
 
-        expectEVMResult(result.result.events, "Succeed", "Returned");
-        const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+        expectEVMResult(block.result!.events, "Succeed", "Returned");
+        const events = expectSubstrateEvents(block, "xTokens", "TransferredMultiAssets");
         const transferFungible = events[0].data[1][0].fun;
         expect(transferFungible.isFungible);
         const transferAmount = transferFungible.asFungible.toBigInt();
