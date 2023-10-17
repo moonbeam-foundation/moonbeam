@@ -9165,6 +9165,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-hotfix"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-evm",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+]
+
+[[package]]
 name = "pallet-identity"
 version = "4.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.1.0#a7be8f5c1133c85202825b94cf683c7248c5514b"

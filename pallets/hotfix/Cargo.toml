@@ -1,0 +1,27 @@
+[package]
+name = "pallet-hotfix"
+authors = { workspace = true }
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+# Substrate
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+parity-scale-codec = { workspace = true }
+scale-info = { workspace = true, features = [ "derive" ] }
+sp-core = { workspace = true }
+
+# Frontier
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+
+[features]
+default = ["std"]
+std = [
+    "frame-support/std",
+    "frame-system/std",
+    "parity-scale-codec/std",
+    "scale-info/std",
+    "sp-core/std",
+    "pallet-evm/std",
+]
