@@ -89,7 +89,7 @@ export async function registerForeignAsset(
   );
   // Look for assetId in events
   const registeredAssetId = result!.events
-    .find(({ event: { section } }) => section.toString() === "assetManager")
+    .find(({ event: { section } }) => section.toString() === "assetManager")!
     .event.data[0].toHex()
     .replace(/,/g, "");
 

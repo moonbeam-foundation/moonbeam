@@ -20,6 +20,7 @@ export async function expectOk<
   Calls extends Call | Call[],
   BlockCreation extends BlockCreationResponse<
     ApiType,
+    // @ts-expect-error
     Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>
   >
 >(call: Promise<BlockCreation>): Promise<BlockCreation> {
@@ -38,7 +39,8 @@ export async function expectOk<
       ).to.be.true;
     });
   } else {
-    expect(block.result.successful, block.result.error?.name).to.be.true;
+    // @ts-expect-error
+    expect(block.result!.successful, block.result!.error?.name).to.be.true;
   }
   return block;
 }
@@ -56,6 +58,7 @@ export function expectSubstrateEvent<
   Method extends keyof Event[Section],
   Tuple extends ExtractTuple<Event[Section][Method]>
 >(
+  //@ts-expect-error
   block: BlockCreationResponse<ApiType, Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>>,
   section: Section,
   method: Method
@@ -79,8 +82,9 @@ export function expectSubstrateEvent<
       }
     });
   } else {
-    const foundEvents = block.result!.events!.filter(
-      ({ event }) => event.section.toString() == section && event.method.toString() == method
+    const foundEvents = (block.result! as any).events!.filter(
+      (item: any) =>
+        item.event.section.toString() == section && item.event.method.toString() == method
     );
     if (foundEvents.length > 0) {
       expect(
@@ -117,6 +121,7 @@ export function expectSubstrateEvents<
   Method extends keyof Event[Section],
   Tuple extends ExtractTuple<Event[Section][Method]>
 >(
+  //@ts-expect-error
   block: BlockCreationResponse<ApiType, Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>>,
   section: Section,
   method: Method,
@@ -133,8 +138,9 @@ export function expectSubstrateEvents<
       }
     });
   } else {
-    const foundEvents = block.result.events.filter(
-      ({ event }) => event.section.toString() == section && event.method.toString() == method
+    const foundEvents = (block.result! as any).events.filter(
+      (item: any) =>
+        item.event.section.toString() == section && item.event.method.toString() == method
     );
     if (foundEvents.length > 0) {
       events.push(...foundEvents);

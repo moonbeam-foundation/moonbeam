@@ -30,12 +30,16 @@ export async function rpcToLocalNode(
     method: "POST",
   })
     .then((response) => response.json())
-    .then(({ error, result }) => {
-      if (error) {
-        throw new Error(`${error.code} ${error.message}: ${JSON.stringify(error.data)}`);
+    .then((data: any) => {
+      if ("error" in data && "result" in data) {
+        const { error, result } = data;
+        if (error) {
+          throw new Error(`${error.code} ${error.message}: ${JSON.stringify(error.data)}`);
+        }
+        return result;
+      } else {
+        throw new Error("Unexpected response format");
       }
-
-      return result;
     });
 }
 

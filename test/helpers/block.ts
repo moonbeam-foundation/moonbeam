@@ -357,17 +357,6 @@ export async function jumpRounds(context: DevModeContext, count: Number): Promis
   return jumpToRound(context, round);
 }
 
-// Determine if the block range intersects with an upgrade event
-export const checkTimeSliceForUpgrades = async (
-  api: ApiPromise,
-  blockNumbers: number[],
-  currentVersion: u32
-) => {
-  const apiAt = await api.at(await api.rpc.chain.getBlockHash(blockNumbers[0]));
-  const onChainRt = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion;
-  return { result: !onChainRt.eq(currentVersion), specVersion: onChainRt };
-};
-
 export function extractPreimageDeposit(
   request:
     | Option<ITuple<[AccountId20, u128]>>

@@ -11,15 +11,14 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "moduleDetection": "force",
-
+    "incremental": true,
     "baseUrl": "./",
     "importHelpers": true,
+    "skipDefaultLibCheck": true,
     "preserveConstEnums": true,
     "sourceMap": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-
-    // best practices
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
@@ -33,5 +32,5 @@
     // }  // We can enable this if we commit to using bun.js
   },
   "include": ["**/helpers/"],
-  "exclude": ["**/node_modules/*", "**/suites/**"]
+  "exclude": ["node_modules", "suites"]
 }

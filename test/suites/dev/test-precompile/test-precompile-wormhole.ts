@@ -6,13 +6,13 @@ import { u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { InterfaceAbi, ethers } from "ethers";
 import { encodeFunctionData } from "viem";
-import { expectEVMResult } from "../../../helpers/eth-transactions";
-import { expectSubstrateEvents } from "../../../helpers/expect";
 import {
+  expectEVMResult,
+  expectSubstrateEvents,
   genAssetMeta,
   genRegisterChainVAA,
   genTransferWithPayloadVAA,
-} from "../../../helpers/wormhole";
+} from "../../../helpers";
 
 /*
   Alphanet 2023-03-17
