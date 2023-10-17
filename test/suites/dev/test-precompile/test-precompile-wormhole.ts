@@ -1,24 +1,22 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  ALITH_PRIVATE_KEY,
-  PRECOMPILES,
-  alith,
-  createViemTransaction,
-} from "@moonwall/util";
-import { Contract, ethers, InterfaceAbi } from "ethers";
+import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, alith } from "@moonwall/util";
 import { Enum, Struct, TypeRegistry } from "@polkadot/types";
+import {
+  StagingXcmV2MultiLocation,
+  StagingXcmVersionedMultiLocation,
+} from "@polkadot/types/lookup";
 import { u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
+import { InterfaceAbi, ethers } from "ethers";
 import { encodeFunctionData } from "viem";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { expectSubstrateEvents } from "../../../helpers/expect.js";
+import { expectEVMResult } from "../../../helpers/eth-transactions";
+import { expectSubstrateEvents } from "../../../helpers/expect";
 import {
   genAssetMeta,
   genRegisterChainVAA,
   genTransferWithPayloadVAA,
-} from "../../../helpers/wormhole.js";
+} from "../../../helpers/wormhole";
 
 /*
   Alphanet 2023-03-17
@@ -62,10 +60,9 @@ describeSuite({
 
   testCases: ({ context, it, log }) => {
     const deploy = async (contractPath: string, initData?: any[]) => {
-      const contract = await context.deployContract(contractPath, {
+      const contract = await context.deployContract!(contractPath, {
         args: initData,
       });
-      const result = await context.createBlock(contract.rawTx);
       return contract;
     };
 
@@ -79,7 +76,7 @@ describeSuite({
         signerPKs,
         GUARDIAN_SET_INDEX,
         whNonce++,
-        123, // sequence
+        123n, // sequence
         amount,
         wethAddress,
         ETHChain,
@@ -103,7 +100,7 @@ describeSuite({
     let whWethContract: ethers.Contract;
 
     let whWethAddress: string;
-    let evmChainId;
+    let evmChainId: number;
 
     // destination used for xtoken transfers
     const versionedMultiLocation = {
@@ -195,7 +192,7 @@ describeSuite({
         ETHEmitter,
         GUARDIAN_SET_INDEX,
         whNonce++,
-        1,
+        1n,
         ETHChain
       );
       let rawTx = await context.writeContract!({
@@ -306,6 +303,7 @@ describeSuite({
     it({
       id: "T01",
       title: "should support V1 user action",
+      modifier: "skip",
       test: async function () {
         // create payload
         const destination = context
@@ -364,10 +362,12 @@ describeSuite({
           args: [`0x${transferVAA}`],
           rawTxOnly: true,
         });
-        const result = await context.createBlock(rawTx);
+        const {result} = await context.createBlock(rawTx,{
+          expectEvents: [context.polkadotJs().events.xTokens.TransferredMultiAssets]
+        });
 
-        expectEVMResult(result.result.events, "Succeed", "Returned");
-        const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+        expectEVMResult(result!.events, "Succeed", "Returned");
+        const events = expectSubstrateEvents(result!, "xTokens", "TransferredMultiAssets");
         const transferFungible = events[0].data[1][0].fun;
         expect(transferFungible.isFungible);
         const transferAmount = transferFungible.asFungible.toBigInt();

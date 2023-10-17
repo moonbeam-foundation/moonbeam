@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
-    "types": ["node", "bun-types"],
+    "types": ["node"],
 
     // enable latest features
     "lib": ["esnext"],
     "module": "esnext",
     "target": "esnext",
-
 
     "moduleResolution": "bundler",
     "noEmit": true,
@@ -33,8 +32,6 @@
     //   "@helpers/expect": ["helpers/expect.js"],
     // }  // We can enable this if we commit to using bun.js
   },
-  "include": [
-    "*suites/**/*.ts"
-  ],
-  "exclude": ["node_modules/"]
+  "include": ["**/helpers/"],
+  "exclude": ["**/node_modules/*", "**/suites/**"]
 }
