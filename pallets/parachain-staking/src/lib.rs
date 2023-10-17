@@ -988,8 +988,12 @@ pub mod pallet {
 			bond: BalanceOf<T>,
 			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
+			ensure!(
+				bond >= T::MinCandidateStk::get(),
+				Error::<T>::CandidateBondBelowMin
+			);
 			let acc = ensure_signed(origin.clone())?;
-			Self::join_candidates_inner(acc, bond, candidate_count, false)
+			Self::join_candidates_inner(acc, bond, candidate_count)
 		}
 
 		/// Request to leave the set of candidates. If successful, the account is immediately
@@ -1448,7 +1452,7 @@ pub mod pallet {
 			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
-			Self::join_candidates_inner(acc, bond, candidate_count, true)
+			Self::join_candidates_inner(acc, bond, candidate_count)
 		}
 	}
 
@@ -1480,14 +1484,9 @@ pub mod pallet {
 			acc: T::AccountId,
 			bond: BalanceOf<T>,
 			candidate_count: u32,
-			skip_bond_check: bool,
 		) -> DispatchResultWithPostInfo {
 			ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
 			ensure!(!Self::is_delegator(&acc), Error::<T>::DelegatorExists);
-			ensure!(
-				skip_bond_check || bond >= T::MinCandidateStk::get(),
-				Error::<T>::CandidateBondBelowMin
-			);
 			let mut candidates = <CandidatePool<T>>::get();
 			let old_count = candidates.0.len() as u32;
 			ensure!(
