@@ -695,6 +695,10 @@
 <a href="#695" id="695">695</a>
 <a href="#696" id="696">696</a>
 <a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1244,8 +1248,12 @@
 }
 
 <span class="macro">parameter_type_with_key! </span>{
-	<span class="kw">pub </span>ParachainMinFee: |_location: MultiLocation| -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt; {
-		<span class="prelude-val">Some</span>(u128::MAX)
+	<span class="kw">pub </span>ParachainMinFee: |location: MultiLocation| -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt; {
+		<span class="kw">match </span>(location.parents, location.first_interior()) {
+			<span class="comment">// AssetHub fee
+			</span>(<span class="number">1</span>, <span class="prelude-val">Some</span>(Parachain(<span class="number">1001u32</span>))) =&gt; <span class="prelude-val">Some</span>(<span class="number">50_000_000u128</span>),
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+		}
 	};
 }
 
