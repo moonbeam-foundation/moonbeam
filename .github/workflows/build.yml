@@ -416,7 +416,6 @@ jobs:
         with:
           max_attempts: 3
           timeout_minutes: 5
-          retry_on: error
           command: |
             cd test
             pnpm install
