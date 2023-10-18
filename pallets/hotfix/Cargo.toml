@@ -17,9 +17,12 @@ pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 
 
 [dev-dependencies]
-sp-runtime = { workspace = true, features = ["default"] }
-pallet-balances = { workspace = true, features = [ "default" ] }
-pallet-timestamp = { workspace = true, features = [ "default" ] }
+sp-runtime = { workspace = true, features = ["std"] }
+sp-io = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = [ "std" ] }
+pallet-timestamp = { workspace = true, features = [ "std" ] }
+rlp = { workspace = true, features = [ "std" ] }
+libsecp256k1 = { workspace = true, features = [ "std" ] }
 
 [features]
 default = ["std"]
@@ -30,7 +33,10 @@ std = [
     "scale-info/std",
     "sp-core/std",
     "sp-runtime/std",
+    "sp-io/std",
     "pallet-evm/std",
     "pallet-balances/std",
     "pallet-timestamp/std",
+    "rlp/std",
+    "libsecp256k1/std",
 ]

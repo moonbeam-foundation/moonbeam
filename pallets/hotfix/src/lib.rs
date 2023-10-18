@@ -23,8 +23,12 @@ use frame_support::traits::ConstU32;
 use pallet_evm::AddressMapping;
 use sp_core::H160;
 
+pub use pallet::*;
 #[cfg(all(feature = "std", test))]
 mod mock;
+
+#[cfg(all(feature = "std", test))]
+mod tests;
 
 pub const ARRAY_LIMIT: u32 = 1000;
 type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
@@ -62,7 +66,7 @@ pub mod pallet {
 			let limit = T::EntryClearLimit::get();
 			let mut deleted = 0;
 
-			for address in &addresses {
+			'inner: for address in &addresses {
 				// Ensure that the contract is suicided by checking that it has no code and at least
 				// one storage entry.
 				ensure!(
@@ -81,7 +85,7 @@ pub mod pallet {
 						if iter.next().is_none() {
 							Self::clear_suicided_contract(&address);
 						}
-						break;
+						break 'inner;
 					}
 				}
 				Self::clear_suicided_contract(address);

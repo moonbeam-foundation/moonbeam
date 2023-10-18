@@ -9170,12 +9170,15 @@ version = "0.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
+ "libsecp256k1",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
+ "rlp",
  "scale-info",
  "sp-core",
+ "sp-io",
  "sp-runtime",
 ]
 

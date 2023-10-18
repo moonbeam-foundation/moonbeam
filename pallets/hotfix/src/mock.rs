@@ -16,14 +16,16 @@
 
 //! Test utilities for the Hotfix pallet.
 
+use crate as pallet_hotfix;
 use frame_support::{construct_runtime, parameter_types, weights::Weight};
 use pallet_evm::{AddressMapping, EnsureAddressTruncated};
 use sp_core::{ConstU32, H160, H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	AccountId32,
+	AccountId32, BuildStorage,
 };
 
+type Balance = u64;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
 construct_runtime! (
@@ -33,6 +35,7 @@ construct_runtime! (
 		Balances: pallet_balances,
 		Timestamp: pallet_timestamp,
 		EVM: pallet_evm,
+		Hotfix: pallet_hotfix,
 	}
 );
 
@@ -85,7 +88,7 @@ parameter_types! {
 
 impl pallet_balances::Config for Runtime {
 	type MaxLocks = ();
-	type Balance = u64;
+	type Balance = Balance;
 	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
@@ -147,4 +150,40 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
+}
+
+parameter_types! {
+	pub const EntryClearLimit: u32 = 1000;
+}
+
+impl pallet_hotfix::Config for Runtime {
+	type EntryClearLimit = EntryClearLimit;
+}
+
+pub(crate) struct ExtBuilder {
+	// endowed accounts with balances
+	balances: Vec<(AccountId32, Balance)>,
+}
+
+impl Default for ExtBuilder {
+	fn default() -> ExtBuilder {
+		ExtBuilder { balances: vec![] }
+	}
+}
+
+impl ExtBuilder {
+	pub(crate) fn build(self) -> sp_io::TestExternalities {
+		let mut t = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
+			.expect("Frame system builds valid default genesis config");
+
+		pallet_balances::GenesisConfig::<Runtime> {
+			balances: self.balances,
+		}
+		.assimilate_storage(&mut t)
+		.expect("Pallet balances storage can be assimilated");
+		let mut ext = sp_io::TestExternalities::new(t);
+		ext.execute_with(|| System::set_block_number(1));
+		ext
+	}
 }
