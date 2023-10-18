@@ -1120,8 +1120,8 @@ impl Contains<RuntimeCall> for NormalFilter {
 				pallet_proxy::Call::create_pure { .. } => false,
 				pallet_proxy::Call::kill_pure { .. } => false,
 				pallet_proxy::Call::proxy { real, .. } => {
-					!EVM::AccountCodes::<Runtime>::contains_key(real)
-				},
+					!pallet_evm::AccountCodes::<Runtime>::contains_key(H160::from(*real))
+				}
 				_ => true,
 			},
 			// Filtering the EVM prevents possible re-entrancy from the precompiles which could
