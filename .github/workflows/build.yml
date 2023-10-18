@@ -187,6 +187,30 @@ jobs:
 
           bun x prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
 
+  check-eslint:
+    name: "Check with EsLint"
+    runs-on: ubuntu-latest
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Use pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.6.12
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+          cache: "pnpm"
+          cache-dependency-path: test/pnpm-lock.yaml
+      - name: Run Eslint check
+        run: |
+          cd test
+          pnpm lint
+
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
     runs-on:

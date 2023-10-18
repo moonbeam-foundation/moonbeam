@@ -7,6 +7,8 @@
   "scripts": {
     "fmt": "prettier --check --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
     "fmt:fix": "prettier --write --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
+    "lint": "eslint './helpers/**/*.ts'",
+    "lint:fix": "eslint './helpers/**/*.ts' --fix",
     "compile-solidity": "tsx scripts/compile-contracts.ts compile",
     "typecheck": "pnpm tsc --noEmit"
   },
@@ -25,9 +27,12 @@
     "@types/debug": "^4.1.9",
     "@types/node": "^20.8.6",
     "@types/semver": "^7.5.3",
+    "@typescript-eslint/eslint-plugin": "^6.8.0",
+    "@typescript-eslint/parser": "^6.8.0",
     "bottleneck": "^2.19.5",
     "bun-types": "^0.7.3",
     "debug": "^4.3.4",
+    "eslint": "^8.51.0",
     "ethers": "^6.8.0",
     "prettier": "^2.8.8",
     "tsx": "^3.13.0",

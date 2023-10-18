@@ -52,7 +52,7 @@ export const sendAllStreamAndWaitLast = async (
     timeout: 120000,
   }
 ) => {
-  let promises: any[] = [];
+  const promises: any[] = [];
   while (extrinsics.length > 0) {
     const pending = await api.rpc.author.pendingExtrinsics();
     if (pending.length < threshold) {
@@ -62,12 +62,11 @@ export const sendAllStreamAndWaitLast = async (
         Promise.all(
           chunk.map((tx) => {
             return new Promise(async (resolve, reject) => {
-              let unsub: () => void;
               const timer = setTimeout(() => {
                 reject(`timed out`);
                 unsub();
               }, timeout);
-              unsub = await tx.send((result) => {
+              const unsub = await tx.send((result) => {
                 // reset the timer
                 if (result.isError) {
                   console.log(result.toHuman());
@@ -80,7 +79,7 @@ export const sendAllStreamAndWaitLast = async (
                   resolve(null);
                 }
               });
-            }).catch((e) => {});
+            }).catch(() => {});
           })
         )
       );

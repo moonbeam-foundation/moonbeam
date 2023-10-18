@@ -1,24 +1,23 @@
 import "@moonbeam-network/api-augment/moonbase";
-import type { RuntimeDispatchInfoV1 } from "@polkadot/types/interfaces/payment";
-import { ApiPromise } from "@polkadot/api";
-import { BlockHash, DispatchInfo, RuntimeDispatchInfo } from "@polkadot/types/interfaces";
-import { u32, u128, Option } from "@polkadot/types";
+import { DevModeContext, expect } from "@moonwall/cli";
 import {
-  WEIGHT_PER_GAS,
-  mapExtrinsics,
   BlockRangeOption,
-  calculateFeePortions,
   EXTRINSIC_BASE_WEIGHT,
+  WEIGHT_PER_GAS,
+  calculateFeePortions,
+  mapExtrinsics,
 } from "@moonwall/util";
-import { DevModeContext } from "@moonwall/cli";
-import { expect } from "@moonwall/cli";
-import type { Block, AccountId20 } from "@polkadot/types/interfaces/runtime/types";
+import { ApiPromise } from "@polkadot/api";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
+import { Option, u128, u32 } from "@polkadot/types";
 import type { ITuple } from "@polkadot/types-codec/types";
-import { Debugger } from "debug";
+import { BlockHash, DispatchInfo, RuntimeDispatchInfo } from "@polkadot/types/interfaces";
+import type { RuntimeDispatchInfoV1 } from "@polkadot/types/interfaces/payment";
+import type { AccountId20, Block } from "@polkadot/types/interfaces/runtime/types";
 import chalk from "chalk";
-
-const debug = require("debug")("test:blocks");
+import { Debugger } from "debug";
+import Debug from "debug";
+const debug = Debug("test:blocks");
 
 // Given a deposit amount, returns the amount burned (80%) and deposited to treasury (20%).
 // This is meant to precisely mimic the logic in the Moonbeam runtimes where the burn amount
@@ -91,7 +90,7 @@ export const verifyBlockFees = async (
 ) => {
   const api = context.polkadotJs();
   debug(`========= Checking block ${fromBlockNumber}...${toBlockNumber}`);
-  let sumBlockFees = 0n;
+  // let sumBlockFees = 0n;
   let sumBlockBurnt = 0n;
 
   // Get from block hash and totalSupply
@@ -109,12 +108,12 @@ export const verifyBlockFees = async (
     api,
     { from: fromBlockNumber, to: toBlockNumber, concurrency: 5 },
     async (blockDetails) => {
-      let blockFees = 0n;
+      // let blockFees = 0n;
       let blockBurnt = 0n;
 
       // iterate over every extrinsic
       for (const txWithEvents of blockDetails.txWithEvents) {
-        let { events, extrinsic, fee } = txWithEvents;
+        const { events, extrinsic, fee } = txWithEvents;
 
         // This hash will only exist if the transaction was executed through ethereum.
         let ethereumAddress = "";
@@ -129,7 +128,7 @@ export const verifyBlockFees = async (
         }
 
         // Payment event is submitted for substrate transactions
-        let paymentEvent = events.find(
+        const paymentEvent = events.find(
           (event) => event.section == "transactionPayment" && event.method == "TransactionFeePaid"
         );
 
@@ -156,9 +155,9 @@ export const verifyBlockFees = async (
               if (extrinsic.method.section == "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
                 const gasUsed = (dispatchInfo as any).weight.refTime.toBigInt() / WEIGHT_PER_GAS;
-                let ethTxWrapper = extrinsic.method.args[0] as any;
+                const ethTxWrapper = extrinsic.method.args[0] as any;
 
-                let number = blockDetails.block.header.number.toNumber();
+                const number = blockDetails.block.header.number.toNumber();
                 // The on-chain base fee used by the transaction. Aka the parent block's base fee.
                 //
                 // Note on 1559 fees: no matter what the user was willing to pay (maxFeePerGas),
@@ -237,7 +236,7 @@ export const verifyBlockFees = async (
                   })) as any
                 ).toBigInt();
 
-                const tip = extrinsic.tip.toBigInt();
+                // const tip = extrinsic.tip.toBigInt();
                 const expectedPartialFee = lengthFee + weightFee + baseFee;
 
                 // Verify the computed fees are equal to the actual fees
@@ -247,7 +246,7 @@ export const verifyBlockFees = async (
                 expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
               }
 
-              blockFees += txFees;
+              // blockFees += txFees;
               blockBurnt += txBurnt;
 
               const origin = extrinsic.signer.isEmpty
@@ -299,7 +298,7 @@ export const verifyBlockFees = async (
             `       all deposits : ${allDeposits.toString().padStart(30, " ")}`
         ).to.eq(allDeposits);
       }
-      sumBlockFees += blockFees;
+      // sumBlockFees += blockFees;
       sumBlockBurnt += blockBurnt;
       previousBlockHash = blockDetails.block.hash.toString();
     }
@@ -328,7 +327,7 @@ export const verifyLatestBlockFees = async (
 
 export async function jumpToRound(context: DevModeContext, round: number): Promise<string | null> {
   let lastBlockHash = "";
-  while (true) {
+  for (;;) {
     const currentRound = (
       await context.polkadotJs().query.parachainStaking.round()
     ).current.toNumber();
@@ -349,7 +348,7 @@ export async function jumpBlocks(context: DevModeContext, blockCount: number) {
   }
 }
 
-export async function jumpRounds(context: DevModeContext, count: Number): Promise<string | null> {
+export async function jumpRounds(context: DevModeContext, count: number): Promise<string | null> {
   const round = (await context.polkadotJs().query.parachainStaking.round()).current
     .addn(count.valueOf())
     .toNumber();

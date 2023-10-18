@@ -1,5 +1,5 @@
 import { SigningKey } from "ethers";
-import { encodePacked, keccak256, pad, toBytes, toHex } from "viem";
+import { encodePacked, keccak256, pad, toBytes } from "viem";
 
 function encode(type: string, val: any) {
   if (type == "uint8") return encodePacked(["uint8"], [val]).slice(2);

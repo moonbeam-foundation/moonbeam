@@ -21,7 +21,8 @@
     "resolveJsonModule": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noImplicitAny": false
 
     // "paths": {
     //   "@helpers/xcm": ["helpers/xcm.js"],
