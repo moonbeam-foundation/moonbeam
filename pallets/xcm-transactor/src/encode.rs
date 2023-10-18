@@ -18,7 +18,8 @@
 //!
 //! ## Overview
 //!
-//! Module to provide `StakeEncodeCall`, `HrmpEncodeCall` and `UtilityEncodeCall` implementations for the Xcm Transactor pallet
+//! Module to provide `StakeEncodeCall`, `HrmpEncodeCall` and `UtilityEncodeCall` implementations
+//! for the Xcm Transactor pallet
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
