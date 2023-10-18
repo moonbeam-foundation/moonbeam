@@ -159,12 +159,10 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 				..Default::default()
 			},
 			calls: CallIndices {
-				hrmp: HrmpIndices {
-					init_open_channel: 0u8,
-					accept_open_channel: 1u8,
-					close_channel: 2u8,
-					cancel_open_request: 6u8,
-				},
+				init_open_channel: 0u8,
+				accept_open_channel: 1u8,
+				close_channel: 2u8,
+				cancel_open_request: 6u8,
 				..Default::default()
 			},
 		},

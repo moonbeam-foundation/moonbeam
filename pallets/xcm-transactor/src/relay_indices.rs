@@ -39,22 +39,7 @@ pub struct PalletIndices {
 	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
 )]
 pub struct CallIndices {
-	pub staking: StakingIndices,
-	pub utility: UtilityIndices,
-	pub hrmp: HrmpIndices,
-}
-
-#[derive(
-	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
-)]
-pub struct UtilityIndices {
-	pub as_derivative: u8,
-}
-
-#[derive(
-	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
-)]
-pub struct StakingIndices {
+	// Staking indices
 	pub bond: u8,
 	pub bond_extra: u8,
 	pub unbond: u8,
@@ -65,12 +50,9 @@ pub struct StakingIndices {
 	pub set_payee: u8,
 	pub set_controller: u8,
 	pub rebond: u8,
-}
-
-#[derive(
-	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
-)]
-pub struct HrmpIndices {
+	// Utility indices
+	pub as_derivative: u8,
+	// Hrmp indices
 	pub init_open_channel: u8,
 	pub accept_open_channel: u8,
 	pub close_channel: u8,
