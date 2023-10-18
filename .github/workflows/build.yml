@@ -661,7 +661,7 @@ jobs:
       - name: Upload HTML report to s3
         if: |
           github.event.pull_request.head.repo.full_name == github.repository
-              || github.event_name == 'push'
+              && github.event_name == 'push'
         uses: mario-sangar/upload-s3-action@master
         id: S3
         with:
@@ -672,7 +672,7 @@ jobs:
           source_dir: "test/html"
           acl: "none"
       - name: Upload to Moonscope
-        if: always()
+        if: github.event.pull_request.head.repo.full_name == github.repository
         run: |
           curl --location 'https://api.moonscope.kaki.dev/insert' \
           -X POST \
