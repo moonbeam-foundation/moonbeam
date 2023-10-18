@@ -154,17 +154,12 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	pallet_xcm_transactor::GenesisConfig::<Runtime> {
 		// match relay runtime construct_runtime order in xcm_mock::relay_chain
 		relay_indices: RelayChainIndices {
-			pallets: PalletIndices {
-				hrmp: 6u8,
-				..Default::default()
-			},
-			calls: CallIndices {
-				init_open_channel: 0u8,
-				accept_open_channel: 1u8,
-				close_channel: 2u8,
-				cancel_open_request: 6u8,
-				..Default::default()
-			},
+			hrmp: 6u8,
+			init_open_channel: 0u8,
+			accept_open_channel: 1u8,
+			close_channel: 2u8,
+			cancel_open_request: 6u8,
+			..Default::default()
 		},
 		..Default::default()
 	}

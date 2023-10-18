@@ -73,28 +73,24 @@ pub enum HrmpCall {
 
 use pallet_xcm_transactor::relay_indices::*;
 pub const TEST_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
-	pallets: PalletIndices {
-		staking: 1u8,
-		utility: 0u8,
-		hrmp: 2u8,
-	},
-	calls: CallIndices {
-		bond: 0u8,
-		bond_extra: 1u8,
-		unbond: 2u8,
-		withdraw_unbonded: 3u8,
-		validate: 4u8,
-		nominate: 5u8,
-		chill: 6u8,
-		set_payee: 7u8,
-		set_controller: 8u8,
-		rebond: 19u8,
-		as_derivative: 0u8,
-		init_open_channel: 0u8,
-		accept_open_channel: 1u8,
-		close_channel: 2u8,
-		cancel_open_request: 6u8,
-	},
+	staking: 1u8,
+	utility: 0u8,
+	hrmp: 2u8,
+	bond: 0u8,
+	bond_extra: 1u8,
+	unbond: 2u8,
+	withdraw_unbonded: 3u8,
+	validate: 4u8,
+	nominate: 5u8,
+	chill: 6u8,
+	set_payee: 7u8,
+	set_controller: 8u8,
+	rebond: 19u8,
+	as_derivative: 0u8,
+	init_open_channel: 0u8,
+	accept_open_channel: 1u8,
+	close_channel: 2u8,
+	cancel_open_request: 6u8,
 };
 
 pub struct TestEncoder;
