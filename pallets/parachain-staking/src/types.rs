@@ -477,15 +477,15 @@ impl<
 			);
 		}
 		self.total_counted = self.total_counted.saturating_sub(amount);
-		if self.is_active() {
-			Pallet::<T>::update_active(who.clone(), self.total_counted.into());
-		}
 		let event = Event::CandidateBondedLess {
-			candidate: who.into(),
+			candidate: who.clone(),
 			amount: amount.into(),
 			new_bond: self.bond.into(),
 		};
 		// update candidate pool value because it must change if self bond changes
+		if self.is_active() {
+			Pallet::<T>::update_active(who, self.total_counted.into());
+		}
 		Pallet::<T>::deposit_event(event);
 	}
 

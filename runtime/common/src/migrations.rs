@@ -122,7 +122,7 @@ where
 	T: frame_system::Config,
 {
 	fn friendly_name(&self) -> &str {
-		"MM_RemoveMinBondForOldOrbiterCollators"
+		"MM_RemoveMinBondForOrbiterCollators"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
