@@ -56,8 +56,8 @@ describeSuite({
     const expectedReserveMap = new Map<string, ReservedInfo>();
     const expectedLocksMap = new Map<string, LocksInfo>();
     const locksMap = new Map<string, { total: bigint }>();
-    let failedLocks: any[] = [];
-    let failedReserved: any[] = [];
+    const failedLocks: any[] = [];
+    const failedReserved: any[] = [];
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise">;
     let specVersion: number = 0;
@@ -173,17 +173,21 @@ describeSuite({
           });
       });
 
-      let [democracyVotes, delegatorState, delegatorStakingMigrations, collatorStakingMigrations] =
-        await Promise.all([
-          apiAt.query.democracy.votingOf.entries(),
-          apiAt.query.parachainStaking.delegatorState.entries(),
-          specVersion >= 1700 && specVersion < 1800
-            ? apiAt.query.parachainStaking.delegatorReserveToLockMigrations.entries()
-            : undefined,
-          specVersion >= 1700 && specVersion < 1800
-            ? apiAt.query.parachainStaking.collatorReserveToLockMigrations.entries()
-            : undefined,
-        ]);
+      const [
+        democracyVotes,
+        delegatorState,
+        delegatorStakingMigrations,
+        collatorStakingMigrations,
+      ] = await Promise.all([
+        apiAt.query.democracy.votingOf.entries(),
+        apiAt.query.parachainStaking.delegatorState.entries(),
+        specVersion >= 1700 && specVersion < 1800
+          ? apiAt.query.parachainStaking.delegatorReserveToLockMigrations.entries()
+          : undefined,
+        specVersion >= 1700 && specVersion < 1800
+          ? apiAt.query.parachainStaking.collatorReserveToLockMigrations.entries()
+          : undefined,
+      ]);
 
       await new Promise((resolve, reject) => {
         apiAt.query.treasury.proposals
@@ -461,7 +465,7 @@ describeSuite({
                       ? status[1].unwrap().asUnrequested
                       : status[1].unwrap().asRequested
                   );
-                  return !!deposit
+                  return deposit
                     ? { accountId: deposit.accountId, deposit: deposit.amount }
                     : undefined;
                 })
@@ -969,7 +973,7 @@ describeSuite({
       id: "C300",
       title: "should match total supply",
       test: async function () {
-        if (!!process.env.ACCOUNT_ID) {
+        if (process.env.ACCOUNT_ID) {
           log(`Env var ACCOUNT_ID set, skipping total supply check`);
           return;
         }

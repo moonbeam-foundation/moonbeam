@@ -54,7 +54,7 @@ describeSuite({
             [...topDelegatorsChunk].map((account, i) => {
               // add a tip such that the delegation ordering will be preserved,
               // e.g. the first txns sent will have the highest tip
-              let tip = BigInt(tipOrdering--) * MILLIGLMR;
+              const tip = BigInt(tipOrdering--) * MILLIGLMR;
               return context
                 .polkadotJs()
                 .tx.parachainStaking.delegateWithAutoCompound(
@@ -85,7 +85,7 @@ describeSuite({
           const topLocks = await context
             .polkadotJs()
             .query.balances.locks.multi(topDelegators.map((delegator) => delegator.address));
-          let numDelegatorLocks = topLocks.filter((lockSet) =>
+          const numDelegatorLocks = topLocks.filter((lockSet) =>
             lockSet.find((lock) => fromBytes(lock.id.toU8a(), "string") == "stkngdel")
           ).length;
 
@@ -108,7 +108,7 @@ describeSuite({
             [...bottomDelegatorsChunk].map((account) => {
               // add a tip such that the delegation ordering will be preserved,
               // e.g. the first txns sent will have the highest tip
-              let tip = BigInt(tipOrdering--) * MILLIGLMR;
+              const tip = BigInt(tipOrdering--) * MILLIGLMR;
               return context
                 .polkadotJs()
                 .tx.parachainStaking.delegateWithAutoCompound(

@@ -31,7 +31,7 @@ describeSuite({
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
 
       // Query nimbus ids
-      while (true) {
+      for (;;) {
         const query = await apiAt.query.authorMapping.nimbusLookup.entriesPaged({
           args: [],
           pageSize: limit,

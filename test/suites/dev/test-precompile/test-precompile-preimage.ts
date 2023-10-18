@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, beforeAll, beforeEach, fetchCompiledContract } from "@moonwall/cli";
 import { expectSubstrateEvent } from "../../../helpers/expect.js";
-import { Abi, decodeEventLog, encodeFunctionData } from "viem";
+import { Abi, decodeEventLog } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { Preimage } from "../../../helpers/precompile-contract-calls.js";
 

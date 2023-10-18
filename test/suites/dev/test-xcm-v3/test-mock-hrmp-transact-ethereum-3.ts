@@ -76,7 +76,7 @@ describeSuite({
       assetId = registeredAssetId;
       expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
 
-      let config = {
+      const config = {
         assets: [
           {
             multilocation: ASSET_MULTILOCATION,
@@ -238,7 +238,7 @@ describeSuite({
         //   references.
         // We can expect this to be the behaviour on any xcm fragment that completely drains an
         // account to transact ethereum-xcm after.
-        let nonce = await context.viem().getTransactionCount({ address: descendedAddress });
+        const nonce = await context.viem().getTransactionCount({ address: descendedAddress });
         expect(nonce).to.be.eq(1);
       },
     });

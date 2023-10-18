@@ -6,14 +6,13 @@ import {
   baltathar,
   alith,
 } from "@moonwall/util";
-
-const BS_TRACER = require("../../helpers/tracer/blockscout_tracer.min.json");
+import BS_TRACER from "../../helpers/tracer/blockscout_tracer.min.json" assert { type: "json" };
 
 describeSuite({
   id: "D3604",
   title: "Trace (Blockscout)",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should trace correctly out of gas transaction execution",
@@ -31,7 +30,7 @@ describeSuite({
 
         const data = await customDevRpcRequest("eth_sendRawTransaction", [callTx]);
         await context.createBlock();
-        let trace = await customDevRpcRequest("debug_traceTransaction", [
+        const trace = await customDevRpcRequest("debug_traceTransaction", [
           data,
           { tracer: BS_TRACER.body },
         ]);
@@ -55,7 +54,7 @@ describeSuite({
 
         const data = await customDevRpcRequest("eth_sendRawTransaction", [callTx]);
         await context.createBlock();
-        let trace = await customDevRpcRequest("debug_traceTransaction", [
+        const trace = await customDevRpcRequest("debug_traceTransaction", [
           data,
           { tracer: BS_TRACER.body },
         ]);
@@ -79,7 +78,7 @@ describeSuite({
 
         const data = await customDevRpcRequest("eth_sendRawTransaction", [callTx]);
         await context.createBlock();
-        let trace = await customDevRpcRequest("debug_traceTransaction", [data]);
+        const trace = await customDevRpcRequest("debug_traceTransaction", [data]);
 
         expect(trace.gas).to.be.eq("0x5208"); // 21_000 gas for a transfer.
       },

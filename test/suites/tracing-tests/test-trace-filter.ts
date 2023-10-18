@@ -5,7 +5,7 @@ describeSuite({
   id: "D3613",
   title: "Trace filter - Contract creation ",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     // Setup: Create 4 blocks with TraceFilter contracts
     beforeAll(async () => {
       const { contractAddress } = await context.deployContract!("TraceFilter", {

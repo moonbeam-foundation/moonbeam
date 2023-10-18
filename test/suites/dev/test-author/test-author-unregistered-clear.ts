@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { BALTATHAR_SESSION_ADDRESS } from "@moonwall/util";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
+import { expect, describeSuite } from "@moonwall/cli";
 import { getMappingInfo } from "../../../helpers/common.js";
 
 describeSuite({

@@ -73,7 +73,7 @@ describeSuite({
 
         const transactor = 0;
         const index = 0;
-        const asset: [number, {}[]] = [1, []];
+        const asset: [number, any[]] = [1, []];
         const transact_call = fromBytes(new Uint8Array([0x01]), "hex");
         const transactWeight = { refTime: 1000, proofSize: 1000 };
         const overallWeight = { refTime: 2000, proofSize: 2000 };

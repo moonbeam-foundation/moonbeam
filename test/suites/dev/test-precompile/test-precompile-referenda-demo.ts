@@ -122,7 +122,7 @@ describeSuite({
           }
         });
 
-        let referendumInfo = await context
+        const referendumInfo = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(referendumIndex);
 

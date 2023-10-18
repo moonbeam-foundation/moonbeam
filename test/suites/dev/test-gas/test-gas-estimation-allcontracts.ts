@@ -15,7 +15,7 @@ import {
   getAllCompiledContracts,
 } from "@moonwall/util";
 import { randomBytes } from "ethers";
-import { encodeDeployData, Abi } from "viem";
+import { encodeDeployData } from "viem";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 
 describeSuite({

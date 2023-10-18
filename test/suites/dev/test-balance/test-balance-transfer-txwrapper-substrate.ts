@@ -2,7 +2,7 @@
 // // This flow is used by some exchange partners like kraken
 import "@moonbeam-network/api-augment";
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, ALITH_GENESIS_LOCK_BALANCE, alith, checkBalance } from "@moonwall/util";
+import { ALITH_ADDRESS, alith, checkBalance } from "@moonwall/util";
 import { TypeRegistry, getSpecTypes } from "@substrate/txwrapper-core";
 import { createSignedTx, createSigningPayload } from "@substrate/txwrapper-core/lib/core/construct";
 import { getRegistryBase } from "@substrate/txwrapper-core/lib/core/metadata";

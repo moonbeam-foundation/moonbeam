@@ -1,14 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { ApiPromise } from "@polkadot/api";
 import { BN, bnToHex } from "@polkadot/util";
 import {
   PARA_1000_SOURCE_LOCATION,
   RELAY_SOURCE_LOCATION,
+  registerForeignAsset,
   relayAssetMetadata,
-} from "../../../helpers/assets.js";
-import { registerForeignAsset } from "../../../helpers/xcm.js";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { ApiPromise } from "@polkadot/api";
+  verifyLatestBlockFees,
+} from "../../../helpers";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 describeSuite({
@@ -23,7 +23,7 @@ describeSuite({
       const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
         context,
         RELAY_SOURCE_LOCATION,
-        relayAssetMetadata,
+        relayAssetMetadata as any,
         1
       );
       assetId = registeredAssetId;
@@ -48,7 +48,7 @@ describeSuite({
         // asset_type
         const assetType = (await context
           .polkadotJs()
-          .query.assetManager.assetIdType(assetId)) as Object;
+          .query.assetManager.assetIdType(assetId)) as object;
 
         // assetId
         const id = (await api.query.assetManager.assetTypeId(PARA_1000_SOURCE_LOCATION)).unwrap();

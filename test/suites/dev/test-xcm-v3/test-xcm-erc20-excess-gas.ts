@@ -10,7 +10,6 @@ import {
   sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
 import { parseEther } from "ethers";
-import { stringToU8a } from "@polkadot/util";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 

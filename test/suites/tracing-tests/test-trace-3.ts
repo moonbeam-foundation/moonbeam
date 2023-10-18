@@ -1,19 +1,17 @@
 import { customDevRpcRequest, describeSuite, expect, TransactionTypes } from "@moonwall/cli";
-
 import {
   alith,
   ALITH_PRIVATE_KEY,
   createEthersTransaction,
   PRECOMPILE_CROWDLOAN_REWARDS_ADDRESS,
 } from "@moonwall/util";
-
-const BS_TRACER_V2 = require("../../helpers/tracer/blockscout_tracer_v2.min.json");
+import BS_TRACER_V2 from "../../helpers/tracer/blockscout_tracer_v2.min.json" assert { type: "json" }; // editorconfig-checker-disable-line
 
 describeSuite({
   id: "D3603",
   title: "Trace (Blockscout v2) - AllEthTxTypes",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     for (const txnType of TransactionTypes) {
       it({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,
@@ -32,7 +30,7 @@ describeSuite({
 
           const data = await customDevRpcRequest("eth_sendRawTransaction", [callTx]);
           await context.createBlock();
-          let trace = await customDevRpcRequest("debug_traceTransaction", [
+          const trace = await customDevRpcRequest("debug_traceTransaction", [
             data,
             { tracer: BS_TRACER_V2.body },
           ]);
@@ -56,7 +54,7 @@ describeSuite({
 
           const data = await customDevRpcRequest("eth_sendRawTransaction", [callTx]);
           await context.createBlock();
-          let trace = await customDevRpcRequest("debug_traceTransaction", [
+          const trace = await customDevRpcRequest("debug_traceTransaction", [
             data,
             { tracer: BS_TRACER_V2.body },
           ]);

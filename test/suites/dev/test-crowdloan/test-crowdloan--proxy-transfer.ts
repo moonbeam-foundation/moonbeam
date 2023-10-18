@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, alith, baltathar } from "@moonwall/util";
+import { ALITH_ADDRESS, GLMR, baltathar } from "@moonwall/util";
 import { RELAYCHAIN_ARBITRARY_ADDRESS_1, VESTING_PERIOD } from "../../../helpers/constants.js";
 import { getAccountPayable } from "../../../helpers/crowdloan.js";
 

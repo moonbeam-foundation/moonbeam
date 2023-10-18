@@ -50,7 +50,7 @@ describeSuite({
       title: "should associate with charlie, although already associated with bob",
       test: async function () {
         // Grab free balance before this test
-        let genesisAccountBalanceBefore = (
+        const genesisAccountBalanceBefore = (
           await api.query.system.account(ALITH_ADDRESS)
         ).data.free.toBigInt();
         const fee = (

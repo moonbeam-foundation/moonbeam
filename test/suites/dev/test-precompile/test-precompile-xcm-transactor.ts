@@ -35,7 +35,7 @@ describeSuite({
       title: "allows to retrieve transactor info through precompiles old interface",
       test: async function () {
         // Destination as multilocation, one parent
-        const asset: [number, {}[]] = [1, []];
+        const asset: [number, any[]] = [1, []];
 
         expect(
           await context.readPrecompile!({
@@ -51,7 +51,7 @@ describeSuite({
       id: "T03",
       title: "allows to retrieve fee per second through precompiles",
       test: async function () {
-        const asset: [number, {}[]] = [1, []];
+        const asset: [number, any[]] = [1, []];
 
         expect(
           await context.readPrecompile!({
@@ -67,7 +67,7 @@ describeSuite({
       id: "T04",
       title: "allows to retrieve transactor info through precompiles",
       test: async function () {
-        const asset: [number, {}[]] = [1, []];
+        const asset: [number, any[]] = [1, []];
 
         expect(
           await context.readPrecompile!({

@@ -24,7 +24,7 @@ describeSuite({
       id: "T01",
       title: "allows to transact signed with custom weights V2 and fee",
       test: async function () {
-        const dest: [number, {}[]] = [1, []];
+        const dest: [number, any[]] = [1, []];
         const asset = ADDRESS_RELAY_ASSETS;
         const transact_call = fromBytes(new Uint8Array([0x01]), "hex");
         const transactWeight = { refTime: 1000, proofSize: 1000 };

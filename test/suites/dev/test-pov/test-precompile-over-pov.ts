@@ -7,7 +7,7 @@ import {
   fetchCompiledContract,
 } from "@moonwall/cli";
 import { HeavyContract, deployHeavyContracts } from "../../../helpers/contracts.js";
-import { Abi, encodeFunctionData, parseGwei } from "viem";
+import { Abi, encodeFunctionData } from "viem";
 import { ALITH_ADDRESS, PRECOMPILE_BATCH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 

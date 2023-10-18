@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { alith } from "@moonwall/util";
 import { PARA_2000_SOURCE_LOCATION } from "../../../helpers/assets.js";
 import { registerForeignAsset } from "../../../helpers/xcm.js";
@@ -48,7 +47,7 @@ describeSuite({
         await context.createBlock();
 
         // Make sure the state has ALITH's foreign parachain tokens
-        let alith_dot_balance = (
+        const alith_dot_balance = (
           await context.polkadotJs().query.assets.account(assetId, alith.address)
         )
           .unwrap()

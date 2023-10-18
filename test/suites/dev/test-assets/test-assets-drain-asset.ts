@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { u128 } from "@polkadot/types";
 import { BN } from "@polkadot/util";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { alith, ALITH_ADDRESS, baltathar, generateKeyringPair, GLMR } from "@moonwall/util";
+import { alith, ALITH_ADDRESS, baltathar, generateKeyringPair } from "@moonwall/util";
 import { mockAssetBalance } from "../../../helpers/assets.js";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { ApiPromise } from "@polkadot/api";

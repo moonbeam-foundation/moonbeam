@@ -1,12 +1,6 @@
 import "@moonbeam-network/api-augment";
-import {
-  beforeEach,
-  describeSuite,
-  expect,
-  deployCreateCompiledContract,
-  fetchCompiledContract,
-} from "@moonwall/cli";
-import { Abi, encodeFunctionData } from "viem";
+import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { encodeFunctionData } from "viem";
 import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 describeSuite({

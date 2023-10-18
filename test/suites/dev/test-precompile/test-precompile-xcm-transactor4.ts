@@ -9,7 +9,7 @@ describeSuite({
   id: "D2573",
   title: "Precompiles - xcm transactor",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await registerXcmTransactorAndContract(context);
     });
@@ -20,8 +20,8 @@ describeSuite({
       test: async function () {
         // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
         // And we need relay tokens for issuing a transaction to be executed in the relay
-        const dest: [number, {}[]] = [1, []];
-        const asset: [number, {}[]] = [1, []];
+        const dest: [number, any[]] = [1, []];
+        const asset: [number, any[]] = [1, []];
         const transact_call = fromBytes(new Uint8Array([0x01]), "hex");
         const weight = 1000;
 

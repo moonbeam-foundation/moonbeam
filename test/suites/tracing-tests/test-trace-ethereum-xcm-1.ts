@@ -4,17 +4,17 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
   RawXcmMessage,
-} from "helpers/xcm";
+} from "../../helpers";
 import { hexToNumber, Abi, encodeFunctionData } from "viem";
 
 describeSuite({
   id: "D3610",
   title: "Trace ethereum xcm #1",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let incremetorAddress: `0x${string}`;
     let incremetorABI: Abi;
-    let transactionHashes: `0x${string}`[] = [];
+    const transactionHashes: `0x${string}`[] = [];
 
     beforeAll(async () => {
       const { contractAddress, abi } = await context.deployContract!("Incrementor");

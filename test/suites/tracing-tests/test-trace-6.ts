@@ -13,7 +13,7 @@ describeSuite({
   id: "D3606",
   title: "Trace (call list)",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should correctly trace subcall",
@@ -48,7 +48,7 @@ describeSuite({
 
         const data = await customDevRpcRequest("eth_sendRawTransaction", [callTx]);
         await context.createBlock();
-        let trace = await customDevRpcRequest("debug_traceTransaction", [
+        const trace = await customDevRpcRequest("debug_traceTransaction", [
           data,
           { tracer: "callTracer" },
         ]);
@@ -96,7 +96,7 @@ describeSuite({
 
         const data = await customDevRpcRequest("eth_sendRawTransaction", [callTx]);
         await context.createBlock();
-        let trace = await customDevRpcRequest("debug_traceTransaction", [
+        const trace = await customDevRpcRequest("debug_traceTransaction", [
           data,
           { tracer: "callTracer" },
         ]);
@@ -170,7 +170,7 @@ describeSuite({
 
         const data = await customDevRpcRequest("eth_sendRawTransaction", [callTx]);
         await context.createBlock();
-        let trace = await customDevRpcRequest("debug_traceTransaction", [
+        const trace = await customDevRpcRequest("debug_traceTransaction", [
           data,
           { tracer: "callTracer" },
         ]);

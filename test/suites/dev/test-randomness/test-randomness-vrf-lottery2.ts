@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite } from "@moonwall/cli";
 import { setupLotteryWithParticipants } from "../../../helpers/randomness.js";
 import { GLMR } from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";

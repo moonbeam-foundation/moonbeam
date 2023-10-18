@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_STAKING, alith, baltathar, ethan } from "@moonwall/util";
-import { PalletParachainStakingEvent } from "@polkadot/types/lookup";
+import { MIN_GLMR_STAKING, alith, ethan } from "@moonwall/util";
 import { jumpRounds } from "../../../helpers/block.js";
 
 describeSuite({

@@ -34,7 +34,7 @@ type BlockFilteredRecord = {
   nextFeeMultiplier: u128;
   ethBlock: EthereumBlock;
   extrinsics: GenericExtrinsic<AnyTuple>[];
-  ethersTransactionsFees: BigInt[];
+  ethersTransactionsFees: bigint[];
   baseFeePerGasInGwei: string;
   transactionStatuses: FpRpcTransactionStatus[];
   weights: FrameSupportDispatchPerDispatchClassWeight;

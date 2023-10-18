@@ -1,8 +1,7 @@
 // import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, alith } from "@moonwall/util";
+import { ALITH_ADDRESS } from "@moonwall/util";
 import { BN } from "@polkadot/util";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
 import { DispatchError } from "@polkadot/types/interfaces";
 
 describeSuite({

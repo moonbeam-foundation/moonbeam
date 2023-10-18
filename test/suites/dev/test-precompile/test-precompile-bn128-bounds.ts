@@ -1,9 +1,7 @@
 import "@moonbeam-network/api-augment";
 
-import { customDevRpcRequest, describeSuite } from "@moonwall/cli";
+import { describeSuite } from "@moonwall/cli";
 import { createViemTransaction, sendRawTransaction } from "@moonwall/util";
-import { sendPrecompileTx } from "../../../helpers/transactions.js";
-import { createEthersTransaction } from "@moonwall/util";
 /*
  * These test cases trigger bugs in the bn128 precompiles which perform a from_slice()
  * call on unchecked input.

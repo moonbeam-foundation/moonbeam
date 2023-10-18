@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeAll, fetchCompiledContract } from "@moonwall/cli";
+import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -8,7 +8,6 @@ import {
   CHARLETH_PRIVATE_KEY,
   CONTRACT_PROXY_TYPE_ANY,
   CONTRACT_PROXY_TYPE_STAKING,
-  DOROTHY_ADDRESS,
   FAITH_ADDRESS,
   FAITH_PRIVATE_KEY,
   GLMR,
@@ -21,7 +20,7 @@ import {
 } from "@moonwall/util";
 import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { encodeFunctionData, parseEther, toBytes, toHex } from "viem";
+import { encodeFunctionData, parseEther } from "viem";
 
 describeSuite({
   id: "D2550",

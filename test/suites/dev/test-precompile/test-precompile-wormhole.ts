@@ -66,7 +66,7 @@ describeSuite({
       amount: number,
       action: VersionedUserAction
     ): Promise<string> {
-      let payload = "" + action.toHex();
+      const payload = "" + action.toHex();
 
       return await genTransferWithPayloadVAA(
         signerPKs,
@@ -95,7 +95,6 @@ describeSuite({
     let wethAddress: string;
     let whWethContract: ethers.Contract;
 
-    let whWethAddress: string;
     let evmChainId;
 
     // destination used for xtoken transfers
@@ -117,10 +116,9 @@ describeSuite({
       // wethContract = wethDeployment.contract;
       wethAddress = wethDeployment.contractAddress;
       log(`weth contract deployed to ${wethAddress}`);
-      const myTokenContract = await deploy("MockWETH9");
+      await deploy("MockWETH9");
 
       const initialSigners = [ALITH_ADDRESS];
-      const chainId = "0x10";
       const governanceChainId = "0x1";
       const governanceContract =
         "0x0000000000000000000000000000000000000000000000000000000000000004";
@@ -157,7 +155,7 @@ describeSuite({
       log(`wormhole token impl deployed to ${tokenImplAddr}`);
       const { contractAddress: bridgeSetupAddr, abi: bridgeSetupAbi } =
         await context.deployContract!("BridgeSetup");
-      const { contractAddress: bridgeImplAddr, abi: bridgeImplAbi } = await context.deployContract!(
+      const { contractAddress: bridgeImplAddr } = await context.deployContract!(
         "BridgeImplementation"
       );
 
@@ -198,7 +196,7 @@ describeSuite({
         rawTxOnly: true,
         args: [`0x${registerChainVm}`],
       });
-      const registerChainResult = await context.createBlock(rawTx);
+      await context.createBlock(rawTx);
 
       // Register Asset MyToken
       const assetMetaVm = await genAssetMeta(
@@ -307,7 +305,6 @@ describeSuite({
 
         const userAction = new XcmRoutingUserAction({ destination });
         const versionedUserAction = new VersionedUserAction({ V1: userAction });
-        let payload = "" + versionedUserAction.toHex();
 
         const whAmount = 999n;
         const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;

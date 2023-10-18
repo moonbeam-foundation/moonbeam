@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, alith } from "@moonwall/util";
-import { expectEVMResult, extractRevertReason } from "../../../helpers/eth-transactions.js";
 import { SIMPLE_SALT } from "../../../helpers/randomness.js";
 
 describeSuite({

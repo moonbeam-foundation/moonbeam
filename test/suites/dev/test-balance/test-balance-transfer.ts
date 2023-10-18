@@ -2,10 +2,8 @@ import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  ALITH_GENESIS_LOCK_BALANCE,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
-  CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
   GERALD_PRIVATE_KEY,
   GLMR,

@@ -52,8 +52,8 @@ describeSuite({
           : 200;
         const firstBlockNumber = Math.max(lastBlockNumber - blocksToWait + 1, 1);
 
-        for (let blockNumber of range(firstBlockNumber, lastBlockNumber)) {
-          let api = await paraApi.at(await paraApi.rpc.chain.getBlockHash(blockNumber));
+        for (const blockNumber of range(firstBlockNumber, lastBlockNumber)) {
+          const api = await paraApi.at(await paraApi.rpc.chain.getBlockHash(blockNumber));
 
           const block = (await api.query.ethereum.currentBlock()).unwrap();
           const receipts = (await api.query.ethereum.currentReceipts()).unwrap().toArray();

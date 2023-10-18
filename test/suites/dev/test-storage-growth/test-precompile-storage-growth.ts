@@ -9,7 +9,6 @@ import {
 } from "@moonwall/util";
 import { parseEther } from "ethers";
 import { expectEVMResult } from "helpers/eth-transactions";
-import { before } from "node:test";
 import { encodeFunctionData } from "viem";
 
 describeSuite({
