@@ -5,8 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "lint": "pnpm prettier --write --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
-    "check-lint": "pnpx prettier@2 --check --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
+    "fmt": "prettier --check --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
+    "fmt:fix": "prettier --write --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
     "compile-solidity": "tsx scripts/compile-contracts.ts compile",
     "typecheck": "pnpm tsc --noEmit"
   },
