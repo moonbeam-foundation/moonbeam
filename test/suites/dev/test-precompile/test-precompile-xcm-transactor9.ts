@@ -2,10 +2,12 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite } from "@moonwall/cli";
 import { ALITH_PRIVATE_KEY } from "@moonwall/util";
 import { fromBytes } from "viem";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { registerXcmTransactorAndContract } from "../../../helpers/xcm.js";
-import { PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS } from "../../../helpers/constants.js";
+import {
+  verifyLatestBlockFees,
+  expectEVMResult,
+  registerXcmTransactorAndContract,
+  PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS,
+} from "../../../helpers";
 
 describeSuite({
   id: "D2578",

@@ -18,9 +18,9 @@ import {
   alith,
   createViemTransaction,
 } from "@moonwall/util";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { encodeFunctionData, parseEther } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { expectEVMResult } from "../../../helpers";
 
 describeSuite({
   id: "D2550",

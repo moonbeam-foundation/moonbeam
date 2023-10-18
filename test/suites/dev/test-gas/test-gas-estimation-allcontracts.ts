@@ -16,7 +16,7 @@ import {
 } from "@moonwall/util";
 import { randomBytes } from "ethers";
 import { encodeDeployData } from "viem";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { expectEVMResult } from "../../../helpers";
 
 describeSuite({
   id: "D1802",

@@ -1,8 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, beforeAll, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { Abi, encodeFunctionData } from "viem";
-import { HeavyContract, deployHeavyContracts } from "../../../helpers/contracts.js";
-import { expectOk } from "../../../helpers/expect.js";
+import { HeavyContract, deployHeavyContracts, expectOk } from "../../../helpers";
+
 import {
   RawXcmMessage,
   XcmFragment,

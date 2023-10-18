@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { deployCreateCompiledContract, describeSuite } from "@moonwall/cli";
 import { createViemTransaction } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { expectEVMResult } from "../../../helpers";
 
 describeSuite({
   id: "D2525",

@@ -7,7 +7,7 @@ import {
   createRawTransfer,
   generateKeyringPair,
 } from "@moonwall/util";
-import { createProposal } from "../../../helpers/voting.js";
+import { createProposal } from "../../../helpers";
 
 describeSuite({
   id: "D2580",

@@ -2,7 +2,7 @@ import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { expectEVMResult } from "../../../helpers";
 import {
   XcmFragment,
   XcmFragmentConfig,

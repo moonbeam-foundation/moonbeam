@@ -14,7 +14,7 @@ import {
   createViemTransaction,
 } from "@moonwall/util";
 import { Abi, encodeFunctionData, fromHex } from "viem";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { expectEVMResult } from "../../../helpers";
 
 function getSignatureParameters(signature: string) {
   const r = signature.slice(0, 66); // 32 bytes

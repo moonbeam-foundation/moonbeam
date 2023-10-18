@@ -3,8 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { GLMR, generateKeyringPair } from "@moonwall/util";
 import { StagingXcmVersionedXcm } from "@polkadot/types/lookup";
 import { u8aToHex } from "@polkadot/util";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { descendOriginFromAddress20 } from "../../../helpers/xcm.js";
+import { expectEVMResult, descendOriginFromAddress20 } from "../../../helpers";
 
 export const CLEAR_ORIGIN_WEIGHT = 5_194_000n;
 

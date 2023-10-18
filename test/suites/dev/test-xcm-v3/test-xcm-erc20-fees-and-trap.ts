@@ -1,6 +1,8 @@
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
+import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { parseEther } from "ethers";
+import { expectEVMResult } from "../../../helpers";
 import {
   XcmFragment,
   XcmFragmentConfig,
@@ -9,8 +11,6 @@ import {
   sovereignAccountOfSibling,
   weightMessage,
 } from "../../../helpers/xcm.js";
-import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { parseEther } from "ethers";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 

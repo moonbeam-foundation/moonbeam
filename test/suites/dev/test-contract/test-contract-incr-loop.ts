@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { encodeFunctionData } from "viem";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
+import { verifyLatestBlockFees } from "../../../helpers";
 
 describeSuite({
   id: "D0607",

@@ -1,9 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite } from "@moonwall/cli";
 import { fromBytes } from "viem";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { registerXcmTransactorAndContract } from "../../../helpers/xcm.js";
+import {
+  verifyLatestBlockFees,
+  expectEVMResult,
+  registerXcmTransactorAndContract,
+} from "../../../helpers";
 
 describeSuite({
   id: "D2573",

@@ -1,9 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
-
+import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
-import { PARA_2000_SOURCE_LOCATION } from "../../../helpers/assets.js";
-import { registerForeignAsset } from "../../../helpers/xcm.js";
+import { PARA_2000_SOURCE_LOCATION, registerForeignAsset } from "../../../helpers";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 

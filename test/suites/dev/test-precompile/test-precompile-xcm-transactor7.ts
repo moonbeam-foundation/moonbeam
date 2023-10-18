@@ -3,10 +3,12 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { fromBytes } from "viem";
-import { mockAssetBalance } from "../../../helpers/assets.js";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { registerXcmTransactorDerivativeIndex } from "../../../helpers/xcm.js";
+import {
+  mockAssetBalance,
+  verifyLatestBlockFees,
+  expectEVMResult,
+  registerXcmTransactorDerivativeIndex,
+} from "../../../helpers";
 
 describeSuite({
   id: "D2576",

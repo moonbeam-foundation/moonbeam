@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { encodeFunctionData } from "viem";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { expectEVMResult } from "../../../helpers";
 
 describeSuite({
   id: "D2561",

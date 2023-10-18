@@ -2,11 +2,15 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite } from "@moonwall/cli";
 import { ALITH_PRIVATE_KEY } from "@moonwall/util";
 import { fromBytes } from "viem";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { RELAY_SOURCE_LOCATION, relayAssetMetadata } from "../../../helpers/assets.js";
-import { registerForeignAsset, registerXcmTransactorAndContract } from "../../../helpers/xcm.js";
-import { PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS } from "../../../helpers/constants.js";
+import {
+  verifyLatestBlockFees,
+  expectEVMResult,
+  RELAY_SOURCE_LOCATION,
+  relayAssetMetadata,
+  registerForeignAsset,
+  registerXcmTransactorAndContract,
+  PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS,
+} from "../../../helpers";
 
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
 

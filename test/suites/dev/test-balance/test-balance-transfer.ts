@@ -14,9 +14,9 @@ import {
   generateKeyringPair,
   sendRawTransaction,
 } from "@moonwall/util";
-import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE, verifyLatestBlockFees } from "../../../helpers";
+
 import { parseGwei } from "viem";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 describeSuite({
   id: "D0306",

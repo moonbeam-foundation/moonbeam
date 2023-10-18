@@ -1,4 +1,5 @@
 import "@moonbeam-network/api-augment";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   alith,
   ALITH_ADDRESS,
@@ -7,9 +8,8 @@ import {
   DEFAULT_GENESIS_BALANCE,
   DEFAULT_GENESIS_MAPPING,
 } from "@moonwall/util";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
-import { getMappingInfo } from "../../../helpers/common.js";
+import { getMappingInfo } from "../../../helpers";
 
 describeSuite({
   id: "D0201",

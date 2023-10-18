@@ -3,9 +3,11 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { fromBytes } from "viem";
-import { mockAssetBalance } from "../../../helpers/assets.js";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { registerXcmTransactorAndContract } from "../../../helpers/xcm.js";
+import {
+  mockAssetBalance,
+  verifyLatestBlockFees,
+  registerXcmTransactorAndContract,
+} from "../../../helpers";
 
 describeSuite({
   id: "D2570",

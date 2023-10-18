@@ -8,7 +8,7 @@ import {
 } from "@moonwall/util";
 import { nToHex } from "@polkadot/util";
 import { Abi, encodeFunctionData } from "viem";
-import { notePreimagePrecompile } from "../../../helpers/precompiles.js";
+import { notePreimagePrecompile } from "../../../helpers";
 
 describeSuite({
   id: "D2531",

@@ -8,8 +8,7 @@ import { createSignedTx, createSigningPayload } from "@substrate/txwrapper-core/
 import { getRegistryBase } from "@substrate/txwrapper-core/lib/core/metadata";
 import { methods as substrateMethods } from "@substrate/txwrapper-substrate";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { signWith } from "../../../helpers/common.js";
+import { verifyLatestBlockFees, signWith } from "../../../helpers";
 
 describeSuite({
   id: "D0305",

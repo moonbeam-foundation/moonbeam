@@ -15,8 +15,7 @@ import {
   createViemTransaction,
 } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { getAuthorMappingInfo } from "../../../helpers/precompiles.js";
+import { expectEVMResult, getAuthorMappingInfo } from "../../../helpers";
 
 describeSuite({
   id: "D2545",

@@ -32,6 +32,6 @@
     //   "@helpers/expect": ["helpers/expect.js"],
     // }  // We can enable this if we commit to using bun.js
   },
-  "include": ["**/helpers/"],
+  "include": ["**/helpers/", "scripts"],
   "exclude": ["node_modules", "suites"]
 }

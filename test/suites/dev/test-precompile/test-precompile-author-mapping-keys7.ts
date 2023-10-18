@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { FAITH_ADDRESS, FAITH_PRIVATE_KEY, getBlockExtrinsic } from "@moonwall/util";
-import { originalKeys, setAuthorMappingKeysViaPrecompile } from "../../../helpers/precompiles.js";
+import { originalKeys, setAuthorMappingKeysViaPrecompile } from "../../../helpers";
 
 describeSuite({
   id: "D2515",
