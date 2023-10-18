@@ -22,23 +22,10 @@ use serde::{Deserialize, Serialize};
 	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
 )]
 pub struct RelayChainIndices {
-	pub pallets: PalletIndices,
-	pub calls: CallIndices,
-}
-
-#[derive(
-	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
-)]
-pub struct PalletIndices {
+	// Pallet indices
 	pub staking: u8,
 	pub utility: u8,
 	pub hrmp: u8,
-}
-
-#[derive(
-	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
-)]
-pub struct CallIndices {
 	// Staking indices
 	pub bond: u8,
 	pub bond_extra: u8,

@@ -18,7 +18,7 @@
 // TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
 
 use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
-use pallet_xcm_transactor::relay_indices::{CallIndices, PalletIndices, RelayChainIndices};
+use pallet_xcm_transactor::relay_indices::RelayChainIndices;
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_runtime::AccountId32;
@@ -173,28 +173,24 @@ impl xcm_primitives::StakeEncodeCall for WestendEncoder {
 
 /// Westend pallet and extrinsic indices
 pub const WESTEND_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
-	pallets: PalletIndices {
-		staking: 6u8,
-		utility: 16u8,
-		hrmp: 51u8,
-	},
-	calls: CallIndices {
-		bond: 0u8,
-		bond_extra: 1u8,
-		unbond: 2u8,
-		withdraw_unbonded: 3u8,
-		validate: 4u8,
-		nominate: 5u8,
-		chill: 6u8,
-		set_payee: 7u8,
-		set_controller: 8u8,
-		rebond: 19u8,
-		as_derivative: 1u8,
-		init_open_channel: 0u8,
-		accept_open_channel: 1u8,
-		close_channel: 2u8,
-		cancel_open_request: 6u8,
-	},
+	staking: 6u8,
+	utility: 16u8,
+	hrmp: 51u8,
+	bond: 0u8,
+	bond_extra: 1u8,
+	unbond: 2u8,
+	withdraw_unbonded: 3u8,
+	validate: 4u8,
+	nominate: 5u8,
+	chill: 6u8,
+	set_payee: 7u8,
+	set_controller: 8u8,
+	rebond: 19u8,
+	as_derivative: 1u8,
+	init_open_channel: 0u8,
+	accept_open_channel: 1u8,
+	close_channel: 2u8,
+	cancel_open_request: 6u8,
 };
 
 #[cfg(test)]
