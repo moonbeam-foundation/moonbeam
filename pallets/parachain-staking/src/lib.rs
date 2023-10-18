@@ -1468,6 +1468,17 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
+		pub fn set_candidate_bond_to_zero(acc: &T::AccountId) -> DispatchResultWithPostInfo {
+			ensure!(Self::is_candidate(&acc), Error::<T>::CandidateDNE);
+			let actual_weight = T::WeightInfo::set_candidate_bond_to_zero(
+				<CandidatePool<T>>::get().0.len() as u32,
+			);
+			let mut state = <CandidateInfo<T>>::get(&acc).ok_or(Error::<T>::CandidateDNE)?;
+			state.bond_less::<T>(acc.clone(), state.bond);
+			<CandidateInfo<T>>::insert(&acc, state);
+			Ok(Some(actual_weight).into())
+		}
+
 		pub fn is_delegator(acc: &T::AccountId) -> bool {
 			<DelegatorState<T>>::get(acc).is_some()
 		}

@@ -70,6 +70,7 @@ pub trait WeightInfo {
 	fn schedule_candidate_bond_less() -> Weight;
 	fn execute_candidate_bond_less(x: u32, ) -> Weight;
 	fn cancel_candidate_bond_less() -> Weight;
+	fn set_candidate_bond_to_zero(x: u32, ) -> Weight;
 	fn delegate(x: u32, y: u32, ) -> Weight;
 	fn schedule_revoke_delegation(x: u32, ) -> Weight;
 	fn delegator_bond_more(x: u32, ) -> Weight;
@@ -414,6 +415,18 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		Weight::from_parts(19_491_000, 3656)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+	fn set_candidate_bond_to_zero(x: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `1322 + x * (42 ±0)`
+		//  Estimated: `4752 + x * (43 ±0)`
+		// Minimum execution time: 71_996_000 picoseconds.
+		Weight::from_parts(80_620_929, 4752)
+			// Standard Error: 1_363
+			.saturating_add(Weight::from_parts(94_580, 0).saturating_mul(x.into()))
+			.saturating_add(T::DbWeight::get().reads(6_u64))
+			.saturating_add(T::DbWeight::get().writes(5_u64))
+			.saturating_add(Weight::from_parts(0, 43).saturating_mul(x.into()))
 	}
 	/// Storage: System Account (r:1 w:1)
 	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
@@ -1222,6 +1235,18 @@ impl WeightInfo for () {
 		Weight::from_parts(19_491_000, 3656)
 			.saturating_add(RocksDbWeight::get().reads(1_u64))
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
+	}
+	fn set_candidate_bond_to_zero(x: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `1322 + x * (42 ±0)`
+		//  Estimated: `4752 + x * (43 ±0)`
+		// Minimum execution time: 71_996_000 picoseconds.
+		Weight::from_parts(80_620_929, 4752)
+			// Standard Error: 1_363
+			.saturating_add(Weight::from_parts(94_580, 0).saturating_mul(x.into()))
+			.saturating_add(RocksDbWeight::get().reads(6_u64))
+			.saturating_add(RocksDbWeight::get().writes(5_u64))
+			.saturating_add(Weight::from_parts(0, 43).saturating_mul(x.into()))
 	}
 	/// Storage: System Account (r:1 w:1)
 	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
