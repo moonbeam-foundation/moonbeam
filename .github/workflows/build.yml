@@ -209,6 +209,7 @@ jobs:
       - name: Run Eslint check
         run: |
           cd test
+          pnpm i
           pnpm lint
 
   check-cargo-toml-format:
