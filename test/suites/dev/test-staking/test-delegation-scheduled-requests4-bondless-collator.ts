@@ -7,7 +7,8 @@ import { toHex } from "viem";
 describeSuite({
   id: "D2993",
   title:
-    "Staking - Delegation Scheduled Requests with bondless collator - execute revoke exact round delay",
+    "Staking - Delegation Scheduled Requests with bondless collator \
+    - execute revoke exact round delay",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let psTx: any;

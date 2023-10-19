@@ -6,7 +6,8 @@ import { jumpToRound } from "../../../helpers/block.js";
 describeSuite({
   id: "D2994",
   title:
-    "Staking - Delegation Scheduled Requests with bondless collator - execute revoke after round delay",
+    "Staking - Delegation Scheduled Requests with bondless collator \
+    - execute revoke after round delay",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let psTx: any;

@@ -6,7 +6,8 @@ import { jumpToRound } from "../../../helpers/block.js";
 describeSuite({
   id: "D2999",
   title:
-    "Staking - Delegation Scheduled Requests with bondless collator - execute bond less exact round",
+    "Staking - Delegation Scheduled Requests with bondless collator \
+    - execute bond less exact round",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     const LESS_AMOUNT = 10n;
