@@ -91,7 +91,7 @@ def generate_summary_markdown(
     return table
 
 
-def generate_comparison_markdown(base_covdir, incoming_covdir):
+def generate_comparison_markdown(base_covdir, incoming_covdir, base_html_url):
     """Generate a markdown table with the coverage differences."""
     differences = compare_covdir_files(base_covdir, incoming_covdir)
 
@@ -112,7 +112,7 @@ def generate_comparison_markdown(base_covdir, incoming_covdir):
 
         # Append row data
         row = [
-            item["path"],
+            f"[{item['path']}]({base_html_url}/html{item['path']}.html)",
             f"{item['incoming_coverage']:.2f}% ({'+' if item['diff'] > 0 else ''}{item['diff']:.2f}%)",
             emoji,
         ]
@@ -214,6 +214,12 @@ if __name__ == "__main__":
         help="name of the incoming branch",
     )
     parser.add_argument(
+        "--base-html-url",
+        metavar="url",
+        required=True,
+        help="URL to the base HTML coverage report",
+    )
+    parser.add_argument(
         "--output",
         metavar="path",
         required=False,
@@ -236,7 +242,9 @@ if __name__ == "__main__":
     )
 
     # Generate markdown table
-    markdown_table = generate_comparison_markdown(base_covdir, incoming_covdir)
+    markdown_table = generate_comparison_markdown(
+        base_covdir, incoming_covdir, args.base_html_url
+    )
 
     # Generate output
     output = f"""```diff
