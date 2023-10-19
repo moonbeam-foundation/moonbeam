@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_STAKING, alith, ethan, faith } from "@moonwall/util";
 
 describeSuite({
@@ -7,20 +7,29 @@ describeSuite({
   title: "Staking - Candidate Force Join - bond less than min",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+    let psTx: any;
+    let psQuery: any;
+    let psConst: any;
+    let sudo: any;
+    let createBlock: any;
+
+    beforeAll(async () => {
+      psTx = context.polkadotJs().tx.parachainStaking;
+      psQuery = context.polkadotJs().query.parachainStaking;
+      psConst = context.polkadotJs().consts.parachainStaking;
+      sudo = context.polkadotJs().tx.sudo.sudo;
+      createBlock = context.createBlock;
+    });
+
     it({
       id: "T01",
       title: "should succeed",
       test: async () => {
-        const minCandidateStk = context.polkadotJs().consts.parachainStaking.minCandidateStk;
-        const block = await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(
-              context
-                .polkadotJs()
-                .tx.parachainStaking.forceJoinCandidates(ethan.address, minCandidateStk.subn(10), 1)
-            )
-            .signAsync(alith)
+        const minCandidateStk = psConst.minCandidateStk;
+        const block = await createBlock(
+          sudo(psTx.forceJoinCandidates(ethan.address, minCandidateStk.subn(10), 1)).signAsync(
+            alith
+          )
         );
         expect(block.result!.successful).to.be.true;
       },
@@ -30,15 +39,8 @@ describeSuite({
       id: "T02",
       title: "should fail",
       test: async () => {
-        const block = await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(
-              context
-                .polkadotJs()
-                .tx.parachainStaking.forceJoinCandidates(ethan.address, MIN_GLMR_STAKING, 1)
-            )
-            .signAsync(alith),
+        const block = await createBlock(
+          sudo(psTx.forceJoinCandidates(ethan.address, MIN_GLMR_STAKING, 1)).signAsync(alith),
           {
             allowFailures: true,
             expectEvents: [context.polkadotJs().events.sudo.Sudid],
@@ -60,15 +62,8 @@ describeSuite({
       id: "T03",
       title: "should fail",
       test: async () => {
-        const block = await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(
-              context
-                .polkadotJs()
-                .tx.parachainStaking.forceJoinCandidates(faith.address, MIN_GLMR_STAKING, 0)
-            )
-            .signAsync(alith)
+        const block = await createBlock(
+          sudo(psTx.forceJoinCandidates(faith.address, MIN_GLMR_STAKING, 0)).signAsync(alith)
         );
         const { events } = block.result!;
         const event = events.find((event) => {
