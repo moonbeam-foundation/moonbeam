@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 
-const numberToHex = (n: BigInt): string => `0x${n.toString(16).padStart(32, "0")}`;
+const numberToHex = (n: bigint): string => `0x${n.toString(16).padStart(32, "0")}`;
 
 describeSuite({
   id: "D2922",

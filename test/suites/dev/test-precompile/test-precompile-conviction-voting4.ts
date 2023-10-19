@@ -7,11 +7,14 @@ import {
   ETHAN_PRIVATE_KEY,
   GLMR,
 } from "@moonwall/util";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { expectSubstrateEvent } from "../../../helpers/expect.js";
-import { cancelProposal, createProposal } from "../../../helpers/voting.js";
 import { Abi, decodeEventLog } from "viem";
-import { ConvictionVoting } from "../../../helpers/precompile-contract-calls.js";
+import {
+  ConvictionVoting,
+  cancelProposal,
+  createProposal,
+  expectEVMResult,
+  expectSubstrateEvent,
+} from "../../../helpers";
 
 describeSuite({
   id: "D2529-3",

@@ -139,7 +139,7 @@ describeSuite({
       title: "should have matching rewards",
       test: async function () {
         if (specVersion >= 1800) {
-          let rotatePeriod: number = (
+          const rotatePeriod: number = (
             (await apiAt.consts.moonbeamOrbiters.rotatePeriod) as any
           ).toNumber();
 
@@ -148,7 +148,7 @@ describeSuite({
           collatorsPools.forEach((o) => parentCollators.add(o[0].args[0].toHex()));
 
           // Get collators rewards
-          let collatorRewards = {};
+          const collatorRewards = {};
           for (const { event, phase } of events) {
             if (
               phase.isInitialization &&
@@ -169,10 +169,10 @@ describeSuite({
           if (Object.keys(collatorRewards).length > 0) {
             // Compute expected reward for each orbiter
             const lastRotateRound = currentRound - (currentRound % rotatePeriod);
-            let expectedOrbiterRewards = {};
+            const expectedOrbiterRewards = {};
             orbiterPerRound.forEach((o) => {
-              let [round, collator] = o[0].args;
-              let orbiter = o[1];
+              const [round, collator] = o[0].args;
+              const orbiter = o[1];
 
               if (round.toNumber() == lastRotateRound && collatorRewards[collator.toHex()]) {
                 expectedOrbiterRewards[orbiter.unwrap().toHex()] =
@@ -182,7 +182,7 @@ describeSuite({
             const sortedExpectedOrbiterRewards = sortObjectByKeys(expectedOrbiterRewards);
 
             // Verify orbiters rewards
-            let actualOrbiterRewards = {};
+            const actualOrbiterRewards = {};
             for (const { event, phase } of events) {
               if (
                 phase.isInitialization &&

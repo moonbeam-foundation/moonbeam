@@ -80,7 +80,7 @@ describeSuite({
       // modifier: "skip",
       test: async function () {
         const block = await context.viem().getBlock({ blockNumber: 1n });
-        let receipts = [];
+        const receipts = [];
         for (const txHash of block.transactions) {
           const receipt = await context
             .viem()

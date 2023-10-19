@@ -6,7 +6,7 @@ describeSuite({
   id: "D3612",
   title: "Trace filter reorg",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "successfully reorg",

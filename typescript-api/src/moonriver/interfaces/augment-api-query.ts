@@ -12,6 +12,7 @@ import type {
   Bytes,
   Null,
   Option,
+  Struct,
   U256,
   U8aFixed,
   Vec,
@@ -35,6 +36,8 @@ import type {
   CumulusPalletDmpQueuePageIndexData,
   CumulusPalletParachainSystemCodeUpgradeAuthorization,
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
+  CumulusPalletParachainSystemUnincludedSegmentAncestor,
+  CumulusPalletParachainSystemUnincludedSegmentSegmentTracker,
   CumulusPalletXcmpQueueInboundChannelDetails,
   CumulusPalletXcmpQueueOutboundChannelDetails,
   CumulusPalletXcmpQueueQueueConfigData,
@@ -48,6 +51,7 @@ import type {
   FrameSystemEventRecord,
   FrameSystemLastRuntimeUpgradeInfo,
   FrameSystemPhase,
+  MoonriverRuntimeRuntimeHoldReason,
   MoonriverRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletAssetManagerAssetInfo,
@@ -99,15 +103,16 @@ import type {
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   PalletXcmVersionMigrationStage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
-  PolkadotPrimitivesV4AbridgedHostConfiguration,
-  PolkadotPrimitivesV4PersistedValidationData,
-  PolkadotPrimitivesV4UpgradeRestriction,
+  PolkadotPrimitivesV5AbridgedHostConfiguration,
+  PolkadotPrimitivesV5PersistedValidationData,
+  PolkadotPrimitivesV5UpgradeGoAhead,
+  PolkadotPrimitivesV5UpgradeRestriction,
   SpRuntimeDigest,
   SpTrieStorageProof,
   SpWeightsWeightV2Weight,
-  XcmV3MultiLocation,
-  XcmVersionedAssetId,
-  XcmVersionedMultiLocation,
+  StagingXcmV3MultiLocation,
+  StagingXcmVersionedAssetId,
+  StagingXcmVersionedMultiLocation,
 } from "@polkadot/types/lookup";
 import type { Observable } from "@polkadot/types/types";
 
@@ -312,7 +317,14 @@ declare module "@polkadot/api-base/types/storage" {
       /** Holds on account balances. */
       holds: AugmentedQuery<
         ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<Vec<PalletBalancesIdAmount>>,
+        (arg: AccountId20 | string | Uint8Array) => Observable<
+          Vec<
+            {
+              readonly id: MoonriverRuntimeRuntimeHoldReason;
+              readonly amount: u128;
+            } & Struct
+          >
+        >,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -628,6 +640,7 @@ declare module "@polkadot/api-base/types/storage" {
       [key: string]: QueryableStorageEntry<ApiType>;
     };
     ethereumChainId: {
+      /** The EVM chain ID. */
       chainId: AugmentedQuery<ApiType, () => Observable<u64>, []> &
         QueryableStorageEntry<ApiType, []>;
       /** Generic query */
@@ -897,7 +910,7 @@ declare module "@polkadot/api-base/types/storage" {
         (
           arg1: u32 | AnyNumber | Uint8Array,
           arg2: AccountId20 | string | Uint8Array
-        ) => Observable<PalletParachainStakingCollatorSnapshot>,
+        ) => Observable<Option<PalletParachainStakingCollatorSnapshot>>,
         [u32, AccountId20]
       > &
         QueryableStorageEntry<ApiType, [u32, AccountId20]>;
@@ -975,6 +988,9 @@ declare module "@polkadot/api-base/types/storage" {
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
+      /** Killswitch to enable/disable marking offline feature. */
+      enableMarkingOffline: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
       /** Inflation configuration */
       inflationConfig: AugmentedQuery<
         ApiType,
@@ -1029,6 +1045,17 @@ declare module "@polkadot/api-base/types/storage" {
     };
     parachainSystem: {
       /**
+       * Storage field that keeps track of bandwidth used by the unincluded segment along with the
+       * latest the latest HRMP watermark. Used for limiting the acceptance of new blocks with
+       * respect to relay chain constraints.
+       */
+      aggregatedUnincludedSegment: AugmentedQuery<
+        ApiType,
+        () => Observable<Option<CumulusPalletParachainSystemUnincludedSegmentSegmentTracker>>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
+      /**
        * The number of HRMP messages we observed in `on_initialize` and thus used that number for
        * announcing the weight of `on_initialize` and `on_finalize`.
        */
@@ -1044,7 +1071,7 @@ declare module "@polkadot/api-base/types/storage" {
       /**
        * A custom head data that should be returned as result of `validate_block`.
        *
-       * See [`Pallet::set_custom_validation_head_data`] for more information.
+       * See `Pallet::set_custom_validation_head_data` for more information.
        */
       customValidationHeadData: AugmentedQuery<ApiType, () => Observable<Option<Bytes>>, []> &
         QueryableStorageEntry<ApiType, []>;
@@ -1061,7 +1088,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       hostConfiguration: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV4AbridgedHostConfiguration>>,
+        () => Observable<Option<PolkadotPrimitivesV5AbridgedHostConfiguration>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1117,10 +1144,8 @@ declare module "@polkadot/api-base/types/storage" {
        * In case of a scheduled upgrade, this storage field contains the validation code to be applied.
        *
        * As soon as the relay chain gives us the go-ahead signal, we will overwrite the
-       * [`:code`][well_known_keys::CODE] which will result the next block process with the new
-       * validation code. This concludes the upgrade process.
-       *
-       * [well_known_keys::CODE]: sp_core::storage::well_known_keys::CODE
+       * [`:code`][sp_core::storage::well_known_keys::CODE] which will result the next block process
+       * with the new validation code. This concludes the upgrade process.
        */
       pendingValidationCode: AugmentedQuery<ApiType, () => Observable<Bytes>, []> &
         QueryableStorageEntry<ApiType, []>;
@@ -1179,6 +1204,32 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, []>;
       /**
+       * Latest included block descendants the runtime accepted. In other words, these are ancestors
+       * of the currently executing block which have not been included in the observed relay-chain state.
+       *
+       * The segment length is limited by the capacity returned from the [`ConsensusHook`]
+       * configured in the pallet.
+       */
+      unincludedSegment: AugmentedQuery<
+        ApiType,
+        () => Observable<Vec<CumulusPalletParachainSystemUnincludedSegmentAncestor>>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Optional upgrade go-ahead signal from the relay-chain.
+       *
+       * This storage item is a mirror of the corresponding value for the current parachain from the
+       * relay-chain. This value is ephemeral which means it doesn't hit the storage. This value is
+       * set after the inherent.
+       */
+      upgradeGoAhead: AugmentedQuery<
+        ApiType,
+        () => Observable<Option<PolkadotPrimitivesV5UpgradeGoAhead>>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
+      /**
        * An option which indicates if the relay-chain restricts signalling a validation code
        * upgrade. In other words, if this is `Some` and [`NewValidationCode`] is `Some` then the
        * produced candidate will be invalid.
@@ -1189,7 +1240,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       upgradeRestrictionSignal: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV4UpgradeRestriction>>,
+        () => Observable<Option<PolkadotPrimitivesV5UpgradeRestriction>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1206,7 +1257,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       validationData: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV4PersistedValidationData>>,
+        () => Observable<Option<PolkadotPrimitivesV5PersistedValidationData>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1238,7 +1289,7 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg: AccountId20 | string | Uint8Array
-        ) => Observable<Option<Vec<ITuple<[u128, XcmVersionedMultiLocation]>>>>,
+        ) => Observable<Option<Vec<ITuple<[u128, StagingXcmVersionedMultiLocation]>>>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -1258,11 +1309,11 @@ declare module "@polkadot/api-base/types/storage" {
         (
           arg1: u32 | AnyNumber | Uint8Array,
           arg2: AccountId20 | string | Uint8Array,
-          arg3: XcmVersionedAssetId | { V3: any } | string | Uint8Array
+          arg3: StagingXcmVersionedAssetId | { V3: any } | string | Uint8Array
         ) => Observable<Option<PalletXcmRemoteLockedFungibleRecord>>,
-        [u32, AccountId20, XcmVersionedAssetId]
+        [u32, AccountId20, StagingXcmVersionedAssetId]
       > &
-        QueryableStorageEntry<ApiType, [u32, AccountId20, XcmVersionedAssetId]>;
+        QueryableStorageEntry<ApiType, [u32, AccountId20, StagingXcmVersionedAssetId]>;
       /**
        * Default version to encode XCM when latest version of destination is unknown. If `None`,
        * then the destinations whose XCM version is unknown are considered unreachable.
@@ -1274,11 +1325,11 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
+          arg2: StagingXcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
         ) => Observable<Option<u32>>,
-        [u32, XcmVersionedMultiLocation]
+        [u32, StagingXcmVersionedMultiLocation]
       > &
-        QueryableStorageEntry<ApiType, [u32, XcmVersionedMultiLocation]>;
+        QueryableStorageEntry<ApiType, [u32, StagingXcmVersionedMultiLocation]>;
       /**
        * Destinations whose latest XCM version we would like to know. Duplicates not allowed, and
        * the `u32` counter is the number of times that a send to the destination has been attempted,
@@ -1286,7 +1337,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       versionDiscoveryQueue: AugmentedQuery<
         ApiType,
-        () => Observable<Vec<ITuple<[XcmVersionedMultiLocation, u32]>>>,
+        () => Observable<Vec<ITuple<[StagingXcmVersionedMultiLocation, u32]>>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1295,11 +1346,11 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
+          arg2: StagingXcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
         ) => Observable<Option<u64>>,
-        [u32, XcmVersionedMultiLocation]
+        [u32, StagingXcmVersionedMultiLocation]
       > &
-        QueryableStorageEntry<ApiType, [u32, XcmVersionedMultiLocation]>;
+        QueryableStorageEntry<ApiType, [u32, StagingXcmVersionedMultiLocation]>;
       /**
        * The target locations that are subscribed to our version changes, as well as the most recent
        * of our versions we informed them of.
@@ -1308,11 +1359,11 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
+          arg2: StagingXcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
         ) => Observable<Option<ITuple<[u64, SpWeightsWeightV2Weight, u32]>>>,
-        [u32, XcmVersionedMultiLocation]
+        [u32, StagingXcmVersionedMultiLocation]
       > &
-        QueryableStorageEntry<ApiType, [u32, XcmVersionedMultiLocation]>;
+        QueryableStorageEntry<ApiType, [u32, StagingXcmVersionedMultiLocation]>;
       /** Global suspension state of the XCM executor. */
       xcmExecutionSuspended: AugmentedQuery<ApiType, () => Observable<bool>, []> &
         QueryableStorageEntry<ApiType, []>;
@@ -1533,7 +1584,7 @@ declare module "@polkadot/api-base/types/storage" {
        * light-clients to leverage the changes trie storage tracking mechanism and in case of
        * changes fetch the list of events of interest.
        *
-       * The value has the type `(T::BlockNumber, EventIndex)` because if we used only just the
+       * The value has the type `(BlockNumberFor<T>, EventIndex)` because if we used only just the
        * `EventIndex` then in case if the topic has the same contents on the next block no
        * notification will be triggered thus the event might be lost.
        */
@@ -1782,11 +1833,11 @@ declare module "@polkadot/api-base/types/storage" {
       destinationAssetFeePerSecond: AugmentedQuery<
         ApiType,
         (
-          arg: XcmV3MultiLocation | { parents?: any; interior?: any } | string | Uint8Array
+          arg: StagingXcmV3MultiLocation | { parents?: any; interior?: any } | string | Uint8Array
         ) => Observable<Option<u128>>,
-        [XcmV3MultiLocation]
+        [StagingXcmV3MultiLocation]
       > &
-        QueryableStorageEntry<ApiType, [XcmV3MultiLocation]>;
+        QueryableStorageEntry<ApiType, [StagingXcmV3MultiLocation]>;
       /**
        * Since we are using pallet-utility for account derivation (through AsDerivative), we need to
        * provide an index for the account derivation. This storage item stores the index assigned
@@ -1806,11 +1857,11 @@ declare module "@polkadot/api-base/types/storage" {
       transactInfoWithWeightLimit: AugmentedQuery<
         ApiType,
         (
-          arg: XcmV3MultiLocation | { parents?: any; interior?: any } | string | Uint8Array
+          arg: StagingXcmV3MultiLocation | { parents?: any; interior?: any } | string | Uint8Array
         ) => Observable<Option<PalletXcmTransactorRemoteTransactInfoWithMaxWeight>>,
-        [XcmV3MultiLocation]
+        [StagingXcmV3MultiLocation]
       > &
-        QueryableStorageEntry<ApiType, [XcmV3MultiLocation]>;
+        QueryableStorageEntry<ApiType, [StagingXcmV3MultiLocation]>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };

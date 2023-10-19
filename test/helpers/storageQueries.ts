@@ -4,7 +4,7 @@ import { rateLimiter } from "./common.js";
 const log = Debugger("test:storageQuery");
 
 const startReport = (total: () => number) => {
-  let t0 = performance.now();
+  const t0 = performance.now();
   let timer: NodeJS.Timeout;
 
   const report = () => {
@@ -40,7 +40,7 @@ export async function processAllStorage(
 ) {
   const maxKeys = 1000;
   let total = 0;
-  let prefixes = splitPrefix(storagePrefix);
+  const prefixes = splitPrefix(storagePrefix);
   const limiter = rateLimiter();
   const stopReport = startReport(() => total);
 
@@ -48,8 +48,8 @@ export async function processAllStorage(
     await Promise.all(
       prefixes.map(async (prefix) =>
         limiter.schedule(async () => {
-          let startKey = null;
-          loop: while (true) {
+          let startKey: string | undefined = undefined;
+          loop: for (;;) {
             // @ts-expect-error _rpcCore is not yet exposed
             const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [
               prefix,

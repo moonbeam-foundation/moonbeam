@@ -9,7 +9,7 @@ import {
   MILLIGLMR,
 } from "@moonwall/util";
 import { TransactionReceipt, decodeEventLog } from "viem";
-import { setupLotteryWithParticipants } from "../../../helpers/randomness.js";
+import { setupLotteryWithParticipants } from "../../../helpers";
 
 describeSuite({
   id: "D2715",

@@ -8,8 +8,11 @@ import {
 import { GLMR } from "@moonwall/util";
 import { u8aToHex } from "@polkadot/util";
 import { decodeEventLog, getAddress } from "viem";
-import { forceReducedReferendaExecution } from "../../../helpers/referenda.js";
-import { expectSubstrateEvent, expectSubstrateEvents } from "../../../helpers/expect.js";
+import {
+  forceReducedReferendaExecution,
+  expectSubstrateEvent,
+  expectSubstrateEvents,
+} from "../../../helpers";
 
 describeSuite({
   id: "D2551",
@@ -122,7 +125,7 @@ describeSuite({
           }
         });
 
-        let referendumInfo = await context
+        const referendumInfo = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(referendumIndex);
 

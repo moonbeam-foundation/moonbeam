@@ -1,29 +1,28 @@
 {
   "compilerOptions": {
-    "types": ["node", "bun-types"],
+    "types": ["node"],
 
     // enable latest features
     "lib": ["esnext"],
     "module": "esnext",
     "target": "esnext",
 
-
     "moduleResolution": "bundler",
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "moduleDetection": "force",
-
+    "incremental": true,
     "baseUrl": "./",
     "importHelpers": true,
+    "skipDefaultLibCheck": true,
     "preserveConstEnums": true,
     "sourceMap": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-
-    // best practices
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noImplicitAny": false
 
     // "paths": {
     //   "@helpers/xcm": ["helpers/xcm.js"],
@@ -33,8 +32,6 @@
     //   "@helpers/expect": ["helpers/expect.js"],
     // }  // We can enable this if we commit to using bun.js
   },
-  "include": [
-    "*suites/**/*.ts"
-  ],
-  "exclude": ["node_modules/"]
+  "include": ["**/helpers/", "scripts"],
+  "exclude": ["node_modules", "suites"]
 }

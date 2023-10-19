@@ -8,7 +8,7 @@ import {
   generateKeyringPair,
 } from "@moonwall/util";
 import { fromBytes } from "viem";
-import { jumpRounds } from "../../../helpers/block.js";
+import { jumpRounds } from "../../../helpers";
 
 describeSuite({
   id: "D2982",

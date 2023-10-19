@@ -1,10 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
-import { u8aToHex } from "@polkadot/util";
-
+import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { GLMR } from "@moonwall/util";
-import { XcmFragment, weightMessage } from "../../../helpers/xcm.js";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
+import { u8aToHex } from "@polkadot/util";
+import { XcmFragment, weightMessage } from "../../../helpers";
 
 describeSuite({
   id: "D3508",

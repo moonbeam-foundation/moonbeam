@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { Abi, decodeAbiParameters, encodeFunctionData } from "viem";
-import { mockAssetBalance } from "../../../helpers/assets.js";
+import { mockAssetBalance } from "../../../helpers";
 
 describeSuite({
   id: "D2502",

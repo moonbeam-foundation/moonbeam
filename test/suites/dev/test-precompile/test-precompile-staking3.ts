@@ -1,15 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import {
-  BALTATHAR_PRIVATE_KEY,
-  CHARLETH_PRIVATE_KEY,
-  ETHAN_ADDRESS,
-  ETHAN_PRIVATE_KEY,
-  FAITH_PRIVATE_KEY,
-  GLMR,
-  MIN_GLMR_STAKING,
-} from "@moonwall/util";
+import { ETHAN_ADDRESS, ETHAN_PRIVATE_KEY, MIN_GLMR_STAKING } from "@moonwall/util";
 
 describeSuite({
   id: "D2564",

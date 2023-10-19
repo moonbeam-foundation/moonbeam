@@ -86,7 +86,7 @@ export const notePreimagePrecompile = async <
 export async function getAuthorMappingInfo(
   context: DevModeContext,
   authorId: string
-): Promise<void | { account: string; deposit: BigInt }> {
+): Promise<void | { account: string; deposit: bigint }> {
   const mapping = await context.polkadotJs().query.authorMapping.mappingWithDeposit(authorId);
   if (mapping.isSome) {
     return {
@@ -122,7 +122,7 @@ export const setupPoolWithParticipants = async (context: DevModeContext) => {
 };
 
 export async function setupWithParticipants(context: DevModeContext) {
-  const { abi, contractAddress } = await context.deployContract!("ProxyCallStakingDemo", {
+  const { contractAddress } = await context.deployContract!("ProxyCallStakingDemo", {
     gas: 5_000_000n,
     value: parseEther("5"),
   });

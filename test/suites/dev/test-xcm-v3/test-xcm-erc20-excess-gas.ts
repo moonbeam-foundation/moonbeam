@@ -1,16 +1,15 @@
 import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { expectEVMResult, getTransactionFees } from "../../../helpers/eth-transactions.js";
 import { ApiPromise } from "@polkadot/api";
+import { parseEther } from "ethers";
+import { expectEVMResult, getTransactionFees } from "../../../helpers";
 import {
   XcmFragment,
   XcmFragmentConfig,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
-import { parseEther } from "ethers";
-import { stringToU8a } from "@polkadot/util";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 

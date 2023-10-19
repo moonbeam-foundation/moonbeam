@@ -2,8 +2,8 @@
 
 export interface NetworkTestArtifact {
   chainId: number;
-  networkLabel: String;
-  WETH: String;
+  networkLabel: string;
+  WETH: string;
   testData: RuntimeTestArtifact[];
 }
 

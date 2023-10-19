@@ -5,11 +5,9 @@ import {
   MIN_GLMR_STAKING,
   alith,
   baltathar,
-  charleth,
   dorothy,
   ethan,
   faith,
-  goliath,
 } from "@moonwall/util";
 
 describeSuite({

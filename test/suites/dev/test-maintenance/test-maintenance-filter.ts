@@ -9,14 +9,12 @@ import {
   baltathar,
   createRawTransfer,
 } from "@moonwall/util";
-import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { hexToU8a } from "@polkadot/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { mockAssetBalance } from "../../../helpers/assets.js";
+import { mockAssetBalance } from "../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
-const ARBITRARY_ASSET_ID_2 = 37857590458095351632257641799342538748n;
 const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
   "0x1111111111111111111111111111111111111111111111111111111111111111";
 const ARBITRARY_VESTING_PERIOD = 201600n;
@@ -25,9 +23,7 @@ describeSuite({
   id: "D1901",
   title: "Maintenance Mode - Filter",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
-    let assetId: u128;
-
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await execTechnicalCommitteeProposal(
         context,
@@ -214,7 +210,6 @@ describeSuite({
                   fee as any,
                   "",
                   transactWeights as any,
-                  //@ts-ignore
                   false
                 )
                 .signAsync(baltathar)
