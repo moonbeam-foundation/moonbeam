@@ -1,8 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { RELAY_SOURCE_LOCATION2, relayAssetMetadata } from "../../../helpers/assets.js";
-import { registerForeignAsset } from "../../../helpers/xcm.js";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
+import {
+  RELAY_SOURCE_LOCATION2,
+  relayAssetMetadata,
+  registerForeignAsset,
+  verifyLatestBlockFees,
+} from "../../../helpers";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
@@ -18,7 +21,7 @@ describeSuite({
         const { events, registeredAsset } = await registerForeignAsset(
           context,
           RELAY_SOURCE_LOCATION2,
-          relayAssetMetadata
+          relayAssetMetadata as any
         );
 
         expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");

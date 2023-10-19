@@ -17,7 +17,7 @@ import { u128 } from "@polkadot/types";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { nToHex } from "@polkadot/util";
 import { Abi, encodeFunctionData } from "viem";
-import { mockAssetBalance } from "../../../helpers/assets.js";
+import { mockAssetBalance } from "../../../helpers";
 
 describeSuite({
   id: "D2501",

@@ -4,9 +4,8 @@ import {
   beforeAll,
   deployCreateCompiledContract,
   describeSuite,
-  expect,
 } from "@moonwall/cli";
-import { createEthersTransaction, sendRawTransaction } from "@moonwall/util";
+import { createEthersTransaction } from "@moonwall/util";
 import { expectEVMResult } from "helpers/eth-transactions";
 import { expectOk } from "helpers/expect";
 import { Abi, encodeFunctionData } from "viem";

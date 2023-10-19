@@ -7,8 +7,7 @@ import {
   GLMR,
   alith,
 } from "@moonwall/util";
-import { jumpBlocks } from "../../../helpers/block.js";
-import { SIMPLE_SALT } from "../../../helpers/randomness.js";
+import { jumpBlocks, SIMPLE_SALT } from "../../../helpers";
 
 describeSuite({
   id: "D2709",

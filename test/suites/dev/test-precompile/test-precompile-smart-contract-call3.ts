@@ -8,7 +8,7 @@ import {
   baltathar,
 } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { expectEVMResult } from "../../../helpers";
 
 describeSuite({
   id: "D2559",

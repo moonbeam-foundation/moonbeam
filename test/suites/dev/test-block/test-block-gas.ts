@@ -4,7 +4,6 @@ import {
   describeSuite,
   expect,
   deployCreateCompiledContract,
-  fetchCompiledContract,
 } from "@moonwall/cli";
 import { EXTRINSIC_GAS_LIMIT } from "@moonwall/util";
 

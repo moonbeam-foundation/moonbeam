@@ -5,7 +5,7 @@ class PrecompileContract {
   precompileName: string;
   context: DevModeContext;
   privateKey?: `0x${string}`;
-  gas?: bigint | string;
+  gas?: bigint | "estimate";
   rawTxOnly?: boolean;
   signer?: KeyringPair;
   expectEvents?: [any];
@@ -30,7 +30,7 @@ class PrecompileContract {
     return this;
   }
 
-  withGas(gas: bigint | string) {
+  withGas(gas: bigint | "estimate") {
     this.gas = gas;
     return this;
   }
@@ -100,7 +100,7 @@ export class PrecompileCall {
   }
 
   async block() {
-    return await this.context.createBlock(await this.tx(), this.blockCreationOptions);
+    return await this.context.createBlock((await this.tx()) as any, this.blockCreationOptions);
   }
 }
 

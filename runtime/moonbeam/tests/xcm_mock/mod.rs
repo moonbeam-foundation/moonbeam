@@ -34,6 +34,7 @@ use std::{collections::BTreeMap, str::FromStr};
 
 pub const PARAALICE: [u8; 20] = [1u8; 20];
 pub const RELAYALICE: AccountId32 = AccountId32::new([0u8; 32]);
+pub const RELAYBOB: AccountId32 = AccountId32::new([2u8; 32]);
 
 pub fn para_a_account() -> AccountId32 {
 	ParaId::from(1).into_account_truncating()
@@ -186,7 +187,10 @@ pub fn statemint_ext(para_id: u32) -> sp_io::TestExternalities {
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
-		balances: vec![(RELAYALICE.into(), INITIAL_BALANCE)],
+		balances: vec![
+			(RELAYALICE.into(), INITIAL_BALANCE),
+			(RELAYBOB.into(), INITIAL_BALANCE),
+		],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();

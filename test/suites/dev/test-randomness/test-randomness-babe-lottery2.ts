@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
-  ALITH_GENESIS_FREE_BALANCE,
   BALTATHAR_PRIVATE_KEY,
   CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
   DEFAULT_GENESIS_BALANCE,

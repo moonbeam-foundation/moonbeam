@@ -1,11 +1,11 @@
-import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
-import { u128 } from "@polkadot/types";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, baltathar } from "@moonwall/util";
-import { mockAssetBalance } from "../../../helpers/assets.js";
-import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import "@polkadot/api-augment";
+import { u128 } from "@polkadot/types";
 import { ApiPromise } from "@polkadot/api";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import { mockAssetBalance } from "../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 

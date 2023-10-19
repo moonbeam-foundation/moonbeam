@@ -8,8 +8,7 @@ import {
   baltathar,
   generateKeyringPair,
 } from "@moonwall/util";
-import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE, verifyLatestBlockFees } from "../../../helpers";
 
 describeSuite({
   id: "D3101",

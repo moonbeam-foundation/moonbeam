@@ -21,7 +21,7 @@ describeSuite({
     let subTopicWildAndCondPromise: Promise<Log>;
 
     beforeAll(async () => {
-      const openSub = async (filter?: {}) => await context.web3().eth.subscribe("logs", filter);
+      const openSub = async (filter?: object) => await context.web3().eth.subscribe("logs", filter);
 
       const onData = (logSub: any) => {
         return new Promise<Log>((resolve) => {

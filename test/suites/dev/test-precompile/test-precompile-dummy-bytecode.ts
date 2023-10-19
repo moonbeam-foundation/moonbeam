@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
+import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   DUMMY_REVERT_BYTECODE,
@@ -7,7 +7,7 @@ import {
   createEthersTransaction,
 } from "@moonwall/util";
 import * as RLP from "rlp";
-import { hexToBytes, keccak256, toBytes, toHex, toRlp } from "viem";
+import { keccak256 } from "viem";
 
 // push1 5 (deployed bytecode length)
 // dup1

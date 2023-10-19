@@ -1,22 +1,14 @@
 // import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import {
-  MIN_GLMR_DELEGATOR,
-  MIN_GLMR_STAKING,
-  alith,
-  baltathar,
-  charleth,
-  ethan,
-} from "@moonwall/util";
-import { EventRecord } from "@polkadot/types/interfaces";
+import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 
 describeSuite({
   id: "D2921",
   title: "Staking - Delegate With Auto-Compound - valid request",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {
-    const numberToHex = (n: BigInt): string => `0x${n.toString(16).padStart(32, "0")}`;
+    const numberToHex = (n: bigint): string => `0x${n.toString(16).padStart(32, "0")}`;
     let events: any[];
 
     beforeAll(async () => {

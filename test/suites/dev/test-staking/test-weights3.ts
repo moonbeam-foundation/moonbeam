@@ -1,9 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_DELEGATOR, alith } from "@moonwall/util";
-import { chunk } from "../../../helpers/common.js";
-import { createAccounts } from "../../../helpers/accounts.js";
-import { countExtrinsics } from "../../../helpers/block.js";
+import { chunk, createAccounts, countExtrinsics } from "../../../helpers";
 
 describeSuite({
   id: "D2989",

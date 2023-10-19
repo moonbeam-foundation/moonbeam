@@ -1,8 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { GLMR, alith, baltathar, charleth, dorothy, ethan } from "@moonwall/util";
-import { Result } from "@polkadot/types";
-import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
+import { GLMR, baltathar, charleth, dorothy, ethan } from "@moonwall/util";
 
 describeSuite({
   id: "D3207",

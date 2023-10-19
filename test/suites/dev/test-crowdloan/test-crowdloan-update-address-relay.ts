@@ -2,8 +2,7 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { GLMR, generateKeyringPair } from "@moonwall/util";
 import { stringToU8a } from "@polkadot/util";
-import { VESTING_PERIOD } from "../../../helpers/constants.js";
-import { getAccountPayable } from "../../../helpers/crowdloan.js";
+import { VESTING_PERIOD, getAccountPayable } from "../../../helpers";
 
 describeSuite({
   id: "D0713",

@@ -2,11 +2,10 @@ import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { expectEVMResult } from "../../../helpers";
 import {
   XcmFragment,
   XcmFragmentConfig,
-  injectHrmpMessage,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
@@ -131,8 +130,8 @@ describeSuite({
 
         const limit = 64n;
         // get weight for n=limit-1 and n=limit
-        let weight_under = await getTransferWeight(limit - 1n);
-        let weight_limit = await getTransferWeight(limit);
+        const weight_under = await getTransferWeight(limit - 1n);
+        const weight_limit = await getTransferWeight(limit);
 
         // assert that n=limit-1 increases weight
         expect(weight_under).lt(weight_limit);

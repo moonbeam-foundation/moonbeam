@@ -10,7 +10,7 @@ import {
 } from "@moonwall/util";
 import { Option } from "@polkadot/types";
 import { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
-import { SIMPLE_SALT } from "../../../helpers/randomness.js";
+import { SIMPLE_SALT } from "../../../helpers";
 
 describeSuite({
   id: "D2707",

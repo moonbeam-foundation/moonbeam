@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/util";
-import { jumpRounds } from "../../../helpers/block.js";
+import { jumpRounds } from "../../../helpers";
 
 describeSuite({
   id: "D2981",
