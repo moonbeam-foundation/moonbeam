@@ -1,10 +1,15 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite } from "@moonwall/cli";
 import { fromBytes } from "viem";
-import { RELAY_SOURCE_LOCATION, relayAssetMetadata } from "../../../helpers/assets.js";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { registerForeignAsset, registerXcmTransactorAndContract } from "../../../helpers/xcm.js";
+import {
+  RELAY_SOURCE_LOCATION,
+  relayAssetMetadata,
+  verifyLatestBlockFees,
+  expectEVMResult,
+  registerForeignAsset,
+  registerXcmTransactorAndContract,
+} from "../../../helpers";
+
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
 
 describeSuite({
@@ -23,7 +28,7 @@ describeSuite({
       test: async function () {
         // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
         // And we need relay tokens for issuing a transaction to be executed in the relay
-        const dest: [number, {}[]] = [1, []];
+        const dest: [number, any[]] = [1, []];
         const asset = ADDRESS_RELAY_ASSETS;
         const transact_call = fromBytes(new Uint8Array([0x01]), "hex");
         const transactWeight = 1000;

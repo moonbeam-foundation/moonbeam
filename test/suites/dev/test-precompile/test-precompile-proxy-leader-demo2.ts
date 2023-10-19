@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { setupPoolWithParticipants } from "../../../helpers/precompiles.js";
+import { expectEVMResult, setupPoolWithParticipants } from "../../../helpers";
 
 describeSuite({
   id: "D2543",

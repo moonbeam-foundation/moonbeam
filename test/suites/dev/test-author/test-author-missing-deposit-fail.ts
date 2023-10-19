@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { BALTATHAR_SESSION_ADDRESS, generateKeyringPair } from "@moonwall/util";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
-import { getMappingInfo } from "../../../helpers/common.js";
+import { getMappingInfo } from "../../../helpers";
 
 describeSuite({
   id: "D0204",

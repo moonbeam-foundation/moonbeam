@@ -10,7 +10,7 @@ import {
   ethan,
 } from "@moonwall/util";
 import { nToHex } from "@polkadot/util";
-import { setupWithParticipants } from "../../../helpers/precompiles.js";
+import { setupWithParticipants } from "../../../helpers";
 
 describeSuite({
   id: "D2546",

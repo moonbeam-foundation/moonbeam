@@ -4,11 +4,10 @@ import {
   GLMR,
   MIN_GLMR_DELEGATOR,
   alith,
-  checkBalance,
   createRawTransfer,
   generateKeyringPair,
 } from "@moonwall/util";
-import { createProposal } from "../../../helpers/voting.js";
+import { createProposal } from "../../../helpers";
 
 describeSuite({
   id: "D2580",
@@ -57,7 +56,7 @@ describeSuite({
         );
 
         // check system balance
-        let frozenBalance = (
+        const frozenBalance = (
           await context.polkadotJs().query.system.account(randomAddress)
         ).data.frozen.toBigInt();
 
@@ -69,7 +68,7 @@ describeSuite({
         }
 
         // check locked balances
-        let lockedBalances = await context.polkadotJs().query.balances.locks(randomAddress);
+        const lockedBalances = await context.polkadotJs().query.balances.locks(randomAddress);
         expect(lockedBalances.length).to.equal(2);
         expect(lockedBalances[0].amount.toBigInt()).to.equal(GLMR);
         expect(lockedBalances[1].amount.toBigInt()).to.equal(MIN_GLMR_DELEGATOR);

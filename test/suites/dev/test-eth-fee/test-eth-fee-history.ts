@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, fetchCompiledContract, customDevRpcRequest } from "@moonwall/cli";
-import { ALITH_ADDRESS, alith } from "@moonwall/util";
+import { ALITH_ADDRESS } from "@moonwall/util";
 import { hexToNumber, numberToHex } from "@polkadot/util";
 import { parseGwei } from "viem";
 
@@ -26,8 +26,8 @@ describeSuite({
     ) {
       let nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
       const contractData = fetchCompiledContract("MultiplyBy7");
-      for (var b = 0; b < block_count; b++) {
-        for (var p = 0; p < priority_fees.length; p++) {
+      for (let b = 0; b < block_count; b++) {
+        for (let p = 0; p < priority_fees.length; p++) {
           await context.ethers().sendTransaction({
             from: ALITH_ADDRESS,
             data: contractData.bytecode,
@@ -49,7 +49,7 @@ describeSuite({
       array.sort(function (a, b) {
         return a - b;
       });
-      let index = (percentile / 100) * array.length - 1;
+      const index = (percentile / 100) * array.length - 1;
       if (Math.floor(index) == index) {
         return array[index];
       } else {
@@ -116,10 +116,10 @@ describeSuite({
       title: "should calculate percentiles",
       timeout: 40_000,
       test: async function () {
-        let max_fee_per_gas = parseGwei("10").toString();
-        let block_count = 11;
-        let reward_percentiles = [20, 50, 70, 85, 100];
-        let priority_fees = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        const max_fee_per_gas = parseGwei("10").toString();
+        const block_count = 11;
+        const reward_percentiles = [20, 50, 70, 85, 100];
+        const priority_fees = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         const startingBlock = await context.viem().getBlockNumber();
 
         const feeHistory = new Promise<FeeHistory>((resolve, reject) => {

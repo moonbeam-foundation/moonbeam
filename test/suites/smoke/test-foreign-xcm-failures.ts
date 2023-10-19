@@ -63,7 +63,7 @@ describeSuite({
           log(`Network tests for ${name} has been muted, skipping.`);
           return { networkName: name, blockEvents: [] };
         }
-
+        let result;
         try {
           const api: ApiPromise = await new Promise((resolve, reject) => {
             const provider = new WsProvider(endpoints);
@@ -116,8 +116,9 @@ describeSuite({
         } catch (e) {
           blockEvents = [];
         } finally {
-          return { networkName: name, blockEvents };
+          result = { networkName: name, blockEvents };
         }
+        return result;
       });
       networkBlockEvents = await Promise.all(promises);
     }, TEN_MINS);

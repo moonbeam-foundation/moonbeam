@@ -1,14 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import {
-  MIN_GLMR_DELEGATOR,
-  MIN_GLMR_STAKING,
-  alith,
-  baltathar,
-  charleth,
-  ethan,
-  goliath,
-} from "@moonwall/util";
+import { describeSuite, expect } from "@moonwall/cli";
+import { MIN_GLMR_DELEGATOR, alith, baltathar, ethan, goliath } from "@moonwall/util";
 
 describeSuite({
   id: "D2912",

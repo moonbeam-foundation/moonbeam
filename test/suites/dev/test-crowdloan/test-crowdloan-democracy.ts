@@ -6,7 +6,7 @@ import {
   RELAYCHAIN_ARBITRARY_ADDRESS_2,
   VESTING_PERIOD,
 } from "../../../helpers/constants.js";
-import { getAccountPayable } from "../../../helpers/crowdloan.js";
+import { getAccountPayable } from "../../../helpers";
 
 describeSuite({
   id: "D0705",
@@ -17,7 +17,7 @@ describeSuite({
       id: "T01",
       title: "should be able to initialize through democracy",
       test: async function () {
-        const calls = [];
+        const calls: any[] = [];
         // We are gonna put the initialization and completion in a batch_all utility call
         calls.push(
           context.polkadotJs().tx.crowdloanRewards.initializeRewardVec([

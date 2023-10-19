@@ -20,7 +20,7 @@ import {
 } from "@moonwall/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
 import { Abi, encodeFunctionData } from "viem";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { expectEVMResult } from "../../../helpers";
 
 const successfulCouncilCall = async (
   context: DevModeContext,
@@ -35,7 +35,7 @@ const successfulCouncilCall = async (
     skipEstimation: true,
   });
 
-  let { result } = await context.createBlock(tx);
+  const { result } = await context.createBlock(tx);
 
   expect(result?.successful).to.equal(true);
 };

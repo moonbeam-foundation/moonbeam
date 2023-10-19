@@ -1,11 +1,13 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { createProposal } from "../../../helpers/voting.js";
-import { expectSubstrateEvent } from "../../../helpers/expect.js";
-import { Abi, decodeEventLog } from "viem";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import { ConvictionVoting } from "../../../helpers/precompile-contract-calls.js";
+import { Abi, decodeEventLog } from "viem";
+import {
+  ConvictionVoting,
+  createProposal,
+  expectEVMResult,
+  expectSubstrateEvent,
+} from "../../../helpers";
 
 describeSuite({
   id: "D2529-2",

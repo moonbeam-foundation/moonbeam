@@ -13,7 +13,7 @@ describeSuite({
   id: "D3608",
   title: "Trace filter - Concurrency",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let looperAddress: `0x${string}`;
     let looperABI: Abi;
 
@@ -35,7 +35,7 @@ describeSuite({
           gasLimit: 200_000,
         });
 
-        const { result } = await context.createBlock(rawSigned);
+        await context.createBlock(rawSigned);
       }
     }, 180000);
 

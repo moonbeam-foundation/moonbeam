@@ -1,10 +1,13 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import { jumpBlocks } from "../../../helpers/block.js";
-import { expectEVMResult, extractRevertReason } from "../../../helpers/eth-transactions.js";
-import { createProposal } from "../../../helpers/voting.js";
-import { ConvictionVoting } from "../../../helpers/precompile-contract-calls.js";
+import {
+  jumpBlocks,
+  expectEVMResult,
+  extractRevertReason,
+  createProposal,
+  ConvictionVoting,
+} from "../../../helpers";
 
 describeSuite({
   id: "D2529-4",

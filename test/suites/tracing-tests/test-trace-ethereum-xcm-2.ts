@@ -1,18 +1,18 @@
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import {
-  XcmFragment,
-  injectHrmpMessage,
-  descendOriginFromAddress20,
-  RawXcmMessage,
-} from "helpers/xcm";
 import { alith } from "@moonwall/util";
 import { Abi, encodeFunctionData } from "viem";
+import {
+  RawXcmMessage,
+  XcmFragment,
+  descendOriginFromAddress20,
+  injectHrmpMessage,
+} from "../../helpers";
 
 describeSuite({
   id: "D3611",
   title: "Trace ethereum xcm #2",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let ethereumXcmDescendedOrigin: `0x${string}`;
     let xcmContractAddress: `0x${string}`;
     let ethContractAddress: `0x${string}`;
@@ -102,10 +102,12 @@ describeSuite({
 
       // By calling deployContract() a new block will be created,
       // including the ethereum xcm call + regular ethereum transaction
-      const { contractAddress: eventEmitterAddress, abi: eventEmitterABI } =
-        await context.deployContract!("EventEmitter", {
+      const { contractAddress: eventEmitterAddress } = await context.deployContract!(
+        "EventEmitter",
+        {
           from: alith.address,
-        } as any);
+        } as any
+      );
       ethContractAddress = eventEmitterAddress;
     });
 

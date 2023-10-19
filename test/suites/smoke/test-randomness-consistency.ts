@@ -1,13 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
-import { BN, hexToBigInt, u8aToHex } from "@polkadot/util";
+import { BN, hexToBigInt } from "@polkadot/util";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import randomLib from "randomness";
 import { Bit } from "randomness/lib/types";
 import chalk from "chalk";
-import { rpcErrorsMap } from "web3";
-import { randomUUID } from "crypto";
 const RANDOMNESS_ACCOUNT_ID = "0x6d6f646c6d6f6f6e72616e640000000000000000";
 
 describeSuite({
@@ -44,7 +42,7 @@ describeSuite({
         : (await paraApi.rpc.chain.getHeader()).number.toNumber();
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
 
-      while (true) {
+      for (;;) {
         const query = await apiAt.query.randomness.requests.entriesPaged({
           args: [],
           pageSize: limit,
@@ -68,7 +66,7 @@ describeSuite({
           last_key = key;
         }
 
-        if (true || count % (10 * limit) == 0) {
+        if (count % (10 * limit) == 0) {
           log(`Retrieved ${count} requests`);
           log(`Requests: ${requestStates.map((r) => r.id).join(",")}`);
         }
@@ -138,8 +136,8 @@ describeSuite({
           );
 
           if ((requestType as any).isBabeEpoch) {
-            let epoch = (requestType as any).asBabeEpoch;
-            let found = requestStates.find((request) => {
+            const epoch = (requestType as any).asBabeEpoch;
+            const found = requestStates.find((request) => {
               // TODO: can we traverse this hierarchy of types without creating each?
               const requestState = paraApi.registry.createType(
                 "PalletRandomnessRequestState",
@@ -163,8 +161,8 @@ describeSuite({
             expect(found).is.not.undefined;
           } else {
             // look for any requests which depend on the "local" block
-            let block = (requestType as any).asLocal;
-            let found = requestStates.find((request) => {
+            const block = (requestType as any).asLocal;
+            const found = requestStates.find((request) => {
               // TODO: can we traverse this hierarchy of types without creating each?
               const requestState = paraApi.registry.createType(
                 "PalletRandomnessRequestState",
@@ -244,7 +242,7 @@ describeSuite({
           );
           const resultRequestCount = (result as any).requestCount;
           if ((requestType as any).isBabeEpoch) {
-            let epoch = (requestType as any).asBabeEpoch;
+            const epoch = (requestType as any).asBabeEpoch;
             expect(requestCounts[epoch].toString()).to.equal(
               resultRequestCount.toString(),
               "Counted request count" +
@@ -252,7 +250,7 @@ describeSuite({
                 `${result}`
             );
           } else {
-            let local = (requestType as any).asLocal;
+            const local = (requestType as any).asLocal;
             expect(requestCounts[local].toString()).to.equal(
               resultRequestCount.toString(),
               "Counted request count" +

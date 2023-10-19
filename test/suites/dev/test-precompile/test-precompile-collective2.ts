@@ -31,7 +31,7 @@ const successfulTreasuryCouncilCall = async (
     skipEstimation: true,
   });
 
-  let { result } = await context.createBlock(tx);
+  const { result } = await context.createBlock(tx);
 
   expect(result?.successful).to.equal(true);
 };

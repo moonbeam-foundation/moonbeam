@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeEach, notePreimage, beforeAll } from "@moonwall/cli";
+import { describeSuite, expect, notePreimage, beforeAll } from "@moonwall/cli";
 import { ALITH_ADDRESS, GLMR, PROPOSAL_AMOUNT, alith } from "@moonwall/util";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
   id: "D0805",
