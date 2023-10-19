@@ -187,7 +187,7 @@ jobs:
               --incoming-covdir ./coverage/covdir \
               --base-branch ${{ needs.set-tags.outputs.git_target_branch }} \
               --incoming-branch ${{ needs.set-tags.outputs.git_branch }} \
-              --base-html-url ${{ vars.S3_COVERAGE_URL }} \
+              --base-html-url ${{ vars.S3_COVERAGE_URL }}/${{ needs.set-tags.outputs.coverage_dir }} \
             > coverage_report.md
 
             echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
