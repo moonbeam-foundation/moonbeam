@@ -97,7 +97,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: refs/heads/master
+          ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Variables
         shell: bash
         run: |
@@ -177,20 +177,20 @@ jobs:
             --ignore "$HOME/.cargo/**" -o coverage/ --llvm
           fi
 
-          # if [ "${{ needs.set-tags.outputs.coverage_report }}" == "true" ]; then
-          #   echo "Generating coverage report"
-          #   wget ${{ vars.S3_COVERAGE_URL }}/branches/master/covdir \
-          #   -O base_covdir || true
+          if [ "${{ needs.set-tags.outputs.coverage_report }}" == "true" ]; then
+            echo "Generating coverage report"
+            wget ${{ vars.S3_COVERAGE_URL }}/branches/master/covdir \
+            -O base_covdir || true
 
-          #   python3 .github/scripts/coverage-report.py \
-          #     --base-covdir ./base_covdir \
-          #     --incoming-covdir ./coverage/covdir \
-          #     --base-branch ${{ needs.set-tags.outputs.git_target_branch }} \
-          #     --incoming-branch ${{ needs.set-tags.outputs.git_branch }} \
-          #   > coverage_report.md
+            python3 .github/scripts/coverage-report.py \
+              --base-covdir ./base_covdir \
+              --incoming-covdir ./coverage/covdir \
+              --base-branch ${{ needs.set-tags.outputs.git_target_branch }} \
+              --incoming-branch ${{ needs.set-tags.outputs.git_branch }} \
+            > coverage_report.md
 
-          #   echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
-          # fi
+            echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
+          fi
 
           rm -rf proffiles/
       - name: Upload coverage to gha
@@ -205,34 +205,34 @@ jobs:
           aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
           aws_secret_access_key: ${{ secrets.S3_COVERAGE_KEY }}
           aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
-          destination_dir: "branches/master"
+          destination_dir: "${{ needs.set-tags.outputs.coverage_dir }}"
           source_dir: "coverage"
           acl: "none"
-      # - name: Link To Report
-      #   run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html"
-      # - name: Create coverage report comment
-      #   if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
-      #   run: |
-      #     mv coverage_report.md temp_coverage_report.md
-      #     echo "## [Coverage Report](${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html)" > coverage_report.md
-      #     cat temp_coverage_report.md >> coverage_report.md
-      #     rm temp_coverage_report.md
-      #     echo "> Coverage generated ${{ steps.coverage.outputs.coverage_date }}" >> coverage_report.md
-      #     echo "Generated coverage report comment"
-      #     cat coverage_report.md
-      # - name: Find Comment
-      #   if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
-      #   uses: peter-evans/find-comment@v2
-      #   id: fc
-      #   with:
-      #     issue-number: ${{ github.event.pull_request.number }}
-      #     comment-author: "github-actions[bot]"
-      #     body-includes: Coverage generated
-      # - name: Create or update comment
-      #   if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
-      #   uses: peter-evans/create-or-update-comment@v3
-      #   with:
-      #     comment-id: ${{ steps.fc.outputs.comment-id }}
-      #     issue-number: ${{ github.event.pull_request.number }}
-      #     body-path: coverage_report.md
-      #     edit-mode: replace
+      - name: Link To Report
+        run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html"
+      - name: Create coverage report comment
+        if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
+        run: |
+          mv coverage_report.md temp_coverage_report.md
+          echo "## [Coverage Report](${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html)" > coverage_report.md
+          cat temp_coverage_report.md >> coverage_report.md
+          rm temp_coverage_report.md
+          echo "> Coverage generated ${{ steps.coverage.outputs.coverage_date }}" >> coverage_report.md
+          echo "Generated coverage report comment"
+          cat coverage_report.md
+      - name: Find Comment
+        if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: Coverage generated
+      - name: Create or update comment
+        if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: coverage_report.md
+          edit-mode: replace
