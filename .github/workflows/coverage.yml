@@ -211,6 +211,7 @@ jobs:
       - name: Link To Report
         run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html"
       - name: Create coverage report comment
+        if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
         run: |
           mv coverage_report.md temp_coverage_report.md
           echo "## [Coverage Report](${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html)" > coverage_report.md
