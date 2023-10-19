@@ -174,7 +174,7 @@ jobs:
             mkdir -p coverage
             ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
             -t html,covdir --branch --ignore-not-existing --ignore "target/release/build/*" \
-            -o coverage/ --llvm
+            --ignore "$HOME/.cargo/**" -o coverage/ --llvm
           fi
 
           if [ "${{ needs.set-tags.outputs.coverage_report }}" == "true" ]; then
