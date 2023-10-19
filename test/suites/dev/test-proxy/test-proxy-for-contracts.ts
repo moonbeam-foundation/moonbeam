@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { deployCreateCompiledContract, describeSuite, expect, beforeAll } from "@moonwall/cli";
+import { deployCreateCompiledContract, describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { GLMR } from "@moonwall/util";
-import { ALITH_ADDRESS, alith } from "@moonwall/util";
+import { alith } from "@moonwall/util";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
@@ -36,7 +36,9 @@ describeSuite({
             )
             .signAsync(alith.address)
         );
-        console.log(ALITH_ADDRESS);
+
+        expect(result!.successful).to.be.false;
+        expect(result!.error!.name).to.equal("BadOrigin");
       },
     });
   },
