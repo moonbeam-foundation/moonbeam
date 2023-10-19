@@ -182,12 +182,12 @@ jobs:
             wget ${{ vars.S3_COVERAGE_URL }}/branches/master/covdir \
             -O base_covdir || true
 
-            echo "coverage_report=$(python3 .github/scripts/coverage-report.py \
+            python3 .github/scripts/coverage-report.py \
               --base-covdir ./base_covdir \
               --incoming-covdir ./coverage/covdir \
               --base-branch ${{ needs.set-tags.outputs.git_target_branch }} \
               --incoming-branch ${{ needs.set-tags.outputs.git_branch }} \
-            )" >> $GITHUB_OUTPUT
+            > coverage_report.md
 
             echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
           fi
@@ -210,6 +210,15 @@ jobs:
           acl: "none"
       - name: Link To Report
         run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html"
+      - name: Create coverage report comment
+        run: |
+          mv coverage_report.md temp_coverage_report.md
+          echo "## [Coverage Report](${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html)" > coverage_report.md
+          cat temp_coverage_report.md >> coverage_report.md
+          rm temp_coverage_report.md
+          echo "> Coverage generated ${{ steps.coverage.outputs.coverage_date }}" >> coverage_report.md
+          echo "Generated coverage report comment"
+          cat coverage_report.md
       - name: Find Comment
         if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
         uses: peter-evans/find-comment@v2
@@ -224,10 +233,5 @@ jobs:
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            ## [Coverage Report](${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html)
-
-            ${{ steps.coverage.outputs.coverage_report }}
-
-            > Coverage generated ${{ steps.coverage.outputs.coverage_date }}
+          body-path: coverage_report.md
           edit-mode: replace
