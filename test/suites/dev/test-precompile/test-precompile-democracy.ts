@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, ZERO_ADDRESS } from "@moonwall/util";
-import { notePreimagePrecompile } from "../../../helpers/precompiles.js";
+import { notePreimagePrecompile } from "../../../helpers";
 
 describeSuite({
   id: "D2530",

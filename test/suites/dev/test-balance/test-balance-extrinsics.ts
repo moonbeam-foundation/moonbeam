@@ -1,9 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeEach, beforeAll, TransactionTypes } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, GLMR, mapExtrinsics } from "@moonwall/util";
+import { TransactionTypes, beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  GLMR,
+  createRawTransfer,
+  mapExtrinsics,
+} from "@moonwall/util";
 import { PrivateKeyAccount } from "viem";
-import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import { createRawTransfer } from "@moonwall/util";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
   id: "D0302",
@@ -42,6 +47,7 @@ describeSuite({
             ({ extrinsic: { method } }) => method.section == "ethereum"
           )!;
 
+          context.polkadotJs().events.parachainStaking.candidate;
           expect(ethTx.events.length).to.eq(9);
           expect(context.polkadotJs().events.system.NewAccount.is(ethTx.events[1])).to.be.true;
           expect(context.polkadotJs().events.balances.Endowed.is(ethTx.events[2])).to.be.true;

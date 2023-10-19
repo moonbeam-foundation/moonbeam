@@ -1,14 +1,13 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, alith, baltathar, faith } from "@moonwall/util";
-import { expectSubstrateEvent } from "../../../helpers/expect.js";
+import { ALITH_ADDRESS, GLMR, alith, baltathar } from "@moonwall/util";
 
 describeSuite({
   id: "D4005",
   title: "Conviction Voting - Batch Delegation",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
-    let proposals: [number, string][] = [];
+    const proposals: [number, string][] = [];
     const origins: [number, any][] = [
       [0, { System: "root" }],
       [1, { Origins: "WhitelistedCaller" }],

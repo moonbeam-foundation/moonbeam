@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { EthereumTransactionTransactionV2 } from "@polkadot/types/lookup";
-import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers/transactions.js";
+import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers";
 
 describeSuite({
   id: "D1302",

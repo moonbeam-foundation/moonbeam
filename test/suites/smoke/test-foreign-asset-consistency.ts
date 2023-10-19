@@ -31,19 +31,19 @@ describeSuite({
 
       let query = await apiAt.query.assetManager.assetIdType.entries();
       query.forEach(([key, exposure]) => {
-        let assetId = key.args.toString();
+        const assetId = key.args.toString();
         foreignAssetIdType[assetId] = exposure.unwrap().toString();
       });
       query = await apiAt.query.assetManager.assetTypeId.entries();
       query.forEach(([key, exposure]) => {
-        let assetType = key.args.toString();
+        const assetType = key.args.toString();
         foreignAssetTypeId[assetType] = exposure.unwrap().toString();
       });
 
       query = await apiAt.query.assetManager.assetTypeUnitsPerSecond.entries();
 
       query.forEach(([key, _]) => {
-        let assetType = key.args.toString();
+        const assetType = key.args.toString();
         foreignXcmAcceptedAssets.push(assetType);
       });
 
@@ -82,7 +82,7 @@ describeSuite({
         const failedAssetReserveMappings: { assetId: string }[] = [];
 
         for (const assetId of Object.keys(foreignAssetIdType)) {
-          let assetType = foreignAssetIdType[assetId];
+          const assetType = foreignAssetIdType[assetId];
           if (foreignAssetTypeId[assetType] != assetId) {
             failedAssetReserveMappings.push({ assetId: assetId });
           }

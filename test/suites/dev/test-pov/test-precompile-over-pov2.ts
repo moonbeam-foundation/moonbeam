@@ -12,7 +12,7 @@ import {
   createEthersTransaction,
 } from "@moonwall/util";
 import { Abi, encodeFunctionData } from "viem";
-import { HeavyContract, deployHeavyContracts } from "../../../helpers/contracts.js";
+import { HeavyContract, deployHeavyContracts } from "../../../helpers";
 
 describeSuite({
   id: "D2404",

@@ -1,8 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { DevModeContext } from "@moonwall/cli";
-import Debugger from "debug";
-import chalk from "chalk";
 import { FrameSupportPreimagesBounded } from "@polkadot/types/lookup";
+import chalk from "chalk";
+import Debugger from "debug";
 const log = Debugger("test:referenda");
 
 export interface ForceReducedReferendaExecutionOptions {
@@ -139,8 +139,8 @@ async function moveScheduledCallTo(
   const blockNumber = (await api.rpc.chain.getHeader()).number.toNumber();
   // Fast forward the nudge referendum to the next block to get the refendum to be scheduled
   const agenda = await api.query.scheduler.agenda.entries();
-  let storages: [string, string][] = [];
-  let deleteStorages: string[] = [];
+  const storages: [string, string][] = [];
+  const deleteStorages: string[] = [];
   for (const agendaEntry of agenda) {
     for (const scheduledEntry of agendaEntry[1]) {
       if (scheduledEntry.isSome && verifier(scheduledEntry.unwrap().call)) {
@@ -157,13 +157,10 @@ async function moveScheduledCallTo(
             `Checking lookup ${scheduledEntry.unwrap().maybeId.unwrap().toHex()}: ${lookup.isSome}`
           );
           if (lookup.isSome) {
-            const lookupKey = await api.query.scheduler.lookup.key(id);
-            const lookupJson = lookup.unwrap().toJSON();
             const fastLookup = api.registry.createType("Option<(u32,u32)>", [
               blockNumber + blockCounts,
               0,
             ]);
-            const result = storages.push([lookupKey, fastLookup.toHex()]);
             log(`Updated lookup to ${fastLookup.toJSON()}`);
           }
         }

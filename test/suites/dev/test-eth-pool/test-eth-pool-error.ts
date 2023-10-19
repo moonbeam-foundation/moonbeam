@@ -13,7 +13,7 @@ import {
   sendRawTransaction,
 } from "@moonwall/util";
 import { parseGwei } from "viem";
-import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers";
 
 describeSuite({
   id: "D1102",

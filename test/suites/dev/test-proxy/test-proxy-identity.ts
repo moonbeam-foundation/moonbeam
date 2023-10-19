@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { GLMR, KeyringPair, alith, baltathar, generateKeyringPair } from "@moonwall/util";
+import { beforeEach, describeSuite, expect } from "@moonwall/cli";
+import { GLMR, KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
   id: "D2604",

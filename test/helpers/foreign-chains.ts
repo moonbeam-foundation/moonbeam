@@ -20,20 +20,22 @@ export interface ForeignChainInfo {
 
 export const getEndpoints = (relay: "Polkadot" | "Kusama" | "Unsupported", paraId: number) => {
   switch (relay) {
-    case "Polkadot":
+    case "Polkadot": {
       if (paraId < 2000) {
         const commonGoodPolka = prodParasPolkadotCommon.find((a) => a.paraId === paraId);
         return Object.values(commonGoodPolka!.providers);
       }
       const polkaPara = prodParasPolkadot.find((a) => a.paraId === paraId);
       return Object.values(polkaPara!.providers);
-    case "Kusama":
+    }
+    case "Kusama": {
       if (paraId < 2000) {
         const commonGoodKusama = prodParasKusamaCommon.find((a) => a.paraId === paraId);
         return Object.values(commonGoodKusama!.providers);
       }
       const kusamaPara = prodParasKusama.find((a) => a.paraId === paraId);
       return Object.values(kusamaPara!.providers);
+    }
     case "Unsupported":
       throw new Error("Unsupported chain.");
   }

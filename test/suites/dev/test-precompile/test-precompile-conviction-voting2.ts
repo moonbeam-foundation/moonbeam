@@ -1,8 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { createProposal } from "../../../helpers/voting.js";
-import { ConvictionVoting } from "../../../helpers/precompile-contract-calls.js";
+import { expectEVMResult, createProposal, ConvictionVoting } from "../../../helpers";
 
 const CONVICTION_VALUES = [0n, 1n, 2n, 3n, 4n, 5n, 6n];
 

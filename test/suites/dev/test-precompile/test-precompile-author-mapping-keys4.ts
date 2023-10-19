@@ -11,7 +11,7 @@ import {
   originalKeys,
   setAuthorMappingKeysViaPrecompile,
 } from "../../../helpers/precompiles.js";
-import { sendPrecompileTx } from "../../../helpers/transactions.js";
+import { sendPrecompileTx } from "../../../helpers";
 
 const SELECTORS = {
   set_keys: "bcb24ddc",

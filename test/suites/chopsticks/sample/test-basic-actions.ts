@@ -70,7 +70,7 @@ describeSuite({
 
         const signedTx = await signer.signTransaction(tx);
         const signed = Transaction.from(signedTx).signature!;
-        let transaction = {
+        const transaction = {
           EIP1559: {
             chainId: Transaction.from(signedTx).chainId,
             nonce: Transaction.from(signedTx).nonce,

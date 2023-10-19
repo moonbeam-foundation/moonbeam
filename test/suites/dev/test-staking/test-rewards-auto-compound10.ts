@@ -10,7 +10,7 @@ import {
   ethan,
   generateKeyringPair,
 } from "@moonwall/util";
-import { chunk } from "../../../helpers/common.js";
+import { chunk } from "../../../helpers";
 
 describeSuite({
   id: "D2963",

@@ -125,7 +125,7 @@ const setupProposalAnd3TechnicalCommittee = async (context: DevModeContext) => {
   const proposal = context
     .polkadotJs()
     .tx.parachainStaking.setParachainBondAccount(privateKeyToAccount(generatePrivateKey()).address);
-  let proposalHash = await notePreimage(context, proposal, alith);
+  const proposalHash = await notePreimage(context, proposal, alith);
   await execCouncilProposal(
     context,
     context.polkadotJs().tx.democracy.externalProposeMajority({

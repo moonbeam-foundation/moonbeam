@@ -1,9 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { bnToHex } from "@polkadot/util";
-import { RELAY_SOURCE_LOCATION, relayAssetMetadata } from "../../../helpers/assets.js";
-import { registerForeignAsset } from "../../../helpers/xcm.js";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
+
 import { ApiPromise } from "@polkadot/api";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
@@ -21,7 +19,7 @@ describeSuite({
       const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
         context,
         RELAY_SOURCE_LOCATION,
-        relayAssetMetadata,
+        relayAssetMetadata as any,
         1
       );
       assetId = registeredAssetId;
@@ -60,3 +58,9 @@ describeSuite({
     });
   },
 });
+import {
+  RELAY_SOURCE_LOCATION,
+  relayAssetMetadata,
+  registerForeignAsset,
+  verifyLatestBlockFees,
+} from "../../../helpers";
