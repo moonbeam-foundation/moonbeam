@@ -5,7 +5,9 @@ import {
   ALITH_PRIVATE_KEY,
   PRECOMPILES,
   alith,
+  createEthersTransaction,
   createViemTransaction,
+  customWeb3Request,
 } from "@moonwall/util";
 import { Contract, ethers, InterfaceAbi } from "ethers";
 import { Enum, Struct, TypeRegistry } from "@polkadot/types";
@@ -71,6 +73,8 @@ describeSuite({
 
     const makeTestVAA = async function (
       amount: number,
+      tokenAddress: string,
+      tokenChain: number,
       action: VersionedUserAction
     ): Promise<string> {
       let payload = "" + action.toHex();
@@ -81,12 +85,12 @@ describeSuite({
         whNonce++,
         123, // sequence
         amount,
-        wethAddress,
-        ETHChain,
+        tokenAddress,
+        tokenChain,
         ETHChain,
         ETHEmitter, // TODO: review
         PRECOMPILE_GMP_ADDRESS,
-        "0x" + evmChainId.toString(16),
+        "0x" + localChainId.toString(16),
         "0x0000000000000000000000000000000000000001", // TODO: fromAddress
         "" + payload
       );
@@ -101,9 +105,18 @@ describeSuite({
     // version of it created by WH.
     let wethAddress: string;
     let whWethContract: ethers.Contract;
+    let bridgeImplAbi;
+    let bridgeImplAddr;
 
     let whWethAddress: string;
-    let evmChainId;
+    let localChainId;
+    
+    // chain ids: for new we have "foreign" and "local" chains, which trigger different
+    // code paths in both the precompile and the bridge contracts.
+    // TODO: localChain is not the same as our local EVM's idea of chain id in other deployments,
+    //       it would be good to mimic this better. More specifically, our on-chain deployments have
+    //       a chain-id assigned by the bridge which has nothing to do with our evm chain id.
+    const foreignChainId = ETHChain;
 
     // destination used for xtoken transfers
     const versionedMultiLocation = {
@@ -127,11 +140,10 @@ describeSuite({
       const myTokenContract = await deploy("MockWETH9");
 
       const initialSigners = [ALITH_ADDRESS];
-      const chainId = "0x10";
       const governanceChainId = "0x1";
       const governanceContract =
         "0x0000000000000000000000000000000000000000000000000000000000000004";
-      evmChainId = await context.viem().getChainId();
+      localChainId = await context.viem().getChainId();
       // Deploy wormhole (based on wormhole)
       // wormhole-foundation/wormhole/blob/main/ethereum/migrations/2_deploy_wormhole.js
       const { contractAddress: setupAddr, abi: setupAbi } = await context.deployContract!("Setup");
@@ -142,10 +154,10 @@ describeSuite({
         args: [
           implementationContract.contractAddress,
           initialSigners,
-          evmChainId,
+          localChainId,
           governanceChainId,
           governanceContract,
-          evmChainId,
+          localChainId,
         ],
       });
 
@@ -164,23 +176,25 @@ describeSuite({
       log(`wormhole token impl deployed to ${tokenImplAddr}`);
       const { contractAddress: bridgeSetupAddr, abi: bridgeSetupAbi } =
         await context.deployContract!("BridgeSetup");
-      const { contractAddress: bridgeImplAddr, abi: bridgeImplAbi } = await context.deployContract!(
+      const bridgeImpl = await context.deployContract!(
         "BridgeImplementation"
       );
+      bridgeImplAddr = bridgeImpl.contractAddress;
+      bridgeImplAbi = bridgeImpl.abi;
 
       const bridgeSetupData = encodeFunctionData({
         abi: bridgeSetupAbi,
         functionName: "setup",
         args: [
           bridgeImplAddr,
-          evmChainId,
+          localChainId,
           wormholeAddr,
           governanceChainId,
           governanceContract,
           tokenImplAddr,
           wethAddress,
           finality,
-          evmChainId,
+          localChainId,
         ],
       });
 
@@ -319,7 +333,7 @@ describeSuite({
         const whAmount = 999n;
         const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
 
-        const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
+        const transferVAA = await makeTestVAA(Number(whAmount), wethAddress, foreignChainId, versionedUserAction);
 
         const rawTx = await context.writePrecompile!({
           precompileName: "Gmp",
@@ -356,7 +370,7 @@ describeSuite({
 
         const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
-        const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
+        const transferVAA = await makeTestVAA(Number(whAmount), wethAddress, foreignChainId, versionedUserAction);
 
         const rawTx = await context.writePrecompile!({
           precompileName: "Gmp",
@@ -396,7 +410,7 @@ describeSuite({
 
         const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
-        const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
+        const transferVAA = await makeTestVAA(Number(whAmount), wethAddress, foreignChainId, versionedUserAction);
 
         const rawTx = await context.writePrecompile!({
           precompileName: "Gmp",
@@ -434,7 +448,7 @@ describeSuite({
 
         const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
-        const transferVAA = await makeTestVAA(Number(whAmount), versionedUserAction);
+        const transferVAA = await makeTestVAA(Number(whAmount), wethAddress, foreignChainId, versionedUserAction);
 
         const rawTx = await context.writePrecompile!({
           precompileName: "Gmp",
@@ -454,6 +468,95 @@ describeSuite({
         // no fee paid
         const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
         expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(0n);
+      },
+    });
+
+    it({
+      id: "T05",
+      title: "should support assets on our own chain id",
+      test: async function () {
+        // before we can ask the bridge to "bridge in" some local assets, we need to first do a
+        // bridge-out by calling transferTokens(). The bridge doesn't care who bridged in or out
+        // so long as the amount we ask to bridge back in is <= the total it has recorded bridging
+        // out.
+        const localERC20 = await deploy(
+          "ERC20WithInitialSupply",
+          ["ERC20", "WHTEST", ALITH_ADDRESS, 1_000],
+        );
+        const localERC20Address = localERC20.contractAddress;
+        console.log(`erc20 deployed to ${localERC20Address}`);
+
+        // approve...
+        const approveTxn = await createEthersTransaction(context, {
+          to: localERC20Address,
+          data: encodeFunctionData({
+            abi: localERC20.abi,
+            functionName: "approve",
+            args: [
+              bridgeImplAddr,
+              1_000,
+            ]
+          }),
+          gasLimit: "0x100000",
+          value: "0x0",
+        });
+        const { result: approveResult } = await context.createBlock(approveTxn);
+        expectEVMResult(approveResult!.events, "Succeed");
+
+        // bridge tokens out
+        const transferTokensData = encodeFunctionData({
+          abi: bridgeImplAbi,
+          functionName: "transferTokens",
+          args: [
+            localERC20Address,
+            100,
+            ETHChain,
+            "0x0000000000000000000000000000000000000000000000000000000000000001",
+            10,
+            1,
+          ],
+        });
+
+        console.log(`bridgeImplAddr ${bridgeImplAddr}`);
+        const txn = await createEthersTransaction(context, {
+          to: bridgeImplAddr,
+          data: transferTokensData,
+          gasLimit: "0x300000",
+          value: "0x0",
+        });
+        const { result: transferResult } = await context.createBlock(txn);
+        // TODO: we're failing here, something is reverting with "Target contract does not contain data"
+        expectEVMResult(transferResult!.events, "Succeed");
+
+
+        // create payload
+        const destination = context
+          .polkadotJs()
+          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
+
+        const userAction = new XcmRoutingUserAction({ destination });
+        const versionedUserAction = new VersionedUserAction({ V1: userAction });
+        let payload = "" + versionedUserAction.toHex();
+
+        const whAmount = 999n;
+        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+
+        const transferVAA = await makeTestVAA(Number(whAmount), localERC20Address, localChainId, versionedUserAction);
+
+        const rawTx = await context.writePrecompile!({
+          precompileName: "Gmp",
+          functionName: "wormholeTransferERC20",
+          args: [`0x${transferVAA}`],
+          rawTxOnly: true,
+        });
+        result = await context.createBlock(rawTx);
+
+        expectEVMResult(result.result.events, "Succeed", "Returned");
+        const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+        const transferFungible = events[0].data[1][0].fun;
+        expect(transferFungible.isFungible);
+        const transferAmount = transferFungible.asFungible.toBigInt();
+        expect(transferAmount).to.eq(realAmount);
       },
     });
   },
