@@ -182,7 +182,7 @@ jobs:
             wget ${{ vars.S3_COVERAGE_URL }}/branches/master/covdir \
             -O base_covdir || true
 
-            echo "coverage_report=$(python .github/scripts/coverage-report.py \
+            echo "coverage_report=$(python3 .github/scripts/coverage-report.py \
               --base-covdir ./base_covdir \
               --incoming-covdir ./coverage/covdir \
               --base-branch ${{ needs.set-tags.outputs.git_target_branch }} \
