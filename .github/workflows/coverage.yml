@@ -157,7 +157,7 @@ jobs:
           mkdir -p coverage
           ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
             -t html,covdir --branch --ignore-not-existing --ignore "target/release/build/*" \
-            -o coverage/ --llvm 2>&1 \
+            --ignore "$HOME/.cargo/**" -o coverage/ --llvm 2>&1 \
             | tee grcov.log
 
           INVALID="$(grep invalid grcov.log | \
