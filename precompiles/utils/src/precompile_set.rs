@@ -569,9 +569,7 @@ where
 			match self.current_recursion_level.try_borrow_mut() {
 				Ok(mut recursion_level) => {
 					if *recursion_level > max_recursion_level {
-						return Some(Err(
-							revert("Precompile is called with too high nesting")
-						));
+						return Some(Err(revert("Precompile is called with too high nesting")));
 					}
 
 					*recursion_level += 1;

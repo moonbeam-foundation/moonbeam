@@ -293,8 +293,7 @@ impl ExtBuilder {
 			for (asset_id, balances, owner) in local_assets.clone() {
 				LocalAssets::force_create(root_origin(), asset_id.into(), owner, true, 1).unwrap();
 				for (account, balance) in balances {
-					LocalAssets::mint(origin_of(owner), asset_id.into(), account, balance)
-						.unwrap();
+					LocalAssets::mint(origin_of(owner), asset_id.into(), account, balance).unwrap();
 				}
 			}
 			// If any xcm assets specified, we register them here

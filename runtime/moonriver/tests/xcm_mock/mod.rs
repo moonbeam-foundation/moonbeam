@@ -187,10 +187,7 @@ pub fn statemine_ext(para_id: u32) -> sp_io::TestExternalities {
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
-		balances: vec![
-			(RELAYALICE, INITIAL_BALANCE),
-			(RELAYBOB, INITIAL_BALANCE),
-		],
+		balances: vec![(RELAYALICE, INITIAL_BALANCE), (RELAYBOB, INITIAL_BALANCE)],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();

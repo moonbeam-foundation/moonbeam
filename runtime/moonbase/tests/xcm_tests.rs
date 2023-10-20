@@ -2423,10 +2423,7 @@ fn empty_account_should_not_be_reset() {
 			123
 		));
 		// Verify account asset balance is Zero.
-		assert_eq!(
-			parachain::Assets::balance(source_id, &evm_account_id),
-			0
-		);
+		assert_eq!(parachain::Assets::balance(source_id, &evm_account_id), 0);
 		// Because we no longer have consumer references, we can set the balance to Zero.
 		// This would reset the account if our ED were to be > than Zero.
 		assert_ok!(ParaBalances::force_set_balance(
@@ -2870,10 +2867,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(
-				VersionedMultiLocation::V3(parachain_beneficiary_from_relay)
-					.clone()
-			),
+			Box::new(VersionedMultiLocation::V3(parachain_beneficiary_from_relay).clone()),
 			Box::new((Here, 200).into()),
 			0,
 		));
@@ -2918,10 +2912,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 		assert_ok!(StatemintChainPalletXcm::reserve_transfer_assets(
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
-			Box::new(
-				VersionedMultiLocation::V3(parachain_beneficiary_from_statemint)
-					.clone()
-			),
+			Box::new(VersionedMultiLocation::V3(parachain_beneficiary_from_statemint).clone()),
 			Box::new(
 				(
 					X2(

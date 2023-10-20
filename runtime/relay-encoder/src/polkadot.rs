@@ -476,11 +476,7 @@ mod tests {
 
 		assert_eq!(
 			<PolkadotEncoder as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
-				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
-					1000u32.into(),
-					100u32,
-					100u32
-				)
+				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(1000u32.into(), 100u32, 100u32)
 			),
 			Ok(expected_encoded)
 		);

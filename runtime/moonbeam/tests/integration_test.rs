@@ -836,11 +836,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				RuntimeCall::Utility(pallet_utility::Call::<Runtime>::batch {
 					calls: vec![RuntimeCall::CrowdloanRewards(
 						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-							rewards: vec![(
-								[4u8; 32],
-								Some(AccountId::from(ALICE)),
-								43_200_000
-							)]
+							rewards: vec![([4u8; 32], Some(AccountId::from(ALICE)), 43_200_000)]
 						}
 					)]
 				})

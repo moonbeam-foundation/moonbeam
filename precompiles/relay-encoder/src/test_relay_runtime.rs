@@ -90,17 +90,13 @@ impl StakeEncodeCall for TestEncoder {
 
 			AvailableStakeCalls::Chill => RelayCall::Stake(StakeCall::Chill).encode(),
 
-			AvailableStakeCalls::SetPayee(a) => {
-				RelayCall::Stake(StakeCall::SetPayee(a)).encode()
-			}
+			AvailableStakeCalls::SetPayee(a) => RelayCall::Stake(StakeCall::SetPayee(a)).encode(),
 
 			AvailableStakeCalls::SetController => {
 				RelayCall::Stake(StakeCall::SetController).encode()
 			}
 
-			AvailableStakeCalls::Rebond(a) => {
-				RelayCall::Stake(StakeCall::Rebond(a)).encode()
-			}
+			AvailableStakeCalls::Rebond(a) => RelayCall::Stake(StakeCall::Rebond(a)).encode(),
 
 			AvailableStakeCalls::Nominate(a) => {
 				let nominated: Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source> =
