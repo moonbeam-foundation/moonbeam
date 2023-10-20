@@ -197,7 +197,7 @@ where
 	#[precompile::view]
 	fn track_ids(_handle: &mut impl PrecompileHandle) -> EvmResult<Vec<u16>> {
 		let track_ids: Vec<u16> = Runtime::Tracks::tracks()
-			.into_iter()
+			.iter()
 			.filter_map(|(id, _)| {
 				if let Ok(track_id) = (*id).try_into() {
 					Some(track_id)

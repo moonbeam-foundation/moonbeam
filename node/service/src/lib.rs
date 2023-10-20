@@ -1541,7 +1541,7 @@ mod tests {
 			.first()
 			.unwrap()
 			.get_label()
-			.into_iter()
+			.iter()
 			.find(|x| x.get_name() == "chain")
 			.cloned();
 

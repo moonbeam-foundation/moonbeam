@@ -42,7 +42,7 @@ impl super::ResponseFormatter for Formatter {
 		let mut traces = Vec::new();
 		for entry in listener.entries.iter() {
 			let mut result: Vec<Call> = entry
-				.into_iter()
+				.iter()
 				.map(|(_, it)| {
 					let from = it.from;
 					let trace_address = it.trace_address.clone();

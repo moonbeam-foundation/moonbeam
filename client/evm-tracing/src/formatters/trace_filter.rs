@@ -37,7 +37,7 @@ impl super::ResponseFormatter for Formatter {
 		let mut traces = Vec::new();
 		for (eth_tx_index, entry) in listener.entries.iter().enumerate() {
 			let mut tx_traces: Vec<_> = entry
-				.into_iter()
+				.iter()
 				.map(|(_, trace)| match trace.inner.clone() {
 					CallInner::Call {
 						input,

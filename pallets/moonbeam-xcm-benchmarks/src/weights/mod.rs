@@ -40,9 +40,7 @@ trait WeighMultiAssetsFilter {
 impl WeighMultiAssetsFilter for MultiAssetFilter {
 	fn weigh_multi_assets_filter(&self, weight: Weight) -> XCMWeight {
 		match self {
-			Self::Definite(assets) => {
-				weight.saturating_mul(assets.inner().into_iter().count() as u64)
-			}
+			Self::Definite(assets) => weight.saturating_mul(assets.inner().iter().count() as u64),
 			Self::Wild(AllCounted(count) | AllOfCounted { count, .. }) => {
 				weight.saturating_mul(min(MAX_ASSETS, *count) as u64)
 			}
@@ -53,7 +51,7 @@ impl WeighMultiAssetsFilter for MultiAssetFilter {
 
 impl WeighMultiAssets for MultiAssets {
 	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight {
-		weight.saturating_mul(self.inner().into_iter().count() as u64)
+		weight.saturating_mul(self.inner().iter().count() as u64)
 	}
 }
 
