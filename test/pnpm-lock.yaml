@@ -83,10 +83,10 @@ devDependencies:
     specifier: ^0.2500.0
     version: 0.2500.0
   '@moonwall/cli':
-    specifier: ^4.2.7
+    specifier: ^4.2.6
     version: 4.2.7(@types/node@20.8.7)(@vitest/ui@1.0.0-beta.2)(typescript@5.2.2)
   '@moonwall/util':
-    specifier: ^4.2.7
+    specifier: ^4.2.6
     version: 4.2.7(@types/node@20.8.7)(@vitest/ui@1.0.0-beta.2)(typescript@5.2.2)
   '@polkadot/api':
     specifier: ^10.10.1
