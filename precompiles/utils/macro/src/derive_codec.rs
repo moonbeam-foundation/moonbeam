@@ -38,7 +38,7 @@ pub fn main(input: TokenStream) -> TokenStream {
 	};
 	let fields = fields.named;
 
-	if fields.len() == 0 {
+	if fields.is_empty() {
 		return quote_spanned! { ident.span() =>
 			compile_error!("Codec can only be derived for structs with at least one field");
 		}

@@ -1497,7 +1497,7 @@ benchmarks! {
 		assert!(
 			!Pallet::<T>::delegation_scheduled_requests(&collator)
 				.iter()
-				.any(|x| &x.delegator == &delegator)
+				.any(|x| x.delegator == delegator)
 		);
 	}
 

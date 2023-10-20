@@ -226,7 +226,7 @@ impl Precompile {
 
 		// Fallback method cannot have custom parameters.
 		if is_fallback {
-			if let Some(input) = method.sig.inputs.iter().skip(initial_arguments).next() {
+			if let Some(input) = method.sig.inputs.iter().nth(initial_arguments) {
 				let msg = if self.tagged_as_precompile_set {
 					"Fallback methods cannot take any parameter outside of the discriminant and \
 					PrecompileHandle"
@@ -291,16 +291,20 @@ impl Precompile {
 		};
 
 		// We insert the collected data in self.
-		if let Some(_) = self.variants_content.insert(
-			method_name.clone(),
-			Variant {
-				arguments,
-				solidity_arguments_type: solidity_arguments_type.unwrap_or(String::from("()")),
-				modifier,
-				selectors,
-				fn_output: output_type.as_ref().clone(),
-			},
-		) {
+		if self
+			.variants_content
+			.insert(
+				method_name.clone(),
+				Variant {
+					arguments,
+					solidity_arguments_type: solidity_arguments_type.unwrap_or(String::from("()")),
+					modifier,
+					selectors,
+					fn_output: output_type.as_ref().clone(),
+				},
+			)
+			.is_some()
+		{
 			let msg = "Duplicate method name";
 			return Err(syn::Error::new(method_name.span(), msg));
 		}
@@ -439,7 +443,7 @@ impl Precompile {
 
 		let return_segment = &return_path.segments[0];
 
-		if return_segment.ident.to_string() != "DiscriminantResult" {
+		if return_segment.ident != "DiscriminantResult" {
 			return Err(syn::Error::new(return_segment.ident.span(), msg));
 		}
 
@@ -504,7 +508,7 @@ impl Precompile {
 	) -> syn::Result<u32> {
 		let signature = signature_lit.value();
 		// Split signature to get arguments type.
-		let split: Vec<_> = signature.splitn(2, "(").collect();
+		let split: Vec<_> = signature.splitn(2, '(').collect();
 		if split.len() != 2 {
 			let msg = "Selector must have form \"foo(arg1,arg2,...)\"";
 			return Err(syn::Error::new(signature_lit.span(), msg));
@@ -545,7 +549,7 @@ impl Precompile {
 			return Ok(());
 		}
 
-		const ERR_MESSAGE: &'static str =
+		const ERR_MESSAGE: &str =
 			"impl type parameter is used in functions arguments. Arguments should not have a type
 depending on a type parameter, unless it is a length bound for BoundedBytes,
 BoundedString or alike, which doesn't affect the Solidity type.
