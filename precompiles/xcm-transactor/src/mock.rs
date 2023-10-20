@@ -333,7 +333,6 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = frame_system::EnsureRoot<AccountId>;
 	type MaxHrmpFee = ();
-	type HrmpEncoder = ();
 }
 
 // We need to use the encoding from the relay mock runtime

@@ -3946,7 +3946,7 @@ fn hrmp_init_accept_through_root() {
 		let total_fee = 1_000u128;
 		let total_weight: u64 = 1_000_000_000;
 		let tx_weight: u64 = 500_000_000;
-		// Root can send hrmp init channel
+		// Root can send hrmp accept channel
 		assert_ok!(XcmTransactor::hrmp_manage(
 			parachain::RuntimeOrigin::root(),
 			HrmpOperation::Accept {
@@ -4000,7 +4000,6 @@ fn hrmp_close_works() {
 		let total_fee = 1_000u128;
 		let total_weight: u64 = 1_000_000_000;
 		let tx_weight: u64 = 500_000_000;
-		// Root can send hrmp close
 		assert_ok!(XcmTransactor::hrmp_manage(
 			parachain::RuntimeOrigin::root(),
 			HrmpOperation::Close(HrmpChannelId {

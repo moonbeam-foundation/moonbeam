@@ -22,6 +22,7 @@ sha3 = { workspace = true }
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
+pallet-staking = { workspace = true }
 parity-scale-codec = { workspace = true, features = [ "derive" ] }
 scale-info = { workspace = true, features = [ "derive" ] }
 sp-io = { workspace = true }
@@ -45,6 +46,7 @@ default = [ "std" ]
 std = [
 	"cumulus-primitives-core/std",
 	"hex/std",
+	"pallet-staking/std",
 	"parity-scale-codec/std",
 	"serde/std",
 	"sha3/std",
