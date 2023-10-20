@@ -988,7 +988,7 @@ pub mod pallet {
 			bond: BalanceOf<T>,
 			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
-			let acc = ensure_signed(origin.clone())?;
+			let acc = ensure_signed(origin)?;
 			ensure!(
 				bond >= T::MinCandidateStk::get(),
 				Error::<T>::CandidateBondBelowMin
@@ -1470,8 +1470,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		pub fn set_candidate_bond_to_zero(acc: &T::AccountId) -> DispatchResultWithPostInfo {
 			ensure!(Self::is_candidate(&acc), Error::<T>::CandidateDNE);
-			let actual_weight =
-				T::WeightInfo::set_candidate_bond_to_zero(<CandidatePool<T>>::get().0.len() as u32);
+			let actual_weight = T::WeightInfo::set_candidate_bond_to_zero(T::MaxCandidates::get());
 			let mut state = <CandidateInfo<T>>::get(&acc).ok_or(Error::<T>::CandidateDNE)?;
 			state.bond_less::<T>(acc.clone(), state.bond);
 			<CandidateInfo<T>>::insert(&acc, state);
@@ -1606,8 +1605,7 @@ pub mod pallet {
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let mut state = <CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
-			let actual_weight =
-				T::WeightInfo::candidate_bond_more(<CandidatePool<T>>::get().0.len() as u32);
+			let actual_weight = T::WeightInfo::candidate_bond_more(T::MaxCandidates::get());
 
 			state
 				.bond_more::<T>(collator.clone(), more)
@@ -1627,9 +1625,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			let mut state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
-			let actual_weight = T::WeightInfo::execute_candidate_bond_less(
-				<CandidatePool<T>>::get().0.len() as u32,
-			);
+			let actual_weight = T::WeightInfo::execute_candidate_bond_less(T::MaxCandidates::get());
 
 			state
 				.execute_bond_less::<T>(candidate.clone())
