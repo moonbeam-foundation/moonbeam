@@ -246,10 +246,10 @@ where
 		<CandidateInfo<T>>::insert(&candidate, candidate_state);
 		<DelegatorState<T>>::insert(&delegator, delegator_state);
 		<Pallet<T>>::deposit_event(Event::Delegation {
-			delegator: delegator,
+			delegator,
 			locked_amount: amount,
-			candidate: candidate,
-			delegator_position: delegator_position,
+			candidate,
+			delegator_position,
 			auto_compound,
 		});
 

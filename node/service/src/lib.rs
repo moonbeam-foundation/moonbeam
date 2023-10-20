@@ -348,8 +348,8 @@ where
 						.to_str()
 						.expect("frontier sql path error"),
 					create_if_missing: true,
-					thread_count: thread_count,
-					cache_size: cache_size,
+					thread_count,
+					cache_size,
 				}),
 				pool_size,
 				std::num::NonZeroU32::new(num_ops_timeout),

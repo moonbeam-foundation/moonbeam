@@ -62,7 +62,7 @@ fn submitted_at_logs_work() {
 			// Submit referendum at index 0
 			let input = PCall::submit_at {
 				track_id: 0u16,
-				proposal_hash: proposal_hash,
+				proposal_hash,
 				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
@@ -72,7 +72,7 @@ fn submitted_at_logs_work() {
 			// Submit referendum at index 1
 			let input = PCall::submit_at {
 				track_id: 0u16,
-				proposal_hash: proposal_hash,
+				proposal_hash,
 				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
@@ -122,7 +122,7 @@ fn submitted_after_logs_work() {
 			// Submit referendum at index 0
 			let input = PCall::submit_after {
 				track_id: 0u16,
-				proposal_hash: proposal_hash,
+				proposal_hash,
 				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
@@ -132,7 +132,7 @@ fn submitted_after_logs_work() {
 			// Submit referendum at index 1
 			let input = PCall::submit_after {
 				track_id: 0u16,
-				proposal_hash: proposal_hash,
+				proposal_hash,
 				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
@@ -183,7 +183,7 @@ fn place_and_refund_decision_deposit_logs_work() {
 			// Create referendum
 			let input = PCall::submit_at {
 				track_id: 0u16,
-				proposal_hash: proposal_hash,
+				proposal_hash,
 				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			}
@@ -301,7 +301,7 @@ fn submit_track_id_oob_fails() {
 			// submit with an invalid track_id
 			let input = PCall::submit_at {
 				track_id: oob_track_id as u16,
-				proposal_hash: proposal_hash,
+				proposal_hash,
 				proposal_len: proposal.len() as u32,
 				block_number: 0u32,
 			};

@@ -51,9 +51,9 @@ impl super::ResponseFormatter for Formatter {
 					let gas_used = it.gas_used;
 					let inner = it.inner.clone();
 					Call::CallTracer(CallTracerCall {
-						from: from,
-						gas: gas,
-						gas_used: gas_used,
+						from,
+						gas,
+						gas_used,
 						trace_address: Some(trace_address.clone()),
 						inner: match inner.clone() {
 							BlockscoutCallInner::Call {
@@ -93,7 +93,7 @@ impl super::ResponseFormatter for Formatter {
 									} => Some(created_contract_code),
 									CreateResult::Error { .. } => None,
 								},
-								value: value,
+								value,
 								call_type: "CREATE".as_bytes().to_vec(),
 							},
 							BlockscoutCallInner::SelfDestruct { balance, to } => {

@@ -1710,7 +1710,7 @@ fn xtokens_precompiles_transfer_native() {
 					XtokensPCall::transfer {
 						currency_address: Address(asset_precompile_address),
 						amount: { 500 * UNIT }.into(),
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)

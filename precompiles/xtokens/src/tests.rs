@@ -92,7 +92,7 @@ fn transfer_self_reserve_works() {
 					PCall::transfer {
 						currency_address: Address(SelfReserveAccount.into()),
 						amount: 500.into(),
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -139,7 +139,7 @@ fn transfer_to_reserve_works() {
 					PCall::transfer {
 						currency_address: Address(AssetAccount(0u128).into()),
 						amount: 500.into(),
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -186,7 +186,7 @@ fn transfer_to_reserve_with_unlimited_weight_works() {
 					PCall::transfer {
 						currency_address: Address(AssetAccount(0u128).into()),
 						amount: 500.into(),
-						destination: destination,
+						destination,
 						weight: u64::MAX,
 					},
 				)
@@ -235,7 +235,7 @@ fn transfer_to_reserve_with_fee_works() {
 						currency_address: Address(AssetAccount(0u128).into()),
 						amount: 500.into(),
 						fee: 50.into(),
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -290,7 +290,7 @@ fn transfer_non_reserve_to_non_reserve_works() {
 					PCall::transfer {
 						currency_address: Address(AssetAccount(1u128).into()),
 						amount: 500.into(),
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -339,7 +339,7 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 						currency_address: Address(AssetAccount(1u128).into()),
 						amount: 500.into(),
 						fee: 50.into(),
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -392,9 +392,9 @@ fn transfer_multi_asset_to_reserve_works() {
 					Alice,
 					Precompile1,
 					PCall::transfer_multiasset {
-						asset: asset,
+						asset,
 						amount: 500.into(),
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -442,7 +442,7 @@ fn transfer_multi_asset_self_reserve_works() {
 					PCall::transfer_multiasset {
 						asset: self_reserve,
 						amount: 500.into(),
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -490,7 +490,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 						asset: self_reserve,
 						amount: 500.into(),
 						fee: 50.into(),
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -544,7 +544,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 					PCall::transfer_multiasset {
 						asset: asset_location,
 						amount: 500.into(),
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -595,7 +595,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 						asset: asset_location,
 						amount: 500.into(),
 						fee: 50.into(),
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -649,7 +649,7 @@ fn transfer_multi_currencies() {
 					PCall::transfer_multi_currencies {
 						currencies: currencies.into(),
 						fee_item: 0,
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -726,7 +726,7 @@ fn transfer_multi_assets() {
 					PCall::transfer_multi_assets {
 						assets: assets.into(),
 						fee_item: 0,
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -775,7 +775,7 @@ fn transfer_multi_currencies_cannot_insert_more_than_max() {
 					PCall::transfer_multi_currencies {
 						currencies: currencies.into(),
 						fee_item: 0,
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -828,7 +828,7 @@ fn transfer_multi_assets_cannot_insert_more_than_max() {
 					PCall::transfer_multi_assets {
 						assets: assets.into(),
 						fee_item: 0,
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -876,7 +876,7 @@ fn transfer_multi_assets_is_not_sorted_error() {
 					PCall::transfer_multi_assets {
 						assets: assets.into(),
 						fee_item: 0,
-						destination: destination,
+						destination,
 						weight: 4_000_000,
 					},
 				)

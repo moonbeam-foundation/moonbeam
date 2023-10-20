@@ -425,7 +425,7 @@ pub mod pallet {
 			// Deposit event
 			Self::deposit_event(Event::<T>::RegisteredDerivative {
 				account_id: who,
-				index: index,
+				index,
 			});
 
 			Ok(())
@@ -532,9 +532,9 @@ pub mod pallet {
 			// Deposit event
 			Self::deposit_event(Event::<T>::TransactedDerivative {
 				account_id: who,
-				dest: dest,
+				dest,
 				call: call_bytes,
-				index: index,
+				index,
 			});
 
 			Ok(())
@@ -1004,7 +1004,7 @@ pub mod pallet {
 				instructions.push(Self::appendix_instruction(appendix)?);
 			}
 			instructions.push(Transact {
-				origin_kind: origin_kind,
+				origin_kind,
 				require_weight_at_most: dispatch_weight,
 				call: call.into(),
 			});

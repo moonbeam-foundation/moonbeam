@@ -970,8 +970,8 @@ pub mod pallet {
 			Self::deposit_event(Event::BlocksPerRoundSet {
 				current_round: now,
 				first_block: first,
-				old: old,
-				new: new,
+				old,
+				new,
 				new_per_round_inflation_min: inflation_config.round.min,
 				new_per_round_inflation_ideal: inflation_config.round.ideal,
 				new_per_round_inflation_max: inflation_config.round.max,
@@ -1762,8 +1762,8 @@ pub mod pallet {
 			let new_total = state.total_counted;
 			<CandidateInfo<T>>::insert(&candidate, state);
 			Self::deposit_event(Event::DelegatorLeftCandidate {
-				delegator: delegator,
-				candidate: candidate,
+				delegator,
+				candidate,
 				unstaked_amount: amount,
 				total_candidate_staked: new_total,
 			});

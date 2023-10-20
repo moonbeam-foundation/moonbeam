@@ -262,7 +262,7 @@ where
 		};
 		let parachain_inherent_data = ParachainInherentData {
 			validation_data: vfp,
-			relay_chain_state: relay_chain_state,
+			relay_chain_state,
 			downward_messages: Default::default(),
 			horizontal_messages: Default::default(),
 		};

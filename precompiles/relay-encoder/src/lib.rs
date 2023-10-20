@@ -173,7 +173,7 @@ where
 		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
 			pallet_staking::ValidatorPrefs {
 				commission: fraction,
-				blocked: blocked,
+				blocked,
 			},
 		))
 		.as_slice()
