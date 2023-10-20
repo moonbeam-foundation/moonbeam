@@ -312,8 +312,8 @@
       "multiThreads": {
         "vmThreads": {
           "minThreads": 1,
-          "maxThreads": 8,
-          "useAtomics": false,
+          "maxThreads": 4,
+          "useAtomics": true,
           "memoryLimit": 0.5
         }
       },
