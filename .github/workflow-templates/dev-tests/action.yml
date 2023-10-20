@@ -48,8 +48,6 @@ runs:
         pnpm install
         pnpm compile-solidity
 
-        # For some reason env var above not being registered
-        export NODE_OPTIONS="--max-old-space-size=12288"
         pnpm moonwall test ${{ inputs.moonwall_environment }} ||  [[ '${{ inputs.force-pass }}' == 'true' ]]
     - name: Upload HTML report
       if: always()
