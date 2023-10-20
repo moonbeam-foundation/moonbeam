@@ -531,7 +531,7 @@ impl Precompile {
 			.selector_to_variant
 			.insert(selector, method_name.clone())
 		{
-			let msg = format!("Selector collision with method {}", previous.to_string());
+			let msg = format!("Selector collision with method {}", previous);
 			return Err(syn::Error::new(signature_lit.span(), msg));
 		}
 
