@@ -879,7 +879,7 @@ fn permit_valid() {
 					SELECTOR_LOG_APPROVAL,
 					CryptoAlith,
 					Bob,
-					solidity::encode_event_data(U256::from(value)),
+					solidity::encode_event_data(value),
 				))
 				.execute_returns(());
 

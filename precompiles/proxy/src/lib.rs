@@ -194,8 +194,7 @@ where
 			delegate,
 			proxy_type,
 			delay,
-		}
-		.into();
+		};
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
@@ -230,8 +229,7 @@ where
 			delegate,
 			proxy_type,
 			delay,
-		}
-		.into();
+		};
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
@@ -245,7 +243,7 @@ where
 	#[precompile::public("removeProxies()")]
 	fn remove_proxies(handle: &mut impl PrecompileHandle) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call: ProxyCall<Runtime> = ProxyCall::<Runtime>::remove_proxies {}.into();
+		let call: ProxyCall<Runtime> = ProxyCall::<Runtime>::remove_proxies {};
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 

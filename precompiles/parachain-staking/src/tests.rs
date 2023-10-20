@@ -201,7 +201,7 @@ fn awarded_points_zero() {
 					Alice,
 					Precompile1,
 					PCall::awarded_points {
-						round: 1u32.into(),
+						round: 1u32,
 						candidate: Address(Bob.into()),
 					},
 				)
@@ -226,7 +226,7 @@ fn awarded_points_non_zero() {
 					Alice,
 					Precompile1,
 					PCall::awarded_points {
-						round: 1u32.into(),
+						round: 1u32,
 						candidate: Address(Alice.into()),
 					},
 				)

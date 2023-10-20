@@ -122,7 +122,7 @@ fn add_association_works() {
 					AuthorMappingEvent::KeysRegistered {
 						nimbus_id: expected_nimbus_id.clone(),
 						account_id: Alice.into(),
-						keys: expected_nimbus_id.into(),
+						keys: expected_nimbus_id,
 					}
 					.into(),
 					EvmEvent::Executed {
@@ -173,13 +173,13 @@ fn update_association_works() {
 					AuthorMappingEvent::KeysRegistered {
 						nimbus_id: first_nimbus_id.clone(),
 						account_id: Alice.into(),
-						keys: first_nimbus_id.into(),
+						keys: first_nimbus_id,
 					}
 					.into(),
 					AuthorMappingEvent::KeysRotated {
 						new_nimbus_id: second_nimbus_id.clone(),
 						account_id: Alice.into(),
-						new_keys: second_nimbus_id.into(),
+						new_keys: second_nimbus_id,
 					}
 					.into(),
 					EvmEvent::Executed {
@@ -226,7 +226,7 @@ fn clear_association_works() {
 					AuthorMappingEvent::KeysRegistered {
 						nimbus_id: nimbus_id.clone(),
 						account_id: Alice.into(),
-						keys: nimbus_id.clone().into(),
+						keys: nimbus_id.clone(),
 					}
 					.into(),
 					BalancesEvent::Unreserved {
@@ -237,7 +237,7 @@ fn clear_association_works() {
 					AuthorMappingEvent::KeysRemoved {
 						nimbus_id: nimbus_id.clone(),
 						account_id: Alice.into(),
-						keys: nimbus_id.into(),
+						keys: nimbus_id,
 					}
 					.into(),
 					EvmEvent::Executed {
@@ -281,7 +281,7 @@ fn remove_keys_works() {
 					AuthorMappingEvent::KeysRegistered {
 						nimbus_id: nimbus_id.clone(),
 						account_id: Alice.into(),
-						keys: nimbus_id.clone().into(),
+						keys: nimbus_id.clone(),
 					}
 					.into(),
 					BalancesEvent::Unreserved {
@@ -292,7 +292,7 @@ fn remove_keys_works() {
 					AuthorMappingEvent::KeysRemoved {
 						nimbus_id: nimbus_id.clone(),
 						account_id: Alice.into(),
-						keys: nimbus_id.into(),
+						keys: nimbus_id,
 					}
 					.into(),
 					EvmEvent::Executed {
@@ -346,13 +346,13 @@ fn set_keys_works() {
 					AuthorMappingEvent::KeysRegistered {
 						nimbus_id: first_nimbus_id.clone(),
 						account_id: Alice.into(),
-						keys: first_vrf_key.into(),
+						keys: first_vrf_key,
 					}
 					.into(),
 					AuthorMappingEvent::KeysRotated {
 						new_nimbus_id: second_nimbus_id.clone(),
 						account_id: Alice.into(),
-						new_keys: second_vrf_key.into(),
+						new_keys: second_vrf_key,
 					}
 					.into(),
 					EvmEvent::Executed {

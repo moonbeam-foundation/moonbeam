@@ -153,7 +153,7 @@ where
 			Address(address),
 		));
 
-		keccak_256(&domain_separator_inner).into()
+		keccak_256(&domain_separator_inner)
 	}
 
 	pub fn generate_permit(

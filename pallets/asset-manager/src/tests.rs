@@ -26,7 +26,7 @@ fn registering_foreign_works() {
 		assert_ok!(AssetManager::register_foreign_asset(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			0u32.into(),
+			0u32,
 			1u32.into(),
 			true
 		));
@@ -86,7 +86,7 @@ fn test_asset_exists_error() {
 		assert_ok!(AssetManager::register_foreign_asset(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			0u32.into(),
+			0u32,
 			1u32.into(),
 			true
 		));
@@ -99,7 +99,7 @@ fn test_asset_exists_error() {
 			AssetManager::register_foreign_asset(
 				RuntimeOrigin::root(),
 				MockAssetType::MockAsset(1),
-				0u32.into(),
+				0u32,
 				1u32.into(),
 				true
 			),
@@ -114,7 +114,7 @@ fn test_root_can_change_units_per_second() {
 		assert_ok!(AssetManager::register_foreign_asset(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			0u32.into(),
+			0u32,
 			1u32.into(),
 			true
 		));
@@ -122,7 +122,7 @@ fn test_root_can_change_units_per_second() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into(),
+			200u128,
 			0
 		));
 
@@ -153,7 +153,7 @@ fn test_regular_user_cannot_call_extrinsics() {
 			AssetManager::register_foreign_asset(
 				RuntimeOrigin::signed(1),
 				MockAssetType::MockAsset(1),
-				0u32.into(),
+				0u32,
 				1u32.into(),
 				true
 			),
@@ -164,7 +164,7 @@ fn test_regular_user_cannot_call_extrinsics() {
 			AssetManager::set_asset_units_per_second(
 				RuntimeOrigin::signed(1),
 				MockAssetType::MockAsset(1),
-				200u128.into(),
+				200u128,
 				0
 			),
 			sp_runtime::DispatchError::BadOrigin
@@ -188,7 +188,7 @@ fn test_root_can_change_asset_id_type() {
 		assert_ok!(AssetManager::register_foreign_asset(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			0u32.into(),
+			0u32,
 			1u32.into(),
 			true
 		));
@@ -196,7 +196,7 @@ fn test_root_can_change_asset_id_type() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into(),
+			200u128,
 			0
 		));
 
@@ -253,7 +253,7 @@ fn test_change_units_per_second_after_setting_it_once() {
 		assert_ok!(AssetManager::register_foreign_asset(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			0u32.into(),
+			0u32,
 			1u32.into(),
 			true,
 		));
@@ -261,7 +261,7 @@ fn test_change_units_per_second_after_setting_it_once() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into(),
+			200u128,
 			0
 		));
 
@@ -274,7 +274,7 @@ fn test_change_units_per_second_after_setting_it_once() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			100u128.into(),
+			100u128,
 			1
 		));
 
@@ -308,7 +308,7 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 		assert_ok!(AssetManager::register_foreign_asset(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			0u32.into(),
+			0u32,
 			1u32.into(),
 			true,
 		));
@@ -316,7 +316,7 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into(),
+			200u128,
 			0
 		));
 
@@ -359,7 +359,7 @@ fn test_weight_hint_error() {
 		assert_ok!(AssetManager::register_foreign_asset(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			0u32.into(),
+			0u32,
 			1u32.into(),
 			true,
 		));
@@ -367,7 +367,7 @@ fn test_weight_hint_error() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into(),
+			200u128,
 			0
 		));
 
@@ -389,7 +389,7 @@ fn test_asset_id_non_existent_error() {
 			AssetManager::set_asset_units_per_second(
 				RuntimeOrigin::root(),
 				MockAssetType::MockAsset(1),
-				200u128.into(),
+				200u128,
 				0
 			),
 			Error::<Test>::AssetDoesNotExist
@@ -412,7 +412,7 @@ fn test_root_can_remove_asset_association() {
 		assert_ok!(AssetManager::register_foreign_asset(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			0u32.into(),
+			0u32,
 			1u32.into(),
 			true
 		));
@@ -420,7 +420,7 @@ fn test_root_can_remove_asset_association() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into(),
+			200u128,
 			0
 		));
 
@@ -461,7 +461,7 @@ fn test_removing_without_asset_units_per_second_does_not_panic() {
 		assert_ok!(AssetManager::register_foreign_asset(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			0u32.into(),
+			0u32,
 			1u32.into(),
 			true
 		));
@@ -499,7 +499,7 @@ fn test_destroy_foreign_asset_also_removes_everything() {
 		assert_ok!(AssetManager::register_foreign_asset(
 			RuntimeOrigin::root(),
 			MockAssetType::MockAsset(1),
-			0u32.into(),
+			0u32,
 			1u32.into(),
 			true
 		));

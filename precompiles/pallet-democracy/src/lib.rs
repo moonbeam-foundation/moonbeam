@@ -173,8 +173,8 @@ where
 
 		Ok((
 			ref_status.end.into(),
-			ref_status.proposal.hash().into(),
-			threshold_u8.into(),
+			ref_status.proposal.hash(),
+			threshold_u8,
 			ref_status.delay.into(),
 			ref_status.tally.ayes.into(),
 			ref_status.tally.nays.into(),
@@ -456,7 +456,7 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = PreimageCall::<Runtime>::note_preimage {
-			bytes: encoded_proposal.into(),
+			bytes: encoded_proposal,
 		};
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
@@ -491,7 +491,7 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = PreimageCall::<Runtime>::note_preimage {
-			bytes: encoded_proposal.into(),
+			bytes: encoded_proposal,
 		};
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 

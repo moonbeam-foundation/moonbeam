@@ -268,7 +268,7 @@ fn test_encode_validate() {
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
 					TestEncoder::encode_call(AvailableStakeCalls::Validate(ValidatorPrefs {
-						commission: Perbill::from_parts(100u32.into()),
+						commission: Perbill::from_parts(100u32),
 						blocked: true,
 					}))
 					.as_slice(),
@@ -291,7 +291,7 @@ fn test_encode_withdraw_unbonded() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call(AvailableStakeCalls::WithdrawUnbonded(100u32.into()))
+					TestEncoder::encode_call(AvailableStakeCalls::WithdrawUnbonded(100u32))
 						.as_slice(),
 				));
 		});

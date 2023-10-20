@@ -630,7 +630,7 @@ where
 
 		let reg = Registration::<Runtime::MaxAdditionalFields> {
 			is_valid: true,
-			judgements: judgements.into(),
+			judgements: judgements,
 			deposit: registration.deposit.into(),
 			info: identity_info,
 		};
@@ -680,7 +680,7 @@ where
 			let amount: BalanceOf<Runtime> = value
 				.fee_paid_deposit
 				.try_into()
-				.map_err(|_| RevertReason::value_is_too_large("fee_paid_deposit").into())?;
+				.map_err(|_| RevertReason::value_is_too_large("fee_paid_deposit"))?;
 
 			return Ok(pallet_identity::Judgement::FeePaid(amount));
 		}

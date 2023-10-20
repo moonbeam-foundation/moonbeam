@@ -758,7 +758,7 @@ benchmarks! {
 		} else {
 			0u32.into()
 		};
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, extra.into());
+		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, extra);
 		// Delegation count
 		let mut del_del_count = 0u32;
 		// Nominate MaxDelegationsPerDelegators collator candidates
@@ -2187,7 +2187,7 @@ benchmarks! {
 		)?;
 		let original_free_balance = T::Currency::free_balance(&collator);
 	}: {
-		Pallet::<T>::mint_collator_reward(1u32.into(), collator.clone(), 50u32.into())
+		Pallet::<T>::mint_collator_reward(1u32, collator.clone(), 50u32.into())
 	}
 	verify {
 		assert_eq!(T::Currency::free_balance(&collator), original_free_balance + 50u32.into());

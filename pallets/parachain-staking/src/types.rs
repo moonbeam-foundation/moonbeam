@@ -511,7 +511,7 @@ impl<
 		);
 		self.total_counted = self.total_counted.saturating_sub(request.amount);
 		let event = Event::CandidateBondedLess {
-			candidate: who.clone().into(),
+			candidate: who.clone(),
 			amount: request.amount.into(),
 			new_bond: self.bond.into(),
 		};
@@ -519,7 +519,7 @@ impl<
 		self.request = None;
 		// update candidate pool value because it must change if self bond changes
 		if self.is_active() {
-			Pallet::<T>::update_active(who.into(), self.total_counted.into());
+			Pallet::<T>::update_active(who, self.total_counted.into());
 		}
 		Pallet::<T>::deposit_event(event);
 		Ok(())
@@ -533,7 +533,7 @@ impl<
 			.request
 			.ok_or(Error::<T>::PendingCandidateRequestsDNE)?;
 		let event = Event::CancelledCandidateBondLess {
-			candidate: who.clone().into(),
+			candidate: who.clone(),
 			amount: request.amount.into(),
 			execute_round: request.when_executable,
 		};

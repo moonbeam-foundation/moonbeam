@@ -78,7 +78,7 @@ fn receive_relay_asset_from_relay() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -134,7 +134,7 @@ fn send_relay_asset_to_relay() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -240,7 +240,7 @@ fn send_relay_asset_to_para_b() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -258,7 +258,7 @@ fn send_relay_asset_to_para_b() {
 			Parachain(2),
 			AccountKey20 {
 				network: None,
-				key: PARAALICE.into(),
+				key: PARAALICE,
 			},
 		),
 	};
@@ -323,7 +323,7 @@ fn send_para_a_asset_to_para_b() {
 			Parachain(2),
 			AccountKey20 {
 				network: None,
-				key: PARAALICE.into(),
+				key: PARAALICE,
 			},
 		),
 	};
@@ -409,7 +409,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			Parachain(2),
 			AccountKey20 {
 				network: None,
-				key: PARAALICE.into(),
+				key: PARAALICE,
 			},
 		),
 	};
@@ -444,7 +444,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			Parachain(3),
 			AccountKey20 {
 				network: None,
-				key: PARAALICE.into(),
+				key: PARAALICE,
 			},
 		),
 	};
@@ -504,7 +504,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			Parachain(2),
 			AccountKey20 {
 				network: None,
-				key: PARAALICE.into(),
+				key: PARAALICE,
 			},
 		),
 	};
@@ -538,7 +538,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			Parachain(1),
 			AccountKey20 {
 				network: None,
-				key: PARAALICE.into(),
+				key: PARAALICE,
 			},
 		),
 	};
@@ -597,7 +597,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 			Parachain(2),
 			AccountKey20 {
 				network: None,
-				key: PARAALICE.into(),
+				key: PARAALICE,
 			},
 		),
 	};
@@ -718,7 +718,7 @@ fn receive_relay_asset_with_trader() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 100).into()),
 			0,
 		));
@@ -768,7 +768,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 			Parachain(2),
 			AccountKey20 {
 				network: None,
-				key: PARAALICE.into(),
+				key: PARAALICE,
 			},
 		),
 	};
@@ -843,7 +843,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 			Parachain(2),
 			AccountKey20 {
 				network: None,
-				key: PARAALICE.into(),
+				key: PARAALICE,
 			},
 		),
 	};
@@ -918,7 +918,7 @@ fn error_when_not_paying_enough() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 5).into()),
 			0,
 		));
@@ -987,7 +987,7 @@ fn transact_through_derivative_multilocation() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 4000003100u128).into()),
 			0,
 		));
@@ -1139,7 +1139,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 4000003100u128).into()),
 			0,
 		));
@@ -1293,7 +1293,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 4000009100u128).into()),
 			0,
 		));
@@ -1459,7 +1459,7 @@ fn transact_through_sovereign() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 4000003100u128).into()),
 			0,
 		));
@@ -1609,7 +1609,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 4000003100u128).into()),
 			0,
 		));
@@ -1761,7 +1761,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 4000009100u128).into()),
 			0,
 		));
@@ -1943,7 +1943,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -2063,7 +2063,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		));
 		// Wrap version, which sets VersionedStorage
 		assert_ok!(<ParachainPalletXcm as WrapVersion>::wrap_version(
-			&MultiLocation::new(1, X1(Parachain(2))).into(),
+			&MultiLocation::new(1, X1(Parachain(2))),
 			mock_message
 		));
 
@@ -2095,7 +2095,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 			Parachain(2),
 			AccountKey20 {
 				network: None,
-				key: PARAALICE.into(),
+				key: PARAALICE,
 			},
 		),
 	};
@@ -2196,7 +2196,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -2222,7 +2222,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -2274,7 +2274,7 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -2334,7 +2334,7 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -2406,7 +2406,7 @@ fn empty_account_should_not_be_reset() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -2424,7 +2424,7 @@ fn empty_account_should_not_be_reset() {
 		));
 		// Verify account asset balance is Zero.
 		assert_eq!(
-			parachain::Assets::balance(source_id, &evm_account_id.into()),
+			parachain::Assets::balance(source_id, &evm_account_id),
 			0
 		);
 		// Because we no longer have consumer references, we can set the balance to Zero.
@@ -2531,7 +2531,7 @@ fn test_statemint_like() {
 		assert_ok!(StatemintChainPalletXcm::reserve_transfer_assets(
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone()),
 			Box::new(
 				(
 					X2(
@@ -2611,7 +2611,7 @@ fn send_para_a_local_asset_to_para_b() {
 				Parachain(2),
 				AccountKey20 {
 					network: None,
-					key: PARAALICE.into(),
+					key: PARAALICE,
 				},
 			),
 		};
@@ -2716,7 +2716,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 				Parachain(2),
 				AccountKey20 {
 					network: None,
-					key: PARAALICE.into(),
+					key: PARAALICE,
 				},
 			),
 		};
@@ -2749,7 +2749,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 				Parachain(1),
 				AccountKey20 {
 					network: None,
-					key: PARAALICE.into(),
+					key: PARAALICE,
 				},
 			),
 		};
@@ -2873,7 +2873,6 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			Box::new(
 				VersionedMultiLocation::V3(parachain_beneficiary_from_relay)
 					.clone()
-					.into()
 			),
 			Box::new((Here, 200).into()),
 			0,
@@ -2922,7 +2921,6 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			Box::new(
 				VersionedMultiLocation::V3(parachain_beneficiary_from_statemint)
 					.clone()
-					.into()
 			),
 			Box::new(
 				(
@@ -3845,7 +3843,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 	let eth_tx =
 		xcm_primitives::EthereumXcmTransaction::V2(xcm_primitives::EthereumXcmTransactionV2 {
 			gas_limit: U256::from(21000),
-			action: pallet_ethereum::TransactionAction::Call(transfer_recipient.into()),
+			action: pallet_ethereum::TransactionAction::Call(transfer_recipient),
 			value: U256::from(100),
 			input: BoundedVec::<
 				u8,

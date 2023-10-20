@@ -230,9 +230,9 @@ mod tests {
 		};
 		mock_round_issuance_range(u32::MAX.into(), mock_annual_to_round(schedule, u32::MAX));
 		mock_round_issuance_range(u64::MAX.into(), mock_annual_to_round(schedule, u32::MAX));
-		mock_round_issuance_range(u128::MAX.into(), mock_annual_to_round(schedule, u32::MAX));
+		mock_round_issuance_range(u128::MAX, mock_annual_to_round(schedule, u32::MAX));
 		mock_round_issuance_range(u32::MAX.into(), mock_annual_to_round(schedule, 1));
 		mock_round_issuance_range(u64::MAX.into(), mock_annual_to_round(schedule, 1));
-		mock_round_issuance_range(u128::MAX.into(), mock_annual_to_round(schedule, 1));
+		mock_round_issuance_range(u128::MAX, mock_annual_to_round(schedule, 1));
 	}
 }

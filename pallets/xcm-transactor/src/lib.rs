@@ -888,7 +888,7 @@ pub mod pallet {
 
 				// Construct the local withdraw message with the previous calculated amount
 				// This message deducts and burns "amount" from the caller when executed
-				T::AssetTransactor::withdraw_asset(&fee.clone().into(), &origin_as_mult, None)
+				T::AssetTransactor::withdraw_asset(&fee.clone(), &origin_as_mult, None)
 					.map_err(|_| Error::<T>::UnableToWithdrawAsset)?;
 			}
 

@@ -798,7 +798,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 						RuntimeCall::CrowdloanRewards(
 							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
 								rewards: vec![(
-									[4u8; 32].into(),
+									[4u8; 32],
 									Some(AccountId::from(CHARLIE)),
 									150_000_000 * GLMR
 								)]
@@ -807,7 +807,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 						RuntimeCall::CrowdloanRewards(
 							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
 								rewards: vec![(
-									[5u8; 32].into(),
+									[5u8; 32],
 									Some(AccountId::from(DAVE)),
 									150_000_000 * GLMR
 								)]
@@ -837,7 +837,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 					calls: vec![RuntimeCall::CrowdloanRewards(
 						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
 							rewards: vec![(
-								[4u8; 32].into(),
+								[4u8; 32],
 								Some(AccountId::from(ALICE)),
 								43_200_000
 							)]
@@ -1019,7 +1019,7 @@ fn claim_via_precompile() {
 						RuntimeCall::CrowdloanRewards(
 							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
 								rewards: vec![(
-									[4u8; 32].into(),
+									[4u8; 32],
 									Some(AccountId::from(CHARLIE)),
 									1_500_000 * GLMR
 								)]
@@ -1028,7 +1028,7 @@ fn claim_via_precompile() {
 						RuntimeCall::CrowdloanRewards(
 							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
 								rewards: vec![(
-									[5u8; 32].into(),
+									[5u8; 32],
 									Some(AccountId::from(DAVE)),
 									1_500_000 * GLMR
 								)]
@@ -1113,7 +1113,7 @@ fn is_contributor_via_precompile() {
 						RuntimeCall::CrowdloanRewards(
 							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
 								rewards: vec![(
-									[4u8; 32].into(),
+									[4u8; 32],
 									Some(AccountId::from(CHARLIE)),
 									1_500_000_000 * GLMR
 								)]
@@ -1122,7 +1122,7 @@ fn is_contributor_via_precompile() {
 						RuntimeCall::CrowdloanRewards(
 							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
 								rewards: vec![(
-									[5u8; 32].into(),
+									[5u8; 32],
 									Some(AccountId::from(DAVE)),
 									1_500_000_000 * GLMR
 								)]
@@ -1195,7 +1195,7 @@ fn reward_info_via_precompile() {
 						RuntimeCall::CrowdloanRewards(
 							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
 								rewards: vec![(
-									[4u8; 32].into(),
+									[4u8; 32],
 									Some(AccountId::from(CHARLIE)),
 									1_500_000 * GLMR
 								)]
@@ -1204,7 +1204,7 @@ fn reward_info_via_precompile() {
 						RuntimeCall::CrowdloanRewards(
 							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
 								rewards: vec![(
-									[5u8; 32].into(),
+									[5u8; 32],
 									Some(AccountId::from(DAVE)),
 									1_500_000 * GLMR
 								)]
@@ -1267,7 +1267,7 @@ fn update_reward_address_via_precompile() {
 						RuntimeCall::CrowdloanRewards(
 							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
 								rewards: vec![(
-									[4u8; 32].into(),
+									[4u8; 32],
 									Some(AccountId::from(CHARLIE)),
 									1_500_000 * GLMR
 								)]
@@ -1276,7 +1276,7 @@ fn update_reward_address_via_precompile() {
 						RuntimeCall::CrowdloanRewards(
 							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
 								rewards: vec![(
-									[5u8; 32].into(),
+									[5u8; 32],
 									Some(AccountId::from(DAVE)),
 									1_500_000 * GLMR
 								)]

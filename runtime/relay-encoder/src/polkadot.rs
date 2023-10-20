@@ -149,7 +149,7 @@ impl pallet_evm_precompile_relay_encoder::StakeEncodeCall for PolkadotEncoder {
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetPayee(a) => {
-				RelayCall::Stake(StakeCall::SetPayee(a.into())).encode()
+				RelayCall::Stake(StakeCall::SetPayee(a)).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController => {
@@ -157,7 +157,7 @@ impl pallet_evm_precompile_relay_encoder::StakeEncodeCall for PolkadotEncoder {
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond(a) => {
-				RelayCall::Stake(StakeCall::Rebond(a.into())).encode()
+				RelayCall::Stake(StakeCall::Rebond(a)).encode()
 			}
 
 			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Nominate(a) => {
@@ -356,7 +356,7 @@ mod tests {
 		assert_eq!(
 			<PolkadotEncoder as StakeEncodeCall>::encode_call(
 				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Nominate(vec![
-					relay_account.into()
+					relay_account
 				])
 			),
 			expected_encoded
@@ -478,8 +478,8 @@ mod tests {
 			<PolkadotEncoder as xcm_primitives::HrmpEncodeCall>::hrmp_encode_call(
 				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
 					1000u32.into(),
-					100u32.into(),
-					100u32.into()
+					100u32,
+					100u32
 				)
 			),
 			Ok(expected_encoded)

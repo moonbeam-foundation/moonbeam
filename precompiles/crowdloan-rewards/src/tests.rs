@@ -160,8 +160,8 @@ fn claim_works() {
 			assert_ok!(
 				RuntimeCall::Crowdloan(CrowdloanCall::initialize_reward_vec {
 					rewards: vec![
-						([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
-						([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
+						([1u8; 32], Some(Alice.into()), 50u32.into()),
+						([2u8; 32], Some(Bob.into()), 50u32.into()),
 					]
 				})
 				.dispatch(RuntimeOrigin::root())
@@ -201,8 +201,8 @@ fn reward_info_works() {
 			assert_ok!(
 				RuntimeCall::Crowdloan(CrowdloanCall::initialize_reward_vec {
 					rewards: vec![
-						([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
-						([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
+						([1u8; 32], Some(Alice.into()), 50u32.into()),
+						([2u8; 32], Some(Bob.into()), 50u32.into()),
 					]
 				})
 				.dispatch(RuntimeOrigin::root())
@@ -245,8 +245,8 @@ fn update_reward_address_works() {
 			assert_ok!(
 				RuntimeCall::Crowdloan(CrowdloanCall::initialize_reward_vec {
 					rewards: vec![
-						([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
-						([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
+						([1u8; 32], Some(Alice.into()), 50u32.into()),
+						([2u8; 32], Some(Bob.into()), 50u32.into()),
 					]
 				})
 				.dispatch(RuntimeOrigin::root())

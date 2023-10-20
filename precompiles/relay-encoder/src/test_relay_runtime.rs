@@ -91,7 +91,7 @@ impl StakeEncodeCall for TestEncoder {
 			AvailableStakeCalls::Chill => RelayCall::Stake(StakeCall::Chill).encode(),
 
 			AvailableStakeCalls::SetPayee(a) => {
-				RelayCall::Stake(StakeCall::SetPayee(a.into())).encode()
+				RelayCall::Stake(StakeCall::SetPayee(a)).encode()
 			}
 
 			AvailableStakeCalls::SetController => {
@@ -99,7 +99,7 @@ impl StakeEncodeCall for TestEncoder {
 			}
 
 			AvailableStakeCalls::Rebond(a) => {
-				RelayCall::Stake(StakeCall::Rebond(a.into())).encode()
+				RelayCall::Stake(StakeCall::Rebond(a)).encode()
 			}
 
 			AvailableStakeCalls::Nominate(a) => {

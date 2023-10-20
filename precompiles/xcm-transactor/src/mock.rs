@@ -188,7 +188,7 @@ impl GasWeightMapping for MockGasWeightMapping {
 		Weight::from_parts(gas, 1)
 	}
 	fn weight_to_gas(weight: Weight) -> u64 {
-		weight.ref_time().into()
+		weight.ref_time()
 	}
 }
 

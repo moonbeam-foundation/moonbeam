@@ -286,8 +286,7 @@ where
 			proposal_origin,
 			proposal,
 			enactment_moment,
-		}
-		.into();
+		};
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
@@ -563,7 +562,7 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
-		let call = ReferendaCall::<Runtime>::place_decision_deposit { index }.into();
+		let call = ReferendaCall::<Runtime>::place_decision_deposit { index };
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
@@ -616,7 +615,7 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
-		let call = ReferendaCall::<Runtime>::refund_decision_deposit { index }.into();
+		let call = ReferendaCall::<Runtime>::refund_decision_deposit { index };
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 		let event = log1(
@@ -652,7 +651,7 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
-		let call = ReferendaCall::<Runtime>::refund_submission_deposit { index }.into();
+		let call = ReferendaCall::<Runtime>::refund_submission_deposit { index };
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 

@@ -862,14 +862,14 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 
 	fn destroy_foreign_asset(asset: AssetId) -> DispatchResult {
 		// Mark the asset as destroying
-		Assets::start_destroy(RuntimeOrigin::root(), asset.into())?;
+		Assets::start_destroy(RuntimeOrigin::root(), asset)?;
 
 		Ok(())
 	}
 
 	fn destroy_local_asset(asset: AssetId) -> DispatchResult {
 		// Mark the asset as destroying
-		LocalAssets::start_destroy(RuntimeOrigin::root(), asset.into())?;
+		LocalAssets::start_destroy(RuntimeOrigin::root(), asset)?;
 
 		Ok(())
 	}
@@ -877,7 +877,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	fn destroy_asset_dispatch_info_weight(asset: AssetId) -> Weight {
 		RuntimeCall::Assets(
 			pallet_assets::Call::<Runtime, ForeignAssetInstance>::start_destroy {
-				id: asset.into(),
+				id: asset,
 			},
 		)
 		.get_dispatch_info()

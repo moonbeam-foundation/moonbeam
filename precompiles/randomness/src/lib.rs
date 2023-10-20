@@ -309,7 +309,7 @@ where
 
 		Ok((
 			request_id.into(),
-			refund_address.into(),
+			refund_address,
 			contract_address,
 			fee,
 			request.gas_limit.into(),
@@ -481,7 +481,7 @@ where
 			handle,
 			request_id,
 			request.gas_limit,
-			request.contract_address.into(),
+			request.contract_address,
 			randomness.into_iter().map(|x| H256(x)).collect(),
 		)?;
 		let remaining_gas_after = handle.remaining_gas();

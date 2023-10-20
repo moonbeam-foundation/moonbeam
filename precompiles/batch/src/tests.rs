@@ -983,10 +983,10 @@ fn evm_batch_recursion_over_limit() {
 						vec![Address(Bob.into())],
 						vec![1000_u32.into()],
 						vec![],
-						vec![].into(),
+						vec![],
 					)
 					.into()],
-					vec![].into(),
+					vec![],
 				)
 				.into()],
 				vec![],

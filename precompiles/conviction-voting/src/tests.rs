@@ -113,10 +113,10 @@ fn standard_vote_logs_work() {
 		.build()
 		.execute_with(|| {
 			// Vote Yes
-			assert_ok!(standard_vote(true, 100_000.into(), 0.into()));
+			assert_ok!(standard_vote(true, 100_000.into(), 0));
 
 			// Vote No
-			assert_ok!(standard_vote(false, 99_000.into(), 1.into()));
+			assert_ok!(standard_vote(false, 99_000.into(), 1));
 
 			// Assert vote events are emitted.
 			let expected_events = vec![
@@ -224,7 +224,7 @@ fn remove_vote_logs_work() {
 		.build()
 		.execute_with(|| {
 			// Vote..
-			assert_ok!(standard_vote(true, 100_000.into(), 0.into()));
+			assert_ok!(standard_vote(true, 100_000.into(), 0));
 
 			// ..and remove
 			let input = PCall::remove_vote {
@@ -255,7 +255,7 @@ fn remove_vote_for_track_logs_work() {
 		.build()
 		.execute_with(|| {
 			// Vote..
-			assert_ok!(standard_vote(true, 100_000.into(), 0.into()));
+			assert_ok!(standard_vote(true, 100_000.into(), 0));
 
 			// ..and remove
 			let input = PCall::remove_vote_for_track {
@@ -290,7 +290,7 @@ fn remove_other_vote_logs_work() {
 		.build()
 		.execute_with(|| {
 			// Vote..
-			assert_ok!(standard_vote(true, 100_000.into(), 0.into()));
+			assert_ok!(standard_vote(true, 100_000.into(), 0));
 
 			// ..and remove other
 			let input = PCall::remove_other_vote {
@@ -330,7 +330,7 @@ fn delegate_undelegate_logs_work() {
 			let input = PCall::delegate {
 				track_id: 0u16,
 				representative: H160::from(Bob).into(),
-				conviction: 0.into(),
+				conviction: 0,
 				amount: 100_000.into(),
 			}
 			.into();
@@ -380,7 +380,7 @@ fn unlock_logs_work() {
 		.build()
 		.execute_with(|| {
 			// Vote
-			assert_ok!(standard_vote(true, 100_000.into(), 0.into()));
+			assert_ok!(standard_vote(true, 100_000.into(), 0));
 
 			// Remove
 			let input = PCall::remove_vote {
@@ -419,7 +419,7 @@ fn test_voting_for_returns_correct_value_for_standard_vote() {
 		.build()
 		.execute_with(|| {
 			// Vote Yes
-			assert_ok!(standard_vote(true, 100_000.into(), 1.into()));
+			assert_ok!(standard_vote(true, 100_000.into(), 1));
 
 			precompiles()
 				.prepare_test(
@@ -559,7 +559,7 @@ fn test_class_locks_for_returns_correct_value() {
 		.build()
 		.execute_with(|| {
 			// Vote Yes
-			assert_ok!(standard_vote(true, 100_000.into(), 1.into()));
+			assert_ok!(standard_vote(true, 100_000.into(), 1));
 
 			precompiles()
 				.prepare_test(

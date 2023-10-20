@@ -570,7 +570,7 @@ where
 				Ok(mut recursion_level) => {
 					if *recursion_level > max_recursion_level {
 						return Some(Err(
-							revert("Precompile is called with too high nesting").into()
+							revert("Precompile is called with too high nesting")
 						));
 					}
 
@@ -578,7 +578,7 @@ where
 				}
 				// We don't hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
-				Err(_) => return Some(Err(revert("Couldn't check precompile nesting").into())),
+				Err(_) => return Some(Err(revert("Couldn't check precompile nesting"))),
 			}
 		}
 
@@ -599,7 +599,7 @@ where
 				}
 				// We don't hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
-				Err(_) => return Some(Err(revert("Couldn't check precompile nesting").into())),
+				Err(_) => return Some(Err(revert("Couldn't check precompile nesting"))),
 			}
 		}
 

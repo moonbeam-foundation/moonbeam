@@ -70,12 +70,12 @@ where
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_PREIMAGE_NOTED,
-			solidity::encode_arguments(H256::from(hash)),
+			solidity::encode_arguments(hash),
 		);
 		handle.record_log_costs(&[&event])?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
-		let call = PreimageCall::<Runtime>::note_preimage { bytes }.into();
+		let call = PreimageCall::<Runtime>::note_preimage { bytes };
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
@@ -92,7 +92,7 @@ where
 		let event = log1(
 			handle.context().address,
 			SELECTOR_LOG_PREIMAGE_UNNOTED,
-			solidity::encode_arguments(H256::from(hash)),
+			solidity::encode_arguments(hash),
 		);
 		handle.record_log_costs(&[&event])?;
 
@@ -101,7 +101,7 @@ where
 			.map_err(|_| RevertReason::custom("H256 is Runtime::Hash").in_field("hash"))?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
-		let call = PreimageCall::<Runtime>::unnote_preimage { hash }.into();
+		let call = PreimageCall::<Runtime>::unnote_preimage { hash };
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 

@@ -157,7 +157,7 @@ impl<T: Config> Pallet<T> {
 				error: <Error<T>>::DelegatorBondBelowMin.into(),
 			},
 		);
-		let new_amount: BalanceOf<T> = (bonded_amount - decrease_amount).into();
+		let new_amount: BalanceOf<T> = bonded_amount - decrease_amount;
 		ensure!(
 			new_amount >= T::MinDelegation::get(),
 			DispatchErrorWithPostInfo {
@@ -169,7 +169,7 @@ impl<T: Config> Pallet<T> {
 		// Net Total is total after pending orders are executed
 		let net_total = state.total().saturating_sub(state.less_total);
 		// Net Total is always >= MinDelegation
-		let max_subtracted_amount = net_total.saturating_sub(T::MinDelegation::get().into());
+		let max_subtracted_amount = net_total.saturating_sub(T::MinDelegation::get());
 		ensure!(
 			decrease_amount <= max_subtracted_amount,
 			DispatchErrorWithPostInfo {
@@ -277,7 +277,7 @@ impl<T: Config> Pallet<T> {
 					true
 				} else {
 					ensure!(
-						state.total().saturating_sub(T::MinDelegation::get().into()) >= amount,
+						state.total().saturating_sub(T::MinDelegation::get()) >= amount,
 						DispatchErrorWithPostInfo {
 							post_info: Some(actual_weight).into(),
 							error: <Error<T>>::DelegatorBondBelowMin.into(),
@@ -331,7 +331,7 @@ impl<T: Config> Pallet<T> {
 				for bond in &mut state.delegations.0 {
 					if bond.owner == collator {
 						return if bond.amount > amount {
-							let amount_before: BalanceOf<T> = bond.amount.into();
+							let amount_before: BalanceOf<T> = bond.amount;
 							bond.amount = bond.amount.saturating_sub(amount);
 							let mut collator_info = <CandidateInfo<T>>::get(&collator)
 								.ok_or(<Error<T>>::CandidateDNE)
@@ -342,7 +342,7 @@ impl<T: Config> Pallet<T> {
 
 							state
 								.total_sub_if::<T, _>(amount, |total| {
-									let new_total: BalanceOf<T> = total.into();
+									let new_total: BalanceOf<T> = total;
 									ensure!(
 										new_total >= T::MinDelegation::get(),
 										<Error<T>>::DelegationBelowMin

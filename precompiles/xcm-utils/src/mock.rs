@@ -274,7 +274,7 @@ impl GasWeightMapping for MockGasWeightMapping {
 		Weight::from_parts(gas, 1)
 	}
 	fn weight_to_gas(weight: Weight) -> u64 {
-		weight.ref_time().into()
+		weight.ref_time()
 	}
 }
 
@@ -410,7 +410,7 @@ parameter_types! {
 
 	pub UniversalLocation: InteriorMultiLocation = Here;
 	pub Ancestry: InteriorMultiLocation =
-		X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainId::get().into()).into());
+		X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainId::get().into()));
 
 	pub const MaxAssetsIntoHolding: u32 = 64;
 }

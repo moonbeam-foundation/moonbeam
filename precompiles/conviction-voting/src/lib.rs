@@ -132,7 +132,7 @@ where
 		let (poll_index, vote, event) = Self::log_vote_event(handle, poll_index, vote)?;
 
 		let origin = Runtime::AddressMapping::into_account_id(caller);
-		let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote }.into();
+		let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote };
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 

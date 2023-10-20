@@ -188,8 +188,8 @@ pub fn statemint_ext(para_id: u32) -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
-			(RELAYALICE.into(), INITIAL_BALANCE),
-			(RELAYBOB.into(), INITIAL_BALANCE),
+			(RELAYALICE, INITIAL_BALANCE),
+			(RELAYBOB, INITIAL_BALANCE),
 		],
 	}
 	.assimilate_storage(&mut t)

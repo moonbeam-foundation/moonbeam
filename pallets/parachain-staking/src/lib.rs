@@ -1389,7 +1389,7 @@ pub mod pallet {
 				<DelegationScheduledRequests<T>>::remove(candidate);
 			}
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Notify a collator is inactive during MaxOfflineRounds
@@ -1462,7 +1462,7 @@ pub mod pallet {
 				return Err(<Error<T>>::CannotBeNotifiedAsInactive.into());
 			}
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Enable/Disable marking offline feature

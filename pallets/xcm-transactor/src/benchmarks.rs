@@ -58,8 +58,8 @@ benchmarks! {
 	)
 	verify {
 		assert_eq!(Pallet::<T>::transact_info(location), Some(crate::RemoteTransactInfoWithMaxWeight {
-			transact_extra_weight: extra_weight.into(),
-			max_weight: max_weight.into(),
+			transact_extra_weight: extra_weight,
+			max_weight: max_weight,
 			transact_extra_weight_signed: None
 		}));
 	}
