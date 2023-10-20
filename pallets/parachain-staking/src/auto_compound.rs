@@ -316,7 +316,7 @@ where
 		let delegations_config = Self::get_storage(candidate);
 		delegations_config
 			.get_for_delegator(delegator)
-			.unwrap_or_else(|| Percent::zero())
+			.unwrap_or_else(Percent::zero)
 	}
 }
 

@@ -244,7 +244,7 @@ where
 		self.clone()
 			.filter(filter)
 			.await
-			.map_err(|e| fc_rpc::internal_err(e))
+			.map_err(fc_rpc::internal_err)
 	}
 }
 

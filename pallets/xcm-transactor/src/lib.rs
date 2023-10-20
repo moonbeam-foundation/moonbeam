@@ -502,7 +502,7 @@ pub mod pallet {
 						refund,
 					)
 				},
-				|v| Ok(v),
+				Ok,
 			)?;
 
 			// Calculate fee based on FeePerSecond
@@ -583,7 +583,7 @@ pub mod pallet {
 						refund,
 					)
 				},
-				|v| Ok(v),
+				Ok,
 			)?;
 
 			// Calculate fee based on FeePerSecond and total_weight
@@ -704,7 +704,7 @@ pub mod pallet {
 						refund,
 					)
 				},
-				|v| Ok(v),
+				Ok,
 			)?;
 
 			// Fee to be paid
@@ -840,7 +840,7 @@ pub mod pallet {
 						false,
 					)
 				},
-				|v| Ok(v),
+				Ok,
 			)?;
 
 			let fee = Self::calculate_fee(fee_location, fee.fee_amount, destination, total_weight)?;
@@ -976,7 +976,7 @@ pub mod pallet {
 			// this weight execution
 			let amount: u128 = fee_amount.map_or_else(
 				|| Self::take_fee_per_second_from_storage(fee_location, destination, total_weight),
-				|v| Ok(v),
+				Ok,
 			)?;
 
 			// Construct MultiAsset

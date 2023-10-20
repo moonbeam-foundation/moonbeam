@@ -1091,7 +1091,7 @@ impl<R: pallet_evm::Config, P: PrecompileSetFragment> PrecompileSetBuilder<R, P>
 			.inner
 			.used_addresses()
 			.into_iter()
-			.map(|x| R::AddressMapping::into_account_id(x))
+			.map(R::AddressMapping::into_account_id)
 	}
 
 	pub fn summarize_checks(&self) -> Vec<PrecompileCheckSummary> {

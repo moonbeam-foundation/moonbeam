@@ -2071,7 +2071,7 @@ pub mod pallet {
 						auto_compound: auto_compounding_delegations
 							.get(&d.owner)
 							.cloned()
-							.unwrap_or_else(|| Percent::zero()),
+							.unwrap_or_else(Percent::zero),
 					})
 					.collect();
 

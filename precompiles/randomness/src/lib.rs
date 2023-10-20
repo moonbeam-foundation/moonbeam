@@ -482,7 +482,7 @@ where
 			request_id,
 			request.gas_limit,
 			request.contract_address,
-			randomness.into_iter().map(|x| H256(x)).collect(),
+			randomness.into_iter().map(H256).collect(),
 		)?;
 		let remaining_gas_after = handle.remaining_gas();
 

@@ -121,10 +121,7 @@ where
 		gas_limit: BoundedVec<u64, GetArrayLimit>,
 	) -> EvmResult {
 		let addresses = Vec::from(to).into_iter().enumerate();
-		let values = Vec::from(value)
-			.into_iter()
-			.map(|x| Some(x))
-			.chain(repeat(None));
+		let values = Vec::from(value).into_iter().map(Some).chain(repeat(None));
 		let calls_data = Vec::from(call_data)
 			.into_iter()
 			.map(|x| Some(x.into()))

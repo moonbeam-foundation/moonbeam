@@ -1205,7 +1205,7 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 	System::events()
 		.into_iter()
 		.map(|r| r.event)
-		.filter_map(|e| Some(e))
+		.filter_map(Some)
 		.collect::<Vec<_>>()
 }
 
