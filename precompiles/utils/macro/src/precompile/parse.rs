@@ -335,7 +335,7 @@ impl Precompile {
 
 			let input_type = input.ty.as_ref();
 
-			self.try_register_discriminant_type(&input_type)?;
+			self.try_register_discriminant_type(input_type)?;
 		}
 
 		// Precompile handle input
@@ -364,7 +364,7 @@ impl Precompile {
 
 			let input_type = input.ty.as_ref();
 
-			if !is_same_type(&input_type, &syn::parse_quote! {&mut impl PrecompileHandle}) {
+			if !is_same_type(input_type, &syn::parse_quote! {&mut impl PrecompileHandle}) {
 				let msg = "This parameter must have type `&mut impl PrecompileHandle`";
 				return Err(syn::Error::new(input_type.span(), msg));
 			}
@@ -376,7 +376,7 @@ impl Precompile {
 	/// Records the type of the discriminant and ensure they all have the same type.
 	fn try_register_discriminant_type(&mut self, ty: &syn::Type) -> syn::Result<()> {
 		if let Some(known_type) = &self.precompile_set_discriminant_type {
-			if !is_same_type(&known_type, &ty) {
+			if !is_same_type(known_type, ty) {
 				let msg = format!(
 					"All discriminants must have the same type (found {} before)",
 					known_type.to_token_stream()
@@ -458,7 +458,7 @@ impl Precompile {
 			_ => return Err(syn::Error::new(result_arguments.args.span(), msg)),
 		};
 
-		self.try_register_discriminant_type(&discriminant_type)?;
+		self.try_register_discriminant_type(discriminant_type)?;
 
 		self.precompile_set_discriminant_fn = Some(method.sig.ident.clone());
 
@@ -560,7 +560,7 @@ ensuring the Solidity function signatures are correct.";
 			| syn::Type::Paren(syn::TypeParen { elem, .. })
 			| syn::Type::Reference(syn::TypeReference { elem, .. })
 			| syn::Type::Ptr(syn::TypePtr { elem, .. })
-			| syn::Type::Slice(syn::TypeSlice { elem, .. }) => self.check_type_parameter_usage(&elem)?,
+			| syn::Type::Slice(syn::TypeSlice { elem, .. }) => self.check_type_parameter_usage(elem)?,
 
 			syn::Type::Path(syn::TypePath {
 				path: syn::Path { segments, .. },
@@ -589,7 +589,7 @@ ensuring the Solidity function signatures are correct.";
 						});
 
 						for ty in types {
-							self.check_type_parameter_usage(&ty)?;
+							self.check_type_parameter_usage(ty)?;
 						}
 					}
 				}

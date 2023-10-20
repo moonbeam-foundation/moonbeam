@@ -1376,11 +1376,11 @@ pub mod pallet {
 			ensure!(candidates.len() < 100, <Error<T>>::InsufficientBalance);
 			for candidate in &candidates {
 				ensure!(
-					<CandidateInfo<T>>::get(&candidate).is_none(),
+					<CandidateInfo<T>>::get(candidate).is_none(),
 					<Error<T>>::CandidateNotLeaving
 				);
 				ensure!(
-					<DelegationScheduledRequests<T>>::get(&candidate).is_empty(),
+					<DelegationScheduledRequests<T>>::get(candidate).is_empty(),
 					<Error<T>>::CandidateNotLeaving
 				);
 			}
@@ -2056,10 +2056,10 @@ pub mod pallet {
 				let CountedDelegations {
 					uncounted_stake,
 					rewardable_delegations,
-				} = Self::get_rewardable_delegators(&account);
+				} = Self::get_rewardable_delegators(account);
 				let total_counted = state.total_counted.saturating_sub(uncounted_stake);
 
-				let auto_compounding_delegations = <AutoCompoundingDelegations<T>>::get(&account)
+				let auto_compounding_delegations = <AutoCompoundingDelegations<T>>::get(account)
 					.into_iter()
 					.map(|x| (x.delegator, x.value))
 					.collect::<BTreeMap<_, _>>();

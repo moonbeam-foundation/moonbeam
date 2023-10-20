@@ -39,7 +39,7 @@ fn test_register_address() {
 			// Root can register
 			assert_ok!(XcmTransactor::register(RuntimeOrigin::root(), 1u64, 1));
 
-			assert_eq!(XcmTransactor::index_to_account(&1).unwrap(), 1u64);
+			assert_eq!(XcmTransactor::index_to_account(1).unwrap(), 1u64);
 
 			let expected = vec![crate::Event::RegisteredDerivative {
 				account_id: 1u64,
@@ -608,11 +608,11 @@ fn de_registering_works() {
 			// Root can register
 			assert_ok!(XcmTransactor::register(RuntimeOrigin::root(), 1u64, 1));
 
-			assert_eq!(XcmTransactor::index_to_account(&1).unwrap(), 1u64);
+			assert_eq!(XcmTransactor::index_to_account(1).unwrap(), 1u64);
 
 			assert_ok!(XcmTransactor::deregister(RuntimeOrigin::root(), 1));
 
-			assert!(XcmTransactor::index_to_account(&1).is_none());
+			assert!(XcmTransactor::index_to_account(1).is_none());
 
 			let expected = vec![
 				crate::Event::RegisteredDerivative {

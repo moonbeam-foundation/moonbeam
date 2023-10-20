@@ -96,7 +96,7 @@ where
 
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
-		let points = <pallet_parachain_staking::Pallet<Runtime>>::awarded_pts(&round, &candidate);
+		let points = <pallet_parachain_staking::Pallet<Runtime>>::awarded_pts(round, &candidate);
 
 		Ok(points)
 	}

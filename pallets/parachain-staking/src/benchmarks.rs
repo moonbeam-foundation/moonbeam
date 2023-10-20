@@ -1684,7 +1684,7 @@ benchmarks! {
 		let total_staked =  min_candidate_stk::<T>()
 			+ (Into::<BalanceOf<T>>::into(x) * initial_delegator_balance);
 		let round_for_payout = 5;
-		<DelayedPayouts<T>>::insert(&round_for_payout, DelayedPayout {
+		<DelayedPayouts<T>>::insert(round_for_payout, DelayedPayout {
 			round_issuance: 1000u32.into(),
 			total_staking_reward: total_staked,
 			collator_commission: Perbill::from_rational(1u32, 100u32),
@@ -1722,7 +1722,7 @@ benchmarks! {
 		} in &delegations
 		{
 			assert!(
-				T::Currency::free_balance(&owner) > initial_delegator_balance,
+				T::Currency::free_balance(owner) > initial_delegator_balance,
 				"delegator should have been paid in pay_one_collator_reward"
 			);
 		}
@@ -1773,7 +1773,7 @@ benchmarks! {
 		// directly and then call pay_one_collator_reward directly.
 
 		let round_for_payout = 5;
-		<DelayedPayouts<T>>::insert(&round_for_payout, DelayedPayout {
+		<DelayedPayouts<T>>::insert(round_for_payout, DelayedPayout {
 			// NOTE: round_issuance is not correct here, but it doesn't seem to cause problems
 			round_issuance: 1000u32.into(),
 			total_staking_reward: total_staked,
@@ -1815,7 +1815,7 @@ benchmarks! {
 		// nominators should have been paid
 		for delegator in &delegators {
 			assert!(
-				T::Currency::free_balance(&delegator) > initial_stake_amount,
+				T::Currency::free_balance(delegator) > initial_stake_amount,
 				"delegator should have been paid in pay_one_collator_reward"
 			);
 		}

@@ -57,7 +57,7 @@ benchmarks! {
 		None
 	)
 	verify {
-		assert_eq!(Pallet::<T>::transact_info(&location), Some(crate::RemoteTransactInfoWithMaxWeight {
+		assert_eq!(Pallet::<T>::transact_info(location), Some(crate::RemoteTransactInfoWithMaxWeight {
 			transact_extra_weight: extra_weight.into(),
 			max_weight: max_weight.into(),
 			transact_extra_weight_signed: None
@@ -77,7 +77,7 @@ benchmarks! {
 		).expect("must succeed");
 	}: _(RawOrigin::Root, Box::new(xcm::VersionedMultiLocation::V3(location)))
 	verify {
-		assert!(Pallet::<T>::transact_info(&location).is_none());
+		assert!(Pallet::<T>::transact_info(location).is_none());
 	}
 
 	set_fee_per_second {
@@ -89,7 +89,7 @@ benchmarks! {
 		fee_per_second
 	)
 	verify {
-		assert_eq!(Pallet::<T>::dest_asset_fee_per_second(&location), Some(fee_per_second));
+		assert_eq!(Pallet::<T>::dest_asset_fee_per_second(location), Some(fee_per_second));
 	}
 
 	// Worst Case: AsCurrencyId, as the translation could involve db reads

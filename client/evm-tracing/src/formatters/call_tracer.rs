@@ -179,7 +179,7 @@ impl super::ResponseFormatter for Formatter {
 							}
 							return false;
 						};
-						if b_len > a_len || (a_len == b_len && sibling_greater_than(&a, &b)) {
+						if b_len > a_len || (a_len == b_len && sibling_greater_than(a, b)) {
 							Ordering::Less
 						} else {
 							Ordering::Greater

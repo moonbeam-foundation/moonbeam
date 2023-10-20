@@ -86,14 +86,14 @@ where
 				+ RemoteTransactInfoWithMaxWeight::max_encoded_len(),
 		)?;
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
-			pallet_xcm_transactor::Pallet::<Runtime>::transact_info(&multilocation)
+			pallet_xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
 				.ok_or(revert("Transact Info not set"))?;
 
 		// fetch data from pallet
 		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + MultiLocation + u128(16)
 		handle.record_db_read::<Runtime>(32 + MultiLocation::max_encoded_len())?;
 		let fee_per_second: u128 =
-			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(&multilocation)
+			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(multilocation)
 				.ok_or(revert("Fee Per Second not set"))?;
 
 		Ok((

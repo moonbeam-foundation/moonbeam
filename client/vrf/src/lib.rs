@@ -44,7 +44,7 @@ where
 	let last_vrf_output = runtime_api.get_last_vrf_output(parent).ok()??;
 	// first ? for runtime API, second ? for not VRF key associated with NimbusId
 	let key: VrfId = runtime_api.vrf_key_lookup(parent, nimbus_id).ok()??;
-	let vrf_pre_digest = sign_vrf(last_vrf_output, key, &keystore)?;
+	let vrf_pre_digest = sign_vrf(last_vrf_output, key, keystore)?;
 	Some(session_keys_primitives::digest::CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
 }
 

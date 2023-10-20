@@ -902,7 +902,7 @@ fn remove_vote_dne() {
 						ref_index: 0.into(),
 					},
 				)
-				.execute_reverts(|output| from_utf8(&output).unwrap().contains("NotVoter"));
+				.execute_reverts(|output| from_utf8(output).unwrap().contains("NotVoter"));
 		})
 }
 
@@ -1070,7 +1070,7 @@ fn undelegate_dne() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile1, PCall::un_delegate {})
-			.execute_reverts(|output| from_utf8(&output).unwrap().contains("NotDelegating"));
+			.execute_reverts(|output| from_utf8(output).unwrap().contains("NotDelegating"));
 	})
 }
 

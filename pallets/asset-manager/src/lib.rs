@@ -145,7 +145,7 @@ pub mod pallet {
 		#[cfg(feature = "runtime-benchmarks")]
 		fn set_asset_type_asset_id(asset_type: T::ForeignAssetType, asset_id: T::AssetId) {
 			AssetTypeId::<T>::insert(&asset_type, asset_id);
-			AssetIdType::<T>::insert(&asset_id, asset_type);
+			AssetIdType::<T>::insert(asset_id, asset_type);
 		}
 	}
 
@@ -167,7 +167,7 @@ pub mod pallet {
 				supported_assets.insert(index, asset_type.clone());
 				SupportedFeePaymentAssets::<T>::put(supported_assets);
 			}
-			AssetTypeUnitsPerSecond::<T>::insert(&asset_type, &fee_per_second);
+			AssetTypeUnitsPerSecond::<T>::insert(&asset_type, fee_per_second);
 		}
 	}
 
@@ -333,7 +333,7 @@ pub mod pallet {
 
 			// Ensure such an assetId does not exist
 			ensure!(
-				AssetIdType::<T>::get(&asset_id).is_none(),
+				AssetIdType::<T>::get(asset_id).is_none(),
 				Error::<T>::AssetAlreadyExists
 			);
 			T::AssetRegistrar::create_foreign_asset(
@@ -345,8 +345,8 @@ pub mod pallet {
 			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
 			// Insert the association assetId->assetType
-			AssetIdType::<T>::insert(&asset_id, &asset);
-			AssetTypeId::<T>::insert(&asset, &asset_id);
+			AssetIdType::<T>::insert(asset_id, &asset);
+			AssetTypeId::<T>::insert(&asset, asset_id);
 
 			Self::deposit_event(Event::ForeignAssetRegistered {
 				asset_id,
@@ -388,7 +388,7 @@ pub mod pallet {
 				SupportedFeePaymentAssets::<T>::put(supported_assets);
 			}
 
-			AssetTypeUnitsPerSecond::<T>::insert(&asset_type, &units_per_second);
+			AssetTypeUnitsPerSecond::<T>::insert(&asset_type, units_per_second);
 
 			Self::deposit_event(Event::UnitsPerSecondChanged {
 				asset_type,
@@ -419,11 +419,11 @@ pub mod pallet {
 			);
 
 			let previous_asset_type =
-				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+				AssetIdType::<T>::get(asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
 			// Insert new asset type info
-			AssetIdType::<T>::insert(&asset_id, &new_asset_type);
-			AssetTypeId::<T>::insert(&new_asset_type, &asset_id);
+			AssetIdType::<T>::insert(asset_id, &new_asset_type);
+			AssetTypeId::<T>::insert(&new_asset_type, asset_id);
 
 			// Remove previous asset type info
 			AssetTypeId::<T>::remove(&previous_asset_type);
@@ -506,10 +506,10 @@ pub mod pallet {
 			);
 
 			let asset_type =
-				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+				AssetIdType::<T>::get(asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
 			// Remove from AssetIdType
-			AssetIdType::<T>::remove(&asset_id);
+			AssetIdType::<T>::remove(asset_id);
 			// Remove from AssetTypeId
 			AssetTypeId::<T>::remove(&asset_type);
 			// Remove previous asset type units per second
@@ -629,10 +629,10 @@ pub mod pallet {
 			);
 
 			let asset_type =
-				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+				AssetIdType::<T>::get(asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
 			// Remove from AssetIdType
-			AssetIdType::<T>::remove(&asset_id);
+			AssetIdType::<T>::remove(asset_id);
 			// Remove from AssetTypeId
 			AssetTypeId::<T>::remove(&asset_type);
 			// Remove previous asset type units per second

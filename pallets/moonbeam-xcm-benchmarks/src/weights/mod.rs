@@ -64,7 +64,7 @@ where
 {
 	fn withdraw_asset(assets: &MultiAssets) -> XCMWeight {
 		assets.inner().iter().fold(Weight::zero(), |acc, asset| {
-			acc.saturating_add(XcmFungibleWeight::<Runtime>::withdraw_asset(&asset))
+			acc.saturating_add(XcmFungibleWeight::<Runtime>::withdraw_asset(asset))
 		})
 	}
 	// Currently there is no trusted reserve
@@ -84,7 +84,7 @@ where
 	}
 	fn transfer_asset(assets: &MultiAssets, _dest: &MultiLocation) -> XCMWeight {
 		assets.inner().iter().fold(Weight::zero(), |acc, asset| {
-			acc.saturating_add(XcmFungibleWeight::<Runtime>::transfer_asset(&asset))
+			acc.saturating_add(XcmFungibleWeight::<Runtime>::transfer_asset(asset))
 		})
 	}
 	fn transfer_reserve_asset(
@@ -93,7 +93,7 @@ where
 		_xcm: &Xcm<()>,
 	) -> XCMWeight {
 		assets.inner().iter().fold(Weight::zero(), |acc, asset| {
-			acc.saturating_add(XcmFungibleWeight::<Runtime>::transfer_reserve_asset(&asset))
+			acc.saturating_add(XcmFungibleWeight::<Runtime>::transfer_reserve_asset(asset))
 		})
 	}
 	fn transact(

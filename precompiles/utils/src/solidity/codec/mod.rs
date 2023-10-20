@@ -92,7 +92,7 @@ pub fn decode_arguments<T: Codec>(input: &[u8]) -> MayRevert<T> {
 		let input = writer.build();
 		decode(&input)
 	} else {
-		decode(&input)
+		decode(input)
 	}
 }
 

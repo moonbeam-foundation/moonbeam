@@ -254,7 +254,7 @@ fn test_remove_proxy_fails_if_proxy_not_exist() {
 						delay: 0,
 					},
 				)
-				.execute_reverts(|output| from_utf8(&output).unwrap().contains("NotFound"));
+				.execute_reverts(|output| from_utf8(output).unwrap().contains("NotFound"));
 		})
 }
 

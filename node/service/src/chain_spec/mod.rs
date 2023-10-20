@@ -123,7 +123,7 @@ pub fn get_account_id_from_pair(pair: ecdsa::Pair) -> Option<AccountId> {
 	let mut m = [0u8; 64];
 	m.copy_from_slice(&decompressed[1..65]);
 
-	Some(H160::from(H256::from_slice(Keccak256::digest(&m).as_slice())).into())
+	Some(H160::from(H256::from_slice(Keccak256::digest(m).as_slice())).into())
 }
 
 /// Function to generate accounts given a mnemonic and a number of child accounts to be generated

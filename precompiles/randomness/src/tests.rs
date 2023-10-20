@@ -393,7 +393,7 @@ fn fulfill_request_reverts_if_not_enough_gas() {
 				.execute_reverts(|revert| revert == b"not enough gas to perform the call");
 
 			// no refund
-			assert_eq!(Balances::free_balance(&AccountId::from(Charlie)), 0);
+			assert_eq!(Balances::free_balance(AccountId::from(Charlie)), 0);
 		})
 }
 
@@ -497,7 +497,7 @@ fn fulfill_request_works() {
 
 			// correctly refunded
 			assert_eq!(
-				U256::from(Balances::free_balance(&AccountId::from(Charlie))),
+				U256::from(Balances::free_balance(AccountId::from(Charlie))),
 				refunded_amount
 			);
 		})
@@ -605,7 +605,7 @@ fn fulfill_request_works_with_higher_gas() {
 
 			// correctly refunded
 			assert_eq!(
-				U256::from(Balances::free_balance(&AccountId::from(Charlie))),
+				U256::from(Balances::free_balance(AccountId::from(Charlie))),
 				refunded_amount
 			);
 		})
@@ -712,7 +712,7 @@ fn fulfill_request_works_with_subcall_revert() {
 
 			// correctly refunded
 			assert_eq!(
-				U256::from(Balances::free_balance(&AccountId::from(Charlie))),
+				U256::from(Balances::free_balance(AccountId::from(Charlie))),
 				refunded_amount
 			);
 		})

@@ -112,7 +112,7 @@ fn extract_precompile_name_and_prefix_for_precompile_at(
 							if let Ok(precompile_id) = int.base10_parse() {
 								if &path_segment_2.ident.to_string() == "CollectivePrecompile" {
 									if let Some(instance_ident) =
-										precompile_instance_ident(&path_segment_2)
+										precompile_instance_ident(path_segment_2)
 									{
 										return Some((instance_ident, precompile_id));
 									}

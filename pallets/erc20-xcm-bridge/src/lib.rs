@@ -83,7 +83,7 @@ pub mod pallet {
 					// to throw a compile error as a warning that data type has changed.
 					// If that happens, a new check is needed to ensure that data has at least 18
 					// bytes (size of b"gas_limit:" + u64)
-					let data: &[u8; 32] = &data;
+					let data: &[u8; 32] = data;
 					if let Ok(content) = core::str::from_utf8(&data[0..10]) {
 						if content == "gas_limit:" {
 							let mut bytes: [u8; 8] = Default::default();
@@ -129,7 +129,7 @@ pub mod pallet {
 				false,
 				Some(weight_limit),
 				Some(0),
-				&<T as pallet_evm::Config>::config(),
+				<T as pallet_evm::Config>::config(),
 			)
 			.map_err(|_| Erc20TransferError::EvmCallFail)?;
 

@@ -863,13 +863,13 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			let per_block = (105_000_000 * GLMR) / vesting_period;
 
 			assert_eq!(
-				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
+				CrowdloanRewards::accounts_payable(AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
 				(45_000_000 * GLMR) + per_block
 			);
 			assert_eq!(
-				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
+				CrowdloanRewards::accounts_payable(AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
 				(45_000_000 * GLMR) + per_block
@@ -984,7 +984,7 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 			));
 
 			assert_eq!(
-				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
+				CrowdloanRewards::accounts_payable(AccountId::from(DAVE))
 					.unwrap()
 					.claimed_reward,
 				(900_000 * GLMR)
@@ -1078,7 +1078,7 @@ fn claim_via_precompile() {
 			let per_block = (1_050_000 * GLMR) / vesting_period;
 
 			assert_eq!(
-				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
+				CrowdloanRewards::accounts_payable(AccountId::from(CHARLIE))
 					.unwrap()
 					.claimed_reward,
 				(450_000 * GLMR) + per_block
@@ -1317,9 +1317,9 @@ fn update_reward_address_via_precompile() {
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
-			assert!(CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE)).is_none());
+			assert!(CrowdloanRewards::accounts_payable(AccountId::from(CHARLIE)).is_none());
 			assert_eq!(
-				CrowdloanRewards::accounts_payable(&AccountId::from(ALICE))
+				CrowdloanRewards::accounts_payable(AccountId::from(ALICE))
 					.unwrap()
 					.claimed_reward,
 				(450_000 * GLMR)
@@ -2255,10 +2255,10 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 					},
 				)
 				.execute_reverts(|output| {
-					from_utf8(&output)
+					from_utf8(output)
 						.unwrap()
 						.contains("Dispatched call failed with error:")
-						&& from_utf8(&output).unwrap().contains("ErrorValidating")
+						&& from_utf8(output).unwrap().contains("ErrorValidating")
 				});
 		});
 }
@@ -2382,7 +2382,7 @@ fn call_xtokens_with_fee() {
 			};
 			let source_id: moonbeam_runtime::AssetId = source_location.clone().into();
 
-			let before_balance = Assets::balance(source_id, &AccountId::from(ALICE));
+			let before_balance = Assets::balance(source_id, AccountId::from(ALICE));
 
 			// We are able to transfer with fee
 			assert_ok!(XTokens::transfer_with_fee(
@@ -2394,7 +2394,7 @@ fn call_xtokens_with_fee() {
 				WeightLimit::Limited(4000000000.into())
 			));
 
-			let after_balance = Assets::balance(source_id, &AccountId::from(ALICE));
+			let after_balance = Assets::balance(source_id, AccountId::from(ALICE));
 			// At least these much (plus fees) should have been charged
 			assert_eq!(before_balance - 100_000_000_000_000 - 100, after_balance);
 		});
@@ -2638,7 +2638,7 @@ fn deal_with_fees_handles_tip() {
 			DealWithFees::on_unbalanceds(fees_then_tips.into_iter());
 
 			// treasury should have received 20%
-			assert_eq!(Balances::free_balance(&Treasury::account_id()), 220);
+			assert_eq!(Balances::free_balance(Treasury::account_id()), 220);
 
 			// verify 80% burned
 			let total_supply_after = Balances::total_issuance();

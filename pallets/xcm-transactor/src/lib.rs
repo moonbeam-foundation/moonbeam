@@ -416,11 +416,11 @@ pub mod pallet {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 
 			ensure!(
-				IndexToAccount::<T>::get(&index).is_none(),
+				IndexToAccount::<T>::get(index).is_none(),
 				Error::<T>::IndexAlreadyClaimed
 			);
 
-			IndexToAccount::<T>::insert(&index, who.clone());
+			IndexToAccount::<T>::insert(index, who.clone());
 
 			// Deposit event
 			Self::deposit_event(Event::<T>::RegisteredDerivative {
@@ -439,7 +439,7 @@ pub mod pallet {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 
 			// Remove index
-			IndexToAccount::<T>::remove(&index);
+			IndexToAccount::<T>::remove(index);
 
 			// Deposit event
 			Self::deposit_event(Event::<T>::DeRegisteredDerivative { index });
@@ -640,7 +640,7 @@ pub mod pallet {
 				transact_extra_weight_signed,
 			};
 
-			TransactInfoWithWeightLimit::<T>::insert(&location, &remote_info);
+			TransactInfoWithWeightLimit::<T>::insert(location, &remote_info);
 
 			Self::deposit_event(Event::TransactInfoChanged {
 				location,
@@ -661,7 +661,7 @@ pub mod pallet {
 				MultiLocation::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
 
 			// Remove transact info
-			TransactInfoWithWeightLimit::<T>::remove(&location);
+			TransactInfoWithWeightLimit::<T>::remove(location);
 
 			Self::deposit_event(Event::TransactInfoRemoved { location });
 			Ok(())
@@ -755,7 +755,7 @@ pub mod pallet {
 			let asset_location =
 				MultiLocation::try_from(*asset_location).map_err(|()| Error::<T>::BadVersion)?;
 
-			DestinationAssetFeePerSecond::<T>::insert(&asset_location, &fee_per_second);
+			DestinationAssetFeePerSecond::<T>::insert(asset_location, fee_per_second);
 
 			Self::deposit_event(Event::DestFeePerSecondChanged {
 				location: asset_location,
@@ -775,7 +775,7 @@ pub mod pallet {
 			let asset_location =
 				MultiLocation::try_from(*asset_location).map_err(|()| Error::<T>::BadVersion)?;
 
-			DestinationAssetFeePerSecond::<T>::remove(&asset_location);
+			DestinationAssetFeePerSecond::<T>::remove(asset_location);
 
 			Self::deposit_event(Event::DestFeePerSecondRemoved {
 				location: asset_location,
@@ -1146,7 +1146,7 @@ pub mod pallet {
 			// so we have to ensure 'refund' is false
 			ensure!(!refund, Error::<T>::RefundNotSupportedWithTransactInfo);
 			// Grab transact info for the destination provided
-			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
+			let transactor_info = TransactInfoWithWeightLimit::<T>::get(dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
 
 			let total_weight = dest_weight
@@ -1171,7 +1171,7 @@ pub mod pallet {
 			// so we have to ensure 'refund' is false
 			ensure!(!refund, Error::<T>::RefundNotSupportedWithTransactInfo);
 			// Grab transact info for the destination provided
-			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
+			let transactor_info = TransactInfoWithWeightLimit::<T>::get(dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
 
 			// If this storage item is not set, it means that the destination chain
@@ -1198,7 +1198,7 @@ pub mod pallet {
 			destination: MultiLocation,
 			total_weight: Weight,
 		) -> Result<u128, DispatchError> {
-			let fee_per_second = DestinationAssetFeePerSecond::<T>::get(&fee_location)
+			let fee_per_second = DestinationAssetFeePerSecond::<T>::get(fee_location)
 				.ok_or(Error::<T>::FeePerSecondNotSet)?;
 
 			// Ensure the asset is a reserve

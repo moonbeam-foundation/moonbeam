@@ -219,7 +219,7 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 					solidity_struct = SolidityStruct::default();
 				}
 				(Stage::StructParams, Pair::First, _) => {
-					let param = try_lookup_custom_type(&word, &custom_types);
+					let param = try_lookup_custom_type(word, &custom_types);
 					solidity_struct.params.push(param);
 					pair.next();
 				}

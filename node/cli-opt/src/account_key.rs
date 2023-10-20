@@ -109,7 +109,7 @@ impl PrivateKeyT for Secp256k1SecretKey {
 	type PublicKey = Secp256k1PublicKey;
 
 	fn from_bytes(bytes: &PrivateKeyBytes) -> Result<Self, Bip32Error> {
-		let secret = SecretKey::parse(&bytes).map_err(|_| return Bip32Error::Decode)?;
+		let secret = SecretKey::parse(bytes).map_err(|_| return Bip32Error::Decode)?;
 		Ok(Self(secret))
 	}
 

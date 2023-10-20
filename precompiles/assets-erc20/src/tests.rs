@@ -503,10 +503,10 @@ fn transfer_not_enough_founds() {
 					},
 				)
 				.execute_reverts(|output| {
-					from_utf8(&output)
+					from_utf8(output)
 						.unwrap()
 						.contains("Dispatched call failed with error: ")
-						&& from_utf8(&output).unwrap().contains("BalanceLow")
+						&& from_utf8(output).unwrap().contains("BalanceLow")
 				});
 		});
 }
@@ -1067,10 +1067,10 @@ fn freeze_local_assets() {
 					},
 				)
 				.execute_reverts(|output| {
-					from_utf8(&output)
+					from_utf8(output)
 						.unwrap()
 						.contains("Dispatched call failed with error: ")
-						&& from_utf8(&output).unwrap().contains("Frozen")
+						&& from_utf8(output).unwrap().contains("Frozen")
 				});
 		});
 }
@@ -1196,10 +1196,10 @@ fn freeze_asset_local_asset() {
 					},
 				)
 				.execute_reverts(|output| {
-					from_utf8(&output)
+					from_utf8(output)
 						.unwrap()
 						.contains("Dispatched call failed with error: ")
-						&& from_utf8(&output).unwrap().contains("AssetNotLive")
+						&& from_utf8(output).unwrap().contains("AssetNotLive")
 				});
 		});
 }
@@ -1313,10 +1313,10 @@ fn transfer_ownership_local_assets() {
 					},
 				)
 				.execute_reverts(|output| {
-					from_utf8(&output)
+					from_utf8(output)
 						.unwrap()
 						.contains("Dispatched call failed with error: ")
-						&& from_utf8(&output).unwrap().contains("NoPermission")
+						&& from_utf8(output).unwrap().contains("NoPermission")
 				});
 
 			precompiles()
@@ -1380,10 +1380,10 @@ fn set_team_local_assets() {
 					},
 				)
 				.execute_reverts(|output| {
-					from_utf8(&output)
+					from_utf8(output)
 						.unwrap()
 						.contains("Dispatched call failed with error: ")
-						&& from_utf8(&output).unwrap().contains("NoPermission")
+						&& from_utf8(output).unwrap().contains("NoPermission")
 				});
 
 			precompiles()

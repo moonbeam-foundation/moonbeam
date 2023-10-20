@@ -79,7 +79,7 @@ where
 	/// Retrieves the auto-compounding value for a delegation. The `delegations_config` must be a
 	/// sorted vector for binary_search to work.
 	pub fn get_for_delegator(&self, delegator: &T::AccountId) -> Option<Percent> {
-		match self.0.binary_search_by(|d| d.delegator.cmp(&delegator)) {
+		match self.0.binary_search_by(|d| d.delegator.cmp(delegator)) {
 			Ok(index) => Some(self.0[index].value),
 			Err(_) => None,
 		}
@@ -114,7 +114,7 @@ where
 	/// Returns `true` if the entry was removed, `false` otherwise. The `delegations_config` must be a
 	/// sorted vector for binary_search to work.
 	pub fn remove_for_delegator(&mut self, delegator: &T::AccountId) -> bool {
-		match self.0.binary_search_by(|d| d.delegator.cmp(&delegator)) {
+		match self.0.binary_search_by(|d| d.delegator.cmp(delegator)) {
 			Ok(index) => {
 				self.0.remove(index);
 				true
@@ -307,7 +307,7 @@ where
 	pub(crate) fn remove_auto_compound(candidate: &T::AccountId, delegator: &T::AccountId) {
 		let mut auto_compounding_state = Self::get_storage(candidate);
 		if auto_compounding_state.remove_for_delegator(delegator) {
-			auto_compounding_state.set_storage(&candidate);
+			auto_compounding_state.set_storage(candidate);
 		}
 	}
 
@@ -315,7 +315,7 @@ where
 	pub(crate) fn auto_compound(candidate: &T::AccountId, delegator: &T::AccountId) -> Percent {
 		let delegations_config = Self::get_storage(candidate);
 		delegations_config
-			.get_for_delegator(&delegator)
+			.get_for_delegator(delegator)
 			.unwrap_or_else(|| Percent::zero())
 	}
 }

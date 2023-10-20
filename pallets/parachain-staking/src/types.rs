@@ -654,7 +654,7 @@ impl<
 			// only increment delegation count if we are not kicking a bottom delegation
 			self.delegation_count = self.delegation_count.saturating_add(1u32);
 		}
-		<TopDelegations<T>>::insert(&candidate, top_delegations);
+		<TopDelegations<T>>::insert(candidate, top_delegations);
 		less_total_staked
 	}
 	/// Add delegation to bottom delegations
@@ -694,12 +694,12 @@ impl<
 			let leaving = delegator_state.delegations.0.len() == 1usize;
 			delegator_state.rm_delegation::<T>(candidate);
 			<Pallet<T>>::delegation_remove_request_with_state(
-				&candidate,
+				candidate,
 				&lowest_bottom_to_be_kicked.owner,
 				&mut delegator_state,
 			);
 			<AutoCompoundDelegations<T>>::remove_auto_compound(
-				&candidate,
+				candidate,
 				&lowest_bottom_to_be_kicked.owner,
 			);
 

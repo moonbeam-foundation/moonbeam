@@ -417,7 +417,7 @@ pub mod pallet {
 
 			// Remove all AccountLookupOverride entries related to this collator
 			for orbiter in collator_pool.get_orbiters() {
-				AccountLookupOverride::<T>::remove(&orbiter);
+				AccountLookupOverride::<T>::remove(orbiter);
 			}
 			AccountLookupOverride::<T>::remove(&collator);
 
