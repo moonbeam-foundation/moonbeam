@@ -151,11 +151,7 @@ impl<'a> From<evm::tracing::Event<'a>> for EvmEvent {
 				context,
 			} => Self::Call {
 				code_address,
-				transfer: if let Some(transfer) = transfer {
-					Some(transfer.clone().into())
-				} else {
-					None
-				},
+				transfer: transfer.as_ref().map(|transfer| transfer.clone().into()),
 				input: input.to_vec(),
 				target_gas,
 				is_static,
@@ -242,11 +238,7 @@ impl<'a> From<evm::tracing::Event<'a>> for EvmEvent {
 				context,
 			} => Self::PrecompileSubcall {
 				code_address,
-				transfer: if let Some(transfer) = transfer {
-					Some(transfer.clone().into())
-				} else {
-					None
-				},
+				transfer: transfer.as_ref().map(|transfer| transfer.clone().into()),
 				input: input.to_vec(),
 				target_gas,
 				is_static,
