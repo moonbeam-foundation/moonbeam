@@ -705,7 +705,7 @@ where
 			return Ok(pallet_identity::Judgement::Erroneous);
 		}
 
-		return Err(RevertReason::custom("invalid"));
+		Err(RevertReason::custom("invalid"))
 	}
 
 	fn data_to_output(data: pallet_identity::Data) -> Data {

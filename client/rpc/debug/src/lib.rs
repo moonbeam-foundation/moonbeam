@@ -254,10 +254,10 @@ where
 				if let Some(tracer) = tracer {
 					Ok((tracer, single::TraceType::CallList))
 				} else {
-					return Err(internal_err(format!(
+					Err(internal_err(format!(
 						"javascript based tracing is not available (hash :{:?})",
 						hash
-					)));
+					)))
 				}
 			}
 			Some(params) => Ok((
@@ -381,7 +381,7 @@ where
 			Ok(moonbeam_rpc_primitives_debug::Response::Block)
 		};
 
-		return match trace_type {
+		match trace_type {
 			single::TraceType::CallList => {
 				let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
 				proxy.using(f)?;
@@ -404,7 +404,7 @@ where
 				by providing `{{'tracer': 'callTracer'}}` in the request)."
 					.to_string(),
 			)),
-		};
+		}
 	}
 
 	/// Replays a transaction in the Runtime at a given block height.

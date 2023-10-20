@@ -89,7 +89,7 @@ pub struct Secp256k1SecretKey(pub SecretKey);
 
 impl PublicKeyT for Secp256k1PublicKey {
 	fn from_bytes(bytes: PublicKeyBytes) -> Result<Self, Bip32Error> {
-		let public = PublicKey::parse_compressed(&bytes).map_err(|_| return Bip32Error::Decode)?;
+		let public = PublicKey::parse_compressed(&bytes).map_err(|_| Bip32Error::Decode)?;
 		Ok(Self(public))
 	}
 
@@ -99,7 +99,7 @@ impl PublicKeyT for Secp256k1PublicKey {
 
 	fn derive_child(&self, other: PrivateKeyBytes) -> Result<Self, Bip32Error> {
 		let mut child = self.0;
-		let secret = SecretKey::parse(&other).map_err(|_| return Bip32Error::Decode)?;
+		let secret = SecretKey::parse(&other).map_err(|_| Bip32Error::Decode)?;
 		let _ = child.tweak_add_assign(&secret);
 		Ok(Self(child))
 	}
@@ -109,7 +109,7 @@ impl PrivateKeyT for Secp256k1SecretKey {
 	type PublicKey = Secp256k1PublicKey;
 
 	fn from_bytes(bytes: &PrivateKeyBytes) -> Result<Self, Bip32Error> {
-		let secret = SecretKey::parse(bytes).map_err(|_| return Bip32Error::Decode)?;
+		let secret = SecretKey::parse(bytes).map_err(|_| Bip32Error::Decode)?;
 		Ok(Self(secret))
 	}
 
@@ -119,7 +119,7 @@ impl PrivateKeyT for Secp256k1SecretKey {
 
 	fn derive_child(&self, other: PrivateKeyBytes) -> Result<Self, Bip32Error> {
 		let mut child = self.0;
-		let secret = SecretKey::parse(&other).map_err(|_| return Bip32Error::Decode)?;
+		let secret = SecretKey::parse(&other).map_err(|_| Bip32Error::Decode)?;
 		let _ = child.tweak_add_assign(&secret);
 		Ok(Self(child))
 	}

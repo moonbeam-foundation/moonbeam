@@ -139,11 +139,11 @@ impl Cli {
 	fn runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
 		match spec {
 			#[cfg(feature = "moonriver-native")]
-			spec if spec.is_moonriver() => return &moonbeam_service::moonriver_runtime::VERSION,
+			spec if spec.is_moonriver() => &moonbeam_service::moonriver_runtime::VERSION,
 			#[cfg(feature = "moonbeam-native")]
-			spec if spec.is_moonbeam() => return &moonbeam_service::moonbeam_runtime::VERSION,
+			spec if spec.is_moonbeam() => &moonbeam_service::moonbeam_runtime::VERSION,
 			#[cfg(feature = "moonbase-native")]
-			_ => return &moonbeam_service::moonbase_runtime::VERSION,
+			_ => &moonbeam_service::moonbase_runtime::VERSION,
 			#[cfg(not(feature = "moonbase-native"))]
 			_ => panic!("invalid chain spec"),
 		}
@@ -482,29 +482,23 @@ pub fn run() -> Result<()> {
 						let chain_spec = &runner.config().chain_spec;
 						match chain_spec {
 							#[cfg(feature = "moonriver-native")]
-							spec if spec.is_moonriver() => {
-								return runner.sync_run(|config| {
-									cmd.run::<moonbeam_service::moonriver_runtime::Block, moonbeam_service::HostFunctions>(
+							spec if spec.is_moonriver() => runner.sync_run(|config| {
+								cmd.run::<moonbeam_service::moonriver_runtime::Block, moonbeam_service::HostFunctions>(
 										config,
 									)
-								})
-							}
+							}),
 							#[cfg(feature = "moonbeam-native")]
-							spec if spec.is_moonbeam() => {
-								return runner.sync_run(|config| {
-									cmd.run::<moonbeam_service::moonbeam_runtime::Block, moonbeam_service::HostFunctions>(
+							spec if spec.is_moonbeam() => runner.sync_run(|config| {
+								cmd.run::<moonbeam_service::moonbeam_runtime::Block, moonbeam_service::HostFunctions>(
 										config,
 									)
-								})
-							}
+							}),
 							#[cfg(feature = "moonbase-native")]
-							_ => {
-								return runner.sync_run(|config| {
-									cmd.run::<moonbeam_service::moonbase_runtime::Block, moonbeam_service::HostFunctions>(
+							_ => runner.sync_run(|config| {
+								cmd.run::<moonbeam_service::moonbase_runtime::Block, moonbeam_service::HostFunctions>(
 										config,
 									)
-								})
-							}
+							}),
 							#[cfg(not(feature = "moonbase-native"))]
 							_ => panic!("invalid chain spec"),
 						}
@@ -525,38 +519,32 @@ pub fn run() -> Result<()> {
 					let rpc_config = cli.run.new_rpc_config();
 					match chain_spec {
 						#[cfg(feature = "moonriver-native")]
-						spec if spec.is_moonriver() => {
-							return runner.sync_run(|mut config| {
-								let params = moonbeam_service::new_partial::<
-									moonbeam_service::moonriver_runtime::RuntimeApi,
-									moonbeam_service::MoonriverExecutor,
-								>(&mut config, &rpc_config, false)?;
+						spec if spec.is_moonriver() => runner.sync_run(|mut config| {
+							let params = moonbeam_service::new_partial::<
+								moonbeam_service::moonriver_runtime::RuntimeApi,
+								moonbeam_service::MoonriverExecutor,
+							>(&mut config, &rpc_config, false)?;
 
-								cmd.run(params.client)
-							})
-						}
+							cmd.run(params.client)
+						}),
 						#[cfg(feature = "moonbeam-native")]
-						spec if spec.is_moonbeam() => {
-							return runner.sync_run(|mut config| {
-								let params = moonbeam_service::new_partial::<
-									moonbeam_service::moonbeam_runtime::RuntimeApi,
-									moonbeam_service::MoonbeamExecutor,
-								>(&mut config, &rpc_config, false)?;
+						spec if spec.is_moonbeam() => runner.sync_run(|mut config| {
+							let params = moonbeam_service::new_partial::<
+								moonbeam_service::moonbeam_runtime::RuntimeApi,
+								moonbeam_service::MoonbeamExecutor,
+							>(&mut config, &rpc_config, false)?;
 
-								cmd.run(params.client)
-							})
-						}
+							cmd.run(params.client)
+						}),
 						#[cfg(feature = "moonbase-native")]
-						_ => {
-							return runner.sync_run(|mut config| {
-								let params = moonbeam_service::new_partial::<
-									moonbeam_service::moonbase_runtime::RuntimeApi,
-									moonbeam_service::MoonbaseExecutor,
-								>(&mut config, &rpc_config, false)?;
+						_ => runner.sync_run(|mut config| {
+							let params = moonbeam_service::new_partial::<
+								moonbeam_service::moonbase_runtime::RuntimeApi,
+								moonbeam_service::MoonbaseExecutor,
+							>(&mut config, &rpc_config, false)?;
 
-								cmd.run(params.client)
-							})
-						}
+							cmd.run(params.client)
+						}),
 						#[cfg(not(feature = "moonbase-native"))]
 						_ => panic!("invalid chain spec"),
 					}
@@ -572,61 +560,53 @@ pub fn run() -> Result<()> {
 					let rpc_config = cli.run.new_rpc_config();
 					match chain_spec {
 						#[cfg(feature = "moonriver-native")]
-						spec if spec.is_moonriver() => {
-							return runner.sync_run(|mut config| {
-								let params = moonbeam_service::new_partial::<
-									moonbeam_service::moonriver_runtime::RuntimeApi,
-									moonbeam_service::MoonriverExecutor,
-								>(&mut config, &rpc_config, false)?;
+						spec if spec.is_moonriver() => runner.sync_run(|mut config| {
+							let params = moonbeam_service::new_partial::<
+								moonbeam_service::moonriver_runtime::RuntimeApi,
+								moonbeam_service::MoonriverExecutor,
+							>(&mut config, &rpc_config, false)?;
 
-								let db = params.backend.expose_db();
-								let storage = params.backend.expose_storage();
+							let db = params.backend.expose_db();
+							let storage = params.backend.expose_storage();
 
-								cmd.run(config, params.client, db, storage)
-							})
-						}
+							cmd.run(config, params.client, db, storage)
+						}),
 						#[cfg(feature = "moonbeam-native")]
-						spec if spec.is_moonbeam() => {
-							return runner.sync_run(|mut config| {
-								let params = moonbeam_service::new_partial::<
-									moonbeam_service::moonbeam_runtime::RuntimeApi,
-									moonbeam_service::MoonbeamExecutor,
-								>(&mut config, &rpc_config, false)?;
+						spec if spec.is_moonbeam() => runner.sync_run(|mut config| {
+							let params = moonbeam_service::new_partial::<
+								moonbeam_service::moonbeam_runtime::RuntimeApi,
+								moonbeam_service::MoonbeamExecutor,
+							>(&mut config, &rpc_config, false)?;
 
-								let db = params.backend.expose_db();
-								let storage = params.backend.expose_storage();
+							let db = params.backend.expose_db();
+							let storage = params.backend.expose_storage();
 
-								cmd.run(config, params.client, db, storage)
-							})
-						}
+							cmd.run(config, params.client, db, storage)
+						}),
 						#[cfg(feature = "moonbase-native")]
-						_ => {
-							return runner.sync_run(|mut config| {
-								let params = moonbeam_service::new_partial::<
-									moonbeam_service::moonbase_runtime::RuntimeApi,
-									moonbeam_service::MoonbaseExecutor,
-								>(&mut config, &rpc_config, false)?;
+						_ => runner.sync_run(|mut config| {
+							let params = moonbeam_service::new_partial::<
+								moonbeam_service::moonbase_runtime::RuntimeApi,
+								moonbeam_service::MoonbaseExecutor,
+							>(&mut config, &rpc_config, false)?;
 
-								let db = params.backend.expose_db();
-								let storage = params.backend.expose_storage();
+							let db = params.backend.expose_db();
+							let storage = params.backend.expose_storage();
 
-								cmd.run(config, params.client, db, storage)
-							})
-						}
+							cmd.run(config, params.client, db, storage)
+						}),
 						#[cfg(not(feature = "moonbase-native"))]
 						_ => panic!("invalid chain spec"),
 					}
 				}
 				BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
 				BenchmarkCmd::Extrinsic(_) => Err("Unsupported benchmarking command".into()),
-				BenchmarkCmd::Machine(cmd) => {
-					return runner.sync_run(|config| {
-						cmd.run(
-							&config,
-							frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE.clone(),
-						)
-					});
-				}
+				BenchmarkCmd::Machine(cmd) => runner.sync_run(|config| {
+					cmd.run(
+						&config,
+						frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE.clone(),
+					)
+				}),
 			}
 		}
 		Some(Subcommand::TryRuntime) => Err("The `try-runtime` subcommand has been migrated to a \

@@ -189,7 +189,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 					s: rs_id(),
 				}))
 			}
-			_ => return None,
+			_ => None,
 		}
 	}
 }

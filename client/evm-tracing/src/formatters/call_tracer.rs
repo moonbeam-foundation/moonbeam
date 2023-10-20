@@ -177,7 +177,7 @@ impl super::ResponseFormatter for Formatter {
 									continue;
 								}
 							}
-							return false;
+							false
 						};
 						if b_len > a_len || (a_len == b_len && sibling_greater_than(a, b)) {
 							Ordering::Less
@@ -245,7 +245,7 @@ impl super::ResponseFormatter for Formatter {
 		if traces.is_empty() {
 			return None;
 		}
-		return Some(traces);
+		Some(traces)
 	}
 }
 

@@ -107,12 +107,12 @@ impl<
 					self.0 = weight;
 					self.1 = Some((id, amount, units_per_second));
 
-					return Ok(unused);
+					Ok(unused)
 				} else {
-					return Err(XcmError::TooExpensive);
-				};
+					Err(XcmError::TooExpensive)
+				}
 			}
-			_ => return Err(XcmError::TooExpensive),
+			_ => Err(XcmError::TooExpensive),
 		}
 	}
 
