@@ -192,18 +192,24 @@ impl pallet_timestamp::Config for Runtime {
 
 #[repr(u8)]
 #[derive(
-	Debug, Eq, PartialEq, Ord, PartialOrd, Decode, MaxEncodedLen, Encode, Clone, Copy, TypeInfo,
+	Debug,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Decode,
+	MaxEncodedLen,
+	Encode,
+	Clone,
+	Copy,
+	TypeInfo,
+	Default,
 )]
 pub enum ProxyType {
+	#[default]
 	Any = 0,
 	Something = 1,
 	Nothing = 2,
-}
-
-impl std::default::Default for ProxyType {
-	fn default() -> Self {
-		ProxyType::Any
-	}
 }
 
 impl crate::EvmProxyCallFilter for ProxyType {
@@ -253,15 +259,10 @@ impl pallet_proxy::Config for Runtime {
 }
 
 /// Build test externalities, prepopulated with data for testing democracy precompiles
+#[derive(Default)]
 pub(crate) struct ExtBuilder {
 	/// Endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
-}
-
-impl Default for ExtBuilder {
-	fn default() -> ExtBuilder {
-		ExtBuilder { balances: vec![] }
-	}
 }
 
 impl ExtBuilder {

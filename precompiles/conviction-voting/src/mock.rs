@@ -263,15 +263,10 @@ impl pallet_conviction_voting::Config for Runtime {
 	type Polls = TestPolls;
 }
 
+#[derive(Default)]
 pub(crate) struct ExtBuilder {
 	/// Endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
-}
-
-impl Default for ExtBuilder {
-	fn default() -> ExtBuilder {
-		ExtBuilder { balances: vec![] }
-	}
 }
 
 impl ExtBuilder {

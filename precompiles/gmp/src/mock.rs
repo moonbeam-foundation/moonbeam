@@ -409,15 +409,10 @@ impl orml_xtokens::Config for Runtime {
 	type UniversalLocation = UniversalLocation;
 }
 
+#[derive(Default)]
 pub(crate) struct ExtBuilder {
 	/// Endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
-}
-
-impl Default for ExtBuilder {
-	fn default() -> ExtBuilder {
-		ExtBuilder { balances: vec![] }
-	}
 }
 
 impl ExtBuilder {

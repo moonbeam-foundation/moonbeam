@@ -82,21 +82,16 @@ impl<AccountId: Ord, Balance> PartialEq for Bond<AccountId, Balance> {
 	}
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(Copy, Clone, Default, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// The activity status of the collator
 pub enum CollatorStatus {
 	/// Committed to be online and producing valid blocks (not equivocating)
+	#[default]
 	Active,
 	/// Temporarily inactive and excused for inactivity
 	Idle,
 	/// Bonded until the inner round
 	Leaving(RoundIndex),
-}
-
-impl Default for CollatorStatus {
-	fn default() -> CollatorStatus {
-		CollatorStatus::Active
-	}
 }
 
 #[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]

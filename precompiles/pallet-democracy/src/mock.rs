@@ -228,20 +228,12 @@ impl pallet_preimage::Config for Runtime {
 }
 
 /// Build test externalities, prepopulated with data for testing democracy precompiles
+#[derive(Default)]
 pub(crate) struct ExtBuilder {
 	/// Endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 	/// Referenda that already exist (don't need a proposal and launch period delay)
 	referenda: Vec<(Bounded<RuntimeCall>, VoteThreshold, BlockNumber)>,
-}
-
-impl Default for ExtBuilder {
-	fn default() -> ExtBuilder {
-		ExtBuilder {
-			balances: vec![],
-			referenda: vec![],
-		}
-	}
 }
 
 impl ExtBuilder {
