@@ -310,11 +310,12 @@
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
       ],
       "multiThreads": {
-        "vmThreads": {
+        "threads": {
+          "isolate": true,
           "minThreads": 1,
-          "maxThreads": 4,
-          "useAtomics": true,
-          "memoryLimit": 0.5
+          "maxThreads": 8,
+          "singleThread": false,
+          "useAtomics": true
         }
       },
       "envVars": ["DEBUG_COLORS=1"],
