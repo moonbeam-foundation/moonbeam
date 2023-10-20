@@ -396,7 +396,7 @@ where
 
 		let sub_context = Context {
 			caller: real.0,
-			address: address.clone(),
+			address,
 			apparent_value: value,
 		};
 
@@ -426,7 +426,7 @@ where
 
 			Some(Transfer {
 				source: sub_context.caller,
-				target: address.clone(),
+				target: address,
 				value,
 			})
 		};

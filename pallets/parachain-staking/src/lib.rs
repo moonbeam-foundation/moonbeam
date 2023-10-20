@@ -1289,7 +1289,7 @@ pub mod pallet {
 			let (in_top, weight) = Self::delegation_bond_more_without_event(
 				delegator.clone(),
 				candidate.clone(),
-				more.clone(),
+				more,
 			)?;
 			Pallet::<T>::deposit_event(Event::DelegationIncreased {
 				delegator,
@@ -1936,7 +1936,7 @@ pub mod pallet {
 							num_paid_delegations += 1u32;
 							Self::mint_and_compound(
 								due,
-								auto_compound.clone(),
+								auto_compound,
 								collator.clone(),
 								owner.clone(),
 							);
@@ -2207,7 +2207,7 @@ pub mod pallet {
 			delegator: T::AccountId,
 		) {
 			if let Ok(amount_transferred) =
-				T::Currency::deposit_into_existing(&delegator, amt.clone())
+				T::Currency::deposit_into_existing(&delegator, amt)
 			{
 				Self::deposit_event(Event::Rewarded {
 					account: delegator.clone(),
@@ -2222,7 +2222,7 @@ pub mod pallet {
 				if let Err(err) = Self::delegation_bond_more_without_event(
 					delegator.clone(),
 					candidate.clone(),
-					compound_amount.clone(),
+					compound_amount,
 				) {
 					log::debug!(
 						"skipped compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
@@ -2236,7 +2236,7 @@ pub mod pallet {
 				Pallet::<T>::deposit_event(Event::Compounded {
 					delegator,
 					candidate,
-					amount: compound_amount.clone(),
+					amount: compound_amount,
 				});
 			};
 		}

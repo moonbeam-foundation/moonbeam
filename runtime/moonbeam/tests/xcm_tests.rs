@@ -1927,7 +1927,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest.clone()).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -2005,7 +2005,7 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest.clone()).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -2065,7 +2065,7 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest.clone()).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -2137,7 +2137,7 @@ fn empty_account_should_not_be_reset() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest.clone()).clone().into()),
+			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -3034,7 +3034,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
 			// ParaB
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
 			// Para charges 1000 for every instruction, and we have 3, so 3
 			3.into(),
 			20000000000.into(),
@@ -3044,7 +3044,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances)),
 			parachain::ParaTokensPerSecond::get().1 as u128,
 		));
 		ancestry = parachain::UniversalLocation::get().into();
@@ -3076,7 +3076,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 		// free execution, full amount received
 		assert_ok!(ParaBalances::transfer(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			derived.clone(),
+			derived,
 			4000000104u128,
 		));
 		// derived account has all funds
@@ -3143,7 +3143,7 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances)),
 			parachain::ParaTokensPerSecond::get().1 as u128,
 		));
 		ancestry = parachain::UniversalLocation::get().into();
@@ -3175,7 +3175,7 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 		// free execution, full amount received
 		assert_ok!(ParaBalances::transfer(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			derived.clone(),
+			derived,
 			4000009100u128,
 		));
 		// derived account has all funds
@@ -3246,7 +3246,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
 			// ParaB
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
 			// Para charges 1000 for every instruction, and we have 3, so 3
 			3.into(),
 			20000000000.into(),
@@ -3256,7 +3256,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances)),
 			parachain::ParaTokensPerSecond::get().1 as u128,
 		));
 		ancestry = parachain::UniversalLocation::get().into();
@@ -3288,7 +3288,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 	ParaB::execute_with(|| {
 		assert_ok!(ParaBalances::transfer(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			derived.clone(),
+			derived,
 			4000000104u128,
 		));
 		// derived account has all funds
@@ -3374,7 +3374,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
 			// ParaB
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
 			// Para charges 1000 for every instruction, and we have 3, so 3
 			3.into(),
 			20000000000.into(),
@@ -3384,7 +3384,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances)),
 			parachain::ParaTokensPerSecond::get().1 as u128,
 		));
 		ancestry = parachain::UniversalLocation::get().into();
@@ -3416,7 +3416,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 	ParaB::execute_with(|| {
 		assert_ok!(ParaBalances::transfer(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			derived.clone(),
+			derived,
 			4000000104u128,
 		));
 		// derived account has all funds
@@ -3498,7 +3498,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
 			// ParaB
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
 			// Para charges 1000 for every instruction, and we have 3, so 3
 			3.into(),
 			20000000000.into(),
@@ -3508,7 +3508,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances)),
 			parachain::ParaTokensPerSecond::get().1 as u128,
 		));
 		ancestry = parachain::UniversalLocation::get().into();
@@ -3541,7 +3541,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 	ParaB::execute_with(|| {
 		assert_ok!(ParaBalances::transfer(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			derived.clone(),
+			derived,
 			4000000104u128,
 		));
 		// derived account has all funds

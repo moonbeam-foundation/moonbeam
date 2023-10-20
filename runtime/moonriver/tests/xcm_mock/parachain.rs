@@ -595,7 +595,7 @@ pub mod mock_msg_queue {
 					let mut id = [0u8; 32];
 					id.copy_from_slice(hash.as_ref());
 					match T::XcmExecutor::execute_xcm(location, xcm, id, max_weight) {
-						Outcome::Error(e) => (Err(e.clone()), Event::Fail(Some(hash), e)),
+						Outcome::Error(e) => (Err(e), Event::Fail(Some(hash), e)),
 						Outcome::Complete(w) => (Ok(w), Event::Success(Some(hash))),
 						// As far as the caller is concerned, this was dispatched without error, so
 						// we just report the weight used.
@@ -1050,7 +1050,7 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 			MockTransactors::Relay => match call {
 				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
 					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+						RelayCall::Utility(UtilityCall::AsDerivative(a)).encode();
 					call.append(&mut b.clone());
 					call
 				}
@@ -1066,17 +1066,17 @@ impl xcm_primitives::HrmpEncodeCall for MockHrmpEncoder {
 	) -> Result<Vec<u8>, xcm::latest::Error> {
 		match call {
 			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCall::Hrmp(
-				HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()),
+				HrmpCall::InitOpenChannel(a, b, c),
 			)
 			.encode()),
 			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
-				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
+				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a)).encode())
 			}
 			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
 				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
 			}
 			xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(a, b) => {
-				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenRequest(a.clone(), b.clone())).encode())
+				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenRequest(a.clone(), b)).encode())
 			}
 		}
 	}

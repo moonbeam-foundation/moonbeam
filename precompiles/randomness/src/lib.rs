@@ -481,7 +481,7 @@ where
 			handle,
 			request_id,
 			request.gas_limit,
-			request.contract_address.clone().into(),
+			request.contract_address.into(),
 			randomness.into_iter().map(|x| H256(x)).collect(),
 		)?;
 		let remaining_gas_after = handle.remaining_gas();

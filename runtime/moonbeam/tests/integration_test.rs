@@ -1680,7 +1680,7 @@ fn root_can_change_default_xcm_vers() {
 					origin_of(AccountId::from(ALICE)),
 					CurrencyId::ForeignAsset(source_id),
 					100_000_000_000_000,
-					Box::new(xcm::VersionedMultiLocation::V3(dest.clone())),
+					Box::new(xcm::VersionedMultiLocation::V3(dest)),
 					WeightLimit::Limited(4000000000.into())
 				),
 				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
@@ -2010,7 +2010,7 @@ fn xtokens_precompile_transfer() {
 					XtokensPCall::transfer {
 						currency_address: Address(asset_precompile_address.into()),
 						amount: 500_000_000_000_000u128.into(),
-						destination: destination.clone(),
+						destination: destination,
 						weight: 4_000_000,
 					},
 				)
@@ -2062,7 +2062,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						// We want to transfer the relay token
 						asset: MultiLocation::parent(),
 						amount: 500_000_000_000_000u128.into(),
-						destination: destination.clone(),
+						destination: destination,
 						weight: 4_000_000,
 					},
 				)
@@ -2167,7 +2167,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			.into();
 			assert_noop!(
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
-					dest: Box::new(VersionedMultiLocation::V3(dest.clone())),
+					dest: Box::new(VersionedMultiLocation::V3(dest)),
 					beneficiary: Box::new(VersionedMultiLocation::V3(dest)),
 					assets: Box::new(VersionedMultiAssets::V3(multiassets)),
 					fee_asset_item: 0,
@@ -2390,7 +2390,7 @@ fn call_xtokens_with_fee() {
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
 				100,
-				Box::new(xcm::VersionedMultiLocation::V3(dest.clone())),
+				Box::new(xcm::VersionedMultiLocation::V3(dest)),
 				WeightLimit::Limited(4000000000.into())
 			));
 

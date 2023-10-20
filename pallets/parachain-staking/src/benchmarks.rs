@@ -1538,7 +1538,7 @@ benchmarks! {
 			ideal: Perbill::one(),
 			max: Perbill::one(),
 		};
-		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
+		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation)?;
 		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 101u32)?;
 		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
 
@@ -1584,7 +1584,7 @@ benchmarks! {
 			ideal: Perbill::one(),
 			max: Perbill::one(),
 		};
-		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
+		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation)?;
 		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 101u32)?;
 		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
 
@@ -1708,7 +1708,7 @@ benchmarks! {
 		{
 			<Pallet<T>>::mint_and_compound(
 				100u32.into(),
-				auto_compound.clone(),
+				*auto_compound,
 				prime_candidate.clone(),
 				owner.clone(),
 			);

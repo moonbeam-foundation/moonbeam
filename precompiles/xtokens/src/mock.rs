@@ -361,7 +361,7 @@ impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiL
 			1,
 			Junctions::X1(AccountKey20 {
 				network: None,
-				key: as_h160.as_fixed_bytes().clone(),
+				key: *as_h160.as_fixed_bytes(),
 			}),
 		)
 	}

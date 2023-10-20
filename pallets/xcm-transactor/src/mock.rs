@@ -212,7 +212,7 @@ impl sp_runtime::traits::Convert<u64, MultiLocation> for AccountIdToMultiLocatio
 			0,
 			Junctions::X1(AccountKey20 {
 				network: None,
-				key: as_h160.as_fixed_bytes().clone(),
+				key: *as_h160.as_fixed_bytes(),
 			}),
 		)
 	}
@@ -295,7 +295,7 @@ impl UtilityEncodeCall for Transactors {
 			Transactors::Relay => match call {
 				UtilityAvailableCalls::AsDerivative(a, b) => {
 					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+						RelayCall::Utility(UtilityCall::AsDerivative(a)).encode();
 					call.append(&mut b.clone());
 					call
 				}
@@ -381,7 +381,7 @@ impl SendXcm for TestSendXcm {
 	) -> SendResult<Self::Ticket> {
 		SENT_XCM.with(|q| {
 			q.borrow_mut()
-				.push((destination.clone().unwrap(), message.clone().unwrap()))
+				.push(((*destination).unwrap(), message.clone().unwrap()))
 		});
 		CustomVersionWrapper::wrap_version(&destination.unwrap(), message.clone().unwrap())
 			.map_err(|()| SendError::DestinationUnsupported)?;

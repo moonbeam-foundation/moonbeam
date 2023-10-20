@@ -167,7 +167,7 @@ benchmarks! {
 			caller.clone(),
 			owner.clone(),
 			true,
-			min_balance.clone()
+			min_balance
 	)
 	verify {
 		assert_eq!(Pallet::<T>::local_asset_counter(), current_local_counter+1);

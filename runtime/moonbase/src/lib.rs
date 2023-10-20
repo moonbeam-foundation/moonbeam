@@ -719,7 +719,7 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 		collator_id: AccountId,
 		round: pallet_parachain_staking::RoundIndex,
 	) -> Result<Weight, DispatchErrorWithPostInfo<PostDispatchInfo>> {
-		let extra_weight = if !MoonbeamOrbiters::is_orbiter(round, collator_id.clone()) {
+		let extra_weight = if !MoonbeamOrbiters::is_orbiter(round, collator_id) {
 			ParachainStaking::go_offline_inner(collator_id)?;
 			<Runtime as pallet_parachain_staking::Config>::WeightInfo::go_offline(
 				pallet_parachain_staking::MAX_CANDIDATES,

@@ -238,7 +238,7 @@ where
 		// set auto-compound config if the percent is non-zero
 		if !auto_compound.is_zero() {
 			let mut auto_compounding_state = Self::get_storage(&candidate);
-			auto_compounding_state.set_for_delegator(delegator.clone(), auto_compound.clone())?;
+			auto_compounding_state.set_for_delegator(delegator.clone(), auto_compound)?;
 			auto_compounding_state.set_storage(&candidate);
 		}
 

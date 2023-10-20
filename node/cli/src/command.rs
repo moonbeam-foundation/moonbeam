@@ -697,7 +697,7 @@ pub fn run() -> Result<()> {
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let para_id = extension.map(|e| e.para_id);
-				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
+				let id = ParaId::from(cli.run.parachain_id.or(para_id).unwrap_or(1000));
 
 				let rpc_config = cli.run.new_rpc_config();
 

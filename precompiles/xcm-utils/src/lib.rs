@@ -139,7 +139,7 @@ where
 
 		// We will construct an asset with the max amount, and check how much we
 		// get in return to substract
-		let multiasset: xcm::latest::MultiAsset = (multilocation.clone(), u128::MAX).into();
+		let multiasset: xcm::latest::MultiAsset = (multilocation, u128::MAX).into();
 		let weight_per_second = 1_000_000_000_000u64;
 
 		let mut trader = <XcmConfig as xcm_executor::Config>::Trader::new();

@@ -45,7 +45,7 @@ pub const JUNCTION_SIZE_LIMIT: u32 = 2u32.pow(16);
 
 pub(crate) fn network_id_to_bytes(network_id: Option<NetworkId>) -> Vec<u8> {
 	let mut encoded: Vec<u8> = Vec::new();
-	match network_id.clone() {
+	match network_id {
 		None => {
 			encoded.push(0u8);
 			encoded
@@ -335,7 +335,7 @@ impl Codec for Junctions {
 	}
 
 	fn write(writer: &mut Writer, value: Self) {
-		let encoded: Vec<Junction> = value.iter().map(|junction| junction.clone()).collect();
+		let encoded: Vec<Junction> = value.iter().map(|junction| *junction).collect();
 		Codec::write(writer, encoded);
 	}
 

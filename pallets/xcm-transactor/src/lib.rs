@@ -497,7 +497,7 @@ pub mod pallet {
 			let total_weight = weight_info.overall_weight.map_or_else(
 				|| {
 					Self::take_weight_from_transact_info(
-						dest.clone(),
+						dest,
 						weight_info.transact_required_weight_at_most,
 						refund,
 					)
@@ -509,8 +509,8 @@ pub mod pallet {
 			let fee = Self::calculate_fee(
 				fee_location,
 				fee.fee_amount,
-				dest.clone(),
-				total_weight.clone(),
+				dest,
+				total_weight,
 			)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sovereign
@@ -524,7 +524,7 @@ pub mod pallet {
 				.transpose()?;
 
 			Self::transact_in_dest_chain_asset_non_signed(
-				dest.clone(),
+				dest,
 				Some(who.clone()),
 				fee,
 				call_bytes.clone(),
@@ -583,7 +583,7 @@ pub mod pallet {
 			let total_weight = weight_info.overall_weight.map_or_else(
 				|| {
 					Self::take_weight_from_transact_info(
-						dest.clone(),
+						dest,
 						weight_info.transact_required_weight_at_most,
 						refund,
 					)
@@ -595,8 +595,8 @@ pub mod pallet {
 			let fee = Self::calculate_fee(
 				fee_location,
 				fee.fee_amount,
-				dest.clone(),
-				total_weight.clone(),
+				dest,
+				total_weight,
 			)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sovereign
@@ -611,7 +611,7 @@ pub mod pallet {
 
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_non_signed(
-				dest.clone(),
+				dest,
 				Some(fee_payer.clone()),
 				fee,
 				call.clone(),
@@ -709,7 +709,7 @@ pub mod pallet {
 			let total_weight = weight_info.overall_weight.map_or_else(
 				|| {
 					Self::take_weight_from_transact_info_signed(
-						dest.clone(),
+						dest,
 						weight_info.transact_required_weight_at_most,
 						refund,
 					)
@@ -721,8 +721,8 @@ pub mod pallet {
 			let fee = Self::calculate_fee(
 				fee_location,
 				fee.fee_amount,
-				dest.clone(),
-				total_weight.clone(),
+				dest,
+				total_weight,
 			)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sender
@@ -738,7 +738,7 @@ pub mod pallet {
 
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_signed(
-				dest.clone(),
+				dest,
 				who.clone(),
 				fee,
 				call.clone(),
@@ -850,7 +850,7 @@ pub mod pallet {
 			let total_weight = weight_info.overall_weight.map_or_else(
 				|| {
 					Self::take_weight_from_transact_info(
-						destination.clone(),
+						destination,
 						weight_info.transact_required_weight_at_most,
 						false,
 					)
@@ -861,8 +861,8 @@ pub mod pallet {
 			let fee = Self::calculate_fee(
 				fee_location,
 				fee.fee_amount,
-				destination.clone(),
-				total_weight.clone(),
+				destination,
+				total_weight,
 			)?;
 
 			ensure!(
@@ -919,7 +919,7 @@ pub mod pallet {
 			// BuyExecution: Buys "execution power" in the destination chain
 			// Transact: Issues the transaction
 			let transact_message: Xcm<()> = Self::transact_message(
-				dest.clone(),
+				dest,
 				fee,
 				total_weight,
 				call,
@@ -957,7 +957,7 @@ pub mod pallet {
 			// BuyExecution: Buys "execution power" in the destination chain
 			// Transact: Issues the transaction
 			let mut transact_message: Xcm<()> = Self::transact_message(
-				dest.clone(),
+				dest,
 				fee,
 				total_weight,
 				call,
@@ -970,7 +970,6 @@ pub mod pallet {
 			// The new message looks like DescendOrigin||WithdrawAsset||BuyExecution||
 			// Transact.
 			let interior: Junctions = origin_as_mult
-				.clone()
 				.try_into()
 				.map_err(|_| Error::<T>::FailedMultiLocationToJunction)?;
 			transact_message.0.insert(0, DescendOrigin(interior));
@@ -998,7 +997,7 @@ pub mod pallet {
 			let amount: u128 = fee_amount.map_or_else(
 				|| {
 					Self::take_fee_per_second_from_storage(
-						fee_location.clone(),
+						fee_location,
 						destination,
 						total_weight,
 					)
@@ -1131,7 +1130,7 @@ pub mod pallet {
 
 			// Construct MultiAsset
 			let fee = MultiAsset {
-				id: Concrete(asset.clone()),
+				id: Concrete(asset),
 				fun: Fungible(0),
 			};
 
@@ -1139,7 +1138,7 @@ pub mod pallet {
 				WithdrawAsset(fee.into()),
 				InitiateReserveWithdraw {
 					assets: MultiAssetFilter::Wild(All),
-					reserve: dest.clone(),
+					reserve: dest,
 					xcm: Xcm(vec![]),
 				},
 			]);

@@ -32,7 +32,7 @@ impl<P: PrecompileSet> PrecompilesModifierTester<P> {
 	pub fn new(precompiles: P, from: impl Into<H160>, to: impl Into<H160>) -> Self {
 		let to = to.into();
 		let mut handle = MockHandle::new(
-			to.clone(),
+			to,
 			Context {
 				address: to,
 				caller: from.into(),

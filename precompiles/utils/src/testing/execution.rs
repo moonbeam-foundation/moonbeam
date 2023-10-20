@@ -49,7 +49,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	) -> Self {
 		let to = to.into();
 		let mut handle = MockHandle::new(
-			to.clone(),
+			to,
 			Context {
 				address: to,
 				caller: from.into(),

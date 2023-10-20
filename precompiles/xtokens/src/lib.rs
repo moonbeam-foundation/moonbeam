@@ -243,7 +243,7 @@ where
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset_with_fee {
 			asset: Box::new(VersionedMultiAsset::V3(MultiAsset {
-				id: AssetId::Concrete(asset.clone()),
+				id: AssetId::Concrete(asset),
 				fun: Fungibility::Fungible(amount),
 			})),
 			fee: Box::new(VersionedMultiAsset::V3(MultiAsset {

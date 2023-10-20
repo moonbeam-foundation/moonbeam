@@ -208,7 +208,7 @@ where
 		// DISPATCH CALL
 		let sub_context = Context {
 			caller: from,
-			address: to.clone(),
+			address: to,
 			apparent_value: value,
 		};
 
@@ -217,7 +217,7 @@ where
 		} else {
 			Some(Transfer {
 				source: from,
-				target: to.clone(),
+				target: to,
 				value,
 			})
 		};

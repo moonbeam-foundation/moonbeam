@@ -152,7 +152,7 @@ where
 
 			let sub_context = Context {
 				caller: handle.context().caller,
-				address: address.clone(),
+				address,
 				apparent_value: value,
 			};
 
@@ -161,7 +161,7 @@ where
 			} else {
 				Some(Transfer {
 					source: handle.context().caller,
-					target: address.clone(),
+					target: address,
 					value,
 				})
 			};

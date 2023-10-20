@@ -426,7 +426,7 @@ impl solidity::Codec for RewardDestinationWrapper {
 			3u8 => {
 				let address = encoded_reward_destination.read::<H256>()?;
 				Ok(RewardDestinationWrapper(RewardDestination::Account(
-					address.as_fixed_bytes().clone().into(),
+					(*address.as_fixed_bytes()).into(),
 				)))
 			}
 			4u8 => Ok(RewardDestinationWrapper(RewardDestination::None)),

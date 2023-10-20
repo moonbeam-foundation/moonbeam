@@ -76,7 +76,7 @@ impl<
 		// transfers. We will see later if we change this.
 		match (first_asset.id, first_asset.fun) {
 			(xcmAssetId::Concrete(id), Fungibility::Fungible(_)) => {
-				let asset_type: AssetType = id.clone().into();
+				let asset_type: AssetType = id.into();
 				// Shortcut if we know the asset is not supported
 				// This involves the same db read per block, mitigating any attack based on
 				// non-supported assets
@@ -98,7 +98,7 @@ impl<
 
 					let required = MultiAsset {
 						fun: Fungibility::Fungible(amount),
-						id: xcmAssetId::Concrete(id.clone()),
+						id: xcmAssetId::Concrete(id),
 					};
 					let unused = payment
 						.checked_sub(required)
@@ -118,20 +118,20 @@ impl<
 
 	// Refund weight. We will refund in whatever asset is stored in self.
 	fn refund_weight(&mut self, weight: Weight, _context: &XcmContext) -> Option<MultiAsset> {
-		if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
+		if let Some((id, prev_amount, units_per_second)) = self.1 {
 			let weight = weight.min(self.0);
 			self.0 -= weight;
 			let amount = units_per_second * (weight.ref_time() as u128)
 				/ (WEIGHT_REF_TIME_PER_SECOND as u128);
 			let amount = amount.min(prev_amount);
 			self.1 = Some((
-				id.clone(),
+				id,
 				prev_amount.saturating_sub(amount),
 				units_per_second,
 			));
 			Some(MultiAsset {
 				fun: Fungibility::Fungible(amount),
-				id: xcmAssetId::Concrete(id.clone()),
+				id: xcmAssetId::Concrete(id),
 			})
 		} else {
 			None
@@ -147,7 +147,7 @@ impl<
 	> Drop for FirstAssetTrader<AssetType, AssetIdInfoGetter, R>
 {
 	fn drop(&mut self) {
-		if let Some((id, amount, _)) = self.1.clone() {
+		if let Some((id, amount, _)) = self.1 {
 			if amount > 0 {
 				R::take_revenue((id, amount).into());
 			}
@@ -378,7 +378,7 @@ mod test {
 
 		// should reflect 100 weight and 100 currency deducted
 		assert_eq!(trader.0, 900u64.into());
-		assert_eq!(trader.1.clone().unwrap().1, 900);
+		assert_eq!(trader.1.unwrap().1, 900);
 
 		// can call again
 		assert_eq!(
@@ -391,7 +391,7 @@ mod test {
 
 		// should reflect another 200 weight and 200 currency deducted
 		assert_eq!(trader.0, 700u64.into());
-		assert_eq!(trader.1.clone().unwrap().1, 700);
+		assert_eq!(trader.1.unwrap().1, 700);
 	}
 
 	#[test]

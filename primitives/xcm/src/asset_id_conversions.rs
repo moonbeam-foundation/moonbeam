@@ -35,7 +35,7 @@ where
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
 	fn convert(id: &MultiLocation) -> Option<AssetId> {
-		AssetIdInfoGetter::get_asset_id(id.clone().into())
+		AssetIdInfoGetter::get_asset_id((*id).into())
 	}
 	fn convert_back(what: &AssetId) -> Option<MultiLocation> {
 		AssetIdInfoGetter::get_asset_type(what.clone()).and_then(Into::into)
@@ -49,7 +49,7 @@ where
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
 	fn convert_location(id: &MultiLocation) -> Option<AssetId> {
-		AssetIdInfoGetter::get_asset_id(id.clone().into())
+		AssetIdInfoGetter::get_asset_id((*id).into())
 	}
 }
 

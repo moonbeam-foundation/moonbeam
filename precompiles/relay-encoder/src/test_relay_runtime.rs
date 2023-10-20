@@ -118,17 +118,17 @@ impl xcm_primitives::HrmpEncodeCall for TestEncoder {
 	) -> Result<Vec<u8>, xcm::latest::Error> {
 		match call {
 			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCall::Hrmp(
-				HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()),
+				HrmpCall::InitOpenChannel(a, b, c),
 			)
 			.encode()),
 			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
-				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
+				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a)).encode())
 			}
 			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
 				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
 			}
 			xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(a, b) => {
-				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenChannel(a.clone(), b.clone())).encode())
+				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenChannel(a.clone(), b)).encode())
 			}
 		}
 	}

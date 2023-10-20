@@ -66,7 +66,7 @@ impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiL
 			0,
 			Junctions::X1(AccountKey20 {
 				network: None,
-				key: as_h160.as_fixed_bytes().clone(),
+				key: *as_h160.as_fixed_bytes(),
 			}),
 		)
 	}
@@ -380,7 +380,7 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 			MockTransactors::Relay => match call {
 				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
 					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+						RelayCall::Utility(UtilityCall::AsDerivative(a)).encode();
 					call.append(&mut b.clone());
 					call
 				}

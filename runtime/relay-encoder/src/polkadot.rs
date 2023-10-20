@@ -90,7 +90,7 @@ impl xcm_primitives::UtilityEncodeCall for PolkadotEncoder {
 	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match call {
 			xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a)).encode();
 				// If we encode directly we inject the call length,
 				// so we just append the inner call after encoding the outer
 				call.append(&mut b.clone());
@@ -106,17 +106,17 @@ impl xcm_primitives::HrmpEncodeCall for PolkadotEncoder {
 	) -> Result<Vec<u8>, xcm::latest::Error> {
 		match call {
 			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCall::Hrmp(
-				HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()),
+				HrmpCall::InitOpenChannel(a, b, c),
 			)
 			.encode()),
 			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
-				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
+				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a)).encode())
 			}
 			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
 				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
 			}
 			xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(a, b) => {
-				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenRequest(a.clone(), b.clone())).encode())
+				Ok(RelayCall::Hrmp(HrmpCall::CancelOpenRequest(a.clone(), b)).encode())
 			}
 		}
 	}

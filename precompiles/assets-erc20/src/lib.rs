@@ -354,7 +354,7 @@ where
 		{
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
+			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from);
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
 
 			// If caller is "from", it can spend as much as it wants from its own balance.

@@ -417,7 +417,7 @@ pub mod mock_msg_queue {
 					let mut id = [0u8; 32];
 					id.copy_from_slice(hash.as_ref());
 					match T::XcmExecutor::execute_xcm(location, xcm, id, max_weight) {
-						Outcome::Error(e) => (Err(e.clone()), Event::Fail(Some(hash), e)),
+						Outcome::Error(e) => (Err(e), Event::Fail(Some(hash), e)),
 						Outcome::Complete(w) => (Ok(w), Event::Success(Some(hash))),
 						// As far as the caller is concerned, this was dispatched without error, so
 						// we just report the weight used.

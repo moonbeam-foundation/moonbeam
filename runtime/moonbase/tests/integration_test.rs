@@ -1710,7 +1710,7 @@ fn xtokens_precompiles_transfer_native() {
 					XtokensPCall::transfer {
 						currency_address: Address(asset_precompile_address),
 						amount: { 500 * UNIT }.into(),
-						destination: destination.clone(),
+						destination: destination,
 						weight: 4_000_000,
 					},
 				)
@@ -2054,7 +2054,7 @@ fn root_can_change_default_xcm_vers() {
 					origin_of(AccountId::from(ALICE)),
 					moonbase_runtime::xcm_config::CurrencyId::ForeignAsset(source_id),
 					100_000_000_000_000,
-					Box::new(xcm::VersionedMultiLocation::V3(dest.clone())),
+					Box::new(xcm::VersionedMultiLocation::V3(dest)),
 					WeightLimit::Limited(4000000000.into())
 				),
 				orml_xtokens::Error::<Runtime>::XcmExecutionFailed

@@ -133,7 +133,7 @@ impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiL
 			0,
 			Junctions::X1(AccountKey20 {
 				network: None,
-				key: as_h160.as_fixed_bytes().clone(),
+				key: *as_h160.as_fixed_bytes(),
 			}),
 		)
 	}
@@ -346,7 +346,7 @@ impl SendXcm for TestSendXcm {
 	) -> SendResult<Self::Ticket> {
 		SENT_XCM.with(|q| {
 			q.borrow_mut()
-				.push((destination.clone().unwrap(), message.clone().unwrap()))
+				.push(((*destination).unwrap(), message.clone().unwrap()))
 		});
 		Ok(((), MultiAssets::new()))
 	}
