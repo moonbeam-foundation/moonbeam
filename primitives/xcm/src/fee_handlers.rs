@@ -124,11 +124,7 @@ impl<
 			let amount = units_per_second * (weight.ref_time() as u128)
 				/ (WEIGHT_REF_TIME_PER_SECOND as u128);
 			let amount = amount.min(prev_amount);
-			self.1 = Some((
-				id,
-				prev_amount.saturating_sub(amount),
-				units_per_second,
-			));
+			self.1 = Some((id, prev_amount.saturating_sub(amount), units_per_second));
 			Some(MultiAsset {
 				fun: Fungibility::Fungible(amount),
 				id: xcmAssetId::Concrete(id),

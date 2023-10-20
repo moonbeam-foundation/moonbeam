@@ -1049,8 +1049,7 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 		match self {
 			MockTransactors::Relay => match call {
 				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a)).encode();
+					let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a)).encode();
 					call.append(&mut b.clone());
 					call
 				}
@@ -1065,10 +1064,9 @@ impl xcm_primitives::HrmpEncodeCall for MockHrmpEncoder {
 		call: xcm_primitives::HrmpAvailableCalls,
 	) -> Result<Vec<u8>, xcm::latest::Error> {
 		match call {
-			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCall::Hrmp(
-				HrmpCall::InitOpenChannel(a, b, c),
-			)
-			.encode()),
+			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => {
+				Ok(RelayCall::Hrmp(HrmpCall::InitOpenChannel(a, b, c)).encode())
+			}
 			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
 				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a)).encode())
 			}

@@ -294,8 +294,7 @@ impl UtilityEncodeCall for Transactors {
 		match self {
 			Transactors::Relay => match call {
 				UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a)).encode();
+					let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a)).encode();
 					call.append(&mut b.clone());
 					call
 				}

@@ -104,10 +104,9 @@ impl xcm_primitives::HrmpEncodeCall for KusamaEncoder {
 		call: xcm_primitives::HrmpAvailableCalls,
 	) -> Result<Vec<u8>, xcm::latest::Error> {
 		match call {
-			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCall::Hrmp(
-				HrmpCall::InitOpenChannel(a, b, c),
-			)
-			.encode()),
+			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => {
+				Ok(RelayCall::Hrmp(HrmpCall::InitOpenChannel(a, b, c)).encode())
+			}
 			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
 				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a)).encode())
 			}

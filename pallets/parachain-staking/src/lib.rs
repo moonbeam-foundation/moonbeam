@@ -2206,9 +2206,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 			delegator: T::AccountId,
 		) {
-			if let Ok(amount_transferred) =
-				T::Currency::deposit_into_existing(&delegator, amt)
-			{
+			if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&delegator, amt) {
 				Self::deposit_event(Event::Rewarded {
 					account: delegator.clone(),
 					rewards: amount_transferred.peek(),

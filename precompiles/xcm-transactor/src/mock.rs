@@ -379,8 +379,7 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 		match self {
 			MockTransactors::Relay => match call {
 				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a)).encode();
+					let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a)).encode();
 					call.append(&mut b.clone());
 					call
 				}

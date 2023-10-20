@@ -506,12 +506,7 @@ pub mod pallet {
 			)?;
 
 			// Calculate fee based on FeePerSecond
-			let fee = Self::calculate_fee(
-				fee_location,
-				fee.fee_amount,
-				dest,
-				total_weight,
-			)?;
+			let fee = Self::calculate_fee(fee_location, fee.fee_amount, dest, total_weight)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sovereign
 			let appendix = refund
@@ -592,12 +587,7 @@ pub mod pallet {
 			)?;
 
 			// Calculate fee based on FeePerSecond and total_weight
-			let fee = Self::calculate_fee(
-				fee_location,
-				fee.fee_amount,
-				dest,
-				total_weight,
-			)?;
+			let fee = Self::calculate_fee(fee_location, fee.fee_amount, dest, total_weight)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sovereign
 			let appendix = refund
@@ -718,12 +708,7 @@ pub mod pallet {
 			)?;
 
 			// Fee to be paid
-			let fee = Self::calculate_fee(
-				fee_location,
-				fee.fee_amount,
-				dest,
-				total_weight,
-			)?;
+			let fee = Self::calculate_fee(fee_location, fee.fee_amount, dest, total_weight)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sender
 			let appendix = refund
@@ -858,12 +843,7 @@ pub mod pallet {
 				|v| Ok(v),
 			)?;
 
-			let fee = Self::calculate_fee(
-				fee_location,
-				fee.fee_amount,
-				destination,
-				total_weight,
-			)?;
+			let fee = Self::calculate_fee(fee_location, fee.fee_amount, destination, total_weight)?;
 
 			ensure!(
 				T::MaxHrmpFee::filter_max_asset_fee(&fee),
@@ -995,13 +975,7 @@ pub mod pallet {
 			// Else, multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
 			let amount: u128 = fee_amount.map_or_else(
-				|| {
-					Self::take_fee_per_second_from_storage(
-						fee_location,
-						destination,
-						total_weight,
-					)
-				},
+				|| Self::take_fee_per_second_from_storage(fee_location, destination, total_weight),
 				|v| Ok(v),
 			)?;
 

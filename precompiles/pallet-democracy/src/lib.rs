@@ -297,11 +297,10 @@ where
 		let ref_index = ref_index.converted();
 		let vote_amount_balance = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
 
-		let conviction_enum: Conviction =
-			conviction.converted().try_into().map_err(|_| {
-				RevertReason::custom("Must be an integer between 0 and 6 included")
-					.in_field("conviction")
-			})?;
+		let conviction_enum: Conviction = conviction.converted().try_into().map_err(|_| {
+			RevertReason::custom("Must be an integer between 0 and 6 included")
+				.in_field("conviction")
+		})?;
 
 		let vote = AccountVote::Standard {
 			vote: Vote {
