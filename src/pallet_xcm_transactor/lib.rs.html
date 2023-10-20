@@ -1247,6 +1247,35 @@
 <a href="#1247" id="1247">1247</a>
 <a href="#1248" id="1248">1248</a>
 <a href="#1249" id="1249">1249</a>
+<a href="#1250" id="1250">1250</a>
+<a href="#1251" id="1251">1251</a>
+<a href="#1252" id="1252">1252</a>
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
+<a href="#1262" id="1262">1262</a>
+<a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
+<a href="#1269" id="1269">1269</a>
+<a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
+<a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1328,7 +1357,9 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
+<span class="kw">pub mod </span>encode;
 <span class="kw">pub mod </span>migrations;
+<span class="kw">pub mod </span>relay_indices;
 <span class="kw">pub mod </span>weights;
 <span class="kw">pub use </span><span class="kw">crate</span>::weights::WeightInfo;
 
@@ -1336,7 +1367,9 @@
 
 <span class="attr">#[pallet]
 </span><span class="kw">pub mod </span>pallet {
+
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span><span class="kw">crate</span>::relay_indices::RelayChainIndices;
 	<span class="kw">use </span><span class="kw">crate</span>::weights::WeightInfo;
 	<span class="kw">use </span><span class="kw">crate</span>::CurrencyIdOf;
 	<span class="kw">use </span>cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
@@ -1347,6 +1380,7 @@
 	<span class="kw">use </span>sp_std::boxed::Box;
 	<span class="kw">use </span>sp_std::convert::TryFrom;
 	<span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
+	<span class="kw">use </span>sp_std::vec::Vec;
 	<span class="kw">use </span>xcm::{latest::prelude::<span class="kw-2">*</span>, VersionedMultiLocation};
 	<span class="kw">use </span>xcm_executor::traits::{TransactAsset, WeightBounds};
 	<span class="kw">use </span>xcm_primitives::{
@@ -1356,7 +1390,7 @@
 
 	<span class="attr">#[pallet::pallet]
 	#[pallet::without_storage_info]
-	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(PhantomData&lt;T&gt;);
+	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(<span class="kw">pub </span>PhantomData&lt;T&gt;);
 
 	<span class="attr">#[pallet::config]
 	</span><span class="kw">pub trait </span>Config: frame_system::Config {
@@ -1422,9 +1456,6 @@
 
 		<span class="doccomment">/// The way to filter the max fee to use for HRMP management operations
 		</span><span class="kw">type </span>MaxHrmpFee: FilterMaxAssetFee;
-
-		<span class="doccomment">/// Means of encoding HRMP transact calls
-		</span><span class="kw">type </span>HrmpEncoder: HrmpEncodeCall;
 
 		<span class="kw">type </span>WeightInfo: WeightInfo;
 	}
@@ -1559,6 +1590,11 @@
 	</span><span class="kw">pub type </span>DestinationAssetFeePerSecond&lt;T: Config&gt; =
 		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, MultiLocation, u128&gt;;
 
+	<span class="doccomment">/// Stores the indices of relay chain pallets
+	</span><span class="attr">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>relay_indices)]
+	</span><span class="kw">pub type </span>RelayIndices&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, RelayChainIndices, ValueQuery&gt;;
+
 	<span class="doccomment">/// An error that can occur while executing the mapping pallet&#39;s logic.
 	</span><span class="attr">#[pallet::error]
 	</span><span class="kw">pub enum </span>Error&lt;T&gt; {
@@ -1647,6 +1683,28 @@
 		</span>HrmpManagementSent {
 			action: HrmpOperation,
 		},
+	}
+
+	<span class="attr">#[pallet::genesis_config]
+	</span><span class="kw">pub struct </span>GenesisConfig&lt;T&gt; {
+		<span class="kw">pub </span>relay_indices: RelayChainIndices,
+		<span class="kw">pub </span>_phantom: PhantomData&lt;T&gt;,
+	}
+
+	<span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>GenesisConfig&lt;T&gt; {
+		<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+			<span class="self">Self </span>{
+				relay_indices: RelayChainIndices::default(),
+				_phantom: Default::default(),
+			}
+		}
+	}
+
+	<span class="attr">#[pallet::genesis_build]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; BuildGenesisConfig <span class="kw">for </span>GenesisConfig&lt;T&gt; {
+		<span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+			&lt;RelayIndices&lt;T&gt;&gt;::put(<span class="self">self</span>.relay_indices);
+		}
 	}
 
 	<span class="attr">#[pallet::call]
@@ -2065,22 +2123,22 @@
 			</span>T::HrmpManipulatorOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 			<span class="kw">let </span>call_bytes = <span class="kw">match </span>action.clone() {
 				HrmpOperation::InitOpen(params) =&gt; {
-					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
+					<span class="self">Self</span>::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
 						params.para_id,
 						params.proposed_max_capacity,
 						params.proposed_max_message_size,
 					))
 				}
 				HrmpOperation::Accept { para_id } =&gt; {
-					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
+					<span class="self">Self</span>::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
 				}
 				HrmpOperation::Close(close_params) =&gt; {
-					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
+					<span class="self">Self</span>::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
 				}
 				HrmpOperation::Cancel {
 					channel_id,
 					open_requests,
-				} =&gt; T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
+				} =&gt; <span class="self">Self</span>::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
 					channel_id,
 					open_requests,
 				)),

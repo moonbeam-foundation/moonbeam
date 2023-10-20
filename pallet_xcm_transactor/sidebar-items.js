@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["migrations","pallet","weights"]};
+window.SIDEBAR_ITEMS = {"mod":["encode","migrations","pallet","relay_indices","weights"]};

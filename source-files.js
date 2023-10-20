@@ -55,7 +55,7 @@ var sourcesIndex = JSON.parse('{\
 "pallet_moonbeam_orbiters":["",[],["lib.rs","types.rs","weights.rs"]],\
 "pallet_parachain_staking":["",[],["auto_compound.rs","delegation_requests.rs","inflation.rs","lib.rs","migrations.rs","set.rs","traits.rs","types.rs","weights.rs"]],\
 "pallet_proxy_genesis_companion":["",[],["lib.rs"]],\
-"pallet_xcm_transactor":["",[],["lib.rs","migrations.rs","weights.rs"]],\
+"pallet_xcm_transactor":["",[],["encode.rs","lib.rs","migrations.rs","relay_indices.rs","weights.rs"]],\
 "precompile_utils":["",[["evm",[],["costs.rs","handle.rs","logs.rs","mod.rs"]],["solidity",[["codec",[],["bytes.rs","mod.rs","native.rs","xcm.rs"]]],["mod.rs","modifier.rs","revert.rs"]],["testing",[],["account.rs","execution.rs","handle.rs","mod.rs","modifier.rs","solidity.rs"]]],["lib.rs","precompile_set.rs","substrate.rs"]],\
 "precompile_utils_macro":["",[["precompile",[],["attr.rs","expand.rs","mod.rs","parse.rs"]]],["derive_codec.rs","lib.rs","precompile_name_from_address.rs"]],\
 "precompile_utils_tests_external":["",[],["lib.rs"]],\

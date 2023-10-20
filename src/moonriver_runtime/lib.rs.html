@@ -1817,6 +1817,14 @@
 <a href="#1817" id="1817">1817</a>
 <a href="#1818" id="1818">1818</a>
 <a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2875,6 +2883,23 @@
 	</span><span class="kw">type </span>AnnouncementDepositFactor = ConstU128&lt;{ currency::deposit(<span class="number">0</span>, <span class="number">56</span>) }&gt;;
 }
 
+<span class="kw">use </span>pallet_migrations::{GetMigrations, Migration};
+<span class="kw">pub struct </span>TransactorRelayIndexMigration&lt;Runtime&gt;(sp_std::marker::PhantomData&lt;Runtime&gt;);
+
+<span class="kw">impl</span>&lt;Runtime&gt; GetMigrations <span class="kw">for </span>TransactorRelayIndexMigration&lt;Runtime&gt;
+<span class="kw">where
+	</span>Runtime: pallet_xcm_transactor::Config,
+{
+	<span class="kw">fn </span>get_migrations() -&gt; Vec&lt;Box&lt;<span class="kw">dyn </span>Migration&gt;&gt; {
+		<span class="macro">vec!</span>[Box::new(
+			moonbeam_runtime_common::migrations::PopulateRelayIndices::&lt;Runtime&gt;(
+				moonbeam_relay_encoder::kusama::KUSAMA_RELAY_INDICES,
+				Default::default(),
+			),
+		)]
+	}
+}
+
 <span class="kw">impl </span>pallet_migrations::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>MigrationsList = (
@@ -2888,6 +2913,7 @@
 			CouncilCollective,
 			TechCommitteeCollective,
 		&gt;,
+		TransactorRelayIndexMigration&lt;Runtime&gt;,
 	);
 	<span class="kw">type </span>XcmExecutionManager = XcmExecutionManager;
 }
@@ -3037,16 +3063,6 @@
 	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 	</span><span class="kw">fn </span>try_on_runtime_upgrade(checks: bool) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, TryRuntimeError&gt; {
 		AllPalletsWithSystem::try_on_runtime_upgrade(checks)
-	}
-
-	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sp_runtime::DispatchError&gt; {
-		AllPalletsWithSystem::pre_upgrade()
-	}
-
-	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt; {
-		AllPalletsWithSystem::post_upgrade(state)
 	}
 }
 

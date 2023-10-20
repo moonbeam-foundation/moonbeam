@@ -466,11 +466,6 @@
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
 <a href="#468" id="468">468</a>
-<a href="#469" id="469">469</a>
-<a href="#470" id="470">470</a>
-<a href="#471" id="471">471</a>
-<a href="#472" id="472">472</a>
-<a href="#473" id="473">473</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -505,7 +500,7 @@
 <span class="kw">use </span>sp_runtime::{traits::Dispatchable, AccountId32, Perbill};
 <span class="kw">use </span>sp_std::vec::Vec;
 <span class="kw">use </span>sp_std::{convert::TryInto, marker::PhantomData};
-<span class="kw">use </span>xcm_primitives::{HrmpAvailableCalls, HrmpEncodeCall};
+<span class="kw">use </span>xcm_primitives::{AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, StakeEncodeCall};
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>mock;
@@ -514,40 +509,18 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="kw">pub enum </span>AvailableStakeCalls {
-	Bond(
-		relay_chain::Balance,
-		pallet_staking::RewardDestination&lt;relay_chain::AccountId&gt;,
-	),
-	BondExtra(relay_chain::Balance),
-	Unbond(relay_chain::Balance),
-	WithdrawUnbonded(u32),
-	Validate(pallet_staking::ValidatorPrefs),
-	Nominate(Vec&lt;relay_chain::AccountId&gt;),
-	Chill,
-	SetPayee(pallet_staking::RewardDestination&lt;relay_chain::AccountId&gt;),
-	SetController,
-	Rebond(relay_chain::Balance),
-}
-
-<span class="kw">pub trait </span>StakeEncodeCall {
-	<span class="doccomment">/// Encode call from the relay.
-	</span><span class="kw">fn </span>encode_call(call: AvailableStakeCalls) -&gt; Vec&lt;u8&gt;;
-}
-
 <span class="kw">pub const </span>REWARD_DESTINATION_SIZE_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
 <span class="kw">pub const </span>ARRAY_LIMIT: u32 = <span class="number">512</span>;
 <span class="kw">type </span>GetArrayLimit = ConstU32&lt;ARRAY_LIMIT&gt;;
 <span class="kw">type </span>GetRewardDestinationSizeLimit = ConstU32&lt;REWARD_DESTINATION_SIZE_LIMIT&gt;;
 
 <span class="doccomment">/// A precompile to provide relay stake calls encoding through evm
-</span><span class="kw">pub struct </span>RelayEncoderPrecompile&lt;Runtime, RelayRuntime&gt;(PhantomData&lt;(Runtime, RelayRuntime)&gt;);
+</span><span class="kw">pub struct </span>RelayEncoderPrecompile&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
 
 <span class="attr">#[precompile_utils::precompile]
-</span><span class="kw">impl</span>&lt;Runtime, RelayRuntime&gt; RelayEncoderPrecompile&lt;Runtime, RelayRuntime&gt;
+</span><span class="kw">impl</span>&lt;Runtime&gt; RelayEncoderPrecompile&lt;Runtime&gt;
 <span class="kw">where
-	</span>RelayRuntime: StakeEncodeCall + HrmpEncodeCall,
-	Runtime: pallet_evm::Config,
+	</span>Runtime: pallet_evm::Config + pallet_xcm_transactor::Config,
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 {
 	<span class="attr">#[precompile::public(<span class="string">&quot;encodeBond(uint256,bytes)&quot;</span>)]
@@ -565,10 +538,11 @@
 		<span class="kw">let </span>relay_amount = u256_to_relay_amount(amount)<span class="question-mark">?</span>;
 		<span class="kw">let </span>reward_destination = reward_destination.into();
 
-		<span class="kw">let </span>encoded =
-			RelayRuntime::encode_call(AvailableStakeCalls::Bond(relay_amount, reward_destination))
-				.as_slice()
-				.into();
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			AvailableStakeCalls::Bond(relay_amount, reward_destination),
+		)
+		.as_slice()
+		.into();
 
 		<span class="prelude-val">Ok</span>(encoded)
 	}
@@ -585,9 +559,11 @@
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>relay_amount = u256_to_relay_amount(amount)<span class="question-mark">?</span>;
-		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount))
-			.as_slice()
-			.into();
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			AvailableStakeCalls::BondExtra(relay_amount),
+		)
+		.as_slice()
+		.into();
 
 		<span class="prelude-val">Ok</span>(encoded)
 	}
@@ -605,9 +581,11 @@
 
 		<span class="kw">let </span>relay_amount = u256_to_relay_amount(amount)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount))
-			.as_slice()
-			.into();
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			AvailableStakeCalls::Unbond(relay_amount),
+		)
+		.as_slice()
+		.into();
 
 		<span class="prelude-val">Ok</span>(encoded)
 	}
@@ -623,9 +601,11 @@
 		// To prevent spam, we charge an arbitrary amount of gas
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(slashes))
-			.as_slice()
-			.into();
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			AvailableStakeCalls::WithdrawUnbonded(slashes),
+		)
+		.as_slice()
+		.into();
 
 		<span class="prelude-val">Ok</span>(encoded)
 	}
@@ -643,12 +623,12 @@
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>fraction = Perbill::from_parts(commission.converted());
-		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
-			pallet_staking::ValidatorPrefs {
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			AvailableStakeCalls::Validate(pallet_staking::ValidatorPrefs {
 				commission: fraction,
 				blocked: blocked,
-			},
-		))
+			}),
+		)
 		.as_slice()
 		.into();
 
@@ -674,9 +654,11 @@
 				as_bytes.into()
 			})
 			.collect();
-		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::Nominate(nominated))
-			.as_slice()
-			.into();
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			AvailableStakeCalls::Nominate(nominated),
+		)
+		.as_slice()
+		.into();
 
 		<span class="prelude-val">Ok</span>(encoded)
 	}
@@ -689,9 +671,10 @@
 		// To prevent spam, we charge an arbitrary amount of gas
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::Chill)
-			.as_slice()
-			.into();
+		<span class="kw">let </span>encoded =
+			pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(AvailableStakeCalls::Chill)
+				.as_slice()
+				.into();
 
 		<span class="prelude-val">Ok</span>(encoded)
 	}
@@ -709,9 +692,11 @@
 
 		<span class="kw">let </span>reward_destination = reward_destination.into();
 
-		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination))
-			.as_slice()
-			.into();
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			AvailableStakeCalls::SetPayee(reward_destination),
+		)
+		.as_slice()
+		.into();
 
 		<span class="prelude-val">Ok</span>(encoded)
 	}
@@ -724,9 +709,11 @@
 		// To prevent spam, we charge an arbitrary amount of gas
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetController)
-			.as_slice()
-			.into();
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			AvailableStakeCalls::SetController,
+		)
+		.as_slice()
+		.into();
 
 		<span class="prelude-val">Ok</span>(encoded)
 	}
@@ -743,9 +730,11 @@
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>relay_amount = u256_to_relay_amount(amount)<span class="question-mark">?</span>;
-		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount))
-			.as_slice()
-			.into();
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			AvailableStakeCalls::Rebond(relay_amount),
+		)
+		.as_slice()
+		.into();
 
 		<span class="prelude-val">Ok</span>(encoded)
 	}
@@ -762,11 +751,9 @@
 		// To prevent spam, we charge an arbitrary amount of gas
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
-			recipient.into(),
-			max_capacity,
-			max_message_size,
-		))
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::hrmp_encode_call(
+			HrmpAvailableCalls::InitOpenChannel(recipient.into(), max_capacity, max_message_size),
+		)
 		.map_err(|<span class="kw">_</span>| {
 			RevertReason::custom(<span class="string">&quot;Non-implemented hrmp encoding for transactor&quot;</span>)
 				.in_field(<span class="string">&quot;transactor&quot;</span>)
@@ -787,14 +774,15 @@
 		// To prevent spam, we charge an arbitrary amount of gas
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>encoded =
-			RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(sender.into()))
-				.map_err(|<span class="kw">_</span>| {
-					RevertReason::custom(<span class="string">&quot;Non-implemented hrmp encoding for transactor&quot;</span>)
-						.in_field(<span class="string">&quot;transactor&quot;</span>)
-				})<span class="question-mark">?
-				</span>.as_slice()
-				.into();
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::hrmp_encode_call(
+			HrmpAvailableCalls::AcceptOpenChannel(sender.into()),
+		)
+		.map_err(|<span class="kw">_</span>| {
+			RevertReason::custom(<span class="string">&quot;Non-implemented hrmp encoding for transactor&quot;</span>)
+				.in_field(<span class="string">&quot;transactor&quot;</span>)
+		})<span class="question-mark">?
+		</span>.as_slice()
+		.into();
 		<span class="prelude-val">Ok</span>(encoded)
 	}
 
@@ -810,12 +798,12 @@
 		// To prevent spam, we charge an arbitrary amount of gas
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(
-			relay_chain::HrmpChannelId {
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::hrmp_encode_call(
+			HrmpAvailableCalls::CloseChannel(relay_chain::HrmpChannelId {
 				sender: sender.into(),
 				recipient: recipient.into(),
-			},
-		))
+			}),
+		)
 		.map_err(|<span class="kw">_</span>| {
 			RevertReason::custom(<span class="string">&quot;Non-implemented hrmp encoding for transactor&quot;</span>)
 				.in_field(<span class="string">&quot;transactor&quot;</span>)
@@ -838,13 +826,15 @@
 		// To prevent spam, we charge an arbitrary amount of gas
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
-			relay_chain::HrmpChannelId {
-				sender: sender.into(),
-				recipient: recipient.into(),
-			},
-			open_requests,
-		))
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::hrmp_encode_call(
+			HrmpAvailableCalls::CancelOpenRequest(
+				relay_chain::HrmpChannelId {
+					sender: sender.into(),
+					recipient: recipient.into(),
+				},
+				open_requests,
+			),
+		)
 		.map_err(|<span class="kw">_</span>| {
 			RevertReason::custom(<span class="string">&quot;Non-implemented hrmp encoding for transactor&quot;</span>)
 				.in_field(<span class="string">&quot;transactor&quot;</span>)

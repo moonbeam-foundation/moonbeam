@@ -266,7 +266,6 @@
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
 <a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -289,7 +288,6 @@
 	CouncilInstance, OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
 };
 <span class="kw">use </span>frame_support::parameter_types;
-<span class="kw">use </span>moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 <span class="kw">use </span>pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 <span class="kw">use </span>pallet_evm_precompile_batch::BatchPrecompile;
@@ -408,7 +406,7 @@
 	&gt;,
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2053</span>&gt;,
-		RelayEncoderPrecompile&lt;R, PolkadotEncoder&gt;,
+		RelayEncoderPrecompile&lt;R&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
 	PrecompileAt&lt;
