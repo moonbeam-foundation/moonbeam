@@ -315,7 +315,7 @@
           "minThreads": 1,
           "maxThreads": 8,
           "singleThread": false,
-          "useAtomics": true
+          "useAtomics": false
         }
       },
       "envVars": ["DEBUG_COLORS=1"],
