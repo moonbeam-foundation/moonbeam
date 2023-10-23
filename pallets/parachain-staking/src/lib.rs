@@ -1447,12 +1447,12 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::join_candidates(*candidate_count))]
 		pub fn force_join_candidates(
 			origin: OriginFor<T>,
-			acc: T::AccountId,
+			account: T::AccountId,
 			bond: BalanceOf<T>,
 			candidate_count: u32,
 		) -> DispatchResultWithPostInfo {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
-			Self::join_candidates_inner(acc, bond, candidate_count)
+			Self::join_candidates_inner(account, bond, candidate_count)
 		}
 	}
 
