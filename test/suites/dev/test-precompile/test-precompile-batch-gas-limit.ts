@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { PRECOMPILES, generateKeyringPair, sendRawTransaction } from "@moonwall/util";
 import { encodeFunctionData, parseAbiItem } from "viem";
-import { extractRevertReason } from "../../../helpers/eth-transactions.ts";
+import { extractRevertReason } from "../../../helpers";
 
 // Casting of type in solidity is performing truncation:
 // https://docs.soliditylang.org/en/latest/types.html#conversions-between-elementary-types

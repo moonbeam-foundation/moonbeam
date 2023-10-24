@@ -599,10 +599,10 @@ impl TryFrom<u8> for Transactors {
 impl UtilityEncodeCall for Transactors {
 	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
 		match self {
-			// The encoder should be polkadot
-			Transactors::Relay => {
-				moonbeam_relay_encoder::polkadot::PolkadotEncoder.encode_call(call)
-			}
+			Transactors::Relay => pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+				pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<Runtime>),
+				call,
+			),
 		}
 	}
 }
@@ -638,7 +638,6 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_xcm_transactor::WeightInfo<Runtime>;
 	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
-	type HrmpEncoder = moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 }
 
 parameter_types! {

@@ -19,7 +19,7 @@ describeSuite({
         const latestBlockNumber = await context.ethers().provider!.getBlockNumber();
         // We asume we only want to run the test if there is enough blocks.
         if (latestBlockNumber > 10000) {
-          let failedCheckpoints = [];
+          const failedCheckpoints = [];
 
           const checkPoint_1 = latestBlockNumber - 10;
           const checkPoint_2 = latestBlockNumber - 100;

@@ -1,21 +1,20 @@
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith, customWeb3Request } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
-import { expectEVMResult } from "helpers/eth-transactions";
-import { ERC20_TOTAL_SUPPLY } from "helpers/transactions";
+import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
+import { hexToNumber, parseEther } from "viem";
 import {
+  ERC20_TOTAL_SUPPLY,
   XcmFragment,
   XcmFragmentConfig,
+  expectEVMResult,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
-} from "helpers/xcm";
-import { hexToNumber, parseEther } from "viem";
+} from "../../helpers";
 
 describeSuite({
   id: "D3609",
   title: "Trace ERC20 xcm",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
     let transactionHash: string;
 

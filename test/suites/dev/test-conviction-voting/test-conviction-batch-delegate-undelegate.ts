@@ -1,8 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { KeyringPair, alith } from "@moonwall/util";
-import { createAccounts } from "../../../helpers/accounts.js";
-import { expectSubstrateEvents } from "../../../helpers/expect.js";
+import { createAccounts, expectSubstrateEvents } from "../../../helpers";
 
 describeSuite({
   id: "D2622",

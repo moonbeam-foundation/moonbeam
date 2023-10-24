@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { setupLotteryWithParticipants } from "../../../helpers/randomness.js";
 import { GLMR } from "@moonwall/util";
+import { setupLotteryWithParticipants } from "../../../helpers";
 
 describeSuite({
   id: "D2711",

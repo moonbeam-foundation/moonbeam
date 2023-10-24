@@ -8,8 +8,7 @@ import {
   alith,
   generateKeyringPair,
 } from "@moonwall/util";
-import { chunk } from "../../../helpers/common.js";
-import { jumpRounds } from "../../../helpers/block.js";
+import { chunk, jumpRounds } from "../../../helpers";
 
 describeSuite({
   id: "D3542",

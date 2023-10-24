@@ -6,7 +6,7 @@ describeSuite({
   id: "D2567",
   title: "Precompiles - Staking - AwardedPoints",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async function () {
       await context.createBlock();
     });

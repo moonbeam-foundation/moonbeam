@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { afterEach, describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, createRawTransfer, sendRawTransaction } from "@moonwall/util";
 
 describeSuite({

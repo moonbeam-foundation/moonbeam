@@ -3,7 +3,8 @@ import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, createEthersTransaction } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { mockAssetBalance } from "../../../helpers/assets.js";
+import { mockAssetBalance } from "../../../helpers";
+
 import { Abi, encodeFunctionData } from "viem";
 
 describeSuite({

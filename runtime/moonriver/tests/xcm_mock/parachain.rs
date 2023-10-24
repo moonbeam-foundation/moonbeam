@@ -934,7 +934,6 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
-	type HrmpEncoder = MockHrmpEncoder;
 }
 
 parameter_types! {

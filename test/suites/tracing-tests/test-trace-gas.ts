@@ -8,7 +8,7 @@ describeSuite({
   id: "D3614",
   title: "Trace filter - Gas Loop",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const testLoops: {
       count: number;
       txHash?: string;

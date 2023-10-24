@@ -1,9 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { alith, baltathar } from "@moonwall/util";
-import { Option } from "@polkadot/types";
 import { toHex } from "viem";
-import { PRECOMPILE_IDENTITY_ADDRESS } from "../../../helpers/constants.ts";
+import { PRECOMPILE_IDENTITY_ADDRESS } from "../../../helpers";
 
 describeSuite({
   id: "D3400",
@@ -32,11 +31,7 @@ describeSuite({
             web: { raw: "web" },
             riot: { raw: "riot" },
             email: { raw: "email" },
-            pgpFingerprint: new Option(
-              context.polkadotJs().registry,
-              "[u8;20]",
-              new Array(20).fill(1)
-            ),
+            pgpFingerprint: new Array(20).fill(1),
             image: { raw: "image" },
             twitter: { raw: "twitter" },
           })

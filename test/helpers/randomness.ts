@@ -1,17 +1,13 @@
 import { DevModeContext } from "@moonwall/cli";
-import { fromBytes, parseEther } from "viem";
 import {
-  ALITH_PRIVATE_KEY,
-  ALITH_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
-  BALTATHAR_ADDRESS,
-  CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
-  alith,
   DOROTHY_PRIVATE_KEY,
+  alith,
 } from "@moonwall/util";
 import { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
 import { nToHex } from "@polkadot/util";
+import { fromBytes, parseEther } from "viem";
 
 export const RANDOMNESS_SOURCE_LOCAL_VRF = "0";
 export const RANDOMNESS_SOURCE_BABE_EPOCH = "1";
