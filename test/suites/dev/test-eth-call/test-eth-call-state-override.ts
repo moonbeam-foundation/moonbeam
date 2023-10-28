@@ -10,7 +10,7 @@ import {
 import { ALITH_ADDRESS, GLMR, baltathar, createEthersTransaction } from "@moonwall/util";
 import { hexToBigInt, nToHex } from "@polkadot/util";
 import { encodeFunctionData, encodePacked, keccak256, pad, parseEther, Abi } from "viem";
-import { expectOk } from "../../../helpers/expect.js";
+import { expectOk } from "../../../helpers";
 
 describeSuite({
   id: "D0901",
@@ -21,7 +21,7 @@ describeSuite({
     let contractAbi: Abi;
 
     beforeAll(async function () {
-      const { contract, contractAddress, abi, status } = await deployCreateCompiledContract(
+      const { contractAddress, abi, status } = await deployCreateCompiledContract(
         context,
         "StateOverrideTest",
         { args: [100n], value: parseEther("1") }

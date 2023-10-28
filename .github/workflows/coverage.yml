@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
+      git_target_branch: ${{ steps.check-git-ref.outputs.git_target_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
       sha: ${{ steps.get-sha.outputs.sha }}
       sha8: ${{ steps.get-sha.outputs.sha8 }}
@@ -40,11 +41,13 @@ jobs:
         run: |
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
+            echo "git_target_branch=$(echo ${GITHUB_BASE_REF})" >> $GITHUB_OUTPUT
             echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
             echo "coverage_dir=pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
             echo "coverage_report=true" >> $GITHUB_OUTPUT
           else
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
+            echo "git_target_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
             echo "coverage_dir=branches/master" >> $GITHUB_OUTPUT
             echo "coverage_report=false" >> $GITHUB_OUTPUT
@@ -151,9 +154,10 @@ jobs:
           du -sh proffiles
 
           echo "Executing grcov"
+          mkdir -p coverage
           ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
-            -t html --branch --ignore-not-existing --ignore "target/release/build/*" \
-            -o coverage/ --llvm 2>&1 \
+            -t html,covdir --branch --ignore-not-existing --ignore "target/release/build/*" \
+            --ignore "$HOME/.cargo/**" -o coverage/ --llvm 2>&1 \
             | tee grcov.log
 
           INVALID="$(grep invalid grcov.log | \
@@ -165,18 +169,32 @@ jobs:
             cd proffiles/
             rm $INVALID
             cd ..
+            echo "Executing grcov again"
+            rm -rf coverage
+            mkdir -p coverage
             ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
-            -t html --branch --ignore-not-existing --ignore "target/release/build/*" \
-            -o coverage/ --llvm
+            -t html,covdir --branch --ignore-not-existing --ignore "target/release/build/*" \
+            --ignore "$HOME/.cargo/**" -o coverage/ --llvm
           fi
 
-          echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
-          echo "total_percent=$(grep -o '[0-9\.]*%' coverage/html/coverage.json)" >> $GITHUB_OUTPUT
-          wget ${{ vars.S3_COVERAGE_URL }}/branches/master/html/coverage.json \
-            -O coverage-master.json || true
-          echo "master_percent=$(grep -o '[0-9\.]*%' coverage-master.json || echo 'N/A')" >> $GITHUB_OUTPUT
+          if [ "${{ needs.set-tags.outputs.coverage_report }}" == "true" ]; then
+            echo "Generating coverage report"
+            wget ${{ vars.S3_COVERAGE_URL }}/branches/master/covdir \
+            -O base_covdir || true
+
+            python3 .github/scripts/coverage-report.py \
+              --base-covdir ./base_covdir \
+              --incoming-covdir ./coverage/covdir \
+              --base-branch ${{ needs.set-tags.outputs.git_target_branch }} \
+              --incoming-branch ${{ needs.set-tags.outputs.git_branch }} \
+              --base-html-url ${{ vars.S3_COVERAGE_URL }}/${{ needs.set-tags.outputs.coverage_dir }} \
+            > coverage_report.md
+
+            echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
+          fi
+
           rm -rf proffiles/
-      - name: Upload coverate to gha
+      - name: Upload coverage to gha
         uses: actions/upload-artifact@v3.1.2
         with:
           name: coverage
@@ -193,6 +211,16 @@ jobs:
           acl: "none"
       - name: Link To Report
         run: echo "${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html"
+      - name: Create coverage report comment
+        if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
+        run: |
+          mv coverage_report.md temp_coverage_report.md
+          echo "## [Coverage Report](${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html)" > coverage_report.md
+          cat temp_coverage_report.md >> coverage_report.md
+          rm temp_coverage_report.md
+          echo "> Coverage generated ${{ steps.coverage.outputs.coverage_date }}" >> coverage_report.md
+          echo "Generated coverage report comment"
+          cat coverage_report.md
       - name: Find Comment
         if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
         uses: peter-evans/find-comment@v2
@@ -207,10 +235,5 @@ jobs:
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            Coverage generated ${{ steps.coverage.outputs.coverage_date }}:
-            ${{ vars.S3_COVERAGE_URL }}/${{steps.S3.outputs.object_key}}/html/index.html
-
-            Master coverage: ${{ steps.coverage.outputs.master_percent }}
-            Pull coverage: ${{ steps.coverage.outputs.total_percent }}
+          body-path: coverage_report.md
           edit-mode: replace

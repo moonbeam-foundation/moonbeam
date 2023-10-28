@@ -6,12 +6,9 @@ import {
   DevModeContext,
   deployCreateCompiledContract,
 } from "@moonwall/cli";
-
 import { alith, ALITH_PRIVATE_KEY, createEthersTransaction } from "@moonwall/util";
-
 import { Abi, encodeFunctionData } from "viem";
-
-const BS_TRACER = require("../../helpers/tracer/blockscout_tracer.min.json");
+import BS_TRACER from "../../helpers/tracer/blockscout_tracer.min.json" assert { type: "json" };
 
 export async function createContracts(context: DevModeContext) {
   let nonce = await context.viem().getTransactionCount({ address: alith.address as `0x${string}` });
@@ -73,7 +70,7 @@ describeSuite({
   id: "D3601",
   title: "Trace",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {});
 
     // This test proves that Raw traces are now stored outside the runtime.
@@ -88,8 +85,8 @@ describeSuite({
         const { abi: abiTraceFilter, hash: hash1 } = await context.deployContract!("TraceFilter", {
           args: [false],
         });
-        let receipt = await context.viem().getTransactionReceipt({ hash: hash1 });
-        let nonce = await context
+        const receipt = await context.viem().getTransactionReceipt({ hash: hash1 });
+        const nonce = await context
           .viem()
           .getTransactionCount({ address: alith.address as `0x${string}` });
         // Produce a +58,000 step trace.
@@ -122,7 +119,7 @@ describeSuite({
       title: "should replay over an intermediate state",
       test: async function () {
         const { abi: abiIncrementor, hash: hash1 } = await context.deployContract!("Incrementor");
-        let receipt = await context.viem().getTransactionReceipt({ hash: hash1 });
+        const receipt = await context.viem().getTransactionReceipt({ hash: hash1 });
 
         // In our case, the total number of transactions == the max value of the incrementer.
         // If we trace the last transaction of the block, should return the total number of
@@ -132,9 +129,9 @@ describeSuite({
         // So we set 5 different target txs for a single block: the 1st, 3 intermediate, and
         // the last.
         const totalTxs = 10;
-        let targets = [1, 2, 5, 8, 10];
-        let txs = [];
-        let nonce = await context
+        const targets = [1, 2, 5, 8, 10];
+        const txs: any[] = [];
+        const nonce = await context
           .viem()
           .getTransactionCount({ address: alith.address as `0x${string}` });
 
@@ -154,20 +151,19 @@ describeSuite({
           });
 
           const data = await customDevRpcRequest("eth_sendRawTransaction", [callTx]);
-          //console.log(data)
           txs.push(data);
         }
         await context.createBlock();
 
         // Trace 5 target transactions on it.
-        for (let target of targets) {
-          let index = target - 1;
+        for (const target of targets) {
+          const index = target - 1;
 
           await context.viem().getTransactionReceipt({ hash: txs[index] });
 
-          let intermediateTx = await customDevRpcRequest("debug_traceTransaction", [txs[index]]);
+          const intermediateTx = await customDevRpcRequest("debug_traceTransaction", [txs[index]]);
 
-          let evmResult = context.web3().utils.hexToNumber("0x" + intermediateTx.returnValue);
+          const evmResult = context.web3().utils.hexToNumber("0x" + intermediateTx.returnValue);
           expect(evmResult).to.equal(target);
         }
       },
@@ -179,9 +175,9 @@ describeSuite({
       test: async function () {
         const send = await nestedSingle(context);
         await context.createBlock();
-        let traceTx = await customDevRpcRequest("debug_traceTransaction", [send]);
-        let logs = [];
-        for (let log of traceTx.structLogs) {
+        const traceTx = await customDevRpcRequest("debug_traceTransaction", [send]);
+        const logs: any[] = [];
+        for (const log of traceTx.structLogs) {
           if (logs.length == 1) {
             logs.push(log);
           }
@@ -201,17 +197,16 @@ describeSuite({
       test: async function () {
         const send = await nestedSingle(context);
         await context.createBlock();
-        let traceTx = await customDevRpcRequest("debug_traceTransaction", [
+        const traceTx = await customDevRpcRequest("debug_traceTransaction", [
           send,
           { disableMemory: true, disableStack: true, disableStorage: true },
         ]);
-        let logs = [];
-        for (let log of traceTx.structLogs) {
-          if (
-            log.hasOwnProperty("storage") ||
-            log.hasOwnProperty("memory") ||
-            log.hasOwnProperty("stack")
-          ) {
+        const logs: any[] = [];
+        for (const log of traceTx.structLogs) {
+          const hasStorage = Object.prototype.hasOwnProperty.call(log, "storage");
+          const hasMemory = Object.prototype.hasOwnProperty.call(log, "memory");
+          const hasStack = Object.prototype.hasOwnProperty.call(log, "stack");
+          if (hasStorage || hasMemory || hasStack) {
             logs.push(log);
           }
         }
@@ -225,14 +220,14 @@ describeSuite({
       test: async function () {
         const send = await nestedSingle(context);
         await context.createBlock();
-        let traceTx = await customDevRpcRequest("debug_traceTransaction", [
+        const traceTx = await customDevRpcRequest("debug_traceTransaction", [
           send,
           { tracer: BS_TRACER.body },
         ]);
-        let entries = traceTx;
+        const entries = traceTx;
         expect(entries).to.be.lengthOf(2);
-        let resCaller = entries[0];
-        let resCallee = entries[1];
+        const resCaller = entries[0];
+        const resCallee = entries[1];
         expect(resCaller.callType).to.be.equal("call");
         expect(resCallee.type).to.be.equal("call");
         expect(resCallee.from).to.be.equal(resCaller.to);
@@ -248,14 +243,14 @@ describeSuite({
       test: async function () {
         const send = await nestedSingle(context);
         await context.createBlock();
-        let traceTx = await customDevRpcRequest("debug_traceTransaction", [
+        const traceTx = await customDevRpcRequest("debug_traceTransaction", [
           send,
           { tracer: BS_TRACER.body },
         ]);
-        let entries = traceTx;
+        const entries = traceTx;
         expect(entries).to.be.lengthOf(2);
-        let resCaller = entries[0];
-        let resCallee = entries[1];
+        const resCaller = entries[0];
+        const resCallee = entries[1];
         expect(resCaller.callType).to.be.equal("call");
         expect(resCallee.type).to.be.equal("call");
         expect(resCallee.from).to.be.equal(resCaller.to);

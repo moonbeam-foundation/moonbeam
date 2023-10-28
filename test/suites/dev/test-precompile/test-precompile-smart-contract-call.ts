@@ -9,7 +9,7 @@ import {
 } from "@moonwall/util";
 import { nToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { expectEVMResult } from "../../../helpers";
 
 describeSuite({
   id: "D2557",

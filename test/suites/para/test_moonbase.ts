@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { MoonwallContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, charleth } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
-import { Wallet, ethers } from "ethers";
+import { ethers } from "ethers";
 import fs from "node:fs";
 
 describeSuite({

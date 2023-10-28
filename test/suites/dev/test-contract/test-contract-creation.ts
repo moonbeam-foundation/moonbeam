@@ -9,7 +9,7 @@ import {
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { hexToU8a } from "@polkadot/util";
 import { encodeDeployData, keccak256, numberToHex, toRlp } from "viem";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
+import { verifyLatestBlockFees } from "../../../helpers";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({

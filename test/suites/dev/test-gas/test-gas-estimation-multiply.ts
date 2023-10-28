@@ -47,7 +47,7 @@ describeSuite({
           functionName: "multiply",
           maxPriorityFeePerGas: 0n,
           args: [3],
-          //@ts-expect-error
+          //@ts-expect-error expected
           gasLimit: undefined,
           value: 0n,
         });
@@ -66,7 +66,7 @@ describeSuite({
           address: multiAddress,
           functionName: "multiply",
           args: [3],
-          //@ts-expect-error
+          // @ts-expect-error expected
           gasLimit: 22363n,
           value: 0n,
         });
@@ -86,7 +86,7 @@ describeSuite({
           functionName: "multiply",
           maxPriorityFeePerGas: 0n,
           args: [3],
-          //@ts-expect-error
+          // @ts-expect-error expected
           gasLimit: 22363n,
           value: 0n,
         });

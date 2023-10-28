@@ -10,7 +10,7 @@ import {
 } from "@moonwall/util";
 import { PrivateKeyAccount, keccak256, pad, parseEther, toBytes, toHex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers";
 
 // const SELECTORS = {
 //   balanceOf: "70a08231",

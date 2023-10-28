@@ -1,7 +1,11 @@
 import { LogsSubscription } from "node_modules/web3/lib/types/eth.exports.js";
 import { Log, Web3 } from "web3";
 
-export async function web3SubscribeHistoricalLogs(web3: Web3, listenPeriodMs: number, filter?: {}) {
+export async function web3SubscribeHistoricalLogs(
+  web3: Web3,
+  listenPeriodMs: number,
+  filter?: object
+) {
   const eventLogs: any[] = [];
   const sub = await web3.eth.subscribe("logs", filter);
 
@@ -26,7 +30,7 @@ export async function web3SubscribeHistoricalLogs(web3: Web3, listenPeriodMs: nu
   return eventLogs;
 }
 
-export async function openWeb3LogsSub(web3: Web3, filter?: {}): Promise<LogsSubscription> {
+export async function openWeb3LogsSub(web3: Web3, filter?: object): Promise<LogsSubscription> {
   return await web3.eth.subscribe("logs", filter);
 }
 

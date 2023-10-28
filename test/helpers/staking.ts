@@ -2,7 +2,9 @@ import "@moonbeam-network/api-augment";
 import { DevModeContext } from "@moonwall/cli";
 
 export async function getRewardedAndCompoundedEvents(context: DevModeContext, blockHash: string) {
-  return (await (await context.polkadotJs().at(blockHash)).query.system.events()).reduce(
+  return (
+    await (await context.polkadotJs().at(blockHash)).query.system.events()
+  ).reduce<StakingEvents>(
     (acc, event: any) => {
       if (context.polkadotJs().events.parachainStaking.Rewarded.is(event.event)) {
         acc.rewarded.push({
@@ -20,4 +22,9 @@ export async function getRewardedAndCompoundedEvents(context: DevModeContext, bl
     },
     { rewarded: [], compounded: [] }
   );
+}
+
+interface StakingEvents {
+  rewarded: { account: string; amount: any }[];
+  compounded: { candidate: string; delegator: string; amount: any }[];
 }

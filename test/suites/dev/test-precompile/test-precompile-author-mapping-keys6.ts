@@ -10,7 +10,7 @@ import {
   getBlockExtrinsic,
 } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
-import { originalKeys, setAuthorMappingKeysViaPrecompile } from "../../../helpers/precompiles.js";
+import { originalKeys, setAuthorMappingKeysViaPrecompile } from "../../../helpers";
 
 describeSuite({
   id: "D2514",

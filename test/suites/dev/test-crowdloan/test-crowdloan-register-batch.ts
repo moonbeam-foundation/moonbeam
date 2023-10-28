@@ -2,8 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, alith } from "@moonwall/util";
 import { PrivateKeyAccount, generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { VESTING_PERIOD } from "../../../helpers/constants.js";
-import { getAccountPayable } from "../../../helpers/crowdloan.js";
+import { VESTING_PERIOD, getAccountPayable } from "../../../helpers";
 
 describeSuite({
   id: "D0711",

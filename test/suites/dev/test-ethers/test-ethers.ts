@@ -56,7 +56,7 @@ describeSuite({
         });
         await context.createBlock();
 
-        // @ts-expect-error
+        // @ts-expect-error It doesn't know what functions are available
         const contractCallResult = await deployed.multiply(3, {
           gasLimit: 1_000_000,
           gasPrice: 10_000_000_000,

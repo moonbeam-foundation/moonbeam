@@ -1,8 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { CONTRACT_RANDOMNESS_STATUS_PENDING, GLMR } from "@moonwall/util";
-import { expectEVMResult, extractRevertReason } from "../../../helpers/eth-transactions.js";
-import { setupLotteryWithParticipants } from "../../../helpers/randomness.js";
+import {
+  expectEVMResult,
+  extractRevertReason,
+  setupLotteryWithParticipants,
+} from "../../../helpers";
 
 describeSuite({
   id: "D2713",

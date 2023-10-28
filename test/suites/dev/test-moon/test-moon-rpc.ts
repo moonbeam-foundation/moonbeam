@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, createViemTransaction } from "@moonwall/util";
-import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers/transactions.js";
+import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers";
 
 describeSuite({
   id: "D2001",

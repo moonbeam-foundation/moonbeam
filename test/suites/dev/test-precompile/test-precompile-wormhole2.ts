@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { expectEVMResult, extractRevertReason } from "../../../helpers/eth-transactions.js";
+import { expectEVMResult, extractRevertReason } from "../../../helpers";
 
 describeSuite({
   id: "D2569",

@@ -79,7 +79,9 @@ pub(crate) mod mock;
 #[cfg(test)]
 mod tests;
 
+pub mod encode;
 pub mod migrations;
+pub mod relay_indices;
 pub mod weights;
 pub use crate::weights::WeightInfo;
 
@@ -87,7 +89,9 @@ type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 
 #[pallet]
 pub mod pallet {
+
 	use super::*;
+	use crate::relay_indices::RelayChainIndices;
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
 	use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
@@ -98,6 +102,7 @@ pub mod pallet {
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
+	use sp_std::vec::Vec;
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
 	use xcm_executor::traits::{TransactAsset, WeightBounds};
 	use xcm_primitives::{
@@ -107,7 +112,7 @@ pub mod pallet {
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
-	pub struct Pallet<T>(PhantomData<T>);
+	pub struct Pallet<T>(pub PhantomData<T>);
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -173,9 +178,6 @@ pub mod pallet {
 
 		/// The way to filter the max fee to use for HRMP management operations
 		type MaxHrmpFee: FilterMaxAssetFee;
-
-		/// Means of encoding HRMP transact calls
-		type HrmpEncoder: HrmpEncodeCall;
 
 		type WeightInfo: WeightInfo;
 	}
@@ -310,6 +312,11 @@ pub mod pallet {
 	pub type DestinationAssetFeePerSecond<T: Config> =
 		StorageMap<_, Twox64Concat, MultiLocation, u128>;
 
+	/// Stores the indices of relay chain pallets
+	#[pallet::storage]
+	#[pallet::getter(fn relay_indices)]
+	pub type RelayIndices<T: Config> = StorageValue<_, RelayChainIndices, ValueQuery>;
+
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
 	pub enum Error<T> {
@@ -398,6 +405,28 @@ pub mod pallet {
 		HrmpManagementSent {
 			action: HrmpOperation,
 		},
+	}
+
+	#[pallet::genesis_config]
+	pub struct GenesisConfig<T> {
+		pub relay_indices: RelayChainIndices,
+		pub _phantom: PhantomData<T>,
+	}
+
+	impl<T> Default for GenesisConfig<T> {
+		fn default() -> Self {
+			Self {
+				relay_indices: RelayChainIndices::default(),
+				_phantom: Default::default(),
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
+		fn build(&self) {
+			<RelayIndices<T>>::put(self.relay_indices);
+		}
 	}
 
 	#[pallet::call]
@@ -816,22 +845,22 @@ pub mod pallet {
 			T::HrmpManipulatorOrigin::ensure_origin(origin)?;
 			let call_bytes = match action.clone() {
 				HrmpOperation::InitOpen(params) => {
-					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
+					Self::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
 						params.para_id,
 						params.proposed_max_capacity,
 						params.proposed_max_message_size,
 					))
 				}
 				HrmpOperation::Accept { para_id } => {
-					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
+					Self::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
 				}
 				HrmpOperation::Close(close_params) => {
-					T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
+					Self::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
 				}
 				HrmpOperation::Cancel {
 					channel_id,
 					open_requests,
-				} => T::HrmpEncoder::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
+				} => Self::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
 					channel_id,
 					open_requests,
 				)),

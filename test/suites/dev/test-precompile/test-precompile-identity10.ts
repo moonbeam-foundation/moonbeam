@@ -1,8 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { alith, charleth } from "@moonwall/util";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { PRECOMPILE_IDENTITY_ADDRESS } from "../../../helpers/constants.ts";
+import { expectEVMResult, PRECOMPILE_IDENTITY_ADDRESS } from "../../../helpers";
 
 describeSuite({
   id: "D3409",
