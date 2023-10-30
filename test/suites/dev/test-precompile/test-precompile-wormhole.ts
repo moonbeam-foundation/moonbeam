@@ -106,6 +106,7 @@ describeSuite({
     let whWethContract: ethers.Contract;
     let bridgeImplAbi;
     let bridgeImplAddr;
+    let bridgeAddr;
 
     let whWethAddress: string;
     let localChainId;
@@ -143,6 +144,7 @@ describeSuite({
       const governanceContract =
         "0x0000000000000000000000000000000000000000000000000000000000000004";
       localChainId = await context.viem().getChainId();
+      log(`our chain id: ${localChainId}`);
       // Deploy wormhole (based on wormhole)
       // wormhole-foundation/wormhole/blob/main/ethereum/migrations/2_deploy_wormhole.js
       const { contractAddress: setupAddr, abi: setupAbi } = await context.deployContract!("Setup");
@@ -195,9 +197,10 @@ describeSuite({
         ],
       });
 
-      const { contractAddress: bridgeAddr } = await context.deployContract!("TokenBridge", {
+      const tokenBridgeDeployment = await context.deployContract!("TokenBridge", {
         args: [bridgeSetupAddr, bridgeSetupData],
       });
+      bridgeAddr = tokenBridgeDeployment.contractAddress;
       log(`bridge contract deployed to ${bridgeAddr}`);
 
       // Register Chain ETH
@@ -495,12 +498,15 @@ describeSuite({
         // bridge-out by calling transferTokens(). The bridge doesn't care who bridged in or out
         // so long as the amount we ask to bridge back in is <= the total it has recorded bridging
         // out.
-        const localERC20 = await deploy("ERC20WithInitialSupply", [
-          "ERC20",
-          "WHTEST",
-          ALITH_ADDRESS,
-          1_000,
-        ]);
+        //
+        // Note that we use a very large transfer amount. This is quite confusing because of (again)
+        // the WH internal normalization logic, which seems to reduce this amount when "bridging
+        // out" but not when "bridging in". As noted elsewhere, part of the confusion is that
+        // we implicitly do our own digit shift when creating the VAA.
+        const localERC20 = await deploy(
+          "ERC20WithInitialSupply",
+          ["ERC20", "WHTEST", ALITH_ADDRESS, 100_000_000_000_000_000_000_000],
+        );
         const localERC20Address = localERC20.contractAddress;
         console.log(`erc20 deployed to ${localERC20Address}`);
 
@@ -510,7 +516,10 @@ describeSuite({
           data: encodeFunctionData({
             abi: localERC20.abi,
             functionName: "approve",
-            args: [bridgeImplAddr, 1_000],
+            args: [
+              bridgeAddr,
+              100_000_000_000_000_000_000_000,
+            ]
           }),
           gasLimit: "0x100000",
           value: "0x0",
@@ -524,7 +533,7 @@ describeSuite({
           functionName: "transferTokens",
           args: [
             localERC20Address,
-            100,
+            100_000_000_000_000_000_000,
             ETHChain,
             "0x0000000000000000000000000000000000000000000000000000000000000001",
             10,
@@ -534,14 +543,19 @@ describeSuite({
 
         console.log(`bridgeImplAddr ${bridgeImplAddr}`);
         const txn = await createEthersTransaction(context, {
-          to: bridgeImplAddr,
+          to: bridgeAddr,
           data: transferTokensData,
           gasLimit: "0x300000",
           value: "0x0",
         });
         const { result: transferResult } = await context.createBlock(txn);
-        // TODO: we're failing here, something is reverting with "Target contract does not contain data"
         expectEVMResult(transferResult!.events, "Succeed");
+
+        const WETH_CONTRACT_JSON = fetchCompiledContract("ERC20WithInitialSupply");
+        const WETH_INTERFACE = WETH_CONTRACT_JSON.abi as InterfaceAbi;
+        const wethContract = new ethers.Contract(localERC20Address, WETH_INTERFACE, context.ethers());
+        const afterBridgeOut = await wethContract.balanceOf(ALITH_ADDRESS);
+        console.log(`after bridge out: ${afterBridgeOut}`);
 
         // create payload
         const destination = context
@@ -552,7 +566,7 @@ describeSuite({
         const versionedUserAction = new VersionedUserAction({ V1: userAction });
         let payload = "" + versionedUserAction.toHex();
 
-        const whAmount = 999n;
+        const whAmount = 42n;
         const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
 
         const transferVAA = await makeTestVAA(
@@ -568,7 +582,7 @@ describeSuite({
           args: [`0x${transferVAA}`],
           rawTxOnly: true,
         });
-        result = await context.createBlock(rawTx);
+        const result = await context.createBlock(rawTx);
 
         expectEVMResult(result.result.events, "Succeed", "Returned");
         const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
