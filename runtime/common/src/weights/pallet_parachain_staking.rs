@@ -384,6 +384,19 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
 	}
+	fn set_candidate_bond_to_zero(x: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `1322 + x * (42 ±0)`
+		//  Estimated: `4752 + x * (43 ±0)`
+		// Minimum execution time: 34_969_000 picoseconds.
+		Weight::from_parts(43_183_234, 0)
+			.saturating_add(Weight::from_parts(0, 4752))
+			// Standard Error: 1_377
+			.saturating_add(Weight::from_parts(105_890, 0).saturating_mul(x.into()))
+			.saturating_add(T::DbWeight::get().reads(6))
+			.saturating_add(T::DbWeight::get().writes(5))
+			.saturating_add(Weight::from_parts(0, 43).saturating_mul(x.into()))
+	}
 	/// Storage: System Account (r:1 w:1)
 	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
 	/// Storage: ParachainStaking DelegatorState (r:1 w:1)
