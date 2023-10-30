@@ -502,10 +502,12 @@ describeSuite({
         // the WH internal normalization logic, which seems to reduce this amount when "bridging
         // out" but not when "bridging in". As noted elsewhere, part of the confusion is that
         // we implicitly do our own digit shift when creating the VAA.
-        const localERC20 = await deploy(
-          "ERC20WithInitialSupply",
-          ["ERC20", "WHTEST", ALITH_ADDRESS, 100_000_000_000_000_000_000_000],
-        );
+        const localERC20 = await deploy("ERC20WithInitialSupply", [
+          "ERC20",
+          "WHTEST",
+          ALITH_ADDRESS,
+          100_000_000_000_000_000_000_000,
+        ]);
         const localERC20Address = localERC20.contractAddress;
 
         // approve...
@@ -514,10 +516,7 @@ describeSuite({
           data: encodeFunctionData({
             abi: localERC20.abi,
             functionName: "approve",
-            args: [
-              bridgeAddr,
-              100_000_000_000_000_000_000_000,
-            ]
+            args: [bridgeAddr, 100_000_000_000_000_000_000_000],
           }),
           gasLimit: "0x100000",
           value: "0x0",
