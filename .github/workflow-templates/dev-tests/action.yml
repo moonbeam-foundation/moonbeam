@@ -47,7 +47,6 @@ runs:
         cd test
         pnpm install
         pnpm compile-solidity
-
         pnpm moonwall test ${{ inputs.moonwall_environment }} || [[ '${{ inputs.force-pass }}' == 'true' ]]
     - name: Upload HTML report
       if: always()
