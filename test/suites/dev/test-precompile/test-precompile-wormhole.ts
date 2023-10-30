@@ -144,7 +144,6 @@ describeSuite({
       const governanceContract =
         "0x0000000000000000000000000000000000000000000000000000000000000004";
       localChainId = await context.viem().getChainId();
-      log(`our chain id: ${localChainId}`);
       // Deploy wormhole (based on wormhole)
       // wormhole-foundation/wormhole/blob/main/ethereum/migrations/2_deploy_wormhole.js
       const { contractAddress: setupAddr, abi: setupAbi } = await context.deployContract!("Setup");
@@ -508,7 +507,6 @@ describeSuite({
           ["ERC20", "WHTEST", ALITH_ADDRESS, 100_000_000_000_000_000_000_000],
         );
         const localERC20Address = localERC20.contractAddress;
-        console.log(`erc20 deployed to ${localERC20Address}`);
 
         // approve...
         const approveTxn = await createEthersTransaction(context, {
@@ -541,7 +539,6 @@ describeSuite({
           ],
         });
 
-        console.log(`bridgeImplAddr ${bridgeImplAddr}`);
         const txn = await createEthersTransaction(context, {
           to: bridgeAddr,
           data: transferTokensData,
@@ -550,12 +547,6 @@ describeSuite({
         });
         const { result: transferResult } = await context.createBlock(txn);
         expectEVMResult(transferResult!.events, "Succeed");
-
-        const WETH_CONTRACT_JSON = fetchCompiledContract("ERC20WithInitialSupply");
-        const WETH_INTERFACE = WETH_CONTRACT_JSON.abi as InterfaceAbi;
-        const wethContract = new ethers.Contract(localERC20Address, WETH_INTERFACE, context.ethers());
-        const afterBridgeOut = await wethContract.balanceOf(ALITH_ADDRESS);
-        console.log(`after bridge out: ${afterBridgeOut}`);
 
         // create payload
         const destination = context
