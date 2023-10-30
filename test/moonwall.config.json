@@ -305,6 +305,7 @@
       "testFileDir": ["suites/dev/"],
       "include": ["**/*test*"],
       "contracts": "contracts/",
+      "timeout": 120000,
       "runScripts": [
         "compile-contracts.ts compile",
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
