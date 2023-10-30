@@ -699,6 +699,7 @@
 <a href="#699" id="699">699</a>
 <a href="#700" id="700">700</a>
 <a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -723,7 +724,7 @@
 	Erc20XcmBridge, LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall,
 	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
-<span class="kw">use </span>moonbeam_runtime_common::{weights <span class="kw">as </span>moonbeam_weights, xcm::AllowTopLevelPaidExecution};
+<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbeam_weights;
 <span class="kw">use </span>pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 <span class="kw">use </span>sp_runtime::{
 	traits::{Hash <span class="kw">as </span>THash, MaybeEquivalence, PostDispatchInfoOf},
@@ -739,11 +740,12 @@
 <span class="kw">use </span>sp_core::{ConstU32, H160, H256};
 <span class="kw">use </span>sp_weights::Weight;
 <span class="kw">use </span>xcm_builder::{
-	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteId, CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter,
-	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, UsingComponents, WeightInfoBounds, WithComputedOrigin,
+	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
+	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
+	CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter, NoChecking,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	WeightInfoBounds, WithComputedOrigin,
 };
 
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
@@ -944,7 +946,7 @@
 	WithComputedOrigin&lt;
 		(
 			<span class="comment">// If the message is one that immediately attemps to pay for execution, then allow it.
-			</span>AllowTopLevelPaidExecution,
+			</span>AllowTopLevelPaidExecutionFrom&lt;Everything&gt;,
 			<span class="comment">// Subscriptions for version tracking are OK.
 			</span>AllowSubscriptionsFrom&lt;Everything&gt;,
 		),
