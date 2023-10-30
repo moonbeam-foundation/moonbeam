@@ -3,16 +3,13 @@ import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwa
 import {
   ALITH_ADDRESS,
   ALITH_PRIVATE_KEY,
-  PRECOMPILES,
   alith,
   createEthersTransaction,
-  createViemTransaction,
-  customWeb3Request,
 } from "@moonwall/util";
 import { Enum, Struct, TypeRegistry } from "@polkadot/types";
 import { u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
-import { Contract, InterfaceAbi, ethers } from "ethers";
+import { InterfaceAbi, ethers } from "ethers";
 import { encodeFunctionData } from "viem";
 import {
   expectEVMResult,
@@ -502,12 +499,10 @@ describeSuite({
         // the WH internal normalization logic, which seems to reduce this amount when "bridging
         // out" but not when "bridging in". As noted elsewhere, part of the confusion is that
         // we implicitly do our own digit shift when creating the VAA.
-        const localERC20 = await deploy("ERC20WithInitialSupply", [
-          "ERC20",
-          "WHTEST",
-          ALITH_ADDRESS,
-          100_000_000_000_000_000_000_000,
-        ]);
+        const localERC20 = await deploy(
+          "ERC20WithInitialSupply",
+          ["ERC20", "WHTEST", ALITH_ADDRESS, 100_000_000_000_000_000_000_000],
+        );
         const localERC20Address = localERC20.contractAddress;
 
         // approve...
@@ -516,7 +511,10 @@ describeSuite({
           data: encodeFunctionData({
             abi: localERC20.abi,
             functionName: "approve",
-            args: [bridgeAddr, 100_000_000_000_000_000_000_000],
+            args: [
+              bridgeAddr,
+              100_000_000_000_000_000_000_000,
+            ]
           }),
           gasLimit: "0x100000",
           value: "0x0",
@@ -554,7 +552,6 @@ describeSuite({
 
         const userAction = new XcmRoutingUserAction({ destination });
         const versionedUserAction = new VersionedUserAction({ V1: userAction });
-        let payload = "" + versionedUserAction.toHex();
 
         const whAmount = 42n;
         const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
