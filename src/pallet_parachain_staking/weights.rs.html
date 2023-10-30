@@ -1707,6 +1707,31 @@
 <a href="#1707" id="1707">1707</a>
 <a href="#1708" id="1708">1708</a>
 <a href="#1709" id="1709">1709</a>
+<a href="#1710" id="1710">1710</a>
+<a href="#1711" id="1711">1711</a>
+<a href="#1712" id="1712">1712</a>
+<a href="#1713" id="1713">1713</a>
+<a href="#1714" id="1714">1714</a>
+<a href="#1715" id="1715">1715</a>
+<a href="#1716" id="1716">1716</a>
+<a href="#1717" id="1717">1717</a>
+<a href="#1718" id="1718">1718</a>
+<a href="#1719" id="1719">1719</a>
+<a href="#1720" id="1720">1720</a>
+<a href="#1721" id="1721">1721</a>
+<a href="#1722" id="1722">1722</a>
+<a href="#1723" id="1723">1723</a>
+<a href="#1724" id="1724">1724</a>
+<a href="#1725" id="1725">1725</a>
+<a href="#1726" id="1726">1726</a>
+<a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
+<a href="#1733" id="1733">1733</a>
+<a href="#1734" id="1734">1734</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1779,6 +1804,7 @@
 	<span class="kw">fn </span>schedule_candidate_bond_less() -&gt; Weight;
 	<span class="kw">fn </span>execute_candidate_bond_less(x: u32, ) -&gt; Weight;
 	<span class="kw">fn </span>cancel_candidate_bond_less() -&gt; Weight;
+	<span class="kw">fn </span>set_candidate_bond_to_zero(x: u32, ) -&gt; Weight;
 	<span class="kw">fn </span>delegate(x: u32, y: u32, ) -&gt; Weight;
 	<span class="kw">fn </span>schedule_revoke_delegation(x: u32, ) -&gt; Weight;
 	<span class="kw">fn </span>delegator_bond_more(x: u32, ) -&gt; Weight;
@@ -2123,6 +2149,18 @@
 		</span>Weight::from_parts(<span class="number">19_491_000</span>, <span class="number">3656</span>)
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
+	}
+	<span class="kw">fn </span>set_candidate_bond_to_zero(x: u32, ) -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `1322 + x * (42 ±0)`
+		//  Estimated: `4752 + x * (43 ±0)`
+		// Minimum execution time: 71_996_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">80_620_929</span>, <span class="number">4752</span>)
+			<span class="comment">// Standard Error: 1_363
+			</span>.saturating_add(Weight::from_parts(<span class="number">94_580</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			.saturating_add(T::DbWeight::get().reads(<span class="number">6_u64</span>))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">5_u64</span>))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">43</span>).saturating_mul(x.into()))
 	}
 	<span class="doccomment">/// Storage: System Account (r:1 w:1)
 	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
@@ -2931,6 +2969,18 @@
 		</span>Weight::from_parts(<span class="number">19_491_000</span>, <span class="number">3656</span>)
 			.saturating_add(RocksDbWeight::get().reads(<span class="number">1_u64</span>))
 			.saturating_add(RocksDbWeight::get().writes(<span class="number">1_u64</span>))
+	}
+	<span class="kw">fn </span>set_candidate_bond_to_zero(x: u32, ) -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `1322 + x * (42 ±0)`
+		//  Estimated: `4752 + x * (43 ±0)`
+		// Minimum execution time: 71_996_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">80_620_929</span>, <span class="number">4752</span>)
+			<span class="comment">// Standard Error: 1_363
+			</span>.saturating_add(Weight::from_parts(<span class="number">94_580</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">6_u64</span>))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">5_u64</span>))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">43</span>).saturating_mul(x.into()))
 	}
 	<span class="doccomment">/// Storage: System Account (r:1 w:1)
 	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)

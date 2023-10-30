@@ -2266,6 +2266,34 @@
 <a href="#2266" id="2266">2266</a>
 <a href="#2267" id="2267">2267</a>
 <a href="#2268" id="2268">2268</a>
+<a href="#2269" id="2269">2269</a>
+<a href="#2270" id="2270">2270</a>
+<a href="#2271" id="2271">2271</a>
+<a href="#2272" id="2272">2272</a>
+<a href="#2273" id="2273">2273</a>
+<a href="#2274" id="2274">2274</a>
+<a href="#2275" id="2275">2275</a>
+<a href="#2276" id="2276">2276</a>
+<a href="#2277" id="2277">2277</a>
+<a href="#2278" id="2278">2278</a>
+<a href="#2279" id="2279">2279</a>
+<a href="#2280" id="2280">2280</a>
+<a href="#2281" id="2281">2281</a>
+<a href="#2282" id="2282">2282</a>
+<a href="#2283" id="2283">2283</a>
+<a href="#2284" id="2284">2284</a>
+<a href="#2285" id="2285">2285</a>
+<a href="#2286" id="2286">2286</a>
+<a href="#2287" id="2287">2287</a>
+<a href="#2288" id="2288">2288</a>
+<a href="#2289" id="2289">2289</a>
+<a href="#2290" id="2290">2290</a>
+<a href="#2291" id="2291">2291</a>
+<a href="#2292" id="2292">2292</a>
+<a href="#2293" id="2293">2293</a>
+<a href="#2294" id="2294">2294</a>
+<a href="#2295" id="2295">2295</a>
+<a href="#2296" id="2296">2296</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3257,47 +3285,11 @@
 			candidate_count: u32,
 		) -&gt; DispatchResultWithPostInfo {
 			<span class="kw">let </span>acc = ensure_signed(origin)<span class="question-mark">?</span>;
-			<span class="macro">ensure!</span>(!<span class="self">Self</span>::is_candidate(<span class="kw-2">&amp;</span>acc), Error::&lt;T&gt;::CandidateExists);
-			<span class="macro">ensure!</span>(!<span class="self">Self</span>::is_delegator(<span class="kw-2">&amp;</span>acc), Error::&lt;T&gt;::DelegatorExists);
 			<span class="macro">ensure!</span>(
 				bond &gt;= T::MinCandidateStk::get(),
 				Error::&lt;T&gt;::CandidateBondBelowMin
 			);
-			<span class="kw">let </span><span class="kw-2">mut </span>candidates = &lt;CandidatePool&lt;T&gt;&gt;::get();
-			<span class="kw">let </span>old_count = candidates.<span class="number">0</span>.len() <span class="kw">as </span>u32;
-			<span class="macro">ensure!</span>(
-				candidate_count &gt;= old_count,
-				Error::&lt;T&gt;::TooLowCandidateCountWeightHintJoinCandidates
-			);
-			<span class="kw">let </span>maybe_inserted_candidate = candidates
-				.try_insert(Bond {
-					owner: acc.clone(),
-					amount: bond,
-				})
-				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::CandidateLimitReached)<span class="question-mark">?</span>;
-			<span class="macro">ensure!</span>(maybe_inserted_candidate, Error::&lt;T&gt;::CandidateExists);
-
-			<span class="macro">ensure!</span>(
-				<span class="self">Self</span>::get_collator_stakable_free_balance(<span class="kw-2">&amp;</span>acc) &gt;= bond,
-				Error::&lt;T&gt;::InsufficientBalance,
-			);
-			T::Currency::set_lock(COLLATOR_LOCK_ID, <span class="kw-2">&amp;</span>acc, bond, WithdrawReasons::all());
-			<span class="kw">let </span>candidate = CandidateMetadata::new(bond);
-			&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>acc, candidate);
-			<span class="kw">let </span>empty_delegations: Delegations&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; = Default::default();
-			<span class="comment">// insert empty top delegations
-			</span>&lt;TopDelegations&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>acc, empty_delegations.clone());
-			<span class="comment">// insert empty bottom delegations
-			</span>&lt;BottomDelegations&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>acc, empty_delegations);
-			&lt;CandidatePool&lt;T&gt;&gt;::put(candidates);
-			<span class="kw">let </span>new_total = &lt;Total&lt;T&gt;&gt;::get().saturating_add(bond);
-			&lt;Total&lt;T&gt;&gt;::put(new_total);
-			<span class="self">Self</span>::deposit_event(Event::JoinedCollatorCandidates {
-				account: acc,
-				amount_locked: bond,
-				new_total_amt_locked: new_total,
-			});
-			<span class="prelude-val">Ok</span>(().into())
+			<span class="self">Self</span>::join_candidates_inner(acc, bond, candidate_count)
 		}
 
 		<span class="doccomment">/// Request to leave the set of candidates. If successful, the account is immediately
@@ -3744,6 +3736,20 @@
 			&lt;EnableMarkingOffline&lt;T&gt;&gt;::set(value);
 			<span class="prelude-val">Ok</span>(())
 		}
+
+		<span class="doccomment">/// Force join the set of collator candidates.
+		/// It will skip the minimum required bond check.
+		</span><span class="attr">#[pallet::call_index(<span class="number">31</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::join_candidates(<span class="kw-2">*</span>candidate_count))]
+		</span><span class="kw">pub fn </span>force_join_candidates(
+			origin: OriginFor&lt;T&gt;,
+			account: T::AccountId,
+			bond: BalanceOf&lt;T&gt;,
+			candidate_count: u32,
+		) -&gt; DispatchResultWithPostInfo {
+			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())<span class="question-mark">?</span>;
+			<span class="self">Self</span>::join_candidates_inner(account, bond, candidate_count)
+		}
 	}
 
 	<span class="doccomment">/// Represents a payout made via `pay_one_collator_reward`.
@@ -3758,6 +3764,15 @@
 	}
 
 	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+		<span class="kw">pub fn </span>set_candidate_bond_to_zero(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; DispatchResultWithPostInfo {
+			<span class="macro">ensure!</span>(<span class="self">Self</span>::is_candidate(<span class="kw-2">&amp;</span>acc), Error::&lt;T&gt;::CandidateDNE);
+			<span class="kw">let </span>actual_weight = T::WeightInfo::set_candidate_bond_to_zero(T::MaxCandidates::get());
+			<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>acc).ok_or(Error::&lt;T&gt;::CandidateDNE)<span class="question-mark">?</span>;
+			state.bond_less::&lt;T&gt;(acc.clone(), state.bond);
+			&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>acc, state);
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
+		}
+
 		<span class="kw">pub fn </span>is_delegator(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; bool {
 			&lt;DelegatorState&lt;T&gt;&gt;::get(acc).is_some()
 		}
@@ -3768,6 +3783,50 @@
 
 		<span class="kw">pub fn </span>is_selected_candidate(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; bool {
 			&lt;SelectedCandidates&lt;T&gt;&gt;::get().binary_search(acc).is_ok()
+		}
+
+		<span class="kw">pub fn </span>join_candidates_inner(
+			acc: T::AccountId,
+			bond: BalanceOf&lt;T&gt;,
+			candidate_count: u32,
+		) -&gt; DispatchResultWithPostInfo {
+			<span class="macro">ensure!</span>(!<span class="self">Self</span>::is_candidate(<span class="kw-2">&amp;</span>acc), Error::&lt;T&gt;::CandidateExists);
+			<span class="macro">ensure!</span>(!<span class="self">Self</span>::is_delegator(<span class="kw-2">&amp;</span>acc), Error::&lt;T&gt;::DelegatorExists);
+			<span class="kw">let </span><span class="kw-2">mut </span>candidates = &lt;CandidatePool&lt;T&gt;&gt;::get();
+			<span class="kw">let </span>old_count = candidates.<span class="number">0</span>.len() <span class="kw">as </span>u32;
+			<span class="macro">ensure!</span>(
+				candidate_count &gt;= old_count,
+				Error::&lt;T&gt;::TooLowCandidateCountWeightHintJoinCandidates
+			);
+			<span class="kw">let </span>maybe_inserted_candidate = candidates
+				.try_insert(Bond {
+					owner: acc.clone(),
+					amount: bond,
+				})
+				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::CandidateLimitReached)<span class="question-mark">?</span>;
+			<span class="macro">ensure!</span>(maybe_inserted_candidate, Error::&lt;T&gt;::CandidateExists);
+
+			<span class="macro">ensure!</span>(
+				<span class="self">Self</span>::get_collator_stakable_free_balance(<span class="kw-2">&amp;</span>acc) &gt;= bond,
+				Error::&lt;T&gt;::InsufficientBalance,
+			);
+			T::Currency::set_lock(COLLATOR_LOCK_ID, <span class="kw-2">&amp;</span>acc, bond, WithdrawReasons::all());
+			<span class="kw">let </span>candidate = CandidateMetadata::new(bond);
+			&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>acc, candidate);
+			<span class="kw">let </span>empty_delegations: Delegations&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; = Default::default();
+			<span class="comment">// insert empty top delegations
+			</span>&lt;TopDelegations&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>acc, empty_delegations.clone());
+			<span class="comment">// insert empty bottom delegations
+			</span>&lt;BottomDelegations&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>acc, empty_delegations);
+			&lt;CandidatePool&lt;T&gt;&gt;::put(candidates);
+			<span class="kw">let </span>new_total = &lt;Total&lt;T&gt;&gt;::get().saturating_add(bond);
+			&lt;Total&lt;T&gt;&gt;::put(new_total);
+			<span class="self">Self</span>::deposit_event(Event::JoinedCollatorCandidates {
+				account: acc,
+				amount_locked: bond,
+				new_total_amt_locked: new_total,
+			});
+			<span class="prelude-val">Ok</span>(().into())
 		}
 
 		<span class="kw">pub fn </span>go_offline_inner(collator: T::AccountId) -&gt; DispatchResultWithPostInfo {
@@ -3842,8 +3901,7 @@
 			more: BalanceOf&lt;T&gt;,
 		) -&gt; DispatchResultWithPostInfo {
 			<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator).ok_or(Error::&lt;T&gt;::CandidateDNE)<span class="question-mark">?</span>;
-			<span class="kw">let </span>actual_weight =
-				T::WeightInfo::candidate_bond_more(&lt;CandidatePool&lt;T&gt;&gt;::get().<span class="number">0</span>.len() <span class="kw">as </span>u32);
+			<span class="kw">let </span>actual_weight = T::WeightInfo::candidate_bond_more(T::MaxCandidates::get());
 
 			state
 				.bond_more::&lt;T&gt;(collator.clone(), more)
@@ -3863,9 +3921,7 @@
 			candidate: T::AccountId,
 		) -&gt; DispatchResultWithPostInfo {
 			<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>candidate).ok_or(Error::&lt;T&gt;::CandidateDNE)<span class="question-mark">?</span>;
-			<span class="kw">let </span>actual_weight = T::WeightInfo::execute_candidate_bond_less(
-				&lt;CandidatePool&lt;T&gt;&gt;::get().<span class="number">0</span>.len() <span class="kw">as </span>u32,
-			);
+			<span class="kw">let </span>actual_weight = T::WeightInfo::execute_candidate_bond_less(T::MaxCandidates::get());
 
 			state
 				.execute_bond_less::&lt;T&gt;(candidate.clone())

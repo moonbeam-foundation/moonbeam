@@ -1755,6 +1755,17 @@
 <a href="#1755" id="1755">1755</a>
 <a href="#1756" id="1756">1756</a>
 <a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
+<a href="#1763" id="1763">1763</a>
+<a href="#1764" id="1764">1764</a>
+<a href="#1765" id="1765">1765</a>
+<a href="#1766" id="1766">1766</a>
+<a href="#1767" id="1767">1767</a>
+<a href="#1768" id="1768">1768</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2215,6 +2226,37 @@
 		});
 		<span class="prelude-val">Ok</span>(())
 	}
+
+	<span class="kw">pub fn </span>bond_less&lt;T: Config&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, who: T::AccountId, amount: Balance)
+	<span class="kw">where
+		</span>BalanceOf&lt;T&gt;: From&lt;Balance&gt;,
+	{
+		<span class="kw">let </span>new_total_staked = &lt;Total&lt;T&gt;&gt;::get().saturating_sub(amount.into());
+		&lt;Total&lt;T&gt;&gt;::put(new_total_staked);
+		<span class="self">self</span>.bond = <span class="self">self</span>.bond.saturating_sub(amount);
+		<span class="kw">if </span><span class="self">self</span>.bond.is_zero() {
+			T::Currency::remove_lock(COLLATOR_LOCK_ID, <span class="kw-2">&amp;</span>who);
+		} <span class="kw">else </span>{
+			T::Currency::set_lock(
+				COLLATOR_LOCK_ID,
+				<span class="kw-2">&amp;</span>who,
+				<span class="self">self</span>.bond.into(),
+				WithdrawReasons::all(),
+			);
+		}
+		<span class="self">self</span>.total_counted = <span class="self">self</span>.total_counted.saturating_sub(amount);
+		<span class="kw">let </span>event = Event::CandidateBondedLess {
+			candidate: who.clone(),
+			amount: amount.into(),
+			new_bond: <span class="self">self</span>.bond.into(),
+		};
+		<span class="comment">// update candidate pool value because it must change if self bond changes
+		</span><span class="kw">if </span><span class="self">self</span>.is_active() {
+			Pallet::&lt;T&gt;::update_active(who, <span class="self">self</span>.total_counted.into());
+		}
+		Pallet::&lt;T&gt;::deposit_event(event);
+	}
+
 	<span class="doccomment">/// Schedule executable decrease of collator candidate self bond
 	/// Returns the round at which the collator can execute the pending request
 	</span><span class="kw">pub fn </span>schedule_bond_less&lt;T: Config&gt;(
@@ -2255,32 +2297,12 @@
 			request.when_executable &lt;= &lt;Round&lt;T&gt;&gt;::get().current,
 			Error::&lt;T&gt;::PendingCandidateRequestNotDueYet
 		);
-		<span class="kw">let </span>new_total_staked = &lt;Total&lt;T&gt;&gt;::get().saturating_sub(request.amount.into());
-		&lt;Total&lt;T&gt;&gt;::put(new_total_staked);
-		<span class="comment">// Arithmetic assumptions are self.bond &gt; less &amp;&amp; self.bond - less &gt; CollatorMinBond
-		// (assumptions enforced by `schedule_bond_less`; if storage corrupts, must re-verify)
-		</span><span class="self">self</span>.bond = <span class="self">self</span>.bond.saturating_sub(request.amount);
-		T::Currency::set_lock(
-			COLLATOR_LOCK_ID,
-			<span class="kw-2">&amp;</span>who.clone(),
-			<span class="self">self</span>.bond.into(),
-			WithdrawReasons::all(),
-		);
-		<span class="self">self</span>.total_counted = <span class="self">self</span>.total_counted.saturating_sub(request.amount);
-		<span class="kw">let </span>event = Event::CandidateBondedLess {
-			candidate: who.clone().into(),
-			amount: request.amount.into(),
-			new_bond: <span class="self">self</span>.bond.into(),
-		};
+		<span class="self">self</span>.bond_less::&lt;T&gt;(who.clone(), request.amount);
 		<span class="comment">// reset s.t. no pending request
 		</span><span class="self">self</span>.request = <span class="prelude-val">None</span>;
-		<span class="comment">// update candidate pool value because it must change if self bond changes
-		</span><span class="kw">if </span><span class="self">self</span>.is_active() {
-			Pallet::&lt;T&gt;::update_active(who.into(), <span class="self">self</span>.total_counted.into());
-		}
-		Pallet::&lt;T&gt;::deposit_event(event);
 		<span class="prelude-val">Ok</span>(())
 	}
+
 	<span class="doccomment">/// Cancel candidate bond less request
 	</span><span class="kw">pub fn </span>cancel_bond_less&lt;T: Config&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, who: T::AccountId) -&gt; DispatchResult
 	<span class="kw">where

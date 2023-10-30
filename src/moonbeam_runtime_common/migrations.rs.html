@@ -261,6 +261,53 @@
 <a href="#261" id="261">261</a>
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -289,6 +336,9 @@
 };
 <span class="kw">use </span>pallet_author_slot_filter::Config <span class="kw">as </span>AuthorSlotFilterConfig;
 <span class="kw">use </span>pallet_migrations::{GetMigrations, Migration};
+<span class="kw">use </span>pallet_moonbeam_orbiters::CollatorsPool;
+<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+</span><span class="kw">use </span>sp_runtime::traits::Zero;
 <span class="kw">use </span>sp_std::{marker::PhantomData, prelude::<span class="kw-2">*</span>};
 
 <span class="kw">pub struct </span>PreimageMigrationHashToBoundedCall&lt;T&gt;(PhantomData&lt;T&gt;);
@@ -374,6 +424,46 @@
 	}
 }
 
+<span class="kw">pub struct </span>RemoveMinBondForOrbiterCollators&lt;T&gt;(<span class="kw">pub </span>PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T&gt; Migration <span class="kw">for </span>RemoveMinBondForOrbiterCollators&lt;T&gt;
+<span class="kw">where
+	</span>T: pallet_moonbeam_orbiters::Config,
+	T: pallet_parachain_staking::Config,
+	T: frame_system::Config,
+{
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_RemoveMinBondForOrbiterCollators&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		<span class="kw">let </span><span class="kw-2">mut </span>weight = Weight::zero();
+		CollatorsPool::&lt;T&gt;::iter_keys().for_each(|collator| {
+			<span class="macro">log::info!</span>(<span class="string">&quot;Setting the bond for collator {:?} to zero&quot;</span>, collator);
+			weight += &lt;pallet_parachain_staking::Pallet&lt;T&gt;&gt;::set_candidate_bond_to_zero(<span class="kw-2">&amp;</span>collator)
+				.expect(<span class="string">&quot;failed to set collator bond to 0&quot;</span>)
+				.actual_weight
+				.expect(<span class="string">&quot;failed to get weight&quot;</span>);
+		});
+		weight
+	}
+
+	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sp_runtime::DispatchError&gt; {
+		<span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[])
+	}
+
+	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>, _state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt; {
+		CollatorsPool::&lt;T&gt;::iter_keys().for_each(|collator| {
+			<span class="macro">log::info!</span>(<span class="string">&quot;Checking collator: {:?}&quot;</span>, collator);
+			<span class="kw">let </span>state = &lt;pallet_parachain_staking::Pallet&lt;T&gt;&gt;::candidate_info(<span class="kw-2">&amp;</span>collator)
+				.expect(<span class="string">&quot;collator should have candidate info&quot;</span>);
+			<span class="macro">assert!</span>(state.bond.is_zero(), <span class="string">&quot;collator bond should be zero&quot;</span>);
+		});
+		<span class="prelude-val">Ok</span>(())
+	}
+}
+
 <span class="kw">pub struct </span>ReferendaMigrations&lt;Runtime, Council, Tech&gt;(PhantomData&lt;(Runtime, Council, Tech)&gt;);
 
 <span class="kw">impl</span>&lt;Runtime, Council, Tech&gt; GetMigrations <span class="kw">for </span>ReferendaMigrations&lt;Runtime, Council, Tech&gt;
@@ -410,6 +500,7 @@
 	Runtime: pallet_asset_manager::Config,
 	&lt;Runtime <span class="kw">as </span>pallet_asset_manager::Config&gt;::ForeignAssetType: From&lt;xcm::v3::MultiLocation&gt;,
 	Runtime: pallet_xcm_transactor::Config,
+	Runtime: pallet_moonbeam_orbiters::Config,
 {
 	<span class="kw">fn </span>get_migrations() -&gt; Vec&lt;Box&lt;<span class="kw">dyn </span>Migration&gt;&gt; {
 		<span class="comment">// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::&lt;Runtime&gt; {
@@ -475,7 +566,9 @@
 		//	PalletAssetManagerMigrateXcmV2ToV3::&lt;Runtime&gt;(Default::default());
 		//let xcm_transactor_to_xcm_v3 =
 		//	PalletXcmTransactorMigrateXcmV2ToV3::&lt;Runtime&gt;(Default::default());
-		</span><span class="macro">vec!</span>[
+		</span><span class="kw">let </span>remove_min_bond_for_old_orbiter_collators =
+			RemoveMinBondForOrbiterCollators::&lt;Runtime&gt;(Default::default());
+		<span class="macro">vec!</span>[
 			<span class="comment">// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
 			// completed in runtime 900
@@ -521,7 +614,8 @@
 			//Box::new(preimage_migration_hash_to_bounded_call),
 			//Box::new(asset_manager_to_xcm_v3),
 			//Box::new(xcm_transactor_to_xcm_v3),
-		</span>]
+			</span>Box::new(remove_min_bond_for_old_orbiter_collators),
+		]
 	}
 }
 </code></pre></div></section></main></body></html>
