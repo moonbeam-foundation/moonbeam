@@ -3,7 +3,6 @@ import { deployCreateCompiledContract, describeSuite, beforeAll, expect } from "
 import { ALITH_ADDRESS, GLMR } from "@moonwall/util";
 import { alith } from "@moonwall/util";
 
-// TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
   id: "D4007",
   title: "Proxy Call for Contract",
