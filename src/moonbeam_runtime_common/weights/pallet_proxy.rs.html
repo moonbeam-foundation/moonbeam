@@ -222,6 +222,8 @@
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -284,6 +286,8 @@
 			<span class="comment">// Standard Error: 1_006
 			</span>.saturating_add(Weight::from_parts(<span class="number">45_679</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
+			<span class="comment">// Manually adding 1 DB read that happen when filtering the proxy call transaction
+			</span>.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">25</span>).saturating_mul(p.into()))
 	}
 	<span class="doccomment">/// Storage: Proxy Proxies (r:1 w:0)

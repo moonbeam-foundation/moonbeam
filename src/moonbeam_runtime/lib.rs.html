@@ -1803,6 +1803,9 @@
 <a href="#1803" id="1803">1803</a>
 <a href="#1804" id="1804">1804</a>
 <a href="#1805" id="1805">1805</a>
+<a href="#1806" id="1806">1806</a>
+<a href="#1807" id="1807">1807</a>
+<a href="#1808" id="1808">1808</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2952,6 +2955,9 @@
 			</span>RuntimeCall::Proxy(method) =&gt; <span class="kw">match </span>method {
 				pallet_proxy::Call::create_pure { .. } =&gt; <span class="bool-val">false</span>,
 				pallet_proxy::Call::kill_pure { .. } =&gt; <span class="bool-val">false</span>,
+				pallet_proxy::Call::proxy { real, .. } =&gt; {
+					!pallet_evm::AccountCodes::&lt;Runtime&gt;::contains_key(H160::from(<span class="kw-2">*</span>real))
+				}
 				<span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
 			},
 			<span class="comment">// Filtering the EVM prevents possible re-entrancy from the precompiles which could
