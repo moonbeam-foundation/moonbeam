@@ -25,7 +25,7 @@ use crate::{
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
 use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin};
-use sp_runtime::{Perbill, Percent};
+use sp_runtime::{traits::Zero, Perbill, Percent};
 use sp_std::vec::Vec;
 
 /// Minimum collator candidate stake
@@ -709,6 +709,42 @@ benchmarks! {
 		assert_eq!(
 			Pallet::<T>::candidate_info(&caller).expect("candidate was created, qed").bond,
 			min_candidate_stk,
+		);
+	}
+
+	set_candidate_bond_to_zero {
+		let x in 1..T::MaxCandidates::get();
+
+		let min_candidate_stk = min_candidate_stk::<T>();
+
+		let mut candidate_count = 1u32;
+		for i in 2..x {
+			let seed = USER_SEED - i;
+			let collator = create_funded_collator::<T>(
+				"collator",
+				seed,
+				min_candidate_stk,
+				true,
+				candidate_count
+			)?;
+			candidate_count += 1;
+		}
+
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			min_candidate_stk,
+			false,
+			candidate_count,
+		)?;
+
+		roll_to_and_author::<T>(2, caller.clone());
+	}: {
+		Pallet::<T>::set_candidate_bond_to_zero(&caller)?;
+	} verify {
+		assert!(
+			Pallet::<T>::candidate_info(&caller).expect("candidate was created, qed").bond.is_zero(),
+			"bond should be zero"
 		);
 	}
 
@@ -2383,6 +2419,13 @@ mod tests {
 	fn bench_execute_candidate_bond_less() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_execute_candidate_bond_less());
+		});
+	}
+
+	#[test]
+	fn bench_set_candidate_bond_to_zero() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Pallet::<Test>::test_benchmark_set_candidate_bond_to_zero());
 		});
 	}
 

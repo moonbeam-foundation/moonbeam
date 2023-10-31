@@ -54,6 +54,7 @@ const PARSE_VM_SELECTOR: u32 = 0xa9e11893_u32;
 const PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xea63738d_u32;
 const COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = 0xc3f511c1_u32;
 const WRAPPED_ASSET_SELECTOR: u32 = 0x1ff1e286_u32;
+const CHAIN_ID_SELECTOR: u32 = 0x9a8a0592_u32;
 const BALANCE_OF_SELECTOR: u32 = 0x70a08231_u32;
 const TRANSFER_SELECTOR: u32 = 0xa9059cbb_u32;
 
@@ -123,26 +124,41 @@ where
 		let transfer_with_payload: WormholeTransferWithPayloadData =
 			solidity::decode_return_value(&output[..])?;
 
-		// get the wrapper for this asset by calling wrappedAsset()
-		// TODO: this should only be done if needed (when token chain == our chain)
+		// get the chainId that is "us" according to the bridge
 		let output = Self::call(
 			handle,
 			wormhole_bridge,
-			solidity::encode_with_selector(
-				WRAPPED_ASSET_SELECTOR,
-				(
-					transfer_with_payload.token_chain,
-					transfer_with_payload.token_address,
-				),
-			),
+			solidity::encode_with_selector(CHAIN_ID_SELECTOR, ()),
 		)?;
-		let wrapped_address: Address = solidity::decode_return_value(&output[..])?;
-		log::debug!(target: "gmp-precompile", "wrapped token address: {:?}", wrapped_address);
+		let chain_id: U256 = solidity::decode_return_value(&output[..])?;
+		log::debug!(target: "gmp-precompile", "our chain id: {:?}", chain_id);
+
+		// if the token_chain is not equal to our chain_id, we expect a wrapper ERC20
+		let asset_erc20_address = if chain_id == transfer_with_payload.token_chain.into() {
+			Address::from(H160::from(transfer_with_payload.token_address))
+		} else {
+			// get the wrapper for this asset by calling wrappedAsset()
+			let output = Self::call(
+				handle,
+				wormhole_bridge,
+				solidity::encode_with_selector(
+					WRAPPED_ASSET_SELECTOR,
+					(
+						transfer_with_payload.token_chain,
+						transfer_with_payload.token_address,
+					),
+				),
+			)?;
+			let wrapped_asset: Address = solidity::decode_return_value(&output[..])?;
+			log::debug!(target: "gmp-precompile", "wrapped token address: {:?}", wrapped_asset);
+
+			wrapped_asset
+		};
 
 		// query our "before" balance (our being this precompile)
 		let output = Self::call(
 			handle,
-			wrapped_address.into(),
+			asset_erc20_address.into(),
 			solidity::encode_with_selector(BALANCE_OF_SELECTOR, Address(handle.code_address())),
 		)?;
 		let before_amount: U256 = solidity::decode_return_value(&output[..])?;
@@ -156,7 +172,8 @@ where
 		.map_err(|_| RevertReason::Custom("Invalid GMP Payload".into()))?;
 		log::debug!(target: "gmp-precompile", "user action: {:?}", user_action);
 
-		let currency_account_id = Runtime::AddressMapping::into_account_id(wrapped_address.into());
+		let currency_account_id =
+			Runtime::AddressMapping::into_account_id(asset_erc20_address.into());
 
 		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
 			Runtime::account_to_currency_id(currency_account_id)
@@ -174,7 +191,7 @@ where
 		// query our "after" balance (our being this precompile)
 		let output = Self::call(
 			handle,
-			wrapped_address.into(),
+			asset_erc20_address.into(),
 			solidity::encode_with_selector(
 				BALANCE_OF_SELECTOR,
 				Address::from(handle.code_address()),
@@ -208,7 +225,7 @@ where
 				if fee > U256::zero() {
 					let output = Self::call(
 						handle,
-						wrapped_address.into(),
+						asset_erc20_address.into(),
 						solidity::encode_with_selector(
 							TRANSFER_SELECTOR,
 							(Address::from(handle.context().caller), fee),
