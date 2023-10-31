@@ -65,6 +65,8 @@ function bench {
         --output "${OUTPUT}"
 }
 
+echo -e "\e[33m**Warning**: The benchmarking script will overwrite the pallet_proxy.rs file in runtime/common/src/weights. This file was manually modified to include an additional DB Read for proxy.proxy. Make sure to add it again after running the benchmarking script.\e[0m"
+
 if [[ "${@}" =~ "--help" ]]; then
     help
 else
