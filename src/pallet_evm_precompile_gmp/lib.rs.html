@@ -370,6 +370,23 @@
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
 <a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2023 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -426,6 +443,7 @@
 <span class="kw">const </span>PARSE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = <span class="number">0xea63738d_u32</span>;
 <span class="kw">const </span>COMPLETE_TRANSFER_WITH_PAYLOAD_SELECTOR: u32 = <span class="number">0xc3f511c1_u32</span>;
 <span class="kw">const </span>WRAPPED_ASSET_SELECTOR: u32 = <span class="number">0x1ff1e286_u32</span>;
+<span class="kw">const </span>CHAIN_ID_SELECTOR: u32 = <span class="number">0x9a8a0592_u32</span>;
 <span class="kw">const </span>BALANCE_OF_SELECTOR: u32 = <span class="number">0x70a08231_u32</span>;
 <span class="kw">const </span>TRANSFER_SELECTOR: u32 = <span class="number">0xa9059cbb_u32</span>;
 
@@ -495,26 +513,41 @@
 		<span class="kw">let </span>transfer_with_payload: WormholeTransferWithPayloadData =
 			solidity::decode_return_value(<span class="kw-2">&amp;</span>output[..])<span class="question-mark">?</span>;
 
-		<span class="comment">// get the wrapper for this asset by calling wrappedAsset()
-		// TODO: this should only be done if needed (when token chain == our chain)
+		<span class="comment">// get the chainId that is &quot;us&quot; according to the bridge
 		</span><span class="kw">let </span>output = <span class="self">Self</span>::call(
 			handle,
 			wormhole_bridge,
-			solidity::encode_with_selector(
-				WRAPPED_ASSET_SELECTOR,
-				(
-					transfer_with_payload.token_chain,
-					transfer_with_payload.token_address,
-				),
-			),
+			solidity::encode_with_selector(CHAIN_ID_SELECTOR, ()),
 		)<span class="question-mark">?</span>;
-		<span class="kw">let </span>wrapped_address: Address = solidity::decode_return_value(<span class="kw-2">&amp;</span>output[..])<span class="question-mark">?</span>;
-		<span class="macro">log::debug!</span>(target: <span class="string">&quot;gmp-precompile&quot;</span>, <span class="string">&quot;wrapped token address: {:?}&quot;</span>, wrapped_address);
+		<span class="kw">let </span>chain_id: U256 = solidity::decode_return_value(<span class="kw-2">&amp;</span>output[..])<span class="question-mark">?</span>;
+		<span class="macro">log::debug!</span>(target: <span class="string">&quot;gmp-precompile&quot;</span>, <span class="string">&quot;our chain id: {:?}&quot;</span>, chain_id);
+
+		<span class="comment">// if the token_chain is not equal to our chain_id, we expect a wrapper ERC20
+		</span><span class="kw">let </span>asset_erc20_address = <span class="kw">if </span>chain_id == transfer_with_payload.token_chain.into() {
+			Address::from(H160::from(transfer_with_payload.token_address))
+		} <span class="kw">else </span>{
+			<span class="comment">// get the wrapper for this asset by calling wrappedAsset()
+			</span><span class="kw">let </span>output = <span class="self">Self</span>::call(
+				handle,
+				wormhole_bridge,
+				solidity::encode_with_selector(
+					WRAPPED_ASSET_SELECTOR,
+					(
+						transfer_with_payload.token_chain,
+						transfer_with_payload.token_address,
+					),
+				),
+			)<span class="question-mark">?</span>;
+			<span class="kw">let </span>wrapped_asset: Address = solidity::decode_return_value(<span class="kw-2">&amp;</span>output[..])<span class="question-mark">?</span>;
+			<span class="macro">log::debug!</span>(target: <span class="string">&quot;gmp-precompile&quot;</span>, <span class="string">&quot;wrapped token address: {:?}&quot;</span>, wrapped_asset);
+
+			wrapped_asset
+		};
 
 		<span class="comment">// query our &quot;before&quot; balance (our being this precompile)
 		</span><span class="kw">let </span>output = <span class="self">Self</span>::call(
 			handle,
-			wrapped_address.into(),
+			asset_erc20_address.into(),
 			solidity::encode_with_selector(BALANCE_OF_SELECTOR, Address(handle.code_address())),
 		)<span class="question-mark">?</span>;
 		<span class="kw">let </span>before_amount: U256 = solidity::decode_return_value(<span class="kw-2">&amp;</span>output[..])<span class="question-mark">?</span>;
@@ -528,7 +561,8 @@
 		.map_err(|<span class="kw">_</span>| RevertReason::Custom(<span class="string">&quot;Invalid GMP Payload&quot;</span>.into()))<span class="question-mark">?</span>;
 		<span class="macro">log::debug!</span>(target: <span class="string">&quot;gmp-precompile&quot;</span>, <span class="string">&quot;user action: {:?}&quot;</span>, user_action);
 
-		<span class="kw">let </span>currency_account_id = Runtime::AddressMapping::into_account_id(wrapped_address.into());
+		<span class="kw">let </span>currency_account_id =
+			Runtime::AddressMapping::into_account_id(asset_erc20_address.into());
 
 		<span class="kw">let </span>currency_id: &lt;Runtime <span class="kw">as </span>orml_xtokens::Config&gt;::CurrencyId =
 			Runtime::account_to_currency_id(currency_account_id)
@@ -546,7 +580,7 @@
 		<span class="comment">// query our &quot;after&quot; balance (our being this precompile)
 		</span><span class="kw">let </span>output = <span class="self">Self</span>::call(
 			handle,
-			wrapped_address.into(),
+			asset_erc20_address.into(),
 			solidity::encode_with_selector(
 				BALANCE_OF_SELECTOR,
 				Address::from(handle.code_address()),
@@ -580,7 +614,7 @@
 				<span class="kw">if </span>fee &gt; U256::zero() {
 					<span class="kw">let </span>output = <span class="self">Self</span>::call(
 						handle,
-						wrapped_address.into(),
+						asset_erc20_address.into(),
 						solidity::encode_with_selector(
 							TRANSFER_SELECTOR,
 							(Address::from(handle.context().caller), fee),
