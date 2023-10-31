@@ -16329,3 +16329,258 @@ dependencies = [
  "cc",
  "libc",
 ]
+
+[[patch.unused]]
+name = "asset-test-utils"
+version = "1.0.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "assets-common"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "bridge-hub-kusama-runtime"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "bridge-hub-polkadot-runtime"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "bridge-hub-rococo-runtime"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "collectives-polkadot-runtime"
+version = "1.0.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "contracts-rococo-runtime"
+version = "0.2.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-client-cli"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-client-collator"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-client-consensus-aura"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-client-consensus-common"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-client-consensus-relay-chain"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-client-network"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-client-pov-recovery"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-client-service"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-pallet-aura-ext"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-pallet-dmp-queue"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-pallet-parachain-system"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-pallet-parachain-system-proc-macro"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-pallet-session-benchmarking"
+version = "3.0.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-pallet-solo-to-para"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-pallet-xcm"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-pallet-xcmp-queue"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-ping"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-primitives-core"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-primitives-parachain-inherent"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-primitives-timestamp"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-primitives-utility"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-relay-chain-inprocess-interface"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-relay-chain-interface"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-relay-chain-minimal-node"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-relay-chain-rpc-interface"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-test-client"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-test-relay-sproof-builder"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-test-relay-validation-worker-provider"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-test-runtime"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "cumulus-test-service"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "pallet-collator-selection"
+version = "3.0.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "pallet-template"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "parachain-info"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "parachain-template-node"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "parachain-template-runtime"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "parachains-common"
+version = "1.0.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "penpal-runtime"
+version = "0.9.27"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "polkadot-parachain-bin"
+version = "0.9.400"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "rococo-parachain-runtime"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "seedling-runtime"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "shell-runtime"
+version = "0.1.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "statemine-runtime"
+version = "2.0.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "statemint-runtime"
+version = "1.0.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"
+
+[[patch.unused]]
+name = "westmint-runtime"
+version = "1.0.0"
+source = "git+ssh://git@github.com/moonbeam-foundation/cumulus?branch=cem-prometheus#bd1819b0cfba253267accf61539ebf971b608a91"

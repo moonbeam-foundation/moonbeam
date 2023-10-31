@@ -455,3 +455,56 @@ overflow-checks = true
 # Moonbeam runtime requires unwinding.
 opt-level = 3
 panic = "unwind"
+
+[patch."https://github.com/moonbeam-foundation/cumulus"]
+cumulus-client-cli = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-client-consensus-aura = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-client-consensus-common = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-client-pov-recovery = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-primitives-core = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-relay-chain-interface = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-test-service = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-client-consensus-relay-chain = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-client-service = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-client-collator = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-client-network = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-relay-chain-inprocess-interface = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-test-client = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-primitives-parachain-inherent = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-test-relay-sproof-builder = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-test-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-pallet-parachain-system = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-pallet-parachain-system-proc-macro = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-primitives-timestamp = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-relay-chain-minimal-node = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-relay-chain-rpc-interface = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-test-relay-validation-worker-provider = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+parachains-common = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-primitives-utility = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+pallet-collator-selection = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-pallet-aura-ext = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-pallet-dmp-queue = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-pallet-session-benchmarking = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-pallet-solo-to-para = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-pallet-xcm = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-pallet-xcmp-queue = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+parachain-template-node = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+parachain-template-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+pallet-template = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+parachain-info = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+polkadot-parachain-bin = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+bridge-hub-kusama-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+bridge-hub-polkadot-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+bridge-hub-rococo-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+collectives-polkadot-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+contracts-rococo-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+penpal-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+rococo-parachain-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+cumulus-ping = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+seedling-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+shell-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+statemine-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+assets-common = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+asset-test-utils = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+statemint-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
+westmint-runtime = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
