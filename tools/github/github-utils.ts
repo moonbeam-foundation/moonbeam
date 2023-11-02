@@ -12,9 +12,15 @@ export function getCompareLink(packageName: string, previousTag: string, newTag:
   const previousCommit = /#([0-9a-f]*)/g.exec(previousPackage)[1].slice(0, 8);
   const previousRepo = /(https:\/\/.*)\?/g.exec(previousPackage)[1];
 
-  const newPackage = execSync(
+  let newPackage;
+  try { newPackage = execSync(
     `git show ${newTag}:../Cargo.lock | grep ${packageName}? | head -1 | grep -o '".*"'`
-  ).toString();
+  ).toString()}
+  catch {
+    newPackage = execSync(
+      `git show ${newTag}:../Cargo.lock | grep polkadot-sdk? | head -1 | grep -o '".*"'`
+    ).toString()
+  };
   const newCommit = /#([0-9a-f]*)/g.exec(newPackage)[1].slice(0, 8);
   const newRepo = /(https:\/\/.*)\?/g.exec(newPackage)[1];
   const newRepoOrganization = /github.com\/([^\/]*)/g.exec(newRepo)[1];
