@@ -456,7 +456,7 @@ overflow-checks = true
 opt-level = 3
 panic = "unwind"
 
-[patch."https://github.com/moonbeam-foundation/cumulus"]
+[patch."https://github.com/purestake/cumulus"]
 cumulus-client-cli = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
 cumulus-client-consensus-aura = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
 cumulus-client-consensus-common = { git = "ssh://git@github.com/moonbeam-foundation/cumulus" , branch = "cem-prometheus" }
