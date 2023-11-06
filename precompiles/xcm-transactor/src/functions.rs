@@ -35,6 +35,7 @@ use sp_std::{
 	vec::Vec,
 };
 use sp_weights::Weight;
+use xcm::latest::prelude::*;
 use xcm::latest::MultiLocation;
 use xcm_primitives::{
 	AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall, DEFAULT_PROOF_SIZE,
@@ -222,7 +223,10 @@ where
 					weight,
 					DEFAULT_PROOF_SIZE.saturating_div(2),
 				),
-				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
+				overall_weight: Some(Limited(Weight::from_parts(
+					overall_weight,
+					DEFAULT_PROOF_SIZE,
+				))),
 			},
 			refund: false,
 		};
@@ -324,7 +328,10 @@ where
 					weight,
 					DEFAULT_PROOF_SIZE.saturating_div(2),
 				),
-				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
+				overall_weight: Some(Limited(Weight::from_parts(
+					overall_weight,
+					DEFAULT_PROOF_SIZE,
+				))),
 			},
 			inner_call,
 			refund: false,
@@ -398,7 +405,10 @@ where
 					weight,
 					DEFAULT_PROOF_SIZE.saturating_div(2),
 				),
-				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
+				overall_weight: Some(Limited(Weight::from_parts(
+					overall_weight,
+					DEFAULT_PROOF_SIZE,
+				))),
 			},
 			refund: false,
 			call,
@@ -492,7 +502,10 @@ where
 					weight,
 					DEFAULT_PROOF_SIZE.saturating_div(2),
 				),
-				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
+				overall_weight: Some(Limited(Weight::from_parts(
+					overall_weight,
+					DEFAULT_PROOF_SIZE,
+				))),
 			},
 			refund: false,
 			call,
@@ -586,7 +599,7 @@ where
 			inner_call,
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(overall_weight),
+				overall_weight: Some(Limited(overall_weight)),
 			},
 			refund,
 		};
@@ -636,7 +649,7 @@ where
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(overall_weight),
+				overall_weight: Some(Limited(overall_weight)),
 			},
 			inner_call,
 			refund,
@@ -672,7 +685,7 @@ where
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(overall_weight),
+				overall_weight: Some(Limited(overall_weight)),
 			},
 			refund,
 			call,
@@ -718,7 +731,7 @@ where
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(overall_weight),
+				overall_weight: Some(Limited(overall_weight)),
 			},
 			refund,
 			call,

@@ -287,7 +287,7 @@ pub mod pallet {
 		// the overall weight to be used for the whole XCM message execution. If None,
 		// then this amount will be tried to be derived from storage.  If the storage item
 		// for the chain is not populated, then it fails
-		pub overall_weight: Option<Weight>,
+		pub overall_weight: Option<WeightLimit>,
 	}
 
 	/// Since we are using pallet-utility for account derivation (through AsDerivative),
@@ -524,22 +524,28 @@ pub mod pallet {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight = weight_info.overall_weight.map_or_else(
-				|| {
-					Self::take_weight_from_transact_info(
+				|| -> Result<_, DispatchError> {
+					let weight_info = Self::take_weight_from_transact_info(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
 						refund,
-					)
+					)?;
+					Ok(WeightLimit::from(Some(weight_info)))
 				},
 				|v| Ok(v),
 			)?;
+
+			let total_weight_fee_calculation = match total_weight {
+				Unlimited => Weight::from_parts(10_000_000_000, 100_000),
+				Limited(x) => x,
+			};
 
 			// Calculate fee based on FeePerSecond
 			let fee = Self::calculate_fee(
 				fee_location,
 				fee.fee_amount,
 				dest.clone(),
-				total_weight.clone(),
+				total_weight_fee_calculation,
 			)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sovereign
@@ -566,9 +572,9 @@ pub mod pallet {
 			// Deposit event
 			Self::deposit_event(Event::<T>::TransactedDerivative {
 				account_id: who,
-				dest: dest,
+				dest,
 				call: call_bytes,
-				index: index,
+				index,
 			});
 
 			Ok(())
@@ -610,22 +616,28 @@ pub mod pallet {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight = weight_info.overall_weight.map_or_else(
-				|| {
-					Self::take_weight_from_transact_info(
+				|| -> Result<_, DispatchError> {
+					let weight_info = Self::take_weight_from_transact_info(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
 						refund,
-					)
+					)?;
+					Ok(WeightLimit::from(Some(weight_info)))
 				},
 				|v| Ok(v),
 			)?;
+
+			let total_weight_fee_calculation = match total_weight {
+				Unlimited => Weight::from_parts(10_000_000_000, 100_000),
+				Limited(x) => x,
+			};
 
 			// Calculate fee based on FeePerSecond and total_weight
 			let fee = Self::calculate_fee(
 				fee_location,
 				fee.fee_amount,
 				dest.clone(),
-				total_weight.clone(),
+				total_weight_fee_calculation,
 			)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sovereign
@@ -736,22 +748,28 @@ pub mod pallet {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight = weight_info.overall_weight.map_or_else(
-				|| {
-					Self::take_weight_from_transact_info_signed(
+				|| -> Result<_, DispatchError> {
+					let weight_info = Self::take_weight_from_transact_info_signed(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
 						refund,
-					)
+					)?;
+					Ok(WeightLimit::from(Some(weight_info)))
 				},
 				|v| Ok(v),
 			)?;
+
+			let total_weight_fee_calculation = match total_weight {
+				Unlimited => Weight::from_parts(10_000_000_000, 100_000),
+				Limited(x) => x,
+			};
 
 			// Fee to be paid
 			let fee = Self::calculate_fee(
 				fee_location,
 				fee.fee_amount,
 				dest.clone(),
-				total_weight.clone(),
+				total_weight_fee_calculation,
 			)?;
 
 			// If refund is true, the appendix instruction will be a deposit back to the sender
@@ -877,21 +895,27 @@ pub mod pallet {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight = weight_info.overall_weight.map_or_else(
-				|| {
-					Self::take_weight_from_transact_info(
+				|| -> Result<_, DispatchError> {
+					let weight_info = Self::take_weight_from_transact_info(
 						destination.clone(),
 						weight_info.transact_required_weight_at_most,
 						false,
-					)
+					)?;
+					Ok(WeightLimit::from(Some(weight_info)))
 				},
 				|v| Ok(v),
 			)?;
+
+			let total_weight_fee_calculation = match total_weight {
+				Unlimited => Weight::from_parts(10_000_000_000, 100_000),
+				Limited(x) => x,
+			};
 
 			let fee = Self::calculate_fee(
 				fee_location,
 				fee.fee_amount,
 				destination.clone(),
-				total_weight.clone(),
+				total_weight_fee_calculation,
 			)?;
 
 			ensure!(
@@ -927,7 +951,7 @@ pub mod pallet {
 			fee: MultiAsset,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
-			total_weight: Weight,
+			total_weight: WeightLimit,
 			transact_required_weight_at_most: Weight,
 			with_appendix: Option<Vec<Instruction<()>>>,
 		) -> DispatchResult {
@@ -972,7 +996,7 @@ pub mod pallet {
 			fee: MultiAsset,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
-			total_weight: Weight,
+			total_weight: WeightLimit,
 			transact_required_weight_at_most: Weight,
 			with_appendix: Option<Vec<Instruction<()>>>,
 		) -> DispatchResult {
@@ -1046,7 +1070,7 @@ pub mod pallet {
 		fn transact_message(
 			dest: MultiLocation,
 			asset: MultiAsset,
-			dest_weight: Weight,
+			dest_weight: WeightLimit,
 			call: Vec<u8>,
 			dispatch_weight: Weight,
 			origin_kind: OriginKind,
@@ -1060,7 +1084,7 @@ pub mod pallet {
 				instructions.push(Self::appendix_instruction(appendix)?);
 			}
 			instructions.push(Transact {
-				origin_kind: origin_kind,
+				origin_kind,
 				require_weight_at_most: dispatch_weight,
 				call: call.into(),
 			});
@@ -1071,7 +1095,7 @@ pub mod pallet {
 		fn buy_execution(
 			asset: MultiAsset,
 			at: &MultiLocation,
-			weight: Weight,
+			weight: WeightLimit,
 		) -> Result<Instruction<()>, DispatchError> {
 			let universal_location = T::UniversalLocation::get();
 			let fees = asset
@@ -1080,7 +1104,7 @@ pub mod pallet {
 
 			Ok(BuyExecution {
 				fees,
-				weight_limit: WeightLimit::Limited(weight),
+				weight_limit: weight,
 			})
 		}
 
