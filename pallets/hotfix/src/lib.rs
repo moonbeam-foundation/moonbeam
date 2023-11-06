@@ -61,12 +61,12 @@ pub mod pallet {
 		pub fn clear_suicided_storage(
 			origin: OriginFor<T>,
 			addresses: BoundedVec<H160, GetArrayLimit>,
+			limit: u32,
 		) -> DispatchResultWithPostInfo {
 			let _ = ensure_signed(origin)?;
-			let limit = T::EntryClearLimit::get();
 			let mut deleted = 0;
 
-			'inner: for address in &addresses {
+			for address in &addresses {
 				// Ensure that the contract is suicided by checking that it has no code and at least
 				// one storage entry.
 				ensure!(
@@ -77,7 +77,7 @@ pub mod pallet {
 					Error::<T>::ContractNotSuicided
 				);
 
-				let mut iter = pallet_evm::AccountStorages::<T>::iter_key_prefix(address).drain();
+				let mut iter = pallet_evm::AccountStorages::<T>::iter_key_prefix(address);
 				while let Some(key) = iter.next() {
 					pallet_evm::AccountStorages::<T>::remove(address, key);
 					deleted += 1;
@@ -85,7 +85,7 @@ pub mod pallet {
 						if iter.next().is_none() {
 							Self::clear_suicided_contract(&address);
 						}
-						break 'inner;
+						return Ok(().into());
 					}
 				}
 				Self::clear_suicided_contract(address);

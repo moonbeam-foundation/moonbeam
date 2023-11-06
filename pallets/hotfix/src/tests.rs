@@ -72,6 +72,7 @@ fn test_clear_suicided_contract_succesfull() {
 		let _ = Hotfix::clear_suicided_storage(
 			RuntimeOrigin::signed(AccountId32::from([45; 32])),
 			vec![contract_address].try_into().unwrap(),
+			1000,
 		);
 
 		assert_eq!(
@@ -93,6 +94,7 @@ fn test_clear_suicided_contract_failed() {
 			Hotfix::clear_suicided_storage(
 				RuntimeOrigin::signed(AccountId32::from([45; 32])),
 				vec![contract_address].try_into().unwrap(),
+				1000
 			),
 			Error::<Runtime>::ContractNotSuicided
 		);
@@ -113,6 +115,7 @@ fn test_clear_suicided_empty_input() {
 		let _ = Hotfix::clear_suicided_storage(
 			RuntimeOrigin::signed(AccountId32::from([45; 32])),
 			vec![].try_into().unwrap(),
+			1000,
 		);
 
 		assert_eq!(
@@ -136,6 +139,7 @@ fn test_clear_suicided_contract_multiple_addresses() {
 			vec![contract_address1, contract_address2, contract_address3]
 				.try_into()
 				.unwrap(),
+			1000,
 		)
 		.unwrap();
 
@@ -154,12 +158,11 @@ fn test_clear_suicided_contract_multiple_addresses() {
 	})
 }
 
-// Test that the extrinsic deletes a maximum of EntryClearLimit enstries
+// Test that the extrinsic deletes a maximum of EntryClearLimit entries
 #[test]
 fn test_clear_suicided_entry_limit() {
 	ExtBuilder::default().build().execute_with(|| {
-		let limit = <Runtime as crate::Config>::EntryClearLimit::get();
-		let contract_address1 = mock_contract_with_entries(1, 1, limit);
+		let contract_address1 = mock_contract_with_entries(1, 1, 2000);
 		let contract_address2 = mock_contract_with_entries(2, 1, 1);
 
 		let _ = Hotfix::clear_suicided_storage(
@@ -167,11 +170,12 @@ fn test_clear_suicided_entry_limit() {
 			vec![contract_address1, contract_address2]
 				.try_into()
 				.unwrap(),
+			1000,
 		)
 		.unwrap();
 		assert_eq!(
 			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address1).count(),
-			0
+			1000
 		);
 
 		assert_eq!(
@@ -204,6 +208,7 @@ fn test_clear_suicided_mixed_suicided_and_non_suicided() {
 				]
 				.try_into()
 				.unwrap(),
+				1000
 			),
 			Error::<Runtime>::ContractNotSuicided
 		);
