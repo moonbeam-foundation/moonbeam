@@ -584,6 +584,11 @@ where
 
 		let inner_call: Vec<_> = inner_call.into();
 
+		let maybe_overall_weight_limited = match overall_weight.ref_time() {
+			u64::MAX => Unlimited,
+			_ => Limited(overall_weight),
+		};
+
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -599,7 +604,7 @@ where
 			inner_call,
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(Limited(overall_weight)),
+				overall_weight: Some(maybe_overall_weight_limited),
 			},
 			refund,
 		};
@@ -637,6 +642,11 @@ where
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
 
+		let maybe_overall_weight_limited = match overall_weight.ref_time() {
+			u64::MAX => Unlimited,
+			_ => Limited(overall_weight),
+		};
+
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -649,7 +659,7 @@ where
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(Limited(overall_weight)),
+				overall_weight: Some(maybe_overall_weight_limited),
 			},
 			inner_call,
 			refund,
@@ -672,6 +682,11 @@ where
 	) -> EvmResult {
 		let call: Vec<_> = call.into();
 
+		let maybe_overall_weight_limited = match overall_weight.ref_time() {
+			u64::MAX => Unlimited,
+			_ => Limited(overall_weight),
+		};
+
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -685,7 +700,7 @@ where
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(Limited(overall_weight)),
+				overall_weight: Some(maybe_overall_weight_limited),
 			},
 			refund,
 			call,
@@ -720,6 +735,11 @@ where
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
 
+		let maybe_overall_weight_limited = match overall_weight.ref_time() {
+			u64::MAX => Unlimited,
+			_ => Limited(overall_weight),
+		};
+
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -731,7 +751,7 @@ where
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(Limited(overall_weight)),
+				overall_weight: Some(maybe_overall_weight_limited),
 			},
 			refund,
 			call,
