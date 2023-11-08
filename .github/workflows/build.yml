@@ -363,7 +363,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
         run: |
-          curl -L https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install | bash -s -- -b ~/bin cargo-binstall
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
       - uses: taiki-e/install-action@v2
         with:
           tool: nextest
