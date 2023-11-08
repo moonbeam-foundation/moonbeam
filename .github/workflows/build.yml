@@ -358,9 +358,10 @@ jobs:
           fi
           rustup show
       # Checks are run after uploading artifacts since they are modified by the tests
+      - uses: taiki-e/install-action@nextest
       - name: Unit tests
         run: |
-          cargo test --profile testnet --all --features=evm-tracing,runtime-benchmarks
+          cargo nextest run --profile testnet --workspace --features=evm-tracing,runtime-benchmarks --locked
       - name: Run sccache stat for check pre test
         run: ${SCCACHE_PATH} --show-stats
 

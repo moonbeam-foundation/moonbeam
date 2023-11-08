@@ -129,7 +129,7 @@ jobs:
       - uses: taiki-e/install-action@nextest
       - name: Unit tests
         run: |
-          cargo nextest run --release --all --features=evm-tracing
+          cargo nextest run --release --workspace --features=evm-tracing --locked
       # - name: Typescript Tests (Dev Service)
       #   uses: ./.github/workflow-templates/typescript-tests
       #   with:
