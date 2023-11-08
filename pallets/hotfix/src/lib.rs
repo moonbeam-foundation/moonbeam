@@ -20,7 +20,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::traits::ConstU32;
-use pallet_evm::AddressMapping;
 use sp_core::H160;
 
 pub use pallet::*;
@@ -30,8 +29,11 @@ mod mock;
 #[cfg(all(feature = "std", test))]
 mod tests;
 
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
+
 pub const ARRAY_LIMIT: u32 = 1000;
-type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
+pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -40,10 +42,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_evm::Config {
-		#[pallet::constant]
-		type EntryClearLimit: Get<u32>;
-	}
+	pub trait Config: frame_system::Config + pallet_evm::Config {}
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -77,29 +76,16 @@ pub mod pallet {
 					Error::<T>::ContractNotSuicided
 				);
 
-				let mut iter = pallet_evm::AccountStorages::<T>::iter_key_prefix(address);
-				while let Some(key) = iter.next() {
-					pallet_evm::AccountStorages::<T>::remove(address, key);
+				let mut iter = pallet_evm::AccountStorages::<T>::drain_prefix(address);
+				while iter.next().is_some() {
 					deleted += 1;
 					if deleted >= limit {
-						if iter.next().is_none() {
-							Self::clear_suicided_contract(&address);
-						}
 						return Ok(().into());
 					}
 				}
-				Self::clear_suicided_contract(address);
 			}
 
 			Ok(().into())
-		}
-	}
-
-	impl<T: Config> Pallet<T> {
-		pub fn clear_suicided_contract(address: &H160) {
-			// Decrement the sufficients of the account
-			let account_id = T::AddressMapping::into_account_id(*address);
-			let _ = frame_system::Pallet::<T>::dec_sufficients(&account_id);
 		}
 	}
 }

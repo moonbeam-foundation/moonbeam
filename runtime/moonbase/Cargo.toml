@@ -43,6 +43,7 @@ pallet-parachain-staking = { workspace = true }
 pallet-proxy-genesis-companion = { workspace = true }
 pallet-randomness = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
+pallet-hotfix = { workspace = true }
 
 # Moonbeam precompiles
 pallet-evm-precompile-author-mapping = { workspace = true }
@@ -347,6 +348,7 @@ runtime-benchmarks = [
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
+	"pallet-hotfix/runtime-benchmarks",
 ]
 
 try-runtime = [

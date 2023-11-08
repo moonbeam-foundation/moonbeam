@@ -6320,6 +6320,7 @@ dependencies = [
  "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
+ "pallet-hotfix",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-message-queue",
@@ -6791,6 +6792,7 @@ dependencies = [
  "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
+ "pallet-hotfix",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-message-queue",
@@ -7169,6 +7171,7 @@ dependencies = [
  "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
+ "pallet-hotfix",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-message-queue",
@@ -9168,6 +9171,7 @@ dependencies = [
 name = "pallet-hotfix"
 version = "0.1.0"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "libsecp256k1",

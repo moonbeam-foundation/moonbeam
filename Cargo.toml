@@ -66,6 +66,7 @@ moonbeam-xcm-benchmarks = { path = "pallets/moonbeam-xcm-benchmarks", default-fe
 pallet-asset-manager = { path = "pallets/asset-manager", default-features = false }
 pallet-erc20-xcm-bridge = { path = "pallets/erc20-xcm-bridge", default-features = false }
 pallet-ethereum-xcm = { path = "pallets/ethereum-xcm", default-features = false }
+pallet-hotfix = { path = "pallets/hotfix", default-features = false }
 
 pallet-evm-precompile-author-mapping = { path = "precompiles/author-mapping", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "precompiles/balances-erc20", default-features = false }

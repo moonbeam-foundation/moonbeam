@@ -1366,6 +1366,8 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
+impl pallet_hotfix::Config for Runtime {}
+
 construct_runtime! {
 	pub enum Runtime
 	{
@@ -1444,6 +1446,7 @@ construct_runtime! {
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
+		Hotfix: pallet_hotfix::{Pallet, Call} = 121,
 	}
 }
 
@@ -1483,6 +1486,7 @@ mod benches {
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
 		[moonbeam_xcm_benchmarks::weights::generic, MoonbeamXcmGenericBench::<Runtime>]
+		[pallet_hotfix, Hotfix]
 	);
 }
 

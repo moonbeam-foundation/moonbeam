@@ -152,13 +152,7 @@ impl pallet_evm::Config for Runtime {
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 }
 
-parameter_types! {
-	pub const EntryClearLimit: u32 = 1000;
-}
-
-impl pallet_hotfix::Config for Runtime {
-	type EntryClearLimit = EntryClearLimit;
-}
+impl pallet_hotfix::Config for Runtime {}
 
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances

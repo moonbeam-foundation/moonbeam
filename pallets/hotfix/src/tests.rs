@@ -158,7 +158,7 @@ fn test_clear_suicided_contract_multiple_addresses() {
 	})
 }
 
-// Test that the extrinsic deletes a maximum of EntryClearLimit entries
+// Test that the limit of entries to be deleted is respected
 #[test]
 fn test_clear_suicided_entry_limit() {
 	ExtBuilder::default().build().execute_with(|| {
