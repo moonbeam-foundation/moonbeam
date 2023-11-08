@@ -1067,12 +1067,10 @@ impl pallet_migrations::Config for Runtime {
 			Runtime,
 			CouncilCollective,
 			TechCommitteeCollective,
+			TreasuryCouncilCollective,
+			OpenTechCommitteeCollective,
 		>,
-		moonbeam_runtime_common::migrations::ReferendaMigrations<
-			Runtime,
-			CouncilCollective,
-			TechCommitteeCollective,
-		>,
+		moonbeam_runtime_common::migrations::ReferendaMigrations<Runtime>,
 		TransactorRelayIndexMigration<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
