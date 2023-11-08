@@ -359,14 +359,9 @@ jobs:
           fi
           rustup show
       # Checks are run after uploading artifacts since they are modified by the tests
-      - name: Install cargo-binstall
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
-        run: |
-          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
       - uses: taiki-e/install-action@v2
         with:
-          tool: nextest
+          tool: cargo-binstall, nextest
       - name: Unit tests
         run: |
           cargo nextest run --profile testnet --workspace --features=evm-tracing,runtime-benchmarks --locked
