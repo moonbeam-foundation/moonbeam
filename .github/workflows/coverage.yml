@@ -126,9 +126,10 @@ jobs:
         with:
           name: moonbeam
           path: build
+      - uses: taiki-e/install-action@nextest
       - name: Unit tests
         run: |
-          cargo test --release --all --features=evm-tracing
+          cargo nextest run --release --all --features=evm-tracing
       # - name: Typescript Tests (Dev Service)
       #   uses: ./.github/workflow-templates/typescript-tests
       #   with:
