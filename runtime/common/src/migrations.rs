@@ -20,7 +20,6 @@
 //! the "Migration" trait declared in the pallet-migrations crate.
 
 use frame_support::{
-	ensure,
 	pallet_prelude::GetStorageVersion,
 	traits::{Hash as PreimageHash, OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
 	weights::Weight,
@@ -28,6 +27,8 @@ use frame_support::{
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use pallet_moonbeam_orbiters::CollatorsPool;
+#[cfg(feature = "try-runtime")]
+use frame_support::ensure;
 #[cfg(feature = "try-runtime")]
 use sp_runtime::traits::Zero;
 use sp_std::{marker::PhantomData, prelude::*};
