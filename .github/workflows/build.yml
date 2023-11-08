@@ -19,6 +19,7 @@ on:
 
 env:
   NODE_OPTIONS: "--max-old-space-size=12288"
+  CARGO_TERM_COLOR: always
 
 jobs:
   ####### Check files and formatting #######
@@ -358,6 +359,12 @@ jobs:
           fi
           rustup show
       # Checks are run after uploading artifacts since they are modified by the tests
+      - name: Install binstall
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
       - name: Unit tests
         run: |
           cargo test --profile testnet --all --features=evm-tracing,runtime-benchmarks
