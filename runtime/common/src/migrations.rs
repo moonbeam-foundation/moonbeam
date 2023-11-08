@@ -207,6 +207,10 @@ where
 			<OpenTech as GetStorageVersion>::on_chain_storage_version() == 0,
 			"OpenTechCommitteeCollective storage version should be 0"
 		);
+		ensure!(
+			<pallet_referenda::Pallet<Runtime> as GetStorageVersion>::on_chain_storage_version() == 0,
+			"Referenda storage version should be 0"
+		);
 		Ok(vec![])
 	}
 
@@ -219,6 +223,10 @@ where
 		ensure!(
 			<OpenTech as GetStorageVersion>::on_chain_storage_version() == 4,
 			"OpenTech storage version should be 4"
+		);
+		ensure!(
+			<pallet_referenda::Pallet<Runtime> as GetStorageVersion>::on_chain_storage_version() == 1,
+			"Referenda storage version should be 1"
 		);
 		Ok(())
 	}
