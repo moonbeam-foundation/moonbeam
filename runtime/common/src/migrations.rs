@@ -19,6 +19,8 @@
 //! This module acts as a registry where each migration is defined. Each migration should implement
 //! the "Migration" trait declared in the pallet-migrations crate.
 
+#[cfg(feature = "try-runtime")]
+use frame_support::ensure;
 use frame_support::{
 	pallet_prelude::GetStorageVersion,
 	traits::{Hash as PreimageHash, OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
@@ -27,8 +29,6 @@ use frame_support::{
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use pallet_moonbeam_orbiters::CollatorsPool;
-#[cfg(feature = "try-runtime")]
-use frame_support::ensure;
 #[cfg(feature = "try-runtime")]
 use sp_runtime::traits::Zero;
 use sp_std::{marker::PhantomData, prelude::*};
@@ -208,7 +208,8 @@ where
 			"OpenTechCommitteeCollective storage version should be 0"
 		);
 		ensure!(
-			<pallet_referenda::Pallet<Runtime> as GetStorageVersion>::on_chain_storage_version() == 0,
+			<pallet_referenda::Pallet<Runtime> as GetStorageVersion>::on_chain_storage_version()
+				== 0,
 			"Referenda storage version should be 0"
 		);
 		Ok(vec![])
@@ -225,7 +226,8 @@ where
 			"OpenTech storage version should be 4"
 		);
 		ensure!(
-			<pallet_referenda::Pallet<Runtime> as GetStorageVersion>::on_chain_storage_version() == 1,
+			<pallet_referenda::Pallet<Runtime> as GetStorageVersion>::on_chain_storage_version()
+				== 1,
 			"Referenda storage version should be 1"
 		);
 		Ok(())
