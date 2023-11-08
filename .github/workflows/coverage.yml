@@ -129,16 +129,17 @@ jobs:
       - name: Unit tests
         run: |
           cargo test --release --all --features=evm-tracing
-      - name: Typescript Tests (Dev Service)
-        uses: ./.github/workflow-templates/typescript-tests
-        with:
-          timeout: 10000
-          moonbeam-binary: build/moonbeam
-          force-pass: true
-      # - name: "Run Moonwall Dev Tests"
-      #   uses: ./.github/workflow-templates/dev-tests
+      # - name: Typescript Tests (Dev Service)
+      #   uses: ./.github/workflow-templates/typescript-tests
       #   with:
-      #     moonwall_environment: dev_moonbase
+      #     timeout: 10000
+      #     moonbeam-binary: build/moonbeam
+      #     force-pass: true
+      - name: "Run Moonwall Dev Tests"
+        uses: ./.github/workflow-templates/dev-tests
+        with:
+          moonwall_environment: dev_moonbase
+          force-pass: true
 
       - name: Retrieve coverage
         id: coverage
