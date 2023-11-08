@@ -126,6 +126,7 @@ jobs:
         with:
           name: moonbeam
           path: build
+      - uses: cargo-bins/cargo-binstall@v1.4.4
       - uses: taiki-e/install-action@nextest
       - name: Unit tests
         run: |

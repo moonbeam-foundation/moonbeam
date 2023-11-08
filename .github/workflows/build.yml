@@ -358,6 +358,7 @@ jobs:
           fi
           rustup show
       # Checks are run after uploading artifacts since they are modified by the tests
+      - uses: cargo-bins/cargo-binstall@v1.4.4
       - uses: taiki-e/install-action@nextest
       - name: Unit tests
         run: |
