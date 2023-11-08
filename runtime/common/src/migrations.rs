@@ -185,7 +185,7 @@ where
 	Runtime: pallet_referenda::Config,
 {
 	fn friendly_name(&self) -> &str {
-		"MM_SetCollectivePalletVersions"
+		"MM_FixIncorrectPalletVersions"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
