@@ -118,7 +118,6 @@ jobs:
       - name: Clean-up possible coverage generated during builds
         run: |
           rm default_*.profraw
-      - uses: taiki-e/install-action@nextest
       - name: Unit tests
         run: |
           cargo nextest run --release --all --features=evm-tracing
