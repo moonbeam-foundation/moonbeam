@@ -290,6 +290,11 @@ pub mod pallet {
 		pub overall_weight: Option<WeightLimit>,
 	}
 
+	/// The amount of ref_time and proof_size to use for fee calculation if
+	/// we are dealing with an Unlimited variant inside 'overall_weight' field
+	/// of 'TransactWeights' struct.
+	pub const WEIGHT_FEE_CALCULATION: Weight = Weight::from_parts(10_000_000_000, 100_000);
+
 	/// Since we are using pallet-utility for account derivation (through AsDerivative),
 	/// we need to provide an index for the account derivation. This storage item stores the index
 	/// assigned for a given local account. These indices are usable as derivative in the relay chain
@@ -536,7 +541,7 @@ pub mod pallet {
 			)?;
 
 			let total_weight_fee_calculation = match total_weight {
-				Unlimited => Weight::from_parts(10_000_000_000, 100_000),
+				Unlimited => WEIGHT_FEE_CALCULATION,
 				Limited(x) => x,
 			};
 
@@ -628,7 +633,7 @@ pub mod pallet {
 			)?;
 
 			let total_weight_fee_calculation = match total_weight {
-				Unlimited => Weight::from_parts(10_000_000_000, 100_000),
+				Unlimited => WEIGHT_FEE_CALCULATION,
 				Limited(x) => x,
 			};
 
@@ -760,7 +765,7 @@ pub mod pallet {
 			)?;
 
 			let total_weight_fee_calculation = match total_weight {
-				Unlimited => Weight::from_parts(10_000_000_000, 100_000),
+				Unlimited => WEIGHT_FEE_CALCULATION,
 				Limited(x) => x,
 			};
 
@@ -907,7 +912,7 @@ pub mod pallet {
 			)?;
 
 			let total_weight_fee_calculation = match total_weight {
-				Unlimited => Weight::from_parts(10_000_000_000, 100_000),
+				Unlimited => WEIGHT_FEE_CALCULATION,
 				Limited(x) => x,
 			};
 
