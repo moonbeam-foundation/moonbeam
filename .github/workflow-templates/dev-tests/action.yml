@@ -15,7 +15,7 @@ runs:
   steps:
     - uses: pnpm/action-setup@v2
       with:
-        version: 8.6.12
+        version: 8
     - uses: actions/setup-node@v3
       with:
         node-version: 20.x
@@ -37,9 +37,6 @@ runs:
         cd ../test
         pnpm i ../typescript-api
 
-    - uses: oven-sh/setup-bun@v1
-      with:
-        bun-version: 1.0.11
     - name: "Install and run dev test"
       shell: bash
       env:
@@ -48,11 +45,9 @@ runs:
       run: |
         chmod uog+x target/release/moonbeam
         cd test
-
-        bun install
-        bun compile-solidity
-
-        bun moonwall test ${{ inputs.moonwall_environment }} || [[ '${{ inputs.force-pass }}' == 'true' ]]
+        pnpm install
+        pnpm compile-solidity
+        pnpm moonwall test ${{ inputs.moonwall_environment }} || [[ '${{ inputs.force-pass }}' == 'true' ]]
     - name: Upload HTML report
       if: always()
       uses: actions/upload-artifact@v3.1.2

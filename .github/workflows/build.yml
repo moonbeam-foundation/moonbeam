@@ -200,7 +200,7 @@ jobs:
       - name: Use pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8.6.12
+          version: 8
       - name: Use Node.js 20.x
         uses: actions/setup-node@v3
         with:
@@ -402,7 +402,7 @@ jobs:
       - name: Use pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8.6.12
+          version: 8
       - name: Use Node.js 20.x
         uses: actions/setup-node@v3
         with:
