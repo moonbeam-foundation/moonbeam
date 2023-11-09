@@ -120,7 +120,7 @@ jobs:
           rm default_*.profraw
       - name: Unit tests
         run: |
-          cargo nextest run --release --all --features=evm-tracing
+          cargo nextest run --release --workspace --features=evm-tracing
       - name: "Run Moonwall Dev Tests"
         uses: ./.github/workflow-templates/dev-tests
         with:
