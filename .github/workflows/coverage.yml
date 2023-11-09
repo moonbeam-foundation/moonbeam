@@ -87,7 +87,7 @@ jobs:
 
   build-and-coverage:
     runs-on:
-      labels: bare-metal
+      labels: qco-github-runner-23
     needs: ["set-tags"]
     env:
       RUSTC_WRAPPER: "sccache"
@@ -117,9 +117,10 @@ jobs:
       - name: Clean-up possible coverage generated during builds
         run: |
           rm default_*.profraw
+      - uses: taiki-e/install-action@nextest
       - name: Unit tests
         run: |
-          cargo test --release --all --features=evm-tracing
+          cargo nextest run --release --all --features=evm-tracing
       - name: "Run Moonwall Dev Tests"
         uses: ./.github/workflow-templates/dev-tests
         with:
