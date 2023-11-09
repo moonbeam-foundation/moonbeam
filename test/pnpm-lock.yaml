@@ -77,8 +77,8 @@ dependencies:
 
 devDependencies:
   '@moonbeam-network/api-augment':
-    specifier: ^0.2500.0
-    version: 0.2500.0
+    specifier: link:../typescript-api/build
+    version: link:../typescript-api/build
   '@moonwall/cli':
     specifier: ^4.3.2
     version: 4.3.2(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2)

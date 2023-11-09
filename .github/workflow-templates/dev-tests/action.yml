@@ -33,9 +33,10 @@ runs:
         #### Preparing the typescript api
         cd ../typescript-api
         npm ci
+        npm run build
 
         cd ../test
-        pnpm i ../typescript-api
+        pnpm add ../typescript-api/build
 
     - name: "Install and run dev test"
       shell: bash
@@ -45,6 +46,7 @@ runs:
       run: |
         chmod uog+x target/release/moonbeam
         cd test
+
         pnpm install
         pnpm compile-solidity
         pnpm moonwall test ${{ inputs.moonwall_environment }} || [[ '${{ inputs.force-pass }}' == 'true' ]]
