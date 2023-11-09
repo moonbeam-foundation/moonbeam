@@ -87,7 +87,7 @@ jobs:
 
   build-and-coverage:
     runs-on:
-      labels: qco-github-runner-23
+      labels: bare-metal
     needs: ["set-tags"]
     env:
       RUSTC_WRAPPER: "sccache"
