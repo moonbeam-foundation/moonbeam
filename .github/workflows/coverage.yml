@@ -19,7 +19,8 @@ jobs:
   ####### Check files and formatting #######
 
   set-tags:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: qco-github-runner-23
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_target_branch: ${{ steps.check-git-ref.outputs.git_target_branch }}
@@ -87,7 +88,7 @@ jobs:
 
   build-and-coverage:
     runs-on:
-      labels: bare-metal
+      labels: qco-github-runner-23
     needs: ["set-tags"]
     env:
       RUSTC_WRAPPER: "sccache"
