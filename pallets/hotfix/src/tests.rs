@@ -17,6 +17,7 @@
 use crate::*;
 use frame_support::assert_noop;
 use mock::*;
+use pallet_evm::AddressMapping;
 use rlp::RlpStream;
 use sp_core::{keccak_256, H160, H256};
 use sp_runtime::AccountId32;
