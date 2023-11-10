@@ -441,7 +441,7 @@ jobs:
         uses: nick-fields/retry@v2
         with:
           max_attempts: 3
-          timeout_minutes: 5
+          timeout_minutes: 10
           command: |
             cd test
             pnpm install
