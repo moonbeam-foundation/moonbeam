@@ -294,7 +294,7 @@ impl pallet_balances::Config for Runtime {
 	/// The ubiquitous event type.
 	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
-	type ExistentialDeposit = ConstU128<0>;
+	type ExistentialDeposit = ConstU128<1>;
 	type AccountStore = System;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ConstU32<0>;
