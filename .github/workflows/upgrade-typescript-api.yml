@@ -28,6 +28,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.9.0
+      - name: Use pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Upgrade polkadotjs for moonbeam-types-bundle
         run: |
           cd moonbeam-types-bundle
