@@ -1775,6 +1775,12 @@ declare module "@polkadot/types/lookup" {
     readonly asEnableMarkingOffline: {
       readonly value: bool;
     } & Struct;
+    readonly isForceJoinCandidates: boolean;
+    readonly asForceJoinCandidates: {
+      readonly account: AccountId20;
+      readonly bond: u128;
+      readonly candidateCount: u32;
+    } & Struct;
     readonly type:
       | "SetStakingExpectations"
       | "SetInflation"
@@ -1806,7 +1812,8 @@ declare module "@polkadot/types/lookup" {
       | "SetAutoCompound"
       | "HotfixRemoveDelegationRequestsExitedCandidates"
       | "NotifyInactiveCollator"
-      | "EnableMarkingOffline";
+      | "EnableMarkingOffline"
+      | "ForceJoinCandidates";
   }
 
   /** @name PalletAuthorInherentCall (113) */
@@ -7223,7 +7230,29 @@ declare module "@polkadot/types/lookup" {
       | "MinXcmFeeNotDefined";
   }
 
-  /** @name PalletXcmTransactorError (623) */
+  /** @name PalletXcmTransactorRelayIndicesRelayChainIndices (623) */
+  interface PalletXcmTransactorRelayIndicesRelayChainIndices extends Struct {
+    readonly staking: u8;
+    readonly utility: u8;
+    readonly hrmp: u8;
+    readonly bond: u8;
+    readonly bondExtra: u8;
+    readonly unbond: u8;
+    readonly withdrawUnbonded: u8;
+    readonly validate: u8;
+    readonly nominate: u8;
+    readonly chill: u8;
+    readonly setPayee: u8;
+    readonly setController: u8;
+    readonly rebond: u8;
+    readonly asDerivative: u8;
+    readonly initOpenChannel: u8;
+    readonly acceptOpenChannel: u8;
+    readonly closeChannel: u8;
+    readonly cancelOpenRequest: u8;
+  }
+
+  /** @name PalletXcmTransactorError (624) */
   interface PalletXcmTransactorError extends Enum {
     readonly isIndexAlreadyClaimed: boolean;
     readonly isUnclaimedIndex: boolean;
@@ -7282,19 +7311,19 @@ declare module "@polkadot/types/lookup" {
       | "RefundNotSupportedWithTransactInfo";
   }
 
-  /** @name PalletEthereumXcmError (625) */
+  /** @name PalletEthereumXcmError (626) */
   interface PalletEthereumXcmError extends Enum {
     readonly isEthereumXcmExecutionSuspended: boolean;
     readonly type: "EthereumXcmExecutionSuspended";
   }
 
-  /** @name PalletRandomnessRequestState (626) */
+  /** @name PalletRandomnessRequestState (627) */
   interface PalletRandomnessRequestState extends Struct {
     readonly request: PalletRandomnessRequest;
     readonly deposit: u128;
   }
 
-  /** @name PalletRandomnessRequest (627) */
+  /** @name PalletRandomnessRequest (628) */
   interface PalletRandomnessRequest extends Struct {
     readonly refundAddress: H160;
     readonly contractAddress: H160;
@@ -7305,7 +7334,7 @@ declare module "@polkadot/types/lookup" {
     readonly info: PalletRandomnessRequestInfo;
   }
 
-  /** @name PalletRandomnessRequestInfo (628) */
+  /** @name PalletRandomnessRequestInfo (629) */
   interface PalletRandomnessRequestInfo extends Enum {
     readonly isBabeEpoch: boolean;
     readonly asBabeEpoch: ITuple<[u64, u64]>;
@@ -7314,7 +7343,7 @@ declare module "@polkadot/types/lookup" {
     readonly type: "BabeEpoch" | "Local";
   }
 
-  /** @name PalletRandomnessRequestType (629) */
+  /** @name PalletRandomnessRequestType (630) */
   interface PalletRandomnessRequestType extends Enum {
     readonly isBabeEpoch: boolean;
     readonly asBabeEpoch: u64;
@@ -7323,13 +7352,13 @@ declare module "@polkadot/types/lookup" {
     readonly type: "BabeEpoch" | "Local";
   }
 
-  /** @name PalletRandomnessRandomnessResult (630) */
+  /** @name PalletRandomnessRandomnessResult (631) */
   interface PalletRandomnessRandomnessResult extends Struct {
     readonly randomness: Option<H256>;
     readonly requestCount: u64;
   }
 
-  /** @name PalletRandomnessError (631) */
+  /** @name PalletRandomnessError (632) */
   interface PalletRandomnessError extends Enum {
     readonly isRequestCounterOverflowed: boolean;
     readonly isRequestFeeOverflowed: boolean;
@@ -7358,30 +7387,30 @@ declare module "@polkadot/types/lookup" {
       | "RandomnessResultNotFilled";
   }
 
-  /** @name AccountEthereumSignature (633) */
+  /** @name AccountEthereumSignature (634) */
   interface AccountEthereumSignature extends SpCoreEcdsaSignature {}
 
-  /** @name FrameSystemExtensionsCheckNonZeroSender (635) */
+  /** @name FrameSystemExtensionsCheckNonZeroSender (636) */
   type FrameSystemExtensionsCheckNonZeroSender = Null;
 
-  /** @name FrameSystemExtensionsCheckSpecVersion (636) */
+  /** @name FrameSystemExtensionsCheckSpecVersion (637) */
   type FrameSystemExtensionsCheckSpecVersion = Null;
 
-  /** @name FrameSystemExtensionsCheckTxVersion (637) */
+  /** @name FrameSystemExtensionsCheckTxVersion (638) */
   type FrameSystemExtensionsCheckTxVersion = Null;
 
-  /** @name FrameSystemExtensionsCheckGenesis (638) */
+  /** @name FrameSystemExtensionsCheckGenesis (639) */
   type FrameSystemExtensionsCheckGenesis = Null;
 
-  /** @name FrameSystemExtensionsCheckNonce (641) */
+  /** @name FrameSystemExtensionsCheckNonce (642) */
   interface FrameSystemExtensionsCheckNonce extends Compact<u32> {}
 
-  /** @name FrameSystemExtensionsCheckWeight (642) */
+  /** @name FrameSystemExtensionsCheckWeight (643) */
   type FrameSystemExtensionsCheckWeight = Null;
 
-  /** @name PalletTransactionPaymentChargeTransactionPayment (643) */
+  /** @name PalletTransactionPaymentChargeTransactionPayment (644) */
   interface PalletTransactionPaymentChargeTransactionPayment extends Compact<u128> {}
 
-  /** @name MoonbeamRuntimeRuntime (645) */
+  /** @name MoonbeamRuntimeRuntime (646) */
   type MoonbeamRuntimeRuntime = Null;
 } // declare module

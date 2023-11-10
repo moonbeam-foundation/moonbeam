@@ -100,6 +100,7 @@ import type {
   PalletTreasuryProposal,
   PalletXcmQueryStatus,
   PalletXcmRemoteLockedFungibleRecord,
+  PalletXcmTransactorRelayIndicesRelayChainIndices,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   PalletXcmVersionMigrationStage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
@@ -675,6 +676,12 @@ declare module "@polkadot/api-base/types/storage" {
         [H160, H256]
       > &
         QueryableStorageEntry<ApiType, [H160, H256]>;
+      suicided: AugmentedQuery<
+        ApiType,
+        (arg: H160 | string | Uint8Array) => Observable<Option<Null>>,
+        [H160]
+      > &
+        QueryableStorageEntry<ApiType, [H160]>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -1856,6 +1863,13 @@ declare module "@polkadot/api-base/types/storage" {
         [u16]
       > &
         QueryableStorageEntry<ApiType, [u16]>;
+      /** Stores the indices of relay chain pallets */
+      relayIndices: AugmentedQuery<
+        ApiType,
+        () => Observable<PalletXcmTransactorRelayIndicesRelayChainIndices>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
       /**
        * Stores the transact info of a MultiLocation. This defines how much extra weight we need to
        * add when we want to transact in the destination chain and maximum amount of weight allowed
