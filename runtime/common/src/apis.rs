@@ -110,9 +110,11 @@ macro_rules! impl_runtime_apis_plus_common {
 							&EthereumXcmTracingStatus::Transaction(traced_transaction.hash()),
 						);
 
+						log::info!("====> Tracing transaction: {:?}", traced_transaction);
 						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
 						// transactions that preceded the requested transaction.
 						for ext in extrinsics.into_iter() {
+							log::info!("====> Applying extrinsic: {:?}", ext.0.function);
 							let _ = match &ext.0.function {
 								RuntimeCall::Ethereum(transact { transaction }) => {
 									if transaction == traced_transaction {
@@ -163,6 +165,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 						// Apply all extrinsics. Ethereum extrinsics are traced.
 						for ext in extrinsics.into_iter() {
+							log::info!("Applying extrinsic: {:?}", ext.0.function);
 							match &ext.0.function {
 								RuntimeCall::Ethereum(transact { transaction }) => {
 									if known_transactions.contains(&transaction.hash()) {
