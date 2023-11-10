@@ -83,8 +83,8 @@ devDependencies:
     specifier: ^4.3.4
     version: 4.3.4(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2)
   '@moonwall/util':
-    specifier: link:../../moonwall/packages/util
-    version: link:../../moonwall/packages/util
+    specifier: ^4.3.4
+    version: 4.3.4(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2)
   '@polkadot/api':
     specifier: ^10.10.1
     version: 10.10.1
