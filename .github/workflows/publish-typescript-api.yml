@@ -43,8 +43,8 @@ jobs:
           node-version: 20.9.0
       - name: Upgrade polkadotjs for tests
         run: |
-          cd tests
-          npm install @polkadot/api@latest
+          cd test
+          pnpm install @polkadot/api@latest
       - name: Upgrade polkadotjs for tools
         run: |
           cd tools
