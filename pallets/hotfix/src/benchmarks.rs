@@ -15,42 +15,30 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg(feature = "runtime-benchmarks")]
-
 use crate::{Call, Config, GetArrayLimit, Pallet};
+use core::cmp::max;
 use frame_benchmarking::{account, benchmarks};
-use frame_support::{
-	traits::{Currency, Get},
-	BoundedVec,
-};
+use frame_support::{traits::Get, BoundedVec};
 use frame_system::RawOrigin;
 use sp_core::{H160, H256};
 
-/// Create a funded user.
-fn create_funded_user<T: Config>(string: &'static str, n: u32, balance: u32) -> T::AccountId {
-	const SEED: u32 = 0;
-	let user = account(string, n, SEED);
-	T::Currency::make_free_balance_be(&user, balance.into());
-	T::Currency::issue(balance.into());
-	user
-}
-
 benchmarks! {
 	clear_suicided_storage {
-		let caller = create_funded_user::<T>("caller", 0, 100);
+		let caller = account("caller", 1, 100);
 		// a is the number of addresses to be used in the test
 		let a in 0 .. GetArrayLimit::get();
 		// l is the limit of the number of storage entries to be deleted
-		let l in 0 .. 32330;
-		let e in 0 .. 32330;
+		let l in 0 .. 30000;
+
 		// Create the addresses to be used in the test
 		let mut addresses = BoundedVec::<H160, GetArrayLimit>::new();
 
 		// Create the storage entries to be deleted
-		for i in 0..=a {
-			// let entries = rand::random::<u32>() % e + 1;
-			let address = H160::repeat_byte(i as u8);
+		for i in 0..a {
+			let address = account("address", i, i);
 			addresses.try_push(address).unwrap();
-			for j in 0..e {
+			let n = max(1, l/a);
+			for j in 0..n {
 				pallet_evm::AccountStorages::<T>::insert(
 					address,
 					H256::from_low_u64_be(j as u64),
