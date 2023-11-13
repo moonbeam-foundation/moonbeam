@@ -19,18 +19,19 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::traits::ConstU32;
-use sp_core::H160;
-
-pub use pallet::*;
-#[cfg(all(feature = "std", test))]
-mod mock;
-
-#[cfg(all(feature = "std", test))]
-mod tests;
+pub mod weights;
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
+#[cfg(all(feature = "std", test))]
+mod mock;
+#[cfg(all(feature = "std", test))]
+mod tests;
+
+use frame_support::traits::ConstU32;
+pub use pallet::*;
+use sp_core::H160;
+pub use weights::WeightInfo;
 
 pub const ARRAY_LIMIT: u32 = 1000;
 pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
@@ -42,7 +43,9 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_evm::Config {}
+	pub trait Config: frame_system::Config + pallet_evm::Config {
+		type WeightInfo: WeightInfo;
+	}
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -55,8 +58,11 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(10_000)]
 		#[pallet::call_index(0)]
+		#[pallet::weight({
+			let addresses_len = addresses.len() as u32;
+			<T as crate::Config>::WeightInfo::clear_suicided_storage(addresses_len, *limit)
+		})]
 		pub fn clear_suicided_storage(
 			origin: OriginFor<T>,
 			addresses: BoundedVec<H160, GetArrayLimit>,

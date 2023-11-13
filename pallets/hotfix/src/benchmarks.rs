@@ -28,7 +28,7 @@ benchmarks! {
 		// a is the number of addresses to be used in the test
 		let a in 0 .. GetArrayLimit::get();
 		// l is the limit of the number of storage entries to be deleted
-		let l in 0 .. 30000;
+		let l in 0 .. 32500;
 
 		// Create the addresses to be used in the test
 		let mut addresses = BoundedVec::<H160, GetArrayLimit>::new();

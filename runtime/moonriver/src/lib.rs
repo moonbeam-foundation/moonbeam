@@ -1377,7 +1377,9 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
-impl pallet_hotfix::Config for Runtime {}
+impl pallet_hotfix::Config for Runtime {
+	type WeightInfo = moonbeam_weights::pallet_hotfix::WeightInfo<Runtime>;
+}
 
 construct_runtime! {
 	pub enum Runtime

@@ -29,6 +29,7 @@ pub mod pallet_conviction_voting;
 pub mod pallet_crowdloan_rewards;
 pub mod pallet_democracy;
 pub mod pallet_evm;
+pub mod pallet_hotfix;
 pub mod pallet_identity;
 pub mod pallet_moonbeam_orbiters;
 pub mod pallet_multisig;
