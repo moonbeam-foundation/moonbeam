@@ -2342,14 +2342,20 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 
 	// Evm account sufficient ref count increased by 1.
 	ParaA::execute_with(|| {
-		assert_eq!(parachain::System::account(evm_account_id).sufficients, 2);
+		// TODO: since the suicided logic was introduced the data of the smart contract is not
+		// removed, it will have to be updated in a future release when there is the ability to
+		// remove contract data
+		// assert_eq!(parachain::System::account(evm_account_id).sufficients, 2);
 	});
 
 	ParaA::execute_with(|| {
 		// Remove the account from the evm context.
 		parachain::EVM::remove_account(&evm_account());
 		// Evm account sufficient ref count decreased by 1.
-		assert_eq!(parachain::System::account(evm_account_id).sufficients, 1);
+		// TODO: since the suicided logic was introduced the data of the smart contract is not
+		// removed, it will have to be updated in a future release when there is the ability to
+		// remove contract data
+		// assert_eq!(parachain::System::account(evm_account_id).sufficients, 1);
 	});
 }
 
@@ -2441,11 +2447,17 @@ fn empty_account_should_not_be_reset() {
 		parachain::EVM::remove_account(&evm_account());
 		// Verify reference count.
 		let account = parachain::System::account(evm_account_id);
-		assert_eq!(account.sufficients, 0);
+		// TODO: after introducing the suicided fix the value for account.sufficients will remain 1
+		// until the storage is not completely removed, it will have to be decreased to 0 once the
+		// storage can be fully removed
+		assert_eq!(account.sufficients, 1);
 		assert_eq!(account.consumers, 0);
 		assert_eq!(account.providers, 1);
 		// We expect the account to be alive in a Zero ED context.
-		assert_eq!(parachain::System::account_nonce(evm_account_id), 1);
+		// TODO: after introducing the suicided fix the nonce is increased by 1
+		// until the storage is not completely removed, it will have to be decreased to 1 once the
+		// storage can be fully removed
+		assert_eq!(parachain::System::account_nonce(evm_account_id), 2);
 	});
 }
 
@@ -2790,6 +2802,214 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 				alith_balance_native_token_after
 			);
 		});
+	});
+}
+
+#[test]
+fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
+	MockNet::reset();
+
+	// Relay asset
+	let relay_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_relay_id: parachain::AssetId = relay_location.clone().into();
+
+	let relay_asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+
+	// Statemint asset
+	let statemint_asset = MultiLocation::new(
+		1,
+		X3(Parachain(4u32), PalletInstance(5u8), GeneralIndex(10u128)),
+	);
+	let statemint_location_asset = parachain::AssetType::Xcm(statemint_asset);
+	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
+
+	let asset_metadata_statemint_asset = parachain::AssetMetadata {
+		name: b"USDC".to_vec(),
+		symbol: b"USDC".to_vec(),
+		decimals: 12,
+	};
+
+	let dest_para = MultiLocation::new(1, X1(Parachain(1)));
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemint_like::AccountId,
+	>::convert_location(&dest_para)
+	.unwrap();
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			relay_location.clone(),
+			relay_asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::RuntimeOrigin::root(),
+			relay_location,
+			0u128,
+			0
+		));
+
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			statemint_location_asset.clone(),
+			asset_metadata_statemint_asset,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::RuntimeOrigin::root(),
+			statemint_location_asset,
+			0u128,
+			1
+		));
+	});
+
+	let parachain_beneficiary_from_relay: MultiLocation = Junction::AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	}
+	.into();
+
+	// Send relay chain asset to Alice in Parachain A
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Parachain(1).into()),
+			Box::new(
+				VersionedMultiLocation::V3(parachain_beneficiary_from_relay)
+					.clone()
+					.into()
+			),
+			Box::new((Here, 200).into()),
+			0,
+		));
+	});
+
+	Statemint::execute_with(|| {
+		// Set new prefix
+		statemint_like::PrefixChanger::set_prefix(
+			PalletInstance(<StatemintAssets as PalletInfoAccess>::index() as u8).into(),
+		);
+
+		assert_ok!(StatemintAssets::create(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			10,
+			RELAYALICE,
+			1
+		));
+
+		assert_ok!(StatemintAssets::mint(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			10,
+			RELAYALICE,
+			300000000000000
+		));
+
+		// Send some native statemint tokens to sovereign for fees.
+		// We can't pay fees with USDC as the asset is minted as non-sufficient.
+		assert_ok!(StatemintBalances::transfer(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			sov,
+			100000000000000
+		));
+
+		// Send statemint USDC asset to Alice in Parachain A
+		let parachain_beneficiary_from_statemint: MultiLocation = AccountKey20 {
+			network: None,
+			key: PARAALICE,
+		}
+		.into();
+
+		// Send with new prefix
+		assert_ok!(StatemintChainPalletXcm::reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
+			Box::new(
+				VersionedMultiLocation::V3(parachain_beneficiary_from_statemint)
+					.clone()
+					.into()
+			),
+			Box::new(
+				(
+					X2(
+						xcm::latest::prelude::PalletInstance(
+							<StatemintAssets as PalletInfoAccess>::index() as u8
+						),
+						GeneralIndex(10),
+					),
+					125
+				)
+					.into()
+			),
+			0,
+		));
+	});
+
+	let statemint_beneficiary = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(4),
+			AccountId32 {
+				network: None,
+				id: RELAYBOB.into(),
+			},
+		),
+	};
+
+	ParaA::execute_with(|| {
+		// Alice has received 125 USDC
+		assert_eq!(
+			Assets::balance(source_statemint_asset_id, &PARAALICE.into()),
+			125
+		);
+
+		// Alice has received 200 Relay assets
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+	});
+
+	Statemint::execute_with(|| {
+		// Check that BOB's balance is empty before the transfer
+		assert_eq!(StatemintAssets::account_balances(RELAYBOB), vec![]);
+	});
+
+	// Transfer USDC from Parachain A to Statemint using Relay asset as fee
+	ParaA::execute_with(|| {
+		assert_ok!(XTokens::transfer_multicurrencies(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			vec![
+				(
+					parachain::CurrencyId::ForeignAsset(source_statemint_asset_id),
+					100
+				),
+				(parachain::CurrencyId::ForeignAsset(source_relay_id), 100)
+			],
+			1,
+			Box::new(VersionedMultiLocation::V3(statemint_beneficiary)),
+			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// Alice has 100 USDC less
+		assert_eq!(
+			Assets::balance(source_statemint_asset_id, &PARAALICE.into()),
+			25
+		);
+
+		// Alice has 100 relay asset less
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 100);
+	});
+
+	Statemint::execute_with(|| {
+		// Check that BOB received 100 USDC on statemint
+		assert_eq!(StatemintAssets::account_balances(RELAYBOB), vec![(10, 100)]);
 	});
 }
 
@@ -3738,7 +3958,7 @@ fn hrmp_init_accept_through_root() {
 		let total_fee = 1_000u128;
 		let total_weight: u64 = 1_000_000_000;
 		let tx_weight: u64 = 500_000_000;
-		// Root can send hrmp init channel
+		// Root can send hrmp accept channel
 		assert_ok!(XcmTransactor::hrmp_manage(
 			parachain::RuntimeOrigin::root(),
 			HrmpOperation::Accept {
@@ -3792,7 +4012,6 @@ fn hrmp_close_works() {
 		let total_fee = 1_000u128;
 		let total_weight: u64 = 1_000_000_000;
 		let tx_weight: u64 = 500_000_000;
-		// Root can send hrmp close
 		assert_ok!(XcmTransactor::hrmp_manage(
 			parachain::RuntimeOrigin::root(),
 			HrmpOperation::Close(HrmpChannelId {

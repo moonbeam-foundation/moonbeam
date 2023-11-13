@@ -1,10 +1,12 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { BALTATHAR_PRIVATE_KEY, baltathar } from "@moonwall/util";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { expectSubstrateEvent } from "../../../helpers/expect.js";
 import { decodeEventLog } from "viem";
-import { PRECOMPILE_IDENTITY_ADDRESS } from "../../../helpers/constants.ts";
+import {
+  PRECOMPILE_IDENTITY_ADDRESS,
+  expectEVMResult,
+  expectSubstrateEvent,
+} from "../../../helpers";
 
 describeSuite({
   id: "D3402",

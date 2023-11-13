@@ -8,7 +8,6 @@ import {
   EvmCoreErrorExitRevert,
   EvmCoreErrorExitSucceed,
 } from "@polkadot/types/lookup";
-import { Signer } from "ethers";
 export type Errors = {
   Succeed: EvmCoreErrorExitSucceed["type"];
   Error: EvmCoreErrorExitError["type"];

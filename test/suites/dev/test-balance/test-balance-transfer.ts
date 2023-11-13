@@ -2,10 +2,8 @@ import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  ALITH_GENESIS_LOCK_BALANCE,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
-  CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
   GERALD_PRIVATE_KEY,
   GLMR,
@@ -16,9 +14,9 @@ import {
   generateKeyringPair,
   sendRawTransaction,
 } from "@moonwall/util";
-import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../helpers/constants.js";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE, verifyLatestBlockFees } from "../../../helpers";
+
 import { parseGwei } from "viem";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
 
 describeSuite({
   id: "D0306",

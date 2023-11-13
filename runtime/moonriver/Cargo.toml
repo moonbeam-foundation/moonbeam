@@ -203,6 +203,7 @@ std = [
 	"frame-system/std",
 	"moonbeam-core-primitives/std",
 	"moonbeam-evm-tracer/std",
+	"moonbeam-relay-encoder/std",
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
 	"moonbeam-runtime-common/std",

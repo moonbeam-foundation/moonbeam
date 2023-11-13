@@ -84,13 +84,16 @@ describeSuite({
       timeout: FIVE_MINS,
       test: async function () {
         const results = await limiter.schedule(() => {
+          const specVersion = paraApi.consts.system.version.specVersion.toNumber();
           const allTasks = atStakeSnapshot.map(async (coll, index) => {
             const [
               {
                 args: [_, accountId],
               },
-              { bond, total, delegations },
+              value,
             ] = coll;
+            // @ts-expect-error - changed to optional between RT versions
+            const { bond, total, delegations } = specVersion < 2600 ? value : value.unwrap();
             const candidateInfo = (
               await limiter.schedule(() =>
                 predecessorApiAt.query.parachainStaking.candidateInfo(accountId as AccountId20)
@@ -365,7 +368,7 @@ describeSuite({
         rewardDelay
       );
       let iterOriginalRoundBlock = nowRoundFirstBlock.toBn();
-      while (true) {
+      for (;;) {
         const blockHash = await api.rpc.chain.getBlockHash(iterOriginalRoundBlock);
         const round = await (await api.at(blockHash)).query.parachainStaking.round();
         if (
@@ -412,8 +415,10 @@ describeSuite({
         {
           args: [_, accountId],
         },
-        { bond, total, delegations },
+        value,
       ] of atStake) {
+        // @ts-expect-error - changed to optional between RT versions
+        const { bond, total, delegations } = specVersion < 2600 ? value : value.unwrap();
         const collatorId = accountId.toHex();
         collators.add(collatorId);
         const points = await apiAtPriorRewarded.query.parachainStaking.awardedPts(
@@ -851,9 +856,10 @@ describeSuite({
             // The orbiter is removed from the list at the block of the reward so we query the
             // previous block instead.
             // The round rewarded is 2 rounds before the current one.
-            let collators = await apiAtPreviousBlock.query.moonbeamOrbiters.orbiterPerRound.entries(
-              round.current.toNumber() - 2
-            );
+            const collators =
+              await apiAtPreviousBlock.query.moonbeamOrbiters.orbiterPerRound.entries(
+                round.current.toNumber() - 2
+              );
 
             const collator = `0x${collators
               .find((orbit) => orbit[1].toHex() == event.data[0].toHex())![0]
@@ -885,7 +891,7 @@ describeSuite({
 
       let bondReward: BN = new BN(0);
       let collatorInfo: any = {};
-      let rewarded: Rewarded = {
+      const rewarded: Rewarded = {
         delegators: new Set<string>(),
         collatorSharePerbill: new BN(0),
         amount: {
@@ -895,7 +901,7 @@ describeSuite({
           bondRewardLoss: new BN(0),
         },
       };
-      let autoCompounded = new Set<string>();
+      const autoCompounded = new Set<string>();
       let totalBondRewardShare = new BN(0);
 
       for (const accountId of Object.keys(rewards) as HexString[]) {

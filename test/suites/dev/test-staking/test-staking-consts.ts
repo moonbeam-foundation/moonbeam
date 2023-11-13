@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
@@ -10,7 +9,7 @@ import {
   alith,
   generateKeyringPair,
 } from "@moonwall/util";
-import { chunk } from "../../../helpers/common.js";
+import { chunk } from "../../../helpers";
 
 describeSuite({
   id: "D2974",

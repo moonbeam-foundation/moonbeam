@@ -1,12 +1,6 @@
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import {
-  CHARLETH_ADDRESS,
-  BALTATHAR_ADDRESS,
-  alithSigner,
-  alith,
-  setupLogger,
-} from "@moonwall/util";
-import { WebSocketProvider, parseEther, formatEther, Signer } from "ethers";
+import { CHARLETH_ADDRESS, BALTATHAR_ADDRESS, alith, setupLogger } from "@moonwall/util";
+import { parseEther, formatEther, Signer } from "ethers";
 import { BN } from "@polkadot/util";
 import { ApiPromise } from "@polkadot/api";
 

@@ -19,7 +19,7 @@ describeSuite({
             overallWeight: { refTime: 10000, proofSize: 10000 },
           });
 
-        let fee = context.polkadotJs().createType("PalletXcmTransactorCurrencyPayment", {
+        const fee = context.polkadotJs().createType("PalletXcmTransactorCurrencyPayment", {
           currency: {
             AsMultiLocation: {
               V3: {

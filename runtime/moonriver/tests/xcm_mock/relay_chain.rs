@@ -166,6 +166,14 @@ pub type XcmBarrier = (
 	>,
 );
 
+parameter_types! {
+	pub Kusama: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(KsmLocation::get()) });
+	pub Statemine: MultiLocation = Parachain(4).into();
+	pub KusamaForStatemine: (MultiAssetFilter, MultiLocation) = (Kusama::get(), Statemine::get());
+}
+
+pub type TrustedTeleporters = xcm_builder::Case<KusamaForStatemine>;
+
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
@@ -173,7 +181,7 @@ impl Config for XcmConfig {
 	type AssetTransactor = LocalAssetTransactor;
 	type OriginConverter = LocalOriginConverter;
 	type IsReserve = ();
-	type IsTeleporter = ();
+	type IsTeleporter = TrustedTeleporters;
 	type UniversalLocation = UniversalLocation;
 	type Barrier = XcmBarrier;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;

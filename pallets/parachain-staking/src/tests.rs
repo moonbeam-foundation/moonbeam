@@ -810,6 +810,26 @@ fn cannot_join_candidates_without_min_bond() {
 }
 
 #[test]
+fn can_force_join_candidates_without_min_bond() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::force_join_candidates(
+				RuntimeOrigin::root(),
+				1,
+				9,
+				100u32
+			));
+			assert_events_eq!(Event::JoinedCollatorCandidates {
+				account: 1,
+				amount_locked: 9u128,
+				new_total_amt_locked: 9u128,
+			});
+		});
+}
+
+#[test]
 fn cannot_join_candidates_with_more_than_available_balance() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 500)])

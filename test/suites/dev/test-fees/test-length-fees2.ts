@@ -1,11 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import {
-  ALITH_PRIVATE_KEY,
-  EXTRINSIC_GAS_LIMIT,
-  createEthersTransaction,
-  createViemTransaction,
-} from "@moonwall/util";
+import { EXTRINSIC_GAS_LIMIT, createViemTransaction } from "@moonwall/util";
 
 describeSuite({
   id: "D1607",

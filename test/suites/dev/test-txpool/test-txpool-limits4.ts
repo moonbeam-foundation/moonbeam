@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTransaction, sendRawTransaction } from "@moonwall/util";
+import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { encodeDeployData } from "viem";
 
 describeSuite({
@@ -13,7 +13,7 @@ describeSuite({
       title:
         "should be able to send 8192 tx to the pool and have them" +
         " all published within the following blocks - bigger tx",
-      timeout: 60_000,
+      timeout: 120_000,
       test: async function () {
         const { abi, bytecode } = fetchCompiledContract("MultiplyBy7");
         const deployData = encodeDeployData({
@@ -43,7 +43,7 @@ describeSuite({
         expect(txPoolSize).toBe(8192);
 
         let blocks = 1;
-        while (true) {
+        for (;;) {
           await context.createBlock();
 
           const inspectBlob = (await context

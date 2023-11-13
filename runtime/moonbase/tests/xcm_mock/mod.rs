@@ -18,6 +18,7 @@ pub mod parachain;
 pub mod relay_chain;
 pub mod statemint_like;
 use cumulus_primitives_core::ParaId;
+use pallet_xcm_transactor::relay_indices::*;
 use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::{AccountId32, BuildStorage};
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain, TestExt};
@@ -34,6 +35,7 @@ use std::{collections::BTreeMap, str::FromStr};
 
 pub const PARAALICE: [u8; 20] = [1u8; 20];
 pub const RELAYALICE: AccountId32 = AccountId32::new([0u8; 32]);
+pub const RELAYBOB: AccountId32 = AccountId32::new([2u8; 32]);
 
 pub fn para_a_account() -> AccountId32 {
 	ParaId::from(1).into_account_truncating()
@@ -150,6 +152,21 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	.assimilate_storage(&mut t)
 	.unwrap();
 
+	pallet_xcm_transactor::GenesisConfig::<Runtime> {
+		// match relay runtime construct_runtime order in xcm_mock::relay_chain
+		relay_indices: RelayChainIndices {
+			hrmp: 6u8,
+			init_open_channel: 0u8,
+			accept_open_channel: 1u8,
+			close_channel: 2u8,
+			cancel_open_request: 6u8,
+			..Default::default()
+		},
+		..Default::default()
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
 	// EVM accounts are self-sufficient.
 	let mut evm_accounts = BTreeMap::new();
 	evm_accounts.insert(
@@ -186,7 +203,10 @@ pub fn statemint_ext(para_id: u32) -> sp_io::TestExternalities {
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
-		balances: vec![(RELAYALICE.into(), INITIAL_BALANCE)],
+		balances: vec![
+			(RELAYALICE.into(), INITIAL_BALANCE),
+			(RELAYBOB.into(), INITIAL_BALANCE),
+		],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();

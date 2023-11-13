@@ -8,7 +8,7 @@ describeSuite({
   id: "D3607",
   title: "Raw trace limits",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should not trace call that would produce too big responses",

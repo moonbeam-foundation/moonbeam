@@ -3,11 +3,13 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, alith } from "@moonwall/util";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { fromBytes } from "viem";
-import { mockAssetBalance } from "../../../helpers/assets.js";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { registerXcmTransactorDerivativeIndex } from "../../../helpers/xcm.js";
-import { PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS } from "../../../helpers/constants.js";
+import {
+  mockAssetBalance,
+  verifyLatestBlockFees,
+  expectEVMResult,
+  registerXcmTransactorDerivativeIndex,
+  PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS,
+} from "../../../helpers";
 
 describeSuite({
   id: "D2580",
@@ -73,7 +75,7 @@ describeSuite({
 
         const transactor = 0;
         const index = 0;
-        const asset: [number, {}[]] = [1, []];
+        const asset: [number, any[]] = [1, []];
         const transact_call = fromBytes(new Uint8Array([0x01]), "hex");
         const transactWeight = { refTime: 1000, proofSize: 1000 };
         const overallWeight = { refTime: 2000, proofSize: 2000 };

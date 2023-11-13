@@ -1041,6 +1041,23 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
+use pallet_migrations::{GetMigrations, Migration};
+pub struct TransactorRelayIndexMigration<Runtime>(sp_std::marker::PhantomData<Runtime>);
+
+impl<Runtime> GetMigrations for TransactorRelayIndexMigration<Runtime>
+where
+	Runtime: pallet_xcm_transactor::Config,
+{
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		vec![Box::new(
+			moonbeam_runtime_common::migrations::PopulateRelayIndices::<Runtime>(
+				moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
+				Default::default(),
+			),
+		)]
+	}
+}
+
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
@@ -1056,6 +1073,7 @@ impl pallet_migrations::Config for Runtime {
 			CouncilCollective,
 			TechCommitteeCollective,
 		>,
+		TransactorRelayIndexMigration<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
 }
@@ -1119,6 +1137,9 @@ impl Contains<RuntimeCall> for NormalFilter {
 			RuntimeCall::Proxy(method) => match method {
 				pallet_proxy::Call::create_pure { .. } => false,
 				pallet_proxy::Call::kill_pure { .. } => false,
+				pallet_proxy::Call::proxy { real, .. } => {
+					!pallet_evm::AccountCodes::<Runtime>::contains_key(H160::from(*real))
+				}
 				_ => true,
 			},
 			// Filtering the EVM prevents possible re-entrancy from the precompiles which could
@@ -1201,16 +1222,6 @@ impl OnRuntimeUpgrade for MaintenanceHooks {
 	#[cfg(feature = "try-runtime")]
 	fn try_on_runtime_upgrade(checks: bool) -> Result<Weight, TryRuntimeError> {
 		AllPalletsWithSystem::try_on_runtime_upgrade(checks)
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		AllPalletsWithSystem::pre_upgrade()
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		AllPalletsWithSystem::post_upgrade(state)
 	}
 }
 
@@ -1389,7 +1400,7 @@ construct_runtime! {
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
 		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,
-		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 33,
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config<T>, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,

@@ -17,7 +17,7 @@ async function getKeysBeforeRound<
 >(lastUnpaidRound: BN, storage: T): Promise<InvalidRounds> {
   const invalidRounds: InvalidRounds = {};
   let startKey = "";
-  while (true) {
+  for (;;) {
     const result = await limiter.schedule(() =>
       storage.keysPaged({
         pageSize: 1000,

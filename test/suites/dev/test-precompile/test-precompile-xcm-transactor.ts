@@ -3,9 +3,11 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { fromBytes } from "viem";
-import { mockAssetBalance } from "../../../helpers/assets.js";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { registerXcmTransactorAndContract } from "../../../helpers/xcm.js";
+import {
+  mockAssetBalance,
+  verifyLatestBlockFees,
+  registerXcmTransactorAndContract,
+} from "../../../helpers";
 
 describeSuite({
   id: "D2570",
@@ -35,7 +37,7 @@ describeSuite({
       title: "allows to retrieve transactor info through precompiles old interface",
       test: async function () {
         // Destination as multilocation, one parent
-        const asset: [number, {}[]] = [1, []];
+        const asset: [number, any[]] = [1, []];
 
         expect(
           await context.readPrecompile!({
@@ -51,7 +53,7 @@ describeSuite({
       id: "T03",
       title: "allows to retrieve fee per second through precompiles",
       test: async function () {
-        const asset: [number, {}[]] = [1, []];
+        const asset: [number, any[]] = [1, []];
 
         expect(
           await context.readPrecompile!({
@@ -67,7 +69,7 @@ describeSuite({
       id: "T04",
       title: "allows to retrieve transactor info through precompiles",
       test: async function () {
-        const asset: [number, {}[]] = [1, []];
+        const asset: [number, any[]] = [1, []];
 
         expect(
           await context.readPrecompile!({

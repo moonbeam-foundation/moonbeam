@@ -3,11 +3,13 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith, ALITH_PRIVATE_KEY } from "@moonwall/util";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { fromBytes } from "viem";
-import { mockAssetBalance } from "../../../helpers/assets.js";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { registerXcmTransactorDerivativeIndex } from "../../../helpers/xcm.js";
-import { PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS } from "../../../helpers/constants.js";
+import {
+  mockAssetBalance,
+  verifyLatestBlockFees,
+  expectEVMResult,
+  registerXcmTransactorDerivativeIndex,
+  PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS,
+} from "../../../helpers";
 
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
 

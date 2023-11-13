@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, MIN_GLMR_STAKING, alith } from "@moonwall/util";
+import { ALITH_ADDRESS, MIN_GLMR_STAKING } from "@moonwall/util";
 
 //     // We delegate our target collator with all the tokens provided
 //     staking.delegate(target, msg.value);

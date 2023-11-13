@@ -1,14 +1,14 @@
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
+import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
-import { expectEVMResult, getTransactionFees } from "../../../helpers/eth-transactions.js";
+import { parseEther } from "ethers";
+import { expectEVMResult, getTransactionFees } from "../../../helpers";
 import {
   XcmFragment,
   XcmFragmentConfig,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { parseEther } from "ethers";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
@@ -113,7 +113,7 @@ describeSuite({
     });
     it({
       id: "T02",
-      title: "Should be able to transfer two ERC20 through incoming XCM message",
+      title: "Should not be able to transfer two ERC20 through incoming XCM message",
       test: async function () {
         const paraId = 888;
         const paraSovereign = sovereignAccountOfSibling(context, paraId);
@@ -253,7 +253,7 @@ describeSuite({
             functionName: "balanceOf",
             args: [CHARLETH_ADDRESS],
           })
-        ).equals(amountTransferredOf1);
+        ).equals(0n);
 
         // Erc20 tokens (of second contract) should have been received in Charleth's address
         expect(
@@ -263,7 +263,7 @@ describeSuite({
             functionName: "balanceOf",
             args: [CHARLETH_ADDRESS],
           })
-        ).equals(amountTransferredOf2);
+        ).equals(0n);
       },
     });
   },
