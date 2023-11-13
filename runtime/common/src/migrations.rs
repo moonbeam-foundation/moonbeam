@@ -129,10 +129,7 @@ where
 		let mut weight = Weight::zero();
 		CollatorsPool::<T>::iter_keys().for_each(|collator| {
 			log::info!("Setting the bond for collator {:?} to zero", collator);
-			weight += <pallet_parachain_staking::Pallet<T>>::set_candidate_bond_to_zero(&collator)
-				.expect("failed to set collator bond to 0")
-				.actual_weight
-				.expect("failed to get weight");
+			weight += <pallet_parachain_staking::Pallet<T>>::set_candidate_bond_to_zero(&collator);
 		});
 		weight
 	}
