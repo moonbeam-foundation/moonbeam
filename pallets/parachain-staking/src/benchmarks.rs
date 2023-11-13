@@ -740,7 +740,7 @@ benchmarks! {
 
 		roll_to_and_author::<T>(2, caller.clone());
 	}: {
-		Pallet::<T>::set_candidate_bond_to_zero(&caller)?;
+		Pallet::<T>::set_candidate_bond_to_zero(&caller);
 	} verify {
 		assert!(
 			Pallet::<T>::candidate_info(&caller).expect("candidate was created, qed").bond.is_zero(),
