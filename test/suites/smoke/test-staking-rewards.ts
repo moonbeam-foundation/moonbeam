@@ -84,13 +84,16 @@ describeSuite({
       timeout: FIVE_MINS,
       test: async function () {
         const results = await limiter.schedule(() => {
+          const specVersion = paraApi.consts.system.version.specVersion.toNumber();
           const allTasks = atStakeSnapshot.map(async (coll, index) => {
             const [
               {
                 args: [_, accountId],
               },
-              { bond, total, delegations },
+              value,
             ] = coll;
+            // @ts-expect-error - changed to optional between RT versions
+            const { bond, total, delegations } = specVersion < 2600 ? value : value.unwrap();
             const candidateInfo = (
               await limiter.schedule(() =>
                 predecessorApiAt.query.parachainStaking.candidateInfo(accountId as AccountId20)
@@ -412,8 +415,10 @@ describeSuite({
         {
           args: [_, accountId],
         },
-        { bond, total, delegations },
+        value,
       ] of atStake) {
+        // @ts-expect-error - changed to optional between RT versions
+        const { bond, total, delegations } = specVersion < 2600 ? value : value.unwrap();
         const collatorId = accountId.toHex();
         collators.add(collatorId);
         const points = await apiAtPriorRewarded.query.parachainStaking.awardedPts(
