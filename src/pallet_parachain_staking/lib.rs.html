@@ -3764,13 +3764,13 @@
 	}
 
 	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
-		<span class="kw">pub fn </span>set_candidate_bond_to_zero(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; DispatchResultWithPostInfo {
-			<span class="macro">ensure!</span>(<span class="self">Self</span>::is_candidate(<span class="kw-2">&amp;</span>acc), Error::&lt;T&gt;::CandidateDNE);
+		<span class="kw">pub fn </span>set_candidate_bond_to_zero(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; Weight {
 			<span class="kw">let </span>actual_weight = T::WeightInfo::set_candidate_bond_to_zero(T::MaxCandidates::get());
-			<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>acc).ok_or(Error::&lt;T&gt;::CandidateDNE)<span class="question-mark">?</span>;
-			state.bond_less::&lt;T&gt;(acc.clone(), state.bond);
-			&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>acc, state);
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>state) = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>acc) {
+				state.bond_less::&lt;T&gt;(acc.clone(), state.bond);
+				&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>acc, state);
+			}
+			actual_weight
 		}
 
 		<span class="kw">pub fn </span>is_delegator(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; bool {

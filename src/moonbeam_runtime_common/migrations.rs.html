@@ -305,9 +305,6 @@
 <a href="#305" id="305">305</a>
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -439,10 +436,7 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>weight = Weight::zero();
 		CollatorsPool::&lt;T&gt;::iter_keys().for_each(|collator| {
 			<span class="macro">log::info!</span>(<span class="string">&quot;Setting the bond for collator {:?} to zero&quot;</span>, collator);
-			weight += &lt;pallet_parachain_staking::Pallet&lt;T&gt;&gt;::set_candidate_bond_to_zero(<span class="kw-2">&amp;</span>collator)
-				.expect(<span class="string">&quot;failed to set collator bond to 0&quot;</span>)
-				.actual_weight
-				.expect(<span class="string">&quot;failed to get weight&quot;</span>);
+			weight += &lt;pallet_parachain_staking::Pallet&lt;T&gt;&gt;::set_candidate_bond_to_zero(<span class="kw-2">&amp;</span>collator);
 		});
 		weight
 	}
