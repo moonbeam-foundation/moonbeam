@@ -230,7 +230,8 @@ describeSuite({
           log(`Skipping test for paraApiVersion ${paraApiVersion}`);
           return;
         }
-        const inputCall = relayApi.tx.balances.transfer(ALITH_SESSION_ADDRESS, 1000);
+
+        const inputCall = relayApi.tx.balances.transferAllowDeath(ALITH_SESSION_ADDRESS, 1000);
         const callHex = relayApi.tx.utility.asDerivative(0, inputCall).method.toHex();
         const resp = await xcmTransactorV1.encodeUtilityAsDerivative(
           0,
@@ -257,7 +258,7 @@ describeSuite({
           return; // TODO: replace with skip() when added to vitest;
         }
 
-        const inputCall = relayApi.tx.balances.transfer(ALITH_SESSION_ADDRESS, 1000);
+        const inputCall = relayApi.tx.balances.transferAllowDeath(ALITH_SESSION_ADDRESS, 1000);
         const callHex = relayApi.tx.utility.asDerivative(0, inputCall).method.toHex();
         const resp = await xcmTransactorV2.encodeUtilityAsDerivative(
           0,
