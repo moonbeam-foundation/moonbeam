@@ -638,6 +638,7 @@ jobs:
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
+    timeout-minutes: 20
     strategy:
       matrix:
         chain: ["moonbase"]
@@ -660,28 +661,28 @@ jobs:
         uses: ./.github/workflow-templates/dev-tests
         with:
           moonwall_environment: dev_${{ matrix.chain }}
-      - name: Upload HTML report to s3
-        if: |
-          github.event.pull_request.head.repo.full_name == github.repository
-              && github.event_name == 'push'
-        uses: mario-sangar/upload-s3-action@master
-        id: S3
-        with:
-          aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
-          aws_secret_access_key: ${{ secrets.S3_COVERAGE_KEY }}
-          aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
-          destination_dir: "${{ needs.set-tags.outputs.test_s3_dir }}"
-          source_dir: "test/html"
-          acl: "none"
-      - name: Upload to Moonscope
-        if: github.event.pull_request.head.repo.full_name == github.repository
-        run: |
-          curl --location 'https://api.moonscope.kaki.dev/insert' \
-          -X POST \
-          --header 'moonwallenv: dev_${{ matrix.chain }}' \
-          --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
-          --header 'table: dev_reports' \
-          --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
-          --header 'Content-Type: application/json' \
-          --max-time 30 \
-          -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
+      # - name: Upload HTML report to s3
+      #   if: |
+      #     github.event.pull_request.head.repo.full_name == github.repository
+      #         && github.event_name == 'push'
+      #   uses: mario-sangar/upload-s3-action@master
+      #   id: S3
+      #   with:
+      #     aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
+      #     aws_secret_access_key: ${{ secrets.S3_COVERAGE_KEY }}
+      #     aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
+      #     destination_dir: "${{ needs.set-tags.outputs.test_s3_dir }}"
+      #     source_dir: "test/html"
+      #     acl: "none"
+      # - name: Upload to Moonscope
+      #   if: github.event.pull_request.head.repo.full_name == github.repository
+      #   run: |
+      #     curl --location 'https://api.moonscope.kaki.dev/insert' \
+      #     -X POST \
+      #     --header 'moonwallenv: dev_${{ matrix.chain }}' \
+      #     --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
+      #     --header 'table: dev_reports' \
+      #     --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
+      #     --header 'Content-Type: application/json' \
+      #     --max-time 30 \
+      #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"

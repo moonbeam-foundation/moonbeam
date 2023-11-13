@@ -90,6 +90,7 @@ jobs:
     runs-on:
       labels: bare-metal
     needs: ["set-tags"]
+    timeout-minutes: 60
     env:
       RUSTC_WRAPPER: "sccache"
       CARGO_INCREMENTAL: "0"
