@@ -96,7 +96,7 @@ jobs:
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: "100GB"
       CARGO_TERM_COLOR: always
-      PATH: ${{ github.workspace }}/.cargo/bin:$PATH
+      PATH: /home/gh-actions/.cargo/bin:$PATH
     steps:
       - name: Checkout
         uses: actions/checkout@v3
