@@ -663,8 +663,7 @@ jobs:
           moonwall_environment: dev_${{ matrix.chain }}
       - name: Upload HTML report to s3
         if: |
-          github.event.pull_request.head.repo.full_name == github.repository
-              && github.event_name == 'push'
+          github.event.pull_request.head.repo.full_name == github.repository && github.event_name == 'push'
         uses: mario-sangar/upload-s3-action@master
         id: S3
         with:
