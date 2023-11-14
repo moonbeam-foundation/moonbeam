@@ -96,6 +96,7 @@ jobs:
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: "100GB"
       CARGO_TERM_COLOR: always
+      host_os: linux
     steps:
       - name: Checkout
         uses: actions/checkout@v3
