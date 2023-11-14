@@ -152,7 +152,9 @@ impl pallet_evm::Config for Runtime {
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 }
 
-impl pallet_hotfix::Config for Runtime {}
+impl pallet_hotfix::Config for Runtime {
+	type WeightInfo = ();
+}
 
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances
