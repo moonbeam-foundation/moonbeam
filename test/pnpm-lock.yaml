@@ -80,11 +80,11 @@ devDependencies:
     specifier: ^0.2600.0
     version: 0.2600.0
   '@moonwall/cli':
-    specifier: ^4.4.0
-    version: 4.4.0(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2)
+    specifier: ^4.4.1
+    version: 4.4.1(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2)
   '@moonwall/util':
-    specifier: ^4.4.0
-    version: 4.4.0(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2)
+    specifier: ^4.4.1
+    version: 4.4.1(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2)
   '@polkadot/api':
     specifier: ^10.10.1
     version: 10.10.1
@@ -888,15 +888,15 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: true
 
-  /@moonwall/cli@4.4.0(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2):
-    resolution: {integrity: sha512-CxtGbiFmpRpHxiHWV6WpnPS5YSfgOBtjldIL3E1IOtuvFMIg1pECekGU5NTQU4ZvInO87H3SpoK7jN461ieD9A==}
+  /@moonwall/cli@4.4.1(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2):
+    resolution: {integrity: sha512-Osjjt6acLVZgDGvVRvUKDUxRgV+qVcYzwbWGdAvIARQV2d4wa6UGVRj1O7ueMwqi52A3fJ+Z1Nym12nf5W75eQ==}
     engines: {node: '>=20.0.0', pnpm: '>=7'}
     hasBin: true
     dependencies:
       '@acala-network/chopsticks': 0.9.1(@polkadot/util@12.5.1)(debug@4.3.4)
       '@moonbeam-network/api-augment': 0.2600.0
-      '@moonwall/types': 4.4.0(typescript@5.2.2)
-      '@moonwall/util': 4.4.0(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2)
+      '@moonwall/types': 4.4.1(typescript@5.2.2)
+      '@moonwall/util': 4.4.1(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2)
       '@polkadot/api': 10.10.1
       '@polkadot/api-augment': 10.10.1
       '@polkadot/api-derive': 10.10.1
@@ -972,8 +972,8 @@ packages:
       - zod
     dev: true
 
-  /@moonwall/types@4.4.0(typescript@5.2.2):
-    resolution: {integrity: sha512-eD4iH78azuWszdpuyrQepXU1NuZCuwjHoje6DnRgnyHbaxt56EhfEtBnJSFfXs3KMrHqJjm/rMRWNmwCx8T+fg==}
+  /@moonwall/types@4.4.1(typescript@5.2.2):
+    resolution: {integrity: sha512-Wgh63Cv+SFD2P6uFfMiBH0HUCUd7wvHnwgTnYamjOXazQQU+OFXq4fS++r3yp3TNKvdibiLNk6eVrfaOuQLbtg==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     dependencies:
       '@polkadot/api': 10.10.1
@@ -1001,12 +1001,12 @@ packages:
       - zod
     dev: true
 
-  /@moonwall/util@4.4.0(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2):
-    resolution: {integrity: sha512-W1Pz7jywHjmAO65sdIh6AuQZ+6BzTJbgC0HcxoNH8x2YBWAX+03BunCICqNX4KA48M2Mfk8bkOiSOOJZJY6U7Q==}
+  /@moonwall/util@4.4.1(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.4)(typescript@5.2.2):
+    resolution: {integrity: sha512-5Q9ihsehMsmSV0iaHGL+pzN1O5+AxXcquTINTs0HbnfaW5wUOCb8axvmR7qfwliDcZdzA0t+adsiuKBNUGUErg==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     dependencies:
       '@moonbeam-network/api-augment': 0.2600.0
-      '@moonwall/types': 4.4.0(typescript@5.2.2)
+      '@moonwall/types': 4.4.1(typescript@5.2.2)
       '@polkadot/api': 10.10.1
       '@polkadot/api-augment': 10.10.1
       '@polkadot/api-derive': 10.10.1
