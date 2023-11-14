@@ -104,7 +104,6 @@ jobs:
       - name: Setup Variables
         shell: bash
         run: |
-          echo $PATH
           echo "RUSTFLAGS=-C opt-level=3 -D warnings -C instrument-coverage -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
       - name: Setup grcov
         run: |
@@ -124,6 +123,8 @@ jobs:
           rm default_*.profraw
       - name: Unit tests
         run: |
+          export PATH=$PATH:/home/gh-actions/.cargo/bin
+          echo $PATH
           cargo nextest run --release --workspace --features=evm-tracing
       - name: "Run Moonwall Dev Tests"
         uses: ./.github/workflow-templates/dev-tests
