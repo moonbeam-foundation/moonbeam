@@ -15,9 +15,9 @@ jobs:
         with:
           ref: ${{ github.event.inputs.sha }}
       - name: Use Node.js 20.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 20.9.0
+          node-version: 20.x
       - name: Build typescript API
         run: |
           cd typescript-api
@@ -38,9 +38,9 @@ jobs:
         with:
           ref: ${{ github.event.inputs.sha }}
       - name: Use Node.js 20.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 20.9.0
+          node-version: 20.x
       - name: Upgrade polkadotjs for tests
         run: |
           cd test

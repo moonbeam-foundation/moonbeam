@@ -200,11 +200,11 @@ jobs:
       - name: Use pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 8.6.12
       - name: Use Node.js 20.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 20.9.0
+          node-version: 20.x
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - name: Run Eslint check
@@ -402,11 +402,11 @@ jobs:
       - name: Use pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 8.6.12
       - name: Use Node.js 20.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: 20.9.0
+          node-version: 20.x
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - run: |
@@ -441,7 +441,7 @@ jobs:
         uses: nick-fields/retry@v2
         with:
           max_attempts: 3
-          timeout_minutes: 10
+          timeout_minutes: 5
           command: |
             cd test
             pnpm install
@@ -532,9 +532,9 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 8
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
-          node-version: 20.9.0
+          node-version: 20.x
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - name: Create local folders
@@ -580,9 +580,9 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 8
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
-          node-version: 20.9.0
+          node-version: 20.x
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -661,28 +661,28 @@ jobs:
         uses: ./.github/workflow-templates/dev-tests
         with:
           moonwall_environment: dev_${{ matrix.chain }}
-      # - name: Upload HTML report to s3
-      #   if: |
-      #     github.event.pull_request.head.repo.full_name == github.repository
-      #         && github.event_name == 'push'
-      #   uses: mario-sangar/upload-s3-action@master
-      #   id: S3
-      #   with:
-      #     aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
-      #     aws_secret_access_key: ${{ secrets.S3_COVERAGE_KEY }}
-      #     aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
-      #     destination_dir: "${{ needs.set-tags.outputs.test_s3_dir }}"
-      #     source_dir: "test/html"
-      #     acl: "none"
-      # - name: Upload to Moonscope
-      ##   if: github.event.pull_request.head.repo.full_name == github.repository
-      #   run: |
-      #     curl --location 'https://api.moonscope.kaki.dev/insert' \
-      #     -X POST \
-      #     --header 'moonwallenv: dev_${{ matrix.chain }}' \
-      #     --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
-      #     --header 'table: dev_reports' \
-      #     --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
-      #     --header 'Content-Type: application/json' \
-      #     --max-time 30 \
-      #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
+      - name: Upload HTML report to s3
+        if: |
+          github.event.pull_request.head.repo.full_name == github.repository
+              && github.event_name == 'push'
+        uses: mario-sangar/upload-s3-action@master
+        id: S3
+        with:
+          aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
+          aws_secret_access_key: ${{ secrets.S3_COVERAGE_KEY }}
+          aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
+          destination_dir: "${{ needs.set-tags.outputs.test_s3_dir }}"
+          source_dir: "test/html"
+          acl: "none"
+      - name: Upload to Moonscope
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          curl --location 'https://api.moonscope.kaki.dev/insert' \
+          -X POST \
+          --header 'moonwallenv: dev_${{ matrix.chain }}' \
+          --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
+          --header 'table: dev_reports' \
+          --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
+          --header 'Content-Type: application/json' \
+          --max-time 30 \
+          -d@test/tmp/testResults.json || echo "Curl command failed but continuing"

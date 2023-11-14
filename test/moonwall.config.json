@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/Moonsong-Labs/moonwall/main/packages/types/config_schema.json",
   "label": "MasterConfig 🌔",
   "defaultTestTimeout": 120000,
   "scriptsDir": "scripts/",
@@ -318,7 +319,7 @@
         }
       },
       "envVars": ["DEBUG_COLORS=1"],
-      "reporters": ["basic", "json"],
+      "reporters": ["basic", "html", "json"],
       "reportFile": { "json": "./tmp/testResults.json" },
       "foundation": {
         "type": "dev",
