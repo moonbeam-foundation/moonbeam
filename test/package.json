@@ -54,7 +54,7 @@
     "@substrate/txwrapper-core": "^6.0.1",
     "@substrate/txwrapper-substrate": "^6.0.1",
     "@types/yargs": "^17.0.29",
-    "@vitest/ui": "1.0.0-beta.2",
+    "@vitest/ui": "1.0.0-beta.4",
     "@zombienet/utils": "^0.0.24",
     "chalk": "^5.3.0",
     "eth-object": "github:aurora-is-near/eth-object#master",
@@ -67,6 +67,6 @@
     "semver": "^7.5.4",
     "solc": "0.8.21",
     "viem": "^1.18.1",
-    "vitest": "1.0.0-beta.3"
+    "vitest": "1.0.0-beta.4"
   }
 }
