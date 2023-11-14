@@ -112,6 +112,7 @@ jobs:
           chmod +x grcov
       - name: Install llvm tools
         run: rustup component add llvm-tools-preview
+      - uses: taiki-e/install-action@nextest
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
         with:
