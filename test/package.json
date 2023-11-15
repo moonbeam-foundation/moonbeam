@@ -17,8 +17,8 @@
   "license": "ISC",
   "devDependencies": {
     "@moonbeam-network/api-augment": "^0.2600.0",
-    "@moonwall/cli": "4.2.10",
-    "@moonwall/util": "4.2.10",
+    "@moonwall/cli": "^4.2.10",
+    "@moonwall/util": "^4.2.10",
     "@polkadot/api": "^10.10.1",
     "@polkadot/api-augment": "^10.10.1",
     "@polkadot/types": "^10.10.1",
@@ -30,13 +30,13 @@
     "@typescript-eslint/eslint-plugin": "^6.9.1",
     "@typescript-eslint/parser": "^6.9.1",
     "bottleneck": "^2.19.5",
-    "bun-types": "^1.0.11",
+    "bun-types": "^0.7.3",
     "debug": "^4.3.4",
     "eslint": "^8.52.0",
     "eslint-plugin-unused-imports": "^3.0.0",
     "ethers": "^6.8.0",
     "prettier": "^2.8.8",
-    "tsx": "^4.1.2",
+    "tsx": "^3.14.0",
     "typescript": "^5.2.2",
     "web3": "4.2.1",
     "web3-eth": "4.3.1",
@@ -44,7 +44,7 @@
     "yargs": "^17.7.2"
   },
   "dependencies": {
-    "@acala-network/chopsticks": "0.8.4",
+    "@acala-network/chopsticks": "^0.8.4",
     "@openzeppelin/contracts": "^4.9.3",
     "@polkadot/api-derive": "^10.10.1",
     "@polkadot/apps-config": "^0.132.1",
@@ -54,8 +54,8 @@
     "@substrate/txwrapper-core": "^6.0.1",
     "@substrate/txwrapper-substrate": "^6.0.1",
     "@types/yargs": "^17.0.29",
-    "@vitest/ui": "1.0.0-beta.3",
-    "@zombienet/utils": "^0.0.24",
+    "@vitest/ui": "1.0.0-beta.2",
+    "@zombienet/utils": "^0.0.19",
     "chalk": "^5.3.0",
     "eth-object": "github:aurora-is-near/eth-object#master",
     "json-bigint": "^1.0.0",
@@ -68,9 +68,5 @@
     "solc": "0.8.21",
     "viem": "^1.18.1",
     "vitest": "1.0.0-beta.3"
-  },
-  "overrides": {
-    "vitest": "$vitest",
-    "@vitest/ui": "$vitest"
   }
 }
