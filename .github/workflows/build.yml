@@ -19,6 +19,7 @@ on:
 
 env:
   NODE_OPTIONS: "--max-old-space-size=12288"
+  CARGO_TERM_COLOR: always
 
 jobs:
   ####### Check files and formatting #######
@@ -637,6 +638,7 @@ jobs:
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
+    timeout-minutes: 20
     strategy:
       matrix:
         chain: ["moonbase"]
@@ -661,8 +663,7 @@ jobs:
           moonwall_environment: dev_${{ matrix.chain }}
       - name: Upload HTML report to s3
         if: |
-          github.event.pull_request.head.repo.full_name == github.repository
-              && github.event_name == 'push'
+          github.event.pull_request.head.repo.full_name == github.repository && github.event_name == 'push'
         uses: mario-sangar/upload-s3-action@master
         id: S3
         with:
