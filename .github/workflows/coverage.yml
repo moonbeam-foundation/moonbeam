@@ -19,7 +19,8 @@ jobs:
   ####### Check files and formatting #######
 
   set-tags:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: bare-metal
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_target_branch: ${{ steps.check-git-ref.outputs.git_target_branch }}
@@ -89,10 +90,12 @@ jobs:
     runs-on:
       labels: bare-metal
     needs: ["set-tags"]
+    timeout-minutes: 60
     env:
       RUSTC_WRAPPER: "sccache"
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: "100GB"
+      CARGO_TERM_COLOR: always
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -116,29 +119,17 @@ jobs:
       - name: Clean-up possible coverage generated during builds
         run: |
           rm default_*.profraw
-      - name: Upload runtimes
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: runtimes
-          path: runtimes
-      - name: Upload binary
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: moonbeam
-          path: build
       - name: Unit tests
         run: |
-          cargo test --release --all --features=evm-tracing
-      - name: Typescript Tests (Dev Service)
-        uses: ./.github/workflow-templates/typescript-tests
+          # curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          # curl -LsSf https://get.nexte.st/latest/linux | tar zxf - -C ${CARGO_HOME:-~/.cargo}/bin
+          # echo $PATH
+          cargo nextest run --release --workspace --features=evm-tracing
+      - name: "Run Moonwall Dev Tests"
+        uses: ./.github/workflow-templates/dev-tests
         with:
-          timeout: 10000
-          moonbeam-binary: build/moonbeam
+          moonwall_environment: dev_moonbase
           force-pass: true
-      # - name: "Run Moonwall Dev Tests"
-      #   uses: ./.github/workflow-templates/dev-tests
-      #   with:
-      #     moonwall_environment: dev_moonbase
 
       - name: Retrieve coverage
         id: coverage
