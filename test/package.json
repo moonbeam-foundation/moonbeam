@@ -63,7 +63,7 @@
     "debug": "4.3.4",
     "eslint": "8.53.0",
     "eslint-plugin-unused-imports": "3.0.0",
-    "ethers": "6.8.0",
+    "ethers": "6.8.1",
     "prettier": "2.8.8",
     "tsx": "3.14.0",
     "typescript": "5.2.2",
