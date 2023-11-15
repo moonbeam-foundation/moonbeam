@@ -99,8 +99,8 @@ dependencies:
     specifier: 1.0.0-beta.3
     version: 1.0.0-beta.3(@types/node@20.9.0)(@vitest/ui@1.0.0-beta.2)
   web3:
-    specifier: 4.2.2
-    version: 4.2.2(typescript@5.2.2)
+    specifier: 4.2.1
+    version: 4.2.1(typescript@5.2.2)
   web3-eth:
     specifier: 4.3.1
     version: 4.3.1(typescript@5.2.2)
@@ -143,8 +143,8 @@ devDependencies:
     specifier: 3.0.0
     version: 3.0.0(@typescript-eslint/eslint-plugin@6.11.0)(eslint@8.53.0)
   ethers:
-    specifier: 6.8.1
-    version: 6.8.1
+    specifier: 6.8.0
+    version: 6.8.0
   prettier:
     specifier: 2.8.8
     version: 2.8.8
@@ -1385,7 +1385,7 @@ packages:
       colors: 1.4.0
       debug: 4.3.4(supports-color@5.5.0)
       dotenv: 16.3.1
-      ethers: 6.8.1
+      ethers: 6.8.0
       execa: 8.0.1
       inquirer: 9.2.11
       inquirer-press-to-continue: 1.2.0(inquirer@9.2.11)
@@ -1455,7 +1455,7 @@ packages:
       '@zombienet/utils': 0.0.22(@types/node@20.9.0)(typescript@5.2.2)
       bottleneck: 2.19.5
       debug: 4.3.4(supports-color@5.5.0)
-      ethers: 6.8.1
+      ethers: 6.8.0
       viem: 1.19.1(typescript@5.2.2)
       web3: 4.2.1(typescript@5.2.2)
     transitivePeerDependencies:
@@ -1492,7 +1492,7 @@ packages:
       colors: 1.4.0
       debug: 4.3.4(supports-color@5.5.0)
       dotenv: 16.3.1
-      ethers: 6.8.1
+      ethers: 6.8.0
       inquirer: 9.2.11
       inquirer-press-to-continue: 1.2.0(inquirer@9.2.11)
       node-fetch: 3.3.2
@@ -2064,7 +2064,7 @@ packages:
     dependencies:
       '@polkadot/util': 12.3.2
       '@substrate/ss58-registry': 1.43.0
-      tslib: 2.6.1
+      tslib: 2.6.2
     dev: false
 
   /@polkadot/networks@12.5.1:
@@ -2115,7 +2115,7 @@ packages:
       react-dom: 18.2.0(react@18.2.0)
       react-is: 18.2.0
       styled-components: 5.3.11(@babel/core@7.23.3)(react-dom@18.2.0)(react-is@18.2.0)(react@18.2.0)
-      tslib: 2.6.1
+      tslib: 2.6.2
     transitivePeerDependencies:
       - '@babel/core'
       - '@polkadot/networks'
@@ -2520,7 +2520,7 @@ packages:
       '@polkadot/util': 12.5.1
       eventemitter3: 5.0.1
       store: 2.0.12
-      tslib: 2.6.1
+      tslib: 2.6.2
     dev: false
 
   /@polkadot/ui-shared@3.5.1(@polkadot/util-crypto@12.5.1)(@polkadot/util@12.5.1):
@@ -2533,7 +2533,7 @@ packages:
       '@polkadot/util': 12.5.1
       '@polkadot/util-crypto': 12.5.1(@polkadot/util@12.5.1)
       colord: 2.9.3
-      tslib: 2.6.1
+      tslib: 2.6.2
     dev: false
 
   /@polkadot/util-crypto@10.4.2(@polkadot/util@10.4.2):
@@ -2639,7 +2639,7 @@ packages:
       '@polkadot/x-textencoder': 12.3.2
       '@types/bn.js': 5.1.2
       bn.js: 5.2.1
-      tslib: 2.6.1
+      tslib: 2.6.2
     dev: false
 
   /@polkadot/util@12.5.1:
@@ -2899,7 +2899,7 @@ packages:
       '@polkadot/util': '*'
     dependencies:
       '@polkadot/util': 12.5.1
-      tslib: 2.6.1
+      tslib: 2.6.2
     dev: false
 
   /@polkadot/wasm-util@7.2.2(@polkadot/util@12.5.1):
@@ -2925,7 +2925,7 @@ packages:
     engines: {node: '>=16'}
     dependencies:
       '@polkadot/x-global': 12.3.2
-      tslib: 2.6.1
+      tslib: 2.6.2
     dev: false
 
   /@polkadot/x-bigint@12.5.1:
@@ -2960,7 +2960,7 @@ packages:
     dependencies:
       '@polkadot/x-global': 12.3.2
       node-fetch: 3.3.2
-      tslib: 2.6.1
+      tslib: 2.6.2
     dev: false
 
   /@polkadot/x-fetch@12.5.1:
@@ -2995,7 +2995,7 @@ packages:
     resolution: {integrity: sha512-yVZq6oIegjlyh5rUZiTklgu+fL+W/DG1ypEa02683tUCB3avV5cA3PAHKptMSlb6FpweHu37lKKrqfAWrraDxg==}
     engines: {node: '>=16'}
     dependencies:
-      tslib: 2.6.1
+      tslib: 2.6.2
     dev: false
 
   /@polkadot/x-global@12.5.1:
@@ -3077,7 +3077,7 @@ packages:
     engines: {node: '>=16'}
     dependencies:
       '@polkadot/x-global': 12.3.2
-      tslib: 2.6.1
+      tslib: 2.6.2
     dev: false
 
   /@polkadot/x-textdecoder@12.5.1:
@@ -3117,7 +3117,7 @@ packages:
     engines: {node: '>=16'}
     dependencies:
       '@polkadot/x-global': 12.3.2
-      tslib: 2.6.1
+      tslib: 2.6.2
     dev: false
 
   /@polkadot/x-textencoder@12.5.1:
@@ -3161,7 +3161,7 @@ packages:
     engines: {node: '>=16'}
     dependencies:
       '@polkadot/x-global': 12.3.2
-      tslib: 2.6.1
+      tslib: 2.6.2
       ws: 8.14.2
     transitivePeerDependencies:
       - bufferutil
@@ -3255,7 +3255,7 @@ packages:
     resolution: {integrity: sha512-osvveYtyzdEVbt3OfwwXFr4P2iVBL5u1Q3q4ONBfDY/UpOuXmOlbgwc1xECEboY8wIays8Yt6onaWMUdUbfl0A==}
     dependencies:
       '@noble/curves': 1.1.0
-      '@noble/hashes': 1.3.1
+      '@noble/hashes': 1.3.2
       '@scure/base': 1.1.1
     dev: false
 
@@ -5634,8 +5634,8 @@ packages:
       rlp: 2.2.7
     dev: false
 
-  /ethers@6.8.1:
-    resolution: {integrity: sha512-iEKm6zox5h1lDn6scuRWdIdFJUCGg3+/aQWu0F4K0GVyEZiktFkqrJbRjTn1FlYEPz7RKA707D6g5Kdk6j7Ljg==}
+  /ethers@6.8.0:
+    resolution: {integrity: sha512-zrFbmQRlraM+cU5mE4CZTLBurZTs2gdp2ld0nG/f3ecBK+x6lZ69KSxBqZ4NjclxwfTxl5LeNufcBbMsTdY53Q==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@adraffy/ens-normalize': 1.10.0
@@ -10216,25 +10216,6 @@ packages:
       - supports-color
     dev: false
 
-  /web3-eth-contract@4.1.2(typescript@5.2.2):
-    resolution: {integrity: sha512-kVcMIurY4buNOfVhuE1Gg8NmSo5EmAOgBwECwU6lE8xUkbWAC6nhJGX1fgZjoC075HnSr89G1zgwlePyEdC0wQ==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
-    dependencies:
-      web3-core: 4.3.0
-      web3-errors: 1.1.3
-      web3-eth: 4.3.1(typescript@5.2.2)
-      web3-eth-abi: 4.1.4(typescript@5.2.2)
-      web3-types: 1.3.0
-      web3-utils: 4.0.7
-      web3-validator: 2.0.3
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - typescript
-      - utf-8-validate
-      - zod
-    dev: false
-
   /web3-eth-contract@4.1.3(typescript@5.2.2):
     resolution: {integrity: sha512-F6e3eyetUDiNOb78EDVJtNOb0H1GPz3xAZH8edSfYdhaxI9tTutP2V3p++kh2ZJ/RrdE2+xil7H/nPLgHymBvg==}
     engines: {node: '>=14', npm: '>=6.12.0'}
@@ -10276,12 +10257,12 @@ packages:
     engines: {node: '>=14', npm: '>=6.12.0'}
     dependencies:
       '@adraffy/ens-normalize': 1.10.0
-      web3-core: 4.3.0
-      web3-errors: 1.1.3
+      web3-core: 4.3.1
+      web3-errors: 1.1.4
       web3-eth: 4.3.1(typescript@5.2.2)
-      web3-eth-contract: 4.1.2(typescript@5.2.2)
+      web3-eth-contract: 4.1.3(typescript@5.2.2)
       web3-net: 4.0.7
-      web3-types: 1.3.0
+      web3-types: 1.3.1
       web3-utils: 4.0.7
       web3-validator: 2.0.3
     transitivePeerDependencies:
@@ -10304,8 +10285,8 @@ packages:
     resolution: {integrity: sha512-8weKLa9KuKRzibC87vNLdkinpUE30gn0IGY027F8doeJdcPUfsa4IlBgNC4k4HLBembBB2CTU0Kr/HAOqMeYVQ==}
     engines: {node: '>=14', npm: '>=6.12.0'}
     dependencies:
-      web3-errors: 1.1.3
-      web3-types: 1.3.0
+      web3-errors: 1.1.4
+      web3-types: 1.3.1
       web3-utils: 4.0.7
       web3-validator: 2.0.3
     dev: false
@@ -10430,8 +10411,8 @@ packages:
     engines: {node: '>=14', npm: '>=6.12.0'}
     dependencies:
       cross-fetch: 4.0.0
-      web3-errors: 1.1.3
-      web3-types: 1.3.0
+      web3-errors: 1.1.4
+      web3-types: 1.3.1
       web3-utils: 4.0.7
     transitivePeerDependencies:
       - encoding
@@ -10450,8 +10431,8 @@ packages:
     engines: {node: '>=14', npm: '>=6.12.0'}
     requiresBuild: true
     dependencies:
-      web3-errors: 1.1.3
-      web3-types: 1.3.0
+      web3-errors: 1.1.4
+      web3-types: 1.3.1
       web3-utils: 4.0.7
     dev: false
     optional: true
@@ -10578,34 +10559,6 @@ packages:
 
   /web3@4.2.1(typescript@5.2.2):
     resolution: {integrity: sha512-zSB+Ds1lSMu/IhAX0xKhiFI7ZA1BQ6y2WOqFE9ikqPjaMkpOEBBkl61nzWfLJRoerTB1ohEXAP20jLDXcFd4hQ==}
-    engines: {node: '>=14.0.0', npm: '>=6.12.0'}
-    dependencies:
-      web3-core: 4.3.0
-      web3-errors: 1.1.3
-      web3-eth: 4.3.1(typescript@5.2.2)
-      web3-eth-abi: 4.1.4(typescript@5.2.2)
-      web3-eth-accounts: 4.1.0
-      web3-eth-contract: 4.1.2(typescript@5.2.2)
-      web3-eth-ens: 4.0.8(typescript@5.2.2)
-      web3-eth-iban: 4.0.7
-      web3-eth-personal: 4.0.8(typescript@5.2.2)
-      web3-net: 4.0.7
-      web3-providers-http: 4.1.0
-      web3-providers-ws: 4.0.7
-      web3-rpc-methods: 1.1.3
-      web3-types: 1.3.0
-      web3-utils: 4.0.7
-      web3-validator: 2.0.3
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - typescript
-      - utf-8-validate
-      - zod
-    dev: false
-
-  /web3@4.2.2(typescript@5.2.2):
-    resolution: {integrity: sha512-im7weoHY7TW87nhFk10ysupZnsDJEO/xDpz985AgrTd/7KxExlzjjKd+4nue0WskUF0th0mgoMs1YaA8xUjCjw==}
     engines: {node: '>=14.0.0', npm: '>=6.12.0'}
     dependencies:
       web3-core: 4.3.1

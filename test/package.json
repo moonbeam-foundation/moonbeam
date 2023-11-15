@@ -47,7 +47,7 @@
     "solc": "0.8.21",
     "viem": "1.19.1",
     "vitest": "1.0.0-beta.3",
-    "web3": "4.2.2",
+    "web3": "4.2.1",
     "web3-eth": "4.3.1",
     "web3-providers-ws": "4.0.7"
   },
@@ -63,7 +63,7 @@
     "debug": "4.3.4",
     "eslint": "8.53.0",
     "eslint-plugin-unused-imports": "3.0.0",
-    "ethers": "6.8.1",
+    "ethers": "6.8.0",
     "prettier": "2.8.8",
     "tsx": "3.14.0",
     "typescript": "5.2.2",
