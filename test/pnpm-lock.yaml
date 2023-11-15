@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@acala-network/chopsticks':
-    specifier: 0.9.1
-    version: 0.9.1(@polkadot/util@12.5.1)(debug@4.3.4)
+    specifier: 0.8.4
+    version: 0.8.4(@polkadot/util@12.5.1)(debug@4.3.4)
   '@openzeppelin/contracts':
     specifier: ^4.9.3
     version: 4.9.3
@@ -165,6 +165,48 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /@acala-network/chopsticks-core@0.8.4(@polkadot/util@12.5.1)(debug@4.3.4):
+    resolution: {integrity: sha512-kAJX8KtHzHpF/6sjcwyp+bsfOJ9rssjoMS/dMDIxzQ7KzisrID/LfrIJrScMCnw/2fuE4NYsebrEFKBxJSw2Dw==}
+    dependencies:
+      '@acala-network/chopsticks-executor': 0.8.4(@polkadot/util@12.5.1)
+      '@polkadot/api': 10.10.1
+      '@polkadot/util-crypto': 12.5.1(@polkadot/util@12.5.1)
+      axios: 1.6.2(debug@4.3.4)
+      comlink: 4.4.1
+      eventemitter3: 5.0.1
+      localforage: 1.10.0
+      lodash: 4.17.21
+      pino: 8.16.1
+      pino-pretty: 10.2.3
+      sql.js: 1.8.0
+      sqlite3: 5.1.6
+      typeorm: 0.3.17(sql.js@1.8.0)(sqlite3@5.1.6)
+      zod: 3.22.4
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@polkadot/util'
+      - '@sap/hana-client'
+      - better-sqlite3
+      - bluebird
+      - bufferutil
+      - debug
+      - encoding
+      - hdb-pool
+      - ioredis
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - redis
+      - supports-color
+      - ts-node
+      - typeorm-aurora-data-api-driver
+      - utf-8-validate
+    dev: false
+
   /@acala-network/chopsticks-core@0.9.1(@polkadot/util@12.5.1):
     resolution: {integrity: sha512-pFPbSELcpkSzPy9lpomYAcn6BMFXqn6Z+0RNR+CcLSqHeMoJRKGh/w9T7MwFKd4MqDjY8/WZhLmp4X6bp7xAng==}
     dependencies:
@@ -182,6 +224,7 @@ packages:
       - bufferutil
       - supports-color
       - utf-8-validate
+    dev: true
 
   /@acala-network/chopsticks-db@0.9.1(@polkadot/util@12.5.1):
     resolution: {integrity: sha512-jtDTqGu5CKyaAKKHI3Oi8FIRc3jwm1oMgbjTSYWD9oSzEBAqn2Xmbwg6VxCQhWH20ydrcxPyALEWb9mMICoNtw==}
@@ -189,7 +232,7 @@ packages:
       '@acala-network/chopsticks-core': 0.9.1(@polkadot/util@12.5.1)
       idb: 7.1.1
       sqlite3: 5.1.6
-      typeorm: 0.3.17(sqlite3@5.1.6)
+      typeorm: 0.3.17(sql.js@1.8.0)(sqlite3@5.1.6)
     transitivePeerDependencies:
       - '@google-cloud/spanner'
       - '@polkadot/util'
@@ -213,12 +256,63 @@ packages:
       - ts-node
       - typeorm-aurora-data-api-driver
       - utf-8-validate
+    dev: true
+
+  /@acala-network/chopsticks-executor@0.8.4(@polkadot/util@12.5.1):
+    resolution: {integrity: sha512-HnjueHHP43OJMVQp8/wTh8v79Rz50J+eL/Fr5IGFsXEEa1hb2/v0PjWOWMowd+81plA3iHk7H6oDJxgOqcgcew==}
+    dependencies:
+      '@polkadot/wasm-util': 7.2.2(@polkadot/util@12.5.1)
+    transitivePeerDependencies:
+      - '@polkadot/util'
+    dev: false
 
   /@acala-network/chopsticks-executor@0.9.1:
     resolution: {integrity: sha512-uukm3GInn+z+3jjZTFClJZjoWlM/IudpaYw+wO5h+6XIySmkLIfsPd19Kq4Nj0S0DFRPDHynnqsgg2JL789P+A==}
     dependencies:
       '@polkadot/util': 12.5.1
       '@polkadot/wasm-util': 7.2.2(@polkadot/util@12.5.1)
+    dev: true
+
+  /@acala-network/chopsticks@0.8.4(@polkadot/util@12.5.1)(debug@4.3.4):
+    resolution: {integrity: sha512-G63UkBGg8ybqTPKOVEmkkhirrtwZmrfUgFBY8SgKfF1cTz5E2i7X4b9LCzTM4csZdH8JH4Q4gq213zgvg7G8IQ==}
+    hasBin: true
+    dependencies:
+      '@acala-network/chopsticks-core': 0.8.4(@polkadot/util@12.5.1)(debug@4.3.4)
+      '@pnpm/npm-conf': 2.2.2
+      '@polkadot/api': 10.10.1
+      axios: 1.6.2(debug@4.3.4)
+      dotenv: 16.3.1
+      global-agent: 3.0.0
+      js-yaml: 4.1.0
+      jsondiffpatch: 0.5.0
+      lodash: 4.17.21
+      ws: 8.14.2
+      yargs: 17.7.2
+      zod: 3.22.4
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@polkadot/util'
+      - '@sap/hana-client'
+      - better-sqlite3
+      - bluebird
+      - bufferutil
+      - debug
+      - encoding
+      - hdb-pool
+      - ioredis
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - redis
+      - supports-color
+      - ts-node
+      - typeorm-aurora-data-api-driver
+      - utf-8-validate
+    dev: false
 
   /@acala-network/chopsticks@0.9.1(@polkadot/util@12.5.1)(debug@4.3.4):
     resolution: {integrity: sha512-oTrJGQ/omE/6Di06RIPwAD4VdC8akstWY4GpZc1n+ZGn5YIHLDv7Nxzi2q2VBY9zBIIAp8Xw96cMId7ane2G+Q==}
@@ -260,6 +354,7 @@ packages:
       - ts-node
       - typeorm-aurora-data-api-driver
       - utf-8-validate
+    dev: true
 
   /@acala-network/type-definitions@5.1.1(@polkadot/types@10.10.1):
     resolution: {integrity: sha512-QNhPwWePz/gFluSACKIhq0Z7rTntS21uIZUNpp9tsvc0zlJ20QjHJnv+ZfkdaKauFrL5upFfTgWqrLhN0jV0JQ==}
@@ -5632,6 +5727,7 @@ packages:
 
   /idb@7.1.1:
     resolution: {integrity: sha512-gchesWBzyvGHRO9W8tzUWFDycow5gwjvFKfyV9FF32Y7F50yZMp7mP+T2mJIWFx49zicqyC4uefHM17o6xKIVQ==}
+    dev: true
 
   /idna-uts46-hx@2.3.1:
     resolution: {integrity: sha512-PWoF9Keq6laYdIRwwCdhTPl60xRqAloYNMQLiyUnG42VjT53oW07BXIRM+NK7eQjzXjAk2gUvX9caRxlnF9TAA==}
@@ -5647,6 +5743,10 @@ packages:
     resolution: {integrity: sha512-MAb38BcSbH0eHNBxn7ql2NH/kX33OkB3lZ1BNdh7ENeRChHTYsTvWrMubiIAMNS2llXEEgZ1MUOBtXChP3kaFQ==}
     engines: {node: '>= 4'}
     dev: true
+
+  /immediate@3.0.6:
+    resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
+    dev: false
 
   /immediate@3.2.3:
     resolution: {integrity: sha512-RrGCXRm/fRVqMIhqXrGEX9rRADavPiDFSoMb/k64i9XMk8uH4r/Omi5Ctierj6XzNecwDbO4WuFbDD1zmpl3Tg==}
@@ -6091,7 +6191,6 @@ packages:
     dependencies:
       chalk: 3.0.0
       diff-match-patch: 1.0.5
-    bundledDependencies: []
 
   /jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
@@ -6234,9 +6333,21 @@ packages:
       uint8arrays: 3.1.1
     dev: true
 
+  /lie@3.1.1:
+    resolution: {integrity: sha512-RiNhHysUjhrDQntfYSfY4MU24coXXdEOgw9WGcKHNeEwffDYbF//u87M1EWaMGzuFoSbqW0C9C6lEEhDOAswfw==}
+    dependencies:
+      immediate: 3.0.6
+    dev: false
+
   /local-pkg@0.4.3:
     resolution: {integrity: sha512-SFppqq5p42fe2qcZQqqEOiVRXl+WCP1MdT6k7BDEW1j++sp5fIY+/fdRQitvKgB5BrBcmrs5m/L0v2FrU5MY1g==}
     engines: {node: '>=14'}
+
+  /localforage@1.10.0:
+    resolution: {integrity: sha512-14/H1aX7hzBBmmh7sGPd+AOMkkIrHM3Z1PAyGgZigA1H1p5O5ANnMyWzvpAETtG68/dC4pC0ncy3+PPGzXZHPg==}
+    dependencies:
+      lie: 3.1.1
+    dev: false
 
   /locate-path@6.0.0:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
@@ -8031,6 +8142,9 @@ packages:
   /sprintf-js@1.1.3:
     resolution: {integrity: sha512-Oo+0REFV59/rz3gfJNKQiBlwfHaSESl1pcGyABQsnnIfWOFt6JNj5gCog2U6MLZ//IGYD+nA8nI+mTShREReaA==}
 
+  /sql.js@1.8.0:
+    resolution: {integrity: sha512-3HD8pSkZL+5YvYUI8nlvNILs61ALqq34xgmF+BHpqxe68yZIJ1H+sIVIODvni25+CcxHUxDyrTJUL0lE/m7afw==}
+
   /sqlite3@5.1.6:
     resolution: {integrity: sha512-olYkWoKFVNSSSQNvxVUfjiVbz3YtBwTJj+mfV5zpHmqW3sELx2Cf4QCdirMelhM5Zh+KDVaKgQHqCxrqiWHybw==}
     requiresBuild: true
@@ -8490,7 +8604,7 @@ packages:
       is-typedarray: 1.0.0
     dev: false
 
-  /typeorm@0.3.17(sqlite3@5.1.6):
+  /typeorm@0.3.17(sql.js@1.8.0)(sqlite3@5.1.6):
     resolution: {integrity: sha512-UDjUEwIQalO9tWw9O2A4GU+sT3oyoUXheHJy4ft+RFdnRdQctdQ34L9SqE2p7LdwzafHx1maxT+bqXON+Qnmig==}
     engines: {node: '>= 12.9.0'}
     hasBin: true
@@ -8560,6 +8674,7 @@ packages:
       mkdirp: 2.1.6
       reflect-metadata: 0.1.13
       sha.js: 2.4.11
+      sql.js: 1.8.0
       sqlite3: 5.1.6
       tslib: 2.6.2
       uuid: 9.0.1

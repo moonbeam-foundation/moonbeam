@@ -44,7 +44,7 @@
     "yargs": "^17.7.2"
   },
   "dependencies": {
-    "@acala-network/chopsticks": "0.9.1",
+    "@acala-network/chopsticks": "0.8.4",
     "@openzeppelin/contracts": "^4.9.3",
     "@polkadot/api-derive": "^10.10.1",
     "@polkadot/apps-config": "^0.132.1",
