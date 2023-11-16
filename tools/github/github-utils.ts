@@ -6,24 +6,43 @@ type Await<T> = T extends PromiseLike<infer U> ? U : T;
 type Commits = Await<ReturnType<Octokit["rest"]["repos"]["compareCommits"]>>["data"]["commits"];
 
 export function getCompareLink(packageName: string, previousTag: string, newTag: string) {
-  const previousPackage = execSync(
-    `git show ${previousTag}:../Cargo.lock | grep ${packageName}? | head -1 | grep -o '".*"'`
-  ).toString();
-  const previousCommit = /#([0-9a-f]*)/g.exec(previousPackage)[1].slice(0, 8);
-  const previousRepo = /(https:\/\/.*)\?/g.exec(previousPackage)[1];
+  let previousCommit: string;
+  let previousRepo: string;
+  let newCommit: string;
+  let newRepo: string;
+  let newRepoOrganization: string;
 
-  const newPackage = execSync(
-    `git show ${newTag}:../Cargo.lock | grep ${packageName}? | head -1 | grep -o '".*"'`
-  ).toString();
-  const newCommit = /#([0-9a-f]*)/g.exec(newPackage)[1].slice(0, 8);
-  const newRepo = /(https:\/\/.*)\?/g.exec(newPackage)[1];
-  const newRepoOrganization = /github.com\/([^\/]*)/g.exec(newRepo)[1];
+  try {
+    const previousPackage = execSync(
+      `git show ${previousTag}:../Cargo.lock | grep ${packageName}? | head -1 | grep -o '".*"'`
+    ).toString();
+    previousCommit = /#([0-9a-f]*)/g.exec(previousPackage)[1].slice(0, 8);
+    previousRepo = /(https:\/\/.*)\?/g.exec(previousPackage)[1];
+  } catch (error) {
+    previousCommit = "NOT_FOUND";
+    previousRepo = "NOT_FOUND";
+    console.log(`Could not find ${packageName} in ${newTag}`);
+  }
 
+  try {
+    const newPackage = execSync(
+      `git show ${newTag}:../Cargo.lock | grep ${packageName}? | head -1 | grep -o '".*"'`
+    ).toString();
+    newCommit = /#([0-9a-f]*)/g.exec(newPackage)[1].slice(0, 8);
+    newRepo = /(https:\/\/.*)\?/g.exec(newPackage)[1];
+    newRepoOrganization = /github.com\/([^\/]*)/g.exec(newRepo)[1];
+  } catch (error) {
+    newCommit = "NOT_FOUND";
+    newRepo = "NOT_FOUND";
+    newRepoOrganization = "NOT_FOUND";
+    const diffLink = `${previousRepo}/compare/${previousCommit}...${newTag}`;
+    console.log(`Could not find ${packageName} in ${newTag}`);
+    return diffLink;
+  }
   const diffLink =
     previousRepo !== newRepo
       ? `${previousRepo}/compare/${previousCommit}...${newRepoOrganization}:${newCommit}`
       : `${previousRepo}/compare/${previousCommit}...${newCommit}`;
-
   return diffLink;
 }
 
