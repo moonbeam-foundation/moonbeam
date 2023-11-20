@@ -27,11 +27,13 @@ impl super::ResponseFormatter for Formatter {
 		if listener.remaining_memory_usage.is_none() {
 			None
 		} else {
-			Some(TransactionTrace::Raw {
+			let transaction_trace = TransactionTrace::Raw {
 				struct_logs: listener.struct_logs,
 				gas: listener.final_gas.into(),
 				return_value: listener.return_value,
-			})
+			};
+			log::info!("===> Transaction trace: {:?}", transaction_trace);
+			Some(transaction_trace)
 		}
 	}
 }

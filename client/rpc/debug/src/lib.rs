@@ -72,7 +72,7 @@ impl DebugServer for Debug {
 		params: Option<TraceParams>,
 	) -> RpcResult<single::TransactionTrace> {
 		let requester = self.requester.clone();
-
+		log::info!("==> trace_transaction: {:?}", transaction_hash);
 		let (tx, rx) = oneshot::channel();
 		// Send a message from the rpc handler to the service level task.
 		requester
@@ -85,12 +85,14 @@ impl DebugServer for Debug {
 			})?;
 
 		// Receive a message from the service level task and send the rpc response.
-		rx.await
+		let res = rx.await
 			.map_err(|err| internal_err(format!("debug service dropped the channel : {:?}", err)))?
 			.map(|res| match res {
 				Response::Single(res) => res,
 				_ => unreachable!(),
-			})
+			});
+		log::info!("==> trace_transaction result: {:?}", res);
+		res
 	}
 
 	async fn trace_block(
@@ -503,6 +505,7 @@ where
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
 					if trace_api_version >= 4 {
+						log::info!("==> trace_api_version >= 4: {:?}", transaction);
 						let _result = api
 							.trace_transaction(parent_block_hash, exts, &transaction)
 							.map_err(|e| {
