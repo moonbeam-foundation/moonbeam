@@ -103,6 +103,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					(),
 					sp_runtime::DispatchError,
 				> {
+					compile_error!("This is a compile-time error message");
 					log::info!("===> entering trace_transaction: {:?}", traced_transaction);
 					#[cfg(feature = "evm-tracing")]
 					{
