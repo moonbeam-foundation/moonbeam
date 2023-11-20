@@ -505,7 +505,7 @@ where
 						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
 					if trace_api_version >= 4 {
-						log::info!("==> trace_api_version >= 4: {:?}", transaction);
+						log::info!("==> Extrinsics: {:?}", exts);
 						let _result = api
 							.trace_transaction(parent_block_hash, exts, &transaction)
 							.map_err(|e| {
