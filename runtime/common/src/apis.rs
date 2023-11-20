@@ -120,6 +120,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
 						// transactions that preceded the requested transaction.
+						log::info!("===> Applying extrinsics: {:?}", extrinsics);
 						for ext in extrinsics.into_iter() {
 							log::info!("===> Applying extrinsic: {:?}", ext);
 							let _ = match &ext.0.function {
