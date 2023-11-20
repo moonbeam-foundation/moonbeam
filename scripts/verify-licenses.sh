@@ -7,6 +7,7 @@ LICENSES=(
     "Apache-2.0 AND MIT"
     "Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT"
     "Apache-2.0 OR BSD-1-Clause OR MIT"
+    "Apache-2.0 OR BSD-2-Clause OR MIT"
     "Apache-2.0 OR BSD-3-Clause OR MIT"
     "Apache-2.0 OR BSL-1.0"
     "Apache-2.0 OR CC0-1.0 OR MIT-0"
@@ -51,10 +52,10 @@ echo -e "checking licenses with filter:\n$filter\n"
 RESULT=$(jq "[.[] | select($filter)]" licenses.json)
 
 if [[ "$RESULT" == "[]" ]]; then
-  echo "OK !!"
-  exit 0
+    echo "OK !!"
+    exit 0
 else
-  echo -en "$RESULT\n"
-  echo "FAILURE !!"
-  exit 1
+    echo -en "$RESULT\n"
+    echo "FAILURE !!"
+    exit 1
 fi
