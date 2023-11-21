@@ -1148,6 +1148,7 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
+			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			_ => true,
 		}
 	}
