@@ -441,8 +441,8 @@ jobs:
           NODE_OPTIONS: "--max-old-space-size=12288"
         uses: nick-fields/retry@v2
         with:
-          max_attempts: 3
-          timeout_minutes: 5
+          max_attempts: 2
+          timeout_minutes: 15
           command: |
             cd test
             pnpm install
