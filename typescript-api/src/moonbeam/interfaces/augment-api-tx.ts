@@ -1723,6 +1723,15 @@ declare module "@polkadot/api-base/types/submittable" {
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, u32]
       >;
+      /** See [`Pallet::force_join_candidates`]. */
+      forceJoinCandidates: AugmentedSubmittable<
+        (
+          account: AccountId20 | string | Uint8Array,
+          bond: u128 | AnyNumber | Uint8Array,
+          candidateCount: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [AccountId20, u128, u32]
+      >;
       /** See [`Pallet::go_offline`]. */
       goOffline: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /** See [`Pallet::go_online`]. */

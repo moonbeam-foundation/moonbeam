@@ -1330,6 +1330,11 @@ export default {
       enable_marking_offline: {
         value: "bool",
       },
+      force_join_candidates: {
+        account: "AccountId20",
+        bond: "u128",
+        candidateCount: "u32",
+      },
     },
   },
   /** Lookup113: pallet_author_inherent::pallet::Call<T> */
@@ -5358,7 +5363,28 @@ export default {
       "MinXcmFeeNotDefined",
     ],
   },
-  /** Lookup623: pallet_xcm_transactor::pallet::Error<T> */
+  /** Lookup623: pallet_xcm_transactor::relay_indices::RelayChainIndices */
+  PalletXcmTransactorRelayIndicesRelayChainIndices: {
+    staking: "u8",
+    utility: "u8",
+    hrmp: "u8",
+    bond: "u8",
+    bondExtra: "u8",
+    unbond: "u8",
+    withdrawUnbonded: "u8",
+    validate: "u8",
+    nominate: "u8",
+    chill: "u8",
+    setPayee: "u8",
+    setController: "u8",
+    rebond: "u8",
+    asDerivative: "u8",
+    initOpenChannel: "u8",
+    acceptOpenChannel: "u8",
+    closeChannel: "u8",
+    cancelOpenRequest: "u8",
+  },
+  /** Lookup624: pallet_xcm_transactor::pallet::Error<T> */
   PalletXcmTransactorError: {
     _enum: [
       "IndexAlreadyClaimed",
@@ -5390,16 +5416,16 @@ export default {
       "RefundNotSupportedWithTransactInfo",
     ],
   },
-  /** Lookup625: pallet_ethereum_xcm::pallet::Error<T> */
+  /** Lookup626: pallet_ethereum_xcm::pallet::Error<T> */
   PalletEthereumXcmError: {
     _enum: ["EthereumXcmExecutionSuspended"],
   },
-  /** Lookup626: pallet_randomness::types::RequestState<T> */
+  /** Lookup627: pallet_randomness::types::RequestState<T> */
   PalletRandomnessRequestState: {
     request: "PalletRandomnessRequest",
     deposit: "u128",
   },
-  /** Lookup627: pallet_randomness::types::Request<Balance, pallet_randomness::types::RequestInfo<T>> */
+  /** Lookup628: pallet_randomness::types::Request<Balance, pallet_randomness::types::RequestInfo<T>> */
   PalletRandomnessRequest: {
     refundAddress: "H160",
     contractAddress: "H160",
@@ -5409,26 +5435,26 @@ export default {
     salt: "H256",
     info: "PalletRandomnessRequestInfo",
   },
-  /** Lookup628: pallet_randomness::types::RequestInfo<T> */
+  /** Lookup629: pallet_randomness::types::RequestInfo<T> */
   PalletRandomnessRequestInfo: {
     _enum: {
       BabeEpoch: "(u64,u64)",
       Local: "(u32,u32)",
     },
   },
-  /** Lookup629: pallet_randomness::types::RequestType<T> */
+  /** Lookup630: pallet_randomness::types::RequestType<T> */
   PalletRandomnessRequestType: {
     _enum: {
       BabeEpoch: "u64",
       Local: "u32",
     },
   },
-  /** Lookup630: pallet_randomness::types::RandomnessResult<primitive_types::H256> */
+  /** Lookup631: pallet_randomness::types::RandomnessResult<primitive_types::H256> */
   PalletRandomnessRandomnessResult: {
     randomness: "Option<H256>",
     requestCount: "u64",
   },
-  /** Lookup631: pallet_randomness::pallet::Error<T> */
+  /** Lookup632: pallet_randomness::pallet::Error<T> */
   PalletRandomnessError: {
     _enum: [
       "RequestCounterOverflowed",
@@ -5445,22 +5471,22 @@ export default {
       "RandomnessResultNotFilled",
     ],
   },
-  /** Lookup633: account::EthereumSignature */
+  /** Lookup634: account::EthereumSignature */
   AccountEthereumSignature: "SpCoreEcdsaSignature",
-  /** Lookup635: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T> */
+  /** Lookup636: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T> */
   FrameSystemExtensionsCheckNonZeroSender: "Null",
-  /** Lookup636: frame_system::extensions::check_spec_version::CheckSpecVersion<T> */
+  /** Lookup637: frame_system::extensions::check_spec_version::CheckSpecVersion<T> */
   FrameSystemExtensionsCheckSpecVersion: "Null",
-  /** Lookup637: frame_system::extensions::check_tx_version::CheckTxVersion<T> */
+  /** Lookup638: frame_system::extensions::check_tx_version::CheckTxVersion<T> */
   FrameSystemExtensionsCheckTxVersion: "Null",
-  /** Lookup638: frame_system::extensions::check_genesis::CheckGenesis<T> */
+  /** Lookup639: frame_system::extensions::check_genesis::CheckGenesis<T> */
   FrameSystemExtensionsCheckGenesis: "Null",
-  /** Lookup641: frame_system::extensions::check_nonce::CheckNonce<T> */
+  /** Lookup642: frame_system::extensions::check_nonce::CheckNonce<T> */
   FrameSystemExtensionsCheckNonce: "Compact<u32>",
-  /** Lookup642: frame_system::extensions::check_weight::CheckWeight<T> */
+  /** Lookup643: frame_system::extensions::check_weight::CheckWeight<T> */
   FrameSystemExtensionsCheckWeight: "Null",
-  /** Lookup643: pallet_transaction_payment::ChargeTransactionPayment<T> */
+  /** Lookup644: pallet_transaction_payment::ChargeTransactionPayment<T> */
   PalletTransactionPaymentChargeTransactionPayment: "Compact<u128>",
-  /** Lookup645: moonbeam_runtime::Runtime */
+  /** Lookup646: moonbeam_runtime::Runtime */
   MoonbeamRuntimeRuntime: "Null",
 };

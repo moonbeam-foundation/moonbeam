@@ -34,6 +34,7 @@ moonbeam-cli-opt = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-finality-rpc = { workspace = true }
 moonbeam-primitives-ext = { workspace = true }
+moonbeam-relay-encoder = { workspace = true }
 moonbeam-rpc-debug = { workspace = true }
 moonbeam-rpc-primitives-debug = { workspace = true }
 moonbeam-rpc-primitives-txpool = { workspace = true }
@@ -42,6 +43,7 @@ moonbeam-rpc-txpool = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
 moonbeam-vrf = { workspace = true }
 pallet-parachain-staking = { workspace = true }
+pallet-xcm-transactor = { workspace = true }
 session-keys-primitives = { workspace = true }
 
 # Moonbeam runtimes

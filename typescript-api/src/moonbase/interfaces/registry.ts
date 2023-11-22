@@ -278,6 +278,7 @@ import type {
   PalletXcmTransactorEvent,
   PalletXcmTransactorHrmpInitParams,
   PalletXcmTransactorHrmpOperation,
+  PalletXcmTransactorRelayIndicesRelayChainIndices,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   PalletXcmTransactorTransactWeights,
   PalletXcmVersionMigrationStage,
@@ -642,6 +643,7 @@ declare module "@polkadot/types/types/registry" {
     PalletXcmTransactorEvent: PalletXcmTransactorEvent;
     PalletXcmTransactorHrmpInitParams: PalletXcmTransactorHrmpInitParams;
     PalletXcmTransactorHrmpOperation: PalletXcmTransactorHrmpOperation;
+    PalletXcmTransactorRelayIndicesRelayChainIndices: PalletXcmTransactorRelayIndicesRelayChainIndices;
     PalletXcmTransactorRemoteTransactInfoWithMaxWeight: PalletXcmTransactorRemoteTransactInfoWithMaxWeight;
     PalletXcmTransactorTransactWeights: PalletXcmTransactorTransactWeights;
     PalletXcmVersionMigrationStage: PalletXcmVersionMigrationStage;

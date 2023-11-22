@@ -19,6 +19,7 @@ on:
 
 env:
   NODE_OPTIONS: "--max-old-space-size=12288"
+  CARGO_TERM_COLOR: always
 
 jobs:
   ####### Check files and formatting #######
@@ -386,6 +387,7 @@ jobs:
           timeout: 30000
 
   typescript-tracing-tests:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -451,9 +453,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
     if: |
-      needs.set-tags.outputs.image_exists == 'false'
-      && (github.event.pull_request.head.repo.full_name == github.repository
-          || github.event_name == 'push')
+      ${{needs.set-tags.outputs.image_exists}} == 'false' && 
+      (github.event.pull_request.head.repo.full_name == github.repository || 
+      github.event_name == 'push')
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -637,6 +639,7 @@ jobs:
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
+    timeout-minutes: 20
     strategy:
       matrix:
         chain: ["moonbase"]
@@ -661,8 +664,7 @@ jobs:
           moonwall_environment: dev_${{ matrix.chain }}
       - name: Upload HTML report to s3
         if: |
-          github.event.pull_request.head.repo.full_name == github.repository
-              && github.event_name == 'push'
+          github.event.pull_request.head.repo.full_name == github.repository && github.event_name == 'push'
         uses: mario-sangar/upload-s3-action@master
         id: S3
         with:

@@ -7,8 +7,8 @@
 runtime="${1:-moonbase}"
 output="common"
 
-echo "[+] Compiling benchmarks..."
-cargo build --release --locked --features=runtime-benchmarks
+echo "[+] Compiling benchmarks with production profile... (this will take a while)"
+cargo build --profile=production --locked --features=runtime-benchmarks
 
 # Load all pallet names in an array.
 PALLETS=($(

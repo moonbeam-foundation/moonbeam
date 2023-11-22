@@ -29,7 +29,6 @@ use frame_support::{
 
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureNever, EnsureRoot};
-use moonbeam_runtime_common::xcm::AllowTopLevelPaidExecution;
 use orml_traits::parameter_type_with_key;
 use pallet_xcm::migration::v1::VersionUncheckedMigrateToV1;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
@@ -50,12 +49,12 @@ use xcm::latest::{
 	Junctions, MultiLocation, NetworkId, Outcome, Xcm,
 };
 use xcm_builder::{
-	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteId, CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin,
-	FixedRateOfFungible, FixedWeightBounds, FungiblesAdapter, IsConcrete, NoChecking,
-	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, WithComputedOrigin,
+	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
+	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
+	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
+	FungiblesAdapter, IsConcrete, NoChecking, ParentAsSuperuser, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
@@ -311,7 +310,7 @@ pub type XcmBarrier = (
 	WithComputedOrigin<
 		(
 			// If the message is one that immediately attemps to pay for execution, then allow it.
-			AllowTopLevelPaidExecution,
+			AllowTopLevelPaidExecutionFrom<Everything>,
 			// Subscriptions for version tracking are OK.
 			AllowSubscriptionsFrom<Everything>,
 		),
@@ -925,7 +924,6 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
-	type HrmpEncoder = MockHrmpEncoder;
 }
 
 parameter_types! {

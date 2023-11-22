@@ -32,7 +32,7 @@ use sp_core::{H256, U256};
 use sp_runtime::{traits::Dispatchable, AccountId32, Perbill};
 use sp_std::vec::Vec;
 use sp_std::{convert::TryInto, marker::PhantomData};
-use xcm_primitives::{HrmpAvailableCalls, HrmpEncodeCall};
+use xcm_primitives::{AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, StakeEncodeCall};
 
 #[cfg(test)]
 mod mock;
@@ -41,40 +41,18 @@ mod test_relay_runtime;
 #[cfg(test)]
 mod tests;
 
-pub enum AvailableStakeCalls {
-	Bond(
-		relay_chain::Balance,
-		pallet_staking::RewardDestination<relay_chain::AccountId>,
-	),
-	BondExtra(relay_chain::Balance),
-	Unbond(relay_chain::Balance),
-	WithdrawUnbonded(u32),
-	Validate(pallet_staking::ValidatorPrefs),
-	Nominate(Vec<relay_chain::AccountId>),
-	Chill,
-	SetPayee(pallet_staking::RewardDestination<relay_chain::AccountId>),
-	SetController,
-	Rebond(relay_chain::Balance),
-}
-
-pub trait StakeEncodeCall {
-	/// Encode call from the relay.
-	fn encode_call(call: AvailableStakeCalls) -> Vec<u8>;
-}
-
 pub const REWARD_DESTINATION_SIZE_LIMIT: u32 = 2u32.pow(16);
 pub const ARRAY_LIMIT: u32 = 512;
 type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 type GetRewardDestinationSizeLimit = ConstU32<REWARD_DESTINATION_SIZE_LIMIT>;
 
 /// A precompile to provide relay stake calls encoding through evm
-pub struct RelayEncoderPrecompile<Runtime, RelayRuntime>(PhantomData<(Runtime, RelayRuntime)>);
+pub struct RelayEncoderPrecompile<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
-impl<Runtime, RelayRuntime> RelayEncoderPrecompile<Runtime, RelayRuntime>
+impl<Runtime> RelayEncoderPrecompile<Runtime>
 where
-	RelayRuntime: StakeEncodeCall + HrmpEncodeCall,
-	Runtime: pallet_evm::Config,
+	Runtime: pallet_evm::Config + pallet_xcm_transactor::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
 	#[precompile::public("encodeBond(uint256,bytes)")]
@@ -92,10 +70,11 @@ where
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let reward_destination = reward_destination.into();
 
-		let encoded =
-			RelayRuntime::encode_call(AvailableStakeCalls::Bond(relay_amount, reward_destination))
-				.as_slice()
-				.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::Bond(relay_amount, reward_destination),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -112,9 +91,11 @@ where
 		handle.record_cost(1000)?;
 
 		let relay_amount = u256_to_relay_amount(amount)?;
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount))
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::BondExtra(relay_amount),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -132,9 +113,11 @@ where
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount))
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::Unbond(relay_amount),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -150,9 +133,11 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(slashes))
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::WithdrawUnbonded(slashes),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -170,12 +155,12 @@ where
 		handle.record_cost(1000)?;
 
 		let fraction = Perbill::from_parts(commission.converted());
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
-			pallet_staking::ValidatorPrefs {
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::Validate(pallet_staking::ValidatorPrefs {
 				commission: fraction,
 				blocked: blocked,
-			},
-		))
+			}),
+		)
 		.as_slice()
 		.into();
 
@@ -201,9 +186,11 @@ where
 				as_bytes.into()
 			})
 			.collect();
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Nominate(nominated))
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::Nominate(nominated),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -216,9 +203,10 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Chill)
-			.as_slice()
-			.into();
+		let encoded =
+			pallet_xcm_transactor::Pallet::<Runtime>::encode_call(AvailableStakeCalls::Chill)
+				.as_slice()
+				.into();
 
 		Ok(encoded)
 	}
@@ -236,9 +224,11 @@ where
 
 		let reward_destination = reward_destination.into();
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination))
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::SetPayee(reward_destination),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -251,9 +241,11 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetController)
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::SetController,
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -270,9 +262,11 @@ where
 		handle.record_cost(1000)?;
 
 		let relay_amount = u256_to_relay_amount(amount)?;
-		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount))
-			.as_slice()
-			.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			AvailableStakeCalls::Rebond(relay_amount),
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -289,11 +283,9 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
-			recipient.into(),
-			max_capacity,
-			max_message_size,
-		))
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::hrmp_encode_call(
+			HrmpAvailableCalls::InitOpenChannel(recipient.into(), max_capacity, max_message_size),
+		)
 		.map_err(|_| {
 			RevertReason::custom("Non-implemented hrmp encoding for transactor")
 				.in_field("transactor")
@@ -314,14 +306,15 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let encoded =
-			RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(sender.into()))
-				.map_err(|_| {
-					RevertReason::custom("Non-implemented hrmp encoding for transactor")
-						.in_field("transactor")
-				})?
-				.as_slice()
-				.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::hrmp_encode_call(
+			HrmpAvailableCalls::AcceptOpenChannel(sender.into()),
+		)
+		.map_err(|_| {
+			RevertReason::custom("Non-implemented hrmp encoding for transactor")
+				.in_field("transactor")
+		})?
+		.as_slice()
+		.into();
 		Ok(encoded)
 	}
 
@@ -337,12 +330,12 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(
-			relay_chain::HrmpChannelId {
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::hrmp_encode_call(
+			HrmpAvailableCalls::CloseChannel(relay_chain::HrmpChannelId {
 				sender: sender.into(),
 				recipient: recipient.into(),
-			},
-		))
+			}),
+		)
 		.map_err(|_| {
 			RevertReason::custom("Non-implemented hrmp encoding for transactor")
 				.in_field("transactor")
@@ -365,13 +358,15 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let encoded = RelayRuntime::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
-			relay_chain::HrmpChannelId {
-				sender: sender.into(),
-				recipient: recipient.into(),
-			},
-			open_requests,
-		))
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::hrmp_encode_call(
+			HrmpAvailableCalls::CancelOpenRequest(
+				relay_chain::HrmpChannelId {
+					sender: sender.into(),
+					recipient: recipient.into(),
+				},
+				open_requests,
+			),
+		)
 		.map_err(|_| {
 			RevertReason::custom("Non-implemented hrmp encoding for transactor")
 				.in_field("transactor")
