@@ -1052,13 +1052,33 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
+use pallet_migrations::{GetMigrations, Migration};
+pub struct TransactorRelayIndexMigration<Runtime>(sp_std::marker::PhantomData<Runtime>);
+
+impl<Runtime> GetMigrations for TransactorRelayIndexMigration<Runtime>
+where
+	Runtime: pallet_xcm_transactor::Config,
+{
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		vec![Box::new(
+			moonbeam_runtime_common::migrations::PopulateRelayIndices::<Runtime>(
+				moonbeam_relay_encoder::polkadot::POLKADOT_RELAY_INDICES,
+				Default::default(),
+			),
+		)]
+	}
+}
+
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type MigrationsList = moonbeam_runtime_common::migrations::CommonMigrations<
-		Runtime,
-		CouncilCollective,
-		TechCommitteeCollective,
-	>;
+	type MigrationsList = (
+		moonbeam_runtime_common::migrations::CommonMigrations<
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		>,
+		TransactorRelayIndexMigration<Runtime>,
+	);
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
@@ -1127,6 +1147,9 @@ impl Contains<RuntimeCall> for NormalFilter {
 			RuntimeCall::Proxy(method) => match method {
 				pallet_proxy::Call::create_pure { .. } => false,
 				pallet_proxy::Call::kill_pure { .. } => false,
+				pallet_proxy::Call::proxy { real, .. } => {
+					!pallet_evm::AccountCodes::<Runtime>::contains_key(H160::from(*real))
+				}
 				_ => true,
 			},
 			// Filtering the EVM prevents possible re-entrancy from the precompiles which could
@@ -1207,16 +1230,6 @@ impl OnRuntimeUpgrade for MaintenanceHooks {
 	#[cfg(feature = "try-runtime")]
 	fn try_on_runtime_upgrade(checks: bool) -> Result<Weight, TryRuntimeError> {
 		AllPalletsWithSystem::try_on_runtime_upgrade(checks)
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		AllPalletsWithSystem::pre_upgrade()
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		AllPalletsWithSystem::post_upgrade(state)
 	}
 }
 

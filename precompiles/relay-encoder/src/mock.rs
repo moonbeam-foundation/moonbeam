@@ -17,14 +17,23 @@
 //! Test utilities
 use super::*;
 
-use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
+use frame_support::{
+	construct_runtime, parameter_types,
+	traits::{Everything, PalletInfo as PalletInfoTrait},
+	weights::Weight,
+};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
+use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
-use sp_core::H256;
+use scale_info::TypeInfo;
+use sp_core::{H160, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage, Perbill,
 };
+use xcm::latest::{prelude::*, Error as XcmError};
+use xcm_builder::FixedWeightBounds;
+use xcm_executor::{traits::TransactAsset, Assets};
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
@@ -39,6 +48,7 @@ construct_runtime!(
 		Evm: pallet_evm,
 		ParachainSystem: cumulus_pallet_parachain_system,
 		Timestamp: pallet_timestamp,
+		XcmTransactor: pallet_xcm_transactor,
 	}
 );
 
@@ -107,12 +117,183 @@ impl pallet_balances::Config for Runtime {
 	type MaxFreezes = ();
 }
 
-pub type Precompiles<R> = PrecompileSetBuilder<
-	R,
-	(PrecompileAt<AddressU64<1>, RelayEncoderPrecompile<R, test_relay_runtime::TestEncoder>>,),
->;
+pub type AssetId = u128;
 
-pub type PCall = RelayEncoderPrecompileCall<Runtime, test_relay_runtime::TestEncoder>;
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+pub enum CurrencyId {
+	SelfReserve,
+	OtherReserve(AssetId),
+}
+
+pub struct DoNothingRouter;
+impl SendXcm for DoNothingRouter {
+	type Ticket = ();
+
+	fn validate(
+		_destination: &mut Option<MultiLocation>,
+		_message: &mut Option<Xcm<()>>,
+	) -> SendResult<Self::Ticket> {
+		Ok(((), MultiAssets::new()))
+	}
+
+	fn deliver(_: Self::Ticket) -> Result<XcmHash, SendError> {
+		Ok(XcmHash::default())
+	}
+}
+
+parameter_types! {
+	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
+
+	pub const BaseXcmWeight: Weight = Weight::from_parts(1000u64, 1000u64);
+	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
+
+	pub SelfLocation: MultiLocation =
+		MultiLocation::new(1, Junctions::X1(Parachain(ParachainId::get().into())));
+
+	pub SelfReserve: MultiLocation = MultiLocation::new(
+		1,
+		Junctions::X2(
+			Parachain(ParachainId::get().into()),
+			PalletInstance(
+				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
+			)
+		));
+	pub MaxInstructions: u32 = 100;
+
+	pub UniversalLocation: InteriorMultiLocation = Here;
+}
+
+pub struct AccountIdToMultiLocation;
+impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
+	fn convert(account: AccountId) -> MultiLocation {
+		let as_h160: H160 = account.into();
+		MultiLocation::new(
+			0,
+			Junctions::X1(AccountKey20 {
+				network: None,
+				key: as_h160.as_fixed_bytes().clone(),
+			}),
+		)
+	}
+}
+
+pub struct CurrencyIdToMultiLocation;
+
+impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for CurrencyIdToMultiLocation {
+	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
+		match currency {
+			CurrencyId::SelfReserve => {
+				let multi: MultiLocation = SelfReserve::get();
+				Some(multi)
+			}
+			// To distinguish between relay and others, specially for reserve asset
+			CurrencyId::OtherReserve(asset) => {
+				if asset == 0 {
+					Some(MultiLocation::parent())
+				} else {
+					Some(MultiLocation::new(
+						1,
+						Junctions::X2(Parachain(2), GeneralIndex(asset)),
+					))
+				}
+			}
+		}
+	}
+}
+
+// We need to use the encoding from the relay mock runtime
+#[derive(Encode, Decode)]
+pub enum RelayCall {
+	#[codec(index = 5u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Utility(UtilityCall),
+}
+
+#[derive(Encode, Decode)]
+pub enum UtilityCall {
+	#[codec(index = 1u8)]
+	AsDerivative(u16),
+}
+
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+pub enum MockTransactors {
+	Relay,
+}
+
+impl TryFrom<u8> for MockTransactors {
+	type Error = ();
+
+	fn try_from(value: u8) -> Result<Self, Self::Error> {
+		match value {
+			0x0 => Ok(MockTransactors::Relay),
+			_ => Err(()),
+		}
+	}
+}
+
+impl xcm_primitives::UtilityEncodeCall for MockTransactors {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			MockTransactors::Relay => match call {
+				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
+					let mut call =
+						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+					call.append(&mut b.clone());
+					call
+				}
+			},
+		}
+	}
+}
+
+impl xcm_primitives::XcmTransact for MockTransactors {
+	fn destination(self) -> MultiLocation {
+		match self {
+			MockTransactors::Relay => MultiLocation::parent(),
+		}
+	}
+}
+
+pub struct DummyAssetTransactor;
+impl TransactAsset for DummyAssetTransactor {
+	fn deposit_asset(_what: &MultiAsset, _who: &MultiLocation, _context: &XcmContext) -> XcmResult {
+		Ok(())
+	}
+
+	fn withdraw_asset(
+		_what: &MultiAsset,
+		_who: &MultiLocation,
+		_maybe_context: Option<&XcmContext>,
+	) -> Result<Assets, XcmError> {
+		Ok(Assets::default())
+	}
+}
+
+impl pallet_xcm_transactor::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type Transactor = MockTransactors;
+	type DerivativeAddressRegistrationOrigin = frame_system::EnsureRoot<AccountId>;
+	type SovereignAccountDispatcherOrigin = frame_system::EnsureRoot<AccountId>;
+	type CurrencyId = CurrencyId;
+	type AccountIdToMultiLocation = AccountIdToMultiLocation;
+	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
+	type SelfLocation = SelfLocation;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
+	type UniversalLocation = UniversalLocation;
+	type BaseXcmWeight = BaseXcmWeight;
+	type XcmSender = DoNothingRouter;
+	type AssetTransactor = DummyAssetTransactor;
+	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
+	type WeightInfo = ();
+	type HrmpManipulatorOrigin = frame_system::EnsureRoot<AccountId>;
+	type MaxHrmpFee = ();
+}
+
+pub type Precompiles<R> =
+	PrecompileSetBuilder<R, PrecompileAt<AddressU64<1>, RelayEncoderPrecompile<R>>>;
+
+pub type PCall = RelayEncoderPrecompileCall<Runtime>;
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
 /// Block storage limit in bytes. Set to 40 KB.
@@ -203,6 +384,11 @@ impl ExtBuilder {
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
+		ext.execute_with(|| {
+			pallet_xcm_transactor::RelayIndices::<Runtime>::put(
+				crate::test_relay_runtime::TEST_RELAY_INDICES,
+			);
+		});
 		ext
 	}
 }

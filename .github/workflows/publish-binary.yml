@@ -42,7 +42,7 @@ jobs:
             --build-arg="RUSTFLAGS=-C target-cpu=${{ matrix.cpu }}" \
             - < docker/moonbeam-production.Dockerfile
 
-          # Copy moonbeam binary 
+          # Copy moonbeam binary
           docker rm -f dummy 2> /dev/null | true
           docker create -ti --name dummy prod bash
           docker cp dummy:/moonbeam/moonbeam moonbeam
@@ -147,3 +147,37 @@ jobs:
           asset_path: build/${{matrix.node}}-${{matrix.cpu}}
           asset_name: ${{matrix.node}}-${{matrix.cpu}}
           asset_content_type: application/octet-stream
+
+  ####### Publish Release Candidate Docker Image #######
+
+  docker-release-candidate:
+    runs-on: ubuntu-latest
+    needs: ["build-binary", "publish-draft-release"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3.0.2
+        with:
+          name: binaries
+          path: build
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.2.0
+        with:
+          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
+          registry: index.docker.io
+      - run: |
+          DOCKER_IMAGE=purestake/moonbeam
+          COMMIT=`git rev-list -n 1 '${{ github.event.inputs.to }}'`
+          SHA=sha-${COMMIT::8}
+          TAG="${{ github.event.inputs.to }}-rc"
+
+          echo building "${DOCKER_IMAGE}:${TAG}"
+          docker build \
+            --build-arg DOCKER_IMAGE="$DOCKER_IMAGE" \
+            --build-arg SHA="$SHA" \
+            -f docker/moonbeam-release.Dockerfile \
+            -t "${DOCKER_IMAGE}:${TAG}" \
+            .
+
+          docker push "${DOCKER_IMAGE}:${TAG}"

@@ -31,7 +31,7 @@ use moonbase_runtime::{
 	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
 	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig, SystemConfig,
 	TechCommitteeCollectiveConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
-	HOURS, WASM_BINARY,
+	XcmTransactorConfig, HOURS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
@@ -355,6 +355,10 @@ pub fn testnet_genesis(
 		polkadot_xcm: PolkadotXcmConfig::default(),
 		transaction_payment: TransactionPaymentConfig {
 			multiplier: Multiplier::from(8u128),
+			..Default::default()
+		},
+		xcm_transactor: XcmTransactorConfig {
+			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
 			..Default::default()
 		},
 	}
