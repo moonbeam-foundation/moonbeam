@@ -4,7 +4,6 @@ import {
   expect,
   beforeEach,
   notePreimage,
-  instantFastTrack,
   execCouncilProposal,
 } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
