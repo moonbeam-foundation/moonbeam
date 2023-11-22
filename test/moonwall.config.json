@@ -313,8 +313,8 @@
         "threads": {
           "isolate": true,
           "minThreads": 1,
-          "maxThreads": 8,
-          "singleThread": false,
+          "maxThreads": 1,
+          "singleThread": true,
           "useAtomics": false
         }
       },
