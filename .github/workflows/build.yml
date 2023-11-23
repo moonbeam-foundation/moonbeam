@@ -441,8 +441,7 @@ jobs:
         env:
           DEBUG_COLOURS: "1"
           NODE_OPTIONS: "--max-old-space-size=12288"
-        uses: nick-fields/retry@v2
-        cmd: |
+        run: |
           cd test
           pnpm install
           pnpm compile-solidity
