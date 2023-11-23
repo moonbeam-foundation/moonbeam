@@ -387,7 +387,7 @@ jobs:
           timeout: 30000
 
   typescript-tracing-tests:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: ${{ github.event.pull_request.head.repo.full_name }} == ${{ github.repository }}
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -435,19 +435,16 @@ jobs:
           ####  Preparing the typescript api
           cd ../typescript-api
           npm ci
-      - name: Running Tracing Tests (with retry)
+      - name: Running Tracing Tests
         env:
           DEBUG_COLOURS: "1"
           NODE_OPTIONS: "--max-old-space-size=12288"
         uses: nick-fields/retry@v2
-        with:
-          max_attempts: 2
-          timeout_minutes: 15
-          command: |
-            cd test
-            pnpm install
-            pnpm compile-solidity
-            pnpm moonwall test dev_moonbase_tracing
+        cmd: |
+          cd test
+          pnpm install
+          pnpm compile-solidity
+          pnpm moonwall test dev_moonbase_tracing
 
   docker-moonbeam:
     runs-on: ubuntu-latest
