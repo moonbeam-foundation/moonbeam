@@ -26,9 +26,9 @@ use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetTy
 pub use moonbase_runtime::{
 	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, CrowdloanRewards,
-	Ethereum, Executive, Header, InflationInfo, LocalAssets, ParachainStaking, Range, Runtime,
-	RuntimeCall, RuntimeEvent, System, TransactionConverter, TransactionPaymentAsGasPrice,
-	UncheckedExtrinsic, HOURS, WEEKS,
+	Ethereum, Executive, Header, InflationInfo, LocalAssets, ParachainStaking, ParachainSystem,
+	Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
+	TransactionPaymentAsGasPrice, UncheckedExtrinsic, HOURS, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
@@ -83,6 +83,8 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 				System::set_block_number(System::block_number() + 1);
 			}
 		}
+
+		increase_last_relay_block_number(1u32);
 
 		// Initialize the new block
 		AuthorInherent::on_initialize(System::block_number());
@@ -381,4 +383,12 @@ pub fn ethereum_transaction(raw_hex_tx: &str) -> pallet_ethereum::Transaction {
 	let transaction = ethereum::EnvelopedDecodable::decode(&bytes[..]);
 	assert!(transaction.is_ok());
 	transaction.unwrap()
+}
+
+pub(crate) fn increase_last_relay_block_number(amount: u32) {
+	let last_relay_block = ParachainSystem::last_relay_block_number();
+	frame_support::storage::unhashed::put(
+		&frame_support::storage::storage_prefix(b"ParachainSystem", b"LastRelayChainBlockNumber"),
+		&(last_relay_block + amount),
+	);
 }

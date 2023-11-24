@@ -42,8 +42,9 @@ pub type BlockNumber = BlockNumberFor<Runtime>;
 type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 construct_runtime!(
-	pub enum Runtime	{
+	pub enum Runtime {
 		System: frame_system,
+		ParachainSystem: cumulus_pallet_parachain_system,
 		Balances: pallet_balances,
 		Evm: pallet_evm,
 		Timestamp: pallet_timestamp,
@@ -81,9 +82,22 @@ impl frame_system::Config for Runtime {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
-	type OnSetCode = ();
+	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Runtime>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
+
+impl cumulus_pallet_parachain_system::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type OnSystemEvent = ();
+	type SelfParaId = ();
+	type OutboundXcmpMessageSource = ();
+	type DmpMessageHandler = ();
+	type ReservedDmpWeight = ();
+	type XcmpMessageHandler = ();
+	type ReservedXcmpWeight = ();
+	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::AnyRelayNumber;
+}
+
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 }

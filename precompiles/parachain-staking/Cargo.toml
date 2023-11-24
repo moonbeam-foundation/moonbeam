@@ -41,6 +41,9 @@ pallet-timestamp = { workspace = true, features = [ "std" ] }
 scale-info = { workspace = true, features = [ "derive", "std" ] }
 sp-runtime = { workspace = true, features = [ "std" ] }
 
+# Cumulus
+cumulus-pallet-parachain-system = { workspace = true }
+
 [features]
 default = [ "std" ]
 std = [

@@ -82,6 +82,7 @@ pub mod pallet {
 	};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
+	use cumulus_pallet_parachain_system::Pallet as parachain_system;
 	use frame_support::fail;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
@@ -114,7 +115,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config + cumulus_pallet_parachain_system::Config {
 		/// Overarching event type
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// The currency type
@@ -447,13 +448,16 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_initialize(n: BlockNumberFor<T>) -> Weight {
+		fn on_initialize(_n: BlockNumberFor<T>) -> Weight {
 			let mut weight = T::WeightInfo::base_on_initialize();
 
+			// Fetch relay block number from previous round
+			let relay_block = parachain_system::<T>::last_relay_block_number();
+
 			let mut round = <Round<T>>::get();
-			if round.should_update(n) {
+			if round.should_update(relay_block.into()) {
 				// mutate round
-				round.update(n);
+				round.update(relay_block.into());
 				// notify that new round begin
 				weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
 				// pay all stakers for T::RewardPaymentDelay rounds ago

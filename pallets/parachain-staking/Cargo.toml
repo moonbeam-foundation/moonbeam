@@ -19,6 +19,9 @@ sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 substrate-fixed = { workspace = true }
 
+# Cumulus
+cumulus-pallet-parachain-system = { workspace = true }
+
 # Nimbus
 nimbus-primitives = { workspace = true }
 
@@ -32,6 +35,7 @@ sp-runtime = { workspace = true }
 [features]
 default = [ "std" ]
 std = [
+	"cumulus-pallet-parachain-system/std",
 	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",

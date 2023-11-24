@@ -46,6 +46,7 @@ construct_runtime!(
 	pub enum Test
 	{
 		System: frame_system,
+		ParachainSystem: cumulus_pallet_parachain_system,
 		Balances: pallet_balances,
 		ParachainStaking: pallet_parachain_staking,
 		BlockAuthor: block_author,
@@ -81,9 +82,22 @@ impl frame_system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
-	type OnSetCode = ();
+	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Test>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
+
+impl cumulus_pallet_parachain_system::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
+	type OnSystemEvent = ();
+	type SelfParaId = ();
+	type OutboundXcmpMessageSource = ();
+	type DmpMessageHandler = ();
+	type ReservedDmpWeight = ();
+	type XcmpMessageHandler = ();
+	type ReservedXcmpWeight = ();
+	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::AnyRelayNumber;
+}
+
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 }
@@ -250,9 +264,20 @@ impl ExtBuilder {
 		.expect("Parachain Staking's storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
+		ext.execute_with(|| {
+			System::set_block_number(1);
+			increase_last_relay_block_number(1u32);
+		});
 		ext
 	}
+}
+
+pub(crate) fn increase_last_relay_block_number(amount: u32) {
+	let last_relay_block = ParachainSystem::last_relay_block_number();
+	frame_support::storage::unhashed::put(
+		&frame_support::storage::storage_prefix(b"ParachainSystem", b"LastRelayChainBlockNumber"),
+		&(last_relay_block + amount),
+	);
 }
 
 /// Rolls forward one block. Returns the new block number.
@@ -260,6 +285,7 @@ fn roll_one_block() -> BlockNumber {
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
+	increase_last_relay_block_number(1u32);
 	System::reset_events();
 	System::on_initialize(System::block_number());
 	Balances::on_initialize(System::block_number());
@@ -270,7 +296,7 @@ fn roll_one_block() -> BlockNumber {
 /// Rolls to the desired block. Returns the number of blocks played.
 pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
 	let mut num_blocks = 0;
-	let mut block = System::block_number();
+	let mut block = ParachainSystem::last_relay_block_number();
 	while block < n {
 		block = roll_one_block();
 		num_blocks += 1;
@@ -280,7 +306,7 @@ pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
 
 /// Rolls desired number of blocks. Returns the final block.
 pub(crate) fn roll_blocks(num_blocks: u32) -> BlockNumber {
-	let mut block = System::block_number();
+	let mut block = ParachainSystem::last_relay_block_number();
 	for _ in 0..num_blocks {
 		block = roll_one_block();
 	}
@@ -297,6 +323,9 @@ pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
 
 /// Rolls block-by-block to the end of the specified round.
 /// The block following will be the one in which the specified round change occurs.
+///
+/// Note: Depending on the desired test case, it might be needed to call
+/// 'increase_last_relay_block_number()' after this function.
 pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
 	let block = round * GENESIS_BLOCKS_PER_ROUND - 1;
 	roll_to(block)
