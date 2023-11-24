@@ -12,11 +12,11 @@ dependencies:
     specifier: 0.2600.0
     version: 0.2600.0
   '@moonwall/cli':
-    specifier: 5.0.0-beta.5
-    version: 5.0.0-beta.5(@types/node@20.9.2)(@vitest/ui@1.0.0-beta.5)(typescript@5.2.2)(vitest@1.0.0-beta.5)
+    specifier: 5.0.0-beta.6
+    version: 5.0.0-beta.6(@types/node@20.9.2)(@vitest/ui@1.0.0-beta.5)(typescript@5.2.2)(vitest@1.0.0-beta.5)
   '@moonwall/util':
-    specifier: 5.0.0-beta.5
-    version: 5.0.0-beta.5(@types/node@20.9.2)(@vitest/ui@1.0.0-beta.5)(typescript@5.2.2)
+    specifier: 5.0.0-beta.6
+    version: 5.0.0-beta.6(@vitest/ui@1.0.0-beta.5)(typescript@5.2.2)
   '@openzeppelin/contracts':
     specifier: 4.9.3
     version: 4.9.3
@@ -1166,20 +1166,20 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: false
 
-  /@moonwall/cli@5.0.0-beta.5(@types/node@20.9.2)(@vitest/ui@1.0.0-beta.5)(typescript@5.2.2)(vitest@1.0.0-beta.5):
-    resolution: {integrity: sha512-5QDrR+qYUPbT+lk/pPHeo7IOyMhpgAXWSYu6P0lhhd/CFU0w/KLEplNZK3AwI8Y0KF3nZ9wk0N9HYb0MhyKeXA==}
+  /@moonwall/cli@5.0.0-beta.6(@types/node@20.9.2)(@vitest/ui@1.0.0-beta.5)(typescript@5.2.2)(vitest@1.0.0-beta.5):
+    resolution: {integrity: sha512-TnqVizsNMDDdr694l4rkLdWKaDzskM56CK+teSkM3YZoDJtWFCONt9EiCTVue3a/yd1ZOJYYqZk61fMKnEaF8A==}
     engines: {node: '>=20.0.0', pnpm: '>=7'}
     hasBin: true
     peerDependencies:
-      '@vitest/ui': 1.0.0-beta.5
-      vitest: 1.0.0-beta.5
+      '@vitest/ui': 0.34.6
+      vitest: 0.34.6
     dependencies:
       '@acala-network/chopsticks': 0.9.2(debug@4.3.4)
       '@effect/platform-node': 0.32.2(@effect/schema@0.49.4)(effect@2.0.0-next.56)
       '@effect/schema': 0.49.4(effect@2.0.0-next.56)(fast-check@3.14.0)
       '@moonbeam-network/api-augment': 0.2600.0
-      '@moonwall/types': 5.0.0-beta.5(typescript@5.2.2)
-      '@moonwall/util': 5.0.0-beta.5(@types/node@20.9.2)(@vitest/ui@1.0.0-beta.5)(typescript@5.2.2)
+      '@moonwall/types': 5.0.0-beta.6(typescript@5.2.2)
+      '@moonwall/util': 5.0.0-beta.6(@vitest/ui@1.0.0-beta.5)(typescript@5.2.2)
       '@polkadot/api': 10.11.1
       '@polkadot/api-augment': 10.11.1
       '@polkadot/api-derive': 10.11.1
@@ -1243,7 +1243,9 @@ packages:
       - pg
       - pg-native
       - pg-query-stream
+      - playwright
       - redis
+      - safaridriver
       - sass
       - sql.js
       - stylus
@@ -1254,11 +1256,12 @@ packages:
       - typeorm-aurora-data-api-driver
       - typescript
       - utf-8-validate
+      - webdriverio
       - zod
     dev: false
 
-  /@moonwall/types@5.0.0-beta.5(typescript@5.2.2):
-    resolution: {integrity: sha512-UcYXnDlv5wK6JOYO3ENaNkMt6ze9kgpugie3EoFAuvbo4kQWT9vxVqjnGGVwHfBnXeHX95+go4X9IVxt+LcpwQ==}
+  /@moonwall/types@5.0.0-beta.6(typescript@5.2.2):
+    resolution: {integrity: sha512-oOUdqsKyswHLE4mmdXzoNMhsXr1LkefaedoqXr2FV/TgJw+I0Cwd0JCGNs1ydbcHQWcahr+1cIGzeVcY3Px1iw==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     dependencies:
       '@polkadot/api': 10.11.1
@@ -1286,12 +1289,12 @@ packages:
       - zod
     dev: false
 
-  /@moonwall/util@5.0.0-beta.5(@types/node@20.9.2)(@vitest/ui@1.0.0-beta.5)(typescript@5.2.2):
-    resolution: {integrity: sha512-ENEOQxrZERonz1rjPAbXscIv4ac457QxjTx2ZEY2W3vGwp9HfCvq8KCSXpxgYJB4AVuAetjcjF1Bpd4X7HnQnQ==}
+  /@moonwall/util@5.0.0-beta.6(@vitest/ui@1.0.0-beta.5)(typescript@5.2.2):
+    resolution: {integrity: sha512-7bvdC2KFO2j6uEoXgrGZe/9DJPvzihc7LSe11c3a/pSKEUMfpnCFHNafux074k+5K/Y/fSkwOb4q0cyZNXt7OQ==}
     engines: {node: '>=14.16.0', pnpm: '>=7'}
     dependencies:
       '@moonbeam-network/api-augment': 0.2600.0
-      '@moonwall/types': 5.0.0-beta.5(typescript@5.2.2)
+      '@moonwall/types': 5.0.0-beta.6(typescript@5.2.2)
       '@polkadot/api': 10.11.1
       '@polkadot/api-augment': 10.11.1
       '@polkadot/api-derive': 10.11.1
@@ -1315,7 +1318,7 @@ packages:
       rlp: 3.0.0
       semver: 7.5.4
       viem: 1.19.8(typescript@5.2.2)
-      vitest: 1.0.0-beta.5(@types/node@20.9.2)(@vitest/ui@1.0.0-beta.5)
+      vitest: 0.34.6(@vitest/ui@1.0.0-beta.5)
       web3: 4.2.1(typescript@5.2.2)
       ws: 8.14.2
       yaml: 2.3.4
@@ -1324,7 +1327,6 @@ packages:
       - '@edge-runtime/vm'
       - '@swc/core'
       - '@swc/wasm'
-      - '@types/node'
       - '@vitest/browser'
       - '@vitest/ui'
       - bufferutil
@@ -1334,6 +1336,8 @@ packages:
       - jsdom
       - less
       - lightningcss
+      - playwright
+      - safaridriver
       - sass
       - stylus
       - sugarss
@@ -1341,6 +1345,7 @@ packages:
       - terser
       - typescript
       - utf-8-validate
+      - webdriverio
       - zod
     dev: false
 
@@ -3310,6 +3315,16 @@ packages:
       '@types/responselike': 1.0.3
     dev: false
 
+  /@types/chai-subset@1.3.5:
+    resolution: {integrity: sha512-c2mPnw+xHtXDoHmdtcCXGwyLMiauiAyxWMzhGpqHC4nqI/Y5G2XhTampslK2rb59kpcuHon03UH8W6iYUzw88A==}
+    dependencies:
+      '@types/chai': 4.3.11
+    dev: false
+
+  /@types/chai@4.3.11:
+    resolution: {integrity: sha512-qQR1dr2rGIHYlJulmr8Ioq3De0Le9E4MJ5AiaeAETJJpndT1uUNHsGFK3L/UIu+rbkQSdj8J/w2bCsBZc/Y5fQ==}
+    dev: false
+
   /@types/debug@4.1.12:
     resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
     dependencies:
@@ -3596,12 +3611,28 @@ packages:
       '@polkadot/types': 10.11.1
     dev: false
 
+  /@vitest/expect@0.34.6:
+    resolution: {integrity: sha512-QUzKpUQRc1qC7qdGo7rMK3AkETI7w18gTCUrsNnyjjJKYiuUB9+TQK3QnR1unhCnWRC0AbKv2omLGQDF/mIjOw==}
+    dependencies:
+      '@vitest/spy': 0.34.6
+      '@vitest/utils': 0.34.6
+      chai: 4.3.10
+    dev: false
+
   /@vitest/expect@1.0.0-beta.5:
     resolution: {integrity: sha512-q/TPdbXuEZZNFKILEVicojSWEq1y8qPLcAiZRQD8DsYUAV2cIjsD5lJWYaAjjUAV4lzovSci3KeISQdjUdfxQQ==}
     dependencies:
       '@vitest/spy': 1.0.0-beta.5
       '@vitest/utils': 1.0.0-beta.5
       chai: 4.3.10
+    dev: false
+
+  /@vitest/runner@0.34.6:
+    resolution: {integrity: sha512-1CUQgtJSLF47NnhN+F9X2ycxUP0kLHQ/JWvNHbeBfwW8CzEGgeskzNnHDyv1ieKTltuR6sdIHV+nmR6kPxQqzQ==}
+    dependencies:
+      '@vitest/utils': 0.34.6
+      p-limit: 4.0.0
+      pathe: 1.1.1
     dev: false
 
   /@vitest/runner@1.0.0-beta.5:
@@ -3612,12 +3643,26 @@ packages:
       pathe: 1.1.1
     dev: false
 
+  /@vitest/snapshot@0.34.6:
+    resolution: {integrity: sha512-B3OZqYn6k4VaN011D+ve+AA4whM4QkcwcrwaKwAbyyvS/NB1hCWjFIBQxAQQSQir9/RtyAAGuq+4RJmbn2dH4w==}
+    dependencies:
+      magic-string: 0.30.5
+      pathe: 1.1.1
+      pretty-format: 29.7.0
+    dev: false
+
   /@vitest/snapshot@1.0.0-beta.5:
     resolution: {integrity: sha512-fsWoc/mokLawqrLFqK9MHEyzJaGeDzU5gAgky2yZJR58VSsSvW+cesvmdv9ch39xHlTzFTRPgrWkNsmbdm2gbg==}
     dependencies:
       magic-string: 0.30.5
       pathe: 1.1.1
       pretty-format: 29.7.0
+    dev: false
+
+  /@vitest/spy@0.34.6:
+    resolution: {integrity: sha512-xaCvneSaeBw/cz8ySmF7ZwGvL0lBjfvqc1LpQ/vcdHEvpLn3Ff1vAvjw+CoGn0802l++5L/pxb7whwcWAw+DUQ==}
+    dependencies:
+      tinyspy: 2.2.0
     dev: false
 
   /@vitest/spy@1.0.0-beta.5:
@@ -3639,6 +3684,14 @@ packages:
       picocolors: 1.0.0
       sirv: 2.0.3
       vitest: 1.0.0-beta.5(@types/node@20.9.2)(@vitest/ui@1.0.0-beta.5)
+    dev: false
+
+  /@vitest/utils@0.34.6:
+    resolution: {integrity: sha512-IG5aDD8S6zlvloDsnzHw0Ut5xczlF+kv2BOTo+iXfPr54Yhi5qbVOgGB1hZaVq4iJ4C/MZ2J0y15IlsV/ZcI0A==}
+    dependencies:
+      diff-sequences: 29.6.3
+      loupe: 2.3.7
+      pretty-format: 29.7.0
     dev: false
 
   /@vitest/utils@1.0.0-beta.5:
@@ -3679,7 +3732,7 @@ packages:
       peer-id: 0.16.0
       tmp-promise: 3.0.3
       typescript: 5.2.2
-      yaml: 2.3.3
+      yaml: 2.3.4
     transitivePeerDependencies:
       - '@polkadot/util'
       - '@swc/core'
@@ -6874,6 +6927,11 @@ packages:
       uint8arrays: 3.1.1
     dev: false
 
+  /local-pkg@0.4.3:
+    resolution: {integrity: sha512-SFppqq5p42fe2qcZQqqEOiVRXl+WCP1MdT6k7BDEW1j++sp5fIY+/fdRQitvKgB5BrBcmrs5m/L0v2FrU5MY1g==}
+    engines: {node: '>=14'}
+    dev: false
+
   /local-pkg@0.5.0:
     resolution: {integrity: sha512-ok6z3qlYyCDS4ZEU27HaU6x/xZa9Whf8jD4ptH5UZTQYZVYeb9bnZ3ojVhiJNLiXK1Hfc0GNbLXcmZ5plLDDBg==}
     engines: {node: '>=14'}
@@ -7816,6 +7874,13 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       yocto-queue: 0.1.0
+
+  /p-limit@4.0.0:
+    resolution: {integrity: sha512-5b0R4txpzjPWVw/cXXUResoD4hb6U/x9BH08L7nw+GN1sezDzPdxeRvpc9c433fZhBan/wusjbCsqwqm4EIBIQ==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dependencies:
+      yocto-queue: 1.0.0
+    dev: false
 
   /p-limit@5.0.0:
     resolution: {integrity: sha512-/Eaoq+QyLSiXQ4lyYV23f14mZRQcXnxfHrN0vCai+ak9G0pp9iEQukIIZq5NccEvwRB8PUnZT0KsOoDCINS1qQ==}
@@ -9093,6 +9158,11 @@ packages:
     resolution: {integrity: sha512-65NKvSuAVDP/n4CqH+a9w2kTlLReS9vhsAP06MWx+/89nMinJyB2icyl58RIcqCmIggpojIGeuJGhjU1aGMBSg==}
     dev: false
 
+  /tinypool@0.7.0:
+    resolution: {integrity: sha512-zSYNUlYSMhJ6Zdou4cJwo/p7w5nmAH17GRfU/ui3ctvjXFErXXkruT4MWW6poDeXgCaIBlGLrfU6TbTXxyGMww==}
+    engines: {node: '>=14.0.0'}
+    dev: false
+
   /tinypool@0.8.1:
     resolution: {integrity: sha512-zBTCK0cCgRROxvs9c0CGK838sPkeokNGdQVUUwHAbynHFlmyJYj825f/oRs528HaIJ97lo0pLIlDUzwN+IorWg==}
     engines: {node: '>=14.0.0'}
@@ -9551,6 +9621,28 @@ packages:
       - zod
     dev: false
 
+  /vite-node@0.34.6(@types/node@20.9.2):
+    resolution: {integrity: sha512-nlBMJ9x6n7/Amaz6F3zJ97EBwR2FkzhBRxF5e+jE6LA3yi6Wtc2lyTij1OnDMIr34v5g/tVQtsVAzhT0jc5ygA==}
+    engines: {node: '>=v14.18.0'}
+    hasBin: true
+    dependencies:
+      cac: 6.7.14
+      debug: 4.3.4(supports-color@8.1.1)
+      mlly: 1.4.2
+      pathe: 1.1.1
+      picocolors: 1.0.0
+      vite: 5.0.0(@types/node@20.9.2)
+    transitivePeerDependencies:
+      - '@types/node'
+      - less
+      - lightningcss
+      - sass
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+    dev: false
+
   /vite-node@1.0.0-beta.5(@types/node@20.9.2):
     resolution: {integrity: sha512-iXm+GTJbR9R6V/bCM1+LQqIohL/tncZVNGIcTtzpYThBD8yiTkDPvEjy1Mf7KFACtG3qY/0VDMrkuMtqG/JFhg==}
     engines: {node: ^18.0.0 || >=20.0.0}
@@ -9606,6 +9698,72 @@ packages:
       rollup: 4.5.0
     optionalDependencies:
       fsevents: 2.3.3
+    dev: false
+
+  /vitest@0.34.6(@vitest/ui@1.0.0-beta.5):
+    resolution: {integrity: sha512-+5CALsOvbNKnS+ZHMXtuUC7nL8/7F1F2DnHGjSsszX8zCjWSSviphCb/NuS9Nzf4Q03KyyDRBAXhF/8lffME4Q==}
+    engines: {node: '>=v14.18.0'}
+    hasBin: true
+    peerDependencies:
+      '@edge-runtime/vm': '*'
+      '@vitest/browser': '*'
+      '@vitest/ui': '*'
+      happy-dom: '*'
+      jsdom: '*'
+      playwright: '*'
+      safaridriver: '*'
+      webdriverio: '*'
+    peerDependenciesMeta:
+      '@edge-runtime/vm':
+        optional: true
+      '@vitest/browser':
+        optional: true
+      '@vitest/ui':
+        optional: true
+      happy-dom:
+        optional: true
+      jsdom:
+        optional: true
+      playwright:
+        optional: true
+      safaridriver:
+        optional: true
+      webdriverio:
+        optional: true
+    dependencies:
+      '@types/chai': 4.3.11
+      '@types/chai-subset': 1.3.5
+      '@types/node': 20.9.2
+      '@vitest/expect': 0.34.6
+      '@vitest/runner': 0.34.6
+      '@vitest/snapshot': 0.34.6
+      '@vitest/spy': 0.34.6
+      '@vitest/ui': 1.0.0-beta.5(vitest@1.0.0-beta.5)
+      '@vitest/utils': 0.34.6
+      acorn: 8.11.2
+      acorn-walk: 8.3.0
+      cac: 6.7.14
+      chai: 4.3.10
+      debug: 4.3.4(supports-color@8.1.1)
+      local-pkg: 0.4.3
+      magic-string: 0.30.5
+      pathe: 1.1.1
+      picocolors: 1.0.0
+      std-env: 3.5.0
+      strip-literal: 1.3.0
+      tinybench: 2.5.1
+      tinypool: 0.7.0
+      vite: 5.0.0(@types/node@20.9.2)
+      vite-node: 0.34.6(@types/node@20.9.2)
+      why-is-node-running: 2.2.2
+    transitivePeerDependencies:
+      - less
+      - lightningcss
+      - sass
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
     dev: false
 
   /vitest@1.0.0-beta.5(@types/node@20.9.2)(@vitest/ui@1.0.0-beta.5):

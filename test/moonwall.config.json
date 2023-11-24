@@ -309,15 +309,7 @@
         "compile-contracts.ts compile",
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
       ],
-      "multiThreads": {
-        "threads": {
-          "isolate": true,
-          "minThreads": 1,
-          "maxThreads": 4,
-          "singleThread": false,
-          "useAtomics": false
-        }
-      },
+      "multiThreads": 4,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["basic", "html", "json"],
       "reportFile": { "json": "./tmp/testResults.json" },
