@@ -364,7 +364,7 @@ jobs:
           cargo test --profile testnet --all --features=evm-tracing,runtime-benchmarks
       - name: Run sccache stat for check pre test
         run: ${SCCACHE_PATH} --show-stats
-        
+
   dev-test:
     runs-on:
       labels: bare-metal
@@ -416,7 +416,7 @@ jobs:
           --header 'Content-Type: application/json' \
           --max-time 30 \
           -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
-      
+
   typescript-tests:
     runs-on:
       labels: bare-metal
