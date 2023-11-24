@@ -24,7 +24,7 @@ jobs:
           mkdir -p build
           docker cp dummy:/moonbeam/moonbeam build/moonbeam
           docker rm -f dummy
-      - name: Use Node.js 20.x
+      - name: Use Node.js 20.10
         uses: actions/setup-node@v4
         with:
           node-version: 20.9.0
