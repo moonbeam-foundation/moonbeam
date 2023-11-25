@@ -33,7 +33,7 @@
     "@polkadot/util-crypto": "12.6.1",
     "@substrate/txwrapper-core": "7.1.1",
     "@substrate/txwrapper-substrate": "7.1.1",
-    "@vitest/ui": "0.34.6",
+    "@vitest/ui": "1.0.0-beta.5",
     "@zombienet/utils": "0.0.24",
     "chalk": "5.3.0",
     "eth-object": "github:aurora-is-near/eth-object#master",
@@ -48,7 +48,7 @@
     "solc": "0.8.21",
     "tsx": "3.14.0",
     "viem": "1.15.5",
-    "vitest": "0.34.6",
+    "vitest": "1.0.0-beta.5",
     "web3": "4.1.2"
   },
   "devDependencies": {
