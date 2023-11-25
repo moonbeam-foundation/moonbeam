@@ -366,8 +366,7 @@ jobs:
         run: ${SCCACHE_PATH} --show-stats
 
   dev-test:
-    runs-on:
-      labels: bare-metal
+    runs-on: ["ubuntu-latest"]
     needs: ["set-tags", "build"]
     timeout-minutes: 20
     strategy:
