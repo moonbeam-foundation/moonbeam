@@ -404,18 +404,18 @@ jobs:
           destination_dir: "${{ needs.set-tags.outputs.test_s3_dir }}"
           source_dir: "test/html"
           acl: "none"
-      - name: Upload to Moonscope
-        if: github.event.pull_request.head.repo.full_name == github.repository
-        run: |
-          curl --location 'https://api.moonscope.kaki.dev/insert' \
-          -X POST \
-          --header 'moonwallenv: dev_${{ matrix.chain }}' \
-          --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
-          --header 'table: dev_reports' \
-          --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
-          --header 'Content-Type: application/json' \
-          --max-time 30 \
-          -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
+      # - name: Upload to Moonscope
+      #   if: github.event.pull_request.head.repo.full_name == github.repository
+      #   run: |
+      #     curl --location 'https://api.moonscope.kaki.dev/insert' \
+      #     -X POST \
+      #     --header 'moonwallenv: dev_${{ matrix.chain }}' \
+      #     --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
+      #     --header 'table: dev_reports' \
+      #     --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
+      #     --header 'Content-Type: application/json' \
+      #     --max-time 30 \
+      #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
 
   typescript-tests:
     runs-on:
