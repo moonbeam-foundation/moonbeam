@@ -33,11 +33,11 @@
     "@polkadot/util-crypto": "12.6.1",
     "@substrate/txwrapper-core": "7.1.1",
     "@substrate/txwrapper-substrate": "7.1.1",
-    "@vitest/ui": "1.0.0-beta.5",
+    "@vitest/ui": "0.34.6",
     "@zombienet/utils": "0.0.24",
     "chalk": "5.3.0",
     "eth-object": "github:aurora-is-near/eth-object#master",
-    "ethers": "6.7.1",
+    "ethers": "6.8.1",
     "json-bigint": "1.0.0",
     "json-stable-stringify": "1.1.0",
     "merkle-patricia-tree": "4.2.4",
@@ -47,9 +47,9 @@
     "semver": "7.5.4",
     "solc": "0.8.21",
     "tsx": "3.14.0",
-    "viem": "1.15.5",
-    "vitest": "1.0.0-beta.5",
-    "web3": "4.1.2"
+    "viem": "1.19.9",
+    "vitest": "0.34.6",
+    "web3": "4.2.2"
   },
   "devDependencies": {
     "@types/debug": "4.1.12",
