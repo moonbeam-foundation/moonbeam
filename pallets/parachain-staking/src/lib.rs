@@ -89,6 +89,7 @@ pub mod pallet {
 		ReservableCurrency,
 	};
 	use frame_system::pallet_prelude::*;
+	use polkadot_parachain::primitives::RelayChainBlockNumber;
 	use sp_runtime::{
 		traits::{Saturating, Zero},
 		DispatchErrorWithPostInfo, Perbill, Percent,
@@ -254,7 +255,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Started new round.
 		NewRound {
-			starting_block: BlockNumberFor<T>,
+			starting_block: RelayChainBlockNumber,
 			round: RoundIndex,
 			selected_collators_number: u32,
 			total_balance: BalanceOf<T>,
@@ -426,7 +427,7 @@ pub mod pallet {
 		/// Set blocks per round
 		BlocksPerRoundSet {
 			current_round: RoundIndex,
-			first_block: BlockNumberFor<T>,
+			first_block: RelayChainBlockNumber,
 			old: u32,
 			new: u32,
 			new_per_round_inflation_min: Perbill,
@@ -513,7 +514,8 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
 	/// Current round index and next round scheduled transition
-	pub(crate) type Round<T: Config> = StorageValue<_, RoundInfo<BlockNumberFor<T>>, ValueQuery>;
+	pub(crate) type Round<T: Config> =
+		StorageValue<_, RoundInfo<RelayChainBlockNumber>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn delegator_state)]
@@ -800,13 +802,13 @@ pub mod pallet {
 			// Choose top TotalSelected collator candidates
 			let (_, v_count, _, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
 			// Start Round 1 at Block 0
-			let round: RoundInfo<BlockNumberFor<T>> =
+			let round: RoundInfo<RelayChainBlockNumber> =
 				RoundInfo::new(1u32, 0u32.into(), self.blocks_per_round);
 			<Round<T>>::put(round);
 			// Snapshot total stake
 			<Staked<T>>::insert(1u32, <Total<T>>::get());
 			<Pallet<T>>::deposit_event(Event::NewRound {
-				starting_block: BlockNumberFor::<T>::zero(),
+				starting_block: RelayChainBlockNumber::default(),
 				round: 1u32,
 				selected_collators_number: v_count,
 				total_balance: total_staked,
@@ -1392,6 +1394,8 @@ pub mod pallet {
 			let round_info = <Round<T>>::get();
 			let max_offline_rounds = T::MaxOfflineRounds::get();
 
+			println!("ROUND INFO: {:#?}", round_info.clone());
+
 			ensure!(
 				round_info.current > max_offline_rounds,
 				<Error<T>>::CurrentRoundTooLow
@@ -1413,7 +1417,7 @@ pub mod pallet {
 			//
 			// If the previous condition is met in all rounds of rounds_to_check,
 			// the collator is notified as inactive
-			for r in rounds_to_check {
+			for r in rounds_to_check.clone() {
 				let stake = <AtStake<T>>::get(r, &collator);
 				let pts = <AwardedPts<T>>::get(r, &collator);
 
@@ -1421,6 +1425,8 @@ pub mod pallet {
 					inactive_counter = inactive_counter.saturating_add(1);
 				}
 			}
+
+			println!("ROUNDS TO CHECK: {:?}", rounds_to_check);
 
 			if inactive_counter == max_offline_rounds {
 				let _ = T::OnInactiveCollator::on_inactive_collator(

@@ -20,7 +20,8 @@
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
 	DelegationAction, EnableMarkingOffline, Pallet, ParachainBondConfig, ParachainBondInfo, Points,
-	Range, RewardPayment, Round, ScheduledRequest, Staked, TopDelegations,
+	Range, RelayChainBlockNumberProvider, RewardPayment, Round, ScheduledRequest, Staked,
+	TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
@@ -202,19 +203,27 @@ fn parachain_staking_on_finalize<T: Config>(author: T::AccountId) {
 
 /// Run to end block and author
 fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
-	let total_rounds = round_delay + 1u32;
-	let round_length: BlockNumberFor<T> = Pallet::<T>::round().length.into();
-	let mut now = <frame_system::Pallet<T>>::block_number() + 1u32.into();
-	let end = Pallet::<T>::round().first + (round_length * total_rounds.into());
+	let total_rounds = round_delay;
+	let round_length = Pallet::<T>::round().length;
+	let mut now = T::RelayChainBlockNumberProvider::last_relay_block_number() + 1;
+	let end = Pallet::<T>::round().first + (round_length * total_rounds);
+	println!("END: {:?}", end.clone());
 	while now < end {
 		parachain_staking_on_finalize::<T>(author.clone());
 		<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
 		<frame_system::Pallet<T>>::set_block_number(
 			<frame_system::Pallet<T>>::block_number() + 1u32.into(),
 		);
+		frame_support::storage::unhashed::put(
+			&frame_support::storage::storage_prefix(
+				b"ParachainSystem",
+				b"LastRelayChainBlockNumber",
+			),
+			&(now + 1u32),
+		);
 		<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
 		Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number());
-		now += 1u32.into();
+		now += 1u32;
 	}
 }
 
@@ -1870,6 +1879,13 @@ benchmarks! {
 		<frame_system::Pallet<T>>::on_finalize(start);
 		<frame_system::Pallet<T>>::set_block_number(
 			start + 1u32.into()
+		);
+		frame_support::storage::unhashed::put(
+			&frame_support::storage::storage_prefix(
+				b"ParachainSystem",
+				b"LastRelayChainBlockNumber",
+			),
+			&(start + 1u32.into()),
 		);
 		let end = <frame_system::Pallet<T>>::block_number();
 		<frame_system::Pallet<T>>::on_initialize(end);
