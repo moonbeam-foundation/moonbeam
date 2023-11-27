@@ -3,7 +3,6 @@ import { MoonwallContext, beforeAll, describeSuite, expect } from "@moonwall/cli
 import {
   ALITH_PRIVATE_KEY,
   BALTATHAR_ADDRESS,
-  CHARLETH_PRIVATE_KEY,
   MIN_GAS_PRICE,
   charleth,
   createRawTransfer,

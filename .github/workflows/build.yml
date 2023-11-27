@@ -673,18 +673,18 @@ jobs:
           pnpm moonwall test zombie_${{ matrix.chain }}
       - name: "Run zombie RPC test"
         run: |
-              cd test
-              pnpm install
-    
-              ## Generate old spec using latest published node, modify it, and generate raw spec
-              chmod uog+x tmp/moonbeam_rt
-              tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
-              pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
-              tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
-    
-              ## Start zombie network and run tests
-              chmod uog+x ../target/release/moonbeam
-              pnpm moonwall test zombie_${{ matrix.chain }}_rpc
+          cd test
+          pnpm install
+
+          ## Generate old spec using latest published node, modify it, and generate raw spec
+          chmod uog+x tmp/moonbeam_rt
+          tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
+          pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
+          tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
+
+          ## Start zombie network and run tests
+          chmod uog+x ../target/release/moonbeam
+          pnpm moonwall test zombie_${{ matrix.chain }}_rpc
       - name: Zip and Upload Node Logs on Failure
         if: failure()
         run: |
