@@ -53,6 +53,41 @@
       }
     },
     {
+      "name": "zombie_moonbase_rpc",
+      "testFileDir": ["suites/para-rpc"],
+      "include": ["**/*moonbase*", "**/*common*"],
+      "runScripts": ["download-polkadot.sh"],
+      "foundation": {
+        "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieAlphanetRpc.json"
+        }
+      },
+      "connections": [
+        {
+          "name": "ethers",
+          "type": "ethers",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "parachain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "relaychain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:33356"]
+        }
+      ]
+    },
+    {
       "name": "zombie_common",
       "testFileDir": ["suites/para"],
       "include": ["**/*common*"],
