@@ -44,9 +44,13 @@ sp-runtime = { workspace = true, features = [ "std" ] }
 # Cumulus
 cumulus-pallet-parachain-system = { workspace = true }
 
+# Polkadot
+polkadot-parachain = { workspace = true }
+
 [features]
 default = [ "std" ]
 std = [
+	"cumulus-pallet-parachain-system/std",
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",

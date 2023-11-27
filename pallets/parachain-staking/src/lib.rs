@@ -82,7 +82,6 @@ pub mod pallet {
 	};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
-	use cumulus_pallet_parachain_system::Pallet as parachain_system;
 	use frame_support::fail;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
@@ -115,7 +114,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + cumulus_pallet_parachain_system::Config {
+	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// The currency type
@@ -182,6 +181,8 @@ pub mod pallet {
 		/// Handler to notify the runtime when a new round begin.
 		/// If you don't need it, you can specify the type `()`.
 		type OnNewRound: OnNewRound;
+		/// Get the last relay chain block number to use as clocktime
+		type RelayChainBlockNumberProvider: RelayChainBlockNumberProvider;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 		/// Maximum candidates
@@ -452,7 +453,7 @@ pub mod pallet {
 			let mut weight = T::WeightInfo::base_on_initialize();
 
 			// Fetch relay block number from previous round
-			let relay_block = parachain_system::<T>::last_relay_block_number();
+			let relay_block = T::RelayChainBlockNumberProvider::last_relay_block_number();
 
 			let mut round = <Round<T>>::get();
 			if round.should_update(relay_block.into()) {

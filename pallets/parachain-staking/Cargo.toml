@@ -9,6 +9,9 @@ version = "3.0.0"
 log = { workspace = true }
 serde = { workspace = true }
 
+# Polkadot
+polkadot-parachain = { workspace = true }
+
 # Substrate
 frame-benchmarking = { workspace = true, optional = true }
 frame-support = { workspace = true }
@@ -19,14 +22,12 @@ sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 substrate-fixed = { workspace = true }
 
-# Cumulus
-cumulus-pallet-parachain-system = { workspace = true }
-
 # Nimbus
 nimbus-primitives = { workspace = true }
 
 [dev-dependencies]
 pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
+cumulus-pallet-parachain-system = { workspace = true }
 similar-asserts = { workspace = true }
 sp-core = { workspace = true, features = [ "std" ] }
 sp-io = { workspace = true, features = [ "std" ] }

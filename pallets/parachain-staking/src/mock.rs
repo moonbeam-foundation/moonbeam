@@ -18,7 +18,7 @@
 use crate as pallet_parachain_staking;
 use crate::{
 	pallet, AwardedPts, Config, Event as ParachainStakingEvent, InflationInfo, Points, Range,
-	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	RelayChainBlockNumberProvider, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use block_author::BlockAuthor as BlockAuthorMap;
 use frame_support::{
@@ -27,6 +27,7 @@ use frame_support::{
 	weights::{constants::RocksDbWeight, Weight},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
+use polkadot_parachain::primitives::RelayChainBlockNumber;
 use sp_core::H256;
 use sp_io;
 use sp_runtime::BuildStorage;
@@ -138,6 +139,14 @@ parameter_types! {
 	pub const MinDelegation: u128 = 3;
 	pub const MaxCandidates: u32 = 200;
 }
+
+pub struct ParachainSystemRelayProvider;
+impl RelayChainBlockNumberProvider for ParachainSystemRelayProvider {
+	fn last_relay_block_number() -> RelayChainBlockNumber {
+		cumulus_pallet_parachain_system::Pallet::<Test>::last_relay_block_number()
+	}
+}
+
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -161,6 +170,7 @@ impl Config for Test {
 	type PayoutCollatorReward = ();
 	type OnInactiveCollator = ();
 	type OnNewRound = ();
+	type RelayChainBlockNumberProvider = ParachainSystemRelayProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
 }

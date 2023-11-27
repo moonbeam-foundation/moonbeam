@@ -70,9 +70,12 @@ use pallet_evm::{
 	FeeCalculator, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
-pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
+pub use pallet_parachain_staking::{
+	weights::WeightInfo, InflationInfo, Range, RelayChainBlockNumberProvider,
+};
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use polkadot_parachain::primitives::RelayChainBlockNumber;
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
@@ -726,6 +729,13 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 type MonetaryGovernanceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
+pub struct ParachainSystemRelayProvider;
+impl RelayChainBlockNumberProvider for ParachainSystemRelayProvider {
+	fn last_relay_block_number() -> RelayChainBlockNumber {
+		cumulus_pallet_parachain_system::Pallet::<Runtime>::last_relay_block_number()
+	}
+}
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -763,6 +773,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
 	type OnInactiveCollator = OnInactiveCollator;
 	type OnNewRound = OnNewRound;
+	type RelayChainBlockNumberProvider = ParachainSystemRelayProvider;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
 }

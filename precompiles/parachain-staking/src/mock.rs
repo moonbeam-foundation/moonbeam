@@ -23,7 +23,10 @@ use frame_support::{
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
-use pallet_parachain_staking::{AwardedPts, InflationInfo, Points, Range};
+use pallet_parachain_staking::{
+	AwardedPts, InflationInfo, Points, Range, RelayChainBlockNumberProvider,
+};
+use polkadot_parachain::primitives::RelayChainBlockNumber;
 use precompile_utils::{
 	precompile_set::*,
 	testing::{Alice, MockAccount},
@@ -195,6 +198,14 @@ parameter_types! {
 	pub const MaxCandidates: u32 = 10;
 	pub BlockAuthor: AccountId = Alice.into();
 }
+
+pub struct ParachainSystemRelayProvider;
+impl RelayChainBlockNumberProvider for ParachainSystemRelayProvider {
+	fn last_relay_block_number() -> RelayChainBlockNumber {
+		cumulus_pallet_parachain_system::Pallet::<Runtime>::last_relay_block_number()
+	}
+}
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -218,6 +229,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type OnCollatorPayout = ();
 	type OnInactiveCollator = ();
 	type OnNewRound = ();
+	type RelayChainBlockNumberProvider = ParachainSystemRelayProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
 }
@@ -324,7 +336,10 @@ impl ExtBuilder {
 		.expect("Parachain Staking's storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
+		ext.execute_with(|| {
+			System::set_block_number(1);
+			increase_last_relay_block_number(1u32);
+		});
 		ext
 	}
 }
@@ -341,6 +356,7 @@ pub(crate) fn roll_to(n: BlockNumber) {
 		Balances::on_finalize(System::block_number());
 		System::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);
+		increase_last_relay_block_number(1u32);
 		System::on_initialize(System::block_number());
 		Balances::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
@@ -359,4 +375,12 @@ pub(crate) fn events() -> Vec<RuntimeEvent> {
 		.into_iter()
 		.map(|r| r.event)
 		.collect::<Vec<_>>()
+}
+
+pub(crate) fn increase_last_relay_block_number(amount: u32) {
+	let last_relay_block = ParachainSystem::last_relay_block_number();
+	frame_support::storage::unhashed::put(
+		&frame_support::storage::storage_prefix(b"ParachainSystem", b"LastRelayChainBlockNumber"),
+		&(last_relay_block + amount),
+	);
 }
