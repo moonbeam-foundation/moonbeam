@@ -144,7 +144,7 @@ describeSuite({
 
         const rawTx = (await createRawTransfer(context as any, randomAddress, 512n, {
           privateKey: ALITH_PRIVATE_KEY,
-          gasPrice: MIN_GAS_PRICE,
+          gasPrice: MIN_GAS_PRICE * 1_000n,
           gas: 21000n,
           txnType: "legacy",
         })) as `0x${string}`;
