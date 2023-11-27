@@ -136,7 +136,7 @@ describeSuite({
 
     it({
       id: "T05",
-      title: "RPC Provider can procude a pending ethereum block",
+      title: "RPC Provider can produce a pending ethereum block",
       test: async function () {
         const randomAccount = generateKeyringPair();
         const randomAddress = randomAccount.address as `0x${string}`;
