@@ -875,6 +875,7 @@ where
 				.ok_or("Fail to format proxy")?;
 		// Fill missing data.
 		for trace in traces.iter_mut() {
+			log::info!("==> trace: {:?}", trace);
 			trace.block_hash = eth_block_hash;
 			trace.block_number = height;
 			trace.transaction_hash = eth_transactions
