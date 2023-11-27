@@ -203,11 +203,10 @@ fn parachain_staking_on_finalize<T: Config>(author: T::AccountId) {
 
 /// Run to end block and author
 fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
-	let total_rounds = round_delay;
+	let total_rounds = round_delay + 1;
 	let round_length = Pallet::<T>::round().length;
 	let mut now = T::RelayChainBlockNumberProvider::last_relay_block_number() + 1;
-	let end = Pallet::<T>::round().first + (round_length * total_rounds);
-	println!("END: {:?}", end.clone());
+	let end = Pallet::<T>::round().first + (round_length.clone() * total_rounds);
 	while now < end {
 		parachain_staking_on_finalize::<T>(author.clone());
 		<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
@@ -219,7 +218,7 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 				b"ParachainSystem",
 				b"LastRelayChainBlockNumber",
 			),
-			&(now + 1u32),
+			&(now),
 		);
 		<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
 		Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number());

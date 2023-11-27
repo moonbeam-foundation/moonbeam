@@ -1394,8 +1394,6 @@ pub mod pallet {
 			let round_info = <Round<T>>::get();
 			let max_offline_rounds = T::MaxOfflineRounds::get();
 
-			println!("ROUND INFO: {:#?}", round_info.clone());
-
 			ensure!(
 				round_info.current > max_offline_rounds,
 				<Error<T>>::CurrentRoundTooLow
@@ -1425,8 +1423,6 @@ pub mod pallet {
 					inactive_counter = inactive_counter.saturating_add(1);
 				}
 			}
-
-			println!("ROUNDS TO CHECK: {:?}", rounds_to_check);
 
 			if inactive_counter == max_offline_rounds {
 				let _ = T::OnInactiveCollator::on_inactive_collator(
