@@ -541,7 +541,7 @@ pub mod pallet {
 			)?;
 
 			let total_weight_fee_calculation = match total_weight {
-				Unlimited => WEIGHT_FEE_CALCULATION,
+				Unlimited => MAX_WEIGHT,
 				Limited(x) => x,
 			};
 
@@ -633,7 +633,7 @@ pub mod pallet {
 			)?;
 
 			let total_weight_fee_calculation = match total_weight {
-				Unlimited => WEIGHT_FEE_CALCULATION,
+				Unlimited => MAX_WEIGHT,
 				Limited(x) => x,
 			};
 
@@ -765,7 +765,7 @@ pub mod pallet {
 			)?;
 
 			let total_weight_fee_calculation = match total_weight {
-				Unlimited => WEIGHT_FEE_CALCULATION,
+				Unlimited => MAX_WEIGHT,
 				Limited(x) => x,
 			};
 
@@ -912,7 +912,7 @@ pub mod pallet {
 			)?;
 
 			let total_weight_fee_calculation = match total_weight {
-				Unlimited => WEIGHT_FEE_CALCULATION,
+				Unlimited => MAX_WEIGHT,
 				Limited(x) => x,
 			};
 
