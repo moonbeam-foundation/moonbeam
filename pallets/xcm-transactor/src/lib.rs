@@ -293,7 +293,7 @@ pub mod pallet {
 	/// The amount of ref_time and proof_size to use for fee calculation if
 	/// we are dealing with an Unlimited variant inside 'overall_weight' field
 	/// of 'TransactWeights' struct.
-	pub const WEIGHT_FEE_CALCULATION: Weight = Weight::from_parts(10_000_000_000, 100_000);
+	pub const MAX_WEIGHT: Weight = Weight::from_parts(100_000_000_000, 100_000);
 
 	/// Since we are using pallet-utility for account derivation (through AsDerivative),
 	/// we need to provide an index for the account derivation. This storage item stores the index

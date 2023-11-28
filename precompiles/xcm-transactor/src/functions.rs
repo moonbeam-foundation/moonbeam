@@ -584,7 +584,7 @@ where
 
 		let inner_call: Vec<_> = inner_call.into();
 
-		let maybe_overall_weight_limited = match overall_weight.ref_time() {
+		let overall_weight_limit = match overall_weight.ref_time() {
 			u64::MAX => Unlimited,
 			_ => Limited(overall_weight),
 		};
@@ -604,7 +604,7 @@ where
 			inner_call,
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(maybe_overall_weight_limited),
+				overall_weight: Some(overall_weight_limit),
 			},
 			refund,
 		};
@@ -642,7 +642,7 @@ where
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
 
-		let maybe_overall_weight_limited = match overall_weight.ref_time() {
+		let overall_weight_limit = match overall_weight.ref_time() {
 			u64::MAX => Unlimited,
 			_ => Limited(overall_weight),
 		};
@@ -659,7 +659,7 @@ where
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(maybe_overall_weight_limited),
+				overall_weight: Some(overall_weight_limit),
 			},
 			inner_call,
 			refund,
@@ -682,7 +682,7 @@ where
 	) -> EvmResult {
 		let call: Vec<_> = call.into();
 
-		let maybe_overall_weight_limited = match overall_weight.ref_time() {
+		let overall_weight_limit = match overall_weight.ref_time() {
 			u64::MAX => Unlimited,
 			_ => Limited(overall_weight),
 		};
@@ -700,7 +700,7 @@ where
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(maybe_overall_weight_limited),
+				overall_weight: Some(overall_weight_limit),
 			},
 			refund,
 			call,
@@ -735,7 +735,7 @@ where
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
 
-		let maybe_overall_weight_limited = match overall_weight.ref_time() {
+		let overall_weight_limit = match overall_weight.ref_time() {
 			u64::MAX => Unlimited,
 			_ => Limited(overall_weight),
 		};
@@ -751,7 +751,7 @@ where
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(maybe_overall_weight_limited),
+				overall_weight: Some(overall_weight_limit),
 			},
 			refund,
 			call,
