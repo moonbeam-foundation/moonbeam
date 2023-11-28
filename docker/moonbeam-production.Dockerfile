@@ -12,7 +12,7 @@ WORKDIR /
 
 RUN echo "*** Installing Basic dependencies ***"
 RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificates
-RUN apt install --assume-yes git clang curl libssl-dev llvm libudev-dev make protobuf-compiler
+RUN apt install --assume-yes git clang curl libssl-dev llvm libudev-dev make protobuf-compiler pkg-config
 
 RUN set -e
 
