@@ -808,6 +808,10 @@
 <a href="#808" id="808">808</a>
 <a href="#809" id="809">809</a>
 <a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1266,6 +1270,10 @@
 						pallet_ethereum::CurrentTransactionStatuses::&lt;Runtime&gt;::get()
 					)
 				 }
+
+				 <span class="kw">fn </span>initialize_pending_block(header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header) {
+					pallet_randomness::vrf::using_fake_vrf(|| Executive::initialize_block(header))
+				}
 			}
 
 			<span class="kw">impl </span>fp_rpc::ConvertTransactionRuntimeApi&lt;Block&gt; <span class="kw">for </span>Runtime {
