@@ -755,7 +755,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
 	/// Minimum stake required to be reserved to be a candidate
-	type MinCandidateStk = ConstU128<{ 10000 * currency::MOVR * currency::SUPPLY_FACTOR }>;
+	type MinCandidateStk = ConstU128<{ 500 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegation = ConstU128<{ 5 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	type BlockAuthor = AuthorInherent;
@@ -1739,7 +1739,7 @@ mod tests {
 		// staking minimums
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCandidateStk, u128),
-			Balance::from(10 * KILOMOVR)
+			Balance::from(500 * MOVR)
 		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinDelegation, u128),

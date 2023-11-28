@@ -29,6 +29,7 @@
       "name": "zombie_moonbeam",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbeam*"],
+      "multiThreads": false,
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
@@ -37,6 +38,41 @@
           "configPath": "./configs/zombieMoonbeam.json"
         }
       }
+    },
+    {
+      "name": "zombie_moonbeam_rpc",
+      "testFileDir": ["suites/para-rpc"],
+      "include": ["**/*moonbeam*", "**/*common*"],
+      "runScripts": ["download-polkadot.sh"],
+      "foundation": {
+        "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieMoonbeamRpc.json"
+        }
+      },
+      "connections": [
+        {
+          "name": "ethers",
+          "type": "ethers",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "parachain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "relaychain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:33356"]
+        }
+      ]
     },
     {
       "name": "zombie_moonbase",
@@ -50,6 +86,41 @@
           "configPath": "./configs/zombieAlphanet.json"
         }
       }
+    },
+    {
+      "name": "zombie_moonbase_rpc",
+      "testFileDir": ["suites/para-rpc"],
+      "include": ["**/*moonbase*", "**/*common*"],
+      "runScripts": ["download-polkadot.sh"],
+      "foundation": {
+        "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieAlphanetRpc.json"
+        }
+      },
+      "connections": [
+        {
+          "name": "ethers",
+          "type": "ethers",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "parachain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "relaychain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:33356"]
+        }
+      ]
     },
     {
       "name": "zombie_common",
@@ -310,7 +381,7 @@
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
       ],
       "multiThreads": true,
-      "envVars": ["DEBUG_COLORS=1", "max-old-space-size=12288"],
+      "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["basic", "html", "json"],
       "reportFile": { "json": "./tmp/testResults.json" },
       "foundation": {
