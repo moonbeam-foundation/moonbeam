@@ -19,7 +19,7 @@ env:
 
 jobs:
   set-tags:
-    runs-on: ubuntu-latest
+    runs-on: bare-metal
     steps:
       - name: Check commands 
         id: check-git-ref
