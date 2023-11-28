@@ -4,7 +4,7 @@ authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.34.0"
+version = "0.34.1"
 
 [dependencies]
 ansi_term = { workspace = true }
@@ -14,18 +14,18 @@ bip32 = { workspace = true }
 derive_more = { workspace = true }
 exit-future = { workspace = true }
 flume = { workspace = true }
-futures = { workspace = true, features = [ "compat" ] }
+futures = { workspace = true, features = ["compat"] }
 hex-literal = { workspace = true }
-jsonrpsee = { workspace = true, features = [ "macros", "server" ] }
-libsecp256k1 = { workspace = true, features = [ "hmac" ] }
+jsonrpsee = { workspace = true, features = ["macros", "server"] }
+libsecp256k1 = { workspace = true, features = ["hmac"] }
 log = { workspace = true }
 maplit = { workspace = true }
 parking_lot = { workspace = true }
-serde = { workspace = true, features = [ "derive" ] }
+serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 sha3 = { workspace = true }
 tiny-bip39 = { workspace = true }
-tokio = { workspace = true, features = [ "macros", "sync" ] }
+tokio = { workspace = true, features = ["macros", "sync"] }
 trie-root = { workspace = true }
 
 # Moonbeam
@@ -52,8 +52,8 @@ moonbeam-runtime = { workspace = true, optional = true }
 moonriver-runtime = { workspace = true, optional = true }
 
 # Substrate
-frame-system-rpc-runtime-api = { workspace = true, features = [ "std" ] }
-pallet-transaction-payment = { workspace = true, features = [ "std" ] }
+frame-system-rpc-runtime-api = { workspace = true, features = ["std"] }
+pallet-transaction-payment = { workspace = true, features = ["std"] }
 pallet-transaction-payment-rpc = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = [
 	"std",
@@ -81,33 +81,36 @@ sc-telemetry = { workspace = true }
 sc-tracing = { workspace = true }
 sc-transaction-pool = { workspace = true }
 sc-transaction-pool-api = { workspace = true }
-sp-api = { workspace = true, features = [ "std" ] }
-sp-block-builder = { workspace = true, features = [ "std" ] }
+sp-api = { workspace = true, features = ["std"] }
+sp-block-builder = { workspace = true, features = ["std"] }
 sp-blockchain = { workspace = true }
 sp-consensus = { workspace = true }
-sp-core = { workspace = true, features = [ "std" ] }
-sp-inherents = { workspace = true, features = [ "std" ] }
-sp-io = { workspace = true, features = [ "std" ] }
-sp-keystore = { workspace = true, features = [ "std" ] }
-sp-offchain = { workspace = true, features = [ "std" ] }
-sp-runtime = { workspace = true, features = [ "std" ] }
-sp-session = { workspace = true, features = [ "std" ] }
-sp-storage = { workspace = true, features = [ "std" ] }
-sp-timestamp = { workspace = true, features = [ "std" ] }
-sp-transaction-pool = { workspace = true, features = [ "std" ] }
-sp-trie = { workspace = true, features = [ "std" ] }
+sp-core = { workspace = true, features = ["std"] }
+sp-inherents = { workspace = true, features = ["std"] }
+sp-io = { workspace = true, features = ["std"] }
+sp-keystore = { workspace = true, features = ["std"] }
+sp-offchain = { workspace = true, features = ["std"] }
+sp-runtime = { workspace = true, features = ["std"] }
+sp-session = { workspace = true, features = ["std"] }
+sp-storage = { workspace = true, features = ["std"] }
+sp-timestamp = { workspace = true, features = ["std"] }
+sp-transaction-pool = { workspace = true, features = ["std"] }
+sp-trie = { workspace = true, features = ["std"] }
 substrate-frame-rpc-system = { workspace = true }
 substrate-prometheus-endpoint = { workspace = true }
 
 # Frontier
 fc-consensus = { workspace = true }
 fc-db = { workspace = true }
-fc-mapping-sync = { workspace = true, features = [ "sql" ] }
-fc-rpc = { workspace = true, features = [ "rpc-binary-search-estimate", "txpool" ] }
+fc-mapping-sync = { workspace = true, features = ["sql"] }
+fc-rpc = { workspace = true, features = [
+	"rpc-binary-search-estimate",
+	"txpool",
+] }
 fc-rpc-core = { workspace = true }
-fp-consensus = { workspace = true, features = [ "std" ] }
-fp-rpc = { workspace = true, features = [ "std" ] }
-fp-storage = { workspace = true, features = [ "std" ] }
+fp-consensus = { workspace = true, features = ["std"] }
+fp-rpc = { workspace = true, features = ["std"] }
+fp-storage = { workspace = true, features = ["std"] }
 pallet-ethereum = { workspace = true, features = [
 	"forbid-evm-reentrancy",
 	"std",
@@ -140,7 +143,7 @@ polkadot-service = { workspace = true }
 xcm = { workspace = true }
 
 # Benchmarking
-frame-benchmarking = { workspace = true, features = [ "std" ] }
+frame-benchmarking = { workspace = true, features = ["std"] }
 frame-benchmarking-cli = { workspace = true }
 
 [dev-dependencies]
@@ -154,7 +157,7 @@ tempfile = { workspace = true }
 polkadot-runtime-common = { workspace = true }
 
 # Substrate dev-dependencies
-pallet-sudo = { workspace = true, features = [ "std" ] }
+pallet-sudo = { workspace = true, features = ["std"] }
 substrate-test-client = { workspace = true }
 substrate-test-runtime = { workspace = true }
 substrate-test-runtime-client = { workspace = true }
@@ -172,22 +175,16 @@ default = [
 	"westend-native",
 ]
 
-kusama-native = [
-	"polkadot-cli/kusama-native",
-	"polkadot-service/kusama-native",
-]
-rococo-native = [
-	"polkadot-cli/rococo-native",
-	"polkadot-service/rococo-native",
-]
+kusama-native = ["polkadot-cli/kusama-native", "polkadot-service/kusama-native"]
+rococo-native = ["polkadot-cli/rococo-native", "polkadot-service/rococo-native"]
 westend-native = [
 	"polkadot-cli/westend-native",
 	"polkadot-service/westend-native",
 ]
 
-moonbase-native = [ "moonbase-runtime", "westend-native" ]
-moonbeam-native = [ "moonbeam-runtime" ]
-moonriver-native = [ "moonriver-runtime" ]
+moonbase-native = ["moonbase-runtime", "westend-native"]
+moonbeam-native = ["moonbeam-runtime"]
+moonriver-native = ["moonriver-runtime"]
 
 test-spec = []
 
@@ -201,7 +198,7 @@ runtime-benchmarks = [
 	"pallet-ethereum/runtime-benchmarks",
 ]
 
-try-runtime = [ "moonbase-runtime", "moonbase-runtime/try-runtime" ]
+try-runtime = ["moonbase-runtime", "moonbase-runtime/try-runtime"]
 
 moonbase-runtime-benchmarks = [
 	"moonbase-native",
