@@ -45,7 +45,7 @@
       "include": ["**/*moonbeam*", "**/*common*"],
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
-        "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbeam_runtime.compact.compressed.wasm",
+        "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
         "type": "zombie",
         "zombieSpec": {
           "configPath": "./configs/zombieMoonbeamRpc.json"
