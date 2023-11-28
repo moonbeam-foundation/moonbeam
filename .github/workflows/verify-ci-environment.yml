@@ -1,0 +1,27 @@
+name: Verify CI environment
+
+# Using a single file workflow is the preferred solution for our CI over workflow_runs.
+# 1. It generates only 1 action item in the list making it more readable
+# 2. It includes the PR/Commit text in the action item
+# 3. Artifacts are not available between workflows.
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner_id:
+        description: The runner id to check the enviroment for 
+        required: false
+        default: ""
+
+env:
+  NODE_OPTIONS: "--max-old-space-size=12288"
+  CARGO_TERM_COLOR: always
+
+jobs:
+  set-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check commands 
+        id: check-git-ref
+        run: |
+          pkg-config --version
