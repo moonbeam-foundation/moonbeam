@@ -456,6 +456,10 @@ macro_rules! impl_runtime_apis_plus_common {
 						pallet_ethereum::CurrentTransactionStatuses::<Runtime>::get()
 					)
 				 }
+
+				 fn initialize_pending_block(header: &<Block as BlockT>::Header) {
+					pallet_randomness::vrf::using_fake_vrf(|| Executive::initialize_block(header))
+				}
 			}
 
 			impl fp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {
