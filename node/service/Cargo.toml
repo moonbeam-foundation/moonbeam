@@ -164,7 +164,6 @@ substrate-build-script-utils = { workspace = true }
 
 [features]
 default = [
-	"kusama-native",
 	"moonbase-native",
 	"moonbeam-native",
 	"moonriver-native",
@@ -172,10 +171,6 @@ default = [
 	"westend-native",
 ]
 
-kusama-native = [
-	"polkadot-cli/kusama-native",
-	"polkadot-service/kusama-native",
-]
 rococo-native = [
 	"polkadot-cli/rococo-native",
 	"polkadot-service/rococo-native",
