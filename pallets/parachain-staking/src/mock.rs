@@ -118,12 +118,12 @@ impl pallet_balances::Config for Test {
 	type MaxFreezes = ();
 }
 impl block_author::Config for Test {}
-const GENESIS_BLOCKS_PER_ROUND: BlockNumber = 5;
+const GENESIS_BLOCKS_PER_ROUND: BlockNumber = 10;
 const GENESIS_COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const GENESIS_PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 const GENESIS_NUM_SELECTED_CANDIDATES: u32 = 5;
 parameter_types! {
-	pub const MinBlocksPerRound: u32 = 3;
+	pub const MinBlocksPerRound: u32 = 6;
 	pub const MaxOfflineRounds: u32 = 1;
 	pub const LeaveCandidatesDelay: u32 = 2;
 	pub const CandidateBondLessDelay: u32 = 2;
@@ -295,7 +295,7 @@ fn roll_one_block() -> BlockNumber {
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
-	increase_last_relay_block_number(1u32);
+	increase_last_relay_block_number(2u32);
 	System::reset_events();
 	System::on_initialize(System::block_number());
 	Balances::on_initialize(System::block_number());
@@ -306,7 +306,7 @@ fn roll_one_block() -> BlockNumber {
 /// Rolls to the desired block. Returns the number of blocks played.
 pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
 	let mut num_blocks = 0;
-	let mut block = ParachainSystem::last_relay_block_number();
+	let mut block = System::block_number();
 	while block < n {
 		block = roll_one_block();
 		num_blocks += 1;
@@ -316,7 +316,7 @@ pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
 
 /// Rolls desired number of blocks. Returns the final block.
 pub(crate) fn roll_blocks(num_blocks: u32) -> BlockNumber {
-	let mut block = ParachainSystem::last_relay_block_number();
+	let mut block = System::block_number();
 	for _ in 0..num_blocks {
 		block = roll_one_block();
 	}
@@ -327,7 +327,7 @@ pub(crate) fn roll_blocks(num_blocks: u32) -> BlockNumber {
 /// This will complete the block in which the round change occurs.
 /// Returns the number of blocks played.
 pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
-	let block = (round - 1) * GENESIS_BLOCKS_PER_ROUND;
+	let block = (((round - 1) * GENESIS_BLOCKS_PER_ROUND) / 2) + 1;
 	roll_to(block)
 }
 
@@ -337,7 +337,7 @@ pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
 /// Note: Depending on the desired test case, it might be needed to call
 /// 'increase_last_relay_block_number()' after this function.
 pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
-	let block = round * GENESIS_BLOCKS_PER_ROUND - 1;
+	let block = (round * GENESIS_BLOCKS_PER_ROUND) / 2;
 	roll_to(block)
 }
 
@@ -701,40 +701,46 @@ pub mod block_author {
 #[test]
 fn roll_to_round_begin_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		// these tests assume blocks-per-round of 5, as established by GENESIS_BLOCKS_PER_ROUND
+		// these tests assume blocks-per-round of 10, as established by GENESIS_BLOCKS_PER_ROUND
 		assert_eq!(System::block_number(), 1); // we start on block 1
 
 		let num_blocks = roll_to_round_begin(1);
 		assert_eq!(System::block_number(), 1); // no-op, we're already on this round
 		assert_eq!(num_blocks, 0);
+		assert_eq!(ParachainSystem::last_relay_block_number(), 1);
 
 		let num_blocks = roll_to_round_begin(2);
-		assert_eq!(System::block_number(), 5);
-		assert_eq!(num_blocks, 4);
+		assert_eq!(System::block_number(), 6);
+		assert_eq!(num_blocks, 5);
+		assert_eq!(ParachainSystem::last_relay_block_number(), 11);
 
 		let num_blocks = roll_to_round_begin(3);
-		assert_eq!(System::block_number(), 10);
+		assert_eq!(System::block_number(), 11);
 		assert_eq!(num_blocks, 5);
+		assert_eq!(ParachainSystem::last_relay_block_number(), 21);
 	});
 }
 
 #[test]
 fn roll_to_round_end_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		// these tests assume blocks-per-round of 5, as established by GENESIS_BLOCKS_PER_ROUND
+		// these tests assume blocks-per-round of 10, as established by GENESIS_BLOCKS_PER_ROUND
 		assert_eq!(System::block_number(), 1); // we start on block 1
 
 		let num_blocks = roll_to_round_end(1);
-		assert_eq!(System::block_number(), 4);
-		assert_eq!(num_blocks, 3);
+		assert_eq!(System::block_number(), 5);
+		assert_eq!(num_blocks, 4);
+		assert_eq!(ParachainSystem::last_relay_block_number(), 9);
 
 		let num_blocks = roll_to_round_end(2);
-		assert_eq!(System::block_number(), 9);
+		assert_eq!(System::block_number(), 10);
 		assert_eq!(num_blocks, 5);
+		assert_eq!(ParachainSystem::last_relay_block_number(), 19);
 
 		let num_blocks = roll_to_round_end(3);
-		assert_eq!(System::block_number(), 14);
+		assert_eq!(System::block_number(), 15);
 		assert_eq!(num_blocks, 5);
+		assert_eq!(ParachainSystem::last_relay_block_number(), 29);
 	});
 }
 

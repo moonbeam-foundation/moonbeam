@@ -85,7 +85,7 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 			}
 		}
 
-		increase_last_relay_block_number(1u32);
+		increase_last_relay_block_number(2u32);
 
 		// Initialize the new block
 		AuthorInherent::on_initialize(System::block_number());
@@ -250,7 +250,7 @@ impl ExtBuilder {
 			inflation_config: self.inflation,
 			collator_commission: Perbill::from_percent(20),
 			parachain_bond_reserve_percent: Percent::from_percent(30),
-			blocks_per_round: 2 * HOURS,
+			blocks_per_round: 4 * HOURS, // we double it due to the relay clocktime
 			num_selected_candidates: 8,
 		}
 		.assimilate_storage(&mut t)
@@ -331,6 +331,7 @@ impl ExtBuilder {
 				}
 			}
 			System::set_block_number(1);
+			increase_last_relay_block_number(1);
 		});
 		ext
 	}
@@ -365,7 +366,7 @@ pub fn set_parachain_inherent_data() {
 	let (relay_parent_storage_root, relay_chain_state) =
 		RelayStateSproofBuilder::default().into_state_root_and_proof();
 	let vfp = PersistedValidationData {
-		relay_parent_number: 1u32,
+		relay_parent_number: ParachainSystem::last_relay_block_number() + 2,
 		relay_parent_storage_root,
 		..Default::default()
 	};
