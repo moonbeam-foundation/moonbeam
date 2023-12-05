@@ -7233,6 +7233,7 @@ dependencies = [
  "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-gmp",
+ "pallet-evm-precompile-identity",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-preimage",
