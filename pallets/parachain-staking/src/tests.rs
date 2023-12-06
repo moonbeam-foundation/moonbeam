@@ -8696,7 +8696,7 @@ fn test_on_initialize_weights() {
 			let weight = ParachainStaking::on_initialize(1);
 
 			// TODO: build this with proper db reads/writes
-			assert_eq!(Weight::from_parts(277168000, 0), weight);
+			assert_eq!(Weight::from_parts(302168000, 0), weight);
 
 			// roll to the end of the round, then run on_init again, we should see round change...
 			roll_to_round_end(3);
@@ -8710,7 +8710,7 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2479547135;
+			let expected_on_init = 2504547135;
 			assert_eq!(Weight::from_parts(expected_on_init, 32562), weight);
 
 			// assemble weight manually to ensure it is well understood
@@ -8726,6 +8726,8 @@ fn test_on_initialize_weights() {
 				num_avg_delegations,
 			)
 			.ref_time();
+			// RelayChainBlockNumberProvider read
+			expected_weight += RocksDbWeight::get().reads_writes(1, 0).ref_time();
 			// Round and Staked writes, done in on-round-change code block inside on_initialize()
 			expected_weight += RocksDbWeight::get().reads_writes(0, 2).ref_time();
 			// more reads/writes manually accounted for for on_finalize

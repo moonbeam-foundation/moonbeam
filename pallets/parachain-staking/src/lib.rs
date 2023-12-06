@@ -456,6 +456,9 @@ pub mod pallet {
 			// Fetch relay block number from previous round
 			let relay_block = T::RelayChainBlockNumberProvider::last_relay_block_number();
 
+			// account for RelayChainBlockNumberProvider read
+			weight = weight.saturating_add(T::DbWeight::get().reads_writes(1, 0));
+
 			let mut round = <Round<T>>::get();
 			if round.should_update(relay_block.into()) {
 				// mutate round

@@ -321,7 +321,6 @@ impl ExtBuilder {
 				}
 			}
 			System::set_block_number(1);
-			increase_last_relay_block_number(1u32);
 		});
 		ext
 	}
@@ -356,7 +355,7 @@ pub fn set_parachain_inherent_data() {
 	let (relay_parent_storage_root, relay_chain_state) =
 		RelayStateSproofBuilder::default().into_state_root_and_proof();
 	let vfp = PersistedValidationData {
-		relay_parent_number: ParachainSystem::last_relay_block_number() + 2,
+		relay_parent_number: 1u32,
 		relay_parent_storage_root,
 		..Default::default()
 	};
