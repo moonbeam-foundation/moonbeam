@@ -29,7 +29,7 @@ mod tests;
 
 use ethereum_types::{H160, U256};
 use fp_ethereum::{TransactionData, ValidatedTransaction};
-use fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransactionError};
+use fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, TransactionValidationError};
 use frame_support::{
 	dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo},
 	traits::{EnsureOrigin, Get},
@@ -93,7 +93,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_timestamp::Config + pallet_evm::Config {
 		/// Invalid transaction error
-		type InvalidEvmTransactionError: From<InvalidEvmTransactionError>;
+		type InvalidEvmTransactionError: From<TransactionValidationError>;
 		/// Handler for applying an already validated transaction
 		type ValidatedTransaction: ValidatedTransaction;
 		/// Origin for xcm transact
