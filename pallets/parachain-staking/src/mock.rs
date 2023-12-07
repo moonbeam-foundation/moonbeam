@@ -709,6 +709,18 @@ fn roll_to_round_begin_works() {
 		assert_eq!(num_blocks, 0);
 		assert_eq!(ParachainSystem::last_relay_block_number(), 1);
 
+		// As we are using the relay chain block as clocktime for rounds,
+		// the first para-block of round 2 must be 6 due to:
+		//
+		// Parablock 1 - relay block 1
+		// Parablock 2 - relay block 3
+		// Parablock 3 - relay block 5
+		// Parablock 4 - relay block 7
+		// Parablock 5 - relay block 9
+		//
+		// We have mocked 10 blocks (relay-blocks) per-round,
+		// so in para-block 6 -> relay block 11.
+		// 11(now) - 1(first) = 10 so the round updates.
 		let num_blocks = roll_to_round_begin(2);
 		assert_eq!(System::block_number(), 6);
 		assert_eq!(num_blocks, 5);

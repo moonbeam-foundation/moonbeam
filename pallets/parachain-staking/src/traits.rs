@@ -90,9 +90,3 @@ impl<Runtime: crate::Config> OnInactiveCollator<Runtime> for () {
 pub trait RelayChainBlockNumberProvider {
 	fn last_relay_block_number() -> RelayChainBlockNumber;
 }
-
-impl RelayChainBlockNumberProvider for () {
-	fn last_relay_block_number() -> RelayChainBlockNumber {
-		0u32
-	}
-}
