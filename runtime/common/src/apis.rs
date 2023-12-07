@@ -504,7 +504,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					parent_header: &<Block as BlockT>::Header
 				) -> bool {
 					let block_number = parent_header.number + 1;
-					let last_relay_block = cumulus_pallet_parachain_system::Pallet::<Self>::last_relay_block_number();
+					let last_relay_block =
+						cumulus_pallet_parachain_system::Pallet::<Self>::last_relay_block_number();
 
 					// The Moonbeam runtimes use an entropy source that needs to do some accounting
 					// work during block initialization. Therefore we initialize it here to match
