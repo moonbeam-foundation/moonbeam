@@ -265,6 +265,12 @@
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -298,6 +304,7 @@
 <span class="kw">use </span>pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_democracy::DemocracyPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_gmp::GmpPrecompile;
+<span class="kw">use </span>pallet_evm_precompile_identity::IdentityPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_modexp::Modexp;
 <span class="kw">use </span>pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_preimage::PreimagePrecompile;
@@ -503,6 +510,11 @@
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2071</span>&gt;,
 		XcmTransactorPrecompileV3&lt;R&gt;,
+		(CallableByContract, CallableByPrecompile),
+	&gt;,
+	PrecompileAt&lt;
+		AddressU64&lt;<span class="number">2072</span>&gt;,
+		IdentityPrecompile&lt;R&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
 );
