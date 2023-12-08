@@ -1822,6 +1822,8 @@
 <a href="#1822" id="1822">1822</a>
 <a href="#1823" id="1823">1823</a>
 <a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2926,6 +2928,7 @@
 			RuntimeCall::Treasury(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::XcmTransactor(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::EthereumXcm(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) =&gt; <span class="bool-val">false</span>,
 			<span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
 		}
 	}
@@ -2983,6 +2986,7 @@
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			</span>RuntimeCall::EVM(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) =&gt; <span class="bool-val">false</span>,
 			<span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
 		}
 	}
