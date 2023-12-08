@@ -246,6 +246,7 @@ pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/f
 # Frontier (client)
 fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0" }
 fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0" }
+fc-api = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0" }
 fc-mapping-sync = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0" }
 fc-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", features = [
 	"rpc-binary-search-estimate",

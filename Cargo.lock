@@ -6665,6 +6665,7 @@ dependencies = [
 name = "moonbeam-finality-rpc"
 version = "0.1.0"
 dependencies = [
+ "fc-api",
  "fc-db",
  "fc-rpc",
  "futures 0.3.29",
@@ -6769,6 +6770,7 @@ version = "0.1.0"
 dependencies = [
  "ethereum",
  "ethereum-types",
+ "fc-api",
  "fc-consensus",
  "fc-db",
  "fc-rpc",
