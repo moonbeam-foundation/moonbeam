@@ -29,7 +29,7 @@ import type {
   EthTransactionStatus,
   TransactionV2,
 } from "@polkadot/types/interfaces/eth";
-import type { EvmAccount, EvmCallInfo, EvmCreateInfo } from "@polkadot/types/interfaces/evm";
+import type { EvmAccount, EvmCallInfoV2, EvmCreateInfoV2 } from "@polkadot/types/interfaces/evm";
 import type { Extrinsic } from "@polkadot/types/interfaces/extrinsics";
 import type { OpaqueMetadata } from "@polkadot/types/interfaces/metadata";
 import type { FeeDetails, RuntimeDispatchInfo } from "@polkadot/types/interfaces/payment";
@@ -214,7 +214,7 @@ declare module "@polkadot/api-base/types/calls" {
       /** Generic call */
       [key: string]: DecoratedCallBase<ApiType>;
     };
-    /** 0x582211f65bb14b89/4 */
+    /** 0x582211f65bb14b89/5 */
     ethereumRuntimeRPCApi: {
       /** Returns pallet_evm::Accounts by address. */
       accountBasic: AugmentedCall<
@@ -247,7 +247,7 @@ declare module "@polkadot/api-base/types/calls" {
             | Uint8Array
             | Vec<ITuple<[H160, Vec<H256>]>>
             | [H160 | string | Uint8Array, Vec<H256> | (H256 | string | Uint8Array)[]][]
-        ) => Observable<Result<EvmCallInfo, DispatchError>>
+        ) => Observable<Result<EvmCallInfoV2, DispatchError>>
       >;
       /** Returns runtime defined pallet_evm::ChainId. */
       chainId: AugmentedCall<ApiType, () => Observable<u64>>;
@@ -269,7 +269,7 @@ declare module "@polkadot/api-base/types/calls" {
             | Uint8Array
             | Vec<ITuple<[H160, Vec<H256>]>>
             | [H160 | string | Uint8Array, Vec<H256> | (H256 | string | Uint8Array)[]][]
-        ) => Observable<Result<EvmCreateInfo, DispatchError>>
+        ) => Observable<Result<EvmCreateInfoV2, DispatchError>>
       >;
       /** Return all the current data for a block in a single runtime call. */
       currentAll: AugmentedCall<
@@ -309,10 +309,17 @@ declare module "@polkadot/api-base/types/calls" {
       /** Generic call */
       [key: string]: DecoratedCallBase<ApiType>;
     };
-    /** 0x37e397fc7c91f5e4/1 */
+    /** 0x37e397fc7c91f5e4/2 */
     metadata: {
       /** Returns the metadata of a runtime */
       metadata: AugmentedCall<ApiType, () => Observable<OpaqueMetadata>>;
+      /** Returns the metadata at a given version. */
+      metadataAtVersion: AugmentedCall<
+        ApiType,
+        (version: u32 | AnyNumber | Uint8Array) => Observable<Option<OpaqueMetadata>>
+      >;
+      /** Returns the supported metadata versions. */
+      metadataVersions: AugmentedCall<ApiType, () => Observable<Vec<u32>>>;
       /** Generic call */
       [key: string]: DecoratedCallBase<ApiType>;
     };
@@ -393,7 +400,7 @@ declare module "@polkadot/api-base/types/calls" {
       /** Generic call */
       [key: string]: DecoratedCallBase<ApiType>;
     };
-    /** 0x37c8bb1350a9a2a8/3 */
+    /** 0x37c8bb1350a9a2a8/4 */
     transactionPaymentApi: {
       /** The transaction fee details */
       queryFeeDetails: AugmentedCall<

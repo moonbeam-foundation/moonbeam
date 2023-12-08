@@ -2,7 +2,7 @@
 name = "moonbeam-cli"
 authors = { workspace = true }
 edition = "2021"
-version = "0.34.0"
+version = "0.35.0"
 
 [dependencies]
 clap = { workspace = true, features = [ "derive" ] }
@@ -15,7 +15,9 @@ moonbeam-service = { workspace = true }
 
 # Substrate
 frame-benchmarking-cli = { workspace = true }
+sc-chain-spec = { workspace = true }
 sc-cli = { workspace = true }
+sc-client-api = { workspace = true }
 sc-consensus-grandpa = { workspace = true }
 sc-service = { workspace = true }
 sc-sysinfo = { workspace = true }

@@ -1,8 +1,8 @@
-// import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, alith } from "@moonwall/util";
+import { ALITH_ADDRESS } from "@moonwall/util";
 import { BN } from "@polkadot/util";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
+import { DispatchError } from "@polkadot/types/interfaces";
 
 describeSuite({
   id: "D0110",
@@ -11,7 +11,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     it({
       id: "T01",
-      title: "should be able to register a local asset",
+      title: "should fail to register a local asset",
       test: async function () {
         const parachainOne = context.polkadotJs();
         // registerForeignAsset
@@ -25,21 +25,10 @@ describeSuite({
             )
           )
         );
-        // Look for assetId in events
-        const assetId: string = result?.events
-          .find(({ event: { section } }) => section.toString() === "assetManager")
-          .event.data[0].toHex()
-          .replace(/,/g, "");
+        const err = result?.events.find(({ event: { section } }) => section.toString() === "sudo")
+          ?.event.data[0] as DispatchError;
 
-        // check asset in storage
-        const registeredAsset = (await parachainOne.query.localAssets.asset(assetId)).unwrap();
-        expect(registeredAsset.owner.toString()).to.eq(ALITH_ADDRESS);
-
-        // check deposit in storage
-        const deposit = (await parachainOne.query.assetManager.localAssetDeposit(assetId)).unwrap();
-        expect(deposit.creator.toString()).to.eq(ALITH_ADDRESS);
-
-        await verifyLatestBlockFees(context);
+        expect(err.type).eq("Err");
       },
     });
   },

@@ -1,23 +1,22 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { GLMR, generateKeyringPair } from "@moonwall/util";
-import { XcmVersionedXcm } from "@polkadot/types/lookup";
+import { StagingXcmVersionedXcm } from "@polkadot/types/lookup";
 import { u8aToHex } from "@polkadot/util";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { descendOriginFromAddress20 } from "../../../helpers/xcm.js";
+import { expectEVMResult, descendOriginFromAddress20 } from "../../../helpers";
 
 export const CLEAR_ORIGIN_WEIGHT = 5_194_000n;
 
 describeSuite({
-  id: "D2578",
+  id: "D2582",
   title: "Precompiles - xcm utils",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "allows to retrieve parent-based ML account",
       test: async function () {
-        const multilocation: [number, {}[]] = [1, []];
+        const multilocation: [number, any[]] = [1, []];
         const expectedAddress = u8aToHex(new Uint8Array([...new TextEncoder().encode("Parent")]))
           .padEnd(42, "0")
           .toLowerCase();
@@ -42,7 +41,7 @@ describeSuite({
         const x2_parachain_id = "000007D0";
         const paraId = context.polkadotJs().createType("ParaId", 2000);
 
-        const multilocation: [number, {}[]] = [
+        const multilocation: [number, any[]] = [
           1,
           // Parachain(2000)
           [x2_parachain_asset_enum_selector + x2_parachain_id],
@@ -78,7 +77,7 @@ describeSuite({
         // NetworkId::Any
         const account20NetworkId = "00";
 
-        const multilocation: [number, {}[]] =
+        const multilocation: [number, any[]] =
           // Destination as multilocation
           [
             // one parent
@@ -161,7 +160,7 @@ describeSuite({
       id: "T06",
       title: "allows to execute a custom xcm message",
       test: async function () {
-        let random = generateKeyringPair();
+        const random = generateKeyringPair();
 
         const transferCall = context.polkadotJs().tx.balances.transfer(random.address, 1n * GLMR);
         const transferCallEncoded = transferCall?.method.toHex();
@@ -180,9 +179,9 @@ describeSuite({
           ],
         };
 
-        const receivedMessage: XcmVersionedXcm = context
+        const receivedMessage: StagingXcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage) as any;
+          .createType("StagingXcmVersionedXcm", xcmMessage) as any;
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "XcmUtils",
@@ -206,7 +205,7 @@ describeSuite({
       id: "T07",
       title: "allows to execute a custom xcm evm to evm, but reentrancy forbids",
       test: async function () {
-        let random = generateKeyringPair();
+        const random = generateKeyringPair();
 
         const ethTx = {
           V1: {
@@ -241,9 +240,9 @@ describeSuite({
           ],
         };
 
-        const receivedMessage: XcmVersionedXcm = context
+        const receivedMessage: StagingXcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage);
+          .createType("StagingXcmVersionedXcm", xcmMessage);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "XcmUtils",
@@ -275,7 +274,7 @@ describeSuite({
 
         // Sending it here
         // { parents:0, Here}
-        const destHere: [number, {}[]] = [
+        const destHere: [number, any[]] = [
           // one parents
           0,
           // Here
@@ -284,7 +283,7 @@ describeSuite({
 
         // Sending it with the representation of the para as seen by the relay
         // { parents:0, parachain(0)}
-        const destParaRelayView: [number, {}[]] = [
+        const destParaRelayView: [number, any[]] = [
           // one parents
           0,
           // Parachain(0)
@@ -293,7 +292,7 @@ describeSuite({
 
         // Sending it with the representation of the para as seen by other paras
         // { parents:1, parachain(0)}
-        const destParaOtherParaView: [number, {}[]] = [
+        const destParaOtherParaView: [number, any[]] = [
           // one parents
           1,
           // Parachain(0)
@@ -308,9 +307,9 @@ describeSuite({
           ],
         };
 
-        const sentMessage: XcmVersionedXcm = context
+        const sentMessage: StagingXcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage) as any;
+          .createType("StagingXcmVersionedXcm", xcmMessage) as any;
 
         // Try sending it with local view
         const localRawTxn = await context.writePrecompile!({
@@ -404,9 +403,9 @@ describeSuite({
           ],
         };
 
-        const sentMessage: XcmVersionedXcm = context
+        const sentMessage: StagingXcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage);
+          .createType("StagingXcmVersionedXcm", xcmMessage);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "XcmUtils",

@@ -1,10 +1,5 @@
 import "@moonbeam-network/api-augment";
-import {
-  describeSuite,
-  expect,
-  TransactionTypes,
-  deployCreateCompiledContract,
-} from "@moonwall/cli";
+import { describeSuite, expect, TransactionTypes } from "@moonwall/cli";
 import { encodeFunctionData } from "viem";
 import { createEthersTransaction } from "@moonwall/util";
 
@@ -18,15 +13,15 @@ describeSuite({
     const TestParameters = [
       {
         loop: 1n,
-        gas: 43779n,
+        gas: 43_774n,
       },
       {
         loop: 500n,
-        gas: 242393n,
+        gas: 241_390n,
       },
       {
         loop: 600n,
-        gas: 282193n,
+        gas: 280_990n,
       },
     ];
 

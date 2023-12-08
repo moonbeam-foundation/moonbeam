@@ -1,10 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
-
+import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
-import { RELAY_SOURCE_LOCATION, relayAssetMetadata } from "../../../helpers/assets.js";
-import { registerForeignAsset, XcmFragment } from "../../../helpers/xcm.js";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
+import {
+  RELAY_SOURCE_LOCATION,
+  XcmFragment,
+  registerForeignAsset,
+  relayAssetMetadata,
+} from "../../../helpers";
 
 // Twelve decimal places in the moonbase relay chain's token
 const RELAY_TOKEN = 1_000_000_000_000n;
@@ -59,7 +62,7 @@ describeSuite({
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage);
+          .createType("StagingXcmVersionedXcm", xcmMessage);
 
         const totalMessage = [...receivedMessage.toU8a()];
 

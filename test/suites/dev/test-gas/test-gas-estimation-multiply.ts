@@ -32,7 +32,7 @@ describeSuite({
           value: 0n,
         });
 
-        expect(estimatedGas).to.equal(22364n);
+        expect(estimatedGas).to.equal(22363n);
       },
     });
 
@@ -47,12 +47,12 @@ describeSuite({
           functionName: "multiply",
           maxPriorityFeePerGas: 0n,
           args: [3],
-          //@ts-expect-error
+          //@ts-expect-error expected
           gasLimit: undefined,
           value: 0n,
         });
 
-        expect(estimatedGas).to.equal(22364n);
+        expect(estimatedGas).to.equal(22363n);
       },
     });
 
@@ -66,12 +66,12 @@ describeSuite({
           address: multiAddress,
           functionName: "multiply",
           args: [3],
-          //@ts-expect-error
-          gasLimit: 22364n,
+          // @ts-expect-error expected
+          gasLimit: 22363n,
           value: 0n,
         });
 
-        expect(estimatedGas).to.equal(22364n);
+        expect(estimatedGas).to.equal(22363n);
       },
     });
 
@@ -86,12 +86,12 @@ describeSuite({
           functionName: "multiply",
           maxPriorityFeePerGas: 0n,
           args: [3],
-          //@ts-expect-error
-          gasLimit: 22364n,
+          // @ts-expect-error expected
+          gasLimit: 22363n,
           value: 0n,
         });
 
-        expect(estimatedGas).to.equal(22364n);
+        expect(estimatedGas).to.equal(22363n);
       },
     });
 

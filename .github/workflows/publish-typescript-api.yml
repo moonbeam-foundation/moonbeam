@@ -14,17 +14,17 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.sha }}
-      - name: Use Node.js 18.x
+      - name: Use Node.js 20.10
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 20.10
       - name: Build typescript API
         run: |
           cd typescript-api
           npm install
           npm run build
       - name: Publish typescript API
-        uses: JS-DevTools/npm-publish@v1
+        uses: JS-DevTools/npm-publish@v2
         with:
           token: ${{ secrets.NPM_TOKEN }}
           package: typescript-api/build/package.json
@@ -37,14 +37,14 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.sha }}
-      - name: Use Node.js 18.x
+      - name: Use Node.js 20.10
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 20.10
       - name: Upgrade polkadotjs for tests
         run: |
-          cd tests
-          npm install @polkadot/api@latest
+          cd test
+          pnpm install @polkadot/api@latest
       - name: Upgrade polkadotjs for tools
         run: |
           cd tools

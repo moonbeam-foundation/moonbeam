@@ -20,11 +20,12 @@ use crate::{
 };
 use precompile_utils::{prelude::*, testing::*};
 
-use frame_support::{assert_ok, dispatch::Dispatchable};
+use frame_support::assert_ok;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_referenda::Call as ReferendaCall;
 
 use sp_core::{Hasher, H256, U256};
+use sp_runtime::traits::Dispatchable;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
 	PrecompilesValue::get()

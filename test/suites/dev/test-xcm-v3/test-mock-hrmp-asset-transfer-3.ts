@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { alith } from "@moonwall/util";
 import {
   registerForeignAsset,
@@ -95,7 +94,7 @@ describeSuite({
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, statemint_para_id, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 

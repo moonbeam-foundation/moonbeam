@@ -2,13 +2,13 @@ import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
 import { BN, bnToHex } from "@polkadot/util";
-import { expectOk } from "../../../helpers/expect.js";
 import {
   RawXcmMessage,
   XcmFragment,
   descendOriginFromAddress20,
+  expectOk,
   injectHrmpMessageAndSeal,
-} from "../../../helpers/xcm.js";
+} from "../../../helpers";
 
 // Below should be the calculation:
 // export const TARGET_FILL_AMOUNT =
@@ -178,7 +178,7 @@ describeSuite({
           .as_v2();
 
         await injectHrmpMessageAndSeal(context, 1, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 
@@ -281,7 +281,7 @@ describeSuite({
           .as_v2();
 
         await injectHrmpMessageAndSeal(context, 1, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 

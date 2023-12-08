@@ -19,35 +19,30 @@ use super::*;
 use crate as proxy_companion;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, GenesisBuild, InstanceFilter},
+	traits::{Everything, InstanceFilter},
 	weights::Weight,
 };
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	Perbill,
+	BuildStorage, Perbill,
 };
 
 //TODO use TestAccount once it is in a common place (currently it lives with democracy precompiles)
 pub type AccountId = u64;
 pub type Balance = u128;
-pub type BlockNumber = u32;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
-	pub enum Test where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
+	pub enum Test
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
-		ProxyGenesisCompanion: proxy_companion::{Pallet, Config<T>},
+		System: frame_system,
+		Balances: pallet_balances,
+		Proxy: pallet_proxy,
+		ProxyGenesisCompanion: proxy_companion,
 	}
 );
 
@@ -62,14 +57,13 @@ impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
-	type Index = u64;
-	type BlockNumber = BlockNumber;
+	type Nonce = u64;
+	type Block = Block;
 	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -98,7 +92,7 @@ impl pallet_balances::Config for Test {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
-	type HoldIdentifier = ();
+	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
@@ -190,8 +184,8 @@ impl ExtBuilder {
 	}
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+		let mut t = frame_system::GenesisConfig::<Test>::default()
+			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
 		pallet_balances::GenesisConfig::<Test> {
@@ -200,19 +194,18 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
 
-		GenesisBuild::<Test>::assimilate_storage(
-			&proxy_companion::GenesisConfig {
-				// Here we add the trivial proxy type and default duration.
-				// This saves the test writer from having to always specify this.
-				proxies: self
-					.proxies
-					.into_iter()
-					.map(|(a, b)| (a, b, (), 100))
-					.collect(),
-			},
-			&mut t,
-		)
-		.expect("Pallet proxy genesis companion storage can be assimilated");
+		let genesis_config = proxy_companion::GenesisConfig::<Test> {
+			// Here we add the trivial proxy type and default duration.
+			// This saves the test writer from having to always specify this.
+			proxies: self
+				.proxies
+				.into_iter()
+				.map(|(a, b)| (a, b, (), 100))
+				.collect(),
+		};
+		genesis_config
+			.assimilate_storage(&mut t)
+			.expect("Pallet proxy genesis companion storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));

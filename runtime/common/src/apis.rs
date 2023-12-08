@@ -456,6 +456,10 @@ macro_rules! impl_runtime_apis_plus_common {
 						pallet_ethereum::CurrentTransactionStatuses::<Runtime>::get()
 					)
 				 }
+
+				 fn initialize_pending_block(header: &<Block as BlockT>::Header) {
+					pallet_randomness::vrf::using_fake_vrf(|| Executive::initialize_block(header))
+				}
 			}
 
 			impl fp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {
@@ -591,9 +595,8 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn dispatch_benchmark(
 					config: frame_benchmarking::BenchmarkConfig,
 				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-					use frame_benchmarking::{
-						add_benchmark, BenchmarkBatch, Benchmarking, TrackedStorageKey,
-					};
+					use frame_benchmarking::{add_benchmark, BenchmarkBatch, Benchmarking};
+					use frame_support::traits::TrackedStorageKey;
 
 					use xcm::latest::prelude::*;
 					use frame_benchmarking::BenchmarkError;
@@ -702,6 +705,10 @@ macro_rules! impl_runtime_apis_plus_common {
 
 						fn unlockable_asset()
 							-> Result<(MultiLocation, MultiLocation, MultiAsset), BenchmarkError> {
+							Err(BenchmarkError::Skip)
+						}
+
+						fn alias_origin() -> Result<(MultiLocation, MultiLocation), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 					}

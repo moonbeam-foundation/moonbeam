@@ -19,12 +19,13 @@ use crate::mock::{
 	Precompiles, PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
 };
 use core::str::from_utf8;
+use frame_support::assert_ok;
 use frame_support::sp_runtime::Percent;
-use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_parachain_staking::Event as StakingEvent;
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::{H160, U256};
+use sp_runtime::traits::Dispatchable;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -684,7 +685,7 @@ fn delegation_request_is_pending_works() {
 						candidate: Address(Alice.into()),
 					},
 				)
-				.expect_cost(287044881)
+				.expect_cost(285706258)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -752,7 +753,7 @@ fn candidate_exit_is_pending_works() {
 						candidate_count: 1.into(),
 					},
 				)
-				.expect_cost(281799929)
+				.expect_cost(284172042)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -816,7 +817,7 @@ fn candidate_request_is_pending_works() {
 					Precompile1,
 					PCall::schedule_candidate_bond_less { less: 0.into() },
 				)
-				.expect_cost(146541000)
+				.expect_cost(146735000)
 				.expect_no_logs()
 				.execute_returns(());
 

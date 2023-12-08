@@ -1,10 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
-import { u8aToHex } from "@polkadot/util";
-
+import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { GLMR } from "@moonwall/util";
-import { XcmFragment, weightMessage } from "../../../helpers/xcm.js";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
+import { u8aToHex } from "@polkadot/util";
+import { XcmFragment, weightMessage } from "../../../helpers";
 
 describeSuite({
   id: "D3407",
@@ -61,7 +60,7 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .createType("XcmVersionedXcm", new XcmFragment(config).withdraw_asset().as_v2())
+            .createType("StagingXcmVersionedXcm", new XcmFragment(config).withdraw_asset().as_v2())
         );
 
         // How much does the buyExecution weight?
@@ -69,7 +68,7 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .createType("XcmVersionedXcm", new XcmFragment(config).buy_execution().as_v2())
+            .createType("StagingXcmVersionedXcm", new XcmFragment(config).buy_execution().as_v2())
         );
 
         // How much does the refundSurplus weight?
@@ -79,7 +78,7 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .createType("XcmVersionedXcm", new XcmFragment(config).refund_surplus().as_v2())
+            .createType("StagingXcmVersionedXcm", new XcmFragment(config).refund_surplus().as_v2())
         );
 
         const refundSurplusPerMessage =
@@ -93,7 +92,7 @@ describeSuite({
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage);
+          .createType("StagingXcmVersionedXcm", xcmMessage);
 
         const totalMessage = [...receivedMessage.toU8a()];
 

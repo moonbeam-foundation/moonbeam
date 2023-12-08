@@ -24,10 +24,10 @@ use common::*;
 use fp_evm::{Context, IsPrecompileResult};
 use frame_support::{
 	assert_noop, assert_ok,
-	dispatch::{DispatchClass, Dispatchable},
+	dispatch::DispatchClass,
 	traits::{
-		fungible::Inspect, fungibles::Inspect as FungiblesInspect, Currency as CurrencyT,
-		EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait,
+		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, PalletInfo, StorageInfo,
+		StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
@@ -36,10 +36,9 @@ use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonriver_runtime::{
 	asset_config::LocalAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve},
-	AssetId, CouncilCollective, LocalAssets, OpenTechCommitteeCollective, PolkadotXcm, Precompiles,
+	AssetId, CouncilCollective, OpenTechCommitteeCollective, PolkadotXcm, Precompiles,
 	RuntimeBlockWeights, TechCommitteeCollective, TransactionPayment, TreasuryCouncilCollective,
 	XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -57,12 +56,15 @@ use precompile_utils::{
 };
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
-use sp_runtime::{traits::Convert, DispatchError, ModuleError, TokenError};
+use sp_runtime::{
+	traits::{Convert, Dispatchable},
+	BuildStorage, DispatchError, ModuleError,
+};
 use std::str::from_utf8;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAssets, VersionedMultiLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
-use xcm_executor::traits::Convert as XcmConvert;
+use xcm_executor::traits::ConvertLocation;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
 type CrowdloanRewardsPCall =
@@ -505,7 +507,7 @@ fn verify_pallet_indices() {
 
 #[test]
 fn verify_reserved_indices() {
-	use frame_support::metadata::*;
+	use frame_metadata::*;
 	let metadata = moonriver_runtime::Runtime::metadata();
 	let metadata = match metadata.1 {
 		RuntimeMetadata::V14(metadata) => metadata,
@@ -1305,8 +1307,8 @@ fn run_with_system_weight<F>(w: Weight, mut assertions: F)
 where
 	F: FnMut() -> (),
 {
-	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-		.build_storage::<Runtime>()
+	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
 		.unwrap()
 		.into();
 	t.execute_with(|| {
@@ -1724,450 +1726,6 @@ fn local_assets_cannot_be_create_by_signed_origins() {
 }
 
 #[test]
-fn asset_erc20_precompiles_supply_and_balance() {
-	ExtBuilder::default()
-		.with_local_assets(vec![(
-			0u128,
-			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
-			AccountId::from(ALICE),
-		)])
-		.build()
-		.execute_with(|| {
-			// Assert the asset has been created with the correct supply
-			assert_eq!(LocalAssets::total_supply(0u128), 1_000 * MOVR);
-
-			// Convert the assetId to its corresponding precompile address
-			let asset_precompile_address =
-				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128);
-
-			// The expected result for both total supply and balance of is the same, as only Alice
-			// holds balance.
-
-			// Access totalSupply through precompile.
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					asset_precompile_address,
-					LocalAssetsPCall::total_supply {},
-				)
-				.expect_cost(3000)
-				.expect_no_logs()
-				.execute_returns(U256::from(1000 * MOVR));
-
-			// Access balanceOf through precompile
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					asset_precompile_address,
-					LocalAssetsPCall::balance_of {
-						who: Address(ALICE.into()),
-					},
-				)
-				.expect_cost(3000)
-				.expect_no_logs()
-				.execute_returns(U256::from(1000 * MOVR));
-		});
-}
-
-#[test]
-fn asset_erc20_precompiles_transfer() {
-	ExtBuilder::default()
-		.with_local_assets(vec![(
-			0u128,
-			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
-			AccountId::from(ALICE),
-		)])
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.build()
-		.execute_with(|| {
-			let asset_precompile_address =
-				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128);
-
-			// Transfer tokens from Aice to Bob, 400 MOVR.
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					asset_precompile_address,
-					LocalAssetsPCall::transfer {
-						to: Address(BOB.into()),
-						value: { 400 * MOVR }.into(),
-					},
-				)
-				.expect_cost(24792)
-				.expect_log(log3(
-					asset_precompile_address,
-					SELECTOR_LOG_TRANSFER,
-					H160::from(ALICE),
-					H160::from(BOB),
-					solidity::encode_event_data(U256::from(400 * MOVR)),
-				))
-				.execute_returns(true);
-
-			// Make sure BOB has 400 MOVR
-			Precompiles::new()
-				.prepare_test(
-					BOB,
-					asset_precompile_address,
-					LocalAssetsPCall::balance_of {
-						who: Address(BOB.into()),
-					},
-				)
-				.expect_cost(3000)
-				.expect_no_logs()
-				.execute_returns(U256::from(400 * MOVR));
-		});
-}
-
-#[test]
-fn asset_erc20_precompiles_approve() {
-	ExtBuilder::default()
-		.with_local_assets(vec![(
-			0u128,
-			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
-			AccountId::from(ALICE),
-		)])
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.build()
-		.execute_with(|| {
-			let asset_precompile_address =
-				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128);
-
-			// Aprove Bob for spending 400 MOVR from Alice
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					asset_precompile_address,
-					LocalAssetsPCall::approve {
-						spender: Address(BOB.into()),
-						value: { 400 * MOVR }.into(),
-					},
-				)
-				.expect_cost(15219)
-				.expect_log(log3(
-					asset_precompile_address,
-					SELECTOR_LOG_APPROVAL,
-					H160::from(ALICE),
-					H160::from(BOB),
-					solidity::encode_event_data(U256::from(400 * MOVR)),
-				))
-				.execute_returns(true);
-
-			// Transfer tokens from Alice to Charlie by using BOB as origin
-			Precompiles::new()
-				.prepare_test(
-					BOB,
-					asset_precompile_address,
-					LocalAssetsPCall::transfer_from {
-						from: Address(ALICE.into()),
-						to: Address(CHARLIE.into()),
-						value: { 400 * MOVR }.into(),
-					},
-				)
-				.expect_cost(29997)
-				.expect_log(log3(
-					asset_precompile_address,
-					SELECTOR_LOG_TRANSFER,
-					H160::from(ALICE),
-					H160::from(CHARLIE),
-					solidity::encode_event_data(U256::from(400 * MOVR)),
-				))
-				.execute_returns(true);
-
-			// Make sure CHARLIE has 400 MOVR
-			Precompiles::new()
-				.prepare_test(
-					CHARLIE,
-					asset_precompile_address,
-					LocalAssetsPCall::balance_of {
-						who: Address(CHARLIE.into()),
-					},
-				)
-				.expect_cost(3000)
-				.expect_no_logs()
-				.execute_returns(U256::from(400 * MOVR));
-		});
-}
-
-#[test]
-fn asset_erc20_precompiles_mint_burn() {
-	ExtBuilder::default()
-		.with_local_assets(vec![(
-			0u128,
-			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
-			AccountId::from(ALICE),
-		)])
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.build()
-		.execute_with(|| {
-			let asset_precompile_address =
-				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128);
-
-			// Mint 1000 MOVRS to BOB
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					asset_precompile_address,
-					LocalAssetsPCall::mint {
-						to: Address(BOB.into()),
-						value: { 1000 * MOVR }.into(),
-					},
-				)
-				.expect_cost(14334)
-				.expect_log(log3(
-					asset_precompile_address,
-					SELECTOR_LOG_TRANSFER,
-					H160::default(),
-					H160::from(BOB),
-					solidity::encode_event_data(U256::from(1_000 * MOVR)),
-				))
-				.execute_returns(true);
-
-			// Assert the asset has been minted
-			assert_eq!(LocalAssets::total_supply(0u128), 2_000 * MOVR);
-			assert_eq!(
-				LocalAssets::balance(0u128, AccountId::from(BOB)),
-				1_000 * MOVR
-			);
-
-			// Burn tokens
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					asset_precompile_address,
-					LocalAssetsPCall::burn {
-						from: Address(BOB.into()),
-						value: { 500 * MOVR }.into(),
-					},
-				)
-				.expect_cost(14517)
-				.expect_log(log3(
-					asset_precompile_address,
-					SELECTOR_LOG_TRANSFER,
-					H160::from(BOB),
-					H160::default(),
-					solidity::encode_event_data(U256::from(500 * MOVR)),
-				))
-				.execute_returns(true);
-
-			// Assert the asset has been burnt
-			assert_eq!(LocalAssets::total_supply(0u128), 1_500 * MOVR);
-			assert_eq!(
-				LocalAssets::balance(0u128, AccountId::from(BOB)),
-				500 * MOVR
-			);
-		});
-}
-
-#[test]
-fn asset_erc20_precompiles_freeze_thaw_account() {
-	ExtBuilder::default()
-		.with_local_assets(vec![(
-			0u128,
-			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
-			AccountId::from(ALICE),
-		)])
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.build()
-		.execute_with(|| {
-			let asset_precompile_address =
-				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128);
-
-			// Freeze Account
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					asset_precompile_address,
-					LocalAssetsPCall::freeze {
-						account: Address(ALICE.into()),
-					},
-				)
-				.expect_cost(8464)
-				.expect_no_logs()
-				.execute_returns(true);
-
-			// Assert account is frozen
-			assert_eq!(
-				LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1).into_result(false),
-				Err(TokenError::Frozen.into())
-			);
-
-			// Thaw Account
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					asset_precompile_address,
-					LocalAssetsPCall::thaw {
-						account: Address(ALICE.into()),
-					},
-				)
-				.expect_cost(8465)
-				.expect_no_logs()
-				.execute_returns(true);
-
-			// Assert account is not frozen
-			assert!(LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1)
-				.into_result(false)
-				.is_ok());
-		});
-}
-
-#[test]
-fn asset_erc20_precompiles_freeze_thaw_asset() {
-	ExtBuilder::default()
-		.with_local_assets(vec![(
-			0u128,
-			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
-			AccountId::from(ALICE),
-		)])
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.build()
-		.execute_with(|| {
-			let asset_precompile_address =
-				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128);
-
-			// Freeze Asset
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					asset_precompile_address,
-					LocalAssetsPCall::freeze_asset {},
-				)
-				.expect_cost(7334)
-				.expect_no_logs()
-				.execute_returns(true);
-
-			// Assert account is frozen
-			assert_eq!(
-				LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1).into_result(false),
-				Err(TokenError::Frozen.into())
-			);
-
-			// Thaw Asset
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					asset_precompile_address,
-					LocalAssetsPCall::thaw_asset {},
-				)
-				.expect_cost(7333)
-				.expect_no_logs()
-				.execute_returns(true);
-
-			// Assert account is not frozen
-			assert!(LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1)
-				.into_result(false)
-				.is_ok());
-		});
-}
-
-#[test]
-fn asset_erc20_precompiles_freeze_transfer_ownership() {
-	ExtBuilder::default()
-		.with_local_assets(vec![(
-			0u128,
-			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
-			AccountId::from(ALICE),
-		)])
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.build()
-		.execute_with(|| {
-			let asset_precompile_address =
-				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128);
-
-			// Transfer ownerhsip of an asset
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					asset_precompile_address,
-					LocalAssetsPCall::transfer_ownership {
-						owner: Address(BOB.into()),
-					},
-				)
-				.expect_cost(8378)
-				.expect_no_logs()
-				.execute_returns(true);
-
-			// No clear way of testing BOB is new owner, other than doing a priviledged function
-			// e.g., transfer_ownership again
-			assert_ok!(LocalAssets::transfer_ownership(
-				origin_of(AccountId::from(BOB)),
-				0u128.into(),
-				AccountId::from(ALICE)
-			));
-		});
-}
-
-#[test]
-fn asset_erc20_precompiles_freeze_set_team() {
-	ExtBuilder::default()
-		.with_local_assets(vec![(
-			0u128,
-			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
-			AccountId::from(ALICE),
-		)])
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.build()
-		.execute_with(|| {
-			let asset_precompile_address =
-				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128);
-
-			// Set Bob as issuer, admin and freezer
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					asset_precompile_address,
-					LocalAssetsPCall::set_team {
-						admin: Address(BOB.into()),
-						issuer: Address(BOB.into()),
-						freezer: Address(BOB.into()),
-					},
-				)
-				.expect_cost(7335)
-				.expect_no_logs()
-				.execute_returns(true);
-
-			// Bob should be able to mint, freeze, and thaw
-			assert_ok!(LocalAssets::mint(
-				origin_of(AccountId::from(BOB)),
-				0u128.into(),
-				AccountId::from(BOB),
-				1_000 * MOVR
-			));
-			assert_ok!(LocalAssets::freeze(
-				origin_of(AccountId::from(BOB)),
-				0u128.into(),
-				AccountId::from(ALICE)
-			));
-			assert_ok!(LocalAssets::thaw(
-				origin_of(AccountId::from(BOB)),
-				0u128.into(),
-				AccountId::from(ALICE)
-			));
-		});
-}
-
-#[test]
 fn xcm_asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
@@ -2264,7 +1822,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(23792)
+				.expect_cost(23763)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2328,7 +1886,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(14219)
+				.expect_cost(14210)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -2349,7 +1907,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(28997)
+				.expect_cost(28991)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2650,7 +2208,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(17185)
+				.expect_cost(17149)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2753,7 +2311,7 @@ fn test_xcm_utils_ml_tp_account() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
 		let expected_address_parent: H160 =
-			ParentIsPreset::<AccountId>::convert_ref(MultiLocation::parent())
+			ParentIsPreset::<AccountId>::convert_location(&MultiLocation::parent())
 				.unwrap()
 				.into();
 
@@ -2771,8 +2329,8 @@ fn test_xcm_utils_ml_tp_account() {
 
 		let parachain_2000_multilocation = MultiLocation::new(1, X1(Parachain(2000)));
 		let expected_address_parachain: H160 =
-			SiblingParachainConvertsVia::<Sibling, AccountId>::convert_ref(
-				parachain_2000_multilocation.clone(),
+			SiblingParachainConvertsVia::<Sibling, AccountId>::convert_location(
+				&parachain_2000_multilocation,
 			)
 			.unwrap()
 			.into();
@@ -2800,8 +2358,8 @@ fn test_xcm_utils_ml_tp_account() {
 			),
 		);
 		let expected_address_alice_in_parachain_2000: H160 =
-			xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<AccountId>::convert_ref(
-				alice_in_parachain_2000_multilocation.clone(),
+			xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<AccountId>::convert_location(
+				&alice_in_parachain_2000_multilocation,
 			)
 			.unwrap()
 			.into();
@@ -2867,7 +2425,7 @@ fn precompile_existence() {
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
 			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
-			2069, 2070,
+			2069, 2070, 2071, 2072,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -3092,8 +2650,8 @@ mod fee_tests {
 	where
 		F: FnMut() -> (),
 	{
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.unwrap()
 			.into();
 		t.execute_with(|| {
@@ -3141,8 +2699,8 @@ mod fee_tests {
 			+ LengthToFeeImpl::weight_to_fee(&(Weight::from_parts(extrinsic_len as u64, 1)))
 			+ tip;
 
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
 			.unwrap()
 			.into();
 		t.execute_with(|| {

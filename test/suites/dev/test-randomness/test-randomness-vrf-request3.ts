@@ -7,9 +7,7 @@ import {
   GLMR,
   alith,
 } from "@moonwall/util";
-import { expectEVMResult, extractRevertReason } from "../../../helpers/eth-transactions.js";
-import { SIMPLE_SALT } from "../../../helpers/randomness.js";
-import { jumpBlocks } from "../../../helpers/block.js";
+import { expectEVMResult, extractRevertReason, SIMPLE_SALT, jumpBlocks } from "../../../helpers";
 
 describeSuite({
   id: "D2719",

@@ -1,141 +1,95 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
-import { alith, baltathar } from "@moonwall/util";
+import { alith } from "@moonwall/util";
 import {
+  registerForeignAsset,
   XcmFragment,
   RawXcmMessage,
   injectHrmpMessageAndSeal,
-  sovereignAccountOfSibling,
 } from "../../../helpers/xcm.js";
 
-const foreign_para_id = 2000;
+const palletId = "0x6D6f646c617373746d6E67720000000000000000";
+const statemint_para_id = 1001;
+const statemint_assets_pallet_instance = 50;
+
+const assetMetadata = {
+  name: "FOREIGN",
+  symbol: "FOREIGN",
+  decimals: 12n,
+  isFrozen: false,
+};
+const STATEMINT_LOCATION = {
+  Xcm: {
+    parents: 1,
+    interior: {
+      X3: [
+        { Parachain: statemint_para_id },
+        { PalletInstance: statemint_assets_pallet_instance },
+        { GeneralIndex: 0 },
+      ],
+    },
+  },
+};
 
 describeSuite({
-  id: "D3516",
+  id: "D3517",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let assetId: string;
-    let transferredBalance: bigint;
-    let sovereignAddress: string;
 
     beforeAll(async () => {
-      // registerAsset
-      const { result } = await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.sudo.sudo(
-            context
-              .polkadotJs()
-              .tx.assetManager.registerLocalAsset(
-                baltathar.address,
-                baltathar.address,
-                true,
-                new BN(1)
-              )
-          )
+      // registerForeignAsset
+      const { registeredAssetId, registeredAsset } = await registerForeignAsset(
+        context,
+        STATEMINT_LOCATION,
+        assetMetadata
       );
-
-      const eventsRegister = result?.events;
-
-      // Look for assetId in events
-      const event = eventsRegister!.find(({ event }) =>
-        context.polkadotJs().events.assetManager.LocalAssetRegistered.is(event)
-      )!;
-      assetId = event.event.data.assetId.toHex();
-
-      transferredBalance = 100000000000000n;
-
-      // mint asset
-      await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.localAssets.mint(assetId, alith.address, transferredBalance)
-          .signAsync(baltathar),
-        { allowFailures: false }
-      );
-
-      sovereignAddress = sovereignAccountOfSibling(context, 2000);
-
-      // We first fund parachain 2000 sovreign account
-      await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(sovereignAddress, transferredBalance),
-        { allowFailures: false }
-      );
-
-      // transfer to para Id sovereign to emulate having sent the tokens
-      await context.createBlock(
-        context.polkadotJs().tx.localAssets.transfer(assetId, sovereignAddress, transferredBalance),
-        { allowFailures: false }
-      );
+      assetId = registeredAssetId;
+      expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
     });
 
     it({
       id: "T01",
-      title: "Should NOT receive 10 Local Assets and DEV for fee with old reanchor",
+      title: "Should not receive 10 asset 0 tokens because fee not supported",
       test: async function () {
-        const ownParaId = (await context.polkadotJs().query.parachainInfo.parachainId()).toNumber();
-        const metadata = await context.polkadotJs().rpc.state.getMetadata();
-        const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
-          .index.toNumber();
-
-        const localAssetsPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "LocalAssets")!
-          .index.toNumber();
-
-        // We are charging 100_000_000 weight for every XCM instruction
-        // We are executing 4 instructions
-        // 100_000_000 * 4 * 50000 = 20000000000000
-        // We are charging 20 micro DEV for this operation
-        // The rest should be going to the deposit account
+        // We are going to test that, using one of them as fee payment (assetOne),
+        // we can receive the other
         const xcmMessage = new XcmFragment({
           assets: [
             {
               multilocation: {
                 parents: 1,
-                interior: {
-                  X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
-                },
+                interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0n }] },
               },
-              fungible: transferredBalance,
-            },
-            {
-              multilocation: {
-                parents: 1,
-                interior: {
-                  X2: [{ Parachain: ownParaId }, { PalletInstance: localAssetsPalletIndex }],
-                },
-              },
-              fungible: transferredBalance,
+              fungible: 10000000000000n,
             },
           ],
           weight_limit: {
             refTime: 4000000000n,
             proofSize: 80000n,
           } as any,
-          beneficiary: baltathar.address,
+          beneficiary: alith.address,
         })
-          .withdraw_asset()
+          .reserve_asset_deposited()
           .clear_origin()
           .buy_execution()
           .deposit_asset_v3(2n)
           .as_v3();
 
         // Send an XCM and create block to execute it
-        await injectHrmpMessageAndSeal(context, foreign_para_id, {
-          type: "XcmVersionedXcm",
+        await injectHrmpMessageAndSeal(context, statemint_para_id, {
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 
-        // Old reanchor does not work anymore so no reception of tokens
-        const baltatharLocalTokBalance = await context
+        // Make sure the state has ALITH's foreign parachain tokens
+        const alithAssetZeroBalance = await context
           .polkadotJs()
-          .query.localAssets.account(assetId, baltathar.address);
+          .query.assets.account(assetId, alith.address);
 
-        expect(baltatharLocalTokBalance.isNone).to.eq(true);
+        expect(alithAssetZeroBalance.isNone).to.eq(true);
       },
     });
   },

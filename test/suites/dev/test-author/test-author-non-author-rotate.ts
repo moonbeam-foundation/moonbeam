@@ -7,7 +7,7 @@ import {
   CHARLETH_SESSION_ADDRESS,
 } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
-import { getMappingInfo } from "../../../helpers/common.js";
+import { getMappingInfo } from "../../../helpers";
 
 describeSuite({
   id: "D0206",

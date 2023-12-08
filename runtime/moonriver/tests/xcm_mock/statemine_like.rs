@@ -25,7 +25,7 @@ use frame_system::{EnsureRoot, EnsureSigned};
 
 use sp_core::H256;
 use sp_runtime::{
-	traits::{BlakeTwo256, ConstU32, Hash, IdentityLookup},
+	traits::{ConstU32, Hash, IdentityLookup},
 	AccountId32,
 };
 
@@ -52,7 +52,6 @@ use xcm_simulator::{
 pub type AccountId = AccountId32;
 pub type Balance = u128;
 pub type AssetId = u128;
-pub type BlockNumber = u32;
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
@@ -61,13 +60,12 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
-	type Index = u64;
-	type BlockNumber = BlockNumber;
+	type Nonce = u64;
+	type Block = Block;
 	type Hash = H256;
 	type Hashing = ::sp_runtime::traits::BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type BlockWeights = ();
@@ -101,7 +99,7 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
-	type HoldIdentifier = ();
+	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
@@ -303,6 +301,7 @@ impl Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type Aliasers = Nothing;
 }
 
 /// No local origins on this chain are allowed to dispatch XCM sends/executions.
@@ -538,21 +537,16 @@ impl mock_statemine_prefix::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 }
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-type Block = frame_system::mocking::MockBlock<Runtime>;
+type Block = frame_system::mocking::MockBlockU32<Runtime>;
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
-		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
-		MsgQueue: mock_msg_queue::{Pallet, Storage, Event<T>},
-		Assets: pallet_assets::{Pallet, Storage, Event<T>},
-		PrefixChanger: mock_statemine_prefix::{Pallet, Storage, Event<T>},
+	pub enum Runtime	{
+		System: frame_system,
+		Balances: pallet_balances,
+		PolkadotXcm: pallet_xcm,
+		CumulusXcm: cumulus_pallet_xcm,
+		MsgQueue: mock_msg_queue,
+		Assets: pallet_assets,
+		PrefixChanger: mock_statemine_prefix,
 
 	}
 );

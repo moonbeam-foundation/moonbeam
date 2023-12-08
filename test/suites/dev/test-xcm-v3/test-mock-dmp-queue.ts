@@ -1,10 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
-import { u8aToHex } from "@polkadot/util";
-
+import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { GLMR } from "@moonwall/util";
-import { XcmFragment, weightMessage } from "../../../helpers/xcm.js";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
+import { u8aToHex } from "@polkadot/util";
+import { XcmFragment, weightMessage } from "../../../helpers";
 
 describeSuite({
   id: "D3508",
@@ -61,7 +60,7 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .createType("XcmVersionedXcm", new XcmFragment(config).withdraw_asset().as_v3())
+            .createType("StagingXcmVersionedXcm", new XcmFragment(config).withdraw_asset().as_v3())
         );
 
         // How much does the buyExecution weight?
@@ -69,7 +68,7 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .createType("XcmVersionedXcm", new XcmFragment(config).buy_execution().as_v3())
+            .createType("StagingXcmVersionedXcm", new XcmFragment(config).buy_execution().as_v3())
         );
 
         // How much does the refundSurplus weight?
@@ -79,21 +78,14 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .createType("XcmVersionedXcm", new XcmFragment(config).refund_surplus().as_v3())
+            .createType("StagingXcmVersionedXcm", new XcmFragment(config).refund_surplus().as_v3())
         );
 
-        const refundSurplusPerMessage =
-          (weightPerMessage - withdrawWeight - buyExecutionWeight) / refundSurplusWeight;
-
-        const xcmMessage = new XcmFragment(config)
-          .withdraw_asset()
-          .buy_execution()
-          .refund_surplus(refundSurplusPerMessage)
-          .as_v3();
+        const xcmMessage = new XcmFragment(config).withdraw_asset().buy_execution().as_v3();
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("XcmVersionedXcm", xcmMessage) as any;
+          .createType("StagingXcmVersionedXcm", xcmMessage) as any;
 
         const totalMessage = [...receivedMessage.toU8a()];
 
@@ -151,6 +143,79 @@ describeSuite({
         const pageIndex = await apiAt.query.dmpQueue.pageIndex();
         expect(pageIndex.beginUsed.toBigInt()).to.eq(0n);
         expect(pageIndex.endUsed.toBigInt()).to.eq(0n);
+
+        // Repeat the test with different parameters
+        {
+          const xcmMessage = new XcmFragment(config)
+            .withdraw_asset()
+            .buy_execution(0, 5n)
+            .refund_surplus()
+            .as_v3();
+
+          const receivedMessage: XcmVersionedXcm = context
+            .polkadotJs()
+            .createType("StagingXcmVersionedXcm", xcmMessage) as any;
+
+          const totalMessage = [...receivedMessage.toU8a()];
+
+          // We want these isntructions to fail in BuyExecution. That means
+          // WithdrawAsset needs to work. The only way for this to work
+          // is to fund each sovereign account
+          const sovereignAddress = u8aToHex(
+            new Uint8Array([...new TextEncoder().encode("Parent")])
+          ).padEnd(42, "0");
+
+          // We first fund the parent sovereign account with 1000
+          // we will only withdraw 1, so no problem on this
+          await context.createBlock(
+            context.polkadotJs().tx.balances.transfer(sovereignAddress, 1n * GLMR),
+            { allowFailures: false }
+          );
+
+          // now we start injecting messages
+          // several
+          for (let i = 0; i < numMsgs; i++) {
+            await customDevRpcRequest("xcm_injectDownwardMessage", [totalMessage]);
+          }
+
+          await context.createBlock();
+
+          const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
+          const apiAt = await context.polkadotJs().at(signedBlock.block.header.hash);
+          console.log("signedBlock", signedBlock.block.header.hash.toHex());
+          const allRecords = await apiAt.query.system.events();
+
+          // lets grab at which point the dmp queue was exhausted
+          const exhaustIndex = allRecords.findIndex(({ event }) =>
+            context.polkadotJs().events.dmpQueue.MaxMessagesExhausted.is(event)
+          );
+
+          expect(
+            exhaustIndex,
+            "Index not found where dmpQueue is exhausted"
+          ).to.be.greaterThanOrEqual(0);
+
+          // OnInitialization
+          const eventsExecutedOnInitialization = allRecords.filter(
+            ({ event }, index) =>
+              context.polkadotJs().events.dmpQueue.ExecutedDownward.is(event) &&
+              index < exhaustIndex
+          );
+
+          // OnIdle
+          const eventsExecutedOnIdle = allRecords.filter(
+            ({ event }, index) =>
+              context.polkadotJs().events.dmpQueue.ExecutedDownward.is(event) &&
+              index > exhaustIndex
+          );
+
+          // the test was designed to go half and half
+          expect(eventsExecutedOnInitialization.length).to.be.eq(10);
+          expect(eventsExecutedOnIdle.length).to.be.eq(10);
+          const pageIndex = await apiAt.query.dmpQueue.pageIndex();
+          expect(pageIndex.beginUsed.toBigInt()).to.eq(0n);
+          expect(pageIndex.endUsed.toBigInt()).to.eq(0n);
+        }
       },
     });
   },

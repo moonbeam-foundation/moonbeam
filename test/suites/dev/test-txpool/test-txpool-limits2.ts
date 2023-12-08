@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { createEthersTransaction, sendRawTransaction } from "@moonwall/util";
+import { createEthersTransaction } from "@moonwall/util";
 import { encodeDeployData } from "viem";
 
 describeSuite({
@@ -10,7 +10,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     it({
       id: "T01",
-      title: "should be able to fill a block with 64 contract creations tx",
+      title: "should be able to fill a block with 70 contract creations tx",
       test: async function () {
         const { abi, bytecode } = fetchCompiledContract("MultiplyBy7");
         const deployData = encodeDeployData({
@@ -18,17 +18,21 @@ describeSuite({
           bytecode,
         });
 
-        for (let i = 0; i < 120; i++) {
-          const rawTxn = await createEthersTransaction(context, {
-            data: deployData,
-            nonce: i,
-            gasLimit: 400000n,
-          });
-          await sendRawTransaction(context, rawTxn);
+        const txs = await Promise.all(
+          new Array(120).fill(0).map((_, i) =>
+            createEthersTransaction(context, {
+              data: deployData,
+              nonce: i,
+              gasLimit: 400000n,
+            })
+          )
+        );
+        for (const tx of txs) {
+          await context.viem().sendRawTransaction({ serializedTransaction: tx });
         }
 
         await context.createBlock();
-        expect((await context.viem().getBlock()).transactions.length).toBe(69);
+        expect((await context.viem().getBlock()).transactions.length).toBe(70);
       },
     });
   },

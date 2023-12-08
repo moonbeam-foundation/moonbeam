@@ -83,12 +83,12 @@ describeSuite({
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, statemint_para_id, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 
         // Make sure the state has ALITH's foreign parachain tokens
-        let alith_dot_balance = await context
+        const alith_dot_balance = await context
           .polkadotJs()
           .query.assets.account(assetId, alith.address);
 

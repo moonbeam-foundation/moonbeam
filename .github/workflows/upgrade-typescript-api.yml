@@ -24,10 +24,14 @@ jobs:
           mkdir -p build
           docker cp dummy:/moonbeam/moonbeam build/moonbeam
           docker rm -f dummy
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - name: Use Node.js 20.10
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 20.9.0
+      - name: Use pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Upgrade polkadotjs for moonbeam-types-bundle
         run: |
           cd moonbeam-types-bundle
@@ -43,12 +47,12 @@ jobs:
           cd typescript-api
           ./scripts/runtime-upgrade.sh ${{ github.event.inputs.spec_version }}
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v5
         with:
           base: master
           branch: "typescript-api-${{ github.event.inputs.spec_version }}"
           commit-message: typescript API v0.${{ github.event.inputs.spec_version }}.0"
           draft: true
           title: "Upgrade typescript API for runtime  ${{ github.event.inputs.spec_version }}"
-          reviewers: "librelois,ekenigs,crystalin"
+          reviewers: "librelois,noandrea,timbrinded"
           labels: "B0-silent,D2-notlive"

@@ -17,7 +17,6 @@
 //! Parachain runtime mock.
 
 use frame_support::{
-	codec::MaxEncodedLen,
 	construct_runtime,
 	dispatch::GetDispatchInfo,
 	ensure, parameter_types,
@@ -29,12 +28,13 @@ use frame_support::{
 };
 
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
-use frame_system::{EnsureNever, EnsureRoot};
+use frame_system::{pallet_prelude::BlockNumberFor, EnsureNever, EnsureRoot};
 use orml_traits::parameter_type_with_key;
-use parity_scale_codec::{Decode, Encode};
+use pallet_xcm::migration::v1::VersionUncheckedMigrateToV1;
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::H256;
 use sp_runtime::{
-	traits::{BlakeTwo256, Hash, IdentityLookup, Zero},
+	traits::{BlakeTwo256, Hash, IdentityLookup, MaybeEquivalence, Zero},
 	Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
@@ -67,7 +67,7 @@ use xcm_simulator::{
 pub type AccountId = moonbeam_core_primitives::AccountId;
 pub type Balance = u128;
 pub type AssetId = u128;
-pub type BlockNumber = u32;
+pub type BlockNumber = BlockNumberFor<Runtime>;
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
@@ -76,13 +76,12 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
-	type Index = u64;
-	type BlockNumber = BlockNumber;
+	type Nonce = u64;
+	type Block = Block;
 	type Hash = H256;
 	type Hashing = ::sp_runtime::traits::BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<AccountId>;
-	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type BlockWeights = ();
@@ -116,7 +115,7 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
-	type HoldIdentifier = ();
+	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
@@ -407,6 +406,7 @@ impl Config for XcmConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
+	type Aliasers = Nothing;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -427,7 +427,7 @@ pub struct CurrencyIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomDat
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>>
 	for CurrencyIdtoMultiLocation<AssetXConverter>
 where
-	AssetXConverter: xcm_executor::traits::Convert<MultiLocation, AssetId>,
+	AssetXConverter: MaybeEquivalence<MultiLocation, AssetId>,
 {
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
@@ -435,7 +435,7 @@ where
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
-			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			CurrencyId::ForeignAsset(asset) => AssetXConverter::convert_back(&asset),
 			CurrencyId::LocalAssetReserve(asset) => {
 				let mut location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
@@ -458,8 +458,11 @@ parameter_types! {
 }
 
 parameter_type_with_key! {
-	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
-		Some(u128::MAX)
+	pub ParachainMinFee: |location: MultiLocation| -> Option<u128> {
+		match (location.parents, location.first_interior()) {
+			(1, Some(Parachain(4u32))) => Some(50u128),
+			_ => None,
+		}
 	};
 }
 
@@ -921,7 +924,6 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
-	type HrmpEncoder = MockHrmpEncoder;
 }
 
 parameter_types! {
@@ -1156,34 +1158,29 @@ impl pallet_ethereum_xcm::Config for Runtime {
 	type ControllerOrigin = EnsureRoot<AccountId>;
 }
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-type Block = frame_system::mocking::MockBlock<Runtime>;
+type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		MsgQueue: mock_msg_queue::{Pallet, Storage, Event<T>},
-		XcmVersioner: mock_version_changer::{Pallet, Storage, Event<T>},
+	pub enum Runtime	{
+		System: frame_system,
+		Balances: pallet_balances,
+		MsgQueue: mock_msg_queue,
+		XcmVersioner: mock_version_changer,
 
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
-		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
-		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
-		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>},
-		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
-		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+		PolkadotXcm: pallet_xcm,
+		Assets: pallet_assets,
+		CumulusXcm: cumulus_pallet_xcm,
+		XTokens: orml_xtokens,
+		AssetManager: pallet_asset_manager,
+		XcmTransactor: pallet_xcm_transactor,
+		Treasury: pallet_treasury,
+		LocalAssets: pallet_assets::<Instance1>,
+		Proxy: pallet_proxy,
 
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
-		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
-		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config},
-		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin},
+		Timestamp: pallet_timestamp,
+		EVM: pallet_evm,
+		Ethereum: pallet_ethereum,
+		EthereumXcm: pallet_ethereum_xcm,
 	}
 );
 
@@ -1197,7 +1194,7 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 
 use frame_support::traits::{OnFinalize, OnInitialize, OnRuntimeUpgrade};
 pub(crate) fn on_runtime_upgrade() {
-	PolkadotXcm::on_runtime_upgrade();
+	VersionUncheckedMigrateToV1::<Runtime>::on_runtime_upgrade();
 }
 
 pub(crate) fn para_roll_to(n: BlockNumber) {

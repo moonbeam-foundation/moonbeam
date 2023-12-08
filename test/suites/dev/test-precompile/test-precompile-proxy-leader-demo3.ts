@@ -7,8 +7,7 @@ import {
   CHARLETH_ADDRESS,
   DOROTHY_ADDRESS,
 } from "@moonwall/util";
-import { setupPoolWithParticipants } from "../../../helpers/precompiles.js";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { setupPoolWithParticipants, expectEVMResult } from "../../../helpers";
 
 describeSuite({
   id: "D2544",
@@ -19,6 +18,7 @@ describeSuite({
 
     beforeAll(async function () {
       leaderContractAddress = await setupPoolWithParticipants(context);
+
       const rawTx = context.writeContract!({
         contractName: "ProxyLeaderDemo",
         contractAddress: leaderContractAddress,

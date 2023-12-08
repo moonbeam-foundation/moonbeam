@@ -76,7 +76,7 @@ describeSuite({
       assetId = registeredAssetId;
       expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
 
-      let config = {
+      const config = {
         assets: [
           {
             multilocation: ASSET_MULTILOCATION,
@@ -92,7 +92,7 @@ describeSuite({
         context
           .polkadotJs()
           .createType(
-            "XcmVersionedXcm",
+            "StagingXcmVersionedXcm",
             new XcmFragment(config)
               .reserve_asset_deposited()
               .clear_origin()
@@ -116,7 +116,7 @@ describeSuite({
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, statemint_para_id, {
-        type: "XcmVersionedXcm",
+        type: "StagingXcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -208,7 +208,7 @@ describeSuite({
 
           // Send an XCM and create block to execute it
           await injectHrmpMessageAndSeal(context, 1, {
-            type: "XcmVersionedXcm",
+            type: "StagingXcmVersionedXcm",
             payload: xcmMessage,
           } as RawXcmMessage);
 
@@ -231,7 +231,7 @@ describeSuite({
         //   references.
         // We can expect this to be the behaviour on any xcm fragment that completely drains an
         // account to transact ethereum-xcm after.
-        let nonce = await context.viem().getTransactionCount({ address: descendedAddress });
+        const nonce = await context.viem().getTransactionCount({ address: descendedAddress });
         expect(nonce).to.be.eq(1);
       },
     });

@@ -3,7 +3,6 @@ import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
-  DOROTHY_ADDRESS,
   DOROTHY_PRIVATE_KEY,
   ETHAN_ADDRESS,
   GLMR,

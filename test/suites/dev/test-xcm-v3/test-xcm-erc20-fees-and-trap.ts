@@ -1,6 +1,8 @@
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
+import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
+import { parseEther } from "ethers";
+import { expectEVMResult } from "../../../helpers";
 import {
   XcmFragment,
   XcmFragmentConfig,
@@ -9,8 +11,6 @@ import {
   sovereignAccountOfSibling,
   weightMessage,
 } from "../../../helpers/xcm.js";
-import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { parseEther } from "ethers";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
@@ -105,7 +105,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         });
 
@@ -212,13 +212,13 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         });
 
         const chargedWeight = await weightMessage(
           context,
-          polkadotJs.createType("XcmVersionedXcm", xcmMessage)
+          polkadotJs.createType("StagingXcmVersionedXcm", xcmMessage)
         );
         // We are charging chargedWeight
         // chargedWeight * 50000 = chargedFee
@@ -252,7 +252,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessageToClaimAssets,
         });
 
@@ -265,7 +265,7 @@ describeSuite({
 
         const chargedWeightForClaim = await weightMessage(
           context,
-          polkadotJs.createType("XcmVersionedXcm", xcmMessageToClaimAssets)
+          polkadotJs.createType("StagingXcmVersionedXcm", xcmMessageToClaimAssets)
         );
         // We are charging chargedWeightForClaim
         // chargedWeightForClaim * 50000 = chargedFeeForClaim
@@ -280,7 +280,7 @@ describeSuite({
 
         // Mock again the reception of the initial xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         });
 
@@ -317,7 +317,7 @@ describeSuite({
           .as_v3();
 
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessageFailedClaim,
         });
 

@@ -12,18 +12,18 @@ describeSuite({
   id: "D3605",
   title: "Trace (callTrace)",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should format as request (Call)",
       test: async function () {
         const send = await nestedSingle(context);
         await context.createBlock();
-        let traceTx = await customDevRpcRequest("debug_traceTransaction", [
+        const traceTx = await customDevRpcRequest("debug_traceTransaction", [
           send,
           { tracer: "callTracer" },
         ]);
-        let res = traceTx;
+        const res = traceTx;
         // Fields
         expect(Object.keys(res).sort()).to.deep.equal([
           "calls",
@@ -39,9 +39,9 @@ describeSuite({
         // Type
         expect(res.type).to.be.equal("CALL");
         // Nested calls
-        let calls = res.calls;
+        const calls = res.calls;
         expect(calls.length).to.be.eq(1);
-        let nested_call = calls[0];
+        const nested_call = calls[0];
         expect(res.to).to.be.equal(nested_call.from);
         expect(nested_call.type).to.be.equal("CALL");
       },
@@ -54,13 +54,11 @@ describeSuite({
         let nonce = await context
           .viem()
           .getTransactionCount({ address: alith.address as `0x${string}` });
-        const { contractAddress: callee, hash: createTxHash } = await deployCreateCompiledContract(
-          context,
-          "TraceCallee",
-          { nonce: nonce++ }
-        );
+        const { hash: createTxHash } = await deployCreateCompiledContract(context, "TraceCallee", {
+          nonce: nonce++,
+        });
 
-        let traceTx = await customDevRpcRequest("debug_traceTransaction", [
+        const traceTx = await customDevRpcRequest("debug_traceTransaction", [
           createTxHash,
           { tracer: "callTracer" },
         ]);

@@ -17,9 +17,10 @@
 use crate::mock::*;
 use crate::*;
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
-use frame_support::dispatch::{DispatchError, Weight};
+use frame_support::weights::Weight;
 use frame_support::{assert_noop, assert_ok, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
 use sp_runtime::traits::Convert;
+use sp_runtime::DispatchError;
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
@@ -1135,7 +1136,7 @@ fn test_hrmp_manipulator_init() {
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
-				call: vec![1u8, 0u8].into(),
+				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 		})
 }
@@ -1187,7 +1188,7 @@ fn test_hrmp_manipulator_init_v2_convert_works() {
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
-				call: vec![1u8, 0u8].into(),
+				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 
 			// Check message contains the new appendix
@@ -1251,7 +1252,7 @@ fn test_hrmp_manipulator_init_v3_convert_works() {
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
-				call: vec![1u8, 0u8].into(),
+				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 
 			// Check message contains the new appendix
@@ -1383,7 +1384,7 @@ fn test_hrmp_manipulator_accept() {
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
-				call: vec![1u8, 1u8].into(),
+				call: vec![0, 0, 1, 0, 0, 0].into(),
 			}));
 		})
 }
@@ -1436,7 +1437,7 @@ fn test_hrmp_manipulator_cancel() {
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
-				call: vec![1u8, 6u8].into(),
+				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 		})
 }
@@ -1484,7 +1485,7 @@ fn test_hrmp_manipulator_close() {
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
 				require_weight_at_most: tx_weight,
-				call: vec![1u8, 2u8].into(),
+				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 		})
 }

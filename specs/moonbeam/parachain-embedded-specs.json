@@ -11,7 +11,15 @@
     "/dns4/mtla-moonbeam-boot-0.a.moonbeam.network/tcp/30333/p2p/12D3KooWRJfEWQBYSEDhadUQRmtQxNGwVNe4EJxWZJokWwc5EWBh",
     "/dns4/mtla-moonbeam-boot-1.a.moonbeam.network/tcp/30333/p2p/12D3KooWCAYdGegd18orL1HVPYuAzGi68bs2F5ueyZm2DFiS8gZw",
     "/dns4/mtla-moonbeam-boot-2.a.moonbeam.network/tcp/30333/p2p/12D3KooWJK1pgrFoMbfzSLHbru7hMPkDEQ9zLCe3iEjpnjtHvX8H",
-    "/dns4/node-6957220406166982656-0.p2p.onfinality.io/tcp/12137/ws/p2p/12D3KooWBrL3oDXn82sWQboiZy8q3dA5aHSwg9zG2xCykV16t92m"
+    "/dns/na-02.unitedbloc.com/tcp/7060/p2p/12D3KooWS9aDbVwmLHrWKjehiGGzDSsTUVYyjvwuguz8jyFVDG2q",
+    "/dns/eu-02.unitedbloc.com/tcp/37060/p2p/12D3KooWRwPNbahHG9pnPd5hSyHCMZo8aV5qaJwH2qCoxTbMA3KJ",
+    "/dns/eu-03.unitedbloc.com/tcp/37060/p2p/12D3KooWF43rrtXewLGW8X9Pp6nyV6ESAZRnNCHVkZy1kzG1MueB",
+    "/dns/eu-04.unitedbloc.com/tcp/37060/p2p/12D3KooWSVwNFLrR9Bc3st9yiyjUnEx8CKSavfh3hyPeVsSdTDSn",
+    "/dns/eu-01.unitedbloc.com/tcp/37060/p2p/12D3KooWJTFVibb5ADHY1iUhE3iqMYiaVeXhdBWFYXrkmkxVXrBD",
+    "/dns/apac-02.unitedbloc.com/tcp/37060/p2p/12D3KooWJsfWGQLajaXXoqYSpn1CZbXHs7RDWqbgvsBXPJrjVGjb",
+    "/dns/apac-01.unitedbloc.com/tcp/37060/p2p/12D3KooWCnXymVyowL5YymVk6RNzRzFAWUvurX7eTTYAFcCbs4nj",
+    "/dns/sa-01.unitedbloc.com/tcp/37060/p2p/12D3KooWC3FoL2bFJ79C5CeLDjLmL2yRyozPxSjTQbm9RY95KNsV",
+    "/dns/na-01.unitedbloc.com/tcp/37060/p2p/12D3KooWLEZwHD8tWvWiEqKcD976wxdE5JRUnq1JG9a6VJxHUjiS"
   ],
   "telemetryEndpoints": [
     ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]

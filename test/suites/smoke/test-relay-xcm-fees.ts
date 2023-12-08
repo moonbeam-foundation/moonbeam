@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
-import { MultiLocation } from "@polkadot/types/interfaces";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { extractWeight } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
@@ -38,7 +37,7 @@ describeSuite({
 
         // skip test if runtime inconsistency. The storage is set for
         // specific runtimes, so does not make sense to compare non-matching runtimes
-        let skipTestRuntimeInconsistency =
+        const skipTestRuntimeInconsistency =
           (relayRuntime.startsWith("polkadot") && paraRuntime.startsWith("moonbeam")) ||
           (relayRuntime.startsWith("kusama") && paraRuntime.startsWith("moonriver")) ||
           (relayRuntime.startsWith("westend") && paraRuntime.startsWith("moonbase"))

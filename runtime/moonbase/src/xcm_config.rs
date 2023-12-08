@@ -25,19 +25,18 @@ use super::{
 use moonbeam_runtime_common::weights as moonbeam_weights;
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 use sp_runtime::{
-	traits::{Hash as THash, PostDispatchInfoOf},
+	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
 	DispatchErrorWithPostInfo,
 };
 
 use frame_support::{
-	dispatch::Weight,
 	parameter_types,
 	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
 };
 
 use frame_system::{EnsureRoot, RawOrigin};
 use sp_core::{ConstU32, H160, H256};
-
+use sp_weights::Weight;
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
@@ -48,7 +47,7 @@ use xcm_builder::{
 };
 
 use xcm::latest::prelude::*;
-use xcm_executor::traits::{CallDispatcher, JustTry};
+use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
@@ -116,12 +115,10 @@ pub type LocationToAccountId = (
 
 /// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
 pub struct LocationToH160;
-impl xcm_executor::traits::Convert<MultiLocation, H160> for LocationToH160 {
-	fn convert(location: MultiLocation) -> Result<H160, MultiLocation> {
-		<LocationToAccountId as xcm_executor::traits::Convert<MultiLocation, AccountId>>::convert(
-			location,
-		)
-		.map(Into::into)
+impl ConvertLocation<H160> for LocationToH160 {
+	fn convert_location(location: &MultiLocation) -> Option<H160> {
+		<LocationToAccountId as ConvertLocation<AccountId>>::convert_location(location)
+			.map(Into::into)
 	}
 }
 
@@ -343,6 +340,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
+	type Aliasers = Nothing;
 }
 
 // Converts a Signed Local Origin into a MultiLocation
@@ -503,7 +501,7 @@ pub struct CurrencyIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomDat
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>>
 	for CurrencyIdtoMultiLocation<AssetXConverter>
 where
-	AssetXConverter: xcm_executor::traits::Convert<MultiLocation, AssetId>,
+	AssetXConverter: MaybeEquivalence<MultiLocation, AssetId>,
 {
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
@@ -511,7 +509,7 @@ where
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
-			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			CurrencyId::ForeignAsset(asset) => AssetXConverter::convert_back(&asset),
 			CurrencyId::LocalAssetReserve(asset) => {
 				let mut location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
@@ -550,8 +548,12 @@ parameter_types! {
 }
 
 parameter_type_with_key! {
-	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
-		Some(u128::MAX)
+	pub ParachainMinFee: |location: MultiLocation| -> Option<u128> {
+		match (location.parents, location.first_interior()) {
+			// AssetHub fee
+			(1, Some(Parachain(1001u32))) => Some(50_000_000u128),
+			_ => None,
+		}
 	};
 }
 
@@ -607,9 +609,10 @@ impl TryFrom<u8> for Transactors {
 impl UtilityEncodeCall for Transactors {
 	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
 		match self {
-			// Shall we use westend for moonbase? The tests are probably based on rococo
-			// but moonbase-alpha is attached to westend-runtime I think
-			Transactors::Relay => moonbeam_relay_encoder::westend::WestendEncoder.encode_call(call),
+			Transactors::Relay => pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+				pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<Runtime>),
+				call,
+			),
 		}
 	}
 }
@@ -645,7 +648,6 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_xcm_transactor::WeightInfo<Runtime>;
 	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
-	type HrmpEncoder = moonbeam_relay_encoder::westend::WestendEncoder;
 }
 
 parameter_types! {
@@ -674,17 +676,17 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 #[cfg(feature = "runtime-benchmarks")]
 mod testing {
 	use super::*;
+	use xcm_executor::traits::ConvertLocation;
 
 	/// This From exists for benchmarking purposes. It has the potential side-effect of calling
 	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
 	impl From<MultiLocation> for CurrencyId {
 		fn from(location: MultiLocation) -> CurrencyId {
-			use xcm_executor::traits::Convert as XConvert;
 			use xcm_primitives::AssetTypeGetter;
 
 			// If it does not exist, for benchmarking purposes, we create the association
-			let asset_id = if let Ok(asset_id) =
-				AsAssetType::<AssetId, AssetType, AssetManager>::convert_ref(&location)
+			let asset_id = if let Some(asset_id) =
+				AsAssetType::<AssetId, AssetType, AssetManager>::convert_location(&location)
 			{
 				asset_id
 			} else {

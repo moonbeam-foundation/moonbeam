@@ -20,20 +20,22 @@ export interface ForeignChainInfo {
 
 export const getEndpoints = (relay: "Polkadot" | "Kusama" | "Unsupported", paraId: number) => {
   switch (relay) {
-    case "Polkadot":
+    case "Polkadot": {
       if (paraId < 2000) {
         const commonGoodPolka = prodParasPolkadotCommon.find((a) => a.paraId === paraId);
         return Object.values(commonGoodPolka!.providers);
       }
       const polkaPara = prodParasPolkadot.find((a) => a.paraId === paraId);
       return Object.values(polkaPara!.providers);
-    case "Kusama":
+    }
+    case "Kusama": {
       if (paraId < 2000) {
         const commonGoodKusama = prodParasKusamaCommon.find((a) => a.paraId === paraId);
         return Object.values(commonGoodKusama!.providers);
       }
       const kusamaPara = prodParasKusama.find((a) => a.paraId === paraId);
       return Object.values(kusamaPara!.providers);
+    }
     case "Unsupported":
       throw new Error("Unsupported chain.");
   }
@@ -85,6 +87,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Crust",
         paraId: 2012,
+        mutedUntil: new Date("2023-11-09").getTime(),
       },
       {
         name: "Integritee",
@@ -152,7 +155,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Nodle",
         paraId: 2026,
-        mutedUntil: 1695454200000, // 23/09/2023 08:30:00 UTC
       },
       {
         name: "Bifrost",

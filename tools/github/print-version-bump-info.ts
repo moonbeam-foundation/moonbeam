@@ -4,16 +4,10 @@ import { getCommitAndLabels } from "./github-utils";
 
 async function printInfo(octokit: Octokit, previousVersion: string, nextVersion: string) {
   const owners = {
-    substrate: "paritytech",
-    polkadot: "paritytech",
-    cumulus: "paritytech",
-    nimbus: "moonbeam-foundation",
+    "polkadot-sdk": "paritytech",
   };
   const prefixes = {
-    substrate: "polkadot-",
-    polkadot: "release-",
-    cumulus: "polkadot-",
-    nimbus: "moonbeam-polkadot-",
+    "polkadot-sdk": "polkadot-",
   };
   console.log(`# Description\n`);
   console.log(`This ticket is automatically generated using\n`);
@@ -81,15 +75,15 @@ async function printInfo(octokit: Octokit, previousVersion: string, nextVersion:
     }
   }
 
-  console.log(`\n# Important commits by label\n`);
+  console.log(
+    `\n# Important commits by [label](https://paritytech.github.io/labels/doc_polkadot-sdk.html)\n`
+  );
   const excludeRegs = [
-    /D5-nicetohaveaudit/,
-    /D3-trivia/,
-    /D2-notlive/,
-    /D1-audited/,
-    /C[01234]-/,
-    /B0-silent/,
-    /A[0-9]-/,
+    /R0-/, // Silent Release
+    /I[0-9]-/, // Issue Category
+    /D[0-9]-/, // Difficulty
+    /C[0-9]-/, // Contribution
+    /A[0-9]-/, // Action
   ];
   for (const labelName of Object.keys(prInfoByLabels).sort().reverse()) {
     if (excludeRegs.some((f) => f.test(labelName))) {

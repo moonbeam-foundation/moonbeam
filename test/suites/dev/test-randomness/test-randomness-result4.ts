@@ -3,8 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { ALITH_PRIVATE_KEY, GLMR, alith } from "@moonwall/util";
 import { Option } from "@polkadot/types";
 import { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
-import { jumpBlocks } from "../../../helpers/block.js";
-import { SIMPLE_SALT } from "../../../helpers/randomness.js";
+import { jumpBlocks, SIMPLE_SALT } from "../../../helpers";
 
 describeSuite({
   id: "D2710",

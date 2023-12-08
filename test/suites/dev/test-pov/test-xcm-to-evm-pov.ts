@@ -1,8 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, beforeAll, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { Abi, encodeFunctionData } from "viem";
-import { HeavyContract, deployHeavyContracts } from "../../../helpers/contracts.js";
-import { expectOk } from "../../../helpers/expect.js";
+import { HeavyContract, deployHeavyContracts, expectOk } from "../../../helpers";
+
 import {
   RawXcmMessage,
   XcmFragment,
@@ -10,7 +10,6 @@ import {
   injectHrmpMessage,
 } from "../../../helpers/xcm.js";
 import { GAS_LIMIT_POV_RATIO } from "@moonwall/util";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
 
 describeSuite({
   id: "D2405",
@@ -29,12 +28,15 @@ describeSuite({
     beforeAll(async function () {
       // Get Pallet balances index
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
+      const foundPallet = metadata.asLatest.pallets.find(
+        (pallet) => pallet.name.toString() === "Balances"
+      );
 
-      balancesPalletIndex = metadata.asLatest.pallets
-        .find((pallet) => {
-          return pallet.name.toString() === "Balances";
-        })
-        ?.index.toNumber()!;
+      if (!foundPallet || !foundPallet.index) {
+        throw new Error("Balances pallet or its index not found");
+      }
+
+      balancesPalletIndex = foundPallet.index.toNumber();
 
       // Get derived account
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
@@ -131,7 +133,7 @@ describeSuite({
 
         // Send an XCM and create block to execute it
         await injectHrmpMessage(context, 1, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
         const { result, block } = await context.createBlock();
@@ -231,7 +233,7 @@ describeSuite({
 
         // Send an XCM and create block to execute it
         await injectHrmpMessage(context, 1, {
-          type: "XcmVersionedXcm",
+          type: "StagingXcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
         const { result, block } = await context.createBlock();

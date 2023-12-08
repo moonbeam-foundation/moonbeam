@@ -1,6 +1,6 @@
 import { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
+import { describeSuite, beforeAll } from "@moonwall/cli";
 import { ONE_HOURS } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
@@ -41,10 +41,15 @@ describeSuite({
             continue;
           }
           for (const fn of fns) {
-            if (moduleName == "evm" && ["accountStorages", "accountCodes"].includes(fn)) {
+            log(`🔎 checking ${moduleName}::${fn}`);
+            if (
+              moduleName == "evm" &&
+              ["accountStorages", "accountCodes", "accountCodesMetadata"].includes(fn)
+            ) {
               // This is just H256 entries and quite big
               continue;
             }
+
             if (
               moduleName == "parachainStaking" &&
               ["atStake"].includes(fn) &&
@@ -59,8 +64,8 @@ describeSuite({
               // Map item
               let startKey = "";
               let count = 0;
-              while (true) {
-                let query = await module[fn].entriesPaged({
+              for (;;) {
+                const query = await module[fn].entriesPaged({
                   args: [],
                   pageSize,
                   startKey,

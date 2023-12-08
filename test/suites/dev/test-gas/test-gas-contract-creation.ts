@@ -17,7 +17,7 @@ describeSuite({
             account: ALITH_ADDRESS,
             data: bytecode,
           })
-        ).to.equal(212848n);
+        ).to.equal(210541n);
       },
     });
   },

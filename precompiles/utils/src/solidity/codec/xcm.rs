@@ -22,9 +22,10 @@ use {
 		revert::{BacktraceExt, InjectBacktrace, MayRevert, RevertReason},
 	},
 	alloc::string::String,
-	frame_support::{dispatch::Weight, ensure, traits::ConstU32},
+	frame_support::{ensure, traits::ConstU32},
 	sp_core::H256,
 	sp_std::vec::Vec,
+	sp_weights::Weight,
 	xcm::latest::{Junction, Junctions, MultiLocation, NetworkId},
 };
 

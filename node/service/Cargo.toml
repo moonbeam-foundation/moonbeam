@@ -4,7 +4,7 @@ authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.34.0"
+version = "0.35.0"
 
 [dependencies]
 ansi_term = { workspace = true }
@@ -34,13 +34,16 @@ moonbeam-cli-opt = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-finality-rpc = { workspace = true }
 moonbeam-primitives-ext = { workspace = true }
+moonbeam-relay-encoder = { workspace = true }
 moonbeam-rpc-debug = { workspace = true }
 moonbeam-rpc-primitives-debug = { workspace = true }
 moonbeam-rpc-primitives-txpool = { workspace = true }
 moonbeam-rpc-trace = { workspace = true }
 moonbeam-rpc-txpool = { workspace = true }
+moonbeam-runtime-common = { workspace = true }
 moonbeam-vrf = { workspace = true }
 pallet-parachain-staking = { workspace = true }
+pallet-xcm-transactor = { workspace = true }
 session-keys-primitives = { workspace = true }
 
 # Moonbeam runtimes
@@ -69,6 +72,7 @@ sc-informant = { workspace = true }
 sc-network = { workspace = true }
 sc-network-common = { workspace = true }
 sc-network-sync = { workspace = true }
+sc-offchain = { workspace = true }
 sc-rpc = { workspace = true }
 sc-rpc-api = { workspace = true }
 sc-service = { workspace = true }
@@ -99,7 +103,7 @@ substrate-prometheus-endpoint = { workspace = true }
 fc-consensus = { workspace = true }
 fc-db = { workspace = true }
 fc-mapping-sync = { workspace = true, features = [ "sql" ] }
-fc-rpc = { workspace = true, features = [ "rpc-binary-search-estimate" ] }
+fc-rpc = { workspace = true, features = [ "rpc-binary-search-estimate", "txpool" ] }
 fc-rpc-core = { workspace = true }
 fp-consensus = { workspace = true, features = [ "std" ] }
 fp-rpc = { workspace = true, features = [ "std" ] }

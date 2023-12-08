@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/util";
-import { jumpRounds } from "../../../helpers/block.js";
+import { jumpRounds } from "../../../helpers";
 
 describeSuite({
   id: "D2981",
@@ -32,7 +32,7 @@ describeSuite({
     it({
       id: "T01",
       title: "should be unlocked only after executing revoke delegation",
-      timeout: 120000,
+      timeout: 60_000,
       test: async function () {
         const lock = await context.polkadotJs().query.balances.locks(randomAccount.address);
         expect(lock.length).to.be.equal(1, "Lock should have been added");

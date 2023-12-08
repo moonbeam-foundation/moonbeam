@@ -1,12 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, GLMR, PRECOMPILES } from "@moonwall/util";
-import { verifyLatestBlockFees } from "../../../helpers/block.js";
-import { expectEVMResult } from "../../../helpers/eth-transactions.js";
-import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers/transactions.js";
+import { verifyLatestBlockFees, expectEVMResult, DEFAULT_TXN_MAX_BASE_FEE } from "../../../helpers";
 
 describeSuite({
-  id: "D2579",
+  id: "D2583",
   title: "Precompiles - xtokens",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

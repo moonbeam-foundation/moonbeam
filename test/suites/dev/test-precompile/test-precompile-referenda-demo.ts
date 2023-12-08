@@ -8,8 +8,11 @@ import {
 import { GLMR } from "@moonwall/util";
 import { u8aToHex } from "@polkadot/util";
 import { decodeEventLog, getAddress } from "viem";
-import { jumpBlocks } from "../../../helpers/block.js";
-import { expectSubstrateEvent, expectSubstrateEvents } from "../../../helpers/expect.js";
+import {
+  forceReducedReferendaExecution,
+  expectSubstrateEvent,
+  expectSubstrateEvents,
+} from "../../../helpers";
 
 describeSuite({
   id: "D2551",
@@ -19,7 +22,6 @@ describeSuite({
     it({
       id: "T01",
       title: "should be accessible from a smart contract",
-      timeout: 500000,
       test: async function () {
         const setStorageCallIndex = u8aToHex(context.polkadotJs().tx.system.setStorage.callIndex);
         const trackName = "root";
@@ -36,6 +38,8 @@ describeSuite({
             args: [trackName, setStorageCallIndex],
           });
 
+        // We verify the contract is version 1.
+        // After running the proposal it will auto-upgrade to version 2.
         expect(
           await context.readContract!({
             contractAddress: refUpgradeDemoV1Address,
@@ -72,7 +76,6 @@ describeSuite({
           rawTxOnly: true,
         });
 
-        console.log("this?");
         const result = (await context.createBlock(rawTxn)) as any;
 
         const {
@@ -122,7 +125,7 @@ describeSuite({
           }
         });
 
-        let referendumInfo = await context
+        const referendumInfo = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(referendumIndex);
 
@@ -133,25 +136,34 @@ describeSuite({
           "Referenda should still be in preparation"
         ).to.be.true;
 
-        log(`Waiting preparation time: ${trackInfo![1].preparePeriod.toNumber()}`);
-        await jumpBlocks(context, trackInfo![1].preparePeriod.toNumber());
-        referendumInfo = await context
-          .polkadotJs()
-          .query.referenda.referendumInfoFor(referendumIndex);
-        expect(
-          referendumInfo.unwrap().asOngoing.deciding.isSome,
-          "Referenda should now be in deciding"
-        ).to.be.true;
+        // Keeping this for knowledge on fast tracking by producing many blocks
+        // This is a bit slow (30s)
 
-        log(`Waiting confirmation time: ${trackInfo![1].minEnactmentPeriod.toNumber()}`);
-        await jumpBlocks(context, trackInfo![1].confirmPeriod.toNumber());
-        referendumInfo = await context
-          .polkadotJs()
-          .query.referenda.referendumInfoFor(referendumIndex);
-        expect(referendumInfo.unwrap().isApproved, "Referenda should now be approved").to.be.true;
+        // log(`Waiting preparation time: ${trackInfo![1].preparePeriod.toNumber()}`);
+        // await jumpBlocks(context, trackInfo![1].preparePeriod.toNumber());
+        // referendumInfo = await context
+        //   .polkadotJs()
+        //   .query.referenda.referendumInfoFor(referendumIndex);
+        // expect(
+        //   referendumInfo.unwrap().asOngoing.deciding.isSome,
+        //   "Referenda should now be in deciding"
+        // ).to.be.true;
 
-        log(`Waiting enactment time: ${trackInfo![1].minEnactmentPeriod.toNumber()}`);
-        await jumpBlocks(context, trackInfo![1].confirmPeriod.toNumber());
+        // log(`Waiting confirmation time: ${trackInfo![1].minEnactmentPeriod.toNumber()}`);
+        // await jumpBlocks(context, trackInfo![1].confirmPeriod.toNumber());
+        // referendumInfo = await context
+        //   .polkadotJs()
+        //   .query.referenda.referendumInfoFor(referendumIndex);
+        //expect(referendumInfo.unwrap().isApproved, "Referenda should now be approved").to.be.true;
+
+        // log(`Waiting enactment time: ${trackInfo![1].minEnactmentPeriod.toNumber()}`);
+        // await jumpBlocks(context, trackInfo![1].confirmPeriod.toNumber());
+
+        // Use this forced reduced referenda execution which modify the storage data of the
+        // referenda and the agenda
+        await forceReducedReferendaExecution(context, referendumIndex.toNumber(), {
+          forceTally: false,
+        });
 
         expect(
           await context.readContract!({
@@ -167,7 +179,6 @@ describeSuite({
     it({
       id: "T02",
       title: "should work for valid tracks",
-      timeout: 180000,
       test: async function () {
         const validTracks = [
           "root",
@@ -199,9 +210,7 @@ describeSuite({
     it({
       id: "T03",
       title: "should be fail for invalid tracks",
-      timeout: 180000,
       test: async function () {
-        // this.timeout(180000);
         const validTracks = ["toor", "", 0, "admin", -1, "0x01", "0xFFFF", "0xFFFFFFFF"];
         const failures: any[] = [];
         for (const trackName of validTracks) {

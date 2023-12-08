@@ -16,10 +16,10 @@ import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
 // The reason is that set_validation_data inherent overrides it
 export function mockHrmpChannelExistanceTx(
   context: DevModeContext,
-  para: Number,
-  maxCapacity: Number,
-  maxTotalSize: Number,
-  maxMessageSize: Number
+  para: number,
+  maxCapacity: number,
+  maxTotalSize: number,
+  maxMessageSize: number
 ) {
   // This constructs the relevant state to be inserted
   const relevantMessageState = {
@@ -89,7 +89,7 @@ export async function registerForeignAsset(
   );
   // Look for assetId in events
   const registeredAssetId = result!.events
-    .find(({ event: { section } }) => section.toString() === "assetManager")
+    .find(({ event: { section } }) => section.toString() === "assetManager")!
     .event.data[0].toHex()
     .replace(/,/g, "");
 
@@ -173,7 +173,7 @@ export async function injectHrmpMessage(
   paraId: number,
   message?: RawXcmMessage
 ) {
-  let totalMessage = message != null ? buildXcmpMessage(context, message) : [];
+  const totalMessage = message != null ? buildXcmpMessage(context, message) : [];
   // Send RPC call to inject XCM message
   await customDevRpcRequest("xcm_injectHrmpMessage", [paraId, totalMessage]);
 }
@@ -304,7 +304,7 @@ export class XcmFragment {
       this.config.weight_limit != null
         ? { Limited: this.config.weight_limit }
         : { Unlimited: null };
-    for (var i = 0; i < repeat; i++) {
+    for (let i = 0; i < repeat; i++) {
       this.instructions.push({
         BuyExecution: {
           fees: {
@@ -323,7 +323,7 @@ export class XcmFragment {
   // Add one or more `BuyExecution` instruction
   // if weight_limit is not set in config, then we put unlimited
   refund_surplus(repeat: bigint = 1n): this {
-    for (var i = 0; i < repeat; i++) {
+    for (let i = 0; i < repeat; i++) {
       this.instructions.push({
         RefundSurplus: null,
       });
@@ -355,7 +355,7 @@ export class XcmFragment {
 
   // Add a `ClearOrigin` instruction
   clear_origin(repeat: bigint = 1n): this {
-    for (var i = 0; i < repeat; i++) {
+    for (let i = 0; i < repeat; i++) {
       this.instructions.push({ ClearOrigin: null as any });
     }
     return this;
@@ -422,8 +422,8 @@ export class XcmFragment {
   }
 
   // Add a `SetErrorHandler` instruction, appending all the nested instructions
-  set_error_handler_with(callbacks: Function[]): this {
-    let error_instructions: any[] = [];
+  set_error_handler_with(callbacks: XcmCallback[]): this {
+    const error_instructions: any[] = [];
     callbacks.forEach((cb) => {
       cb.call(this);
       // As each method in the class pushes to the instruction stack, we pop
@@ -436,8 +436,8 @@ export class XcmFragment {
   }
 
   // Add a `SetAppendix` instruction, appending all the nested instructions
-  set_appendix_with(callbacks: Function[]): this {
-    let appendix_instructions: any[] = [];
+  set_appendix_with(callbacks: XcmCallback[]): this {
+    const appendix_instructions: any[] = [];
     callbacks.forEach((cb) => {
       cb.call(this);
       // As each method in the class pushes to the instruction stack, we pop
@@ -458,8 +458,8 @@ export class XcmFragment {
   }
 
   // Utility function to support functional style method call chaining bound to `this` context
-  with(callback: Function): this {
-    return callback.call(this);
+  with(callback: (this: this) => void): this {
+    return callback.call(this), this;
   }
 
   // Pushes the given instruction
@@ -645,7 +645,7 @@ export class XcmFragment {
     destination: Junctions = { X1: { Parachain: 1000 } }
   ): this {
     const callVec = stringToU8a(xcm_hex);
-    let xcm = Array.from(callVec);
+    const xcm = Array.from(callVec);
     this.instructions.push({
       ExportMessage: {
         network,
@@ -806,12 +806,12 @@ export class XcmFragment {
   async override_weight(context: DevModeContext): Promise<this> {
     const message: XcmVersionedXcm = context
       .polkadotJs()
-      .createType("XcmVersionedXcm", this.as_v2()) as any;
+      .createType("StagingXcmVersionedXcm", this.as_v2()) as any;
 
     const instructions = message.asV2;
-    for (var i = 0; i < instructions.length; i++) {
+    for (let i = 0; i < instructions.length; i++) {
       if (instructions[i].isBuyExecution == true) {
-        let newWeight = await weightMessage(context, message);
+        const newWeight = await weightMessage(context, message);
         this.instructions[i] = {
           BuyExecution: {
             fees: instructions[i].asBuyExecution.fees,
@@ -875,3 +875,5 @@ export const expectXcmEventMessage = async (context: DevModeContext, message: st
 
   return filteredEvents.length ? filteredEvents[0]!.data.error.toString() === message : false;
 };
+
+type XcmCallback = (this: XcmFragment) => void;

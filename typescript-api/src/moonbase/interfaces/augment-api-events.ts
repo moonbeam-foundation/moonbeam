@@ -45,15 +45,15 @@ import type {
   SpRuntimeDispatchError,
   SpRuntimeDispatchErrorWithPostInfo,
   SpWeightsWeightV2Weight,
-  XcmV3MultiAsset,
-  XcmV3MultiLocation,
-  XcmV3MultiassetMultiAssets,
-  XcmV3Response,
-  XcmV3TraitsError,
-  XcmV3TraitsOutcome,
-  XcmV3Xcm,
-  XcmVersionedMultiAssets,
-  XcmVersionedMultiLocation,
+  StagingXcmV3MultiAsset,
+  StagingXcmV3MultiLocation,
+  StagingXcmV3MultiassetMultiAssets,
+  StagingXcmV3Response,
+  StagingXcmV3TraitsError,
+  StagingXcmV3TraitsOutcome,
+  StagingXcmV3Xcm,
+  StagingXcmVersionedMultiAssets,
+  StagingXcmVersionedMultiLocation,
 } from "@polkadot/types/lookup";
 
 export type __AugmentedEvent<ApiType extends ApiTypes> = AugmentedEvent<ApiType>;
@@ -153,6 +153,12 @@ declare module "@polkadot/api-base/types/events" {
       AssetStatusChanged: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
       /** Some asset `asset_id` was thawed. */
       AssetThawed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
+      /** Some account `who` was blocked. */
+      Blocked: AugmentedEvent<
+        ApiType,
+        [assetId: u128, who: AccountId20],
+        { assetId: u128; who: AccountId20 }
+      >;
       /** Some assets were destroyed. */
       Burned: AugmentedEvent<
         ApiType,
@@ -212,6 +218,12 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [assetId: u128, who: AccountId20],
         { assetId: u128; who: AccountId20 }
+      >;
+      /** Some account `who` was created with a deposit from `depositor`. */
+      Touched: AugmentedEvent<
+        ApiType,
+        [assetId: u128, who: AccountId20, depositor: AccountId20],
+        { assetId: u128; who: AccountId20; depositor: AccountId20 }
       >;
       /** Some assets were transferred. */
       Transferred: AugmentedEvent<
@@ -296,8 +308,14 @@ declare module "@polkadot/api-base/types/events" {
       /** A balance was set by root. */
       BalanceSet: AugmentedEvent<
         ApiType,
-        [who: AccountId20, free: u128, reserved: u128],
-        { who: AccountId20; free: u128; reserved: u128 }
+        [who: AccountId20, free: u128],
+        { who: AccountId20; free: u128 }
+      >;
+      /** Some amount was burned from an account. */
+      Burned: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
       >;
       /** Some amount was deposited (e.g. for transaction fees). */
       Deposit: AugmentedEvent<
@@ -320,6 +338,28 @@ declare module "@polkadot/api-base/types/events" {
         [account: AccountId20, freeBalance: u128],
         { account: AccountId20; freeBalance: u128 }
       >;
+      /** Some balance was frozen. */
+      Frozen: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
+      /** Total issuance was increased by `amount`, creating a credit to be balanced. */
+      Issued: AugmentedEvent<ApiType, [amount: u128], { amount: u128 }>;
+      /** Some balance was locked. */
+      Locked: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
+      /** Some amount was minted into an account. */
+      Minted: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
+      /** Total issuance was decreased by `amount`, creating a debt to be balanced. */
+      Rescinded: AugmentedEvent<ApiType, [amount: u128], { amount: u128 }>;
       /** Some balance was reserved (moved from free to reserved). */
       Reserved: AugmentedEvent<
         ApiType,
@@ -345,8 +385,26 @@ declare module "@polkadot/api-base/types/events" {
           destinationStatus: FrameSupportTokensMiscBalanceStatus;
         }
       >;
+      /** Some amount was restored into an account. */
+      Restored: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
       /** Some amount was removed from the account (e.g. for misbehavior). */
       Slashed: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
+      /** Some amount was suspended from an account (it can be restored later). */
+      Suspended: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
+      /** Some balance was thawed. */
+      Thawed: AugmentedEvent<
         ApiType,
         [who: AccountId20, amount: u128],
         { who: AccountId20; amount: u128 }
@@ -357,12 +415,20 @@ declare module "@polkadot/api-base/types/events" {
         [from: AccountId20, to: AccountId20, amount: u128],
         { from: AccountId20; to: AccountId20; amount: u128 }
       >;
+      /** Some balance was unlocked. */
+      Unlocked: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, amount: u128],
+        { who: AccountId20; amount: u128 }
+      >;
       /** Some balance was unreserved (moved from reserved to free). */
       Unreserved: AugmentedEvent<
         ApiType,
         [who: AccountId20, amount: u128],
         { who: AccountId20; amount: u128 }
       >;
+      /** An account was upgraded. */
+      Upgraded: AugmentedEvent<ApiType, [who: AccountId20], { who: AccountId20 }>;
       /** Some amount was withdrawn from the account (e.g. for transaction fees). */
       Withdraw: AugmentedEvent<
         ApiType,
@@ -451,7 +517,7 @@ declare module "@polkadot/api-base/types/events" {
     };
     cumulusXcm: {
       /** Downward message executed with the given outcome. [ id, outcome ] */
-      ExecutedDownward: AugmentedEvent<ApiType, [U8aFixed, XcmV3TraitsOutcome]>;
+      ExecutedDownward: AugmentedEvent<ApiType, [U8aFixed, StagingXcmV3TraitsOutcome]>;
       /** Downward message is invalid XCM. [ id ] */
       InvalidFormat: AugmentedEvent<ApiType, [U8aFixed]>;
       /** Downward message is unsupported version of XCM. [ id ] */
@@ -545,18 +611,32 @@ declare module "@polkadot/api-base/types/events" {
       /** Downward message executed with the given outcome. */
       ExecutedDownward: AugmentedEvent<
         ApiType,
-        [messageId: U8aFixed, outcome: XcmV3TraitsOutcome],
-        { messageId: U8aFixed; outcome: XcmV3TraitsOutcome }
+        [messageHash: U8aFixed, messageId: U8aFixed, outcome: StagingXcmV3TraitsOutcome],
+        { messageHash: U8aFixed; messageId: U8aFixed; outcome: StagingXcmV3TraitsOutcome }
       >;
       /** Downward message is invalid XCM. */
-      InvalidFormat: AugmentedEvent<ApiType, [messageId: U8aFixed], { messageId: U8aFixed }>;
-      /** The maximum number of downward messages was. */
-      MaxMessagesExhausted: AugmentedEvent<ApiType, [messageId: U8aFixed], { messageId: U8aFixed }>;
+      InvalidFormat: AugmentedEvent<ApiType, [messageHash: U8aFixed], { messageHash: U8aFixed }>;
+      /** The maximum number of downward messages was reached. */
+      MaxMessagesExhausted: AugmentedEvent<
+        ApiType,
+        [messageHash: U8aFixed],
+        { messageHash: U8aFixed }
+      >;
       /** Downward message is overweight and was placed in the overweight queue. */
       OverweightEnqueued: AugmentedEvent<
         ApiType,
-        [messageId: U8aFixed, overweightIndex: u64, requiredWeight: SpWeightsWeightV2Weight],
-        { messageId: U8aFixed; overweightIndex: u64; requiredWeight: SpWeightsWeightV2Weight }
+        [
+          messageHash: U8aFixed,
+          messageId: U8aFixed,
+          overweightIndex: u64,
+          requiredWeight: SpWeightsWeightV2Weight
+        ],
+        {
+          messageHash: U8aFixed;
+          messageId: U8aFixed;
+          overweightIndex: u64;
+          requiredWeight: SpWeightsWeightV2Weight;
+        }
       >;
       /** Downward message from the overweight queue was executed. */
       OverweightServiced: AugmentedEvent<
@@ -565,16 +645,22 @@ declare module "@polkadot/api-base/types/events" {
         { overweightIndex: u64; weightUsed: SpWeightsWeightV2Weight }
       >;
       /** Downward message is unsupported version of XCM. */
-      UnsupportedVersion: AugmentedEvent<ApiType, [messageId: U8aFixed], { messageId: U8aFixed }>;
+      UnsupportedVersion: AugmentedEvent<
+        ApiType,
+        [messageHash: U8aFixed],
+        { messageHash: U8aFixed }
+      >;
       /** The weight limit for handling downward messages was reached. */
       WeightExhausted: AugmentedEvent<
         ApiType,
         [
+          messageHash: U8aFixed,
           messageId: U8aFixed,
           remainingWeight: SpWeightsWeightV2Weight,
           requiredWeight: SpWeightsWeightV2Weight
         ],
         {
+          messageHash: U8aFixed;
           messageId: U8aFixed;
           remainingWeight: SpWeightsWeightV2Weight;
           requiredWeight: SpWeightsWeightV2Weight;
@@ -715,6 +801,12 @@ declare module "@polkadot/api-base/types/events" {
       AssetStatusChanged: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
       /** Some asset `asset_id` was thawed. */
       AssetThawed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
+      /** Some account `who` was blocked. */
+      Blocked: AugmentedEvent<
+        ApiType,
+        [assetId: u128, who: AccountId20],
+        { assetId: u128; who: AccountId20 }
+      >;
       /** Some assets were destroyed. */
       Burned: AugmentedEvent<
         ApiType,
@@ -774,6 +866,12 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [assetId: u128, who: AccountId20],
         { assetId: u128; who: AccountId20 }
+      >;
+      /** Some account `who` was created with a deposit from `depositor`. */
+      Touched: AugmentedEvent<
+        ApiType,
+        [assetId: u128, who: AccountId20, depositor: AccountId20],
+        { assetId: u128; who: AccountId20; depositor: AccountId20 }
       >;
       /** Some assets were transferred. */
       Transferred: AugmentedEvent<
@@ -1298,40 +1396,49 @@ declare module "@polkadot/api-base/types/events" {
       [key: string]: AugmentedEvent<ApiType>;
     };
     polkadotXcm: {
-      /**
-       * Some assets have been claimed from an asset trap
-       *
-       * [ hash, origin, assets ]
-       */
-      AssetsClaimed: AugmentedEvent<ApiType, [H256, XcmV3MultiLocation, XcmVersionedMultiAssets]>;
-      /**
-       * Some assets have been placed in an asset trap.
-       *
-       * [ hash, origin, assets ]
-       */
-      AssetsTrapped: AugmentedEvent<ApiType, [H256, XcmV3MultiLocation, XcmVersionedMultiAssets]>;
-      /**
-       * Execution of an XCM message was attempted.
-       *
-       * [ outcome ]
-       */
-      Attempted: AugmentedEvent<ApiType, [XcmV3TraitsOutcome]>;
-      /**
-       * Fees were paid from a location for an operation (often for using `SendXcm`).
-       *
-       * [ paying location, fees ]
-       */
-      FeesPaid: AugmentedEvent<ApiType, [XcmV3MultiLocation, XcmV3MultiassetMultiAssets]>;
+      /** Some assets have been claimed from an asset trap */
+      AssetsClaimed: AugmentedEvent<
+        ApiType,
+        [hash_: H256, origin: StagingXcmV3MultiLocation, assets: StagingXcmVersionedMultiAssets],
+        { hash_: H256; origin: StagingXcmV3MultiLocation; assets: StagingXcmVersionedMultiAssets }
+      >;
+      /** Some assets have been placed in an asset trap. */
+      AssetsTrapped: AugmentedEvent<
+        ApiType,
+        [hash_: H256, origin: StagingXcmV3MultiLocation, assets: StagingXcmVersionedMultiAssets],
+        { hash_: H256; origin: StagingXcmV3MultiLocation; assets: StagingXcmVersionedMultiAssets }
+      >;
+      /** Execution of an XCM message was attempted. */
+      Attempted: AugmentedEvent<
+        ApiType,
+        [outcome: StagingXcmV3TraitsOutcome],
+        { outcome: StagingXcmV3TraitsOutcome }
+      >;
+      /** Fees were paid from a location for an operation (often for using `SendXcm`). */
+      FeesPaid: AugmentedEvent<
+        ApiType,
+        [paying: StagingXcmV3MultiLocation, fees: StagingXcmV3MultiassetMultiAssets],
+        { paying: StagingXcmV3MultiLocation; fees: StagingXcmV3MultiassetMultiAssets }
+      >;
       /**
        * Expected query response has been received but the querier location of the response does not
        * match the expected. The query remains registered for a later, valid, response to be
        * received and acted upon.
-       *
-       * [ origin location, id, expected querier, maybe actual querier ]
        */
       InvalidQuerier: AugmentedEvent<
         ApiType,
-        [XcmV3MultiLocation, u64, XcmV3MultiLocation, Option<XcmV3MultiLocation>]
+        [
+          origin: StagingXcmV3MultiLocation,
+          queryId: u64,
+          expectedQuerier: StagingXcmV3MultiLocation,
+          maybeActualQuerier: Option<StagingXcmV3MultiLocation>
+        ],
+        {
+          origin: StagingXcmV3MultiLocation;
+          queryId: u64;
+          expectedQuerier: StagingXcmV3MultiLocation;
+          maybeActualQuerier: Option<StagingXcmV3MultiLocation>;
+        }
       >;
       /**
        * Expected query response has been received but the expected querier location placed in
@@ -1340,20 +1447,29 @@ declare module "@polkadot/api-base/types/events" {
        * This is unexpected (since a location placed in storage in a previously executing runtime
        * should be readable prior to query timeout) and dangerous since the possibly valid response
        * will be dropped. Manual governance intervention is probably going to be needed.
-       *
-       * [ origin location, id ]
        */
-      InvalidQuerierVersion: AugmentedEvent<ApiType, [XcmV3MultiLocation, u64]>;
+      InvalidQuerierVersion: AugmentedEvent<
+        ApiType,
+        [origin: StagingXcmV3MultiLocation, queryId: u64],
+        { origin: StagingXcmV3MultiLocation; queryId: u64 }
+      >;
       /**
        * Expected query response has been received but the origin location of the response does not
        * match that expected. The query remains registered for a later, valid, response to be
        * received and acted upon.
-       *
-       * [ origin location, id, expected location ]
        */
       InvalidResponder: AugmentedEvent<
         ApiType,
-        [XcmV3MultiLocation, u64, Option<XcmV3MultiLocation>]
+        [
+          origin: StagingXcmV3MultiLocation,
+          queryId: u64,
+          expectedLocation: Option<StagingXcmV3MultiLocation>
+        ],
+        {
+          origin: StagingXcmV3MultiLocation;
+          queryId: u64;
+          expectedLocation: Option<StagingXcmV3MultiLocation>;
+        }
       >;
       /**
        * Expected query response has been received but the expected origin location placed in
@@ -1362,129 +1478,190 @@ declare module "@polkadot/api-base/types/events" {
        * This is unexpected (since a location placed in storage in a previously executing runtime
        * should be readable prior to query timeout) and dangerous since the possibly valid response
        * will be dropped. Manual governance intervention is probably going to be needed.
-       *
-       * [ origin location, id ]
        */
-      InvalidResponderVersion: AugmentedEvent<ApiType, [XcmV3MultiLocation, u64]>;
+      InvalidResponderVersion: AugmentedEvent<
+        ApiType,
+        [origin: StagingXcmV3MultiLocation, queryId: u64],
+        { origin: StagingXcmV3MultiLocation; queryId: u64 }
+      >;
       /**
        * Query response has been received and query is removed. The registered notification has been
        * dispatched and executed successfully.
-       *
-       * [ id, pallet index, call index ]
        */
-      Notified: AugmentedEvent<ApiType, [u64, u8, u8]>;
+      Notified: AugmentedEvent<
+        ApiType,
+        [queryId: u64, palletIndex: u8, callIndex: u8],
+        { queryId: u64; palletIndex: u8; callIndex: u8 }
+      >;
       /**
        * Query response has been received and query is removed. The dispatch was unable to be
        * decoded into a `Call`; this might be due to dispatch function having a signature which is
        * not `(origin, QueryId, Response)`.
-       *
-       * [ id, pallet index, call index ]
        */
-      NotifyDecodeFailed: AugmentedEvent<ApiType, [u64, u8, u8]>;
+      NotifyDecodeFailed: AugmentedEvent<
+        ApiType,
+        [queryId: u64, palletIndex: u8, callIndex: u8],
+        { queryId: u64; palletIndex: u8; callIndex: u8 }
+      >;
       /**
        * Query response has been received and query is removed. There was a general error with
        * dispatching the notification call.
-       *
-       * [ id, pallet index, call index ]
        */
-      NotifyDispatchError: AugmentedEvent<ApiType, [u64, u8, u8]>;
+      NotifyDispatchError: AugmentedEvent<
+        ApiType,
+        [queryId: u64, palletIndex: u8, callIndex: u8],
+        { queryId: u64; palletIndex: u8; callIndex: u8 }
+      >;
       /**
        * Query response has been received and query is removed. The registered notification could
        * not be dispatched because the dispatch weight is greater than the maximum weight originally
        * budgeted by this runtime for the query result.
-       *
-       * [ id, pallet index, call index, actual weight, max budgeted weight ]
        */
       NotifyOverweight: AugmentedEvent<
         ApiType,
-        [u64, u8, u8, SpWeightsWeightV2Weight, SpWeightsWeightV2Weight]
+        [
+          queryId: u64,
+          palletIndex: u8,
+          callIndex: u8,
+          actualWeight: SpWeightsWeightV2Weight,
+          maxBudgetedWeight: SpWeightsWeightV2Weight
+        ],
+        {
+          queryId: u64;
+          palletIndex: u8;
+          callIndex: u8;
+          actualWeight: SpWeightsWeightV2Weight;
+          maxBudgetedWeight: SpWeightsWeightV2Weight;
+        }
       >;
       /**
        * A given location which had a version change subscription was dropped owing to an error
        * migrating the location to our new XCM format.
-       *
-       * [ location, query ID ]
        */
-      NotifyTargetMigrationFail: AugmentedEvent<ApiType, [XcmVersionedMultiLocation, u64]>;
+      NotifyTargetMigrationFail: AugmentedEvent<
+        ApiType,
+        [location: StagingXcmVersionedMultiLocation, queryId: u64],
+        { location: StagingXcmVersionedMultiLocation; queryId: u64 }
+      >;
       /**
        * A given location which had a version change subscription was dropped owing to an error
        * sending the notification to it.
-       *
-       * [ location, query ID, error ]
        */
-      NotifyTargetSendFail: AugmentedEvent<ApiType, [XcmV3MultiLocation, u64, XcmV3TraitsError]>;
+      NotifyTargetSendFail: AugmentedEvent<
+        ApiType,
+        [location: StagingXcmV3MultiLocation, queryId: u64, error: StagingXcmV3TraitsError],
+        { location: StagingXcmV3MultiLocation; queryId: u64; error: StagingXcmV3TraitsError }
+      >;
       /**
        * Query response has been received and is ready for taking with `take_response`. There is no
        * registered notification call.
-       *
-       * [ id, response ]
        */
-      ResponseReady: AugmentedEvent<ApiType, [u64, XcmV3Response]>;
-      /**
-       * Received query response has been read and removed.
-       *
-       * [ id ]
-       */
-      ResponseTaken: AugmentedEvent<ApiType, [u64]>;
-      /**
-       * A XCM message was sent.
-       *
-       * [ origin, destination, message ]
-       */
-      Sent: AugmentedEvent<ApiType, [XcmV3MultiLocation, XcmV3MultiLocation, XcmV3Xcm]>;
+      ResponseReady: AugmentedEvent<
+        ApiType,
+        [queryId: u64, response: StagingXcmV3Response],
+        { queryId: u64; response: StagingXcmV3Response }
+      >;
+      /** Received query response has been read and removed. */
+      ResponseTaken: AugmentedEvent<ApiType, [queryId: u64], { queryId: u64 }>;
+      /** A XCM message was sent. */
+      Sent: AugmentedEvent<
+        ApiType,
+        [
+          origin: StagingXcmV3MultiLocation,
+          destination: StagingXcmV3MultiLocation,
+          message: StagingXcmV3Xcm,
+          messageId: U8aFixed
+        ],
+        {
+          origin: StagingXcmV3MultiLocation;
+          destination: StagingXcmV3MultiLocation;
+          message: StagingXcmV3Xcm;
+          messageId: U8aFixed;
+        }
+      >;
       /**
        * The supported version of a location has been changed. This might be through an automatic
        * notification or a manual intervention.
-       *
-       * [ location, XCM version ]
        */
-      SupportedVersionChanged: AugmentedEvent<ApiType, [XcmV3MultiLocation, u32]>;
+      SupportedVersionChanged: AugmentedEvent<
+        ApiType,
+        [location: StagingXcmV3MultiLocation, version: u32],
+        { location: StagingXcmV3MultiLocation; version: u32 }
+      >;
       /**
        * Query response received which does not match a registered query. This may be because a
        * matching query was never registered, it may be because it is a duplicate response, or
        * because the query timed out.
-       *
-       * [ origin location, id ]
        */
-      UnexpectedResponse: AugmentedEvent<ApiType, [XcmV3MultiLocation, u64]>;
+      UnexpectedResponse: AugmentedEvent<
+        ApiType,
+        [origin: StagingXcmV3MultiLocation, queryId: u64],
+        { origin: StagingXcmV3MultiLocation; queryId: u64 }
+      >;
       /**
        * An XCM version change notification message has been attempted to be sent.
        *
        * The cost of sending it (borne by the chain) is included.
-       *
-       * [ destination, result, cost ]
        */
       VersionChangeNotified: AugmentedEvent<
         ApiType,
-        [XcmV3MultiLocation, u32, XcmV3MultiassetMultiAssets]
+        [
+          destination: StagingXcmV3MultiLocation,
+          result: u32,
+          cost: StagingXcmV3MultiassetMultiAssets,
+          messageId: U8aFixed
+        ],
+        {
+          destination: StagingXcmV3MultiLocation;
+          result: u32;
+          cost: StagingXcmV3MultiassetMultiAssets;
+          messageId: U8aFixed;
+        }
       >;
-      /**
-       * We have requested that a remote chain sends us XCM version change notifications.
-       *
-       * [ destination location, cost ]
-       */
+      /** We have requested that a remote chain send us XCM version change notifications. */
       VersionNotifyRequested: AugmentedEvent<
         ApiType,
-        [XcmV3MultiLocation, XcmV3MultiassetMultiAssets]
+        [
+          destination: StagingXcmV3MultiLocation,
+          cost: StagingXcmV3MultiassetMultiAssets,
+          messageId: U8aFixed
+        ],
+        {
+          destination: StagingXcmV3MultiLocation;
+          cost: StagingXcmV3MultiassetMultiAssets;
+          messageId: U8aFixed;
+        }
       >;
       /**
        * A remote has requested XCM version change notification from us and we have honored it. A
        * version information message is sent to them and its cost is included.
-       *
-       * [ destination location, cost ]
        */
       VersionNotifyStarted: AugmentedEvent<
         ApiType,
-        [XcmV3MultiLocation, XcmV3MultiassetMultiAssets]
+        [
+          destination: StagingXcmV3MultiLocation,
+          cost: StagingXcmV3MultiassetMultiAssets,
+          messageId: U8aFixed
+        ],
+        {
+          destination: StagingXcmV3MultiLocation;
+          cost: StagingXcmV3MultiassetMultiAssets;
+          messageId: U8aFixed;
+        }
       >;
-      /**
-       * We have requested that a remote chain stops sending us XCM version change notifications.
-       *
-       * [ destination location, cost ]
-       */
+      /** We have requested that a remote chain stops sending us XCM version change notifications. */
       VersionNotifyUnrequested: AugmentedEvent<
         ApiType,
-        [XcmV3MultiLocation, XcmV3MultiassetMultiAssets]
+        [
+          destination: StagingXcmV3MultiLocation,
+          cost: StagingXcmV3MultiassetMultiAssets,
+          messageId: U8aFixed
+        ],
+        {
+          destination: StagingXcmV3MultiLocation;
+          cost: StagingXcmV3MultiassetMultiAssets;
+          messageId: U8aFixed;
+        }
       >;
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
@@ -1985,22 +2162,24 @@ declare module "@polkadot/api-base/types/events" {
     };
     xcmpQueue: {
       /** Bad XCM format used. */
-      BadFormat: AugmentedEvent<
-        ApiType,
-        [messageHash: Option<U8aFixed>],
-        { messageHash: Option<U8aFixed> }
-      >;
+      BadFormat: AugmentedEvent<ApiType, [messageHash: U8aFixed], { messageHash: U8aFixed }>;
       /** Bad XCM version used. */
-      BadVersion: AugmentedEvent<
-        ApiType,
-        [messageHash: Option<U8aFixed>],
-        { messageHash: Option<U8aFixed> }
-      >;
+      BadVersion: AugmentedEvent<ApiType, [messageHash: U8aFixed], { messageHash: U8aFixed }>;
       /** Some XCM failed. */
       Fail: AugmentedEvent<
         ApiType,
-        [messageHash: Option<U8aFixed>, error: XcmV3TraitsError, weight: SpWeightsWeightV2Weight],
-        { messageHash: Option<U8aFixed>; error: XcmV3TraitsError; weight: SpWeightsWeightV2Weight }
+        [
+          messageHash: U8aFixed,
+          messageId: U8aFixed,
+          error: StagingXcmV3TraitsError,
+          weight: SpWeightsWeightV2Weight
+        ],
+        {
+          messageHash: U8aFixed;
+          messageId: U8aFixed;
+          error: StagingXcmV3TraitsError;
+          weight: SpWeightsWeightV2Weight;
+        }
       >;
       /** An XCM exceeded the individual message weight budget. */
       OverweightEnqueued: AugmentedEvent<
@@ -2017,15 +2196,11 @@ declare module "@polkadot/api-base/types/events" {
       /** Some XCM was executed ok. */
       Success: AugmentedEvent<
         ApiType,
-        [messageHash: Option<U8aFixed>, weight: SpWeightsWeightV2Weight],
-        { messageHash: Option<U8aFixed>; weight: SpWeightsWeightV2Weight }
+        [messageHash: U8aFixed, messageId: U8aFixed, weight: SpWeightsWeightV2Weight],
+        { messageHash: U8aFixed; messageId: U8aFixed; weight: SpWeightsWeightV2Weight }
       >;
       /** An HRMP message was sent to a sibling parachain. */
-      XcmpMessageSent: AugmentedEvent<
-        ApiType,
-        [messageHash: Option<U8aFixed>],
-        { messageHash: Option<U8aFixed> }
-      >;
+      XcmpMessageSent: AugmentedEvent<ApiType, [messageHash: U8aFixed], { messageHash: U8aFixed }>;
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
     };
@@ -2034,14 +2209,14 @@ declare module "@polkadot/api-base/types/events" {
       /** Set dest fee per second */
       DestFeePerSecondChanged: AugmentedEvent<
         ApiType,
-        [location: XcmV3MultiLocation, feePerSecond: u128],
-        { location: XcmV3MultiLocation; feePerSecond: u128 }
+        [location: StagingXcmV3MultiLocation, feePerSecond: u128],
+        { location: StagingXcmV3MultiLocation; feePerSecond: u128 }
       >;
       /** Remove dest fee per second */
       DestFeePerSecondRemoved: AugmentedEvent<
         ApiType,
-        [location: XcmV3MultiLocation],
-        { location: XcmV3MultiLocation }
+        [location: StagingXcmV3MultiLocation],
+        { location: StagingXcmV3MultiLocation }
       >;
       /** HRMP manage action succesfully sent */
       HrmpManagementSent: AugmentedEvent<
@@ -2058,44 +2233,44 @@ declare module "@polkadot/api-base/types/events" {
       /** Transacted the inner call through a derivative account in a destination chain. */
       TransactedDerivative: AugmentedEvent<
         ApiType,
-        [accountId: AccountId20, dest: XcmV3MultiLocation, call: Bytes, index: u16],
-        { accountId: AccountId20; dest: XcmV3MultiLocation; call: Bytes; index: u16 }
+        [accountId: AccountId20, dest: StagingXcmV3MultiLocation, call: Bytes, index: u16],
+        { accountId: AccountId20; dest: StagingXcmV3MultiLocation; call: Bytes; index: u16 }
       >;
       /** Transacted the call through a signed account in a destination chain. */
       TransactedSigned: AugmentedEvent<
         ApiType,
-        [feePayer: AccountId20, dest: XcmV3MultiLocation, call: Bytes],
-        { feePayer: AccountId20; dest: XcmV3MultiLocation; call: Bytes }
+        [feePayer: AccountId20, dest: StagingXcmV3MultiLocation, call: Bytes],
+        { feePayer: AccountId20; dest: StagingXcmV3MultiLocation; call: Bytes }
       >;
       /** Transacted the call through the sovereign account in a destination chain. */
       TransactedSovereign: AugmentedEvent<
         ApiType,
-        [feePayer: AccountId20, dest: XcmV3MultiLocation, call: Bytes],
-        { feePayer: AccountId20; dest: XcmV3MultiLocation; call: Bytes }
+        [feePayer: AccountId20, dest: StagingXcmV3MultiLocation, call: Bytes],
+        { feePayer: AccountId20; dest: StagingXcmV3MultiLocation; call: Bytes }
       >;
       /** Transact failed */
       TransactFailed: AugmentedEvent<
         ApiType,
-        [error: XcmV3TraitsError],
-        { error: XcmV3TraitsError }
+        [error: StagingXcmV3TraitsError],
+        { error: StagingXcmV3TraitsError }
       >;
       /** Changed the transact info of a location */
       TransactInfoChanged: AugmentedEvent<
         ApiType,
         [
-          location: XcmV3MultiLocation,
+          location: StagingXcmV3MultiLocation,
           remoteInfo: PalletXcmTransactorRemoteTransactInfoWithMaxWeight
         ],
         {
-          location: XcmV3MultiLocation;
+          location: StagingXcmV3MultiLocation;
           remoteInfo: PalletXcmTransactorRemoteTransactInfoWithMaxWeight;
         }
       >;
       /** Removed the transact info of a location */
       TransactInfoRemoved: AugmentedEvent<
         ApiType,
-        [location: XcmV3MultiLocation],
-        { location: XcmV3MultiLocation }
+        [location: StagingXcmV3MultiLocation],
+        { location: StagingXcmV3MultiLocation }
       >;
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
@@ -2106,15 +2281,15 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [
           sender: AccountId20,
-          assets: XcmV3MultiassetMultiAssets,
-          fee: XcmV3MultiAsset,
-          dest: XcmV3MultiLocation
+          assets: StagingXcmV3MultiassetMultiAssets,
+          fee: StagingXcmV3MultiAsset,
+          dest: StagingXcmV3MultiLocation
         ],
         {
           sender: AccountId20;
-          assets: XcmV3MultiassetMultiAssets;
-          fee: XcmV3MultiAsset;
-          dest: XcmV3MultiLocation;
+          assets: StagingXcmV3MultiassetMultiAssets;
+          fee: StagingXcmV3MultiAsset;
+          dest: StagingXcmV3MultiLocation;
         }
       >;
       /** Generic event */
