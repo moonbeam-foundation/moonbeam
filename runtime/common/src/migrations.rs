@@ -21,7 +21,7 @@
 
 use frame_support::{
 	pallet_prelude::GetStorageVersion,
-	traits::{Hash as PreimageHash, OnRuntimeUpgrade, PalletInfoAccess},
+	traits::{OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
@@ -34,7 +34,7 @@ use sp_std::{marker::PhantomData, prelude::*};
 pub struct PreimageMigrationHashToBoundedCall<T>(PhantomData<T>);
 impl<T> Migration for PreimageMigrationHashToBoundedCall<T>
 where
-	T: pallet_preimage::Config<Hash = PreimageHash> + frame_system::Config,
+	T: pallet_preimage::Config + frame_system::Config,
 {
 	fn friendly_name(&self) -> &str {
 		"MM_PreimageMigrationHashToBoundedCall"
@@ -60,7 +60,7 @@ where
 pub struct PalletReferendaMigrateV0ToV1<T>(pub PhantomData<T>);
 impl<T> Migration for PalletReferendaMigrateV0ToV1<T>
 where
-	T: pallet_referenda::Config<Hash = PreimageHash> + frame_system::Config,
+	T: pallet_referenda::Config + frame_system::Config,
 {
 	fn friendly_name(&self) -> &str {
 		"MM_PalletReferendaMigrateV0ToV1"
@@ -157,12 +157,12 @@ impl<Runtime, Council, Tech> GetMigrations for ReferendaMigrations<Runtime, Coun
 where
 	Runtime: pallet_author_mapping::Config,
 	Runtime: pallet_parachain_staking::Config,
-	Runtime: pallet_scheduler::Config<Hash = PreimageHash>,
+	Runtime: pallet_scheduler::Config,
 	Runtime: AuthorSlotFilterConfig,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
-	Runtime: pallet_democracy::Config<Hash = PreimageHash>,
-	Runtime: pallet_preimage::Config<Hash = PreimageHash>,
+	Runtime: pallet_democracy::Config,
+	Runtime: pallet_preimage::Config,
 	Runtime: pallet_referenda::Config,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
@@ -178,12 +178,12 @@ impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council
 where
 	Runtime: pallet_author_mapping::Config,
 	Runtime: pallet_parachain_staking::Config,
-	Runtime: pallet_scheduler::Config<Hash = PreimageHash>,
+	Runtime: pallet_scheduler::Config,
 	Runtime: AuthorSlotFilterConfig,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
-	Runtime: pallet_democracy::Config<Hash = PreimageHash>,
-	Runtime: pallet_preimage::Config<Hash = PreimageHash>,
+	Runtime: pallet_democracy::Config,
+	Runtime: pallet_preimage::Config,
 	Runtime: pallet_asset_manager::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 	Runtime: pallet_xcm_transactor::Config,

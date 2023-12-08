@@ -488,7 +488,7 @@ where
 		block_number: u32,
 	) -> EvmResult<u32> {
 		let proposal: BoundedCallOf<Runtime> = Bounded::Lookup {
-			hash: proposal_hash,
+			hash: proposal_hash.into(),
 			len: proposal_len,
 		};
 		handle.record_log_costs_manual(2, 32 * 2)?;
@@ -526,7 +526,7 @@ where
 		block_number: u32,
 	) -> EvmResult<u32> {
 		let proposal: BoundedCallOf<Runtime> = Bounded::Lookup {
-			hash: proposal_hash,
+			hash: proposal_hash.into(),
 			len: proposal_len,
 		};
 		handle.record_log_costs_manual(2, 32 * 2)?;
