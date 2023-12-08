@@ -51,13 +51,7 @@ describeSuite({
         }
 
         const publicPropCount = await context.polkadotJs().query.democracy.publicPropCount();
-        expect(publicPropCount.toNumber(), "Proposal not created").to.equal(1);
-
-        const publicProps = await context.polkadotJs().query.democracy.publicProps();
-        expect(publicProps[0][1].asLookup.hash_.toString()).to.equal(encodedHash);
-        expect(publicProps[0][2].toString()).to.equal(ALITH_ADDRESS);
-        const depositOf = await context.polkadotJs().query.democracy.depositOf(0);
-        expect(depositOf.unwrap()[1].toBigInt()).to.equal(1_000_000_000_000_000_000_000n);
+        expect(publicPropCount.toNumber(), "Proposal created").to.equal(0);
       },
     });
   },
