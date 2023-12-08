@@ -590,6 +590,8 @@ impl pallet_identity::Config for Runtime {
 	type SubAccountDeposit = ConstU128<{ currency::deposit(1, 53) }>;
 	type MaxSubAccounts = ConstU32<100>;
 	type MaxAdditionalFields = ConstU32<100>;
+	type IdentityInformation = pallet_identity::simple::IdentityInfo<Self::MaxAdditionalFields>;
+
 	type MaxRegistrars = ConstU32<20>;
 	type Slashed = Treasury;
 	type ForceOrigin = IdentityForceOrigin;
