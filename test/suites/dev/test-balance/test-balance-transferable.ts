@@ -8,9 +8,8 @@ describeSuite({
   title: "Balance - Transferable",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
-    let randomAddress: `0x${string}`;
     const randomAccount = generateKeyringPair();
-    randomAddress = randomAccount.address as `0x${string}`;
+    const randomAddress = randomAccount.address as `0x${string}`;
 
     beforeAll(async function () {
       await context.createBlock(
@@ -36,7 +35,7 @@ describeSuite({
           const minDepositAmount = context.polkadotJs().consts.democracy.minimumDeposit.toBigInt();
 
           // Delegate to Alith
-          let { result: res } = await context.createBlock(
+          const { result: res } = await context.createBlock(
             context
               .polkadotJs()
               .tx.parachainStaking.delegate(ALITH_ADDRESS, 20n * GLMR, 10, 10)
