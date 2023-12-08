@@ -1077,6 +1077,8 @@ impl pallet_migrations::Config for Runtime {
 			Runtime,
 			CouncilCollective,
 			TechCommitteeCollective,
+			TreasuryCouncilCollective,
+			OpenTechCommitteeCollective,
 		>,
 		TransactorRelayIndexMigration<Runtime>,
 	);
