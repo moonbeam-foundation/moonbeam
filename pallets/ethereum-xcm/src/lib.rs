@@ -300,7 +300,8 @@ impl<T: Config> Pallet<T> {
 			// transaction on chain - we increase the global nonce.
 			<Nonce<T>>::put(current_nonce.saturating_add(U256::one()));
 
-			T::ValidatedTransaction::apply(source, transaction)
+			let (dispatch_info, _) = T::ValidatedTransaction::apply(source, transaction)?;
+			Ok(dispatch_info)
 		} else {
 			Err(sp_runtime::DispatchErrorWithPostInfo {
 				post_info: PostDispatchInfo {
