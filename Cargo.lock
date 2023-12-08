@@ -7106,6 +7106,7 @@ dependencies = [
  "cumulus-test-relay-sproof-builder",
  "derive_more",
  "exit-future",
+ "fc-api",
  "fc-consensus",
  "fc-db",
  "fc-mapping-sync",

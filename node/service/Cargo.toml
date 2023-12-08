@@ -102,6 +102,7 @@ substrate-prometheus-endpoint = { workspace = true }
 # Frontier
 fc-consensus = { workspace = true }
 fc-db = { workspace = true }
+fc-api = { workspace = true }
 fc-mapping-sync = { workspace = true, features = [ "sql" ] }
 fc-rpc = { workspace = true, features = [ "rpc-binary-search-estimate", "txpool" ] }
 fc-rpc-core = { workspace = true }
