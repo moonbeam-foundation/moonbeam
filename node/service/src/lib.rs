@@ -1126,6 +1126,7 @@ where
 			block_announce_validator_builder: None,
 			warp_sync_params: None,
 			net_config,
+			block_relay: None,
 		})?;
 
 	if config.offchain_worker.enabled {
