@@ -136,6 +136,7 @@ orml-xtokens = { workspace = true }
 pallet-xcm = { workspace = true }
 pallet-xcm-benchmarks = { workspace = true, optional = true }
 polkadot-core-primitives = { workspace = true }
+polkadot-runtime-common = { workspace = true }
 polkadot-parachain = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }

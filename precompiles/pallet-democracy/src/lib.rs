@@ -227,7 +227,10 @@ where
 			RevertReason::custom("Failure in preimage fetch").in_field("proposal_hash")
 		})?;
 
-		let bounded = Bounded::Lookup::<pallet_democracy::CallOf<Runtime>, <Runtime as frame_system::Config>::Hashing> {
+		let bounded = Bounded::Lookup::<
+			pallet_democracy::CallOf<Runtime>,
+			<Runtime as frame_system::Config>::Hashing,
+		> {
 			hash: proposal_hash,
 			len,
 		};

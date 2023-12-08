@@ -47,7 +47,10 @@ type TrackIdOf<Runtime> = <<Runtime as pallet_referenda::Config>::Tracks as Trac
 	BalanceOf<Runtime>,
 	BlockNumberFor<Runtime>,
 >>::Id;
-type BoundedCallOf<Runtime> = Bounded<<Runtime as pallet_referenda::Config>::RuntimeCall, <Runtime as frame_system::Config>::Hashing>;
+type BoundedCallOf<Runtime> = Bounded<
+	<Runtime as pallet_referenda::Config>::RuntimeCall,
+	<Runtime as frame_system::Config>::Hashing,
+>;
 
 type OriginOf<Runtime> =
 	<<Runtime as frame_system::Config>::RuntimeOrigin as OriginTrait>::PalletsOrigin;
@@ -265,7 +268,7 @@ where
 	) -> EvmResult<u32> {
 		log::trace!(
 			target: "referendum-precompile",
-			"Submitting proposal {} [len: {:?}] to track {}",
+			"Submitting proposal {:?} [len: {:?}] to track {}",
 			proposal.hash(),
 			proposal.len(),
 			track_id
