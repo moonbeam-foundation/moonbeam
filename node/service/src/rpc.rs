@@ -270,7 +270,7 @@ where
 	};
 
 	io.merge(
-		Eth::new(
+		Eth::<_, _, _, _, _, _, _, MoonbeamEthConfig<_,_>>::new(
 			Arc::clone(&client),
 			Arc::clone(&pool),
 			graph.clone(),
