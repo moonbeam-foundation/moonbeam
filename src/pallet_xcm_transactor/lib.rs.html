@@ -1276,6 +1276,35 @@
 <a href="#1276" id="1276">1276</a>
 <a href="#1277" id="1277">1277</a>
 <a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1565,8 +1594,13 @@
 		<span class="comment">// the overall weight to be used for the whole XCM message execution. If None,
 		// then this amount will be tried to be derived from storage.  If the storage item
 		// for the chain is not populated, then it fails
-		</span><span class="kw">pub </span>overall_weight: <span class="prelude-ty">Option</span>&lt;Weight&gt;,
+		</span><span class="kw">pub </span>overall_weight: <span class="prelude-ty">Option</span>&lt;WeightLimit&gt;,
 	}
+
+	<span class="doccomment">/// The amount of ref_time and proof_size to use for fee calculation if
+	/// we are dealing with an Unlimited variant inside &#39;overall_weight&#39; field
+	/// of &#39;TransactWeights&#39; struct.
+	</span><span class="kw">pub const </span>MAX_WEIGHT: Weight = Weight::from_parts(<span class="number">100_000_000_000</span>, <span class="number">100_000</span>);
 
 	<span class="doccomment">/// Since we are using pallet-utility for account derivation (through AsDerivative),
 	/// we need to provide an index for the account derivation. This storage item stores the index
@@ -1802,22 +1836,28 @@
 			<span class="comment">// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			</span><span class="kw">let </span>total_weight = weight_info.overall_weight.map_or_else(
-				|| {
-					<span class="self">Self</span>::take_weight_from_transact_info(
+				|| -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, DispatchError&gt; {
+					<span class="kw">let </span>weight_info = <span class="self">Self</span>::take_weight_from_transact_info(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
 						refund,
-					)
+					)<span class="question-mark">?</span>;
+					<span class="prelude-val">Ok</span>(WeightLimit::from(<span class="prelude-val">Some</span>(weight_info)))
 				},
 				|v| <span class="prelude-val">Ok</span>(v),
 			)<span class="question-mark">?</span>;
+
+			<span class="kw">let </span>total_weight_fee_calculation = <span class="kw">match </span>total_weight {
+				Unlimited =&gt; MAX_WEIGHT,
+				Limited(x) =&gt; x,
+			};
 
 			<span class="comment">// Calculate fee based on FeePerSecond
 			</span><span class="kw">let </span>fee = <span class="self">Self</span>::calculate_fee(
 				fee_location,
 				fee.fee_amount,
 				dest.clone(),
-				total_weight.clone(),
+				total_weight_fee_calculation,
 			)<span class="question-mark">?</span>;
 
 			<span class="comment">// If refund is true, the appendix instruction will be a deposit back to the sovereign
@@ -1844,9 +1884,9 @@
 			<span class="comment">// Deposit event
 			</span><span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::TransactedDerivative {
 				account_id: who,
-				dest: dest,
+				dest,
 				call: call_bytes,
-				index: index,
+				index,
 			});
 
 			<span class="prelude-val">Ok</span>(())
@@ -1888,22 +1928,28 @@
 			<span class="comment">// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			</span><span class="kw">let </span>total_weight = weight_info.overall_weight.map_or_else(
-				|| {
-					<span class="self">Self</span>::take_weight_from_transact_info(
+				|| -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, DispatchError&gt; {
+					<span class="kw">let </span>weight_info = <span class="self">Self</span>::take_weight_from_transact_info(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
 						refund,
-					)
+					)<span class="question-mark">?</span>;
+					<span class="prelude-val">Ok</span>(WeightLimit::from(<span class="prelude-val">Some</span>(weight_info)))
 				},
 				|v| <span class="prelude-val">Ok</span>(v),
 			)<span class="question-mark">?</span>;
+
+			<span class="kw">let </span>total_weight_fee_calculation = <span class="kw">match </span>total_weight {
+				Unlimited =&gt; MAX_WEIGHT,
+				Limited(x) =&gt; x,
+			};
 
 			<span class="comment">// Calculate fee based on FeePerSecond and total_weight
 			</span><span class="kw">let </span>fee = <span class="self">Self</span>::calculate_fee(
 				fee_location,
 				fee.fee_amount,
 				dest.clone(),
-				total_weight.clone(),
+				total_weight_fee_calculation,
 			)<span class="question-mark">?</span>;
 
 			<span class="comment">// If refund is true, the appendix instruction will be a deposit back to the sovereign
@@ -2014,22 +2060,28 @@
 			<span class="comment">// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			</span><span class="kw">let </span>total_weight = weight_info.overall_weight.map_or_else(
-				|| {
-					<span class="self">Self</span>::take_weight_from_transact_info_signed(
+				|| -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, DispatchError&gt; {
+					<span class="kw">let </span>weight_info = <span class="self">Self</span>::take_weight_from_transact_info_signed(
 						dest.clone(),
 						weight_info.transact_required_weight_at_most,
 						refund,
-					)
+					)<span class="question-mark">?</span>;
+					<span class="prelude-val">Ok</span>(WeightLimit::from(<span class="prelude-val">Some</span>(weight_info)))
 				},
 				|v| <span class="prelude-val">Ok</span>(v),
 			)<span class="question-mark">?</span>;
+
+			<span class="kw">let </span>total_weight_fee_calculation = <span class="kw">match </span>total_weight {
+				Unlimited =&gt; MAX_WEIGHT,
+				Limited(x) =&gt; x,
+			};
 
 			<span class="comment">// Fee to be paid
 			</span><span class="kw">let </span>fee = <span class="self">Self</span>::calculate_fee(
 				fee_location,
 				fee.fee_amount,
 				dest.clone(),
-				total_weight.clone(),
+				total_weight_fee_calculation,
 			)<span class="question-mark">?</span>;
 
 			<span class="comment">// If refund is true, the appendix instruction will be a deposit back to the sender
@@ -2155,21 +2207,27 @@
 			<span class="comment">// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			</span><span class="kw">let </span>total_weight = weight_info.overall_weight.map_or_else(
-				|| {
-					<span class="self">Self</span>::take_weight_from_transact_info(
+				|| -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, DispatchError&gt; {
+					<span class="kw">let </span>weight_info = <span class="self">Self</span>::take_weight_from_transact_info(
 						destination.clone(),
 						weight_info.transact_required_weight_at_most,
 						<span class="bool-val">false</span>,
-					)
+					)<span class="question-mark">?</span>;
+					<span class="prelude-val">Ok</span>(WeightLimit::from(<span class="prelude-val">Some</span>(weight_info)))
 				},
 				|v| <span class="prelude-val">Ok</span>(v),
 			)<span class="question-mark">?</span>;
+
+			<span class="kw">let </span>total_weight_fee_calculation = <span class="kw">match </span>total_weight {
+				Unlimited =&gt; MAX_WEIGHT,
+				Limited(x) =&gt; x,
+			};
 
 			<span class="kw">let </span>fee = <span class="self">Self</span>::calculate_fee(
 				fee_location,
 				fee.fee_amount,
 				destination.clone(),
-				total_weight.clone(),
+				total_weight_fee_calculation,
 			)<span class="question-mark">?</span>;
 
 			<span class="macro">ensure!</span>(
@@ -2205,7 +2263,7 @@
 			fee: MultiAsset,
 			call: Vec&lt;u8&gt;,
 			origin_kind: OriginKind,
-			total_weight: Weight,
+			total_weight: WeightLimit,
 			transact_required_weight_at_most: Weight,
 			with_appendix: <span class="prelude-ty">Option</span>&lt;Vec&lt;Instruction&lt;()&gt;&gt;&gt;,
 		) -&gt; DispatchResult {
@@ -2250,7 +2308,7 @@
 			fee: MultiAsset,
 			call: Vec&lt;u8&gt;,
 			origin_kind: OriginKind,
-			total_weight: Weight,
+			total_weight: WeightLimit,
 			transact_required_weight_at_most: Weight,
 			with_appendix: <span class="prelude-ty">Option</span>&lt;Vec&lt;Instruction&lt;()&gt;&gt;&gt;,
 		) -&gt; DispatchResult {
@@ -2324,7 +2382,7 @@
 		</span><span class="kw">fn </span>transact_message(
 			dest: MultiLocation,
 			asset: MultiAsset,
-			dest_weight: Weight,
+			dest_weight: WeightLimit,
 			call: Vec&lt;u8&gt;,
 			dispatch_weight: Weight,
 			origin_kind: OriginKind,
@@ -2338,7 +2396,7 @@
 				instructions.push(<span class="self">Self</span>::appendix_instruction(appendix)<span class="question-mark">?</span>);
 			}
 			instructions.push(Transact {
-				origin_kind: origin_kind,
+				origin_kind,
 				require_weight_at_most: dispatch_weight,
 				call: call.into(),
 			});
@@ -2349,7 +2407,7 @@
 		</span><span class="kw">fn </span>buy_execution(
 			asset: MultiAsset,
 			at: <span class="kw-2">&amp;</span>MultiLocation,
-			weight: Weight,
+			weight: WeightLimit,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;Instruction&lt;()&gt;, DispatchError&gt; {
 			<span class="kw">let </span>universal_location = T::UniversalLocation::get();
 			<span class="kw">let </span>fees = asset
@@ -2358,7 +2416,7 @@
 
 			<span class="prelude-val">Ok</span>(BuyExecution {
 				fees,
-				weight_limit: WeightLimit::Limited(weight),
+				weight_limit: weight,
 			})
 		}
 

@@ -729,6 +729,39 @@
 <a href="#729" id="729">729</a>
 <a href="#730" id="730">730</a>
 <a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -766,6 +799,7 @@
 	vec::Vec,
 };
 <span class="kw">use </span>sp_weights::Weight;
+<span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm::latest::MultiLocation;
 <span class="kw">use </span>xcm_primitives::{
 	AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall, DEFAULT_PROOF_SIZE,
@@ -953,7 +987,10 @@
 					weight,
 					DEFAULT_PROOF_SIZE.saturating_div(<span class="number">2</span>),
 				),
-				overall_weight: <span class="prelude-val">Some</span>(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
+				overall_weight: <span class="prelude-val">Some</span>(Limited(Weight::from_parts(
+					overall_weight,
+					DEFAULT_PROOF_SIZE,
+				))),
 			},
 			refund: <span class="bool-val">false</span>,
 		};
@@ -1055,7 +1092,10 @@
 					weight,
 					DEFAULT_PROOF_SIZE.saturating_div(<span class="number">2</span>),
 				),
-				overall_weight: <span class="prelude-val">Some</span>(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
+				overall_weight: <span class="prelude-val">Some</span>(Limited(Weight::from_parts(
+					overall_weight,
+					DEFAULT_PROOF_SIZE,
+				))),
 			},
 			inner_call,
 			refund: <span class="bool-val">false</span>,
@@ -1129,7 +1169,10 @@
 					weight,
 					DEFAULT_PROOF_SIZE.saturating_div(<span class="number">2</span>),
 				),
-				overall_weight: <span class="prelude-val">Some</span>(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
+				overall_weight: <span class="prelude-val">Some</span>(Limited(Weight::from_parts(
+					overall_weight,
+					DEFAULT_PROOF_SIZE,
+				))),
 			},
 			refund: <span class="bool-val">false</span>,
 			call,
@@ -1223,7 +1266,10 @@
 					weight,
 					DEFAULT_PROOF_SIZE.saturating_div(<span class="number">2</span>),
 				),
-				overall_weight: <span class="prelude-val">Some</span>(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
+				overall_weight: <span class="prelude-val">Some</span>(Limited(Weight::from_parts(
+					overall_weight,
+					DEFAULT_PROOF_SIZE,
+				))),
 			},
 			refund: <span class="bool-val">false</span>,
 			call,
@@ -1302,6 +1348,11 @@
 
 		<span class="kw">let </span>inner_call: Vec&lt;<span class="kw">_</span>&gt; = inner_call.into();
 
+		<span class="kw">let </span>overall_weight_limit = <span class="kw">match </span>overall_weight.ref_time() {
+			u64::MAX =&gt; Unlimited,
+			<span class="kw">_ </span>=&gt; Limited(overall_weight),
+		};
+
 		<span class="comment">// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1317,7 +1368,7 @@
 			inner_call,
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: <span class="prelude-val">Some</span>(overall_weight),
+				overall_weight: <span class="prelude-val">Some</span>(overall_weight_limit),
 			},
 			refund,
 		};
@@ -1355,6 +1406,11 @@
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert(<span class="string">&quot;cannot convert into currency id&quot;</span>))<span class="question-mark">?</span>;
 
+		<span class="kw">let </span>overall_weight_limit = <span class="kw">match </span>overall_weight.ref_time() {
+			u64::MAX =&gt; Unlimited,
+			<span class="kw">_ </span>=&gt; Limited(overall_weight),
+		};
+
 		<span class="comment">// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1367,7 +1423,7 @@
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: <span class="prelude-val">Some</span>(overall_weight),
+				overall_weight: <span class="prelude-val">Some</span>(overall_weight_limit),
 			},
 			inner_call,
 			refund,
@@ -1390,6 +1446,11 @@
 	) -&gt; EvmResult {
 		<span class="kw">let </span>call: Vec&lt;<span class="kw">_</span>&gt; = call.into();
 
+		<span class="kw">let </span>overall_weight_limit = <span class="kw">match </span>overall_weight.ref_time() {
+			u64::MAX =&gt; Unlimited,
+			<span class="kw">_ </span>=&gt; Limited(overall_weight),
+		};
+
 		<span class="comment">// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1403,7 +1464,7 @@
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: <span class="prelude-val">Some</span>(overall_weight),
+				overall_weight: <span class="prelude-val">Some</span>(overall_weight_limit),
 			},
 			refund,
 			call,
@@ -1438,6 +1499,11 @@
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert(<span class="string">&quot;cannot convert into currency id&quot;</span>))<span class="question-mark">?</span>;
 
+		<span class="kw">let </span>overall_weight_limit = <span class="kw">match </span>overall_weight.ref_time() {
+			u64::MAX =&gt; Unlimited,
+			<span class="kw">_ </span>=&gt; Limited(overall_weight),
+		};
+
 		<span class="comment">// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1449,7 +1515,7 @@
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: <span class="prelude-val">Some</span>(overall_weight),
+				overall_weight: <span class="prelude-val">Some</span>(overall_weight_limit),
 			},
 			refund,
 			call,
