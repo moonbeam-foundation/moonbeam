@@ -14,7 +14,7 @@ describeSuite({
     let convictionVoting: ConvictionVoting;
 
     beforeAll(async function () {
-      proposalIndex = await createProposal(context);
+      proposalIndex = await createProposal({ context });
 
       convictionVoting = new ConvictionVoting(context);
       const blockAlith_1 = await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
