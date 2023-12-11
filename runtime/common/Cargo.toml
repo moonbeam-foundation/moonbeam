@@ -71,11 +71,15 @@ xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 
+# cumulus
+cumulus-pallet-parachain-system = { workspace = true }
+
 [features]
 std = [
 	"fp-ethereum/std",
 	"fp-evm/std",
 	"frame-support/std",
+	"cumulus-pallet-parachain-system/std",
 	"pallet-asset-manager/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",

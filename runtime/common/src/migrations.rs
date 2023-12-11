@@ -21,12 +21,14 @@
 
 use frame_support::{
 	pallet_prelude::GetStorageVersion,
+	sp_runtime::traits::{Block, Header},
 	traits::{Hash as PreimageHash, OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use pallet_moonbeam_orbiters::CollatorsPool;
+use pallet_parachain_staking::{Round, RoundInfo};
 #[cfg(feature = "try-runtime")]
 use sp_runtime::traits::Zero;
 use sp_std::{marker::PhantomData, prelude::*};
@@ -151,6 +153,53 @@ where
 	}
 }
 
+pub struct UpdateFirstRoundRelayBlockNumber<T>(pub PhantomData<T>);
+impl<T> Migration for UpdateFirstRoundRelayBlockNumber<T>
+where
+	T: pallet_parachain_staking::Config,
+	T: cumulus_pallet_parachain_system::Config,
+	T: frame_system::Config,
+	u32: From<<<<T as frame_system::Config>::Block as Block>::Header as Header>::Number>,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_UpdateFirstRoundRelayBlockNumber"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		let para_block: u32 = frame_system::Pallet::<T>::block_number().into();
+		let round_info = pallet_parachain_staking::Pallet::<T>::round();
+
+		let para_block_diff = para_block.saturating_sub(round_info.first);
+
+		let percentage = para_block_diff.saturating_div(round_info.length);
+
+		let new_block_diff = (round_info.length * 2).saturating_mul(percentage);
+		let new_first_block =
+			cumulus_pallet_parachain_system::Pallet::<T>::last_relay_block_number()
+				.saturating_sub(new_block_diff);
+
+		let new_round_info = RoundInfo {
+			current: round_info.current,
+			first: new_first_block,
+			length: round_info.length * 2,
+		};
+
+		Round::<T>::put(new_round_info);
+
+		T::DbWeight::get().reads_writes(2, 1)
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		Ok(vec![])
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		Ok(())
+	}
+}
+
 pub struct ReferendaMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> GetMigrations for ReferendaMigrations<Runtime, Council, Tech>
@@ -188,6 +237,8 @@ where
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 	Runtime: pallet_xcm_transactor::Config,
 	Runtime: pallet_moonbeam_orbiters::Config,
+	Runtime: cumulus_pallet_parachain_system::Config,
+	u32: From<<<<Runtime as frame_system::Config>::Block as Block>::Header as Header>::Number>,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
@@ -253,8 +304,10 @@ where
 		//	PalletAssetManagerMigrateXcmV2ToV3::<Runtime>(Default::default());
 		//let xcm_transactor_to_xcm_v3 =
 		//	PalletXcmTransactorMigrateXcmV2ToV3::<Runtime>(Default::default());
-		let remove_min_bond_for_old_orbiter_collators =
-			RemoveMinBondForOrbiterCollators::<Runtime>(Default::default());
+		//let remove_min_bond_for_old_orbiter_collators =
+		//	RemoveMinBondForOrbiterCollators::<Runtime>(Default::default());
+		let update_first_round_relay_block_number =
+			UpdateFirstRoundRelayBlockNumber::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -301,7 +354,9 @@ where
 			//Box::new(preimage_migration_hash_to_bounded_call),
 			//Box::new(asset_manager_to_xcm_v3),
 			//Box::new(xcm_transactor_to_xcm_v3),
-			Box::new(remove_min_bond_for_old_orbiter_collators),
+			// completed in runtime 2600
+			//Box::new(remove_min_bond_for_old_orbiter_collators),
+			Box::new(update_first_round_relay_block_number),
 		]
 	}
 }

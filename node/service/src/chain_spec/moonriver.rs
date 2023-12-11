@@ -194,7 +194,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 
 const COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
-const BLOCKS_PER_ROUND: u32 = 2 * HOURS;
+const BLOCKS_PER_ROUND: u32 = 4 * HOURS;
 const NUM_SELECTED_CANDIDATES: u32 = 8;
 pub fn moonriver_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
