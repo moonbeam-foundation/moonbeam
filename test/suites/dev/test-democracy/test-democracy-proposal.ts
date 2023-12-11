@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeEach, notePreimage } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, PROPOSAL_AMOUNT, alith } from "@moonwall/util";
+import {
+  describeSuite,
+  expect,
+  beforeEach,
+  notePreimage,
+  execCouncilProposal,
+} from "@moonwall/cli";
+import { alith } from "@moonwall/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
@@ -17,16 +23,14 @@ describeSuite({
         .polkadotJs()
         .tx.parachainStaking.setParachainBondAccount(randomAddress);
       encodedHash = await notePreimage(context, proposal, alith);
-      await context.createBlock(
-        context.polkadotJs().tx.democracy.propose(
-          {
-            Lookup: {
-              hash: encodedHash,
-              len: proposal.method.encodedLength,
-            },
+      await execCouncilProposal(
+        context,
+        context.polkadotJs().tx.democracy.externalProposeMajority({
+          Lookup: {
+            hash: encodedHash,
+            len: proposal.method.encodedLength,
           },
-          PROPOSAL_AMOUNT
-        )
+        })
       );
     });
 
@@ -41,32 +45,10 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "should increase the number of proposals to 2",
+      title: "should create an external proposal",
       test: async function () {
-        const publicPropCount = await context.polkadotJs().query.democracy.publicPropCount();
-        expect(publicPropCount.toBigInt()).to.equal(2n);
-      },
-    });
-
-    it({
-      id: "T03",
-      title: "should create a proposal",
-      test: async function () {
-        const publicProps = await context.polkadotJs().query.democracy.publicProps();
-
-        expect(publicProps[publicProps.length - 1][1].asLookup.hash_.toHex().toString()).to.equal(
-          encodedHash
-        );
-        expect(publicProps[publicProps.length - 1][2].toString()).toBe(ALITH_ADDRESS);
-      },
-    });
-
-    it({
-      id: "T04",
-      title: "should include a deposit of 1000 TOKENs",
-      test: async function () {
-        const depositOf = await context.polkadotJs().query.democracy.depositOf(0);
-        expect(depositOf.unwrap()[1].toBigInt()).to.equal(1000n * GLMR);
+        const publicProps = await context.polkadotJs().query.democracy.nextExternal();
+        expect(publicProps.unwrap()[0].asLookup.hash_.toHex().toString()).to.equal(encodedHash);
       },
     });
   },
