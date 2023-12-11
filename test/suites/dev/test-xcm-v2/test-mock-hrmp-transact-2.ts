@@ -27,7 +27,7 @@ describeSuite({
       transferredBalance = 10_000_000_000_000_000_000n;
 
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(descendOriginAddress, transferredBalance),
+        context.polkadotJs().tx.balances.transferAllowDeath(descendOriginAddress, transferredBalance),
         { allowFailures: false }
       );
 
@@ -49,7 +49,7 @@ describeSuite({
 
         const transferCall = context
           .polkadotJs()
-          .tx.balances.transfer(random.address, transferredBalance / 10n);
+          .tx.balances.transferAllowDeath(random.address, transferredBalance / 10n);
         const transferCallEncoded = transferCall?.method.toHex();
 
         // We are going to test that we can receive a transact operation from parachain 1

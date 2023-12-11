@@ -30,7 +30,7 @@ describeSuite({
       transferredBalance = 100000000000000n;
 
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(sovereignAddress, transferredBalance),
+        context.polkadotJs().tx.balances.transferAllowDeath(sovereignAddress, transferredBalance),
         { allowFailures: false }
       );
 

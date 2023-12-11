@@ -107,7 +107,7 @@
 //   it.skip("should allow dispatches for regular pallets (e.g., balances)", async function () {
 //     let randomAddress = "0x1111111111111111111111111111111111111111";
 //     let amountToTransfer = 1n * GLMR;
-//     let balancesCall = context.polkadotApi.tx.balances.transfer(randomAddress, amountToTransfer);
+//     let balancesCall = context.polkadotApi.tx.balances.transferAllowDeath(randomAddress, amountToTransfer);
 //     let callBytes = balancesCall?.method.toHex() || "";
 
 //     // We first try with call, to see the error message

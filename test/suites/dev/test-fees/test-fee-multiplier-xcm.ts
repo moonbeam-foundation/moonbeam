@@ -41,7 +41,7 @@ describeSuite({
 
       await expectOk(
         context.createBlock(
-          context.polkadotJs().tx.balances.transfer(descendOriginAddress, transferredBalance * 100n)
+          context.polkadotJs().tx.balances.transferAllowDeath(descendOriginAddress, transferredBalance * 100n)
         )
       );
 
@@ -110,7 +110,7 @@ describeSuite({
           .query.transactionPayment.nextFeeMultiplier();
         await context
           .polkadotJs()
-          .tx.balances.transfer(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
+          .tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
           .signAndSend(alith, { nonce: -1 });
         await context
           .polkadotJs()
@@ -132,7 +132,7 @@ describeSuite({
       test: async () => {
         const transferCallEncoded = context
           .polkadotJs()
-          .tx.balances.transfer(random.address, transferredBalance / 10n)
+          .tx.balances.transferAllowDeath(random.address, transferredBalance / 10n)
           .method.toHex();
 
         const initialValue = await context

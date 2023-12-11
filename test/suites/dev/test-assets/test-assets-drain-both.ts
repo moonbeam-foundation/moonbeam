@@ -70,7 +70,7 @@ describeSuite({
         ).to.eq(0n);
 
         // We transfer a good amount to be able to pay for fees
-        await context.createBlock(api.tx.balances.transfer(freshAccount.address, 1n * GLMR));
+        await context.createBlock(api.tx.balances.transferAllowDeath(freshAccount.address, 1n * GLMR));
 
         expect(
           (await api.query.system.account(freshAccount.address as string)).sufficients.toBigInt()

@@ -12,7 +12,7 @@ describeSuite({
 
     beforeAll(async function () {
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(randomAccount.address, MIN_GLMR_DELEGATOR + GLMR),
+        context.polkadotJs().tx.balances.transferAllowDeath(randomAccount.address, MIN_GLMR_DELEGATOR + GLMR),
         { allowFailures: false }
       );
 

@@ -20,7 +20,7 @@ describeSuite({
     beforeAll(async function () {
       await context.createBlock(
         [
-          context.polkadotJs().tx.balances.transfer(randomAccount.address, 2n * MIN_GLMR_STAKING),
+          context.polkadotJs().tx.balances.transferAllowDeath(randomAccount.address, 2n * MIN_GLMR_STAKING),
           context
             .polkadotJs()
             .tx.parachainStaking.joinCandidates(MIN_GLMR_STAKING, 1)

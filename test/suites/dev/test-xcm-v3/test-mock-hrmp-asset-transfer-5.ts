@@ -29,7 +29,7 @@ describeSuite({
 
       // We first fund parachain 2000 sovreign account
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(sovereignAddress, transferredBalance),
+        context.polkadotJs().tx.balances.transferAllowDeath(sovereignAddress, transferredBalance),
         { allowFailures: false }
       );
 

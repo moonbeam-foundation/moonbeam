@@ -106,7 +106,7 @@ describeSuite({
         // We first fund the parent sovereign account with 1000
         // we will only withdraw 1, so no problem on this
         await context.createBlock(
-          context.polkadotJs().tx.balances.transfer(sovereignAddress, 1n * GLMR),
+          context.polkadotJs().tx.balances.transferAllowDeath(sovereignAddress, 1n * GLMR),
           { allowFailures: false }
         );
 

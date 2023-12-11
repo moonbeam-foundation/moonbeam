@@ -30,7 +30,7 @@ describeSuite({
       // Send some native tokens to the sovereign account of paraId (to pay fees)
       await context
         .polkadotJs()
-        .tx.balances.transfer(paraSovereign, parseEther("1"))
+        .tx.balances.transferAllowDeath(paraSovereign, parseEther("1"))
         .signAndSend(alith);
       await context.createBlock();
 

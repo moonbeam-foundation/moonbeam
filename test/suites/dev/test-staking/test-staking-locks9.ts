@@ -35,7 +35,7 @@ describeSuite({
         [
           context
             .polkadotJs()
-            .tx.balances.transfer(
+            .tx.balances.transferAllowDeath(
               randomAccount.address,
               (MIN_GLMR_DELEGATOR + GLMR) * maxDelegationsPerDelegator
             )
@@ -43,7 +43,7 @@ describeSuite({
           ...randomCandidates.map((randomCandidate) =>
             context
               .polkadotJs()
-              .tx.balances.transfer(randomCandidate.address, MIN_GLMR_STAKING + GLMR)
+              .tx.balances.transferAllowDeath(randomCandidate.address, MIN_GLMR_STAKING + GLMR)
               .signAsync(alith, { nonce: alithNonce++ })
           ),
         ],

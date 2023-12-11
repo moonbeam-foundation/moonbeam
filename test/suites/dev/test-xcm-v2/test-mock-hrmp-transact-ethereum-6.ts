@@ -35,7 +35,7 @@ describeSuite({
 
       // We fund the Delegatee, which will send the xcm and pay fees
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(descendAddress, transferredBalance),
+        context.polkadotJs().tx.balances.transferAllowDeath(descendAddress, transferredBalance),
         { allowFailures: false }
       );
 

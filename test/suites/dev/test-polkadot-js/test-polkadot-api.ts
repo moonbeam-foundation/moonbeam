@@ -32,7 +32,7 @@ describeSuite({
       test: async function () {
         const randomAddress = generateKeyringPair().address as `0x${string}`;
         await context.createBlock(
-          context.polkadotJs().tx.balances.transfer(randomAddress, 2n * GLMR)
+          context.polkadotJs().tx.balances.transferAllowDeath(randomAddress, 2n * GLMR)
         );
 
         expect(BigInt(await context.viem().getBalance({ address: randomAddress }))).to.equal(
@@ -47,7 +47,7 @@ describeSuite({
       test: async function () {
         const randomAddress = generateKeyringPair().address as `0x${string}`;
         await context.createBlock(
-          context.polkadotJs().tx.balances.transfer(randomAddress, 2n * GLMR)
+          context.polkadotJs().tx.balances.transferAllowDeath(randomAddress, 2n * GLMR)
         );
         const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
 
@@ -92,12 +92,12 @@ describeSuite({
         // Generating two transfers to ensure treasury account exists
         const randomAddress = generateKeyringPair().address as `0x${string}`;
         await context.createBlock(
-          context.polkadotJs().tx.balances.transfer(randomAddress, 2n * GLMR)
+          context.polkadotJs().tx.balances.transferAllowDeath(randomAddress, 2n * GLMR)
         );
 
         const randomAddress2 = generateKeyringPair().address as `0x${string}`;
         await context.createBlock(
-          context.polkadotJs().tx.balances.transfer(randomAddress2, 2n * GLMR)
+          context.polkadotJs().tx.balances.transferAllowDeath(randomAddress2, 2n * GLMR)
         );
         const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
         const apiAt = await context.polkadotJs().at(signedBlock.block.header.hash);

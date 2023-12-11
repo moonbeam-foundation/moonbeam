@@ -38,17 +38,17 @@ describeSuite({
 
         await context
           .polkadotJs()
-          .tx.balances.transfer(dorothy.address, GLMR)
+          .tx.balances.transferAllowDeath(dorothy.address, GLMR)
           .signAndSend(alith, { tip: NO_TIP });
 
         await context
           .polkadotJs()
-          .tx.balances.transfer(dorothy.address, GLMR)
+          .tx.balances.transferAllowDeath(dorothy.address, GLMR)
           .signAndSend(baltathar, { tip: MED_TIP });
 
         await context
           .polkadotJs()
-          .tx.balances.transfer(dorothy.address, GLMR)
+          .tx.balances.transferAllowDeath(dorothy.address, GLMR)
           .signAndSend(charleth, { tip: HIGH_TIP });
 
         const result = await context.createBlock();
@@ -88,7 +88,7 @@ describeSuite({
         const TIP_PER_GAS_3 = 40000n;
 
         // here we query the weight of a substrate balance transfer
-        const dummyTransfer = context.polkadotJs().tx.balances.transfer(alith.address, GLMR);
+        const dummyTransfer = context.polkadotJs().tx.balances.transferAllowDeath(alith.address, GLMR);
         const info = await context
           .polkadotJs()
           .call.transactionPaymentApi.queryInfo(dummyTransfer.toHex(), dummyTransfer.encodedLength);
@@ -105,7 +105,7 @@ describeSuite({
         // tx1 is a substrate txn
         const tx1 = await context
           .polkadotJs()
-          .tx.balances.transfer(ethan.address, GLMR)
+          .tx.balances.transferAllowDeath(ethan.address, GLMR)
           .signAsync(alith, { tip: TIP_PER_GAS_1 * balances_transfer_effective_gas });
 
         // tx2 is an eth txn
@@ -118,7 +118,7 @@ describeSuite({
         // tx3 is a substrate txn
         const tx3 = await context
           .polkadotJs()
-          .tx.balances.transfer(ethan.address, GLMR)
+          .tx.balances.transferAllowDeath(ethan.address, GLMR)
           .signAsync(baltathar, { tip: TIP_PER_GAS_3 * balances_transfer_effective_gas });
 
         const result = await context.createBlock([
@@ -158,7 +158,7 @@ describeSuite({
 
         await context
           .polkadotJs()
-          .tx.balances.transfer(dorothy.address, GLMR)
+          .tx.balances.transferAllowDeath(dorothy.address, GLMR)
           .signAndSend(alith, { tip: LOW_TIP, nonce });
 
         await context
@@ -249,7 +249,7 @@ describeSuite({
         // replace with a transaction that sends funds to a different account
         await context
           .polkadotJs()
-          .tx.balances.transfer(randomAccount2.address, 1)
+          .tx.balances.transferAllowDeath(randomAccount2.address, 1)
           .signAndSend(alith, { nonce, tip: GLMR });
 
         await context.createBlock();
@@ -279,7 +279,7 @@ describeSuite({
         // some funds to randomAccount
         await context
           .polkadotJs()
-          .tx.balances.transfer(randomAccount.address, 1)
+          .tx.balances.transferAllowDeath(randomAccount.address, 1)
           .signAndSend(alith, { nonce, tip: 0 });
 
         // replace with a transaction that sends funds to a different account

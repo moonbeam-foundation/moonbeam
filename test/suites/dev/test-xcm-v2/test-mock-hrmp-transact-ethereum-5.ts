@@ -33,7 +33,7 @@ describeSuite({
 
       // We first fund the descend origin derivated address
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(descendOriginAddress, transferredBalance),
+        context.polkadotJs().tx.balances.transferAllowDeath(descendOriginAddress, transferredBalance),
         { allowFailures: false }
       );
 

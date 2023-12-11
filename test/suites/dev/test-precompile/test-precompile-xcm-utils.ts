@@ -162,7 +162,7 @@ describeSuite({
       test: async function () {
         const random = generateKeyringPair();
 
-        const transferCall = context.polkadotJs().tx.balances.transfer(random.address, 1n * GLMR);
+        const transferCall = context.polkadotJs().tx.balances.transferAllowDeath(random.address, 1n * GLMR);
         const transferCallEncoded = transferCall?.method.toHex();
 
         const xcmMessage = {
