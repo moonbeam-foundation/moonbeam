@@ -2192,7 +2192,7 @@ fn root_can_use_hrmp_manage() {
 					// 20000 is the max
 					TransactWeights {
 						transact_required_weight_at_most: 17001.into(),
-						overall_weight: Some(20000.into())
+						overall_weight: Some(Limited(20000.into()))
 					}
 				),
 				pallet_xcm_transactor::Error::<Runtime>::ErrorValidating

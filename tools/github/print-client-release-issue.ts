@@ -63,6 +63,8 @@ Publish Docker with ${newVersion} and master.
 - [ ] Create a PR that update the launch.ts configuration (to add client conf for this version).
 - [ ] Get that PR approved and merged.
 - [ ] Re-run all extrinsics/hooks benchmarks.
+- [ ] Test downgrade to previous client version (manual test)
+  - [ ] Add to the release notes if the downgrade is not possible
 
 ## Release
 - [ ] Tag master with ${newVersion} and push to github

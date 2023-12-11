@@ -6472,7 +6472,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.34.0"
+version = "0.35.0"
 dependencies = [
  "clap",
  "cumulus-client-cli",
@@ -6507,7 +6507,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.34.0"
+version = "0.35.0"
 dependencies = [
  "account",
  "bip32",
@@ -6853,6 +6853,7 @@ dependencies = [
  "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-gmp",
+ "pallet-evm-precompile-identity",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-preimage",
@@ -6987,7 +6988,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.34.0"
+version = "0.35.0"
 dependencies = [
  "ansi_term",
  "async-io 1.13.0",
@@ -7235,6 +7236,7 @@ dependencies = [
  "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-gmp",
+ "pallet-evm-precompile-identity",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-preimage",
