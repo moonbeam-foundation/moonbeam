@@ -104,7 +104,7 @@ describeSuite({
 
         await context.createBlock(
           api.tx.balances
-            .transfer(baltathar.address, freshAccountBalanceNativeToken - fee)
+            .transferAllowDeath(baltathar.address, freshAccountBalanceNativeToken - fee)
             .signAsync(freshAccount)
         );
 
