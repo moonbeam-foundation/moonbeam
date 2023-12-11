@@ -75,7 +75,7 @@ describeSuite({
               expect(message.toLocaleLowerCase()).to.eq(`randomness.setbaberandomnessresults()`);
               break;
             case 4:
-              expect(message).to.eq(`balances.transfer(${randomAddress}, 2000000000000000000)`);
+              expect(message).to.eq(`balances.transferAllowDeath(${randomAddress}, 2000000000000000000)`);
               expect(ex.signer.toString()).to.eq(ALITH_ADDRESS);
               break;
             default:
@@ -124,7 +124,7 @@ describeSuite({
               expect(events).to.be.of.length(1);
               expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(events[0])).to.be.true;
               break;
-            // Fifth event: balances.transfer:: system.NewAccount, balances.Endowed,
+            // Fifth event: balances.transferAllowDeath:: system.NewAccount, balances.Endowed,
             // balances.Transfer, system.ExtrinsicSuccess
             case 4:
               log(events.map((e) => `${e.section}.${e.method}`).join(" - "));

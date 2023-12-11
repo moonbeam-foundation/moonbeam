@@ -94,7 +94,7 @@ describeSuite({
         // Then we just transfer out balance of freshAccount - fee
         const fee = (
           await api.tx.balances
-            .transfer(ALITH_ADDRESS as string, 1n * GLMR)
+            .transferAllowDeath(ALITH_ADDRESS as string, 1n * GLMR)
             .paymentInfo(freshAccount)
         ).partialFee.toBigInt();
 

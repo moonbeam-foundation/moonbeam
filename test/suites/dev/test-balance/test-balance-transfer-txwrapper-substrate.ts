@@ -45,7 +45,7 @@ describeSuite({
         metadataRpc,
       });
 
-      const unsigned = substrateMethods.balances.transfer(
+      const unsigned = substrateMethods.balances.transferAllowDeath(
         {
           dest: randomAddress as any,
           value: 512,
