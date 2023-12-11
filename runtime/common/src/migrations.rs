@@ -30,6 +30,8 @@ use pallet_migrations::{GetMigrations, Migration};
 use pallet_moonbeam_orbiters::CollatorsPool;
 use pallet_parachain_staking::{Round, RoundInfo};
 #[cfg(feature = "try-runtime")]
+use parity_scale_codec::{Decode, Encode};
+#[cfg(feature = "try-runtime")]
 use sp_runtime::traits::Zero;
 use sp_std::{marker::PhantomData, prelude::*};
 
@@ -191,11 +193,17 @@ where
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		Ok(vec![])
+		let pre_round_info = pallet_parachain_staking::Pallet::<T>::round();
+		Ok(pre_round_info.encode())
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		let pre_round_info = <RoundInfo<u32> as Decode>::decode(&mut &*state).unwrap();
+		let post_round_info = pallet_parachain_staking::Pallet::<T>::round();
+		log::info!("PRE ROUND INFO: {:#?}", pre_round_info.clone());
+		log::info!("POST ROUND INFO: {:#?}", post_round_info.clone());
+		assert_eq!(pre_round_info.length * 2, post_round_info.length);
 		Ok(())
 	}
 }

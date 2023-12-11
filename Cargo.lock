@@ -6973,6 +6973,7 @@ dependencies = [
  "pallet-whitelist",
  "pallet-xcm",
  "pallet-xcm-transactor",
+ "parity-scale-codec",
  "precompile-utils",
  "sp-api",
  "sp-core",

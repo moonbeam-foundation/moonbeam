@@ -71,6 +71,9 @@ xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 
+# Parity
+parity-scale-codec = { workspace = true }
+
 # cumulus
 cumulus-pallet-parachain-system = { workspace = true }
 
@@ -92,6 +95,7 @@ std = [
 	"pallet-referenda/std",
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
+	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-runtime/std",
