@@ -32,7 +32,7 @@ describeSuite({
 
     beforeEach(async function () {
       convictionVoting = new ConvictionVoting(context);
-      proposalIndex = await createProposal(context, "generaladmin");
+      proposalIndex = await createProposal({ context, track: "generaladmin" });
 
       const block = await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
       // Verifies the setup is correct
