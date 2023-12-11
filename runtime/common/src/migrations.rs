@@ -171,22 +171,44 @@ where
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
 		let para_block: u32 = frame_system::Pallet::<T>::block_number().into();
+		log::info!("PARA BLOCK: {:?}", para_block.clone());
 		let round_info = pallet_parachain_staking::Pallet::<T>::round();
+
+		log::info!("PRE ROUND INFO IN MIGRATION: {:#?}", round_info.clone());
 
 		let para_block_diff = para_block.saturating_sub(round_info.first);
 
-		let percentage = para_block_diff.saturating_div(round_info.length);
+		log::info!("PARA BLOCK DIFF: {:?}", para_block_diff.clone());
 
-		let new_block_diff = (round_info.length * 2).saturating_mul(percentage);
+		let percentage = (para_block_diff)
+			.saturating_mul(100)
+			.saturating_div(round_info.length);
+
+		log::info!("PERCENTAGE: {:?}", percentage.clone());
+
+		let new_block_diff = percentage
+			.saturating_mul(round_info.length * 2)
+			.saturating_div(100);
+		log::info!("NEW BLOCK DIFF: {:?}", new_block_diff.clone());
+
+		log::info!(
+			"LAST RELAY BLOCK: {:?}",
+			cumulus_pallet_parachain_system::Pallet::<T>::last_relay_block_number()
+		);
+
 		let new_first_block =
 			cumulus_pallet_parachain_system::Pallet::<T>::last_relay_block_number()
 				.saturating_sub(new_block_diff);
+
+		log::info!("NEW FIRST BLOCK: {:?}", new_first_block.clone());
 
 		let new_round_info = RoundInfo {
 			current: round_info.current,
 			first: new_first_block,
 			length: round_info.length * 2,
 		};
+
+		log::info!("NEW ROUND INFO: {:?}", new_round_info.clone());
 
 		Round::<T>::put(new_round_info);
 
@@ -448,7 +470,7 @@ where
 			//Box::new(asset_manager_to_xcm_v3),
 			//Box::new(xcm_transactor_to_xcm_v3),
 			Box::new(update_first_round_relay_block_number),
-			Box::new(remove_min_bond_for_old_orbiter_collators),
+			//Box::new(remove_min_bond_for_old_orbiter_collators),
 			Box::new(missing_balances_migrations),
 			Box::new(fix_pallet_versions),
 		]
