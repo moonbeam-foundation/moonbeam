@@ -71,6 +71,10 @@ impl From<AccountId20> for [u8; 20] {
 	}
 }
 
+// NOTE: the implementation is lossy, and is intended to be used
+// only to convert from Polkadot accounts to AccountId20.
+// See https://github.com/moonbeam-foundation/moonbeam/pull/2315#discussion_r1205830577
+// DO NOT USE IT FOR ANYTHING ELSE.
 impl From<[u8; 32]> for AccountId20 {
 	fn from(bytes: [u8; 32]) -> Self {
 		let mut buffer = [0u8; 20];
