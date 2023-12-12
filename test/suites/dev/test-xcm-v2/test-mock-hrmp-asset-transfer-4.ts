@@ -75,7 +75,7 @@ describeSuite({
 
         const chargedWeight = await weightMessage(
           context,
-          context.polkadotJs().createType("StagingXcmVersionedXcm", xcmMessage)
+          context.polkadotJs().createType("XcmVersionedXcm", xcmMessage)
         );
         // We are charging chargedWeight
         // chargedWeight * 50000 = chargedFee
@@ -83,7 +83,7 @@ describeSuite({
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, foreign_para_id, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 

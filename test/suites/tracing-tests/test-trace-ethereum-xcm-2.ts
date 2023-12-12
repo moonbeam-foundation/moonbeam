@@ -96,7 +96,7 @@ describeSuite({
 
       // Send an XCM and create block to execute it
       await injectHrmpMessage(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 

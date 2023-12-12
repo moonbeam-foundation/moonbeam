@@ -162,7 +162,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessage,
         });
 
@@ -259,7 +259,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessage,
         });
 

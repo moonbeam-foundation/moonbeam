@@ -133,7 +133,7 @@ describeSuite({
 
         // Send an XCM and create block to execute it
         await injectHrmpMessage(context, 1, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
         const { result, block } = await context.createBlock();
@@ -233,7 +233,7 @@ describeSuite({
 
         // Send an XCM and create block to execute it
         await injectHrmpMessage(context, 1, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
         const { result, block } = await context.createBlock();

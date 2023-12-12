@@ -92,7 +92,7 @@ describeSuite({
         context
           .polkadotJs()
           .createType(
-            "StagingXcmVersionedXcm",
+            "XcmVersionedXcm",
             new XcmFragment(config)
               .reserve_asset_deposited()
               .clear_origin()
@@ -116,7 +116,7 @@ describeSuite({
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, statemint_para_id, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -215,7 +215,7 @@ describeSuite({
 
           // Send an XCM and create block to execute it
           await injectHrmpMessageAndSeal(context, 1, {
-            type: "StagingXcmVersionedXcm",
+            type: "XcmVersionedXcm",
             payload: xcmMessage,
           } as RawXcmMessage);
 

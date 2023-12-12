@@ -223,7 +223,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // one per para
     for (let i = 0; i < numParaMsgs; i++) {
       await injectHrmpMessage(context, i + 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
     }
@@ -375,7 +375,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // one per para
     for (let i = 0; i < numParaMsgs; i++) {
       await injectHrmpMessage(context, i + 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
     }
@@ -483,12 +483,12 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // now we start injecting messages
     // two for para 1
     await injectHrmpMessage(context, 1, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessageNotExecuted,
     } as RawXcmMessage);
 
     await injectHrmpMessage(context, 1, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessageExecuted,
     } as RawXcmMessage);
 
@@ -542,7 +542,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // now we start injecting messages
     for (let i = 0; i < suspendThreshold + 1; i++) {
       await injectHrmpMessage(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessageNotExecuted,
       } as RawXcmMessage);
     }

@@ -22,7 +22,7 @@ describeSuite({
       };
       const identity = context
         .polkadotJs()
-        .registry.createType("PalletIdentityIdentityInfo", identityData);
+        .registry.createType("PalletIdentitySimpleIdentityInfo", identityData);
       identityHash = identity.hash.toHex();
 
       const block = await context.createBlock([
@@ -148,7 +148,7 @@ describeSuite({
 //     };
 //     const identity = context
 //       .polkadotJs()
-//       .registry.createType("PalletIdentityIdentityInfo", identityData);
+//       .registry.createType("PalletIdentitySimpleIdentityInfo", identityData);
 //     identityHash = identity.hash.toHex();
 //     const block = await context.createBlock([
 //       context

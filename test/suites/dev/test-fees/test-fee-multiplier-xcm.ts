@@ -178,7 +178,7 @@ describeSuite({
           .as_v2();
 
         await injectHrmpMessageAndSeal(context, 1, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 
@@ -281,7 +281,7 @@ describeSuite({
           .as_v2();
 
         await injectHrmpMessageAndSeal(context, 1, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 

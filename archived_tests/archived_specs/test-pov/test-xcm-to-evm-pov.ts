@@ -123,7 +123,7 @@ describeDevMoonbeam("XCM to EVM - PoV tests", (context) => {
 
     // Send an XCM and create block to execute it
     await injectHrmpMessage(context, 1, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
     const { result, block } = await context.createBlock();
@@ -215,7 +215,7 @@ describeDevMoonbeam("XCM to EVM - PoV tests", (context) => {
 
     // Send an XCM and create block to execute it
     await injectHrmpMessage(context, 1, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
     const { result, block } = await context.createBlock();

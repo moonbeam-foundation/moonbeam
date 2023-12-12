@@ -60,7 +60,7 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .createType("StagingXcmVersionedXcm", new XcmFragment(config).withdraw_asset().as_v3())
+            .createType("XcmVersionedXcm", new XcmFragment(config).withdraw_asset().as_v3())
         );
 
         // How much does the buyExecution weight?
@@ -68,7 +68,7 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .createType("StagingXcmVersionedXcm", new XcmFragment(config).buy_execution().as_v3())
+            .createType("XcmVersionedXcm", new XcmFragment(config).buy_execution().as_v3())
         );
 
         // How much does the refundSurplus weight?
@@ -78,14 +78,14 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .createType("StagingXcmVersionedXcm", new XcmFragment(config).refund_surplus().as_v3())
+            .createType("XcmVersionedXcm", new XcmFragment(config).refund_surplus().as_v3())
         );
 
         const xcmMessage = new XcmFragment(config).withdraw_asset().buy_execution().as_v3();
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("StagingXcmVersionedXcm", xcmMessage) as any;
+          .createType("XcmVersionedXcm", xcmMessage) as any;
 
         const totalMessage = [...receivedMessage.toU8a()];
 
@@ -154,7 +154,7 @@ describeSuite({
 
           const receivedMessage: XcmVersionedXcm = context
             .polkadotJs()
-            .createType("StagingXcmVersionedXcm", xcmMessage) as any;
+            .createType("XcmVersionedXcm", xcmMessage) as any;
 
           const totalMessage = [...receivedMessage.toU8a()];
 
