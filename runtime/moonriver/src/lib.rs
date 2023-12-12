@@ -195,7 +195,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 2600,
+	spec_version: 2700,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -1101,12 +1101,10 @@ impl pallet_migrations::Config for Runtime {
 			Runtime,
 			CouncilCollective,
 			TechCommitteeCollective,
+			TreasuryCouncilCollective,
+			OpenTechCommitteeCollective,
 		>,
-		moonbeam_runtime_common::migrations::ReferendaMigrations<
-			Runtime,
-			CouncilCollective,
-			TechCommitteeCollective,
-		>,
+		moonbeam_runtime_common::migrations::ReferendaMigrations<Runtime>,
 		TransactorRelayIndexMigration<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
@@ -1131,6 +1129,7 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 			RuntimeCall::Treasury(_) => false,
 			RuntimeCall::XcmTransactor(_) => false,
 			RuntimeCall::EthereumXcm(_) => false,
+			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			_ => true,
 		}
 	}
@@ -1188,6 +1187,7 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
+			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			_ => true,
 		}
 	}
