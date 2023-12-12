@@ -393,8 +393,7 @@ jobs:
         with:
           moonwall_environment: dev_${{ matrix.chain }}
       - name: Upload HTML report to s3
-        if: |
-          github.event.pull_request.head.repo.full_name == github.repository && github.event_name == 'push'
+        if: ${{ !github.event.pull_request.head.repo.fork}}
         uses: mario-sangar/upload-s3-action@master
         id: S3
         with:
@@ -503,9 +502,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
     if: |
-      ${{needs.set-tags.outputs.image_exists}} == 'false' && 
-      (github.event.pull_request.head.repo.full_name == github.repository || 
-      github.event_name == 'push')
+      ${{! needs.set-tags.outputs.image_exists }} && 
+      ${{! github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
