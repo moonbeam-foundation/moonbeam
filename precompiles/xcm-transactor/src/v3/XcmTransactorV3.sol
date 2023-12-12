@@ -69,7 +69,8 @@ interface XcmTransactorV3 {
     /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain
     /// @param innerCall The inner call to be executed in the destination chain
     /// @param feeAmount Amount to be used as fee.
-    /// @param overallWeight Overall weight to be used for the xcm message.
+    /// @param overallWeight Overall weight to be used for the xcm message. If uint64:MAX is passed 
+    /// through refTime field, Unlimited variant will be used. 
     /// @param refund Indicates if RefundSurplus instruction will be appended
     function transactThroughDerivativeMultilocation(
         uint8 transactor,
@@ -92,7 +93,8 @@ interface XcmTransactorV3 {
     /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain
     /// @param innerCall The inner call to be executed in the destination chain
     /// @param feeAmount Amount to be used as fee.
-    /// @param overallWeight Overall weight to be used for the xcm message.
+    /// @param overallWeight Overall weight to be used for the xcm message. If uint64:MAX is passed 
+    /// through refTime field, Unlimited variant will be used. 
     /// @param refund Indicates if RefundSurplus instruction will be appended
     function transactThroughDerivative(
         uint8 transactor,
@@ -116,7 +118,8 @@ interface XcmTransactorV3 {
     /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain for the call to be made
     /// @param call The call to be executed in the destination chain
     /// @param feeAmount Amount to be used as fee.
-    /// @param overallWeight Overall weight to be used for the xcm message.
+    /// @param overallWeight Overall weight to be used for the xcm message. If uint64:MAX is passed 
+    /// through refTime field, Unlimited variant will be used. 
     /// @param refund Indicates if RefundSurplus instruction will be appended
     function transactThroughSignedMultilocation(
         Multilocation memory dest,
@@ -139,7 +142,8 @@ interface XcmTransactorV3 {
     /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain for the call to be made
     /// @param call The call to be executed in the destination chain
     /// @param feeAmount Amount to be used as fee.
-    /// @param overallWeight Overall weight to be used for the xcm message.
+    /// @param overallWeight Overall weight to be used for the xcm message. If uint64:MAX is passed 
+    /// through refTime field, Unlimited variant will be used. 
     /// @param refund Indicates if RefundSurplus instruction will be appended
     function transactThroughSigned(
         Multilocation memory dest,

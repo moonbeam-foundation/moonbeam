@@ -927,7 +927,7 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 				vec![1u8],
 				TransactWeights {
 					transact_required_weight_at_most: tx_weight,
-					overall_weight: Some(total_weight)
+					overall_weight: Some(Limited(total_weight))
 				},
 				false
 			));
@@ -999,7 +999,7 @@ fn test_send_through_sovereign_with_custom_weight_and_fee() {
 				OriginKind::SovereignAccount,
 				TransactWeights {
 					transact_required_weight_at_most: tx_weight,
-					overall_weight: Some(total_weight)
+					overall_weight: Some(Limited(total_weight))
 				},
 				false
 			));
@@ -1063,7 +1063,7 @@ fn test_send_through_signed_with_custom_weight_and_fee() {
 				vec![1u8],
 				TransactWeights {
 					transact_required_weight_at_most: tx_weight,
-					overall_weight: Some(total_weight)
+					overall_weight: Some(Limited(total_weight))
 				},
 				false
 			));
@@ -1119,7 +1119,7 @@ fn test_hrmp_manipulator_init() {
 				},
 				TransactWeights {
 					transact_required_weight_at_most: tx_weight,
-					overall_weight: Some(total_weight)
+					overall_weight: Some(Limited(total_weight))
 				}
 			));
 
@@ -1171,7 +1171,7 @@ fn test_hrmp_manipulator_init_v2_convert_works() {
 				},
 				TransactWeights {
 					transact_required_weight_at_most: tx_weight,
-					overall_weight: Some(total_weight)
+					overall_weight: Some(Limited(total_weight))
 				}
 			));
 
@@ -1235,7 +1235,7 @@ fn test_hrmp_manipulator_init_v3_convert_works() {
 				},
 				TransactWeights {
 					transact_required_weight_at_most: tx_weight,
-					overall_weight: Some(total_weight)
+					overall_weight: Some(Limited(total_weight))
 				}
 			));
 
@@ -1300,7 +1300,7 @@ fn test_hrmp_manipulator_init_v4_convert_fails() {
 					},
 					TransactWeights {
 						transact_required_weight_at_most: tx_weight,
-						overall_weight: Some(total_weight)
+						overall_weight: Some(Limited(total_weight))
 					}
 				),
 				Error::<Test>::ErrorValidating
@@ -1334,7 +1334,7 @@ fn test_hrmp_max_fee_errors() {
 					},
 					TransactWeights {
 						transact_required_weight_at_most: tx_weight,
-						overall_weight: Some(total_weight)
+						overall_weight: Some(Limited(total_weight))
 					}
 				),
 				Error::<Test>::TooMuchFeeUsed
@@ -1367,7 +1367,7 @@ fn test_hrmp_manipulator_accept() {
 				},
 				TransactWeights {
 					transact_required_weight_at_most: tx_weight,
-					overall_weight: Some(total_weight)
+					overall_weight: Some(Limited(total_weight))
 				}
 			));
 
@@ -1420,7 +1420,7 @@ fn test_hrmp_manipulator_cancel() {
 				},
 				TransactWeights {
 					transact_required_weight_at_most: tx_weight,
-					overall_weight: Some(total_weight)
+					overall_weight: Some(Limited(total_weight))
 				}
 			));
 
@@ -1468,7 +1468,7 @@ fn test_hrmp_manipulator_close() {
 				},
 				TransactWeights {
 					transact_required_weight_at_most: tx_weight,
-					overall_weight: Some(total_weight)
+					overall_weight: Some(Limited(total_weight))
 				}
 			));
 
@@ -1527,7 +1527,7 @@ fn test_transact_through_derivative_with_refund_works() {
 				vec![1u8],
 				TransactWeights {
 					transact_required_weight_at_most: 100u64.into(),
-					overall_weight: Some(1000.into())
+					overall_weight: Some(Limited(1000.into()))
 				},
 				true
 			));
@@ -1646,7 +1646,7 @@ fn test_transact_through_signed_with_refund_works() {
 				vec![1u8],
 				TransactWeights {
 					transact_required_weight_at_most: 100u64.into(),
-					overall_weight: Some(total_weight)
+					overall_weight: Some(Limited(total_weight))
 				},
 				true
 			));

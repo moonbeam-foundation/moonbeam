@@ -105,6 +105,8 @@ jobs:
         shell: bash
         run: |
           echo "RUSTFLAGS=-C opt-level=3 -D warnings -C instrument-coverage -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
+          # Disable coverage when building
+          echo "LLVM_PROFILE_FILE=/dev/null" >> $GITHUB_ENV
       - name: Setup grcov
         run: |
           wget https://github.com/mozilla/grcov/releases/download/v${{ env.GRCOV_VERSION }}/grcov-x86_64-unknown-linux-gnu.tar.bz2
@@ -114,9 +116,10 @@ jobs:
         run: rustup component add llvm-tools-preview
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
-      - name: Clean-up possible coverage generated during builds
+      - name: Enable coverage gathering
         run: |
-          rm default_*.profraw
+          # Enable coverage when running tests
+          echo "LLVM_PROFILE_FILE=$(pwd)/proffiles/default_%m_%p.profraw" >> $GITHUB_ENV
       - name: Unit tests
         run: |
           # curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
@@ -132,14 +135,6 @@ jobs:
       - name: Retrieve coverage
         id: coverage
         run: |
-          mkdir -p /tmp/proffiles
-
-          find . -type f -name \*.profraw -exec ls -l {}  \;
-
-          echo "Copying profraw files to /tmp/proffiles"
-          find . -name \*.profraw -exec mv {} /tmp/proffiles/ \;
-
-          mv /tmp/proffiles proffiles
           du -sh proffiles
 
           echo "Executing grcov"
