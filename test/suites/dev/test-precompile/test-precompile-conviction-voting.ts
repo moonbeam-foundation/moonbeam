@@ -26,7 +26,7 @@ describeSuite({
 
     beforeEach(async function () {
       convictionVoting = new ConvictionVoting(context);
-      proposalIndex = await createProposal(context);
+      proposalIndex = await createProposal({ context });
     });
 
     it({

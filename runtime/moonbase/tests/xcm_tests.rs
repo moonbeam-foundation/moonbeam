@@ -1228,7 +1228,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 			encoded,
 			TransactWeights {
 				transact_required_weight_at_most: 4000000000.into(),
-				overall_weight: Some(overall_weight.into())
+				overall_weight: Some(Limited(overall_weight.into()))
 			},
 			false
 		));
@@ -1381,7 +1381,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 			encoded,
 			TransactWeights {
 				transact_required_weight_at_most: 4000000000.into(),
-				overall_weight: Some(overall_weight.into())
+				overall_weight: Some(Limited(overall_weight.into()))
 			},
 			true
 		));
@@ -1709,7 +1709,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 			OriginKind::SovereignAccount,
 			TransactWeights {
 				transact_required_weight_at_most: 4000000000.into(),
-				overall_weight: Some(total_weight.into())
+				overall_weight: Some(Limited(total_weight.into()))
 			},
 			false
 		));
@@ -1861,7 +1861,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 			OriginKind::SovereignAccount,
 			TransactWeights {
 				transact_required_weight_at_most: 4000000000.into(),
-				overall_weight: Some(total_weight.into())
+				overall_weight: Some(Limited(total_weight.into()))
 			},
 			true
 		));
@@ -3197,7 +3197,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight() {
 			// 4000000000 for transfer + 4000 for XCM
 			TransactWeights {
 				transact_required_weight_at_most: 4000000000.into(),
-				overall_weight: Some(total_weight.into())
+				overall_weight: Some(Limited(total_weight.into()))
 			},
 			false
 		));
@@ -3288,7 +3288,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 			// 4000000000 for transfer + 9000 for XCM
 			TransactWeights {
 				transact_required_weight_at_most: 4000000000.into(),
-				overall_weight: Some(total_weight.into())
+				overall_weight: Some(Limited(total_weight.into()))
 			},
 			true
 		));
@@ -3500,7 +3500,7 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 			// 4000000000 for transfer + 9000 for XCM
 			TransactWeights {
 				transact_required_weight_at_most: 4000000000.into(),
-				overall_weight: Some(overall_weight.into())
+				overall_weight: Some(Limited(overall_weight.into()))
 			},
 			true
 		));
@@ -3939,7 +3939,7 @@ fn hrmp_init_accept_through_root() {
 			},
 			TransactWeights {
 				transact_required_weight_at_most: tx_weight.into(),
-				overall_weight: Some(total_weight.into())
+				overall_weight: Some(Limited(total_weight.into()))
 			}
 		));
 	});
@@ -3972,7 +3972,7 @@ fn hrmp_init_accept_through_root() {
 			},
 			TransactWeights {
 				transact_required_weight_at_most: tx_weight.into(),
-				overall_weight: Some(total_weight.into())
+				overall_weight: Some(Limited(total_weight.into()))
 			}
 		));
 	});
@@ -4026,7 +4026,7 @@ fn hrmp_close_works() {
 			},
 			TransactWeights {
 				transact_required_weight_at_most: tx_weight.into(),
-				overall_weight: Some(total_weight.into())
+				overall_weight: Some(Limited(total_weight.into()))
 			}
 		));
 	});

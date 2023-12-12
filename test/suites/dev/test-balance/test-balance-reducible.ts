@@ -2,7 +2,9 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
+  BALTATHAR_SESSION_ADDRESS,
   DEFAULT_GENESIS_BALANCE,
+  DEFAULT_GENESIS_MAPPING,
   baltathar,
   checkBalance,
   generateKeyringPair,
@@ -38,37 +40,14 @@ describeSuite({
         );
 
         const balanceBefore = await checkBalance(context, BALTATHAR_ADDRESS);
-        const fee = (
-          await context
-            .polkadotJs()
-            .tx.democracy.propose(
-              {
-                Lookup: {
-                  hash: encodedHash,
-                  len: proposal.method.encodedLength,
-                },
-              },
-              minDepositAmount
-            )
-            .paymentInfo(baltathar)
-        ).partialFee.toBigInt();
+        const call = context
+          .polkadotJs()
+          .tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS);
+        const fee = (await call.paymentInfo(baltathar)).partialFee.toBigInt();
 
-        await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.democracy.propose(
-              {
-                Lookup: {
-                  hash: encodedHash,
-                  len: proposal.method.encodedLength,
-                },
-              },
-              minDepositAmount
-            )
-            .signAsync(baltathar)
-        );
+        await context.createBlock(call.signAsync(baltathar));
 
-        const expectedBalance = balanceBefore - minDepositAmount + existentialDeposit - fee;
+        const expectedBalance = balanceBefore + existentialDeposit - fee - DEFAULT_GENESIS_MAPPING;
         expect(await checkBalance(context, BALTATHAR_ADDRESS)).toBe(expectedBalance);
       },
     });
