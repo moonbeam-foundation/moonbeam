@@ -216,7 +216,7 @@ where
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		let pre_round_info = <RoundInfo<u32> as Decode>::decode(&mut &*state).unwrap();
+		let pre_round_info = <RoundInfo<u32> as Decode>::decode(&mut &*state).unwrap_or_default();
 		let post_round_info = pallet_parachain_staking::Pallet::<T>::round();
 		assert_eq!(pre_round_info.length * 2, post_round_info.length);
 		Ok(())
@@ -408,8 +408,6 @@ where
 		//	RemoveMinBondForOrbiterCollators::<Runtime>(Default::default());
 		let update_first_round_relay_block_number =
 			UpdateFirstRoundRelayBlockNumber::<Runtime>(Default::default());
-		let remove_min_bond_for_old_orbiter_collators =
-			RemoveMinBondForOrbiterCollators::<Runtime>(Default::default());
 		let missing_balances_migrations = MissingBalancesMigrations::<Runtime>(Default::default());
 		let fix_pallet_versions =
 			FixIncorrectPalletVersions::<Runtime, Treasury, OpenTech>(Default::default());
