@@ -170,45 +170,38 @@ where
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
+		// First, fetch the last parachain block
 		let para_block: u32 = frame_system::Pallet::<T>::block_number().into();
-		log::info!("PARA BLOCK: {:?}", para_block.clone());
+
+		// Fetch Round storage before the migration
 		let round_info = pallet_parachain_staking::Pallet::<T>::round();
 
-		log::info!("PRE ROUND INFO IN MIGRATION: {:#?}", round_info.clone());
-
+		// Calculate how many blocks have passed so far in the current round
 		let para_block_diff = para_block.saturating_sub(round_info.first);
 
-		log::info!("PARA BLOCK DIFF: {:?}", para_block_diff.clone());
-
+		// Calculate the percentage of the round so far (before the migration)
 		let percentage = (para_block_diff)
 			.saturating_mul(100)
 			.saturating_div(round_info.length);
 
-		log::info!("PERCENTAGE: {:?}", percentage.clone());
-
+		// Calculate how many blocks should we substract from LastRelayChainBlockNumber
+		// given the new duration (round_info.length * 2) to have a first relay block of the
+		// round that corresponds with the percentage calculated in the step above.
 		let new_block_diff = percentage
 			.saturating_mul(round_info.length * 2)
 			.saturating_div(100);
-		log::info!("NEW BLOCK DIFF: {:?}", new_block_diff.clone());
 
-		log::info!(
-			"LAST RELAY BLOCK: {:?}",
-			cumulus_pallet_parachain_system::Pallet::<T>::last_relay_block_number()
-		);
-
+		// Perform substraction
 		let new_first_block =
 			cumulus_pallet_parachain_system::Pallet::<T>::last_relay_block_number()
 				.saturating_sub(new_block_diff);
 
-		log::info!("NEW FIRST BLOCK: {:?}", new_first_block.clone());
-
+		// Update Round storage
 		let new_round_info = RoundInfo {
 			current: round_info.current,
 			first: new_first_block,
 			length: round_info.length * 2,
 		};
-
-		log::info!("NEW ROUND INFO: {:?}", new_round_info.clone());
 
 		Round::<T>::put(new_round_info);
 
@@ -225,8 +218,6 @@ where
 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
 		let pre_round_info = <RoundInfo<u32> as Decode>::decode(&mut &*state).unwrap();
 		let post_round_info = pallet_parachain_staking::Pallet::<T>::round();
-		log::info!("PRE ROUND INFO: {:#?}", pre_round_info.clone());
-		log::info!("POST ROUND INFO: {:#?}", post_round_info.clone());
 		assert_eq!(pre_round_info.length * 2, post_round_info.length);
 		Ok(())
 	}
