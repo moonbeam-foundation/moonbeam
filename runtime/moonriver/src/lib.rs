@@ -1725,10 +1725,6 @@ mod tests {
 			Balance::from(4 * MOVR)
 		);
 		assert_eq!(
-			get!(pallet_preimage, ByteDeposit, u128),
-			Balance::from(100 * MICROMOVR)
-		);
-		assert_eq!(
 			get!(pallet_treasury, ProposalBondMinimum, u128),
 			Balance::from(1 * MOVR)
 		);

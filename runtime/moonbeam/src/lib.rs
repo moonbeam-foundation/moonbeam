@@ -1723,10 +1723,6 @@ mod tests {
 			Balance::from(400 * GLMR)
 		);
 		assert_eq!(
-			get!(pallet_preimage, ByteDeposit, u128),
-			Balance::from(10 * MILLIGLMR)
-		);
-		assert_eq!(
 			get!(pallet_treasury, ProposalBondMinimum, u128),
 			Balance::from(100 * GLMR)
 		);

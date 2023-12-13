@@ -88,7 +88,7 @@ fn modifiers() {
 #[test]
 fn non_member_cannot_propose() {
 	ExtBuilder::default().build().execute_with(|| {
-		let proposal = pallet_treasury::Call::<Runtime>::spend {
+		let proposal = pallet_treasury::Call::<Runtime>::spend_local {
 			amount: 1,
 			beneficiary: Alice.into(),
 		};
@@ -130,7 +130,7 @@ fn non_member_cannot_vote() {
 #[test]
 fn non_member_cannot_execute() {
 	ExtBuilder::default().build().execute_with(|| {
-		let proposal = pallet_treasury::Call::<Runtime>::spend {
+		let proposal = pallet_treasury::Call::<Runtime>::spend_local {
 			amount: 1,
 			beneficiary: Alice.into(),
 		};
@@ -190,7 +190,7 @@ fn cannot_close_unknown_proposal() {
 #[test]
 fn member_can_make_instant_proposal() {
 	ExtBuilder::default().build().execute_with(|| {
-		let proposal = pallet_treasury::Call::<Runtime>::spend {
+		let proposal = pallet_treasury::Call::<Runtime>::spend_local {
 			amount: 1,
 			beneficiary: Alice.into(),
 		};
@@ -223,7 +223,7 @@ fn member_can_make_instant_proposal() {
 #[test]
 fn member_can_make_delayed_proposal() {
 	ExtBuilder::default().build().execute_with(|| {
-		let proposal = pallet_treasury::Call::<Runtime>::spend {
+		let proposal = pallet_treasury::Call::<Runtime>::spend_local {
 			amount: 1,
 			beneficiary: Alice.into(),
 		};
@@ -256,7 +256,7 @@ fn member_can_make_delayed_proposal() {
 #[test]
 fn member_can_vote_on_proposal() {
 	ExtBuilder::default().build().execute_with(|| {
-		let proposal = pallet_treasury::Call::<Runtime>::spend {
+		let proposal = pallet_treasury::Call::<Runtime>::spend_local {
 			amount: 1,
 			beneficiary: Alice.into(),
 		};
@@ -303,7 +303,7 @@ fn member_can_vote_on_proposal() {
 #[test]
 fn cannot_close_if_not_enough_votes() {
 	ExtBuilder::default().build().execute_with(|| {
-		let proposal = pallet_treasury::Call::<Runtime>::spend {
+		let proposal = pallet_treasury::Call::<Runtime>::spend_local {
 			amount: 1,
 			beneficiary: Alice.into(),
 		};
@@ -343,7 +343,7 @@ fn cannot_close_if_not_enough_votes() {
 #[test]
 fn can_close_execute_if_enough_votes() {
 	ExtBuilder::default().build().execute_with(|| {
-		let proposal = pallet_treasury::Call::<Runtime>::spend {
+		let proposal = pallet_treasury::Call::<Runtime>::spend_local {
 			amount: 1,
 			beneficiary: Alice.into(),
 		};
@@ -431,7 +431,7 @@ fn can_close_execute_if_enough_votes() {
 #[test]
 fn can_close_refuse_if_enough_votes() {
 	ExtBuilder::default().build().execute_with(|| {
-		let proposal = pallet_treasury::Call::<Runtime>::spend {
+		let proposal = pallet_treasury::Call::<Runtime>::spend_local {
 			amount: 1,
 			beneficiary: Alice.into(),
 		};
@@ -506,7 +506,7 @@ fn can_close_refuse_if_enough_votes() {
 #[test]
 fn multiple_propose_increase_index() {
 	ExtBuilder::default().build().execute_with(|| {
-		let proposal = pallet_treasury::Call::<Runtime>::spend {
+		let proposal = pallet_treasury::Call::<Runtime>::spend_local {
 			amount: 1,
 			beneficiary: Alice.into(),
 		};
@@ -526,7 +526,7 @@ fn multiple_propose_increase_index() {
 			.expect_log(log_proposed(Precompile1, Bob, 0, proposal_hash, 2))
 			.execute_returns(0u32);
 
-		let proposal = pallet_treasury::Call::<Runtime>::spend {
+		let proposal = pallet_treasury::Call::<Runtime>::spend_local {
 			amount: 2,
 			beneficiary: Alice.into(),
 		};

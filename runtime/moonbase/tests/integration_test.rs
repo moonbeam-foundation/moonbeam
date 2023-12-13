@@ -629,7 +629,7 @@ fn transfer_through_evm_to_stake() {
 			);
 
 			// Alice transfer from free balance 2000 UNIT to Bob
-			assert_ok!(Balances::transfer(
+			assert_ok!(Balances::transfer_allow_death(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
 				2_000 * UNIT,
@@ -1818,7 +1818,7 @@ fn transfer_ed_0_substrate() {
 		.build()
 		.execute_with(|| {
 			// Substrate transfer
-			assert_ok!(Balances::transfer(
+			assert_ok!(Balances::transfer_allow_death(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
 				1 * UNIT,

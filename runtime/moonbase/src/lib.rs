@@ -1690,10 +1690,6 @@ mod tests {
 			Balance::from(4 * UNIT)
 		);
 		assert_eq!(
-			get!(pallet_preimage, ByteDeposit, u128),
-			Balance::from(100 * MICROUNIT)
-		);
-		assert_eq!(
 			get!(pallet_treasury, ProposalBondMinimum, u128),
 			Balance::from(1 * UNIT)
 		);

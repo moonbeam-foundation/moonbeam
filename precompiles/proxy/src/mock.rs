@@ -30,7 +30,7 @@ use precompile_utils::{
 	testing::MockAccount,
 };
 use scale_info::TypeInfo;
-use sp_core::{H160, H256, U256};
+use sp_core::{ConstU32, H160, H256, U256};
 use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::{
@@ -99,6 +99,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 
 pub type Precompiles<R> = PrecompileSetBuilder<

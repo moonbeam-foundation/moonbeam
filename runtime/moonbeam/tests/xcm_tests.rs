@@ -944,7 +944,7 @@ fn transact_through_derivative_multilocation() {
 	encoded.push(index);
 
 	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
 		dest: para_a_account(),
 		value: 100u32.into(),
 	}
@@ -1086,7 +1086,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 	encoded.push(index);
 
 	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
 		dest: para_a_account(),
 		value: 100u32.into(),
 	}
@@ -1240,7 +1240,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 	encoded.push(index);
 
 	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
 		dest: para_a_account(),
 		value: 100u32.into(),
 	}
@@ -1412,7 +1412,7 @@ fn transact_through_sovereign() {
 	encoded.push(index);
 
 	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
 		dest: para_a_account(),
 		value: 100u32.into(),
 	}
@@ -1562,7 +1562,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	encoded.push(index);
 
 	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
 		dest: para_a_account(),
 		value: 100u32.into(),
 	}
@@ -1714,7 +1714,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	encoded.push(index);
 
 	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
 		dest: para_a_account(),
 		value: 100u32.into(),
 	}
@@ -1941,7 +1941,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 
 	// Send native token to fresh_account
 	ParaA::execute_with(|| {
-		assert_ok!(ParaBalances::transfer(
+		assert_ok!(ParaBalances::transfer_allow_death(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			fresh_account.into(),
 			100
@@ -2126,7 +2126,7 @@ fn empty_account_should_not_be_reset() {
 
 	// Send native token to evm_account
 	ParaA::execute_with(|| {
-		assert_ok!(ParaBalances::transfer(
+		assert_ok!(ParaBalances::transfer_allow_death(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			evm_account_id,
 			100
@@ -2260,7 +2260,7 @@ fn test_statemint_like() {
 		));
 
 		// This is needed, since the asset is created as non-sufficient
-		assert_ok!(StatemintBalances::transfer(
+		assert_ok!(StatemintBalances::transfer_allow_death(
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			sov,
 			100000000000000
@@ -2644,7 +2644,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 
 		// Send some native statemint tokens to sovereign for fees.
 		// We can't pay fees with USDC as the asset is minted as non-sufficient.
-		assert_ok!(StatemintBalances::transfer(
+		assert_ok!(StatemintBalances::transfer_allow_death(
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			sov,
 			100000000000000
@@ -2793,7 +2793,7 @@ fn transact_through_signed_multilocation() {
 
 	Relay::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(RelayBalances::transfer(
+		assert_ok!(RelayBalances::transfer_allow_death(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			derived.clone(),
 			4000004100u128,
@@ -2815,7 +2815,7 @@ fn transact_through_signed_multilocation() {
 	encoded.push(index);
 
 	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
 		// 100 to sovereign
 		dest: para_a_account(),
 		value: 100u32.into(),
@@ -2883,7 +2883,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight() {
 
 	Relay::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(RelayBalances::transfer(
+		assert_ok!(RelayBalances::transfer_allow_death(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			derived.clone(),
 			4000004100u128,
@@ -2905,7 +2905,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight() {
 	encoded.push(index);
 
 	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
 		// 100 to sovereign
 		dest: para_a_account(),
 		value: 100u32.into(),
@@ -2974,7 +2974,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 
 	Relay::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(RelayBalances::transfer(
+		assert_ok!(RelayBalances::transfer_allow_death(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			derived.clone(),
 			4000009100u128,
@@ -2996,7 +2996,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 	encoded.push(index);
 
 	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
 		// 100 to sovereign
 		dest: para_a_account(),
 		value: 100u32.into(),
@@ -3088,7 +3088,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 
 	ParaB::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(ParaBalances::transfer(
+		assert_ok!(ParaBalances::transfer_allow_death(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			derived.clone(),
 			4000000104u128,
@@ -3109,7 +3109,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 	encoded.push(index);
 
 	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<parachain::Runtime>::transfer {
+	let mut call_bytes = pallet_balances::Call::<parachain::Runtime>::transfer_allow_death {
 		// 100 to sovereign
 		dest: para_a_account_20(),
 		value: 100u32.into(),
@@ -3187,7 +3187,7 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 
 	ParaB::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(ParaBalances::transfer(
+		assert_ok!(ParaBalances::transfer_allow_death(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			derived.clone(),
 			4000009100u128,
@@ -3208,7 +3208,7 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 	encoded.push(index);
 
 	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<parachain::Runtime>::transfer {
+	let mut call_bytes = pallet_balances::Call::<parachain::Runtime>::transfer_allow_death {
 		// 100 to sovereign
 		dest: para_a_account_20(),
 		value: 100u32.into(),
@@ -3300,7 +3300,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 
 	let mut parachain_b_alice_balances_before = 0;
 	ParaB::execute_with(|| {
-		assert_ok!(ParaBalances::transfer(
+		assert_ok!(ParaBalances::transfer_allow_death(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			derived.clone(),
 			4000000104u128,
@@ -3428,7 +3428,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 
 	let mut parachain_b_alice_balances_before = 0;
 	ParaB::execute_with(|| {
-		assert_ok!(ParaBalances::transfer(
+		assert_ok!(ParaBalances::transfer_allow_death(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			derived.clone(),
 			4000000104u128,
@@ -3553,7 +3553,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 	let transfer_recipient = evm_account();
 	let mut transfer_recipient_balance_before = 0;
 	ParaB::execute_with(|| {
-		assert_ok!(ParaBalances::transfer(
+		assert_ok!(ParaBalances::transfer_allow_death(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			derived.clone(),
 			4000000104u128,
@@ -3638,12 +3638,12 @@ fn hrmp_init_accept_through_root() {
 	MockNet::reset();
 
 	Relay::execute_with(|| {
-		assert_ok!(RelayBalances::transfer(
+		assert_ok!(RelayBalances::transfer_allow_death(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			para_a_account(),
 			1000u128
 		));
-		assert_ok!(RelayBalances::transfer(
+		assert_ok!(RelayBalances::transfer_allow_death(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			para_b_account(),
 			1000u128
@@ -3676,12 +3676,12 @@ fn hrmp_init_accept_through_root() {
 	});
 	Relay::execute_with(|| {
 		let expected_event: relay_chain::RuntimeEvent =
-			polkadot_runtime_parachains::hrmp::Event::OpenChannelRequested(
-				1u32.into(),
-				2u32.into(),
-				1u32,
-				1u32,
-			)
+			polkadot_runtime_parachains::hrmp::Event::OpenChannelRequested {
+				sender: 1u32.into(),
+				recipient: 2u32.into(),
+				proposed_max_capacity: 1u32,
+				proposed_max_message_size: 1u32,
+			}
 			.into();
 		assert!(relay_chain::relay_events().contains(&expected_event));
 	});
@@ -3710,8 +3710,11 @@ fn hrmp_init_accept_through_root() {
 
 	Relay::execute_with(|| {
 		let expected_event: relay_chain::RuntimeEvent =
-			polkadot_runtime_parachains::hrmp::Event::OpenChannelAccepted(1u32.into(), 2u32.into())
-				.into();
+			polkadot_runtime_parachains::hrmp::Event::OpenChannelAccepted {
+				sender: 1u32.into(),
+				recipient: 2u32.into(),
+			}
+			.into();
 		assert!(relay_chain::relay_events().contains(&expected_event));
 	});
 }
@@ -3721,7 +3724,7 @@ fn hrmp_close_works() {
 	MockNet::reset();
 
 	Relay::execute_with(|| {
-		assert_ok!(RelayBalances::transfer(
+		assert_ok!(RelayBalances::transfer_allow_death(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			para_a_account(),
 			1000u128
@@ -3764,13 +3767,13 @@ fn hrmp_close_works() {
 	});
 	Relay::execute_with(|| {
 		let expected_event: relay_chain::RuntimeEvent =
-			polkadot_runtime_parachains::hrmp::Event::ChannelClosed(
-				1u32.into(),
-				HrmpChannelId {
+			polkadot_runtime_parachains::hrmp::Event::ChannelClosed {
+				by_parachain: 1u32.into(),
+				channel_id: HrmpChannelId {
 					sender: 1u32.into(),
 					recipient: 2u32.into(),
 				},
-			)
+			}
 			.into();
 		assert!(relay_chain::relay_events().contains(&expected_event));
 	});
