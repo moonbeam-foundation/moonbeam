@@ -623,7 +623,7 @@ fn transfer_through_evm_to_stake() {
 				})
 			);
 			// Alice transfer from free balance 3_000_000 GLMR to Bob
-			assert_ok!(Balances::transfer(
+			assert_ok!(Balances::transfer_allow_death(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
 				3_000_000 * GLMR,
@@ -1465,7 +1465,7 @@ fn transfer_ed_0_substrate() {
 		.build()
 		.execute_with(|| {
 			// Substrate transfer
-			assert_ok!(Balances::transfer(
+			assert_ok!(Balances::transfer_allow_death(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
 				1 * GLMR,

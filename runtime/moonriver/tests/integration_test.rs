@@ -617,7 +617,7 @@ fn transfer_through_evm_to_stake() {
 				})
 			);
 			// Alice transfer from free balance 20000 MOVR to Bob
-			assert_ok!(Balances::transfer(
+			assert_ok!(Balances::transfer_allow_death(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
 				20_000 * MOVR,
@@ -1442,7 +1442,7 @@ fn transfer_ed_0_substrate() {
 		.build()
 		.execute_with(|| {
 			// Substrate transfer
-			assert_ok!(Balances::transfer(
+			assert_ok!(Balances::transfer_allow_death(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
 				1 * MOVR,
