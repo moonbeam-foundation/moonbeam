@@ -13,7 +13,7 @@ describeSuite({
 
     beforeAll(async function () {
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(randomAccount.address, 38n * GLMR),
+        context.polkadotJs().tx.balances.transferAllowDeath(randomAccount.address, 38n * GLMR),
         { allowFailures: false }
       );
     });
@@ -55,14 +55,14 @@ describeSuite({
           // Get fee for transfer
           const fee = await context
             .polkadotJs()
-            .tx.balances.transfer(randomAccount.address, 5n * GLMR)
+            .tx.balances.transferAllowDeath(randomAccount.address, 5n * GLMR)
             .paymentInfo(randomAccount.address);
 
           // Transfer 5 GLMR to Balthazar
           const { result: res3 } = await context.createBlock(
             context
               .polkadotJs()
-              .tx.balances.transfer(baltathar.address, 5n * GLMR)
+              .tx.balances.transferAllowDeath(baltathar.address, 5n * GLMR)
               .signAsync(randomAccount)
           );
 
@@ -76,7 +76,7 @@ describeSuite({
           // const { result: res2 } = await context.createBlock(
           //   context
           //     .polkadotJs()
-          //     .tx.balances.transfer(baltathar.address, 2n * GLMR)
+          //     .tx.balances.transferAllowDeath(baltathar.address, 2n * GLMR)
           //     .signAsync(randomAccount)
           // );
           // expect(res2!.successful).to.be.true;
@@ -84,15 +84,15 @@ describeSuite({
           // TODO Change this check once the transferable balance is fixed
           // Check Ticket MOON-2598: https://opslayer.atlassian.net/browse/MOON-2598
           expect(
-            async () =>
-              await context.createBlock(
-                context
-                  .polkadotJs()
-                  .tx.balances.transfer(baltathar.address, 2n * GLMR)
-                  .signAsync(randomAccount)
-              )
+              async () =>
+                  await context.createBlock(
+                      context
+                          .polkadotJs()
+                          .tx.balances.transferAllowDeath(baltathar.address, 2n * GLMR)
+                          .signAsync(randomAccount)
+                  )
           ).rejects.toThrowError(
-            "1010: Invalid Transaction: Inability to pay some fees , e.g. account balance too low"
+              "1010: Invalid Transaction: Inability to pay some fees , e.g. account balance too low"
           );
         }
       },
