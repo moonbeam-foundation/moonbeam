@@ -1454,6 +1454,7 @@ construct_runtime! {
 		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 47,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
+		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 50,
 	}
 }
 
