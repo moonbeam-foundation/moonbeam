@@ -74,7 +74,7 @@ use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_consensus::SyncOracle;
-use sp_core::{ByteArray, H256};
+use sp_core::{ByteArray, Encode, H256};
 use sp_keystore::{Keystore, KeystorePtr};
 use std::str::FromStr;
 use std::sync::Arc;
@@ -1310,6 +1310,7 @@ where
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let maybe_current_para_block = client_set_aside_for_cidp.number(block);
+					let maybe_current_para_head = client_set_aside_for_cidp.expect_header(block);
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
 					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
 
@@ -1320,8 +1321,14 @@ where
 						let current_para_block = maybe_current_para_block?
 							.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))?;
 
+						let current_para_block_head = Some(polkadot_primitives::HeadData(
+							maybe_current_para_head?
+								.encode(),
+						));
+
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
+							current_para_block_head,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
 							// TODO: Recheck
