@@ -1640,6 +1640,17 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 			})
 		}
 	}
+
+	impl async_backing_primitives::UnincludedSegmentApi<Block> for Runtime {
+		fn can_build_upon(
+			_included_hash: <Block as BlockT>::Hash,
+			_slot: async_backing_primitives::Slot,
+		) -> bool {
+			// This runtime API can be called only when asynchronous backing is enabled client-side
+			// We return false here to force the client to not use async backing in moonbeam.
+			false
+		}
+	}
 }
 
 // Nimbus's Executive wrapper allows relay validators to verify the seal digest

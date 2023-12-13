@@ -46,6 +46,7 @@ pub trait RuntimeApiCollection:
 	+ nimbus_primitives::NimbusApi<Block>
 	+ cumulus_primitives_core::CollectCollationInfo<Block>
 	+ session_keys_primitives::VrfApi<Block>
+	+ async_backing_primitives::UnincludedSegmentApi<Block>
 {
 }
 
@@ -65,6 +66,7 @@ impl<Api> RuntimeApiCollection for Api where
 		+ nimbus_primitives::NimbusApi<Block>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ session_keys_primitives::VrfApi<Block>
+		+ async_backing_primitives::UnincludedSegmentApi<Block>
 {
 }
 

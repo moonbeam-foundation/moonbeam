@@ -73,6 +73,7 @@ use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerH
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
+use sp_consensus::SyncOracle;
 use sp_core::{ByteArray, H256};
 use sp_keystore::{Keystore, KeystorePtr};
 use std::str::FromStr;
@@ -645,6 +646,7 @@ async fn start_node_impl<RuntimeApi, Executor>(
 	collator_options: CollatorOptions,
 	para_id: ParaId,
 	rpc_config: RpcConfig,
+	async_backing: bool,
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
@@ -914,7 +916,9 @@ where
 	};
 
 	if collator {
-		start_consensus::<RuntimeApi, Executor>(
+		start_consensus::<RuntimeApi, Executor, _>(
+			async_backing,
+			backend.clone(),
 			client.clone(),
 			block_import,
 			prometheus_registry.as_ref(),
@@ -928,6 +932,8 @@ where
 			overseer_handle,
 			announce_block,
 			force_authoring,
+			relay_chain_slot_duration,
+			sync_service.clone(),
 		)?;
 		/*let parachain_consensus = build_consensus(
 			client.clone(),
@@ -972,7 +978,9 @@ where
 	Ok((task_manager, client))
 }
 
-fn start_consensus<RuntimeApi, Executor>(
+fn start_consensus<RuntimeApi, Executor, SO>(
+	async_backing: bool,
+	backend: Arc<FullBackend>,
 	client: Arc<FullClient<RuntimeApi, Executor>>,
 	block_import: ParachainBlockImport<RuntimeApi, Executor>,
 	prometheus_registry: Option<&Registry>,
@@ -986,6 +994,8 @@ fn start_consensus<RuntimeApi, Executor>(
 	overseer_handle: OverseerHandle,
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
 	force_authoring: bool,
+	relay_chain_slot_duration: Duration,
+	sync_oracle: SO,
 ) -> Result<(), sc_service::Error>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>
@@ -995,6 +1005,7 @@ where
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>: sp_api::StateBackend<BlakeTwo256>,
 	Executor: sc_executor::NativeExecutionDispatch + 'static,
+	SO: SyncOracle + Send + Sync + Clone + 'static,
 {
 	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 		task_manager.spawn_handle(),
@@ -1013,27 +1024,74 @@ where
 		client.clone(),
 	);
 
-	let params = nimbus_consensus::collators::basic::Params {
-		para_id,
-		overseer_handle,
-		proposer,
-		create_inherent_data_providers: move |_, _| async move { Ok(()) },
-		block_import,
-		relay_client: relay_chain_interface,
-		para_client: client,
-		keystore,
-		collator_service,
-		force_authoring,
-		additional_digests_provider: (),
-		collator_key,
-		//authoring_duration: Duration::from_millis(500),
+	if async_backing {
+		let client_clone = client.clone();
+		let code_hash_provider = move |block_hash| {
+			client_clone
+				.code_at(block_hash)
+				.ok()
+				.map(polkadot_primitives::ValidationCode)
+				.map(|c| c.hash())
+		};
+		task_manager.spawn_essential_handle().spawn(
+			"nimbus",
+			None,
+			nimbus_consensus::collators::lookahead::run::<
+				Block,
+				_,
+				_,
+				_,
+				FullBackend,
+				_,
+				_,
+				_,
+				_,
+				_,
+				_,
+			>(nimbus_consensus::collators::lookahead::Params {
+				additional_digests_provider: (),
+				authoring_duration: Duration::from_millis(1500),
+				block_import,
+				code_hash_provider,
+				collator_key,
+				collator_service,
+				create_inherent_data_providers: move |_, _| async move { Ok(()) },
+				force_authoring,
+				keystore,
+				overseer_handle,
+				para_backend: backend,
+				para_client: client,
+				para_id,
+				proposer,
+				relay_chain_slot_duration,
+				relay_client: relay_chain_interface,
+				slot_duration: None,
+				sync_oracle,
+			}),
+		);
+	} else {
+		task_manager.spawn_essential_handle().spawn(
+			"nimbus",
+			None,
+			nimbus_consensus::collators::basic::run::<Block, _, _, FullBackend, _, _, _, _, _>(
+				nimbus_consensus::collators::basic::Params {
+					additional_digests_provider: (),
+					//authoring_duration: Duration::from_millis(500),
+					block_import,
+					collator_key,
+					collator_service,
+					create_inherent_data_providers: move |_, _| async move { Ok(()) },
+					force_authoring,
+					keystore,
+					overseer_handle,
+					para_id,
+					para_client: client,
+					proposer,
+					relay_client: relay_chain_interface,
+				},
+			),
+		);
 	};
-
-	let fut =
-		nimbus_consensus::collators::basic::run::<Block, _, _, FullBackend, _, _, _, _, _>(params);
-	task_manager
-		.spawn_essential_handle()
-		.spawn("nimbus", None, fut);
 
 	Ok(())
 }
@@ -1047,6 +1105,7 @@ pub async fn start_node<RuntimeApi, Executor>(
 	collator_options: CollatorOptions,
 	para_id: ParaId,
 	rpc_config: RpcConfig,
+	async_backing: bool,
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
@@ -1062,6 +1121,7 @@ where
 		collator_options,
 		para_id,
 		rpc_config,
+		async_backing,
 		hwbench,
 	)
 	.await

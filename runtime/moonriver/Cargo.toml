@@ -155,6 +155,7 @@ cumulus-primitives-utility = { workspace = true }
 parachain-info = { workspace = true }
 
 # Moonkit
+async-backing-primitives = { workspace = true }
 moonkit-xcm-primitives = { workspace = true }
 nimbus-primitives = { workspace = true }
 pallet-author-inherent = { workspace = true }
