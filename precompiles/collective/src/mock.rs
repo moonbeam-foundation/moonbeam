@@ -16,12 +16,12 @@
 
 //! Test utilities
 use super::*;
+use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{ConstU128, Everything, MapSuccess, OnFinalize, OnInitialize},
 	PalletId,
 };
-use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
 use precompile_utils::{

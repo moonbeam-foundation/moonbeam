@@ -257,7 +257,11 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
-	fn deposit_asset(_what: &MultiAsset, _who: &MultiLocation, _context: Option<&XcmContext>) -> XcmResult {
+	fn deposit_asset(
+		_what: &MultiAsset,
+		_who: &MultiLocation,
+		_context: Option<&XcmContext>,
+	) -> XcmResult {
 		Ok(())
 	}
 

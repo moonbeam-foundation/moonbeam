@@ -1222,8 +1222,8 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-use frame_support::traits::{OnFinalize, OnInitialize, OnRuntimeUpgrade};
 use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
+use frame_support::traits::{OnFinalize, OnInitialize, OnRuntimeUpgrade};
 pub(crate) fn on_runtime_upgrade() {
 	VersionUncheckedMigrateToV1::<Runtime>::on_runtime_upgrade();
 }

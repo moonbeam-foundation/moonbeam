@@ -511,7 +511,7 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = ();
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;  // Same as Polkadot
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
@@ -1203,8 +1203,8 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-use frame_support::traits::{OnFinalize, OnInitialize, OnRuntimeUpgrade};
 use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
+use frame_support::traits::{OnFinalize, OnInitialize, OnRuntimeUpgrade};
 pub(crate) fn on_runtime_upgrade() {
 	VersionUncheckedMigrateToV1::<Runtime>::on_runtime_upgrade();
 }
