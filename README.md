@@ -5,8 +5,8 @@
 Moonbeam repository has been migrated from purestake to the Moonbeam Foundation organization:  
 https://github.com/moonbeam-foundation/moonbeam
 
-Github references/cloning as well as cargo build will keep working as expected. It is however
-recommended to change those references once the migration is done.
+Github references/cloning as well as cargo build will keep working as expected. 
+However, it is recommended to update those references once the migration is complete.
 
 # Information
 
@@ -32,8 +32,7 @@ You can find more detailed instructions to [run a full node in our TestNet](http
 ## Run a local development node with Docker
 
 Developers who are building dApps to run on moonbeam, may want a lightweight node to work with
-locally. You can quickly spin up a single node with no relay chain backing it using the development
-service.
+locally. You can quickly set up a single node without a relay chain backing it using the development service.
 
 ```bash
 # Run a dev service node
@@ -44,7 +43,7 @@ For more information, see our detailed instructions to [run a development node](
 
 ### Sealing options
 
-The command above will start the node in instant seal mode. It creates a block when a transaction arrives, similar to Ganache's auto-mine. You can also choose to author blocks at a regular interval, or control authoring manually through the RPC.
+The above command will start the node in instant seal mode. It creates a block when a transaction arrives, similar to Ganache's auto-mine. You can also choose to author blocks at a regular interval, or control authoring manually through the RPC.
 
 ```bash
 # Author a block every 6 seconds.
@@ -101,7 +100,7 @@ Substrate's canonical mnemonic: `bottom drive obey lake curtain smoke basket hol
 - PrivKey: 0x94c49300a58d576011096bcb006aa06f5a91b34b4383891e8029c21dc39fbb8b
 ```
 
-Also, the prefunded default account for testing purposes is:
+Additionally, the prefunded default account for testing purposes is as follows:
 
 ```
 # Gerald:
@@ -111,11 +110,11 @@ Also, the prefunded default account for testing purposes is:
 
 ## Build the Moonbeam Node
 
-To build Moonbeam, you will need a proper Substrate development environment. If you've never worked with a Substrate-based blockchain before, you should probably try the [Getting Started with a Moonbeam Development Node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/) docs first.
+To build Moonbeam, a proper Substrate development environment is required. If you're new to working with Substrate-based blockchains, consider starting with the [Getting Started with a Moonbeam Development Node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/) documentation.
 
 If you need a refresher setting up your Substrate environment, see [Substrate's Getting Started Guide](https://substrate.dev/docs/en/knowledgebase/getting-started/).
 
-Note that cloning master might result in an unstable build. If you want a stable version, check out the [latest releases](https://github.com/moonbeam-foundation/moonbeam/releases).
+Please note that cloning the master branch might result in an unstable build. If you want a stable version, check out the [latest releases](https://github.com/moonbeam-foundation/moonbeam/releases).
 
 ```bash
 # Fetch the code
@@ -128,7 +127,7 @@ cargo build --release
 
 ## Run tests
 
-Moonbeam has Rust unit tests as well as typescript integration tests. These tests are run in CI, and can also be run locally.
+Moonbeam incorporates Rust unit tests and TypeScript integration tests, which are executed in CI and can also be run locally.
 
 ```bash
 # Run the Rust unit tests
@@ -146,10 +145,10 @@ pnpm moonwall test dev_moonbase
 
 ## Chain IDs
 
-The Ethereum specification described a numeric Chain Id. The Moonbeam mainnet Chain Id will be 1284
-because it takes 1284 milliseconds for a moonbeam to reach Earth.
+The Ethereum specification describes a numeric Chain Id. The Moonbeam mainnet will have a Chain Id 
+of 1284, symbolizing the 1284 milliseconds it takes for a moonbeam to reach Earth.
 
-Moonbeam nodes support multiple public chains and testnets, with the following Chain Ids.
+Moonbeam nodes support a variety of public chains and testnets, each with their respective Chain Ids as follows:
 
 | Network Description                | Chain ID    |
 |------------------------------------|-------------|
@@ -164,18 +163,16 @@ Moonbeam nodes support multiple public chains and testnets, with the following C
 
 ## Runtime Architecture
 
-The Moonbeam Runtime is built using FRAME and consists of pallets from substrate, frontier, cumulus, and `pallets/`.
+The Moonbeam Runtime, built using FRAME, comprises pallets from Substrate, Frontier, Cumulus, and the `pallets/` directory.
 
 From substrate:
 
 - _Utility_: Allows users to use derivative accounts, and batch calls
 - _Balances_: Tracks GLMR token balances
-- _Sudo_: Allows a privileged account to make arbitrary runtime changes - will be removed before
-  launch
+- _Sudo_: Allows a privileged account to make arbitrary runtime changes. This will be removed before launch.
 - _Timestamp_: On-Chain notion of time
 - _Transaction Payment_: Transaction payment (fee) management
-- _Randomness Collective Flip_: A (mock) onchain randomness beacon. Will be replaced by parachain
-  randomness by mainnet.
+- _Randomness Collective Flip_: A (mock) onchain randomness beacon, which will be replaced by parachain randomness by mainnet.
 
 From frontier:
 
@@ -190,7 +187,7 @@ From cumulus:
 
 The following pallets are stored in `pallets/`. They are designed for Moonbeam's specific requirements:
 
-- _Author Inherent_: Allows block authors to include their identity in a block via an inherent
+- _Author Inherent_: Allows block authors to include their identity in a block via an inherent.
 - _Parachain Staking_: Minimal staking pallet that selects collators by total amount at stake
 
 When modifying the git repository for these dependencies, a tool called [diener](https://github.com/bkchr/diener) can be used to replace the git URL and branch for each reference in all `Cargo.toml` files with a single command. This alleviates a lot of the repetitive modifications necessary when changing dependency versions.
@@ -202,7 +199,7 @@ Rustdocs for the Moonbeam codebase are automatically generated and published
 
 ## Contribute
 
-Moonbeam is open source under the terms of the GPL3. We welcome contributions. Please review our
+Moonbeam is open-source under the terms of the GPL3, and we welcome contributions.. Please review our
 [CONTRIBUTIONS.md](CONTRIBUTIONS.md) document for more information.
 
 Example of version bumping PR (runtime and node): https://github.com/moonbeam-foundation/moonbeam/pull/601/files
