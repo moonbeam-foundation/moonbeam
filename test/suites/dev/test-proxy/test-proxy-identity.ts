@@ -13,8 +13,9 @@ describeSuite({
     beforeEach(async () => {
       signer = generateKeyringPair("ethereum");
 
-      await context.createBlock();
-      context.polkadotJs().tx.balances.transferAllowDeath(signer.address, 5n * GLMR);
+      await context.createBlock(
+        context.polkadotJs().tx.balances.transferAllowDeath(signer.address, 5n * GLMR)
+      );
 
       const identityData = {
         display: { Raw: "foobar" },
