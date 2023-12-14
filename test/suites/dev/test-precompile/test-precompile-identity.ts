@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { alith, baltathar } from "@moonwall/util";
-import { bytesToHex, toHex } from "viem";
+import { toHex } from "viem";
 import { PRECOMPILE_IDENTITY_ADDRESS } from "../../../helpers";
 
 describeSuite({
