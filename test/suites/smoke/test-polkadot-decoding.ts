@@ -3,6 +3,7 @@ import chalk from "chalk";
 import { describeSuite, beforeAll } from "@moonwall/cli";
 import { ONE_HOURS } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
+
 const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
 
 // TODO: This test case really spams the logs, we should find a way to make it less verbose

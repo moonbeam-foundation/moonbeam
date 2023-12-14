@@ -9,6 +9,7 @@ import {
   EvmCoreErrorExitSucceed,
 } from "@polkadot/types/lookup";
 import { fromHex } from "viem";
+
 export type Errors = {
   Succeed: EvmCoreErrorExitSucceed["type"];
   Error: EvmCoreErrorExitError["type"];

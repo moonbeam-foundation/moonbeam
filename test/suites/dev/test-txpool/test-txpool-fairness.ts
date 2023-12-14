@@ -88,7 +88,9 @@ describeSuite({
         const TIP_PER_GAS_3 = 40000n;
 
         // here we query the weight of a substrate balance transfer
-        const dummyTransfer = context.polkadotJs().tx.balances.transferAllowDeath(alith.address, GLMR);
+        const dummyTransfer = context
+          .polkadotJs()
+          .tx.balances.transferAllowDeath(alith.address, GLMR);
         const info = await context
           .polkadotJs()
           .call.transactionPaymentApi.queryInfo(dummyTransfer.toHex(), dummyTransfer.encodedLength);

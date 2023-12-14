@@ -15,6 +15,7 @@ export async function calculate_vested_amount(
   const shouldHaveVested = initialPayment + amountForBlocks;
   return shouldHaveVested;
 }
+
 // Return the unwrapped accountsPayable or null otherwise
 export const getAccountPayable = async (
   context: DevModeContext,

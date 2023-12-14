@@ -4,6 +4,7 @@ import { hideBin } from "yargs/helpers";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { convertExponentials } from "@zombienet/utils";
 import jsonBg from "json-bigint";
+
 const JSONbig = jsonBg({ useNativeBigInt: true });
 
 yargs(hideBin(process.argv))

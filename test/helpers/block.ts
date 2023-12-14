@@ -17,6 +17,7 @@ import type { AccountId20, Block } from "@polkadot/types/interfaces/runtime/type
 import chalk from "chalk";
 import { Debugger } from "debug";
 import Debug from "debug";
+
 const debug = Debug("test:blocks");
 
 // Given a deposit amount, returns the amount burned (80%) and deposited to treasury (20%).
