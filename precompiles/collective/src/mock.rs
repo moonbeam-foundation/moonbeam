@@ -24,6 +24,7 @@ use frame_support::{
 use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
+use pallet_treasury::ArgumentsFactory;
 use precompile_utils::{
 	precompile_set::*,
 	testing::{Bob, Charlie, MockAccount},
@@ -185,6 +186,19 @@ parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+pub struct BenchmarkHelper;
+#[cfg(feature = "runtime-benchmarks")]
+impl ArgumentsFactory<(), AccountId> for BenchmarkHelper {
+	fn create_asset_kind(_seed: u32) -> () {
+		()
+	}
+
+	fn create_beneficiary(seed: [u8; 32]) -> AccountId {
+		AccountId::from(H160::from(H256::from(seed)))
+	}
+}
+
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
@@ -213,7 +227,7 @@ impl pallet_treasury::Config for Runtime {
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
+	type BenchmarkHelper = BenchmarkHelper;
 }
 
 parameter_types! {

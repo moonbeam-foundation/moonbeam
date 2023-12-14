@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2023 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -14,16 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+use pallet_treasury::ArgumentsFactory;
+use account::AccountId20;
 
-mod apis;
-mod impl_moonbeam_xcm_call;
-mod impl_moonbeam_xcm_call_tracing;
-mod impl_on_charge_evm_transaction;
-mod impl_self_contained_call;
-mod impl_xcm_evm_runner;
-pub mod migrations;
-pub mod weights;
+pub struct BenchmarkHelper;
 
-#[cfg(feature = "runtime-benchmarks")]
-pub mod benchmarking;
+impl ArgumentsFactory<(), AccountId20> for BenchmarkHelper{
+    fn create_asset_kind(_seed: u32) -> () {
+        ()
+    }
+
+    fn create_beneficiary(seed: [u8; 32]) -> AccountId20 {
+        AccountId20::from(seed)
+    }
+}

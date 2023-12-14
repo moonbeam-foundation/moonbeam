@@ -594,6 +594,8 @@ impl pallet_treasury::Config for Runtime {
 	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = ConstU32<0>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = BenchmarkHelper;
 }
 
 type IdentityForceOrigin = EitherOfDiverse<
@@ -1478,6 +1480,7 @@ pub type Executive = frame_executive::Executive<
 use {
 	moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks,
 	MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench,
+	moonbeam_runtime_common::benchmarking::BenchmarkHelper,
 };
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {

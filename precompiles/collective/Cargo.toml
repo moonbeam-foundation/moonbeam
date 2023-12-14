@@ -60,3 +60,4 @@ std = [
 	"sp-std/std",
 	"xcm-primitives/std",
 ]
+runtime-benchmarks = []
