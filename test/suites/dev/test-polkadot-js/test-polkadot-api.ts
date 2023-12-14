@@ -75,7 +75,9 @@ describeSuite({
               expect(message.toLocaleLowerCase()).to.eq(`randomness.setbaberandomnessresults()`);
               break;
             case 4:
-              expect(message).to.eq(`balances.transferAllowDeath(${randomAddress}, 2000000000000000000)`);
+              expect(message).to.eq(
+                `balances.transferAllowDeath(${randomAddress}, 2000000000000000000)`
+              );
               expect(ex.signer.toString()).to.eq(ALITH_ADDRESS);
               break;
             default:

@@ -58,6 +58,8 @@ use xcm_builder::{
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
+#[cfg(feature = "runtime-benchmarks")]
+use moonbeam_runtime_common::benchmarking::BenchmarkHelper as ArgumentsBenchmarkHelper;
 use scale_info::TypeInfo;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
@@ -519,7 +521,7 @@ impl pallet_treasury::Config for Runtime {
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
+	type BenchmarkHelper = ArgumentsBenchmarkHelper;
 }
 
 #[frame_support::pallet]

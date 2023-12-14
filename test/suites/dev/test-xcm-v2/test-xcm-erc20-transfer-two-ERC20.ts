@@ -130,7 +130,9 @@ describeSuite({
           .index.toNumber();
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)
-        await polkadotJs.tx.balances.transferAllowDeath(paraSovereign, parseEther("1")).signAndSend(alith);
+        await polkadotJs.tx.balances
+          .transferAllowDeath(paraSovereign, parseEther("1"))
+          .signAndSend(alith);
         await context.createBlock();
 
         // Send some erc20 tokens (of first contract) to the sovereign account of paraId

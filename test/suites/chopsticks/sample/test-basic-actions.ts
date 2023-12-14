@@ -108,7 +108,9 @@ describeSuite({
           // api.events.authorFilter.EligibleUpdated
         ];
 
-        await api.tx.balances.transferAllowDeath(CHARLETH_ADDRESS, parseEther("3")).signAndSend(alith);
+        await api.tx.balances
+          .transferAllowDeath(CHARLETH_ADDRESS, parseEther("3"))
+          .signAndSend(alith);
         await context.createBlock({ expectEvents, logger: log });
       },
     });

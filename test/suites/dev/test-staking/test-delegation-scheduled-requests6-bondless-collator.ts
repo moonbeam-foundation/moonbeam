@@ -7,7 +7,7 @@ describeSuite({
   id: "D2995",
   title:
     "Staking - Delegation Scheduled Requests with bondless collator \
-    - execute revoke on last delegation",
+        - execute revoke on last delegation",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let psTx: any;

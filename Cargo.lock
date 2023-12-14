@@ -7057,6 +7057,7 @@ dependencies = [
 name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
+ "account",
  "cumulus-pallet-xcmp-queue",
  "fp-ethereum",
  "fp-evm",

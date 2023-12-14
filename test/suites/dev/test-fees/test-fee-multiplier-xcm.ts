@@ -41,7 +41,9 @@ describeSuite({
 
       await expectOk(
         context.createBlock(
-          context.polkadotJs().tx.balances.transferAllowDeath(descendOriginAddress, transferredBalance * 100n)
+          context
+            .polkadotJs()
+            .tx.balances.transferAllowDeath(descendOriginAddress, transferredBalance * 100n)
         )
       );
 

@@ -309,7 +309,7 @@ impl pallet_balances::Config for Runtime {
 	type MaxFreezes = ConstU32<0>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
-	type MaxHolds = ConstU32<0>;
+	type MaxHolds = ConstU32<1>;
 	type WeightInfo = moonbeam_weights::pallet_balances::WeightInfo<Runtime>;
 }
 
@@ -594,6 +594,8 @@ impl pallet_treasury::Config for Runtime {
 	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = ConstU32<0>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = BenchmarkHelper;
 }
 
 type IdentityForceOrigin = EitherOfDiverse<
@@ -1493,6 +1495,7 @@ pub type Executive = frame_executive::Executive<
 
 #[cfg(feature = "runtime-benchmarks")]
 use {
+	moonbeam_runtime_common::benchmarking::BenchmarkHelper,
 	moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks,
 	MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench,
 };

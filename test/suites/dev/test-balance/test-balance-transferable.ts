@@ -84,15 +84,15 @@ describeSuite({
           // TODO Change this check once the transferable balance is fixed
           // Check Ticket MOON-2598: https://opslayer.atlassian.net/browse/MOON-2598
           expect(
-              async () =>
-                  await context.createBlock(
-                      context
-                          .polkadotJs()
-                          .tx.balances.transferAllowDeath(baltathar.address, 2n * GLMR)
-                          .signAsync(randomAccount)
-                  )
+            async () =>
+              await context.createBlock(
+                context
+                  .polkadotJs()
+                  .tx.balances.transferAllowDeath(baltathar.address, 2n * GLMR)
+                  .signAsync(randomAccount)
+              )
           ).rejects.toThrowError(
-              "1010: Invalid Transaction: Inability to pay some fees , e.g. account balance too low"
+            "1010: Invalid Transaction: Inability to pay some fees , e.g. account balance too low"
           );
         }
       },

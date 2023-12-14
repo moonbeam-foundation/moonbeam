@@ -1322,8 +1322,7 @@ where
 							.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))?;
 
 						let current_para_block_head = Some(polkadot_primitives::HeadData(
-							maybe_current_para_head?
-								.encode(),
+							maybe_current_para_head?.encode(),
 						));
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {

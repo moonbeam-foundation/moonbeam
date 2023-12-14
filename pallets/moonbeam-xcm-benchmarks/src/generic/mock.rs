@@ -21,7 +21,7 @@ use frame_support::{
 	traits::{Everything, OriginTrait},
 };
 use parity_scale_codec::Decode;
-use sp_core::H256;
+use sp_core::{ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, TrailingZeroInput},
 	BuildStorage,
@@ -44,6 +44,7 @@ frame_support::construct_runtime!(
 		System: frame_system,
 		PolkadotXcmBenchmarks: pallet_xcm_benchmarks::generic,
 		XcmGenericBenchmarks: generic,
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 	}
 );
 
@@ -78,10 +79,31 @@ impl frame_system::Config for Test {
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
+impl pallet_balances::Config for Test {
+	type MaxReserves = ();
+	type ReserveIdentifier = [u8; 4];
+	type MaxLocks = ();
+	type Balance = u64;
+	type RuntimeEvent = RuntimeEvent;
+	type DustRemoval = ();
+	type ExistentialDeposit = ConstU64<0>;
+	type AccountStore = System;
+	type WeightInfo = ();
+	type RuntimeHoldReason = ();
+	type FreezeIdentifier = ();
+	type MaxHolds = ();
+	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
+}
+
 /// The benchmarks in this pallet should never need an asset transactor to begin with.
 pub struct NoAssetTransactor;
 impl xcm_executor::traits::TransactAsset for NoAssetTransactor {
-	fn deposit_asset(_: &MultiAsset, _: &MultiLocation, _: &XcmContext) -> Result<(), XcmError> {
+	fn deposit_asset(
+		_: &MultiAsset,
+		_: &MultiLocation,
+		_: Option<&XcmContext>,
+	) -> Result<(), XcmError> {
 		unreachable!();
 	}
 
@@ -131,6 +153,7 @@ impl xcm_executor::Config for XcmConfig {
 impl pallet_xcm_benchmarks::Config for Test {
 	type XcmConfig = XcmConfig;
 	type AccountIdConverter = AccountIdConverter;
+	type DeliveryHelper = ();
 	fn valid_destination() -> Result<MultiLocation, BenchmarkError> {
 		let valid_destination: MultiLocation = Junction::AccountId32 {
 			network: None,
@@ -147,6 +170,7 @@ impl pallet_xcm_benchmarks::Config for Test {
 
 impl pallet_xcm_benchmarks::generic::Config for Test {
 	type RuntimeCall = RuntimeCall;
+	type TransactAsset = Balances;
 
 	fn worst_case_response() -> (u64, Response) {
 		let assets: MultiAssets = (Concrete(Here.into()), 100).into();

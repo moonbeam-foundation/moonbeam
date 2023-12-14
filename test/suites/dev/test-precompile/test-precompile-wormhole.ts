@@ -583,11 +583,13 @@ class VersionedUserAction extends Enum {
     super(registry, { V1: XcmRoutingUserAction, V2: XcmRoutingUserActionWithFee }, value);
   }
 }
+
 class XcmRoutingUserAction extends Struct {
   constructor(value?: any) {
     super(registry, { destination: "VersionedMultiLocation" }, value);
   }
 }
+
 class XcmRoutingUserActionWithFee extends Struct {
   constructor(value?: any) {
     super(registry, { destination: "VersionedMultiLocation", fee: "U256" }, value);
