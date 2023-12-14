@@ -2,7 +2,6 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect, notePreimage } from "@moonwall/cli";
 import { ALITH_ADDRESS, MICROGLMR, alith } from "@moonwall/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
-import { u8aToHex } from "@polkadot/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
@@ -24,15 +23,19 @@ describeSuite({
         const encodedHash = blake2AsHex(encodedProposal);
         await context.createBlock(context.polkadotJs().tx.preimage.notePreimage(encodedProposal));
 
-        const preimageStatus = (await context
-          .polkadotJs()
-          .query.preimage.statusFor(encodedHash)) as any;
-        expect(preimageStatus.isSome).to.be.true;
-        expect(preimageStatus.unwrap().isUnrequested).to.be.true;
+        const preimageStatus = (
+          await context.polkadotJs().query.preimage.requestStatusFor(encodedHash)
+        ).toHuman();
+        expect(preimageStatus).to.not.be.undefined;
 
-        const [proposer, balance] = preimageStatus.unwrap().asUnrequested.deposit;
-        expect(u8aToHex(proposer)).to.eq(ALITH_ADDRESS.toLowerCase());
-        expect(balance.toBigInt()).to.eq(5002200n * MICROGLMR);
+        // TODO: uncomment when we have types
+        //expect(preimageStatus.unwrap().isUnrequested).to.be.true;
+
+        // TODO: change syntax when we have types
+        const proposer = preimageStatus!["Unrequested"]["ticket"][0];
+        const balance = preimageStatus!["Unrequested"]["ticket"][1].replaceAll(/,/g, "");
+        expect(proposer.toLowerCase()).to.eq(ALITH_ADDRESS.toLowerCase());
+        expect(BigInt(balance)).to.eq(5002200n * MICROGLMR);
       },
     });
 

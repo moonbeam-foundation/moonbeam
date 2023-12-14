@@ -525,7 +525,8 @@ impl pallet_scheduler::Config for Runtime {
 parameter_types! {
 	pub const PreimageBaseDeposit: Balance = 5 * currency::GLMR * currency::SUPPLY_FACTOR ;
 	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
-	pub const PreimageHoldReason: RuntimeHoldReason = RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
+	pub const PreimageHoldReason: RuntimeHoldReason =
+		RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
 }
 
 impl pallet_preimage::Config for Runtime {

@@ -122,7 +122,8 @@ describeSuite({
         await api.tx.balances
           .forceTransfer(BALTATHAR_ADDRESS, CHARLETH_ADDRESS, parseEther("3"))
           .signAndSend(alith);
-        // await api.tx.balances.transferAllowDeath(CHARLETH_ADDRESS, parseEther("3")).signAndSend(alith);
+        // await api.tx.balances.transferAllowDeath(CHARLETH_ADDRESS, parseEther("3"))
+        //.signAndSend(alith);
         const { result } = await context.createBlock({ allowFailures: true });
 
         const apiAt = await api.at(result);
