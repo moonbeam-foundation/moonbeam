@@ -43,7 +43,8 @@ type BalanceOf<T> = <<T as pallet_identity::Config>::Currency as Currency<
 	<T as frame_system::Config>::AccountId,
 >>::Balance;
 
-type IdentityFieldOf<T> = <<T as pallet_identity::Config>::IdentityInformation as pallet_identity::IdentityInformationProvider>::IdentityField;
+type IdentityFieldOf<T> = <<T as pallet_identity::Config>::IdentityInformation
+	as pallet_identity::IdentityInformationProvider>::IdentityField;
 
 /// Solidity selector of the Vote log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_IDENTITY_SET: [u8; 32] = keccak256!("IdentitySet(address)");
