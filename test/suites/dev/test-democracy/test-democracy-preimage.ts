@@ -2,7 +2,6 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect, notePreimage } from "@moonwall/cli";
 import { ALITH_ADDRESS, MICROGLMR, alith } from "@moonwall/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
-import { u8aToHex } from "@polkadot/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
