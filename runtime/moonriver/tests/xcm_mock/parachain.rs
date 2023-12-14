@@ -57,13 +57,13 @@ use xcm_builder::{
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
+#[cfg(feature = "runtime-benchmarks")]
+use moonbeam_runtime_common::benchmarking::BenchmarkHelper as ArgumentsBenchmarkHelper;
 use scale_info::TypeInfo;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
 	XcmpMessageHandlerT as XcmpMessageHandler,
 };
-#[cfg(feature = "runtime-benchmarks")]
-use moonbeam_runtime_common::benchmarking::BenchmarkHelper as ArgumentsBenchmarkHelper;
 
 pub type AccountId = moonbeam_core_primitives::AccountId;
 pub type Balance = u128;

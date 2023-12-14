@@ -1484,9 +1484,9 @@ construct_runtime! {
 
 #[cfg(feature = "runtime-benchmarks")]
 use {
+	moonbeam_runtime_common::benchmarking::BenchmarkHelper,
 	moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks,
 	MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench,
-	moonbeam_runtime_common::benchmarking::BenchmarkHelper,
 };
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {

@@ -58,13 +58,13 @@ use xcm_builder::{
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
+#[cfg(feature = "runtime-benchmarks")]
+use moonbeam_runtime_common::benchmarking::BenchmarkHelper as ArgumentsBenchmarkHelper;
 use scale_info::TypeInfo;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
 	XcmpMessageHandlerT as XcmpMessageHandler,
 };
-#[cfg(feature = "runtime-benchmarks")]
-use moonbeam_runtime_common::benchmarking::BenchmarkHelper as ArgumentsBenchmarkHelper;
 
 pub type AccountId = moonbeam_core_primitives::AccountId;
 pub type Balance = u128;
@@ -1224,8 +1224,8 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-use frame_support::traits::{OnFinalize, OnInitialize, OnRuntimeUpgrade};
 use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
+use frame_support::traits::{OnFinalize, OnInitialize, OnRuntimeUpgrade};
 pub(crate) fn on_runtime_upgrade() {
 	VersionUncheckedMigrateToV1::<Runtime>::on_runtime_upgrade();
 }

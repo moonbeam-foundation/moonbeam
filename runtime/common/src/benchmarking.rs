@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use pallet_treasury::ArgumentsFactory;
 use account::AccountId20;
+use pallet_treasury::ArgumentsFactory;
 
 pub struct BenchmarkHelper;
 
-impl ArgumentsFactory<(), AccountId20> for BenchmarkHelper{
-    fn create_asset_kind(_seed: u32) -> () {
-        ()
-    }
+impl ArgumentsFactory<(), AccountId20> for BenchmarkHelper {
+	fn create_asset_kind(_seed: u32) -> () {
+		()
+	}
 
-    fn create_beneficiary(seed: [u8; 32]) -> AccountId20 {
-        AccountId20::from(seed)
-    }
+	fn create_beneficiary(seed: [u8; 32]) -> AccountId20 {
+		AccountId20::from(seed)
+	}
 }

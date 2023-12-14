@@ -233,7 +233,11 @@ pub(crate) struct ExtBuilder {
 	/// Endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 	/// Referenda that already exist (don't need a proposal and launch period delay)
-	referenda: Vec<(Bounded<RuntimeCall, BlakeTwo256>, VoteThreshold, BlockNumber)>,
+	referenda: Vec<(
+		Bounded<RuntimeCall, BlakeTwo256>,
+		VoteThreshold,
+		BlockNumber,
+	)>,
 }
 
 impl Default for ExtBuilder {
@@ -255,7 +259,11 @@ impl ExtBuilder {
 	/// Put some referenda into storage before starting the test
 	pub(crate) fn with_referenda(
 		mut self,
-		referenda: Vec<(Bounded<RuntimeCall, BlakeTwo256>, VoteThreshold, BlockNumber)>,
+		referenda: Vec<(
+			Bounded<RuntimeCall, BlakeTwo256>,
+			VoteThreshold,
+			BlockNumber,
+		)>,
 	) -> Self {
 		self.referenda = referenda;
 		self
