@@ -150,10 +150,18 @@ pub mod currency {
 }
 
 /// Maximum weight per block
+#[cfg(feature = "experimental-async-backing")]
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
+	.saturating_mul(2)
+	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
+#[cfg(not(feature = "experimental-async-backing"))]
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
 	.saturating_div(2)
 	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
 
+#[cfg(feature = "experimental-async-backing")]
+pub const MILLISECS_PER_BLOCK: u64 = 6000;
+#[cfg(not(feature = "experimental-async-backing"))]
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
@@ -290,6 +298,9 @@ impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
+	#[cfg(feature = "experimental-async-backing")]
+	type MinimumPeriod = ConstU64<0>;
+	#[cfg(not(feature = "experimental-async-backing"))]
 	type MinimumPeriod = ConstU64<6000>;
 	type WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
