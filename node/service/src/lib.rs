@@ -1022,6 +1022,28 @@ where
 		client.clone(),
 	);
 
+	let create_inherent_data_providers = move |_, (_relay_parent, _validation_data, _author_id)| async move {
+		let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+		let author = nimbus_primitives::InherentDataProvider;
+
+		let randomness = session_keys_primitives::InherentDataProvider;
+
+		Ok((time, author, randomness))
+	};
+
+	let client_clone = client.clone();
+	let keystore_clone = keystore.clone();
+	let maybe_provide_vrf_digest =
+		move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
+			moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+				&client_clone,
+				&keystore_clone,
+				nimbus_id,
+				parent,
+			)
+		};
+
 	if async_backing {
 		let client_clone = client.clone();
 		let code_hash_provider = move |block_hash| {
@@ -1047,13 +1069,13 @@ where
 				_,
 				_,
 			>(nimbus_consensus::collators::lookahead::Params {
-				additional_digests_provider: (),
+				additional_digests_provider: maybe_provide_vrf_digest,
 				authoring_duration: Duration::from_millis(1500),
 				block_import,
 				code_hash_provider,
 				collator_key,
 				collator_service,
-				create_inherent_data_providers: move |_, _| async move { Ok(()) },
+				create_inherent_data_providers,
 				force_authoring,
 				keystore,
 				overseer_handle,
@@ -1073,12 +1095,12 @@ where
 			None,
 			nimbus_consensus::collators::basic::run::<Block, _, _, FullBackend, _, _, _, _, _>(
 				nimbus_consensus::collators::basic::Params {
-					additional_digests_provider: (),
+					additional_digests_provider: maybe_provide_vrf_digest,
 					//authoring_duration: Duration::from_millis(500),
 					block_import,
 					collator_key,
 					collator_service,
-					create_inherent_data_providers: move |_, _| async move { Ok(()) },
+					create_inherent_data_providers,
 					force_authoring,
 					keystore,
 					overseer_handle,
