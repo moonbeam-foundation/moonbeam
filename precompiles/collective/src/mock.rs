@@ -24,7 +24,6 @@ use frame_support::{
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
-use pallet_treasury::ArgumentsFactory;
 use precompile_utils::{
 	precompile_set::*,
 	testing::{Bob, Charlie, MockAccount},
@@ -35,6 +34,9 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, Replace},
 	BuildStorage, Permill,
 };
+
+#[cfg(feature = "runtime-benchmarks")]
+use pallet_treasury::ArgumentsFactory;
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
