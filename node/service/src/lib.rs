@@ -1022,7 +1022,7 @@ where
 		client.clone(),
 	);
 
-	let create_inherent_data_providers = move |_, (_relay_parent, _validation_data, _author_id)| async move {
+	let create_inherent_data_providers = |_, _| async move {
 		let time = sp_timestamp::InherentDataProvider::from_system_time();
 
 		let author = nimbus_primitives::InherentDataProvider;
