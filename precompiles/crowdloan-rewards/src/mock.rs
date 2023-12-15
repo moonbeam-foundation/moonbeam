@@ -70,6 +70,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type DmpMessageHandler = ();
 	type ReservedDmpWeight = ();
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+	type ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
 }
 
 parameter_types! {
