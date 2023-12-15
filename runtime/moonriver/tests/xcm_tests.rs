@@ -4044,7 +4044,7 @@ fn hrmp_close_works() {
 		));
 		assert_ok!(Hrmp::force_process_hrmp_open(
 			relay_chain::RuntimeOrigin::root(),
-			0u32
+			1u32
 		));
 	});
 
