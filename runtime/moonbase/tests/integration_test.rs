@@ -232,7 +232,7 @@ fn verify_pallet_prefixes() {
 				storage_name: b"Holds".to_vec(),
 				prefix: prefix(b"Balances", b"Holds"),
 				max_values: None,
-				max_size: Some(37),
+				max_size: Some(55),
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
@@ -1801,7 +1801,7 @@ fn ethereum_invalid_transaction() {
 			Executive::apply_extrinsic(unchecked_eth_tx(INVALID_ETH_TX)),
 			Err(
 				sp_runtime::transaction_validity::TransactionValidityError::Invalid(
-					sp_runtime::transaction_validity::InvalidTransaction::Custom(3u8)
+					sp_runtime::transaction_validity::InvalidTransaction::Custom(0u8)
 				)
 			)
 		);

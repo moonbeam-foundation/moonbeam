@@ -215,11 +215,6 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = ();
 }
 
-parameter_types! {
-	pub const BaseDeposit: u64 = 10;
-	pub const ByteDeposit: u64 = 10;
-}
-
 impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
