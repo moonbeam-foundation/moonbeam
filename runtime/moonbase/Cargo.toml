@@ -165,6 +165,9 @@ frame-benchmarking = { workspace = true, optional = true }
 frame-system-benchmarking = { workspace = true, optional = true }
 frame-try-runtime = { workspace = true, optional = true }
 
+# Fractal
+pallet-celestia-offchain-worker = { workspace = true }
+
 [dev-dependencies]
 ethereum = { workspace = true }
 hex = { workspace = true, features = [ "std" ] }

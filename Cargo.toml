@@ -97,6 +97,9 @@ xcm-primitives = { path = "primitives/xcm", default-features = false }
 
 pallet-crowdloan-rewards = { git = "https://github.com/moonbeam-foundation/crowdloan-rewards", branch = "moonbeam-polkadot-v1.1.0", default-features = false }
 
+# Fractal 
+pallet-celestia-offchain-worker = { path = "pallets/celestia-offchain-worker", default-features = false}
+
 # Moonbeam (client)
 moonbeam-cli = { path = "node/cli", default-features = false }
 moonbeam-cli-opt = { path = "node/cli-opt", default-features = false }

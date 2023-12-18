@@ -1,0 +1,30 @@
+[package]
+name = "pallet-celestia-offchain-worker"
+authors = { workspace = true }
+edition = "2021"
+version = "1.0.0"
+
+[dependencies]
+serde = { workspace = true, optional = true, features = [ "derive" ] }
+log = { workspace = true }
+
+# Substrate
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+parity-scale-codec = { workspace = true, features = [ "derive" ] }
+scale-info = { workspace = true, features = [ "derive" ] }
+
+# Frontier
+pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+
+[features]
+default = [ "std" ]
+std = [
+	"frame-support/std",
+	"frame-system/std",
+	"parity-scale-codec/std",
+	"scale-info/std",
+	"serde",
+	"pallet-ethereum/std",
+]
+try-runtime = [ "frame-support/try-runtime" ]

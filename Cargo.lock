@@ -6355,6 +6355,7 @@ dependencies = [
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-base-fee",
+ "pallet-celestia-offchain-worker",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -8259,6 +8260,19 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-celestia-offchain-worker"
+version = "1.0.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-ethereum",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
 ]
 
 [[package]]
