@@ -106,7 +106,7 @@ describeDevMoonbeam("Mock XCM - Fails trying to pay fees with ERC20", (context) 
 
     // Mock the reception of the xcm message
     await injectHrmpMessage(context, paraId, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
     await context.createBlock();
@@ -236,14 +236,14 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
 
     // Mock the reception of the xcm message
     await injectHrmpMessage(context, paraId, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
     await context.createBlock();
 
     const chargedWeight = await weightMessage(
       context,
-      context.polkadotApi.createType("StagingXcmVersionedXcm", xcmMessage) as any
+      context.polkadotApi.createType("XcmVersionedXcm", xcmMessage) as any
     );
     // We are charging chargedWeight
     // chargedWeight * 50000 = chargedFee
@@ -273,7 +273,7 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
 
     // Mock the reception of the xcm message
     await injectHrmpMessage(context, paraId, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessageToClaimAssets,
     } as RawXcmMessage);
     await context.createBlock();
@@ -287,7 +287,7 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
 
     const chargedWeightForClaim = await weightMessage(
       context,
-      context.polkadotApi.createType("StagingXcmVersionedXcm", xcmMessageToClaimAssets) as any
+      context.polkadotApi.createType("XcmVersionedXcm", xcmMessageToClaimAssets) as any
     );
     // We are charging chargedWeightForClaim
     // chargedWeightForClaim * 50000 = chargedFeeForClaim
@@ -301,7 +301,7 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
 
     // Mock again the reception of the initial xcm message
     await injectHrmpMessage(context, paraId, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
     await context.createBlock();
@@ -339,7 +339,7 @@ describeDevMoonbeam("Mock XCM - Trap ERC20", (context) => {
       .as_v2();
 
     await injectHrmpMessage(context, paraId, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessageFailedClaim,
     } as RawXcmMessage);
     await context.createBlock();

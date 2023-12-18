@@ -169,7 +169,7 @@ describeSuite({
         const privateKey = generatePrivateKey();
         const randomAccount = privateKeyToAccount(privateKey);
         await context.createBlock(
-          context.polkadotJs().tx.balances.transfer(randomAccount.address, GLMR)
+          context.polkadotJs().tx.balances.transferAllowDeath(randomAccount.address, GLMR)
         );
 
         const rawTxn = await context.writePrecompile!({

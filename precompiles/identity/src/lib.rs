@@ -43,6 +43,9 @@ type BalanceOf<T> = <<T as pallet_identity::Config>::Currency as Currency<
 	<T as frame_system::Config>::AccountId,
 >>::Balance;
 
+type IdentityFieldOf<T> = <<T as pallet_identity::Config>::IdentityInformation
+	as pallet_identity::IdentityInformationProvider>::IdentityField;
+
 /// Solidity selector of the Vote log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_IDENTITY_SET: [u8; 32] = keccak256!("IdentitySet(address)");
 pub(crate) const SELECTOR_LOG_IDENTITY_CLEARED: [u8; 32] = keccak256!("IdentityCleared(address)");
@@ -66,7 +69,11 @@ pub struct IdentityPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile::test_concrete_types(mock::Runtime)]
 impl<Runtime> IdentityPrecompile<Runtime>
 where
-	Runtime: pallet_identity::Config + pallet_evm::Config,
+	Runtime: pallet_identity::Config<
+			IdentityInformation = pallet_identity::simple::IdentityInfo<
+				<Runtime as pallet_identity::Config>::MaxAdditionalFields,
+			>,
+		> + pallet_evm::Config,
 	Runtime::AccountId: Into<H160>,
 	Runtime::Hash: From<H256>,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
@@ -367,7 +374,7 @@ where
 		handle.record_db_read::<Runtime>(pallet_identity::Registration::<
 			BalanceOf<Runtime>,
 			Runtime::MaxRegistrars,
-			Runtime::MaxAdditionalFields,
+			Runtime::IdentityInformation,
 		>::max_encoded_len())?;
 
 		let who: H160 = who.into();
@@ -432,8 +439,11 @@ where
 		// 		BoundedVec<Option<RegistrarInfo<BalanceOf<T>, T::AccountId>>, T::MaxRegistrars>
 		handle.record_db_read::<Runtime>(
 			pallet_identity::RegistrarInfo::<
-				BalanceOf<Runtime>, Runtime::AccountId
-			>::max_encoded_len().saturating_mul(Runtime::MaxRegistrars::get() as usize)
+				BalanceOf<Runtime>,
+				Runtime::AccountId,
+				IdentityFieldOf<Runtime>,
+			>::max_encoded_len()
+			.saturating_mul(Runtime::MaxRegistrars::get() as usize),
 		)?;
 
 		let registrars = pallet_identity::Pallet::<Runtime>::registrars()
@@ -450,20 +460,35 @@ where
 							display: reg
 								.fields
 								.0
-								.contains(pallet_identity::IdentityField::Display),
-							legal: reg.fields.0.contains(pallet_identity::IdentityField::Legal),
-							web: reg.fields.0.contains(pallet_identity::IdentityField::Web),
-							riot: reg.fields.0.contains(pallet_identity::IdentityField::Riot),
-							email: reg.fields.0.contains(pallet_identity::IdentityField::Email),
+								.contains(pallet_identity::simple::IdentityField::Display),
+							legal: reg
+								.fields
+								.0
+								.contains(pallet_identity::simple::IdentityField::Legal),
+							web: reg
+								.fields
+								.0
+								.contains(pallet_identity::simple::IdentityField::Web),
+							riot: reg
+								.fields
+								.0
+								.contains(pallet_identity::simple::IdentityField::Riot),
+							email: reg
+								.fields
+								.0
+								.contains(pallet_identity::simple::IdentityField::Email),
 							pgp_fingerprint: reg
 								.fields
 								.0
-								.contains(pallet_identity::IdentityField::PgpFingerprint),
-							image: reg.fields.0.contains(pallet_identity::IdentityField::Image),
+								.contains(pallet_identity::simple::IdentityField::PgpFingerprint),
+							image: reg
+								.fields
+								.0
+								.contains(pallet_identity::simple::IdentityField::Image),
 							twitter: reg
 								.fields
 								.0
-								.contains(pallet_identity::IdentityField::Twitter),
+								.contains(pallet_identity::simple::IdentityField::Twitter),
 						},
 					}
 				} else {
@@ -482,43 +507,43 @@ where
 	fn identity_fields_to_input(
 		fields: IdentityFields,
 	) -> Result<
-		pallet_identity::IdentityFields,
-		enumflags2::FromBitsError<pallet_identity::IdentityField>,
+		pallet_identity::IdentityFields<IdentityFieldOf<Runtime>>,
+		enumflags2::FromBitsError<IdentityFieldOf<Runtime>>,
 	> {
 		let mut field_bits = 0u64;
 		if fields.display {
-			field_bits = field_bits | pallet_identity::IdentityField::Display as u64;
+			field_bits = field_bits | pallet_identity::simple::IdentityField::Display as u64;
 		}
 		if fields.legal {
-			field_bits = field_bits | pallet_identity::IdentityField::Legal as u64;
+			field_bits = field_bits | pallet_identity::simple::IdentityField::Legal as u64;
 		}
 		if fields.web {
-			field_bits = field_bits | pallet_identity::IdentityField::Web as u64;
+			field_bits = field_bits | pallet_identity::simple::IdentityField::Web as u64;
 		}
 		if fields.riot {
-			field_bits = field_bits | pallet_identity::IdentityField::Riot as u64;
+			field_bits = field_bits | pallet_identity::simple::IdentityField::Riot as u64;
 		}
 		if fields.email {
-			field_bits = field_bits | pallet_identity::IdentityField::Email as u64;
+			field_bits = field_bits | pallet_identity::simple::IdentityField::Email as u64;
 		}
 		if fields.pgp_fingerprint {
-			field_bits = field_bits | pallet_identity::IdentityField::PgpFingerprint as u64;
+			field_bits = field_bits | pallet_identity::simple::IdentityField::PgpFingerprint as u64;
 		}
 		if fields.image {
-			field_bits = field_bits | pallet_identity::IdentityField::Image as u64;
+			field_bits = field_bits | pallet_identity::simple::IdentityField::Image as u64;
 		}
 		if fields.twitter {
-			field_bits = field_bits | pallet_identity::IdentityField::Twitter as u64;
+			field_bits = field_bits | pallet_identity::simple::IdentityField::Twitter as u64;
 		}
 
-		let bit_flags = BitFlags::<pallet_identity::IdentityField>::from_bits(field_bits)?;
+		let bit_flags = BitFlags::<IdentityFieldOf<Runtime>>::from_bits(field_bits)?;
 
 		Ok(pallet_identity::IdentityFields(bit_flags))
 	}
 
 	fn identity_to_input(
 		info: IdentityInfo<Runtime::MaxAdditionalFields>,
-	) -> MayRevert<Box<pallet_identity::IdentityInfo<Runtime::MaxAdditionalFields>>> {
+	) -> MayRevert<Box<pallet_identity::simple::IdentityInfo<Runtime::MaxAdditionalFields>>> {
 		// let additional: Vec<(pallet_identity::Data, pallet_identity::Data)> = info.additional.into();
 		let mut additional: sp_runtime::BoundedVec<
 			(pallet_identity::Data, pallet_identity::Data),
@@ -546,7 +571,7 @@ where
 		} else {
 			None
 		};
-		let identity_info = pallet_identity::IdentityInfo::<Runtime::MaxAdditionalFields> {
+		let identity_info = pallet_identity::simple::IdentityInfo::<Runtime::MaxAdditionalFields> {
 			additional,
 			display: info
 				.display
@@ -587,7 +612,7 @@ where
 			pallet_identity::Registration<
 				BalanceOf<Runtime>,
 				Runtime::MaxRegistrars,
-				Runtime::MaxAdditionalFields,
+				Runtime::IdentityInformation,
 			>,
 		>,
 	) -> MayRevert<Registration<Runtime::MaxAdditionalFields>> {

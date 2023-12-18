@@ -36,7 +36,7 @@ describeSuite({
         [...bottomDelegators, ...topDelegators].map((account, i) =>
           context
             .polkadotJs()
-            .tx.balances.transfer(account.address, MIN_GLMR_DELEGATOR + 20n * GLMR)
+            .tx.balances.transferAllowDeath(account.address, MIN_GLMR_DELEGATOR + 20n * GLMR)
             .signAsync(alith, { nonce: i })
         ),
         { allowFailures: false }

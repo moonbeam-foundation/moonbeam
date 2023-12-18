@@ -92,6 +92,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 
 mock_account!(CallPermit, |_| MockAccount::from_u64(1));
@@ -110,6 +111,7 @@ pub type PCall = CallPermitPrecompileCall<Runtime>;
 parameter_types! {
 	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
 	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
+	pub const SuicideQuickClearLimit: u32 = 0;
 }
 
 impl pallet_evm::Config for Runtime {
@@ -132,6 +134,7 @@ impl pallet_evm::Config for Runtime {
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = ();
 	type GasLimitStorageGrowthRatio = ();
+	type SuicideQuickClearLimit = SuicideQuickClearLimit;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 }

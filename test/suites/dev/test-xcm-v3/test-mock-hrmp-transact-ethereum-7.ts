@@ -34,7 +34,7 @@ describeSuite({
 
       // We fund the Delegatee, which will send the xcm and pay fees
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(descendAddress, transferredBalance),
+        context.polkadotJs().tx.balances.transferAllowDeath(descendAddress, transferredBalance),
         { allowFailures: false }
       );
 
@@ -166,7 +166,7 @@ describeSuite({
 
           // Send an XCM and create block to execute it
           await injectHrmpMessageAndSeal(context, 1, {
-            type: "StagingXcmVersionedXcm",
+            type: "XcmVersionedXcm",
             payload: xcmMessage,
           } as RawXcmMessage);
 

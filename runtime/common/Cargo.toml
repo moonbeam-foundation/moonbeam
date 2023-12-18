@@ -77,6 +77,8 @@ parity-scale-codec = { workspace = true }
 # cumulus
 cumulus-pallet-parachain-system = { workspace = true }
 
+account = { workspace = true }
+
 [features]
 std = [
 	"fp-ethereum/std",
@@ -102,6 +104,7 @@ std = [
 	"sp-std/std",
 	"xcm-executor/std",
 	"xcm/std",
+	"account/std"
 ]
 runtime-benchmarks = [
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",

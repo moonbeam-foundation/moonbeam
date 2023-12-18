@@ -1,6 +1,7 @@
 import { ApiPromise } from "@polkadot/api";
 import Debugger from "debug";
 import { rateLimiter } from "./common.js";
+
 const log = Debugger("test:storageQuery");
 
 const startReport = (total: () => number) => {

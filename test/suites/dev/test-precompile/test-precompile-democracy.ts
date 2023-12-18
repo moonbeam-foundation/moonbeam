@@ -49,16 +49,19 @@ describeSuite({
             )
         );
 
-        const preimageStatus = await context.polkadotJs().query.preimage.statusFor(encodedHash);
+        const preimageStatus = (
+          await context.polkadotJs().query.preimage.requestStatusFor(encodedHash)
+        ).toHuman();
 
-        expect(
-          preimageStatus.unwrap().isUnrequested &&
-            preimageStatus.unwrap().asUnrequested.deposit[0].toString()
-        ).to.equal(ALITH_ADDRESS);
-        expect(
-          preimageStatus.unwrap().isUnrequested &&
-            preimageStatus.unwrap().asUnrequested.deposit[1].toString()
-        ).to.equal("5024200000000000000");
+        // TODO: uncomment when we have types
+        // expect(preimageStatus.unwrap().isUnrequested).to.be.true;
+
+        // TODO: change syntax when we have types
+        const proposer = preimageStatus!["Unrequested"]["ticket"][0];
+        const balance = preimageStatus!["Unrequested"]["ticket"][1].replaceAll(/,/g, "");
+
+        expect(proposer).to.equal(ALITH_ADDRESS);
+        expect(balance).to.equal("5024200000000000000");
       },
     });
   },

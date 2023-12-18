@@ -116,6 +116,7 @@ impl pallet_balances::Config for Test {
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 impl block_author::Config for Test {}
 const GENESIS_BLOCKS_PER_ROUND: BlockNumber = 10;

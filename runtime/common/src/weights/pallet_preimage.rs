@@ -210,4 +210,25 @@ impl<T: frame_system::Config> pallet_preimage::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
 	}
+	/// Storage: `Preimage::StatusFor` (r:1024 w:1024)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(91), added: 2566, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:1 w:1)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(128), added: 2603, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:0 w:1024)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(75), added: 2550, mode: `MaxEncodedLen`)
+	/// The range of component `n` is `[0, 1024]`.
+	fn ensure_updated(n: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `193 + n * (91 ±0)`
+		//  Estimated: `3593 + n * (2566 ±0)`
+		// Minimum execution time: 2_452_000 picoseconds.
+		Weight::from_parts(2_641_000, 3593)
+			// Standard Error: 19_797
+			.saturating_add(Weight::from_parts(15_620_946, 0).saturating_mul(n.into()))
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(n.into())))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+			.saturating_add(T::DbWeight::get().writes((2_u64).saturating_mul(n.into())))
+			.saturating_add(Weight::from_parts(0, 2566).saturating_mul(n.into()))
+	}
 }

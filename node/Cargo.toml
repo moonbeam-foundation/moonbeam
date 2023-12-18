@@ -33,7 +33,6 @@ xcm-builder = { workspace = true, features = [ "std" ] }
 [features]
 default = [ "moonbase-native", "moonbeam-native", "moonriver-native" ]
 
-kusama-native = [ "moonbeam-service/kusama-native" ]
 rococo-native = [ "moonbeam-service/rococo-native" ]
 westend-native = [ "moonbeam-cli/westend-native", "moonbeam-service/westend-native" ]
 

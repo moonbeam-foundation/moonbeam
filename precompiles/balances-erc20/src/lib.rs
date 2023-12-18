@@ -284,7 +284,7 @@ where
 			RuntimeHelper::<Runtime>::try_dispatch(
 				handle,
 				Some(origin).into(),
-				pallet_balances::Call::<Runtime, Instance>::transfer {
+				pallet_balances::Call::<Runtime, Instance>::transfer_allow_death {
 					dest: Runtime::Lookup::unlookup(to),
 					value: value,
 				},
@@ -350,7 +350,7 @@ where
 			RuntimeHelper::<Runtime>::try_dispatch(
 				handle,
 				Some(from).into(),
-				pallet_balances::Call::<Runtime, Instance>::transfer {
+				pallet_balances::Call::<Runtime, Instance>::transfer_allow_death {
 					dest: Runtime::Lookup::unlookup(to),
 					value: value,
 				},
@@ -412,7 +412,7 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
 			Some(precompile).into(),
-			pallet_balances::Call::<Runtime, Instance>::transfer {
+			pallet_balances::Call::<Runtime, Instance>::transfer_allow_death {
 				dest: Runtime::Lookup::unlookup(caller),
 				value: amount,
 			},

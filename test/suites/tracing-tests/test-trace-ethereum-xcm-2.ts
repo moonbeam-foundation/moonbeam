@@ -31,7 +31,9 @@ describeSuite({
 
       // We first fund parachain 2000 sovreign account
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(ethereumXcmDescendedOrigin, transferredBalance),
+        context
+          .polkadotJs()
+          .tx.balances.transferAllowDeath(ethereumXcmDescendedOrigin, transferredBalance),
         { allowFailures: false }
       );
 
@@ -96,7 +98,7 @@ describeSuite({
 
       // Send an XCM and create block to execute it
       await injectHrmpMessage(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 

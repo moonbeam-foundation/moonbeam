@@ -38,7 +38,7 @@ const testBalanceTransfer = async (context: DevModeContext) => {
 
   // send a balance transfer to self and see what our fees end up being
   await context.createBlock(
-    context.polkadotJs().tx.balances.transfer(BALTATHAR_ADDRESS, 1).signAsync(baltathar)
+    context.polkadotJs().tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1).signAsync(baltathar)
   );
 
   const afterBalance = (

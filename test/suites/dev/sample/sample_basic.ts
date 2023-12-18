@@ -98,7 +98,7 @@ describeSuite({
         ];
 
         await context.createBlock(
-          polkadotJs.tx.balances.transfer(CHARLETH_ADDRESS, parseEther("3")),
+          polkadotJs.tx.balances.transferAllowDeath(CHARLETH_ADDRESS, parseEther("3")),
           { expectEvents, logger: log }
         );
       },

@@ -48,7 +48,7 @@ pub type XcmAccountIdOf<XcmConfig> =
 	<<<XcmConfig as xcm_executor::Config>::RuntimeCall as Dispatchable>
 		::RuntimeOrigin as OriginTrait>::AccountId;
 
-pub type SystemCallOf<Runtime> = <Runtime as frame_system::Config>::RuntimeCall;
+pub type CallOf<Runtime> = <Runtime as pallet_xcm::Config>::RuntimeCall;
 pub const XCM_SIZE_LIMIT: u32 = 2u32.pow(16);
 type GetXcmSizeLimit = ConstU32<XCM_SIZE_LIMIT>;
 
@@ -66,7 +66,8 @@ where
 	XcmOriginOf<XcmConfig>: OriginTrait,
 	XcmAccountIdOf<XcmConfig>: Into<H160>,
 	XcmConfig: xcm_executor::Config,
-	SystemCallOf<Runtime>: Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
+	<Runtime as frame_system::Config>::RuntimeCall:
+		Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<pallet_xcm::Call<Runtime>>,
@@ -96,7 +97,8 @@ where
 	XcmOriginOf<XcmConfig>: OriginTrait,
 	XcmAccountIdOf<XcmConfig>: Into<H160>,
 	XcmConfig: xcm_executor::Config,
-	SystemCallOf<Runtime>: Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
+	<Runtime as frame_system::Config>::RuntimeCall:
+		Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<pallet_xcm::Call<Runtime>>,
@@ -212,7 +214,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let message: Vec<_> = message.to_vec();
-		let xcm = xcm::VersionedXcm::<SystemCallOf<Runtime>>::decode_all_with_depth_limit(
+		let xcm = xcm::VersionedXcm::<CallOf<Runtime>>::decode_all_with_depth_limit(
 			xcm::MAX_XCM_DECODE_DEPTH,
 			&mut message.as_slice(),
 		)
