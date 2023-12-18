@@ -1064,23 +1064,6 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
-use pallet_migrations::{GetMigrations, Migration};
-pub struct TransactorRelayIndexMigration<Runtime>(sp_std::marker::PhantomData<Runtime>);
-
-impl<Runtime> GetMigrations for TransactorRelayIndexMigration<Runtime>
-where
-	Runtime: pallet_xcm_transactor::Config,
-{
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		vec![Box::new(
-			moonbeam_runtime_common::migrations::PopulateRelayIndices::<Runtime>(
-				moonbeam_relay_encoder::polkadot::POLKADOT_RELAY_INDICES,
-				Default::default(),
-			),
-		)]
-	}
-}
-
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MigrationsList = (
@@ -1091,7 +1074,6 @@ impl pallet_migrations::Config for Runtime {
 			TreasuryCouncilCollective,
 			OpenTechCommitteeCollective,
 		>,
-		TransactorRelayIndexMigration<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
 }

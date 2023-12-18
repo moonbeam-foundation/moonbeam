@@ -29,39 +29,13 @@ use frame_support::{
 };
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_migrations::{GetMigrations, Migration};
-use pallet_moonbeam_orbiters::CollatorsPool;
 use pallet_parachain_staking::{Round, RoundInfo};
 #[cfg(feature = "try-runtime")]
 use parity_scale_codec::{Decode, Encode};
+use sp_core::Get;
 #[cfg(feature = "try-runtime")]
 use sp_runtime::traits::Zero;
 use sp_std::{marker::PhantomData, prelude::*};
-
-pub struct PreimageMigrationHashToBoundedCall<T>(PhantomData<T>);
-impl<T> Migration for PreimageMigrationHashToBoundedCall<T>
-where
-	T: pallet_preimage::Config<Hash = PreimageHash> + frame_system::Config,
-{
-	fn friendly_name(&self) -> &str {
-		"MM_PreimageMigrationHashToBoundedCall"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		pallet_preimage::migration::v1::Migration::<T>::on_runtime_upgrade()
-	}
-
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		pallet_preimage::migration::v1::Migration::<T>::pre_upgrade()
-	}
-
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		pallet_preimage::migration::v1::Migration::<T>::post_upgrade(state)
-	}
-}
 
 pub struct PalletReferendaMigrateV0ToV1<T>(pub PhantomData<T>);
 impl<T> Migration for PalletReferendaMigrateV0ToV1<T>
@@ -88,75 +62,6 @@ where
 		pallet_referenda::migration::v1::MigrateV0ToV1::<T>::post_upgrade(state)
 	}
 }
-
-use pallet_xcm_transactor::{relay_indices::*, RelayIndices};
-use sp_core::Get;
-pub struct PopulateRelayIndices<T>(pub RelayChainIndices, pub PhantomData<T>);
-impl<T: pallet_xcm_transactor::Config> Migration for PopulateRelayIndices<T> {
-	fn friendly_name(&self) -> &str {
-		"MM_PopulateRelayIndices"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		// insert input into storage
-		RelayIndices::<T>::put(self.0);
-		T::DbWeight::get().writes(1)
-	}
-
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		// check storage is default pre migration
-		assert_eq!(RelayIndices::<T>::get(), Default::default());
-		Ok(Vec::new())
-	}
-
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		// check storage matches input post migration
-		assert_eq!(RelayIndices::<T>::get(), self.0);
-		Ok(())
-	}
-}
-
-pub struct RemoveMinBondForOrbiterCollators<T>(pub PhantomData<T>);
-impl<T> Migration for RemoveMinBondForOrbiterCollators<T>
-where
-	T: pallet_moonbeam_orbiters::Config,
-	T: pallet_parachain_staking::Config,
-	T: frame_system::Config,
-{
-	fn friendly_name(&self) -> &str {
-		"MM_RemoveMinBondForOrbiterCollators"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		let mut weight = Weight::zero();
-		CollatorsPool::<T>::iter_keys().for_each(|collator| {
-			log::info!("Setting the bond for collator {:?} to zero", collator);
-			weight += <pallet_parachain_staking::Pallet<T>>::set_candidate_bond_to_zero(&collator);
-		});
-		weight
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		Ok(vec![])
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		CollatorsPool::<T>::iter_keys().for_each(|collator| {
-			log::info!("Checking collator: {:?}", collator);
-			let state = <pallet_parachain_staking::Pallet<T>>::candidate_info(&collator)
-				.expect("collator should have candidate info");
-			assert!(state.bond.is_zero(), "collator bond should be zero");
-		});
-		Ok(())
-	}
-}
-
 pub struct UpdateFirstRoundRelayBlockNumber<T>(pub PhantomData<T>);
 impl<T> Migration for UpdateFirstRoundRelayBlockNumber<T>
 where
@@ -222,6 +127,7 @@ where
 		Ok(())
 	}
 }
+
 pub struct MissingBalancesMigrations<T>(PhantomData<T>);
 impl<T> Migration for MissingBalancesMigrations<T>
 where
@@ -458,8 +364,8 @@ where
 			//Box::new(preimage_migration_hash_to_bounded_call),
 			//Box::new(asset_manager_to_xcm_v3),
 			//Box::new(xcm_transactor_to_xcm_v3),
-			Box::new(update_first_round_relay_block_number),
 			//Box::new(remove_min_bond_for_old_orbiter_collators),
+			Box::new(update_first_round_relay_block_number),
 			Box::new(missing_balances_migrations),
 			Box::new(fix_pallet_versions),
 		]
