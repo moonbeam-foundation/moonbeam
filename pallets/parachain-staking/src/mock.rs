@@ -18,16 +18,16 @@
 use crate as pallet_parachain_staking;
 use crate::{
 	pallet, AwardedPts, Config, Event as ParachainStakingEvent, InflationInfo, Points, Range,
-	RelayChainBlockNumberProvider, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use block_author::BlockAuthor as BlockAuthorMap;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, LockIdentifier, OnFinalize, OnInitialize},
+	traits::{ConstBool, Everything, Get, LockIdentifier, OnFinalize, OnInitialize},
 	weights::{constants::RocksDbWeight, Weight},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
-use polkadot_parachain::primitives::RelayChainBlockNumber;
+use sp_consensus_slots::Slot;
 use sp_core::H256;
 use sp_io;
 use sp_runtime::BuildStorage;
@@ -47,10 +47,11 @@ construct_runtime!(
 	pub enum Test
 	{
 		System: frame_system,
-		ParachainSystem: cumulus_pallet_parachain_system,
 		Balances: pallet_balances,
 		ParachainStaking: pallet_parachain_staking,
 		BlockAuthor: block_author,
+		Timestamp: pallet_timestamp,
+		AsyncBacking: pallet_async_backing,
 	}
 );
 
@@ -83,20 +84,8 @@ impl frame_system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
-	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Test>;
+	type OnSetCode = ();
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
-}
-
-impl cumulus_pallet_parachain_system::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-	type OnSystemEvent = ();
-	type SelfParaId = ();
-	type OutboundXcmpMessageSource = ();
-	type DmpMessageHandler = ();
-	type ReservedDmpWeight = ();
-	type XcmpMessageHandler = ();
-	type ReservedXcmpWeight = ();
-	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::AnyRelayNumber;
 }
 
 parameter_types! {
@@ -140,11 +129,27 @@ parameter_types! {
 	pub const MinDelegation: u128 = 3;
 	pub const MaxCandidates: u32 = 200;
 }
+parameter_types! {
+	pub const MinimumPeriod: u64 = 5;
+}
+impl pallet_timestamp::Config for Test {
+	/// A timestamp: milliseconds since the unix epoch.
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = MinimumPeriod;
+	type WeightInfo = ();
+}
 
-pub struct ParachainSystemRelayProvider;
-impl RelayChainBlockNumberProvider for ParachainSystemRelayProvider {
-	fn last_relay_block_number() -> RelayChainBlockNumber {
-		cumulus_pallet_parachain_system::Pallet::<Test>::last_relay_block_number()
+impl pallet_async_backing::Config for Test {
+	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
+}
+
+pub struct RelayChainSlotProvider;
+impl Get<Slot> for RelayChainSlotProvider {
+	fn get() -> Slot {
+		let slot_info = pallet_async_backing::pallet::Pallet::<Test>::slot_info();
+		slot_info.unwrap_or_default().0
 	}
 }
 
@@ -171,7 +176,7 @@ impl Config for Test {
 	type PayoutCollatorReward = ();
 	type OnInactiveCollator = ();
 	type OnNewRound = ();
-	type RelayChainBlockNumberProvider = ParachainSystemRelayProvider;
+	type RelayChainSlotProvider = RelayChainSlotProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
 }
@@ -277,17 +282,17 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| {
 			System::set_block_number(1);
-			increase_last_relay_block_number(1u32);
+			increase_last_relay_slot_number(1u64);
 		});
 		ext
 	}
 }
 
-pub(crate) fn increase_last_relay_block_number(amount: u32) {
-	let last_relay_block = ParachainSystem::last_relay_block_number();
+pub(crate) fn increase_last_relay_slot_number(amount: u64) {
+	let last_relay_slot = u64::from(AsyncBacking::slot_info().unwrap_or_default().0);
 	frame_support::storage::unhashed::put(
-		&frame_support::storage::storage_prefix(b"ParachainSystem", b"LastRelayChainBlockNumber"),
-		&(last_relay_block + amount),
+		&frame_support::storage::storage_prefix(b"AsyncBacking", b"SlotInfo"),
+		&((Slot::from(last_relay_slot + amount), 0)),
 	);
 }
 
@@ -296,7 +301,7 @@ fn roll_one_block() -> BlockNumber {
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
-	increase_last_relay_block_number(2u32);
+	increase_last_relay_slot_number(2u64);
 	System::reset_events();
 	System::on_initialize(System::block_number());
 	Balances::on_initialize(System::block_number());
@@ -336,7 +341,7 @@ pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
 /// The block following will be the one in which the specified round change occurs.
 ///
 /// Note: Depending on the desired test case, it might be needed to call
-/// 'increase_last_relay_block_number()' after this function.
+/// 'increase_last_relay_slot_number()' after this function.
 pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
 	let block = (round * GENESIS_BLOCKS_PER_ROUND) / 2;
 	roll_to(block)
@@ -708,7 +713,7 @@ fn roll_to_round_begin_works() {
 		let num_blocks = roll_to_round_begin(1);
 		assert_eq!(System::block_number(), 1); // no-op, we're already on this round
 		assert_eq!(num_blocks, 0);
-		assert_eq!(ParachainSystem::last_relay_block_number(), 1);
+		assert_eq!(AsyncBacking::slot_info().unwrap().0, Slot::from(1u64));
 
 		// As we are using the relay chain block as clocktime for rounds,
 		// the first para-block of round 2 must be 6 due to:
@@ -725,12 +730,13 @@ fn roll_to_round_begin_works() {
 		let num_blocks = roll_to_round_begin(2);
 		assert_eq!(System::block_number(), 6);
 		assert_eq!(num_blocks, 5);
-		assert_eq!(ParachainSystem::last_relay_block_number(), 11);
+		assert_eq!(AsyncBacking::slot_info().unwrap().0, Slot::from(11u64));
+		println!("ROUND {:#?}", ParachainStaking::round());
 
 		let num_blocks = roll_to_round_begin(3);
 		assert_eq!(System::block_number(), 11);
 		assert_eq!(num_blocks, 5);
-		assert_eq!(ParachainSystem::last_relay_block_number(), 21);
+		assert_eq!(AsyncBacking::slot_info().unwrap().0, Slot::from(21u64));
 	});
 }
 
@@ -743,17 +749,17 @@ fn roll_to_round_end_works() {
 		let num_blocks = roll_to_round_end(1);
 		assert_eq!(System::block_number(), 5);
 		assert_eq!(num_blocks, 4);
-		assert_eq!(ParachainSystem::last_relay_block_number(), 9);
+		assert_eq!(AsyncBacking::slot_info().unwrap().0, Slot::from(9u64));
 
 		let num_blocks = roll_to_round_end(2);
 		assert_eq!(System::block_number(), 10);
 		assert_eq!(num_blocks, 5);
-		assert_eq!(ParachainSystem::last_relay_block_number(), 19);
+		assert_eq!(AsyncBacking::slot_info().unwrap().0, Slot::from(19u64));
 
 		let num_blocks = roll_to_round_end(3);
 		assert_eq!(System::block_number(), 15);
 		assert_eq!(num_blocks, 5);
-		assert_eq!(ParachainSystem::last_relay_block_number(), 29);
+		assert_eq!(AsyncBacking::slot_info().unwrap().0, Slot::from(29u64));
 	});
 }
 

@@ -18,16 +18,18 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 parity-scale-codec = { workspace = true, features = [ "derive" ] }
 scale-info = { workspace = true, features = [ "derive" ] }
+substrate-fixed = { workspace = true }
+sp-consensus-slots = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
-substrate-fixed = { workspace = true }
 
 # Nimbus
 nimbus-primitives = { workspace = true }
 
 [dev-dependencies]
 pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
-cumulus-pallet-parachain-system = { workspace = true }
+pallet-async-backing = { workspace = true }
+pallet-timestamp = { workspace = true }
 similar-asserts = { workspace = true }
 sp-core = { workspace = true, features = [ "std" ] }
 sp-io = { workspace = true, features = [ "std" ] }
@@ -36,13 +38,15 @@ sp-runtime = { workspace = true }
 [features]
 default = [ "std" ]
 std = [
-	"cumulus-pallet-parachain-system/std",
 	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
 	"nimbus-primitives/std",
 	"parity-scale-codec/std",
+	"pallet-async-backing/std",
+	"pallet-timestamp/std",
 	"scale-info/std",
+	"sp-consensus-slots/std",
 	"sp-runtime/std",
 	"sp-std/std",
 ]

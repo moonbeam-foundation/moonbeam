@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, roll_to, roll_to_round_begin, set_points, ExtBuilder, PCall, ParachainStaking,
-	Precompiles, PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
+	events, roll_to_round_begin, set_points, ExtBuilder, PCall, ParachainStaking, Precompiles,
+	PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
 };
 use core::str::from_utf8;
 use frame_support::assert_ok;
@@ -973,7 +973,7 @@ fn execute_leave_candidates_works() {
 				RuntimeOrigin::signed(Alice.into()),
 				1
 			));
-			roll_to(10);
+			roll_to_round_begin(3);
 
 			let input_data = PCall::execute_leave_candidates {
 				candidate: Address(Alice.into()),
@@ -1138,7 +1138,7 @@ fn execute_candidate_bond_less_works() {
 				RuntimeOrigin::signed(Alice.into()),
 				500
 			));
-			roll_to(10);
+			roll_to_round_begin(3);
 
 			// Make sure the call goes through successfully
 			let input_data = PCall::execute_candidate_bond_less {
@@ -1324,7 +1324,7 @@ fn execute_revoke_delegation_works() {
 				RuntimeOrigin::signed(Bob.into()),
 				Alice.into()
 			));
-			roll_to(10);
+			roll_to_round_begin(3);
 
 			let input_data = PCall::execute_delegation_request {
 				delegator: Address(Bob.into()),
@@ -1361,7 +1361,7 @@ fn execute_delegator_bond_less_works() {
 				Alice.into(),
 				500
 			));
-			roll_to(10);
+			roll_to_round_begin(3);
 
 			let input_data = PCall::execute_delegation_request {
 				delegator: Address(Bob.into()),

@@ -105,6 +105,7 @@ parity-scale-codec = { workspace = true, features = [
 scale-info = { workspace = true, features = [ "derive" ] }
 sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
+sp-consensus-slots = { workspace = true }
 sp-core = { workspace = true }
 sp-inherents = { workspace = true }
 sp-io = { workspace = true, features = [ "improved_panic_error_reporting" ] }
@@ -158,6 +159,7 @@ moonkit-xcm-primitives = { workspace = true }
 nimbus-primitives = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
+pallet-async-backing = { workspace = true }
 
 # Benchmarking
 frame-benchmarking = { workspace = true, optional = true }
@@ -216,6 +218,7 @@ std = [
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
 	"pallet-author-slot-filter/std",
+	"pallet-async-backing/std",
 	"pallet-balances/std",
 	"pallet-base-fee/std",
 	"pallet-collective/std",
@@ -271,6 +274,7 @@ std = [
 	"session-keys-primitives/std",
 	"sp-api/std",
 	"sp-block-builder/std",
+	"sp-consensus-slots/std",
 	"sp-core/std",
 	"sp-inherents/std",
 	"sp-io/std",

@@ -20,12 +20,12 @@
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
 	DelegationAction, EnableMarkingOffline, Pallet, ParachainBondConfig, ParachainBondInfo, Points,
-	Range, RelayChainBlockNumberProvider, RewardPayment, Round, ScheduledRequest, Staked,
-	TopDelegations,
+	Range, RewardPayment, Round, ScheduledRequest, Staked, TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
 use frame_system::RawOrigin;
+use sp_consensus_slots::Slot;
 use sp_runtime::{traits::Zero, Perbill, Percent};
 use sp_std::vec::Vec;
 
@@ -204,7 +204,7 @@ fn parachain_staking_on_finalize<T: Config>(author: T::AccountId) {
 /// Run to end block and author
 fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 	let round_length = Pallet::<T>::round().length;
-	let mut now = T::RelayChainBlockNumberProvider::last_relay_block_number() + 1;
+	let mut now = u64::from(T::RelayChainSlotProvider::get()) as u32 + 1;
 	let end = Pallet::<T>::round().first + (round_length.clone() * round_delay);
 	while now < end {
 		parachain_staking_on_finalize::<T>(author.clone());
@@ -213,11 +213,8 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 			<frame_system::Pallet<T>>::block_number() + 1u32.into(),
 		);
 		frame_support::storage::unhashed::put(
-			&frame_support::storage::storage_prefix(
-				b"ParachainSystem",
-				b"LastRelayChainBlockNumber",
-			),
-			&(now + 2),
+			&frame_support::storage::storage_prefix(b"AsyncBacking", b"SlotInfo"),
+			&((Slot::from(now as u64 + 2), 0)),
 		);
 		<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
 		Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number());
@@ -1880,10 +1877,10 @@ benchmarks! {
 		);
 		frame_support::storage::unhashed::put(
 			&frame_support::storage::storage_prefix(
-				b"ParachainSystem",
-				b"LastRelayChainBlockNumber",
+				b"AsyncBacking",
+				b"SlotInfo",
 			),
-			&(start + 1u32.into()),
+			&((Slot::from(1u64), 0))
 		);
 		let end = <frame_system::Pallet<T>>::block_number();
 		<frame_system::Pallet<T>>::on_initialize(end);

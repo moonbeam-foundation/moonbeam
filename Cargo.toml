@@ -158,6 +158,7 @@ sp-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch =
 sp-application-crypto = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-block-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-consensus-babe = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
+sp-consensus-slots = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-debug-derive = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-externalities = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
@@ -307,6 +308,7 @@ xcm-simulator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", b
 # Moonkit (wasm)
 moonkit-xcm-primitives = { package = "xcm-primitives", git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 nimbus-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
+pallet-async-backing = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.3.0-async-backing", default-features = false }
 pallet-author-inherent = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-author-mapping = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.3.0", default-features = false }

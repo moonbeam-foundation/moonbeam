@@ -39,6 +39,7 @@ precompile-utils = { workspace = true, features = [ "std", "testing" ] }
 pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
 pallet-timestamp = { workspace = true, features = [ "std" ] }
 scale-info = { workspace = true, features = [ "derive", "std" ] }
+sp-consensus-slots = { workspace = true }
 sp-runtime = { workspace = true, features = [ "std" ] }
 
 # Cumulus
@@ -47,6 +48,9 @@ cumulus-pallet-parachain-system = { workspace = true }
 # Polkadot
 polkadot-parachain = { workspace = true }
 
+# Moonkit
+pallet-async-backing = { workspace = true }
+
 [features]
 default = [ "std" ]
 std = [
@@ -54,9 +58,11 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
+	"pallet-async-backing/std",
 	"pallet-parachain-staking/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
+	"sp-consensus-slots/std",
 	"sp-core/std",
 	"sp-std/std",
 ]

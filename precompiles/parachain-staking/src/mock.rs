@@ -18,19 +18,17 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, OnFinalize, OnInitialize},
+	traits::{ConstBool, Everything, Get, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
-use pallet_parachain_staking::{
-	AwardedPts, InflationInfo, Points, Range, RelayChainBlockNumberProvider,
-};
-use polkadot_parachain::primitives::RelayChainBlockNumber;
+use pallet_parachain_staking::{AwardedPts, InflationInfo, Points, Range};
 use precompile_utils::{
 	precompile_set::*,
 	testing::{Alice, MockAccount},
 };
+use sp_consensus_slots::Slot;
 use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
@@ -47,11 +45,11 @@ type Block = frame_system::mocking::MockBlockU32<Runtime>;
 construct_runtime!(
 	pub enum Runtime {
 		System: frame_system,
-		ParachainSystem: cumulus_pallet_parachain_system,
 		Balances: pallet_balances,
 		Evm: pallet_evm,
 		Timestamp: pallet_timestamp,
 		ParachainStaking: pallet_parachain_staking,
+		AsyncBacking: pallet_async_backing,
 	}
 );
 
@@ -85,20 +83,8 @@ impl frame_system::Config for Runtime {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
-	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Runtime>;
+	type OnSetCode = ();
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
-}
-
-impl cumulus_pallet_parachain_system::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type OnSystemEvent = ();
-	type SelfParaId = ();
-	type OutboundXcmpMessageSource = ();
-	type DmpMessageHandler = ();
-	type ReservedDmpWeight = ();
-	type XcmpMessageHandler = ();
-	type ReservedXcmpWeight = ();
-	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::AnyRelayNumber;
 }
 
 parameter_types! {
@@ -179,12 +165,12 @@ impl pallet_timestamp::Config for Runtime {
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
-const GENESIS_BLOCKS_PER_ROUND: u32 = 5;
+const GENESIS_BLOCKS_PER_ROUND: u32 = 10;
 const GENESIS_COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const GENESIS_PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 const GENESIS_NUM_SELECTED_CANDIDATES: u32 = 5;
 parameter_types! {
-	pub const MinBlocksPerRound: u32 = 3;
+	pub const MinBlocksPerRound: u32 = 6;
 	pub const MaxOfflineRounds: u32 = 2;
 	pub const LeaveCandidatesDelay: u32 = 2;
 	pub const CandidateBondLessDelay: u32 = 2;
@@ -202,10 +188,16 @@ parameter_types! {
 	pub BlockAuthor: AccountId = Alice.into();
 }
 
-pub struct ParachainSystemRelayProvider;
-impl RelayChainBlockNumberProvider for ParachainSystemRelayProvider {
-	fn last_relay_block_number() -> RelayChainBlockNumber {
-		cumulus_pallet_parachain_system::Pallet::<Runtime>::last_relay_block_number()
+impl pallet_async_backing::Config for Runtime {
+	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
+}
+
+pub struct RelayChainSlotProvider;
+impl Get<Slot> for RelayChainSlotProvider {
+	fn get() -> Slot {
+		let slot_info = pallet_async_backing::pallet::Pallet::<Runtime>::slot_info();
+		slot_info.unwrap_or_default().0
 	}
 }
 
@@ -232,7 +224,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type OnCollatorPayout = ();
 	type OnInactiveCollator = ();
 	type OnNewRound = ();
-	type RelayChainBlockNumberProvider = ParachainSystemRelayProvider;
+	type RelayChainSlotProvider = RelayChainSlotProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
 }
@@ -341,7 +333,7 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| {
 			System::set_block_number(1);
-			increase_last_relay_block_number(1u32);
+			increase_last_relay_slot_number(1u64);
 		});
 		ext
 	}
@@ -359,7 +351,7 @@ pub(crate) fn roll_to(n: BlockNumber) {
 		Balances::on_finalize(System::block_number());
 		System::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);
-		increase_last_relay_block_number(1u32);
+		increase_last_relay_slot_number(2u64);
 		System::on_initialize(System::block_number());
 		Balances::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
@@ -369,7 +361,7 @@ pub(crate) fn roll_to(n: BlockNumber) {
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
 pub(crate) fn roll_to_round_begin(round: BlockNumber) {
-	let block = (round - 1) * GENESIS_BLOCKS_PER_ROUND;
+	let block = (((round - 1) * GENESIS_BLOCKS_PER_ROUND) / 2) + 1;
 	roll_to(block)
 }
 
@@ -380,10 +372,10 @@ pub(crate) fn events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-pub(crate) fn increase_last_relay_block_number(amount: u32) {
-	let last_relay_block = ParachainSystem::last_relay_block_number();
+pub(crate) fn increase_last_relay_slot_number(amount: u64) {
+	let last_relay_slot = u64::from(AsyncBacking::slot_info().unwrap_or_default().0);
 	frame_support::storage::unhashed::put(
-		&frame_support::storage::storage_prefix(b"ParachainSystem", b"LastRelayChainBlockNumber"),
-		&(last_relay_block + amount),
+		&frame_support::storage::storage_prefix(b"AsyncBacking", b"SlotInfo"),
+		&((Slot::from(last_relay_slot + amount), 0)),
 	);
 }

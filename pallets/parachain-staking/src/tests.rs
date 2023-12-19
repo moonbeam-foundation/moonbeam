@@ -25,7 +25,7 @@
 use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
-	increase_last_relay_block_number, roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end,
+	increase_last_relay_slot_number, roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end,
 	set_author, set_block_author, Balances, BlockNumber, ExtBuilder, ParachainStaking,
 	RuntimeOrigin, Test,
 };
@@ -839,7 +839,7 @@ fn cannot_join_candidates_with_more_than_available_balance() {
 			assert_noop!(
 				ParachainStaking::join_candidates(RuntimeOrigin::signed(1), 501u128, 100u32),
 				DispatchError::Module(ModuleError {
-					index: 3,
+					index: 2,
 					error: [8, 0, 0, 0],
 					message: Some("InsufficientBalance")
 				})
@@ -8701,7 +8701,7 @@ fn test_on_initialize_weights() {
 			// roll to the end of the round, then run on_init again, we should see round change...
 			roll_to_round_end(3);
 			set_author(2, 1, 100); // must set some points for prepare_staking_payouts
-			increase_last_relay_block_number(2u32);
+			increase_last_relay_slot_number(2u64);
 			let weight = ParachainStaking::on_initialize(System::block_number());
 
 			// the total on_init weight during our round change. this number is taken from running

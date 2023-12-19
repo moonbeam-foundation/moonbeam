@@ -18,7 +18,6 @@
 
 use crate::weights::WeightInfo;
 use frame_support::{dispatch::PostDispatchInfo, pallet_prelude::Weight};
-use polkadot_parachain::primitives::RelayChainBlockNumber;
 use sp_runtime::DispatchErrorWithPostInfo;
 
 pub trait OnCollatorPayout<AccountId, Balance> {
@@ -85,8 +84,4 @@ impl<Runtime: crate::Config> OnInactiveCollator<Runtime> for () {
 			crate::MAX_CANDIDATES,
 		))
 	}
-}
-
-pub trait RelayChainBlockNumberProvider {
-	fn last_relay_block_number() -> RelayChainBlockNumber;
 }

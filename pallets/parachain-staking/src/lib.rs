@@ -90,6 +90,7 @@ pub mod pallet {
 	};
 	use frame_system::pallet_prelude::*;
 	use polkadot_parachain::primitives::RelayChainBlockNumber;
+	use sp_consensus_slots::Slot;
 	use sp_runtime::{
 		traits::{Saturating, Zero},
 		DispatchErrorWithPostInfo, Perbill, Percent,
@@ -182,8 +183,8 @@ pub mod pallet {
 		/// Handler to notify the runtime when a new round begin.
 		/// If you don't need it, you can specify the type `()`.
 		type OnNewRound: OnNewRound;
-		/// Get the last relay chain block number to use as clocktime
-		type RelayChainBlockNumberProvider: RelayChainBlockNumberProvider;
+		/// Get the last relay chain slot number to use as clocktime
+		type RelayChainSlotProvider: Get<Slot>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 		/// Maximum candidates
@@ -453,16 +454,16 @@ pub mod pallet {
 		fn on_initialize(_n: BlockNumberFor<T>) -> Weight {
 			let mut weight = T::WeightInfo::base_on_initialize();
 
-			// Fetch relay block number from previous round
-			let relay_block = T::RelayChainBlockNumberProvider::last_relay_block_number();
+			// Fetch relay slot number
+			let relay_slot = u64::from(T::RelayChainSlotProvider::get());
 
-			// account for RelayChainBlockNumberProvider read
+			// account for RelayChainSlotProvider read
 			weight = weight.saturating_add(T::DbWeight::get().reads_writes(1, 0));
 
 			let mut round = <Round<T>>::get();
-			if round.should_update(relay_block.into()) {
+			if round.should_update(relay_slot as u32) {
 				// mutate round
-				round.update(relay_block.into());
+				round.update(relay_slot as u32);
 				// notify that new round begin
 				weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
 				// pay all stakers for T::RewardPaymentDelay rounds ago

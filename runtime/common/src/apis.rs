@@ -504,8 +504,9 @@ macro_rules! impl_runtime_apis_plus_common {
 					parent_header: &<Block as BlockT>::Header
 				) -> bool {
 					let block_number = parent_header.number + 1;
-					let last_relay_block =
-						cumulus_pallet_parachain_system::Pallet::<Self>::last_relay_block_number();
+					let last_relay_slot =
+						u64::from(pallet_async_backing::Pallet::<Self>::slot_info()
+							.unwrap_or_default().0);
 
 					// The Moonbeam runtimes use an entropy source that needs to do some accounting
 					// work during block initialization. Therefore we initialize it here to match
@@ -520,7 +521,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					// Because the staking solution calculates the next staking set at the beginning
 					// of the first block in the new round, the only way to accurately predict the
 					// authors is to compute the selection during prediction.
-					if pallet_parachain_staking::Pallet::<Self>::round().should_update(last_relay_block) {
+					if pallet_parachain_staking::Pallet::<Self>::round()
+						.should_update(last_relay_slot as u32) {
 						// get author account id
 						use nimbus_primitives::AccountLookup;
 						let author_account_id = if let Some(account) =

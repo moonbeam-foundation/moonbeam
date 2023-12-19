@@ -74,16 +74,14 @@ use pallet_evm::{
 	FeeCalculator, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
-pub use pallet_parachain_staking::{
-	weights::WeightInfo, InflationInfo, Range, RelayChainBlockNumberProvider,
-};
+pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use polkadot_parachain::primitives::RelayChainBlockNumber;
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
+use sp_consensus_slots::Slot;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 #[cfg(feature = "try-runtime")]
 use sp_runtime::TryRuntimeError;
@@ -671,6 +669,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+	type ConsensusHook = cumulus_pallet_parachain_system::consensus_hook::ExpectParentIncluded;
 }
 
 pub struct EthereumXcmEnsureProxy;
@@ -754,10 +753,11 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 type MonetaryGovernanceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
-pub struct ParachainSystemRelayProvider;
-impl RelayChainBlockNumberProvider for ParachainSystemRelayProvider {
-	fn last_relay_block_number() -> RelayChainBlockNumber {
-		cumulus_pallet_parachain_system::Pallet::<Runtime>::last_relay_block_number()
+pub struct RelayChainSlotProvider;
+impl Get<Slot> for RelayChainSlotProvider {
+	fn get() -> Slot {
+		let slot_info = pallet_async_backing::pallet::Pallet::<Runtime>::slot_info();
+		slot_info.unwrap_or_default().0
 	}
 }
 
@@ -798,9 +798,14 @@ impl pallet_parachain_staking::Config for Runtime {
 	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
 	type OnInactiveCollator = OnInactiveCollator;
 	type OnNewRound = OnNewRound;
-	type RelayChainBlockNumberProvider = ParachainSystemRelayProvider;
+	type RelayChainSlotProvider = RelayChainSlotProvider;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
+}
+
+impl pallet_async_backing::Config for Runtime {
+	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
 }
 
 impl pallet_author_inherent::Config for Runtime {
@@ -1473,6 +1478,8 @@ construct_runtime! {
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
+
+		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 121,
 	}
 }
 
@@ -1638,35 +1645,10 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 	}
 }
 
-// Check the timestamp and parachain inherents
-struct CheckInherents;
-
-impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
-	fn check_inherents(
-		block: &Block,
-		relay_state_proof: &cumulus_pallet_parachain_system::RelayChainStateProof,
-	) -> sp_inherents::CheckInherentsResult {
-		let relay_chain_slot = relay_state_proof
-			.read_slot()
-			.expect("Could not read the relay chain slot from the proof");
-
-		let inherent_data =
-			cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
-				relay_chain_slot,
-				sp_std::time::Duration::from_secs(6),
-			)
-			.create_inherent_data()
-			.expect("Could not create the timestamp inherent data");
-
-		inherent_data.check_extrinsics(&block)
-	}
-}
-
 // Nimbus's Executive wrapper allows relay validators to verify the seal digest
 cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime = Runtime,
 	BlockExecutor = pallet_author_inherent::BlockExecutor::<Runtime, Executive>,
-	CheckInherents = CheckInherents,
 );
 
 moonbeam_runtime_common::impl_self_contained_call!();
