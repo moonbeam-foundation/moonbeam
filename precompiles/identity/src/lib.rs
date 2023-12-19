@@ -26,6 +26,7 @@ use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use frame_support::sp_runtime::traits::StaticLookup;
 use frame_support::traits::Currency;
 use pallet_evm::AddressMapping;
+use pallet_identity::simple::IdentityField;
 use parity_scale_codec::MaxEncodedLen;
 use precompile_utils::prelude::*;
 use sp_core::{ConstU32, Get, H160, H256, U256};
@@ -459,38 +460,14 @@ where
 						account: Address(reg.account.into()),
 						fee: reg.fee.into(),
 						fields: IdentityFields {
-							display: reg
-								.fields
-								.0
-								.contains(pallet_identity::simple::IdentityField::Display),
-							legal: reg
-								.fields
-								.0
-								.contains(pallet_identity::simple::IdentityField::Legal),
-							web: reg
-								.fields
-								.0
-								.contains(pallet_identity::simple::IdentityField::Web),
-							riot: reg
-								.fields
-								.0
-								.contains(pallet_identity::simple::IdentityField::Riot),
-							email: reg
-								.fields
-								.0
-								.contains(pallet_identity::simple::IdentityField::Email),
-							pgp_fingerprint: reg
-								.fields
-								.0
-								.contains(pallet_identity::simple::IdentityField::PgpFingerprint),
-							image: reg
-								.fields
-								.0
-								.contains(pallet_identity::simple::IdentityField::Image),
-							twitter: reg
-								.fields
-								.0
-								.contains(pallet_identity::simple::IdentityField::Twitter),
+							display: reg.fields.0.contains(IdentityField::Display),
+							legal: reg.fields.0.contains(IdentityField::Legal),
+							web: reg.fields.0.contains(IdentityField::Web),
+							riot: reg.fields.0.contains(IdentityField::Riot),
+							email: reg.fields.0.contains(IdentityField::Email),
+							pgp_fingerprint: reg.fields.0.contains(IdentityField::PgpFingerprint),
+							image: reg.fields.0.contains(IdentityField::Image),
+							twitter: reg.fields.0.contains(IdentityField::Twitter),
 						},
 					}
 				} else {
@@ -514,28 +491,28 @@ where
 	> {
 		let mut field_bits = 0u64;
 		if fields.display {
-			field_bits = field_bits | pallet_identity::simple::IdentityField::Display as u64;
+			field_bits = field_bits | IdentityField::Display as u64;
 		}
 		if fields.legal {
-			field_bits = field_bits | pallet_identity::simple::IdentityField::Legal as u64;
+			field_bits = field_bits | IdentityField::Legal as u64;
 		}
 		if fields.web {
-			field_bits = field_bits | pallet_identity::simple::IdentityField::Web as u64;
+			field_bits = field_bits | IdentityField::Web as u64;
 		}
 		if fields.riot {
-			field_bits = field_bits | pallet_identity::simple::IdentityField::Riot as u64;
+			field_bits = field_bits | IdentityField::Riot as u64;
 		}
 		if fields.email {
-			field_bits = field_bits | pallet_identity::simple::IdentityField::Email as u64;
+			field_bits = field_bits | IdentityField::Email as u64;
 		}
 		if fields.pgp_fingerprint {
-			field_bits = field_bits | pallet_identity::simple::IdentityField::PgpFingerprint as u64;
+			field_bits = field_bits | IdentityField::PgpFingerprint as u64;
 		}
 		if fields.image {
-			field_bits = field_bits | pallet_identity::simple::IdentityField::Image as u64;
+			field_bits = field_bits | IdentityField::Image as u64;
 		}
 		if fields.twitter {
-			field_bits = field_bits | pallet_identity::simple::IdentityField::Twitter as u64;
+			field_bits = field_bits | IdentityField::Twitter as u64;
 		}
 
 		let bit_flags = BitFlags::<IdentityFieldOf<Runtime>>::from_bits(field_bits)?;
