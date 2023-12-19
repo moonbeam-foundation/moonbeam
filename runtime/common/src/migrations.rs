@@ -66,7 +66,7 @@ pub struct UpdateFirstRoundRelayBlockNumber<T>(pub PhantomData<T>);
 impl<T> Migration for UpdateFirstRoundRelayBlockNumber<T>
 where
 	T: pallet_parachain_staking::Config,
-	T: pallet_async_backing::Config,
+	T: cumulus_pallet_parachain_system::Config,
 	T: frame_system::Config,
 	u32: From<<<<T as frame_system::Config>::Block as Block>::Header as Header>::Number>,
 {
@@ -97,12 +97,11 @@ where
 			.saturating_div(100);
 
 		// Perform substraction
-		let relay_slot = u64::from(
-			pallet_async_backing::Pallet::<T>::slot_info()
-				.unwrap_or_default()
-				.0,
-		);
-		let new_first_block = (relay_slot as u32).saturating_sub(new_block_diff);
+		// TODO: fix with cherry-pick
+		let new_first_block = 0u32;
+		/* let new_first_block =
+		cumulus_pallet_parachain_system::Pallet::<T>::last_relay_block_number()
+			.saturating_sub(new_block_diff); */
 
 		// Update Round storage
 		let new_round_info = RoundInfo {
@@ -243,7 +242,7 @@ where
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 	Runtime: pallet_xcm_transactor::Config,
 	Runtime: pallet_moonbeam_orbiters::Config,
-	Runtime: pallet_async_backing::Config,
+	Runtime: cumulus_pallet_parachain_system::Config,
 	u32: From<<<<Runtime as frame_system::Config>::Block as Block>::Header as Header>::Number>,
 	Runtime: pallet_balances::Config,
 	Runtime: pallet_referenda::Config,
