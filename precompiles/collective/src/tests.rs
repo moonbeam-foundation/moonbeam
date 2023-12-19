@@ -397,7 +397,7 @@ fn can_close_execute_if_enough_votes() {
 				PCall::close {
 					proposal_hash,
 					proposal_index: 0,
-					proposal_weight_bound: 100_000_000,
+					proposal_weight_bound: 200_000_000,
 					length_bound,
 				},
 			)
