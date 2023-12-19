@@ -40,10 +40,11 @@ use sp_weights::Weight;
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
-	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter, NoChecking,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
-	WeightInfoBounds, WithComputedOrigin,
+	CurrencyAdapter as XcmCurrencyAdapter, DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin,
+	FungiblesAdapter, HashedDescription, NoChecking, ParentIsPreset, RelayChainAsNative,
+	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
+	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, WeightInfoBounds,
+	WithComputedOrigin,
 };
 
 use xcm::latest::prelude::*;
@@ -110,7 +111,7 @@ pub type LocationToAccountId = (
 	// If we receive a MultiLocation of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 	// Generate remote accounts according to polkadot standards
-	xcm_builder::HashedDescriptionDescribeFamilyAllTerminal<AccountId>,
+	HashedDescription<AccountId, DescribeFamily<DescribeAllTerminal>>,
 );
 
 /// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
@@ -408,7 +409,9 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type WeightInfo = moonbeam_weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
-	type PriceForSiblingDelivery = ();
+	type PriceForSiblingDelivery = polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery<
+		cumulus_primitives_core::ParaId,
+	>;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {

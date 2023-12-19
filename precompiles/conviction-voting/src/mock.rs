@@ -99,6 +99,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
@@ -143,6 +144,7 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;

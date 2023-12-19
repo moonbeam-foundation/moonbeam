@@ -23,7 +23,7 @@
 use frame_support::ensure;
 use frame_support::{
 	pallet_prelude::GetStorageVersion,
-	traits::{Hash as PreimageHash, OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
+	traits::{OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
 	weights::Weight,
 };
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
@@ -36,7 +36,7 @@ use sp_std::{marker::PhantomData, prelude::*};
 pub struct PalletReferendaMigrateV0ToV1<T>(pub PhantomData<T>);
 impl<T> Migration for PalletReferendaMigrateV0ToV1<T>
 where
-	T: pallet_referenda::Config<Hash = PreimageHash> + frame_system::Config,
+	T: pallet_referenda::Config + frame_system::Config,
 {
 	fn friendly_name(&self) -> &str {
 		"MM_PalletReferendaMigrateV0ToV1"
@@ -141,7 +141,7 @@ pub struct ReferendaMigrations<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> GetMigrations for ReferendaMigrations<Runtime>
 where
-	Runtime: pallet_referenda::Config<Hash = PreimageHash>,
+	Runtime: pallet_referenda::Config,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		let pallet_referenda_migrate_v0_to_v1 =
@@ -159,14 +159,14 @@ impl<Runtime, Council, Tech, Treasury, OpenTech> GetMigrations
 where
 	Runtime: pallet_author_mapping::Config,
 	Runtime: pallet_parachain_staking::Config,
-	Runtime: pallet_scheduler::Config<Hash = PreimageHash>,
+	Runtime: pallet_scheduler::Config,
 	Runtime: AuthorSlotFilterConfig,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 	Treasury: GetStorageVersion + PalletInfoAccess + 'static,
 	OpenTech: GetStorageVersion + PalletInfoAccess + 'static,
-	Runtime: pallet_democracy::Config<Hash = PreimageHash>,
-	Runtime: pallet_preimage::Config<Hash = PreimageHash>,
+	Runtime: pallet_democracy::Config,
+	Runtime: pallet_preimage::Config,
 	Runtime: pallet_asset_manager::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 	Runtime: pallet_xcm_transactor::Config,

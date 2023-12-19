@@ -50,11 +50,11 @@ describeSuite({
 
         const signedTx = context
           .polkadotJs()
-          .tx.balances.transfer(CHARLETH_ADDRESS, 1000)
+          .tx.balances.transferAllowDeath(CHARLETH_ADDRESS, 1000)
           .signAsync(baltathar);
         await context.createBlock(signedTx);
 
-        const tx = context.polkadotJs().tx.balances.transfer(CHARLETH_ADDRESS, 1000);
+        const tx = context.polkadotJs().tx.balances.transferAllowDeath(CHARLETH_ADDRESS, 1000);
         await context.createBlock(tx, {
           signer: { privateKey: BALTATHAR_PRIVATE_KEY, type: "ethereum" },
         });

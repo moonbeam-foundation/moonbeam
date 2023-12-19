@@ -110,7 +110,7 @@ describeDevMoonbeam("Trace ethereum xcm #1", (context) => {
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -211,7 +211,7 @@ describeDevMoonbeam("Trace ethereum xcm #2", (context) => {
 
     // Send an XCM and create block to execute it
     await injectHrmpMessage(context, 1, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 

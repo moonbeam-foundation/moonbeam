@@ -32,7 +32,7 @@ describeSuite({
       test: async function () {
         const randomAddress = generateKeyringPair().address as `0x${string}`;
         await context.createBlock(
-          context.polkadotJs().tx.balances.transfer(randomAddress, 2n * GLMR)
+          context.polkadotJs().tx.balances.transferAllowDeath(randomAddress, 2n * GLMR)
         );
 
         expect(BigInt(await context.viem().getBalance({ address: randomAddress }))).to.equal(
@@ -47,7 +47,7 @@ describeSuite({
       test: async function () {
         const randomAddress = generateKeyringPair().address as `0x${string}`;
         await context.createBlock(
-          context.polkadotJs().tx.balances.transfer(randomAddress, 2n * GLMR)
+          context.polkadotJs().tx.balances.transferAllowDeath(randomAddress, 2n * GLMR)
         );
         const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
 
@@ -75,7 +75,9 @@ describeSuite({
               expect(message.toLocaleLowerCase()).to.eq(`randomness.setbaberandomnessresults()`);
               break;
             case 4:
-              expect(message).to.eq(`balances.transfer(${randomAddress}, 2000000000000000000)`);
+              expect(message).to.eq(
+                `balances.transferAllowDeath(${randomAddress}, 2000000000000000000)`
+              );
               expect(ex.signer.toString()).to.eq(ALITH_ADDRESS);
               break;
             default:
@@ -92,12 +94,12 @@ describeSuite({
         // Generating two transfers to ensure treasury account exists
         const randomAddress = generateKeyringPair().address as `0x${string}`;
         await context.createBlock(
-          context.polkadotJs().tx.balances.transfer(randomAddress, 2n * GLMR)
+          context.polkadotJs().tx.balances.transferAllowDeath(randomAddress, 2n * GLMR)
         );
 
         const randomAddress2 = generateKeyringPair().address as `0x${string}`;
         await context.createBlock(
-          context.polkadotJs().tx.balances.transfer(randomAddress2, 2n * GLMR)
+          context.polkadotJs().tx.balances.transferAllowDeath(randomAddress2, 2n * GLMR)
         );
         const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
         const apiAt = await context.polkadotJs().at(signedBlock.block.header.hash);
@@ -124,7 +126,7 @@ describeSuite({
               expect(events).to.be.of.length(1);
               expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(events[0])).to.be.true;
               break;
-            // Fifth event: balances.transfer:: system.NewAccount, balances.Endowed,
+            // Fifth event: balances.transferAllowDeath:: system.NewAccount, balances.Endowed,
             // balances.Transfer, system.ExtrinsicSuccess
             case 4:
               log(events.map((e) => `${e.section}.${e.method}`).join(" - "));

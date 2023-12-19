@@ -22,7 +22,7 @@ describeSuite({
       signer = generateKeyringPair("ethereum");
 
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(signer.address, 5n * 10n ** 18n)
+        context.polkadotJs().tx.balances.transferAllowDeath(signer.address, 5n * 10n ** 18n)
       );
     });
 
@@ -42,7 +42,7 @@ describeSuite({
             .tx.proxy.proxy(
               ALITH_ADDRESS,
               null,
-              context.polkadotJs().tx.balances.transfer(CHARLETH_ADDRESS, 100)
+              context.polkadotJs().tx.balances.transferAllowDeath(CHARLETH_ADDRESS, 100)
             )
             .signAsync(signer),
           { expectEvents, signer: alith, allowFailures: true }
@@ -82,7 +82,7 @@ describeSuite({
             .tx.proxy.proxy(
               alith.address,
               null,
-              context.polkadotJs().tx.balances.transfer(CHARLETH_ADDRESS, 100)
+              context.polkadotJs().tx.balances.transferAllowDeath(CHARLETH_ADDRESS, 100)
             )
             .signAsync(signer),
           { signer: alith, expectEvents: events2 }
@@ -117,7 +117,7 @@ describeSuite({
             .tx.proxy.proxy(
               alith.address,
               null,
-              context.polkadotJs().tx.balances.transfer(CHARLETH_ADDRESS, 100)
+              context.polkadotJs().tx.balances.transferAllowDeath(CHARLETH_ADDRESS, 100)
             ),
           { signer: alith, expectEvents: [context.polkadotJs().events.system.ExtrinsicFailed] }
         );
@@ -145,7 +145,7 @@ describeSuite({
             .tx.proxy.proxy(
               alith.address,
               null,
-              context.polkadotJs().tx.balances.transfer(CHARLETH_ADDRESS, 100)
+              context.polkadotJs().tx.balances.transferAllowDeath(CHARLETH_ADDRESS, 100)
             )
             .signAsync(signer),
           { signer: alith, expectEvents: [context.polkadotJs().events.system.ExtrinsicFailed] }
@@ -177,7 +177,7 @@ describeSuite({
             .tx.proxy.proxy(
               alith.address,
               null,
-              context.polkadotJs().tx.balances.transfer(CHARLETH_ADDRESS, 100)
+              context.polkadotJs().tx.balances.transferAllowDeath(CHARLETH_ADDRESS, 100)
             )
             .signAsync(signer),
           {
@@ -203,7 +203,7 @@ describeSuite({
         );
         result?.events.forEach(({ event }) => log(`1${event.method}(${event.data})`));
 
-        const transfer = context.polkadotJs().tx.balances.transfer(CHARLETH_ADDRESS, 100);
+        const transfer = context.polkadotJs().tx.balances.transferAllowDeath(CHARLETH_ADDRESS, 100);
 
         const { result: result2 } = await context.createBlock(
           context.polkadotJs().tx.proxy.announce(alith.address, transfer.hash).signAsync(signer),
@@ -243,7 +243,7 @@ describeSuite({
           { signer: alith, allowFailures: false }
         );
 
-        const transfer = context.polkadotJs().tx.balances.transfer(CHARLETH_ADDRESS, 100);
+        const transfer = context.polkadotJs().tx.balances.transferAllowDeath(CHARLETH_ADDRESS, 100);
         const u8a = transfer.method.toU8a();
         const transfer_hash = transfer.registry.hash(u8a).toHex();
 

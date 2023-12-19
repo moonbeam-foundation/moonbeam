@@ -39,7 +39,7 @@ describeSuite({
         expect(
           async () =>
             await context.createBlock(
-              context.polkadotJs().tx.balances.transfer(BALTATHAR_ADDRESS, 1n * GLMR)
+              context.polkadotJs().tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1n * GLMR)
             )
         ).rejects.toThrowError("1010: Invalid Transaction: Transaction call is not expected");
       },

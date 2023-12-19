@@ -34,6 +34,7 @@ cumulus-primitives-core = { workspace = true }
 
 # Polkadot / XCM
 orml-traits = { workspace = true }
+polkadot-runtime-common = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }

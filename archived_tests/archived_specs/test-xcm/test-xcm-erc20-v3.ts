@@ -124,7 +124,7 @@ describeDevMoonbeam("Mock XCM V3 - Receive erc20 via XCM", (context) => {
 
     // Mock the reception of the xcm message
     await injectHrmpMessage(context, paraId, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
     await context.createBlock();

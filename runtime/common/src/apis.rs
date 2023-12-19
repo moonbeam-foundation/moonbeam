@@ -611,6 +611,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					impl pallet_xcm_benchmarks::Config for Runtime {
 						type XcmConfig = xcm_config::XcmExecutorConfig;
 						type AccountIdConverter = xcm_config::LocationToAccountId;
+						type DeliveryHelper = ();
 						fn valid_destination() -> Result<MultiLocation, BenchmarkError> {
 							Ok(MultiLocation::parent())
 						}
@@ -664,6 +665,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					impl pallet_xcm_benchmarks::generic::Config for Runtime {
 						type RuntimeCall = RuntimeCall;
+						type TransactAsset = Balances;
 
 						fn worst_case_response() -> (u64, Response) {
 							(0u64, Response::Version(Default::default()))

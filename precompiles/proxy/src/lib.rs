@@ -410,7 +410,7 @@ where
 			RuntimeHelper::<Runtime>::try_dispatch(
 				handle,
 				Some(contract_address).into(),
-				pallet_balances::Call::<Runtime>::transfer {
+				pallet_balances::Call::<Runtime>::transfer_allow_death {
 					dest: Runtime::Lookup::unlookup(who),
 					value: {
 						let balance: <Runtime as pallet_balances::Config<()>>::Balance =

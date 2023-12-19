@@ -1126,6 +1126,7 @@ where
 			block_announce_validator_builder: None,
 			warp_sync_params: None,
 			net_config,
+			block_relay: None,
 		})?;
 
 	if config.offchain_worker.enabled {
@@ -1262,6 +1263,7 @@ where
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
+							current_para_block_head: None,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
 							// TODO: Recheck

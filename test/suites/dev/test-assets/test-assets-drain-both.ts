@@ -70,7 +70,9 @@ describeSuite({
         ).to.eq(0n);
 
         // We transfer a good amount to be able to pay for fees
-        await context.createBlock(api.tx.balances.transfer(freshAccount.address, 1n * GLMR));
+        await context.createBlock(
+          api.tx.balances.transferAllowDeath(freshAccount.address, 1n * GLMR)
+        );
 
         expect(
           (await api.query.system.account(freshAccount.address as string)).sufficients.toBigInt()
@@ -94,7 +96,7 @@ describeSuite({
         // Then we just transfer out balance of freshAccount - fee
         const fee = (
           await api.tx.balances
-            .transfer(ALITH_ADDRESS as string, 1n * GLMR)
+            .transferAllowDeath(ALITH_ADDRESS as string, 1n * GLMR)
             .paymentInfo(freshAccount)
         ).partialFee.toBigInt();
 
@@ -104,7 +106,7 @@ describeSuite({
 
         await context.createBlock(
           api.tx.balances
-            .transfer(baltathar.address, freshAccountBalanceNativeToken - fee)
+            .transferAllowDeath(baltathar.address, freshAccountBalanceNativeToken - fee)
             .signAsync(freshAccount)
         );
 

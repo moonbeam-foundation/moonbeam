@@ -48,7 +48,9 @@ describeSuite({
           .index.toNumber();
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)
-        await polkadotJs.tx.balances.transfer(paraSovereign, parseEther("1")).signAndSend(alith);
+        await polkadotJs.tx.balances
+          .transferAllowDeath(paraSovereign, parseEther("1"))
+          .signAndSend(alith);
         await context.createBlock();
 
         // Send some erc20 tokens to the sovereign account of paraId
@@ -110,7 +112,7 @@ describeSuite({
         const getTransferWeight = async function (limit: bigint) {
           // Mock the reception of the xcm message
           await injectHrmpMessageAndSeal(context, paraId, {
-            type: "StagingXcmVersionedXcm",
+            type: "XcmVersionedXcm",
             payload: new XcmFragment(config)
               .withdraw_asset()
               .clear_origin()

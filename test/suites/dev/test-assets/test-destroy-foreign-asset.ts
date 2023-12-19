@@ -8,6 +8,7 @@ import {
   relayAssetMetadata,
   verifyLatestBlockFees,
 } from "../../../helpers";
+
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 describeSuite({
