@@ -92,7 +92,7 @@ where
 		// Calculate how many blocks should we substract from LastRelayChainBlockNumber
 		// given the new duration (round_info.length * 2) to have a first relay block of the
 		// round that corresponds with the percentage calculated in the step above.
-		let new_block_diff = percentage
+		let _new_block_diff = percentage
 			.saturating_mul(round_info.length * 2)
 			.saturating_div(100);
 
