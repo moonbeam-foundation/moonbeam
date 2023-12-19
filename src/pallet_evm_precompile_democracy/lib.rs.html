@@ -505,6 +505,9 @@
 <a href="#505" id="505">505</a>
 <a href="#506" id="506">506</a>
 <a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -587,7 +590,7 @@
 <span class="kw">where
 	</span>Runtime: pallet_democracy::Config
 		+ pallet_evm::Config
-		+ frame_system::Config
+		+ frame_system::Config&lt;Hash = H256&gt;
 		+ pallet_preimage::Config,
 	U256: From&lt;BalanceOf&lt;Runtime&gt;&gt;,
 	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + TryInto&lt;u128&gt; + Into&lt;U256&gt; + Debug + solidity::Codec,
@@ -734,7 +737,10 @@
 			RevertReason::custom(<span class="string">&quot;Failure in preimage fetch&quot;</span>).in_field(<span class="string">&quot;proposal_hash&quot;</span>)
 		})<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>bounded = Bounded::Lookup::&lt;pallet_democracy::CallOf&lt;Runtime&gt;&gt; {
+		<span class="kw">let </span>bounded = Bounded::Lookup::&lt;
+			pallet_democracy::CallOf&lt;Runtime&gt;,
+			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing,
+		&gt; {
 			hash: proposal_hash,
 			len,
 		};

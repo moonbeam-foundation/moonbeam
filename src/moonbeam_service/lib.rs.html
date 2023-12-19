@@ -1777,6 +1777,8 @@
 <a href="#1777" id="1777">1777</a>
 <a href="#1778" id="1778">1778</a>
 <a href="#1779" id="1779">1779</a>
+<a href="#1780" id="1780">1780</a>
+<a href="#1781" id="1781">1781</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2905,6 +2907,7 @@
 			block_announce_validator_builder: <span class="prelude-val">None</span>,
 			warp_sync_params: <span class="prelude-val">None</span>,
 			net_config,
+			block_relay: <span class="prelude-val">None</span>,
 		})<span class="question-mark">?</span>;
 
 	<span class="kw">if </span>config.offchain_worker.enabled {
@@ -3041,6 +3044,7 @@
 
 						<span class="kw">let </span>mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
+							current_para_block_head: <span class="prelude-val">None</span>,
 							relay_offset: <span class="number">1000</span>,
 							relay_blocks_per_para_block: <span class="number">2</span>,
 							<span class="comment">// TODO: Recheck

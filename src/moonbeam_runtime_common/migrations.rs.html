@@ -322,7 +322,7 @@
 </span><span class="kw">use </span>frame_support::ensure;
 <span class="kw">use </span>frame_support::{
 	pallet_prelude::GetStorageVersion,
-	traits::{Hash <span class="kw">as </span>PreimageHash, OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
+	traits::{OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
 	weights::Weight,
 };
 <span class="kw">use </span>pallet_author_slot_filter::Config <span class="kw">as </span>AuthorSlotFilterConfig;
@@ -335,7 +335,7 @@
 <span class="kw">pub struct </span>PalletReferendaMigrateV0ToV1&lt;T&gt;(<span class="kw">pub </span>PhantomData&lt;T&gt;);
 <span class="kw">impl</span>&lt;T&gt; Migration <span class="kw">for </span>PalletReferendaMigrateV0ToV1&lt;T&gt;
 <span class="kw">where
-	</span>T: pallet_referenda::Config&lt;Hash = PreimageHash&gt; + frame_system::Config,
+	</span>T: pallet_referenda::Config + frame_system::Config,
 {
 	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
 		<span class="string">&quot;MM_PalletReferendaMigrateV0ToV1&quot;
@@ -440,7 +440,7 @@
 
 <span class="kw">impl</span>&lt;Runtime&gt; GetMigrations <span class="kw">for </span>ReferendaMigrations&lt;Runtime&gt;
 <span class="kw">where
-	</span>Runtime: pallet_referenda::Config&lt;Hash = PreimageHash&gt;,
+	</span>Runtime: pallet_referenda::Config,
 {
 	<span class="kw">fn </span>get_migrations() -&gt; Vec&lt;Box&lt;<span class="kw">dyn </span>Migration&gt;&gt; {
 		<span class="kw">let </span>pallet_referenda_migrate_v0_to_v1 =
@@ -458,14 +458,14 @@
 <span class="kw">where
 	</span>Runtime: pallet_author_mapping::Config,
 	Runtime: pallet_parachain_staking::Config,
-	Runtime: pallet_scheduler::Config&lt;Hash = PreimageHash&gt;,
+	Runtime: pallet_scheduler::Config,
 	Runtime: AuthorSlotFilterConfig,
 	Council: GetStorageVersion + PalletInfoAccess + <span class="lifetime">&#39;static</span>,
 	Tech: GetStorageVersion + PalletInfoAccess + <span class="lifetime">&#39;static</span>,
 	Treasury: GetStorageVersion + PalletInfoAccess + <span class="lifetime">&#39;static</span>,
 	OpenTech: GetStorageVersion + PalletInfoAccess + <span class="lifetime">&#39;static</span>,
-	Runtime: pallet_democracy::Config&lt;Hash = PreimageHash&gt;,
-	Runtime: pallet_preimage::Config&lt;Hash = PreimageHash&gt;,
+	Runtime: pallet_democracy::Config,
+	Runtime: pallet_preimage::Config,
 	Runtime: pallet_asset_manager::Config,
 	&lt;Runtime <span class="kw">as </span>pallet_asset_manager::Config&gt;::ForeignAssetType: From&lt;xcm::v3::MultiLocation&gt;,
 	Runtime: pallet_xcm_transactor::Config,

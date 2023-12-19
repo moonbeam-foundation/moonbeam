@@ -150,13 +150,13 @@
 }
 
 <span class="kw">pub struct </span>MoonbeamFinality&lt;B: Block, C&gt; {
-	<span class="kw">pub </span>backend: Arc&lt;<span class="kw">dyn </span>fc_db::BackendReader&lt;B&gt; + Send + Sync&gt;,
+	<span class="kw">pub </span>backend: Arc&lt;<span class="kw">dyn </span>fc_api::Backend&lt;B&gt;&gt;,
 	<span class="kw">pub </span>client: Arc&lt;C&gt;,
 	_phdata: PhantomData&lt;B&gt;,
 }
 
 <span class="kw">impl</span>&lt;B: Block, C&gt; MoonbeamFinality&lt;B, C&gt; {
-	<span class="kw">pub fn </span>new(client: Arc&lt;C&gt;, backend: Arc&lt;<span class="kw">dyn </span>fc_db::BackendReader&lt;B&gt; + Send + Sync&gt;) -&gt; <span class="self">Self </span>{
+	<span class="kw">pub fn </span>new(client: Arc&lt;C&gt;, backend: Arc&lt;<span class="kw">dyn </span>fc_api::Backend&lt;B&gt;&gt;) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{
 			backend,
 			client,
@@ -193,7 +193,7 @@
 }
 
 <span class="kw">fn </span>is_block_finalized_inner&lt;B: Block&lt;Hash = H256&gt;, C: HeaderBackend&lt;B&gt; + <span class="lifetime">&#39;static</span>&gt;(
-	backend: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>fc_db::BackendReader&lt;B&gt; + Send + Sync),
+	backend: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>fc_api::Backend&lt;B&gt;),
 	client: <span class="kw-2">&amp;</span>C,
 	raw_hash: H256,
 ) -&gt; RpcResult&lt;bool&gt; {

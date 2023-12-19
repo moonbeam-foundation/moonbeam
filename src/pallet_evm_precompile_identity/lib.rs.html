@@ -861,6 +861,10 @@
 <a href="#861" id="861">861</a>
 <a href="#862" id="862">862</a>
 <a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2023 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -889,6 +893,7 @@
 <span class="kw">use </span>frame_support::sp_runtime::traits::StaticLookup;
 <span class="kw">use </span>frame_support::traits::Currency;
 <span class="kw">use </span>pallet_evm::AddressMapping;
+<span class="kw">use </span>pallet_identity::simple::IdentityField;
 <span class="kw">use </span>parity_scale_codec::MaxEncodedLen;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{ConstU32, Get, H160, H256, U256};
@@ -905,6 +910,10 @@
 <span class="kw">type </span>BalanceOf&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>pallet_identity::Config&gt;::Currency <span class="kw">as </span>Currency&lt;
 	&lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId,
 &gt;&gt;::Balance;
+
+<span class="kw">type </span>IdentityFieldOf&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>pallet_identity::Config&gt;::IdentityInformation
+	<span class="kw">as </span>pallet_identity::IdentityInformationProvider&gt;::IdentityField;
+<span class="kw">type </span>MaxAdditionalFieldsOf&lt;T&gt; = &lt;T <span class="kw">as </span>pallet_identity::Config&gt;::MaxAdditionalFields;
 
 <span class="doccomment">/// Solidity selector of the Vote log, which is the Keccak of the Log signature.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_IDENTITY_SET: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;IdentitySet(address)&quot;</span>);
@@ -929,7 +938,12 @@
 #[precompile::test_concrete_types(mock::Runtime)]
 </span><span class="kw">impl</span>&lt;Runtime&gt; IdentityPrecompile&lt;Runtime&gt;
 <span class="kw">where
-	</span>Runtime: pallet_identity::Config + pallet_evm::Config,
+	</span>Runtime: pallet_evm::Config
+		+ pallet_identity::Config&lt;
+			IdentityInformation = pallet_identity::simple::IdentityInfo&lt;
+				MaxAdditionalFieldsOf&lt;Runtime&gt;,
+			&gt;,
+		&gt;,
 	Runtime::AccountId: Into&lt;H160&gt;,
 	Runtime::Hash: From&lt;H256&gt;,
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
@@ -1230,7 +1244,7 @@
 		</span>handle.record_db_read::&lt;Runtime&gt;(pallet_identity::Registration::&lt;
 			BalanceOf&lt;Runtime&gt;,
 			Runtime::MaxRegistrars,
-			Runtime::MaxAdditionalFields,
+			Runtime::IdentityInformation,
 		&gt;::max_encoded_len())<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>who: H160 = who.into();
@@ -1295,8 +1309,11 @@
 		// 		BoundedVec&lt;Option&lt;RegistrarInfo&lt;BalanceOf&lt;T&gt;, T::AccountId&gt;&gt;, T::MaxRegistrars&gt;
 		</span>handle.record_db_read::&lt;Runtime&gt;(
 			pallet_identity::RegistrarInfo::&lt;
-				BalanceOf&lt;Runtime&gt;, Runtime::AccountId
-			&gt;::max_encoded_len().saturating_mul(Runtime::MaxRegistrars::get() <span class="kw">as </span>usize)
+				BalanceOf&lt;Runtime&gt;,
+				Runtime::AccountId,
+				IdentityFieldOf&lt;Runtime&gt;,
+			&gt;::max_encoded_len()
+			.saturating_mul(Runtime::MaxRegistrars::get() <span class="kw">as </span>usize),
 		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>registrars = pallet_identity::Pallet::&lt;Runtime&gt;::registrars()
@@ -1310,23 +1327,14 @@
 						account: Address(reg.account.into()),
 						fee: reg.fee.into(),
 						fields: IdentityFields {
-							display: reg
-								.fields
-								.<span class="number">0
-								</span>.contains(pallet_identity::IdentityField::Display),
-							legal: reg.fields.<span class="number">0</span>.contains(pallet_identity::IdentityField::Legal),
-							web: reg.fields.<span class="number">0</span>.contains(pallet_identity::IdentityField::Web),
-							riot: reg.fields.<span class="number">0</span>.contains(pallet_identity::IdentityField::Riot),
-							email: reg.fields.<span class="number">0</span>.contains(pallet_identity::IdentityField::Email),
-							pgp_fingerprint: reg
-								.fields
-								.<span class="number">0
-								</span>.contains(pallet_identity::IdentityField::PgpFingerprint),
-							image: reg.fields.<span class="number">0</span>.contains(pallet_identity::IdentityField::Image),
-							twitter: reg
-								.fields
-								.<span class="number">0
-								</span>.contains(pallet_identity::IdentityField::Twitter),
+							display: reg.fields.<span class="number">0</span>.contains(IdentityField::Display),
+							legal: reg.fields.<span class="number">0</span>.contains(IdentityField::Legal),
+							web: reg.fields.<span class="number">0</span>.contains(IdentityField::Web),
+							riot: reg.fields.<span class="number">0</span>.contains(IdentityField::Riot),
+							email: reg.fields.<span class="number">0</span>.contains(IdentityField::Email),
+							pgp_fingerprint: reg.fields.<span class="number">0</span>.contains(IdentityField::PgpFingerprint),
+							image: reg.fields.<span class="number">0</span>.contains(IdentityField::Image),
+							twitter: reg.fields.<span class="number">0</span>.contains(IdentityField::Twitter),
 						},
 					}
 				} <span class="kw">else </span>{
@@ -1345,43 +1353,43 @@
 	<span class="kw">fn </span>identity_fields_to_input(
 		fields: IdentityFields,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;
-		pallet_identity::IdentityFields,
-		enumflags2::FromBitsError&lt;pallet_identity::IdentityField&gt;,
+		pallet_identity::IdentityFields&lt;IdentityFieldOf&lt;Runtime&gt;&gt;,
+		enumflags2::FromBitsError&lt;IdentityFieldOf&lt;Runtime&gt;&gt;,
 	&gt; {
 		<span class="kw">let </span><span class="kw-2">mut </span>field_bits = <span class="number">0u64</span>;
 		<span class="kw">if </span>fields.display {
-			field_bits = field_bits | pallet_identity::IdentityField::Display <span class="kw">as </span>u64;
+			field_bits = field_bits | IdentityField::Display <span class="kw">as </span>u64;
 		}
 		<span class="kw">if </span>fields.legal {
-			field_bits = field_bits | pallet_identity::IdentityField::Legal <span class="kw">as </span>u64;
+			field_bits = field_bits | IdentityField::Legal <span class="kw">as </span>u64;
 		}
 		<span class="kw">if </span>fields.web {
-			field_bits = field_bits | pallet_identity::IdentityField::Web <span class="kw">as </span>u64;
+			field_bits = field_bits | IdentityField::Web <span class="kw">as </span>u64;
 		}
 		<span class="kw">if </span>fields.riot {
-			field_bits = field_bits | pallet_identity::IdentityField::Riot <span class="kw">as </span>u64;
+			field_bits = field_bits | IdentityField::Riot <span class="kw">as </span>u64;
 		}
 		<span class="kw">if </span>fields.email {
-			field_bits = field_bits | pallet_identity::IdentityField::Email <span class="kw">as </span>u64;
+			field_bits = field_bits | IdentityField::Email <span class="kw">as </span>u64;
 		}
 		<span class="kw">if </span>fields.pgp_fingerprint {
-			field_bits = field_bits | pallet_identity::IdentityField::PgpFingerprint <span class="kw">as </span>u64;
+			field_bits = field_bits | IdentityField::PgpFingerprint <span class="kw">as </span>u64;
 		}
 		<span class="kw">if </span>fields.image {
-			field_bits = field_bits | pallet_identity::IdentityField::Image <span class="kw">as </span>u64;
+			field_bits = field_bits | IdentityField::Image <span class="kw">as </span>u64;
 		}
 		<span class="kw">if </span>fields.twitter {
-			field_bits = field_bits | pallet_identity::IdentityField::Twitter <span class="kw">as </span>u64;
+			field_bits = field_bits | IdentityField::Twitter <span class="kw">as </span>u64;
 		}
 
-		<span class="kw">let </span>bit_flags = BitFlags::&lt;pallet_identity::IdentityField&gt;::from_bits(field_bits)<span class="question-mark">?</span>;
+		<span class="kw">let </span>bit_flags = BitFlags::&lt;IdentityFieldOf&lt;Runtime&gt;&gt;::from_bits(field_bits)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(pallet_identity::IdentityFields(bit_flags))
 	}
 
 	<span class="kw">fn </span>identity_to_input(
 		info: IdentityInfo&lt;Runtime::MaxAdditionalFields&gt;,
-	) -&gt; MayRevert&lt;Box&lt;pallet_identity::IdentityInfo&lt;Runtime::MaxAdditionalFields&gt;&gt;&gt; {
+	) -&gt; MayRevert&lt;Box&lt;pallet_identity::simple::IdentityInfo&lt;Runtime::MaxAdditionalFields&gt;&gt;&gt; {
 		<span class="comment">// let additional: Vec&lt;(pallet_identity::Data, pallet_identity::Data)&gt; = info.additional.into();
 		</span><span class="kw">let </span><span class="kw-2">mut </span>additional: sp_runtime::BoundedVec&lt;
 			(pallet_identity::Data, pallet_identity::Data),
@@ -1409,7 +1417,7 @@
 		} <span class="kw">else </span>{
 			<span class="prelude-val">None
 		</span>};
-		<span class="kw">let </span>identity_info = pallet_identity::IdentityInfo::&lt;Runtime::MaxAdditionalFields&gt; {
+		<span class="kw">let </span>identity_info = pallet_identity::simple::IdentityInfo::&lt;Runtime::MaxAdditionalFields&gt; {
 			additional,
 			display: info
 				.display
@@ -1450,7 +1458,7 @@
 			pallet_identity::Registration&lt;
 				BalanceOf&lt;Runtime&gt;,
 				Runtime::MaxRegistrars,
-				Runtime::MaxAdditionalFields,
+				Runtime::IdentityInformation,
 			&gt;,
 		&gt;,
 	) -&gt; MayRevert&lt;Registration&lt;Runtime::MaxAdditionalFields&gt;&gt; {

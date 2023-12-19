@@ -594,7 +594,7 @@
 	<span class="doccomment">/// The list of optional RPC extensions.
 	</span><span class="kw">pub </span>ethapi_cmd: Vec&lt;EthApiCmd&gt;,
 	<span class="doccomment">/// Frontier Backend.
-	</span><span class="kw">pub </span>frontier_backend: Arc&lt;<span class="kw">dyn </span>fc_db::BackendReader&lt;Block&gt; + Send + Sync&gt;,
+	</span><span class="kw">pub </span>frontier_backend: Arc&lt;<span class="kw">dyn </span>fc_api::Backend&lt;Block&gt;&gt;,
 	<span class="doccomment">/// Backend.
 	</span><span class="kw">pub </span>backend: Arc&lt;BE&gt;,
 	<span class="doccomment">/// Manual seal command sink
@@ -749,7 +749,7 @@
 	};
 
 	io.merge(
-		Eth::new(
+		Eth::&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, MoonbeamEthConfig&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;::new(
 			Arc::clone(<span class="kw-2">&amp;</span>client),
 			Arc::clone(<span class="kw-2">&amp;</span>pool),
 			graph.clone(),

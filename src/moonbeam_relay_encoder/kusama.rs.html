@@ -1040,658 +1040,658 @@
 	close_channel: <span class="number">2u8</span>,
 	cancel_open_request: <span class="number">6u8</span>,
 };
-
-<span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>tests {
-	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use </span><span class="kw">crate</span>::kusama::KusamaEncoder;
-	<span class="kw">use </span>frame_support::traits::PalletInfo;
-	<span class="kw">use </span>sp_runtime::Perbill;
-	<span class="kw">use </span>xcm_primitives::{StakeEncodeCall, UtilityEncodeCall};
-
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_as_derivative() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Utility,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_utility::Call::&lt;kusama_runtime::Runtime&gt;::as_derivative {
-			index: <span class="number">1</span>,
-			call: kusama_runtime::RuntimeCall::Staking(pallet_staking::Call::&lt;
-				kusama_runtime::Runtime,
-			&gt;::chill {})
-			.into(),
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="kw">let </span>call_bytes = &lt;KusamaEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
-			xcm_primitives::AvailableStakeCalls::Chill,
-		);
-
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			xcm_primitives::UtilityEncodeCall::encode_call(
-				KusamaEncoder,
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(<span class="number">1</span>, call_bytes.clone())
-			),
-			expected_encoded.clone()
-		);
-
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>UtilityEncodeCall
-				&gt;::encode_call(
-					pallet_xcm_transactor::Pallet(
-						sp_std::marker::PhantomData::&lt;moonriver_runtime::Runtime&gt;::default()),
-					xcm_primitives::UtilityAvailableCalls::AsDerivative(<span class="number">1</span>, call_bytes)
-				),
-				expected_encoded
-			);
-		});
-	}
-
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_stake_bond() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Staking,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::bond {
-			value: <span class="number">100u32</span>.into(),
-			payee: pallet_staking::RewardDestination::Controller,
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
-				xcm_primitives::AvailableStakeCalls::Bond(
-					<span class="number">100u32</span>.into(),
-					pallet_staking::RewardDestination::Controller
-				)
-			),
-			expected_encoded.clone()
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>StakeEncodeCall
-				&gt;::encode_call(
-					xcm_primitives::AvailableStakeCalls::Bond(
-							<span class="number">100u32</span>.into(),
-						pallet_staking::RewardDestination::Controller
-					)
-				),
-				expected_encoded
-			);
-		});
-	}
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_stake_bond_extra() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Staking,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::bond_extra {
-			max_additional: <span class="number">100u32</span>.into(),
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
-				xcm_primitives::AvailableStakeCalls::BondExtra(<span class="number">100u32</span>.into(),)
-			),
-			expected_encoded.clone()
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>StakeEncodeCall
-				&gt;::encode_call(
-					xcm_primitives::AvailableStakeCalls::BondExtra(<span class="number">100u32</span>.into(),)
-				),
-				expected_encoded
-			);
-		});
-	}
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_stake_unbond() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Staking,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::unbond {
-			value: <span class="number">100u32</span>.into(),
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
-				xcm_primitives::AvailableStakeCalls::Unbond(<span class="number">100u32</span>.into(),)
-			),
-			expected_encoded.clone()
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>StakeEncodeCall
-				&gt;::encode_call(
-					xcm_primitives::AvailableStakeCalls::Unbond(<span class="number">100u32</span>.into(),)
-				),
-				expected_encoded
-			);
-		});
-	}
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_stake_withdraw_unbonded() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Staking,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::withdraw_unbonded {
-			num_slashing_spans: <span class="number">100u32</span>,
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
-				xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(<span class="number">100u32</span>,)
-			),
-			expected_encoded.clone()
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>StakeEncodeCall
-				&gt;::encode_call(
-					xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(<span class="number">100u32</span>,)
-				),
-				expected_encoded
-			);
-		});
-	}
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_stake_validate() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Staking,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span>validator_prefs = pallet_staking::ValidatorPrefs {
-			commission: Perbill::from_percent(<span class="number">5</span>),
-			blocked: <span class="bool-val">true</span>,
-		};
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::validate {
-			prefs: validator_prefs.clone(),
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
-				xcm_primitives::AvailableStakeCalls::Validate(validator_prefs.clone())
-			),
-			expected_encoded
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>StakeEncodeCall
-				&gt;::encode_call(
-					xcm_primitives::AvailableStakeCalls::Validate(validator_prefs)
-				),
-				expected_encoded
-			);
-		});
-	}
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_stake_nominate() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-		<span class="kw">let </span>relay_account: AccountId32 = [<span class="number">1u8</span>; <span class="number">32</span>].into();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Staking,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::nominate {
-			targets: <span class="macro">vec!</span>[relay_account.clone().into()],
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
-				xcm_primitives::AvailableStakeCalls::Nominate(<span class="macro">vec!</span>[relay_account.clone().into()])
-			),
-			expected_encoded.clone()
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>StakeEncodeCall
-				&gt;::encode_call(
-					xcm_primitives::AvailableStakeCalls::Nominate(<span class="macro">vec!</span>[
-						relay_account.into()
-					])
-				),
-				expected_encoded
-			);
-		});
-	}
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_stake_chill() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Staking,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::chill {}.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
-				xcm_primitives::AvailableStakeCalls::Chill
-			),
-			expected_encoded.clone()
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>StakeEncodeCall
-				&gt;::encode_call(
-					xcm_primitives::AvailableStakeCalls::Chill
-				),
-				expected_encoded
-			);
-		});
-	}
-
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_set_payee() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Staking,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::set_payee {
-			payee: pallet_staking::RewardDestination::Controller,
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
-				xcm_primitives::AvailableStakeCalls::SetPayee(
-					pallet_staking::RewardDestination::Controller
-				)
-			),
-			expected_encoded.clone()
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>StakeEncodeCall
-				&gt;::encode_call(
-					xcm_primitives::AvailableStakeCalls::SetPayee(
-						pallet_staking::RewardDestination::Controller
-					)
-				),
-				expected_encoded
-			);
-		});
-	}
-
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_set_controller() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Staking,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected =
-			pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::set_controller {}.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
-				xcm_primitives::AvailableStakeCalls::SetController
-			),
-			expected_encoded.clone()
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-					&lt;pallet_xcm_transactor::Pallet::&lt;
-							moonriver_runtime::Runtime&gt; <span class="kw">as </span>StakeEncodeCall
-					&gt;::encode_call(
-							xcm_primitives::AvailableStakeCalls::SetController
-					),
-					expected_encoded
-			);
-		});
-	}
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_rebond() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Staking,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::rebond {
-			value: <span class="number">100u32</span>.into(),
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
-				xcm_primitives::AvailableStakeCalls::Rebond(<span class="number">100u32</span>.into())
-			),
-			expected_encoded.clone()
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>StakeEncodeCall
-				&gt;::encode_call(
-					xcm_primitives::AvailableStakeCalls::Rebond(<span class="number">100u32</span>.into())
-				),
-				expected_encoded
-			);
-		});
-	}
-
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_hrmp_init() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Hrmp,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = polkadot_runtime_parachains::hrmp::Call::&lt;
-			kusama_runtime::Runtime
-		&gt;::hrmp_init_open_channel {
-			recipient: <span class="number">1000u32</span>.into(),
-			proposed_max_capacity: <span class="number">100u32</span>,
-			proposed_max_message_size: <span class="number">100u32</span>,
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>xcm_primitives::HrmpEncodeCall&gt;::hrmp_encode_call(
-				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
-					<span class="number">1000u32</span>.into(),
-					<span class="number">100u32</span>.into(),
-					<span class="number">100u32</span>.into()
-				)
-			),
-			<span class="prelude-val">Ok</span>(expected_encoded.clone())
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>xcm_primitives::HrmpEncodeCall
-				&gt;::hrmp_encode_call(
-					xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
-						<span class="number">1000u32</span>.into(),
-						<span class="number">100u32</span>.into(),
-						<span class="number">100u32</span>.into()
-					)
-				),
-				<span class="prelude-val">Ok</span>(expected_encoded)
-			);
-		});
-	}
-
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_hrmp_accept() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Hrmp,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = polkadot_runtime_parachains::hrmp::Call::&lt;
-			kusama_runtime::Runtime
-		&gt;::hrmp_accept_open_channel {
-			sender: <span class="number">1000u32</span>.into()
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>xcm_primitives::HrmpEncodeCall&gt;::hrmp_encode_call(
-				xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(<span class="number">1000u32</span>.into(),)
-			),
-			<span class="prelude-val">Ok</span>(expected_encoded.clone())
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>xcm_primitives::HrmpEncodeCall
-				&gt;::hrmp_encode_call(
-					xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(<span class="number">1000u32</span>.into(),)
-				),
-				<span class="prelude-val">Ok</span>(expected_encoded)
-			);
-		});
-	}
-
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_hrmp_close() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Hrmp,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = polkadot_runtime_parachains::hrmp::Call::&lt;
-			kusama_runtime::Runtime
-		&gt;::hrmp_close_channel {
-			channel_id: HrmpChannelId {
-				sender: <span class="number">1000u32</span>.into(),
-				recipient: <span class="number">1001u32</span>.into()
-			}
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>xcm_primitives::HrmpEncodeCall&gt;::hrmp_encode_call(
-				xcm_primitives::HrmpAvailableCalls::CloseChannel(HrmpChannelId {
-					sender: <span class="number">1000u32</span>.into(),
-					recipient: <span class="number">1001u32</span>.into()
-				})
-			),
-			<span class="prelude-val">Ok</span>(expected_encoded.clone())
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>xcm_primitives::HrmpEncodeCall
-				&gt;::hrmp_encode_call(
-					xcm_primitives::HrmpAvailableCalls::CloseChannel(HrmpChannelId {
-						sender: <span class="number">1000u32</span>.into(),
-						recipient: <span class="number">1001u32</span>.into()
-					})
-				),
-				<span class="prelude-val">Ok</span>(expected_encoded)
-			);
-		});
-	}
-
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_hrmp_cancel() {
-		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
-
-		<span class="kw">let </span>index = &lt;kusama_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
-			kusama_runtime::Hrmp,
-		&gt;()
-		.unwrap() <span class="kw">as </span>u8;
-		expected_encoded.push(index);
-
-		<span class="kw">let </span>channel_id = HrmpChannelId {
-			sender: <span class="number">1u32</span>.into(),
-			recipient: <span class="number">1u32</span>.into(),
-		};
-		<span class="kw">let </span>open_requests: u32 = <span class="number">1</span>;
-
-		<span class="kw">let </span><span class="kw-2">mut </span>expected = polkadot_runtime_parachains::hrmp::Call::&lt;
-			kusama_runtime::Runtime
-		&gt;::hrmp_cancel_open_request {
-			channel_id: channel_id.clone(),
-			open_requests
-		}
-		.encode();
-		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
-
-		<span class="macro">assert_eq!</span>(
-			&lt;KusamaEncoder <span class="kw">as </span>xcm_primitives::HrmpEncodeCall&gt;::hrmp_encode_call(
-				xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(
-					channel_id.clone(),
-					open_requests
-				)
-			),
-			<span class="prelude-val">Ok</span>(expected_encoded.clone())
-		);
-		sp_io::TestExternalities::default().execute_with(|| {
-			<span class="comment">// Pallet-xcm-transactor default encoder returns same result
-			// insert storage item as per migration to set the storage item
-			</span>pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
-				KUSAMA_RELAY_INDICES,
-			);
-			<span class="macro">assert_eq!</span>(
-				&lt;pallet_xcm_transactor::Pallet::&lt;
-					moonriver_runtime::Runtime&gt; <span class="kw">as </span>xcm_primitives::HrmpEncodeCall
-				&gt;::hrmp_encode_call(
-					xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(
-						channel_id.clone(),
-						open_requests
-					)
-				),
-				<span class="prelude-val">Ok</span>(expected_encoded)
-			);
-		});
-	}
-}
-</code></pre></div></section></main></body></html>
+<span class="comment">//
+// #[cfg(test)]
+// mod tests {
+// 	use super::*;
+// 	use crate::kusama::KusamaEncoder;
+// 	use frame_support::traits::PalletInfo;
+// 	use sp_runtime::Perbill;
+// 	use xcm_primitives::{StakeEncodeCall, UtilityEncodeCall};
+//
+// 	#[test]
+// 	fn test_as_derivative() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Utility,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected = pallet_utility::Call::&lt;kusama_runtime::Runtime&gt;::as_derivative {
+// 			index: 1,
+// 			call: kusama_runtime::RuntimeCall::Staking(pallet_staking::Call::&lt;
+// 				kusama_runtime::Runtime,
+// 			&gt;::chill {})
+// 			.into(),
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		let call_bytes = &lt;KusamaEncoder as StakeEncodeCall&gt;::encode_call(
+// 			xcm_primitives::AvailableStakeCalls::Chill,
+// 		);
+//
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			xcm_primitives::UtilityEncodeCall::encode_call(
+// 				KusamaEncoder,
+// 				xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes.clone())
+// 			),
+// 			expected_encoded.clone()
+// 		);
+//
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as UtilityEncodeCall
+// 				&gt;::encode_call(
+// 					pallet_xcm_transactor::Pallet(
+// 						sp_std::marker::PhantomData::&lt;moonriver_runtime::Runtime&gt;::default()),
+// 					xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes)
+// 				),
+// 				expected_encoded
+// 			);
+// 		});
+// 	}
+//
+// 	#[test]
+// 	fn test_stake_bond() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Staking,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::bond {
+// 			value: 100u32.into(),
+// 			payee: pallet_staking::RewardDestination::Controller,
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as StakeEncodeCall&gt;::encode_call(
+// 				xcm_primitives::AvailableStakeCalls::Bond(
+// 					100u32.into(),
+// 					pallet_staking::RewardDestination::Controller
+// 				)
+// 			),
+// 			expected_encoded.clone()
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as StakeEncodeCall
+// 				&gt;::encode_call(
+// 					xcm_primitives::AvailableStakeCalls::Bond(
+// 							100u32.into(),
+// 						pallet_staking::RewardDestination::Controller
+// 					)
+// 				),
+// 				expected_encoded
+// 			);
+// 		});
+// 	}
+// 	#[test]
+// 	fn test_stake_bond_extra() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Staking,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::bond_extra {
+// 			max_additional: 100u32.into(),
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as StakeEncodeCall&gt;::encode_call(
+// 				xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
+// 			),
+// 			expected_encoded.clone()
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as StakeEncodeCall
+// 				&gt;::encode_call(
+// 					xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
+// 				),
+// 				expected_encoded
+// 			);
+// 		});
+// 	}
+// 	#[test]
+// 	fn test_stake_unbond() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Staking,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::unbond {
+// 			value: 100u32.into(),
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as StakeEncodeCall&gt;::encode_call(
+// 				xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
+// 			),
+// 			expected_encoded.clone()
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as StakeEncodeCall
+// 				&gt;::encode_call(
+// 					xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
+// 				),
+// 				expected_encoded
+// 			);
+// 		});
+// 	}
+// 	#[test]
+// 	fn test_stake_withdraw_unbonded() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Staking,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::withdraw_unbonded {
+// 			num_slashing_spans: 100u32,
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as StakeEncodeCall&gt;::encode_call(
+// 				xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
+// 			),
+// 			expected_encoded.clone()
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as StakeEncodeCall
+// 				&gt;::encode_call(
+// 					xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
+// 				),
+// 				expected_encoded
+// 			);
+// 		});
+// 	}
+// 	#[test]
+// 	fn test_stake_validate() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Staking,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let validator_prefs = pallet_staking::ValidatorPrefs {
+// 			commission: Perbill::from_percent(5),
+// 			blocked: true,
+// 		};
+//
+// 		let mut expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::validate {
+// 			prefs: validator_prefs.clone(),
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as StakeEncodeCall&gt;::encode_call(
+// 				xcm_primitives::AvailableStakeCalls::Validate(validator_prefs.clone())
+// 			),
+// 			expected_encoded
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as StakeEncodeCall
+// 				&gt;::encode_call(
+// 					xcm_primitives::AvailableStakeCalls::Validate(validator_prefs)
+// 				),
+// 				expected_encoded
+// 			);
+// 		});
+// 	}
+// 	#[test]
+// 	fn test_stake_nominate() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+// 		let relay_account: AccountId32 = [1u8; 32].into();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Staking,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::nominate {
+// 			targets: vec![relay_account.clone().into()],
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as StakeEncodeCall&gt;::encode_call(
+// 				xcm_primitives::AvailableStakeCalls::Nominate(vec![relay_account.clone().into()])
+// 			),
+// 			expected_encoded.clone()
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as StakeEncodeCall
+// 				&gt;::encode_call(
+// 					xcm_primitives::AvailableStakeCalls::Nominate(vec![
+// 						relay_account.into()
+// 					])
+// 				),
+// 				expected_encoded
+// 			);
+// 		});
+// 	}
+// 	#[test]
+// 	fn test_stake_chill() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Staking,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::chill {}.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as StakeEncodeCall&gt;::encode_call(
+// 				xcm_primitives::AvailableStakeCalls::Chill
+// 			),
+// 			expected_encoded.clone()
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as StakeEncodeCall
+// 				&gt;::encode_call(
+// 					xcm_primitives::AvailableStakeCalls::Chill
+// 				),
+// 				expected_encoded
+// 			);
+// 		});
+// 	}
+//
+// 	#[test]
+// 	fn test_set_payee() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Staking,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::set_payee {
+// 			payee: pallet_staking::RewardDestination::Controller,
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as StakeEncodeCall&gt;::encode_call(
+// 				xcm_primitives::AvailableStakeCalls::SetPayee(
+// 					pallet_staking::RewardDestination::Controller
+// 				)
+// 			),
+// 			expected_encoded.clone()
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as StakeEncodeCall
+// 				&gt;::encode_call(
+// 					xcm_primitives::AvailableStakeCalls::SetPayee(
+// 						pallet_staking::RewardDestination::Controller
+// 					)
+// 				),
+// 				expected_encoded
+// 			);
+// 		});
+// 	}
+//
+// 	#[test]
+// 	fn test_set_controller() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Staking,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected =
+// 			pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::set_controller {}.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as StakeEncodeCall&gt;::encode_call(
+// 				xcm_primitives::AvailableStakeCalls::SetController
+// 			),
+// 			expected_encoded.clone()
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 					&lt;pallet_xcm_transactor::Pallet::&lt;
+// 							moonriver_runtime::Runtime&gt; as StakeEncodeCall
+// 					&gt;::encode_call(
+// 							xcm_primitives::AvailableStakeCalls::SetController
+// 					),
+// 					expected_encoded
+// 			);
+// 		});
+// 	}
+// 	#[test]
+// 	fn test_rebond() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Staking,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected = pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::rebond {
+// 			value: 100u32.into(),
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as StakeEncodeCall&gt;::encode_call(
+// 				xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
+// 			),
+// 			expected_encoded.clone()
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as StakeEncodeCall
+// 				&gt;::encode_call(
+// 					xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
+// 				),
+// 				expected_encoded
+// 			);
+// 		});
+// 	}
+//
+// 	#[test]
+// 	fn test_hrmp_init() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Hrmp,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected = polkadot_runtime_parachains::hrmp::Call::&lt;
+// 			kusama_runtime::Runtime
+// 		&gt;::hrmp_init_open_channel {
+// 			recipient: 1000u32.into(),
+// 			proposed_max_capacity: 100u32,
+// 			proposed_max_message_size: 100u32,
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as xcm_primitives::HrmpEncodeCall&gt;::hrmp_encode_call(
+// 				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
+// 					1000u32.into(),
+// 					100u32.into(),
+// 					100u32.into()
+// 				)
+// 			),
+// 			Ok(expected_encoded.clone())
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as xcm_primitives::HrmpEncodeCall
+// 				&gt;::hrmp_encode_call(
+// 					xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
+// 						1000u32.into(),
+// 						100u32.into(),
+// 						100u32.into()
+// 					)
+// 				),
+// 				Ok(expected_encoded)
+// 			);
+// 		});
+// 	}
+//
+// 	#[test]
+// 	fn test_hrmp_accept() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Hrmp,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected = polkadot_runtime_parachains::hrmp::Call::&lt;
+// 			kusama_runtime::Runtime
+// 		&gt;::hrmp_accept_open_channel {
+// 			sender: 1000u32.into()
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as xcm_primitives::HrmpEncodeCall&gt;::hrmp_encode_call(
+// 				xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(1000u32.into(),)
+// 			),
+// 			Ok(expected_encoded.clone())
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as xcm_primitives::HrmpEncodeCall
+// 				&gt;::hrmp_encode_call(
+// 					xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(1000u32.into(),)
+// 				),
+// 				Ok(expected_encoded)
+// 			);
+// 		});
+// 	}
+//
+// 	#[test]
+// 	fn test_hrmp_close() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Hrmp,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let mut expected = polkadot_runtime_parachains::hrmp::Call::&lt;
+// 			kusama_runtime::Runtime
+// 		&gt;::hrmp_close_channel {
+// 			channel_id: HrmpChannelId {
+// 				sender: 1000u32.into(),
+// 				recipient: 1001u32.into()
+// 			}
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as xcm_primitives::HrmpEncodeCall&gt;::hrmp_encode_call(
+// 				xcm_primitives::HrmpAvailableCalls::CloseChannel(HrmpChannelId {
+// 					sender: 1000u32.into(),
+// 					recipient: 1001u32.into()
+// 				})
+// 			),
+// 			Ok(expected_encoded.clone())
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as xcm_primitives::HrmpEncodeCall
+// 				&gt;::hrmp_encode_call(
+// 					xcm_primitives::HrmpAvailableCalls::CloseChannel(HrmpChannelId {
+// 						sender: 1000u32.into(),
+// 						recipient: 1001u32.into()
+// 					})
+// 				),
+// 				Ok(expected_encoded)
+// 			);
+// 		});
+// 	}
+//
+// 	#[test]
+// 	fn test_hrmp_cancel() {
+// 		let mut expected_encoded: Vec&lt;u8&gt; = Vec::new();
+//
+// 		let index = &lt;kusama_runtime::Runtime as frame_system::Config&gt;::PalletInfo::index::&lt;
+// 			kusama_runtime::Hrmp,
+// 		&gt;()
+// 		.unwrap() as u8;
+// 		expected_encoded.push(index);
+//
+// 		let channel_id = HrmpChannelId {
+// 			sender: 1u32.into(),
+// 			recipient: 1u32.into(),
+// 		};
+// 		let open_requests: u32 = 1;
+//
+// 		let mut expected = polkadot_runtime_parachains::hrmp::Call::&lt;
+// 			kusama_runtime::Runtime
+// 		&gt;::hrmp_cancel_open_request {
+// 			channel_id: channel_id.clone(),
+// 			open_requests
+// 		}
+// 		.encode();
+// 		expected_encoded.append(&amp;mut expected);
+//
+// 		assert_eq!(
+// 			&lt;KusamaEncoder as xcm_primitives::HrmpEncodeCall&gt;::hrmp_encode_call(
+// 				xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(
+// 					channel_id.clone(),
+// 					open_requests
+// 				)
+// 			),
+// 			Ok(expected_encoded.clone())
+// 		);
+// 		sp_io::TestExternalities::default().execute_with(|| {
+// 			// Pallet-xcm-transactor default encoder returns same result
+// 			// insert storage item as per migration to set the storage item
+// 			pallet_xcm_transactor::RelayIndices::&lt;moonriver_runtime::Runtime&gt;::put(
+// 				KUSAMA_RELAY_INDICES,
+// 			);
+// 			assert_eq!(
+// 				&lt;pallet_xcm_transactor::Pallet::&lt;
+// 					moonriver_runtime::Runtime&gt; as xcm_primitives::HrmpEncodeCall
+// 				&gt;::hrmp_encode_call(
+// 					xcm_primitives::HrmpAvailableCalls::CancelOpenRequest(
+// 						channel_id.clone(),
+// 						open_requests
+// 					)
+// 				),
+// 				Ok(expected_encoded)
+// 			);
+// 		});
+// 	}
+// }
+</span></code></pre></div></section></main></body></html>

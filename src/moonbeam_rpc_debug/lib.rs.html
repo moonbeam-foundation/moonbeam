@@ -740,7 +740,7 @@
 	</span><span class="kw">pub fn </span>task(
 		client: Arc&lt;C&gt;,
 		backend: Arc&lt;BE&gt;,
-		frontier_backend: Arc&lt;<span class="kw">dyn </span>fc_db::BackendReader&lt;B&gt; + Send + Sync&gt;,
+		frontier_backend: Arc&lt;<span class="kw">dyn </span>fc_api::Backend&lt;B&gt; + Send + Sync&gt;,
 		permit_pool: Arc&lt;Semaphore&gt;,
 		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
 		raw_max_memory_usage: usize,
@@ -880,7 +880,7 @@
 	<span class="kw">fn </span>handle_block_request(
 		client: Arc&lt;C&gt;,
 		backend: Arc&lt;BE&gt;,
-		frontier_backend: Arc&lt;<span class="kw">dyn </span>fc_db::BackendReader&lt;B&gt; + Send + Sync&gt;,
+		frontier_backend: Arc&lt;<span class="kw">dyn </span>fc_api::Backend&lt;B&gt; + Send + Sync&gt;,
 		request_block_id: RequestBlockId,
 		params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;,
 		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
@@ -1015,7 +1015,7 @@
 	</span><span class="kw">fn </span>handle_transaction_request(
 		client: Arc&lt;C&gt;,
 		backend: Arc&lt;BE&gt;,
-		frontier_backend: Arc&lt;<span class="kw">dyn </span>fc_db::BackendReader&lt;B&gt; + Send + Sync&gt;,
+		frontier_backend: Arc&lt;<span class="kw">dyn </span>fc_api::Backend&lt;B&gt; + Send + Sync&gt;,
 		transaction_hash: H256,
 		params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;,
 		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,

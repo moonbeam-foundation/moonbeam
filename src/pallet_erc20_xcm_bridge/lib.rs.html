@@ -423,7 +423,7 @@
 		</span><span class="kw">fn </span>deposit_asset(
 			what: <span class="kw-2">&amp;</span>MultiAsset,
 			who: <span class="kw-2">&amp;</span>MultiLocation,
-			_context: <span class="kw-2">&amp;</span>XcmContext,
+			_context: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>XcmContext&gt;,
 		) -&gt; XcmResult {
 			<span class="kw">let </span>(contract_address, amount) =
 				Erc20Matcher::&lt;T::Erc20MultilocationPrefix&gt;::matches_fungibles(what)<span class="question-mark">?</span>;

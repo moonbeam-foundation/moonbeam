@@ -700,6 +700,9 @@
 <a href="#700" id="700">700</a>
 <a href="#701" id="701">701</a>
 <a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -742,10 +745,11 @@
 <span class="kw">use </span>xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
-	CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter, NoChecking,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
-	WeightInfoBounds, WithComputedOrigin,
+	CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin,
+	FungiblesAdapter, HashedDescription, NoChecking, ParentIsPreset, RelayChainAsNative,
+	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
+	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, WeightInfoBounds,
+	WithComputedOrigin,
 };
 
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
@@ -812,7 +816,7 @@
 	<span class="comment">// If we receive a MultiLocation of type AccountKey20, just generate a native account
 	</span>AccountKey20Aliases&lt;RelayNetwork, AccountId&gt;,
 	<span class="comment">// Generate remote accounts according to polkadot standards
-	</span>xcm_builder::HashedDescriptionDescribeFamilyAllTerminal&lt;AccountId&gt;,
+	</span>HashedDescription&lt;AccountId, DescribeFamily&lt;DescribeAllTerminal&gt;&gt;,
 );
 
 <span class="doccomment">/// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
@@ -1110,7 +1114,9 @@
 	<span class="kw">type </span>ControllerOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::cumulus_pallet_xcmp_queue::WeightInfo&lt;Runtime&gt;;
-	<span class="kw">type </span>PriceForSiblingDelivery = ();
+	<span class="kw">type </span>PriceForSiblingDelivery = polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery&lt;
+		cumulus_primitives_core::ParaId,
+	&gt;;
 }
 
 <span class="kw">impl </span>cumulus_pallet_dmp_queue::Config <span class="kw">for </span>Runtime {

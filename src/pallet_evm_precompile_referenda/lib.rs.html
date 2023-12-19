@@ -667,6 +667,9 @@
 <a href="#667" id="667">667</a>
 <a href="#668" id="668">668</a>
 <a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -716,7 +719,10 @@
 	BalanceOf&lt;Runtime&gt;,
 	BlockNumberFor&lt;Runtime&gt;,
 &gt;&gt;::Id;
-<span class="kw">type </span>BoundedCallOf&lt;Runtime&gt; = Bounded&lt;&lt;Runtime <span class="kw">as </span>pallet_referenda::Config&gt;::RuntimeCall&gt;;
+<span class="kw">type </span>BoundedCallOf&lt;Runtime&gt; = Bounded&lt;
+	&lt;Runtime <span class="kw">as </span>pallet_referenda::Config&gt;::RuntimeCall,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing,
+&gt;;
 
 <span class="kw">type </span>OriginOf&lt;Runtime&gt; =
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeOrigin <span class="kw">as </span>OriginTrait&gt;::PalletsOrigin;
@@ -934,7 +940,7 @@
 	) -&gt; EvmResult&lt;u32&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;referendum-precompile&quot;</span>,
-			<span class="string">&quot;Submitting proposal {} [len: {:?}] to track {}&quot;</span>,
+			<span class="string">&quot;Submitting proposal {:?} [len: {:?}] to track {}&quot;</span>,
 			proposal.hash(),
 			proposal.len(),
 			track_id
@@ -1157,7 +1163,7 @@
 		block_number: u32,
 	) -&gt; EvmResult&lt;u32&gt; {
 		<span class="kw">let </span>proposal: BoundedCallOf&lt;Runtime&gt; = Bounded::Lookup {
-			hash: proposal_hash,
+			hash: proposal_hash.into(),
 			len: proposal_len,
 		};
 		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32 </span>* <span class="number">2</span>)<span class="question-mark">?</span>;
@@ -1195,7 +1201,7 @@
 		block_number: u32,
 	) -&gt; EvmResult&lt;u32&gt; {
 		<span class="kw">let </span>proposal: BoundedCallOf&lt;Runtime&gt; = Bounded::Lookup {
-			hash: proposal_hash,
+			hash: proposal_hash.into(),
 			len: proposal_len,
 		};
 		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32 </span>* <span class="number">2</span>)<span class="question-mark">?</span>;

@@ -780,7 +780,7 @@
 			</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
 				handle,
 				<span class="prelude-val">Some</span>(origin).into(),
-				pallet_balances::Call::&lt;Runtime, Instance&gt;::transfer {
+				pallet_balances::Call::&lt;Runtime, Instance&gt;::transfer_allow_death {
 					dest: Runtime::Lookup::unlookup(to),
 					value: value,
 				},
@@ -846,7 +846,7 @@
 			</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
 				handle,
 				<span class="prelude-val">Some</span>(from).into(),
-				pallet_balances::Call::&lt;Runtime, Instance&gt;::transfer {
+				pallet_balances::Call::&lt;Runtime, Instance&gt;::transfer_allow_death {
 					dest: Runtime::Lookup::unlookup(to),
 					value: value,
 				},
@@ -908,7 +908,7 @@
 		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
 			handle,
 			<span class="prelude-val">Some</span>(precompile).into(),
-			pallet_balances::Call::&lt;Runtime, Instance&gt;::transfer {
+			pallet_balances::Call::&lt;Runtime, Instance&gt;::transfer_allow_death {
 				dest: Runtime::Lookup::unlookup(caller),
 				value: amount,
 			},

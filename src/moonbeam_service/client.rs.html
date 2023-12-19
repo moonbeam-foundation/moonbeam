@@ -370,6 +370,23 @@
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
 <a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -386,7 +403,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 </span><span class="kw">pub use </span>moonbeam_core_primitives::{AccountId, Balance, Block, BlockNumber, Hash, Header, Index};
-<span class="kw">use </span>sc_client_api::{Backend <span class="kw">as </span>BackendT, BlockchainEvents, KeysIter, PairsIter};
+<span class="kw">use </span>sc_client_api::{Backend <span class="kw">as </span>BackendT, BlockchainEvents, KeysIter, MerkleValue, PairsIter};
 <span class="kw">use </span>sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
 <span class="kw">use </span>sp_blockchain::HeaderBackend;
 <span class="kw">use </span>sp_consensus::BlockStatus;
@@ -718,6 +735,23 @@
 		key: <span class="kw-2">&amp;</span>StorageKey,
 	) -&gt; sp_blockchain::Result&lt;<span class="prelude-ty">Option</span>&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Hash&gt;&gt; {
 		<span class="macro">match_client!</span>(<span class="self">self</span>, child_storage_hash(hash, child_info, key))
+	}
+
+	<span class="kw">fn </span>closest_merkle_value(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
+		key: <span class="kw-2">&amp;</span>StorageKey,
+	) -&gt; sp_blockchain::Result&lt;<span class="prelude-ty">Option</span>&lt;MerkleValue&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Hash&gt;&gt;&gt; {
+		<span class="macro">match_client!</span>(<span class="self">self</span>, closest_merkle_value(hash, key))
+	}
+
+	<span class="kw">fn </span>child_closest_merkle_value(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
+		child_info: <span class="kw-2">&amp;</span>ChildInfo,
+		key: <span class="kw-2">&amp;</span>StorageKey,
+	) -&gt; sp_blockchain::Result&lt;<span class="prelude-ty">Option</span>&lt;MerkleValue&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Hash&gt;&gt;&gt; {
+		<span class="macro">match_client!</span>(<span class="self">self</span>, child_closest_merkle_value(hash, child_info, key))
 	}
 }
 

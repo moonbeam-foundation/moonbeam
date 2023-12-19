@@ -255,6 +255,8 @@
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -305,7 +307,7 @@
 	&lt;&lt;&lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;
 		::RuntimeOrigin <span class="kw">as </span>OriginTrait&gt;::AccountId;
 
-<span class="kw">pub type </span>SystemCallOf&lt;Runtime&gt; = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall;
+<span class="kw">pub type </span>CallOf&lt;Runtime&gt; = &lt;Runtime <span class="kw">as </span>pallet_xcm::Config&gt;::RuntimeCall;
 <span class="kw">pub const </span>XCM_SIZE_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
 <span class="kw">type </span>GetXcmSizeLimit = ConstU32&lt;XCM_SIZE_LIMIT&gt;;
 
@@ -323,7 +325,8 @@
 	XcmOriginOf&lt;XcmConfig&gt;: OriginTrait,
 	XcmAccountIdOf&lt;XcmConfig&gt;: Into&lt;H160&gt;,
 	XcmConfig: xcm_executor::Config,
-	SystemCallOf&lt;Runtime&gt;: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + Decode + GetDispatchInfo,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall:
+		Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + Decode + GetDispatchInfo,
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
 		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;pallet_xcm::Call&lt;Runtime&gt;&gt;,
@@ -353,7 +356,8 @@
 	XcmOriginOf&lt;XcmConfig&gt;: OriginTrait,
 	XcmAccountIdOf&lt;XcmConfig&gt;: Into&lt;H160&gt;,
 	XcmConfig: xcm_executor::Config,
-	SystemCallOf&lt;Runtime&gt;: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + Decode + GetDispatchInfo,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall:
+		Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + Decode + GetDispatchInfo,
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
 		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;pallet_xcm::Call&lt;Runtime&gt;&gt;,
@@ -469,7 +473,7 @@
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		<span class="kw">let </span>message: Vec&lt;<span class="kw">_</span>&gt; = message.to_vec();
-		<span class="kw">let </span>xcm = xcm::VersionedXcm::&lt;SystemCallOf&lt;Runtime&gt;&gt;::decode_all_with_depth_limit(
+		<span class="kw">let </span>xcm = xcm::VersionedXcm::&lt;CallOf&lt;Runtime&gt;&gt;::decode_all_with_depth_limit(
 			xcm::MAX_XCM_DECODE_DEPTH,
 			<span class="kw-2">&amp;mut </span>message.as_slice(),
 		)

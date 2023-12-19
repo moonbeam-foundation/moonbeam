@@ -1810,6 +1810,30 @@
 <a href="#1810" id="1810">1810</a>
 <a href="#1811" id="1811">1811</a>
 <a href="#1812" id="1812">1812</a>
+<a href="#1813" id="1813">1813</a>
+<a href="#1814" id="1814">1814</a>
+<a href="#1815" id="1815">1815</a>
+<a href="#1816" id="1816">1816</a>
+<a href="#1817" id="1817">1817</a>
+<a href="#1818" id="1818">1818</a>
+<a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1856,9 +1880,12 @@
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
+		fungible::HoldConsideration,
+		tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains,
 		Currency <span class="kw">as </span>CurrencyT, EitherOfDiverse, EqualPrivilegeOnly, Imbalance, InstanceFilter,
-		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
+		LinearStoragePrice, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
+		OnUnbalanced,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
@@ -2111,7 +2138,8 @@
 	<span class="kw">type </span>FreezeIdentifier = ();
 	<span class="kw">type </span>MaxFreezes = ConstU32&lt;<span class="number">0</span>&gt;;
 	<span class="kw">type </span>RuntimeHoldReason = RuntimeHoldReason;
-	<span class="kw">type </span>MaxHolds = ConstU32&lt;<span class="number">0</span>&gt;;
+	<span class="kw">type </span>RuntimeFreezeReason = RuntimeFreezeReason;
+	<span class="kw">type </span>MaxHolds = ConstU32&lt;<span class="number">1</span>&gt;;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_balances::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -2308,6 +2336,7 @@
 	<span class="kw">type </span>FindAuthor = FindAuthorAdapter&lt;AuthorInherent&gt;;
 	<span class="kw">type </span>OnCreate = ();
 	<span class="kw">type </span>GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	<span class="kw">type </span>SuicideQuickClearLimit = ConstU32&lt;<span class="number">0</span>&gt;;
 	<span class="kw">type </span>GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	<span class="kw">type </span>Timestamp = Timestamp;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_evm::WeightInfo&lt;Runtime&gt;;
@@ -2330,18 +2359,30 @@
 	<span class="kw">type </span>Preimages = Preimage;
 }
 
+<span class="macro">parameter_types! </span>{
+	<span class="kw">pub const </span>PreimageBaseDeposit: Balance = <span class="number">5 </span>* currency::MOVR * currency::SUPPLY_FACTOR ;
+	<span class="kw">pub const </span>PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
+	<span class="kw">pub const </span>PreimageHoldReason: RuntimeHoldReason =
+		RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
+}
+
 <span class="kw">impl </span>pallet_preimage::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_preimage::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>ManagerOrigin = EnsureRoot&lt;AccountId&gt;;
-	<span class="kw">type </span>BaseDeposit = ConstU128&lt;{ <span class="number">5 </span>* currency::MOVR * currency::SUPPLY_FACTOR }&gt;;
-	<span class="kw">type </span>ByteDeposit = ConstU128&lt;{ currency::STORAGE_BYTE_FEE }&gt;;
+	<span class="kw">type </span>Consideration = HoldConsideration&lt;
+		AccountId,
+		Balances,
+		PreimageHoldReason,
+		LinearStoragePrice&lt;PreimageBaseDeposit, PreimageByteDeposit, Balance&gt;,
+	&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub const </span>ProposalBond: Permill = Permill::from_percent(<span class="number">5</span>);
 	<span class="kw">pub const </span>TreasuryId: PalletId = PalletId(<span class="kw-2">*</span><span class="string">b&quot;py/trsry&quot;</span>);
+	<span class="kw">pub </span>TreasuryAccount: AccountId = Treasury::account_id();
 }
 
 <span class="kw">type </span>TreasuryApproveOrigin = EitherOfDiverse&lt;
@@ -2374,7 +2415,15 @@
 	<span class="kw">type </span>SpendFunds = ();
 	<span class="kw">type </span>ProposalBondMaximum = ();
 	<span class="kw">type </span>SpendOrigin = frame_support::traits::NeverEnsureOrigin&lt;Balance&gt;; <span class="comment">// Same as Polkadot
-</span>}
+	</span><span class="kw">type </span>AssetKind = ();
+	<span class="kw">type </span>Beneficiary = AccountId;
+	<span class="kw">type </span>BeneficiaryLookup = IdentityLookup&lt;AccountId&gt;;
+	<span class="kw">type </span>Paymaster = PayFromAccount&lt;Balances, TreasuryAccount&gt;;
+	<span class="kw">type </span>BalanceConverter = UnityAssetBalanceConversion;
+	<span class="kw">type </span>PayoutPeriod = ConstU32&lt;<span class="number">0</span>&gt;;
+	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+	</span><span class="kw">type </span>BenchmarkHelper = BenchmarkHelper;
+}
 
 <span class="kw">type </span>IdentityForceOrigin = EitherOfDiverse&lt;
 	EnsureRoot&lt;AccountId&gt;,
@@ -2402,6 +2451,8 @@
 	</span><span class="kw">type </span>SubAccountDeposit = ConstU128&lt;{ currency::deposit(<span class="number">1</span>, <span class="number">53</span>) }&gt;;
 	<span class="kw">type </span>MaxSubAccounts = ConstU32&lt;<span class="number">100</span>&gt;;
 	<span class="kw">type </span>MaxAdditionalFields = ConstU32&lt;<span class="number">100</span>&gt;;
+	<span class="kw">type </span>IdentityInformation = pallet_identity::simple::IdentityInfo&lt;<span class="self">Self</span>::MaxAdditionalFields&gt;;
+
 	<span class="kw">type </span>MaxRegistrars = ConstU32&lt;<span class="number">20</span>&gt;;
 	<span class="kw">type </span>Slashed = Treasury;
 	<span class="kw">type </span>ForceOrigin = IdentityForceOrigin;
@@ -3212,7 +3263,7 @@
 		<span class="comment">// Governance stuff.
 		</span>Scheduler: pallet_scheduler::{Pallet, Storage, Event&lt;T&gt;, Call} = <span class="number">60</span>,
 		Democracy: pallet_democracy::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;, Call} = <span class="number">61</span>,
-		Preimage: pallet_preimage::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">62</span>,
+		Preimage: pallet_preimage::{Pallet, Call, Storage, Event&lt;T&gt;, HoldReason} = <span class="number">62</span>,
 		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">63</span>,
 		Referenda: pallet_referenda::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">64</span>,
 		Origins: governance::custom_origins::{Origin} = <span class="number">65</span>,
@@ -3254,6 +3305,7 @@
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
 </span><span class="kw">use </span>{
+	moonbeam_runtime_common::benchmarking::BenchmarkHelper,
 	moonbeam_xcm_benchmarks::generic::benchmarking <span class="kw">as </span>MoonbeamXcmBenchmarks,
 	MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench,
 };
@@ -3506,10 +3558,6 @@
 		</span><span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(pallet_democracy, MinimumDeposit, u128),
 			Balance::from(<span class="number">4 </span>* MOVR)
-		);
-		<span class="macro">assert_eq!</span>(
-			<span class="macro">get!</span>(pallet_preimage, ByteDeposit, u128),
-			Balance::from(<span class="number">100 </span>* MICROMOVR)
 		);
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(pallet_treasury, ProposalBondMinimum, u128),

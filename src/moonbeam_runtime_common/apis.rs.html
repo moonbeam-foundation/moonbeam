@@ -812,6 +812,8 @@
 <a href="#812" id="812">812</a>
 <a href="#813" id="813">813</a>
 <a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1425,6 +1427,7 @@
 					<span class="kw">impl </span>pallet_xcm_benchmarks::Config <span class="kw">for </span>Runtime {
 						<span class="kw">type </span>XcmConfig = xcm_config::XcmExecutorConfig;
 						<span class="kw">type </span>AccountIdConverter = xcm_config::LocationToAccountId;
+						<span class="kw">type </span>DeliveryHelper = ();
 						<span class="kw">fn </span>valid_destination() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
 							<span class="prelude-val">Ok</span>(MultiLocation::parent())
 						}
@@ -1478,6 +1481,7 @@
 
 					<span class="kw">impl </span>pallet_xcm_benchmarks::generic::Config <span class="kw">for </span>Runtime {
 						<span class="kw">type </span>RuntimeCall = RuntimeCall;
+						<span class="kw">type </span>TransactAsset = Balances;
 
 						<span class="kw">fn </span>worst_case_response() -&gt; (u64, Response) {
 							(<span class="number">0u64</span>, Response::Version(Default::default()))

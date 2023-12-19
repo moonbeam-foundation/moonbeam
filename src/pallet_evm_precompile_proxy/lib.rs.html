@@ -864,7 +864,7 @@
 			</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
 				handle,
 				<span class="prelude-val">Some</span>(contract_address).into(),
-				pallet_balances::Call::&lt;Runtime&gt;::transfer {
+				pallet_balances::Call::&lt;Runtime&gt;::transfer_allow_death {
 					dest: Runtime::Lookup::unlookup(who),
 					value: {
 						<span class="kw">let </span>balance: &lt;Runtime <span class="kw">as </span>pallet_balances::Config&lt;()&gt;&gt;::Balance =
