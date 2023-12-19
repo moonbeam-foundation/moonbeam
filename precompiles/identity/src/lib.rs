@@ -45,6 +45,7 @@ type BalanceOf<T> = <<T as pallet_identity::Config>::Currency as Currency<
 
 type IdentityFieldOf<T> = <<T as pallet_identity::Config>::IdentityInformation
 	as pallet_identity::IdentityInformationProvider>::IdentityField;
+type MaxAdditionalFieldsOf<T> = <T as pallet_identity::Config>::MaxAdditionalFields;
 
 /// Solidity selector of the Vote log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_IDENTITY_SET: [u8; 32] = keccak256!("IdentitySet(address)");
@@ -69,11 +70,12 @@ pub struct IdentityPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile::test_concrete_types(mock::Runtime)]
 impl<Runtime> IdentityPrecompile<Runtime>
 where
-	Runtime: pallet_identity::Config<
+	Runtime: pallet_evm::Config
+		+ pallet_identity::Config<
 			IdentityInformation = pallet_identity::simple::IdentityInfo<
-				<Runtime as pallet_identity::Config>::MaxAdditionalFields,
+				MaxAdditionalFieldsOf<Runtime>,
 			>,
-		> + pallet_evm::Config,
+		>,
 	Runtime::AccountId: Into<H160>,
 	Runtime::Hash: From<H256>,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
