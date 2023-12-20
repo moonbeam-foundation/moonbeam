@@ -35,6 +35,7 @@ use sp_std::{
 	vec::Vec,
 };
 use sp_weights::Weight;
+use xcm::latest::prelude::*;
 use xcm::latest::MultiLocation;
 use xcm_primitives::{
 	AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall, DEFAULT_PROOF_SIZE,
@@ -222,7 +223,10 @@ where
 					weight,
 					DEFAULT_PROOF_SIZE.saturating_div(2),
 				),
-				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
+				overall_weight: Some(Limited(Weight::from_parts(
+					overall_weight,
+					DEFAULT_PROOF_SIZE,
+				))),
 			},
 			refund: false,
 		};
@@ -324,7 +328,10 @@ where
 					weight,
 					DEFAULT_PROOF_SIZE.saturating_div(2),
 				),
-				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
+				overall_weight: Some(Limited(Weight::from_parts(
+					overall_weight,
+					DEFAULT_PROOF_SIZE,
+				))),
 			},
 			inner_call,
 			refund: false,
@@ -398,7 +405,10 @@ where
 					weight,
 					DEFAULT_PROOF_SIZE.saturating_div(2),
 				),
-				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
+				overall_weight: Some(Limited(Weight::from_parts(
+					overall_weight,
+					DEFAULT_PROOF_SIZE,
+				))),
 			},
 			refund: false,
 			call,
@@ -492,7 +502,10 @@ where
 					weight,
 					DEFAULT_PROOF_SIZE.saturating_div(2),
 				),
-				overall_weight: Some(Weight::from_parts(overall_weight, DEFAULT_PROOF_SIZE)),
+				overall_weight: Some(Limited(Weight::from_parts(
+					overall_weight,
+					DEFAULT_PROOF_SIZE,
+				))),
 			},
 			refund: false,
 			call,
@@ -571,6 +584,11 @@ where
 
 		let inner_call: Vec<_> = inner_call.into();
 
+		let overall_weight_limit = match overall_weight.ref_time() {
+			u64::MAX => Unlimited,
+			_ => Limited(overall_weight),
+		};
+
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -586,7 +604,7 @@ where
 			inner_call,
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(overall_weight),
+				overall_weight: Some(overall_weight_limit),
 			},
 			refund,
 		};
@@ -624,6 +642,11 @@ where
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
 
+		let overall_weight_limit = match overall_weight.ref_time() {
+			u64::MAX => Unlimited,
+			_ => Limited(overall_weight),
+		};
+
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -636,7 +659,7 @@ where
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(overall_weight),
+				overall_weight: Some(overall_weight_limit),
 			},
 			inner_call,
 			refund,
@@ -659,6 +682,11 @@ where
 	) -> EvmResult {
 		let call: Vec<_> = call.into();
 
+		let overall_weight_limit = match overall_weight.ref_time() {
+			u64::MAX => Unlimited,
+			_ => Limited(overall_weight),
+		};
+
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -672,7 +700,7 @@ where
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(overall_weight),
+				overall_weight: Some(overall_weight_limit),
 			},
 			refund,
 			call,
@@ -707,6 +735,11 @@ where
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
 
+		let overall_weight_limit = match overall_weight.ref_time() {
+			u64::MAX => Unlimited,
+			_ => Limited(overall_weight),
+		};
+
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -718,7 +751,7 @@ where
 			},
 			weight_info: TransactWeights {
 				transact_required_weight_at_most: weight,
-				overall_weight: Some(overall_weight),
+				overall_weight: Some(overall_weight_limit),
 			},
 			refund,
 			call,

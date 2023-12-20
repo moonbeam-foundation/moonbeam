@@ -58,7 +58,7 @@ async function createAccounts(
     randomAccounts.map((randomCandidate) =>
       context
         .polkadotJs()
-        .tx.balances.transfer(randomCandidate.address, MIN_GLMR_STAKING + 1n * GLMR)
+        .tx.balances.transferAllowDeath(randomCandidate.address, MIN_GLMR_STAKING + 1n * GLMR)
         .signAsync(alith, { nonce: alithNonce++ })
     ),
     { allowFailures: false }

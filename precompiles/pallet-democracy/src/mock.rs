@@ -96,6 +96,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
@@ -140,6 +141,7 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
@@ -213,18 +215,12 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = ();
 }
 
-parameter_types! {
-	pub const BaseDeposit: u64 = 10;
-	pub const ByteDeposit: u64 = 10;
-}
-
 impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
-	type BaseDeposit = BaseDeposit;
-	type ByteDeposit = ByteDeposit;
+	type Consideration = ();
 }
 
 /// Build test externalities, prepopulated with data for testing democracy precompiles
@@ -232,7 +228,11 @@ pub(crate) struct ExtBuilder {
 	/// Endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 	/// Referenda that already exist (don't need a proposal and launch period delay)
-	referenda: Vec<(Bounded<RuntimeCall>, VoteThreshold, BlockNumber)>,
+	referenda: Vec<(
+		Bounded<RuntimeCall, BlakeTwo256>,
+		VoteThreshold,
+		BlockNumber,
+	)>,
 }
 
 impl Default for ExtBuilder {
@@ -254,7 +254,11 @@ impl ExtBuilder {
 	/// Put some referenda into storage before starting the test
 	pub(crate) fn with_referenda(
 		mut self,
-		referenda: Vec<(Bounded<RuntimeCall>, VoteThreshold, BlockNumber)>,
+		referenda: Vec<(
+			Bounded<RuntimeCall, BlakeTwo256>,
+			VoteThreshold,
+			BlockNumber,
+		)>,
 	) -> Self {
 		self.referenda = referenda;
 		self

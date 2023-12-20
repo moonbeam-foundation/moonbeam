@@ -88,7 +88,7 @@ describeSuite({
 
         await new Promise((resolve) => {
           paraApi.tx.balances
-            .transfer(BALTATHAR_ADDRESS, ethers.parseEther("2"))
+            .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
             .signAndSend(charleth, ({ status, events }) => {
               if (status.isInBlock) {
                 log("Transaction is in block");

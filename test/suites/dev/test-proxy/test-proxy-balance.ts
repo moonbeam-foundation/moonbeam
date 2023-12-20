@@ -31,7 +31,7 @@ describeSuite({
             .tx.proxy.proxy(
               ALITH_ADDRESS,
               null,
-              context.polkadotJs().tx.balances.transfer(CHARLETH_ADDRESS, 100)
+              context.polkadotJs().tx.balances.transferAllowDeath(CHARLETH_ADDRESS, 100)
             )
             .signAsync(baltathar)
         );

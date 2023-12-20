@@ -11,7 +11,9 @@ describeSuite({
 
     beforeAll(async function () {
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(randomAccount.address, MIN_GLMR_STAKING + GLMR),
+        context
+          .polkadotJs()
+          .tx.balances.transferAllowDeath(randomAccount.address, MIN_GLMR_STAKING + GLMR),
         { allowFailures: false }
       );
 
@@ -31,7 +33,7 @@ describeSuite({
         const { result } = await context.createBlock(
           context
             .polkadotJs()
-            .tx.balances.transfer(alith.address, MIN_GLMR_STAKING)
+            .tx.balances.transferAllowDeath(alith.address, MIN_GLMR_STAKING)
             .signAsync(randomAccount)
         );
         expect(result!.error!.name.toString()).to.be.equal('{"token":"Frozen"}');

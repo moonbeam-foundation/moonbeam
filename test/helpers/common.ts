@@ -13,6 +13,7 @@ export function rateLimiter(options?: Bottleneck.ConstructorOptions) {
 
   return new Bottleneck(settings);
 }
+
 export async function checkTimeSliceForUpgrades(
   api: ApiPromise,
   blockNumbers: number[],

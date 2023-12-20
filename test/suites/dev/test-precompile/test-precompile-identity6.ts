@@ -32,7 +32,7 @@ describeSuite({
 
       const identityHash = context
         .polkadotJs()
-        .registry.createType("PalletIdentityIdentityInfo", identityData)
+        .registry.createType("PalletIdentitySimpleIdentityInfo", identityData)
         .hash.toHex();
       const block = await context.createBlock(
         await context.writeContract!({

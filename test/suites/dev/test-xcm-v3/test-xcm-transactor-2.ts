@@ -16,7 +16,7 @@ describeSuite({
           .polkadotJs()
           .createType("PalletXcmTransactorTransactWeights", {
             transactRequiredWeightAtMost: { refTime: 10000, proofSize: 10000 },
-            overallWeight: { refTime: 10000, proofSize: 10000 },
+            overallWeight: { Limited: { refTime: 10000, proofSize: 10000 } },
           });
 
         const fee = context.polkadotJs().createType("PalletXcmTransactorCurrencyPayment", {

@@ -102,6 +102,7 @@ substrate-prometheus-endpoint = { workspace = true }
 # Frontier
 fc-consensus = { workspace = true }
 fc-db = { workspace = true }
+fc-api = { workspace = true }
 fc-mapping-sync = { workspace = true, features = [ "sql" ] }
 fc-rpc = { workspace = true, features = [ "rpc-binary-search-estimate", "txpool" ] }
 fc-rpc-core = { workspace = true }
@@ -164,7 +165,6 @@ substrate-build-script-utils = { workspace = true }
 
 [features]
 default = [
-	"kusama-native",
 	"moonbase-native",
 	"moonbeam-native",
 	"moonriver-native",
@@ -172,10 +172,6 @@ default = [
 	"westend-native",
 ]
 
-kusama-native = [
-	"polkadot-cli/kusama-native",
-	"polkadot-service/kusama-native",
-]
 rococo-native = [
 	"polkadot-cli/rococo-native",
 	"polkadot-service/rococo-native",

@@ -63,7 +63,7 @@ describeSuite({
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("StagingXcmVersionedXcm", xcmMessage) as any;
+          .createType("XcmVersionedXcm", xcmMessage) as any;
 
         const totalMessage = [...receivedMessage.toU8a()];
         // Send RPC call to inject XCM message

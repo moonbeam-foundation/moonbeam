@@ -116,8 +116,6 @@ jobs:
         run: rustup component add llvm-tools-preview
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
-        with:
-          features: evm-tracing
       - name: Enable coverage gathering
         run: |
           # Enable coverage when running tests

@@ -318,7 +318,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
       .as_v2();
 
     await injectHrmpMessageAndSeal(context, 1, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 
@@ -411,7 +411,7 @@ describeDevMoonbeam("Fee Multiplier - XCM Executions", (context) => {
       .as_v2();
 
     await injectHrmpMessageAndSeal(context, 1, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 

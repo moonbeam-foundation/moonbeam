@@ -6,6 +6,7 @@ export interface HeavyContract {
   account: string;
   key: string;
 }
+
 /**
  * @description Deploy multiple contracts to test the EVM storage limit.
  * @param context Context of the test

@@ -72,13 +72,13 @@ describeDevMoonbeam(
 
       const chargedWeight = await weightMessage(
         context,
-        context.polkadotApi.createType("StagingXcmVersionedXcm", xcmMessage) as any
+        context.polkadotApi.createType("XcmVersionedXcm", xcmMessage) as any
       );
 
       const chargedFee = chargedWeight * 50000n;
 
       await injectHrmpMessageAndSeal(context, foreign_para_id, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -158,13 +158,13 @@ describeDevMoonbeam(
 
       const chargedWeight = await weightMessage(
         context,
-        context.polkadotApi.createType("StagingXcmVersionedXcm", xcmMessage) as any
+        context.polkadotApi.createType("XcmVersionedXcm", xcmMessage) as any
       );
 
       const chargedFee = chargedWeight * 50000n;
 
       await injectHrmpMessageAndSeal(context, foreign_para_id, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 

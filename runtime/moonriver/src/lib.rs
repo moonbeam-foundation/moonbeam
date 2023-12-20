@@ -44,9 +44,12 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
+		fungible::HoldConsideration,
+		tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains,
 		Currency as CurrencyT, EitherOfDiverse, EqualPrivilegeOnly, Imbalance, InstanceFilter,
-		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
+		LinearStoragePrice, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
+		OnUnbalanced,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
@@ -299,7 +302,8 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ConstU32<0>;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type MaxHolds = ConstU32<0>;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type MaxHolds = ConstU32<1>;
 	type WeightInfo = moonbeam_weights::pallet_balances::WeightInfo<Runtime>;
 }
 
@@ -496,6 +500,7 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = moonbeam_weights::pallet_evm::WeightInfo<Runtime>;
@@ -518,18 +523,30 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = Preimage;
 }
 
+parameter_types! {
+	pub const PreimageBaseDeposit: Balance = 5 * currency::MOVR * currency::SUPPLY_FACTOR ;
+	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
+	pub const PreimageHoldReason: RuntimeHoldReason =
+		RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
+}
+
 impl pallet_preimage::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_preimage::WeightInfo<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
-	type BaseDeposit = ConstU128<{ 5 * currency::MOVR * currency::SUPPLY_FACTOR }>;
-	type ByteDeposit = ConstU128<{ currency::STORAGE_BYTE_FEE }>;
+	type Consideration = HoldConsideration<
+		AccountId,
+		Balances,
+		PreimageHoldReason,
+		LinearStoragePrice<PreimageBaseDeposit, PreimageByteDeposit, Balance>,
+	>;
 }
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
+	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
 type TreasuryApproveOrigin = EitherOfDiverse<
@@ -562,6 +579,14 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
+	type AssetKind = ();
+	type Beneficiary = AccountId;
+	type BeneficiaryLookup = IdentityLookup<AccountId>;
+	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
+	type BalanceConverter = UnityAssetBalanceConversion;
+	type PayoutPeriod = ConstU32<0>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = BenchmarkHelper;
 }
 
 type IdentityForceOrigin = EitherOfDiverse<
@@ -590,6 +615,8 @@ impl pallet_identity::Config for Runtime {
 	type SubAccountDeposit = ConstU128<{ currency::deposit(1, 53) }>;
 	type MaxSubAccounts = ConstU32<100>;
 	type MaxAdditionalFields = ConstU32<100>;
+	type IdentityInformation = pallet_identity::simple::IdentityInfo<Self::MaxAdditionalFields>;
+
 	type MaxRegistrars = ConstU32<20>;
 	type Slashed = Treasury;
 	type ForceOrigin = IdentityForceOrigin;
@@ -1056,23 +1083,6 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
-use pallet_migrations::{GetMigrations, Migration};
-pub struct TransactorRelayIndexMigration<Runtime>(sp_std::marker::PhantomData<Runtime>);
-
-impl<Runtime> GetMigrations for TransactorRelayIndexMigration<Runtime>
-where
-	Runtime: pallet_xcm_transactor::Config,
-{
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		vec![Box::new(
-			moonbeam_runtime_common::migrations::PopulateRelayIndices::<Runtime>(
-				moonbeam_relay_encoder::kusama::KUSAMA_RELAY_INDICES,
-				Default::default(),
-			),
-		)]
-	}
-}
-
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MigrationsList = (
@@ -1080,13 +1090,10 @@ impl pallet_migrations::Config for Runtime {
 			Runtime,
 			CouncilCollective,
 			TechCommitteeCollective,
+			TreasuryCouncilCollective,
+			OpenTechCommitteeCollective,
 		>,
-		moonbeam_runtime_common::migrations::ReferendaMigrations<
-			Runtime,
-			CouncilCollective,
-			TechCommitteeCollective,
-		>,
-		TransactorRelayIndexMigration<Runtime>,
+		moonbeam_runtime_common::migrations::ReferendaMigrations<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
 }
@@ -1110,6 +1117,7 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 			RuntimeCall::Treasury(_) => false,
 			RuntimeCall::XcmTransactor(_) => false,
 			RuntimeCall::EthereumXcm(_) => false,
+			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			_ => true,
 		}
 	}
@@ -1167,6 +1175,7 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
+			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			_ => true,
 		}
 	}
@@ -1418,7 +1427,7 @@ construct_runtime! {
 		// Governance stuff.
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 60,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 61,
-		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 62,
+		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>, HoldReason} = 62,
 		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 63,
 		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 64,
 		Origins: governance::custom_origins::{Origin} = 65,
@@ -1460,6 +1469,7 @@ construct_runtime! {
 
 #[cfg(feature = "runtime-benchmarks")]
 use {
+	moonbeam_runtime_common::benchmarking::BenchmarkHelper,
 	moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks,
 	MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench,
 };
@@ -1712,10 +1722,6 @@ mod tests {
 		assert_eq!(
 			get!(pallet_democracy, MinimumDeposit, u128),
 			Balance::from(4 * MOVR)
-		);
-		assert_eq!(
-			get!(pallet_preimage, ByteDeposit, u128),
-			Balance::from(100 * MICROMOVR)
 		);
 		assert_eq!(
 			get!(pallet_treasury, ProposalBondMinimum, u128),

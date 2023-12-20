@@ -71,6 +71,8 @@ xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 
+account = { workspace = true }
+
 [features]
 std = [
 	"fp-ethereum/std",
@@ -94,6 +96,7 @@ std = [
 	"sp-std/std",
 	"xcm-executor/std",
 	"xcm/std",
+	"account/std"
 ]
 runtime-benchmarks = [
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",

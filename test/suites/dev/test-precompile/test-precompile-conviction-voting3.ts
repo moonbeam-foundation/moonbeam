@@ -25,7 +25,7 @@ describeSuite({
     });
 
     beforeEach(async function () {
-      proposalIndex = await createProposal(context);
+      proposalIndex = await createProposal({ context });
 
       const block = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n).block();
       // Verifies the setup is correct

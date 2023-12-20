@@ -32,7 +32,9 @@ describeSuite({
 
       // We first fund the descend origin derivated address
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(descendOriginAddress, transferredBalance),
+        context
+          .polkadotJs()
+          .tx.balances.transferAllowDeath(descendOriginAddress, transferredBalance),
         { allowFailures: false }
       );
 
@@ -143,7 +145,7 @@ describeSuite({
 
           // Send an XCM and create block to execute it
           await injectHrmpMessageAndSeal(context, 1, {
-            type: "StagingXcmVersionedXcm",
+            type: "XcmVersionedXcm",
             payload: xcmMessage,
           } as RawXcmMessage);
 

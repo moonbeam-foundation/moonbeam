@@ -224,7 +224,7 @@ fn verify_pallet_prefixes() {
 				storage_name: b"Holds".to_vec(),
 				prefix: prefix(b"Balances", b"Holds"),
 				max_values: None,
-				max_size: Some(37),
+				max_size: Some(55),
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
@@ -623,7 +623,7 @@ fn transfer_through_evm_to_stake() {
 				})
 			);
 			// Alice transfer from free balance 3_000_000 GLMR to Bob
-			assert_ok!(Balances::transfer(
+			assert_ok!(Balances::transfer_allow_death(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
 				3_000_000 * GLMR,
@@ -1408,7 +1408,7 @@ fn ethereum_invalid_transaction() {
 			Executive::apply_extrinsic(unchecked_eth_tx(INVALID_ETH_TX)),
 			Err(
 				sp_runtime::transaction_validity::TransactionValidityError::Invalid(
-					sp_runtime::transaction_validity::InvalidTransaction::Custom(3u8)
+					sp_runtime::transaction_validity::InvalidTransaction::Custom(0u8)
 				)
 			)
 		);
@@ -1465,7 +1465,7 @@ fn transfer_ed_0_substrate() {
 		.build()
 		.execute_with(|| {
 			// Substrate transfer
-			assert_ok!(Balances::transfer(
+			assert_ok!(Balances::transfer_allow_death(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
 				1 * GLMR,
@@ -2519,7 +2519,7 @@ fn precompile_existence() {
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
 			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
-			2069, 2070, 2071,
+			2069, 2070, 2071, 2072,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
