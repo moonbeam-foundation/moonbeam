@@ -67,7 +67,6 @@ pub use moonbeam_core_primitives::{
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::weights as moonbeam_weights;
-use pallet_async_backing::TimeFromRelaySlot;
 pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
@@ -122,6 +121,7 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 
 pub mod asset_config;
 pub mod governance;
+pub mod timestamp;
 pub mod xcm_config;
 use governance::councils::*;
 
@@ -502,8 +502,6 @@ where
 
 moonbeam_runtime_common::impl_on_charge_evm_transaction!();
 
-pub type TimestampForEvm = TimeFromRelaySlot<RELAY_CHAIN_SLOT_DURATION_MILLIS, Runtime>;
-
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = TransactionPaymentAsGasPrice;
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
@@ -525,7 +523,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	type Timestamp = TimestampForEvm;
+	type Timestamp = crate::timestamp::TimestampFromRelaySlot;
 	type WeightInfo = moonbeam_weights::pallet_evm::WeightInfo<Runtime>;
 }
 
