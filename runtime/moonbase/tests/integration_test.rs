@@ -667,7 +667,6 @@ fn reward_block_authors() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
 			for x in 2..1199 {
 				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
@@ -711,7 +710,6 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
 			assert_ok!(ParachainStaking::set_parachain_bond_account(
 				root_origin(),
 				AccountId::from(CHARLIE),
@@ -760,7 +758,6 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -872,7 +869,6 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -976,7 +972,6 @@ fn claim_via_precompile() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1068,7 +1063,6 @@ fn is_contributor_via_precompile() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1150,7 +1144,6 @@ fn reward_info_via_precompile() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1222,7 +1215,6 @@ fn update_reward_address_via_precompile() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;

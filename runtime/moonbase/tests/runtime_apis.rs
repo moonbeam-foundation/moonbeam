@@ -106,7 +106,6 @@ fn ethereum_runtime_rpc_api_author() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
 			run_to_block(2, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			assert_eq!(Runtime::author(), H160::from(ALICE));
 		});
@@ -212,7 +211,6 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
 			let _result = Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX));
 			rpc_run_to_block(2);
 			let statuses =
@@ -240,7 +238,6 @@ fn ethereum_runtime_rpc_api_current_block() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
 			rpc_run_to_block(2);
 			let block = Runtime::current_block().expect("Block result.");
 			assert_eq!(block.header.number, U256::from(1u8));
@@ -271,7 +268,6 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
 			let _result = Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX));
 			rpc_run_to_block(2);
 			let receipts = Runtime::current_receipts().expect("Receipts result.");
@@ -314,7 +310,6 @@ fn can_author_when_selected_is_empty() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
 			run_to_block(2, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 
 			assert_eq!(ParachainStaking::candidate_pool().0.len(), 1);
