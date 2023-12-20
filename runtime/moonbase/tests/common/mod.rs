@@ -16,12 +16,8 @@
 
 #![allow(dead_code)]
 
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use fp_evm::GenesisAccount;
-use frame_support::{
-	assert_ok,
-	traits::{OnFinalize, OnInitialize},
-};
+use frame_support::traits::{OnFinalize, OnInitialize};
 use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetType};
 pub use moonbase_runtime::{
 	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
@@ -32,7 +28,7 @@ pub use moonbase_runtime::{
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
-use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
+use sp_runtime::{BuildStorage, Digest, DigestItem, Perbill, Percent};
 
 use std::collections::BTreeMap;
 
@@ -348,7 +344,7 @@ pub fn root_origin() -> <Runtime as frame_system::Config>::RuntimeOrigin {
 /// contains the `relay_chain_block_number`, which is used in `author-filter` as a
 /// source of randomness to filter valid authors at each block.
 pub fn set_parachain_inherent_data() {
-	use cumulus_primitives_core::PersistedValidationData;
+	/*use cumulus_primitives_core::PersistedValidationData;
 	use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 	let (relay_parent_storage_root, relay_chain_state) =
 		RelayStateSproofBuilder::default().into_state_root_and_proof();
@@ -368,7 +364,7 @@ pub fn set_parachain_inherent_data() {
 			data: parachain_inherent_data
 		}
 	)
-	.dispatch(inherent_origin()));
+	.dispatch(inherent_origin()));*/
 }
 
 pub fn unchecked_eth_tx(raw_hex_tx: &str) -> UncheckedExtrinsic {

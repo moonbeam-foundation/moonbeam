@@ -180,14 +180,13 @@ pub struct Erc20BalancesPrecompile<Runtime, Metadata: Erc20Metadata, Instance: '
 #[precompile_utils::precompile]
 impl<Runtime, Metadata, Instance> Erc20BalancesPrecompile<Runtime, Metadata, Instance>
 where
-	Metadata: Erc20Metadata,
-	Instance: InstanceToPrefix + 'static,
-	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config + pallet_timestamp::Config,
+	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::RuntimeCall: From<pallet_balances::Call<Runtime, Instance>>,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
-	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
+	Metadata: Erc20Metadata,
+	Instance: InstanceToPrefix + 'static,
 {
 	#[precompile::public("totalSupply()")]
 	#[precompile::view]

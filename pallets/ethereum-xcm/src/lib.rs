@@ -91,7 +91,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_timestamp::Config + pallet_evm::Config {
+	pub trait Config: frame_system::Config + pallet_evm::Config {
 		/// Invalid transaction error
 		type InvalidEvmTransactionError: From<TransactionValidationError>;
 		/// Handler for applying an already validated transaction

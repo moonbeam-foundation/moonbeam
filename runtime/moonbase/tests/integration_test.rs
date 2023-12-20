@@ -171,25 +171,6 @@ fn verify_pallet_prefixes() {
 		res.to_vec()
 	};
 	assert_eq!(
-		<moonbase_runtime::Timestamp as StorageInfoTrait>::storage_info(),
-		vec![
-			StorageInfo {
-				pallet_name: b"Timestamp".to_vec(),
-				storage_name: b"Now".to_vec(),
-				prefix: prefix(b"Timestamp", b"Now"),
-				max_values: Some(1),
-				max_size: Some(8),
-			},
-			StorageInfo {
-				pallet_name: b"Timestamp".to_vec(),
-				storage_name: b"DidUpdate".to_vec(),
-				prefix: prefix(b"Timestamp", b"DidUpdate"),
-				max_values: Some(1),
-				max_size: Some(1),
-			}
-		]
-	);
-	assert_eq!(
 		<moonbase_runtime::Balances as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
@@ -477,7 +458,6 @@ fn verify_pallet_indices() {
 	}
 	is_pallet_index::<moonbase_runtime::System>(0);
 	is_pallet_index::<moonbase_runtime::Utility>(1);
-	is_pallet_index::<moonbase_runtime::Timestamp>(2);
 	is_pallet_index::<moonbase_runtime::Balances>(3);
 	is_pallet_index::<moonbase_runtime::Sudo>(4);
 	is_pallet_index::<moonbase_runtime::ParachainSystem>(6);

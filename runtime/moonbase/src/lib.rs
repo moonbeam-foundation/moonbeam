@@ -63,10 +63,11 @@ pub use fp_evm::GenesisAccount;
 use frame_system::{EnsureRoot, EnsureSigned};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
-	Index, Signature,
+	Index, Signature, RELAY_CHAIN_SLOT_DURATION_MILLIS,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::weights as moonbeam_weights;
+use pallet_async_backing::TimeFromRelaySlot;
 pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
@@ -501,6 +502,8 @@ where
 
 moonbeam_runtime_common::impl_on_charge_evm_transaction!();
 
+pub type TimestampForEvm = TimeFromRelaySlot<RELAY_CHAIN_SLOT_DURATION_MILLIS, Runtime>;
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = TransactionPaymentAsGasPrice;
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
@@ -522,7 +525,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	type Timestamp = Timestamp;
+	type Timestamp = TimestampForEvm;
 	type WeightInfo = moonbeam_weights::pallet_evm::WeightInfo<Runtime>;
 }
 
@@ -710,7 +713,6 @@ parameter_types! {
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 }
 
-pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = 1;
 pub const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 
@@ -833,9 +835,23 @@ impl pallet_author_inherent::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_author_inherent::WeightInfo<Runtime>;
 }
 
+#[cfg(test)]
+mod mock {
+	use super::*;
+	pub struct MockRandomness;
+	impl frame_support::traits::Randomness<H256, BlockNumber> for MockRandomness {
+		fn random(subject: &[u8]) -> (H256, BlockNumber) {
+			(H256(sp_io::hashing::blake2_256(subject)), 0)
+		}
+	}
+}
+
 impl pallet_author_slot_filter::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	#[cfg(not(test))]
 	type RandomnessSource = Randomness;
+	#[cfg(test)]
+	type RandomnessSource = mock::MockRandomness;
 	type PotentialAuthors = ParachainStaking;
 	type WeightInfo = moonbeam_weights::pallet_author_slot_filter::WeightInfo<Runtime>;
 }

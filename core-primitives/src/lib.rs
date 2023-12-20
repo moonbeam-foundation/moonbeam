@@ -49,3 +49,6 @@ pub type Address = AccountId;
 pub type AccountIndex = u32;
 /// Digest item type.
 pub type DigestItem = generic::DigestItem;
+
+/// Relay chain slot duration in milliseconds
+pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6_000;
