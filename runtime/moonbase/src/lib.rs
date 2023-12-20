@@ -1360,7 +1360,9 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
-impl pallet_celestia_offchain_worker::Config for Runtime {}
+impl pallet_celestia_offchain_worker::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+}
 
 construct_runtime! {
 	pub enum Runtime
@@ -1419,7 +1421,7 @@ construct_runtime! {
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
 
-		Celestia: pallet_celestia_offchain_worker::{Pallet} = 121,
+		Celestia: pallet_celestia_offchain_worker::{Pallet, Event<T>} = 121,
 	}
 }
 
