@@ -6562,6 +6562,7 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-std",
+ "sp-timestamp",
  "sp-transaction-pool",
  "sp-version",
  "sp-weights",

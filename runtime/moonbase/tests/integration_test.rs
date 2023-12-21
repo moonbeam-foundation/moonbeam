@@ -758,6 +758,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
+			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -972,6 +973,7 @@ fn claim_via_precompile() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
+			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;

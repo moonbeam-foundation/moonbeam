@@ -16,8 +16,12 @@
 
 #![allow(dead_code)]
 
+use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use fp_evm::GenesisAccount;
-use frame_support::traits::{OnFinalize, OnInitialize};
+use frame_support::{
+	assert_ok,
+	traits::{OnFinalize, OnInitialize},
+};
 use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetType};
 pub use moonbase_runtime::{
 	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
@@ -27,8 +31,9 @@ pub use moonbase_runtime::{
 	UncheckedExtrinsic, HOURS, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
+use polkadot_parachain::primitives::HeadData;
 use sp_core::{Encode, H160};
-use sp_runtime::{BuildStorage, Digest, DigestItem, Perbill, Percent};
+use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
 use std::collections::BTreeMap;
 
@@ -350,4 +355,43 @@ pub fn ethereum_transaction(raw_hex_tx: &str) -> pallet_ethereum::Transaction {
 	let transaction = ethereum::EnvelopedDecodable::decode(&bytes[..]);
 	assert!(transaction.is_ok());
 	transaction.unwrap()
+}
+
+/// Mock the inherent that sets validation data in ParachainSystem, which
+/// contains the `relay_chain_block_number`, which is used in `author-filter` as a
+/// source of randomness to filter valid authors at each block.
+pub fn set_parachain_inherent_data() {
+	use cumulus_primitives_core::PersistedValidationData;
+	use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+
+	let mut relay_sproof = RelayStateSproofBuilder::default();
+	relay_sproof.para_id = 100u32.into();
+	relay_sproof.included_para_head = Some(HeadData(vec![1, 2, 3]));
+
+	let additional_key_values = vec![(
+		moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
+		sp_timestamp::Timestamp::default().encode(),
+	)];
+
+	relay_sproof.additional_key_values = additional_key_values;
+
+	let (relay_parent_storage_root, relay_chain_state) = relay_sproof.into_state_root_and_proof();
+
+	let vfp = PersistedValidationData {
+		relay_parent_number: 1u32,
+		relay_parent_storage_root,
+		..Default::default()
+	};
+	let parachain_inherent_data = ParachainInherentData {
+		validation_data: vfp,
+		relay_chain_state: relay_chain_state,
+		downward_messages: Default::default(),
+		horizontal_messages: Default::default(),
+	};
+	assert_ok!(RuntimeCall::ParachainSystem(
+		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data {
+			data: parachain_inherent_data
+		}
+	)
+	.dispatch(inherent_origin()));
 }
