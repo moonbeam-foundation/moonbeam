@@ -67,7 +67,7 @@ describeSuite({
         await context.upgradeRuntime({
           logger: log,
           runtimeName: "moonbeam",
-          localPath: MoonwallContext.getContext().rtUpgradePath,
+          localPath: (await MoonwallContext.getContext()).rtUpgradePath,
           useGovernance: true,
           waitMigration: true,
           runtimeTag: "local",
