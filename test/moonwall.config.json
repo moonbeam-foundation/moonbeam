@@ -359,6 +359,7 @@
           {
             "name": "mb",
             "type": "parachain",
+            "allowUnresolvedImports": true,
             "configPath": "./configs/moonbeam.yml"
           }
         ]
@@ -421,7 +422,7 @@
       ],
       "multiThreads": 4,
       "envVars": ["DEBUG_COLORS=1"],
-      "reporters": ["html", "default"],
+      "reporters": ["html", "basic"],
       "foundation": {
         "type": "dev",
         "launchSpec": [
