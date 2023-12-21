@@ -240,6 +240,10 @@
 <a href="#240" id="240">240</a>
 <a href="#241" id="241">241</a>
 <a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -313,7 +317,11 @@
 	</span>}
 }
 
-<span class="kw">impl </span>From&lt;[u8; <span class="number">32</span>]&gt; <span class="kw">for </span>AccountId20 {
+<span class="comment">// NOTE: the implementation is lossy, and is intended to be used
+// only to convert from Polkadot accounts to AccountId20.
+// See https://github.com/moonbeam-foundation/moonbeam/pull/2315#discussion_r1205830577
+// DO NOT USE IT FOR ANYTHING ELSE.
+</span><span class="kw">impl </span>From&lt;[u8; <span class="number">32</span>]&gt; <span class="kw">for </span>AccountId20 {
 	<span class="kw">fn </span>from(bytes: [u8; <span class="number">32</span>]) -&gt; <span class="self">Self </span>{
 		<span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">0u8</span>; <span class="number">20</span>];
 		buffer.copy_from_slice(<span class="kw-2">&amp;</span>bytes[..<span class="number">20</span>]);

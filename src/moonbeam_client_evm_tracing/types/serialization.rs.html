@@ -111,6 +111,7 @@
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -134,6 +135,7 @@
 	ser::{Error, SerializeSeq},
 	Serializer,
 };
+<span class="kw">use </span>sp_runtime::traits::UniqueSaturatedInto;
 
 <span class="kw">pub fn </span>seq_h256_serialize&lt;S&gt;(data: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Vec&lt;H256&gt;&gt;, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
 <span class="kw">where
@@ -208,7 +210,7 @@
 <span class="kw">where
 	</span>S: Serializer,
 {
-	serializer.serialize_u64(data.low_u64())
+	serializer.serialize_u64(UniqueSaturatedInto::&lt;u64&gt;::unique_saturated_into(<span class="kw-2">*</span>data))
 }
 
 <span class="kw">pub fn </span>h256_serialize&lt;S&gt;(data: <span class="kw-2">&amp;</span>H256, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
