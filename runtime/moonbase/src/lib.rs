@@ -523,7 +523,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	type Timestamp = crate::timestamp::TimestampFromRelaySlot;
+	type Timestamp = crate::timestamp::RelayTimestamp;
 	type WeightInfo = moonbeam_weights::pallet_evm::WeightInfo<Runtime>;
 }
 
@@ -730,7 +730,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
-	type ConsensusHook = ConsensusHook;
+	type ConsensusHook = crate::timestamp::ConsensusHookWrapperForRelayTimestamp<ConsensusHook>;
 }
 
 impl parachain_info::Config for Runtime {}

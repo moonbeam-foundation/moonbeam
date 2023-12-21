@@ -16,36 +16,71 @@
 
 //! A way to get a relyable timestamp
 
-use crate::AsyncBacking;
+use crate::Runtime;
+use cumulus_pallet_parachain_system::{
+	consensus_hook::UnincludedSegmentCapacity,
+	relay_state_snapshot::{self, ReadEntryErr},
+	ConsensusHook, RelayChainStateProof,
+};
+use frame_support::pallet_prelude::*;
 use frame_support::storage::types::{StorageValue, ValueQuery};
 use frame_support::traits::{StorageInstance, Time};
-pub use moonbeam_core_primitives::RELAY_CHAIN_SLOT_DURATION_MILLIS;
+pub use moonbeam_core_primitives::{well_known_relay_keys, RELAY_CHAIN_SLOT_DURATION_MILLIS};
 
-/// Compute the current timestamp from the last relay slot
-pub struct TimestampFromRelaySlot;
-
-impl Time for TimestampFromRelaySlot {
+pub struct RelayTimestamp;
+impl Time for RelayTimestamp {
 	type Moment = u64;
 
 	fn now() -> Self::Moment {
-		if let Some((last_slot, _)) = AsyncBacking::slot_info() {
-			RelayGenesisTime::get()
-				+ u64::from(RELAY_CHAIN_SLOT_DURATION_MILLIS).saturating_mul((*last_slot).into())
-		} else {
-			RelayGenesisTime::get()
-		}
+		RelayTimestampNow::get()
 	}
 }
 
-// Prefix for storage value RelayGenesisTime
-pub struct RelayGenesisTimePrefix;
-impl StorageInstance for RelayGenesisTimePrefix {
-	const STORAGE_PREFIX: &'static str = "RelayGenesisTime";
+/// A wrapper around the consensus hook to get the relay timlestmap from the relay storage proof
+pub struct ConsensusHookWrapperForRelayTimestamp<Inner>(core::marker::PhantomData<Inner>);
+impl<Inner: ConsensusHook> ConsensusHook for ConsensusHookWrapperForRelayTimestamp<Inner> {
+	fn on_state_proof(state_proof: &RelayChainStateProof) -> (Weight, UnincludedSegmentCapacity) {
+		let relay_timestamp: u64 =
+			match state_proof.read_entry(well_known_relay_keys::TIMESTAMP_NOW, None) {
+				Ok(relay_timestamp) => relay_timestamp,
+				// Log the read entry error
+				Err(relay_state_snapshot::Error::ReadEntry(ReadEntryErr::Proof)) => {
+					log::error!("Invalid relay storage proof: fail to read key TIMESTAMP_NOW");
+					panic!("Invalid realy storage proof: fail to read key TIMESTAMP_NOW");
+				}
+				Err(relay_state_snapshot::Error::ReadEntry(ReadEntryErr::Decode)) => {
+					log::error!("Corrupted relay storage: fail to decode value TIMESTAMP_NOW");
+					panic!("Corrupted relay storage: fail to decode value TIMESTAMP_NOW");
+				}
+				Err(relay_state_snapshot::Error::ReadEntry(ReadEntryErr::Absent)) => {
+					log::error!("Corrupted relay storage: value TIMESTAMP_NOW is absent!");
+					panic!("Corrupted relay storage: value TIMESTAMP_NOW is absent!");
+				}
+				// Can't return another kind of error, the blokc is invalid anyway, so we should panic
+				_ => unreachable!(),
+			};
+
+		let wrapper_weight = <Runtime as frame_system::Config>::DbWeight::get()
+			.write
+			.into();
+
+		RelayTimestampNow::put(relay_timestamp);
+
+		let (weight, capacity) = Inner::on_state_proof(state_proof);
+
+		(weight.saturating_add(wrapper_weight), capacity)
+	}
+}
+
+// Prefix for storage value RelayTimestampNow
+struct RelayTimestampNowPrefix;
+impl StorageInstance for RelayTimestampNowPrefix {
+	const STORAGE_PREFIX: &'static str = "RelayTimestampNow";
 
 	fn pallet_prefix() -> &'static str {
 		"runtime"
 	}
 }
 
-// Storage type used to store relay genesis time
-type RelayGenesisTime = StorageValue<RelayGenesisTimePrefix, u64, ValueQuery>;
+// Storage type used to store the last current relay timestamp
+type RelayTimestampNow = StorageValue<RelayTimestampNowPrefix, u64, ValueQuery>;

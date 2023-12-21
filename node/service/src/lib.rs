@@ -1070,6 +1070,9 @@ where
 				_,
 			>(nimbus_consensus::collators::lookahead::Params {
 				additional_digests_provider: maybe_provide_vrf_digest,
+				additional_relay_keys: vec![
+					moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
+				],
 				authoring_duration: Duration::from_millis(1500),
 				block_import,
 				code_hash_provider,
@@ -1096,6 +1099,9 @@ where
 			nimbus_consensus::collators::basic::run::<Block, _, _, FullBackend, _, _, _, _, _>(
 				nimbus_consensus::collators::basic::Params {
 					additional_digests_provider: maybe_provide_vrf_digest,
+					additional_relay_keys: vec![
+						moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
+					],
 					//authoring_duration: Duration::from_millis(500),
 					block_import,
 					collator_key,
@@ -1345,6 +1351,11 @@ where
 							maybe_current_para_head?.encode(),
 						));
 
+						let additional_key_values = Some(vec![(
+							moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
+							sp_timestamp::Timestamp::current().encode(),
+						)]);
+
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
 							current_para_block_head,
@@ -1361,6 +1372,7 @@ where
 							),
 							raw_downward_messages: downward_xcm_receiver.drain().collect(),
 							raw_horizontal_messages: hrmp_xcm_receiver.drain().collect(),
+							additional_key_values,
 						};
 
 						let randomness = session_keys_primitives::InherentDataProvider;
