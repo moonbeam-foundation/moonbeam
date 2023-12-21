@@ -27,6 +27,9 @@ use frame_support::storage::types::{StorageValue, ValueQuery};
 use frame_support::traits::{StorageInstance, Time};
 pub use moonbeam_core_primitives::{well_known_relay_keys, RELAY_CHAIN_SLOT_DURATION_MILLIS};
 
+/// Get the relay timestamp.
+/// Noe that the relay timestamp is populated at the parachain system inherent.
+/// If you fetch the timestamp before, you will get the timestamp of the parent block.
 pub struct RelayTimestamp;
 impl Time for RelayTimestamp {
 	type Moment = u64;
@@ -60,9 +63,7 @@ impl<Inner: ConsensusHook> ConsensusHook for ConsensusHookWrapperForRelayTimesta
 				_ => unreachable!(),
 			};
 
-		let wrapper_weight = <Runtime as frame_system::Config>::DbWeight::get()
-			.write
-			.into();
+		let wrapper_weight = <Runtime as frame_system::Config>::DbWeight::get().writes(1);
 
 		RelayTimestampNow::put(relay_timestamp);
 
