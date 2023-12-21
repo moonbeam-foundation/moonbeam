@@ -95,7 +95,7 @@ pub fn u256_serialize<S>(data: &U256, serializer: S) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
 {
-	serializer.serialize_u64(data.low_u64())
+	serializer.serialize_u64(data.unique_saturated_into())
 }
 
 pub fn h256_serialize<S>(data: &H256, serializer: S) -> Result<S::Ok, S::Error>
