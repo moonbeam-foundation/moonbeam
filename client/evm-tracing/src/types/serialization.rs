@@ -21,6 +21,7 @@ use serde::{
 	ser::{Error, SerializeSeq},
 	Serializer,
 };
+use sp_runtime::traits::UniqueSaturatedInto;
 
 pub fn seq_h256_serialize<S>(data: &Option<Vec<H256>>, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -95,7 +96,7 @@ pub fn u256_serialize<S>(data: &U256, serializer: S) -> Result<S::Ok, S::Error>
 where
 	S: Serializer,
 {
-	serializer.serialize_u64(data.unique_saturated_into())
+	serializer.serialize_u64(UniqueSaturatedInto::<u64>::unique_saturated_into(*data))
 }
 
 pub fn h256_serialize<S>(data: &H256, serializer: S) -> Result<S::Ok, S::Error>
