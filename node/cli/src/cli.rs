@@ -234,7 +234,7 @@ pub struct RunCmd {
 	pub no_prometheus_prefix: bool,
 
 	/// Enable asynchronous backing (for collators only)
-	/// Thsi feature is still experimental, please don't use it in production.
+	/// This feature is still experimental, please don't use it in production.
 	#[clap(hide = true, long = "experimental-async-backing")]
 	pub async_backing: bool,
 }

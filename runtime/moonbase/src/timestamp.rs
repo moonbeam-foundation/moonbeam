@@ -25,7 +25,7 @@ use cumulus_pallet_parachain_system::{
 use frame_support::pallet_prelude::*;
 use frame_support::storage::types::{StorageValue, ValueQuery};
 use frame_support::traits::{StorageInstance, Time};
-pub use moonbeam_core_primitives::{well_known_relay_keys, RELAY_CHAIN_SLOT_DURATION_MILLIS};
+pub use moonbeam_core_primitives::well_known_relay_keys;
 
 /// Get the relay timestamp.
 /// Noe that the relay timestamp is populated at the parachain system inherent.

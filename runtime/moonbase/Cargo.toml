@@ -308,9 +308,6 @@ runtime-wasm = [  ]
 # to make it smaller like logging for example.
 on-chain-release-build = [ "sp-api/disable-logging" ]
 
-# Experimental, use for testing purposes only!
-experimental-async-backing = []
-
 runtime-benchmarks = [
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"frame-benchmarking/runtime-benchmarks",
