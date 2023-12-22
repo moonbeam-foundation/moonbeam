@@ -406,7 +406,7 @@
 	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 
 	<span class="attr">#[pallet::config]
-	</span><span class="kw">pub trait </span>Config: frame_system::Config + pallet_timestamp::Config + pallet_evm::Config {
+	</span><span class="kw">pub trait </span>Config: frame_system::Config + pallet_evm::Config {
 		<span class="doccomment">/// Invalid transaction error
 		</span><span class="kw">type </span>InvalidEvmTransactionError: From&lt;TransactionValidationError&gt;;
 		<span class="doccomment">/// Handler for applying an already validated transaction

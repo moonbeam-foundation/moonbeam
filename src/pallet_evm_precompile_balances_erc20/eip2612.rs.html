@@ -174,6 +174,11 @@
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -191,9 +196,13 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">use </span>frame_support::{ensure, traits::Get};
+<span class="kw">use </span>frame_support::{
+	ensure,
+	traits::{Get, Time},
+};
 <span class="kw">use </span>sp_core::H256;
 <span class="kw">use </span>sp_io::hashing::keccak_256;
+<span class="kw">use </span>sp_runtime::traits::UniqueSaturatedInto;
 <span class="kw">use </span>sp_std::vec::Vec;
 
 <span class="doccomment">/// EIP2612 permit typehash.
@@ -210,14 +219,13 @@
 
 <span class="kw">impl</span>&lt;Runtime, Metadata, Instance&gt; Eip2612&lt;Runtime, Metadata, Instance&gt;
 <span class="kw">where
-	</span>Metadata: Erc20Metadata,
-	Instance: InstanceToPrefix + <span class="lifetime">&#39;static</span>,
-	Runtime: pallet_balances::Config&lt;Instance&gt; + pallet_evm::Config + pallet_timestamp::Config,
+	</span>Runtime: pallet_balances::Config&lt;Instance&gt; + pallet_evm::Config,
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 	Runtime::RuntimeCall: From&lt;pallet_balances::Call&lt;Runtime, Instance&gt;&gt;,
 	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	BalanceOf&lt;Runtime, Instance&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt;,
-	&lt;Runtime <span class="kw">as </span>pallet_timestamp::Config&gt;::Moment: Into&lt;U256&gt;,
+	Metadata: Erc20Metadata,
+	Instance: InstanceToPrefix + <span class="lifetime">&#39;static</span>,
 {
 	<span class="kw">pub fn </span>compute_domain_separator(address: H160) -&gt; [u8; <span class="number">32</span>] {
 		<span class="kw">let </span>name: H256 = keccak_256(Metadata::name().as_bytes()).into();
@@ -280,8 +288,10 @@
 		<span class="kw">let </span>owner: H160 = owner.into();
 		<span class="kw">let </span>spender: H160 = spender.into();
 
-		<span class="comment">// pallet_timestamp is in ms while Ethereum use second timestamps.
-		</span><span class="kw">let </span>timestamp: U256 = (pallet_timestamp::Pallet::&lt;Runtime&gt;::get()).into() / <span class="number">1000</span>;
+		<span class="comment">// Blockchain time is in ms while Ethereum use second timestamps.
+		</span><span class="kw">let </span>timestamp: u128 =
+			&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::Timestamp::now().unique_saturated_into();
+		<span class="kw">let </span>timestamp: U256 = U256::from(timestamp / <span class="number">1000</span>);
 
 		<span class="macro">ensure!</span>(deadline &gt;= timestamp, revert(<span class="string">&quot;Permit expired&quot;</span>));
 

@@ -493,7 +493,6 @@
 <a href="#493" id="493">493</a>
 <a href="#494" id="494">494</a>
 <a href="#495" id="495">495</a>
-<a href="#496" id="496">496</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -676,14 +675,13 @@
 <span class="attr">#[precompile_utils::precompile]
 </span><span class="kw">impl</span>&lt;Runtime, Metadata, Instance&gt; Erc20BalancesPrecompile&lt;Runtime, Metadata, Instance&gt;
 <span class="kw">where
-	</span>Metadata: Erc20Metadata,
-	Instance: InstanceToPrefix + <span class="lifetime">&#39;static</span>,
-	Runtime: pallet_balances::Config&lt;Instance&gt; + pallet_evm::Config + pallet_timestamp::Config,
+	</span>Runtime: pallet_balances::Config&lt;Instance&gt; + pallet_evm::Config,
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 	Runtime::RuntimeCall: From&lt;pallet_balances::Call&lt;Runtime, Instance&gt;&gt;,
 	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	BalanceOf&lt;Runtime, Instance&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt;,
-	&lt;Runtime <span class="kw">as </span>pallet_timestamp::Config&gt;::Moment: Into&lt;U256&gt;,
+	Metadata: Erc20Metadata,
+	Instance: InstanceToPrefix + <span class="lifetime">&#39;static</span>,
 {
 	<span class="attr">#[precompile::public(<span class="string">&quot;totalSupply()&quot;</span>)]
 	#[precompile::view]

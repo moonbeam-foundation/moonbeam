@@ -285,7 +285,6 @@
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
 <a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -306,7 +305,7 @@
 <span class="kw">use </span>frame_support::{
 	ensure,
 	storage::types::{StorageDoubleMap, ValueQuery},
-	traits::StorageInstance,
+	traits::{StorageInstance, Time},
 	Blake2_128Concat,
 };
 <span class="kw">use </span>pallet_assets::pallet::{
@@ -316,6 +315,7 @@
 <span class="kw">use </span>scale_info::prelude::string::ToString;
 <span class="kw">use </span>sp_core::H256;
 <span class="kw">use </span>sp_io::hashing::keccak_256;
+<span class="kw">use </span>sp_runtime::traits::UniqueSaturatedInto;
 
 <span class="doccomment">/// EIP2612 permit typehash.
 </span><span class="kw">pub const </span>PERMIT_TYPEHASH: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(
@@ -403,10 +403,7 @@
 <span class="kw">impl</span>&lt;Runtime, IsLocal, Instance&gt; Eip2612&lt;Runtime, IsLocal, Instance&gt;
 <span class="kw">where
 	</span>Instance: InstanceToPrefix + <span class="lifetime">&#39;static</span>,
-	Runtime: pallet_assets::Config&lt;Instance&gt;
-		+ pallet_evm::Config
-		+ frame_system::Config
-		+ pallet_timestamp::Config,
+	Runtime: pallet_assets::Config&lt;Instance&gt; + pallet_evm::Config + frame_system::Config,
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 	Runtime::RuntimeCall: From&lt;pallet_assets::Call&lt;Runtime, Instance&gt;&gt;,
 	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
@@ -414,7 +411,6 @@
 	Runtime: AccountIdAssetIdConversion&lt;Runtime::AccountId, AssetIdOf&lt;Runtime, Instance&gt;&gt;,
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: OriginTrait,
 	IsLocal: Get&lt;bool&gt;,
-	&lt;Runtime <span class="kw">as </span>pallet_timestamp::Config&gt;::Moment: Into&lt;U256&gt;,
 	AssetIdOf&lt;Runtime, Instance&gt;: Display,
 	Runtime::AccountId: Into&lt;H160&gt;,
 {
@@ -493,8 +489,10 @@
 
 		<span class="kw">let </span>address = handle.code_address();
 
-		<span class="comment">// pallet_timestamp is in ms while Ethereum use second timestamps.
-		</span><span class="kw">let </span>timestamp: U256 = (pallet_timestamp::Pallet::&lt;Runtime&gt;::get()).into() / <span class="number">1000</span>;
+		<span class="comment">// Blockchain time is in ms while Ethereum use second timestamps.
+		</span><span class="kw">let </span>timestamp: u128 =
+			&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::Timestamp::now().unique_saturated_into();
+		<span class="kw">let </span>timestamp: U256 = U256::from(timestamp / <span class="number">1000</span>);
 
 		<span class="macro">ensure!</span>(deadline &gt;= timestamp, revert(<span class="string">&quot;Permit expired&quot;</span>));
 

@@ -913,10 +913,6 @@
 <a href="#913" id="913">913</a>
 <a href="#914" id="914">914</a>
 <a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
-<a href="#918" id="918">918</a>
-<a href="#919" id="919">919</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1013,13 +1009,13 @@
 	PhantomData&lt;(Runtime, IsLocal, Instance)&gt;,
 );
 
-<span class="kw">impl</span>&lt;T, U, V&gt; Clone <span class="kw">for </span>Erc20AssetsPrecompileSet&lt;T, U, V&gt; {
+<span class="kw">impl</span>&lt;R, U, V&gt; Clone <span class="kw">for </span>Erc20AssetsPrecompileSet&lt;R, U, V&gt; {
 	<span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
 		<span class="self">Self</span>(PhantomData)
 	}
 }
 
-<span class="kw">impl</span>&lt;T, U, V&gt; Default <span class="kw">for </span>Erc20AssetsPrecompileSet&lt;T, U, V&gt; {
+<span class="kw">impl</span>&lt;R, U, V&gt; Default <span class="kw">for </span>Erc20AssetsPrecompileSet&lt;R, U, V&gt; {
 	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
 		<span class="self">Self</span>(PhantomData)
 	}
@@ -1037,10 +1033,7 @@
 </span><span class="kw">impl</span>&lt;Runtime, IsLocal, Instance&gt; Erc20AssetsPrecompileSet&lt;Runtime, IsLocal, Instance&gt;
 <span class="kw">where
 	</span>Instance: eip2612::InstanceToPrefix + <span class="lifetime">&#39;static</span>,
-	Runtime: pallet_assets::Config&lt;Instance&gt;
-		+ pallet_evm::Config
-		+ frame_system::Config
-		+ pallet_timestamp::Config,
+	Runtime: pallet_assets::Config&lt;Instance&gt; + pallet_evm::Config + frame_system::Config,
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 	Runtime::RuntimeCall: From&lt;pallet_assets::Call&lt;Runtime, Instance&gt;&gt;,
 	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
@@ -1048,7 +1041,6 @@
 	Runtime: AccountIdAssetIdConversion&lt;Runtime::AccountId, AssetIdOf&lt;Runtime, Instance&gt;&gt;,
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: OriginTrait,
 	IsLocal: Get&lt;bool&gt;,
-	&lt;Runtime <span class="kw">as </span>pallet_timestamp::Config&gt;::Moment: Into&lt;U256&gt;,
 	AssetIdOf&lt;Runtime, Instance&gt;: Display,
 	Runtime::AccountId: Into&lt;H160&gt;,
 {

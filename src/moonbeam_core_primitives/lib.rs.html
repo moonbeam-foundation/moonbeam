@@ -49,6 +49,13 @@
 <a href="#49" id="49">49</a>
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
+<a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -100,4 +107,11 @@
 </span><span class="kw">pub type </span>AccountIndex = u32;
 <span class="doccomment">/// Digest item type.
 </span><span class="kw">pub type </span>DigestItem = generic::DigestItem;
+
+<span class="kw">pub mod </span>well_known_relay_keys {
+	<span class="kw">use </span>hex_literal::hex;
+
+	<span class="kw">pub const </span>TIMESTAMP_NOW: <span class="kw-2">&amp;</span>[u8] =
+		<span class="kw-2">&amp;</span><span class="macro">hex!</span>[<span class="string">&quot;f0c365c3cf59d671eb72da0e7a4113c49f1f0515f462cdcf84e0f1d6045dfcbb&quot;</span>];
+}
 </code></pre></div></section></main></body></html>
