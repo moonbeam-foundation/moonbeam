@@ -4,9 +4,8 @@ import {
   expect,
   deployCreateCompiledContract,
 } from "@moonwall/cli";
-
 import { alith } from "@moonwall/util";
-import { nestedCall, nestedSingle, createContracts } from "./test-trace-1";
+import { createContracts, nestedCall, nestedSingle } from "../../helpers";
 
 describeSuite({
   id: "D3605",

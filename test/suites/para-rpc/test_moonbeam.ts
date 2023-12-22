@@ -56,7 +56,7 @@ describeSuite({
         const currentCode = (await paraApi.rpc.state.getStorage(":code")) as any;
         const codeString = currentCode.toString();
 
-        const wasm = fs.readFileSync(MoonwallContext.getContext().rtUpgradePath!);
+        const wasm = fs.readFileSync((await MoonwallContext.getContext()).rtUpgradePath!);
         const rtHex = `0x${wasm.toString("hex")}`;
 
         if (rtHex === codeString) {
@@ -67,7 +67,7 @@ describeSuite({
         await context.upgradeRuntime({
           logger: log,
           runtimeName: "moonbeam",
-          localPath: MoonwallContext.getContext().rtUpgradePath,
+          localPath: (await MoonwallContext.getContext()).rtUpgradePath,
           useGovernance: true,
           waitMigration: true,
           runtimeTag: "local",
