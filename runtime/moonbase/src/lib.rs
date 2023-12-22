@@ -28,14 +28,34 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainDataProvider};
-use cumulus_primitives_core::relay_chain;
-use fp_rpc::TransactionStatus;
+pub mod asset_config;
+pub mod governance;
+pub mod timestamp;
+pub mod xcm_config;
 
-use account::AccountId20;
+mod precompiles;
 
 // Re-export required by get! macro.
+#[cfg(feature = "std")]
+pub use fp_evm::GenesisAccount;
 pub use frame_support::traits::Get;
+pub use moonbeam_core_primitives::{
+	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
+	Index, Signature,
+};
+pub use pallet_author_slot_filter::EligibilityValue;
+pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
+pub use precompiles::{
+	MoonbasePrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+};
+
+use account::AccountId20;
+use cumulus_pallet_parachain_system::{
+	RelayChainStateProof, RelayNumberMonotonicallyIncreases, RelaychainDataProvider,
+};
+use cumulus_primitives_core::relay_chain;
+use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime,
 	dispatch::{DispatchClass, GetDispatchInfo, PostDispatchInfo},
@@ -58,16 +78,11 @@ use frame_support::{
 	PalletId,
 };
 
-#[cfg(feature = "std")]
-pub use fp_evm::GenesisAccount;
 use frame_system::{EnsureRoot, EnsureSigned};
-pub use moonbeam_core_primitives::{
-	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
-	Index, Signature,
-};
+use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::weights as moonbeam_weights;
-pub use pallet_author_slot_filter::EligibilityValue;
+use nimbus_primitives::CanAuthor;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
@@ -76,7 +91,6 @@ use pallet_evm::{
 	FeeCalculator, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
-pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
@@ -104,13 +118,6 @@ use sp_std::{
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use nimbus_primitives::CanAuthor;
-
-mod precompiles;
-pub use precompiles::{
-	MoonbasePrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-};
 use smallvec::smallvec;
 use sp_runtime::serde::{Deserialize, Serialize};
 
@@ -118,12 +125,6 @@ use sp_runtime::serde::{Deserialize, Serialize};
 pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
-
-pub mod asset_config;
-pub mod governance;
-pub mod timestamp;
-pub mod xcm_config;
-use governance::councils::*;
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
