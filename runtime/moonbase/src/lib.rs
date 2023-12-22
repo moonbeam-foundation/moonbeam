@@ -28,14 +28,34 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainDataProvider};
-use cumulus_primitives_core::relay_chain;
-use fp_rpc::TransactionStatus;
+pub mod asset_config;
+pub mod governance;
+pub mod timestamp;
+pub mod xcm_config;
 
-use account::AccountId20;
+mod precompiles;
 
 // Re-export required by get! macro.
+#[cfg(feature = "std")]
+pub use fp_evm::GenesisAccount;
 pub use frame_support::traits::Get;
+pub use moonbeam_core_primitives::{
+	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
+	Index, Signature,
+};
+pub use pallet_author_slot_filter::EligibilityValue;
+pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
+pub use precompiles::{
+	MoonbasePrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+};
+
+use account::AccountId20;
+use cumulus_pallet_parachain_system::{
+	RelayChainStateProof, RelayNumberMonotonicallyIncreases, RelaychainDataProvider,
+};
+use cumulus_primitives_core::relay_chain;
+use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime,
 	dispatch::{DispatchClass, GetDispatchInfo, PostDispatchInfo},
@@ -58,16 +78,11 @@ use frame_support::{
 	PalletId,
 };
 
-#[cfg(feature = "std")]
-pub use fp_evm::GenesisAccount;
 use frame_system::{EnsureRoot, EnsureSigned};
-pub use moonbeam_core_primitives::{
-	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
-	Index, Signature,
-};
+use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::weights as moonbeam_weights;
-pub use pallet_author_slot_filter::EligibilityValue;
+use nimbus_primitives::CanAuthor;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
@@ -76,7 +91,6 @@ use pallet_evm::{
 	FeeCalculator, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
-pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
@@ -104,13 +118,6 @@ use sp_std::{
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use nimbus_primitives::CanAuthor;
-
-mod precompiles;
-pub use precompiles::{
-	MoonbasePrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-};
 use smallvec::smallvec;
 use sp_runtime::serde::{Deserialize, Serialize};
 
@@ -118,11 +125,6 @@ use sp_runtime::serde::{Deserialize, Serialize};
 pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
-
-pub mod asset_config;
-pub mod governance;
-pub mod xcm_config;
-use governance::councils::*;
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -150,10 +152,12 @@ pub mod currency {
 }
 
 /// Maximum weight per block
+// TODO: multiply MAXIMUM_BLOCK_WEIGHT times 4 when async backing will be definitly enabled
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
 	.saturating_div(2)
 	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
 
+// TODO: Set MILLISECS_PER_BLOCK to 6000 when async backing will be definitly enabled
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
@@ -511,7 +515,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	type Timestamp = Timestamp;
+	type Timestamp = crate::timestamp::RelayTimestamp;
 	type WeightInfo = moonbeam_weights::pallet_evm::WeightInfo<Runtime>;
 }
 
@@ -699,6 +703,15 @@ parameter_types! {
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 }
 
+pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = 1;
+pub const BLOCK_PROCESSING_VELOCITY: u32 = 1;
+
+type ConsensusHook = pallet_async_backing::consensus_hook::FixedVelocityConsensusHook<
+	Runtime,
+	BLOCK_PROCESSING_VELOCITY,
+	UNINCLUDED_SEGMENT_CAPACITY,
+>;
+
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
@@ -708,7 +721,8 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
-	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
+	type ConsensusHook = crate::timestamp::ConsensusHookWrapperForRelayTimestamp<ConsensusHook>;
 }
 
 impl parachain_info::Config for Runtime {}
@@ -811,11 +825,30 @@ impl pallet_author_inherent::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_author_inherent::WeightInfo<Runtime>;
 }
 
+#[cfg(test)]
+mod mock {
+	use super::*;
+	pub struct MockRandomness;
+	impl frame_support::traits::Randomness<H256, BlockNumber> for MockRandomness {
+		fn random(subject: &[u8]) -> (H256, BlockNumber) {
+			(H256(sp_io::hashing::blake2_256(subject)), 0)
+		}
+	}
+}
+
 impl pallet_author_slot_filter::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	#[cfg(not(test))]
 	type RandomnessSource = Randomness;
+	#[cfg(test)]
+	type RandomnessSource = mock::MockRandomness;
 	type PotentialAuthors = ParachainStaking;
 	type WeightInfo = moonbeam_weights::pallet_author_slot_filter::WeightInfo<Runtime>;
+}
+
+impl pallet_async_backing::Config for Runtime {
+	type AllowMultipleBlocksPerSlot = ConstBool<true>;
+	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
 }
 
 parameter_types! {
@@ -1423,6 +1456,7 @@ construct_runtime! {
 		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 47,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
+		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 50,
 	}
 }
 
@@ -1576,29 +1610,14 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 			})
 		}
 	}
-}
 
-// Check the timestamp and parachain inherents
-struct CheckInherents;
-
-impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
-	fn check_inherents(
-		block: &Block,
-		relay_state_proof: &RelayChainStateProof,
-	) -> sp_inherents::CheckInherentsResult {
-		let relay_chain_slot = relay_state_proof
-			.read_slot()
-			.expect("Could not read the relay chain slot from the proof");
-
-		let inherent_data =
-			cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
-				relay_chain_slot,
-				sp_std::time::Duration::from_secs(6),
-			)
-			.create_inherent_data()
-			.expect("Could not create the timestamp inherent data");
-
-		inherent_data.check_extrinsics(&block)
+	impl async_backing_primitives::UnincludedSegmentApi<Block> for Runtime {
+		fn can_build_upon(
+			included_hash: <Block as BlockT>::Hash,
+			slot: async_backing_primitives::Slot,
+		) -> bool {
+			ConsensusHook::can_build_upon(included_hash, slot)
+		}
 	}
 }
 
@@ -1606,7 +1625,6 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime = Runtime,
 	BlockExecutor = pallet_author_inherent::BlockExecutor::<Runtime, Executive>,
-	CheckInherents = CheckInherents,
 );
 
 moonbeam_runtime_common::impl_self_contained_call!();

@@ -31,6 +31,7 @@ pub use moonbase_runtime::{
 	UncheckedExtrinsic, HOURS, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
+use polkadot_parachain::primitives::HeadData;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
@@ -344,14 +345,38 @@ pub fn root_origin() -> <Runtime as frame_system::Config>::RuntimeOrigin {
 	<Runtime as frame_system::Config>::RuntimeOrigin::root()
 }
 
+pub fn unchecked_eth_tx(raw_hex_tx: &str) -> UncheckedExtrinsic {
+	let converter = TransactionConverter;
+	converter.convert_transaction(ethereum_transaction(raw_hex_tx))
+}
+
+pub fn ethereum_transaction(raw_hex_tx: &str) -> pallet_ethereum::Transaction {
+	let bytes = hex::decode(raw_hex_tx).expect("Transaction bytes.");
+	let transaction = ethereum::EnvelopedDecodable::decode(&bytes[..]);
+	assert!(transaction.is_ok());
+	transaction.unwrap()
+}
+
 /// Mock the inherent that sets validation data in ParachainSystem, which
 /// contains the `relay_chain_block_number`, which is used in `author-filter` as a
 /// source of randomness to filter valid authors at each block.
 pub fn set_parachain_inherent_data() {
 	use cumulus_primitives_core::PersistedValidationData;
 	use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-	let (relay_parent_storage_root, relay_chain_state) =
-		RelayStateSproofBuilder::default().into_state_root_and_proof();
+
+	let mut relay_sproof = RelayStateSproofBuilder::default();
+	relay_sproof.para_id = 100u32.into();
+	relay_sproof.included_para_head = Some(HeadData(vec![1, 2, 3]));
+
+	let additional_key_values = vec![(
+		moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
+		sp_timestamp::Timestamp::default().encode(),
+	)];
+
+	relay_sproof.additional_key_values = additional_key_values;
+
+	let (relay_parent_storage_root, relay_chain_state) = relay_sproof.into_state_root_and_proof();
+
 	let vfp = PersistedValidationData {
 		relay_parent_number: 1u32,
 		relay_parent_storage_root,
@@ -369,16 +394,4 @@ pub fn set_parachain_inherent_data() {
 		}
 	)
 	.dispatch(inherent_origin()));
-}
-
-pub fn unchecked_eth_tx(raw_hex_tx: &str) -> UncheckedExtrinsic {
-	let converter = TransactionConverter;
-	converter.convert_transaction(ethereum_transaction(raw_hex_tx))
-}
-
-pub fn ethereum_transaction(raw_hex_tx: &str) -> pallet_ethereum::Transaction {
-	let bytes = hex::decode(raw_hex_tx).expect("Transaction bytes.");
-	let transaction = ethereum::EnvelopedDecodable::decode(&bytes[..]);
-	assert!(transaction.is_ok());
-	transaction.unwrap()
 }

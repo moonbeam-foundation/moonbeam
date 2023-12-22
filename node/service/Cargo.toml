@@ -115,9 +115,11 @@ pallet-ethereum = { workspace = true, features = [
 ] }
 
 # Cumulus / Nimbus
+async-backing-primitives = { workspace = true }
 cumulus-client-cli = { workspace = true }
 cumulus-client-collator = { workspace = true }
 cumulus-client-consensus-common = { workspace = true }
+cumulus-client-consensus-proposer = { workspace = true }
 cumulus-client-consensus-relay-chain = { workspace = true }
 cumulus-client-network = { workspace = true }
 cumulus-client-service = { workspace = true }
