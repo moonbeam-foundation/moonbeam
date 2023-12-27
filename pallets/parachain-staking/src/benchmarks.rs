@@ -214,7 +214,7 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 		);
 		frame_support::storage::unhashed::put(
 			&frame_support::storage::storage_prefix(b"AsyncBacking", b"SlotInfo"),
-			&((Slot::from(now as u64 + 2), 0)),
+			&(Slot::from(now as u64 + 2), 0),
 		);
 		<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
 		Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number());
@@ -1880,7 +1880,7 @@ benchmarks! {
 				b"AsyncBacking",
 				b"SlotInfo",
 			),
-			&((Slot::from(1u64), 0))
+			&(Slot::from(1u64), 0)
 		);
 		let end = <frame_system::Pallet<T>>::block_number();
 		<frame_system::Pallet<T>>::on_initialize(end);
