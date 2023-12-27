@@ -171,25 +171,6 @@ fn verify_pallet_prefixes() {
 		res.to_vec()
 	};
 	assert_eq!(
-		<moonbase_runtime::Timestamp as StorageInfoTrait>::storage_info(),
-		vec![
-			StorageInfo {
-				pallet_name: b"Timestamp".to_vec(),
-				storage_name: b"Now".to_vec(),
-				prefix: prefix(b"Timestamp", b"Now"),
-				max_values: Some(1),
-				max_size: Some(8),
-			},
-			StorageInfo {
-				pallet_name: b"Timestamp".to_vec(),
-				storage_name: b"DidUpdate".to_vec(),
-				prefix: prefix(b"Timestamp", b"DidUpdate"),
-				max_values: Some(1),
-				max_size: Some(1),
-			}
-		]
-	);
-	assert_eq!(
 		<moonbase_runtime::Balances as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
@@ -477,7 +458,6 @@ fn verify_pallet_indices() {
 	}
 	is_pallet_index::<moonbase_runtime::System>(0);
 	is_pallet_index::<moonbase_runtime::Utility>(1);
-	is_pallet_index::<moonbase_runtime::Timestamp>(2);
 	is_pallet_index::<moonbase_runtime::Balances>(3);
 	is_pallet_index::<moonbase_runtime::Sudo>(4);
 	is_pallet_index::<moonbase_runtime::ParachainSystem>(6);
@@ -892,7 +872,6 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1088,7 +1067,6 @@ fn is_contributor_via_precompile() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1170,7 +1148,6 @@ fn reward_info_via_precompile() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1242,7 +1219,6 @@ fn update_reward_address_via_precompile() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;

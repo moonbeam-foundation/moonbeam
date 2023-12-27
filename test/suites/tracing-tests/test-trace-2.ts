@@ -1,6 +1,6 @@
 import { customDevRpcRequest, describeSuite, expect, TransactionTypes } from "@moonwall/cli";
-import { nestedSingle } from "./test-trace-1";
 import BS_TRACER_V2 from "../../helpers/tracer/blockscout_tracer_v2.min.json" assert { type: "json" }; // editorconfig-checker-disable-line
+import { nestedSingle } from "../../helpers";
 
 describeSuite({
   id: "D3602",

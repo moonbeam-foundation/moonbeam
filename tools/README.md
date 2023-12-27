@@ -1,9 +1,11 @@
 # Tools
 
+> :warning: These instructions are deprecated and will be removed/replaced in a future release :warning:
+
 ## Launching complete network
 
 Based on [polkadot-launch](https://github.com/paritytech/polkadot-launch), the tool to launch
-multiple relay and parachain nodes, the script [launch.ts](./launch.ts) allows to start a complete
+multiple relay and parachain nodes, the script `launch.ts` allows to start a complete
 network based on the different version of the runtimes
 
 As the moonbeam and relay runtimes evolved, more configurations will be added to the script.
@@ -27,7 +29,7 @@ npm run launch -- --parachain moonbase-0.18.1
 ```
 
 The launch script accepts a preconfigured network (default is "local", see further).
-Those are listed directly inside [launch.ts](./launch.ts). Ex:
+Those are listed directly inside `launch.ts`. Ex:
 
 ```
 "moonriver-genesis": {
@@ -39,7 +41,7 @@ Those are listed directly inside [launch.ts](./launch.ts). Ex:
 
 - "moonriver-genesis" is the name of the configuration
 - "relay" is the name of the configured relay
-  (see relay preconfigured network in [launch.ts](./launch.ts))
+  (see relay preconfigured network in `launch.ts`)
 - "chain" is the chain (including which runtime) to use.
 - "docker" is from which docker image to take the binary matching this version
 

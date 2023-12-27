@@ -701,7 +701,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
-	type ConsensusHook = cumulus_pallet_parachain_system::consensus_hook::ExpectParentIncluded;
+	type ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
 }
 
 impl parachain_info::Config for Runtime {}
@@ -1643,6 +1643,17 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 					intermediate_valid
 				}
 			})
+		}
+	}
+
+	impl async_backing_primitives::UnincludedSegmentApi<Block> for Runtime {
+		fn can_build_upon(
+			_included_hash: <Block as BlockT>::Hash,
+			_slot: async_backing_primitives::Slot,
+		) -> bool {
+			// This runtime API can be called only when asynchronous backing is enabled client-side
+			// We return false here to force the client to not use async backing in moonriver.
+			false
 		}
 	}
 }

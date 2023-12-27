@@ -791,6 +791,7 @@ pub fn run() -> Result<()> {
 						collator_options,
 						id,
 						rpc_config,
+						cli.run.async_backing,
 						hwbench,
 					)
 					.await
@@ -806,6 +807,7 @@ pub fn run() -> Result<()> {
 						collator_options,
 						id,
 						rpc_config,
+						cli.run.async_backing,
 						hwbench,
 					)
 					.await
@@ -821,6 +823,7 @@ pub fn run() -> Result<()> {
 						collator_options,
 						id,
 						rpc_config,
+						cli.run.async_backing,
 						hwbench,
 					)
 					.await

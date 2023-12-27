@@ -157,11 +157,12 @@ cumulus-primitives-utility = { workspace = true }
 parachain-info = { workspace = true }
 
 # Moonkit
+async-backing-primitives = { workspace = true }
 moonkit-xcm-primitives = { workspace = true }
 nimbus-primitives = { workspace = true }
+pallet-async-backing = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
-pallet-async-backing = { workspace = true }
 
 # Benchmarking
 frame-benchmarking = { workspace = true, optional = true }
@@ -179,6 +180,7 @@ cumulus-test-relay-sproof-builder = { workspace = true }
 frame-metadata = { workspace = true }
 pallet-message-queue = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
+sp-timestamp = { workspace = true }
 xcm-simulator = { workspace = true }
 
 precompile-utils = { workspace = true, features = [ "std", "testing" ] }
@@ -190,6 +192,7 @@ substrate-wasm-builder = { workspace = true }
 default = [ "std" ]
 std = [
 	"account/std",
+	"async-backing-primitives/std",
 	"cumulus-pallet-dmp-queue/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-pallet-xcm/std",
@@ -216,10 +219,10 @@ std = [
 	"orml-xtokens/std",
 	"pallet-asset-manager/std",
 	"pallet-assets/std",
+	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
 	"pallet-author-slot-filter/std",
-	"pallet-async-backing/std",
 	"pallet-balances/std",
 	"pallet-base-fee/std",
 	"pallet-collective/std",

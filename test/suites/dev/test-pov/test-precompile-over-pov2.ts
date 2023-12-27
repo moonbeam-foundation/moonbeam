@@ -23,8 +23,14 @@ describeSuite({
     let batchAbi: Abi;
     let proxyAbi: Abi;
     let proxyAddress: `0x${string}`;
+    let emptyBlockProofSize: bigint;
 
     beforeAll(async function () {
+      // Create an empty block to estimate empty block proof size
+      const { block } = await context.createBlock();
+      // Empty blocks usually do not exceed 50kb
+      emptyBlockProofSize = BigInt(block.proofSize || 50_000);
+
       const { contractAddress: contractAdd1, abi } = await deployCreateCompiledContract(
         context,
         "CallForwarder"
@@ -72,7 +78,7 @@ describeSuite({
 
         const { result, block } = await context.createBlock(rawSigned);
         expect(block.proofSize).to.be.at.least(Number(MAX_ETH_POV_PER_TX - 20_000n));
-        expect(block.proofSize).to.be.at.most(Number(MAX_ETH_POV_PER_TX + 70n));
+        expect(block.proofSize).to.be.at.most(Number(MAX_ETH_POV_PER_TX + emptyBlockProofSize));
         expect(result?.successful).to.equal(true);
       },
     });
