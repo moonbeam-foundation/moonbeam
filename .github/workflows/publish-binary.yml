@@ -32,6 +32,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.to }}
       - name: Build production moonbeam
         run: |
           # Build moonbeam
@@ -156,6 +158,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.to }}
       - uses: actions/download-artifact@v3.0.2
         with:
           name: binaries
