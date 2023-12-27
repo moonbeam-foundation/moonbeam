@@ -4,7 +4,7 @@
     params: <a class="struct" href="../struct.SpawnTasksParams.html" title="struct moonbeam_service::rpc::SpawnTasksParams">SpawnTasksParams</a>&lt;'_, B, C, BE&gt;
 ) -&gt; <a class="struct" href="struct.RpcRequesters.html" title="struct moonbeam_service::rpc::tracing::RpcRequesters">RpcRequesters</a><span class="where fmt-newline">where
     C: ProvideRuntimeApi&lt;B&gt; + BlockOf + StorageProvider&lt;B, BE&gt; + HeaderBackend&lt;B&gt; + HeaderMetadata&lt;B, Error = BlockChainError&gt; + 'static + BlockchainEvents&lt;B&gt; + <a class="trait" href="https://doc.rust-lang.org/1.71.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + <a class="trait" href="https://doc.rust-lang.org/1.71.0/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a>,
-    C::Api: EthereumRuntimeRPCApi&lt;B&gt; + <a class="trait" href="../../../moonbeam_rpc_primitives_debug/trait.DebugRuntimeApi.html" title="trait moonbeam_rpc_primitives_debug::DebugRuntimeApi">DebugRuntimeApi</a>&lt;B&gt; + BlockBuilder&lt;B&gt;,
+    C::Api: EthereumRuntimeRPCApi&lt;B&gt; + DebugRuntimeApi&lt;B&gt; + BlockBuilder&lt;B&gt;,
     B: BlockT&lt;Hash = H256&gt; + <a class="trait" href="https://doc.rust-lang.org/1.71.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + <a class="trait" href="https://doc.rust-lang.org/1.71.0/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> + 'static,
     B::Header: HeaderT&lt;Number = <a class="primitive" href="https://doc.rust-lang.org/1.71.0/std/primitive.u32.html">u32</a>&gt;,
     BE: Backend&lt;B&gt; + 'static,
