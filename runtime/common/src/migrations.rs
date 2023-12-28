@@ -82,7 +82,7 @@ where
 		let round_info = pallet_parachain_staking::Pallet::<T>::round();
 
 		// Calculate how many blocks have passed so far in the current round
-		let para_block_diff = para_block.saturating_sub(round_info.first);
+		let para_block_diff = para_block.saturating_sub(round_info.first as u32);
 
 		// Calculate the percentage of the round so far (before the migration)
 		let percentage = (para_block_diff)
@@ -98,7 +98,7 @@ where
 
 		// Perform substraction
 		// TODO: fix with cherry-pick
-		let new_first_block = 0u32;
+		let new_first_block = 0u64;
 		/* let new_first_block =
 		cumulus_pallet_parachain_system::Pallet::<T>::last_relay_block_number()
 			.saturating_sub(new_block_diff); */
@@ -123,7 +123,7 @@ where
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		let pre_round_info = <RoundInfo<u32> as Decode>::decode(&mut &*state).unwrap_or_default();
+		let pre_round_info = <RoundInfo<u64> as Decode>::decode(&mut &*state).unwrap_or_default();
 		let post_round_info = pallet_parachain_staking::Pallet::<T>::round();
 		assert_eq!(pre_round_info.length * 2, post_round_info.length);
 		Ok(())

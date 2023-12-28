@@ -89,7 +89,6 @@ pub mod pallet {
 		ReservableCurrency,
 	};
 	use frame_system::pallet_prelude::*;
-	use polkadot_parachain::primitives::RelayChainBlockNumber;
 	use sp_consensus_slots::Slot;
 	use sp_runtime::{
 		traits::{Saturating, Zero},
