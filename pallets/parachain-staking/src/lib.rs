@@ -102,6 +102,7 @@ pub mod pallet {
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
+	pub type RelayChainSlot = u64;
 	pub type RoundIndex = u32;
 	type RewardPoint = u32;
 	pub type BalanceOf<T> =
@@ -256,7 +257,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Started new round.
 		NewRound {
-			starting_block: RelayChainBlockNumber,
+			starting_block: RelayChainSlot,
 			round: RoundIndex,
 			selected_collators_number: u32,
 			total_balance: BalanceOf<T>,
@@ -428,7 +429,7 @@ pub mod pallet {
 		/// Set blocks per round
 		BlocksPerRoundSet {
 			current_round: RoundIndex,
-			first_block: RelayChainBlockNumber,
+			first_block: RelayChainSlot,
 			old: u32,
 			new: u32,
 			new_per_round_inflation_min: Perbill,
@@ -461,9 +462,9 @@ pub mod pallet {
 			weight = weight.saturating_add(T::DbWeight::get().reads_writes(1, 0));
 
 			let mut round = <Round<T>>::get();
-			if round.should_update(relay_slot as u32) {
+			if round.should_update(relay_slot) {
 				// mutate round
-				round.update(relay_slot as u32);
+				round.update(relay_slot);
 				// notify that new round begin
 				weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
 				// pay all stakers for T::RewardPaymentDelay rounds ago
@@ -518,7 +519,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
 	/// Current round index and next round scheduled transition
-	pub type Round<T: Config> = StorageValue<_, RoundInfo<RelayChainBlockNumber>, ValueQuery>;
+	pub type Round<T: Config> = StorageValue<_, RoundInfo<RelayChainSlot>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn delegator_state)]
@@ -805,13 +806,13 @@ pub mod pallet {
 			// Choose top TotalSelected collator candidates
 			let (_, v_count, _, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
 			// Start Round 1 at Block 0
-			let round: RoundInfo<RelayChainBlockNumber> =
+			let round: RoundInfo<RelayChainSlot> =
 				RoundInfo::new(1u32, 0u32.into(), self.blocks_per_round);
 			<Round<T>>::put(round);
 			// Snapshot total stake
 			<Staked<T>>::insert(1u32, <Total<T>>::get());
 			<Pallet<T>>::deposit_event(Event::NewRound {
-				starting_block: RelayChainBlockNumber::default(),
+				starting_block: RelayChainSlot::default(),
 				round: 1u32,
 				selected_collators_number: v_count,
 				total_balance: total_staked,

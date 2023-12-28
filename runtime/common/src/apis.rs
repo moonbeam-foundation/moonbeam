@@ -522,7 +522,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					// of the first block in the new round, the only way to accurately predict the
 					// authors is to compute the selection during prediction.
 					if pallet_parachain_staking::Pallet::<Self>::round()
-						.should_update(last_relay_slot as u32) {
+						.should_update(last_relay_slot) {
 						// get author account id
 						use nimbus_primitives::AccountLookup;
 						let author_account_id = if let Some(account) =
