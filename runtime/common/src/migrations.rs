@@ -21,20 +21,20 @@
 
 #[cfg(feature = "try-runtime")]
 use frame_support::ensure;
+#[cfg(feature = "try-runtime")]
+use frame_support::migration::get_storage_value;
 use frame_support::{
 	pallet_prelude::GetStorageVersion,
 	sp_runtime::traits::{Block, Header},
 	traits::{OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
 	weights::Weight,
 };
+use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_migrations::{GetMigrations, Migration};
-use pallet_parachain_staking::{Round, RoundInfo};
-#[cfg(feature = "try-runtime")]
+use pallet_parachain_staking::{Round, RoundIndex, RoundInfo};
 use parity_scale_codec::{Decode, Encode};
 use sp_core::Get;
-#[cfg(feature = "try-runtime")]
-use sp_runtime::traits::Zero;
 use sp_std::{marker::PhantomData, prelude::*};
 
 pub struct PalletReferendaMigrateV0ToV1<T>(pub PhantomData<T>);
@@ -62,6 +62,14 @@ where
 		pallet_referenda::migration::v1::MigrateV0ToV1::<T>::post_upgrade(state)
 	}
 }
+
+#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode)]
+pub struct OldRoundInfo<BlockNumber> {
+	pub current: RoundIndex,
+	pub first: BlockNumber,
+	pub length: u32,
+}
+
 pub struct UpdateFirstRoundRelayBlockNumber<T>(pub PhantomData<T>);
 impl<T> Migration for UpdateFirstRoundRelayBlockNumber<T>
 where
@@ -75,57 +83,44 @@ where
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		// First, fetch the last parachain block
-		let para_block: u32 = frame_system::Pallet::<T>::block_number().into();
+		let _ = Round::<T>::translate::<OldRoundInfo<BlockNumberFor<T>>, _>(|v1| {
+			Some(RoundInfo {
+				current: v1
+					.expect("old current round value must be present!")
+					.current,
+				// TODO: re-check
+				// a number close to the relay slot
+				first: 283_960_000u64,
+				length: v1.expect("old round length value must be present!").length * 2,
+			})
+		});
 
-		// Fetch Round storage before the migration
-		let round_info = pallet_parachain_staking::Pallet::<T>::round();
-
-		// Calculate how many blocks have passed so far in the current round
-		let para_block_diff = para_block.saturating_sub(round_info.first as u32);
-
-		// Calculate the percentage of the round so far (before the migration)
-		let percentage = (para_block_diff)
-			.saturating_mul(100)
-			.saturating_div(round_info.length);
-
-		// Calculate how many blocks should we substract from LastRelayChainBlockNumber
-		// given the new duration (round_info.length * 2) to have a first relay block of the
-		// round that corresponds with the percentage calculated in the step above.
-		let _new_block_diff = percentage
-			.saturating_mul(round_info.length * 2)
-			.saturating_div(100);
-
-		// Perform substraction
-		// TODO: fix with cherry-pick
-		let new_first_block = 0u64;
-		/* let new_first_block =
-		cumulus_pallet_parachain_system::Pallet::<T>::last_relay_block_number()
-			.saturating_sub(new_block_diff); */
-
-		// Update Round storage
-		let new_round_info = RoundInfo {
-			current: round_info.current,
-			first: new_first_block,
-			length: round_info.length * 2,
-		};
-
-		Round::<T>::put(new_round_info);
-
-		T::DbWeight::get().reads_writes(2, 1)
+		T::DbWeight::get().reads_writes(1, 1)
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		let pre_round_info = pallet_parachain_staking::Pallet::<T>::round();
-		Ok(pre_round_info.encode())
+		let module: &[u8] = b"ParachainStaking";
+		let item: &[u8] = b"Round";
+		let pre_round_info = get_storage_value::<RoundInfo<BlockNumberFor<T>>>(module, item, &[]);
+		Ok(pre_round_info.unwrap_or_default().encode())
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		let pre_round_info = <RoundInfo<u64> as Decode>::decode(&mut &*state).unwrap_or_default();
+		let pre_round_info =
+			<RoundInfo<BlockNumberFor<T>> as Decode>::decode(&mut &*state).unwrap_or_default();
 		let post_round_info = pallet_parachain_staking::Pallet::<T>::round();
-		assert_eq!(pre_round_info.length * 2, post_round_info.length);
+
+		ensure!(
+			post_round_info.current >= pre_round_info.current,
+			"Post-round number must be higher or equal than pre-round one"
+		);
+		ensure!(
+			pre_round_info.length * 2 == post_round_info.length,
+			"Post-round length must double pre-round one"
+		);
+
 		Ok(())
 	}
 }
