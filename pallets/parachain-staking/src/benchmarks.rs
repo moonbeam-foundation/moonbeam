@@ -204,8 +204,8 @@ fn parachain_staking_on_finalize<T: Config>(author: T::AccountId) {
 /// Run to end block and author
 fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 	let round_length = Pallet::<T>::round().length;
-	let mut now = u64::from(T::RelayChainSlotProvider::get()) as u32 + 1;
-	let end = Pallet::<T>::round().first + (round_length.clone() * round_delay);
+	let mut now = u64::from(T::RelayChainSlotProvider::get()) + 1;
+	let end = Pallet::<T>::round().first + (round_length.clone() * round_delay) as u64;
 	while now < end {
 		parachain_staking_on_finalize::<T>(author.clone());
 		<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
@@ -214,11 +214,11 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 		);
 		frame_support::storage::unhashed::put(
 			&frame_support::storage::storage_prefix(b"AsyncBacking", b"SlotInfo"),
-			&(Slot::from(now as u64 + 2), 0),
+			&(Slot::from(now + 2), 0),
 		);
 		<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
 		Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number());
-		now += 1u32;
+		now += 1u64;
 	}
 }
 
