@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("moonbase-dev")`, DB CACHE: 1024
 
 // Executed Command:
-// ./target/production/moonbeam
+// ./target/release/moonbeam
 // benchmark
 // pallet
 // --chain=moonbase-dev
@@ -51,8 +51,8 @@ impl<T: frame_system::Config> pallet_author_slot_filter::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 4_857_000 picoseconds.
-		Weight::from_parts(5_179_000, 0)
+		// Minimum execution time: 7_830_000 picoseconds.
+		Weight::from_parts(8_090_000, 0)
 			.saturating_add(Weight::from_parts(0, 0))
 			.saturating_add(T::DbWeight::get().writes(1))
 	}

@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("moonbase-dev")`, DB CACHE: 1024
 
 // Executed Command:
-// ./target/production/moonbeam
+// ./target/release/moonbeam
 // benchmark
 // pallet
 // --chain=moonbase-dev
@@ -51,8 +51,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `88`
 		//  Estimated: `1573`
-		// Minimum execution time: 8_114_000 picoseconds.
-		Weight::from_parts(8_573_000, 0)
+		// Minimum execution time: 12_364_000 picoseconds.
+		Weight::from_parts(12_811_000, 0)
 			.saturating_add(Weight::from_parts(0, 1573))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -63,8 +63,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `88`
 		//  Estimated: `1573`
-		// Minimum execution time: 37_978_000 picoseconds.
-		Weight::from_parts(38_476_000, 0)
+		// Minimum execution time: 40_776_000 picoseconds.
+		Weight::from_parts(42_007_000, 0)
 			.saturating_add(Weight::from_parts(0, 1573))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -75,8 +75,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `6`
 		//  Estimated: `1491`
-		// Minimum execution time: 6_946_000 picoseconds.
-		Weight::from_parts(7_577_000, 0)
+		// Minimum execution time: 11_182_000 picoseconds.
+		Weight::from_parts(11_665_000, 0)
 			.saturating_add(Weight::from_parts(0, 1491))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -87,8 +87,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `6`
 		//  Estimated: `1491`
-		// Minimum execution time: 6_662_000 picoseconds.
-		Weight::from_parts(7_067_000, 0)
+		// Minimum execution time: 10_799_000 picoseconds.
+		Weight::from_parts(11_099_000, 0)
 			.saturating_add(Weight::from_parts(0, 1491))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -99,8 +99,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `28`
 		//  Estimated: `1513`
-		// Minimum execution time: 7_498_000 picoseconds.
-		Weight::from_parts(7_853_000, 0)
+		// Minimum execution time: 11_291_000 picoseconds.
+		Weight::from_parts(11_563_000, 0)
 			.saturating_add(Weight::from_parts(0, 1513))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -111,8 +111,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `27`
 		//  Estimated: `1512`
-		// Minimum execution time: 6_723_000 picoseconds.
-		Weight::from_parts(7_160_000, 0)
+		// Minimum execution time: 10_624_000 picoseconds.
+		Weight::from_parts(10_994_000, 0)
 			.saturating_add(Weight::from_parts(0, 1512))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -125,8 +125,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `116`
 		//  Estimated: `1601`
-		// Minimum execution time: 40_676_000 picoseconds.
-		Weight::from_parts(41_165_000, 0)
+		// Minimum execution time: 43_890_000 picoseconds.
+		Weight::from_parts(45_097_000, 0)
 			.saturating_add(Weight::from_parts(0, 1601))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -154,11 +154,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `1421 + x * (38 ±0)`
 		//  Estimated: `4752 + x * (41 ±0)`
-		// Minimum execution time: 47_696_000 picoseconds.
-		Weight::from_parts(57_733_064, 0)
+		// Minimum execution time: 69_222_000 picoseconds.
+		Weight::from_parts(78_996_735, 0)
 			.saturating_add(Weight::from_parts(0, 4752))
-			// Standard Error: 1_758
-			.saturating_add(Weight::from_parts(85_877, 0).saturating_mul(x.into()))
+			// Standard Error: 1_717
+			.saturating_add(Weight::from_parts(159_484, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(7))
 			.saturating_add(T::DbWeight::get().writes(7))
 			.saturating_add(Weight::from_parts(0, 41).saturating_mul(x.into()))
@@ -172,11 +172,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `702 + x * (37 ±0)`
 		//  Estimated: `4060 + x * (38 ±0)`
-		// Minimum execution time: 16_198_000 picoseconds.
-		Weight::from_parts(21_599_857, 0)
+		// Minimum execution time: 23_044_000 picoseconds.
+		Weight::from_parts(26_893_240, 0)
 			.saturating_add(Weight::from_parts(0, 4060))
-			// Standard Error: 904
-			.saturating_add(Weight::from_parts(61_558, 0).saturating_mul(x.into()))
+			// Standard Error: 834
+			.saturating_add(Weight::from_parts(129_283, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
 			.saturating_add(Weight::from_parts(0, 38).saturating_mul(x.into()))
@@ -206,11 +206,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `1157 + x * (431 ±0)`
 		//  Estimated: `4696 + x * (3762 ±0)`
-		// Minimum execution time: 93_902_000 picoseconds.
-		Weight::from_parts(95_649_000, 0)
+		// Minimum execution time: 136_754_000 picoseconds.
+		Weight::from_parts(141_082_000, 0)
 			.saturating_add(Weight::from_parts(0, 4696))
-			// Standard Error: 74_962
-			.saturating_add(Weight::from_parts(34_069_482, 0).saturating_mul(x.into()))
+			// Standard Error: 94_336
+			.saturating_add(Weight::from_parts(48_280_817, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(5))
 			.saturating_add(T::DbWeight::get().reads((4_u64).saturating_mul(x.into())))
 			.saturating_add(T::DbWeight::get().writes(5))
@@ -243,11 +243,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `1149 + x * (431 ±0)`
 		//  Estimated: `4696 + x * (3762 ±0)`
-		// Minimum execution time: 86_974_000 picoseconds.
-		Weight::from_parts(88_029_000, 0)
+		// Minimum execution time: 128_686_000 picoseconds.
+		Weight::from_parts(129_566_000, 0)
 			.saturating_add(Weight::from_parts(0, 4696))
-			// Standard Error: 31_210
-			.saturating_add(Weight::from_parts(35_672_776, 0).saturating_mul(x.into()))
+			// Standard Error: 39_734
+			.saturating_add(Weight::from_parts(50_572_156, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(5))
 			.saturating_add(T::DbWeight::get().reads((4_u64).saturating_mul(x.into())))
 			.saturating_add(T::DbWeight::get().writes(5))
@@ -263,11 +263,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `670 + x * (37 ±0)`
 		//  Estimated: `4028 + x * (38 ±0)`
-		// Minimum execution time: 15_295_000 picoseconds.
-		Weight::from_parts(20_590_590, 0)
+		// Minimum execution time: 21_634_000 picoseconds.
+		Weight::from_parts(25_783_535, 0)
 			.saturating_add(Weight::from_parts(0, 4028))
-			// Standard Error: 884
-			.saturating_add(Weight::from_parts(61_399, 0).saturating_mul(x.into()))
+			// Standard Error: 855
+			.saturating_add(Weight::from_parts(124_377, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
 			.saturating_add(Weight::from_parts(0, 38).saturating_mul(x.into()))
@@ -281,11 +281,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `567 + x * (38 ±0)`
 		//  Estimated: `3968 + x * (39 ±0)`
-		// Minimum execution time: 14_475_000 picoseconds.
-		Weight::from_parts(19_426_367, 0)
+		// Minimum execution time: 20_821_000 picoseconds.
+		Weight::from_parts(24_881_209, 0)
 			.saturating_add(Weight::from_parts(0, 3968))
-			// Standard Error: 975
-			.saturating_add(Weight::from_parts(67_008, 0).saturating_mul(x.into()))
+			// Standard Error: 899
+			.saturating_add(Weight::from_parts(124_890, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
 			.saturating_add(Weight::from_parts(0, 39).saturating_mul(x.into()))
@@ -299,11 +299,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `531 + x * (38 ±0)`
 		//  Estimated: `3932 + x * (39 ±0)`
-		// Minimum execution time: 14_371_000 picoseconds.
-		Weight::from_parts(19_339_034, 0)
+		// Minimum execution time: 20_717_000 picoseconds.
+		Weight::from_parts(24_653_679, 0)
 			.saturating_add(Weight::from_parts(0, 3932))
-			// Standard Error: 939
-			.saturating_add(Weight::from_parts(65_998, 0).saturating_mul(x.into()))
+			// Standard Error: 875
+			.saturating_add(Weight::from_parts(120_960, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
 			.saturating_add(Weight::from_parts(0, 39).saturating_mul(x.into()))
@@ -325,11 +325,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `1270 + x * (42 ±0)`
 		//  Estimated: `4752 + x * (44 ±0)`
-		// Minimum execution time: 42_184_000 picoseconds.
-		Weight::from_parts(51_389_952, 0)
+		// Minimum execution time: 61_326_000 picoseconds.
+		Weight::from_parts(68_370_043, 0)
 			.saturating_add(Weight::from_parts(0, 4752))
-			// Standard Error: 1_874
-			.saturating_add(Weight::from_parts(92_382, 0).saturating_mul(x.into()))
+			// Standard Error: 1_565
+			.saturating_add(Weight::from_parts(181_758, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().writes(5))
 			.saturating_add(Weight::from_parts(0, 44).saturating_mul(x.into()))
@@ -340,8 +340,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `171`
 		//  Estimated: `3636`
-		// Minimum execution time: 12_693_000 picoseconds.
-		Weight::from_parts(13_111_000, 0)
+		// Minimum execution time: 18_295_000 picoseconds.
+		Weight::from_parts(18_827_000, 0)
 			.saturating_add(Weight::from_parts(0, 3636))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -363,11 +363,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `1322 + x * (42 ±0)`
 		//  Estimated: `4752 + x * (43 ±0)`
-		// Minimum execution time: 44_765_000 picoseconds.
-		Weight::from_parts(52_476_668, 0)
+		// Minimum execution time: 64_037_000 picoseconds.
+		Weight::from_parts(73_906_704, 0)
 			.saturating_add(Weight::from_parts(0, 4752))
-			// Standard Error: 1_155
-			.saturating_add(Weight::from_parts(73_515, 0).saturating_mul(x.into()))
+			// Standard Error: 1_553
+			.saturating_add(Weight::from_parts(131_256, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().writes(5))
 			.saturating_add(Weight::from_parts(0, 43).saturating_mul(x.into()))
@@ -389,11 +389,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `1302 + x * (42 ±0)`
 		//  Estimated: `4752 + x * (43 ±0)`
-		// Minimum execution time: 43_093_000 picoseconds.
-		Weight::from_parts(49_968_361, 0)
+		// Minimum execution time: 63_807_000 picoseconds.
+		Weight::from_parts(71_607_605, 0)
 			.saturating_add(Weight::from_parts(0, 4752))
-			// Standard Error: 1_155
-			.saturating_add(Weight::from_parts(70_455, 0).saturating_mul(x.into()))
+			// Standard Error: 1_409
+			.saturating_add(Weight::from_parts(126_273, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().writes(5))
 			.saturating_add(Weight::from_parts(0, 43).saturating_mul(x.into()))
@@ -404,8 +404,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `191`
 		//  Estimated: `3656`
-		// Minimum execution time: 11_400_000 picoseconds.
-		Weight::from_parts(11_896_000, 0)
+		// Minimum execution time: 16_491_000 picoseconds.
+		Weight::from_parts(16_849_000, 0)
 			.saturating_add(Weight::from_parts(0, 3656))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -432,13 +432,13 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `2479 + x * (79 ±0) + y * (38 ±0)`
 		//  Estimated: `5723 + x * (81 ±0) + y * (39 ±0)`
-		// Minimum execution time: 85_425_000 picoseconds.
-		Weight::from_parts(76_664_116, 0)
+		// Minimum execution time: 123_489_000 picoseconds.
+		Weight::from_parts(123_413_920, 0)
 			.saturating_add(Weight::from_parts(0, 5723))
-			// Standard Error: 1_273
-			.saturating_add(Weight::from_parts(144_226, 0).saturating_mul(x.into()))
-			// Standard Error: 417
-			.saturating_add(Weight::from_parts(42_687, 0).saturating_mul(y.into()))
+			// Standard Error: 9_007
+			.saturating_add(Weight::from_parts(23_229, 0).saturating_mul(x.into()))
+			// Standard Error: 2_955
+			.saturating_add(Weight::from_parts(66_555, 0).saturating_mul(y.into()))
 			.saturating_add(T::DbWeight::get().reads(8))
 			.saturating_add(T::DbWeight::get().writes(7))
 			.saturating_add(Weight::from_parts(0, 81).saturating_mul(x.into()))
@@ -453,11 +453,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `566 + x * (42 ±0)`
 		//  Estimated: `4012 + x * (43 ±0)`
-		// Minimum execution time: 14_815_000 picoseconds.
-		Weight::from_parts(23_059_399, 0)
+		// Minimum execution time: 22_208_000 picoseconds.
+		Weight::from_parts(31_530_961, 0)
 			.saturating_add(Weight::from_parts(0, 4012))
-			// Standard Error: 685
-			.saturating_add(Weight::from_parts(55_496, 0).saturating_mul(x.into()))
+			// Standard Error: 764
+			.saturating_add(Weight::from_parts(67_143, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
 			.saturating_add(Weight::from_parts(0, 43).saturating_mul(x.into()))
@@ -485,11 +485,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `1996 + x * (79 ±0)`
 		//  Estimated: `5428 + x * (79 ±0)`
-		// Minimum execution time: 58_411_000 picoseconds.
-		Weight::from_parts(71_211_973, 0)
+		// Minimum execution time: 83_631_000 picoseconds.
+		Weight::from_parts(102_235_013, 0)
 			.saturating_add(Weight::from_parts(0, 5428))
-			// Standard Error: 1_425
-			.saturating_add(Weight::from_parts(145_580, 0).saturating_mul(x.into()))
+			// Standard Error: 1_517
+			.saturating_add(Weight::from_parts(123_760, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(9))
 			.saturating_add(T::DbWeight::get().writes(7))
 			.saturating_add(Weight::from_parts(0, 79).saturating_mul(x.into()))
@@ -503,11 +503,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `566 + x * (42 ±0)`
 		//  Estimated: `4012 + x * (43 ±0)`
-		// Minimum execution time: 15_177_000 picoseconds.
-		Weight::from_parts(22_609_367, 0)
+		// Minimum execution time: 22_923_000 picoseconds.
+		Weight::from_parts(31_724_908, 0)
 			.saturating_add(Weight::from_parts(0, 4012))
-			// Standard Error: 816
-			.saturating_add(Weight::from_parts(87_110, 0).saturating_mul(x.into()))
+			// Standard Error: 728
+			.saturating_add(Weight::from_parts(66_871, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
 			.saturating_add(Weight::from_parts(0, 43).saturating_mul(x.into()))
@@ -536,8 +536,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `964`
 		//  Estimated: `4752`
-		// Minimum execution time: 73_373_000 picoseconds.
-		Weight::from_parts(74_707_000, 0)
+		// Minimum execution time: 101_474_000 picoseconds.
+		Weight::from_parts(103_906_000, 0)
 			.saturating_add(Weight::from_parts(0, 4752))
 			.saturating_add(T::DbWeight::get().reads(10))
 			.saturating_add(T::DbWeight::get().writes(8))
@@ -568,8 +568,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `37308`
 		//  Estimated: `40773`
-		// Minimum execution time: 149_917_000 picoseconds.
-		Weight::from_parts(153_150_000, 0)
+		// Minimum execution time: 176_531_000 picoseconds.
+		Weight::from_parts(178_096_000, 0)
 			.saturating_add(Weight::from_parts(0, 40773))
 			.saturating_add(T::DbWeight::get().reads(11))
 			.saturating_add(T::DbWeight::get().writes(10))
@@ -598,8 +598,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `29930`
 		//  Estimated: `33395`
-		// Minimum execution time: 126_015_000 picoseconds.
-		Weight::from_parts(131_420_000, 0)
+		// Minimum execution time: 146_705_000 picoseconds.
+		Weight::from_parts(150_798_000, 0)
 			.saturating_add(Weight::from_parts(0, 33395))
 			.saturating_add(T::DbWeight::get().reads(10))
 			.saturating_add(T::DbWeight::get().writes(9))
@@ -613,11 +613,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `663 + x * (42 ±0)`
 		//  Estimated: `4092 + x * (43 ±0)`
-		// Minimum execution time: 19_186_000 picoseconds.
-		Weight::from_parts(25_596_603, 0)
+		// Minimum execution time: 27_174_000 picoseconds.
+		Weight::from_parts(33_767_359, 0)
 			.saturating_add(Weight::from_parts(0, 4092))
-			// Standard Error: 772
-			.saturating_add(Weight::from_parts(82_281, 0).saturating_mul(x.into()))
+			// Standard Error: 735
+			.saturating_add(Weight::from_parts(68_734, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
 			.saturating_add(Weight::from_parts(0, 43).saturating_mul(x.into()))
@@ -640,8 +640,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `380`
 		//  Estimated: `3845`
-		// Minimum execution time: 27_307_000 picoseconds.
-		Weight::from_parts(28_536_000, 0)
+		// Minimum execution time: 40_173_000 picoseconds.
+		Weight::from_parts(40_713_000, 0)
 			.saturating_add(Weight::from_parts(0, 3845))
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().writes(3))
@@ -655,11 +655,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `73 + y * (36 ±0)`
 		//  Estimated: `3537 + y * (36 ±0)`
-		// Minimum execution time: 5_629_000 picoseconds.
-		Weight::from_parts(7_270_151, 0)
+		// Minimum execution time: 8_512_000 picoseconds.
+		Weight::from_parts(10_349_063, 0)
 			.saturating_add(Weight::from_parts(0, 3537))
-			// Standard Error: 631
-			.saturating_add(Weight::from_parts(53_088, 0).saturating_mul(y.into()))
+			// Standard Error: 756
+			.saturating_add(Weight::from_parts(50_264, 0).saturating_mul(y.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(Weight::from_parts(0, 36).saturating_mul(y.into()))
 	}
@@ -685,13 +685,13 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `0 + x * (3816 ±0) + y * (1800 ±0)`
 		//  Estimated: `3730 + x * (3975 ±39) + y * (639 ±19)`
-		// Minimum execution time: 19_052_000 picoseconds.
-		Weight::from_parts(19_366_000, 0)
+		// Minimum execution time: 27_552_000 picoseconds.
+		Weight::from_parts(27_903_000, 0)
 			.saturating_add(Weight::from_parts(0, 3730))
-			// Standard Error: 90_893
-			.saturating_add(Weight::from_parts(16_513_585, 0).saturating_mul(x.into()))
-			// Standard Error: 45_326
-			.saturating_add(Weight::from_parts(1_566_929, 0).saturating_mul(y.into()))
+			// Standard Error: 76_016
+			.saturating_add(Weight::from_parts(20_253_627, 0).saturating_mul(x.into()))
+			// Standard Error: 37_907
+			.saturating_add(Weight::from_parts(1_238_323, 0).saturating_mul(y.into()))
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().reads((4_u64).saturating_mul(x.into())))
 			.saturating_add(T::DbWeight::get().writes(2))
@@ -725,14 +725,14 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 	fn pay_one_collator_reward_best(x: u32, y: u32, z: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0 + x * (395 ±0) + y * (156 ±0) + z * (41 ±0)`
-		//  Estimated: `125757 + x * (2591 ±20) + y * (2234 ±20) + z * (28 ±0)`
-		// Minimum execution time: 236_000 picoseconds.
-		Weight::from_parts(284_000, 0)
+		//  Estimated: `125757 + x * (2591 ±1) + y * (2234 ±1) + z * (28 ±0)`
+		// Minimum execution time: 455_000 picoseconds.
+		Weight::from_parts(483_000, 0)
 			.saturating_add(Weight::from_parts(0, 125757))
-			// Standard Error: 504_769
-			.saturating_add(Weight::from_parts(47_473_173, 0).saturating_mul(x.into()))
-			// Standard Error: 504_769
-			.saturating_add(Weight::from_parts(28_673_443, 0).saturating_mul(y.into()))
+			// Standard Error: 680_209
+			.saturating_add(Weight::from_parts(66_187_981, 0).saturating_mul(x.into()))
+			// Standard Error: 680_209
+			.saturating_add(Weight::from_parts(40_587_651, 0).saturating_mul(y.into()))
 			.saturating_add(T::DbWeight::get().reads((3_u64).saturating_mul(x.into())))
 			.saturating_add(T::DbWeight::get().reads((2_u64).saturating_mul(y.into())))
 			.saturating_add(T::DbWeight::get().writes((2_u64).saturating_mul(x.into())))
@@ -760,11 +760,11 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `1208 + y * (160 ±0)`
 		//  Estimated: `6978 + y * (2591 ±0)`
-		// Minimum execution time: 40_744_000 picoseconds.
-		Weight::from_parts(27_531_926, 0)
+		// Minimum execution time: 59_584_000 picoseconds.
+		Weight::from_parts(59_041_918, 0)
 			.saturating_add(Weight::from_parts(0, 6978))
-			// Standard Error: 8_031
-			.saturating_add(Weight::from_parts(13_821_193, 0).saturating_mul(y.into()))
+			// Standard Error: 4_590
+			.saturating_add(Weight::from_parts(20_105_166, 0).saturating_mul(y.into()))
 			.saturating_add(T::DbWeight::get().reads(8))
 			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(y.into())))
 			.saturating_add(T::DbWeight::get().writes(3))
@@ -775,8 +775,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 684_000 picoseconds.
-		Weight::from_parts(754_000, 0)
+		// Minimum execution time: 1_247_000 picoseconds.
+		Weight::from_parts(1_304_000, 0)
 			.saturating_add(Weight::from_parts(0, 0))
 	}
 	/// Storage: `ParachainStaking::DelegatorState` (r:1 w:0)
@@ -789,13 +789,13 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `671 + x * (22 ±0) + y * (36 ±0)`
 		//  Estimated: `4027 + x * (23 ±0) + y * (36 ±0)`
-		// Minimum execution time: 26_319_000 picoseconds.
-		Weight::from_parts(22_100_812, 0)
+		// Minimum execution time: 31_770_000 picoseconds.
+		Weight::from_parts(30_451_448, 0)
 			.saturating_add(Weight::from_parts(0, 4027))
-			// Standard Error: 453
-			.saturating_add(Weight::from_parts(65_286, 0).saturating_mul(x.into()))
-			// Standard Error: 1_356
-			.saturating_add(Weight::from_parts(78_567, 0).saturating_mul(y.into()))
+			// Standard Error: 282
+			.saturating_add(Weight::from_parts(55_281, 0).saturating_mul(x.into()))
+			// Standard Error: 844
+			.saturating_add(Weight::from_parts(46_144, 0).saturating_mul(y.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(1))
 			.saturating_add(Weight::from_parts(0, 23).saturating_mul(x.into()))
@@ -827,14 +827,16 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 	fn delegate_with_auto_compound(x: u32, y: u32, z: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0 + x * (60 ±0) + y * (21 ±0) + z * (78 ±0)`
-		//  Estimated: `26253 + x * (44 ±0) + y * (19 ±0) + z * (76 ±0)`
-		// Minimum execution time: 96_252_000 picoseconds.
-		Weight::from_parts(71_804_622, 0)
+		//  Estimated: `26253 + x * (44 ±0) + y * (19 ±0) + z * (76 ±1)`
+		// Minimum execution time: 124_530_000 picoseconds.
+		Weight::from_parts(104_309_225, 0)
 			.saturating_add(Weight::from_parts(0, 26253))
-			// Standard Error: 1_470
-			.saturating_add(Weight::from_parts(163_614, 0).saturating_mul(x.into()))
-			// Standard Error: 5_193
-			.saturating_add(Weight::from_parts(290_832, 0).saturating_mul(z.into()))
+			// Standard Error: 1_164
+			.saturating_add(Weight::from_parts(133_425, 0).saturating_mul(x.into()))
+			// Standard Error: 1_167
+			.saturating_add(Weight::from_parts(5_483, 0).saturating_mul(y.into()))
+			// Standard Error: 4_112
+			.saturating_add(Weight::from_parts(210_925, 0).saturating_mul(z.into()))
 			.saturating_add(T::DbWeight::get().reads(9))
 			.saturating_add(T::DbWeight::get().writes(8))
 			.saturating_add(Weight::from_parts(0, 44).saturating_mul(x.into()))
@@ -867,8 +869,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `48167`
 		//  Estimated: `54107`
-		// Minimum execution time: 238_503_000 picoseconds.
-		Weight::from_parts(249_149_000, 0)
+		// Minimum execution time: 279_173_000 picoseconds.
+		Weight::from_parts(282_123_000, 0)
 			.saturating_add(Weight::from_parts(0, 54107))
 			.saturating_add(T::DbWeight::get().reads(15))
 			.saturating_add(T::DbWeight::get().writes(13))
@@ -879,8 +881,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `128`
 		//  Estimated: `3581`
-		// Minimum execution time: 15_351_000 picoseconds.
-		Weight::from_parts(15_840_000, 0)
+		// Minimum execution time: 23_581_000 picoseconds.
+		Weight::from_parts(23_983_000, 0)
 			.saturating_add(Weight::from_parts(0, 3581))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -905,8 +907,8 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `11494`
 		//  Estimated: `17434`
-		// Minimum execution time: 73_957_000 picoseconds.
-		Weight::from_parts(76_184_000, 0)
+		// Minimum execution time: 84_420_000 picoseconds.
+		Weight::from_parts(85_328_000, 0)
 			.saturating_add(Weight::from_parts(0, 17434))
 			.saturating_add(T::DbWeight::get().reads(10))
 			.saturating_add(T::DbWeight::get().writes(2))

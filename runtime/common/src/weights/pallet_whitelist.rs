@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("moonbase-dev")`, DB CACHE: 1024
 
 // Executed Command:
-// ./target/production/moonbeam
+// ./target/release/moonbeam
 // benchmark
 // pallet
 // --chain=moonbase-dev
@@ -55,8 +55,8 @@ impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `83`
 		//  Estimated: `3544`
-		// Minimum execution time: 17_073_000 picoseconds.
-		Weight::from_parts(17_739_000, 0)
+		// Minimum execution time: 25_921_000 picoseconds.
+		Weight::from_parts(26_380_000, 0)
 			.saturating_add(Weight::from_parts(0, 3544))
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(2))
@@ -71,8 +71,8 @@ impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `212`
 		//  Estimated: `3544`
-		// Minimum execution time: 16_597_000 picoseconds.
-		Weight::from_parts(17_151_000, 0)
+		// Minimum execution time: 23_716_000 picoseconds.
+		Weight::from_parts(24_488_000, 0)
 			.saturating_add(Weight::from_parts(0, 3544))
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(2))
@@ -90,11 +90,11 @@ impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `288 + n * (1 ±0)`
 		//  Estimated: `3752 + n * (1 ±0)`
-		// Minimum execution time: 27_196_000 picoseconds.
-		Weight::from_parts(27_675_000, 0)
+		// Minimum execution time: 39_036_000 picoseconds.
+		Weight::from_parts(39_601_000, 0)
 			.saturating_add(Weight::from_parts(0, 3752))
-			// Standard Error: 19
-			.saturating_add(Weight::from_parts(1_575, 0).saturating_mul(n.into()))
+			// Standard Error: 17
+			.saturating_add(Weight::from_parts(1_598, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(4))
 			.saturating_add(T::DbWeight::get().writes(3))
 			.saturating_add(Weight::from_parts(0, 1).saturating_mul(n.into()))
@@ -110,11 +110,11 @@ impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `212`
 		//  Estimated: `3544`
-		// Minimum execution time: 20_409_000 picoseconds.
-		Weight::from_parts(21_164_427, 0)
+		// Minimum execution time: 29_661_000 picoseconds.
+		Weight::from_parts(30_104_570, 0)
 			.saturating_add(Weight::from_parts(0, 3544))
 			// Standard Error: 3
-			.saturating_add(Weight::from_parts(1_371, 0).saturating_mul(n.into()))
+			.saturating_add(Weight::from_parts(1_498, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}

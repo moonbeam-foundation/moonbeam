@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("moonbase-dev")`, DB CACHE: 1024
 
 // Executed Command:
-// ./target/production/moonbeam
+// ./target/release/moonbeam
 // benchmark
 // pallet
 // --chain=moonbase-dev
@@ -59,8 +59,8 @@ impl<T: frame_system::Config> pallet_randomness::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `297`
 		//  Estimated: `3762`
-		// Minimum execution time: 12_591_000 picoseconds.
-		Weight::from_parts(12_954_000, 0)
+		// Minimum execution time: 18_163_000 picoseconds.
+		Weight::from_parts(18_746_000, 0)
 			.saturating_add(Weight::from_parts(0, 3762))
 			.saturating_add(T::DbWeight::get().reads(4))
 			.saturating_add(T::DbWeight::get().writes(3))
@@ -79,8 +79,8 @@ impl<T: frame_system::Config> pallet_randomness::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `719`
 		//  Estimated: `4184`
-		// Minimum execution time: 1_295_030_000 picoseconds.
-		Weight::from_parts(1_339_697_000, 0)
+		// Minimum execution time: 1_388_352_000 picoseconds.
+		Weight::from_parts(1_416_044_000, 0)
 			.saturating_add(Weight::from_parts(0, 4184))
 			.saturating_add(T::DbWeight::get().reads(5))
 			.saturating_add(T::DbWeight::get().writes(2))
@@ -97,8 +97,8 @@ impl<T: frame_system::Config> pallet_randomness::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `516`
 		//  Estimated: `6172`
-		// Minimum execution time: 48_672_000 picoseconds.
-		Weight::from_parts(49_422_000, 0)
+		// Minimum execution time: 77_005_000 picoseconds.
+		Weight::from_parts(77_678_000, 0)
 			.saturating_add(Weight::from_parts(0, 6172))
 			.saturating_add(T::DbWeight::get().reads(4))
 			.saturating_add(T::DbWeight::get().writes(5))
@@ -112,11 +112,11 @@ impl<T: frame_system::Config> pallet_randomness::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `412`
 		//  Estimated: `3877`
-		// Minimum execution time: 8_926_000 picoseconds.
-		Weight::from_parts(9_343_490, 0)
+		// Minimum execution time: 12_372_000 picoseconds.
+		Weight::from_parts(12_947_376, 0)
 			.saturating_add(Weight::from_parts(0, 3877))
-			// Standard Error: 303
-			.saturating_add(Weight::from_parts(248_035, 0).saturating_mul(x.into()))
+			// Standard Error: 422
+			.saturating_add(Weight::from_parts(333_500, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
 	}
 	/// Storage: `System::Account` (r:2 w:2)
@@ -129,8 +129,8 @@ impl<T: frame_system::Config> pallet_randomness::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `706`
 		//  Estimated: `6172`
-		// Minimum execution time: 44_821_000 picoseconds.
-		Weight::from_parts(45_362_000, 0)
+		// Minimum execution time: 71_126_000 picoseconds.
+		Weight::from_parts(71_776_000, 0)
 			.saturating_add(Weight::from_parts(0, 6172))
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(4))
@@ -143,8 +143,8 @@ impl<T: frame_system::Config> pallet_randomness::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `792`
 		//  Estimated: `6172`
-		// Minimum execution time: 41_568_000 picoseconds.
-		Weight::from_parts(42_708_000, 0)
+		// Minimum execution time: 65_993_000 picoseconds.
+		Weight::from_parts(67_520_000, 0)
 			.saturating_add(Weight::from_parts(0, 6172))
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(3))
@@ -159,8 +159,8 @@ impl<T: frame_system::Config> pallet_randomness::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `835`
 		//  Estimated: `6172`
-		// Minimum execution time: 48_782_000 picoseconds.
-		Weight::from_parts(49_783_000, 0)
+		// Minimum execution time: 75_236_000 picoseconds.
+		Weight::from_parts(76_350_000, 0)
 			.saturating_add(Weight::from_parts(0, 6172))
 			.saturating_add(T::DbWeight::get().reads(4))
 			.saturating_add(T::DbWeight::get().writes(4))

@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("moonbase-dev")`, DB CACHE: 1024
 
 // Executed Command:
-// ./target/production/moonbeam
+// ./target/release/moonbeam
 // benchmark
 // pallet
 // --chain=moonbase-dev
@@ -51,8 +51,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `142`
 		//  Estimated: `1627`
-		// Minimum execution time: 4_745_000 picoseconds.
-		Weight::from_parts(4_962_000, 0)
+		// Minimum execution time: 6_946_000 picoseconds.
+		Weight::from_parts(7_255_000, 0)
 			.saturating_add(Weight::from_parts(0, 1627))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -63,8 +63,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `142`
 		//  Estimated: `1627`
-		// Minimum execution time: 4_634_000 picoseconds.
-		Weight::from_parts(4_872_000, 0)
+		// Minimum execution time: 6_891_000 picoseconds.
+		Weight::from_parts(7_224_000, 0)
 			.saturating_add(Weight::from_parts(0, 1627))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
