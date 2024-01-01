@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("moonbase-dev")`, DB CACHE: 1024
 
 // Executed Command:
-// ./target/release/moonbeam
+// ./target/production/moonbeam
 // benchmark
 // pallet
 // --chain=moonbase-dev
@@ -57,13 +57,15 @@ impl<T: frame_system::Config> pallet_evm::WeightInfo for WeightInfo<T> {
 	/// Storage: `EVM::AccountStorages` (r:1 w:0)
 	/// Proof: `EVM::AccountStorages` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// The range of component `x` is `[1, 10000000]`.
-	fn runner_execute(_x: u32, ) -> Weight {
+	fn runner_execute(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `1501`
 		//  Estimated: `7441`
-		// Minimum execution time: 26_082_432_000 picoseconds.
-		Weight::from_parts(26_391_796_496, 0)
+		// Minimum execution time: 22_966_362_000 picoseconds.
+		Weight::from_parts(23_285_479_941, 0)
 			.saturating_add(Weight::from_parts(0, 7441))
+			// Standard Error: 1
+			.saturating_add(Weight::from_parts(3, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(8))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}
@@ -71,8 +73,8 @@ impl<T: frame_system::Config> pallet_evm::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 2_551_000 picoseconds.
-		Weight::from_parts(2_707_000, 0)
+		// Minimum execution time: 1_608_000 picoseconds.
+		Weight::from_parts(1_786_000, 0)
 			.saturating_add(Weight::from_parts(0, 0))
 	}
 }

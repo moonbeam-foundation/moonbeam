@@ -22,7 +22,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("moonbase-dev")`, DB CACHE: 1024
 
 // Executed Command:
-// ./target/release/moonbeam
+// ./target/production/moonbeam
 // benchmark
 // pallet
 // --chain=moonbase-dev
@@ -63,11 +63,11 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `75944 + x * (659 ±0)`
 		//  Estimated: `66066 + x * (3161 ±5)`
-		// Minimum execution time: 139_219_000 picoseconds.
-		Weight::from_parts(144_277_000, 0)
+		// Minimum execution time: 101_655_000 picoseconds.
+		Weight::from_parts(72_537_613, 0)
 			.saturating_add(Weight::from_parts(0, 66066))
-			// Standard Error: 35_453
-			.saturating_add(Weight::from_parts(72_816_543, 0).saturating_mul(x.into()))
+			// Standard Error: 32_960
+			.saturating_add(Weight::from_parts(48_769_159, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(4))
 			.saturating_add(T::DbWeight::get().reads((4_u64).saturating_mul(x.into())))
 			.saturating_add(T::DbWeight::get().writes(3))
@@ -90,8 +90,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `513`
 		//  Estimated: `3581`
-		// Minimum execution time: 18_844_000 picoseconds.
-		Weight::from_parts(19_194_000, 0)
+		// Minimum execution time: 14_085_000 picoseconds.
+		Weight::from_parts(14_736_000, 0)
 			.saturating_add(Weight::from_parts(0, 3581))
 			.saturating_add(T::DbWeight::get().reads(5))
 			.saturating_add(T::DbWeight::get().writes(2))
@@ -112,8 +112,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `968`
 		//  Estimated: `6172`
-		// Minimum execution time: 81_651_000 picoseconds.
-		Weight::from_parts(83_279_000, 0)
+		// Minimum execution time: 56_409_000 picoseconds.
+		Weight::from_parts(58_290_000, 0)
 			.saturating_add(Weight::from_parts(0, 6172))
 			.saturating_add(T::DbWeight::get().reads(7))
 			.saturating_add(T::DbWeight::get().writes(3))
@@ -124,8 +124,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `397`
 		//  Estimated: `6337`
-		// Minimum execution time: 23_459_000 picoseconds.
-		Weight::from_parts(24_020_000, 0)
+		// Minimum execution time: 16_927_000 picoseconds.
+		Weight::from_parts(17_498_000, 0)
 			.saturating_add(Weight::from_parts(0, 6337))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
@@ -142,8 +142,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `802`
 		//  Estimated: `6172`
-		// Minimum execution time: 140_736_000 picoseconds.
-		Weight::from_parts(143_314_000, 0)
+		// Minimum execution time: 108_365_000 picoseconds.
+		Weight::from_parts(109_843_000, 0)
 			.saturating_add(Weight::from_parts(0, 6172))
 			.saturating_add(T::DbWeight::get().reads(5))
 			.saturating_add(T::DbWeight::get().writes(5))
@@ -155,11 +155,11 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `366 + x * (32 ±0)`
 		//  Estimated: `6306 + x * (32 ±0)`
-		// Minimum execution time: 82_984_000 picoseconds.
-		Weight::from_parts(83_660_000, 0)
+		// Minimum execution time: 71_412_000 picoseconds.
+		Weight::from_parts(72_135_000, 0)
 			.saturating_add(Weight::from_parts(0, 6306))
-			// Standard Error: 8_788
-			.saturating_add(Weight::from_parts(54_348_400, 0).saturating_mul(x.into()))
+			// Standard Error: 9_837
+			.saturating_add(Weight::from_parts(53_145_802, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
 			.saturating_add(Weight::from_parts(0, 32).saturating_mul(x.into()))
