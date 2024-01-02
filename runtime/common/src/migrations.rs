@@ -108,7 +108,7 @@ where
 			<OpenTech as GetStorageVersion>::on_chain_storage_version() == 0,
 			"OpenTechCommitteeCollective storage version should be 0"
 		);
-		
+
 		Ok(vec![])
 	}
 
