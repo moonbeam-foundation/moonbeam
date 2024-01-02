@@ -286,7 +286,7 @@ where
 			//Box::new(remove_min_bond_for_old_orbiter_collators),
 			Box::new(missing_balances_migrations),
 			Box::new(fix_pallet_versions),
-			Box::new(pallet_referenda_migrate_v0_to_v1)
+			Box::new(pallet_referenda_migrate_v0_to_v1),
 		]
 	}
 }
