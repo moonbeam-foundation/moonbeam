@@ -1176,6 +1176,12 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
 			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
+			RuntimeCall::Treasury(
+				pallet_treasury::Call::spend { .. }
+				| pallet_treasury::Call::payout { .. }
+				| pallet_treasury::Call::check_status { .. }
+				| pallet_treasury::Call::void_spend { .. },
+			) => false,
 			_ => true,
 		}
 	}
