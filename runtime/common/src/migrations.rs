@@ -137,19 +137,6 @@ where
 	}
 }
 
-pub struct ReferendaMigrations<Runtime>(PhantomData<Runtime>);
-
-impl<Runtime> GetMigrations for ReferendaMigrations<Runtime>
-where
-	Runtime: pallet_referenda::Config,
-{
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		let pallet_referenda_migrate_v0_to_v1 =
-			PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
-		vec![Box::new(pallet_referenda_migrate_v0_to_v1)]
-	}
-}
-
 pub struct CommonMigrations<Runtime, Council, Tech, Treasury, OpenTech>(
 	PhantomData<(Runtime, Council, Tech, Treasury, OpenTech)>,
 );
@@ -241,9 +228,13 @@ where
 		//	PalletXcmTransactorMigrateXcmV2ToV3::<Runtime>(Default::default());
 		//let remove_min_bond_for_old_orbiter_collators =
 		//	RemoveMinBondForOrbiterCollators::<Runtime>(Default::default());
+
+		// RT2700
 		let missing_balances_migrations = MissingBalancesMigrations::<Runtime>(Default::default());
 		let fix_pallet_versions =
 			FixIncorrectPalletVersions::<Runtime, Treasury, OpenTech>(Default::default());
+		let pallet_referenda_migrate_v0_to_v1 =
+			PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
 
 		vec![
 			// completed in runtime 800
@@ -295,6 +286,7 @@ where
 			//Box::new(remove_min_bond_for_old_orbiter_collators),
 			Box::new(missing_balances_migrations),
 			Box::new(fix_pallet_versions),
+			Box::new(pallet_referenda_migrate_v0_to_v1)
 		]
 	}
 }
