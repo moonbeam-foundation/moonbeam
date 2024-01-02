@@ -291,6 +291,7 @@ where
 			//Box::new(preimage_migration_hash_to_bounded_call),
 			//Box::new(asset_manager_to_xcm_v3),
 			//Box::new(xcm_transactor_to_xcm_v3),
+			// completed in runtime 2600
 			//Box::new(remove_min_bond_for_old_orbiter_collators),
 			Box::new(missing_balances_migrations),
 			Box::new(fix_pallet_versions),
