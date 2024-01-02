@@ -92,11 +92,9 @@ where
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		log::info!("Setting collective pallet versions to 4");
+		log::info!("Setting collectives pallet versions to 4");
 		StorageVersion::new(4).put::<Treasury>();
 		StorageVersion::new(4).put::<OpenTech>();
-		log::info!("Setting referenda pallet version to 1");
-		StorageVersion::new(1).put::<pallet_referenda::Pallet<Runtime>>();
 		Runtime::DbWeight::get().writes(2)
 	}
 
@@ -110,11 +108,7 @@ where
 			<OpenTech as GetStorageVersion>::on_chain_storage_version() == 0,
 			"OpenTechCommitteeCollective storage version should be 0"
 		);
-		ensure!(
-			<pallet_referenda::Pallet<Runtime> as GetStorageVersion>::on_chain_storage_version()
-				== 0,
-			"Referenda storage version should be 0"
-		);
+		
 		Ok(vec![])
 	}
 
@@ -127,11 +121,6 @@ where
 		ensure!(
 			<OpenTech as GetStorageVersion>::on_chain_storage_version() == 4,
 			"OpenTech storage version should be 4"
-		);
-		ensure!(
-			<pallet_referenda::Pallet<Runtime> as GetStorageVersion>::on_chain_storage_version()
-				== 1,
-			"Referenda storage version should be 1"
 		);
 		Ok(())
 	}
