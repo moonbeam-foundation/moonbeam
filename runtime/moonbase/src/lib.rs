@@ -1111,7 +1111,6 @@ impl pallet_migrations::Config for Runtime {
 			TreasuryCouncilCollective,
 			OpenTechCommitteeCollective,
 		>,
-		moonbeam_runtime_common::migrations::ReferendaMigrations<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
 }

@@ -92,11 +92,9 @@ where
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		log::info!("Setting collective pallet versions to 4");
+		log::info!("Setting collectives pallet versions to 4");
 		StorageVersion::new(4).put::<Treasury>();
 		StorageVersion::new(4).put::<OpenTech>();
-		log::info!("Setting referenda pallet version to 1");
-		StorageVersion::new(1).put::<pallet_referenda::Pallet<Runtime>>();
 		Runtime::DbWeight::get().writes(2)
 	}
 
@@ -110,11 +108,7 @@ where
 			<OpenTech as GetStorageVersion>::on_chain_storage_version() == 0,
 			"OpenTechCommitteeCollective storage version should be 0"
 		);
-		ensure!(
-			<pallet_referenda::Pallet<Runtime> as GetStorageVersion>::on_chain_storage_version()
-				== 0,
-			"Referenda storage version should be 0"
-		);
+
 		Ok(vec![])
 	}
 
@@ -128,25 +122,7 @@ where
 			<OpenTech as GetStorageVersion>::on_chain_storage_version() == 4,
 			"OpenTech storage version should be 4"
 		);
-		ensure!(
-			<pallet_referenda::Pallet<Runtime> as GetStorageVersion>::on_chain_storage_version()
-				== 1,
-			"Referenda storage version should be 1"
-		);
 		Ok(())
-	}
-}
-
-pub struct ReferendaMigrations<Runtime>(PhantomData<Runtime>);
-
-impl<Runtime> GetMigrations for ReferendaMigrations<Runtime>
-where
-	Runtime: pallet_referenda::Config,
-{
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		let pallet_referenda_migrate_v0_to_v1 =
-			PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
-		vec![Box::new(pallet_referenda_migrate_v0_to_v1)]
 	}
 }
 
@@ -241,9 +217,13 @@ where
 		//	PalletXcmTransactorMigrateXcmV2ToV3::<Runtime>(Default::default());
 		//let remove_min_bond_for_old_orbiter_collators =
 		//	RemoveMinBondForOrbiterCollators::<Runtime>(Default::default());
+
+		// RT2700
 		let missing_balances_migrations = MissingBalancesMigrations::<Runtime>(Default::default());
 		let fix_pallet_versions =
 			FixIncorrectPalletVersions::<Runtime, Treasury, OpenTech>(Default::default());
+		let pallet_referenda_migrate_v0_to_v1 =
+			PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
 
 		vec![
 			// completed in runtime 800
@@ -291,9 +271,11 @@ where
 			//Box::new(preimage_migration_hash_to_bounded_call),
 			//Box::new(asset_manager_to_xcm_v3),
 			//Box::new(xcm_transactor_to_xcm_v3),
+			// completed in runtime 2600
 			//Box::new(remove_min_bond_for_old_orbiter_collators),
 			Box::new(missing_balances_migrations),
 			Box::new(fix_pallet_versions),
+			Box::new(pallet_referenda_migrate_v0_to_v1),
 		]
 	}
 }
