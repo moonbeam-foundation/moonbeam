@@ -44,219 +44,219 @@ use core::marker::PhantomData;
 /// Weight functions for `pallet_preimage`.
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_preimage::WeightInfo for WeightInfo<T> {
-    /// Storage: `Preimage::StatusFor` (r:1 w:0)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Balances::Holds` (r:1 w:1)
-    /// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(55), added: 2530, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::PreimageFor` (r:0 w:1)
-    /// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `MaxEncodedLen`)
-    /// The range of component `s` is `[0, 4194304]`.
-    fn note_preimage(s: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `42`
-        //  Estimated: `3544`
-        // Minimum execution time: 27_230_000 picoseconds.
-        Weight::from_parts(27_570_000, 0)
-            .saturating_add(Weight::from_parts(0, 3544))
-            // Standard Error: 2
-            .saturating_add(Weight::from_parts(1_295, 0).saturating_mul(s.into()))
-            .saturating_add(T::DbWeight::get().reads(3))
-            .saturating_add(T::DbWeight::get().writes(3))
-    }
-    /// Storage: `Preimage::StatusFor` (r:1 w:0)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::PreimageFor` (r:0 w:1)
-    /// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `MaxEncodedLen`)
-    /// The range of component `s` is `[0, 4194304]`.
-    fn note_requested_preimage(s: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `106`
-        //  Estimated: `3544`
-        // Minimum execution time: 8_630_000 picoseconds.
-        Weight::from_parts(8_750_000, 0)
-            .saturating_add(Weight::from_parts(0, 3544))
-            // Standard Error: 4
-            .saturating_add(Weight::from_parts(1_321, 0).saturating_mul(s.into()))
-            .saturating_add(T::DbWeight::get().reads(2))
-            .saturating_add(T::DbWeight::get().writes(2))
-    }
-    /// Storage: `Preimage::StatusFor` (r:1 w:0)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::PreimageFor` (r:0 w:1)
-    /// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `MaxEncodedLen`)
-    /// The range of component `s` is `[0, 4194304]`.
-    fn note_no_deposit_preimage(s: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `106`
-        //  Estimated: `3544`
-        // Minimum execution time: 8_310_000 picoseconds.
-        Weight::from_parts(8_390_000, 0)
-            .saturating_add(Weight::from_parts(0, 3544))
-            // Standard Error: 2
-            .saturating_add(Weight::from_parts(1_299, 0).saturating_mul(s.into()))
-            .saturating_add(T::DbWeight::get().reads(2))
-            .saturating_add(T::DbWeight::get().writes(2))
-    }
-    /// Storage: `Preimage::StatusFor` (r:1 w:0)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Balances::Holds` (r:1 w:1)
-    /// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(55), added: 2530, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::PreimageFor` (r:0 w:1)
-    /// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `MaxEncodedLen`)
-    fn unnote_preimage() -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `220`
-        //  Estimated: `3544`
-        // Minimum execution time: 27_880_000 picoseconds.
-        Weight::from_parts(28_560_000, 0)
-            .saturating_add(Weight::from_parts(0, 3544))
-            .saturating_add(T::DbWeight::get().reads(3))
-            .saturating_add(T::DbWeight::get().writes(3))
-    }
-    /// Storage: `Preimage::StatusFor` (r:1 w:0)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::PreimageFor` (r:0 w:1)
-    /// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `MaxEncodedLen`)
-    fn unnote_no_deposit_preimage() -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `144`
-        //  Estimated: `3544`
-        // Minimum execution time: 10_520_000 picoseconds.
-        Weight::from_parts(10_870_000, 0)
-            .saturating_add(Weight::from_parts(0, 3544))
-            .saturating_add(T::DbWeight::get().reads(2))
-            .saturating_add(T::DbWeight::get().writes(2))
-    }
-    /// Storage: `Preimage::StatusFor` (r:1 w:0)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    fn request_preimage() -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `176`
-        //  Estimated: `3544`
-        // Minimum execution time: 8_700_000 picoseconds.
-        Weight::from_parts(9_070_000, 0)
-            .saturating_add(Weight::from_parts(0, 3544))
-            .saturating_add(T::DbWeight::get().reads(2))
-            .saturating_add(T::DbWeight::get().writes(1))
-    }
-    /// Storage: `Preimage::StatusFor` (r:1 w:0)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    fn request_no_deposit_preimage() -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `144`
-        //  Estimated: `3544`
-        // Minimum execution time: 6_430_000 picoseconds.
-        Weight::from_parts(6_700_000, 0)
-            .saturating_add(Weight::from_parts(0, 3544))
-            .saturating_add(T::DbWeight::get().reads(2))
-            .saturating_add(T::DbWeight::get().writes(1))
-    }
-    /// Storage: `Preimage::StatusFor` (r:1 w:0)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    fn request_unnoted_preimage() -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `42`
-        //  Estimated: `3544`
-        // Minimum execution time: 7_070_000 picoseconds.
-        Weight::from_parts(7_240_000, 0)
-            .saturating_add(Weight::from_parts(0, 3544))
-            .saturating_add(T::DbWeight::get().reads(2))
-            .saturating_add(T::DbWeight::get().writes(1))
-    }
-    /// Storage: `Preimage::StatusFor` (r:1 w:0)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    fn request_requested_preimage() -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `106`
-        //  Estimated: `3544`
-        // Minimum execution time: 5_810_000 picoseconds.
-        Weight::from_parts(6_050_000, 0)
-            .saturating_add(Weight::from_parts(0, 3544))
-            .saturating_add(T::DbWeight::get().reads(2))
-            .saturating_add(T::DbWeight::get().writes(1))
-    }
-    /// Storage: `Preimage::StatusFor` (r:1 w:0)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::PreimageFor` (r:0 w:1)
-    /// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `MaxEncodedLen`)
-    fn unrequest_preimage() -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `144`
-        //  Estimated: `3544`
-        // Minimum execution time: 8_980_000 picoseconds.
-        Weight::from_parts(9_290_000, 0)
-            .saturating_add(Weight::from_parts(0, 3544))
-            .saturating_add(T::DbWeight::get().reads(2))
-            .saturating_add(T::DbWeight::get().writes(2))
-    }
-    /// Storage: `Preimage::StatusFor` (r:1 w:0)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    fn unrequest_unnoted_preimage() -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `106`
-        //  Estimated: `3544`
-        // Minimum execution time: 5_700_000 picoseconds.
-        Weight::from_parts(5_900_000, 0)
-            .saturating_add(Weight::from_parts(0, 3544))
-            .saturating_add(T::DbWeight::get().reads(2))
-            .saturating_add(T::DbWeight::get().writes(1))
-    }
-    /// Storage: `Preimage::StatusFor` (r:1 w:0)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    fn unrequest_multi_referenced_preimage() -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `106`
-        //  Estimated: `3544`
-        // Minimum execution time: 5_770_000 picoseconds.
-        Weight::from_parts(5_940_000, 0)
-            .saturating_add(Weight::from_parts(0, 3544))
-            .saturating_add(T::DbWeight::get().reads(2))
-            .saturating_add(T::DbWeight::get().writes(1))
-    }
-    /// Storage: `Preimage::StatusFor` (r:1023 w:1023)
-    /// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// Storage: `System::Account` (r:1023 w:1023)
-    /// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-    /// Storage: `Balances::Holds` (r:1023 w:1023)
-    /// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(55), added: 2530, mode: `MaxEncodedLen`)
-    /// Storage: `Preimage::RequestStatusFor` (r:0 w:1023)
-    /// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
-    /// The range of component `n` is `[1, 1024]`.
-    fn ensure_updated(n: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `747 + n * (203 ±0)`
-        //  Estimated: `990 + n * (2591 ±0)`
-        // Minimum execution time: 32_380_000 picoseconds.
-        Weight::from_parts(32_700_000, 0)
-            .saturating_add(Weight::from_parts(0, 990))
-            // Standard Error: 21_291
-            .saturating_add(Weight::from_parts(33_944_572, 0).saturating_mul(n.into()))
-            .saturating_add(T::DbWeight::get().reads((3_u64).saturating_mul(n.into())))
-            .saturating_add(T::DbWeight::get().writes((4_u64).saturating_mul(n.into())))
-            .saturating_add(Weight::from_parts(0, 2591).saturating_mul(n.into()))
-    }
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Holds` (r:1 w:1)
+	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(55), added: 2530, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::PreimageFor` (r:0 w:1)
+	/// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `MaxEncodedLen`)
+	/// The range of component `s` is `[0, 4194304]`.
+	fn note_preimage(s: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `42`
+		//  Estimated: `3544`
+		// Minimum execution time: 27_230_000 picoseconds.
+		Weight::from_parts(27_570_000, 0)
+			.saturating_add(Weight::from_parts(0, 3544))
+			// Standard Error: 2
+			.saturating_add(Weight::from_parts(1_295, 0).saturating_mul(s.into()))
+			.saturating_add(T::DbWeight::get().reads(3))
+			.saturating_add(T::DbWeight::get().writes(3))
+	}
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::PreimageFor` (r:0 w:1)
+	/// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `MaxEncodedLen`)
+	/// The range of component `s` is `[0, 4194304]`.
+	fn note_requested_preimage(s: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `106`
+		//  Estimated: `3544`
+		// Minimum execution time: 8_630_000 picoseconds.
+		Weight::from_parts(8_750_000, 0)
+			.saturating_add(Weight::from_parts(0, 3544))
+			// Standard Error: 4
+			.saturating_add(Weight::from_parts(1_321, 0).saturating_mul(s.into()))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(2))
+	}
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::PreimageFor` (r:0 w:1)
+	/// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `MaxEncodedLen`)
+	/// The range of component `s` is `[0, 4194304]`.
+	fn note_no_deposit_preimage(s: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `106`
+		//  Estimated: `3544`
+		// Minimum execution time: 8_310_000 picoseconds.
+		Weight::from_parts(8_390_000, 0)
+			.saturating_add(Weight::from_parts(0, 3544))
+			// Standard Error: 2
+			.saturating_add(Weight::from_parts(1_299, 0).saturating_mul(s.into()))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(2))
+	}
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Holds` (r:1 w:1)
+	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(55), added: 2530, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::PreimageFor` (r:0 w:1)
+	/// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `MaxEncodedLen`)
+	fn unnote_preimage() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `220`
+		//  Estimated: `3544`
+		// Minimum execution time: 27_880_000 picoseconds.
+		Weight::from_parts(28_560_000, 0)
+			.saturating_add(Weight::from_parts(0, 3544))
+			.saturating_add(T::DbWeight::get().reads(3))
+			.saturating_add(T::DbWeight::get().writes(3))
+	}
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::PreimageFor` (r:0 w:1)
+	/// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `MaxEncodedLen`)
+	fn unnote_no_deposit_preimage() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `144`
+		//  Estimated: `3544`
+		// Minimum execution time: 10_520_000 picoseconds.
+		Weight::from_parts(10_870_000, 0)
+			.saturating_add(Weight::from_parts(0, 3544))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(2))
+	}
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	fn request_preimage() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `176`
+		//  Estimated: `3544`
+		// Minimum execution time: 8_700_000 picoseconds.
+		Weight::from_parts(9_070_000, 0)
+			.saturating_add(Weight::from_parts(0, 3544))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	fn request_no_deposit_preimage() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `144`
+		//  Estimated: `3544`
+		// Minimum execution time: 6_430_000 picoseconds.
+		Weight::from_parts(6_700_000, 0)
+			.saturating_add(Weight::from_parts(0, 3544))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	fn request_unnoted_preimage() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `42`
+		//  Estimated: `3544`
+		// Minimum execution time: 7_070_000 picoseconds.
+		Weight::from_parts(7_240_000, 0)
+			.saturating_add(Weight::from_parts(0, 3544))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	fn request_requested_preimage() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `106`
+		//  Estimated: `3544`
+		// Minimum execution time: 5_810_000 picoseconds.
+		Weight::from_parts(6_050_000, 0)
+			.saturating_add(Weight::from_parts(0, 3544))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::PreimageFor` (r:0 w:1)
+	/// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `MaxEncodedLen`)
+	fn unrequest_preimage() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `144`
+		//  Estimated: `3544`
+		// Minimum execution time: 8_980_000 picoseconds.
+		Weight::from_parts(9_290_000, 0)
+			.saturating_add(Weight::from_parts(0, 3544))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(2))
+	}
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	fn unrequest_unnoted_preimage() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `106`
+		//  Estimated: `3544`
+		// Minimum execution time: 5_700_000 picoseconds.
+		Weight::from_parts(5_900_000, 0)
+			.saturating_add(Weight::from_parts(0, 3544))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	fn unrequest_multi_referenced_preimage() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `106`
+		//  Estimated: `3544`
+		// Minimum execution time: 5_770_000 picoseconds.
+		Weight::from_parts(5_940_000, 0)
+			.saturating_add(Weight::from_parts(0, 3544))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+	/// Storage: `Preimage::StatusFor` (r:1023 w:1023)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:1023 w:1023)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Holds` (r:1023 w:1023)
+	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(55), added: 2530, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:0 w:1023)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// The range of component `n` is `[1, 1024]`.
+	fn ensure_updated(n: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `747 + n * (203 ±0)`
+		//  Estimated: `990 + n * (2591 ±0)`
+		// Minimum execution time: 32_380_000 picoseconds.
+		Weight::from_parts(32_700_000, 0)
+			.saturating_add(Weight::from_parts(0, 990))
+			// Standard Error: 21_291
+			.saturating_add(Weight::from_parts(33_944_572, 0).saturating_mul(n.into()))
+			.saturating_add(T::DbWeight::get().reads((3_u64).saturating_mul(n.into())))
+			.saturating_add(T::DbWeight::get().writes((4_u64).saturating_mul(n.into())))
+			.saturating_add(Weight::from_parts(0, 2591).saturating_mul(n.into()))
+	}
 }
