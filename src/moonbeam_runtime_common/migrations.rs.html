@@ -279,24 +279,6 @@
 <a href="#279" id="279">279</a>
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -391,11 +373,9 @@
 	</span>}
 
 	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
-		<span class="macro">log::info!</span>(<span class="string">&quot;Setting collective pallet versions to 4&quot;</span>);
+		<span class="macro">log::info!</span>(<span class="string">&quot;Setting collectives pallet versions to 4&quot;</span>);
 		StorageVersion::new(<span class="number">4</span>).put::&lt;Treasury&gt;();
 		StorageVersion::new(<span class="number">4</span>).put::&lt;OpenTech&gt;();
-		<span class="macro">log::info!</span>(<span class="string">&quot;Setting referenda pallet version to 1&quot;</span>);
-		StorageVersion::new(<span class="number">1</span>).put::&lt;pallet_referenda::Pallet&lt;Runtime&gt;&gt;();
 		Runtime::DbWeight::get().writes(<span class="number">2</span>)
 	}
 
@@ -409,11 +389,7 @@
 			&lt;OpenTech <span class="kw">as </span>GetStorageVersion&gt;::on_chain_storage_version() == <span class="number">0</span>,
 			<span class="string">&quot;OpenTechCommitteeCollective storage version should be 0&quot;
 		</span>);
-		<span class="macro">ensure!</span>(
-			&lt;pallet_referenda::Pallet&lt;Runtime&gt; <span class="kw">as </span>GetStorageVersion&gt;::on_chain_storage_version()
-				== <span class="number">0</span>,
-			<span class="string">&quot;Referenda storage version should be 0&quot;
-		</span>);
+
 		<span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[])
 	}
 
@@ -427,25 +403,7 @@
 			&lt;OpenTech <span class="kw">as </span>GetStorageVersion&gt;::on_chain_storage_version() == <span class="number">4</span>,
 			<span class="string">&quot;OpenTech storage version should be 4&quot;
 		</span>);
-		<span class="macro">ensure!</span>(
-			&lt;pallet_referenda::Pallet&lt;Runtime&gt; <span class="kw">as </span>GetStorageVersion&gt;::on_chain_storage_version()
-				== <span class="number">1</span>,
-			<span class="string">&quot;Referenda storage version should be 1&quot;
-		</span>);
 		<span class="prelude-val">Ok</span>(())
-	}
-}
-
-<span class="kw">pub struct </span>ReferendaMigrations&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
-
-<span class="kw">impl</span>&lt;Runtime&gt; GetMigrations <span class="kw">for </span>ReferendaMigrations&lt;Runtime&gt;
-<span class="kw">where
-	</span>Runtime: pallet_referenda::Config,
-{
-	<span class="kw">fn </span>get_migrations() -&gt; Vec&lt;Box&lt;<span class="kw">dyn </span>Migration&gt;&gt; {
-		<span class="kw">let </span>pallet_referenda_migrate_v0_to_v1 =
-			PalletReferendaMigrateV0ToV1::&lt;Runtime&gt;(Default::default());
-		<span class="macro">vec!</span>[Box::new(pallet_referenda_migrate_v0_to_v1)]
 	}
 }
 
@@ -540,9 +498,13 @@
 		//	PalletXcmTransactorMigrateXcmV2ToV3::&lt;Runtime&gt;(Default::default());
 		//let remove_min_bond_for_old_orbiter_collators =
 		//	RemoveMinBondForOrbiterCollators::&lt;Runtime&gt;(Default::default());
+
+		// RT2700
 		</span><span class="kw">let </span>missing_balances_migrations = MissingBalancesMigrations::&lt;Runtime&gt;(Default::default());
 		<span class="kw">let </span>fix_pallet_versions =
 			FixIncorrectPalletVersions::&lt;Runtime, Treasury, OpenTech&gt;(Default::default());
+		<span class="kw">let </span>pallet_referenda_migrate_v0_to_v1 =
+			PalletReferendaMigrateV0ToV1::&lt;Runtime&gt;(Default::default());
 
 		<span class="macro">vec!</span>[
 			<span class="comment">// completed in runtime 800
@@ -590,9 +552,11 @@
 			//Box::new(preimage_migration_hash_to_bounded_call),
 			//Box::new(asset_manager_to_xcm_v3),
 			//Box::new(xcm_transactor_to_xcm_v3),
+			// completed in runtime 2600
 			//Box::new(remove_min_bond_for_old_orbiter_collators),
 			</span>Box::new(missing_balances_migrations),
 			Box::new(fix_pallet_versions),
+			Box::new(pallet_referenda_migrate_v0_to_v1),
 		]
 	}
 }
