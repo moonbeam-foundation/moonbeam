@@ -188,6 +188,7 @@ substrate-wasm-builder = { workspace = true }
 default = [ "std" ]
 std = [
 	"account/std",
+	"async-backing-primitives/std",
 	"cumulus-pallet-dmp-queue/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-pallet-xcm/std",
