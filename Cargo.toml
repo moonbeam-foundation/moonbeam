@@ -451,12 +451,13 @@ inherits = "release"
 lto = true
 
 [profile.release]
-# Moonbeam runtime requires unwinding.
+debug-assertions = true # Enable debug-assert! for non-production profiles
 opt-level = 3
+# Moonbeam runtime requires unwinding.
 panic = "unwind"
 
 [profile.testnet]
 debug = 1               # debug symbols are useful for profilers
-debug-assertions = true
+debug-assertions = true # Enable debug-assert! for non-production profiles
 inherits = "release"
 overflow-checks = true
