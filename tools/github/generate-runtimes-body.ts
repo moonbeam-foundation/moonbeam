@@ -99,10 +99,10 @@ async function main() {
     getRuntimeInfo(argv["srtool-report-folder"], runtimeName)
   );
 
-  const moduleLinks = ["polkadot-sdk", "frontier"].map((repoName) => ({
+  /*const moduleLinks = ["polkadot-sdk", "frontier"].map((repoName) => ({
     name: repoName,
     link: getCompareLink(repoName, previousTag, newTag),
-  }));
+  }));*/
 
   const { prByLabels } = await getCommitAndLabels(
     octokit,
@@ -154,7 +154,6 @@ ${filteredPr.map((pr) => `* ${printPr(pr)}`).join("\n")}
 ## Dependency changes
 
 Moonbeam: https://github.com/${argv.owner}/${argv.repo}/compare/${previousTag}...${newTag}
-${moduleLinks.map((modules) => `${capitalize(modules.name)}: ${modules.link}`).join("\n")}
 `;
   console.log(template);
 }
