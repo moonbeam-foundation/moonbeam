@@ -17,7 +17,7 @@ describeSuite({
       id: "T01",
       title:
         "should have correct effectiveGasPrice when fee multiplier changes in consecutive blocks",
-      test: async function() {
+      test: async function () {
         const prevBlockNextFeeMultiplier = (
           await polkadotJs.query.transactionPayment.nextFeeMultiplier()
         ).toBigInt();
