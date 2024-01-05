@@ -4,7 +4,7 @@ import { BALTATHAR_ADDRESS, createViemTransaction, extractFee } from "@moonwall/
 
 describeSuite({
   id: "D1206",
-  title: "Gas - Eth Transaction Receipt",
+  title: "Ethereum RPC - eth_getTransactionReceipt",
   foundationMethods: "dev",
   testCases: ({ it, context, log }) => {
     let polkadotJs: ApiPromise;
