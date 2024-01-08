@@ -74,7 +74,6 @@ pub struct UpdateFirstRoundRelayBlockNumber<T>(pub PhantomData<T>);
 impl<T> Migration for UpdateFirstRoundRelayBlockNumber<T>
 where
 	T: pallet_parachain_staking::Config,
-	T: cumulus_pallet_parachain_system::Config,
 	T: frame_system::Config,
 	u32: From<<<<T as frame_system::Config>::Block as Block>::Header as Header>::Number>,
 {
@@ -237,7 +236,6 @@ where
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 	Runtime: pallet_xcm_transactor::Config,
 	Runtime: pallet_moonbeam_orbiters::Config,
-	Runtime: cumulus_pallet_parachain_system::Config,
 	u32: From<<<<Runtime as frame_system::Config>::Block as Block>::Header as Header>::Number>,
 	Runtime: pallet_balances::Config,
 	Runtime: pallet_referenda::Config,
