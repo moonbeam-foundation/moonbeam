@@ -121,7 +121,6 @@ sp-weights = { workspace = true }
 fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
 fp-self-contained = { workspace = true, features = [ "serde" ] }
-pallet-base-fee = { workspace = true }
 pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 pallet-evm-precompile-blake2 = { workspace = true }
@@ -220,7 +219,6 @@ std = [
 	"pallet-author-mapping/std",
 	"pallet-author-slot-filter/std",
 	"pallet-balances/std",
-	"pallet-base-fee/std",
 	"pallet-collective/std",
 	"pallet-conviction-voting/std",
 	"pallet-crowdloan-rewards/std",

@@ -229,7 +229,6 @@ fp-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch 
 fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 fp-self-contained = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
-pallet-base-fee = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false, features = [
 	"forbid-evm-reentrancy",
 ] }
