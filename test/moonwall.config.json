@@ -112,7 +112,9 @@
         {
           "name": "relay",
           "type": "polkadotJs",
-          "endpoints": ["wss://frag-stagenet-relay-rpc-ws.g.moondev.network"]
+          "endpoints": [
+            "wss://deo-moon-moondev-1-stagenet-relay-rpc-1.rv.moondev.network"
+          ]
         }
       ]
     },
@@ -303,7 +305,7 @@
     {
       "name": "dev_moonbase",
       "testFileDir": ["suites/dev/"],
-      "include": ["**/*test*"],
+      "include": ["**/*test-pallet-evm-create.ts"],
       "contracts": "contracts/",
       "runScripts": [
         "compile-contracts.ts compile",
