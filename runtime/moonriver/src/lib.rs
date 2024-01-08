@@ -1109,7 +1109,6 @@ impl pallet_migrations::Config for Runtime {
 			TreasuryCouncilCollective,
 			OpenTechCommitteeCollective,
 		>,
-		moonbeam_runtime_common::migrations::ReferendaMigrations<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
 }
@@ -1192,6 +1191,12 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
 			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
+			RuntimeCall::Treasury(
+				pallet_treasury::Call::spend { .. }
+				| pallet_treasury::Call::payout { .. }
+				| pallet_treasury::Call::check_status { .. }
+				| pallet_treasury::Call::void_spend { .. },
+			) => false,
 			_ => true,
 		}
 	}
@@ -1658,10 +1663,35 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 	}
 }
 
+struct CheckInherents;
+
+// Parity has decided to depreciate this trait, but does not offer a satisfactory replacement,
+// see issue: https://github.com/paritytech/polkadot-sdk/issues/2841
+#[allow(deprecated)]
+impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
+	fn check_inherents(
+		block: &Block,
+		relay_state_proof: &cumulus_pallet_parachain_system::RelayChainStateProof,
+	) -> sp_inherents::CheckInherentsResult {
+		let relay_chain_slot = relay_state_proof
+			.read_slot()
+			.expect("Could not read the relay chain slot from the proof");
+		let inherent_data =
+			cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
+				relay_chain_slot,
+				sp_std::time::Duration::from_secs(6),
+			)
+			.create_inherent_data()
+			.expect("Could not create the timestamp inherent data");
+		inherent_data.check_extrinsics(block)
+	}
+}
+
 // Nimbus's Executive wrapper allows relay validators to verify the seal digest
 cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime = Runtime,
 	BlockExecutor = pallet_author_inherent::BlockExecutor::<Runtime, Executive>,
+	CheckInherents = CheckInherents,
 );
 
 moonbeam_runtime_common::impl_self_contained_call!();

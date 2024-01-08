@@ -99,8 +99,7 @@ async function main() {
     getRuntimeInfo(argv["srtool-report-folder"], runtimeName)
   );
 
-  // TODO: this section should be optional with default to ["polkadot-sdk", "frontier"]
-  const moduleLinks = [].map((repoName) => ({
+  const moduleLinks = ["polkadot-sdk", "frontier"].map((repoName) => ({
     name: repoName,
     link: getCompareLink(repoName, previousTag, newTag),
   }));
