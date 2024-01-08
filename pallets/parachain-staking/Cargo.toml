@@ -26,6 +26,9 @@ sp-std = { workspace = true }
 # Nimbus
 nimbus-primitives = { workspace = true }
 
+# Cumulus
+cumulus-pallet-parachain-system = { workspace = true }
+
 [dev-dependencies]
 pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
 pallet-async-backing = { workspace = true }
@@ -38,6 +41,7 @@ sp-runtime = { workspace = true }
 [features]
 default = [ "std" ]
 std = [
+	"cumulus-pallet-parachain-system/std",
 	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",

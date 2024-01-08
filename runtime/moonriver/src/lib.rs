@@ -73,7 +73,9 @@ use pallet_evm::{
 	FeeCalculator, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
-pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
+pub use pallet_parachain_staking::{
+	migrations::v1::ConsensusHookWrapperForMigration, weights::WeightInfo, InflationInfo, Range,
+};
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
@@ -701,7 +703,10 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
-	type ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
+	type ConsensusHook = ConsensusHookWrapperForMigration<
+		cumulus_pallet_parachain_system::ExpectParentIncluded,
+		Runtime,
+	>;
 }
 
 impl parachain_info::Config for Runtime {}

@@ -75,9 +75,6 @@ xcm-executor = { workspace = true }
 # Parity
 parity-scale-codec = { workspace = true }
 
-# cumulus
-cumulus-pallet-parachain-system = { workspace = true }
-
 account = { workspace = true }
 
 [features]
@@ -85,7 +82,6 @@ std = [
 	"fp-ethereum/std",
 	"fp-evm/std",
 	"frame-support/std",
-	"cumulus-pallet-parachain-system/std",
 	"pallet-asset-manager/std",
 	"pallet-async-backing/std",
 	"pallet-author-inherent/std",

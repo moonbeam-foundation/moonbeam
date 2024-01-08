@@ -7064,7 +7064,6 @@ name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
  "account",
- "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcmp-queue",
  "fp-ethereum",
  "fp-evm",
@@ -9733,6 +9732,7 @@ dependencies = [
 name = "pallet-parachain-staking"
 version = "3.0.0"
 dependencies = [
+ "cumulus-pallet-parachain-system",
  "frame-benchmarking",
  "frame-support",
  "frame-system",

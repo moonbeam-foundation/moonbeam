@@ -21,19 +21,13 @@
 
 #[cfg(feature = "try-runtime")]
 use frame_support::ensure;
-#[cfg(feature = "try-runtime")]
-use frame_support::migration::get_storage_value;
 use frame_support::{
 	pallet_prelude::GetStorageVersion,
-	sp_runtime::traits::{Block, Header},
 	traits::{OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
 	weights::Weight,
 };
-use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_migrations::{GetMigrations, Migration};
-use pallet_parachain_staking::{Round, RoundIndex, RoundInfo};
-use parity_scale_codec::{Decode, Encode};
 use sp_core::Get;
 use sp_std::{marker::PhantomData, prelude::*};
 
@@ -60,67 +54,6 @@ where
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
 		pallet_referenda::migration::v1::MigrateV0ToV1::<T>::post_upgrade(state)
-	}
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode)]
-pub struct OldRoundInfo<BlockNumber> {
-	pub current: RoundIndex,
-	pub first: BlockNumber,
-	pub length: u32,
-}
-
-pub struct UpdateFirstRoundRelayBlockNumber<T>(pub PhantomData<T>);
-impl<T> Migration for UpdateFirstRoundRelayBlockNumber<T>
-where
-	T: pallet_parachain_staking::Config,
-	T: frame_system::Config,
-	u32: From<<<<T as frame_system::Config>::Block as Block>::Header as Header>::Number>,
-{
-	fn friendly_name(&self) -> &str {
-		"MM_UpdateFirstRoundRelayBlockNumber"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		let _ = Round::<T>::translate::<OldRoundInfo<BlockNumberFor<T>>, _>(|v1| {
-			Some(RoundInfo {
-				current: v1
-					.expect("old current round value must be present!")
-					.current,
-				// TODO: re-check
-				// a number close to the relay slot
-				first: 283_960_000u64,
-				length: v1.expect("old round length value must be present!").length * 2,
-			})
-		});
-
-		T::DbWeight::get().reads_writes(1, 1)
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		let module: &[u8] = b"ParachainStaking";
-		let item: &[u8] = b"Round";
-		let pre_round_info = get_storage_value::<RoundInfo<BlockNumberFor<T>>>(module, item, &[]);
-		Ok(pre_round_info.unwrap_or_default().encode())
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		let pre_round_info =
-			<RoundInfo<BlockNumberFor<T>> as Decode>::decode(&mut &*state).unwrap_or_default();
-		let post_round_info = pallet_parachain_staking::Pallet::<T>::round();
-
-		ensure!(
-			post_round_info.current >= pre_round_info.current,
-			"Post-round number must be higher or equal than pre-round one"
-		);
-		ensure!(
-			pre_round_info.length * 2 == post_round_info.length,
-			"Post-round length must double pre-round one"
-		);
-
-		Ok(())
 	}
 }
 
@@ -212,7 +145,6 @@ where
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 	Runtime: pallet_xcm_transactor::Config,
 	Runtime: pallet_moonbeam_orbiters::Config,
-	u32: From<<<<Runtime as frame_system::Config>::Block as Block>::Header as Header>::Number>,
 	Runtime: pallet_balances::Config,
 	Runtime: pallet_referenda::Config,
 	Runtime::AccountId: Default,
@@ -283,8 +215,6 @@ where
 		//	PalletXcmTransactorMigrateXcmV2ToV3::<Runtime>(Default::default());
 		//let remove_min_bond_for_old_orbiter_collators =
 		//	RemoveMinBondForOrbiterCollators::<Runtime>(Default::default());
-		let update_first_round_relay_block_number =
-			UpdateFirstRoundRelayBlockNumber::<Runtime>(Default::default());
 
 		// RT2700
 		let missing_balances_migrations = MissingBalancesMigrations::<Runtime>(Default::default());
@@ -341,7 +271,6 @@ where
 			//Box::new(xcm_transactor_to_xcm_v3),
 			// completed in runtime 2600
 			//Box::new(remove_min_bond_for_old_orbiter_collators),
-			Box::new(update_first_round_relay_block_number),
 			Box::new(missing_balances_migrations),
 			Box::new(fix_pallet_versions),
 			Box::new(pallet_referenda_migrate_v0_to_v1),
