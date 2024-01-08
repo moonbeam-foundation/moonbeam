@@ -305,7 +305,7 @@
     {
       "name": "dev_moonbase",
       "testFileDir": ["suites/dev/"],
-      "include": ["**/*test-pallet-evm-create.ts"],
+      "include": ["**/*test*"],
       "contracts": "contracts/",
       "runScripts": [
         "compile-contracts.ts compile",
