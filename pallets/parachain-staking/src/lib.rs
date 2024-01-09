@@ -96,13 +96,9 @@ pub mod pallet {
 	};
 	use sp_std::{collections::btree_map::BTreeMap, prelude::*};
 
-	// Current storage version.
-	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
-
 	/// Pallet for parachain staking
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
-	#[pallet::storage_version(STORAGE_VERSION)]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	pub type RelayChainSlot = u64;
@@ -458,46 +454,45 @@ pub mod pallet {
 		fn on_initialize(_n: BlockNumberFor<T>) -> Weight {
 			let mut weight = T::WeightInfo::base_on_initialize();
 
-			if StorageVersion::get::<Pallet<T>>() > 0 {
-				// Fetch relay slot number
-				let relay_slot = u64::from(T::RelayChainSlotProvider::get());
+			// Fetch relay slot number
+			let relay_slot = u64::from(T::RelayChainSlotProvider::get());
 
-				// account for RelayChainSlotProvider read
-				weight = weight.saturating_add(T::DbWeight::get().reads_writes(1, 0));
+			// account for RelayChainSlotProvider read
+			weight = weight.saturating_add(T::DbWeight::get().reads_writes(1, 0));
 
-				let mut round = <Round<T>>::get();
-				if round.should_update(relay_slot) {
-					// mutate round
-					round.update(relay_slot);
-					// notify that new round begin
-					weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
-					// pay all stakers for T::RewardPaymentDelay rounds ago
-					weight = weight.saturating_add(Self::prepare_staking_payouts(round.current));
-					// select top collator candidates for next round
-					let (extra_weight, collator_count, _delegation_count, total_staked) =
-						Self::select_top_candidates(round.current);
-					weight = weight.saturating_add(extra_weight);
-					// start next round
-					<Round<T>>::put(round);
-					// snapshot total stake
-					<Staked<T>>::insert(round.current, <Total<T>>::get());
-					Self::deposit_event(Event::NewRound {
-						starting_block: round.first,
-						round: round.current,
-						selected_collators_number: collator_count,
-						total_balance: total_staked,
-					});
-					// account for Round and Staked writes
-					weight = weight.saturating_add(T::DbWeight::get().reads_writes(0, 2));
-				} else {
-					weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
-				}
-
-				// add on_finalize weight
-				//   read:  Author, Points, AwardedPts
-				//   write: Points, AwardedPts
-				weight = weight.saturating_add(T::DbWeight::get().reads_writes(3, 2));
+			let mut round = <Round<T>>::get();
+			if round.should_update(relay_slot) {
+				// mutate round
+				round.update(relay_slot);
+				// notify that new round begin
+				weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
+				// pay all stakers for T::RewardPaymentDelay rounds ago
+				weight = weight.saturating_add(Self::prepare_staking_payouts(round.current));
+				// select top collator candidates for next round
+				let (extra_weight, collator_count, _delegation_count, total_staked) =
+					Self::select_top_candidates(round.current);
+				weight = weight.saturating_add(extra_weight);
+				// start next round
+				<Round<T>>::put(round);
+				// snapshot total stake
+				<Staked<T>>::insert(round.current, <Total<T>>::get());
+				Self::deposit_event(Event::NewRound {
+					starting_block: round.first,
+					round: round.current,
+					selected_collators_number: collator_count,
+					total_balance: total_staked,
+				});
+				// account for Round and Staked writes
+				weight = weight.saturating_add(T::DbWeight::get().reads_writes(0, 2));
+			} else {
+				weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 			}
+
+			// add on_finalize weight
+			//   read:  Author, Points, AwardedPts
+			//   write: Points, AwardedPts
+			weight = weight.saturating_add(T::DbWeight::get().reads_writes(3, 2));
+
 			weight
 		}
 		fn on_finalize(_n: BlockNumberFor<T>) {

@@ -7110,6 +7110,7 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "sp-api",
+ "sp-consensus-slots",
  "sp-core",
  "sp-runtime",
  "sp-std",

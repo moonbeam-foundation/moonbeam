@@ -44,9 +44,7 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 pub use pallet_author_slot_filter::EligibilityValue;
-pub use pallet_parachain_staking::{
-	migrations::v1::ConsensusHookWrapperForMigration, weights::WeightInfo, InflationInfo, Range,
-};
+pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 pub use precompiles::{
 	MoonbasePrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
@@ -725,10 +723,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
-	type ConsensusHook = ConsensusHookWrapperForMigration<
-		crate::timestamp::ConsensusHookWrapperForRelayTimestamp<ConsensusHook>,
-		Runtime,
-	>;
+	type ConsensusHook = crate::timestamp::ConsensusHookWrapperForRelayTimestamp<ConsensusHook>;
 }
 
 impl parachain_info::Config for Runtime {}
