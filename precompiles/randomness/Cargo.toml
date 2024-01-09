@@ -24,7 +24,6 @@ sp-std = { workspace = true }
 sp-runtime = { workspace = true }
 
 # Frontier
-pallet-base-fee = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 
 # Nimbus
@@ -53,7 +52,6 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"nimbus-primitives/std",
-	"pallet-base-fee/std",
 	"pallet-evm/std",
 	"pallet-randomness/std",
 	"parity-scale-codec/std",

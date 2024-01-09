@@ -6477,7 +6477,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -6959,7 +6958,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -7078,7 +7076,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -7346,7 +7343,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -8373,20 +8369,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-base-fee"
-version = "1.0.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.3.0#00bd4a668658cfb0ea4c89373e7b168f11efbf69"
-dependencies = [
- "fp-evm",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-runtime",
-]
-
-[[package]]
 name = "pallet-beefy"
 version = "4.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.3.0#542721dd4ab6b8119a8479a8830e57e101249594"
@@ -9141,7 +9123,6 @@ dependencies = [
  "num_enum 0.5.11",
  "pallet-author-mapping",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-evm",
  "pallet-randomness",
  "pallet-scheduler",
