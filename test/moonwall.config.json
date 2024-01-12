@@ -374,7 +374,7 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/test-storage-growth"],
+      "testFileDir": ["suites/dev/"],
       "include": ["**/*test*"],
       "timeout": 180000,
       "contracts": "contracts/",
