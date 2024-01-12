@@ -58,7 +58,7 @@
 
 //   // send a balance transfer to self and see what our fees end up being
 //   await context.createBlock(
-//     context.polkadotApi.tx.balances.transfer(baltathar.address, 1).signAsync(baltathar)
+//     context.polkadotApi.tx.balances.transferAllowDeath(baltathar.address, 1).signAsync(baltathar)
 //   );
 
 //   let afterBalance = (

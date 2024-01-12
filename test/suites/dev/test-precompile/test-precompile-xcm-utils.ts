@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { GLMR, generateKeyringPair } from "@moonwall/util";
-import { StagingXcmVersionedXcm } from "@polkadot/types/lookup";
+import { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { u8aToHex } from "@polkadot/util";
 import { expectEVMResult, descendOriginFromAddress20 } from "../../../helpers";
 
@@ -162,7 +162,9 @@ describeSuite({
       test: async function () {
         const random = generateKeyringPair();
 
-        const transferCall = context.polkadotJs().tx.balances.transfer(random.address, 1n * GLMR);
+        const transferCall = context
+          .polkadotJs()
+          .tx.balances.transferAllowDeath(random.address, 1n * GLMR);
         const transferCallEncoded = transferCall?.method.toHex();
 
         const xcmMessage = {
@@ -179,9 +181,9 @@ describeSuite({
           ],
         };
 
-        const receivedMessage: StagingXcmVersionedXcm = context
+        const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("StagingXcmVersionedXcm", xcmMessage) as any;
+          .createType("XcmVersionedXcm", xcmMessage) as any;
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "XcmUtils",
@@ -240,9 +242,9 @@ describeSuite({
           ],
         };
 
-        const receivedMessage: StagingXcmVersionedXcm = context
+        const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("StagingXcmVersionedXcm", xcmMessage);
+          .createType("XcmVersionedXcm", xcmMessage);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "XcmUtils",
@@ -307,9 +309,9 @@ describeSuite({
           ],
         };
 
-        const sentMessage: StagingXcmVersionedXcm = context
+        const sentMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("StagingXcmVersionedXcm", xcmMessage) as any;
+          .createType("XcmVersionedXcm", xcmMessage) as any;
 
         // Try sending it with local view
         const localRawTxn = await context.writePrecompile!({
@@ -403,9 +405,9 @@ describeSuite({
           ],
         };
 
-        const sentMessage: StagingXcmVersionedXcm = context
+        const sentMessage: XcmVersionedXcm = context
           .polkadotJs()
-          .createType("StagingXcmVersionedXcm", xcmMessage);
+          .createType("XcmVersionedXcm", xcmMessage);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "XcmUtils",

@@ -105,7 +105,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessage,
         });
 
@@ -141,7 +141,9 @@ describeSuite({
           .index.toNumber();
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)
-        await polkadotJs.tx.balances.transfer(paraSovereign, parseEther("1")).signAndSend(alith);
+        await polkadotJs.tx.balances
+          .transferAllowDeath(paraSovereign, parseEther("1"))
+          .signAndSend(alith);
         await context.createBlock();
 
         // Send some erc20 tokens to the sovereign account of paraId
@@ -212,13 +214,13 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessage,
         });
 
         const chargedWeight = await weightMessage(
           context,
-          polkadotJs.createType("StagingXcmVersionedXcm", xcmMessage)
+          polkadotJs.createType("XcmVersionedXcm", xcmMessage)
         );
         // We are charging chargedWeight
         // chargedWeight * 50000 = chargedFee
@@ -252,7 +254,7 @@ describeSuite({
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessageToClaimAssets,
         });
 
@@ -265,7 +267,7 @@ describeSuite({
 
         const chargedWeightForClaim = await weightMessage(
           context,
-          polkadotJs.createType("StagingXcmVersionedXcm", xcmMessageToClaimAssets)
+          polkadotJs.createType("XcmVersionedXcm", xcmMessageToClaimAssets)
         );
         // We are charging chargedWeightForClaim
         // chargedWeightForClaim * 50000 = chargedFeeForClaim
@@ -280,7 +282,7 @@ describeSuite({
 
         // Mock again the reception of the initial xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessage,
         });
 
@@ -317,7 +319,7 @@ describeSuite({
           .as_v3();
 
         await injectHrmpMessageAndSeal(context, paraId, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessageFailedClaim,
         });
 

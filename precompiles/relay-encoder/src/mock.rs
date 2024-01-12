@@ -96,6 +96,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type DmpMessageHandler = ();
 	type ReservedDmpWeight = ();
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+	type ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
 }
 
 parameter_types! {
@@ -115,6 +116,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 
 pub type AssetId = u128;
@@ -256,7 +258,11 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
-	fn deposit_asset(_what: &MultiAsset, _who: &MultiLocation, _context: &XcmContext) -> XcmResult {
+	fn deposit_asset(
+		_what: &MultiAsset,
+		_who: &MultiLocation,
+		_context: Option<&XcmContext>,
+	) -> XcmResult {
 		Ok(())
 	}
 
@@ -332,6 +338,7 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;

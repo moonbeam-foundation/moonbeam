@@ -107,7 +107,7 @@ describeSuite({
           { votingPeriod: 10, delayPeriod: 1 }
         );
         await context.createBlock(
-          context.polkadotJs().tx.balances.transfer(randomAccount.address, 100n * GLMR)
+          context.polkadotJs().tx.balances.transferAllowDeath(randomAccount.address, 100n * GLMR)
         );
         await context.createBlock(
           context

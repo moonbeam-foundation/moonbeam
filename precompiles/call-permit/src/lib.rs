@@ -22,12 +22,13 @@ use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle, Transfer}
 use frame_support::{
 	ensure,
 	storage::types::{StorageMap, ValueQuery},
-	traits::{ConstU32, Get, StorageInstance},
+	traits::{ConstU32, Get, StorageInstance, Time},
 	Blake2_128Concat,
 };
 use precompile_utils::{evm::costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_io::hashing::keccak_256;
+use sp_runtime::traits::UniqueSaturatedInto;
 use sp_std::vec::Vec;
 
 #[cfg(test)]
@@ -78,8 +79,7 @@ pub struct CallPermitPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile_utils::precompile]
 impl<Runtime> CallPermitPrecompile<Runtime>
 where
-	Runtime: pallet_evm::Config + pallet_timestamp::Config,
-	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
+	Runtime: pallet_evm::Config,
 {
 	fn compute_domain_separator(address: H160) -> [u8; 32] {
 		let name: H256 = keccak_256(b"Call Permit Precompile").into();
@@ -172,8 +172,11 @@ where
 
 		// VERIFY PERMIT
 
-		// pallet_timestamp is in ms while Ethereum use second timestamps.
-		let timestamp: U256 = (pallet_timestamp::Pallet::<Runtime>::get()).into() / 1000;
+		// Blockchain time is in ms while Ethereum use second timestamps.
+		let timestamp: u128 =
+			<Runtime as pallet_evm::Config>::Timestamp::now().unique_saturated_into();
+		let timestamp: U256 = U256::from(timestamp / 1000);
+
 		ensure!(deadline >= timestamp, revert("Permit expired"));
 
 		let nonce = NoncesStorage::get(from);

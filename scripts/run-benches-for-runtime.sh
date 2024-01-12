@@ -6,20 +6,21 @@
 
 runtime="${1:-moonbase}"
 output="common"
+profile="production"
 
-echo "[+] Compiling benchmarks with production profile... (this will take a while)"
-cargo build --profile=production --locked --features=runtime-benchmarks
+echo "[+] Compiling benchmarks with $profile profile... (this will take a while)"
+cargo build --profile=$profile --locked --features=runtime-benchmarks
 
 # Load all pallet names in an array.
 PALLETS=($(
-  ./target/release/moonbeam benchmark pallet --list --chain="${runtime}-dev" |\
+  ./target/${profile}/moonbeam benchmark pallet --list --chain="${runtime}-dev" |\
     tail -n+2 |\
     cut -d',' -f1 |\
     sort |\
     uniq
 ))
 
-echo "[+] Benchmarking ${#PALLETS[@]} pallets for runtime $runtime"
+echo "[+] Benchmarking ${#PALLETS[@]} pallets for runtime $runtime with $profile profile"
 
 # Define the error file.
 ERR_FILE="benchmarking_errors.txt"
@@ -37,7 +38,7 @@ for PALLET in "${PALLETS[@]}"; do
   fi
 
   OUTPUT=$(
-    ./target/release/moonbeam benchmark pallet \
+    ./target/${profile}/moonbeam benchmark pallet \
     --chain="${runtime}-dev" \
     --steps=50 \
     --repeat=20 \

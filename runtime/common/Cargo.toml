@@ -57,7 +57,6 @@ sp-std = { workspace = true }
 # Frontier
 fp-ethereum = { workspace = true }
 fp-evm = { workspace = true }
-pallet-base-fee = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 pallet-evm-chain-id = { workspace = true }
 
@@ -71,6 +70,8 @@ xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 
+account = { workspace = true }
+
 [features]
 std = [
 	"fp-ethereum/std",
@@ -79,7 +80,6 @@ std = [
 	"pallet-asset-manager/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
-	"pallet-base-fee/std",
 	"pallet-ethereum-xcm/std",
 	"pallet-evm/std",
 	"pallet-migrations/std",
@@ -94,6 +94,7 @@ std = [
 	"sp-std/std",
 	"xcm-executor/std",
 	"xcm/std",
+	"account/std"
 ]
 runtime-benchmarks = [
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",

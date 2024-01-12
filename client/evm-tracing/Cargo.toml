@@ -20,3 +20,4 @@ moonbeam-rpc-primitives-debug = { workspace = true, features = [ "std" ] }
 # Substrate
 parity-scale-codec = { workspace = true, features = [ "std" ] }
 sp-std = { workspace = true, features = [ "std" ] }
+sp-runtime = { workspace = true, features = [ "std" ] }

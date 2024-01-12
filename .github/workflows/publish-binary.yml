@@ -32,6 +32,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.to }}
       - name: Build production moonbeam
         run: |
           # Build moonbeam
@@ -156,6 +158,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.to }}
       - uses: actions/download-artifact@v3.0.2
         with:
           name: binaries
@@ -167,7 +171,7 @@ jobs:
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
           registry: index.docker.io
       - run: |
-          DOCKER_IMAGE=purestake/moonbeam
+          DOCKER_IMAGE=moonbeamfoundation/moonbeam
           COMMIT=`git rev-list -n 1 '${{ github.event.inputs.to }}'`
           SHA=sha-${COMMIT::8}
           TAG="${{ github.event.inputs.to }}-rc"

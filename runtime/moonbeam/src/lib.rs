@@ -45,9 +45,12 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
+		fungible::HoldConsideration,
+		tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains,
 		Currency as CurrencyT, EitherOfDiverse, EqualPrivilegeOnly, Imbalance, InstanceFilter,
-		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
+		LinearStoragePrice, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
+		OnUnbalanced,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
@@ -298,7 +301,8 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ConstU32<0>;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type MaxHolds = ConstU32<0>;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type MaxHolds = ConstU32<1>;
 	type WeightInfo = moonbeam_weights::pallet_balances::WeightInfo<Runtime>;
 }
 
@@ -495,6 +499,7 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = moonbeam_weights::pallet_evm::WeightInfo<Runtime>;
@@ -517,18 +522,30 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = Preimage;
 }
 
+parameter_types! {
+	pub const PreimageBaseDeposit: Balance = 5 * currency::GLMR * currency::SUPPLY_FACTOR ;
+	pub const PreimageByteDeposit: Balance = currency::STORAGE_BYTE_FEE;
+	pub const PreimageHoldReason: RuntimeHoldReason =
+		RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
+}
+
 impl pallet_preimage::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_preimage::WeightInfo<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
-	type BaseDeposit = ConstU128<{ 5 * currency::GLMR * currency::SUPPLY_FACTOR }>;
-	type ByteDeposit = ConstU128<{ currency::STORAGE_BYTE_FEE }>;
+	type Consideration = HoldConsideration<
+		AccountId,
+		Balances,
+		PreimageHoldReason,
+		LinearStoragePrice<PreimageBaseDeposit, PreimageByteDeposit, Balance>,
+	>;
 }
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
+	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
 type TreasuryApproveOrigin = EitherOfDiverse<
@@ -561,6 +578,14 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
+	type AssetKind = ();
+	type Beneficiary = AccountId;
+	type BeneficiaryLookup = IdentityLookup<AccountId>;
+	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
+	type BalanceConverter = UnityAssetBalanceConversion;
+	type PayoutPeriod = ConstU32<0>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = BenchmarkHelper;
 }
 
 type IdentityForceOrigin = EitherOfDiverse<
@@ -589,6 +614,8 @@ impl pallet_identity::Config for Runtime {
 	type SubAccountDeposit = ConstU128<{ currency::deposit(1, 53) }>;
 	type MaxSubAccounts = ConstU32<100>;
 	type MaxAdditionalFields = ConstU32<100>;
+	type IdentityInformation = pallet_identity::simple::IdentityInfo<Self::MaxAdditionalFields>;
+
 	type MaxRegistrars = ConstU32<20>;
 	type Slashed = Treasury;
 	type ForceOrigin = IdentityForceOrigin;
@@ -641,6 +668,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+	type ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
 }
 
 pub struct EthereumXcmEnsureProxy;
@@ -1053,23 +1081,6 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
-use pallet_migrations::{GetMigrations, Migration};
-pub struct TransactorRelayIndexMigration<Runtime>(sp_std::marker::PhantomData<Runtime>);
-
-impl<Runtime> GetMigrations for TransactorRelayIndexMigration<Runtime>
-where
-	Runtime: pallet_xcm_transactor::Config,
-{
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		vec![Box::new(
-			moonbeam_runtime_common::migrations::PopulateRelayIndices::<Runtime>(
-				moonbeam_relay_encoder::polkadot::POLKADOT_RELAY_INDICES,
-				Default::default(),
-			),
-		)]
-	}
-}
-
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MigrationsList = (
@@ -1080,7 +1091,6 @@ impl pallet_migrations::Config for Runtime {
 			TreasuryCouncilCollective,
 			OpenTechCommitteeCollective,
 		>,
-		TransactorRelayIndexMigration<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
 }
@@ -1163,6 +1173,12 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
 			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
+			RuntimeCall::Treasury(
+				pallet_treasury::Call::spend { .. }
+				| pallet_treasury::Call::payout { .. }
+				| pallet_treasury::Call::check_status { .. }
+				| pallet_treasury::Call::void_spend { .. },
+			) => false,
 			_ => true,
 		}
 	}
@@ -1415,7 +1431,7 @@ construct_runtime! {
 		// Governance stuff.
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 60,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 61,
-		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 62,
+		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>, HoldReason} = 62,
 		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 63,
 		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 64,
 		Origins: governance::custom_origins::{Origin} = 65,
@@ -1458,6 +1474,7 @@ construct_runtime! {
 
 #[cfg(feature = "runtime-benchmarks")]
 use {
+	moonbeam_runtime_common::benchmarking::BenchmarkHelper,
 	moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks,
 	MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench,
 };
@@ -1615,11 +1632,24 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 			})
 		}
 	}
+
+	impl async_backing_primitives::UnincludedSegmentApi<Block> for Runtime {
+		fn can_build_upon(
+			_included_hash: <Block as BlockT>::Hash,
+			_slot: async_backing_primitives::Slot,
+		) -> bool {
+			// This runtime API can be called only when asynchronous backing is enabled client-side
+			// We return false here to force the client to not use async backing in moonbeam.
+			false
+		}
+	}
 }
 
-// Check the timestamp and parachain inherents
 struct CheckInherents;
 
+// Parity has decided to depreciate this trait, but does not offer a satisfactory replacement,
+// see issue: https://github.com/paritytech/polkadot-sdk/issues/2841
+#[allow(deprecated)]
 impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 	fn check_inherents(
 		block: &Block,
@@ -1628,7 +1658,6 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 		let relay_chain_slot = relay_state_proof
 			.read_slot()
 			.expect("Could not read the relay chain slot from the proof");
-
 		let inherent_data =
 			cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
 				relay_chain_slot,
@@ -1636,8 +1665,7 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 			)
 			.create_inherent_data()
 			.expect("Could not create the timestamp inherent data");
-
-		inherent_data.check_extrinsics(&block)
+		inherent_data.check_extrinsics(block)
 	}
 }
 
@@ -1710,10 +1738,6 @@ mod tests {
 		assert_eq!(
 			get!(pallet_democracy, MinimumDeposit, u128),
 			Balance::from(400 * GLMR)
-		);
-		assert_eq!(
-			get!(pallet_preimage, ByteDeposit, u128),
-			Balance::from(10 * MILLIGLMR)
 		);
 		assert_eq!(
 			get!(pallet_treasury, ProposalBondMinimum, u128),

@@ -31,7 +31,7 @@ describeSuite({
 
       // We first fund parachain 2000 sovreign account
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(sovereignAddress, transferredBalance),
+        context.polkadotJs().tx.balances.transferAllowDeath(sovereignAddress, transferredBalance),
         { allowFailures: false }
       );
 
@@ -75,7 +75,7 @@ describeSuite({
 
         const chargedWeight = await weightMessage(
           context,
-          context.polkadotJs().createType("StagingXcmVersionedXcm", xcmMessage)
+          context.polkadotJs().createType("XcmVersionedXcm", xcmMessage)
         );
         // We are charging chargedWeight
         // chargedWeight * 50000 = chargedFee
@@ -83,7 +83,7 @@ describeSuite({
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, foreign_para_id, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 

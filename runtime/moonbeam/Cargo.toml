@@ -120,7 +120,6 @@ sp-weights = { workspace = true }
 fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
 fp-self-contained = { workspace = true, features = [ "serde" ] }
-pallet-base-fee = { workspace = true }
 pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 pallet-evm-precompile-blake2 = { workspace = true }
@@ -137,6 +136,7 @@ orml-xtokens = { workspace = true }
 pallet-xcm = { workspace = true }
 pallet-xcm-benchmarks = { workspace = true, optional = true }
 polkadot-core-primitives = { workspace = true }
+polkadot-runtime-common = { workspace = true }
 polkadot-parachain = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
@@ -153,6 +153,7 @@ cumulus-primitives-utility = { workspace = true }
 parachain-info = { workspace = true }
 
 # Moonkit
+async-backing-primitives = { workspace = true }
 moonkit-xcm-primitives = { workspace = true }
 nimbus-primitives = { workspace = true }
 pallet-author-inherent = { workspace = true }
@@ -185,6 +186,7 @@ substrate-wasm-builder = { workspace = true }
 default = [ "std" ]
 std = [
 	"account/std",
+	"async-backing-primitives/std",
 	"cumulus-pallet-dmp-queue/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-pallet-xcm/std",
@@ -216,7 +218,6 @@ std = [
 	"pallet-author-mapping/std",
 	"pallet-author-slot-filter/std",
 	"pallet-balances/std",
-	"pallet-base-fee/std",
 	"pallet-collective/std",
 	"pallet-conviction-voting/std",
 	"pallet-crowdloan-rewards/std",

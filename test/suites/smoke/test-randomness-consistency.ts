@@ -6,6 +6,7 @@ import { ApiPromise } from "@polkadot/api";
 import randomLib from "randomness";
 import { Bit } from "randomness/lib/types";
 import chalk from "chalk";
+
 const RANDOMNESS_ACCOUNT_ID = "0x6d6f646c6d6f6f6e72616e640000000000000000";
 
 describeSuite({

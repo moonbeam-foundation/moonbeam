@@ -23,6 +23,7 @@ use frame_support::{
 };
 use frame_system::{EnsureRoot, EnsureSignedBy};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use pallet_identity::simple::IdentityInfo;
 use precompile_utils::mock_account;
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
@@ -96,6 +97,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
@@ -140,6 +142,7 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
@@ -193,6 +196,7 @@ impl pallet_identity::Config for Runtime {
 	type RegistrarOrigin = EnsureRegistrarAndForceOriginOrRoot;
 	type ForceOrigin = EnsureRegistrarAndForceOriginOrRoot;
 	type WeightInfo = ();
+	type IdentityInformation = IdentityInfo<Self::MaxAdditionalFields>;
 }
 
 pub(crate) struct ExtBuilder {

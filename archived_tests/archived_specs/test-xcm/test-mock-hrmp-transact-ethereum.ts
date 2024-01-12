@@ -138,7 +138,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -267,7 +267,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (call)", (c
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -372,7 +372,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, statemint_para_id, {
-      type: "StagingXcmVersionedXcm",
+      type: "XcmVersionedXcm",
       payload: xcmMessage,
     } as RawXcmMessage);
 
@@ -453,7 +453,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -588,7 +588,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -728,7 +728,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -884,7 +884,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -1062,7 +1062,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (proxy) disabled switch", (con
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -1212,7 +1212,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (non-proxy) disabled switch", 
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -1378,7 +1378,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check succeeds", (c
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -1502,7 +1502,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check fails", (cont
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 
@@ -1626,7 +1626,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
-        type: "StagingXcmVersionedXcm",
+        type: "XcmVersionedXcm",
         payload: xcmMessage,
       } as RawXcmMessage);
 

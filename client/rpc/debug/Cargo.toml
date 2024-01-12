@@ -34,6 +34,7 @@ ethereum = { workspace = true, features = [ "std", "with-codec" ] }
 ethereum-types = { workspace = true, features = [ "std" ] }
 fc-consensus = { workspace = true }
 fc-db = { workspace = true }
+fc-api = { workspace = true }
 fc-rpc = { workspace = true, features = [ "rpc-binary-search-estimate" ] }
 fc-storage = { workspace = true }
 fp-rpc = { workspace = true, features = [ "std" ] }

@@ -53,12 +53,12 @@ describeSuite({
         [
           context
             .polkadotJs()
-            .tx.balances.transfer(newDelegator.address, MIN_GLMR_STAKING)
+            .tx.balances.transferAllowDeath(newDelegator.address, MIN_GLMR_STAKING)
             .signAsync(alith, { nonce: alithNonce++ }),
           ...otherDelegators.map((d) =>
             context
               .polkadotJs()
-              .tx.balances.transfer(d.address, MIN_GLMR_STAKING)
+              .tx.balances.transferAllowDeath(d.address, MIN_GLMR_STAKING)
               .signAsync(alith, { nonce: alithNonce++ })
           ),
         ],

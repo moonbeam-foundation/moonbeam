@@ -30,7 +30,7 @@ mod tests {
 		testing::*,
 		EvmResult,
 	};
-	use sp_core::H160;
+	use sp_core::{ConstU32, H160};
 	use sp_core::{H256, U256};
 	use sp_runtime::{
 		traits::{BlakeTwo256, IdentityLookup},
@@ -102,6 +102,7 @@ mod tests {
 		type FreezeIdentifier = ();
 		type MaxHolds = ();
 		type MaxFreezes = ();
+		type RuntimeFreezeReason = ();
 	}
 
 	#[derive(Debug, Clone)]
@@ -253,6 +254,7 @@ mod tests {
 		type FindAuthor = ();
 		type OnCreate = ();
 		type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+		type SuicideQuickClearLimit = ConstU32<0>;
 		type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 		type Timestamp = Timestamp;
 		type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;

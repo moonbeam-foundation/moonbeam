@@ -21,3 +21,4 @@ export * from "./transactions";
 export * from "./voting";
 export * from "./wormhole";
 export * from "./xcm";
+export * from "./tracingFns";

@@ -23,6 +23,7 @@ import { AnyTuple } from "@polkadot/types/types";
 import { BN, BN_MILLION } from "@polkadot/util";
 import { ethers } from "ethers";
 import { checkTimeSliceForUpgrades, rateLimiter } from "../../helpers/common.js";
+
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 const limiter = rateLimiter();

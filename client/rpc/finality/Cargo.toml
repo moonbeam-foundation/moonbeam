@@ -15,6 +15,7 @@ parity-scale-codec = { workspace = true, features = [ "std" ] }
 tokio = { workspace = true, features = [ "sync", "time" ] }
 
 fc-db = { workspace = true }
+fc-api = { workspace = true }
 fc-rpc = { workspace = true }
 sp-api = { workspace = true, features = [ "std" ] }
 sp-blockchain = { workspace = true }

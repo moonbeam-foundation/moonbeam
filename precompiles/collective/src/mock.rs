@@ -16,6 +16,7 @@
 
 //! Test utilities
 use super::*;
+use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{ConstU128, Everything, MapSuccess, OnFinalize, OnInitialize},
@@ -33,6 +34,9 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, Replace},
 	BuildStorage, Permill,
 };
+
+#[cfg(feature = "runtime-benchmarks")]
+use pallet_treasury::ArgumentsFactory;
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
@@ -101,6 +105,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 
 pub type Precompiles<R> = PrecompileSetBuilder<
@@ -147,6 +152,7 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
@@ -179,6 +185,20 @@ parameter_types! {
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
+	pub TreasuryAccount: AccountId = Treasury::account_id();
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+pub struct BenchmarkHelper;
+#[cfg(feature = "runtime-benchmarks")]
+impl ArgumentsFactory<(), AccountId> for BenchmarkHelper {
+	fn create_asset_kind(_seed: u32) -> () {
+		()
+	}
+
+	fn create_beneficiary(seed: [u8; 32]) -> AccountId {
+		AccountId::from(H160::from(H256::from(seed)))
+	}
 }
 
 impl pallet_treasury::Config for Runtime {
@@ -202,6 +222,14 @@ impl pallet_treasury::Config for Runtime {
 		pallet_collective::EnsureProportionMoreThan<AccountId, pallet_collective::Instance1, 1, 2>,
 		Replace<ConstU128<1000>>,
 	>;
+	type AssetKind = ();
+	type Beneficiary = AccountId;
+	type BeneficiaryLookup = IdentityLookup<AccountId>;
+	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
+	type BalanceConverter = UnityAssetBalanceConversion;
+	type PayoutPeriod = ConstU32<0>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = BenchmarkHelper;
 }
 
 parameter_types! {

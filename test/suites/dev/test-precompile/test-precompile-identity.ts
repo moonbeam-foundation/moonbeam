@@ -18,7 +18,18 @@ describeSuite({
 
       await context.createBlock(context.polkadotJs().tx.identity.setFee(0, 100));
       await context.createBlock(
-        context.polkadotJs().tx.identity.setFields(0, new Set(["Display", "Web"]) as any)
+        // With 0b111 we are indicating the pallet to use "Display", "Legal" and "Web" fields.
+        // The IdentityField enum is implemented as a BitFlag type, which has the following format:
+        //
+        //  #[bitflags]
+        //  enum IdentityField {
+        //    Display = 1 << 0,
+        //    Legal = 1 << 1,
+        //    Web = 1 << 2
+        //    ..the other variants
+        //
+        // See BitWise operator (<<) for more info.
+        context.polkadotJs().tx.identity.setFields(0, 0b111 as any)
       );
 
       await context.createBlock(
@@ -57,7 +68,7 @@ describeSuite({
         expect(registrars[0].fee).to.equal(100n);
         expect(registrars[0].fields.display).to.be.true;
         expect(registrars[0].fields.web).to.be.true;
-        expect(registrars[0].fields.legal).to.be.false;
+        expect(registrars[0].fields.legal).to.be.true;
         expect(registrars[0].fields.riot).to.be.false;
         expect(registrars[0].fields.email).to.be.false;
         expect(registrars[0].fields.pgpFingerprint).to.be.false;

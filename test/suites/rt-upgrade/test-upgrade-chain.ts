@@ -17,9 +17,9 @@ describeSuite({
 
       const rtBefore = api.consts.system.version.specVersion.toNumber();
       log(`About to upgrade to runtime at:`);
-      log(MoonwallContext.getContext().rtUpgradePath);
+      log((await MoonwallContext.getContext()).rtUpgradePath);
 
-      await context.upgradeRuntime(context);
+      await context.upgradeRuntime();
 
       const rtafter = api.consts.system.version.specVersion.toNumber();
       log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
@@ -46,7 +46,7 @@ describeSuite({
       title: "Can send balance transfers",
       test: async () => {
         const balanceBefore = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
-        await api.tx.balances.transfer(DUMMY_ACCOUNT, parseEther("1")).signAndSend(alith);
+        await api.tx.balances.transferAllowDeath(DUMMY_ACCOUNT, parseEther("1")).signAndSend(alith);
         await context.createBlock({ count: 2 });
         const balanceAfter = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
         expect(balanceBefore < balanceAfter).to.be.true;

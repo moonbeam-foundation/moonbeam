@@ -12,7 +12,7 @@ describeDevMoonbeam("Proxy : IdentityJudgement fails without proxy", (context) =
       display: { Raw: "foobar" },
     };
     const identity = context.polkadotApi.registry.createType(
-      "PalletIdentityIdentityInfo",
+      "PalletIdentitySimpleIdentityInfo",
       identityData
     );
     identityHash = identity.hash.toHex();
@@ -63,7 +63,7 @@ describeDevMoonbeam("Proxy : IdentityJudgement succeeds with proxy", (context) =
       display: { Raw: "foobar" },
     };
     const identity = context.polkadotApi.registry.createType(
-      "PalletIdentityIdentityInfo",
+      "PalletIdentitySimpleIdentityInfo",
       identityData
     );
     identityHash = identity.hash.toHex();
