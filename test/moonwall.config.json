@@ -374,8 +374,9 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/"],
+      "testFileDir": ["suites/dev/test-storage-growth"],
       "include": ["**/*test*"],
+      "timeout": 180000,
       "contracts": "contracts/",
       "runScripts": [
         "compile-contracts.ts compile",

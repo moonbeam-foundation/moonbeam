@@ -21,6 +21,9 @@ runs:
         node-version: 20.10
         cache: "pnpm"
         cache-dependency-path: test/pnpm-lock.yaml
+    - uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: 1.0.22
 
     - name: Setup Moonbeam PolkadotJS types
       shell: bash
@@ -45,9 +48,9 @@ runs:
       run: |
         chmod uog+x target/release/moonbeam
         cd test
-        pnpm install
-        pnpm compile-solidity
-        pnpm moonwall test ${{ inputs.moonwall_environment }} || [[ '${{ inputs.force-pass }}' == 'true' ]]
+        bun install
+        bun compile-solidity
+        bun moonwall test ${{ inputs.moonwall_environment }} || [[ '${{ inputs.force-pass }}' == 'true' ]]
     - name: Upload HTML report
       if: always()
       uses: actions/upload-artifact@v3.1.2
