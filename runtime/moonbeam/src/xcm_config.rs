@@ -339,6 +339,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
 	RuntimeCall,
 	xcm_executor::XcmExecutor<XcmExecutorConfig>,
+	XcmExecutorConfig,
 >;
 
 // Converts a Signed Local Origin into a MultiLocation

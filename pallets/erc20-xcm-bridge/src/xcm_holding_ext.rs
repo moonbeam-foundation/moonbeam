@@ -95,13 +95,14 @@ impl XcmHoldingErc20sOrigins {
 }
 
 /// Xcm executor wrapper that inject xcm holding extension "XcmHoldingErc20sOrigins"
-pub struct XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor>(
-	PhantomData<(RuntimeCall, InnerXcmExecutor)>,
+pub struct XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor, InnerXcmExecutorConfig>(
+	PhantomData<(RuntimeCall, InnerXcmExecutor, InnerXcmExecutorConfig)>,
 );
-impl<RuntimeCall, InnerXcmExecutor> xcm::latest::ExecuteXcm<RuntimeCall>
-	for XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor>
+impl<RuntimeCall, InnerXcmExecutor, InnerXcmExecutorConfig> xcm::latest::ExecuteXcm<RuntimeCall>
+	for XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor, InnerXcmExecutorConfig>
 where
 	InnerXcmExecutor: xcm::latest::ExecuteXcm<RuntimeCall>,
+	InnerXcmExecutorConfig: xcm_executor::Config,
 {
 	type Prepared = InnerXcmExecutor::Prepared;
 
@@ -129,6 +130,16 @@ where
 	) -> Result<(), xcm::latest::Error> {
 		InnerXcmExecutor::charge_fees(location, fees)
 	}
+}
+
+impl<RuntimeCall, InnerXcmExecutor, InnerXcmExecutorConfig> xcm_executor::traits::XcmAssetTransfers
+	for XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor, InnerXcmExecutorConfig>
+where
+	InnerXcmExecutorConfig: xcm_executor::Config,
+{
+	type IsReserve = InnerXcmExecutorConfig::IsReserve;
+	type IsTeleporter = InnerXcmExecutorConfig::IsTeleporter;
+	type AssetTransactor = InnerXcmExecutorConfig::AssetTransactor;
 }
 
 #[cfg(test)]

@@ -359,6 +359,7 @@ pub type XcmRouter = (
 type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
 	RuntimeCall,
 	xcm_executor::XcmExecutor<XcmExecutorConfig>,
+	XcmExecutorConfig,
 >;
 
 #[cfg(feature = "runtime-benchmarks")]

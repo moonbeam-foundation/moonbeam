@@ -3014,6 +3014,168 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 }
 
 #[test]
+fn test_pallet_xcm_transfer_assets_extrinsic() {
+	MockNet::reset();
+
+	// In this test we are going to send two tokens (ParaAToken and ParaBToken)
+	// from chain A to chain B, paying the fee in the destination (B) with ParaAToken.
+
+	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
+	let source_a_location_balances = parachain::AssetType::Xcm(para_a_balances);
+	let source_a_id_balances: parachain::AssetId = source_a_location_balances.clone().into();
+
+	let asset_a_metadata_balances = parachain::AssetMetadata {
+		name: b"ParaAToken".to_vec(),
+		symbol: b"ParaA".to_vec(),
+		decimals: 18,
+	};
+
+	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
+	let source_b_location_balances = parachain::AssetType::Xcm(para_b_balances);
+	let source_b_id_balances: parachain::AssetId = source_b_location_balances.clone().into();
+
+	let asset_b_metadata_balances = parachain::AssetMetadata {
+		name: b"ParaBToken".to_vec(),
+		symbol: b"ParaB".to_vec(),
+		decimals: 18,
+	};
+
+	// First we register the tokens on each chain.
+	// Register token B in A.
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			source_b_location_balances.clone(),
+			asset_b_metadata_balances,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::RuntimeOrigin::root(),
+			source_b_location_balances,
+			0u128,
+			1
+		));
+	});
+
+	// Register token A in B
+	ParaB::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			source_a_location_balances.clone(),
+			asset_a_metadata_balances,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::RuntimeOrigin::root(),
+			source_a_location_balances,
+			0u128,
+			1
+		));
+	});
+
+	// Send some ParaBTokens to Alice in A (for Alice to be able to send them back to B later on)
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(1),
+			AccountKey20 {
+				network: None,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+
+	ParaA::execute_with(|| {
+		// Alice has zero ParaBTokens so far
+		assert_eq!(Assets::balance(source_b_id_balances, &PARAALICE.into()), 0);
+	});
+
+	// Perform the transfer
+	ParaB::execute_with(|| {
+		assert_ok!(XTokens::transfer(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			123,
+			Box::new(VersionedMultiLocation::V3(dest)),
+			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// Alice has 123 ParaBTokens now
+		assert_eq!(
+			Assets::balance(source_b_id_balances, &PARAALICE.into()),
+			123
+		);
+
+		// Alice has the same initial ParaAToken balance
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE
+		);
+	});
+
+	// Build both assets perspectives needed for transfer_assets()
+	let para_b_asset = MultiAsset {
+		id: Concrete(MultiLocation {
+			parents: 1,
+			interior: X2(Parachain(2), PalletInstance(1u8)),
+		}),
+		fun: Fungible(105),
+	};
+
+	let para_a_asset = MultiAsset {
+		id: Concrete(MultiLocation {
+			parents: 0,
+			interior: X1(PalletInstance(1u8)),
+		}),
+		fun: Fungible(100),
+	};
+
+	let assets_to_send: MultiAssets = MultiAssets::from(vec![para_a_asset, para_b_asset]);
+
+	// Specify the destination account (from the point of view of the destination chain)
+	let dest_b = MultiLocation {
+		parents: 0,
+		interior: X1(AccountKey20 {
+			network: None,
+			key: PARAALICE.into(),
+		}),
+	};
+
+	ParaA::execute_with(|| {
+		assert_ok!(ParachainPalletXcm::transfer_assets(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			Box::new(MultiLocation::new(1, X1(Parachain(2))).into()),
+			Box::new(VersionedMultiLocation::V3(dest_b).clone().into()),
+			Box::new(assets_to_send.into()),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	// Alice has no more ParaBTokens in chain A
+	ParaA::execute_with(|| {
+		assert_eq!(Assets::balance(source_b_id_balances, &PARAALICE.into()), 18);
+	});
+
+	// Free execution, full amount of ParaATokens and ParaBTokens received
+	ParaB::execute_with(|| {
+		assert_eq!(
+			Assets::balance(source_a_id_balances, &PARAALICE.into()),
+			100
+		);
+
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 123 + 105
+		);
+	});
+}
+
+#[test]
 fn transact_through_signed_multilocation() {
 	MockNet::reset();
 	let mut ancestry = MultiLocation::parent();
