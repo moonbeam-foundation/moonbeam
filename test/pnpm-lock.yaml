@@ -93,8 +93,8 @@ dependencies:
     specifier: 7.5.4
     version: 7.5.4
   solc:
-    specifier: 0.8.23-fixed
-    version: 0.8.23-fixed(debug@4.3.4)
+    specifier: 0.8.21
+    version: 0.8.21(debug@4.3.4)
   tsx:
     specifier: 4.7.0
     version: 4.7.0
@@ -6843,6 +6843,7 @@ packages:
       chalk: 3.0.0
       diff-match-patch: 1.0.5
     dev: false
+    bundledDependencies: []
 
   /jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
@@ -8910,8 +8911,8 @@ packages:
     dev: false
     optional: true
 
-  /solc@0.8.23-fixed(debug@4.3.4):
-    resolution: {integrity: sha512-XMp8jbXl29nlD0losEG+9nAdH5bibQPELI0jqOpyqCT7DKo7MbIdWPMwiCtK/QKe0CCvCvKbHswBflZmcmXIYA==}
+  /solc@0.8.21(debug@4.3.4):
+    resolution: {integrity: sha512-N55ogy2dkTRwiONbj4e6wMZqUNaLZkiRcjGyeafjLYzo/tf/IvhHY5P5wpe+H3Fubh9idu071i8eOGO31s1ylg==}
     engines: {node: '>=10.0.0'}
     hasBin: true
     dependencies:
