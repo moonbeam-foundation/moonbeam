@@ -1,5 +1,0 @@
-{
-  "package": "./package.json",
-  "slow": "1000",
-  "timeout": "5000"
-}
