@@ -85,7 +85,7 @@ fn set_total_selected_event_emits_correctly() {
 #[test]
 fn set_total_selected_fails_if_above_blocks_per_round() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(ParachainStaking::round().length, 10); // test relies on this
+		assert_eq!(ParachainStaking::round().length, 5); // test relies on this
 		assert_noop!(
 			ParachainStaking::set_total_selected(RuntimeOrigin::root(), 11u32),
 			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
@@ -171,7 +171,7 @@ fn set_blocks_per_round_fails_if_equal_to_total_selected() {
 #[test]
 fn set_blocks_per_round_passes_if_above_total_selected() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(ParachainStaking::round().length, 10); // test relies on this
+		assert_eq!(ParachainStaking::round().length, 5); // test relies on this
 		assert_ok!(ParachainStaking::set_blocks_per_round(
 			RuntimeOrigin::root(),
 			6u32
@@ -276,7 +276,7 @@ fn set_blocks_per_round_event_emits_correctly() {
 		assert_events_eq!(Event::BlocksPerRoundSet {
 			current_round: 1,
 			first_block: 0,
-			old: 10,
+			old: 5,
 			new: 6,
 			new_per_round_inflation_min: Perbill::from_parts(926),
 			new_per_round_inflation_ideal: Perbill::from_parts(926),
@@ -288,7 +288,7 @@ fn set_blocks_per_round_event_emits_correctly() {
 #[test]
 fn set_blocks_per_round_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(ParachainStaking::round().length, 10);
+		assert_eq!(ParachainStaking::round().length, 5);
 		assert_ok!(ParachainStaking::set_blocks_per_round(
 			RuntimeOrigin::root(),
 			6u32
@@ -311,7 +311,7 @@ fn cannot_set_blocks_per_round_below_module_min() {
 fn cannot_set_blocks_per_round_to_current_blocks_per_round() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 10u32),
+			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 5u32),
 			Error::<Test>::NoWritingSameValue
 		);
 	});
@@ -324,29 +324,33 @@ fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
+			// we can't lower the blocks per round because it must be above the number of collators,
+			// and we can't lower the number of collators because it must be above
+			// MinSelectedCandidates. so we first raise blocks per round, then lower it.
 			assert_ok!(ParachainStaking::set_blocks_per_round(
 				RuntimeOrigin::root(),
-				8u32
+				10u32
 			));
 
-			roll_to(5);
+			roll_to(11);
 			assert_events_emitted!(Event::NewRound {
-				starting_block: 9,
+				starting_block: 21,
 				round: 2,
 				selected_collators_number: 1,
 				total_balance: 20
 			},);
 
-			// In every block the relay block number (which we use for rounds clocktime)
+			// In every block the relay slot number (which we use for rounds clocktime)
 			// increases by two.
-			roll_blocks(2);
+			roll_to(13);
 			assert_ok!(ParachainStaking::set_blocks_per_round(
 				RuntimeOrigin::root(),
 				6u32
 			));
-			roll_blocks(1);
+
+			roll_to(17);
 			assert_events_emitted!(Event::NewRound {
-				starting_block: 15,
+				starting_block: 33,
 				round: 3,
 				selected_collators_number: 1,
 				total_balance: 20
@@ -519,9 +523,9 @@ fn set_inflation_event_emits_correctly() {
 			annual_min: min,
 			annual_ideal: ideal,
 			annual_max: max,
-			round_min: Perbill::from_parts(113),
-			round_ideal: Perbill::from_parts(150),
-			round_max: Perbill::from_parts(186),
+			round_min: Perbill::from_parts(57),
+			round_ideal: Perbill::from_parts(75),
+			round_max: Perbill::from_parts(93),
 		});
 	});
 }
@@ -561,9 +565,9 @@ fn set_inflation_storage_updates_correctly() {
 		assert_eq!(
 			ParachainStaking::inflation_config().round,
 			Range {
-				min: Perbill::from_parts(113),
-				ideal: Perbill::from_parts(150),
-				max: Perbill::from_parts(186)
+				min: Perbill::from_parts(57),
+				ideal: Perbill::from_parts(75),
+				max: Perbill::from_parts(93)
 			}
 		);
 	});

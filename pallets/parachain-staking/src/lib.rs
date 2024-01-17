@@ -461,7 +461,11 @@ pub mod pallet {
 			weight = weight.saturating_add(T::DbWeight::get().reads_writes(1, 0));
 
 			let mut round = <Round<T>>::get();
-			if round.should_update(relay_slot) {
+			let value = round
+				.first
+				.saturating_add((relay_slot.saturating_sub(round.first)).saturating_div(2));
+
+			if round.should_update(value) {
 				// mutate round
 				round.update(relay_slot);
 				// notify that new round begin

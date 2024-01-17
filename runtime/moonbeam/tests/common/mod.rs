@@ -250,7 +250,7 @@ impl ExtBuilder {
 			inflation_config: self.inflation,
 			collator_commission: Perbill::from_percent(20),
 			parachain_bond_reserve_percent: Percent::from_percent(30),
-			blocks_per_round: 12 * HOURS, // we double it due to the relay clocktime
+			blocks_per_round: 6 * HOURS,
 			num_selected_candidates: 8,
 		}
 		.assimilate_storage(&mut t)

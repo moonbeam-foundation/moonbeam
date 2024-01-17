@@ -165,12 +165,12 @@ impl pallet_timestamp::Config for Runtime {
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
-const GENESIS_BLOCKS_PER_ROUND: u32 = 10;
+const GENESIS_BLOCKS_PER_ROUND: u32 = 5;
 const GENESIS_COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const GENESIS_PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 const GENESIS_NUM_SELECTED_CANDIDATES: u32 = 5;
 parameter_types! {
-	pub const MinBlocksPerRound: u32 = 6;
+	pub const MinBlocksPerRound: u32 = 3;
 	pub const MaxOfflineRounds: u32 = 2;
 	pub const LeaveCandidatesDelay: u32 = 2;
 	pub const CandidateBondLessDelay: u32 = 2;
@@ -361,7 +361,7 @@ pub(crate) fn roll_to(n: BlockNumber) {
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
 pub(crate) fn roll_to_round_begin(round: BlockNumber) {
-	let block = (((round - 1) * GENESIS_BLOCKS_PER_ROUND) / 2) + 1;
+	let block = (round - 1) * GENESIS_BLOCKS_PER_ROUND + 1;
 	roll_to(block)
 }
 

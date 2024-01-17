@@ -18,7 +18,7 @@
 use crate as pallet_parachain_staking;
 use crate::{
 	pallet, AwardedPts, Config, Event as ParachainStakingEvent, InflationInfo, Points, Range,
-	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	RoundInfo, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use block_author::BlockAuthor as BlockAuthorMap;
 use frame_support::{
@@ -108,12 +108,12 @@ impl pallet_balances::Config for Test {
 	type RuntimeFreezeReason = ();
 }
 impl block_author::Config for Test {}
-const GENESIS_BLOCKS_PER_ROUND: BlockNumber = 10;
+const GENESIS_BLOCKS_PER_ROUND: BlockNumber = 5;
 const GENESIS_COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const GENESIS_PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 const GENESIS_NUM_SELECTED_CANDIDATES: u32 = 5;
 parameter_types! {
-	pub const MinBlocksPerRound: u32 = 6;
+	pub const MinBlocksPerRound: u32 = 3;
 	pub const MaxOfflineRounds: u32 = 1;
 	pub const LeaveCandidatesDelay: u32 = 2;
 	pub const CandidateBondLessDelay: u32 = 2;
@@ -333,17 +333,14 @@ pub(crate) fn roll_blocks(num_blocks: u32) -> BlockNumber {
 /// This will complete the block in which the round change occurs.
 /// Returns the number of blocks played.
 pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
-	let block = (((round - 1) * GENESIS_BLOCKS_PER_ROUND) / 2) + 1;
+	let block = (round - 1) * GENESIS_BLOCKS_PER_ROUND + 1;
 	roll_to(block)
 }
 
 /// Rolls block-by-block to the end of the specified round.
 /// The block following will be the one in which the specified round change occurs.
-///
-/// Note: Depending on the desired test case, it might be needed to call
-/// 'increase_last_relay_slot_number()' after this function.
 pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
-	let block = (round * GENESIS_BLOCKS_PER_ROUND) / 2;
+	let block = round * GENESIS_BLOCKS_PER_ROUND;
 	roll_to(block)
 }
 
@@ -707,43 +704,58 @@ pub mod block_author {
 #[test]
 fn roll_to_round_begin_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		// these tests assume blocks-per-round of 10, as established by GENESIS_BLOCKS_PER_ROUND
+		// these tests assume blocks-per-round of 5, as established by GENESIS_BLOCKS_PER_ROUND
 		assert_eq!(System::block_number(), 1); // we start on block 1
 
 		let num_blocks = roll_to_round_begin(1);
 		assert_eq!(System::block_number(), 1); // no-op, we're already on this round
 		assert_eq!(num_blocks, 0);
 		assert_eq!(AsyncBacking::slot_info().unwrap().0, Slot::from(1u64));
+		assert_eq!(ParachainStaking::round().current, 1);
 
-		// As we are using the relay chain block as clocktime for rounds,
+		// As we are using the relay chain slot as clocktime for rounds,
 		// the first para-block of round 2 must be 6 due to:
 		//
-		// Parablock 1 - relay block 1
-		// Parablock 2 - relay block 3
-		// Parablock 3 - relay block 5
-		// Parablock 4 - relay block 7
-		// Parablock 5 - relay block 9
+		// Parablock 1 - relay slot 1
+		// Parablock 2 - relay slot 3
+		// Parablock 3 - relay slot 5
+		// Parablock 4 - relay slot 7
+		// Parablock 5 - relay slot 9
 		//
-		// We have mocked 10 blocks (relay-blocks) per-round,
-		// so in para-block 6 -> relay block 11.
-		// 11(now) - 1(first) = 10 so the round updates.
+		// We have mocked 5 blocks (relay-slots) per-round,
+		// so in para-block 6 -> relay slot 11.
 		let num_blocks = roll_to_round_begin(2);
 		assert_eq!(System::block_number(), 6);
 		assert_eq!(num_blocks, 5);
 		assert_eq!(AsyncBacking::slot_info().unwrap().0, Slot::from(11u64));
-		println!("ROUND {:#?}", ParachainStaking::round());
+		assert_eq!(
+			ParachainStaking::round(),
+			RoundInfo {
+				current: 2,
+				first: 11,
+				length: 5,
+			}
+		);
 
 		let num_blocks = roll_to_round_begin(3);
 		assert_eq!(System::block_number(), 11);
 		assert_eq!(num_blocks, 5);
 		assert_eq!(AsyncBacking::slot_info().unwrap().0, Slot::from(21u64));
+		assert_eq!(
+			ParachainStaking::round(),
+			RoundInfo {
+				current: 3,
+				first: 21,
+				length: 5,
+			}
+		);
 	});
 }
 
 #[test]
 fn roll_to_round_end_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		// these tests assume blocks-per-round of 10, as established by GENESIS_BLOCKS_PER_ROUND
+		// these tests assume blocks-per-round of 5, as established by GENESIS_BLOCKS_PER_ROUND
 		assert_eq!(System::block_number(), 1); // we start on block 1
 
 		let num_blocks = roll_to_round_end(1);
@@ -755,11 +767,27 @@ fn roll_to_round_end_works() {
 		assert_eq!(System::block_number(), 10);
 		assert_eq!(num_blocks, 5);
 		assert_eq!(AsyncBacking::slot_info().unwrap().0, Slot::from(19u64));
+		assert_eq!(
+			ParachainStaking::round(),
+			RoundInfo {
+				current: 2,
+				first: 11,
+				length: 5,
+			}
+		);
 
 		let num_blocks = roll_to_round_end(3);
 		assert_eq!(System::block_number(), 15);
 		assert_eq!(num_blocks, 5);
 		assert_eq!(AsyncBacking::slot_info().unwrap().0, Slot::from(29u64));
+		assert_eq!(
+			ParachainStaking::round(),
+			RoundInfo {
+				current: 3,
+				first: 21,
+				length: 5,
+			}
+		);
 	});
 }
 
