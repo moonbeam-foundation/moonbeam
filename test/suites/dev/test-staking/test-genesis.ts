@@ -71,9 +71,9 @@ describeSuite({
         expect(inflationInfo.annual.min.toBigInt()).toBe(40_000_000n);
         expect(inflationInfo.annual.ideal.toBigInt()).toBe(50_000_000n);
         expect(inflationInfo.annual.max.toBigInt()).toBe(50_000_000n);
-        expect(inflationInfo.round.min.toBigInt()).toBe(17901n); // 4% / blocks per year * 10^9
-        expect(inflationInfo.round.ideal.toBigInt()).toBe(22269n); // 5% / blocks per year * 10^9
-        expect(inflationInfo.round.max.toBigInt()).toBe(22269n); // 5% / blocks per year * 10^9
+        expect(inflationInfo.round.min.toBigInt()).toBe(8949n); // 4% / blocks per year * 10^9
+        expect(inflationInfo.round.ideal.toBigInt()).toBe(11132n); // 5% / blocks per year * 10^9
+        expect(inflationInfo.round.max.toBigInt()).toBe(11132n); // 5% / blocks per year * 10^9
       },
     });
   },
