@@ -685,7 +685,7 @@ describeSuite({
                 }
               });
             });
-            resolve("holds scraped");
+            resolve("Preimages holds scraped");
           })
           .catch((error) => {
             console.error("Error fetching holds:", error);
