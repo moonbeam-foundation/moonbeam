@@ -453,7 +453,7 @@ pub mod pallet {
 		fn on_initialize(_n: BlockNumberFor<T>) -> Weight {
 			let mut weight = T::WeightInfo::base_on_initialize();
 
-			// Fetch relay slot number
+			// fetch slot number
 			let slot = T::SlotProvider::get();
 
 			// account for SlotProvider read
@@ -1418,7 +1418,7 @@ pub mod pallet {
 			//
 			// If the previous condition is met in all rounds of rounds_to_check,
 			// the collator is notified as inactive
-			for r in rounds_to_check.clone() {
+			for r in rounds_to_check {
 				let stake = <AtStake<T>>::get(r, &collator);
 				let pts = <AwardedPts<T>>::get(r, &collator);
 
