@@ -9725,21 +9725,16 @@ dependencies = [
 name = "pallet-parachain-staking"
 version = "3.0.0"
 dependencies = [
- "cumulus-pallet-parachain-system",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
  "nimbus-primitives",
- "pallet-async-backing",
  "pallet-balances",
- "pallet-timestamp",
  "parity-scale-codec",
- "polkadot-parachain-primitives",
  "scale-info",
  "serde",
  "similar-asserts",
- "sp-consensus-slots",
  "sp-core",
  "sp-io",
  "sp-runtime",
