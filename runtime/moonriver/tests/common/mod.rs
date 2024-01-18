@@ -26,13 +26,12 @@ pub use moonriver_runtime::{
 	asset_config::AssetRegistrarMetadata,
 	currency::{GIGAWEI, MOVR, SUPPLY_FACTOR, WEI},
 	xcm_config::AssetType,
-	AccountId, AssetId, AssetManager, Assets, AsyncBacking, AuthorInherent, Balance, Balances,
-	CrowdloanRewards, Ethereum, Executive, Header, InflationInfo, LocalAssets, ParachainStaking,
-	ParachainSystem, Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
+	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, CrowdloanRewards,
+	Ethereum, Executive, Header, InflationInfo, LocalAssets, ParachainStaking, ParachainSystem,
+	Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
 	TransactionPaymentAsGasPrice, UncheckedExtrinsic, HOURS, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
-use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
@@ -85,8 +84,6 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 				System::set_block_number(System::block_number() + 1);
 			}
 		}
-
-		increase_last_relay_slot_number(2u64);
 
 		// Initialize the new block
 		AuthorInherent::on_initialize(System::block_number());
@@ -394,12 +391,4 @@ pub fn ethereum_transaction(raw_hex_tx: &str) -> pallet_ethereum::Transaction {
 	let transaction = ethereum::EnvelopedDecodable::decode(&bytes[..]);
 	assert!(transaction.is_ok());
 	transaction.unwrap()
-}
-
-pub(crate) fn increase_last_relay_slot_number(amount: u64) {
-	let last_relay_slot = u64::from(AsyncBacking::slot_info().unwrap_or_default().0);
-	frame_support::storage::unhashed::put(
-		&frame_support::storage::storage_prefix(b"AsyncBacking", b"SlotInfo"),
-		&((Slot::from(last_relay_slot + amount), 0)),
-	);
 }

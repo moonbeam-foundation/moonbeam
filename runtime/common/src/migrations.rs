@@ -70,8 +70,8 @@ pub struct OldRoundInfo<BlockNumber> {
 	pub first: BlockNumber,
 	pub length: u32,
 }
-pub struct UpdateFirstRoundRelaySlotNumber<T>(pub PhantomData<T>);
-impl<T> Migration for UpdateFirstRoundRelaySlotNumber<T>
+pub struct UpdateFirstRoundNumber<T>(pub PhantomData<T>);
+impl<T> Migration for UpdateFirstRoundNumber<T>
 where
 	T: pallet_parachain_staking::Config,
 	T: pallet_async_backing::Config,
@@ -79,7 +79,7 @@ where
 	u32: From<<<<T as frame_system::Config>::Block as Block>::Header as Header>::Number>,
 {
 	fn friendly_name(&self) -> &str {
-		"MM_UpdateFirstRoundRelaySlotNumber"
+		"MM_UpdateFirstRoundNumber"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
@@ -110,7 +110,7 @@ where
 				.saturating_div(100)
 				.into();
 
-			// Read the relay slot from the state proof
+			// Read the relay slot from the SlotInfo storage
 			let relay_slot = pallet_async_backing::Pallet::<T>::slot_info()
 				.unwrap_or((Slot::from(283_960_000u64), 1u32))
 				.0;
@@ -121,7 +121,7 @@ where
 			Some(RoundInfo {
 				current: old_current,
 				first: new_first_block,
-				length: old_length * 2,
+				length: old_length,
 			})
 		});
 
@@ -228,7 +228,6 @@ impl<Runtime, Council, Tech, Treasury, OpenTech> GetMigrations
 	for CommonMigrations<Runtime, Council, Tech, Treasury, OpenTech>
 where
 	Runtime: pallet_author_mapping::Config,
-	Runtime: pallet_async_backing::Config,
 	Runtime: pallet_parachain_staking::Config,
 	Runtime: pallet_scheduler::Config,
 	Runtime: AuthorSlotFilterConfig,
@@ -242,7 +241,6 @@ where
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 	Runtime: pallet_xcm_transactor::Config,
 	Runtime: pallet_moonbeam_orbiters::Config,
-	u32: From<<<<Runtime as frame_system::Config>::Block as Block>::Header as Header>::Number>,
 	Runtime: pallet_balances::Config,
 	Runtime: pallet_referenda::Config,
 	Runtime::AccountId: Default,
@@ -314,9 +312,6 @@ where
 		//let remove_min_bond_for_old_orbiter_collators =
 		//	RemoveMinBondForOrbiterCollators::<Runtime>(Default::default());
 
-		let update_first_round_relay_slot_number =
-			UpdateFirstRoundRelaySlotNumber::<Runtime>(Default::default());
-
 		// RT2700
 		let missing_balances_migrations = MissingBalancesMigrations::<Runtime>(Default::default());
 		let fix_pallet_versions =
@@ -372,7 +367,6 @@ where
 			//Box::new(xcm_transactor_to_xcm_v3),
 			// completed in runtime 2600
 			//Box::new(remove_min_bond_for_old_orbiter_collators),
-			Box::new(update_first_round_relay_slot_number),
 			Box::new(missing_balances_migrations),
 			Box::new(fix_pallet_versions),
 			Box::new(pallet_referenda_migrate_v0_to_v1),

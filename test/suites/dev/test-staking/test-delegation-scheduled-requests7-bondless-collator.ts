@@ -35,16 +35,7 @@ describeSuite({
       id: "T01",
       title: "should succeed",
       test: async () => {
-        // We rely on the relay chain block number for rounds clocktime.
-        //
-        // This value 'LastRelayChainBlockNumber' starts on 1000 after we create our first
-        // para-block in this environment (inside beforeAll).
-        //
-        // When we create a second block, this behavior will naturally modify the round number
-        // in +1 due to the checks between should_update() function of parachain staking pallet.
-        //
-        // Given this, we first create an extra block to go to round 2 directly, and prevent
-        // mismatches while comparing 'whenExecutable' field between rounds 1 and 2.
+        // Create an extra block to prevent mismatches while comparing 'whenExecutable' field.
         await context.createBlock();
 
         const currentRound = (await psQuery.round()).current.toNumber();

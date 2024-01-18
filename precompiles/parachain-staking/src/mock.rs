@@ -28,7 +28,6 @@ use precompile_utils::{
 	precompile_set::*,
 	testing::{Alice, MockAccount},
 };
-use sp_consensus_slots::Slot;
 use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
@@ -193,11 +192,10 @@ impl pallet_async_backing::Config for Runtime {
 	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
 }
 
-pub struct RelayChainSlotProvider;
-impl Get<Slot> for RelayChainSlotProvider {
-	fn get() -> Slot {
-		let slot_info = pallet_async_backing::pallet::Pallet::<Runtime>::slot_info();
-		slot_info.unwrap_or_default().0
+pub struct ParaBlockNumberProvider;
+impl Get<u64> for ParaBlockNumberProvider {
+	fn get() -> u64 {
+		System::block_number().into()
 	}
 }
 
@@ -224,7 +222,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type OnCollatorPayout = ();
 	type OnInactiveCollator = ();
 	type OnNewRound = ();
-	type RelayChainSlotProvider = RelayChainSlotProvider;
+	type SlotProvider = ParaBlockNumberProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
 }
@@ -333,7 +331,6 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| {
 			System::set_block_number(1);
-			increase_last_relay_slot_number(1u64);
 		});
 		ext
 	}
@@ -351,7 +348,6 @@ pub(crate) fn roll_to(n: BlockNumber) {
 		Balances::on_finalize(System::block_number());
 		System::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);
-		increase_last_relay_slot_number(2u64);
 		System::on_initialize(System::block_number());
 		Balances::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
@@ -361,7 +357,7 @@ pub(crate) fn roll_to(n: BlockNumber) {
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
 pub(crate) fn roll_to_round_begin(round: BlockNumber) {
-	let block = (round - 1) * GENESIS_BLOCKS_PER_ROUND + 1;
+	let block = (round - 1) * GENESIS_BLOCKS_PER_ROUND;
 	roll_to(block)
 }
 
@@ -370,12 +366,4 @@ pub(crate) fn events() -> Vec<RuntimeEvent> {
 		.into_iter()
 		.map(|r| r.event)
 		.collect::<Vec<_>>()
-}
-
-pub(crate) fn increase_last_relay_slot_number(amount: u64) {
-	let last_relay_slot = u64::from(AsyncBacking::slot_info().unwrap_or_default().0);
-	frame_support::storage::unhashed::put(
-		&frame_support::storage::storage_prefix(b"AsyncBacking", b"SlotInfo"),
-		&((Slot::from(last_relay_slot + amount), 0)),
-	);
 }

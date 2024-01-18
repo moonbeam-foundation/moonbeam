@@ -81,7 +81,6 @@ use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
-use sp_consensus_slots::Slot;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 #[cfg(feature = "try-runtime")]
 use sp_runtime::TryRuntimeError;
@@ -753,11 +752,10 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 type MonetaryGovernanceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
-pub struct RelayChainSlotProvider;
-impl Get<Slot> for RelayChainSlotProvider {
-	fn get() -> Slot {
-		let slot_info = pallet_async_backing::pallet::Pallet::<Runtime>::slot_info();
-		slot_info.unwrap_or_default().0
+pub struct ParaBlockNumberProvider;
+impl Get<u64> for ParaBlockNumberProvider {
+	fn get() -> u64 {
+		frame_system::pallet::Pallet::<Runtime>::block_number().into()
 	}
 }
 
@@ -798,14 +796,9 @@ impl pallet_parachain_staking::Config for Runtime {
 	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
 	type OnInactiveCollator = OnInactiveCollator;
 	type OnNewRound = OnNewRound;
-	type RelayChainSlotProvider = RelayChainSlotProvider;
+	type SlotProvider = ParaBlockNumberProvider;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
-}
-
-impl pallet_async_backing::Config for Runtime {
-	type AllowMultipleBlocksPerSlot = ConstBool<false>;
-	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
 }
 
 impl pallet_author_inherent::Config for Runtime {
@@ -1484,8 +1477,6 @@ construct_runtime! {
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
-
-		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 121,
 	}
 }
 

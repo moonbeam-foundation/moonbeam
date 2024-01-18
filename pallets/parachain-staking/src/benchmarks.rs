@@ -25,7 +25,6 @@ use crate::{
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
 use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin};
-use sp_consensus_slots::Slot;
 use sp_runtime::{traits::Zero, Perbill, Percent};
 use sp_std::vec::Vec;
 
@@ -203,19 +202,16 @@ fn parachain_staking_on_finalize<T: Config>(author: T::AccountId) {
 
 /// Run to end block and author
 fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
+	let total_rounds = round_delay + 1u32;
 	let round_length: BlockNumberFor<T> = Pallet::<T>::round().length.into();
 	let mut now = <frame_system::Pallet<T>>::block_number() + 1u32.into();
-	let end = round_length.clone() * round_delay.into() - 10u32.into();
+	let first: BlockNumberFor<T> = (Pallet::<T>::round().first as u32).into();
+	let end = first + (round_length * total_rounds.into());
 	while now < end {
 		parachain_staking_on_finalize::<T>(author.clone());
 		<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
 		<frame_system::Pallet<T>>::set_block_number(
 			<frame_system::Pallet<T>>::block_number() + 1u32.into(),
-		);
-		let previous_relay_slot = u64::from(T::RelayChainSlotProvider::get()) + 1;
-		frame_support::storage::unhashed::put(
-			&frame_support::storage::storage_prefix(b"AsyncBacking", b"SlotInfo"),
-			&(Slot::from(previous_relay_slot + 2), 0),
 		);
 		<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
 		Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number());
@@ -1875,13 +1871,6 @@ benchmarks! {
 		<frame_system::Pallet<T>>::on_finalize(start);
 		<frame_system::Pallet<T>>::set_block_number(
 			start + 1u32.into()
-		);
-		frame_support::storage::unhashed::put(
-			&frame_support::storage::storage_prefix(
-				b"AsyncBacking",
-				b"SlotInfo",
-			),
-			&(Slot::from(1u64), 0)
 		);
 		let end = <frame_system::Pallet<T>>::block_number();
 		<frame_system::Pallet<T>>::on_initialize(end);
