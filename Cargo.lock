@@ -9054,20 +9054,17 @@ dependencies = [
 name = "pallet-evm-precompile-parachain-staking"
 version = "1.0.0"
 dependencies = [
- "cumulus-pallet-parachain-system",
  "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
  "log",
  "num_enum 0.5.11",
- "pallet-async-backing",
  "pallet-balances",
  "pallet-evm",
  "pallet-parachain-staking",
  "pallet-timestamp",
  "parity-scale-codec",
- "polkadot-parachain-primitives",
  "precompile-utils",
  "rustc-hex",
  "scale-info",

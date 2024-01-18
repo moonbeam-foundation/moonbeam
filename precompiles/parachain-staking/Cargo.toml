@@ -41,23 +41,12 @@ pallet-timestamp = { workspace = true, features = [ "std" ] }
 scale-info = { workspace = true, features = [ "derive", "std" ] }
 sp-runtime = { workspace = true, features = [ "std" ] }
 
-# Cumulus
-cumulus-pallet-parachain-system = { workspace = true }
-
-# Polkadot
-polkadot-parachain = { workspace = true }
-
-# Moonkit
-pallet-async-backing = { workspace = true }
-
 [features]
 default = [ "std" ]
 std = [
-	"cumulus-pallet-parachain-system/std",
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
-	"pallet-async-backing/std",
 	"pallet-parachain-staking/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",

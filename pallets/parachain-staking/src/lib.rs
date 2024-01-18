@@ -492,7 +492,6 @@ pub mod pallet {
 			//   read:  Author, Points, AwardedPts
 			//   write: Points, AwardedPts
 			weight = weight.saturating_add(T::DbWeight::get().reads_writes(3, 2));
-
 			weight
 		}
 		fn on_finalize(_n: BlockNumberFor<T>) {

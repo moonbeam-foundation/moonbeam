@@ -18,7 +18,7 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{ConstBool, Everything, Get, OnFinalize, OnInitialize},
+	traits::{Everything, Get, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -48,7 +48,6 @@ construct_runtime!(
 		Evm: pallet_evm,
 		Timestamp: pallet_timestamp,
 		ParachainStaking: pallet_parachain_staking,
-		AsyncBacking: pallet_async_backing,
 	}
 );
 
@@ -185,11 +184,6 @@ parameter_types! {
 	pub const MinDelegation: u128 = 3;
 	pub const MaxCandidates: u32 = 10;
 	pub BlockAuthor: AccountId = Alice.into();
-}
-
-impl pallet_async_backing::Config for Runtime {
-	type AllowMultipleBlocksPerSlot = ConstBool<false>;
-	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
 }
 
 pub struct ParaBlockNumberProvider;
@@ -329,9 +323,7 @@ impl ExtBuilder {
 		.expect("Parachain Staking's storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| {
-			System::set_block_number(1);
-		});
+		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
 }
