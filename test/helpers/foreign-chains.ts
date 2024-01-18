@@ -147,6 +147,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Equilibrium",
         paraId: 2011,
+        mutedUntil: new Date("2024-02-28").getTime(),
       },
       {
         name: "Parallel",
