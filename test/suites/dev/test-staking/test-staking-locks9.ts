@@ -72,7 +72,6 @@ describeSuite({
       let nonce = await context
         .viem()
         .getTransactionCount({ address: randomAccount.address as `0x${string}` });
-
       for (const randomCandidatesChunk of chunk(randomCandidates, 20)) {
         await context.createBlock(
           randomCandidatesChunk.map(
