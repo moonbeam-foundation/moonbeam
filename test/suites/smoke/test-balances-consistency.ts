@@ -668,29 +668,31 @@ describeSuite({
           });
       });
 
-      await new Promise((resolve, reject) => {
-        apiAt.query.balances.holds
-          .entries()
-          .then((holds) => {
-            holds.forEach((holdsOf) => {
-              const accountId = holdsOf[0].toHex().slice(-40);
-              holdsOf[1].forEach((holdOf) => {
-                if (holdOf.id.isPreimage) {
-                  updateReserveMap(accountId, {
-                    [ReserveType.Preimage]: holdOf.amount.toBigInt(),
-                  });
-                } else {
-                  throw `Unknown hold id ${holdOf.id}`;
-                }
+      if (specVersion >= 2700) {
+        await new Promise((resolve, reject) => {
+          apiAt.query.balances.holds
+            .entries()
+            .then((holds) => {
+              holds.forEach((holdsOf) => {
+                const accountId = holdsOf[0].toHex().slice(-40);
+                holdsOf[1].forEach((holdOf) => {
+                  if (holdOf.id.isPreimage) {
+                    updateReserveMap(accountId, {
+                      [ReserveType.Preimage]: holdOf.amount.toBigInt(),
+                    });
+                  } else {
+                    throw `Unknown hold id ${holdOf.id}`;
+                  }
+                });
               });
+              resolve("Preimages holds scraped");
+            })
+            .catch((error) => {
+              console.error("Error fetching holds:", error);
+              reject(error);
             });
-            resolve("Preimages holds scraped");
-          })
-          .catch((error) => {
-            console.error("Error fetching holds:", error);
-            reject(error);
-          });
-      });
+        });
+      }
 
       if (specVersion >= 2401) {
         await new Promise((resolve, reject) => {
