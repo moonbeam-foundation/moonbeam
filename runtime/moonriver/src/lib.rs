@@ -754,6 +754,13 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 type MonetaryGovernanceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
+pub struct ParaBlockNumberProvider;
+impl Get<u64> for ParaBlockNumberProvider {
+	fn get() -> u64 {
+		frame_system::pallet::Pallet::<Runtime>::block_number().into()
+	}
+}
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -791,6 +798,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
 	type OnInactiveCollator = OnInactiveCollator;
 	type OnNewRound = OnNewRound;
+	type SlotProvider = ParaBlockNumberProvider;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
 }

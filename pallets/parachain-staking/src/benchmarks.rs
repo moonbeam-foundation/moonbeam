@@ -205,7 +205,8 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 	let total_rounds = round_delay + 1u32;
 	let round_length: BlockNumberFor<T> = Pallet::<T>::round().length.into();
 	let mut now = <frame_system::Pallet<T>>::block_number() + 1u32.into();
-	let end = Pallet::<T>::round().first + (round_length * total_rounds.into());
+	let first: BlockNumberFor<T> = (Pallet::<T>::round().first as u32).into();
+	let end = first + (round_length * total_rounds.into());
 	while now < end {
 		parachain_staking_on_finalize::<T>(author.clone());
 		<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());

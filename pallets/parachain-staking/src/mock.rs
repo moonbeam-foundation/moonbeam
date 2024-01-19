@@ -23,7 +23,7 @@ use crate::{
 use block_author::BlockAuthor as BlockAuthorMap;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, LockIdentifier, OnFinalize, OnInitialize},
+	traits::{Everything, Get, LockIdentifier, OnFinalize, OnInitialize},
 	weights::{constants::RocksDbWeight, Weight},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -125,6 +125,14 @@ parameter_types! {
 	pub const MinDelegation: u128 = 3;
 	pub const MaxCandidates: u32 = 200;
 }
+
+pub struct ParaBlockNumberProvider;
+impl Get<u64> for ParaBlockNumberProvider {
+	fn get() -> u64 {
+		System::block_number().into()
+	}
+}
+
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -148,6 +156,7 @@ impl Config for Test {
 	type PayoutCollatorReward = ();
 	type OnInactiveCollator = ();
 	type OnNewRound = ();
+	type SlotProvider = ParaBlockNumberProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
 }

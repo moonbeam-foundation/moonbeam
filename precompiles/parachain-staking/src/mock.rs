@@ -18,7 +18,7 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, OnFinalize, OnInitialize},
+	traits::{Everything, Get, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -42,7 +42,7 @@ pub type BlockNumber = BlockNumberFor<Runtime>;
 type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 construct_runtime!(
-	pub enum Runtime	{
+	pub enum Runtime {
 		System: frame_system,
 		Balances: pallet_balances,
 		Evm: pallet_evm,
@@ -84,6 +84,7 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = ();
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
+
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 }
@@ -184,6 +185,14 @@ parameter_types! {
 	pub const MaxCandidates: u32 = 10;
 	pub BlockAuthor: AccountId = Alice.into();
 }
+
+pub struct ParaBlockNumberProvider;
+impl Get<u64> for ParaBlockNumberProvider {
+	fn get() -> u64 {
+		System::block_number().into()
+	}
+}
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -207,6 +216,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type OnCollatorPayout = ();
 	type OnInactiveCollator = ();
 	type OnNewRound = ();
+	type SlotProvider = ParaBlockNumberProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
 }
