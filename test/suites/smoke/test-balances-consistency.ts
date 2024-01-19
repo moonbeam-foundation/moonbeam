@@ -674,7 +674,6 @@ describeSuite({
           .then((holds) => {
             holds.forEach((holdsOf) => {
               const accountId = holdsOf[0].toHex().slice(-40);
-              //console.log(holdsOf[1]);
               holdsOf[1].forEach((holdOf) => {
                 if (holdOf.id.isPreimage) {
                   updateReserveMap(accountId, {
