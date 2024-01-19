@@ -73,23 +73,6 @@ describeSuite({
         .viem()
         .getTransactionCount({ address: randomAccount.address as `0x${string}` });
 
-      // Delegate to alice to avoid the 'no nimbus keys available to manual seal' error.
-      // It seems that if we don't do this, somehow alice is not recognized as the author
-      // and is not able to produce the next block.
-      await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.parachainStaking.delegateWithAutoCompound(
-            alith.address,
-            MIN_GLMR_DELEGATOR,
-            100,
-            1,
-            1,
-            maxDelegationsPerDelegator
-          )
-          .signAsync(randomAccount, { nonce: nonce++ })
-      );
-
       for (const randomCandidatesChunk of chunk(randomCandidates, 20)) {
         await context.createBlock(
           randomCandidatesChunk.map(
