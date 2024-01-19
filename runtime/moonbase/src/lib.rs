@@ -95,6 +95,7 @@ use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustm
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
+use sp_consensus_slots::Slot;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 #[cfg(feature = "try-runtime")]
 use sp_runtime::TryRuntimeError;
@@ -777,10 +778,10 @@ type MonetaryGovernanceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 pub struct RelayChainSlotProvider;
-impl Get<u64> for RelayChainSlotProvider {
-	fn get() -> u64 {
+impl Get<Slot> for RelayChainSlotProvider {
+	fn get() -> Slot {
 		let slot_info = pallet_async_backing::pallet::Pallet::<Runtime>::slot_info();
-		u64::from(slot_info.unwrap_or_default().0)
+		slot_info.unwrap_or_default().0
 	}
 }
 

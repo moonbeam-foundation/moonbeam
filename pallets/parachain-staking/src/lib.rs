@@ -89,6 +89,7 @@ pub mod pallet {
 		ReservableCurrency,
 	};
 	use frame_system::pallet_prelude::*;
+	use sp_consensus_slots::Slot;
 	use sp_runtime::{
 		traits::{Saturating, Zero},
 		DispatchErrorWithPostInfo, Perbill, Percent,
@@ -100,7 +101,6 @@ pub mod pallet {
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
-	pub type Slot = u64;
 	pub type RoundIndex = u32;
 	type RewardPoint = u32;
 	pub type BalanceOf<T> =
@@ -255,7 +255,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Started new round.
 		NewRound {
-			starting_block: Slot,
+			starting_block: u64,
 			round: RoundIndex,
 			selected_collators_number: u32,
 			total_balance: BalanceOf<T>,
@@ -427,7 +427,7 @@ pub mod pallet {
 		/// Set blocks per round
 		BlocksPerRoundSet {
 			current_round: RoundIndex,
-			first_block: Slot,
+			first_block: u64,
 			old: u32,
 			new: u32,
 			new_per_round_inflation_min: Perbill,
@@ -454,13 +454,12 @@ pub mod pallet {
 			let mut weight = T::WeightInfo::base_on_initialize();
 
 			// fetch slot number
-			let slot = T::SlotProvider::get();
+			let slot: u64 = T::SlotProvider::get().into();
 
 			// account for SlotProvider read
 			weight = weight.saturating_add(T::DbWeight::get().reads_writes(1, 0));
 
 			let mut round = <Round<T>>::get();
-
 			if round.should_update(slot) {
 				// mutate round
 				round.update(slot);
@@ -518,7 +517,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
 	/// Current round index and next round scheduled transition
-	pub type Round<T: Config> = StorageValue<_, RoundInfo<Slot>, ValueQuery>;
+	pub type Round<T: Config> = StorageValue<_, RoundInfo<u64>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn delegator_state)]
@@ -805,12 +804,12 @@ pub mod pallet {
 			// Choose top TotalSelected collator candidates
 			let (_, v_count, _, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
 			// Start Round 1 at Block 0
-			let round: RoundInfo<Slot> = RoundInfo::new(1u32, 0u32.into(), self.blocks_per_round);
+			let round: RoundInfo<u64> = RoundInfo::new(1u32, 0u64, self.blocks_per_round);
 			<Round<T>>::put(round);
 			// Snapshot total stake
 			<Staked<T>>::insert(1u32, <Total<T>>::get());
 			<Pallet<T>>::deposit_event(Event::NewRound {
-				starting_block: Slot::default(),
+				starting_block: u64::default(),
 				round: 1u32,
 				selected_collators_number: v_count,
 				total_balance: total_staked,

@@ -506,8 +506,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_parachain_staking::Config as PalletParachainStakingConfig;
 
 					let block_number = parent_header.number + 1;
-					let parachain_staking_slot =
-						<Runtime as PalletParachainStakingConfig>::SlotProvider::get();
+					let parachain_staking_slot: u64 =
+						<Runtime as PalletParachainStakingConfig>::SlotProvider::get().into();
 
 					// The Moonbeam runtimes use an entropy source that needs to do some accounting
 					// work during block initialization. Therefore we initialize it here to match

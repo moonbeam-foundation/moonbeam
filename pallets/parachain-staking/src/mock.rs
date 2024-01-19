@@ -27,6 +27,7 @@ use frame_support::{
 	weights::{constants::RocksDbWeight, Weight},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
+use sp_consensus_slots::Slot;
 use sp_core::H256;
 use sp_io;
 use sp_runtime::BuildStorage;
@@ -126,10 +127,11 @@ parameter_types! {
 	pub const MaxCandidates: u32 = 200;
 }
 
-pub struct ParaBlockNumberProvider;
-impl Get<u64> for ParaBlockNumberProvider {
-	fn get() -> u64 {
-		System::block_number().into()
+pub struct StakingRoundSlotProvider;
+impl Get<Slot> for StakingRoundSlotProvider {
+	fn get() -> Slot {
+		let block_number: u64 = System::block_number().into();
+		Slot::from(block_number)
 	}
 }
 
@@ -156,7 +158,7 @@ impl Config for Test {
 	type PayoutCollatorReward = ();
 	type OnInactiveCollator = ();
 	type OnNewRound = ();
-	type SlotProvider = ParaBlockNumberProvider;
+	type SlotProvider = StakingRoundSlotProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
 }
