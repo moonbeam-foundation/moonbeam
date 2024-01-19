@@ -755,6 +755,7 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 type MonetaryGovernanceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
+/// Temporary type that we should replace by RelayChainSlotProvider once async backing is enabled.
 pub struct StakingRoundSlotProvider;
 impl Get<Slot> for StakingRoundSlotProvider {
 	fn get() -> Slot {
