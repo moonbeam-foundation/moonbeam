@@ -17,34 +17,28 @@
 #[macro_export]
 macro_rules! impl_on_charge_evm_transaction {
 	{} => {
-		type CurrencyAccountId<T> = <T as frame_system::Config>::AccountId;
+		type FungibleAccountId<T> = <T as frame_system::Config>::AccountId;
 
 		type BalanceFor<T> =
-			<<T as pallet_evm::Config>::Currency as CurrencyT<CurrencyAccountId<T>>>::Balance;
-
-		type PositiveImbalanceFor<T> =
-			<<T as pallet_evm::Config>::Currency as CurrencyT<CurrencyAccountId<T>>>::PositiveImbalance;
-
-		type NegativeImbalanceFor<T> =
-			<<T as pallet_evm::Config>::Currency as CurrencyT<CurrencyAccountId<T>>>::NegativeImbalance;
+			<<T as pallet_evm::Config>::Currency as Inspect<FungibleAccountId<T>>>::Balance;
 
 		pub struct OnChargeEVMTransaction<OU>(sp_std::marker::PhantomData<OU>);
+
 		impl<T, OU> OnChargeEVMTransactionT<T> for OnChargeEVMTransaction<OU>
 		where
 			T: pallet_evm::Config,
-			PositiveImbalanceFor<T>: Imbalance<BalanceFor<T>, Opposite = NegativeImbalanceFor<T>>,
-			NegativeImbalanceFor<T>: Imbalance<BalanceFor<T>, Opposite = PositiveImbalanceFor<T>>,
-			OU: OnUnbalanced<NegativeImbalanceFor<T>>,
+			T::Currency: Balanced<T::AccountId>,
+			OU: OnUnbalanced<Credit<T::AccountId, T::Currency>>,
 			U256: UniqueSaturatedInto<BalanceFor<T>>
 		{
-			type LiquidityInfo = Option<NegativeImbalanceFor<T>>;
+			type LiquidityInfo = Option<Credit<T::AccountId, T::Currency>>;
 
 			fn withdraw_fee(who: &H160, fee: U256) -> Result<Self::LiquidityInfo, pallet_evm::Error<T>> {
-				EVMCurrencyAdapter::<<T as pallet_evm::Config>::Currency, ()>::withdraw_fee(who, fee)
+				EVMFungibleAdapter::<<T as pallet_evm::Config>::Currency, ()>::withdraw_fee(who, fee)
 			}
 
 			fn can_withdraw(who: &H160, amount: U256) -> Result<(), pallet_evm::Error<T>> {
-				EVMCurrencyAdapter::<<T as pallet_evm::Config>::Currency, ()>::can_withdraw(who, amount)
+				EVMFungibleAdapter::<<T as pallet_evm::Config>::Currency, ()>::can_withdraw(who, amount)
 			}
 
 			fn correct_and_deposit_fee(
@@ -53,7 +47,7 @@ macro_rules! impl_on_charge_evm_transaction {
 				base_fee: U256,
 				already_withdrawn: Self::LiquidityInfo,
 			) -> Self::LiquidityInfo {
-				<EVMCurrencyAdapter<<T as pallet_evm::Config>::Currency, OU> as OnChargeEVMTransactionT<
+				<EVMFungibleAdapter<<T as pallet_evm::Config>::Currency, OU> as OnChargeEVMTransactionT<
 					T,
 				>>::correct_and_deposit_fee(who, corrected_fee, base_fee, already_withdrawn)
 			}
