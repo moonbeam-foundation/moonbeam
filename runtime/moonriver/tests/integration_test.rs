@@ -2524,32 +2524,40 @@ fn removed_precompiles() {
 fn deal_with_fees_handles_tip() {
 	use frame_support::traits::OnUnbalanced;
 	use moonriver_runtime::{DealWithFees, Treasury};
-	use pallet_balances::NegativeImbalance;
 
-	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 10_000)])
-		.build()
-		.execute_with(|| {
-			// Alice has 10_000, which makes inital supply 10_000.
-			// drop()ing the NegativeImbalance below will cause the total_supply to be decreased
-			// incorrectly (since there was never a withdraw to begin with), which in this case has
-			// the desired effect of showing that currency was burned.
-			let total_supply_before = Balances::total_issuance();
-			assert_eq!(total_supply_before, 10_000);
+	ExtBuilder::default().build().execute_with(|| {
+		// This test checks the functionality of the `DealWithFees` trait implementation in the runtime.
+		// It simulates a scenario where a fee and a tip are issued to an account and ensures that the
+		// treasury receives the correct amount (20% of the total), and the rest is burned (80%).
+		//
+		// The test follows these steps:
+		// 1. It issues a fee of 100 and a tip of 1000.
+		// 2. It checks the total supply before the fee and tip are dealt with, which should be 1_100.
+		// 3. It checks that the treasury's balance is initially 0.
+		// 4. It calls `DealWithFees::on_unbalanceds` with the fee and tip.
+		// 5. It checks that the treasury's balance is now 220 (20% of the fee and tip).
+		// 6. It checks that the total supply has decreased by 880 (80% of the fee and tip), indicating
+		//    that this amount was burned.
+		let fee = <pallet_balances::Pallet<Runtime> as frame_support::traits::fungible::Balanced<
+			AccountId,
+		>>::issue(100);
+		let tip = <pallet_balances::Pallet<Runtime> as frame_support::traits::fungible::Balanced<
+			AccountId,
+		>>::issue(1000);
 
-			let fees_then_tips = vec![
-				NegativeImbalance::<moonriver_runtime::Runtime>::new(100),
-				NegativeImbalance::<moonriver_runtime::Runtime>::new(1_000),
-			];
-			DealWithFees::on_unbalanceds(fees_then_tips.into_iter());
+		let total_supply_before = Balances::total_issuance();
+		assert_eq!(total_supply_before, 1_100);
+		assert_eq!(Balances::free_balance(&Treasury::account_id()), 0);
 
-			// treasury should have received 20%
-			assert_eq!(Balances::free_balance(&Treasury::account_id()), 220);
+		DealWithFees::on_unbalanceds(vec![fee, tip].into_iter());
 
-			// verify 80% burned
-			let total_supply_after = Balances::total_issuance();
-			assert_eq!(total_supply_before - total_supply_after, 880);
-		});
+		// treasury should have received 20%
+		assert_eq!(Balances::free_balance(&Treasury::account_id()), 220);
+
+		// verify 80% burned
+		let total_supply_after = Balances::total_issuance();
+		assert_eq!(total_supply_before - total_supply_after, 880);
+	});
 }
 
 #[test]
