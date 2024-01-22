@@ -58,7 +58,6 @@ sp-std = { workspace = true }
 # Frontier
 fp-ethereum = { workspace = true }
 fp-evm = { workspace = true }
-pallet-base-fee = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 pallet-evm-chain-id = { workspace = true }
 
@@ -87,7 +86,6 @@ std = [
 	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
-	"pallet-base-fee/std",
 	"pallet-ethereum-xcm/std",
 	"pallet-evm/std",
 	"pallet-migrations/std",

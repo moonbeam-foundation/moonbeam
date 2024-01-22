@@ -12,14 +12,6 @@
 # Spec/Wasm build directory
 /build/
 
-# Generated test specs
-/archived_tests/moonbeam-test-specs/*.json
-/archived_tests/binaries
-/archived_tests/runtimes
-/archived_tests/specs
-/archived_tests/build
-/archived_tests/rococo*.json
-
 # Moonbeam-Launch
 *.log
 tools/specFiles
