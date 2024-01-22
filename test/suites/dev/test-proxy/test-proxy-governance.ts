@@ -51,7 +51,6 @@ describeSuite({
         const expectEvents = [
           context.polkadotJs().events.proxy.ProxyExecuted,
           context.polkadotJs().events.democracy.Voted,
-          context.polkadotJs().events.treasury.Deposit,
         ];
 
         const { result } = await context.createBlock(

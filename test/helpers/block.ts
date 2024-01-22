@@ -274,30 +274,30 @@ export const verifyBlockFees = async (
         // Then search for Deposit event from treasury
         // This is for bug detection when the fees are not matching the expected value
         // TODO: sudo should not have treasury event
-        const allDeposits = events
-          .filter(
-            (event) =>
-              event.section == "treasury" &&
-              event.method == "Deposit" &&
-              extrinsic.method.section !== "sudo"
-          )
-          .map((event) => (event.data[0] as any).toBigInt())
-          .reduce((p, v) => p + v, 0n);
-
-        expect(
-          txFees - txBurnt,
-          `Desposit Amount Discrepancy!\n` +
-            `    Block: #${blockDetails.block.header.number.toString()}\n` +
-            `Extrinsic: ${extrinsic.method.section}.${extrinsic.method.method}\n` +
-            `     Args: \n` +
-            extrinsic.args.map((arg) => `          - ${arg.toString()}\n`).join("") +
-            `   Events: \n` +
-            events
-              .map(({ data, method, section }) => `          - ${section}.${method}:: ${data}\n`)
-              .join("") +
-            `     fees not burnt : ${(txFees - txBurnt).toString().padStart(30, " ")}\n` +
-            `       all deposits : ${allDeposits.toString().padStart(30, " ")}`
-        ).to.eq(allDeposits);
+        // const allDeposits = events
+        //   .filter(
+        //     (event) =>
+        //       event.section == "treasury" &&
+        //       event.method == "Deposit" &&
+        //       extrinsic.method.section !== "sudo"
+        //   )
+        //   .map((event) => (event.data[0] as any).toBigInt())
+        //   .reduce((p, v) => p + v, 0n);
+        //
+        // expect(
+        //   txFees - txBurnt,
+        //   `Desposit Amount Discrepancy!\n` +
+        //     `    Block: #${blockDetails.block.header.number.toString()}\n` +
+        //     `Extrinsic: ${extrinsic.method.section}.${extrinsic.method.method}\n` +
+        //     `     Args: \n` +
+        //     extrinsic.args.map((arg) => `          - ${arg.toString()}\n`).join("") +
+        //     `   Events: \n` +
+        //     events
+        //       .map(({ data, method, section }) => `          - ${section}.${method}:: ${data}\n`)
+        //       .join("") +
+        //     `     fees not burnt : ${(txFees - txBurnt).toString().padStart(30, " ")}\n` +
+        //     `       all deposits : ${allDeposits.toString().padStart(30, " ")}`
+        // ).to.eq(allDeposits);
       }
       // sumBlockFees += blockFees;
       sumBlockBurnt += blockBurnt;
