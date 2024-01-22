@@ -65,7 +65,6 @@ pub use moonbeam_core_primitives::{
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::weights as moonbeam_weights;
-use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
@@ -312,7 +311,6 @@ pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
 impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
 where
 	R: pallet_balances::Config + pallet_treasury::Config,
-	pallet_treasury::Pallet<R>: OnUnbalanced<NegativeImbalance<R>>,
 {
 	// this seems to be called for substrate-based transactions
 	fn on_unbalanceds<B>(
@@ -321,7 +319,7 @@ where
 		if let Some(fees) = fees_then_tips.next() {
 			// for fees, 80% are burned, 20% to the treasury
 			let (_, to_treasury) = fees.ration(80, 20);
-			// Balances pallet automatically burns dropped Negative Imbalances by decreasing
+			// Balances pallet automatically burns dropped Credits by decreasing
 			// total_supply accordingly
 			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
 				to_treasury,
@@ -341,7 +339,7 @@ where
 	// this is called from pallet_evm for Ethereum-based transactions
 	// (technically, it calls on_unbalanced, which calls this when non-zero)
 	fn on_nonzero_unbalanced(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
-		// Balances pallet automatically burns dropped Negative Imbalances by decreasing
+		// Balances pallet automatically burns dropped Credits by decreasing
 		// total_supply accordingly
 		let (_, to_treasury) = amount.ration(80, 20);
 		ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(to_treasury);

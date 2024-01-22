@@ -329,7 +329,7 @@ where
 		if let Some(fees) = fees_then_tips.next() {
 			// for fees, 80% are burned, 20% to the treasury
 			let (_, to_treasury) = fees.ration(80, 20);
-			// Balances pallet automatically burns dropped Negative Imbalances by decreasing
+			// Balances pallet automatically burns dropped Credits by decreasing
 			// total_supply accordingly
 			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
 				to_treasury,
@@ -349,7 +349,7 @@ where
 	// this is called from pallet_evm for Ethereum-based transactions
 	// (technically, it calls on_unbalanced, which calls this when non-zero)
 	fn on_nonzero_unbalanced(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
-		// Balances pallet automatically burns dropped Negative Imbalances by decreasing
+		// Balances pallet automatically burns dropped Credits by decreasing
 		// total_supply accordingly
 		let (_, to_treasury) = amount.ration(80, 20);
 		ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(to_treasury);
