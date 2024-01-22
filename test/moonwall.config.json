@@ -179,11 +179,6 @@
               }
             }
           }
-        },
-        {
-          "name": "relay",
-          "type": "polkadotJs",
-          "endpoints": ["wss://frag-stagenet-relay-rpc-ws.g.moondev.network"]
         }
       ]
     },
@@ -515,7 +510,7 @@
       },
       "connections": [
         {
-          "name": "MB",
+          "name": "mb",
           "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
@@ -538,7 +533,7 @@
       },
       "connections": [
         {
-          "name": "MB",
+          "name": "mb",
           "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
@@ -561,7 +556,7 @@
       },
       "connections": [
         {
-          "name": "MB",
+          "name": "mb",
           "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
