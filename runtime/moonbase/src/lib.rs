@@ -1119,7 +1119,7 @@ where
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		vec![Box::new(
-			moonbeam_runtime_common::migrations::UpdateFirstRoundNumber::<Runtime>(
+			moonbeam_runtime_common::migrations::UpdateFirstRoundNumberValue::<Runtime>(
 				Default::default(),
 			),
 		)]

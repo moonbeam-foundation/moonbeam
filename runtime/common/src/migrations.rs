@@ -25,7 +25,7 @@ use frame_support::ensure;
 use frame_support::migration::get_storage_value;
 use frame_support::{
 	pallet_prelude::GetStorageVersion,
-	sp_runtime::traits::{Block, Header},
+	sp_runtime::traits::{Block as BlockT, Header as HeaderT},
 	traits::{OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
 	weights::Weight,
 };
@@ -70,16 +70,94 @@ pub struct OldRoundInfo<BlockNumber> {
 	pub first: BlockNumber,
 	pub length: u32,
 }
-pub struct UpdateFirstRoundNumber<T>(pub PhantomData<T>);
-impl<T> Migration for UpdateFirstRoundNumber<T>
+pub struct UpdateFirstRoundNumberValue<T>(pub PhantomData<T>);
+impl<T> Migration for UpdateFirstRoundNumberValue<T>
 where
 	T: pallet_parachain_staking::Config,
 	T: pallet_async_backing::Config,
 	T: frame_system::Config,
-	u32: From<<<<T as frame_system::Config>::Block as Block>::Header as Header>::Number>,
+	u32: From<<<<T as frame_system::Config>::Block as BlockT>::Header as HeaderT>::Number>,
 {
 	fn friendly_name(&self) -> &str {
-		"MM_UpdateFirstRoundNumber"
+		"MM_UpdateFirstRoundNumberValue"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		let _ = Round::<T>::translate::<OldRoundInfo<BlockNumberFor<T>>, _>(|v0| {
+			let old_current = v0
+				.expect("old current round value must be present!")
+				.current;
+			let old_first: u32 = v0.expect("old first should be present!").first.into();
+			let old_length = v0.expect("old round length value must be present!").length;
+
+			// Fetch the last parachain block
+			let para_block: u32 = frame_system::Pallet::<T>::block_number().into();
+
+			// Calculate how many blocks have passed so far in this round
+			let para_block_diff: u64 = para_block.saturating_sub(old_first).into();
+
+			// Read the last relay slot from the SlotInfo storage
+			let relay_slot = pallet_async_backing::Pallet::<T>::slot_info()
+				.unwrap_or((Slot::from(284_000_000u64), 0u32))
+				.0;
+
+			// Calculate the new first
+			let new_first = u64::from(relay_slot).saturating_sub(para_block_diff);
+
+			Some(RoundInfo {
+				current: old_current,
+				first: new_first,
+				length: old_length,
+			})
+		});
+
+		T::DbWeight::get().reads_writes(1, 1)
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		let module: &[u8] = b"ParachainStaking";
+		let item: &[u8] = b"Round";
+		let pre_round_info = get_storage_value::<RoundInfo<BlockNumberFor<T>>>(module, item, &[]);
+		Ok(pre_round_info.unwrap_or_default().encode())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		let pre_round_info =
+			<RoundInfo<BlockNumberFor<T>> as Decode>::decode(&mut &*state).unwrap_or_default();
+		let post_round_info = pallet_parachain_staking::Pallet::<T>::round();
+
+		let slot_after = pallet_async_backing::Pallet::<T>::slot_info()
+			.unwrap_or((Slot::from(280_000_000u64), 0u32))
+			.0;
+
+		ensure!(
+			u64::from(slot_after) > post_round_info.first,
+			"Post-round first must be lower than last relay slot"
+		);
+		ensure!(
+			post_round_info.current >= pre_round_info.current,
+			"Post-round number must be higher than or equal pre-round one"
+		);
+		ensure!(
+			pre_round_info.length == post_round_info.length,
+			"Post-round length must be equal to pre-round one"
+		);
+		Ok(())
+	}
+}
+
+/// Translates the Round.first value type from BlockNumberFor to u64
+pub struct UpdateFirstRoundNumberType<T>(pub PhantomData<T>);
+impl<T> Migration for UpdateFirstRoundNumberType<T>
+where
+	T: pallet_parachain_staking::Config,
+	T: frame_system::Config,
+	u64: From<<<<T as frame_system::Config>::Block as BlockT>::Header as HeaderT>::Number>,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_UpdateFirstRoundNumberType"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
@@ -88,39 +166,12 @@ where
 				.expect("old current round value must be present!")
 				.current;
 
-			let old_first: u32 = v0.expect("Old first should be present!").first.into();
+			let new_first: u64 = v0.expect("old first should be present!").first.into();
 			let old_length = v0.expect("old round length value must be present!").length;
-
-			// Fetch the last parachain block
-			let para_block: u32 = frame_system::Pallet::<T>::block_number().into();
-
-			// Calculate how many blocks have passed so far in the current round
-			let para_block_diff = para_block.saturating_sub(old_first.into());
-
-			// Calculate the percentage of the round so far (before the migration)
-			let percentage = (para_block_diff)
-				.saturating_mul(100)
-				.saturating_div(old_length);
-
-			// Calculate how many blocks should we substract from the relay slot number
-			// given the new duration (round_info.length * 2) to have a first relay slot of the
-			// round that corresponds with the percentage calculated in the step above.
-			let new_block_diff: u64 = percentage
-				.saturating_mul(old_length * 2)
-				.saturating_div(100)
-				.into();
-
-			// Read the relay slot from the SlotInfo storage
-			let relay_slot = pallet_async_backing::Pallet::<T>::slot_info()
-				.unwrap_or((Slot::from(283_960_000u64), 1u32))
-				.0;
-
-			// Calculate the updated first block of the round
-			let new_first_block = u64::from(relay_slot).saturating_sub(new_block_diff);
 
 			Some(RoundInfo {
 				current: old_current,
-				first: new_first_block,
+				first: new_first,
 				length: old_length,
 			})
 		});
@@ -142,12 +193,12 @@ where
 			<RoundInfo<BlockNumberFor<T>> as Decode>::decode(&mut &*state).unwrap_or_default();
 		let post_round_info = pallet_parachain_staking::Pallet::<T>::round();
 		ensure!(
-			post_round_info.current >= pre_round_info.current,
-			"Post-round number must be higher or equal than pre-round one"
+			post_round_info.first == u64::from(pre_round_info.first),
+			"Post-round number must be equal to pre-round one"
 		);
 		ensure!(
-			pre_round_info.length * 2 == post_round_info.length,
-			"Post-round length must double pre-round one"
+			pre_round_info.length == post_round_info.length,
+			"Post-round length must be equal to pre-round one"
 		);
 		Ok(())
 	}
