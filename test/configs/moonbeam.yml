@@ -10,7 +10,7 @@ import-storage:
           data:
             free: "100000000000000000000000"
   OpenTechCommitteeCollective:
-    Members: [alith, baltathar, charleth, dorothy, edith]
+    Members: ["0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"]
   TechCommitteeCollective:
     Members: ["0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"]
   CouncilCollective:
