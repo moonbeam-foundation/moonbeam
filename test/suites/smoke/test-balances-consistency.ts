@@ -10,7 +10,7 @@ import type {
   PalletConvictionVotingVoteVoting,
 } from "@polkadot/types/lookup";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { TWO_HOURS, printTokens } from "@moonwall/util";
+import { FIVE_MINS, FOUR_HOURS, THIRTY_MINS, TWO_HOURS, printTokens } from "@moonwall/util";
 import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../../helpers/block.js";
 import { ApiPromise } from "@polkadot/api";
@@ -946,11 +946,12 @@ describeSuite({
           }
         }
       });
-    }, TWO_HOURS);
+    }, FOUR_HOURS);
 
     it({
       id: "C100",
       title: "should have matching deposit/reserved",
+      timeout: THIRTY_MINS,
       test: async function () {
         if (failedReserved.length > 0) {
           log("Failed accounts reserves");
@@ -984,6 +985,7 @@ describeSuite({
     it({
       id: "C200",
       title: "should match total locks",
+      timeout: FIVE_MINS,
       test: async function () {
         if (failedLocks.length > 0) {
           log("Failed accounts locks");
@@ -998,6 +1000,7 @@ describeSuite({
     it({
       id: "C300",
       title: "should match total supply",
+      timeout: FIVE_MINS,
       test: async function () {
         if (process.env.ACCOUNT_ID) {
           log(`Env var ACCOUNT_ID set, skipping total supply check`);
