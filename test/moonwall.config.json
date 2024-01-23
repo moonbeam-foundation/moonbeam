@@ -140,7 +140,9 @@
       "testFileDir": ["/suites/smoke"],
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html", "json"],
-      "reportFile": { "json": "./tmp/testResults.json" },
+      "reportFile": {
+        "json": "./tmp/testResults.json"
+      },
       "multiThreads": false,
       "foundation": {
         "type": "read_only",
@@ -179,6 +181,13 @@
               }
             }
           }
+        },
+        {
+          "name": "relay",
+          "type": "polkadotJs",
+          "endpoints": [
+            "wss://deo-moon-moondev-1-stagenet-relay-rpc-1.rv.moondev.network "
+          ]
         }
       ]
     },
@@ -188,7 +197,9 @@
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html", "json"],
-      "reportFile": { "json": "./tmp/testResults.json" },
+      "reportFile": {
+        "json": "./tmp/testResults.json"
+      },
       "multiThreads": false,
       "foundation": {
         "type": "read_only",
@@ -241,7 +252,9 @@
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html", "json"],
-      "reportFile": { "json": "./tmp/testResults.json" },
+      "reportFile": {
+        "json": "./tmp/testResults.json"
+      },
       "multiThreads": false,
       "foundation": {
         "type": "read_only",
@@ -294,7 +307,9 @@
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html", "json"],
-      "reportFile": { "json": "./tmp/testResults.json" },
+      "reportFile": {
+        "json": "./tmp/testResults.json"
+      },
       "envVars": ["DEBUG_COLORS=1"],
       "multiThreads": false,
       "foundation": {
@@ -380,7 +395,9 @@
       "multiThreads": 8,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["basic", "html", "json"],
-      "reportFile": { "json": "./tmp/testResults.json" },
+      "reportFile": {
+        "json": "./tmp/testResults.json"
+      },
       "foundation": {
         "type": "dev",
         "launchSpec": [
@@ -458,7 +475,10 @@
           {
             "name": "moonbeam",
             "binPath": "./tmp/moonbeam",
-            "ports": { "p2pPort": 30333, "rpcPort": 9944 },
+            "ports": {
+              "p2pPort": 30333,
+              "rpcPort": 9944
+            },
             "newRpcBehaviour": true,
             "options": [
               "--dev",
