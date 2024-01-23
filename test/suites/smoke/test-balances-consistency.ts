@@ -10,7 +10,7 @@ import type {
   PalletConvictionVotingVoteVoting,
 } from "@polkadot/types/lookup";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { FIVE_MINS, FOUR_HOURS, THIRTY_MINS, TWO_HOURS, printTokens } from "@moonwall/util";
+import { FIVE_MINS, FOUR_HOURS, THIRTY_MINS, printTokens } from "@moonwall/util";
 import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../../helpers/block.js";
 import { ApiPromise } from "@polkadot/api";
