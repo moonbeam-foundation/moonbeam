@@ -229,7 +229,6 @@ fp-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch 
 fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 fp-self-contained = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
-pallet-base-fee = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false, features = [
 	"forbid-evm-reentrancy",
 ] }
@@ -452,13 +451,14 @@ inherits = "release"
 lto = true
 
 [profile.release]
-# Moonbeam runtime requires unwinding.
+debug-assertions = true # Enable debug-assert! for non-production profiles
 opt-level = 3
+# Moonbeam runtime requires unwinding.
 panic = "unwind"
 
 [profile.testnet]
 debug = 1               # debug symbols are useful for profilers
-debug-assertions = true
+debug-assertions = true # Enable debug-assert! for non-production profiles
 inherits = "release"
 overflow-checks = true
 

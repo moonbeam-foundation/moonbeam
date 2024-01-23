@@ -6422,7 +6422,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -6904,7 +6903,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -7023,7 +7021,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -7291,7 +7288,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -8311,19 +8307,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-base-fee"
-version = "1.0.0"
-dependencies = [
- "fp-evm",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-runtime",
-]
-
-[[package]]
 name = "pallet-beefy"
 version = "4.0.0-dev"
 dependencies = [
@@ -9061,7 +9044,6 @@ dependencies = [
  "num_enum 0.5.11",
  "pallet-author-mapping",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-evm",
  "pallet-randomness",
  "pallet-scheduler",
@@ -18689,6 +18671,10 @@ version = "0.0.0"
 [[patch.unused]]
 name = "frontier-template-runtime"
 version = "0.0.0"
+
+[[patch.unused]]
+name = "pallet-base-fee"
+version = "1.0.0"
 
 [[patch.unused]]
 name = "pallet-dynamic-fee"
