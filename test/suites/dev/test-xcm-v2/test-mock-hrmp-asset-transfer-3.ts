@@ -29,7 +29,7 @@ describeSuite({
 
       // We first fund parachain 2000 sovreign account
       await context.createBlock(
-        context.polkadotJs().tx.balances.transfer(sovereignAddress, transferredBalance)
+        context.polkadotJs().tx.balances.transferAllowDeath(sovereignAddress, transferredBalance)
       );
       const balance = (
         await context.polkadotJs().query.system.account(sovereignAddress)
@@ -76,7 +76,7 @@ describeSuite({
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, foreign_para_id, {
-          type: "StagingXcmVersionedXcm",
+          type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 

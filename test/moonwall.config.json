@@ -29,6 +29,7 @@
       "name": "zombie_moonbeam",
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbeam*"],
+      "multiThreads": false,
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
@@ -37,6 +38,41 @@
           "configPath": "./configs/zombieMoonbeam.json"
         }
       }
+    },
+    {
+      "name": "zombie_moonbeam_rpc",
+      "testFileDir": ["suites/para-rpc"],
+      "include": ["**/*moonbeam*", "**/*common*"],
+      "runScripts": ["download-polkadot.sh"],
+      "foundation": {
+        "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieMoonbeamRpc.json"
+        }
+      },
+      "connections": [
+        {
+          "name": "ethers",
+          "type": "ethers",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "parachain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "relaychain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:33356"]
+        }
+      ]
     },
     {
       "name": "zombie_moonbase",
@@ -50,6 +86,41 @@
           "configPath": "./configs/zombieAlphanet.json"
         }
       }
+    },
+    {
+      "name": "zombie_moonbase_rpc",
+      "testFileDir": ["suites/para-rpc"],
+      "include": ["**/*moonbase*", "**/*common*"],
+      "runScripts": ["download-polkadot.sh"],
+      "foundation": {
+        "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieAlphanetRpc.json"
+        }
+      },
+      "connections": [
+        {
+          "name": "ethers",
+          "type": "ethers",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "parachain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "relaychain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:33356"]
+        }
+      ]
     },
     {
       "name": "zombie_common",
@@ -69,7 +140,9 @@
       "testFileDir": ["/suites/smoke"],
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html", "json"],
-      "reportFile": { "json": "./tmp/testResults.json" },
+      "reportFile": {
+        "json": "./tmp/testResults.json"
+      },
       "multiThreads": false,
       "foundation": {
         "type": "read_only",
@@ -112,7 +185,9 @@
         {
           "name": "relay",
           "type": "polkadotJs",
-          "endpoints": ["wss://frag-stagenet-relay-rpc-ws.g.moondev.network"]
+          "endpoints": [
+            "wss://deo-moon-moondev-1-stagenet-relay-rpc-1.rv.moondev.network "
+          ]
         }
       ]
     },
@@ -122,7 +197,9 @@
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html", "json"],
-      "reportFile": { "json": "./tmp/testResults.json" },
+      "reportFile": {
+        "json": "./tmp/testResults.json"
+      },
       "multiThreads": false,
       "foundation": {
         "type": "read_only",
@@ -175,7 +252,9 @@
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html", "json"],
-      "reportFile": { "json": "./tmp/testResults.json" },
+      "reportFile": {
+        "json": "./tmp/testResults.json"
+      },
       "multiThreads": false,
       "foundation": {
         "type": "read_only",
@@ -228,7 +307,9 @@
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
       "reporters": ["basic", "html", "json"],
-      "reportFile": { "json": "./tmp/testResults.json" },
+      "reportFile": {
+        "json": "./tmp/testResults.json"
+      },
       "envVars": ["DEBUG_COLORS=1"],
       "multiThreads": false,
       "foundation": {
@@ -288,6 +369,7 @@
           {
             "name": "mb",
             "type": "parachain",
+            "allowUnresolvedImports": true,
             "configPath": "./configs/moonbeam.yml"
           }
         ]
@@ -304,23 +386,18 @@
       "name": "dev_moonbase",
       "testFileDir": ["suites/dev/"],
       "include": ["**/*test*"],
+      "timeout": 180000,
       "contracts": "contracts/",
       "runScripts": [
         "compile-contracts.ts compile",
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
       ],
-      "multiThreads": {
-        "threads": {
-          "isolate": true,
-          "minThreads": 1,
-          "maxThreads": 8,
-          "singleThread": false,
-          "useAtomics": false
-        }
-      },
+      "multiThreads": 8,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["basic", "html", "json"],
-      "reportFile": { "json": "./tmp/testResults.json" },
+      "reportFile": {
+        "json": "./tmp/testResults.json"
+      },
       "foundation": {
         "type": "dev",
         "launchSpec": [
@@ -356,7 +433,7 @@
         "compile-contracts.ts compile",
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
       ],
-      "multiThreads": true,
+      "multiThreads": 4,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["html", "basic"],
       "foundation": {
@@ -398,7 +475,10 @@
           {
             "name": "moonbeam",
             "binPath": "./tmp/moonbeam",
-            "ports": { "p2pPort": 30333, "rpcPort": 9944 },
+            "ports": {
+              "p2pPort": 30333,
+              "rpcPort": 9944
+            },
             "newRpcBehaviour": true,
             "options": [
               "--dev",
@@ -450,7 +530,7 @@
       },
       "connections": [
         {
-          "name": "MB",
+          "name": "mb",
           "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
@@ -473,7 +553,7 @@
       },
       "connections": [
         {
-          "name": "MB",
+          "name": "mb",
           "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }
@@ -496,7 +576,7 @@
       },
       "connections": [
         {
-          "name": "MB",
+          "name": "mb",
           "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:8000"]
         }

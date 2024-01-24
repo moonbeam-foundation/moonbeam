@@ -99,6 +99,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 
 impl pallet_utility::Config for Runtime {
@@ -401,6 +402,13 @@ impl hrmp::WeightInfo for TestHrmpWeightInfo {
 		Weight::from_parts(1, 0)
 	}
 	fn force_open_hrmp_channel(_: u32) -> Weight {
+		Weight::from_parts(1, 0)
+	}
+	fn establish_system_channel() -> Weight {
+		Weight::from_parts(1, 0)
+	}
+
+	fn poke_channel_deposits() -> Weight {
 		Weight::from_parts(1, 0)
 	}
 }

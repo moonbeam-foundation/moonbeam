@@ -22,7 +22,10 @@ describeSuite({
         [
           context
             .polkadotJs()
-            .tx.balances.transfer(randomAccount.address, MIN_GLMR_STAKING * 2n + 1n * GLMR),
+            .tx.balances.transferAllowDeath(
+              randomAccount.address,
+              MIN_GLMR_STAKING * 2n + 1n * GLMR
+            ),
           context
             .polkadotJs()
             .tx.parachainStaking.joinCandidates(MIN_GLMR_STAKING, 1)

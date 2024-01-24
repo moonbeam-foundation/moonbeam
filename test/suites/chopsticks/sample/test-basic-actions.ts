@@ -41,7 +41,7 @@ describeSuite({
       title: "Can send balance transfers",
       test: async () => {
         const balanceBefore = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
-        await api.tx.balances.transfer(DUMMY_ACCOUNT, parseEther("1")).signAndSend(alith);
+        await api.tx.balances.transferAllowDeath(DUMMY_ACCOUNT, parseEther("1")).signAndSend(alith);
         await context.createBlock();
         const balanceAfter = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
         expect(balanceBefore < balanceAfter).to.be.true;
@@ -108,7 +108,9 @@ describeSuite({
           // api.events.authorFilter.EligibleUpdated
         ];
 
-        await api.tx.balances.transfer(CHARLETH_ADDRESS, parseEther("3")).signAndSend(alith);
+        await api.tx.balances
+          .transferAllowDeath(CHARLETH_ADDRESS, parseEther("3"))
+          .signAndSend(alith);
         await context.createBlock({ expectEvents, logger: log });
       },
     });
@@ -120,7 +122,8 @@ describeSuite({
         await api.tx.balances
           .forceTransfer(BALTATHAR_ADDRESS, CHARLETH_ADDRESS, parseEther("3"))
           .signAndSend(alith);
-        // await api.tx.balances.transfer(CHARLETH_ADDRESS, parseEther("3")).signAndSend(alith);
+        // await api.tx.balances.transferAllowDeath(CHARLETH_ADDRESS, parseEther("3"))
+        //.signAndSend(alith);
         const { result } = await context.createBlock({ allowFailures: true });
 
         const apiAt = await api.at(result);

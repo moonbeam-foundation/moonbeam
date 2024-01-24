@@ -58,7 +58,7 @@ describeSuite({
       id: "T01",
       title:
         "should revert when caller is a smart contract and real address is \
-smart contract",
+        smart contract",
       test: async function () {
         const rawTxn = await context.writeContract!({
           contractAddress: testContractAddress,

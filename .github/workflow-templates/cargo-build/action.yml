@@ -42,8 +42,8 @@ runs:
       run: |
         env
         params=" --locked --release -p moonbeam"
-        if [ -n "${{ github.event.inputs.features }}" ]; then
-          params="$params --features ${{ github.event.inputs.features }}"
+        if [ -n "${{ inputs.features }}" ]; then
+          params="$params --features ${{ inputs.features }}"
         fi
         echo "cargo build $params"
         cargo build $params

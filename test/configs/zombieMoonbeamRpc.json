@@ -1,0 +1,65 @@
+{
+  "settings": {
+    "timeout": 1000,
+    "provider": "native"
+  },
+  "relaychain": {
+    "chain": "rococo-local",
+    "default_command": "tmp/polkadot",
+    "default_args": [
+      "--no-hardware-benchmarks",
+      "-lparachain=debug",
+      "--database=paritydb"
+    ],
+    "nodes": [
+      {
+        "name": "alice",
+        "ws_port": 33356,
+        "validator": true
+      },
+      {
+        "name": "bob",
+        "validator": true
+      }
+    ]
+  },
+  "parachains": [
+    {
+      "id": 1000,
+      "chain": "moonbeam-local",
+      "chain_spec_path": "tmp/moonbeam-raw-spec.json",
+      "collators": [
+        {
+          "name": "alith",
+          "command": "../target/release/moonbeam",
+          "ws_port": 33345,
+          "args": [
+            "--no-hardware-benchmarks",
+            "--force-authoring",
+            "-lparachain=debug",
+            "--database=paritydb"
+          ]
+        },
+        {
+          "name": "RPC1",
+          "validator": false,
+          "ws_port": 33048,
+          "p2p_port": 33049,
+          "command": "../target/release/moonbeam",
+          "args": [
+            "--no-hardware-benchmarks",
+            "-lparachain=debug",
+            "--database=paritydb"
+          ]
+        }
+      ]
+    }
+  ],
+  "types": {
+    "Header": {
+      "number": "u64",
+      "parent_hash": "Hash",
+      "post_state": "Hash"
+    }
+  }
+}

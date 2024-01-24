@@ -1,15 +1,24 @@
 import { DevModeContext } from "@moonwall/cli";
-import { ALITH_ADDRESS, alith } from "@moonwall/util";
+import { alith } from "@moonwall/util";
 import { expectSubstrateEvent } from "./expect.js";
+import { KeyringPair } from "@polkadot/keyring/types";
 
-export async function createProposal(context: DevModeContext, track = "root") {
-  let nonce = (await context.polkadotJs().rpc.system.accountNextIndex(ALITH_ADDRESS)).toNumber();
+export async function createProposal({
+  context,
+  track = "root",
+  from = alith,
+}: {
+  context: DevModeContext;
+  track?: string;
+  from?: KeyringPair;
+}) {
+  let nonce = (await context.polkadotJs().rpc.system.accountNextIndex(from.address)).toNumber();
   const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Me" } });
   const block = await context.createBlock([
     await context
       .polkadotJs()
       .tx.preimage.notePreimage(call.toHex())
-      .signAsync(alith, { nonce: nonce++ }),
+      .signAsync(from, { nonce: nonce++ }),
     await context
       .polkadotJs()
       .tx.referenda.submit(
@@ -17,7 +26,7 @@ export async function createProposal(context: DevModeContext, track = "root") {
         { Lookup: { Hash: call.hash.toHex(), len: call.length } },
         { After: 1 }
       )
-      .signAsync(alith, { nonce: nonce++ }),
+      .signAsync(from, { nonce: nonce++ }),
   ]);
   return expectSubstrateEvent(block, "referenda", "Submitted").data[0].toNumber();
 }

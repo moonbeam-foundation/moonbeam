@@ -171,25 +171,6 @@ fn verify_pallet_prefixes() {
 		res.to_vec()
 	};
 	assert_eq!(
-		<moonbase_runtime::Timestamp as StorageInfoTrait>::storage_info(),
-		vec![
-			StorageInfo {
-				pallet_name: b"Timestamp".to_vec(),
-				storage_name: b"Now".to_vec(),
-				prefix: prefix(b"Timestamp", b"Now"),
-				max_values: Some(1),
-				max_size: Some(8),
-			},
-			StorageInfo {
-				pallet_name: b"Timestamp".to_vec(),
-				storage_name: b"DidUpdate".to_vec(),
-				prefix: prefix(b"Timestamp", b"DidUpdate"),
-				max_values: Some(1),
-				max_size: Some(1),
-			}
-		]
-	);
-	assert_eq!(
 		<moonbase_runtime::Balances as StorageInfoTrait>::storage_info(),
 		vec![
 			StorageInfo {
@@ -232,7 +213,7 @@ fn verify_pallet_prefixes() {
 				storage_name: b"Holds".to_vec(),
 				prefix: prefix(b"Balances", b"Holds"),
 				max_values: None,
-				max_size: Some(37),
+				max_size: Some(55),
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
@@ -477,7 +458,6 @@ fn verify_pallet_indices() {
 	}
 	is_pallet_index::<moonbase_runtime::System>(0);
 	is_pallet_index::<moonbase_runtime::Utility>(1);
-	is_pallet_index::<moonbase_runtime::Timestamp>(2);
 	is_pallet_index::<moonbase_runtime::Balances>(3);
 	is_pallet_index::<moonbase_runtime::Sudo>(4);
 	is_pallet_index::<moonbase_runtime::ParachainSystem>(6);
@@ -629,7 +609,7 @@ fn transfer_through_evm_to_stake() {
 			);
 
 			// Alice transfer from free balance 2000 UNIT to Bob
-			assert_ok!(Balances::transfer(
+			assert_ok!(Balances::transfer_allow_death(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
 				2_000 * UNIT,
@@ -687,7 +667,6 @@ fn reward_block_authors() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
 			for x in 2..1199 {
 				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
@@ -731,7 +710,6 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
 			assert_ok!(ParachainStaking::set_parachain_bond_account(
 				root_origin(),
 				AccountId::from(CHARLIE),
@@ -892,7 +870,6 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1088,7 +1065,6 @@ fn is_contributor_via_precompile() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1170,7 +1146,6 @@ fn reward_info_via_precompile() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1242,7 +1217,6 @@ fn update_reward_address_via_precompile() {
 		.build()
 		.execute_with(|| {
 			// set parachain inherent data
-			set_parachain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1801,7 +1775,7 @@ fn ethereum_invalid_transaction() {
 			Executive::apply_extrinsic(unchecked_eth_tx(INVALID_ETH_TX)),
 			Err(
 				sp_runtime::transaction_validity::TransactionValidityError::Invalid(
-					sp_runtime::transaction_validity::InvalidTransaction::Custom(3u8)
+					sp_runtime::transaction_validity::InvalidTransaction::Custom(0u8)
 				)
 			)
 		);
@@ -1818,7 +1792,7 @@ fn transfer_ed_0_substrate() {
 		.build()
 		.execute_with(|| {
 			// Substrate transfer
-			assert_ok!(Balances::transfer(
+			assert_ok!(Balances::transfer_allow_death(
 				origin_of(AccountId::from(ALICE)),
 				AccountId::from(BOB),
 				1 * UNIT,
@@ -2192,7 +2166,7 @@ fn root_can_use_hrmp_manage() {
 					// 20000 is the max
 					TransactWeights {
 						transact_required_weight_at_most: 17001.into(),
-						overall_weight: Some(20000.into())
+						overall_weight: Some(Limited(20000.into()))
 					}
 				),
 				pallet_xcm_transactor::Error::<Runtime>::ErrorValidating

@@ -456,6 +456,10 @@ macro_rules! impl_runtime_apis_plus_common {
 						pallet_ethereum::CurrentTransactionStatuses::<Runtime>::get()
 					)
 				 }
+
+				 fn initialize_pending_block(header: &<Block as BlockT>::Header) {
+					pallet_randomness::vrf::using_fake_vrf(|| Executive::initialize_block(header))
+				}
 			}
 
 			impl fp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {
@@ -607,6 +611,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					impl pallet_xcm_benchmarks::Config for Runtime {
 						type XcmConfig = xcm_config::XcmExecutorConfig;
 						type AccountIdConverter = xcm_config::LocationToAccountId;
+						type DeliveryHelper = ();
 						fn valid_destination() -> Result<MultiLocation, BenchmarkError> {
 							Ok(MultiLocation::parent())
 						}
@@ -660,6 +665,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					impl pallet_xcm_benchmarks::generic::Config for Runtime {
 						type RuntimeCall = RuntimeCall;
+						type TransactAsset = Balances;
 
 						fn worst_case_response() -> (u64, Response) {
 							(0u64, Response::Version(Default::default()))

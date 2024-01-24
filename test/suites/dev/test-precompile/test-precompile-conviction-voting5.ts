@@ -19,7 +19,7 @@ describeSuite({
 
     beforeAll(async function () {
       // Whitelist caller is track 3
-      proposalIndex = await createProposal(context, "whitelistedcaller");
+      proposalIndex = await createProposal({ context, track: "whitelistedcaller" });
       await context.createBlock(
         context.polkadotJs().tx.referenda.placeDecisionDeposit(proposalIndex),
         { allowFailures: false }

@@ -162,7 +162,7 @@ pub mod pallet {
 		fn deposit_asset(
 			what: &MultiAsset,
 			who: &MultiLocation,
-			_context: &XcmContext,
+			_context: Option<&XcmContext>,
 		) -> XcmResult {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;

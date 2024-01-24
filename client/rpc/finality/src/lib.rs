@@ -38,13 +38,13 @@ pub trait MoonbeamFinalityApi {
 }
 
 pub struct MoonbeamFinality<B: Block, C> {
-	pub backend: Arc<dyn fc_db::BackendReader<B> + Send + Sync>,
+	pub backend: Arc<dyn fc_api::Backend<B>>,
 	pub client: Arc<C>,
 	_phdata: PhantomData<B>,
 }
 
 impl<B: Block, C> MoonbeamFinality<B, C> {
-	pub fn new(client: Arc<C>, backend: Arc<dyn fc_db::BackendReader<B> + Send + Sync>) -> Self {
+	pub fn new(client: Arc<C>, backend: Arc<dyn fc_api::Backend<B>>) -> Self {
 		Self {
 			backend,
 			client,
@@ -81,7 +81,7 @@ where
 }
 
 fn is_block_finalized_inner<B: Block<Hash = H256>, C: HeaderBackend<B> + 'static>(
-	backend: &(dyn fc_db::BackendReader<B> + Send + Sync),
+	backend: &(dyn fc_api::Backend<B>),
 	client: &C,
 	raw_hash: H256,
 ) -> RpcResult<bool> {

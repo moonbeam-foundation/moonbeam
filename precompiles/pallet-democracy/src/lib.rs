@@ -80,7 +80,7 @@ impl<Runtime> DemocracyPrecompile<Runtime>
 where
 	Runtime: pallet_democracy::Config
 		+ pallet_evm::Config
-		+ frame_system::Config
+		+ frame_system::Config<Hash = H256>
 		+ pallet_preimage::Config,
 	U256: From<BalanceOf<Runtime>>,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Into<U256> + Debug + solidity::Codec,
@@ -227,7 +227,10 @@ where
 			RevertReason::custom("Failure in preimage fetch").in_field("proposal_hash")
 		})?;
 
-		let bounded = Bounded::Lookup::<pallet_democracy::CallOf<Runtime>> {
+		let bounded = Bounded::Lookup::<
+			pallet_democracy::CallOf<Runtime>,
+			<Runtime as frame_system::Config>::Hashing,
+		> {
 			hash: proposal_hash,
 			len,
 		};

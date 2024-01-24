@@ -18,7 +18,7 @@ use super::*;
 use frame_support::{
 	ensure,
 	storage::types::{StorageDoubleMap, ValueQuery},
-	traits::StorageInstance,
+	traits::{StorageInstance, Time},
 	Blake2_128Concat,
 };
 use pallet_assets::pallet::{
@@ -28,6 +28,7 @@ use pallet_assets::pallet::{
 use scale_info::prelude::string::ToString;
 use sp_core::H256;
 use sp_io::hashing::keccak_256;
+use sp_runtime::traits::UniqueSaturatedInto;
 
 /// EIP2612 permit typehash.
 pub const PERMIT_TYPEHASH: [u8; 32] = keccak256!(
@@ -115,10 +116,7 @@ pub struct Eip2612<Runtime, IsLocal, Instance: 'static = ()>(
 impl<Runtime, IsLocal, Instance> Eip2612<Runtime, IsLocal, Instance>
 where
 	Instance: InstanceToPrefix + 'static,
-	Runtime: pallet_assets::Config<Instance>
-		+ pallet_evm::Config
-		+ frame_system::Config
-		+ pallet_timestamp::Config,
+	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config + frame_system::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::RuntimeCall: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
@@ -126,7 +124,6 @@ where
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin: OriginTrait,
 	IsLocal: Get<bool>,
-	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 	AssetIdOf<Runtime, Instance>: Display,
 	Runtime::AccountId: Into<H160>,
 {
@@ -205,8 +202,10 @@ where
 
 		let address = handle.code_address();
 
-		// pallet_timestamp is in ms while Ethereum use second timestamps.
-		let timestamp: U256 = (pallet_timestamp::Pallet::<Runtime>::get()).into() / 1000;
+		// Blockchain time is in ms while Ethereum use second timestamps.
+		let timestamp: u128 =
+			<Runtime as pallet_evm::Config>::Timestamp::now().unique_saturated_into();
+		let timestamp: U256 = U256::from(timestamp / 1000);
 
 		ensure!(deadline >= timestamp, revert("Permit expired"));
 

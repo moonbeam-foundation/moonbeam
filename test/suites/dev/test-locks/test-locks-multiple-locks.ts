@@ -21,7 +21,7 @@ describeSuite({
       await context.createBlock(
         createRawTransfer(context, randomAddress, MIN_GLMR_DELEGATOR + GLMR)
       );
-      proposalIndex = await createProposal(context);
+      proposalIndex = await createProposal({ context });
     });
 
     it({

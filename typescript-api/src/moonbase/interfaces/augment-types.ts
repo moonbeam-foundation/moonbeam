@@ -50,6 +50,7 @@ import type {
   u8,
   usize,
 } from "@polkadot/types-codec";
+import type { TAssetConversion } from "@polkadot/types/interfaces/assetConversion";
 import type {
   AssetApproval,
   AssetApprovalKey,
@@ -118,6 +119,7 @@ import type {
   BeefyPayload,
   BeefyPayloadId,
   BeefySignedCommitment,
+  BeefyVersionedFinalityProof,
   BeefyVoteMessage,
   MmrRootHash,
   ValidatorSet,
@@ -1321,6 +1323,7 @@ declare module "@polkadot/types/types/registry" {
     BeefyPayload: BeefyPayload;
     BeefyPayloadId: BeefyPayloadId;
     BeefySignedCommitment: BeefySignedCommitment;
+    BeefyVersionedFinalityProof: BeefyVersionedFinalityProof;
     BeefyVoteMessage: BeefyVoteMessage;
     BenchmarkBatch: BenchmarkBatch;
     BenchmarkConfig: BenchmarkConfig;
@@ -2253,6 +2256,7 @@ declare module "@polkadot/types/types/registry" {
     Tally: Tally;
     TaskAddress: TaskAddress;
     TAssetBalance: TAssetBalance;
+    TAssetConversion: TAssetConversion;
     TAssetDepositBalance: TAssetDepositBalance;
     Text: Text;
     Timepoint: Timepoint;

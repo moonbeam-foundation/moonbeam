@@ -15,7 +15,7 @@ describeSuite({
         [
           context
             .polkadotJs()
-            .tx.balances.transfer(randomAccount.address, MIN_GLMR_DELEGATOR + 1n * GLMR),
+            .tx.balances.transferAllowDeath(randomAccount.address, MIN_GLMR_DELEGATOR + 1n * GLMR),
         ],
         { allowFailures: false }
       );

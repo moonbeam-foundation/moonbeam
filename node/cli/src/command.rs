@@ -755,7 +755,7 @@ pub fn run() -> Result<()> {
 				);
 
 				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::v5::AccountId>::into_account_truncating(&id);
+					AccountIdConversion::<polkadot_primitives::v6::AccountId>::into_account_truncating(&id);
 
 				let tokio_handle = config.tokio_handle.clone();
 				let polkadot_config =
@@ -791,6 +791,7 @@ pub fn run() -> Result<()> {
 						collator_options,
 						id,
 						rpc_config,
+						cli.run.async_backing,
 						hwbench,
 					)
 					.await
@@ -806,6 +807,7 @@ pub fn run() -> Result<()> {
 						collator_options,
 						id,
 						rpc_config,
+						cli.run.async_backing,
 						hwbench,
 					)
 					.await
@@ -821,6 +823,7 @@ pub fn run() -> Result<()> {
 						collator_options,
 						id,
 						rpc_config,
+						cli.run.async_backing,
 						hwbench,
 					)
 					.await

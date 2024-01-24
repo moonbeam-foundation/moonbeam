@@ -178,7 +178,7 @@ fn test_executor_transact() {
 			encoded.push(index);
 
 			// Then call bytes
-			let mut call_bytes = pallet_balances::Call::<Runtime>::transfer {
+			let mut call_bytes = pallet_balances::Call::<Runtime>::transfer_allow_death {
 				dest: CryptoBaltathar.into(),
 				value: 100u32.into(),
 			}

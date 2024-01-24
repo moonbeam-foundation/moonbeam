@@ -19,7 +19,8 @@ jobs:
   ####### Check files and formatting #######
 
   set-tags:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: bare-metal
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_target_branch: ${{ steps.check-git-ref.outputs.git_target_branch }}
@@ -89,10 +90,12 @@ jobs:
     runs-on:
       labels: bare-metal
     needs: ["set-tags"]
+    timeout-minutes: 60
     env:
       RUSTC_WRAPPER: "sccache"
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: "100GB"
+      CARGO_TERM_COLOR: always
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -102,6 +105,8 @@ jobs:
         shell: bash
         run: |
           echo "RUSTFLAGS=-C opt-level=3 -D warnings -C instrument-coverage -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
+          # Disable coverage when building
+          echo "LLVM_PROFILE_FILE=/dev/null" >> $GITHUB_ENV
       - name: Setup grcov
         run: |
           wget https://github.com/mozilla/grcov/releases/download/v${{ env.GRCOV_VERSION }}/grcov-x86_64-unknown-linux-gnu.tar.bz2
@@ -111,46 +116,25 @@ jobs:
         run: rustup component add llvm-tools-preview
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
-        with:
-          features: evm-tracing
-      - name: Clean-up possible coverage generated during builds
+      - name: Enable coverage gathering
         run: |
-          rm default_*.profraw
-      - name: Upload runtimes
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: runtimes
-          path: runtimes
-      - name: Upload binary
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: moonbeam
-          path: build
+          # Enable coverage when running tests
+          echo "LLVM_PROFILE_FILE=$(pwd)/proffiles/default_%m_%p.profraw" >> $GITHUB_ENV
       - name: Unit tests
         run: |
-          cargo test --release --all --features=evm-tracing
-      - name: Typescript Tests (Dev Service)
-        uses: ./.github/workflow-templates/typescript-tests
+          # curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          # curl -LsSf https://get.nexte.st/latest/linux | tar zxf - -C ${CARGO_HOME:-~/.cargo}/bin
+          # echo $PATH
+          cargo nextest run --release --workspace --features=evm-tracing
+      - name: "Run Moonwall Dev Tests"
+        uses: ./.github/workflow-templates/dev-tests
         with:
-          timeout: 10000
-          moonbeam-binary: build/moonbeam
+          moonwall_environment: dev_moonbase
           force-pass: true
-      # - name: "Run Moonwall Dev Tests"
-      #   uses: ./.github/workflow-templates/dev-tests
-      #   with:
-      #     moonwall_environment: dev_moonbase
 
       - name: Retrieve coverage
         id: coverage
         run: |
-          mkdir -p /tmp/proffiles
-
-          find . -type f -name \*.profraw -exec ls -l {}  \;
-
-          echo "Copying profraw files to /tmp/proffiles"
-          find . -name \*.profraw -exec mv {} /tmp/proffiles/ \;
-
-          mv /tmp/proffiles proffiles
           du -sh proffiles
 
           echo "Executing grcov"

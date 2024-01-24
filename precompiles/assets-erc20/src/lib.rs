@@ -94,13 +94,13 @@ pub struct Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance: 'static = ()>(
 	PhantomData<(Runtime, IsLocal, Instance)>,
 );
 
-impl<T, U, V> Clone for Erc20AssetsPrecompileSet<T, U, V> {
+impl<R, U, V> Clone for Erc20AssetsPrecompileSet<R, U, V> {
 	fn clone(&self) -> Self {
 		Self(PhantomData)
 	}
 }
 
-impl<T, U, V> Default for Erc20AssetsPrecompileSet<T, U, V> {
+impl<R, U, V> Default for Erc20AssetsPrecompileSet<R, U, V> {
 	fn default() -> Self {
 		Self(PhantomData)
 	}
@@ -118,10 +118,7 @@ impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Inst
 impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
 where
 	Instance: eip2612::InstanceToPrefix + 'static,
-	Runtime: pallet_assets::Config<Instance>
-		+ pallet_evm::Config
-		+ frame_system::Config
-		+ pallet_timestamp::Config,
+	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config + frame_system::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::RuntimeCall: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
@@ -129,7 +126,6 @@ where
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin: OriginTrait,
 	IsLocal: Get<bool>,
-	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 	AssetIdOf<Runtime, Instance>: Display,
 	Runtime::AccountId: Into<H160>,
 {

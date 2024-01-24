@@ -78,7 +78,7 @@ describeSuite({
         ).partialFee.toBigInt();
 
         // We transfer Balances, which should increase provider
-        await context.createBlock(api.tx.balances.transfer(freshAccount.address, fee));
+        await context.createBlock(api.tx.balances.transferAllowDeath(freshAccount.address, fee));
 
         expect(
           (await api.query.system.account(freshAccount.address as string)).sufficients.toBigInt()

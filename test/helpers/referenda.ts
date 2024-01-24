@@ -3,6 +3,7 @@ import { DevModeContext } from "@moonwall/cli";
 import { FrameSupportPreimagesBounded } from "@polkadot/types/lookup";
 import chalk from "chalk";
 import Debugger from "debug";
+
 const log = Debugger("test:referenda");
 
 export interface ForceReducedReferendaExecutionOptions {

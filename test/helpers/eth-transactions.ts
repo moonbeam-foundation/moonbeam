@@ -8,6 +8,8 @@ import {
   EvmCoreErrorExitRevert,
   EvmCoreErrorExitSucceed,
 } from "@polkadot/types/lookup";
+import { fromHex } from "viem";
+
 export type Errors = {
   Succeed: EvmCoreErrorExitSucceed["type"];
   Error: EvmCoreErrorExitError["type"];
@@ -76,4 +78,18 @@ export async function getTransactionFees(context: DevModeContext, hash: string):
   const receipt = await context.viem().getTransactionReceipt({ hash: hash as `0x${string}` });
 
   return receipt.gasUsed * receipt.effectiveGasPrice;
+}
+
+export function getSignatureParameters(signature: string) {
+  const r = signature.slice(0, 66); // 32 bytes
+  const s = `0x${signature.slice(66, 130)}`; // 32 bytes
+  let v = fromHex(`0x${signature.slice(130, 132)}`, "number"); // 1 byte
+
+  if (![27, 28].includes(v)) v += 27; // not sure why we coerce 27
+
+  return {
+    r,
+    s,
+    v,
+  };
 }

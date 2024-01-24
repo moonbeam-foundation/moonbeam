@@ -19,48 +19,24 @@
 //! This module acts as a registry where each migration is defined. Each migration should implement
 //! the "Migration" trait declared in the pallet-migrations crate.
 
+#[cfg(feature = "try-runtime")]
+use frame_support::ensure;
 use frame_support::{
 	pallet_prelude::GetStorageVersion,
-	traits::{Hash as PreimageHash, OnRuntimeUpgrade, PalletInfoAccess},
+	traits::{OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
 	weights::Weight,
 };
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_migrations::{GetMigrations, Migration};
-use pallet_moonbeam_orbiters::CollatorsPool;
+use sp_core::Get;
 #[cfg(feature = "try-runtime")]
 use sp_runtime::traits::Zero;
 use sp_std::{marker::PhantomData, prelude::*};
 
-pub struct PreimageMigrationHashToBoundedCall<T>(PhantomData<T>);
-impl<T> Migration for PreimageMigrationHashToBoundedCall<T>
-where
-	T: pallet_preimage::Config<Hash = PreimageHash> + frame_system::Config,
-{
-	fn friendly_name(&self) -> &str {
-		"MM_PreimageMigrationHashToBoundedCall"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		pallet_preimage::migration::v1::Migration::<T>::on_runtime_upgrade()
-	}
-
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		pallet_preimage::migration::v1::Migration::<T>::pre_upgrade()
-	}
-
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		pallet_preimage::migration::v1::Migration::<T>::post_upgrade(state)
-	}
-}
-
 pub struct PalletReferendaMigrateV0ToV1<T>(pub PhantomData<T>);
 impl<T> Migration for PalletReferendaMigrateV0ToV1<T>
 where
-	T: pallet_referenda::Config<Hash = PreimageHash> + frame_system::Config,
+	T: pallet_referenda::Config + frame_system::Config,
 {
 	fn friendly_name(&self) -> &str {
 		"MM_PalletReferendaMigrateV0ToV1"
@@ -83,114 +59,97 @@ where
 	}
 }
 
-use pallet_xcm_transactor::{relay_indices::*, RelayIndices};
-use sp_core::Get;
-pub struct PopulateRelayIndices<T>(pub RelayChainIndices, pub PhantomData<T>);
-impl<T: pallet_xcm_transactor::Config> Migration for PopulateRelayIndices<T> {
+pub struct MissingBalancesMigrations<T>(PhantomData<T>);
+impl<T> Migration for MissingBalancesMigrations<T>
+where
+	T: pallet_balances::Config,
+	<T as frame_system::Config>::AccountId: Default,
+{
 	fn friendly_name(&self) -> &str {
-		"MM_PopulateRelayIndices"
+		"MM_MissingBalancesMigrations"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		// insert input into storage
-		RelayIndices::<T>::put(self.0);
-		T::DbWeight::get().writes(1)
-	}
-
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		// check storage is default pre migration
-		assert_eq!(RelayIndices::<T>::get(), Default::default());
-		Ok(Vec::new())
-	}
-
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		// check storage matches input post migration
-		assert_eq!(RelayIndices::<T>::get(), self.0);
-		Ok(())
+		pallet_balances::migration::MigrateToTrackInactive::<T, ()>::on_runtime_upgrade();
+		pallet_balances::migration::ResetInactive::<T, ()>::on_runtime_upgrade();
+		pallet_balances::migration::MigrateToTrackInactive::<T, ()>::on_runtime_upgrade()
 	}
 }
 
-pub struct RemoveMinBondForOrbiterCollators<T>(pub PhantomData<T>);
-impl<T> Migration for RemoveMinBondForOrbiterCollators<T>
+pub struct FixIncorrectPalletVersions<Runtime, Treasury, OpenTech>(
+	pub PhantomData<(Runtime, Treasury, OpenTech)>,
+);
+impl<Runtime, Treasury, OpenTech> Migration
+	for FixIncorrectPalletVersions<Runtime, Treasury, OpenTech>
 where
-	T: pallet_moonbeam_orbiters::Config,
-	T: pallet_parachain_staking::Config,
-	T: frame_system::Config,
+	Treasury: GetStorageVersion + PalletInfoAccess,
+	OpenTech: GetStorageVersion + PalletInfoAccess,
+	Runtime: frame_system::Config,
+	Runtime: pallet_referenda::Config,
 {
 	fn friendly_name(&self) -> &str {
-		"MM_RemoveMinBondForOrbiterCollators"
+		"MM_FixIncorrectPalletVersions"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		let mut weight = Weight::zero();
-		CollatorsPool::<T>::iter_keys().for_each(|collator| {
-			log::info!("Setting the bond for collator {:?} to zero", collator);
-			weight += <pallet_parachain_staking::Pallet<T>>::set_candidate_bond_to_zero(&collator)
-				.expect("failed to set collator bond to 0")
-				.actual_weight
-				.expect("failed to get weight");
-		});
-		weight
+		log::info!("Setting collectives pallet versions to 4");
+		StorageVersion::new(4).put::<Treasury>();
+		StorageVersion::new(4).put::<OpenTech>();
+		Runtime::DbWeight::get().writes(2)
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		ensure!(
+			<Treasury as GetStorageVersion>::on_chain_storage_version() == 0,
+			"TreasuryCouncilCollective storage version should be 0"
+		);
+		ensure!(
+			<OpenTech as GetStorageVersion>::on_chain_storage_version() == 0,
+			"OpenTechCommitteeCollective storage version should be 0"
+		);
+
 		Ok(vec![])
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		CollatorsPool::<T>::iter_keys().for_each(|collator| {
-			log::info!("Checking collator: {:?}", collator);
-			let state = <pallet_parachain_staking::Pallet<T>>::candidate_info(&collator)
-				.expect("collator should have candidate info");
-			assert!(state.bond.is_zero(), "collator bond should be zero");
-		});
+		ensure!(
+			<Treasury as GetStorageVersion>::on_chain_storage_version() == 4,
+			"Treasury storage version should be 4"
+		);
+		ensure!(
+			<OpenTech as GetStorageVersion>::on_chain_storage_version() == 4,
+			"OpenTech storage version should be 4"
+		);
 		Ok(())
 	}
 }
 
-pub struct ReferendaMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
+pub struct CommonMigrations<Runtime, Council, Tech, Treasury, OpenTech>(
+	PhantomData<(Runtime, Council, Tech, Treasury, OpenTech)>,
+);
 
-impl<Runtime, Council, Tech> GetMigrations for ReferendaMigrations<Runtime, Council, Tech>
+impl<Runtime, Council, Tech, Treasury, OpenTech> GetMigrations
+	for CommonMigrations<Runtime, Council, Tech, Treasury, OpenTech>
 where
 	Runtime: pallet_author_mapping::Config,
 	Runtime: pallet_parachain_staking::Config,
-	Runtime: pallet_scheduler::Config<Hash = PreimageHash>,
+	Runtime: pallet_scheduler::Config,
 	Runtime: AuthorSlotFilterConfig,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
-	Runtime: pallet_democracy::Config<Hash = PreimageHash>,
-	Runtime: pallet_preimage::Config<Hash = PreimageHash>,
-	Runtime: pallet_referenda::Config,
-{
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		let pallet_referenda_migrate_v0_to_v1 =
-			PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
-		vec![Box::new(pallet_referenda_migrate_v0_to_v1)]
-	}
-}
-
-pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
-
-impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
-where
-	Runtime: pallet_author_mapping::Config,
-	Runtime: pallet_parachain_staking::Config,
-	Runtime: pallet_scheduler::Config<Hash = PreimageHash>,
-	Runtime: AuthorSlotFilterConfig,
-	Council: GetStorageVersion + PalletInfoAccess + 'static,
-	Tech: GetStorageVersion + PalletInfoAccess + 'static,
-	Runtime: pallet_democracy::Config<Hash = PreimageHash>,
-	Runtime: pallet_preimage::Config<Hash = PreimageHash>,
+	Treasury: GetStorageVersion + PalletInfoAccess + 'static,
+	OpenTech: GetStorageVersion + PalletInfoAccess + 'static,
+	Runtime: pallet_democracy::Config,
+	Runtime: pallet_preimage::Config,
 	Runtime: pallet_asset_manager::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 	Runtime: pallet_xcm_transactor::Config,
 	Runtime: pallet_moonbeam_orbiters::Config,
+	Runtime: pallet_balances::Config,
+	Runtime: pallet_referenda::Config,
+	Runtime::AccountId: Default,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
@@ -256,8 +215,16 @@ where
 		//	PalletAssetManagerMigrateXcmV2ToV3::<Runtime>(Default::default());
 		//let xcm_transactor_to_xcm_v3 =
 		//	PalletXcmTransactorMigrateXcmV2ToV3::<Runtime>(Default::default());
-		let remove_min_bond_for_old_orbiter_collators =
-			RemoveMinBondForOrbiterCollators::<Runtime>(Default::default());
+		//let remove_min_bond_for_old_orbiter_collators =
+		//	RemoveMinBondForOrbiterCollators::<Runtime>(Default::default());
+
+		// RT2700
+		let missing_balances_migrations = MissingBalancesMigrations::<Runtime>(Default::default());
+		let fix_pallet_versions =
+			FixIncorrectPalletVersions::<Runtime, Treasury, OpenTech>(Default::default());
+		let pallet_referenda_migrate_v0_to_v1 =
+			PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
+
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -304,7 +271,11 @@ where
 			//Box::new(preimage_migration_hash_to_bounded_call),
 			//Box::new(asset_manager_to_xcm_v3),
 			//Box::new(xcm_transactor_to_xcm_v3),
-			Box::new(remove_min_bond_for_old_orbiter_collators),
+			// completed in runtime 2600
+			//Box::new(remove_min_bond_for_old_orbiter_collators),
+			Box::new(missing_balances_migrations),
+			Box::new(fix_pallet_versions),
+			Box::new(pallet_referenda_migrate_v0_to_v1),
 		]
 	}
 }
