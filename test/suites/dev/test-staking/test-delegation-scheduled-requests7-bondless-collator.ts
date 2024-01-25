@@ -35,6 +35,9 @@ describeSuite({
       id: "T01",
       title: "should succeed",
       test: async () => {
+        // Create an extra block to prevent mismatches while comparing 'whenExecutable' field.
+        await context.createBlock();
+
         const currentRound = (await psQuery.round()).current.toNumber();
 
         await createBlock(

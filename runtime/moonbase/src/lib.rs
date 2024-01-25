@@ -95,14 +95,15 @@ use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustm
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
+use sp_consensus_slots::Slot;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 #[cfg(feature = "try-runtime")]
 use sp_runtime::TryRuntimeError;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
-		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
-		PostDispatchInfoOf, UniqueSaturatedInto, Zero,
+		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Header as HeaderT,
+		IdentityLookup, PostDispatchInfoOf, UniqueSaturatedInto, Zero,
 	},
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
@@ -776,6 +777,14 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 type MonetaryGovernanceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
+pub struct RelayChainSlotProvider;
+impl Get<Slot> for RelayChainSlotProvider {
+	fn get() -> Slot {
+		let slot_info = pallet_async_backing::pallet::Pallet::<Runtime>::slot_info();
+		slot_info.unwrap_or_default().0
+	}
+}
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -813,6 +822,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
 	type OnInactiveCollator = OnInactiveCollator;
 	type OnNewRound = OnNewRound;
+	type SlotProvider = RelayChainSlotProvider;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
 }
@@ -1099,6 +1109,23 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
+use pallet_migrations::{GetMigrations, Migration};
+pub struct ParachainStakingRoundMigration<Runtime>(sp_std::marker::PhantomData<Runtime>);
+
+impl<Runtime> GetMigrations for ParachainStakingRoundMigration<Runtime>
+where
+	Runtime: pallet_parachain_staking::Config + pallet_async_backing::Config,
+	u32: From<<<<Runtime as frame_system::Config>::Block as BlockT>::Header as HeaderT>::Number>,
+{
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		vec![Box::new(
+			moonbeam_runtime_common::migrations::UpdateFirstRoundNumberValue::<Runtime>(
+				Default::default(),
+			),
+		)]
+	}
+}
+
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
@@ -1111,6 +1138,7 @@ impl pallet_migrations::Config for Runtime {
 			TreasuryCouncilCollective,
 			OpenTechCommitteeCollective,
 		>,
+		ParachainStakingRoundMigration<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
 }
