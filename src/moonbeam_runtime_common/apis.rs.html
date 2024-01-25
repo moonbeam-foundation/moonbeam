@@ -814,6 +814,11 @@
 <a href="#814" id="814">814</a>
 <a href="#815" id="815">815</a>
 <a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1319,7 +1324,11 @@
 					slot: u32,
 					parent_header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header
 				) -&gt; bool {
+					<span class="kw">use </span>pallet_parachain_staking::Config <span class="kw">as </span>PalletParachainStakingConfig;
+
 					<span class="kw">let </span>block_number = parent_header.number + <span class="number">1</span>;
+					<span class="kw">let </span>parachain_staking_slot: u64 =
+						&lt;Runtime <span class="kw">as </span>PalletParachainStakingConfig&gt;::SlotProvider::get().into();
 
 					<span class="comment">// The Moonbeam runtimes use an entropy source that needs to do some accounting
 					// work during block initialization. Therefore we initialize it here to match
@@ -1334,7 +1343,8 @@
 					<span class="comment">// Because the staking solution calculates the next staking set at the beginning
 					// of the first block in the new round, the only way to accurately predict the
 					// authors is to compute the selection during prediction.
-					</span><span class="kw">if </span>pallet_parachain_staking::Pallet::&lt;<span class="self">Self</span>&gt;::round().should_update(block_number) {
+					</span><span class="kw">if </span>pallet_parachain_staking::Pallet::&lt;<span class="self">Self</span>&gt;::round()
+						.should_update(parachain_staking_slot) {
 						<span class="comment">// get author account id
 						</span><span class="kw">use </span>nimbus_primitives::AccountLookup;
 						<span class="kw">let </span>author_account_id = <span class="kw">if let </span><span class="prelude-val">Some</span>(account) =

@@ -2294,6 +2294,14 @@
 <a href="#2294" id="2294">2294</a>
 <a href="#2295" id="2295">2295</a>
 <a href="#2296" id="2296">2296</a>
+<a href="#2297" id="2297">2297</a>
+<a href="#2298" id="2298">2298</a>
+<a href="#2299" id="2299">2299</a>
+<a href="#2300" id="2300">2300</a>
+<a href="#2301" id="2301">2301</a>
+<a href="#2302" id="2302">2302</a>
+<a href="#2303" id="2303">2303</a>
+<a href="#2304" id="2304">2304</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2385,6 +2393,7 @@
 		ReservableCurrency,
 	};
 	<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
+	<span class="kw">use </span>sp_consensus_slots::Slot;
 	<span class="kw">use </span>sp_runtime::{
 		traits::{Saturating, Zero},
 		DispatchErrorWithPostInfo, Perbill, Percent,
@@ -2477,6 +2486,8 @@
 		<span class="doccomment">/// Handler to notify the runtime when a new round begin.
 		/// If you don&#39;t need it, you can specify the type `()`.
 		</span><span class="kw">type </span>OnNewRound: OnNewRound;
+		<span class="doccomment">/// Get the slot number to use as clocktime for staking rounds
+		</span><span class="kw">type </span>SlotProvider: Get&lt;Slot&gt;;
 		<span class="doccomment">/// Weight information for extrinsics in this pallet.
 		</span><span class="kw">type </span>WeightInfo: WeightInfo;
 		<span class="doccomment">/// Maximum candidates
@@ -2548,7 +2559,7 @@
 	</span><span class="kw">pub enum </span>Event&lt;T: Config&gt; {
 		<span class="doccomment">/// Started new round.
 		</span>NewRound {
-			starting_block: BlockNumberFor&lt;T&gt;,
+			starting_block: u64,
 			round: RoundIndex,
 			selected_collators_number: u32,
 			total_balance: BalanceOf&lt;T&gt;,
@@ -2720,7 +2731,7 @@
 		<span class="doccomment">/// Set blocks per round
 		</span>BlocksPerRoundSet {
 			current_round: RoundIndex,
-			first_block: BlockNumberFor&lt;T&gt;,
+			first_block: u64,
 			old: u32,
 			new: u32,
 			new_per_round_inflation_min: Perbill,
@@ -2743,13 +2754,19 @@
 
 	<span class="attr">#[pallet::hooks]
 	</span><span class="kw">impl</span>&lt;T: Config&gt; Hooks&lt;BlockNumberFor&lt;T&gt;&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
-		<span class="kw">fn </span>on_initialize(n: BlockNumberFor&lt;T&gt;) -&gt; Weight {
+		<span class="kw">fn </span>on_initialize(_n: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 			<span class="kw">let </span><span class="kw-2">mut </span>weight = T::WeightInfo::base_on_initialize();
 
+			<span class="comment">// fetch slot number
+			</span><span class="kw">let </span>slot: u64 = T::SlotProvider::get().into();
+
+			<span class="comment">// account for SlotProvider read
+			</span>weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">0</span>));
+
 			<span class="kw">let </span><span class="kw-2">mut </span>round = &lt;Round&lt;T&gt;&gt;::get();
-			<span class="kw">if </span>round.should_update(n) {
+			<span class="kw">if </span>round.should_update(slot) {
 				<span class="comment">// mutate round
-				</span>round.update(n);
+				</span>round.update(slot);
 				<span class="comment">// notify that new round begin
 				</span>weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
 				<span class="comment">// pay all stakers for T::RewardPaymentDelay rounds ago
@@ -2804,7 +2821,7 @@
 	<span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>round)]
 	</span><span class="doccomment">/// Current round index and next round scheduled transition
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Round&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, RoundInfo&lt;BlockNumberFor&lt;T&gt;&gt;, ValueQuery&gt;;
+	</span><span class="kw">pub type </span>Round&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, RoundInfo&lt;u64&gt;, ValueQuery&gt;;
 
 	<span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>delegator_state)]
@@ -3091,13 +3108,12 @@
 			<span class="comment">// Choose top TotalSelected collator candidates
 			</span><span class="kw">let </span>(<span class="kw">_</span>, v_count, <span class="kw">_</span>, total_staked) = &lt;Pallet&lt;T&gt;&gt;::select_top_candidates(<span class="number">1u32</span>);
 			<span class="comment">// Start Round 1 at Block 0
-			</span><span class="kw">let </span>round: RoundInfo&lt;BlockNumberFor&lt;T&gt;&gt; =
-				RoundInfo::new(<span class="number">1u32</span>, <span class="number">0u32</span>.into(), <span class="self">self</span>.blocks_per_round);
+			</span><span class="kw">let </span>round: RoundInfo&lt;u64&gt; = RoundInfo::new(<span class="number">1u32</span>, <span class="number">0u64</span>, <span class="self">self</span>.blocks_per_round);
 			&lt;Round&lt;T&gt;&gt;::put(round);
 			<span class="comment">// Snapshot total stake
 			</span>&lt;Staked&lt;T&gt;&gt;::insert(<span class="number">1u32</span>, &lt;Total&lt;T&gt;&gt;::get());
 			&lt;Pallet&lt;T&gt;&gt;::deposit_event(Event::NewRound {
-				starting_block: BlockNumberFor::&lt;T&gt;::zero(),
+				starting_block: u64::default(),
 				round: <span class="number">1u32</span>,
 				selected_collators_number: v_count,
 				total_balance: total_staked,
