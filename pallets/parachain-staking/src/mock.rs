@@ -28,7 +28,7 @@ use frame_support::{
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use sp_consensus_slots::Slot;
-use sp_core::{ConstU32, H256};
+use sp_core::H256;
 use sp_io;
 use sp_runtime::BuildStorage;
 use sp_runtime::{
@@ -161,7 +161,7 @@ impl Config for Test {
 	type SlotProvider = StakingRoundSlotProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
-	type SlotsPerYear = ConstU32<{ 31_557_600 / 6 }>;
+	type SlotsPerYear = frame_support::traits::ConstU32<{ 31_557_600 / 6 }>;
 }
 
 pub(crate) struct ExtBuilder {
