@@ -100,6 +100,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxHolds = ();
 	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
@@ -117,6 +118,7 @@ parameter_types! {
 		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
 		block_gas_limit.saturating_div(BLOCK_STORAGE_LIMIT)
 	};
+	pub SuicideQuickClearLimit: u32 = 0;
 }
 pub struct HashedAddressMapping;
 
@@ -150,6 +152,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
+	type SuicideQuickClearLimit = SuicideQuickClearLimit;
 }
 
 impl pallet_hotfix::Config for Runtime {
