@@ -560,9 +560,9 @@ fn set_inflation_storage_updates_correctly() {
 		assert_eq!(
 			ParachainStaking::inflation_config().round,
 			Range {
-				min: Perbill::from_parts(57),
-				ideal: Perbill::from_parts(75),
-				max: Perbill::from_parts(93)
+				min: Perbill::from_parts(29),
+				ideal: Perbill::from_parts(38),
+				max: Perbill::from_parts(47)
 			}
 		);
 	});
