@@ -148,7 +148,7 @@ each runtime version.
 ## Print Types
 
 To print and save types JSON for a specific version run:
-`ts-node generateJSON.ts <verison number>`
+`ts-node generateJSON.ts <version number>`
 
 To print and save the latest:
 `ts-node generateJSON.ts latest`

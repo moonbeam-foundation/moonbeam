@@ -668,6 +668,32 @@ describeSuite({
           });
       });
 
+      if (specVersion >= 2700) {
+        await new Promise((resolve, reject) => {
+          apiAt.query.balances.holds
+            .entries()
+            .then((holds) => {
+              holds.forEach((holdsOf) => {
+                const accountId = holdsOf[0].toHex().slice(-40);
+                holdsOf[1].forEach((holdOf) => {
+                  if (holdOf.id.isPreimage) {
+                    updateReserveMap(accountId, {
+                      [ReserveType.Preimage]: holdOf.amount.toBigInt(),
+                    });
+                  } else {
+                    throw `Unknown hold id ${holdOf.id}`;
+                  }
+                });
+              });
+              resolve("Preimages holds scraped");
+            })
+            .catch((error) => {
+              console.error("Error fetching holds:", error);
+              reject(error);
+            });
+        });
+      }
+
       if (specVersion >= 2401) {
         await new Promise((resolve, reject) => {
           apiAt.query.multisig.multisigs
@@ -907,7 +933,7 @@ describeSuite({
       }
 
       //3) Collect and process locks failures
-      // Loose check because we don't have a way to clever way to verify expired but unclaimed locks
+      // Loose check because we don't have a clever way to verify expired but unclaimed locks
       locksMap.forEach((value, key) => {
         if (expectedLocksMap.has(key)) {
           if (expectedLocksMap.get(key)!.total! > value.total) {
