@@ -37,8 +37,7 @@
             "--no-hardware-benchmarks",
             "--force-authoring",
             "-lparachain=debug",
-            "--database=paritydb",
-            "--experimental-async-backing"
+            "--database=paritydb"
           ]
         },
         {
