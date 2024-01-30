@@ -277,9 +277,9 @@ fn set_blocks_per_round_event_emits_correctly() {
 			first_block: 0,
 			old: 5,
 			new: 6,
-			new_per_round_inflation_min: Perbill::from_parts(926),
-			new_per_round_inflation_ideal: Perbill::from_parts(926),
-			new_per_round_inflation_max: Perbill::from_parts(926),
+			new_per_round_inflation_min: Perbill::from_parts(463),
+			new_per_round_inflation_ideal: Perbill::from_parts(463),
+			new_per_round_inflation_max: Perbill::from_parts(463),
 		});
 	});
 }
@@ -518,9 +518,9 @@ fn set_inflation_event_emits_correctly() {
 			annual_min: min,
 			annual_ideal: ideal,
 			annual_max: max,
-			round_min: Perbill::from_parts(57),
-			round_ideal: Perbill::from_parts(75),
-			round_max: Perbill::from_parts(93),
+			round_min: Perbill::from_parts(29),
+			round_ideal: Perbill::from_parts(38),
+			round_max: Perbill::from_parts(47),
 		});
 	});
 }
