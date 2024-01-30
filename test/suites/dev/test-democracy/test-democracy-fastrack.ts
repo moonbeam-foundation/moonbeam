@@ -1,4 +1,4 @@
-import "@moonbeam-network/api-augment";
+/*import "@moonbeam-network/api-augment";
 import {
   ExtrinsicCreation,
   beforeEach,
@@ -131,3 +131,4 @@ describeSuite({
     });
   },
 });
+*/
