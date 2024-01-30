@@ -1045,6 +1045,7 @@ where
 		};
 
 	if async_backing {
+		log::info!("Collator started with asynchronous backing.");
 		let client_clone = client.clone();
 		let code_hash_provider = move |block_hash| {
 			client_clone
@@ -1093,6 +1094,7 @@ where
 			}),
 		);
 	} else {
+		log::info!("Collator started without asynchronous backing.");
 		task_manager.spawn_essential_handle().spawn(
 			"nimbus",
 			None,
