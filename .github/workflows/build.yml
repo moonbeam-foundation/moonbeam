@@ -201,10 +201,10 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: 8.6.12
-      - name: Use Node.js 20.10
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20.10
+          node-version: 20.10.0
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - name: Run Eslint check
@@ -417,10 +417,10 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: 8.6.12
-      - name: Use Node.js 20.10
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20.10
+          node-version: 20.10.0
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - run: |
@@ -543,7 +543,7 @@ jobs:
           version: 8
       - uses: actions/setup-node@v3
         with:
-          node-version: 20.10
+          node-version: 20.10.0
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - name: Create local folders
@@ -591,7 +591,7 @@ jobs:
           version: 8
       - uses: actions/setup-node@v3
         with:
-          node-version: 20.10
+          node-version: 20.10.0
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
