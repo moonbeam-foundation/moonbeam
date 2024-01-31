@@ -20,7 +20,7 @@
 use super::{
 	governance, AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees,
 	Erc20XcmBridge, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall,
-	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 use moonbeam_runtime_common::weights as moonbeam_weights;
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
@@ -440,15 +440,8 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 			a if a == H160::from_low_u64_be(2050).into() => CurrencyId::SelfReserve,
 			// the rest of the currencies, by their corresponding erc20 address
 			_ => match Runtime::account_to_asset_id(account) {
-				// We distinguish by prefix, and depending on it we create either
-				// Foreign or Local
-				Some((prefix, asset_id)) => {
-					if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
-						CurrencyId::ForeignAsset(asset_id)
-					} else {
-						todo!(); // Handle this
-					}
-				}
+				// A foreign asset
+				Some((_prefix, asset_id)) => CurrencyId::ForeignAsset(asset_id),
 				// If no known prefix is identified, we consider that it's a "real" erc20 token
 				// (i.e. managed by a real smart contract)
 				None => CurrencyId::Erc20 {
