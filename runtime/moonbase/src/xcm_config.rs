@@ -19,7 +19,7 @@
 
 use super::{
 	governance, AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees,
-	Erc20XcmBridge, LocalAssets, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall,
+	Erc20XcmBridge, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall,
 	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use moonbeam_runtime_common::weights as moonbeam_weights;
@@ -39,12 +39,11 @@ use sp_core::{ConstU32, H160, H256};
 use sp_weights::Weight;
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
-	CurrencyAdapter as XcmCurrencyAdapter, DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin,
-	FungiblesAdapter, HashedDescription, NoChecking, ParentIsPreset, RelayChainAsNative,
-	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
-	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, WeightInfoBounds,
-	WithComputedOrigin,
+	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, CurrencyAdapter as XcmCurrencyAdapter,
+	DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin, FungiblesAdapter, HashedDescription,
+	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
+	TakeWeightCredit, UsingComponents, WeightInfoBounds, WithComputedOrigin,
 };
 
 use xcm::latest::prelude::*;
@@ -86,16 +85,6 @@ parameter_types! {
 		parents:0,
 		interior: Junctions::X1(
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
-		)
-	};
-
-	// This is the relative view of our local assets.
-	// Indentified by thix prefix + generalIndex(assetId)
-	// We use the RELATIVE multilocation
-	pub LocalAssetsPalletLocation: MultiLocation = MultiLocation {
-		parents:0,
-		interior: Junctions::X1(
-			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
 		)
 	};
 }
@@ -163,32 +152,6 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	(),
 >;
 
-/// Means for transacting local assets that are not the native currency
-/// This transactor uses the new reanchor logic
-pub type LocalFungiblesTransactor = FungiblesAdapter<
-	// Use this fungibles implementation:
-	LocalAssets,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	(
-		ConvertedConcreteId<
-			AssetId,
-			Balance,
-			// This just tells to convert an assetId into a GeneralIndex junction prepended
-			// by LocalAssetsPalletLocation
-			AsPrefixedGeneralIndex<LocalAssetsPalletLocation, AssetId, JustTry>,
-			JustTry,
-		>,
-	),
-	// Convert an XCM MultiLocation into a local account id:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We dont want to allow teleporting assets
-	NoChecking,
-	// The account to use for tracking teleports.
-	(),
->;
-
 // We use all transactors
 // These correspond to
 // SelfReserve asset, both pre and post 0.9.16
@@ -199,7 +162,6 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 pub type AssetTransactors = (
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
-	LocalFungiblesTransactor,
 	Erc20XcmBridge,
 );
 
@@ -467,8 +429,6 @@ pub enum CurrencyId {
 	SelfReserve,
 	// Assets representing other chains native tokens
 	ForeignAsset(AssetId),
-	// Our local assets
-	LocalAssetReserve(AssetId),
 	// Erc20 token
 	Erc20 { contract_address: H160 },
 }
@@ -486,7 +446,7 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 					if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
 						CurrencyId::ForeignAsset(asset_id)
 					} else {
-						CurrencyId::LocalAssetReserve(asset_id)
+						todo!(); // Handle this
 					}
 				}
 				// If no known prefix is identified, we consider that it's a "real" erc20 token
@@ -513,11 +473,6 @@ where
 				Some(multi)
 			}
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::convert_back(&asset),
-			CurrencyId::LocalAssetReserve(asset) => {
-				let mut location = LocalAssetsPalletLocation::get();
-				location.push_interior(Junction::GeneralIndex(asset)).ok();
-				Some(location)
-			}
 			CurrencyId::Erc20 { contract_address } => {
 				let mut location = Erc20XcmBridgePalletLocation::get();
 				location
