@@ -15,9 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	asset_config::{ForeignAssetInstance, LocalAssetInstance},
-	xcm_config::XcmExecutorConfig,
-	CouncilInstance, OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
+	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, CouncilInstance,
+	OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
@@ -47,7 +46,7 @@ use pallet_evm_precompile_xcm_transactor::{
 };
 use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
+use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign};
 use precompile_utils::precompile_set::*;
 
 /// ERC20 metadata for the native token.
@@ -79,13 +78,12 @@ impl Erc20Metadata for NativeErc20Metadata {
 /// The asset precompile address prefix. Addresses that match against this prefix will be routed
 /// to Erc20AssetsPrecompileSet being marked as foreign
 pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
-/// The asset precompile address prefix. Addresses that match against this prefix will be routed
-/// to Erc20AssetsPrecompileSet being marked as local
-pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
+// This comment is kept here for historical reasons:
+// In previous versions, addresses matching the prefix [255, 255, 255, 254] would be routed
+// to Erc20AssetsPrecompileSet being marked as local
 
 parameter_types! {
 	pub ForeignAssetPrefix: &'static [u8] = FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX;
-	pub LocalAssetPrefix: &'static [u8] = LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX;
 }
 
 type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, CallableByPrecompile);
@@ -260,11 +258,6 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 		PrecompileSetStartingWith<
 			ForeignAssetPrefix,
 			Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>,
-			(CallableByContract, CallableByPrecompile),
-		>,
-		PrecompileSetStartingWith<
-			LocalAssetPrefix,
-			Erc20AssetsPrecompileSet<R, IsLocal, LocalAssetInstance>,
 			(CallableByContract, CallableByPrecompile),
 		>,
 	),
