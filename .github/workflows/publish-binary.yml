@@ -87,10 +87,10 @@ jobs:
         with:
           name: binaries
           path: build
-      - name: Use Node.js 18.x
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 20.10
       - name: Download Original Tools
         uses: actions/download-artifact@v3
         with:
