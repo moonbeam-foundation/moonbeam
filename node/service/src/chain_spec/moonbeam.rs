@@ -199,9 +199,7 @@ const BLOCKS_PER_YEAR: u32 = 31_557_600 / 12;
 const NUM_SELECTED_CANDIDATES: u32 = 8;
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
-		use pallet_parachain_staking::inflation::{
-			perbill_annual_to_perbill_round,
-		};
+		use pallet_parachain_staking::inflation::perbill_annual_to_perbill_round;
 		perbill_annual_to_perbill_round(
 			annual,
 			// rounds per year
