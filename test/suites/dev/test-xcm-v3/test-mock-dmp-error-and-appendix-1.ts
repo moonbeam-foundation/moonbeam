@@ -74,7 +74,7 @@ describeSuite({
         // Make sure ALITH did not reveive anything
         const alith_dot_balance = await context
           .polkadotJs()
-          .query.localAssets.account(assetId, alith.address);
+          .query.assets.account(assetId, alith.address);
 
         expect(alith_dot_balance.isNone, "Alith's DOT balance is not empty").to.be.true;
       },
