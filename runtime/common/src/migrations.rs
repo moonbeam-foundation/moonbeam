@@ -271,6 +271,38 @@ where
 	}
 }
 
+// Name of the pallets to be removed in the migration
+// The pallet name is used as storage key prefix for all the values stored by pallets
+frame_support::parameter_types! {
+	pub const LocalAssetsPalletName: &'static str = "LocalAssets";
+}
+
+pub struct PalletRemoval<M>(sp_std::marker::PhantomData<M>);
+
+impl<M> Migration for PalletRemoval<M>
+where
+	M: frame_support::traits::OnRuntimeUpgrade,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_PalletRemoval"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		log::info!("Removing pallet storage...");
+		<M as frame_support::traits::OnRuntimeUpgrade>::on_runtime_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		<M as frame_support::traits::OnRuntimeUpgrade>::pre_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		<M as frame_support::traits::OnRuntimeUpgrade>::post_upgrade(state)
+	}
+}
+
 pub struct CommonMigrations<Runtime, Council, Tech, Treasury, OpenTech>(
 	PhantomData<(Runtime, Council, Tech, Treasury, OpenTech)>,
 );
@@ -370,6 +402,14 @@ where
 		let pallet_referenda_migrate_v0_to_v1 =
 			PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
 
+		// RT2800
+		let remove_local_assets_pallet = PalletRemoval::<
+			frame_support::migrations::RemovePallet<
+				LocalAssetsPalletName,
+				<Runtime as frame_system::Config>::DbWeight,
+			>,
+		>(Default::default());
+
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -418,9 +458,13 @@ where
 			//Box::new(xcm_transactor_to_xcm_v3),
 			// completed in runtime 2600
 			//Box::new(remove_min_bond_for_old_orbiter_collators),
+			// Runtime 2700
 			Box::new(missing_balances_migrations),
 			Box::new(fix_pallet_versions),
 			Box::new(pallet_referenda_migrate_v0_to_v1),
+			// Runtime 2800
+			// TODO(RT2800) : Uncomment the lines below when upgrading the runtime to version 2800
+			//Box::new(remove_local_assets_pallet),
 		]
 	}
 }
