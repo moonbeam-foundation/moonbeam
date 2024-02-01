@@ -40,6 +40,7 @@ else
 fi
 
 # Create custom rococo chain spec that enable async backing
+# TODO remove that when rococo local will enable async backing by default (probably polkadot v1.7)
 tmp/polkadot build-spec --chain rococo-local > tmp/rococo-plain-spec.json
 pnpm tsx scripts/modify-rococo-plain-specs.ts process tmp/rococo-plain-spec.json tmp/rococo-modified-spec.json
 tmp/polkadot build-spec --chain tmp/rococo-modified-spec.json --raw > tmp/rococo-raw-spec.json

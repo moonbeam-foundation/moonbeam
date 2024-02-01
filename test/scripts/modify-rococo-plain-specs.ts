@@ -28,9 +28,14 @@ yargs(hideBin(process.argv))
       const plainSpec = JSONbig.parse((await fs.readFile(argv.inputPath!)).toString());
       process.stdout.write(`Done ✅\n`);
 
-      plainSpec.genesis.runtime.configuration.config.asyncBackingParams.maxCandidateDepth = 3;
-      plainSpec.genesis.runtime.configuration.config.asyncBackingParams.allowedAncestryLen = 2;
-      plainSpec.genesis.runtime.configuration.config.schedulingLookahead = 2;
+      plainSpec.genesis.runtime.configuration.config = {
+        ...plainSpec.genesis.runtime.configuration.config,
+        asyncBackingParams: {
+          maxCandidateDepth: 3,
+          allowedAncestryLen: 2,
+        },
+        schedulingLookahead: 2
+      };
 
       process.stdout.write(`Writing to: ${argv.outputPath} ...`);
       await fs.writeFile(
