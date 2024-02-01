@@ -41,7 +41,5 @@ fi
 
 # Create custom rococo chain spec that enable async backing
 tmp/polkadot build-spec --chain rococo-local > tmp/rococo-plain-spec.json
-jq '.genesis.runtime.configuration.config.async_backing_params.max_candidate_depth += 3' tmp/rococo-plain-spec.json > tmp/rococo-modified-spec.json && mv tmp/rococo-modified-spec.json tmp/rococo-plain-spec.json
-jq '.genesis.runtime.configuration.config.async_backing_params.allowed_ancestry_len += 2' tmp/rococo-plain-spec.json > tmp/rococo-modified-spec.json && mv tmp/rococo-modified-spec.json tmp/rococo-plain-spec.json
-jq '.genesis.runtime.configuration.config.scheduling_lookahead += 2' tmp/rococo-plain-spec.json > tmp/rococo-modified-spec.json && mv tmp/rococo-modified-spec.json tmp/rococo-plain-spec.json
-tmp/polkadot build-spec --chain tmp/rococo-plain-spec.json --raw > tmp/rococo-raw-spec.json
+pnpm tsx scripts/modify-rococo-plain-specs.ts process tmp/rococo-plain-spec.json tmp/rococo-modified-spec.json
+tmp/polkadot build-spec --chain tmp/rococo-modified-spec.json --raw > tmp/rococo-raw-spec.json
