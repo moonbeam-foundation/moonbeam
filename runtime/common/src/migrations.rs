@@ -403,7 +403,7 @@ where
 			PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
 
 		// RT2800
-		let remove_local_assets_pallet = PalletRemoval::<
+		let _remove_local_assets_pallet = PalletRemoval::<
 			frame_support::migrations::RemovePallet<
 				LocalAssetsPalletName,
 				<Runtime as frame_system::Config>::DbWeight,

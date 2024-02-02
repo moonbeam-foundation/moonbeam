@@ -76,6 +76,44 @@ pub trait AccountIdAssetIdConversion<Account, AssetId> {
 	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> Account;
 }
 
+/// A trait used to filter local assets
+pub trait LocalAssetFilter {
+	fn is_local_asset(address: H160) -> bool;
+}
+
+pub struct BlacklistLocalErc20AssetsPrecompileSet<Filter>(PhantomData<Filter>);
+
+impl<Filter> Clone for BlacklistLocalErc20AssetsPrecompileSet<Filter> {
+	fn clone(&self) -> Self {
+		Self(PhantomData)
+	}
+}
+
+impl<Filter> Default for BlacklistLocalErc20AssetsPrecompileSet<Filter> {
+	fn default() -> Self {
+		Self(PhantomData)
+	}
+}
+
+#[precompile_utils::precompile]
+#[precompile::precompile_set]
+impl<Filter: LocalAssetFilter> BlacklistLocalErc20AssetsPrecompileSet<Filter> {
+	#[precompile::discriminant]
+	fn discriminant(address: H160, _gas: u64) -> DiscriminantResult<()> {
+		if Filter::is_local_asset(address) {
+			return DiscriminantResult::Some((), 0);
+		}
+
+		DiscriminantResult::None(0)
+	}
+
+	#[precompile::fallback]
+	#[precompile::payable]
+	fn fallback(_discriminant: (), _handle: &mut impl PrecompileHandle) -> EvmResult {
+		Err(revert("disabled precompile"))
+	}
+}
+
 /// The following distribution has been decided for the precompiles
 /// 0-1023: Ethereum Mainnet Precompiles
 /// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
