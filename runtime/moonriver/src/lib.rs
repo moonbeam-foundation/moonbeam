@@ -1089,8 +1089,8 @@ impl pallet_migrations::Config for Runtime {
 	type MigrationsList = (
 		moonbeam_runtime_common::migrations::CommonMigrations<
 			Runtime,
-			CouncilCollective,
-			TechCommitteeCollective,
+			// CouncilCollective,
+			// TechCommitteeCollective,
 			TreasuryCouncilCollective,
 			OpenTechCommitteeCollective,
 		>,

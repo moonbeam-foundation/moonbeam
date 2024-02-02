@@ -603,20 +603,10 @@ impl pallet_treasury::Config for Runtime {
 	type BenchmarkHelper = BenchmarkHelper;
 }
 
-type IdentityForceOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
-		governance::custom_origins::GeneralAdmin,
-	>,
->;
-type IdentityRegistrarOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
-		governance::custom_origins::GeneralAdmin,
-	>,
->;
+type IdentityForceOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+type IdentityRegistrarOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_identity::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -931,12 +921,12 @@ fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bo
 	matches!(
 		precompile_name,
 		PrecompileName::DemocracyPrecompile
-			| PrecompileName::CouncilInstance
-			| PrecompileName::TechCommitteeInstance
+			// TODO: GovV1| PrecompileName::CouncilInstance
+			// TODO: GovV1| PrecompileName::TechCommitteeInstance
 			| PrecompileName::TreasuryCouncilInstance
 			| PrecompileName::ReferendaPrecompile
 			| PrecompileName::ConvictionVotingPrecompile
-			| PrecompileName::PreimagePrecompile
+			| PrecompileName::PreimagePrecompile 
 			| PrecompileName::OpenTechCommitteeInstance,
 	)
 }
@@ -1021,9 +1011,9 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						| RuntimeCall::Referenda(..)
 						| RuntimeCall::Preimage(..)
 						| RuntimeCall::ConvictionVoting(..)
-						| RuntimeCall::CouncilCollective(..)
+						// TODO: GovV1| RuntimeCall::CouncilCollective(..)
 						| RuntimeCall::TreasuryCouncilCollective(..)
-						| RuntimeCall::TechCommitteeCollective(..)
+						// TODO: GovV1 | RuntimeCall::TechCommitteeCollective(..)
 						| RuntimeCall::OpenTechCommitteeCollective(..)
 						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
@@ -1039,9 +1029,9 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 					| RuntimeCall::Referenda(..)
 					| RuntimeCall::Preimage(..)
 					| RuntimeCall::ConvictionVoting(..)
-					| RuntimeCall::CouncilCollective(..)
+					// TODO: GovV1 | RuntimeCall::CouncilCollective(..)
 					| RuntimeCall::TreasuryCouncilCollective(..)
-					| RuntimeCall::TechCommitteeCollective(..)
+					// TODO: GovV1 | RuntimeCall::TechCommitteeCollective(..)
 					| RuntimeCall::OpenTechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
@@ -1106,8 +1096,8 @@ impl pallet_migrations::Config for Runtime {
 	type MigrationsList = (
 		moonbeam_runtime_common::migrations::CommonMigrations<
 			Runtime,
-			CouncilCollective,
-			TechCommitteeCollective,
+			// TODO: GovV1 CouncilCollective,
+			// TODO: GovV1 TechCommitteeCollective,
 			TreasuryCouncilCollective,
 			OpenTechCommitteeCollective,
 		>,
@@ -1186,6 +1176,7 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
+			// TODO: Shall this be replaced with OpenGov ?
 			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			RuntimeCall::Treasury(
 				pallet_treasury::Call::spend { .. }
@@ -1287,7 +1278,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type NormalCallFilter = NormalFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 2, 3>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 2, 3>;
 	type XcmExecutionManager = XcmExecutionManager;
 	type NormalDmpHandler = NormalDmpHandler;
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
@@ -1423,10 +1414,10 @@ construct_runtime! {
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 13,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
-		CouncilCollective:
-			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 15,
-		TechCommitteeCollective:
-			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 16,
+		// CouncilCollective:
+		// 	pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 15,
+		// TechCommitteeCollective:
+		// 	pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 16,
 		Treasury: pallet_treasury::{Pallet, Storage, Config<T>, Event<T>, Call} = 17,
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 18,
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config<T>} = 19,
@@ -1513,7 +1504,7 @@ mod benches {
 		[pallet_sudo, Sudo]
 		[pallet_evm, EVM]
 		[pallet_assets, Assets]
-		[pallet_collective, CouncilCollective]
+		// [pallet_collective, CouncilCollective]
 		[pallet_parachain_staking, ParachainStaking]
 		[pallet_scheduler, Scheduler]
 		[pallet_democracy, Democracy]

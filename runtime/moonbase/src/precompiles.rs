@@ -17,7 +17,7 @@
 use crate::{
 	asset_config::{ForeignAssetInstance, LocalAssetInstance},
 	xcm_config::XcmExecutorConfig,
-	CouncilInstance, OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
+	OpenTechCommitteeInstance, TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
@@ -191,16 +191,18 @@ type MoonbasePrecompilesAt<R> = (
 		XcmTransactorPrecompileV2<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
-	PrecompileAt<
-		AddressU64<2062>,
-		CollectivePrecompile<R, CouncilInstance>,
-		(CallableByContract, CallableByPrecompile),
-	>,
-	PrecompileAt<
-		AddressU64<2063>,
-		CollectivePrecompile<R, TechCommitteeInstance>,
-		(CallableByContract, CallableByPrecompile),
-	>,
+	// PrecompileAt<
+	// 	// TODO: Is it safe to remove a precompile?
+	// 	AddressU64<2062>,
+	// 	CollectivePrecompile<R, CouncilInstance>,
+	// 	(CallableByContract, CallableByPrecompile),
+	// >,
+	// PrecompileAt<
+	// 	// TODO: Is it safe to remove a precompile?
+	// 	AddressU64<2063>,
+	// 	CollectivePrecompile<R, TechCommitteeInstance>,
+	// 	(CallableByContract, CallableByPrecompile),
+	// >,
 	PrecompileAt<
 		AddressU64<2064>,
 		CollectivePrecompile<R, TreasuryCouncilInstance>,
