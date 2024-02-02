@@ -19,6 +19,7 @@ use crate::{
 	OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
+use moonbeam_core_primitives::AssetId;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
@@ -46,8 +47,12 @@ use pallet_evm_precompile_xcm_transactor::{
 };
 use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign};
+use pallet_evm_precompileset_assets_erc20::{
+	AccountIdAssetIdConversion, BlacklistLocalErc20AssetsPrecompileSet, Erc20AssetsPrecompileSet,
+	IsForeign, LocalAssetFilter,
+};
 use precompile_utils::precompile_set::*;
+use sp_core::H160;
 
 /// ERC20 metadata for the native token.
 pub struct NativeErc20Metadata;
@@ -78,12 +83,13 @@ impl Erc20Metadata for NativeErc20Metadata {
 /// The asset precompile address prefix. Addresses that match against this prefix will be routed
 /// to Erc20AssetsPrecompileSet being marked as foreign
 pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
-// This comment is kept here for historical reasons:
-// In previous versions, addresses matching the prefix [255, 255, 255, 254] would be routed
-// to Erc20AssetsPrecompileSet being marked as local
+/// The asset precompile address prefix. Addresses that match against this prefix will be routed
+/// to Erc20AssetsPrecompileSet being marked as local
+pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
 
 parameter_types! {
 	pub ForeignAssetPrefix: &'static [u8] = FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX;
+	pub LocalAssetPrefix: &'static [u8] = LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX;
 }
 
 type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, CallableByPrecompile);
@@ -242,6 +248,55 @@ type MoonbasePrecompilesAt<R> = (
 	>,
 );
 
+pub struct MoonbaseContractFilter<Runtime>(sp_std::marker::PhantomData<Runtime>);
+
+impl<Runtime> LocalAssetFilter for MoonbaseContractFilter<Runtime>
+where
+	Runtime: frame_system::Config,
+	Runtime::AccountId: Into<H160>,
+	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
+{
+	fn is_local_asset(address: H160) -> bool {
+		let disabled_assets: Vec<H160> = (vec![
+			// https://moonbase.subscan.io/extrinsic/5245322-6?event=5245322-22
+			182085191673801920759598290391359780050u128,
+			// https://moonbase.subscan.io/extrinsic/3244752-4?event=3244752-9
+			282223684955665977914983262584256755878u128,
+			// https://moonbase.subscan.io/extrinsic/3158280-4?event=3158280-9
+			235962050501460763853961856666389569138u128,
+			// https://moonbase.subscan.io/block/3045900?tab=event&&event=3045900-4
+			45350527686064227409532032051821627910u128,
+			// https://moonbase.subscan.io/extrinsic/3024306-4?event=3024306-9
+			199439015574556113723291251263369885338u128,
+			// https://moonbase.subscan.io/extrinsic/2921640-4?event=2921640-9
+			236426850287284823323011839750645103615u128,
+			// https://moonbase.subscan.io/extrinsic/2748867-4?event=2748867-9
+			14626673838203901761839010613793775004u128,
+			// https://moonbase.subscan.io/extrinsic/2709788-4?event=2709788-9
+			95328064580428769161981851380106820590u128,
+			// https://moonbase.subscan.io/extrinsic/2670844-4?event=2670844-9
+			339028723712074529056817184013808486301u128,
+			// https://moonbase.subscan.io/extrinsic/2555083-4?event=2555083-9
+			100481493116602214283160747599845770751u128,
+			// https://moonbase.subscan.io/extrinsic/2473880-3?event=2473880-8
+			319515966007349957795820176952936446433u128,
+			// https://moonbase.subscan.io/extrinsic/2346438-3?event=2346438-6
+			337110116006454532607322340792629567158u128,
+			// https://moonbase.subscan.io/extrinsic/2239102-3?event=2239102-6
+			255225902946708983196362678630947296516u128,
+			// https://moonbase.subscan.io/extrinsic/2142964-4?event=2142964-12
+			3356866138193769031598374869367363824u128,
+			// https://moonbase.subscan.io/extrinsic/1967538-6?event=1967538-28
+			144992676743556815849525085098140609495u128,
+		])
+		.iter()
+		.map(|id| Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, *id).into())
+		.collect();
+
+		disabled_assets.contains(&address)
+	}
+}
+
 /// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -258,6 +313,11 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 		PrecompileSetStartingWith<
 			ForeignAssetPrefix,
 			Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>,
+			(CallableByContract, CallableByPrecompile),
+		>,
+		PrecompileSetStartingWith<
+			LocalAssetPrefix,
+			BlacklistLocalErc20AssetsPrecompileSet<MoonbaseContractFilter<R>>,
 			(CallableByContract, CallableByPrecompile),
 		>,
 	),
