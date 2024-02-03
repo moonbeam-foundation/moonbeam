@@ -53,6 +53,7 @@ use pallet_evm_precompileset_assets_erc20::{
 };
 use precompile_utils::precompile_set::*;
 use sp_core::H160;
+use sp_std::prelude::*;
 
 /// ERC20 metadata for the native token.
 pub struct NativeErc20Metadata;
