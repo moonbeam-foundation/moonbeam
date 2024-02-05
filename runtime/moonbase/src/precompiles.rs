@@ -303,7 +303,7 @@ where
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
 {
 	fn is_local_asset(address: H160) -> bool {
-		let disabled_assets = MoonbaseContractFilter::<Runtime>::get_local_asset_addresses();
+		let disabled_assets = Self::get_local_asset_addresses();
 
 		disabled_assets.contains(&address)
 	}
