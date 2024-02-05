@@ -48,8 +48,7 @@ use pallet_evm_precompile_xcm_transactor::{
 use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
 use pallet_evm_precompileset_assets_erc20::{
-	AccountIdAssetIdConversion, BlacklistLocalErc20AssetsPrecompileSet, Erc20AssetsPrecompileSet,
-	IsForeign, LocalAssetFilter,
+	AccountIdAssetIdConversion, Erc20AssetsPrecompileSet, IsForeign,
 };
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;
@@ -248,15 +247,15 @@ type MoonbasePrecompilesAt<R> = (
 	>,
 );
 
-pub struct MoonbaseContractFilter<Runtime>(sp_std::marker::PhantomData<Runtime>);
+pub struct DisabledLocalAssets<Runtime>(sp_std::marker::PhantomData<Runtime>);
 
-impl<Runtime> MoonbaseContractFilter<Runtime>
+impl<Runtime> sp_core::Get<Vec<H160>> for DisabledLocalAssets<Runtime>
 where
 	Runtime: frame_system::Config,
 	Runtime::AccountId: Into<H160>,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
 {
-	pub fn get_local_asset_addresses() -> Vec<H160> {
+	fn get() -> Vec<H160> {
 		vec![
 			// https://moonbase.subscan.io/extrinsic/5245322-6?event=5245322-22
 			182085191673801920759598290391359780050u128,
@@ -295,19 +294,6 @@ where
 	}
 }
 
-impl<Runtime> LocalAssetFilter for MoonbaseContractFilter<Runtime>
-where
-	Runtime: frame_system::Config,
-	Runtime::AccountId: Into<H160>,
-	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
-{
-	fn is_local_asset(address: H160) -> bool {
-		let disabled_assets = Self::get_local_asset_addresses();
-
-		disabled_assets.contains(&address)
-	}
-}
-
 /// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -326,10 +312,6 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 			Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>,
 			(CallableByContract, CallableByPrecompile),
 		>,
-		PrecompileSetStartingWith<
-			LocalAssetPrefix,
-			BlacklistLocalErc20AssetsPrecompileSet<MoonbaseContractFilter<R>>,
-			(CallableByContract, CallableByPrecompile),
-		>,
+		RemovedPrecompilesAt<DisabledLocalAssets<R>>,
 	),
 >;
