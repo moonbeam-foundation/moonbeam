@@ -79,6 +79,7 @@
       "testFileDir": ["suites/para"],
       "include": ["**/*moonbase*", "**/*common*"],
       "runScripts": ["download-polkadot.sh"],
+      "timeout": 300000,
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
         "type": "zombie",
@@ -89,6 +90,7 @@
     },
     {
       "name": "zombie_moonbase_rpc",
+      "timeout": 300000,
       "testFileDir": ["suites/para-rpc"],
       "include": ["**/*moonbase*", "**/*common*"],
       "runScripts": ["download-polkadot.sh"],
