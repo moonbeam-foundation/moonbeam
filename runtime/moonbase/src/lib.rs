@@ -1154,7 +1154,7 @@ where
 			<Runtime as frame_system::Config>::DbWeight,
 		>::on_runtime_upgrade();
 
-		let addresses = precompiles::MoonbaseContractFilter::<Runtime>::get_local_asset_addresses();
+		let addresses = precompiles::DisabledLocalAssets::<Runtime>::get();
 
 		for address in addresses.iter() {
 			pallet_evm::AccountCodes::<Runtime>::remove(address);
@@ -1176,7 +1176,7 @@ where
 			<Runtime as frame_system::Config>::DbWeight,
 		>::pre_upgrade()?;
 
-		let addresses = precompiles::MoonbaseContractFilter::<Runtime>::get_local_asset_addresses();
+		let addresses = precompiles::DisabledLocalAssets::<Runtime>::get();
 
 		for address in addresses.iter() {
 			if pallet_evm::AccountCodes::<Runtime>::contains_key(address) {
@@ -1198,7 +1198,7 @@ where
 			<Runtime as frame_system::Config>::DbWeight,
 		>::post_upgrade(state)?;
 
-		let addresses = precompiles::MoonbaseContractFilter::<Runtime>::get_local_asset_addresses();
+		let addresses = precompiles::DisabledLocalAssets::<Runtime>::get();
 
 		for address in addresses.iter() {
 			if pallet_evm::AccountCodes::<Runtime>::contains_key(address) {
