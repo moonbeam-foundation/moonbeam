@@ -41,9 +41,6 @@ describeSuite({
       title: "Chain can be upgraded",
       timeout: 1200000,
       test: async () => {
-        const blockNumberBefore = (
-          await paraApi.rpc.chain.getBlock()
-        ).block.header.number.toNumber();
         const currentCode = (await paraApi.rpc.state.getStorage(":code")) as any;
         const codeString = currentCode.toString();
 
@@ -65,6 +62,9 @@ describeSuite({
         log(`New runtime hash: ${codeString.slice(0, 10)}...${codeString.slice(-10)}`);
 
         await context.upgradeRuntime({ logger: log });
+        const blockNumberBefore = (
+          await paraApi.rpc.chain.getBlock()
+        ).block.header.number.toNumber();
         await context.waitBlock(2);
         const blockNumberAfter = (
           await paraApi.rpc.chain.getBlock()
