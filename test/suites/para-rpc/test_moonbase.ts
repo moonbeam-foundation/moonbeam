@@ -71,7 +71,7 @@ describeSuite({
         const blockNumberBefore = (
           await paraApi.rpc.chain.getBlock()
         ).block.header.number.toNumber();
-        await context.waitBlock(2);
+        await context.waitBlock(2, "parachain");
         const blockNumberAfter = (
           await paraApi.rpc.chain.getBlock()
         ).block.header.number.toNumber();
@@ -91,21 +91,12 @@ describeSuite({
 
         log("Please wait, this will take at least 30s for transaction to complete");
 
-        context.waitBlock(5);
+        await paraApi.tx.balances
+          .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
+          .signAndSend(charleth);
 
-        await new Promise((resolve) => {
-          paraApi.tx.balances
-            .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
-            .signAndSend(charleth, ({ status, events }) => {
-              if (status.isInBlock) {
-                log("Transaction is in block");
-              }
-              if (status.isFinalized) {
-                log("Transaction is finalized!");
-                resolve(events);
-              }
-            });
-        });
+        // TODO: We should verify extrinsicStatus is finalized
+        await context.waitBlock(2);
 
         const balAfter = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
         expect(balBefore.lt(balAfter)).to.be.true;
