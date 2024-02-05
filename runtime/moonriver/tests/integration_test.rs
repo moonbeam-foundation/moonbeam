@@ -34,6 +34,7 @@ use frame_support::{
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonriver_runtime::{
+	asset_config::ForeignAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve},
 	AssetId, CouncilCollective, OpenTechCommitteeCollective, PolkadotXcm, Precompiles,
 	RuntimeBlockWeights, TechCommitteeCollective, TransactionPayment, TreasuryCouncilCollective,
@@ -42,7 +43,7 @@ use moonriver_runtime::{
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{
-	AccountIdAssetIdConversion, IsLocal, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
+	AccountIdAssetIdConversion, IsForeign, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};

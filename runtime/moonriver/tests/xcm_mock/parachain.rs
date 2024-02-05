@@ -49,11 +49,11 @@ use xcm::latest::{
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
-	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
-	FungiblesAdapter, IsConcrete, NoChecking, ParentAsSuperuser, ParentIsPreset,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
+	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, CurrencyAdapter as XcmCurrencyAdapter,
+	EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, FungiblesAdapter, IsConcrete,
+	NoChecking, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
+	TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
@@ -1100,7 +1100,6 @@ construct_runtime!(
 		AssetManager: pallet_asset_manager,
 		XcmTransactor: pallet_xcm_transactor,
 		Treasury: pallet_treasury,
-		LocalAssets: pallet_assets::<Instance1>,
 		Proxy: pallet_proxy,
 
 		Timestamp: pallet_timestamp,
