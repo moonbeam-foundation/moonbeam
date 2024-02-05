@@ -33,7 +33,6 @@ use xcm_mock::relay_chain;
 use xcm_mock::*;
 use xcm_simulator::TestExt;
 mod common;
-use common::ExtBuilder;
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
 use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,

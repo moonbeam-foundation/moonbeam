@@ -296,7 +296,6 @@ impl ExtBuilder {
 		genesis_config.assimilate_storage(&mut t).unwrap();
 
 		let mut ext = sp_io::TestExternalities::new(t);
-		let local_assets = self.local_assets.clone();
 		let xcm_assets = self.xcm_assets.clone();
 		ext.execute_with(|| {
 			// If any xcm assets specified, we register them here

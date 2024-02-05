@@ -18,8 +18,8 @@ use crate::{
 	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, CouncilInstance,
 	OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
 };
+use crate::{AssetId, H160};
 use frame_support::parameter_types;
-use moonbeam_core_primitives::AssetId;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
@@ -52,7 +52,6 @@ use pallet_evm_precompileset_assets_erc20::{
 	IsForeign, LocalAssetFilter,
 };
 use precompile_utils::precompile_set::*;
-use sp_core::H160;
 use sp_std::prelude::*;
 
 /// ERC20 metadata for the native token.
