@@ -47,9 +47,7 @@ use pallet_evm_precompile_xcm_transactor::{
 };
 use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::{
-	AccountIdAssetIdConversion, Erc20AssetsPrecompileSet, IsForeign,
-};
+use pallet_evm_precompileset_assets_erc20::{AccountIdAssetIdConversion, Erc20AssetsPrecompileSet};
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;
 
@@ -286,7 +284,7 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 		// Prefixed precompile sets (XC20)
 		PrecompileSetStartingWith<
 			ForeignAssetPrefix,
-			Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>,
+			Erc20AssetsPrecompileSet<R, ForeignAssetInstance>,
 			(CallableByContract, CallableByPrecompile),
 		>,
 		RemovedPrecompilesAt<DisabledLocalAssets<R>>,

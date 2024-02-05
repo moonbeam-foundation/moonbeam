@@ -23,7 +23,7 @@ use frame_support::traits::fungibles::{
 	approvals::Inspect as ApprovalInspect, metadata::Inspect as MetadataInspect,
 	roles::Inspect as RolesInspect,
 };
-use frame_support::traits::{ConstBool, Get, OriginTrait};
+use frame_support::traits::{Get, OriginTrait};
 use frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
@@ -53,17 +53,11 @@ pub const SELECTOR_LOG_TRANSFER: [u8; 32] = keccak256!("Transfer(address,address
 /// Solidity selector of the Approval log, which is the Keccak of the Log signature.
 pub const SELECTOR_LOG_APPROVAL: [u8; 32] = keccak256!("Approval(address,address,uint256)");
 
-/// Length limit of strings (symbol and name).
-type GetAssetsStringLimit<R, I> = <R as pallet_assets::Config<I>>::StringLimit;
-
 /// Alias for the Balance type for the provided Runtime and Instance.
 pub type BalanceOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::Balance;
 
 /// Alias for the Asset Id type for the provided Runtime and Instance.
 pub type AssetIdOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::AssetId;
-
-/// Public types to use with the PrecompileSet
-pub type IsForeign = ConstBool<false>;
 
 /// This trait ensure we can convert AccountIds to AssetIds
 /// We will require Runtime to have this trait implemented
@@ -89,23 +83,23 @@ pub trait AccountIdAssetIdConversion<Account, AssetId> {
 
 /// This means that every address that starts with 0xFFFFFFFF will go through an additional db read,
 /// but the probability for this to happen is 2^-32 for random addresses
-pub struct Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance: 'static = ()>(
-	PhantomData<(Runtime, IsLocal, Instance)>,
+pub struct Erc20AssetsPrecompileSet<Runtime, Instance: 'static = ()>(
+	PhantomData<(Runtime, Instance)>,
 );
 
-impl<R, U, V> Clone for Erc20AssetsPrecompileSet<R, U, V> {
+impl<R, V> Clone for Erc20AssetsPrecompileSet<R, V> {
 	fn clone(&self) -> Self {
 		Self(PhantomData)
 	}
 }
 
-impl<R, U, V> Default for Erc20AssetsPrecompileSet<R, U, V> {
+impl<R, V> Default for Erc20AssetsPrecompileSet<R, V> {
 	fn default() -> Self {
 		Self(PhantomData)
 	}
 }
 
-impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance> {
+impl<Runtime, Instance> Erc20AssetsPrecompileSet<Runtime, Instance> {
 	pub fn new() -> Self {
 		Self(PhantomData)
 	}
@@ -113,8 +107,8 @@ impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Inst
 
 #[precompile_utils::precompile]
 #[precompile::precompile_set]
-#[precompile::test_concrete_types(mock::Runtime, IsForeign, pallet_assets::Instance1)]
-impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
+#[precompile::test_concrete_types(mock::Runtime, pallet_assets::Instance1)]
+impl<Runtime, Instance> Erc20AssetsPrecompileSet<Runtime, Instance>
 where
 	Instance: eip2612::InstanceToPrefix + 'static,
 	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config + frame_system::Config,
@@ -124,7 +118,6 @@ where
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + solidity::Codec,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin: OriginTrait,
-	IsLocal: Get<bool>,
 	AssetIdOf<Runtime, Instance>: Display,
 	Runtime::AccountId: Into<H160>,
 {
@@ -520,356 +513,6 @@ where
 		Ok(Address(freezer))
 	}
 
-	// From here: only for locals, we need to check whether we are in local assets otherwise fail
-	#[precompile::public("mint(address,uint256)")]
-	fn mint(
-		asset_id: AssetIdOf<Runtime, Instance>,
-		handle: &mut impl PrecompileHandle,
-		to: Address,
-		value: U256,
-	) -> EvmResult<bool> {
-		if !IsLocal::get() {
-			return Err(RevertReason::UnknownSelector.into());
-		}
-
-		handle.record_log_costs_manual(3, 32)?;
-
-		let to: H160 = to.into();
-		let value = Self::u256_to_amount(value).in_field("value")?;
-
-		// Build call with origin.
-		{
-			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let to = Runtime::AddressMapping::into_account_id(to);
-
-			// Dispatch call (if enough gas).
-			RuntimeHelper::<Runtime>::try_dispatch(
-				handle,
-				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::mint {
-					id: asset_id.into(),
-					beneficiary: Runtime::Lookup::unlookup(to),
-					amount: value,
-				},
-				SYSTEM_ACCOUNT_SIZE,
-			)?;
-		}
-
-		log3(
-			handle.context().address,
-			SELECTOR_LOG_TRANSFER,
-			H160::default(),
-			to,
-			solidity::encode_event_data(value),
-		)
-		.record(handle)?;
-
-		Ok(true)
-	}
-
-	#[precompile::public("burn(address,uint256)")]
-	fn burn(
-		asset_id: AssetIdOf<Runtime, Instance>,
-		handle: &mut impl PrecompileHandle,
-		from: Address,
-		value: U256,
-	) -> EvmResult<bool> {
-		if !IsLocal::get() {
-			return Err(RevertReason::UnknownSelector.into());
-		}
-
-		handle.record_log_costs_manual(3, 32)?;
-
-		let from: H160 = from.into();
-		let value = Self::u256_to_amount(value).in_field("value")?;
-
-		// Build call with origin.
-		{
-			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let from = Runtime::AddressMapping::into_account_id(from);
-
-			// Dispatch call (if enough gas).
-			RuntimeHelper::<Runtime>::try_dispatch(
-				handle,
-				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::burn {
-					id: asset_id.into(),
-					who: Runtime::Lookup::unlookup(from),
-					amount: value,
-				},
-				0,
-			)?;
-		}
-
-		log3(
-			handle.context().address,
-			SELECTOR_LOG_TRANSFER,
-			from,
-			H160::default(),
-			solidity::encode_event_data(value),
-		)
-		.record(handle)?;
-
-		Ok(true)
-	}
-
-	#[precompile::public("freeze(address)")]
-	fn freeze(
-		asset_id: AssetIdOf<Runtime, Instance>,
-		handle: &mut impl PrecompileHandle,
-		account: Address,
-	) -> EvmResult<bool> {
-		if !IsLocal::get() {
-			return Err(RevertReason::UnknownSelector.into());
-		}
-
-		let account: H160 = account.into();
-
-		// Build call with origin.
-		{
-			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let account = Runtime::AddressMapping::into_account_id(account);
-
-			// Dispatch call (if enough gas).
-			RuntimeHelper::<Runtime>::try_dispatch(
-				handle,
-				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::freeze {
-					id: asset_id.into(),
-					who: Runtime::Lookup::unlookup(account),
-				},
-				0,
-			)?;
-		}
-
-		Ok(true)
-	}
-
-	#[precompile::public("thaw(address)")]
-	fn thaw(
-		asset_id: AssetIdOf<Runtime, Instance>,
-		handle: &mut impl PrecompileHandle,
-		account: Address,
-	) -> EvmResult<bool> {
-		if !IsLocal::get() {
-			return Err(RevertReason::UnknownSelector.into());
-		}
-
-		let account: H160 = account.into();
-
-		// Build call with origin.
-		{
-			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let account = Runtime::AddressMapping::into_account_id(account);
-
-			// Dispatch call (if enough gas).
-			RuntimeHelper::<Runtime>::try_dispatch(
-				handle,
-				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::thaw {
-					id: asset_id.into(),
-					who: Runtime::Lookup::unlookup(account),
-				},
-				0,
-			)?;
-		}
-
-		Ok(true)
-	}
-
-	#[precompile::public("freezeAsset()")]
-	#[precompile::public("freeze_asset()")]
-	fn freeze_asset(
-		asset_id: AssetIdOf<Runtime, Instance>,
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<bool> {
-		if !IsLocal::get() {
-			return Err(RevertReason::UnknownSelector.into());
-		}
-
-		// Build call with origin.
-		{
-			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-
-			// Dispatch call (if enough gas).
-			RuntimeHelper::<Runtime>::try_dispatch(
-				handle,
-				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::freeze_asset {
-					id: asset_id.into(),
-				},
-				0,
-			)?;
-		}
-
-		Ok(true)
-	}
-
-	#[precompile::public("thawAsset()")]
-	#[precompile::public("thaw_asset()")]
-	fn thaw_asset(
-		asset_id: AssetIdOf<Runtime, Instance>,
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<bool> {
-		if !IsLocal::get() {
-			return Err(RevertReason::UnknownSelector.into());
-		}
-
-		// Build call with origin.
-		{
-			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-
-			// Dispatch call (if enough gas).
-			RuntimeHelper::<Runtime>::try_dispatch(
-				handle,
-				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::thaw_asset {
-					id: asset_id.into(),
-				},
-				0,
-			)?;
-		}
-
-		// Build output.
-		Ok(true)
-	}
-
-	#[precompile::public("transferOwnership(address)")]
-	#[precompile::public("transfer_ownership(address)")]
-	fn transfer_ownership(
-		asset_id: AssetIdOf<Runtime, Instance>,
-		handle: &mut impl PrecompileHandle,
-		owner: Address,
-	) -> EvmResult<bool> {
-		if !IsLocal::get() {
-			return Err(RevertReason::UnknownSelector.into());
-		}
-
-		let owner: H160 = owner.into();
-
-		// Build call with origin.
-		{
-			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let owner = Runtime::AddressMapping::into_account_id(owner);
-
-			// Dispatch call (if enough gas).
-			RuntimeHelper::<Runtime>::try_dispatch(
-				handle,
-				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::transfer_ownership {
-					id: asset_id.into(),
-					owner: Runtime::Lookup::unlookup(owner),
-				},
-				0,
-			)?;
-		}
-
-		Ok(true)
-	}
-
-	#[precompile::public("setTeam(address,address,address)")]
-	#[precompile::public("set_team(address,address,address)")]
-	fn set_team(
-		asset_id: AssetIdOf<Runtime, Instance>,
-		handle: &mut impl PrecompileHandle,
-		issuer: Address,
-		admin: Address,
-		freezer: Address,
-	) -> EvmResult<bool> {
-		if !IsLocal::get() {
-			return Err(RevertReason::UnknownSelector.into());
-		}
-
-		let issuer: H160 = issuer.into();
-		let admin: H160 = admin.into();
-		let freezer: H160 = freezer.into();
-
-		// Build call with origin.
-		{
-			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let issuer = Runtime::AddressMapping::into_account_id(issuer);
-			let admin = Runtime::AddressMapping::into_account_id(admin);
-			let freezer = Runtime::AddressMapping::into_account_id(freezer);
-
-			// Dispatch call (if enough gas).
-			RuntimeHelper::<Runtime>::try_dispatch(
-				handle,
-				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::set_team {
-					id: asset_id.into(),
-					issuer: Runtime::Lookup::unlookup(issuer),
-					admin: Runtime::Lookup::unlookup(admin),
-					freezer: Runtime::Lookup::unlookup(freezer),
-				},
-				0,
-			)?;
-		}
-
-		Ok(true)
-	}
-
-	#[precompile::public("setMetadata(string,string,uint8)")]
-	#[precompile::public("set_metadata(string,string,uint8)")]
-	fn set_metadata(
-		asset_id: AssetIdOf<Runtime, Instance>,
-		handle: &mut impl PrecompileHandle,
-		name: BoundedString<GetAssetsStringLimit<Runtime, Instance>>,
-		symbol: BoundedString<GetAssetsStringLimit<Runtime, Instance>>,
-		decimals: u8,
-	) -> EvmResult<bool> {
-		if !IsLocal::get() {
-			return Err(RevertReason::UnknownSelector.into());
-		}
-
-		// Build call with origin.
-		{
-			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-
-			// Dispatch call (if enough gas).
-			RuntimeHelper::<Runtime>::try_dispatch(
-				handle,
-				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::set_metadata {
-					id: asset_id.into(),
-					name: name.into(),
-					symbol: symbol.into(),
-					decimals,
-				},
-				0,
-			)?;
-		}
-
-		Ok(true)
-	}
-
-	#[precompile::public("clearMetadata()")]
-	#[precompile::public("clear_metadata()")]
-	fn clear_metadata(
-		asset_id: AssetIdOf<Runtime, Instance>,
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<bool> {
-		if !IsLocal::get() {
-			return Err(RevertReason::UnknownSelector.into());
-		}
-
-		// Build call with origin.
-		{
-			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-
-			// Dispatch call (if enough gas).
-			RuntimeHelper::<Runtime>::try_dispatch(
-				handle,
-				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::clear_metadata {
-					id: asset_id.into(),
-				},
-				0,
-			)?;
-		}
-
-		Ok(true)
-	}
-
 	#[precompile::public("permit(address,address,uint256,uint256,uint8,bytes32,bytes32)")]
 	fn eip2612_permit(
 		asset_id: AssetIdOf<Runtime, Instance>,
@@ -882,7 +525,7 @@ where
 		r: H256,
 		s: H256,
 	) -> EvmResult {
-		<Eip2612<Runtime, IsLocal, Instance>>::permit(
+		<Eip2612<Runtime, Instance>>::permit(
 			asset_id, handle, owner, spender, value, deadline, v, r, s,
 		)
 	}
@@ -894,7 +537,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		owner: Address,
 	) -> EvmResult<U256> {
-		<Eip2612<Runtime, IsLocal, Instance>>::nonces(asset_id, handle, owner)
+		<Eip2612<Runtime, Instance>>::nonces(asset_id, handle, owner)
 	}
 
 	#[precompile::public("DOMAIN_SEPARATOR()")]
@@ -903,7 +546,7 @@ where
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<H256> {
-		<Eip2612<Runtime, IsLocal, Instance>>::domain_separator(asset_id, handle)
+		<Eip2612<Runtime, Instance>>::domain_separator(asset_id, handle)
 	}
 
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime, Instance>> {
