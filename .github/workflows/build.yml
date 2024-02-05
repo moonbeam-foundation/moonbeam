@@ -615,6 +615,10 @@ jobs:
           docker create --name moonbeam_container $DOCKER_TAG bash
           docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
           docker rm -f moonbeam_container
+      - name: "TEMPORARY: Download forked polkadot-bins"
+        run: |
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot -O test/tmp/polkadot-forked-1.3
+          chmod +x test/tmp/polkadot-forked-1.3
       - name: "Run zombie upgrade test"
         run: |
           cd test

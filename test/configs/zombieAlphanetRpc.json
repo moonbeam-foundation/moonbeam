@@ -5,8 +5,7 @@
   },
   "relaychain": {
     "chain": "rococo-local",
-    "default_command": "tmp/polkadot",
-    "chain_spec_path": "tmp/rococo-raw-spec.json",
+    "default_command": "tmp/polkadot-forked-1.3",
     "default_args": [
       "--no-hardware-benchmarks",
       "-lparachain=debug",
