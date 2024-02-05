@@ -15,9 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	asset_config::{ForeignAssetInstance, LocalAssetInstance},
-	xcm_config::XcmExecutorConfig,
-	CouncilInstance, OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
+	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, CouncilInstance,
+	OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
@@ -47,7 +46,7 @@ use pallet_evm_precompile_xcm_transactor::{
 };
 use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
+use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign};
 use precompile_utils::precompile_set::*;
 
 pub struct NativeErc20Metadata;
@@ -79,13 +78,9 @@ impl Erc20Metadata for NativeErc20Metadata {
 /// The asset precompile address prefix. Addresses that match against this prefix will be routed
 /// to Erc20AssetsPrecompileSet being marked as foreign
 pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
-/// The asset precompile address prefix. Addresses that match against this prefix will be routed
-/// to Erc20AssetsPrecompileSet being marked as local
-pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
 
 parameter_types! {
 	pub ForeignAssetPrefix: &'static [u8] = FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX;
-	pub LocalAssetPrefix: &'static [u8] = LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX;
 }
 
 type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, CallableByPrecompile);
@@ -264,10 +259,8 @@ pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 			Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>,
 			CallableByContract,
 		>,
-		PrecompileSetStartingWith<
-			LocalAssetPrefix,
-			Erc20AssetsPrecompileSet<R, IsLocal, LocalAssetInstance>,
-			CallableByContract,
-		>,
+		// Moonriver never had any local assets (No blacklist needed
+		// https://moonriver.subscan.io/event?module=localassets&event_id=created
+		// https://moonriver.subscan.io/event?module=localassets&event_id=forcecreated
 	),
 >;
