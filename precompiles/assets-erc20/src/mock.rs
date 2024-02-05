@@ -46,20 +46,12 @@ pub type Block = frame_system::mocking::MockBlockU32<Runtime>;
 /// be routed to Erc20AssetsPrecompileSet being marked as foreign
 pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: u32 = 0xffffffff;
 
-/// The local asset precompile address prefix. Addresses that match against this prefix will
-/// be routed to Erc20AssetsPrecompileSet being marked as local
-pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: u32 = 0xfffffffe;
-
 parameter_types! {
 	pub ForeignAssetPrefix: &'static [u8] = &[0xff, 0xff, 0xff, 0xff];
-	pub LocalAssetPrefix: &'static [u8] = &[0xff, 0xff, 0xff, 0xfe];
 }
 
 mock_account!(ForeignAssetId(AssetId), |value: ForeignAssetId| {
 	AddressInPrefixedSet(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, value.0).into()
-});
-mock_account!(LocalAssetId(AssetId), |value: LocalAssetId| {
-	AddressInPrefixedSet(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, value.0).into()
 });
 
 // Implement the trait, where we convert AccountId to AssetID
@@ -67,36 +59,17 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
 	/// and by taking the lowest 128 bits as the assetId
 	fn account_to_asset_id(account: AccountId) -> Option<(Vec<u8>, AssetId)> {
-		if account.has_prefix_u32(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX) {
-			return Some((
-				FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX
-					.to_be_bytes()
-					.to_vec(),
-				account.without_prefix(),
-			));
-		}
-
-		if account.has_prefix_u32(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX) {
-			return Some((
-				LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_be_bytes().to_vec(),
-				account.without_prefix(),
-			));
-		}
-
-		None
+		Some((
+			FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX
+				.to_be_bytes()
+				.to_vec(),
+			account.without_prefix(),
+		))
 	}
 
 	// Not used for now
-	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> AccountId {
-		if prefix
-			== LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX
-				.to_be_bytes()
-				.as_slice()
-		{
-			LocalAssetId(asset_id).into()
-		} else {
-			ForeignAssetId(asset_id).into()
-		}
+	fn asset_id_to_account(_prefix: &[u8], asset_id: AssetId) -> AccountId {
+		ForeignAssetId(asset_id).into()
 	}
 }
 
@@ -168,17 +141,12 @@ pub type Precompiles<R> = PrecompileSetBuilder<
 	(
 		PrecompileSetStartingWith<
 			ForeignAssetPrefix,
-			Erc20AssetsPrecompileSet<R, IsForeign, pallet_assets::Instance1>,
-		>,
-		PrecompileSetStartingWith<
-			LocalAssetPrefix,
-			Erc20AssetsPrecompileSet<R, IsLocal, pallet_assets::Instance2>,
+			Erc20AssetsPrecompileSet<R, pallet_assets::Instance1>,
 		>,
 	),
 >;
 
-pub type LocalPCall = Erc20AssetsPrecompileSetCall<Runtime, IsLocal, pallet_assets::Instance2>;
-pub type ForeignPCall = Erc20AssetsPrecompileSetCall<Runtime, IsLocal, pallet_assets::Instance1>;
+pub type ForeignPCall = Erc20AssetsPrecompileSetCall<Runtime, pallet_assets::Instance1>;
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
 /// Block Storage Limit in bytes. Set to 40KB.
@@ -224,7 +192,6 @@ impl pallet_evm::Config for Runtime {
 }
 
 type ForeignAssetInstance = pallet_assets::Instance1;
-type LocalAssetInstance = pallet_assets::Instance2;
 
 // Required for runtime benchmarks
 pallet_assets::runtime_benchmarks_enabled! {
@@ -274,30 +241,6 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	}
 }
 
-impl pallet_assets::Config<LocalAssetInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type AssetAccountDeposit = AssetAccountDeposit;
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-	type RemoveItemsLimit = ConstU32<656>;
-	type AssetIdParameter = AssetId;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
-	type CallbackHandle = ();
-	pallet_assets::runtime_benchmarks_enabled! {
-		type BenchmarkHelper = BenchmarkHelper;
-	}
-}
-
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
 	pub enum Runtime
@@ -307,7 +250,6 @@ construct_runtime!(
 		ForeignAssets: pallet_assets::<Instance1>,
 		Evm: pallet_evm,
 		Timestamp: pallet_timestamp,
-		LocalAssets: pallet_assets::<Instance2>,
 	}
 );
 

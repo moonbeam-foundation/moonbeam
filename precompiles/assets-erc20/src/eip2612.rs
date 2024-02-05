@@ -109,11 +109,9 @@ pub type NoncesStorage<Instance> = StorageDoubleMap<
 	ValueQuery,
 >;
 
-pub struct Eip2612<Runtime, IsLocal, Instance: 'static = ()>(
-	PhantomData<(Runtime, IsLocal, Instance)>,
-);
+pub struct Eip2612<Runtime, Instance: 'static = ()>(PhantomData<(Runtime, Instance)>);
 
-impl<Runtime, IsLocal, Instance> Eip2612<Runtime, IsLocal, Instance>
+impl<Runtime, Instance> Eip2612<Runtime, Instance>
 where
 	Instance: InstanceToPrefix + 'static,
 	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config + frame_system::Config,
@@ -123,7 +121,6 @@ where
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + solidity::Codec,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin: OriginTrait,
-	IsLocal: Get<bool>,
 	AssetIdOf<Runtime, Instance>: Display,
 	Runtime::AccountId: Into<H160>,
 {
@@ -237,7 +234,7 @@ where
 
 		NoncesStorage::<Instance>::insert(address, owner, nonce + U256::one());
 
-		Erc20AssetsPrecompileSet::<Runtime, IsLocal, Instance>::approve_inner(
+		Erc20AssetsPrecompileSet::<Runtime, Instance>::approve_inner(
 			asset_id, handle, owner, spender, value,
 		)?;
 

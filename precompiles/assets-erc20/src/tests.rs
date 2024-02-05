@@ -80,17 +80,6 @@ fn selectors() {
 	assert!(ForeignPCall::eip2612_permit_selectors().contains(&0xd505accf));
 	assert!(ForeignPCall::eip2612_domain_separator_selectors().contains(&0x3644e515));
 
-	assert!(ForeignPCall::mint_selectors().contains(&0x40c10f19));
-	assert!(ForeignPCall::burn_selectors().contains(&0x9dc29fac));
-	assert!(ForeignPCall::freeze_selectors().contains(&0x8d1fdf2f));
-	assert!(ForeignPCall::thaw_selectors().contains(&0x5ea20216));
-	assert!(ForeignPCall::freeze_asset_selectors().contains(&0xd4937f51));
-	assert!(ForeignPCall::thaw_asset_selectors().contains(&0x51ec2ad7));
-	assert!(ForeignPCall::transfer_ownership_selectors().contains(&0xf2fde38b));
-	assert!(ForeignPCall::set_team_selectors().contains(&0xc7d93c59));
-	assert!(ForeignPCall::set_metadata_selectors().contains(&0x37d2c2f4));
-	assert!(ForeignPCall::clear_metadata_selectors().contains(&0xefb6d432));
-
 	assert_eq!(
 		crate::SELECTOR_LOG_TRANSFER,
 		&Keccak256::digest(b"Transfer(address,address,uint256)")[..]
@@ -130,17 +119,6 @@ fn modifiers() {
 			tester.test_view_modifier(ForeignPCall::eip2612_nonces_selectors());
 			tester.test_default_modifier(ForeignPCall::eip2612_permit_selectors());
 			tester.test_view_modifier(ForeignPCall::eip2612_domain_separator_selectors());
-
-			tester.test_default_modifier(ForeignPCall::mint_selectors());
-			tester.test_default_modifier(ForeignPCall::burn_selectors());
-			tester.test_default_modifier(ForeignPCall::freeze_selectors());
-			tester.test_default_modifier(ForeignPCall::thaw_selectors());
-			tester.test_default_modifier(ForeignPCall::freeze_asset_selectors());
-			tester.test_default_modifier(ForeignPCall::thaw_asset_selectors());
-			tester.test_default_modifier(ForeignPCall::transfer_ownership_selectors());
-			tester.test_default_modifier(ForeignPCall::set_team_selectors());
-			tester.test_default_modifier(ForeignPCall::set_metadata_selectors());
-			tester.test_default_modifier(ForeignPCall::clear_metadata_selectors());
 		});
 }
 
@@ -856,692 +834,6 @@ fn get_metadata() {
 }
 
 #[test]
-fn local_functions_cannot_be_accessed_by_foreign_assets() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(ForeignAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(ForeignAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					ForeignAssetId(0u128),
-					ForeignPCall::mint {
-						to: Address(Bob.into()),
-						value: 400.into(),
-					},
-				)
-				.execute_reverts(|output| output == b"Unknown selector");
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					ForeignAssetId(0u128),
-					ForeignPCall::burn {
-						from: Address(Bob.into()),
-						value: 400.into(),
-					},
-				)
-				.execute_reverts(|output| output == b"Unknown selector");
-		});
-}
-
-#[test]
-fn mint_local_assets() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(LocalAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::mint {
-						to: Address(Bob.into()),
-						value: 400.into(),
-					},
-				)
-				.expect_cost(27261756) // 1 weight => 1 gas in mock
-				.expect_log(log3(
-					LocalAssetId(0u128),
-					SELECTOR_LOG_TRANSFER,
-					Zero,
-					Bob,
-					solidity::encode_event_data(U256::from(400)),
-				))
-				.execute_returns(true);
-
-			precompiles()
-				.prepare_test(
-					Bob,
-					LocalAssetId(0u128),
-					LocalPCall::balance_of {
-						who: Address(Bob.into()),
-					},
-				)
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(U256::from(400));
-		});
-}
-
-#[test]
-fn burn_local_assets() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(LocalAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-			assert_ok!(LocalAssets::mint(
-				RuntimeOrigin::signed(CryptoAlith.into()),
-				0u128,
-				CryptoAlith.into(),
-				1000
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::burn {
-						from: Address(CryptoAlith.into()),
-						value: 400.into(),
-					},
-				)
-				.expect_cost(34475756) // 1 weight => 1 gas in mock
-				.expect_log(log3(
-					LocalAssetId(0u128),
-					SELECTOR_LOG_TRANSFER,
-					CryptoAlith,
-					Zero,
-					solidity::encode_event_data(U256::from(400)),
-				))
-				.execute_returns(true);
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::balance_of {
-						who: Address(CryptoAlith.into()),
-					},
-				)
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(U256::from(600));
-		});
-}
-
-#[test]
-fn freeze_local_assets() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(LocalAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-			assert_ok!(LocalAssets::mint(
-				RuntimeOrigin::signed(CryptoAlith.into()),
-				0u128,
-				Bob.into(),
-				1000
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::freeze {
-						account: Address(Bob.into()),
-					},
-				)
-				.expect_cost(18384000) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_returns(true);
-
-			precompiles()
-				.prepare_test(
-					Bob,
-					LocalAssetId(0u128),
-					LocalPCall::transfer {
-						to: Address(CryptoAlith.into()),
-						value: 400.into(),
-					},
-				)
-				.execute_reverts(|output| {
-					from_utf8(&output)
-						.unwrap()
-						.contains("Dispatched call failed with error: ")
-						&& from_utf8(&output).unwrap().contains("Frozen")
-				});
-		});
-}
-
-#[test]
-fn thaw_local_assets() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(LocalAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-			assert_ok!(LocalAssets::mint(
-				RuntimeOrigin::signed(CryptoAlith.into()),
-				0u128,
-				Bob.into(),
-				1000
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::freeze {
-						account: Address(Bob.into()),
-					},
-				)
-				.expect_cost(18384000) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_returns(true);
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::thaw {
-						account: Address(Bob.into()),
-					},
-				)
-				.expect_cost(18282000) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_returns(true);
-
-			precompiles()
-				.prepare_test(
-					Bob,
-					LocalAssetId(0u128),
-					LocalPCall::transfer {
-						to: Address(CryptoAlith.into()),
-						value: 400.into(),
-					},
-				)
-				.expect_cost(48477756) // 1 weight => 1 gas in mock
-				.expect_log(log3(
-					LocalAssetId(0u128),
-					SELECTOR_LOG_TRANSFER,
-					Bob,
-					CryptoAlith,
-					solidity::encode_event_data(U256::from(400)),
-				))
-				.execute_returns(true);
-		});
-}
-
-#[test]
-fn freeze_asset_local_asset() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(LocalAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-			assert_ok!(LocalAssets::mint(
-				RuntimeOrigin::signed(CryptoAlith.into()),
-				0u128,
-				Bob.into(),
-				1000
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::freeze_asset {},
-				)
-				.expect_cost(14193000) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_returns(true);
-
-			precompiles()
-				.prepare_test(
-					Bob,
-					LocalAssetId(0u128),
-					LocalPCall::transfer {
-						to: Address(CryptoAlith.into()),
-						value: 400.into(),
-					},
-				)
-				.execute_reverts(|output| {
-					from_utf8(&output)
-						.unwrap()
-						.contains("Dispatched call failed with error: ")
-						&& from_utf8(&output).unwrap().contains("AssetNotLive")
-				});
-		});
-}
-
-#[test]
-fn thaw_asset_local_assets() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(LocalAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-			assert_ok!(LocalAssets::mint(
-				RuntimeOrigin::signed(CryptoAlith.into()),
-				0u128,
-				Bob.into(),
-				1000
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::freeze_asset {},
-				)
-				.expect_cost(14193000) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_returns(true);
-
-			precompiles()
-				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::thaw_asset {})
-				.expect_cost(14263000) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_returns(true);
-
-			precompiles()
-				.prepare_test(
-					Bob,
-					LocalAssetId(0u128),
-					LocalPCall::transfer {
-						to: Address(CryptoAlith.into()),
-						value: 400.into(),
-					},
-				)
-				.expect_cost(48477756) // 1 weight => 1 gas in mock
-				.expect_log(log3(
-					LocalAssetId(0u128),
-					SELECTOR_LOG_TRANSFER,
-					Bob,
-					CryptoAlith,
-					solidity::encode_event_data(U256::from(400)),
-				))
-				.execute_returns(true);
-		});
-}
-
-#[test]
-fn transfer_ownership_local_assets() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(LocalAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::transfer_ownership {
-						owner: Address(Bob.into()),
-					},
-				)
-				.expect_cost(16042000) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_returns(true);
-
-			// Now Bob should be able to change ownership, and not CryptoAlith
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::transfer_ownership {
-						owner: Address(Bob.into()),
-					},
-				)
-				.execute_reverts(|output| {
-					from_utf8(&output)
-						.unwrap()
-						.contains("Dispatched call failed with error: ")
-						&& from_utf8(&output).unwrap().contains("NoPermission")
-				});
-
-			precompiles()
-				.prepare_test(
-					Bob,
-					LocalAssetId(0u128),
-					LocalPCall::transfer_ownership {
-						owner: Address(CryptoAlith.into()),
-					},
-				)
-				.expect_cost(16042000) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_returns(true);
-		});
-}
-
-#[test]
-fn set_team_local_assets() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(LocalAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::set_team {
-						issuer: Address(Bob.into()),
-						admin: Address(Bob.into()),
-						freezer: Address(Bob.into()),
-					},
-				)
-				.expect_cost(14641000) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_returns(true);
-
-			// Now Bob should be able to mint, and not CryptoAlith
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::mint {
-						to: Address(Bob.into()),
-						value: 400.into(),
-					},
-				)
-				.execute_reverts(|output| {
-					from_utf8(&output)
-						.unwrap()
-						.contains("Dispatched call failed with error: ")
-						&& from_utf8(&output).unwrap().contains("NoPermission")
-				});
-
-			precompiles()
-				.prepare_test(
-					Bob,
-					LocalAssetId(0u128),
-					LocalPCall::mint {
-						to: Address(Bob.into()),
-						value: 400.into(),
-					},
-				)
-				.expect_cost(27261756) // 1 weight => 1 gas in mock
-				.expect_log(log3(
-					LocalAssetId(0u128),
-					SELECTOR_LOG_TRANSFER,
-					Zero,
-					Bob,
-					solidity::encode_event_data(U256::from(400)),
-				))
-				.execute_returns(true);
-
-			precompiles()
-				.prepare_test(
-					Bob,
-					LocalAssetId(0u128),
-					LocalPCall::balance_of {
-						who: Address(Bob.into()),
-					},
-				)
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(U256::from(400));
-		});
-}
-
-#[test]
-fn set_metadata() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(LocalAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::set_metadata {
-						name: "TestToken".into(),
-						symbol: "Test".into(),
-						decimals: 12,
-					},
-				)
-				.expect_cost(31456892) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_returns(true);
-
-			precompiles()
-				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::name {})
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(UnboundedBytes::from("TestToken"));
-
-			precompiles()
-				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::symbol {})
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(UnboundedBytes::from("Test"));
-
-			precompiles()
-				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::decimals {})
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(12u8);
-		});
-}
-
-#[test]
-fn clear_metadata() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(LocalAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::set_metadata {
-						name: "TestToken".into(),
-						symbol: "Test".into(),
-						decimals: 12,
-					},
-				)
-				.expect_cost(31456892) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_returns(true);
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::clear_metadata {},
-				)
-				.expect_cost(31930000) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_returns(true);
-
-			precompiles()
-				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::name {})
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(UnboundedBytes::from(""));
-
-			precompiles()
-				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::symbol {})
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(UnboundedBytes::from(""));
-
-			precompiles()
-				.prepare_test(CryptoAlith, LocalAssetId(0u128), LocalPCall::decimals {})
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(0u8);
-		});
-}
-
-#[test]
 fn permit_valid() {
 	ExtBuilder::default()
 		.with_balances(vec![(CryptoAlith.into(), 1000)])
@@ -1566,7 +858,7 @@ fn permit_valid() {
 			let value: U256 = 500u16.into();
 			let deadline: U256 = 0u8.into(); // todo: proper timestamp
 
-			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance1>::generate_permit(
+			let permit = Eip2612::<Runtime, pallet_assets::Instance1>::generate_permit(
 				ForeignAssetId(0u128).into(),
 				0u128,
 				owner,
@@ -1675,7 +967,7 @@ fn permit_valid_named_asset() {
 			let value: U256 = 500u16.into();
 			let deadline: U256 = 0u8.into(); // todo: proper timestamp
 
-			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance1>::generate_permit(
+			let permit = Eip2612::<Runtime, pallet_assets::Instance1>::generate_permit(
 				ForeignAssetId(0u128).into(),
 				0u128,
 				owner,
@@ -1777,7 +1069,7 @@ fn permit_invalid_nonce() {
 			let value: U256 = 500u16.into();
 			let deadline: U256 = 0u8.into();
 
-			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance1>::generate_permit(
+			let permit = Eip2612::<Runtime, pallet_assets::Instance1>::generate_permit(
 				ForeignAssetId(0u128).into(),
 				0u128,
 				owner,
@@ -1953,7 +1245,7 @@ fn permit_invalid_deadline() {
 			let value: U256 = 500u16.into();
 			let deadline: U256 = 5u8.into(); // deadline < timestamp => expired
 
-			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance1>::generate_permit(
+			let permit = Eip2612::<Runtime, pallet_assets::Instance1>::generate_permit(
 				ForeignAssetId(0u128).into(),
 				0u128,
 				owner,
@@ -2324,92 +1616,12 @@ fn transfer_from_overflow() {
 }
 
 #[test]
-fn mint_overflow() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(LocalAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::mint {
-						to: Address(Bob.into()),
-						value: U256::from(u128::MAX) + 1,
-					},
-				)
-				.expect_cost(1756u64) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_reverts(|e| e == b"value: Value is too large for balance type");
-		});
-}
-
-#[test]
-fn burn_overflow() {
-	ExtBuilder::default()
-		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
-				RuntimeOrigin::root(),
-				0u128,
-				CryptoAlith.into(),
-				true,
-				1
-			));
-			assert_ok!(LocalAssets::force_set_metadata(
-				RuntimeOrigin::root(),
-				0u128,
-				b"TestToken".to_vec(),
-				b"Test".to_vec(),
-				12,
-				false
-			));
-			assert_ok!(LocalAssets::mint(
-				RuntimeOrigin::signed(CryptoAlith.into()),
-				0u128,
-				CryptoAlith.into(),
-				1000
-			));
-
-			precompiles()
-				.prepare_test(
-					CryptoAlith,
-					LocalAssetId(0u128),
-					LocalPCall::burn {
-						from: Address(CryptoAlith.into()),
-						value: U256::from(u128::MAX) + 1,
-					},
-				)
-				.expect_cost(1756u64) // 1 weight => 1 gas in mock
-				.expect_no_logs()
-				.execute_reverts(|e| e == b"value: Value is too large for balance type");
-		});
-}
-
-#[test]
 fn get_owner() {
 	ExtBuilder::default()
 		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				RuntimeOrigin::root(),
 				0u128,
 				CryptoAlith.into(),
@@ -2417,7 +1629,7 @@ fn get_owner() {
 				1
 			));
 
-			assert_ok!(LocalAssets::transfer_ownership(
+			assert_ok!(ForeignAssets::transfer_ownership(
 				RuntimeOrigin::signed(CryptoAlith.into()),
 				0u128,
 				// owner
@@ -2425,7 +1637,7 @@ fn get_owner() {
 			));
 
 			precompiles()
-				.prepare_test(CryptoAlith, LocalAssetId(0u128), ForeignPCall::owner {})
+				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::owner {})
 				.expect_cost(0)
 				.expect_no_logs()
 				.execute_returns(Address(Bob.into()));
@@ -2438,7 +1650,7 @@ fn get_issuer() {
 		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				RuntimeOrigin::root(),
 				0u128,
 				CryptoAlith.into(),
@@ -2446,7 +1658,7 @@ fn get_issuer() {
 				1
 			));
 
-			assert_ok!(LocalAssets::set_team(
+			assert_ok!(ForeignAssets::set_team(
 				RuntimeOrigin::signed(CryptoAlith.into()),
 				0u128,
 				// Issuer
@@ -2458,7 +1670,7 @@ fn get_issuer() {
 			));
 
 			precompiles()
-				.prepare_test(CryptoAlith, LocalAssetId(0u128), ForeignPCall::issuer {})
+				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::issuer {})
 				.expect_cost(0)
 				.expect_no_logs()
 				.execute_returns(Address(Bob.into()));
@@ -2471,7 +1683,7 @@ fn get_admin() {
 		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				RuntimeOrigin::root(),
 				0u128,
 				CryptoAlith.into(),
@@ -2479,7 +1691,7 @@ fn get_admin() {
 				1
 			));
 
-			assert_ok!(LocalAssets::set_team(
+			assert_ok!(ForeignAssets::set_team(
 				RuntimeOrigin::signed(CryptoAlith.into()),
 				0u128,
 				// Issuer
@@ -2491,7 +1703,7 @@ fn get_admin() {
 			));
 
 			precompiles()
-				.prepare_test(CryptoAlith, LocalAssetId(0u128), ForeignPCall::admin {})
+				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::admin {})
 				.expect_cost(0)
 				.expect_no_logs()
 				.execute_returns(Address(Bob.into()));
@@ -2504,7 +1716,7 @@ fn get_freezer() {
 		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(LocalAssets::force_create(
+			assert_ok!(ForeignAssets::force_create(
 				RuntimeOrigin::root(),
 				0u128,
 				CryptoAlith.into(),
@@ -2512,7 +1724,7 @@ fn get_freezer() {
 				1
 			));
 
-			assert_ok!(LocalAssets::set_team(
+			assert_ok!(ForeignAssets::set_team(
 				RuntimeOrigin::signed(CryptoAlith.into()),
 				0u128,
 				// Issuer
@@ -2524,7 +1736,7 @@ fn get_freezer() {
 			));
 
 			precompiles()
-				.prepare_test(CryptoAlith, LocalAssetId(0u128), ForeignPCall::freezer {})
+				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::freezer {})
 				.expect_cost(0)
 				.expect_no_logs()
 				.execute_returns(Address(Bob.into()));
@@ -2534,27 +1746,7 @@ fn get_freezer() {
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	check_precompile_implements_solidity_interfaces(
-		&["ERC20.sol", "LocalAsset.sol", "Permit.sol"],
-		LocalPCall::supports_selector,
+		&["ERC20.sol", "Permit.sol"],
+		ForeignPCall::supports_selector,
 	)
-}
-
-#[test]
-fn test_deprecated_solidity_selectors_are_supported() {
-	for deprecated_function in [
-		"freeze_asset()",
-		"thaw_asset()",
-		"transfer_ownership(address)",
-		"set_team(address,address,address)",
-		"set_metadata(string,string,uint8)",
-		"clear_metadata()",
-	] {
-		let selector = compute_selector(deprecated_function);
-		if !LocalPCall::supports_selector(selector) {
-			panic!(
-				"failed decoding selector 0x{:x} => '{}' as Action",
-				selector, deprecated_function,
-			)
-		}
-	}
 }

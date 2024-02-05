@@ -46,7 +46,7 @@ use pallet_evm_precompile_xcm_transactor::{
 };
 use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign};
+use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use precompile_utils::precompile_set::*;
 
 pub struct NativeErc20Metadata;
@@ -256,7 +256,7 @@ pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 		// Prefixed precompile sets (XC20)
 		PrecompileSetStartingWith<
 			ForeignAssetPrefix,
-			Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>,
+			Erc20AssetsPrecompileSet<R, ForeignAssetInstance>,
 			CallableByContract,
 		>,
 		// Moonriver never had any local assets (No blacklist needed
