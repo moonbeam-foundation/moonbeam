@@ -33,7 +33,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbeam_runtime::{
-	asset_config::LocalAssetInstance,
+	asset_config::ForeignAssetInstance,
 	currency::GLMR,
 	xcm_config::{CurrencyId, SelfReserve},
 	AccountId, Balances, CouncilCollective, CrowdloanRewards, OpenTechCommitteeCollective,
@@ -45,7 +45,7 @@ use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{
-	AccountIdAssetIdConversion, IsLocal, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
+	AccountIdAssetIdConversion, IsForeign, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
@@ -76,10 +76,10 @@ type XcmUtilsPCall = pallet_evm_precompile_xcm_utils::XcmUtilsPrecompileCall<
 	moonbeam_runtime::xcm_config::XcmExecutorConfig,
 >;
 type XtokensPCall = pallet_evm_precompile_xtokens::XtokensPrecompileCall<Runtime>;
-type LocalAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSetCall<
+type ForeignAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSetCall<
 	Runtime,
-	IsLocal,
-	LocalAssetInstance,
+	IsForeign,
+	ForeignAssetInstance,
 >;
 type XcmTransactorV2PCall =
 	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
@@ -153,7 +153,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::Migrations>("Migrations");
 	is_pallet_prefix::<moonbeam_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonbeam_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
-	is_pallet_prefix::<moonbeam_runtime::LocalAssets>("LocalAssets");
 	is_pallet_prefix::<moonbeam_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
 	is_pallet_prefix::<moonbeam_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
 	let prefix = |pallet_name, storage_name| {
@@ -504,7 +503,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::AssetManager>(105);
 	is_pallet_index::<moonbeam_runtime::XTokens>(106);
 	is_pallet_index::<moonbeam_runtime::XcmTransactor>(107);
-	is_pallet_index::<moonbeam_runtime::LocalAssets>(108);
 }
 
 #[test]
@@ -517,7 +515,8 @@ fn verify_reserved_indices() {
 	};
 	// 40: Sudo
 	// 53: BaseFee
-	let reserved = vec![40, 53];
+	// 108: pallet_assets::<Instance1>
+	let reserved = vec![40, 53, 108];
 	let existing = metadata
 		.pallets
 		.iter()
@@ -1726,31 +1725,6 @@ fn asset_can_be_registered() {
 }
 
 #[test]
-fn local_assets_cannot_be_create_by_signed_origins() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR * SUPPLY_FACTOR),
-			(AccountId::from(BOB), 1_000 * GLMR * SUPPLY_FACTOR),
-		])
-		.build()
-		.execute_with(|| {
-			assert_noop!(
-				RuntimeCall::LocalAssets(
-					pallet_assets::Call::<Runtime, LocalAssetInstance>::create {
-						id: 11u128.into(),
-						admin: AccountId::from(ALICE),
-						min_balance: 1u128
-					}
-				)
-				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
-					AccountId::from(ALICE)
-				)),
-				frame_system::Error::<Runtime>::CallFiltered
-			);
-		});
-}
-
-#[test]
 fn xcm_asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
@@ -1788,7 +1762,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 				.prepare_test(
 					ALICE,
 					asset_precompile_address,
-					LocalAssetsPCall::total_supply {},
+					ForeignAssetsPCall::total_supply {},
 				)
 				.expect_cost(2000)
 				.expect_no_logs()
@@ -1799,7 +1773,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 				.prepare_test(
 					ALICE,
 					asset_precompile_address,
-					LocalAssetsPCall::balance_of {
+					ForeignAssetsPCall::balance_of {
 						who: Address(ALICE.into()),
 					},
 				)
@@ -1844,7 +1818,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 				.prepare_test(
 					ALICE,
 					asset_precompile_address,
-					LocalAssetsPCall::transfer {
+					ForeignAssetsPCall::transfer {
 						to: Address(BOB.into()),
 						value: { 400 * GLMR }.into(),
 					},
@@ -1864,7 +1838,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 				.prepare_test(
 					BOB,
 					asset_precompile_address,
-					LocalAssetsPCall::balance_of {
+					ForeignAssetsPCall::balance_of {
 						who: Address(BOB.into()),
 					},
 				)
@@ -1909,7 +1883,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 				.prepare_test(
 					ALICE,
 					asset_precompile_address,
-					LocalAssetsPCall::approve {
+					ForeignAssetsPCall::approve {
 						spender: Address(BOB.into()),
 						value: { 400 * GLMR }.into(),
 					},
@@ -1929,7 +1903,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 				.prepare_test(
 					BOB,
 					asset_precompile_address,
-					LocalAssetsPCall::transfer_from {
+					ForeignAssetsPCall::transfer_from {
 						from: Address(ALICE.into()),
 						to: Address(CHARLIE.into()),
 						value: { 400 * GLMR }.into(),
@@ -1950,7 +1924,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 				.prepare_test(
 					CHARLIE,
 					asset_precompile_address,
-					LocalAssetsPCall::balance_of {
+					ForeignAssetsPCall::balance_of {
 						who: Address(CHARLIE.into()),
 					},
 				)

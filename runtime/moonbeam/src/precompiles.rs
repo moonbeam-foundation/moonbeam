@@ -15,10 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	asset_config::{ForeignAssetInstance, LocalAssetInstance},
-	xcm_config::XcmExecutorConfig,
-	CouncilInstance, OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
+	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, CouncilInstance,
+	OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
 };
+use crate::{AssetId, H160};
 use frame_support::parameter_types;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
@@ -47,8 +47,12 @@ use pallet_evm_precompile_xcm_transactor::{
 };
 use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
+use pallet_evm_precompileset_assets_erc20::{
+	AccountIdAssetIdConversion, BlacklistLocalErc20AssetsPrecompileSet, Erc20AssetsPrecompileSet,
+	IsForeign, LocalAssetFilter,
+};
 use precompile_utils::precompile_set::*;
+use sp_std::prelude::*;
 
 pub struct NativeErc20Metadata;
 
@@ -246,6 +250,40 @@ type MoonbeamPrecompilesAt<R> = (
 	>,
 );
 
+pub struct MoonbeamContractFilter<Runtime>(sp_std::marker::PhantomData<Runtime>);
+
+impl<Runtime> MoonbeamContractFilter<Runtime>
+where
+	Runtime: frame_system::Config,
+	Runtime::AccountId: Into<H160>,
+	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
+{
+	pub fn get_local_asset_addresses() -> Vec<H160> {
+		vec![
+			337110116006454532607322340792629567158u128,
+			278750993613512357835566279094880339619,
+			228256396637196286254896220398224702687,
+			270195117769614861929703564202131636628,
+		]
+		.iter()
+		.map(|id| Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, *id).into())
+		.collect()
+	}
+}
+
+impl<Runtime> LocalAssetFilter for MoonbeamContractFilter<Runtime>
+where
+	Runtime: frame_system::Config,
+	Runtime::AccountId: Into<H160>,
+	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
+{
+	fn is_local_asset(address: H160) -> bool {
+		let disabled_assets = Self::get_local_asset_addresses();
+
+		disabled_assets.contains(&address)
+	}
+}
+
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -267,7 +305,7 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 		>,
 		PrecompileSetStartingWith<
 			LocalAssetPrefix,
-			Erc20AssetsPrecompileSet<R, IsLocal, LocalAssetInstance>,
+			BlacklistLocalErc20AssetsPrecompileSet<MoonbeamContractFilter<R>>,
 			(CallableByContract, CallableByPrecompile),
 		>,
 	),
