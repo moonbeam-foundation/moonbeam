@@ -17,9 +17,7 @@ if [[ -f tmp/polkadot ]]; then
   else
     echo "Updating polkadot binary..."
 
-    # Temporary use a custom polkadot binary that include https://github.com/paritytech/polkadot-sdk/pull/3162
-    #wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v$polkadot_release/polkadot -P tmp
-    wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot -P tmp
+    wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v$polkadot_release/polkadot -P tmp
     chmod +x tmp/polkadot
 
     pnpm moonwall download polkadot-execute-worker $polkadot_release tmp
@@ -31,9 +29,7 @@ if [[ -f tmp/polkadot ]]; then
   fi
 else
   echo "Polkadot binary not found, downloading..."
-  # Temporary use a custom polkadot binary that include https://github.com/paritytech/polkadot-sdk/pull/3162
-  #wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v$polkadot_release/polkadot -P tmp
-  wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot -P tmp
+  wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v$polkadot_release/polkadot -P tmp
   chmod +x tmp/polkadot
 
   pnpm moonwall download polkadot-execute-worker $polkadot_release tmp
