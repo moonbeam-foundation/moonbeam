@@ -48,8 +48,7 @@ use pallet_evm_precompile_xcm_transactor::{
 use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
 use pallet_evm_precompileset_assets_erc20::{
-	AccountIdAssetIdConversion, BlacklistLocalErc20AssetsPrecompileSet, Erc20AssetsPrecompileSet,
-	IsForeign, LocalAssetFilter,
+	AccountIdAssetIdConversion, Erc20AssetsPrecompileSet, IsForeign,
 };
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;
@@ -250,15 +249,15 @@ type MoonbeamPrecompilesAt<R> = (
 	>,
 );
 
-pub struct MoonbeamContractFilter<Runtime>(sp_std::marker::PhantomData<Runtime>);
+pub struct DisabledLocalAssets<Runtime>(sp_std::marker::PhantomData<Runtime>);
 
-impl<Runtime> MoonbeamContractFilter<Runtime>
+impl<Runtime> sp_core::Get<Vec<H160>> for DisabledLocalAssets<Runtime>
 where
 	Runtime: frame_system::Config,
 	Runtime::AccountId: Into<H160>,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
 {
-	pub fn get_local_asset_addresses() -> Vec<H160> {
+	fn get() -> Vec<H160> {
 		vec![
 			337110116006454532607322340792629567158u128,
 			278750993613512357835566279094880339619,
@@ -268,19 +267,6 @@ where
 		.iter()
 		.map(|id| Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, *id).into())
 		.collect()
-	}
-}
-
-impl<Runtime> LocalAssetFilter for MoonbeamContractFilter<Runtime>
-where
-	Runtime: frame_system::Config,
-	Runtime::AccountId: Into<H160>,
-	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
-{
-	fn is_local_asset(address: H160) -> bool {
-		let disabled_assets = Self::get_local_asset_addresses();
-
-		disabled_assets.contains(&address)
 	}
 }
 
@@ -303,10 +289,6 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 			Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>,
 			(CallableByContract, CallableByPrecompile),
 		>,
-		PrecompileSetStartingWith<
-			LocalAssetPrefix,
-			BlacklistLocalErc20AssetsPrecompileSet<MoonbeamContractFilter<R>>,
-			(CallableByContract, CallableByPrecompile),
-		>,
+		RemovedPrecompilesAt<DisabledLocalAssets<R>>,
 	),
 >;

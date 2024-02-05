@@ -63,7 +63,6 @@ pub type BalanceOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<I
 pub type AssetIdOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::AssetId;
 
 /// Public types to use with the PrecompileSet
-pub type IsLocal = ConstBool<true>;
 pub type IsForeign = ConstBool<false>;
 
 /// This trait ensure we can convert AccountIds to AssetIds
@@ -74,44 +73,6 @@ pub trait AccountIdAssetIdConversion<Account, AssetId> {
 
 	// Get AccountId from AssetId and prefix
 	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> Account;
-}
-
-/// A trait used to filter local assets
-pub trait LocalAssetFilter {
-	fn is_local_asset(address: H160) -> bool;
-}
-
-pub struct BlacklistLocalErc20AssetsPrecompileSet<Filter>(PhantomData<Filter>);
-
-impl<Filter> Clone for BlacklistLocalErc20AssetsPrecompileSet<Filter> {
-	fn clone(&self) -> Self {
-		Self(PhantomData)
-	}
-}
-
-impl<Filter> Default for BlacklistLocalErc20AssetsPrecompileSet<Filter> {
-	fn default() -> Self {
-		Self(PhantomData)
-	}
-}
-
-#[precompile_utils::precompile]
-#[precompile::precompile_set]
-impl<Filter: LocalAssetFilter> BlacklistLocalErc20AssetsPrecompileSet<Filter> {
-	#[precompile::discriminant]
-	fn discriminant(address: H160, _gas: u64) -> DiscriminantResult<()> {
-		if Filter::is_local_asset(address) {
-			return DiscriminantResult::Some((), 0);
-		}
-
-		DiscriminantResult::None(0)
-	}
-
-	#[precompile::fallback]
-	#[precompile::payable]
-	fn fallback(_discriminant: (), _handle: &mut impl PrecompileHandle) -> EvmResult {
-		Err(revert("disabled precompile"))
-	}
 }
 
 /// The following distribution has been decided for the precompiles
