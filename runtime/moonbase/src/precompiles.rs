@@ -251,14 +251,14 @@ type MoonbasePrecompilesAt<R> = (
 
 pub struct MoonbaseContractFilter<Runtime>(sp_std::marker::PhantomData<Runtime>);
 
-impl<Runtime> LocalAssetFilter for MoonbaseContractFilter<Runtime>
+impl<Runtime> MoonbaseContractFilter<Runtime>
 where
 	Runtime: frame_system::Config,
 	Runtime::AccountId: Into<H160>,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
 {
-	fn is_local_asset(address: H160) -> bool {
-		let disabled_assets: Vec<H160> = (vec![
+	pub fn get_local_asset_addresses() -> Vec<H160> {
+		vec![
 			// https://moonbase.subscan.io/extrinsic/5245322-6?event=5245322-22
 			182085191673801920759598290391359780050u128,
 			// https://moonbase.subscan.io/extrinsic/3244752-4?event=3244752-9
@@ -289,10 +289,21 @@ where
 			3356866138193769031598374869367363824u128,
 			// https://moonbase.subscan.io/extrinsic/1967538-6?event=1967538-28
 			144992676743556815849525085098140609495u128,
-		])
+		]
 		.iter()
 		.map(|id| Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, *id).into())
-		.collect();
+		.collect()
+	}
+}
+
+impl<Runtime> LocalAssetFilter for MoonbaseContractFilter<Runtime>
+where
+	Runtime: frame_system::Config,
+	Runtime::AccountId: Into<H160>,
+	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
+{
+	fn is_local_asset(address: H160) -> bool {
+		let disabled_assets = MoonbaseContractFilter::<Runtime>::get_local_asset_addresses();
 
 		disabled_assets.contains(&address)
 	}
