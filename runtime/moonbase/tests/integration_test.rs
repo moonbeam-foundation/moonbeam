@@ -61,7 +61,7 @@ use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{
-	AccountIdAssetIdConversion, IsForeign, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
+	AccountIdAssetIdConversion, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
@@ -83,7 +83,6 @@ type XcmUtilsPCall = pallet_evm_precompile_xcm_utils::XcmUtilsPrecompileCall<
 type XtokensPCall = pallet_evm_precompile_xtokens::XtokensPrecompileCall<Runtime>;
 type ForeignAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSetCall<
 	Runtime,
-	IsForeign,
 	ForeignAssetInstance,
 >;
 type XcmTransactorV1PCall =
