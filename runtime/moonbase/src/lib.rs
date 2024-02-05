@@ -1230,6 +1230,9 @@ where
 	Runtime: pallet_evm::Config,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		if VERSION.spec_version != 2800 {
+			return vec![];
+		}
 		vec![Box::new(RemoveLocalAssets::<Runtime>(Default::default()))]
 	}
 }
@@ -1247,6 +1250,7 @@ impl pallet_migrations::Config for Runtime {
 			OpenTechCommitteeCollective,
 		>,
 		ParachainStakingRoundMigration<Runtime>,
+		// RT 2800
 		RemoveLocalAssets<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
