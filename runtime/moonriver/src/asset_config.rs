@@ -19,8 +19,8 @@
 
 use super::{
 	currency, governance, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances,
-	CouncilInstance, LocalAssets, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	CouncilInstance, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use moonbeam_runtime_common::weights as moonbeam_weights;
@@ -54,7 +54,6 @@ const REMOVE_ITEMS_LIMIT: u32 = 656;
 
 // Not to disrupt the previous asset instance, we assign () to Foreign
 pub type ForeignAssetInstance = ();
-pub type LocalAssetInstance = pallet_assets::Instance1;
 
 // For foreign assets, these parameters dont matter much
 // as this will only be called by root with the forced arguments
@@ -116,31 +115,6 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	}
 }
 
-// Local assets
-impl pallet_assets::Config<LocalAssetInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = EnsureNever<AccountId>;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
-	type WeightInfo = moonbeam_weights::pallet_assets::WeightInfo<Runtime>;
-	type RemoveItemsLimit = ConstU32<{ REMOVE_ITEMS_LIMIT }>;
-	type AssetIdParameter = Compact<AssetId>;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
-	type CallbackHandle = ();
-	pallet_assets::runtime_benchmarks_enabled! {
-		type BenchmarkHelper = BenchmarkHelper;
-	}
-}
-
 // We instruct how to register the Assets
 // In this case, we tell it to Create an Asset in pallet-assets
 pub struct AssetRegistrar;
@@ -183,38 +157,6 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	}
 
 	#[transactional]
-	fn create_local_asset(
-		asset: AssetId,
-		_creator: AccountId,
-		min_balance: Balance,
-		is_sufficient: bool,
-		owner: AccountId,
-	) -> DispatchResult {
-		// We create with root, because we need to decide whether we want to create the asset
-		// as sufficient. Take into account this does not hold any reserved amount
-		// in pallet-assets
-		LocalAssets::force_create(
-			RuntimeOrigin::root(),
-			asset.into(),
-			owner,
-			is_sufficient,
-			min_balance,
-		)?;
-
-		// No metadata needs to be set, as this can be set through regular calls
-
-		// TODO: should we put the revert code?
-		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address: H160 =
-			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
-		pallet_evm::AccountCodes::<Runtime>::insert(
-			precompile_address,
-			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
-		);
-		Ok(())
-	}
-
-	#[transactional]
 	fn destroy_foreign_asset(asset: AssetId) -> DispatchResult {
 		// Mark the asset as destroying
 		Assets::start_destroy(RuntimeOrigin::root(), asset.into())?;
@@ -223,19 +165,6 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// This does not panick even if there is no code in the address
 		let precompile_address: H160 =
 			Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
-		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
-		Ok(())
-	}
-
-	#[transactional]
-	fn destroy_local_asset(asset: AssetId) -> DispatchResult {
-		// Mark the asset as destroying
-		LocalAssets::start_destroy(RuntimeOrigin::root(), asset.into())?;
-
-		// We remove the EVM revert code
-		// This does not panick even if there is no code in the address
-		let precompile_address: H160 =
-			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
 		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
 		Ok(())
 	}
@@ -322,9 +251,7 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 		let h160_account: H160 = account.into();
 		let mut data = [0u8; 16];
 		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
-		if prefix_part == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX
-			|| prefix_part == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX
-		{
+		if prefix_part == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX {
 			data.copy_from_slice(id_part);
 			let asset_id: AssetId = u128::from_be_bytes(data).into();
 			Some((prefix_part.to_vec(), asset_id))

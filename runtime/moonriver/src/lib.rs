@@ -108,7 +108,6 @@ use nimbus_primitives::CanAuthor;
 mod precompiles;
 pub use precompiles::{
 	MoonriverPrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 #[cfg(any(feature = "std", test))]
@@ -1118,6 +1117,71 @@ where
 	}
 }
 
+// Name of the pallet to be removed in the migration
+// The pallet name is used as storage key prefix for all the values stored by pallets
+frame_support::parameter_types! {
+	pub const LocalAssetsPalletName: &'static str = "LocalAssets";
+}
+
+pub struct RemoveLocalAssets<R>(sp_std::marker::PhantomData<R>);
+
+impl<Runtime> Migration for RemoveLocalAssets<Runtime>
+where
+	Runtime: frame_system::Config,
+	Runtime::AccountId: Into<H160>,
+	Runtime: pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion<
+		Runtime::AccountId,
+		AssetId,
+	>,
+	Runtime: pallet_evm::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_RemovePalletAssets"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		log::info!("Removing (LocalAssets) pallet storage...");
+		frame_support::migrations::RemovePallet::<
+			LocalAssetsPalletName,
+			<Runtime as frame_system::Config>::DbWeight,
+		>::on_runtime_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		frame_support::migrations::RemovePallet::<
+			LocalAssetsPalletName,
+			<Runtime as frame_system::Config>::DbWeight,
+		>::pre_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		frame_support::migrations::RemovePallet::<
+			LocalAssetsPalletName,
+			<Runtime as frame_system::Config>::DbWeight,
+		>::post_upgrade(state)
+	}
+}
+
+impl<Runtime> GetMigrations for RemoveLocalAssets<Runtime>
+where
+	Runtime: frame_system::Config,
+	Runtime::AccountId: Into<H160>,
+	Runtime: pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion<
+		Runtime::AccountId,
+		AssetId,
+	>,
+	Runtime: pallet_evm::Config,
+{
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		if VERSION.spec_version != 2800 {
+			return vec![];
+		}
+		vec![Box::new(RemoveLocalAssets::<Runtime>(Default::default()))]
+	}
+}
+
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MigrationsList = (
@@ -1129,6 +1193,8 @@ impl pallet_migrations::Config for Runtime {
 			OpenTechCommitteeCollective,
 		>,
 		ParachainStakingRoundMigration<Runtime>,
+		// RT 2800
+		RemoveLocalAssets<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
 }
@@ -1139,7 +1205,6 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
 			RuntimeCall::Assets(_) => false,
-			RuntimeCall::LocalAssets(_) => false,
 			RuntimeCall::Balances(_) => false,
 			RuntimeCall::CrowdloanRewards(_) => false,
 			RuntimeCall::Ethereum(_) => false,
@@ -1177,16 +1242,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 				pallet_assets::Call::destroy_approvals { .. } => true,
 				pallet_assets::Call::finish_destroy { .. } => true,
 				_ => false,
-			},
-			// We want to disable create, as we dont want users to be choosing the
-			// assetId of their choice
-			// We also disable destroy, as we want to route destroy through the
-			// asset-manager, which guarantees the removal both at the EVM and
-			// substrate side of things
-			RuntimeCall::LocalAssets(method) => match method {
-				pallet_assets::Call::create { .. } => false,
-				pallet_assets::Call::start_destroy { .. } => false,
-				_ => true,
 			},
 			// We just want to enable this in case of live chains, since the default version
 			// is populated at genesis
@@ -1499,7 +1554,7 @@ construct_runtime! {
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
-		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 108,
+		// Previously 108: pallet_assets::<Instance1>
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 109,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
 
