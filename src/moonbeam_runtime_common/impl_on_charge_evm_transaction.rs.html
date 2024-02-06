@@ -60,12 +60,6 @@
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
-<a href="#63" id="63">63</a>
-<a href="#64" id="64">64</a>
-<a href="#65" id="65">65</a>
-<a href="#66" id="66">66</a>
-<a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -85,34 +79,28 @@
 </span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules! </span>impl_on_charge_evm_transaction {
 	{} =&gt; {
-		<span class="kw">type </span>CurrencyAccountId&lt;T&gt; = &lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId;
+		<span class="kw">type </span>FungibleAccountId&lt;T&gt; = &lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId;
 
 		<span class="kw">type </span>BalanceFor&lt;T&gt; =
-			&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency <span class="kw">as </span>CurrencyT&lt;CurrencyAccountId&lt;T&gt;&gt;&gt;::Balance;
-
-		<span class="kw">type </span>PositiveImbalanceFor&lt;T&gt; =
-			&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency <span class="kw">as </span>CurrencyT&lt;CurrencyAccountId&lt;T&gt;&gt;&gt;::PositiveImbalance;
-
-		<span class="kw">type </span>NegativeImbalanceFor&lt;T&gt; =
-			&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency <span class="kw">as </span>CurrencyT&lt;CurrencyAccountId&lt;T&gt;&gt;&gt;::NegativeImbalance;
+			&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency <span class="kw">as </span>Inspect&lt;FungibleAccountId&lt;T&gt;&gt;&gt;::Balance;
 
 		<span class="kw">pub struct </span>OnChargeEVMTransaction&lt;OU&gt;(sp_std::marker::PhantomData&lt;OU&gt;);
+
 		<span class="kw">impl</span>&lt;T, OU&gt; OnChargeEVMTransactionT&lt;T&gt; <span class="kw">for </span>OnChargeEVMTransaction&lt;OU&gt;
 		<span class="kw">where
 			</span>T: pallet_evm::Config,
-			PositiveImbalanceFor&lt;T&gt;: Imbalance&lt;BalanceFor&lt;T&gt;, Opposite = NegativeImbalanceFor&lt;T&gt;&gt;,
-			NegativeImbalanceFor&lt;T&gt;: Imbalance&lt;BalanceFor&lt;T&gt;, Opposite = PositiveImbalanceFor&lt;T&gt;&gt;,
-			OU: OnUnbalanced&lt;NegativeImbalanceFor&lt;T&gt;&gt;,
+			T::Currency: Balanced&lt;T::AccountId&gt;,
+			OU: OnUnbalanced&lt;Credit&lt;T::AccountId, T::Currency&gt;&gt;,
 			U256: UniqueSaturatedInto&lt;BalanceFor&lt;T&gt;&gt;
 		{
-			<span class="kw">type </span>LiquidityInfo = <span class="prelude-ty">Option</span>&lt;NegativeImbalanceFor&lt;T&gt;&gt;;
+			<span class="kw">type </span>LiquidityInfo = <span class="prelude-ty">Option</span>&lt;Credit&lt;T::AccountId, T::Currency&gt;&gt;;
 
 			<span class="kw">fn </span>withdraw_fee(who: <span class="kw-2">&amp;</span>H160, fee: U256) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::LiquidityInfo, pallet_evm::Error&lt;T&gt;&gt; {
-				EVMCurrencyAdapter::&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency, ()&gt;::withdraw_fee(who, fee)
+				EVMFungibleAdapter::&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency, ()&gt;::withdraw_fee(who, fee)
 			}
 
 			<span class="kw">fn </span>can_withdraw(who: <span class="kw-2">&amp;</span>H160, amount: U256) -&gt; <span class="prelude-ty">Result</span>&lt;(), pallet_evm::Error&lt;T&gt;&gt; {
-				EVMCurrencyAdapter::&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency, ()&gt;::can_withdraw(who, amount)
+				EVMFungibleAdapter::&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency, ()&gt;::can_withdraw(who, amount)
 			}
 
 			<span class="kw">fn </span>correct_and_deposit_fee(
@@ -120,8 +108,8 @@
 				corrected_fee: U256,
 				base_fee: U256,
 				already_withdrawn: <span class="self">Self</span>::LiquidityInfo,
-			) -&gt; <span class="self">Self</span>::LiquidityInfo {
-				&lt;EVMCurrencyAdapter&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency, OU&gt; <span class="kw">as </span>OnChargeEVMTransactionT&lt;
+			) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::LiquidityInfo, pallet_evm::Error&lt;T&gt;&gt; {
+				&lt;EVMFungibleAdapter&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency, OU&gt; <span class="kw">as </span>OnChargeEVMTransactionT&lt;
 					T,
 				&gt;&gt;::correct_and_deposit_fee(who, corrected_fee, base_fee, already_withdrawn)
 			}

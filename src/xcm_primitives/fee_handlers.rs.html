@@ -629,7 +629,7 @@
 <span class="kw">impl</span>&lt;
 		Assets: Mutate&lt;AccountId&gt;,
 		Matcher: MatchesFungibles&lt;Assets::AssetId, Assets::Balance&gt;,
-		AccountId: Clone,
+		AccountId: Clone + Eq,
 		ReceiverAccount: Get&lt;AccountId&gt;,
 	&gt; TakeRevenue <span class="kw">for </span>XcmFeesToAccount&lt;Assets, Matcher, AccountId, ReceiverAccount&gt;
 {
