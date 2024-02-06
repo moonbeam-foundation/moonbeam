@@ -75,7 +75,6 @@
     {
       "name": "zombie_moonbase",
       "testFileDir": ["suites/zombie"],
-      "include": ["**/*moonbase*", "**/*common*"],
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
