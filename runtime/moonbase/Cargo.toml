@@ -157,6 +157,7 @@ parachain-info = { workspace = true }
 
 # Moonkit
 async-backing-primitives = { workspace = true }
+maintenance-mode-primitives = { workspace = true }
 moonkit-xcm-primitives = { workspace = true }
 nimbus-primitives = { workspace = true }
 pallet-async-backing = { workspace = true }
@@ -207,6 +208,7 @@ std = [
 	"frame-support/std",
 	"frame-system-rpc-runtime-api/std",
 	"frame-system/std",
+	"maintenance-mode-primitives/std",
 	"moonbeam-core-primitives/std",
 	"moonbeam-evm-tracer/std",
 	"moonbeam-relay-encoder/std",
