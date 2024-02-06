@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { MoonwallContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, charleth } from "@moonwall/util";
+import { BALTATHAR_ADDRESS, GLMR, alith, charleth } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { ethers } from "ethers";
 import fs from "node:fs";
@@ -85,13 +85,34 @@ describeSuite({
 
         log("Please wait, this will take at least 30s for transaction to complete");
 
-        // TODO: We should verify extrinsicStatus is finalized
-        await paraApi.tx.balances
-          .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
-          .signAndSend(charleth);
+        const result = await new Promise((resolve) => {
+          paraApi.tx.balances
+            .transferAllowDeath(BALTATHAR_ADDRESS, 2n * GLMR)
+            .signAndSend(alith, async ({ status }) => {
+              for (;;) {
+                if (status.isInBlock) {
+                  log(status.asInBlock.toHuman());
+                  log("Log is in block, waiting for finalization");
+                }
 
-        await context.waitBlock(2);
+                if (status.isInvalid) {
+                  log("Transaction invalid, quitting");
+                  log(status.toHuman());
+                  resolve(false);
+                  break;
+                }
 
+                if (status.isFinalized) {
+                  log(status.asFinalized.toHuman());
+                  log("Transaction finalized, quitting");
+                  resolve(true);
+                  break;
+                }
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+              }
+            });
+        });
+        expect(result).to.be.true;
         const balAfter = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
         expect(balBefore.lt(balAfter)).to.be.true;
       },

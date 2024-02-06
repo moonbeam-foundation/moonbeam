@@ -615,9 +615,15 @@ jobs:
           docker rm -f moonbeam_container
       - name: "TEMPORARY: Download forked polkadot-bins"
         run: |
-          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot -O test/tmp/polkadot-forked-1.3
-          chmod +x test/tmp/polkadot-forked-1.3
-      - name: "Run zombie upgrade test"
+
+          # When we remove this step, re-add "runScripts": ["download-polkadot.sh"]," to moonwall config
+          cd test/tmp
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot-execute-worker
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot-prepare-worker
+
+          chmod +x test/tmp/polkadot-*
+      - name: Prepare Chainspecs
         run: |
           cd test
           pnpm install
@@ -627,6 +633,10 @@ jobs:
           tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
           pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json
           tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
+
+      - name: "Run zombie upgrade test"
+        run: |
+          cd test
 
           ## Start zombie network and run tests
           chmod uog+x ../target/release/moonbeam
@@ -634,13 +644,6 @@ jobs:
       - name: "Run zombie RPC test"
         run: |
           cd test
-          pnpm install
-
-          ## Generate old spec using latest published node, modify it, and generate raw spec
-          chmod uog+x tmp/moonbeam_rt
-          tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
-          pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json
-          tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
 
           ## Start zombie network and run tests
           chmod uog+x ../target/release/moonbeam
