@@ -1,7 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, GLMR, PRECOMPILES } from "@moonwall/util";
-import { verifyLatestBlockFees, expectEVMResult, DEFAULT_TXN_MAX_BASE_FEE } from "../../../../helpers";
+import {
+  verifyLatestBlockFees,
+  expectEVMResult,
+  DEFAULT_TXN_MAX_BASE_FEE,
+} from "../../../../helpers";
 
 describeSuite({
   id: "D2583",
