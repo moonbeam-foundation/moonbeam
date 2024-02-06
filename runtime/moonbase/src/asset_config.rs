@@ -136,15 +136,6 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			min_balance,
 		)?;
 
-		// TODO uncomment when we feel comfortable
-		/*
-		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address = Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
-		pallet_evm::AccountCodes::<Runtime>::insert(
-			precompile_address,
-			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
-		);*/
-
 		// Lastly, the metadata
 		Assets::force_set_metadata(
 			RuntimeOrigin::root(),
@@ -158,15 +149,8 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 
 	#[transactional]
 	fn destroy_foreign_asset(asset: AssetId) -> DispatchResult {
-		// First destroy the asset
-		Assets::start_destroy(RuntimeOrigin::root(), asset.into())?;
-
-		// We remove the EVM revert code
-		// This does not panick even if there is no code in the address
-		let precompile_address: H160 =
-			Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
-		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
-		Ok(())
+		// Mark the asset as destroying
+		Assets::start_destroy(RuntimeOrigin::root(), asset.into())
 	}
 
 	fn destroy_asset_dispatch_info_weight(asset: AssetId) -> Weight {
@@ -174,20 +158,15 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// witness
 		// We need to take the dispatch info from the destroy call, which is already annotated in
 		// the assets pallet
-		// Additionally, we need to add a DB write for removing the precompile revert code in the
-		// EVM
 
 		// This is the dispatch info of destroy
-		let call_weight = RuntimeCall::Assets(
+		RuntimeCall::Assets(
 			pallet_assets::Call::<Runtime, ForeignAssetInstance>::start_destroy {
 				id: asset.into(),
 			},
 		)
 		.get_dispatch_info()
-		.weight;
-
-		// This is the db write
-		call_weight.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().writes(1))
+		.weight
 	}
 }
 

@@ -805,42 +805,9 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		)
 	}
 
-	fn create_local_asset(
-		asset: AssetId,
-		_creator: AccountId,
-		min_balance: Balance,
-		is_sufficient: bool,
-		owner: AccountId,
-	) -> DispatchResult {
-		LocalAssets::force_create(
-			RuntimeOrigin::root(),
-			asset,
-			owner,
-			is_sufficient,
-			min_balance,
-		)?;
-
-		// TODO uncomment when we feel comfortable
-		/*
-		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address = Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
-		pallet_evm::AccountCodes::<Runtime>::insert(
-			precompile_address,
-			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
-		);*/
-		Ok(())
-	}
-
 	fn destroy_foreign_asset(asset: AssetId) -> DispatchResult {
 		// Mark the asset as destroying
 		Assets::start_destroy(RuntimeOrigin::root(), asset.into())?;
-
-		Ok(())
-	}
-
-	fn destroy_local_asset(asset: AssetId) -> DispatchResult {
-		// Mark the asset as destroying
-		LocalAssets::start_destroy(RuntimeOrigin::root(), asset.into())?;
 
 		Ok(())
 	}
