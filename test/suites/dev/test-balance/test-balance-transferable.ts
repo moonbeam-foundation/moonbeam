@@ -73,27 +73,13 @@ describeSuite({
           expect(await checkBalance(context, randomAddress)).toBeGreaterThan(4n * GLMR);
 
           // Do a second transfer of 2 GLMR to Balthazar
-          // const { result: res2 } = await context.createBlock(
-          //   context
-          //     .polkadotJs()
-          //     .tx.balances.transferAllowDeath(baltathar.address, 2n * GLMR)
-          //     .signAsync(randomAccount)
-          // );
-          // expect(res2!.successful).to.be.true;
-
-          // TODO Change this check once the transferable balance is fixed
-          // Check Ticket MOON-2598: https://opslayer.atlassian.net/browse/MOON-2598
-          expect(
-            async () =>
-              await context.createBlock(
-                context
-                  .polkadotJs()
-                  .tx.balances.transferAllowDeath(baltathar.address, 2n * GLMR)
-                  .signAsync(randomAccount)
-              )
-          ).rejects.toThrowError(
-            "1010: Invalid Transaction: Inability to pay some fees , e.g. account balance too low"
+          const { result: res2 } = await context.createBlock(
+            context
+              .polkadotJs()
+              .tx.balances.transferAllowDeath(baltathar.address, 2n * GLMR)
+              .signAsync(randomAccount)
           );
+          expect(res2!.successful).to.be.true;
         }
       },
     });

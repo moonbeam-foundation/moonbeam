@@ -66,5 +66,9 @@
     "prettier": "2.8.8",
     "typescript": "5.3.3",
     "yargs": "17.7.2"
+  },
+  "engines": {
+    "pnpm": ">=8.6",
+    "node": ">=20.10.0"
   }
 }

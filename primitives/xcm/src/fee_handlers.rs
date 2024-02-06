@@ -164,7 +164,7 @@ pub struct XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>(
 impl<
 		Assets: Mutate<AccountId>,
 		Matcher: MatchesFungibles<Assets::AssetId, Assets::Balance>,
-		AccountId: Clone,
+		AccountId: Clone + Eq,
 		ReceiverAccount: Get<AccountId>,
 	> TakeRevenue for XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>
 {
