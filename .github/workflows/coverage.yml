@@ -92,6 +92,10 @@ jobs:
     needs: ["set-tags"]
     if: ${{ !github.event.pull_request.head.repo.fork }}
     timeout-minutes: 60
+
+    strategy:
+      matrix:
+        chain: ["moonbase", "moonbeam"]
     env:
       RUSTC_WRAPPER: "sccache"
       CARGO_INCREMENTAL: "0"
@@ -130,7 +134,7 @@ jobs:
       - name: "Run Moonwall Dev Tests"
         uses: ./.github/workflow-templates/dev-tests
         with:
-          moonwall_environment: dev_moonbase
+          moonwall_environment: dev_${{ matrix.chain }}
           force-pass: true
 
       - name: Retrieve coverage
