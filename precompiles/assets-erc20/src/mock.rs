@@ -59,12 +59,15 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
 	/// and by taking the lowest 128 bits as the assetId
 	fn account_to_asset_id(account: AccountId) -> Option<(Vec<u8>, AssetId)> {
-		Some((
-			FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX
-				.to_be_bytes()
-				.to_vec(),
-			account.without_prefix(),
-		))
+		if account.has_prefix_u32(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX) {
+			return Some((
+				FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX
+					.to_be_bytes()
+					.to_vec(),
+				account.without_prefix(),
+			));
+		}
+		None
 	}
 
 	// Not used for now
