@@ -613,33 +613,25 @@ jobs:
           docker create --name moonbeam_container $DOCKER_TAG bash
           docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
           docker rm -f moonbeam_container
-      - name: "Run zombie upgrade test"
+      - name: Setup chainspecs
         run: |
           cd test
           pnpm install
 
           ## Generate old spec using latest published node, modify it, and generate raw spec
           chmod uog+x tmp/moonbeam_rt
+          chmod uog+x ../target/release/moonbeam
           tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
           pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json
           tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
-
-          ## Start zombie network and run tests
-          chmod uog+x ../target/release/moonbeam
+          pnpm tsx scripts/preapprove-rt-rawspec.ts process tmp/${{ matrix.chain }}-raw-spec.json tmp/${{ matrix.chain }}-modified-raw-spec.json ../target/release/wbuild/${{ matrix.chain }}-runtime/${{ matrix.chain }}_runtime.compact.compressed.wasm
+      - name: "Run zombie upgrade test"
+        run: |
+          cd test
           pnpm moonwall test zombie_${{ matrix.chain }}
       - name: "Run zombie RPC test"
         run: |
           cd test
-          pnpm install
-
-          ## Generate old spec using latest published node, modify it, and generate raw spec
-          chmod uog+x tmp/moonbeam_rt
-          tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
-          pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json
-          tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
-
-          ## Start zombie network and run tests
-          chmod uog+x ../target/release/moonbeam
           pnpm moonwall test zombie_${{ matrix.chain }}_rpc
       - name: Zip and Upload Node Logs on Failure
         if: failure()
