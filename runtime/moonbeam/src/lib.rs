@@ -1114,113 +1114,6 @@ where
 	}
 }
 
-// Name of the pallet to be removed in the migration
-// The pallet name is used as storage key prefix for all the values stored by pallets
-frame_support::parameter_types! {
-	pub const LocalAssetsPalletName: &'static str = "LocalAssets";
-}
-
-pub struct RemoveLocalAssets<R>(sp_std::marker::PhantomData<R>);
-
-impl<Runtime> Migration for RemoveLocalAssets<Runtime>
-where
-	Runtime: frame_system::Config,
-	Runtime::AccountId: Into<H160>,
-	Runtime: pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion<
-		Runtime::AccountId,
-		AssetId,
-	>,
-	Runtime: pallet_evm::Config,
-{
-	fn friendly_name(&self) -> &str {
-		"MM_RemovePalletAssets"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		log::info!("Removing (LocalAssets) pallet storage...");
-		let weight = frame_support::migrations::RemovePallet::<
-			LocalAssetsPalletName,
-			<Runtime as frame_system::Config>::DbWeight,
-		>::on_runtime_upgrade();
-
-		let addresses = precompiles::DisabledLocalAssets::<Runtime>::get();
-
-		for address in addresses.iter() {
-			pallet_evm::AccountCodes::<Runtime>::remove(address);
-		}
-
-		let addresses_len = addresses.len() as u64;
-		log::info!("Removed account codes for {} addresses 🧹", addresses_len);
-
-		weight.saturating_add(
-			<Runtime as frame_system::Config>::DbWeight::get()
-				.reads_writes(addresses_len + 1, addresses_len),
-		)
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		frame_support::migrations::RemovePallet::<
-			LocalAssetsPalletName,
-			<Runtime as frame_system::Config>::DbWeight,
-		>::pre_upgrade()?;
-
-		let addresses = precompiles::DisabledLocalAssets::<Runtime>::get();
-
-		for address in addresses.iter() {
-			if pallet_evm::AccountCodes::<Runtime>::contains_key(address) {
-				log::info!(
-					"Migration {}: account code for address {} will be removed.",
-					self.friendly_name(),
-					address
-				)
-			}
-		}
-
-		Ok(sp_std::vec::Vec::new())
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		frame_support::migrations::RemovePallet::<
-			LocalAssetsPalletName,
-			<Runtime as frame_system::Config>::DbWeight,
-		>::post_upgrade(state)?;
-
-		let addresses = precompiles::DisabledLocalAssets::<Runtime>::get();
-
-		for address in addresses.iter() {
-			if pallet_evm::AccountCodes::<Runtime>::contains_key(address) {
-				log::warn!(
-					"Migration {}: failed to remove account code for address {}.",
-					self.friendly_name(),
-					address
-				)
-			}
-		}
-
-		Ok(())
-	}
-}
-
-impl<Runtime> GetMigrations for RemoveLocalAssets<Runtime>
-where
-	Runtime: frame_system::Config,
-	Runtime::AccountId: Into<H160>,
-	Runtime: pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion<
-		Runtime::AccountId,
-		AssetId,
-	>,
-	Runtime: pallet_evm::Config,
-{
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		if VERSION.spec_version != 2800 {
-			return vec![];
-		}
-		vec![Box::new(RemoveLocalAssets::<Runtime>(Default::default()))]
-	}
-}
-
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MigrationsList = (
@@ -1232,8 +1125,6 @@ impl pallet_migrations::Config for Runtime {
 			OpenTechCommitteeCollective,
 		>,
 		ParachainStakingRoundMigration<Runtime>,
-		// RT 2800
-		RemoveLocalAssets<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
 }
