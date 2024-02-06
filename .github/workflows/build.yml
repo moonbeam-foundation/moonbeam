@@ -353,7 +353,7 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        chain: ["moonbase"]
+        chain: ["moonbase", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
