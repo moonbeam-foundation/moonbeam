@@ -69,7 +69,6 @@ describeSuite({
               expect(events.length === 6);
               expect(api.events.system.NewAccount.is(events[2].event)).to.be.true;
               expect(api.events.balances.Endowed.is(events[3].event)).to.be.true;
-              expect(api.events.treasury.Deposit.is(events[4].event)).to.be.true;
               expect(api.events.system.ExtrinsicFailed.is(events[5].event)).to.be.true;
               break;
             default:

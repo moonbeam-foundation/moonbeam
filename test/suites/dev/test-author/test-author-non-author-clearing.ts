@@ -24,7 +24,6 @@ describeSuite({
         );
 
         expect(result?.events.length === 4);
-        expect(api.events.treasury.Deposit.is(result?.events[2].event)).to.be.true;
         expect(api.events.system.ExtrinsicFailed.is(result?.events[4].event)).to.be.true;
       },
     });

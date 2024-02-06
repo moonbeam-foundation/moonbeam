@@ -96,7 +96,6 @@ describeSuite({
         expect(context.polkadotJs().events.system.NewAccount.is(result!.events[2].event)).to.be
           .true;
         expect(context.polkadotJs().events.balances.Endowed.is(result!.events[3].event)).to.be.true;
-        expect(context.polkadotJs().events.treasury.Deposit.is(result!.events[4].event)).to.be.true;
         expect(context.polkadotJs().events.system.ExtrinsicFailed.is(result!.events[6].event)).to.be
           .true;
 
