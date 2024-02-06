@@ -378,7 +378,10 @@
       ],
       "multiThreads": 8,
       "envVars": ["DEBUG_COLORS=1"],
-      "reporters": ["html", "basic"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": {
+        "json": "./tmp/testResults.json"
+      },
       "foundation": {
         "type": "dev",
         "launchSpec": [
