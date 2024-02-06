@@ -27,8 +27,7 @@
   "environments": [
     {
       "name": "zombie_moonbeam",
-      "testFileDir": ["suites/para"],
-      "include": ["**/*moonbeam*"],
+      "testFileDir": ["suites/zombie"],
       "multiThreads": false,
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
@@ -41,8 +40,7 @@
     },
     {
       "name": "zombie_moonbeam_rpc",
-      "testFileDir": ["suites/para-rpc"],
-      "include": ["**/*moonbeam*", "**/*common*"],
+      "testFileDir": ["suites/zombie"],
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
@@ -76,7 +74,7 @@
     },
     {
       "name": "zombie_moonbase",
-      "testFileDir": ["suites/para"],
+      "testFileDir": ["suites/zombie"],
       "include": ["**/*moonbase*", "**/*common*"],
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
@@ -89,8 +87,7 @@
     },
     {
       "name": "zombie_moonbase_rpc",
-      "testFileDir": ["suites/para-rpc"],
-      "include": ["**/*moonbase*", "**/*common*"],
+      "testFileDir": ["suites/zombie"],
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
@@ -121,18 +118,6 @@
           "endpoints": ["ws://127.0.0.1:33356"]
         }
       ]
-    },
-    {
-      "name": "zombie_common",
-      "testFileDir": ["suites/para"],
-      "include": ["**/*common*"],
-      "runScripts": ["download-polkadot.sh"],
-      "foundation": {
-        "type": "zombie",
-        "zombieSpec": {
-          "configPath": "./configs/zombieMoonbeam.json"
-        }
-      }
     },
     {
       "name": "smoke_stagenet",

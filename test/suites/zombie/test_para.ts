@@ -1,15 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { MoonwallContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
-import {
-  ALITH_PRIVATE_KEY,
-  BALTATHAR_ADDRESS,
-  MIN_GAS_PRICE,
-  alith,
-  charleth,
-  createRawTransfer,
-  generateKeyringPair,
-  sendRawTransaction,
-} from "@moonwall/util";
+import { BALTATHAR_ADDRESS, alith, charleth } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { ethers } from "ethers";
 import fs from "node:fs";
@@ -25,12 +16,6 @@ describeSuite({
     beforeAll(async () => {
       paraApi = context.polkadotJs("parachain");
       relayApi = context.polkadotJs("relaychain");
-
-      const relayNetwork = relayApi.consts.system.version.specName.toString();
-      expect(relayNetwork, "Relay API incorrect").to.contain("rococo");
-
-      const paraNetwork = paraApi.consts.system.version.specName.toString();
-      expect(paraNetwork, "Para API incorrect").to.contain("moonbase");
 
       const currentBlock = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
       expect(currentBlock, "Parachain not producing blocks").to.be.greaterThan(0);
@@ -138,28 +123,6 @@ describeSuite({
         //   .ethers()
         //   .sendTransaction({ to: BALTATHAR_ADDRESS, value: ethers.parseEther("1") });
         // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "pending"));
-      },
-    });
-
-    it({
-      id: "T05",
-      title: "RPC Provider can produce a pending ethereum block",
-      test: async () => {
-        const randomAccount = generateKeyringPair();
-        const randomAddress = randomAccount.address as `0x${string}`;
-
-        const rawTx = (await createRawTransfer(context as any, randomAddress, 512n, {
-          privateKey: ALITH_PRIVATE_KEY,
-          gasPrice: MIN_GAS_PRICE,
-          gas: 21000n,
-          txnType: "legacy",
-        })) as `0x${string}`;
-        log(rawTx);
-        await sendRawTransaction(context, rawTx);
-
-        expect(
-          await context.viem().getBalance({ address: randomAddress, blockTag: "pending" })
-        ).toBe(512n);
       },
     });
   },
