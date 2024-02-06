@@ -79,9 +79,7 @@ use frame_support::{
 
 use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
-use maintenance_mode_primitives::hooks::{
-	MaintenanceDmpHandler, MaintenanceHooks, NormalDmpHandler,
-};
+use maintenance_mode_primitives::{hooks::MaintenanceHooks, handlers::{NormalDmpHandler, MaintenanceDmpHandler}};
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::weights as moonbeam_weights;
 use nimbus_primitives::CanAuthor;
