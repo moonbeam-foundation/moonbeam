@@ -26,7 +26,7 @@
     {
       "id": 1000,
       "chain": "moonbeam-local",
-      "chain_spec_path": "tmp/moonbeam-raw-spec.json",
+      "chain_spec_path": "tmp/moonbeam-modified-raw-spec.json",
       "collator": {
         "name": "alith",
         "command": "../target/release/moonbeam",
