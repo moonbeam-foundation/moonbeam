@@ -2,7 +2,12 @@ import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { decodeEventLog } from "viem";
-import { Referenda, cancelProposal, expectEVMResult, expectSubstrateEvent } from "../../../../helpers";
+import {
+  Referenda,
+  cancelProposal,
+  expectEVMResult,
+  expectSubstrateEvent,
+} from "../../../../helpers";
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
 describeSuite({

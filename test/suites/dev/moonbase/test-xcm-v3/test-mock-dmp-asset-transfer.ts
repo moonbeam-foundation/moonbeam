@@ -1,7 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
-import { RELAY_SOURCE_LOCATION, registerForeignAsset, relayAssetMetadata } from "../../../../helpers";
+import {
+  RELAY_SOURCE_LOCATION,
+  registerForeignAsset,
+  relayAssetMetadata,
+} from "../../../../helpers";
 
 // Twelve decimal places in the moonbase relay chain's token
 const RELAY_TOKEN = 1_000_000_000_000n;
