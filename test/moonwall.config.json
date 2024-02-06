@@ -383,8 +383,47 @@
       ]
     },
     {
+      "name": "dev_moonbeam",
+      "testFileDir": ["suites/dev/moonbeam"],
+      "include": ["**/*test*"],
+      "timeout": 180000,
+      "contracts": "contracts/",
+      "runScripts": [
+        "compile-contracts.ts compile",
+        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbeam-dev"
+      ],
+      "multiThreads": 8,
+      "envVars": ["DEBUG_COLORS=1"],
+      "reporters": ["html", "basic"],
+      "foundation": {
+        "type": "dev",
+        "launchSpec": [
+          {
+            "name": "moonbeam",
+            "binPath": "../target/release/moonbeam",
+            "newRpcBehaviour": true,
+            "options": [
+              "--ethapi=txpool",
+              "--no-hardware-benchmarks",
+              "--no-telemetry",
+              "--wasmtime-precompiled=wasm",
+              "--reserved-only",
+              "--no-grandpa",
+              "--no-prometheus",
+              "--force-authoring",
+              "--rpc-cors=all",
+              "--alice",
+              "--chain=moonbeam-dev",
+              "--sealing=manual",
+              "--tmp"
+            ]
+          }
+        ]
+      }
+    },
+    {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/"],
+      "testFileDir": ["suites/dev/moonbase"],
       "include": ["**/*test*"],
       "timeout": 180000,
       "contracts": "contracts/",
@@ -434,7 +473,7 @@
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
       ],
       "multiThreads": 4,
-      "envVars": ["DEBUG_COLORS=1"],
+      "envVars": ["DEBUG_COLORS=1", "MOON_RTNAME=moonbase"],
       "reporters": ["html", "basic"],
       "foundation": {
         "type": "dev",
@@ -469,6 +508,7 @@
       "testFileDir": ["suites/dev/"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
+      "envVars": ["DEBUG_COLORS=1", "MOON_RTNAME=moonbase"],
       "foundation": {
         "type": "dev",
         "launchSpec": [
