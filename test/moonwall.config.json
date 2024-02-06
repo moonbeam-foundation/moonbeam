@@ -457,7 +457,7 @@
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
       ],
       "multiThreads": 4,
-      "envVars": ["DEBUG_COLORS=1", "MOON_RTNAME=moonbase"],
+      "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["html", "basic"],
       "foundation": {
         "type": "dev",
@@ -492,7 +492,7 @@
       "testFileDir": ["suites/dev/"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
-      "envVars": ["DEBUG_COLORS=1", "MOON_RTNAME=moonbase"],
+      "envVars": ["DEBUG_COLORS=1"],
       "foundation": {
         "type": "dev",
         "launchSpec": [
