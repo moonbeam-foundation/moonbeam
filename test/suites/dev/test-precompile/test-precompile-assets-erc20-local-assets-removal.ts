@@ -32,7 +32,7 @@ describeSuite({
       "0xfffffffe221e31a529b1a5fc4101352398974a07",
     ];
     let erc20Abi: Abi;
-    let precompileRegistryAbi;
+    let precompileRegistryAbi: Abi;
 
     beforeAll(async () => {
       const { abi } = await deployCreateCompiledContract(context, "ERC20Instance");
@@ -74,7 +74,7 @@ describeSuite({
             expect(receipt.status).to.equal("reverted");
 
             // Assert expected revert reason
-            const revertReason = await extractRevertReason(context, result.hash);
+            const revertReason = await extractRevertReason(context, result!.hash);
             expect(revertReason).to.equal("Removed precompile");
           } else {
             // The transaction status should be "success"
