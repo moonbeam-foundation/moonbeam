@@ -11,7 +11,7 @@ yargs(hideBin(process.argv))
   .usage("Usage: $0")
   .version("2.0.0")
   .command(
-    "process <inputPath> <outputPath> [runtimePath]",
+    "process <inputPath> <outputPath>",
     "Overwrites a plainSpec with Alith modifications",
     (yargs) => {
       return yargs
