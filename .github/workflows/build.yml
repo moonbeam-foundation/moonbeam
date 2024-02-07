@@ -352,6 +352,7 @@ jobs:
     needs: ["set-tags", "build"]
     timeout-minutes: 20
     strategy:
+      fail-fast: false
       matrix:
         chain: ["moonbase", "moonbeam"]
     env:

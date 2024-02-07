@@ -94,6 +94,7 @@ jobs:
     timeout-minutes: 60
 
     strategy:
+      fail-fast: false
       matrix:
         chain: ["moonbase", "moonbeam"]
     env:
