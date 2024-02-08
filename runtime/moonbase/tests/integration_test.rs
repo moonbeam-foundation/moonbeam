@@ -163,6 +163,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::EthereumXcm>("EthereumXcm");
 	is_pallet_prefix::<moonbase_runtime::Randomness>("Randomness");
 	is_pallet_prefix::<moonbase_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
+	is_pallet_prefix::<moonbase_runtime::RelayStorageRoots>("RelayStorageRoots");
 
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
@@ -262,6 +263,26 @@ fn verify_pallet_prefixes() {
 			max_values: Some(1),
 			max_size: None,
 		},]
+	);
+
+	assert_eq!(
+		<moonbase_runtime::RelayStorageRoots as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				pallet_name: b"RelayStorageRoots".to_vec(),
+				storage_name: b"RelayStorageRoot".to_vec(),
+				prefix: prefix(b"RelayStorageRoots", b"RelayStorageRoot"),
+				max_values: None,
+				max_size: Some(44),
+			},
+			StorageInfo {
+				pallet_name: b"RelayStorageRoots".to_vec(),
+				storage_name: b"RelayStorageRootKeys".to_vec(),
+				prefix: prefix(b"RelayStorageRoots", b"RelayStorageRootKeys"),
+				max_values: Some(1),
+				max_size: Some(41),
+			},
+		]
 	);
 }
 
@@ -1715,36 +1736,36 @@ where
 #[test]
 #[rustfmt::skip]
 fn length_fee_is_sensible() {
-	use sp_runtime::testing::TestXt;
+    use sp_runtime::testing::TestXt;
 
-	// tests that length fee is sensible for a few hypothetical transactions
-	ExtBuilder::default().build().execute_with(|| {
-		let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
-		let uxt: TestXt<_, ()> = TestXt::new(call, Some((1u64, ())));
+    // tests that length fee is sensible for a few hypothetical transactions
+    ExtBuilder::default().build().execute_with(|| {
+        let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
+        let uxt: TestXt<_, ()> = TestXt::new(call, Some((1u64, ())));
 
-		let calc_fee = |len: u32| -> Balance {
-			moonbase_runtime::TransactionPayment::query_fee_details(uxt.clone(), len)
-				.inclusion_fee
-				.expect("fee should be calculated")
-				.len_fee
-		};
+        let calc_fee = |len: u32| -> Balance {
+            moonbase_runtime::TransactionPayment::query_fee_details(uxt.clone(), len)
+                .inclusion_fee
+                .expect("fee should be calculated")
+                .len_fee
+        };
 
-		// editorconfig-checker-disable
-		//                  left: cost of length fee, right: size in bytes
-		//                             /------------- proportional component: O(N * 1B)
-		//                             |           /- exponential component: O(N ** 3)
-		//                             |           |
-		assert_eq!(                    1_000_000_001, calc_fee(1));
-		assert_eq!(                   10_000_001_000, calc_fee(10));
-		assert_eq!(                  100_001_000_000, calc_fee(100));
-		assert_eq!(                1_001_000_000_000, calc_fee(1_000));
-		assert_eq!(               11_000_000_000_000, calc_fee(10_000)); // inflection point
-		assert_eq!(            1_100_000_000_000_000, calc_fee(100_000));
-		assert_eq!(        1_001_000_000_000_000_000, calc_fee(1_000_000)); // one UNIT, ~ 1MB
-		assert_eq!(    1_000_010_000_000_000_000_000, calc_fee(10_000_000));
-		assert_eq!(1_000_000_100_000_000_000_000_000, calc_fee(100_000_000));
-		// editorconfig-checker-enable
-	});
+        // editorconfig-checker-disable
+        //                  left: cost of length fee, right: size in bytes
+        //                             /------------- proportional component: O(N * 1B)
+        //                             |           /- exponential component: O(N ** 3)
+        //                             |           |
+        assert_eq!(                    1_000_000_001, calc_fee(1));
+        assert_eq!(                   10_000_001_000, calc_fee(10));
+        assert_eq!(                  100_001_000_000, calc_fee(100));
+        assert_eq!(                1_001_000_000_000, calc_fee(1_000));
+        assert_eq!(               11_000_000_000_000, calc_fee(10_000)); // inflection point
+        assert_eq!(            1_100_000_000_000_000, calc_fee(100_000));
+        assert_eq!(        1_001_000_000_000_000_000, calc_fee(1_000_000)); // one UNIT, ~ 1MB
+        assert_eq!(    1_000_010_000_000_000_000_000, calc_fee(10_000_000));
+        assert_eq!(1_000_000_100_000_000_000_000_000, calc_fee(100_000_000));
+        // editorconfig-checker-enable
+    });
 }
 
 #[test]

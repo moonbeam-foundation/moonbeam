@@ -1422,6 +1422,18 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
+parameter_types! {
+	pub const MaxStorageRoots: u32 = 10;
+}
+
+impl pallet_relay_storage_roots::Config for Runtime {
+	type MaxStorageRoots = MaxStorageRoots;
+	type RelaychainStateProvider = cumulus_pallet_parachain_system::RelaychainDataProvider<Self>;
+	// TODOs update weights
+	//type WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
+	type WeightInfo = ();
+}
+
 construct_runtime! {
 	pub enum Runtime
 	{
@@ -1500,6 +1512,7 @@ construct_runtime! {
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
+		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 121,
 	}
 }
 
@@ -1539,6 +1552,7 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
+		[pallet_relay_storage_roots, RelayStorageRoots]
 		[moonbeam_xcm_benchmarks::weights::generic, MoonbeamXcmGenericBench::<Runtime>]
 	);
 }

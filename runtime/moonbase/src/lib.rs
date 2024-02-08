@@ -22,7 +22,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
-#![recursion_limit = "256"]
+#![recursion_limit = "512"]
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -1433,6 +1433,18 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
+parameter_types! {
+	pub const MaxStorageRoots: u32 = 10;
+}
+
+impl pallet_relay_storage_roots::Config for Runtime {
+	type MaxStorageRoots = MaxStorageRoots;
+	type RelaychainStateProvider = cumulus_pallet_parachain_system::RelaychainDataProvider<Self>;
+	// TODOs update weights
+	//type WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
+	type WeightInfo = ();
+}
+
 construct_runtime! {
 	pub enum Runtime
 	{
@@ -1490,6 +1502,7 @@ construct_runtime! {
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
 		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 50,
+		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage } = 51,
 	}
 }
 
@@ -1563,6 +1576,7 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
+		[pallet_relay_storage_roots, RelayStorageRoots]
 		[moonbeam_xcm_benchmarks::weights::generic, MoonbeamXcmGenericBench::<Runtime>]
 	);
 }

@@ -319,6 +319,7 @@ pallet-author-slot-filter = { git = "https://github.com/Moonsong-Labs/moonkit", 
 pallet-maintenance-mode = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-migrations = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-randomness = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
+pallet-relay-storage-roots = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 session-keys-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 
 # Moonkit (client)
