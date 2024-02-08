@@ -17,15 +17,12 @@
 //! A minimal runtime including the multi block migrations pallet
 
 use super::*;
-use crate as pallet_migrations;
+use crate as pallet_manual_migrations;
 use frame_support::{
-	construct_runtime,
-	pallet_prelude::*,
-	parameter_types,
-	traits::{EqualPrivilegeOnly, Everything},
+	construct_runtime, parameter_types,
+	traits::Everything,
 	weights::{constants::RocksDbWeight, Weight},
 };
-use frame_system::EnsureRoot;
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
@@ -35,7 +32,6 @@ use sp_runtime::{
 pub type AccountId = u64;
 pub type Balance = u128;
 type Block = frame_system::mocking::MockBlock<Runtime>;
-type BlockNumber = u64;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
@@ -43,7 +39,7 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Migrations: pallet_multi_block_migrations::{Pallet, Call, Storage, Config<T>, Event<T>},
+		ManualMigrations: pallet_manual_migrations::{Pallet, Call},
 	}
 );
 
@@ -113,7 +109,7 @@ impl Default for ExtBuilder {
 
 impl ExtBuilder {
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut storage = frame_system::GenesisConfig::<Runtime>::default()
+		let storage = frame_system::GenesisConfig::<Runtime>::default()
 			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
@@ -121,18 +117,4 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
-}
-
-pub(crate) fn events() -> Vec<pallet_migrations::Event<Runtime>> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.filter_map(|e| {
-			if let RuntimeEvent::Migrations(inner) = e {
-				Some(inner)
-			} else {
-				None
-			}
-		})
-		.collect::<Vec<_>>()
 }

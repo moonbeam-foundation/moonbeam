@@ -67,9 +67,10 @@ pub mod pallet {
 				sp_io::KillStorageResult::SomeRemaining(value) => value,
 			} as u64;
 
-			if keys_removed == 0 {
-				return Err("All storage keys have been removed.".into());
-			}
+			ensure!(
+				keys_removed > 0,
+				Error::<T>::AllStorageEntriesHaveBeenRemoved
+			);
 
 			log::info!("Removed {} keys 🧹", keys_removed);
 

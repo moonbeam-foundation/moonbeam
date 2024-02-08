@@ -16,13 +16,8 @@
 
 //! Unit testing
 use {
-	crate::{
-		mock::{events, ExtBuilder, Migrations, MockMigrationManager, Runtime, System},
-		Event,
-	},
-	frame_support::{assert_ok, traits::OnRuntimeUpgrade, weights::Weight},
-	sp_runtime::traits::Get,
-	std::sync::{Arc, Mutex},
+	crate::mock::{ExtBuilder, ManualMigrations},
+	frame_support::assert_ok,
 };
 
 /// TODO(rodrigo): This test should be removed once LocalAssets pallet storage is removed
@@ -59,7 +54,7 @@ fn test_call_clear_local_assets_storage() {
 			assert!(sp_io::storage::exists(&dummy_data));
 		}
 		// Clear all storage entries
-		assert_ok!(Migrations::clear_local_assets_storage(
+		assert_ok!(ManualMigrations::clear_local_assets_storage(
 			crate::mock::RuntimeOrigin::signed(1),
 			total_storage_entries.into()
 		));
@@ -76,9 +71,10 @@ fn test_call_clear_local_assets_storage() {
 	// Next block
 	context.execute_with(|| {
 		// No more storage entries to be removed (expect failure)
-		assert!(
-			Migrations::clear_local_assets_storage(crate::mock::RuntimeOrigin::signed(1), 1)
-				.is_err()
+		assert!(ManualMigrations::clear_local_assets_storage(
+			crate::mock::RuntimeOrigin::signed(1),
+			1
 		)
+		.is_err())
 	});
 }
