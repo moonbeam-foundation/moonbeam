@@ -6515,6 +6515,7 @@ dependencies = [
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
+ "pallet-manual-migrations",
  "pallet-message-queue",
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
@@ -6997,6 +6998,7 @@ dependencies = [
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
+ "pallet-manual-migrations",
  "pallet-message-queue",
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
@@ -7386,6 +7388,7 @@ dependencies = [
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
+ "pallet-manual-migrations",
  "pallet-message-queue",
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
@@ -9489,6 +9492,21 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "xcm-primitives 0.1.0",
+]
+
+[[package]]
+name = "pallet-manual-migrations"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]

@@ -38,6 +38,7 @@ pallet-evm-chain-id = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
 pallet-maintenance-mode = { workspace = true, features = [ "xcm-support" ] }
 pallet-migrations = { workspace = true }
+pallet-manual-migrations = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
 pallet-parachain-staking = { workspace = true }
 pallet-proxy-genesis-companion = { workspace = true }
@@ -251,6 +252,7 @@ std = [
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
+	"pallet-manual-migrations/std",
 	"pallet-moonbeam-orbiters/std",
 	"pallet-multisig/std",
 	"pallet-parachain-staking/std",
@@ -334,6 +336,7 @@ runtime-benchmarks = [
 	"pallet-evm/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-migrations/runtime-benchmarks",
+	"pallet-manual-migrations/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
@@ -372,6 +375,7 @@ try-runtime = [
 	"pallet-maintenance-mode/try-runtime",
 	"pallet-maintenance-mode/try-runtime",
 	"pallet-migrations/try-runtime",
+	"pallet-manual-migrations/try-runtime",
 	"pallet-parachain-staking/try-runtime",
 	"pallet-preimage/try-runtime",
 	"pallet-referenda/try-runtime",

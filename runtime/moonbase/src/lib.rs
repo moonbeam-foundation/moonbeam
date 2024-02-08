@@ -1147,6 +1147,8 @@ impl pallet_migrations::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
+impl pallet_manual_migrations::Config for Runtime {}
+
 /// Maintenance mode Call filter
 pub struct MaintenanceFilter;
 impl Contains<RuntimeCall> for MaintenanceFilter {
@@ -1483,6 +1485,7 @@ construct_runtime! {
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
 		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 50,
+		ManualMigrations: pallet_manual_migrations::{Pallet, Call} = 51
 	}
 }
 
@@ -1720,6 +1723,9 @@ mod tests {
 		assert!(std::mem::size_of::<orml_xtokens::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_asset_manager::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(
+			std::mem::size_of::<pallet_manual_migrations::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
 		assert!(std::mem::size_of::<pallet_xcm_transactor::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(
 			std::mem::size_of::<pallet_proxy_genesis_companion::Call<Runtime>>()

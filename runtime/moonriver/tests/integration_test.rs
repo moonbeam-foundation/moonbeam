@@ -152,6 +152,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonriver_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
 	is_pallet_prefix::<moonriver_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
+	is_pallet_prefix::<moonriver_runtime::ManualMigrations>("ManualMigrations");
 
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
@@ -500,6 +501,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::AssetManager>(105);
 	is_pallet_index::<moonriver_runtime::XTokens>(106);
 	is_pallet_index::<moonriver_runtime::XcmTransactor>(107);
+	is_pallet_index::<moonriver_runtime::ManualMigrations>(111);
 }
 
 #[test]

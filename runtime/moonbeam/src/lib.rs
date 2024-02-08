@@ -1129,6 +1129,8 @@ impl pallet_migrations::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
+impl pallet_manual_migrations::Config for Runtime {}
+
 /// Maintenance mode Call filter
 pub struct MaintenanceFilter;
 impl Contains<RuntimeCall> for MaintenanceFilter {
@@ -1488,6 +1490,7 @@ construct_runtime! {
 		// Previously 108: pallet_assets::<Instance1>
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 109,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
+		ManualMigrations: pallet_manual_migrations::{Pallet, Call} = 111,
 
 
 		// Randomness
@@ -1739,6 +1742,9 @@ mod tests {
 			std::mem::size_of::<pallet_maintenance_mode::Call<Runtime>>() <= CALL_ALIGN as usize
 		);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(
+			std::mem::size_of::<pallet_manual_migrations::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
 		assert!(
 			std::mem::size_of::<pallet_proxy_genesis_companion::Call<Runtime>>()
 				<= CALL_ALIGN as usize
