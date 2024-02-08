@@ -26,6 +26,7 @@ members = [
 	"precompiles/proxy",
 	"precompiles/referenda",
 	"precompiles/relay-encoder",
+	"precompiles/relay-proof-verifier",
 	"precompiles/utils",
 	"precompiles/utils/macro",
 	"precompiles/utils/tests-external",

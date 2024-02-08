@@ -9854,6 +9854,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-relay-proof-verifier-precompile"
+version = "0.1.0"
+dependencies = [
+ "fp-evm",
+ "frame-support",
+ "precompile-utils",
+ "sp-core",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-root-testing"
 version = "1.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.3.0#542721dd4ab6b8119a8479a8830e57e101249594"

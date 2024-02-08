@@ -1,0 +1,18 @@
+[package]
+name = "pallet-relay-proof-verifier-precompile"
+authors = { workspace = true }
+description = "A Precompile to make pallet-relay-proof-verifier calls accessible to pallet-evm"
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+# Moonbeam
+precompile-utils = { workspace = true }
+
+# Substrate
+sp-std = { workspace = true }
+sp-core = { workspace = true }
+frame-support = { workspace = true }
+
+# Frontier
+fp-evm = { workspace = true }
