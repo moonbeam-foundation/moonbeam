@@ -53,7 +53,10 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		// TODO(rodrigo): This extrinsic should be removed once LocalAssets pallet storage is removed
 		#[pallet::call_index(0)]
-		#[pallet::weight(<T as frame_system::Config>::DbWeight::get().reads_writes((*limit + 1).into(), (*limit).into()))]
+		#[pallet::weight(
+			<T as frame_system::Config>::DbWeight::get()
+				.reads_writes((*limit + 1).into(), (*limit).into())
+		)]
 		pub fn clear_local_assets_storage(
 			origin: OriginFor<T>,
 			limit: u32,
