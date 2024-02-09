@@ -17,8 +17,6 @@
   "license": "ISC",
   "dependencies": {
     "@acala-network/chopsticks": "0.9.8",
-    "@effect/cli": "^0.32.2",
-    "@effect/platform-node": "^0.42.11",
     "@moonbeam-network/api-augment": "0.2700.0",
     "@moonwall/cli": "4.7.7",
     "@moonwall/util": "4.7.7",
@@ -39,7 +37,6 @@
     "@zombienet/utils": "0.0.24",
     "chalk": "5.3.0",
     "dockerode": "^4.0.2",
-    "effect": "^2.2.5",
     "eth-object": "github:aurora-is-near/eth-object#master",
     "ethers": "6.10.0",
     "json-bigint": "1.0.0",

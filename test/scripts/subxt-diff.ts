@@ -105,7 +105,7 @@ interface RuntimeDetails {
 
 // misc
 const writeDiffResultsToFile = async (runtime: string, runtimeVersion: number, content: string) => {
-  const diffsDirPath = path.join(__dirname, "../../runtimeDiffs", runtime);
+  const diffsDirPath = path.join(__dirname, "../../runtime-diffs", runtime);
   const fileName = `runtime-${runtimeVersion}.txt`;
   const filePath = path.join(diffsDirPath, fileName);
   // biome-ignore lint/suspicious/noControlCharactersInRegex: this is what subxt adds
