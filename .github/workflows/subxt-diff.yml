@@ -38,5 +38,5 @@ jobs:
           commit-message: "runtime diff: v0.${{ github.event.inputs.spec_version }}.0"
           draft: true
           title: "Notorize runtime upgrade differences: ${{ github.event.inputs.spec_version }}"
-          reviewers: "timbrinded"
+          reviewers: "librelois,noandrea"
           labels: "B0-silent,D2-notlive"
