@@ -15,17 +15,17 @@ SCRIPT_DIR=$(dirname "$0")
 case $RUNTIME in
     moonbase)
         REMOTE_URI="wss://wss.api.moonbase.moonbeam.network"
-        ;;
+    ;;
     moonbeam)
         REMOTE_URI="wss://wss.api.moonbeam.network"
-        ;;
+    ;;
     moonriver)
         REMOTE_URI="wss://wss.api.moonriver.moonbeam.network"
-        ;;
+    ;;
     *)
         echo "Error: Invalid runtime specified. Valid options are moonbase, moonbeam, moonriver."
         exit 2
-        ;;
+    ;;
 esac
 
 # STATIC Values
@@ -57,6 +57,6 @@ echo "The local spec_version is: $local_version"
 
 mkdir -p "$SCRIPT_DIR/../runtime-diffs/$RUNTIME"
 
-subxt diff -a $REMOTE_URI $LOCAL_URI 
+subxt diff -a $REMOTE_URI $LOCAL_URI
 subxt diff -a $REMOTE_URI $LOCAL_URI | sed 's/\x1b\[[0-9;]*m//g' > "$SCRIPT_DIR/../runtime-diffs/$RUNTIME/$local_version.txt"
 echo "saved to '$SCRIPT_DIR/../runtime-diffs/$RUNTIME/$local_version.txt'"
