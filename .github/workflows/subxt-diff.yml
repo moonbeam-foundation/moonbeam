@@ -16,6 +16,14 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: 8.6.12
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.74.0
+          override: true
+      - name: Install Subxt-cli
+        run: |
+          cargo install subxt-cli
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
