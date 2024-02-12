@@ -12,4 +12,4 @@ runs:
         toolchain: 1.71.0
         components: rustfmt, clippy
         target: wasm32-unknown-unknown
-        default: true
+        override: true
