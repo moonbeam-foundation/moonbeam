@@ -271,7 +271,6 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
-      - uses: actions-rs/toolchain@v1.0.7
 
       # Development branch clippy check
       - name: Clippy (dev)
