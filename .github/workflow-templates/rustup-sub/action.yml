@@ -1,7 +1,6 @@
 name: Install Substrate Compatible Rust
 description: |
-  This repo requires both New and Old Rust versions side-by-side. This action installs the old version of Rust and sets it as the default.
-
+  This repo requires both New and Old Rust versions side-by-side. This action installs the old version of Rust and sets it as the overriden version.
 
 runs:
   using: "composite"

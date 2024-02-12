@@ -109,7 +109,7 @@ jobs:
           # Disable coverage when building
           echo "LLVM_PROFILE_FILE=/dev/null" >> $GITHUB_ENV
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: ./.github/workflow-templates/rustup-sub
       - name: Setup grcov
         run: |
           wget https://github.com/mozilla/grcov/releases/download/v${{ env.GRCOV_VERSION }}/grcov-x86_64-unknown-linux-gnu.tar.bz2
