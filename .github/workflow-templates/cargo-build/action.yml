@@ -11,6 +11,7 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - uses: dtolnay/rust-toolchain@stable
     - name: Run sccache-cache
       uses: mozilla-actions/sccache-action@v0.0.3
     - name: Setup Variables
