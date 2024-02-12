@@ -27,9 +27,7 @@ jobs:
           key: ${{ runner.os }}-cargo-doc-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Setup Rust toolchain
-        uses: actions-rs/toolchain@v1.0.7
-        with:
-          override: true
+        uses: dtolnay/rust-toolchain@v1
 
       - name: Build rustdocs
         uses: actions-rs/cargo@v1

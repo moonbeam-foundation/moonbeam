@@ -225,9 +225,7 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
 
       - name: Setup Rust toolchain
-        uses: actions-rs/toolchain@v1.0.7
-        with:
-          override: true
+        uses: dtolnay/rust-toolchain@v1
 
       - name: Check Cargo.toml files format with toml_sort
         run: ./scripts/check-cargo-toml-files-format.sh
@@ -242,9 +240,7 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Rust toolchain
-        uses: actions-rs/toolchain@v1.0.7
-        with:
-          override: true
+        uses: dtolnay/rust-toolchain@v1
       - name: Verifies all 'pallet-evm/ethereum' use 'forbid-evm-reentrancy' feature
         run: ./scripts/check-forbid-evm-reentrancy.sh
 
@@ -258,9 +254,7 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Rust toolchain
-        uses: actions-rs/toolchain@v1.0.7
-        with:
-          override: true
+        uses: dtolnay/rust-toolchain@v1
       - name: Format code with rustfmt
         run: cargo fmt -- --check
 
@@ -278,9 +272,7 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
       - name: Setup Rust toolchain
-        uses: actions-rs/toolchain@v1.0.7
-        with:
-          override: true
+        uses: dtolnay/rust-toolchain@v1
       # Development branch clippy check
       - name: Clippy (dev)
         if: github.ref != 'refs/heads/master' && !startsWith(github.ref, 'perm-')
@@ -340,9 +332,7 @@ jobs:
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
-        uses: actions-rs/toolchain@v1.0.7
-        with:
-          override: true
+        uses: dtolnay/rust-toolchain@v1
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
