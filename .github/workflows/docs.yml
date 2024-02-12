@@ -18,12 +18,6 @@ jobs:
         run: protoc --version
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
-      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
-      - name: Setup Rust toolchain
-        run: rustup show
-
       - uses: actions/cache@v3
         with:
           path: |
@@ -32,6 +26,11 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-doc-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          override: true
+            
       - name: Build rustdocs
         uses: actions-rs/cargo@v1
         env:
