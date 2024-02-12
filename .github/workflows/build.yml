@@ -248,7 +248,7 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Install Rust
-        run: rustup show
+        uses: dtolnay/rust-toolchain@stable
       - name: Format code with rustfmt
         run: cargo fmt -- --check
 
@@ -266,7 +266,7 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
       - name: Install Rust
-        run: rustup show
+        uses: dtolnay/rust-toolchain@stable
       # Development branch clippy check
       - name: Clippy (dev)
         if: github.ref != 'refs/heads/master' && !startsWith(github.ref, 'perm-')
@@ -313,7 +313,7 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Install Rust
-        run: rustup show
+        uses: dtolnay/rust-toolchain@stable
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.3
       - name: Setup Variables

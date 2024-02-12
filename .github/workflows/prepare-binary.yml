@@ -24,7 +24,7 @@ jobs:
         with:
           ref: ${{ github.event.inputs.sha }}
       - name: Install Rust
-        run: rustup show
+        uses: dtolnay/rust-toolchain@stable
       - name: Build Node
         run: cargo build --profile=production --all
       - name: Save parachain binary
