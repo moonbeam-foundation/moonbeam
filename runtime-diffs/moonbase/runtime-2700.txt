@@ -1,0 +1,8 @@
+Pallets:
+    ~ EVM
+    ~ ParachainStaking
+        Storage Entries:
+            ~ Round (Changed: default value)
+    ~ System
+        Storage Entries:
+            ~ Events (Changed: )
