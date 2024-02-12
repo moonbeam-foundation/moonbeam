@@ -24,7 +24,7 @@ jobs:
         with:
           ref: ${{ github.event.inputs.sha }}
       - name: Setup Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@v1.0.7
         with:
           override: true
       - name: Build Node

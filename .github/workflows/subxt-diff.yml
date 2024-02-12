@@ -20,7 +20,7 @@ jobs:
       - name: Local build new Node
         uses: ./.github/workflow-templates/cargo-build
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: 1.74.0
           override: true
