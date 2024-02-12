@@ -122,7 +122,8 @@ const writeDiffResultsToFile = async (runtime: string, runtimeVersion: number, c
 
     process.stdout.write(` ${result}  ✅\n`);
   } catch (error) {
-    console.error(`❌ Error writing diff results to file: ${error}`);
+    process.stdout.write("  ❌ \n");
+    console.error(`Error writing diff results to file: ${error}`);
   }
 };
 
@@ -164,9 +165,6 @@ yargs(hideBin(process.argv))
         localNodeProcess.on("close", (code) => {
           process.exit(code ? code : 0); // Exit with the child process's exit code
         });
-
-        // localNode.stdout.pipe(process.stdout);
-        // localNode.stderr.pipe(process.stderr);
 
         await setTimeout(2000);
         const headers = {
@@ -236,7 +234,6 @@ yargs(hideBin(process.argv))
         if (argv.publish) {
           process.stdout.write("📝 Writing diff to file...");
           await writeDiffResultsToFile(argv.runtime, localRuntimeVersion, stdout);
-          console.log("📡 Publishing diff results to repo...");
         }
       } catch (e) {
         console.error(e);
