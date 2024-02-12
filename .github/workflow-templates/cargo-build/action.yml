@@ -33,7 +33,6 @@ runs:
       with:
         override: true
 
-    - name: Setup Rust toolcha-toolchain
     - name: Build Node
       shell: bash
       run: |
