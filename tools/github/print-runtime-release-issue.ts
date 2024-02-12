@@ -81,6 +81,7 @@ ${commonTemplate}
 
 ## Pre-Release
 - [ ] Bump spec version to ${newVersion}
+- [ ] Run \`subxt-diff\` GH workflow to generate RT diffs and merge PR after manual review 👀
 
 ${commonTemplate}
 
