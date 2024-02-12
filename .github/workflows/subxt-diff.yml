@@ -8,7 +8,8 @@ on:
 
 jobs:
   local-diff:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: bare-metal
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -16,6 +17,8 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: 8.6.12
+      - name: Local build new Node
+        uses: ./.github/workflow-templates/cargo-build
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
