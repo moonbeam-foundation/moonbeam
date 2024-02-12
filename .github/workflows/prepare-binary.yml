@@ -23,10 +23,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.sha }}
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: 
       - name: Build Node
         run: cargo build --profile=production --all
       - name: Save parachain binary
