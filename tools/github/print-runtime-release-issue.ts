@@ -63,6 +63,7 @@ with ${lastClientVersion} and master
 - [ ] Check that proxy types are adapted to extrinsics changes (
   read all PR descriptions with B7-runtimenoteworthy)
 - [ ] Re-run all extrinsics/hooks benchmarks.
+- [ ] Run \`subxt-diff\` GH workflow to generate RT diffs and merge PR after manual review 👀
 
 ${commonTemplate}
 
@@ -80,6 +81,7 @@ ${commonTemplate}
 
 ## Pre-Release
 - [ ] Bump spec version to ${newVersion}
+- [ ] Run \`subxt-diff\` GH workflow to generate RT diffs and merge PR after manual review 👀
 
 ${commonTemplate}
 
