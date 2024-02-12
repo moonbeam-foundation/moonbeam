@@ -33,6 +33,9 @@ jobs:
           node-version: 20.10.0
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
+      - name: Test Docker Installed
+        run: |
+          docker --version
       - name: Run Diffs
         run: |
           cd test
