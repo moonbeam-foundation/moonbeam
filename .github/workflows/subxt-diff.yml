@@ -1,0 +1,50 @@
+name: Subxt Diff
+on:
+  workflow_dispatch:
+    inputs:
+      spec_version:
+        description: runtime spec version (ex. 1601)
+        required: true
+
+jobs:
+  local-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Use pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.6.12
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.74.0
+          override: true
+      - name: Install Subxt-cli
+        run: |
+          cargo install subxt-cli
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.10.0
+          cache: "pnpm"
+          cache-dependency-path: test/pnpm-lock.yaml
+      - name: Run Diffs
+        run: |
+          cd test
+          pnpm install
+
+          pnpm tsx scripts/subxt-diff.ts diff moonbase true
+          pnpm tsx scripts/subxt-diff.ts diff moonriver true
+          pnpm tsx scripts/subxt-diff.ts diff moonbeam true
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          base: master
+          branch: "runtime-diff-${{ github.event.inputs.spec_version }}"
+          commit-message: "runtime diff: v0.${{ github.event.inputs.spec_version }}.0"
+          draft: true
+          title: "Notorize runtime upgrade differences: ${{ github.event.inputs.spec_version }}"
+          reviewers: "librelois,noandrea"
+          labels: "B0-silent,D2-notlive"

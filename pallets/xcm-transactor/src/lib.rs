@@ -27,7 +27,7 @@
 //! derived from the multilocation of a use in this chain (tipically, hashing the ML).
 //! Such distinction is important since we want to keep the integrity of the sovereign account
 //!
-//! This pallet provides three ways of sending Transact operations to anothe chain
+//! This pallet provides three ways of sending Transact operations to another chain
 //!
 //! - transact_through_derivative: Transact through an address derived from this chains sovereign
 //! 	account in the destination chain. For the transaction to successfully be dispatched in the

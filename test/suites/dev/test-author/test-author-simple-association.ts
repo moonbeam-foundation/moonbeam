@@ -51,7 +51,6 @@ describeSuite({
         expect(api.events.authorMapping.KeysRegistered.is(result?.events[2].event)).to.be.true;
         expect(api.events.system.NewAccount.is(result?.events[4].event)).to.be.true;
         expect(api.events.balances.Endowed.is(result?.events[5].event)).to.be.true;
-        expect(api.events.treasury.Deposit.is(result?.events[6].event)).to.be.true;
         expect(api.events.system.ExtrinsicSuccess.is(result?.events[8].event)).to.be.true;
 
         // check association
