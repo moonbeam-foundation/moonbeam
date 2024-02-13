@@ -39,7 +39,7 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		ManualMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call},
+		LazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call},
 	}
 );
 

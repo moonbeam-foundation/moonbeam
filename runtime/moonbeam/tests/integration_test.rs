@@ -154,7 +154,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonbeam_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
 	is_pallet_prefix::<moonbeam_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
-	is_pallet_prefix::<moonbeam_runtime::ManualMigrations>("ManualMigrations");
+	is_pallet_prefix::<moonbeam_runtime::MoonbeamLazyMigrations>("MoonbeamLazyMigrations");
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
@@ -503,7 +503,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::AssetManager>(105);
 	is_pallet_index::<moonbeam_runtime::XTokens>(106);
 	is_pallet_index::<moonbeam_runtime::XcmTransactor>(107);
-	is_pallet_index::<moonbeam_runtime::ManualMigrations>(111);
+	is_pallet_index::<moonbeam_runtime::MoonbeamLazyMigrations>(111);
 }
 
 #[test]

@@ -16,7 +16,7 @@
 
 //! Unit testing
 use {
-	crate::mock::{ExtBuilder, ManualMigrations},
+	crate::mock::{ExtBuilder, LazyMigrations},
 	frame_support::assert_ok,
 };
 
@@ -54,7 +54,7 @@ fn test_call_clear_local_assets_storage() {
 			assert!(sp_io::storage::exists(&dummy_data));
 		}
 		// Clear all storage entries
-		assert_ok!(ManualMigrations::clear_local_assets_storage(
+		assert_ok!(LazyMigrations::clear_local_assets_storage(
 			crate::mock::RuntimeOrigin::signed(1),
 			total_storage_entries.into()
 		));
@@ -71,7 +71,7 @@ fn test_call_clear_local_assets_storage() {
 	// Next block
 	context.execute_with(|| {
 		// No more storage entries to be removed (expect failure)
-		assert!(ManualMigrations::clear_local_assets_storage(
+		assert!(LazyMigrations::clear_local_assets_storage(
 			crate::mock::RuntimeOrigin::signed(1),
 			1
 		)
