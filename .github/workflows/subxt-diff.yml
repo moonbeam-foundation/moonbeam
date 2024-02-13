@@ -46,6 +46,7 @@ jobs:
       - name: Install Subxt-cli
         run: |
           cargo install subxt-cli
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - name: Run last_release node via Docker
         run: |
           docker pull moonbeamfoundation/moonbeam:sha-${{ github.event.inputs.last_release_sha8 }}
