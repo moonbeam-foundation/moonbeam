@@ -33,7 +33,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-use sp_core::ConstBool;
+	use sp_core::ConstBool;
 
 	const INTERMEDIATES_NODES_SIZE: u64 = 4096;
 	const MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE: u64 =
@@ -46,7 +46,8 @@ use sp_core::ConstBool;
 
 	#[pallet::storage]
 	/// If true, it means that LocalAssets storage has been removed.
-	pub(crate) type LocalAssetsMigrationCompleted<T: Config> = StorageValue<_, bool, ValueQuery, ConstBool<false>>;
+	pub(crate) type LocalAssetsMigrationCompleted<T: Config> =
+		StorageValue<_, bool, ValueQuery, ConstBool<false>>;
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -62,7 +63,7 @@ use sp_core::ConstBool;
 	impl<T: Config> Pallet<T> {
 		// TODO(rodrigo): This extrinsic should be removed once LocalAssets pallet storage is removed
 		#[pallet::call_index(0)]
-		#[pallet::weight(Weight::from_parts(0, 
+		#[pallet::weight(Weight::from_parts(0,
 			INTERMEDIATES_NODES_SIZE + MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE * <u64>::from(*limit))
 			.saturating_add(<T as frame_system::Config>::DbWeight::get().reads_writes((*limit + 1).into(), (*limit).into()))
 		)]
@@ -83,7 +84,7 @@ use sp_core::ConstBool;
 				sp_io::KillStorageResult::AllRemoved(value) => {
 					LocalAssetsMigrationCompleted::<T>::set(true);
 					value
-				},
+				}
 				sp_io::KillStorageResult::SomeRemaining(value) => value,
 			} as u64;
 
