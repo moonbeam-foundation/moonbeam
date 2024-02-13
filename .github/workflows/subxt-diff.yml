@@ -78,6 +78,7 @@ jobs:
 
       - name: Run Diffs
         run: |
+          chmod +x target/release/moonbeam
           cd test
           pnpm install
           pnpm tsx scripts/subxt-diff.ts diff ${{ matrix.runtime }} ${{ github.event.inputs.last_release_sha8 }} true
