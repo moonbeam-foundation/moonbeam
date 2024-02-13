@@ -75,7 +75,7 @@ describeSuite({
     it({
       id: "T03",
       title: "Can connect to parachain and execute a transaction",
-      timeout: 60000,
+      timeout: 240000,
       test: async () => {
         const balBefore = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
 
@@ -83,19 +83,39 @@ describeSuite({
 
         context.waitBlock(5);
 
-        await new Promise((resolve) => {
-          paraApi.tx.balances
-            .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
-            .signAndSend(charleth, ({ status, events }) => {
-              if (status.isInBlock) {
-                log("Transaction is in block");
-              }
-              if (status.isFinalized) {
-                log("Transaction is finalized!");
-                resolve(events);
-              }
-            });
-        });
+        // TODO: Renable the below when we are using polkadot 1.7.0
+        //       There is a discrepancy with polkadotJs and 1.3.0
+        //
+        // await new Promise((resolve, reject) => {
+        //   paraApi.tx.balances
+        //     .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
+        //     .signAndSend(charleth, ({ status, events }) => {
+        //       if (status.isInBlock) {
+        //         log("Transaction is in block");
+        //       }
+        //       if (status.isFinalized) {
+        //         log("Transaction is finalized!");
+        //         resolve(events);
+        //       }
+
+        //       if (
+        //         status.isDropped ||
+        //         status.isInvalid ||
+        //         status.isUsurped ||
+        //         status.isFinalityTimeout
+        //       ) {
+        //         reject("transaction failed!");
+        //         throw new Error("Transaction failed");
+        //       }
+        //     });
+        // })
+
+        await paraApi.tx.balances
+          .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
+          .signAndSend(charleth);
+
+        // TODO: Remove waitBlock below when we are using polkadot 1.7.0
+        await context.waitBlock(2);
 
         const balAfter = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
         expect(balBefore.lt(balAfter)).to.be.true;
