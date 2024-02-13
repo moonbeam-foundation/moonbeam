@@ -175,6 +175,11 @@ yargs(hideBin(process.argv))
         }
 
         localNodeProcess = spawn(nodePath, launchArgs(argv.runtime, 9977), { shell: true });
+
+        localNodeProcess.stdout.on("data", (data) => {
+          process.stdout.write(data);
+        });
+        
         localNodeProcess.on("close", (code) => {
           process.exit(code ? code : 0); // Exit with the child process's exit code
         });
