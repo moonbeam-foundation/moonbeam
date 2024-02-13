@@ -615,9 +615,14 @@ jobs:
           docker rm -f moonbeam_container
       - name: "TEMPORARY: Download forked polkadot-bins"
         run: |
-          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot -O test/tmp/polkadot-forked-1.3
-          chmod +x test/tmp/polkadot-forked-1.3
-      - name: Setup chainspecs
+          # When we remove this step, re-add "runScripts": ["download-polkadot.sh"]," to moonwall config
+          cd test/tmp
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot-execute-worker
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot-prepare-worker
+
+          chmod +x test/tmp/polkadot-*
+      - name: Prepare Chainspecs
         run: |
           cd test
           pnpm install
