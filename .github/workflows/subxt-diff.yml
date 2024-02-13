@@ -8,8 +8,7 @@ on:
 
 jobs:
   local-diff:
-    runs-on:
-      labels: bare-metal
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
