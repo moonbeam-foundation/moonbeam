@@ -76,6 +76,8 @@ jobs:
           --rpc-port=9911 \
           --tmp
 
+          sleep 2
+
       - name: Run Diffs
         run: |
           chmod +x target/release/moonbeam

@@ -165,6 +165,15 @@ yargs(hideBin(process.argv))
 
         const nodePath = path.join(__dirname, "../../target/release/moonbeam");
 
+        try {
+          await fs.access(nodePath, fs.constants.R_OK | fs.constants.W_OK);
+          console.log(`🟢 Can access node binary at ${nodePath}`);
+        } catch (e) {
+          console.error(e);
+          console.error(`❌ Cannot access ${nodePath}`);
+          throw new Error("Failed to access node binary");
+        }
+
         localNodeProcess = spawn(nodePath, launchArgs(argv.runtime, 9977), { shell: true });
         localNodeProcess.on("close", (code) => {
           process.exit(code ? code : 0); // Exit with the child process's exit code
