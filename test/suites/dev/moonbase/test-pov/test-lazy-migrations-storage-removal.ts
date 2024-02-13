@@ -52,6 +52,9 @@ describeSuite({
 
         let current_size = full_size;
         while(current_size > 0) {
+          // The migration is not complet yet
+          expect((await api.query["moonbeamLazyMigrations"].localAssetsMigrationCompleted()).toHuman()).to.be.false;
+
           // Remove 2000 entries each time
           const entries_to_remove = 2000;
           const result = await context.createBlock(
@@ -75,6 +78,9 @@ describeSuite({
         // Validate that the whole storage got removed
         current_size = (await api.rpc.state.getStorageSize(pallet_name_hash)).toNumber();
         expect(current_size).to.be.equal(0);
+
+        // The migration should be complete
+        expect((await api.query["moonbeamLazyMigrations"].localAssetsMigrationCompleted()).toHuman()).to.be.true;
       },
     });
   },

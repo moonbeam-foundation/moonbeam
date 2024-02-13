@@ -1485,7 +1485,7 @@ construct_runtime! {
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
 		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 50,
-		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call} = 51
+		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 51
 	}
 }
 
