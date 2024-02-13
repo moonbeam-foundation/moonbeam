@@ -19,10 +19,10 @@ jobs:
       - name: Local build new Node
         uses: ./.github/workflow-templates/cargo-build
       - name: Upload Node
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: node
-          path: target/release/node
+          name: moonbeam
+          path: target/release/moonbeam
 
   local-diff:
     needs: build
@@ -39,10 +39,10 @@ jobs:
         with:
           version: 8.6.12
       - name: Download Node
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
-          name: node
-          path: target/release/node
+          name: moonbeam
+          path: target/release/moonbeam
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
