@@ -33,11 +33,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Use pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8.6.12
       - name: Download Node
         uses: actions/download-artifact@v4
         with:
@@ -51,13 +46,6 @@ jobs:
       - name: Install Subxt-cli
         run: |
           cargo install subxt-cli
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20.10.0
-          cache: "pnpm"
-          cache-dependency-path: test/pnpm-lock.yaml
-
       - name: Run last_release node via Docker
         run: |
           docker pull moonbeamfoundation/moonbeam:sha-${{ github.event.inputs.last_release_sha8 }}
@@ -97,10 +85,7 @@ jobs:
 
       - name: Run Diffs
         run: |
-          chmod +x target/release/moonbeam
-          cd test
-          pnpm install
-          pnpm tsx scripts/subxt-diff.ts diff ${{ matrix.runtime }} ws://127.0.0.1:9911 ws://127.0.0.1:9977 true
+          subxt diff -a ws://127.0.0.1:9911 ws://127.0.0.1:9977 > runtime-diffs/${{ matrix.runtime }}/${{ github.event.inputs.spec_version }}.json
 
       - name: Stop Node Services
         if: always()
