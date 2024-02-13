@@ -37,7 +37,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: moonbeam
-          path: target/release
+          path: build
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -67,8 +67,8 @@ jobs:
           sleep 2
       - name: Run Local Node
         run: |
-          chmod +x target/release/moonbeam
-          nohup sh -c './target/release/moonbeam \
+          chmod +x build/moonbeam
+          nohup sh -c './build/moonbeam \
           --chain=${{ matrix.runtime }}-dev \
           --no-hardware-benchmarks \
           --no-telemetry \
@@ -85,7 +85,8 @@ jobs:
 
       - name: Run Diffs
         run: |
-          subxt diff -a ws://127.0.0.1:9911 ws://127.0.0.1:9977 > runtime-diffs/${{ matrix.runtime }}/${{ github.event.inputs.spec_version }}.json
+          mkdir -p runtime-diffs/${{ matrix.runtime }}
+          subxt diff -a ws://127.0.0.1:9911 ws://127.0.0.1:9977 > runtime-diffs/${{ matrix.runtime }}/${{ github.event.inputs.spec_version }}.txt
 
       - name: Stop Node Services
         if: always()
