@@ -4,13 +4,13 @@ import { spawn, exec, ChildProcessWithoutNullStreams } from "child_process";
 import { setTimeout } from "timers/promises";
 import { promisify } from "util";
 import { fileURLToPath } from "url";
-import Docker from "dockerode";
+// import Docker from "dockerode";
 import path from "path";
 import fs from "fs/promises";
 import { Octokit } from "octokit";
 
 const execPromise = promisify(exec);
-const docker = new Docker();
+// const docker = new Docker();
 const octokit = new Octokit();
 const Runtimes = ["moonbeam", "moonriver", "moonbase"] as const;
 type RuntimeType = (typeof Runtimes)[number];
@@ -141,6 +141,10 @@ yargs(hideBin(process.argv))
           type: "string",
           choices: Runtimes,
         })
+        .positional("releaseSha8", {
+          describe: "The sha8 of the release to compare",
+          type: "string",
+        })
         .positional("publish", {
           describe: "Raise a PR to commit the diff results to repo",
           type: "boolean",
@@ -150,7 +154,7 @@ yargs(hideBin(process.argv))
 
     async (argv: { runtime: RuntimeType; publish: boolean }) => {
       let localNodeProcess: ChildProcessWithoutNullStreams | undefined;
-      let runningContainer: Docker.Container | undefined;
+      // let runningContainer: Docker.Container | undefined;
 
       try {
         console.log(`🟢 Running diff for runtime: ${argv.runtime}`);
@@ -198,32 +202,32 @@ yargs(hideBin(process.argv))
         const sha8 = await getCommitFromTag(latestRelease.tag_name);
         console.log(`🔗 sha8 from runtime ${latestRelease.tag_name}: ${sha8}`);
 
-        try {
-          const image = `moonbeamfoundation/moonbeam:sha-${sha8}`;
-          console.log(`🐋 Pulling image ${image}...`);
-          await docker.pull(image, {});
-          const container = await docker.createContainer({
-            Image: image,
+        // try {
+        //   const image = `moonbeamfoundation/moonbeam:sha-${sha8}`;
+        //   console.log(`🐋 Pulling image ${image}...`);
+        //   await docker.pull(image, {});
+        //   const container = await docker.createContainer({
+        //     Image: image,
 
-            ExposedPorts: {
-              "9911/tcp": {},
-            },
-            HostConfig: {
-              PortBindings: {
-                "9911/tcp": [{ HostPort: "9911" }],
-              },
-            },
-            Cmd: launchArgs(argv.runtime, 9911),
-          });
-          console.log(`🐋 Container created with ID: ${container.id}`);
-          await container.start();
-          console.log(`🐋 Container started: ${container.id}`);
-          await setTimeout(2000);
-          runningContainer = container;
-        } catch (e) {
-          console.error(e);
-          throw new Error("Failed docker launch");
-        }
+        //     ExposedPorts: {
+        //       "9911/tcp": {},
+        //     },
+        //     HostConfig: {
+        //       PortBindings: {
+        //         "9911/tcp": [{ HostPort: "9911" }],
+        //       },
+        //     },
+        //     Cmd: launchArgs(argv.runtime, 9911),
+        //   });
+        //   console.log(`🐋 Container created with ID: ${container.id}`);
+        //   await container.start();
+        //   console.log(`🐋 Container started: ${container.id}`);
+        //   await setTimeout(2000);
+        //   runningContainer = container;
+        // } catch (e) {
+        //   console.error(e);
+        //   throw new Error("Failed docker launch");
+        // }
 
         const { stdout } = await execPromise(
           "subxt diff -a ws://127.0.0.1:9977 ws://127.0.0.1:9911"
@@ -243,10 +247,10 @@ yargs(hideBin(process.argv))
           localNodeProcess.kill();
         }
 
-        if (runningContainer) {
-          await runningContainer.stop();
-          await runningContainer.remove();
-        }
+        // if (runningContainer) {
+        //   await runningContainer.stop();
+        //   await runningContainer.remove();
+        // }
       }
     }
   )

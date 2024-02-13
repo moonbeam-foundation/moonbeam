@@ -2,22 +2,46 @@ name: Subxt Diff
 on:
   workflow_dispatch:
     inputs:
+      last_release_sha8:
+        description: The sha8 of the last release, with which to compare local to.
+        required: true
       spec_version:
         description: runtime spec version (ex. 1601)
         required: true
 
 jobs:
-  local-diff:
-    runs-on: ubuntu-latest
+  build:
+    runs-on:
+      labels: bare-metal
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Local build new Node
+        uses: ./.github/workflow-templates/cargo-build
+      - name: Upload Node
+        uses: actions/upload-artifact@v2
+        with:
+          name: node
+          path: target/release/node
+
+  local-diff:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [moonbeam, moonbase, moonriver]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Use pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8.6.12
-      - name: Local build new Node
-        uses: ./.github/workflow-templates/cargo-build
+      - name: Download Node
+        uses: actions/download-artifact@v2
+        with:
+          name: node
+          path: target/release/node
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -32,17 +56,65 @@ jobs:
           node-version: 20.10.0
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
-      - name: Test Docker Installed
+
+      - name: Run last_release node via Docker
         run: |
-          docker --version
+          docker pull moonbeamfoundation/moonbeam:sha-${{ github.event.inputs.last_release_sha8 }}
+          docker run -d --name moonbeam_container -p 9911:9911 moonbeamfoundation/moonbeam:sha-${{ github.event.inputs.last_release_sha8 }} \
+          --chain=${{ matrix.runtime }}-dev \
+          --no-hardware-benchmarks \
+          --no-telemetry \
+          --reserved-only \
+          --rpc-cors=all \
+          --no-grandpa \
+          --sealing=manual \
+          --force-authoring \
+          --no-prometheus \
+          --unsafe-rpc-external \
+          --alice \
+          --rpc-port=9911 \
+          --tmp
+
       - name: Run Diffs
         run: |
           cd test
           pnpm install
+          pnpm tsx scripts/subxt-diff.ts diff ${{ matrix.runtime }} ${{ github.event.inputs.last_release_sha8 }} true
 
-          pnpm tsx scripts/subxt-diff.ts diff moonbase true
-          pnpm tsx scripts/subxt-diff.ts diff moonriver true
-          pnpm tsx scripts/subxt-diff.ts diff moonbeam true
+      - name: Stop and Remove Docker Container
+        if: always() # Ensure this step runs even if previous steps fail
+        run: |
+          docker stop moonbeam_container
+          docker rm moonbeam_container
+
+      - name: Upload diff artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: runtime-diff-${{ matrix.runtime }}-${{ github.event.inputs.spec_version }}
+          path: runtime-diffs/${{ matrix.runtime }}/${{ github.event.inputs.spec_version }}.txt
+
+  create_pr:
+    needs: local-diff
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      # Download artifacts from the local-diff job
+      - name: Download diff artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: runtime-diff-moonbase-${{ github.event.inputs.spec_version }}
+          path: runtime-diffs/moonbase/${{ github.event.inputs.spec_version }}.json
+      - name: Download diff artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: runtime-diff-moonbeam-${{ github.event.inputs.spec_version }}
+          path: runtime-diffs/moonbeam/${{ github.event.inputs.spec_version }}.json
+      - name: Download diff artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: runtime-diff-moonriver-${{ github.event.inputs.spec_version }}
+          path: runtime-diffs/moonriver/${{ github.event.inputs.spec_version }}.json
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
