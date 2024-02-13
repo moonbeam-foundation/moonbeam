@@ -621,7 +621,9 @@ jobs:
           wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot-execute-worker
           wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot-prepare-worker
 
-          chmod +x test/tmp/polkadot-*
+          chmod +x test/tmp/polkadot
+          chmod +x test/tmp/polkadot-execute-worker
+          chmod +x test/tmp/polkadot-prepare-worker
       - name: Prepare Chainspecs
         run: |
           cd test
