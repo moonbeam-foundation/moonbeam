@@ -59,7 +59,7 @@ pub mod pallet {
 		// TODO(rodrigo): This extrinsic should be removed once LocalAssets pallet storage is removed
 		#[pallet::call_index(0)]
 		#[pallet::weight(
-			Weight::from_parts(99_000_000, LOCAL_ASSETS_PROOF_SIZE_PER_ENTRY * <u64>::from(*limit))
+			Weight::from_parts(0, LOCAL_ASSETS_PROOF_SIZE_PER_ENTRY * <u64>::from(*limit))
 			.saturating_add(<T as frame_system::Config>::DbWeight::get().reads_writes((*limit + 1).into(), (*limit).into()))
 		)]
 		pub fn clear_local_assets_storage(
@@ -83,7 +83,7 @@ pub mod pallet {
 			log::info!("Removed {} keys 🧹", keys_removed);
 
 			Ok(Some(
-				Weight::from_parts(99_000_000, LOCAL_ASSETS_PROOF_SIZE_PER_ENTRY * keys_removed)
+				Weight::from_parts(0, LOCAL_ASSETS_PROOF_SIZE_PER_ENTRY * keys_removed)
 					.saturating_add(
 						<T as frame_system::Config>::DbWeight::get()
 							.reads_writes(keys_removed + 1, keys_removed),
