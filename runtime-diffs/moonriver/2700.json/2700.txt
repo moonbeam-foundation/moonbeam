@@ -1,0 +1,8 @@
+Pallets:
+[33m    ~ EVM[39m
+[33m    ~ ParachainStaking[39m
+        Storage Entries:
+[33m            ~ Round (Changed: default value)[39m
+[33m    ~ System[39m
+        Storage Entries:
+[33m            ~ Events (Changed: )[39m
