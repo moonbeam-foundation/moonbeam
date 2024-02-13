@@ -43,7 +43,7 @@ describeSuite({
         }
         
         // Check the pallet storage size
-        let full_size = (await api.rpc.state.getStorageSize(pallet_name_hash)).toNumber();
+        const full_size = (await api.rpc.state.getStorageSize(pallet_name_hash)).toNumber();
         expect(full_size).to.be.equal(1_800_000);
 
         // The constant `MAX_POV_SIZE` comes from: https://github.com/paritytech/polkadot-sdk/blob/b79bf4fb1fec1f7a7483f9a2baa0a1e7a4fcb9c8/polkadot/primitives/src/v6/mod.rs#L391
@@ -54,7 +54,7 @@ describeSuite({
         while(current_size > 0) {
           // Remove 2000 entries each time
           const entries_to_remove = 2000;
-          let result = await context.createBlock(
+          const result = await context.createBlock(
             api.tx["moonbeamLazyMigrations"]
               .clearLocalAssetsStorage(entries_to_remove)
               .signAsync(alith)
