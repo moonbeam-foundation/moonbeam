@@ -132,7 +132,7 @@ yargs(hideBin(process.argv))
   .usage("Usage: $0")
   .version("1.0.0")
   .command<{ runtime: RuntimeType; publish: boolean }>(
-    "diff <runtime> [publish]",
+    "diff <runtime> <releaseSha8> [publish]",
     "Runs a diff between metadata from current runtime and last release",
     (yargs) => {
       return yargs
