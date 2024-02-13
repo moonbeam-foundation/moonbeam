@@ -17,7 +17,7 @@
 //! A minimal runtime including the multi block migrations pallet
 
 use super::*;
-use crate as pallet_manual_migrations;
+use crate as pallet_moonbeam_lazy_migrations;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::Everything,
@@ -39,7 +39,7 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		ManualMigrations: pallet_manual_migrations::{Pallet, Call},
+		ManualMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call},
 	}
 );
 

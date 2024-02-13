@@ -6515,9 +6515,9 @@ dependencies = [
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
- "pallet-manual-migrations",
  "pallet-message-queue",
  "pallet-migrations",
+ "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
@@ -6998,9 +6998,9 @@ dependencies = [
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
- "pallet-manual-migrations",
  "pallet-message-queue",
  "pallet-migrations",
+ "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
@@ -7388,9 +7388,9 @@ dependencies = [
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
- "pallet-manual-migrations",
  "pallet-message-queue",
  "pallet-migrations",
+ "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
@@ -9495,22 +9495,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-manual-migrations"
-version = "0.1.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-balances",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
-]
-
-[[package]]
 name = "pallet-membership"
 version = "4.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.3.0#771cd7512cf6c4efc9f01539acb797a6f1cbb623"
@@ -9581,6 +9565,22 @@ dependencies = [
  "sp-mmr-primitives",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-moonbeam-lazy-migrations"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
