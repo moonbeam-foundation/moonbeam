@@ -15,7 +15,7 @@ jobs:
       labels: bare-metal
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Local build new Node
         uses: ./.github/workflow-templates/cargo-build
       - name: Upload Node
@@ -26,13 +26,13 @@ jobs:
 
   local-diff:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: bare-metal
     strategy:
       matrix:
         runtime: [moonbeam, moonbase, moonriver]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Use pnpm
         uses: pnpm/action-setup@v2
@@ -102,7 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       # Download artifacts from the local-diff job
       - name: Download diff artifacts
         uses: actions/download-artifact@v4

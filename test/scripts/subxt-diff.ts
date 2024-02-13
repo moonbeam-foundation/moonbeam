@@ -4,13 +4,11 @@ import { spawn, exec, ChildProcessWithoutNullStreams } from "child_process";
 import { setTimeout } from "timers/promises";
 import { promisify } from "util";
 import { fileURLToPath } from "url";
-// import Docker from "dockerode";
 import path from "path";
 import fs from "fs/promises";
 import { Octokit } from "octokit";
 
 const execPromise = promisify(exec);
-// const docker = new Docker();
 const octokit = new Octokit();
 const Runtimes = ["moonbeam", "moonriver", "moonbase"] as const;
 type RuntimeType = (typeof Runtimes)[number];
@@ -174,20 +172,27 @@ yargs(hideBin(process.argv))
           throw new Error("Failed to access node binary");
         }
 
-        localNodeProcess = spawn(nodePath, launchArgs(argv.runtime, 9977), { shell: true });
+        try {
+          localNodeProcess = spawn(nodePath, launchArgs(argv.runtime, 9977), { shell: true });
+        } catch (e) {
+          console.error(e);
+          throw new Error("Failed to spawn local node process");
+        }
 
         localNodeProcess.stdout.on("data", (data) => {
           process.stdout.write(data);
         });
-        
+
         localNodeProcess.on("close", (code) => {
           process.exit(code ? code : 0); // Exit with the child process's exit code
         });
 
         await setTimeout(2000);
+
         const headers = {
           "Content-Type": "application/json",
         };
+
         const body = JSON.stringify({
           jsonrpc: "2.0",
           id: 1,
@@ -216,33 +221,6 @@ yargs(hideBin(process.argv))
         const sha8 = await getCommitFromTag(latestRelease.tag_name);
         console.log(`🔗 sha8 from runtime ${latestRelease.tag_name}: ${sha8}`);
 
-        // try {
-        //   const image = `moonbeamfoundation/moonbeam:sha-${sha8}`;
-        //   console.log(`🐋 Pulling image ${image}...`);
-        //   await docker.pull(image, {});
-        //   const container = await docker.createContainer({
-        //     Image: image,
-
-        //     ExposedPorts: {
-        //       "9911/tcp": {},
-        //     },
-        //     HostConfig: {
-        //       PortBindings: {
-        //         "9911/tcp": [{ HostPort: "9911" }],
-        //       },
-        //     },
-        //     Cmd: launchArgs(argv.runtime, 9911),
-        //   });
-        //   console.log(`🐋 Container created with ID: ${container.id}`);
-        //   await container.start();
-        //   console.log(`🐋 Container started: ${container.id}`);
-        //   await setTimeout(2000);
-        //   runningContainer = container;
-        // } catch (e) {
-        //   console.error(e);
-        //   throw new Error("Failed docker launch");
-        // }
-
         const { stdout } = await execPromise(
           "subxt diff -a ws://127.0.0.1:9977 ws://127.0.0.1:9911"
         );
@@ -260,11 +238,6 @@ yargs(hideBin(process.argv))
         if (localNodeProcess) {
           localNodeProcess.kill();
         }
-
-        // if (runningContainer) {
-        //   await runningContainer.stop();
-        //   await runningContainer.remove();
-        // }
       }
     }
   )
