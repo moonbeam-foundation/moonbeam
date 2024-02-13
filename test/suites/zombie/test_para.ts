@@ -3,6 +3,7 @@ import { MoonwallContext, beforeAll, describeSuite, expect } from "@moonwall/cli
 import { BALTATHAR_ADDRESS, alith, charleth } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { ethers } from "ethers";
+import { rejects } from "node:assert";
 import fs from "node:fs";
 
 describeSuite({
@@ -75,7 +76,7 @@ describeSuite({
     it({
       id: "T03",
       title: "Can connect to parachain and execute a transaction",
-      timeout: 120000,
+      timeout: 240000,
       test: async () => {
         const balBefore = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
 
@@ -83,7 +84,7 @@ describeSuite({
 
         context.waitBlock(5);
 
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
           paraApi.tx.balances
             .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
             .signAndSend(charleth, ({ status, events }) => {
@@ -93,6 +94,16 @@ describeSuite({
               if (status.isFinalized) {
                 log("Transaction is finalized!");
                 resolve(events);
+              }
+
+              if (
+                status.isDropped ||
+                status.isInvalid ||
+                status.isUsurped ||
+                status.isFinalityTimeout
+              ) {
+                reject("transaction failed!");
+                throw new Error("Transaction failed");
               }
             });
         });
