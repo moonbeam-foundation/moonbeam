@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! # Multi Block Migration Pallet
+//! # Lazy Migration Pallet
 
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -33,6 +33,11 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
+
+	const MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE: u64 =
+		(/* biggest key on moonbeam */136) + (/* biggest value on moonbeam */142);
+	const LOCAL_ASSETS_PROOF_SIZE_PER_ENTRY: u64 = (/* extra proof_size for intermediate nodes in the tree */96)
+		+ MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE;
 
 	/// Pallet for multi block migrations
 	#[pallet::pallet]
@@ -54,8 +59,8 @@ pub mod pallet {
 		// TODO(rodrigo): This extrinsic should be removed once LocalAssets pallet storage is removed
 		#[pallet::call_index(0)]
 		#[pallet::weight(
-			<T as frame_system::Config>::DbWeight::get()
-				.reads_writes((*limit + 1).into(), (*limit).into())
+			Weight::from_parts(99_000_000, LOCAL_ASSETS_PROOF_SIZE_PER_ENTRY * <u64>::from(*limit))
+			.saturating_add(<T as frame_system::Config>::DbWeight::get().reads_writes((*limit + 1).into(), (*limit).into()))
 		)]
 		pub fn clear_local_assets_storage(
 			origin: OriginFor<T>,
@@ -78,8 +83,11 @@ pub mod pallet {
 			log::info!("Removed {} keys 🧹", keys_removed);
 
 			Ok(Some(
-				<T as frame_system::Config>::DbWeight::get()
-					.reads_writes(keys_removed + 1, keys_removed),
+				Weight::from_parts(99_000_000, LOCAL_ASSETS_PROOF_SIZE_PER_ENTRY * keys_removed)
+					.saturating_add(
+						<T as frame_system::Config>::DbWeight::get()
+							.reads_writes(keys_removed + 1, keys_removed),
+					),
 			)
 			.into())
 		}
