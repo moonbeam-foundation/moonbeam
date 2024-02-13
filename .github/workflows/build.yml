@@ -352,8 +352,9 @@ jobs:
     needs: ["set-tags", "build"]
     timeout-minutes: 20
     strategy:
+      fail-fast: false
       matrix:
-        chain: ["moonbase"]
+        chain: ["moonbase", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
