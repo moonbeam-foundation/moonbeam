@@ -25,6 +25,7 @@ jobs:
           path: target/release/node
 
   local-diff:
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
