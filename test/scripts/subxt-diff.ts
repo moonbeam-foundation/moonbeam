@@ -176,7 +176,7 @@ yargs(hideBin(process.argv))
           console.log("🟢 Local moonbeam node spawned");
 
           localNodeProcess.stderr.on("data", (data) => {
-            console.log(data);
+            console.log(data.toString());
           });
         } catch (e) {
           console.error(e);
