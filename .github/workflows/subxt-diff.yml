@@ -77,19 +77,37 @@ jobs:
           --tmp
 
           sleep 2
+      - name: Run Local Node
+        run: |
+          chmod +x target/release/moonbeam
+          nohup sh -c './target/release/moonbeam \
+          --chain=${{ matrix.runtime }}-dev \
+          --no-hardware-benchmarks \
+          --no-telemetry \
+          --reserved-only \
+          --rpc-cors=all \
+          --no-grandpa \
+          --sealing=manual \
+          --force-authoring \
+          --no-prometheus \
+          --unsafe-rpc-external \
+          --alice \
+          --rpc-port=9977 \
+          --tmp & sleep 2' &
 
       - name: Run Diffs
         run: |
           chmod +x target/release/moonbeam
           cd test
           pnpm install
-          pnpm tsx scripts/subxt-diff.ts diff ${{ matrix.runtime }} ${{ github.event.inputs.last_release_sha8 }} true
+          pnpm tsx scripts/subxt-diff.ts diff ${{ matrix.runtime }} ws://127.0.0.1:9977 ws://127.0.0.1:9911 true
 
-      - name: Stop and Remove Docker Container
-        if: always() # Ensure this step runs even if previous steps fail
+      - name: Stop Node Services
+        if: always()
         run: |
           docker stop moonbeam_container
           docker rm moonbeam_container
+          pkill moonbeam
 
       - name: Upload diff artifacts
         uses: actions/upload-artifact@v2

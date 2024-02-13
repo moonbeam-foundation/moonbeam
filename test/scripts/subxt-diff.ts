@@ -1,12 +1,11 @@
-import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
-import { spawn, exec, ChildProcessWithoutNullStreams } from "child_process";
-import { setTimeout } from "timers/promises";
-import { promisify } from "util";
-import { fileURLToPath } from "url";
-import path from "path";
+import { exec } from "child_process";
 import fs from "fs/promises";
 import { Octokit } from "octokit";
+import path from "path";
+import { fileURLToPath } from "url";
+import { promisify } from "util";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 
 const execPromise = promisify(exec);
 const octokit = new Octokit();
@@ -74,21 +73,21 @@ interface RuntimeResponse {
   id: number;
 }
 
-const launchArgs = (runtime: string, port: number) => [
-  `--chain=${runtime}-dev`,
-  "--no-hardware-benchmarks",
-  "--no-telemetry",
-  "--reserved-only",
-  "--rpc-cors=all",
-  "--no-grandpa",
-  "--sealing=manual",
-  "--force-authoring",
-  "--no-prometheus",
-  "--unsafe-rpc-external",
-  "--alice",
-  `--rpc-port=${port}`,
-  "--tmp",
-];
+// const launchArgs = (runtime: string, port: number) => [
+//   `--chain=${runtime}-dev`,
+//   "--no-hardware-benchmarks",
+//   "--no-telemetry",
+//   "--reserved-only",
+//   "--rpc-cors=all",
+//   "--no-grandpa",
+//   "--sealing=manual",
+//   "--force-authoring",
+//   "--no-prometheus",
+//   "--unsafe-rpc-external",
+//   "--alice",
+//   `--rpc-port=${port}`,
+//   "--tmp",
+// ];
 
 interface RuntimeDetails {
   specName: string;
@@ -129,8 +128,8 @@ const writeDiffResultsToFile = async (runtime: string, runtimeVersion: number, c
 yargs(hideBin(process.argv))
   .usage("Usage: $0")
   .version("1.0.0")
-  .command<{ runtime: RuntimeType; publish: boolean }>(
-    "diff <runtime> <releaseSha8> [publish]",
+  .command<{ runtime: RuntimeType; endpoint1: string; endpoint2: string; publish: boolean }>(
+    "diff <runtime> <endpoint1> <endpoint2> [publish]",
     "Runs a diff between metadata from current runtime and last release",
     (yargs) => {
       return yargs
@@ -139,8 +138,12 @@ yargs(hideBin(process.argv))
           type: "string",
           choices: Runtimes,
         })
-        .positional("releaseSha8", {
-          describe: "The sha8 of the release to compare",
+        .positional("endpoint1", {
+          describe: "The websocket endpoint of the first node to compare",
+          type: "string",
+        })
+        .positional("endpoint2", {
+          describe: "The websocket endpoint of the second node to compare",
           type: "string",
         })
         .positional("publish", {
@@ -150,8 +153,13 @@ yargs(hideBin(process.argv))
         });
     },
 
-    async (argv: { runtime: RuntimeType; publish: boolean }) => {
-      let localNodeProcess: ChildProcessWithoutNullStreams | undefined;
+    async (argv: {
+      runtime: RuntimeType;
+      endpoint1: string;
+      endpoint2: string;
+      publish: boolean;
+    }) => {
+      // let localNodeProcess: ChildProcessWithoutNullStreams | undefined;
 
       try {
         console.log(`🟢 Running diff for runtime: ${argv.runtime}`);
@@ -159,35 +167,6 @@ yargs(hideBin(process.argv))
         const latestRelease = await getLatestRTRelease();
         const latestReleaseVersion = parseInt(latestRelease.tag_name.split("runtime-")[1]);
         console.log(`🟢 Latest release version: ${latestReleaseVersion}`);
-
-        const nodePath = path.join(__dirname, "../../target/release/moonbeam");
-
-        try {
-          await fs.access(nodePath, fs.constants.R_OK | fs.constants.W_OK);
-          console.log(`🟢 Can access node binary at ${nodePath}`);
-        } catch (e) {
-          console.error(e);
-          console.error(`❌ Cannot access ${nodePath}`);
-          throw new Error("Failed to access node binary");
-        }
-
-        try {
-          localNodeProcess = spawn(nodePath, launchArgs(argv.runtime, 9977), { shell: true });
-          console.log("🟢 Local moonbeam node spawned");
-
-          localNodeProcess.stderr.on("data", (data) => {
-            console.log(data.toString());
-          });
-        } catch (e) {
-          console.error(e);
-          throw new Error("Failed to spawn local node process");
-        }
-
-        localNodeProcess.on("close", (code) => {
-          process.exit(code ? code : 0); // Exit with the child process's exit code
-        });
-
-        await setTimeout(2000);
 
         const headers = {
           "Content-Type": "application/json",
@@ -203,7 +182,7 @@ yargs(hideBin(process.argv))
         let localRuntimeVersion: number;
 
         try {
-          const response = await fetch("http://127.0.0.1:9977", {
+          const response = await fetch(argv.endpoint1.replace("ws://", "http://"), {
             method: "POST",
             headers: headers,
             body: body,
@@ -221,9 +200,7 @@ yargs(hideBin(process.argv))
         const sha8 = await getCommitFromTag(latestRelease.tag_name);
         console.log(`🔗 sha8 from runtime ${latestRelease.tag_name}: ${sha8}`);
 
-        const { stdout } = await execPromise(
-          "subxt diff -a ws://127.0.0.1:9977 ws://127.0.0.1:9911"
-        );
+        const { stdout } = await execPromise(`subxt diff -a ${argv.endpoint1} ${argv.endpoint2}`);
         console.log("🔎 Diff Results:");
         console.log(stdout);
 
@@ -234,10 +211,6 @@ yargs(hideBin(process.argv))
       } catch (e) {
         console.error(e);
         process.exitCode = 1;
-      } finally {
-        if (localNodeProcess) {
-          localNodeProcess.kill();
-        }
       }
     }
   )
