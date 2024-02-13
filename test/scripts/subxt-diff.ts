@@ -152,7 +152,6 @@ yargs(hideBin(process.argv))
 
     async (argv: { runtime: RuntimeType; publish: boolean }) => {
       let localNodeProcess: ChildProcessWithoutNullStreams | undefined;
-      // let runningContainer: Docker.Container | undefined;
 
       try {
         console.log(`🟢 Running diff for runtime: ${argv.runtime}`);
@@ -174,14 +173,15 @@ yargs(hideBin(process.argv))
 
         try {
           localNodeProcess = spawn(nodePath, launchArgs(argv.runtime, 9977), { shell: true });
+          console.log("🟢 Local moonbeam node spawned");
+
+          localNodeProcess.stderr.on("data", (data) => {
+            console.log(data);
+          });
         } catch (e) {
           console.error(e);
           throw new Error("Failed to spawn local node process");
         }
-
-        localNodeProcess.stdout.on("data", (data) => {
-          process.stdout.write(data);
-        });
 
         localNodeProcess.on("close", (code) => {
           process.exit(code ? code : 0); // Exit with the child process's exit code
