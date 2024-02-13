@@ -87,8 +87,7 @@ jobs:
       - name: Run Diffs
         run: |
           mkdir -p runtime-diffs/${{ matrix.runtime }}
-          subxt diff -a ws://127.0.0.1:9911 ws://127.0.0.1:9977 > runtime-diffs/${{ matrix.runtime }}/${{ github.event.inputs.spec_version }}.txt
-
+          subxt diff -a ws://127.0.0.1:9911 ws://127.0.0.1:9977 | sed 's/\x1b\[[0-9;]*m//g' > runtime-diffs/${{ matrix.runtime }}/${{ github.event.inputs.spec_version }}.txt
       - name: Stop Node Services
         if: always()
         run: |
@@ -100,7 +99,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: runtime-diff-${{ matrix.runtime }}-${{ github.event.inputs.spec_version }}
-          path: runtime-diffs/${{ matrix.runtime }}/${{ github.event.inputs.spec_version }}.txt
+          path: runtime-diffs/${{ matrix.runtime }}
 
   create_pr:
     needs: local-diff
@@ -113,17 +112,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: runtime-diff-moonbase-${{ github.event.inputs.spec_version }}
-          path: runtime-diffs/moonbase/${{ github.event.inputs.spec_version }}.json
+          path: runtime-diffs/moonbase
       - name: Download diff artifacts
         uses: actions/download-artifact@v4
         with:
           name: runtime-diff-moonbeam-${{ github.event.inputs.spec_version }}
-          path: runtime-diffs/moonbeam/${{ github.event.inputs.spec_version }}.json
+          path: runtime-diffs/moonbeam
       - name: Download diff artifacts
         uses: actions/download-artifact@v4
         with:
           name: runtime-diff-moonriver-${{ github.event.inputs.spec_version }}
-          path: runtime-diffs/moonriver/${{ github.event.inputs.spec_version }}.json
+          path: runtime-diffs/moonriver
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
