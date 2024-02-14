@@ -33,7 +33,6 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-	use sp_core::ConstBool;
 
 	const INTERMEDIATES_NODES_SIZE: u64 = 4096;
 	const MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE: u64 =
@@ -46,8 +45,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	/// If true, it means that LocalAssets storage has been removed.
-	pub(crate) type LocalAssetsMigrationCompleted<T: Config> =
-		StorageValue<_, bool, ValueQuery>;
+	pub(crate) type LocalAssetsMigrationCompleted<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -65,7 +63,8 @@ pub mod pallet {
 		#[pallet::call_index(0)]
 		#[pallet::weight(Weight::from_parts(0,
 			INTERMEDIATES_NODES_SIZE + (MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE * <u64>::from(*limit)))
-			.saturating_add(<T as frame_system::Config>::DbWeight::get().reads_writes((*limit + 1).into(), (*limit).into()))
+			.saturating_add(<T as frame_system::Config>::DbWeight::get()
+				.reads_writes((*limit + 1).into(), (*limit).into()))
 		)]
 		pub fn clear_local_assets_storage(
 			origin: OriginFor<T>,
