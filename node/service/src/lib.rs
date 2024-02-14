@@ -911,8 +911,8 @@ where
 
 	let BlockImportPipeline::Parachain(block_import) = block_import else {
 		return Err(sc_service::Error::Other(
-					"Block import pipeline is not for parachain".into(),
-		))
+			"Block import pipeline is not for parachain".into(),
+		));
 	};
 
 	if collator {
