@@ -22,7 +22,8 @@ describeSuite({
       title: "Validate storage removal uses a reasonable proof size",
       test: async function () {
         const total_entries = 9000;
-        const pallet_name_hash = "0xbebaa96ee6c1d0e946832368c6396271"; // sp_io::hashing::twox_128("LocalAssets".as_bytes());
+        // sp_io::hashing::twox_128("LocalAssets".as_bytes());
+        const pallet_name_hash = "0xbebaa96ee6c1d0e946832368c6396271";
 
         const dummy_storage: [string, string][] = [];
         for (let i = 0; i < total_entries; i++) {
@@ -43,7 +44,9 @@ describeSuite({
         const full_size = (await api.rpc.state.getStorageSize(pallet_name_hash)).toNumber();
         expect(full_size).to.be.equal(1_800_000);
 
+        // editorconfig-checker-disable
         // The constant `MAX_POV_SIZE` comes from: https://github.com/paritytech/polkadot-sdk/blob/b79bf4fb1fec1f7a7483f9a2baa0a1e7a4fcb9c8/polkadot/primitives/src/v6/mod.rs#L391
+        // editorconfig-checker-enable
         const MAX_POV_SIZE = 5 * 1024 * 1024; // 5MB
         const reasonable_max_pov_size = MAX_POV_SIZE / 5; // 1MB
 
@@ -65,7 +68,8 @@ describeSuite({
           // Validate that we are within the reasonable proof size
           expect(result.block.proofSize).to.be.lessThan(reasonable_max_pov_size);
           log(
-            `Removed ${entries_to_remove} entries from LocalAssets storage (proof_size: ${result.block.proofSize}).`
+            `Removed ${entries_to_remove} entries from LocalAssets \
+            storage (proof_size: ${result.block.proofSize}).`
           );
 
           // Validate that some storage got removed
