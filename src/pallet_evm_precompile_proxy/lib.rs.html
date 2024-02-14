@@ -452,6 +452,7 @@
 <a href="#452" id="452">452</a>
 <a href="#453" id="453">453</a>
 <a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -807,7 +808,8 @@
 		evm_subcall: EvmSubCall,
 	) -&gt; EvmResult {
 		<span class="comment">// Check that we only perform proxy calls on behalf of externally owned accounts
-		</span><span class="kw">let </span>AddressType::EOA = precompile_set::get_address_type::&lt;Runtime&gt;(handle, real.into())<span class="question-mark">? </span><span class="kw">else </span>{
+		</span><span class="kw">let </span>AddressType::EOA = precompile_set::get_address_type::&lt;Runtime&gt;(handle, real.into())<span class="question-mark">?
+		</span><span class="kw">else </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;real address must be EOA&quot;</span>));
 		};
 

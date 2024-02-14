@@ -2788,8 +2788,8 @@
 
 	<span class="kw">let </span>BlockImportPipeline::Parachain(block_import) = block_import <span class="kw">else </span>{
 		<span class="kw">return </span><span class="prelude-val">Err</span>(sc_service::Error::Other(
-					<span class="string">&quot;Block import pipeline is not for parachain&quot;</span>.into(),
-		))
+			<span class="string">&quot;Block import pipeline is not for parachain&quot;</span>.into(),
+		));
 	};
 
 	<span class="kw">if </span>collator {

@@ -185,6 +185,7 @@
 <a href="#185" id="185">185</a>
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -305,7 +306,8 @@
 	(# <span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$convert</span>:expr) =&gt; {
 		<span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$name</span>&gt; <span class="kw">for </span>MockAccount {
 			<span class="kw">fn </span>from(value: <span class="macro-nonterminal">$name</span>) -&gt; MockAccount {
-				<span class="macro-nonterminal">$convert</span>(value)
+				<span class="attr">#[allow(clippy::redundant_closure_call)]
+				</span><span class="macro-nonterminal">$convert</span>(value)
 			}
 		}
 

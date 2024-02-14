@@ -128,6 +128,10 @@
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -160,11 +164,15 @@
 		..
 	} = <span class="macro">parse_macro_input!</span>(input <span class="kw">as </span>DeriveInput);
 
-	<span class="kw">let </span>syn::Data::Struct (syn::DataStruct {fields: syn::Fields::Named(fields), ..}) = data <span class="kw">else </span>{
+	<span class="kw">let </span>syn::Data::Struct(syn::DataStruct {
+		fields: syn::Fields::Named(fields),
+		..
+	}) = data
+	<span class="kw">else </span>{
 		<span class="kw">return </span><span class="macro">quote_spanned! </span>{ ident.span() =&gt;
 			<span class="macro">compile_error!</span>(<span class="string">&quot;Codec can only be derived for structs with named fields&quot;</span>);
 		}
-		.into()
+		.into();
 	};
 	<span class="kw">let </span>fields = fields.named;
 

@@ -917,7 +917,7 @@
 		</span><span class="kw">let </span>blockchain = backend.blockchain();
 		<span class="comment">// Get the header I want to work with.
 		</span><span class="kw">let </span><span class="prelude-val">Ok</span>(hash) = client.expect_block_hash_from_id(<span class="kw-2">&amp;</span>reference_id) <span class="kw">else </span>{
-			<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block header not found&quot;</span>))
+			<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block header not found&quot;</span>));
 		};
 		<span class="kw">let </span>header = <span class="kw">match </span>client.header(hash) {
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(h)) =&gt; h,
@@ -1051,7 +1051,7 @@
 		</span><span class="kw">let </span>blockchain = backend.blockchain();
 		<span class="comment">// Get the header I want to work with.
 		</span><span class="kw">let </span><span class="prelude-val">Ok</span>(reference_hash) = client.expect_block_hash_from_id(<span class="kw-2">&amp;</span>reference_id) <span class="kw">else </span>{
-			<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block header not found&quot;</span>))
+			<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block header not found&quot;</span>));
 		};
 		<span class="kw">let </span>header = <span class="kw">match </span>client.header(reference_hash) {
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(h)) =&gt; h,
