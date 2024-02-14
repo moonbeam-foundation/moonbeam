@@ -30,11 +30,15 @@ pub fn main(input: TokenStream) -> TokenStream {
 		..
 	} = parse_macro_input!(input as DeriveInput);
 
-	let syn::Data::Struct (syn::DataStruct {fields: syn::Fields::Named(fields), ..}) = data else {
+	let syn::Data::Struct(syn::DataStruct {
+		fields: syn::Fields::Named(fields),
+		..
+	}) = data
+	else {
 		return quote_spanned! { ident.span() =>
 			compile_error!("Codec can only be derived for structs with named fields");
 		}
-		.into()
+		.into();
 	};
 	let fields = fields.named;
 

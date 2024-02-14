@@ -353,7 +353,8 @@ where
 		evm_subcall: EvmSubCall,
 	) -> EvmResult {
 		// Check that we only perform proxy calls on behalf of externally owned accounts
-		let AddressType::EOA = precompile_set::get_address_type::<Runtime>(handle, real.into())? else {
+		let AddressType::EOA = precompile_set::get_address_type::<Runtime>(handle, real.into())?
+		else {
 			return Err(revert("real address must be EOA"));
 		};
 
