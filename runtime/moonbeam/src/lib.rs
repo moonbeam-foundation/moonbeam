@@ -808,6 +808,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type SlotProvider = StakingRoundSlotProvider;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
+	type SlotsPerYear = ConstU32<{ 31_557_600 / 12 }>;
 }
 
 impl pallet_author_inherent::Config for Runtime {
