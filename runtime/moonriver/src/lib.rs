@@ -119,7 +119,6 @@ pub type Precompiles = MoonriverPrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::councils::*;
 
 pub use governance::councils::*;
 
