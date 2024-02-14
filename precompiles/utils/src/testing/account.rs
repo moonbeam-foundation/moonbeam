@@ -118,6 +118,7 @@ macro_rules! mock_account {
 	(# $name:ident, $convert:expr) => {
 		impl From<$name> for MockAccount {
 			fn from(value: $name) -> MockAccount {
+				#[allow(clippy::redundant_closure_call)]
 				$convert(value)
 			}
 		}

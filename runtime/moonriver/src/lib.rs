@@ -119,7 +119,6 @@ pub type Precompiles = MoonriverPrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::councils::*;
 
 pub use governance::councils::*;
 
@@ -185,7 +184,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 2700,
+	spec_version: 2800,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
