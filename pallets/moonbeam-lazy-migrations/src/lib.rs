@@ -47,7 +47,7 @@ pub mod pallet {
 	#[pallet::storage]
 	/// If true, it means that LocalAssets storage has been removed.
 	pub(crate) type LocalAssetsMigrationCompleted<T: Config> =
-		StorageValue<_, bool, ValueQuery, ConstBool<false>>;
+		StorageValue<_, bool, ValueQuery>;
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
