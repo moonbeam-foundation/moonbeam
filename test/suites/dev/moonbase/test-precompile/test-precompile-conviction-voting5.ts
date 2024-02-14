@@ -31,7 +31,7 @@ describeSuite({
         .voteYes(proposalIndex, alithAccount.data.free.toBigInt() - 20n * 10n ** 18n, 1n)
         .block();
       // 20 minutes jump
-      await jumpBlocks(context, (20 * 60) / 12);
+      await jumpBlocks(context, (20 * 60) / 6);
 
       // Verifies the setup is correct
       const referendum = await context
