@@ -339,6 +339,7 @@ jobs:
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           fi
           rustup show
+          rustup target add wasm32-unknown-unknown
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
