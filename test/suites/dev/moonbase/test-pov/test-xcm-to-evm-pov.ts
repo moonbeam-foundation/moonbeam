@@ -12,7 +12,7 @@ import {
 import { GAS_LIMIT_POV_RATIO } from "@moonwall/util";
 
 describeSuite({
-  id: "D2405",
+  id: "D012606",
   title: "XCM to EVM - PoV tests",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

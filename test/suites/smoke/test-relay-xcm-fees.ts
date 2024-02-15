@@ -5,7 +5,7 @@ import { extractWeight } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
-  id: "S1800",
+  id: "S20",
   title: "Verify XCM weight fees for relay",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

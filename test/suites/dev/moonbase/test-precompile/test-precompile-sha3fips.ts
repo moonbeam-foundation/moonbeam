@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
-  id: "D2556",
+  id: "D012776",
   title: "Precompiles - sha3fips",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

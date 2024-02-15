@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, createRawTransfer, sendRawTransaction } from "@moonwall/util";
 
 describeSuite({
-  id: "D3303",
+  id: "D013603",
   title: "TxPool - Limits",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

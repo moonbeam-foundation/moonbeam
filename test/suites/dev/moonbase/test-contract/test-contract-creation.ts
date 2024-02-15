@@ -13,7 +13,7 @@ import { verifyLatestBlockFees } from "../../../../helpers";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
-  id: "D0601",
+  id: "D010601",
   title: "Contract creation",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

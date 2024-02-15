@@ -18,7 +18,7 @@ const originalKeys = [
 const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
 describeSuite({
-  id: "D0216",
+  id: "D010216",
   title: "Author Mapping - Update someone else nimbus key",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

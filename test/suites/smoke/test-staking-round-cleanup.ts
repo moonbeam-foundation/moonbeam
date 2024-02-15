@@ -45,7 +45,7 @@ async function getKeysBeforeRound<
 }
 
 describeSuite({
-  id: "S2100",
+  id: "S23",
   title: "Verify staking round cleanup",
   foundationMethods: "read_only",
   testCases: function ({ context, it, log }) {

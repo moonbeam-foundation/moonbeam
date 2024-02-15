@@ -11,7 +11,7 @@ const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const ARBITRARY_TRANSFER_AMOUNT = 10000000000000n;
 
 describeSuite({
-  id: "D0102",
+  id: "D010102",
   title: "Pallet Assets - Sufficient tests: is_sufficient to true",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

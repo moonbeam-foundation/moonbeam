@@ -12,7 +12,7 @@ import { fromBytes } from "viem";
 import { chunk } from "../../../../helpers";
 
 describeSuite({
-  id: "D2986",
+  id: "D013175",
   title: "Staking - Locks - bottom and top delegations",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

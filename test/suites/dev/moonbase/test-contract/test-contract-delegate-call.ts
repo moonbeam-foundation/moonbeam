@@ -26,7 +26,7 @@ const DELEGATECALL_FORDIDDEN_MESSAGE =
   "0000000000000000000000000000000000000000000000000000000000000000"; // padding;
 
 describeSuite({
-  id: "D0602",
+  id: "D010602",
   title: "Delegate Call",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

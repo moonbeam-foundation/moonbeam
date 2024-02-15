@@ -11,7 +11,7 @@ import {
 } from "@moonwall/util";
 
 describeSuite({
-  id: "D2915",
+  id: "D013116",
   title: "Staking - Delegate With Auto-Compound - wrong candidate auto-compounding delegation hint",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -6,7 +6,7 @@ import { u8aToHex } from "@polkadot/util";
 import { XcmFragment, weightMessage } from "../../../../helpers";
 
 describeSuite({
-  id: "D3508",
+  id: "D013808",
   title: "Mock XCMP - test XCMP execution",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -12,7 +12,7 @@ import {
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 describeSuite({
-  id: "D0107",
+  id: "D010107",
   title: "XCM - asset manager - destroy foreign asset",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
