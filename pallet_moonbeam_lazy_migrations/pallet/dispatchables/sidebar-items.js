@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["clear_local_assets_storage"]};
