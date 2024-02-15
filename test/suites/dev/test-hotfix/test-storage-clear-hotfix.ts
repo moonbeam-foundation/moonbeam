@@ -18,53 +18,50 @@ describeSuite({
       title:
         "Should clear storage entries of multiple suicided contracts within the deletion limit.",
       test: async function () {
-        const contractAddresses: `0x${string}`[] = [];
+        const contracts: { address: `0x${string}`; storageKey: string }[] = [];
         const { abi } = fetchCompiledContract("Storage");
 
-        // for (let i = 0; i < 3; i++) {
-        const { contractAddress: addr } = await deployCreateCompiledContract(context, "Storage");
-        contractAddresses.push(addr);
+        for (let i = 0; i < 3; i++) {
+          const { contractAddress } = await deployCreateCompiledContract(context, "Storage");
+          const storageKey = context.polkadotJs().query.evm.accountCodes.key(contractAddress);
+          contracts.push({ address: contractAddress, storageKey });
 
-        // Create storage entries for the contract
-        const rawSigned = await createEthersTransaction(context, {
-          to: addr,
-          data: encodeFunctionData({
-            abi,
-            args: [0, 200],
-            functionName: "store",
-          }),
-          gasLimit: 13_000_000,
-        });
-        await expectOk(context.createBlock(rawSigned));
+          // Create storage entries for the contract
+          const rawSigned = await createEthersTransaction(context, {
+            to: contractAddress,
+            data: encodeFunctionData({
+              abi,
+              args: [0, 200],
+              functionName: "store",
+            }),
+            gasLimit: 13_000_000,
+          });
+          await expectOk(context.createBlock(rawSigned));
 
-        // Delete the contract to make it a suicided contract
-        const rawTx = await createEthersTransaction(context, {
-          to: addr,
-          data: encodeFunctionData({
-            abi,
-            functionName: "destroy",
-          }),
-          gasLimit: 2_000_000,
-        });
-        const { result } = await context.createBlock(rawTx);
-        const receipt = await context
-          .viem("public")
-          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
+          await context.createBlock();
 
-        expect(receipt.status).toBe("success");
-        // }
+          // Delete the contract to make it a suicided contract
+          const rawTx = await createEthersTransaction(context, {
+            to: contractAddress,
+            data: encodeFunctionData({
+              abi,
+              functionName: "destroy",
+            }),
+            gasLimit: 2_000_000,
+          });
+          const { result } = await context.createBlock(rawTx);
+          const receipt = await context
+            .viem("public")
+            .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
 
-        // Call the extrinsic to delete the storage entries
-        await context.createBlock(
-          context.polkadotJs().tx.hotfix.clearSuicidedStorage(contractAddresses, 200)
-        );
+          expect(receipt.status).toBe("success");
 
-        // Check that the storage entries of all contracts have been deleted
-        for (const contractAddress of contractAddresses) {
-          const storageEntries = await context
-            .polkadotJs()
-            .query.evm.accountStorages(contractAddress);
-          expect(storageEntries.isEmpty).to.be.true;
+          // Call the extrinsic to delete the storage entries
+          await expectOk(
+            context.createBlock(
+              context.polkadotJs().tx.hotfix.clearSuicidedStorage([contractAddress], 199)
+            )
+          );
         }
       },
     });

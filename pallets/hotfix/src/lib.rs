@@ -69,7 +69,7 @@ pub mod pallet {
 			limit: u32,
 		) -> DispatchResultWithPostInfo {
 			let _ = ensure_signed(origin)?;
-			let mut deleted = 0;
+			let mut limit = limit as usize;
 
 			for address in &addresses {
 				// Ensure that the contract is suicided by checking that it has no code and at least
@@ -82,15 +82,15 @@ pub mod pallet {
 					Error::<T>::ContractNotSuicided
 				);
 
-				let mut iter = pallet_evm::AccountStorages::<T>::drain_prefix(address);
-				while iter.next().is_some() {
-					deleted += 1;
-					if deleted >= limit {
-						return Ok(().into());
-					}
+				let deleted = pallet_evm::AccountStorages::<T>::drain_prefix(*address)
+					.take(limit)
+					.count();
+
+				limit = limit.saturating_sub(deleted);
+				if limit == 0 {
+					return Ok(().into());
 				}
 			}
-
 			Ok(().into())
 		}
 	}

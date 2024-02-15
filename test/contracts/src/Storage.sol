@@ -10,8 +10,11 @@ contract Storage {
         }
     }
 
+    function retrieve(uint256 index) public view returns (uint256) {
+        return map[index];
+    }
+
     function destroy() public {
         selfdestruct(payable(msg.sender));
     }
 }
-
