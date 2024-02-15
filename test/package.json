@@ -36,7 +36,6 @@
     "@vitest/ui": "1.2.2",
     "@zombienet/utils": "0.0.24",
     "chalk": "5.3.0",
-    "dockerode": "^4.0.2",
     "eth-object": "github:aurora-is-near/eth-object#master",
     "ethers": "6.10.0",
     "json-bigint": "1.0.0",
@@ -55,7 +54,6 @@
   },
   "devDependencies": {
     "@types/debug": "4.1.12",
-    "@types/dockerode": "^3.3.23",
     "@types/json-bigint": "^1.0.4",
     "@types/node": "20.11.16",
     "@types/semver": "7.5.6",
