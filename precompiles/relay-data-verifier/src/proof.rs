@@ -36,7 +36,7 @@ pub enum ProofError {
 	Proof,
 	// The value could not be decoded.
 	Decode,
-	// The entry is not present in the proof.
+	// The key is not present in the proof.
 	Absent,
 }
 /// A storage proof checker. It is used to verify a storage proof against a well-known storage root,
