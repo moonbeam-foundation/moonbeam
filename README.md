@@ -165,7 +165,7 @@ Moonbeam nodes support a variety of public chains and testnets, each with their 
 
 The Moonbeam Runtime, built using FRAME, comprises pallets from Polkadot-SDK, Frontier, and the `pallets/` directory.
 
-From Polkasot-SDK:
+From Polkadot-SDK:
 
 - _Utility_: Allows users to use derivative accounts, and batch calls
 - _Balances_: Tracks GLMR token balances
