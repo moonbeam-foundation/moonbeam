@@ -50,6 +50,7 @@ pallet-utility = { workspace = true }
 pallet-whitelist = { workspace = true }
 pallet-xcm = { workspace = true }
 sp-api = { workspace = true }
+sp-consensus-slots = { workspace = true }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
@@ -61,8 +62,9 @@ fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 pallet-evm-chain-id = { workspace = true }
 
-# Nimbus
+# Moonkit
 nimbus-primitives = { workspace = true }
+pallet-async-backing = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
 
@@ -70,6 +72,9 @@ pallet-author-slot-filter = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
+
+# Parity
+parity-scale-codec = { workspace = true }
 
 account = { workspace = true }
 
@@ -79,6 +84,7 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"pallet-asset-manager/std",
+	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
 	"pallet-ethereum-xcm/std",
@@ -89,7 +95,9 @@ std = [
 	"pallet-referenda/std",
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
+	"parity-scale-codec/std",
 	"precompile-utils/std",
+	"sp-consensus-slots/std",
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",

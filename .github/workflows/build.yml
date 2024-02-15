@@ -201,10 +201,10 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: 8.6.12
-      - name: Use Node.js 20.10
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20.10
+          node-version: 20.10.0
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - name: Run Eslint check
@@ -339,6 +339,7 @@ jobs:
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           fi
           rustup show
+          rustup target add wasm32-unknown-unknown
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
@@ -352,8 +353,9 @@ jobs:
     needs: ["set-tags", "build"]
     timeout-minutes: 20
     strategy:
+      fail-fast: false
       matrix:
-        chain: ["moonbase"]
+        chain: ["moonbase", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
@@ -417,10 +419,10 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: 8.6.12
-      - name: Use Node.js 20.10
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20.10
+          node-version: 20.10.0
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - run: |
@@ -461,9 +463,7 @@ jobs:
   docker-moonbeam:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: |
-      ${{! needs.set-tags.outputs.image_exists }} && 
-      ${{! github.event.pull_request.head.repo.fork }}
+    if: ${{ !needs.set-tags.outputs.image_exists && !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -543,7 +543,7 @@ jobs:
           version: 8
       - uses: actions/setup-node@v3
         with:
-          node-version: 20.10
+          node-version: 20.10.0
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - name: Create local folders
@@ -591,7 +591,7 @@ jobs:
           version: 8
       - uses: actions/setup-node@v3
         with:
-          node-version: 20.10
+          node-version: 20.10.0
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -615,33 +615,36 @@ jobs:
           docker create --name moonbeam_container $DOCKER_TAG bash
           docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
           docker rm -f moonbeam_container
-      - name: "Run zombie upgrade test"
+      - name: "TEMPORARY: Download forked polkadot-bins"
+        run: |
+          # When we remove this step, re-add "runScripts": ["download-polkadot.sh"]," to moonwall config
+          cd test/tmp
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot-execute-worker
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot-prepare-worker
+
+          chmod +x polkadot
+          chmod +x polkadot-execute-worker
+          chmod +x polkadot-prepare-worker
+      - name: Prepare Chainspecs
         run: |
           cd test
           pnpm install
 
           ## Generate old spec using latest published node, modify it, and generate raw spec
           chmod uog+x tmp/moonbeam_rt
-          tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
-          pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
-          tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
-
-          ## Start zombie network and run tests
           chmod uog+x ../target/release/moonbeam
+          tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
+          pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json
+          tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
+          pnpm tsx scripts/preapprove-rt-rawspec.ts process tmp/${{ matrix.chain }}-raw-spec.json tmp/${{ matrix.chain }}-modified-raw-spec.json ../target/release/wbuild/${{ matrix.chain }}-runtime/${{ matrix.chain }}_runtime.compact.compressed.wasm
+      - name: "Run zombie upgrade test"
+        run: |
+          cd test
           pnpm moonwall test zombie_${{ matrix.chain }}
       - name: "Run zombie RPC test"
         run: |
           cd test
-          pnpm install
-
-          ## Generate old spec using latest published node, modify it, and generate raw spec
-          chmod uog+x tmp/moonbeam_rt
-          tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
-          pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json 
-          tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
-
-          ## Start zombie network and run tests
-          chmod uog+x ../target/release/moonbeam
           pnpm moonwall test zombie_${{ matrix.chain }}_rpc
       - name: Zip and Upload Node Logs on Failure
         if: failure()

@@ -44,12 +44,12 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
-		fungible::HoldConsideration,
+		fungible::{Balanced, Credit, HoldConsideration, Inspect},
+		tokens::imbalance::ResolveTo,
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
-		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains,
-		Currency as CurrencyT, EitherOfDiverse, EqualPrivilegeOnly, Imbalance, InstanceFilter,
-		LinearStoragePrice, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
-		OnUnbalanced,
+		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOfDiverse,
+		EqualPrivilegeOnly, Imbalance, InstanceFilter, LinearStoragePrice, OffchainWorker,
+		OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
@@ -65,19 +65,20 @@ pub use moonbeam_core_primitives::{
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::weights as moonbeam_weights;
-use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
-	Account as EVMAccount, EVMCurrencyAdapter, EnsureAddressNever, EnsureAddressRoot,
+	Account as EVMAccount, EVMFungibleAdapter, EnsureAddressNever, EnsureAddressRoot,
 	FeeCalculator, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
-use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
+use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
+use pallet_treasury::TreasuryAccountId;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
+use sp_consensus_slots::Slot;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 #[cfg(feature = "try-runtime")]
 use sp_runtime::TryRuntimeError;
@@ -85,8 +86,8 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	serde::{Deserialize, Serialize},
 	traits::{
-		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
-		PostDispatchInfoOf, UniqueSaturatedInto, Zero,
+		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Header as HeaderT,
+		IdentityLookup, PostDispatchInfoOf, UniqueSaturatedInto, Zero,
 	},
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
@@ -107,7 +108,6 @@ use nimbus_primitives::CanAuthor;
 mod precompiles;
 pub use precompiles::{
 	MoonriverPrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 #[cfg(any(feature = "std", test))]
@@ -118,7 +118,6 @@ pub type Precompiles = MoonriverPrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::councils::*;
 
 pub use governance::councils::*;
 
@@ -184,7 +183,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 2700,
+	spec_version: 2800,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -308,36 +307,41 @@ impl pallet_balances::Config for Runtime {
 }
 
 pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
-impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
+impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
 where
 	R: pallet_balances::Config + pallet_treasury::Config,
-	pallet_treasury::Pallet<R>: OnUnbalanced<NegativeImbalance<R>>,
 {
 	// this seems to be called for substrate-based transactions
-	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
+	fn on_unbalanceds<B>(
+		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
+	) {
 		if let Some(fees) = fees_then_tips.next() {
 			// for fees, 80% are burned, 20% to the treasury
 			let (_, to_treasury) = fees.ration(80, 20);
-			// Balances pallet automatically burns dropped Negative Imbalances by decreasing
+			// Balances pallet automatically burns dropped Credits by decreasing
 			// total_supply accordingly
-			<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
+			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
+				to_treasury,
+			);
 
 			// handle tip if there is one
 			if let Some(tip) = fees_then_tips.next() {
 				// for now we use the same burn/treasury strategy used for regular fees
 				let (_, to_treasury) = tip.ration(80, 20);
-				<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
+				ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
+					to_treasury,
+				);
 			}
 		}
 	}
 
 	// this is called from pallet_evm for Ethereum-based transactions
 	// (technically, it calls on_unbalanced, which calls this when non-zero)
-	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
-		// Balances pallet automatically burns dropped Negative Imbalances by decreasing
+	fn on_nonzero_unbalanced(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
+		// Balances pallet automatically burns dropped Credits by decreasing
 		// total_supply accordingly
 		let (_, to_treasury) = amount.ration(80, 20);
-		<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
+		ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(to_treasury);
 	}
 }
 
@@ -365,7 +369,7 @@ impl WeightToFeePolynomial for LengthToFee {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
+	type OnChargeTransaction = FungibleAdapter<Balances, DealWithFees<Runtime>>;
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
 	type LengthToFee = LengthToFee;
@@ -754,6 +758,16 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 type MonetaryGovernanceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
+/// TODO:
+/// Temporary type that we should replace by RelayChainSlotProvider once async backing is enabled.
+pub struct StakingRoundSlotProvider;
+impl Get<Slot> for StakingRoundSlotProvider {
+	fn get() -> Slot {
+		let block_number: u64 = frame_system::pallet::Pallet::<Runtime>::block_number().into();
+		Slot::from(block_number)
+	}
+}
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -791,8 +805,10 @@ impl pallet_parachain_staking::Config for Runtime {
 	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
 	type OnInactiveCollator = OnInactiveCollator;
 	type OnNewRound = OnNewRound;
+	type SlotProvider = StakingRoundSlotProvider;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
+	type SlotsPerYear = ConstU32<{ 31_557_600 / 12 }>;
 }
 
 impl pallet_author_inherent::Config for Runtime {
@@ -1084,6 +1100,23 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
+use pallet_migrations::{GetMigrations, Migration};
+pub struct ParachainStakingRoundMigration<Runtime>(sp_std::marker::PhantomData<Runtime>);
+
+impl<Runtime> GetMigrations for ParachainStakingRoundMigration<Runtime>
+where
+	Runtime: pallet_parachain_staking::Config,
+	u64: From<<<<Runtime as frame_system::Config>::Block as BlockT>::Header as HeaderT>::Number>,
+{
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		vec![Box::new(
+			moonbeam_runtime_common::migrations::UpdateFirstRoundNumberType::<Runtime>(
+				Default::default(),
+			),
+		)]
+	}
+}
+
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MigrationsList = (
@@ -1094,9 +1127,12 @@ impl pallet_migrations::Config for Runtime {
 			TreasuryCouncilCollective,
 			OpenTechCommitteeCollective,
 		>,
+		ParachainStakingRoundMigration<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
 }
+
+impl pallet_moonbeam_lazy_migrations::Config for Runtime {}
 
 /// Maintenance mode Call filter
 pub struct MaintenanceFilter;
@@ -1104,7 +1140,6 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
 			RuntimeCall::Assets(_) => false,
-			RuntimeCall::LocalAssets(_) => false,
 			RuntimeCall::Balances(_) => false,
 			RuntimeCall::CrowdloanRewards(_) => false,
 			RuntimeCall::Ethereum(_) => false,
@@ -1142,16 +1177,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 				pallet_assets::Call::destroy_approvals { .. } => true,
 				pallet_assets::Call::finish_destroy { .. } => true,
 				_ => false,
-			},
-			// We want to disable create, as we dont want users to be choosing the
-			// assetId of their choice
-			// We also disable destroy, as we want to route destroy through the
-			// asset-manager, which guarantees the removal both at the EVM and
-			// substrate side of things
-			RuntimeCall::LocalAssets(method) => match method {
-				pallet_assets::Call::create { .. } => false,
-				pallet_assets::Call::start_destroy { .. } => false,
-				_ => true,
 			},
 			// We just want to enable this in case of live chains, since the default version
 			// is populated at genesis
@@ -1468,9 +1493,10 @@ construct_runtime! {
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
-		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 108,
+		// Previously 108: pallet_assets::<Instance1>
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 109,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
+		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 111,
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
@@ -1723,6 +1749,10 @@ mod tests {
 			std::mem::size_of::<pallet_maintenance_mode::Call<Runtime>>() <= CALL_ALIGN as usize
 		);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(
+			std::mem::size_of::<pallet_moonbeam_lazy_migrations::Call<Runtime>>()
+				<= CALL_ALIGN as usize
+		);
 		assert!(
 			std::mem::size_of::<pallet_proxy_genesis_companion::Call<Runtime>>()
 				<= CALL_ALIGN as usize

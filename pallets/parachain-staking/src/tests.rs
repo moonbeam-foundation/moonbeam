@@ -277,9 +277,9 @@ fn set_blocks_per_round_event_emits_correctly() {
 			first_block: 0,
 			old: 5,
 			new: 6,
-			new_per_round_inflation_min: Perbill::from_parts(926),
-			new_per_round_inflation_ideal: Perbill::from_parts(926),
-			new_per_round_inflation_max: Perbill::from_parts(926),
+			new_per_round_inflation_min: Perbill::from_parts(463),
+			new_per_round_inflation_ideal: Perbill::from_parts(463),
+			new_per_round_inflation_max: Perbill::from_parts(463),
 		});
 	});
 }
@@ -518,9 +518,9 @@ fn set_inflation_event_emits_correctly() {
 			annual_min: min,
 			annual_ideal: ideal,
 			annual_max: max,
-			round_min: Perbill::from_parts(57),
-			round_ideal: Perbill::from_parts(75),
-			round_max: Perbill::from_parts(93),
+			round_min: Perbill::from_parts(29),
+			round_ideal: Perbill::from_parts(38),
+			round_max: Perbill::from_parts(47),
 		});
 	});
 }
@@ -560,9 +560,9 @@ fn set_inflation_storage_updates_correctly() {
 		assert_eq!(
 			ParachainStaking::inflation_config().round,
 			Range {
-				min: Perbill::from_parts(57),
-				ideal: Perbill::from_parts(75),
-				max: Perbill::from_parts(93)
+				min: Perbill::from_parts(29),
+				ideal: Perbill::from_parts(38),
+				max: Perbill::from_parts(47)
 			}
 		);
 	});
@@ -6720,7 +6720,7 @@ fn deferred_payment_steady_state_event_flow() {
 						total_exposed_amount: 400,
 					},
 					Event::NewRound {
-						starting_block: (round - 1) * 5,
+						starting_block: (round as u64 - 1) * 5,
 						round: round as u32,
 						selected_collators_number: 4,
 						total_balance: 1600,
@@ -8693,11 +8693,12 @@ fn test_on_initialize_weights() {
 			let weight = ParachainStaking::on_initialize(1);
 
 			// TODO: build this with proper db reads/writes
-			assert_eq!(Weight::from_parts(277168000, 0), weight);
+			assert_eq!(Weight::from_parts(302168000, 0), weight);
 
 			// roll to the end of the round, then run on_init again, we should see round change...
 			roll_to_round_end(3);
 			set_author(2, 1, 100); // must set some points for prepare_staking_payouts
+			System::set_block_number(System::block_number() + 1);
 			let block = System::block_number() + 1;
 			let weight = ParachainStaking::on_initialize(block);
 
@@ -8707,7 +8708,7 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2479547135;
+			let expected_on_init = 2504547135;
 			assert_eq!(Weight::from_parts(expected_on_init, 32562), weight);
 
 			// assemble weight manually to ensure it is well understood
@@ -8723,6 +8724,8 @@ fn test_on_initialize_weights() {
 				num_avg_delegations,
 			)
 			.ref_time();
+			// SlotProvider read
+			expected_weight += RocksDbWeight::get().reads_writes(1, 0).ref_time();
 			// Round and Staked writes, done in on-round-change code block inside on_initialize()
 			expected_weight += RocksDbWeight::get().reads_writes(0, 2).ref_time();
 			// more reads/writes manually accounted for for on_finalize

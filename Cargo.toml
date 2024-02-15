@@ -94,6 +94,7 @@ pallet-moonbeam-orbiters = { path = "pallets/moonbeam-orbiters", default-feature
 pallet-parachain-staking = { path = "pallets/parachain-staking", default-features = false }
 pallet-proxy-genesis-companion = { path = "pallets/proxy-genesis-companion", default-features = false }
 pallet-xcm-transactor = { path = "pallets/xcm-transactor", default-features = false }
+pallet-moonbeam-lazy-migrations = { path = "pallets/moonbeam-lazy-migrations", default-features = false }
 precompile-utils = { path = "precompiles/utils", default-features = false }
 xcm-primitives = { path = "primitives/xcm", default-features = false }
 

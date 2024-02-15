@@ -23,10 +23,11 @@ use crate::{
 use block_author::BlockAuthor as BlockAuthorMap;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, LockIdentifier, OnFinalize, OnInitialize},
+	traits::{Everything, Get, LockIdentifier, OnFinalize, OnInitialize},
 	weights::{constants::RocksDbWeight, Weight},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
+use sp_consensus_slots::Slot;
 use sp_core::H256;
 use sp_io;
 use sp_runtime::BuildStorage;
@@ -125,6 +126,15 @@ parameter_types! {
 	pub const MinDelegation: u128 = 3;
 	pub const MaxCandidates: u32 = 200;
 }
+
+pub struct StakingRoundSlotProvider;
+impl Get<Slot> for StakingRoundSlotProvider {
+	fn get() -> Slot {
+		let block_number: u64 = System::block_number().into();
+		Slot::from(block_number)
+	}
+}
+
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -148,8 +158,10 @@ impl Config for Test {
 	type PayoutCollatorReward = ();
 	type OnInactiveCollator = ();
 	type OnNewRound = ();
+	type SlotProvider = StakingRoundSlotProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
+	type SlotsPerYear = frame_support::traits::ConstU32<{ 31_557_600 / 6 }>;
 }
 
 pub(crate) struct ExtBuilder {

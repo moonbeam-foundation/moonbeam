@@ -20,7 +20,7 @@ const processFile = async (filePath: string): Promise<void> => {
   }
 
   if (allImports.length > 0) {
-    const combinedImport = `import { ${allImports.join(", ")} } from "../../../helpers";\n`;
+    const combinedImport = `import { ${allImports.join(", ")} } from "../../../../helpers";\n`;
 
     let updatedContent =
       content.slice(0, firstMatchIndex) +

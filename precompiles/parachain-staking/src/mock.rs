@@ -18,7 +18,7 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, OnFinalize, OnInitialize},
+	traits::{Everything, Get, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -28,6 +28,7 @@ use precompile_utils::{
 	precompile_set::*,
 	testing::{Alice, MockAccount},
 };
+use sp_consensus_slots::Slot;
 use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
@@ -42,7 +43,7 @@ pub type BlockNumber = BlockNumberFor<Runtime>;
 type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 construct_runtime!(
-	pub enum Runtime	{
+	pub enum Runtime {
 		System: frame_system,
 		Balances: pallet_balances,
 		Evm: pallet_evm,
@@ -84,6 +85,7 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = ();
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
+
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 }
@@ -184,6 +186,15 @@ parameter_types! {
 	pub const MaxCandidates: u32 = 10;
 	pub BlockAuthor: AccountId = Alice.into();
 }
+
+pub struct StakingRoundSlotProvider;
+impl Get<Slot> for StakingRoundSlotProvider {
+	fn get() -> Slot {
+		let block_number: u64 = System::block_number().into();
+		Slot::from(block_number)
+	}
+}
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -207,8 +218,10 @@ impl pallet_parachain_staking::Config for Runtime {
 	type OnCollatorPayout = ();
 	type OnInactiveCollator = ();
 	type OnNewRound = ();
+	type SlotProvider = StakingRoundSlotProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
+	type SlotsPerYear = frame_support::traits::ConstU32<{ 31_557_600 / 6 }>;
 }
 
 pub(crate) struct ExtBuilder {

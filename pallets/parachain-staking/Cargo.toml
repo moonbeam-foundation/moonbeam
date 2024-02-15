@@ -15,6 +15,7 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 parity-scale-codec = { workspace = true, features = [ "derive" ] }
 scale-info = { workspace = true, features = [ "derive" ] }
+sp-consensus-slots = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 substrate-fixed = { workspace = true }
@@ -38,6 +39,7 @@ std = [
 	"nimbus-primitives/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
+	"sp-consensus-slots/std",
 	"sp-runtime/std",
 	"sp-std/std",
 ]
