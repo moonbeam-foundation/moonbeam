@@ -26,7 +26,7 @@ members = [
 	"precompiles/proxy",
 	"precompiles/referenda",
 	"precompiles/relay-encoder",
-	"precompiles/relay-proof-verifier",
+	"precompiles/relay-data-verifier",
 	"precompiles/utils",
 	"precompiles/utils/macro",
 	"precompiles/utils/tests-external",
@@ -171,6 +171,7 @@ sp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", bran
 sp-runtime-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-session = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-std = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
+sp-state-machine = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-transaction-pool = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-version = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-weights = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }

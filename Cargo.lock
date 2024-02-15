@@ -9860,12 +9860,18 @@ dependencies = [
 name = "pallet-relay-proof-verifier-precompile"
 version = "0.1.0"
 dependencies = [
+ "cumulus-primitives-core",
  "fp-evm",
  "frame-support",
- "frame-system",
+ "pallet-evm",
+ "pallet-relay-storage-roots",
+ "parity-scale-codec",
  "precompile-utils",
+ "scale-info",
  "sp-core",
+ "sp-state-machine",
  "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
