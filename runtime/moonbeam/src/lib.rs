@@ -108,7 +108,6 @@ use nimbus_primitives::CanAuthor;
 mod precompiles;
 pub use precompiles::{
 	MoonbeamPrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 #[cfg(any(feature = "std", test))]
@@ -1131,13 +1130,14 @@ impl pallet_migrations::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
+impl pallet_moonbeam_lazy_migrations::Config for Runtime {}
+
 /// Maintenance mode Call filter
 pub struct MaintenanceFilter;
 impl Contains<RuntimeCall> for MaintenanceFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
 			RuntimeCall::Assets(_) => false,
-			RuntimeCall::LocalAssets(_) => false,
 			RuntimeCall::Balances(_) => false,
 			RuntimeCall::CrowdloanRewards(_) => false,
 			RuntimeCall::Ethereum(_) => false,
@@ -1175,16 +1175,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 				pallet_assets::Call::destroy_approvals { .. } => true,
 				pallet_assets::Call::finish_destroy { .. } => true,
 				_ => false,
-			},
-			// We want to disable create, as we dont want users to be choosing the
-			// assetId of their choice
-			// We also disable destroy, as we want to route destroy through the
-			// asset-manager, which guarantees the removal both at the EVM and
-			// substrate side of things
-			RuntimeCall::LocalAssets(method) => match method {
-				pallet_assets::Call::create { .. } => false,
-				pallet_assets::Call::start_destroy { .. } => false,
-				_ => true,
 			},
 			// We just want to enable this in case of live chains, since the default version
 			// is populated at genesis
@@ -1498,9 +1488,10 @@ construct_runtime! {
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
-		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 108,
+		// Previously 108: pallet_assets::<Instance1>
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 109,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
+		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 111,
 
 
 		// Randomness
@@ -1752,6 +1743,10 @@ mod tests {
 			std::mem::size_of::<pallet_maintenance_mode::Call<Runtime>>() <= CALL_ALIGN as usize
 		);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(
+			std::mem::size_of::<pallet_moonbeam_lazy_migrations::Call<Runtime>>()
+				<= CALL_ALIGN as usize
+		);
 		assert!(
 			std::mem::size_of::<pallet_proxy_genesis_companion::Call<Runtime>>()
 				<= CALL_ALIGN as usize

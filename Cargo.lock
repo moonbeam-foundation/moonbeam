@@ -6517,6 +6517,7 @@ dependencies = [
  "pallet-maintenance-mode",
  "pallet-message-queue",
  "pallet-migrations",
+ "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
@@ -6999,6 +7000,7 @@ dependencies = [
  "pallet-maintenance-mode",
  "pallet-message-queue",
  "pallet-migrations",
+ "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
@@ -7388,6 +7390,7 @@ dependencies = [
  "pallet-maintenance-mode",
  "pallet-message-queue",
  "pallet-migrations",
+ "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
@@ -9562,6 +9565,22 @@ dependencies = [
  "sp-mmr-primitives",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-moonbeam-lazy-migrations"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
