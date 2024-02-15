@@ -40,7 +40,6 @@ pub mod pallet {
 
 	/// Pallet for multi block migrations
 	#[pallet::pallet]
-	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	#[pallet::storage]
@@ -64,14 +63,16 @@ pub mod pallet {
 		#[pallet::weight(Weight::from_parts(0,
 			INTERMEDIATES_NODES_SIZE + (MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE * <u64>::from(*limit)))
 			.saturating_add(<T as frame_system::Config>::DbWeight::get()
-				.reads_writes((*limit + 1).into(), (*limit).into()))
+				.reads_writes((*limit + 1).into(), (*limit + 1).into()))
 		)]
 		pub fn clear_local_assets_storage(
 			origin: OriginFor<T>,
 			limit: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
+			ensure!(limit != 0, "Limit cannot be zero!");
 
+			let mut weight = <T as frame_system::Config>::DbWeight::get().reads(1);
 			ensure!(
 				!LocalAssetsMigrationCompleted::<T>::get(),
 				Error::<T>::AllStorageEntriesHaveBeenRemoved
@@ -82,6 +83,8 @@ pub mod pallet {
 			let keys_removed = match sp_io::storage::clear_prefix(&hashed_prefix, Some(limit)) {
 				sp_io::KillStorageResult::AllRemoved(value) => {
 					LocalAssetsMigrationCompleted::<T>::set(true);
+					weight
+						.saturating_accrue(<T as frame_system::Config>::DbWeight::get().writes(1));
 					value
 				}
 				sp_io::KillStorageResult::SomeRemaining(value) => value,
@@ -90,14 +93,16 @@ pub mod pallet {
 			log::info!("Removed {} keys 🧹", keys_removed);
 
 			Ok(Some(
-				Weight::from_parts(
-					0,
-					INTERMEDIATES_NODES_SIZE + MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE * keys_removed,
-				)
-				.saturating_add(
-					<T as frame_system::Config>::DbWeight::get()
-						.reads_writes(keys_removed + 1, keys_removed),
-				),
+				weight
+					.saturating_add(Weight::from_parts(
+						0,
+						INTERMEDIATES_NODES_SIZE
+							+ MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE * keys_removed,
+					))
+					.saturating_add(
+						<T as frame_system::Config>::DbWeight::get()
+							.reads_writes(keys_removed, keys_removed),
+					),
 			)
 			.into())
 		}
