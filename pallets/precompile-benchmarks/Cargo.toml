@@ -1,27 +1,23 @@
 [package]
-name = "pallet-evm-precompile-relay-verifier"
+name = "pallet-precompile-benchmarks"
 authors = { workspace = true }
-description = "A Precompile to make pallet-relay-proof-verifier calls accessible to pallet-evm"
 edition = "2021"
 version = "0.1.0"
 
 [dependencies]
 # Moonbeam
-precompile-utils = { workspace = true }
+pallet-evm-precompile-relay-verifier = { workspace = true }
 
-# Substrate
+# substrate
 cumulus-primitives-core = { workspace = true }
 frame-support = { workspace = true }
+frame-system = { workspace = true }
 parity-scale-codec = { workspace = true, features = [ "derive" ] }
-scale-info = { workspace = true, features = [ "derive" ] }
 sp-state-machine = { workspace = true }
 sp-core = { workspace = true }
 sp-std = { workspace = true }
 sp-trie = { workspace = true }
-
-# Frontier
-fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+scale-info = { workspace = true, features = [ "derive" ] }
 
 # Moonkit
 pallet-relay-storage-roots = { workspace = true }
@@ -30,11 +26,10 @@ pallet-relay-storage-roots = { workspace = true }
 std = [
     "cumulus-primitives-core/std",
     "frame-support/std",
-    "fp-evm/std",
-    "parity-scale-codec/std",
-    "precompile-utils/std",
+    "frame-system/std",
+    "pallet-evm-precompile-relay-verifier/std",
     "pallet-relay-storage-roots/std",
-    "scale-info/std",
+    "parity-scale-codec/std",
     "sp-state-machine/std",
     "sp-core/std",
     "sp-std/std",
@@ -43,5 +38,6 @@ std = [
 
 runtime-benchmarks = [
     "frame-support/runtime-benchmarks",
-    "pallet-relay-storage-roots/runtime-benchmarks",
+    "frame-system/runtime-benchmarks",
+    "pallet-evm-precompile-relay-verifier/runtime-benchmarks",
 ]

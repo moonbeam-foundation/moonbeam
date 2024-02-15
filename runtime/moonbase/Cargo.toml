@@ -43,6 +43,7 @@ pallet-parachain-staking = { workspace = true }
 pallet-proxy-genesis-companion = { workspace = true }
 pallet-randomness = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
+pallet-precompile-benchmarks = { workspace = true }
 
 # Moonbeam precompiles
 pallet-evm-precompile-author-mapping = { workspace = true }
@@ -255,6 +256,7 @@ std = [
 	"pallet-moonbeam-orbiters/std",
 	"pallet-multisig/std",
 	"pallet-parachain-staking/std",
+	"pallet-precompile-benchmarks/std",
 	"pallet-preimage/std",
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
@@ -339,6 +341,7 @@ runtime-benchmarks = [
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
+	"pallet-precompile-benchmarks/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
 	"pallet-proxy/runtime-benchmarks",
 	"pallet-randomness/runtime-benchmarks",

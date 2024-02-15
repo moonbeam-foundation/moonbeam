@@ -6520,6 +6520,7 @@ dependencies = [
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
+ "pallet-precompile-benchmarks",
  "pallet-preimage",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
@@ -9236,6 +9237,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-evm-precompile-relay-verifier"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "fp-evm",
+ "frame-support",
+ "pallet-evm",
+ "pallet-relay-storage-roots",
+ "parity-scale-codec",
+ "precompile-utils",
+ "scale-info",
+ "sp-core",
+ "sp-state-machine",
+ "sp-std",
+ "sp-trie",
+]
+
+[[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.3.0#539225fca1ff104f4c8ff8f2041eab8b68e903ec"
@@ -9731,6 +9750,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-precompile-benchmarks"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "pallet-evm-precompile-relay-verifier",
+ "pallet-relay-storage-roots",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-state-machine",
+ "sp-std",
+ "sp-trie",
+]
+
+[[package]]
 name = "pallet-preimage"
 version = "4.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.3.0#542721dd4ab6b8119a8479a8830e57e101249594"
@@ -9854,24 +9890,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
-]
-
-[[package]]
-name = "pallet-relay-proof-verifier-precompile"
-version = "0.1.0"
-dependencies = [
- "cumulus-primitives-core",
- "fp-evm",
- "frame-support",
- "pallet-evm",
- "pallet-relay-storage-roots",
- "parity-scale-codec",
- "precompile-utils",
- "scale-info",
- "sp-core",
- "sp-state-machine",
- "sp-std",
- "sp-trie",
 ]
 
 [[package]]

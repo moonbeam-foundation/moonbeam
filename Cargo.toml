@@ -10,6 +10,7 @@ members = [
 	"node/service",
 	"pallets/erc20-xcm-bridge",
 	"pallets/moonbeam-orbiters",
+	"pallets/precompile-benchmarks",
 	"pallets/proxy-genesis-companion",
 	"precompiles/balances-erc20",
 	"precompiles/batch",
@@ -85,12 +86,14 @@ pallet-evm-precompile-randomness = { path = "precompiles/randomness", default-fe
 pallet-evm-precompile-referenda = { path = "precompiles/referenda", default-features = false }
 pallet-evm-precompile-registry = { path = "precompiles/precompile-registry", default-features = false }
 pallet-evm-precompile-relay-encoder = { path = "precompiles/relay-encoder", default-features = false }
+pallet-evm-precompile-relay-verifier = { path = "precompiles/relay-data-verifier", default-features = false }
 pallet-evm-precompile-xcm-transactor = { path = "precompiles/xcm-transactor", default-features = false }
 pallet-evm-precompile-xcm-utils = { path = "precompiles/xcm-utils", default-features = false }
 pallet-evm-precompile-xtokens = { path = "precompiles/xtokens", default-features = false }
 pallet-evm-precompileset-assets-erc20 = { path = "precompiles/assets-erc20", default-features = false }
 pallet-moonbeam-orbiters = { path = "pallets/moonbeam-orbiters", default-features = false }
 pallet-parachain-staking = { path = "pallets/parachain-staking", default-features = false }
+pallet-precompile-benchmarks = { path = "pallets/precompile-benchmarks", default-features = false }
 pallet-proxy-genesis-companion = { path = "pallets/proxy-genesis-companion", default-features = false }
 pallet-xcm-transactor = { path = "pallets/xcm-transactor", default-features = false }
 precompile-utils = { path = "precompiles/utils", default-features = false }

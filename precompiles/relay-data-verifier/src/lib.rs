@@ -27,16 +27,16 @@ use precompile_utils::prelude::*;
 use sp_core::{Get, H256};
 use sp_std::vec::Vec;
 
-mod proof;
-use proof::*;
+pub mod proof;
+use proof::{ReadProof, StorageProofChecker};
 
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 pub const ARRAY_LIMIT: u32 = 512;
 pub const KEY_LENGTH_LIMIT: u32 = 256;
 
-type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
-type GetKeyLengthLimit = ConstU32<KEY_LENGTH_LIMIT>;
-type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
+pub type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
+pub type GetKeyLengthLimit = ConstU32<KEY_LENGTH_LIMIT>;
+pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 
 type RawStorageProof = BoundedBytes<GetCallDataLimit>;
 type RawKey = BoundedBytes<GetKeyLengthLimit>;
@@ -104,6 +104,7 @@ where
 				.map_err(|_| revert("Invalid Proof"))?;
 			values.push(value.into());
 		}
+
 		Ok(values.into())
 	}
 
