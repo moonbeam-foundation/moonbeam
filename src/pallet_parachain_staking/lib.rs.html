@@ -2302,6 +2302,9 @@
 <a href="#2302" id="2302">2302</a>
 <a href="#2303" id="2303">2303</a>
 <a href="#2304" id="2304">2304</a>
+<a href="#2305" id="2305">2305</a>
+<a href="#2306" id="2306">2306</a>
+<a href="#2307" id="2307">2307</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2493,6 +2496,9 @@
 		<span class="doccomment">/// Maximum candidates
 		</span><span class="attr">#[pallet::constant]
 		</span><span class="kw">type </span>MaxCandidates: Get&lt;u32&gt;;
+		<span class="doccomment">/// Average number of slots per year
+		/// A slot here is the unit of time for staking rounds (provided by SlotProvider)
+		</span><span class="kw">type </span>SlotsPerYear: Get&lt;u32&gt;;
 	}
 
 	<span class="attr">#[pallet::error]
@@ -3277,7 +3283,7 @@
 			round.length = new;
 			<span class="comment">// update per-round inflation given new rounds per year
 			</span><span class="kw">let </span><span class="kw-2">mut </span>inflation_config = &lt;InflationConfig&lt;T&gt;&gt;::get();
-			inflation_config.reset_round(new);
+			inflation_config.reset_round::&lt;T&gt;(new);
 			&lt;Round&lt;T&gt;&gt;::put(round);
 			<span class="self">Self</span>::deposit_event(Event::BlocksPerRoundSet {
 				current_round: now,

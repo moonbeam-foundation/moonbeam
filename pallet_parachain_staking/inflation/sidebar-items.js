@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["BLOCKS_PER_YEAR"],"fn":["annual_to_round","perbill_annual_to_perbill_round","round_issuance_range"],"struct":["InflationInfo","Range"]};
+window.SIDEBAR_ITEMS = {"fn":["annual_to_round","perbill_annual_to_perbill_round","round_issuance_range"],"struct":["InflationInfo","Range"]};

@@ -384,7 +384,6 @@
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
 <a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -582,12 +581,11 @@
 <span class="kw">const </span>COLLATOR_COMMISSION: Perbill = Perbill::from_percent(<span class="number">20</span>);
 <span class="kw">const </span>PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(<span class="number">30</span>);
 <span class="kw">const </span>BLOCKS_PER_ROUND: u32 = <span class="number">6 </span>* HOURS;
+<span class="kw">const </span>BLOCKS_PER_YEAR: u32 = <span class="number">31_557_600 </span>/ <span class="number">12</span>;
 <span class="kw">const </span>NUM_SELECTED_CANDIDATES: u32 = <span class="number">8</span>;
 <span class="kw">pub fn </span>moonbeam_inflation_config() -&gt; InflationInfo&lt;Balance&gt; {
 	<span class="kw">fn </span>to_round_inflation(annual: Range&lt;Perbill&gt;) -&gt; Range&lt;Perbill&gt; {
-		<span class="kw">use </span>pallet_parachain_staking::inflation::{
-			perbill_annual_to_perbill_round, BLOCKS_PER_YEAR,
-		};
+		<span class="kw">use </span>pallet_parachain_staking::inflation::perbill_annual_to_perbill_round;
 		perbill_annual_to_perbill_round(
 			annual,
 			<span class="comment">// rounds per year

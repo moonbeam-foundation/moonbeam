@@ -1890,6 +1890,10 @@
 <a href="#1890" id="1890">1890</a>
 <a href="#1891" id="1891">1891</a>
 <a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
+<a href="#1895" id="1895">1895</a>
+<a href="#1896" id="1896">1896</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2050,8 +2054,7 @@
 	.saturating_div(<span class="number">2</span>)
 	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE <span class="kw">as </span>u64);
 
-<span class="comment">// TODO: Set MILLISECS_PER_BLOCK to 6000 when async backing will be definitly enabled
-</span><span class="kw">pub const </span>MILLISECS_PER_BLOCK: u64 = <span class="number">12000</span>;
+<span class="kw">pub const </span>MILLISECS_PER_BLOCK: u64 = <span class="number">6_000</span>;
 <span class="kw">pub const </span>MINUTES: BlockNumber = <span class="number">60_000 </span>/ (MILLISECS_PER_BLOCK <span class="kw">as </span>BlockNumber);
 <span class="kw">pub const </span>HOURS: BlockNumber = MINUTES * <span class="number">60</span>;
 <span class="kw">pub const </span>DAYS: BlockNumber = HOURS * <span class="number">24</span>;
@@ -2601,8 +2604,12 @@
 	<span class="kw">pub const </span>ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(<span class="number">4</span>);
 }
 
-<span class="kw">pub const </span>UNINCLUDED_SEGMENT_CAPACITY: u32 = <span class="number">1</span>;
-<span class="kw">pub const </span>BLOCK_PROCESSING_VELOCITY: u32 = <span class="number">1</span>;
+<span class="doccomment">/// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
+/// into the relay chain.
+</span><span class="kw">const </span>UNINCLUDED_SEGMENT_CAPACITY: u32 = <span class="number">3</span>;
+<span class="doccomment">/// How many parachain blocks are processed by the relay chain per parent. Limits the
+/// number of blocks authored per slot.
+</span><span class="kw">const </span>BLOCK_PROCESSING_VELOCITY: u32 = <span class="number">2</span>;
 
 <span class="kw">type </span>ConsensusHook = pallet_async_backing::consensus_hook::FixedVelocityConsensusHook&lt;
 	Runtime,
@@ -2722,6 +2729,7 @@
 	<span class="kw">type </span>SlotProvider = RelayChainSlotProvider;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>MaxCandidates = ConstU32&lt;<span class="number">200</span>&gt;;
+	<span class="kw">type </span>SlotsPerYear = ConstU32&lt;{ <span class="number">31_557_600 </span>/ <span class="number">6 </span>}&gt;;
 }
 
 <span class="kw">impl </span>pallet_author_inherent::Config <span class="kw">for </span>Runtime {

@@ -1875,6 +1875,8 @@
 <a href="#1875" id="1875">1875</a>
 <a href="#1876" id="1876">1876</a>
 <a href="#1877" id="1877">1877</a>
+<a href="#1878" id="1878">1878</a>
+<a href="#1879" id="1879">1879</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2922,6 +2924,7 @@
 		};
 
 	<span class="kw">if </span>async_backing {
+		<span class="macro">log::info!</span>(<span class="string">&quot;Collator started with asynchronous backing.&quot;</span>);
 		<span class="kw">let </span>client_clone = client.clone();
 		<span class="kw">let </span>code_hash_provider = <span class="kw">move </span>|block_hash| {
 			client_clone
@@ -2970,6 +2973,7 @@
 			}),
 		);
 	} <span class="kw">else </span>{
+		<span class="macro">log::info!</span>(<span class="string">&quot;Collator started without asynchronous backing.&quot;</span>);
 		task_manager.spawn_essential_handle().spawn(
 			<span class="string">&quot;nimbus&quot;</span>,
 			<span class="prelude-val">None</span>,
