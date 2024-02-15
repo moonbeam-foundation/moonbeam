@@ -649,7 +649,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = moonbeam_weights::pallet_xcm_transactor::WeightInfo<Runtime>;
-	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
+	type HrmpManipulatorOrigin = FastGeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
 }
 
