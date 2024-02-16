@@ -69,7 +69,7 @@ fn test_clear_suicided_contract_succesfull() {
 	ExtBuilder::default().build().execute_with(|| {
 		let contract_address = mock_contract_with_entries(1, 1, 10);
 
-		// One addresses hav been migrated yet
+		// No addresses have been migrated yet
 		assert_eq!(crate::pallet::SuicidedContractsRemoved::<Runtime>::get(), 0);
 
 		// The account has some storage entries
