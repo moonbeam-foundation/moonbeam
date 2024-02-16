@@ -178,7 +178,7 @@ pub mod pallet {
 
 				limit = limit.saturating_sub(deleted);
 				if limit == 0 {
-					return Ok(().into());
+					return Ok(Pays::No.into());
 				}
 			}
 			Ok(().into())
