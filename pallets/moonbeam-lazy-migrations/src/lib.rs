@@ -36,12 +36,16 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use pallet_democracy::VotingOf;
 
-	/// Copied from pallet-democracy
-	const DEMOCRACY_ID: LockIdentifier = *b"democrac";
-
 	const INTERMEDIATES_NODES_SIZE: u64 = 4096;
 	const MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE: u64 =
 		(/* biggest key on moonbeam */136) + (/* biggest value on moonbeam */142);
+
+	/// Copied from pallet-democracy
+	const DEMOCRACY_ID: LockIdentifier = *b"democrac";
+	const MAX_DEMOCRACY_VOTINGOF_STORAGE_ENTRY_SIZE: u64 =
+		(/* biggest key on moonbeam */60) + (/* biggest value on moonbeam */1440);
+	const MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE: u64 =
+		(/* biggest key on moonbeam */60) + (/* biggest value on moonbeam */26 * 3);
 
 	/// Pallet for multi block migrations
 	#[pallet::pallet]
@@ -59,6 +63,8 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// There are no more storage entries to be removed
 		AllStorageEntriesHaveBeenRemoved,
+		/// The limit cannot be zero
+		LimitCannotBeZero,
 	}
 
 	#[pallet::call]
@@ -117,15 +123,17 @@ pub mod pallet {
 		// unreserved prior to this operation and the proposal submission disabled.
 		#[pallet::call_index(1)]
 		#[pallet::weight(
-			<T as frame_system::Config>::DbWeight::get()
-				.reads_writes((*limit + 1).into(), (*limit).into())
+			Weight::from_parts(0,
+				(MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE + MAX_DEMOCRACY_VOTINGOF_STORAGE_ENTRY_SIZE) * <u64>::from(*limit))
+				.saturating_add(<T as frame_system::Config>::DbWeight::get()
+				.reads_writes((*limit + 1).into(), (*limit + 1).into()).saturating_mul(2))
 		)]
 		pub fn unlock_democracy_funds(
 			origin: OriginFor<T>,
 			limit: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
-			ensure!(limit != 0, "Limit cannot be zero!");
+			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
 
 			// Unlock staked funds and remove the voting entry. This way we can keep track of what
 			// is left without extra cost.
@@ -137,10 +145,20 @@ pub mod pallet {
 
 			log::info!("Unlocked {} accounts 🧹", unlocked_accounts);
 
-			Ok(
-				Some(T::DbWeight::get().reads_writes(unlocked_accounts + 1, unlocked_accounts))
-					.into(),
+			Ok(Some(
+				Weight::from_parts(
+					0,
+					(MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE
+						+ MAX_DEMOCRACY_VOTINGOF_STORAGE_ENTRY_SIZE)
+						* <u64>::from(limit),
+				)
+				.saturating_add(
+					<T as frame_system::Config>::DbWeight::get()
+						.reads_writes((limit + 1).into(), (limit + 1).into())
+						.saturating_mul(2), // once for VotingOf and once for locks
+				),
 			)
+			.into())
 		}
 	}
 }
