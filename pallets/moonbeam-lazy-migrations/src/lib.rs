@@ -54,6 +54,10 @@ pub mod pallet {
 	#[pallet::storage]
 	/// If true, it means that LocalAssets storage has been removed.
 	pub(crate) type LocalAssetsMigrationCompleted<T: Config> = StorageValue<_, bool, ValueQuery>;
+	
+	#[pallet::storage]
+	/// If true, it means that Democracy funds have been unlocked.
+	pub(crate) type DemocracyLocksMigrationCompleted<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -67,6 +71,8 @@ pub mod pallet {
 		LimitCannotBeZero,
 		/// The limit for unlocking funds is too high
 		UnlockLimitTooHigh,
+		/// There are no more VotingOf entries to be removed and democracy funds to be unlocked
+		AllDemocracyFundsUnlocked,
 	}
 
 	#[pallet::call]
@@ -139,13 +145,22 @@ pub mod pallet {
 			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
 			ensure!(limit <= 50, Error::<T>::UnlockLimitTooHigh);
 
+			ensure!(
+				!DemocracyLocksMigrationCompleted::<T>::get(),
+				Error::<T>::AllDemocracyFundsUnlocked
+			);
+
 			// Unlock staked funds and remove the voting entry. This way we can keep track of what
 			// is left without extra cost.
 			let unlocked_accounts = VotingOf::<T>::iter()
 				.drain()
 				.take(limit as usize)
 				.map(|(account, _)| T::Currency::remove_lock(DEMOCRACY_ID, &account))
-				.count() as u64;
+				.count() as u32;
+
+			if unlocked_accounts < limit {
+				DemocracyLocksMigrationCompleted::<T>::set(true);
+			}
 
 			log::info!("Unlocked {} accounts 🧹", unlocked_accounts);
 
