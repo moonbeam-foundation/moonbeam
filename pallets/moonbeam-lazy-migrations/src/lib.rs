@@ -65,6 +65,8 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// There are no more storage entries to be removed
 		AllStorageEntriesHaveBeenRemoved,
+		/// One of the arguments is zero or has zero length
+		LengthOrLimitCannotBeZero
 		/// The contract is not suicided
 		ContractNotSuicided,
 	}
@@ -83,7 +85,7 @@ pub mod pallet {
 			limit: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
-			ensure!(limit != 0, "Limit cannot be zero!");
+			ensure!(limit != 0, Error::<T>::LengthOrLimitCannotBeZero);
 
 			let mut weight = <T as frame_system::Config>::DbWeight::get().reads(1);
 			ensure!(
@@ -133,6 +135,10 @@ pub mod pallet {
 			limit: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
+
+			ensure!(limit != 0, Error::<T>::LengthOrLimitCannotBeZero);
+			ensure!(addresses.len() != 0, Error::<T>::LengthOrLimitCannotBeZero);
+
 			let mut limit = limit as usize;
 
 			for address in &addresses {

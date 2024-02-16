@@ -55,7 +55,9 @@ describeSuite({
 
         // Call the extrinsic to delete the storage entries
         await context.createBlock(
-          context.polkadotJs().tx.moonbeamLazyMigrations.clearSuicidedStorage(contractAddresses, 200)
+          context
+            .polkadotJs()
+            .tx.moonbeamLazyMigrations.clearSuicidedStorage(contractAddresses, 200)
         );
 
         // Check that the storage entries of all contracts have been deleted
