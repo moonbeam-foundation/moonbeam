@@ -55,6 +55,10 @@ pub mod pallet {
 	/// If true, it means that LocalAssets storage has been removed.
 	pub(crate) type LocalAssetsMigrationCompleted<T: Config> = StorageValue<_, bool, ValueQuery>;
 
+	#[pallet::storage]
+	/// The total number of suicided contracts that were removed
+	pub(crate) type SuicidedContractsRemoved<T: Config> = StorageValue<_, u32, ValueQuery>;
+
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_evm::Config {
@@ -65,8 +69,10 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// There are no more storage entries to be removed
 		AllStorageEntriesHaveBeenRemoved,
-		/// One of the arguments is zero or has zero length
-		LengthOrLimitCannotBeZero,
+		/// There must be at least one a address
+		AddressesLengthCannotBeZero,
+		/// The limit cannot be zero
+		LimitCannotBeZero,
 		/// The contract is not suicided
 		ContractNotSuicided,
 	}
@@ -85,7 +91,7 @@ pub mod pallet {
 			limit: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
-			ensure!(limit != 0, Error::<T>::LengthOrLimitCannotBeZero);
+			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
 
 			let mut weight = <T as frame_system::Config>::DbWeight::get().reads(1);
 			ensure!(
@@ -136,25 +142,39 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 
-			ensure!(limit != 0, Error::<T>::LengthOrLimitCannotBeZero);
-			ensure!(addresses.len() != 0, Error::<T>::LengthOrLimitCannotBeZero);
+			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
+			ensure!(
+				addresses.len() != 0,
+				Error::<T>::AddressesLengthCannotBeZero
+			);
 
 			let mut limit = limit as usize;
 
 			for address in &addresses {
-				// Ensure that the contract is suicided by checking that it has no code and at least
-				// one storage entry.
+				// Ensure that the contract is implicitly suicided by checking
+				// that it has no code and at least one storage entry.
+				let suicided = pallet_evm::Suicided::<T>::contains_key(&address);
+				let has_code = pallet_evm::AccountCodes::<T>::contains_key(&address);
 				ensure!(
-					!pallet_evm::AccountCodes::<T>::contains_key(&address)
-						&& pallet_evm::AccountStorages::<T>::iter_key_prefix(&address)
-							.next()
-							.is_some(),
+					!suicided
+						&& !has_code && pallet_evm::AccountStorages::<T>::iter_key_prefix(&address)
+						.next()
+						.is_some(),
 					Error::<T>::ContractNotSuicided
 				);
 
 				let deleted = pallet_evm::AccountStorages::<T>::drain_prefix(*address)
 					.take(limit)
 					.count();
+
+				// Check if the storage of this contract has been completly removed
+				if pallet_evm::AccountStorages::<T>::iter_key_prefix(&address)
+					.next()
+					.is_none()
+				{
+					// All entries got removed, lets count this address as migrated
+					SuicidedContractsRemoved::<T>::mutate(|x| *x = x.saturating_add(1));
+				}
 
 				limit = limit.saturating_sub(deleted);
 				if limit == 0 {

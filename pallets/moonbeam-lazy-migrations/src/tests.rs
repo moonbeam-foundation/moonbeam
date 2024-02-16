@@ -69,6 +69,15 @@ fn test_clear_suicided_contract_succesfull() {
 	ExtBuilder::default().build().execute_with(|| {
 		let contract_address = mock_contract_with_entries(1, 1, 10);
 
+		// One addresses hav been migrated yet
+		assert_eq!(crate::pallet::SuicidedContractsRemoved::<Runtime>::get(), 0);
+
+		// The account has some storage entries
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address).count(),
+			10
+		);
+
 		// Call the extrinsic to delete the storage entries
 		let _ = LazyMigrations::clear_suicided_storage(
 			RuntimeOrigin::signed(AccountId32::from([45; 32])),
@@ -76,6 +85,9 @@ fn test_clear_suicided_contract_succesfull() {
 			1000,
 		);
 
+		// One address has been migrated
+		assert_eq!(crate::pallet::SuicidedContractsRemoved::<Runtime>::get(), 1);
+		// All the account storage should have been removed
 		assert_eq!(
 			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address).count(),
 			0
@@ -87,21 +99,39 @@ fn test_clear_suicided_contract_succesfull() {
 #[test]
 fn test_clear_suicided_contract_failed() {
 	ExtBuilder::default().build().execute_with(|| {
-		let contract_address = mock_contract_with_entries(1, 1, 10);
-		// Contract has not been self-destructed.
-		pallet_evm::AccountCodes::<Runtime>::insert(contract_address, vec![1, 2, 3]);
+		let contract1_address = mock_contract_with_entries(1, 1, 10);
+		let contract2_address = mock_contract_with_entries(2, 1, 10);
+
+		// The contracts have not been self-destructed.
+		pallet_evm::AccountCodes::<Runtime>::insert(contract1_address, vec![1, 2, 3]);
+		pallet_evm::Suicided::<Runtime>::insert(contract2_address, ());
 
 		assert_noop!(
 			LazyMigrations::clear_suicided_storage(
 				RuntimeOrigin::signed(AccountId32::from([45; 32])),
-				vec![contract_address].try_into().unwrap(),
+				vec![contract1_address].try_into().unwrap(),
 				1000
 			),
 			Error::<Runtime>::ContractNotSuicided
 		);
 
+		assert_noop!(
+			LazyMigrations::clear_suicided_storage(
+				RuntimeOrigin::signed(AccountId32::from([45; 32])),
+				vec![contract2_address].try_into().unwrap(),
+				1000
+			),
+			Error::<Runtime>::ContractNotSuicided
+		);
+
+		// Check that no storage has been removed
+
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address).count(),
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract1_address).count(),
+			10
+		);
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract2_address).count(),
 			10
 		);
 	})
