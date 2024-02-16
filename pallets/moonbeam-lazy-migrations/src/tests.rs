@@ -16,9 +16,222 @@
 
 //! Unit testing
 use {
-	crate::mock::{ExtBuilder, LazyMigrations},
-	frame_support::assert_ok,
+	crate::{
+		mock::{ExtBuilder, LazyMigrations, Runtime, RuntimeOrigin},
+		Error,
+	},
+	frame_support::{assert_noop, assert_ok},
+	rlp::RlpStream,
+	sp_core::{H160, H256},
+	sp_io::hashing::keccak_256,
+	sp_runtime::AccountId32,
 };
+
+use pallet_evm::AddressMapping;
+
+// Helper function that calculates the contract address
+pub fn contract_address(sender: H160, nonce: u64) -> H160 {
+	let mut rlp = RlpStream::new_list(2);
+	rlp.append(&sender);
+	rlp.append(&nonce);
+
+	H160::from_slice(&keccak_256(&rlp.out())[12..])
+}
+
+fn address_build(seed: u8) -> H160 {
+	let address = H160::from(H256::from(keccak_256(&[seed; 32])));
+	address
+}
+
+// Helper function that creates a `num_entries` storage entries for a contract
+fn mock_contract_with_entries(seed: u8, nonce: u64, num_entries: u32) -> H160 {
+	let address = address_build(seed);
+
+	let contract_address = contract_address(address, nonce);
+	let account_id =
+		<Runtime as pallet_evm::Config>::AddressMapping::into_account_id(contract_address);
+	let _ = frame_system::Pallet::<Runtime>::inc_sufficients(&account_id);
+
+	// Add num_entries storage entries to the suicided contract
+	for i in 0..num_entries {
+		pallet_evm::AccountStorages::<Runtime>::insert(
+			contract_address,
+			H256::from_low_u64_be(i as u64),
+			H256::from_low_u64_be(i as u64),
+		);
+	}
+
+	contract_address
+}
+
+#[test]
+fn test_clear_suicided_contract_succesfull() {
+	ExtBuilder::default().build().execute_with(|| {
+		let contract_address = mock_contract_with_entries(1, 1, 10);
+
+		// Call the extrinsic to delete the storage entries
+		let _ = LazyMigrations::clear_suicided_storage(
+			RuntimeOrigin::signed(AccountId32::from([45; 32])),
+			vec![contract_address].try_into().unwrap(),
+			1000,
+		);
+
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address).count(),
+			0
+		);
+	})
+}
+
+// Test that the extrinsic fails if the contract is not suicided
+#[test]
+fn test_clear_suicided_contract_failed() {
+	ExtBuilder::default().build().execute_with(|| {
+		let contract_address = mock_contract_with_entries(1, 1, 10);
+		// Contract has not been self-destructed.
+		pallet_evm::AccountCodes::<Runtime>::insert(contract_address, vec![1, 2, 3]);
+
+		assert_noop!(
+			LazyMigrations::clear_suicided_storage(
+				RuntimeOrigin::signed(AccountId32::from([45; 32])),
+				vec![contract_address].try_into().unwrap(),
+				1000
+			),
+			Error::<Runtime>::ContractNotSuicided
+		);
+
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address).count(),
+			10
+		);
+	})
+}
+
+// Test that the extrinsic can handle an empty input
+#[test]
+fn test_clear_suicided_empty_input() {
+	ExtBuilder::default().build().execute_with(|| {
+		let contract_address = mock_contract_with_entries(1, 1, 10);
+
+		let _ = LazyMigrations::clear_suicided_storage(
+			RuntimeOrigin::signed(AccountId32::from([45; 32])),
+			vec![].try_into().unwrap(),
+			1000,
+		);
+
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address).count(),
+			10
+		);
+	})
+}
+
+// Test with multiple deleted contracts ensuring that the extrinsic can handle multiple addresses at once.
+#[test]
+fn test_clear_suicided_contract_multiple_addresses() {
+	ExtBuilder::default().build().execute_with(|| {
+		let contract_address1 = mock_contract_with_entries(1, 1, 10);
+		let contract_address2 = mock_contract_with_entries(2, 1, 20);
+		let contract_address3 = mock_contract_with_entries(3, 1, 30);
+
+		// Call the extrinsic to delete the storage entries
+		let _ = LazyMigrations::clear_suicided_storage(
+			RuntimeOrigin::signed(AccountId32::from([45; 32])),
+			vec![contract_address1, contract_address2, contract_address3]
+				.try_into()
+				.unwrap(),
+			1000,
+		)
+		.unwrap();
+
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address1).count(),
+			0
+		);
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address2).count(),
+			0
+		);
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address3).count(),
+			0
+		);
+	})
+}
+
+// Test that the limit of entries to be deleted is respected
+#[test]
+fn test_clear_suicided_entry_limit() {
+	ExtBuilder::default().build().execute_with(|| {
+		let contract_address1 = mock_contract_with_entries(1, 1, 2000);
+		let contract_address2 = mock_contract_with_entries(2, 1, 1);
+
+		let _ = LazyMigrations::clear_suicided_storage(
+			RuntimeOrigin::signed(AccountId32::from([45; 32])),
+			vec![contract_address1, contract_address2]
+				.try_into()
+				.unwrap(),
+			1000,
+		)
+		.unwrap();
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address1).count(),
+			1000
+		);
+
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address2).count(),
+			1
+		);
+	})
+}
+
+// Test a combination of Suicided and non-suicided contracts
+#[test]
+fn test_clear_suicided_mixed_suicided_and_non_suicided() {
+	ExtBuilder::default().build().execute_with(|| {
+		let contract_address1 = mock_contract_with_entries(1, 1, 10);
+		let contract_address2 = mock_contract_with_entries(2, 1, 10);
+		let contract_address3 = mock_contract_with_entries(3, 1, 10);
+		let contract_address4 = mock_contract_with_entries(4, 1, 10);
+
+		// Contract has not been self-destructed.
+		pallet_evm::AccountCodes::<Runtime>::insert(contract_address3, vec![1, 2, 3]);
+
+		assert_noop!(
+			LazyMigrations::clear_suicided_storage(
+				RuntimeOrigin::signed(AccountId32::from([45; 32])),
+				vec![
+					contract_address1,
+					contract_address2,
+					contract_address3,
+					contract_address4
+				]
+				.try_into()
+				.unwrap(),
+				1000
+			),
+			Error::<Runtime>::ContractNotSuicided
+		);
+
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address1).count(),
+			10
+		);
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address2).count(),
+			10
+		);
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address3).count(),
+			10
+		);
+		assert_eq!(
+			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address4).count(),
+			10
+		);
+	})
+}
 
 /// TODO(rodrigo): This test should be removed once LocalAssets pallet storage is removed
 #[test]
@@ -55,7 +268,7 @@ fn test_call_clear_local_assets_storage() {
 		}
 		// Clear all storage entries
 		assert_ok!(LazyMigrations::clear_local_assets_storage(
-			crate::mock::RuntimeOrigin::signed(1),
+			RuntimeOrigin::signed(AccountId32::from([0; 32])),
 			total_storage_entries.into()
 		));
 		// Check that all storage entries got deleted
@@ -72,7 +285,7 @@ fn test_call_clear_local_assets_storage() {
 	context.execute_with(|| {
 		// No more storage entries to be removed (expect failure)
 		assert!(LazyMigrations::clear_local_assets_storage(
-			crate::mock::RuntimeOrigin::signed(1),
+			RuntimeOrigin::signed(AccountId32::from([0; 32])),
 			1
 		)
 		.is_err())

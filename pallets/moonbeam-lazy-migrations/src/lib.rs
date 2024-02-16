@@ -19,10 +19,15 @@
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
+
+pub mod weights;
+pub use weights::WeightInfo;
 
 use frame_support::pallet;
 
@@ -33,6 +38,10 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
+	use sp_core::H160;
+
+	pub const ARRAY_LIMIT: u32 = 1000;
+	pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 
 	const INTERMEDIATES_NODES_SIZE: u64 = 4096;
 	const MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE: u64 =
@@ -48,12 +57,16 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {}
+	pub trait Config: frame_system::Config + pallet_evm::Config {
+		type WeightInfo: WeightInfo;
+	}
 
 	#[pallet::error]
 	pub enum Error<T> {
 		/// There are no more storage entries to be removed
 		AllStorageEntriesHaveBeenRemoved,
+		/// The contract is not suicided
+		ContractNotSuicided,
 	}
 
 	#[pallet::call]
@@ -105,6 +118,44 @@ pub mod pallet {
 					),
 			)
 			.into())
+		}
+
+		// TODO(rodrigo): This extrinsic should be removed once the storage of destroyed contracts
+		// has been removed
+		#[pallet::call_index(1)]
+		#[pallet::weight({
+			let addresses_len = addresses.len() as u32;
+			<T as crate::Config>::WeightInfo::clear_suicided_storage(addresses_len, *limit)
+		})]
+		pub fn clear_suicided_storage(
+			origin: OriginFor<T>,
+			addresses: BoundedVec<H160, GetArrayLimit>,
+			limit: u32,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+			let mut limit = limit as usize;
+
+			for address in &addresses {
+				// Ensure that the contract is suicided by checking that it has no code and at least
+				// one storage entry.
+				ensure!(
+					!pallet_evm::AccountCodes::<T>::contains_key(&address)
+						&& pallet_evm::AccountStorages::<T>::iter_key_prefix(&address)
+							.next()
+							.is_some(),
+					Error::<T>::ContractNotSuicided
+				);
+
+				let deleted = pallet_evm::AccountStorages::<T>::drain_prefix(*address)
+					.take(limit)
+					.count();
+
+				limit = limit.saturating_sub(deleted);
+				if limit == 0 {
+					return Ok(().into());
+				}
+			}
+			Ok(().into())
 		}
 	}
 }

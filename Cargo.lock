@@ -6513,7 +6513,6 @@ dependencies = [
  "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
- "pallet-hotfix",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-message-queue",
@@ -6997,7 +6996,6 @@ dependencies = [
  "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
- "pallet-hotfix",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-message-queue",
@@ -7090,9 +7088,9 @@ dependencies = [
  "pallet-ethereum-xcm",
  "pallet-evm",
  "pallet-evm-chain-id",
- "pallet-hotfix",
  "pallet-identity",
  "pallet-migrations",
+ "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
@@ -7389,7 +7387,6 @@ dependencies = [
  "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
- "pallet-hotfix",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-message-queue",
@@ -9430,26 +9427,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-hotfix"
-version = "0.1.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "libsecp256k1",
- "pallet-balances",
- "pallet-evm",
- "pallet-timestamp",
- "parity-scale-codec",
- "rlp",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-identity"
 version = "4.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.3.0#771cd7512cf6c4efc9f01539acb797a6f1cbb623"
@@ -9600,11 +9577,15 @@ dependencies = [
  "frame-system",
  "log",
  "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
  "parity-scale-codec",
+ "rlp",
  "scale-info",
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
