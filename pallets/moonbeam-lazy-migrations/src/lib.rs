@@ -69,7 +69,7 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// There are no more storage entries to be removed
 		AllStorageEntriesHaveBeenRemoved,
-		/// There must be at least one a address
+		/// There must be at least one address
 		AddressesLengthCannotBeZero,
 		/// The limit cannot be zero
 		LimitCannotBeZero,
