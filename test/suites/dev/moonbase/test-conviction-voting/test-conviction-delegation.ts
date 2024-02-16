@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, GLMR, alith, baltathar, faith } from "@moonwall/util";
 import { expectSubstrateEvent } from "../../../../helpers";
 
 describeSuite({
-  id: "D2600",
+  id: "D010704",
   title: "Conviction Voting - Delegation",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

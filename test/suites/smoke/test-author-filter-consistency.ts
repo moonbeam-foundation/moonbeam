@@ -4,7 +4,7 @@ import { ApiDecoration } from "@polkadot/api/types";
 import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
-  id: "S100",
+  id: "S01",
   title: `Verify author filter consistency`,
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

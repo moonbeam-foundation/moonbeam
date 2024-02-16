@@ -7,7 +7,7 @@ import { hexToU8a } from "@polkadot/util";
 import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
-  id: "S1750",
+  id: "S19",
   title: "Relay chain Module:Method indices should match our encoding",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

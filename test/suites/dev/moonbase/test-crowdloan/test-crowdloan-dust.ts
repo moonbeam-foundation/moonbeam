@@ -8,7 +8,7 @@ import {
 } from "../../../../helpers/constants.js";
 
 describeSuite({
-  id: "D0706",
+  id: "D010806",
   title: "Crowdloan",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

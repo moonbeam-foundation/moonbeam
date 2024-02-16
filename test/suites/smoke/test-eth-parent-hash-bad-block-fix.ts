@@ -4,7 +4,7 @@ import { THIRTY_MINS } from "@moonwall/util";
 import { ApiDecoration } from "@polkadot/api/types";
 
 describeSuite({
-  id: "S570",
+  id: "S07",
   title: `RPC Eth ParentHash`,
   foundationMethods: "dev",
   testCases: async function ({ context, it, log }) {

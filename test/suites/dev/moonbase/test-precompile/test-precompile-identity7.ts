@@ -5,7 +5,7 @@ import { toHex } from "viem";
 import { PRECOMPILE_IDENTITY_ADDRESS, expectEVMResult } from "../../../../helpers";
 
 describeSuite({
-  id: "D3406",
+  id: "D012755",
   title: "Precompiles - Identity precompile - set subs",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

@@ -7,7 +7,7 @@ import * as RLP from "rlp";
 import { Log, encodeDeployData, toHex } from "viem";
 
 describeSuite({
-  id: "D2802",
+  id: "D013002",
   title: "Receipt root - With events",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

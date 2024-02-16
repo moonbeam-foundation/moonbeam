@@ -5,7 +5,7 @@ import { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D0204",
+  id: "D010204",
   title: "Author Mapping - Fail without deposit",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

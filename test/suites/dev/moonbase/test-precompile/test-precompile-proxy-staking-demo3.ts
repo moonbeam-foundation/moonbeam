@@ -14,7 +14,7 @@ import { nToHex } from "@polkadot/util";
 import { setupWithParticipants } from "../../../../helpers";
 
 describeSuite({
-  id: "D2548",
+  id: "D012768",
   title: "Proxy Call Staking Demo - Leave Participant",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

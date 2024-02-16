@@ -11,7 +11,7 @@ import { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D0202",
+  id: "D010202",
   title: "Author Mapping - Fail to reassociate alice",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

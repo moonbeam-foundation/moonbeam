@@ -9,7 +9,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D0712",
+  id: "D010812",
   title: "Crowdloan - small amount",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

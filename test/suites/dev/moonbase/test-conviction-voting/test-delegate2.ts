@@ -11,7 +11,7 @@ import {
 import { chunk } from "../../../../helpers";
 
 describeSuite({
-  id: "D0601-02",
+  id: "D010707",
   title: "Conviction Voting - undelegate",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

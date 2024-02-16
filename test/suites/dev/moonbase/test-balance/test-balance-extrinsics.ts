@@ -11,7 +11,7 @@ import { PrivateKeyAccount } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
-  id: "D0302",
+  id: "D010302",
   title: "Balance - Extrinsic",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

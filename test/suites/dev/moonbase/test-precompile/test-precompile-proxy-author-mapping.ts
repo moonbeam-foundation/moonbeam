@@ -12,7 +12,7 @@ import { encodeFunctionData } from "viem";
 import { expectEVMResult, getAuthorMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D2540",
+  id: "D012760",
   title: "Proxy : Author Mapping - simple association",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

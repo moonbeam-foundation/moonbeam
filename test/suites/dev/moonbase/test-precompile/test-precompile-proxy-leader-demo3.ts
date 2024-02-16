@@ -10,7 +10,7 @@ import {
 import { setupPoolWithParticipants, expectEVMResult } from "../../../../helpers";
 
 describeSuite({
-  id: "D2544",
+  id: "D012764",
   title: "Proxy Leader Demo - Vote",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

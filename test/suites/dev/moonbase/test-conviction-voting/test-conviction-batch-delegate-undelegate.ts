@@ -4,7 +4,7 @@ import { KeyringPair, alith } from "@moonwall/util";
 import { createAccounts, expectSubstrateEvents } from "../../../../helpers";
 
 describeSuite({
-  id: "D2622",
+  id: "D010701",
   title: "Conviction Voting - Batch Delegate and Undelegate",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

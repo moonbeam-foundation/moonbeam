@@ -5,7 +5,7 @@ import { ZERO_ADDRESS, alith } from "@moonwall/util";
 const TWENTY_PERCENT = 20;
 
 describeSuite({
-  id: "D2953",
+  id: "D013149",
   title: "Staking - Parachain Bond - set bond account",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

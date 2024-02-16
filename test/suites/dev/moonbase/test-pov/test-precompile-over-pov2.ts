@@ -15,7 +15,7 @@ import { Abi, encodeFunctionData } from "viem";
 import { HeavyContract, deployHeavyContracts } from "../../../../helpers";
 
 describeSuite({
-  id: "D2404",
+  id: "D012605",
   title: "PoV precompile test - PoV Limit (3.5Mb in Dev)",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

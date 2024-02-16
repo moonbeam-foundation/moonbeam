@@ -52,7 +52,7 @@ enum Change {
 }
 
 describeSuite({
-  id: "S550",
+  id: "S06",
   title: `Dynamic fees in past ${hours} hours should be correct`,
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

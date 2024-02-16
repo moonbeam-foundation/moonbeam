@@ -10,7 +10,7 @@ import {
 import { createProposal } from "../../../../helpers";
 
 describeSuite({
-  id: "D2580",
+  id: "D012001",
   title: "Locks - Voting and staking locks are not mutually exclusive",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
