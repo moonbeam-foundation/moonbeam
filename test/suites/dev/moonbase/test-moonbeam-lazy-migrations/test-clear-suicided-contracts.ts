@@ -16,7 +16,7 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let api: ApiPromise;
-    
+
     beforeAll(async () => {
       api = context.polkadotJs();
     });
@@ -62,17 +62,18 @@ describeSuite({
           expect(receipt.status).toBe("success");
 
           // Call the extrinsic to delete the storage entries
-          let tx = await context.createBlock(
+          const tx = await context.createBlock(
             api.tx.moonbeamLazyMigrations.clearSuicidedStorage([contractAddress], 199)
           );
           await expect(!tx.result?.successful, "The contract storage cannot be removed");
 
           // Remove "Suicided" flag
           await context.createBlock(
-            api.tx.sudo
-              .sudo(api.tx.system.killStorage([api.query.evm.suicided.key(contractAddress)]))
+            api.tx.sudo.sudo(
+              api.tx.system.killStorage([api.query.evm.suicided.key(contractAddress)])
+            )
           );
-          
+
           // Now, the storage can be removed
           await expectOk(
             context.createBlock(
