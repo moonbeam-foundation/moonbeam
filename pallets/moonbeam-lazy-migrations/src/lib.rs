@@ -74,7 +74,8 @@ pub mod pallet {
 		/// The limit cannot be zero
 		LimitCannotBeZero,
 		/// The contract is not suicided
-		ContractNotSuicided,
+                 /// The contract is not corrupted (Still exist or properly suicided)
+		ContractNotCorrupted,
 	}
 
 	#[pallet::call]
