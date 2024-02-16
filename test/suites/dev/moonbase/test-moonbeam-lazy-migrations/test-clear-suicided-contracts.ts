@@ -3,28 +3,33 @@ import {
   expect,
   deployCreateCompiledContract,
   fetchCompiledContract,
+  beforeAll,
 } from "@moonwall/cli";
 import { createEthersTransaction } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 import { expectOk } from "../../../../helpers";
+import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
   id: "D5001",
   title: "Lazy Migrations Pallet - Clear Suicided Storage",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
+    let api: ApiPromise;
+    
+    beforeAll(async () => {
+      api = context.polkadotJs();
+    });
+
     it({
       id: "T01",
       title:
         "Should clear storage entries of multiple suicided contracts within the deletion limit.",
       test: async function () {
-        const contracts: { address: `0x${string}`; storageKey: string }[] = [];
         const { abi } = fetchCompiledContract("Storage");
 
         for (let i = 0; i < 3; i++) {
           const { contractAddress } = await deployCreateCompiledContract(context, "Storage");
-          const storageKey = context.polkadotJs().query.evm.accountCodes.key(contractAddress);
-          contracts.push({ address: contractAddress, storageKey });
 
           // Create storage entries for the contract
           const rawSigned = await createEthersTransaction(context, {
@@ -57,6 +62,18 @@ describeSuite({
           expect(receipt.status).toBe("success");
 
           // Call the extrinsic to delete the storage entries
+          let tx = await context.createBlock(
+            api.tx.moonbeamLazyMigrations.clearSuicidedStorage([contractAddress], 199)
+          );
+          await expect(!tx.result?.successful, "The contract storage cannot be removed");
+
+          // Remove "Suicided" flag
+          await context.createBlock(
+            api.tx.sudo
+              .sudo(api.tx.system.killStorage([api.query.evm.suicided.key(contractAddress)]))
+          );
+          
+          // Now, the storage can be removed
           await expectOk(
             context.createBlock(
               context
