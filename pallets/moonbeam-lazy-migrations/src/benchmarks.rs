@@ -36,7 +36,7 @@ benchmarks! {
 		// Create the storage entries to be deleted
 		for i in 0..a {
 			let address = account("address", i, i);
-			addresses.try_push(address).unwrap();
+			addresses.try_push(address).expect("Cannot add more addresses to address list");
 			let n = max(1, l/a);
 			for j in 0..n {
 				pallet_evm::AccountStorages::<T>::insert(

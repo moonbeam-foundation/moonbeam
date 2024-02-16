@@ -126,7 +126,8 @@ fn test_clear_suicided_empty_input() {
 	})
 }
 
-// Test with multiple deleted contracts ensuring that the extrinsic can handle multiple addresses at once.
+// Test with multiple deleted contracts ensuring that the extrinsic can handle
+// multiple addresses at once.
 #[test]
 fn test_clear_suicided_contract_multiple_addresses() {
 	ExtBuilder::default().build().execute_with(|| {
