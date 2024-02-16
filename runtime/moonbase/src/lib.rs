@@ -1444,6 +1444,8 @@ impl pallet_relay_storage_roots::Config for Runtime {
 	type WeightInfo = ();
 }
 
+impl pallet_precompile_benchmarks::Config for Runtime {}
+
 construct_runtime! {
 	pub enum Runtime
 	{
@@ -1502,7 +1504,8 @@ construct_runtime! {
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
 		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 50,
 		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 51,
-		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage } = 52,
+		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 52,
+		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 53,
 	}
 }
 
@@ -1577,6 +1580,7 @@ mod benches {
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
 		[pallet_relay_storage_roots, RelayStorageRoots]
+		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[moonbeam_xcm_benchmarks::weights::generic, MoonbeamXcmGenericBench::<Runtime>]
 	);
 }

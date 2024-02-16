@@ -28,6 +28,9 @@ use pallet_evm_precompile_relay_verifier::{
 };
 use sp_core::H256;
 
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarks;
+
 #[pallet]
 pub mod pallet {
 	use super::*;
@@ -94,7 +97,7 @@ pub mod pallet {
 		}
 
 		#[allow(dead_code)]
-		fn latest_relay_block() -> Result<RelayBlockNumber, Error<T>> {
+		pub fn latest_relay_block() -> Result<RelayBlockNumber, Error<T>> {
 			pallet_relay_storage_roots::RelayStorageRootKeys::<T>::get()
 				.last()
 				.cloned()

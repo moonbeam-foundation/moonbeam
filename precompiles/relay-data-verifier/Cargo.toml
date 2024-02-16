@@ -40,8 +40,3 @@ std = [
     "sp-std/std",
     "sp-trie/std",
 ]
-
-runtime-benchmarks = [
-    "frame-support/runtime-benchmarks",
-    "pallet-relay-storage-roots/runtime-benchmarks",
-]

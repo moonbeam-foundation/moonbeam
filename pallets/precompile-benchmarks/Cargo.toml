@@ -22,14 +22,19 @@ scale-info = { workspace = true, features = [ "derive" ] }
 # Moonkit
 pallet-relay-storage-roots = { workspace = true }
 
+# Benchmarks
+frame-benchmarking = { workspace = true, optional = true }
+
 [features]
 std = [
     "cumulus-primitives-core/std",
+    "frame-benchmarking/std",
     "frame-support/std",
     "frame-system/std",
     "pallet-evm-precompile-relay-verifier/std",
     "pallet-relay-storage-roots/std",
     "parity-scale-codec/std",
+    "scale-info/std",
     "sp-state-machine/std",
     "sp-core/std",
     "sp-std/std",
@@ -37,7 +42,7 @@ std = [
 ]
 
 runtime-benchmarks = [
-    "frame-support/runtime-benchmarks",
+    "frame-benchmarking",
     "frame-system/runtime-benchmarks",
-    "pallet-evm-precompile-relay-verifier/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
 ]

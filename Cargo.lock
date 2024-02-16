@@ -9773,6 +9773,7 @@ name = "pallet-precompile-benchmarks"
 version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "pallet-evm-precompile-relay-verifier",
