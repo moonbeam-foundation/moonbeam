@@ -8,7 +8,7 @@ import {
 } from "../../../../helpers/precompiles.js";
 
 describeSuite({
-  id: "D2509",
+  id: "D012710",
   title: "Precompile Author Mapping - Set Faith first time keys",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

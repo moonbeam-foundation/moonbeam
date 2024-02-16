@@ -4,7 +4,7 @@ import { encodeFunctionData } from "viem";
 import { verifyLatestBlockFees } from "../../../../helpers";
 
 describeSuite({
-  id: "D0607",
+  id: "D010607",
   title: "Contract loop",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

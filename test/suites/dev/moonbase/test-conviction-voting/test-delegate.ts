@@ -10,7 +10,7 @@ import {
 } from "@moonwall/util";
 
 describeSuite({
-  id: "D0601-01",
+  id: "D010706",
   title: "Conviction Voting - delegate",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

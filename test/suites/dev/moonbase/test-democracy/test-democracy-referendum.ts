@@ -3,7 +3,7 @@ import { beforeEach, describeSuite, expect, instantFastTrack } from "@moonwall/c
 import { ALITH_ADDRESS, GLMR, KeyringPair, VOTE_AMOUNT, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
-  id: "D0807",
+  id: "D010904",
   title: "Democracy - Referendum",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

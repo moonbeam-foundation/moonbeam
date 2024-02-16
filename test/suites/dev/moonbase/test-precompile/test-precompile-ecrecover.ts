@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, ALITH_PRIVATE_KEY } from "@moonwall/util";
 
 describeSuite({
-  id: "D2536",
+  id: "D012741",
   title: "Precompiles - ecrecover",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

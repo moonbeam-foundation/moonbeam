@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 
 describeSuite({
-  id: "D0401",
+  id: "D010401",
   title: "Block 1",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -5,7 +5,7 @@ import { createRawTransfer } from "@moonwall/util";
 import { Wallet } from "ethers";
 
 describeSuite({
-  id: "D0301",
+  id: "D010301",
   title: "Existential Deposit disabled",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

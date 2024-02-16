@@ -10,7 +10,7 @@ import { alith } from "@moonwall/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
-  id: "D0806",
+  id: "D010903",
   title: "Democracy - proposing a vote",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

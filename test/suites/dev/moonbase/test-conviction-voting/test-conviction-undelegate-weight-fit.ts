@@ -4,7 +4,7 @@ import { KeyringPair, alith } from "@moonwall/util";
 import { createAccounts, chunk, expectSubstrateEvents } from "../../../../helpers";
 
 describeSuite({
-  id: "D2621",
+  id: "D010705",
   title: "Conviction Voting - Undelegate Weight Fit",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

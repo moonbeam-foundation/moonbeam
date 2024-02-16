@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 
 describeSuite({
-  id: "D2973",
+  id: "D013170",
   title: "Staking - Set Auto-Compound - remove existing config if 0% auto-compound",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

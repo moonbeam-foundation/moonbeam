@@ -7,7 +7,7 @@ import { ApiPromise } from "@polkadot/api";
 import { rateLimiter } from "../../helpers/common.js";
 
 describeSuite({
-  id: "S1600",
+  id: "S17",
   title: "Verify account proxies created",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

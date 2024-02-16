@@ -9,7 +9,7 @@ import {
 import BS_TRACER from "../../helpers/tracer/blockscout_tracer.min.json" assert { type: "json" };
 
 describeSuite({
-  id: "D3604",
+  id: "T04",
   title: "Trace (Blockscout)",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

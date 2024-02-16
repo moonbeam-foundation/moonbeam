@@ -13,7 +13,7 @@ import { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
 import { SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({
-  id: "D2707",
+  id: "D012907",
   title: "Randomness Result - Requesting 4 random numbers for the same target block",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

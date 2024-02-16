@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, ETHAN_ADDRESS } from "@moonwall/util";
 
 describeSuite({
-  id: "D2567",
+  id: "D012787",
   title: "Precompiles - Staking - AwardedPoints",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

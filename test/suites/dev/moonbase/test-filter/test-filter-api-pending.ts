@@ -3,7 +3,7 @@ import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { fromHex } from "viem";
 
 describeSuite({
-  id: "D1702",
+  id: "D011802",
   title: "Filter Pending Transaction API",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

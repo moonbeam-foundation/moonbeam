@@ -12,7 +12,7 @@ import { u128 } from "@polkadot/types-codec";
 import { BN } from "@polkadot/util";
 
 describeSuite({
-  id: "D1903",
+  id: "D012103",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

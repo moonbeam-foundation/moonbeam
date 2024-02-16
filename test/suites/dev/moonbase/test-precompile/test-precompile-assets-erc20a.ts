@@ -8,7 +8,7 @@ import { mockAssetBalance } from "../../../../helpers";
 import { Abi, encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D2503",
+  id: "D012704",
   title: "",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

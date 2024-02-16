@@ -15,7 +15,7 @@ import {
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D3433",
+  id: "D013731",
   title: "XCM Moonriver: version compatibility",
   foundationMethods: "dev",
   chainType: "moonriver",

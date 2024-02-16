@@ -4,7 +4,7 @@ import { encodeFunctionData } from "viem";
 import { createEthersTransaction } from "@moonwall/util";
 
 describeSuite({
-  id: "D0608",
+  id: "D010608",
   title: "Contract loop",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

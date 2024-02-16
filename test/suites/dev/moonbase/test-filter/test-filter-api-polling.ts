@@ -7,7 +7,7 @@ import {
 } from "@moonwall/cli";
 
 describeSuite({
-  id: "D1703",
+  id: "D011803",
   title: "Filter Block API",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

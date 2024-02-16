@@ -8,7 +8,7 @@ import {
 import { EXTRINSIC_GAS_LIMIT } from "@moonwall/util";
 
 describeSuite({
-  id: "D0403",
+  id: "D010403",
   title: "Block creation - suite 2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
