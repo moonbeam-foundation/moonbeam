@@ -65,6 +65,8 @@ pub mod pallet {
 		AllStorageEntriesHaveBeenRemoved,
 		/// The limit cannot be zero
 		LimitCannotBeZero,
+		/// The limit for unlocking funds is too high
+		UnlockLimitTooHigh,
 	}
 
 	#[pallet::call]
@@ -124,7 +126,8 @@ pub mod pallet {
 		#[pallet::call_index(1)]
 		#[pallet::weight(
 			Weight::from_parts(0,
-				(MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE + MAX_DEMOCRACY_VOTINGOF_STORAGE_ENTRY_SIZE) * <u64>::from(*limit))
+				INTERMEDIATES_NODES_SIZE + (MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE + 
+					MAX_DEMOCRACY_VOTINGOF_STORAGE_ENTRY_SIZE) * <u64>::from(*limit))
 				.saturating_add(<T as frame_system::Config>::DbWeight::get()
 				.reads_writes((*limit + 1).into(), (*limit + 1).into()).saturating_mul(2))
 		)]
@@ -134,6 +137,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
+			ensure!(limit <= 50, Error::<T>::UnlockLimitTooHigh);
 
 			// Unlock staked funds and remove the voting entry. This way we can keep track of what
 			// is left without extra cost.
@@ -145,20 +149,7 @@ pub mod pallet {
 
 			log::info!("Unlocked {} accounts 🧹", unlocked_accounts);
 
-			Ok(Some(
-				Weight::from_parts(
-					0,
-					(MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE
-						+ MAX_DEMOCRACY_VOTINGOF_STORAGE_ENTRY_SIZE)
-						* <u64>::from(limit),
-				)
-				.saturating_add(
-					<T as frame_system::Config>::DbWeight::get()
-						.reads_writes((limit + 1).into(), (limit + 1).into())
-						.saturating_mul(2), // once for VotingOf and once for locks
-				),
-			)
-			.into())
+			Ok(Pays::No.into())
 		}
 	}
 }
