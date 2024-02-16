@@ -25,7 +25,7 @@ use sp_core::{H160, H256};
 benchmarks! {
 	clear_suicided_storage {
 		let caller = account("caller", 1, 100);
-		// a is the number of addresses to be used in the test
+		// a is the number of addresses
 		let a in 0 .. GetArrayLimit::get();
 		// l is the limit of the number of storage entries to be deleted
 		let l in 0 .. 32500;
