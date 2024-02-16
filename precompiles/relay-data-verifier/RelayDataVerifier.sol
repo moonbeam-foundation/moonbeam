@@ -18,21 +18,28 @@ pragma solidity >=0.8.3;
 ///    proof generated in step 3.
 /// @custom:address 0x
 interface RelayProofVerifier {
-    /// @dev Verify Relay Chain Data
-    /// @param relayBlockNumber: The relay block number against which the data is being verified.
-    /// @param storageProof: The storage proof used to verify the data.
-    /// @return value The value associated with the key.
+    /// @dev Verifies a storage entry in the Relay Chain using a relay block number and a storage 
+    /// proof. This function takes a relay block number, a storage proof, and the key of the storage 
+    /// entry to verify. It returns the value associated with the key if the verification is 
+    /// successful.
+    /// @param relayBlockNumber The relay block number against which the entry is being verified.
+    /// @param storageProof The storage proof used to verify the entry.
+    /// @param key The key of the storage entry to verify.
+    /// @return value The value associated with the key, returned as a bytes array.
     function verifyEntry(
         uint32 relayBlockNumber,
         bytes calldata storageProof,
         bytes calldata key
     ) external returns (bytes memory value);
 
-    /// @dev Verify Relay Chain Proof for a batch of keys and return the corresponding values
-    /// @param relayBlockNumber the relay block number for which the data is being verified
-    /// @param storageProof the storage proof used to verify the data
-    /// @param keys the keys to verify
-    /// @return values the values associated with the keys
+    /// @dev Verifies a set of entries in the Relay Chain and returns the corresponding values.
+    /// This function takes a relay block number, a storage proof, and an array of keys for the 
+    /// storage entries to verify. It returns an array of values associated with the keys, in the 
+    /// same order as the keys.
+    /// @param relayBlockNumber The relay block number for which the data is being verified.
+    /// @param storageProof The storage proof used to verify the data.
+    /// @param keys The keys of the storage entries to verify.
+    /// @return values The values associated with the keys, returned in the same order as the keys.
     function verifyEntries(
         uint32 relayBlockNumber,
         bytes calldata storageProof,
