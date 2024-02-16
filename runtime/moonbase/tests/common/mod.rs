@@ -26,7 +26,7 @@ use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetTy
 pub use moonbase_runtime::{
 	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AsyncBacking, AuthorInherent, Balance, Balances,
-	CrowdloanRewards, Ethereum, Executive, Header, InflationInfo, LocalAssets, ParachainStaking,
+	CrowdloanRewards, Ethereum, Executive, Header, InflationInfo, ParachainStaking,
 	ParachainSystem, Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
 	TransactionPaymentAsGasPrice, UncheckedExtrinsic, HOURS, WEEKS,
 };
@@ -66,7 +66,6 @@ pub fn rpc_run_to_block(n: u32) {
 pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 	// Finalize the first block
 	Ethereum::on_finalize(System::block_number());
-	AuthorInherent::on_finalize(System::block_number());
 	while System::block_number() < n {
 		// Set the new block number and author
 		match author {
@@ -95,7 +94,6 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 
 		// Finalize the block
 		Ethereum::on_finalize(System::block_number());
-		AuthorInherent::on_finalize(System::block_number());
 		ParachainStaking::on_finalize(System::block_number());
 	}
 }
@@ -289,18 +287,9 @@ impl ExtBuilder {
 
 		let mut ext = sp_io::TestExternalities::new(t);
 
-		let local_assets = self.local_assets.clone();
 		let xcm_assets = self.xcm_assets.clone();
 
 		ext.execute_with(|| {
-			// If any local assets specified, we create them here
-			for (asset_id, balances, owner) in local_assets.clone() {
-				LocalAssets::force_create(root_origin(), asset_id.into(), owner, true, 1).unwrap();
-				for (account, balance) in balances {
-					LocalAssets::mint(origin_of(owner.into()), asset_id.into(), account, balance)
-						.unwrap();
-				}
-			}
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
 				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();

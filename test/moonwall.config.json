@@ -27,8 +27,7 @@
   "environments": [
     {
       "name": "zombie_moonbeam",
-      "testFileDir": ["suites/para"],
-      "include": ["**/*moonbeam*"],
+      "testFileDir": ["suites/zombie"],
       "multiThreads": false,
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
@@ -41,8 +40,7 @@
     },
     {
       "name": "zombie_moonbeam_rpc",
-      "testFileDir": ["suites/para-rpc"],
-      "include": ["**/*moonbeam*", "**/*common*"],
+      "testFileDir": ["suites/zombie"],
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
@@ -76,9 +74,7 @@
     },
     {
       "name": "zombie_moonbase",
-      "testFileDir": ["suites/para"],
-      "include": ["**/*moonbase*", "**/*common*"],
-      "runScripts": ["download-polkadot.sh"],
+      "testFileDir": ["suites/zombie"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
         "type": "zombie",
@@ -89,9 +85,7 @@
     },
     {
       "name": "zombie_moonbase_rpc",
-      "testFileDir": ["suites/para-rpc"],
-      "include": ["**/*moonbase*", "**/*common*"],
-      "runScripts": ["download-polkadot.sh"],
+      "testFileDir": ["suites/zombie"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
         "type": "zombie",
@@ -121,18 +115,6 @@
           "endpoints": ["ws://127.0.0.1:33356"]
         }
       ]
-    },
-    {
-      "name": "zombie_common",
-      "testFileDir": ["suites/para"],
-      "include": ["**/*common*"],
-      "runScripts": ["download-polkadot.sh"],
-      "foundation": {
-        "type": "zombie",
-        "zombieSpec": {
-          "configPath": "./configs/zombieMoonbeam.json"
-        }
-      }
     },
     {
       "name": "smoke_stagenet",
@@ -383,8 +365,50 @@
       ]
     },
     {
+      "name": "dev_moonbeam",
+      "testFileDir": ["suites/dev/moonbeam"],
+      "include": ["**/*test*"],
+      "timeout": 180000,
+      "contracts": "contracts/",
+      "runScripts": [
+        "compile-contracts.ts compile",
+        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbeam-dev"
+      ],
+      "multiThreads": 8,
+      "envVars": ["DEBUG_COLORS=1"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": {
+        "json": "./tmp/testResults.json"
+      },
+      "foundation": {
+        "type": "dev",
+        "launchSpec": [
+          {
+            "name": "moonbeam",
+            "binPath": "../target/release/moonbeam",
+            "newRpcBehaviour": true,
+            "options": [
+              "--ethapi=txpool",
+              "--no-hardware-benchmarks",
+              "--no-telemetry",
+              "--wasmtime-precompiled=wasm",
+              "--reserved-only",
+              "--no-grandpa",
+              "--no-prometheus",
+              "--force-authoring",
+              "--rpc-cors=all",
+              "--alice",
+              "--chain=moonbeam-dev",
+              "--sealing=manual",
+              "--tmp"
+            ]
+          }
+        ]
+      }
+    },
+    {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/"],
+      "testFileDir": ["suites/dev/moonbase"],
       "include": ["**/*test*"],
       "timeout": 180000,
       "contracts": "contracts/",
@@ -469,6 +493,7 @@
       "testFileDir": ["suites/dev/"],
       "contracts": "contracts/",
       "runScripts": ["compile-contracts.ts compile"],
+      "envVars": ["DEBUG_COLORS=1"],
       "foundation": {
         "type": "dev",
         "launchSpec": [

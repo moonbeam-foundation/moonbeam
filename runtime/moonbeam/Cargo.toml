@@ -13,7 +13,7 @@ hex-literal = { workspace = true, optional = true }
 log = { workspace = true }
 num_enum = { workspace = true }
 rlp = { workspace = true, optional = true }
-serde = { workspace = true, features = [ "derive" ] }
+serde = { workspace = true, features = ["derive"] }
 sha3 = { workspace = true, optional = true }
 smallvec = { workspace = true }
 strum = { workspace = true }
@@ -36,8 +36,9 @@ pallet-crowdloan-rewards = { workspace = true }
 pallet-erc20-xcm-bridge = { workspace = true }
 pallet-evm-chain-id = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
-pallet-maintenance-mode = { workspace = true, features = [ "xcm-support" ] }
+pallet-maintenance-mode = { workspace = true, features = ["xcm-support"] }
 pallet-migrations = { workspace = true }
+pallet-moonbeam-lazy-migrations = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
 pallet-parachain-staking = { workspace = true }
 pallet-proxy-genesis-companion = { workspace = true }
@@ -79,7 +80,7 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-system-rpc-runtime-api = { workspace = true }
 pallet-assets = { workspace = true }
-pallet-balances = { workspace = true, features = [ "insecure_zero_ed" ] }
+pallet-balances = { workspace = true, features = ["insecure_zero_ed"] }
 pallet-collective = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-democracy = { workspace = true }
@@ -102,13 +103,13 @@ parity-scale-codec = { workspace = true, features = [
 	"max-encoded-len",
 	"chain-error",
 ] }
-scale-info = { workspace = true, features = [ "derive" ] }
+scale-info = { workspace = true, features = ["derive"] }
 sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
 sp-consensus-slots = { workspace = true }
 sp-core = { workspace = true }
 sp-inherents = { workspace = true }
-sp-io = { workspace = true, features = [ "improved_panic_error_reporting" ] }
+sp-io = { workspace = true, features = ["improved_panic_error_reporting"] }
 sp-offchain = { workspace = true }
 sp-runtime = { workspace = true }
 sp-session = { workspace = true }
@@ -120,9 +121,9 @@ sp-weights = { workspace = true }
 # Frontier
 fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
-fp-self-contained = { workspace = true, features = [ "serde" ] }
-pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+fp-self-contained = { workspace = true, features = ["serde"] }
+pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm-precompile-blake2 = { workspace = true }
 pallet-evm-precompile-bn128 = { workspace = true }
 pallet-evm-precompile-dispatch = { workspace = true }
@@ -169,8 +170,8 @@ frame-try-runtime = { workspace = true, optional = true }
 [dev-dependencies]
 ethereum = { workspace = true }
 frame-metadata = { workspace = true }
-hex = { workspace = true, features = [ "std" ] }
-sha3 = { workspace = true, features = [ "std" ] }
+hex = { workspace = true, features = ["std"] }
+sha3 = { workspace = true, features = ["std"] }
 
 cumulus-primitives-parachain-inherent = { workspace = true }
 cumulus-test-relay-sproof-builder = { workspace = true }
@@ -179,13 +180,13 @@ pallet-message-queue = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }
 
-precompile-utils = { workspace = true, features = [ "std", "testing" ] }
+precompile-utils = { workspace = true, features = ["std", "testing"] }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"account/std",
 	"async-backing-primitives/std",
@@ -248,6 +249,7 @@ std = [
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
+	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-moonbeam-orbiters/std",
 	"pallet-multisig/std",
 	"pallet-parachain-staking/std",
@@ -290,7 +292,7 @@ std = [
 	"xcm-primitives/std",
 	"xcm/std",
 ]
-evm-tracing = [ "evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3" ]
+evm-tracing = ["evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3"]
 
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
 runtime-wasm = []
@@ -298,7 +300,7 @@ runtime-wasm = []
 # A feature that should be enabled when the runtime should be build for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
 # to make it smaller like logging for example.
-on-chain-release-build = [ "sp-api/disable-logging" ]
+on-chain-release-build = ["sp-api/disable-logging"]
 
 runtime-benchmarks = [
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
@@ -325,6 +327,7 @@ runtime-benchmarks = [
 	"pallet-evm/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-migrations/runtime-benchmarks",
+	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
@@ -362,6 +365,7 @@ try-runtime = [
 	"pallet-democracy/try-runtime",
 	"pallet-maintenance-mode/try-runtime",
 	"pallet-migrations/try-runtime",
+	"pallet-moonbeam-lazy-migrations/try-runtime",
 	"pallet-parachain-staking/try-runtime",
 	"pallet-preimage/try-runtime",
 	"pallet-referenda/try-runtime",

@@ -11,7 +11,7 @@ yargs(hideBin(process.argv))
   .usage("Usage: $0")
   .version("2.0.0")
   .command(
-    `process <inputPath> <outputPath>`,
+    "process <inputPath> <outputPath>",
     "Overwrites a plainSpec with Alith modifications",
     (yargs) => {
       return yargs
@@ -25,9 +25,17 @@ yargs(hideBin(process.argv))
         });
     },
     async (argv) => {
+      if (!argv.inputPath) {
+        throw new Error("Input path is required");
+      }
+
+      if (!argv.outputPath) {
+        throw new Error("Output path is required");
+      }
+
       process.stdout.write(`Reading from: ${argv.inputPath} ...`);
-      const plainSpec = JSONbig.parse((await fs.readFile(argv.inputPath!)).toString());
-      process.stdout.write(`Done ✅\n`);
+      const plainSpec = JSONbig.parse((await fs.readFile(argv.inputPath)).toString());
+      process.stdout.write("Done ✅\n");
 
       plainSpec.bootNodes = [];
       plainSpec.genesis.runtime.authorMapping.mappings = [
@@ -38,10 +46,10 @@ yargs(hideBin(process.argv))
 
       process.stdout.write(`Writing to: ${argv.outputPath} ...`);
       await fs.writeFile(
-        argv.outputPath!,
+        argv.outputPath,
         convertExponentials(JSONbig.stringify(plainSpec, null, 3))
       );
-      process.stdout.write(`Done ✅\n`);
+      process.stdout.write("Done ✅\n");
     }
   )
   .parse();
