@@ -7,6 +7,12 @@ export interface HeavyContract {
   key: string;
 }
 
+export interface DummyContract {
+  deployed: boolean;
+  account: string;
+  key: string;
+}
+
 /**
  * @description Deploy multiple contracts to test the EVM storage limit.
  * @param context Context of the test
@@ -65,4 +71,63 @@ export const deployHeavyContracts = async (context: DevModeContext, first = 6000
     ]);
   }
   return contracts as HeavyContract[];
+};
+
+/**
+ * @description Deploy a lot of  dummy AccountCodesMetadata entries.
+ * @param context Context of the test
+ * @param count Number of entries to deploy
+ * @returns
+ */
+export const deployAccountCodesMetadata = async (context: DevModeContext, first = 6000, last = 6999) => {
+  // Generate the contract addresses
+  const contracts = await Promise.all(
+    new Array(last - first + 1).fill(0).map(async (_, i) => {
+      const account = `0x${(i + first).toString(16).padStart(40, "0")}`;
+      return {
+        deployed: false,
+        account,
+        key: context.polkadotJs().query.evm.accountCodesMetadata.key(account),
+      };
+    })
+  );
+
+  // Check which contracts are already deployed
+  for (const contract of contracts) {
+    contract.deployed =
+      (await context.polkadotJs().rpc.state.getStorage(contract.key))!.toString().length > 1;
+  }
+
+  // Create the code metadata (size 10 and zeroed hash)
+  const storageData = `${context
+    .polkadotJs()
+    .registry.createType("Compact<u64>", `0x${BigInt(10).toString(16)}`)
+    .toHex(true)}0x0000000000000000000000000000000000000000000000000000000000000000`;
+
+  // Create the batchs of entries to write
+  const batchs = contracts
+    .reduce(
+      (acc, value) => {
+        if (acc[acc.length - 1].length >= 2_500) acc.push([]);
+        if (!value.deployed) acc[acc.length - 1].push([value.key, storageData]);
+        return acc;
+      },
+      [[]] as [string, string][][]
+    )
+    .filter((batch) => batch.length > 0);
+
+  // Set the storage with one batch per block
+  let nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
+  for (let i = 0; i < batchs.length; i++) {
+    const batch = batchs[i];
+    await context.createBlock([
+      context
+        .polkadotJs()
+        .tx.sudo.sudo(context.polkadotJs().tx.system.setStorage(batch))
+        .signAsync(alith, {
+          nonce: nonce++,
+        }),
+    ]);
+  }
+  return contracts as DummyContract[];
 };
