@@ -66,7 +66,7 @@ pub mod pallet {
 		/// There are no more storage entries to be removed
 		AllStorageEntriesHaveBeenRemoved,
 		/// One of the arguments is zero or has zero length
-		LengthOrLimitCannotBeZero
+		LengthOrLimitCannotBeZero,
 		/// The contract is not suicided
 		ContractNotSuicided,
 	}
