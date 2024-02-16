@@ -19,11 +19,12 @@
 use super::*;
 use crate as pallet_moonbeam_lazy_migrations;
 use frame_support::{
-	construct_runtime, parameter_types,
-	traits::Everything,
+	construct_runtime, ord_parameter_types, parameter_types,
+	traits::{EqualPrivilegeOnly, Everything, SortedMembers},
 	weights::{constants::RocksDbWeight, Weight},
 };
-use sp_core::H256;
+use frame_system::{EnsureRoot, EnsureSigned, EnsureSignedBy};
+use sp_core::{ConstU32, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage, Perbill,
@@ -40,6 +41,8 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		LazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call},
+		Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -94,6 +97,67 @@ impl pallet_balances::Config for Runtime {
 	type MaxHolds = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+}
+
+impl pallet_scheduler::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeOrigin = RuntimeOrigin;
+	type PalletsOrigin = OriginCaller;
+	type RuntimeCall = RuntimeCall;
+	type MaximumWeight = ();
+	type ScheduleOrigin = EnsureRoot<u64>;
+	type MaxScheduledPerBlock = ConstU32<100>;
+	type WeightInfo = ();
+	type OriginPrivilegeCmp = EqualPrivilegeOnly;
+	type Preimages = ();
+}
+
+ord_parameter_types! {
+	pub const One: u64 = 1;
+	pub const Two: u64 = 2;
+	pub const Three: u64 = 3;
+	pub const Four: u64 = 4;
+	pub const Five: u64 = 5;
+	pub const Six: u64 = 6;
+}
+pub struct OneToFive;
+impl SortedMembers<u64> for OneToFive {
+	fn sorted_members() -> Vec<u64> {
+		vec![1, 2, 3, 4, 5]
+	}
+	#[cfg(feature = "runtime-benchmarks")]
+	fn add(_m: &u64) {}
+}
+impl pallet_democracy::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = pallet_balances::Pallet<Self>;
+	type EnactmentPeriod = ();
+	type LaunchPeriod = ();
+	type VotingPeriod = ();
+	type VoteLockingPeriod = ();
+	type FastTrackVotingPeriod = ();
+	type MinimumDeposit = ();
+	type MaxDeposits = ();
+	type MaxBlacklisted = ();
+	type SubmitOrigin = EnsureSigned<Self::AccountId>;
+	type ExternalOrigin = EnsureSignedBy<Two, u64>;
+	type ExternalMajorityOrigin = EnsureSignedBy<Three, u64>;
+	type ExternalDefaultOrigin = EnsureSignedBy<One, u64>;
+	type FastTrackOrigin = EnsureSignedBy<Five, u64>;
+	type CancellationOrigin = EnsureSignedBy<Four, u64>;
+	type BlacklistOrigin = EnsureRoot<u64>;
+	type CancelProposalOrigin = EnsureRoot<u64>;
+	type VetoOrigin = EnsureSignedBy<OneToFive, u64>;
+	type CooloffPeriod = ();
+	type Slash = ();
+	type InstantOrigin = EnsureSignedBy<Six, u64>;
+	type InstantAllowed = ();
+	type Scheduler = Scheduler;
+	type MaxVotes = ();
+	type PalletsOrigin = OriginCaller;
+	type WeightInfo = ();
+	type MaxProposals = ();
+	type Preimages = ();
 }
 
 impl Config for Runtime {}

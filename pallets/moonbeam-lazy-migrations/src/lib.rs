@@ -32,7 +32,12 @@ pub use pallet::*;
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
+	use frame_support::traits::{LockIdentifier, LockableCurrency};
 	use frame_system::pallet_prelude::*;
+	use pallet_democracy::VotingOf;
+
+	/// Copied from pallet-democracy
+	const DEMOCRACY_ID: LockIdentifier = *b"democrac";
 
 	const INTERMEDIATES_NODES_SIZE: u64 = 4096;
 	const MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE: u64 =
@@ -48,7 +53,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {}
+	pub trait Config: frame_system::Config + pallet_democracy::Config {}
 
 	#[pallet::error]
 	pub enum Error<T> {
@@ -105,6 +110,37 @@ pub mod pallet {
 					),
 			)
 			.into())
+		}
+
+		// TODO(alexandru): This extrinsic should be removed once Gov V1 is removed.
+		// Note: We don't need to unreserve any funds, as they are assumed to be already
+		// unreserved prior to this operation and the proposal submission disabled.
+		#[pallet::call_index(1)]
+		#[pallet::weight(
+			<T as frame_system::Config>::DbWeight::get()
+				.reads_writes((*limit + 1).into(), (*limit).into())
+		)]
+		pub fn unlock_democracy_funds(
+			origin: OriginFor<T>,
+			limit: u32,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+			ensure!(limit != 0, "Limit cannot be zero!");
+
+			// Unlock staked funds and remove the voting entry. This way we can keep track of what
+			// is left without extra cost.
+			let unlocked_accounts = VotingOf::<T>::iter()
+				.drain()
+				.take(limit as usize)
+				.map(|(account, _)| T::Currency::remove_lock(DEMOCRACY_ID, &account))
+				.count() as u64;
+
+			log::info!("Unlocked {} accounts 🧹", unlocked_accounts);
+
+			Ok(
+				Some(T::DbWeight::get().reads_writes(unlocked_accounts + 1, unlocked_accounts))
+					.into(),
+			)
 		}
 	}
 }
