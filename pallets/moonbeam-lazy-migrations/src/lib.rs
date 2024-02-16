@@ -181,7 +181,7 @@ pub mod pallet {
 					return Ok(Pays::No.into());
 				}
 			}
-			Ok(().into())
+			Ok(Pays::No.into())
 		}
 	}
 }
