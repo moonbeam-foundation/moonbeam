@@ -112,7 +112,7 @@ fn test_clear_suicided_contract_failed() {
 				vec![contract1_address].try_into().unwrap(),
 				1000
 			),
-			Error::<Runtime>::ContractNotSuicided
+			Error::<Runtime>::ContractNotCorrupted
 		);
 
 		assert_noop!(
@@ -121,7 +121,7 @@ fn test_clear_suicided_contract_failed() {
 				vec![contract2_address].try_into().unwrap(),
 				1000
 			),
-			Error::<Runtime>::ContractNotSuicided
+			Error::<Runtime>::ContractNotCorrupted
 		);
 
 		// Check that no storage has been removed
@@ -242,7 +242,7 @@ fn test_clear_suicided_mixed_suicided_and_non_suicided() {
 				.unwrap(),
 				1000
 			),
-			Error::<Runtime>::ContractNotSuicided
+			Error::<Runtime>::ContractNotCorrupted
 		);
 
 		assert_eq!(

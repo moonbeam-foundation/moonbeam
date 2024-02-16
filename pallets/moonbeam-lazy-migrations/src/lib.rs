@@ -73,8 +73,7 @@ pub mod pallet {
 		AddressesLengthCannotBeZero,
 		/// The limit cannot be zero
 		LimitCannotBeZero,
-		/// The contract is not suicided
-                 /// The contract is not corrupted (Still exist or properly suicided)
+		/// The contract is not corrupted (Still exist or properly suicided)
 		ContractNotCorrupted,
 	}
 
@@ -152,7 +151,7 @@ pub mod pallet {
 			let mut limit = limit as usize;
 
 			for address in &addresses {
-				// Ensure that the contract is implicitly suicided by checking
+				// Ensure that the contract is corrupted by checking
 				// that it has no code and at least one storage entry.
 				let suicided = pallet_evm::Suicided::<T>::contains_key(&address);
 				let has_code = pallet_evm::AccountCodes::<T>::contains_key(&address);
@@ -161,7 +160,7 @@ pub mod pallet {
 						&& !has_code && pallet_evm::AccountStorages::<T>::iter_key_prefix(&address)
 						.next()
 						.is_some(),
-					Error::<T>::ContractNotSuicided
+					Error::<T>::ContractNotCorrupted
 				);
 
 				let deleted = pallet_evm::AccountStorages::<T>::drain_prefix(*address)
