@@ -15,8 +15,9 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use cumulus_primitives_core::relay_chain;
-use frame_support::sp_runtime::{testing::H256, traits::HashingFor};
+use frame_support::sp_runtime::traits::HashingFor;
 use parity_scale_codec::{Decode, Encode};
+use sp_core::H256;
 use sp_state_machine::{Backend, TrieBackend, TrieBackendBuilder};
 use sp_std::vec::Vec;
 use sp_trie::{HashDBT, MemoryDB, StorageProof, EMPTY_PREFIX};
