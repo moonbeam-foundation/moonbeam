@@ -26,6 +26,7 @@ pallet-relay-storage-roots = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 
 [features]
+default = [ "std" ]
 std = [
     "cumulus-primitives-core/std",
     "frame-benchmarking/std",

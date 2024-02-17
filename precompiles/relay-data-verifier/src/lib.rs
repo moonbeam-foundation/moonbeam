@@ -28,7 +28,9 @@ use sp_core::{Get, H256};
 use sp_std::vec::Vec;
 
 pub mod proof;
+mod weights;
 use proof::{ReadProof, StorageProofChecker};
+use weights::{SubstrateWeight, WeightInfo};
 
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 pub const ARRAY_LIMIT: u32 = 512;
@@ -47,7 +49,7 @@ pub struct RelayDataVerifierPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile_utils::precompile]
 impl<Runtime> RelayDataVerifierPrecompile<Runtime>
 where
-	Runtime: pallet_relay_storage_roots::Config + pallet_evm::Config,
+	Runtime: frame_system::Config + pallet_relay_storage_roots::Config + pallet_evm::Config,
 {
 	/// Verify the storage entry using the provided relay block number and proof. Return the value
 	/// of the storage entry if the proof is valid and the entry exists.
@@ -131,9 +133,9 @@ where
 		handle: &mut impl PrecompileHandle,
 		relay_block_number: RelayBlockNumber,
 	) -> EvmResult<H256> {
-		// RelayStorageRoot: StorageMap<RelayBlockNumber, H256>
-		// twox_64(8) + key(4) + value(32)
-		handle.record_db_read::<Runtime>(44)?;
+		let weight = <SubstrateWeight<Runtime> as WeightInfo>::latest_relay_block();
+		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
+
 		let storage_root =
 			pallet_relay_storage_roots::RelayStorageRoot::<Runtime>::get(relay_block_number)
 				.ok_or(revert(

@@ -17,8 +17,8 @@
 #![cfg(feature = "runtime-benchmarks")]
 use crate::{Config, Pallet};
 use frame_benchmarking::benchmarks;
-use frame_support::BoundedVec;
-use sp_core::{Get, H256};
+use frame_support::{traits::Get, BoundedVec};
+use sp_core::H256;
 
 benchmarks! {
 	latest_relay_block {

@@ -12,6 +12,7 @@ precompile-utils = { workspace = true }
 # Substrate
 cumulus-primitives-core = { workspace = true }
 frame-support = { workspace = true }
+frame-system = { workspace = true }
 parity-scale-codec = { workspace = true, features = [ "derive" ] }
 scale-info = { workspace = true, features = [ "derive" ] }
 sp-state-machine = { workspace = true }
@@ -27,12 +28,15 @@ pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 pallet-relay-storage-roots = { workspace = true }
 
 [features]
+default = [ "std" ]
 std = [
     "cumulus-primitives-core/std",
     "frame-support/std",
+    "frame-system/std",
     "fp-evm/std",
     "parity-scale-codec/std",
     "precompile-utils/std",
+    "pallet-evm/std",
     "pallet-relay-storage-roots/std",
     "scale-info/std",
     "sp-state-machine/std",

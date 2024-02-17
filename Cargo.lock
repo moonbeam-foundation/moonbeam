@@ -9246,6 +9246,7 @@ dependencies = [
  "cumulus-primitives-core",
  "fp-evm",
  "frame-support",
+ "frame-system",
  "pallet-evm",
  "pallet-relay-storage-roots",
  "parity-scale-codec",
