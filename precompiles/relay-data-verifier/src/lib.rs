@@ -82,8 +82,8 @@ where
 	/// Verify the storage entries using the provided relay block number and proof. Return the
 	/// values of the storage entries in the same order of keys, if the proof is valid and the
 	/// entries exist.
-	#[precompile::public("verifyEntries(uint32,bytes[],bytes[])")]
-	#[precompile::public("verify_entries(uint32,bytes[],bytes[])")]
+	#[precompile::public("verifyEntries(uint32,bytes,bytes[])")]
+	#[precompile::public("verify_entries(uint32,bytes,bytes[])")]
 	fn verify_entries(
 		handle: &mut impl PrecompileHandle,
 		relay_block_number: RelayBlockNumber,
