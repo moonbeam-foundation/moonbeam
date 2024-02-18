@@ -36,7 +36,7 @@ benchmarks! {
 			"Inserted keys should meet MaxStorageRoots configuration."
 		);
 	}:{
-		Pallet::<T>::latest_relay_block().unwrap();
+		Pallet::<T>::latest_relay_block().expect("There should be at least one relay block entry.");
 	}
 	verify {
 		assert_eq!(

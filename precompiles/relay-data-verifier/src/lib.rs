@@ -14,22 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Precompile for verifying relay data against a relay block number.
+//! Precompile for verifying relay entries against a relay block number.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use core::marker::PhantomData;
 use cumulus_primitives_core::relay_chain::BlockNumber as RelayBlockNumber;
-use fp_evm::PrecompileHandle;
-use frame_support::traits::ConstU32;
+use fp_evm::{PrecompileFailure, PrecompileHandle};
+use frame_support::{ensure, traits::ConstU32};
 use parity_scale_codec::Decode;
 use precompile_utils::prelude::*;
-use sp_core::{Get, H256};
+use sp_core::H256;
 use sp_std::vec::Vec;
+
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
 
 pub mod proof;
 mod weights;
-use proof::{ReadProof, StorageProofChecker};
+use proof::{ProofError, ReadProof, StorageProofChecker};
 use weights::{SubstrateWeight, WeightInfo};
 
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
@@ -56,12 +61,12 @@ where
 	#[precompile::public("verifyEntry(uint32,bytes,bytes)")]
 	#[precompile::public("verify_entry(uint32,bytes,bytes)")]
 	fn verify_entry(
-		handle: &mut impl PrecompileHandle,
+		_handle: &mut impl PrecompileHandle,
 		relay_block_number: RelayBlockNumber,
 		proof: RawStorageProof,
 		key: RawKey,
 	) -> EvmResult<UnboundedBytes> {
-		let storage_root = Self::get_storage_root(handle, relay_block_number)?;
+		let storage_root = Self::get_storage_root(relay_block_number)?;
 
 		// Decode the proof of type `ReadProof` (The proof is expected to be
 		// a SCALE encoded `ReadProof` that is returned by the `state_getProof` RPC call).
@@ -69,12 +74,9 @@ where
 			revert("Failed to decode the proof. The proof is invalid or corrupted.")
 		})?;
 
-		let proof_checker = StorageProofChecker::new(storage_root, proof.proof)
-			.map_err(|_| revert("Root Mismatch"))?;
+		let proof_checker = StorageProofChecker::new(storage_root, proof.proof)?;
 
-		let value: Vec<u8> = proof_checker
-			.read_entry(key.as_bytes(), None)
-			.map_err(|_| revert("Invalid Proof"))?;
+		let value = proof_checker.read_entry(key.as_bytes())?;
 
 		Ok(value.into())
 	}
@@ -85,62 +87,63 @@ where
 	#[precompile::public("verifyEntries(uint32,bytes,bytes[])")]
 	#[precompile::public("verify_entries(uint32,bytes,bytes[])")]
 	fn verify_entries(
-		handle: &mut impl PrecompileHandle,
+		_handle: &mut impl PrecompileHandle,
 		relay_block_number: RelayBlockNumber,
 		proof: RawStorageProof,
 		keys: BoundedVec<RawKey, GetArrayLimit>,
 	) -> EvmResult<BoundedVec<UnboundedBytes, GetArrayLimit>> {
-		let storage_root = Self::get_storage_root(handle, relay_block_number)?;
+		let keys = Vec::from(keys);
+		ensure!(!keys.is_empty(), revert("Keys must not be empty"));
+
+		let storage_root = Self::get_storage_root(relay_block_number)?;
 
 		let proof = ReadProof::decode(&mut proof.as_bytes()).map_err(|_| {
 			revert("Failed to decode the proof. The proof is invalid or corrupted.")
 		})?;
 
-		let proof_checker = StorageProofChecker::new(storage_root, proof.proof)
-			.map_err(|_| revert("Root Mismatch"))?;
+		let proof_checker = StorageProofChecker::new(storage_root, proof.proof)?;
 
 		let mut values = Vec::new();
-		for key in Vec::from(keys) {
-			let value: Vec<u8> = proof_checker
-				.read_entry(key.as_bytes(), None)
-				.map_err(|_| revert("Invalid Proof"))?;
+		for key in keys {
+			let value: Vec<u8> = proof_checker.read_entry(key.as_bytes())?;
 			values.push(value.into());
 		}
 
 		Ok(values.into())
 	}
 
-	#[precompile::public("latestRelayBlock()")]
-	#[precompile::public("latest_relay_block()")]
+	#[precompile::public("latestRelayBlockNumber()")]
+	#[precompile::public("latest_relay_block_number()")]
 	#[precompile::view]
 	fn latest_relay_block(handle: &mut impl PrecompileHandle) -> EvmResult<RelayBlockNumber> {
-		// RelayStorageRootKeys: BoundedVec<RelayBlockNumber>
-		// 32 * MaxStorageRoots + 1 (for the length prefix)
-		handle.record_db_read::<Runtime>(
-			<Runtime as pallet_relay_storage_roots::Config>::MaxStorageRoots::get() as usize * 32
-				+ 1,
-		)?;
+		let weight = <SubstrateWeight<Runtime> as WeightInfo>::latest_relay_block();
+		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
 
 		pallet_relay_storage_roots::RelayStorageRootKeys::<Runtime>::get()
 			.last()
 			.cloned()
-			.ok_or(revert("No relay block number found"))
+			.ok_or(revert("No relay block found"))
 	}
 
 	/// Returns the storage root at the given relay block number stored on-chain. Use the pallet
 	/// `pallet_relay_storage_roots` to store the storage roots on-chain.
-	fn get_storage_root(
-		handle: &mut impl PrecompileHandle,
-		relay_block_number: RelayBlockNumber,
-	) -> EvmResult<H256> {
-		let weight = <SubstrateWeight<Runtime> as WeightInfo>::latest_relay_block();
-		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
-
+	fn get_storage_root(relay_block_number: RelayBlockNumber) -> EvmResult<H256> {
 		let storage_root =
 			pallet_relay_storage_roots::RelayStorageRoot::<Runtime>::get(relay_block_number)
 				.ok_or(revert(
 					"Storage root is not stored on chain for the given relay block number",
 				))?;
+
 		Ok(storage_root)
+	}
+}
+
+impl From<ProofError> for PrecompileFailure {
+	fn from(err: ProofError) -> Self {
+		match err {
+			ProofError::RootMismatch => revert("Root Mismatch"),
+			ProofError::Proof => revert("Invalid Proof"),
+			ProofError::Absent => revert("The entry is not present"),
+		}
 	}
 }

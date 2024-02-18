@@ -66,7 +66,7 @@ pub mod pallet {
 				.map_err(|_| Error::<T>::BenchmarkError)?;
 
 			let value: Vec<u8> = proof_checker
-				.read_entry(key.as_slice(), None)
+				.read_entry(key.as_slice())
 				.map_err(|_| Error::<T>::BenchmarkError)?;
 
 			Ok(value)
@@ -88,7 +88,7 @@ pub mod pallet {
 			let mut values = Vec::new();
 			for key in Vec::from(keys) {
 				let value: Vec<u8> = proof_checker
-					.read_entry(key.as_slice(), None)
+					.read_entry(key.as_slice())
 					.map_err(|_| Error::<T>::BenchmarkError)?;
 				values.push(value.into());
 			}

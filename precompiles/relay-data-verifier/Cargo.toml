@@ -27,6 +27,18 @@ pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 # Moonkit
 pallet-relay-storage-roots = { workspace = true }
 
+[dev-dependencies]
+hex = { workspace = true }
+# Moonbeam
+precompile-utils = { workspace = true, features = [ "std", "testing" ] }
+
+# Substrate
+cumulus-pallet-parachain-system = { workspace = true }
+pallet-balances = { workspace = true }
+pallet-timestamp = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+
 [features]
 default = [ "std" ]
 std = [

@@ -1709,36 +1709,36 @@ where
 #[test]
 #[rustfmt::skip]
 fn length_fee_is_sensible() {
-    use sp_runtime::testing::TestXt;
+	use sp_runtime::testing::TestXt;
 
-    // tests that length fee is sensible for a few hypothetical transactions
-    ExtBuilder::default().build().execute_with(|| {
-        let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
-        let uxt: TestXt<_, ()> = TestXt::new(call, Some((1u64, ())));
+	// tests that length fee is sensible for a few hypothetical transactions
+	ExtBuilder::default().build().execute_with(|| {
+		let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
+		let uxt: TestXt<_, ()> = TestXt::new(call, Some((1u64, ())));
 
-        let calc_fee = |len: u32| -> Balance {
-            moonbase_runtime::TransactionPayment::query_fee_details(uxt.clone(), len)
-                .inclusion_fee
-                .expect("fee should be calculated")
-                .len_fee
-        };
+		let calc_fee = |len: u32| -> Balance {
+			moonbase_runtime::TransactionPayment::query_fee_details(uxt.clone(), len)
+				.inclusion_fee
+				.expect("fee should be calculated")
+				.len_fee
+		};
 
-        // editorconfig-checker-disable
-        //                  left: cost of length fee, right: size in bytes
-        //                             /------------- proportional component: O(N * 1B)
-        //                             |           /- exponential component: O(N ** 3)
-        //                             |           |
-        assert_eq!(                    1_000_000_001, calc_fee(1));
-        assert_eq!(                   10_000_001_000, calc_fee(10));
-        assert_eq!(                  100_001_000_000, calc_fee(100));
-        assert_eq!(                1_001_000_000_000, calc_fee(1_000));
-        assert_eq!(               11_000_000_000_000, calc_fee(10_000)); // inflection point
-        assert_eq!(            1_100_000_000_000_000, calc_fee(100_000));
-        assert_eq!(        1_001_000_000_000_000_000, calc_fee(1_000_000)); // one UNIT, ~ 1MB
-        assert_eq!(    1_000_010_000_000_000_000_000, calc_fee(10_000_000));
-        assert_eq!(1_000_000_100_000_000_000_000_000, calc_fee(100_000_000));
-        // editorconfig-checker-enable
-    });
+		// editorconfig-checker-disable
+		//                  left: cost of length fee, right: size in bytes
+		//                             /------------- proportional component: O(N * 1B)
+		//                             |           /- exponential component: O(N ** 3)
+		//                             |           |
+		assert_eq!(                    1_000_000_001, calc_fee(1));
+		assert_eq!(                   10_000_001_000, calc_fee(10));
+		assert_eq!(                  100_001_000_000, calc_fee(100));
+		assert_eq!(                1_001_000_000_000, calc_fee(1_000));
+		assert_eq!(               11_000_000_000_000, calc_fee(10_000)); // inflection point
+		assert_eq!(            1_100_000_000_000_000, calc_fee(100_000));
+		assert_eq!(        1_001_000_000_000_000_000, calc_fee(1_000_000)); // one UNIT, ~ 1MB
+		assert_eq!(    1_000_010_000_000_000_000_000, calc_fee(10_000_000));
+		assert_eq!(1_000_000_100_000_000_000_000_000, calc_fee(100_000_000));
+		// editorconfig-checker-enable
+	});
 }
 
 #[test]

@@ -22,7 +22,7 @@ use sp_state_machine::{Backend, TrieBackend, TrieBackendBuilder};
 use sp_std::vec::Vec;
 use sp_trie::{HashDBT, MemoryDB, StorageProof, EMPTY_PREFIX};
 
-#[derive(Encode, Decode)]
+#[derive(Encode, Decode, Debug, PartialEq)]
 pub struct ReadProof {
 	// Block Hash used to generate the proof
 	pub at: H256,
@@ -30,18 +30,18 @@ pub struct ReadProof {
 	pub proof: Vec<Vec<u8>>,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum ProofError {
 	// The storage root in the proof does not match the expected storage root.
 	RootMismatch,
 	// The proof is invalid.
 	Proof,
-	// The value could not be decoded.
-	Decode,
 	// The key is not present in the proof.
 	Absent,
 }
 /// A storage proof checker. It is used to verify a storage proof against a well-known storage root,
 /// and return the value of the storage item if the proof is valid.
+#[derive(Debug)]
 pub struct StorageProofChecker {
 	trie_backend:
 		TrieBackend<MemoryDB<HashingFor<relay_chain::Block>>, HashingFor<relay_chain::Block>>,
@@ -69,16 +69,103 @@ impl StorageProofChecker {
 	///
 	/// Returns `Err` if the proof is invalid, or if the value specified by the key according to the
 	/// proof is not present.
-	pub fn read_entry<T>(&self, key: &[u8], fallback: Option<T>) -> Result<T, ProofError>
-	where
-		T: Decode,
-	{
+	pub fn read_entry(&self, key: &[u8]) -> Result<Vec<u8>, ProofError> {
 		self.trie_backend
 			.storage(key)
 			.map_err(|_| ProofError::Proof)?
-			.map(|raw_entry| T::decode(&mut &raw_entry[..]).map_err(|_| ProofError::Decode))
-			.transpose()?
-			.or(fallback)
 			.ok_or(ProofError::Absent)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::mock::{
+		hex_to_bytes, mock_raw_read_proof, STORAGE_ROOT_HEX, TIMESTAMP_KEY_HEX,
+		TOTAL_ISSUANCE_KEY_HEX, TREASURY_APPROVAL_KEY_HEX,
+	};
+
+	fn construct_proof() -> ReadProof {
+		// Construct a ReadProof from a real example obtained from the relay chain using the
+		// state_getReadProof RPC call, for the following keys:
+		// TimeStamp:
+		// 0xf0c365c3cf59d671eb72da0e7a4113c49f1f0515f462cdcf84e0f1d6045dfcbb
+		// Balances (Total Issuance):
+		// 0xc2261276cc9d1f8598ea4b6a74b15c2f57c875e4cff74148e4628f264b974c80
+		// Treasury Approvals
+		// 0x89d139e01a5eb2256f222e5fc5dbe6b33c9c1284130706f5aea0c8b3d4c54d89
+		// at Block Hash:
+		// 0x1272470f226fc0e955838262e8dd17a7d7bad6563739cc53a3b1744ddf0ea872
+
+		ReadProof::decode(&mut mock_raw_read_proof().as_slice()).unwrap()
+	}
+
+	#[test]
+	fn test_storage_proof_checker_valid() {
+		let proof = construct_proof();
+		let storage_root = H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX));
+
+		assert!(StorageProofChecker::new(storage_root, proof.proof).is_ok());
+	}
+
+	#[test]
+	fn test_storage_proof_checker_root_mismsatch() {
+		let proof = construct_proof();
+		// A different storage root
+		let storage_root = H256::from_slice(&hex_to_bytes(
+			"767caa877bcea0d34dd515a202b75efa41bffbc9f814ab59e2c1c96716d4c65e",
+		));
+
+		assert_eq!(
+			StorageProofChecker::new(storage_root, proof.proof).unwrap_err(),
+			ProofError::RootMismatch
+		);
+	}
+
+	#[test]
+	fn test_storage_proof_read_entries() {
+		let proof = construct_proof();
+		let storage_root = H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX));
+		let proof_checker = StorageProofChecker::new(storage_root, proof.proof).unwrap();
+
+		let key1 = hex_to_bytes(TIMESTAMP_KEY_HEX);
+		let key2 = hex_to_bytes(TOTAL_ISSUANCE_KEY_HEX);
+		let key3 = hex_to_bytes(TREASURY_APPROVAL_KEY_HEX);
+
+		let timestamp: u64 =
+			u64::decode(&mut &proof_checker.read_entry(&key1).unwrap()[..]).unwrap();
+		let total_issuance: u128 =
+			u128::decode(&mut &proof_checker.read_entry(&key2).unwrap()[..]).unwrap();
+		let approvals: Vec<u32> =
+			Vec::<u32>::decode(&mut &proof_checker.read_entry(&key3).unwrap()[..]).unwrap();
+
+		assert_eq!(
+			timestamp, 1_708_190_328_000,
+			"Timestamp does not match the expected value"
+		);
+		assert_eq!(
+			total_issuance, 14_123_366_426_803_276_130,
+			"Total issuance does not match the expected value"
+		);
+		assert_eq!(
+			approvals,
+			vec![
+				607, 608, 609, 610, 611, 612, 613, 614, 615, 616, 617, 618, 619, 620, 621, 622, 623
+			],
+			"Value 3 does not match the expected value"
+		);
+	}
+
+	#[test]
+	fn test_storage_proof_checker_absent() {
+		let proof = construct_proof();
+		let storage_root = H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX));
+
+		let proof_checker = StorageProofChecker::new(storage_root, proof.proof).unwrap();
+
+		// A key that is not present in the proof
+		let key = hex_to_bytes("89d139e01a5eb2256f222e5fc5dbe6b33c9c1284130706f5aea0c8b3d4c54d2c");
+		let value = proof_checker.read_entry(&key);
+		assert_eq!(value.err(), Some(ProofError::Absent));
 	}
 }
