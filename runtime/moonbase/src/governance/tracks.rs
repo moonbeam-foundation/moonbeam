@@ -28,7 +28,7 @@ const fn permill(x: i32) -> sp_runtime::FixedI64 {
 }
 
 use pallet_referenda::Curve;
-const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 5] = [
+const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 6] = [
 	(
 		0,
 		pallet_referenda::TrackInfo {

@@ -66,7 +66,7 @@ use sp_std::{
 
 use orml_traits::parameter_type_with_key;
 
-use crate::governance::referenda::GeneralAdminOrRoot;
+use crate::governance::referenda::FastGeneralAdminOrRoot;
 
 parameter_types! {
 	// The network Id of the relay
