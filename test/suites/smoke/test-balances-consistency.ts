@@ -30,9 +30,6 @@ enum ReserveType {
   ReferendumInfo = "11",
   Asset = "12",
   AssetMetadata = "13",
-  LocalAsset = "14",
-  LocalAssetMetadata = "15",
-  LocalAssetDeposit = "16",
   Named = "17",
   SubIdentity = "18",
   PreimageStatus = "19",
@@ -49,7 +46,7 @@ type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
 // is not exhausted.
 
 describeSuite({
-  id: "S300",
+  id: "S03",
   title: "Verifying balances consistency",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
@@ -582,69 +579,6 @@ describeSuite({
           })
           .catch((error) => {
             console.error("Error fetching assets :", error);
-            reject(error);
-          });
-      });
-
-      await new Promise((resolve, reject) => {
-        apiAt.query.localAssets.asset
-          .entries()
-          .then(async (localAssets) => {
-            localAssets.forEach((localAsset) => {
-              updateReserveMap(localAsset[1].unwrap().owner.toHex().slice(-40), {
-                [ReserveType.LocalAsset]: localAsset[1].unwrap().deposit.toBigInt(),
-              });
-            });
-
-            await new Promise((resolve, reject) => {
-              apiAt.query.localAssets.metadata
-                .entries()
-                .then((localAssetMetadata) => {
-                  localAssetMetadata.forEach((localAssetMetadata) => {
-                    updateReserveMap(
-                      localAssets
-                        .find(
-                          (localAsset) =>
-                            localAsset[0].toHex().slice(-64) ==
-                            localAssetMetadata[0].toHex().slice(-64)
-                        )![1]
-                        .unwrap()
-                        .owner.toHex()
-                        .slice(-40),
-                      {
-                        [ReserveType.LocalAssetMetadata]: localAssetMetadata[1].deposit.toBigInt(),
-                      }
-                    );
-                  });
-                  resolve("localAssetsMetadata scraped");
-                })
-                .catch((error) => {
-                  console.error("Error fetching localAssetsMetadata:", error);
-                  reject(error);
-                });
-            });
-
-            resolve("localAssets scraped");
-          })
-          .catch((error) => {
-            console.error("Error fetching localAssets :", error);
-            reject(error);
-          });
-      });
-
-      await new Promise((resolve, reject) => {
-        apiAt.query.assetManager.localAssetDeposit
-          .entries()
-          .then((localAssetDeposits) => {
-            localAssetDeposits.forEach((assetDeposit) => {
-              updateReserveMap(assetDeposit[1].unwrap().creator.toHex(), {
-                [ReserveType.LocalAssetDeposit]: assetDeposit[1].unwrap().deposit.toBigInt(),
-              });
-            });
-            resolve("localAssetDeposits scraped");
-          })
-          .catch((error) => {
-            console.error("Error fetching localAssetDeposits:", error);
             reject(error);
           });
       });

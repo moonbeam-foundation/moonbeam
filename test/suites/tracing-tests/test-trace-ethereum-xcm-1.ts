@@ -8,7 +8,7 @@ import {
 import { hexToNumber, Abi, encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D3610",
+  id: "T10",
   title: "Trace ethereum xcm #1",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

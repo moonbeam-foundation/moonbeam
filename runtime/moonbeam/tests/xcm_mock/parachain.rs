@@ -50,11 +50,11 @@ use xcm::latest::{
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
-	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
-	FungiblesAdapter, IsConcrete, NoChecking, ParentAsSuperuser, ParentIsPreset,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
+	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, CurrencyAdapter as XcmCurrencyAdapter,
+	EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, FungiblesAdapter, IsConcrete,
+	NoChecking, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
+	TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
@@ -125,7 +125,6 @@ impl pallet_balances::Config for Runtime {
 }
 
 pub type ForeignAssetInstance = ();
-pub type LocalAssetInstance = pallet_assets::Instance1;
 
 // Required for runtime benchmarks
 pallet_assets::runtime_benchmarks_enabled! {
@@ -150,30 +149,6 @@ parameter_types! {
 }
 
 impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type AssetAccountDeposit = AssetAccountDeposit;
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-	type RemoveItemsLimit = ConstU32<656>;
-	type AssetIdParameter = AssetId;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
-	type CallbackHandle = ();
-	pallet_assets::runtime_benchmarks_enabled! {
-		type BenchmarkHelper = BenchmarkHelper;
-	}
-}
-
-impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type AssetId = AssetId;
@@ -274,35 +249,8 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	(),
 >;
 
-/// Means for transacting local assets besides the native currency on this chain.
-pub type LocalFungiblesTransactor = FungiblesAdapter<
-	// Use this fungibles implementation:
-	LocalAssets,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	(
-		ConvertedConcreteId<
-			AssetId,
-			Balance,
-			AsPrefixedGeneralIndex<LocalAssetsPalletLocation, AssetId, JustTry>,
-			JustTry,
-		>,
-	),
-	// Convert an XCM MultiLocation into a local account id:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We dont want to allow teleporting assets
-	NoChecking,
-	// The account to use for tracking teleports.
-	(),
->;
-
 // We use all transactors
-pub type AssetTransactors = (
-	LocalAssetTransactor,
-	ForeignFungiblesTransactor,
-	LocalFungiblesTransactor,
-);
+pub type AssetTransactors = (LocalAssetTransactor, ForeignFungiblesTransactor);
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type XcmBarrier = (
@@ -358,12 +306,6 @@ parameter_types! {
 		parents:0,
 		interior: Junctions::X1(
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
-		)
-	};
-	pub LocalAssetsPalletLocation: MultiLocation = MultiLocation {
-		parents:0,
-		interior: Junctions::X1(
-			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
 		)
 	};
 	pub const MaxAssetsIntoHolding: u32 = 64;
@@ -422,7 +364,6 @@ impl cumulus_pallet_xcm::Config for Runtime {
 pub enum CurrencyId {
 	SelfReserve,
 	ForeignAsset(AssetId),
-	LocalAssetReserve(AssetId),
 }
 
 // How to convert from CurrencyId to MultiLocation
@@ -439,11 +380,6 @@ where
 				Some(multi)
 			}
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::convert_back(&asset),
-			CurrencyId::LocalAssetReserve(asset) => {
-				let mut location = LocalAssetsPalletLocation::get();
-				location.push_interior(Junction::GeneralIndex(asset)).ok();
-				Some(location)
-			}
 		}
 	}
 }
@@ -825,42 +761,9 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		)
 	}
 
-	fn create_local_asset(
-		asset: AssetId,
-		_creator: AccountId,
-		min_balance: Balance,
-		is_sufficient: bool,
-		owner: AccountId,
-	) -> DispatchResult {
-		LocalAssets::force_create(
-			RuntimeOrigin::root(),
-			asset,
-			owner,
-			is_sufficient,
-			min_balance,
-		)?;
-
-		// TODO uncomment when we feel comfortable
-		/*
-		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address = Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
-		pallet_evm::AccountCodes::<Runtime>::insert(
-			precompile_address,
-			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
-		);*/
-		Ok(())
-	}
-
 	fn destroy_foreign_asset(asset: AssetId) -> DispatchResult {
 		// Mark the asset as destroying
 		Assets::start_destroy(RuntimeOrigin::root(), asset)?;
-
-		Ok(())
-	}
-
-	fn destroy_local_asset(asset: AssetId) -> DispatchResult {
-		// Mark the asset as destroying
-		LocalAssets::start_destroy(RuntimeOrigin::root(), asset)?;
 
 		Ok(())
 	}
@@ -1187,7 +1090,6 @@ construct_runtime!(
 		AssetManager: pallet_asset_manager,
 		XcmTransactor: pallet_xcm_transactor,
 		Treasury: pallet_treasury,
-		LocalAssets: pallet_assets::<Instance1>,
 		Proxy: pallet_proxy,
 
 		Timestamp: pallet_timestamp,

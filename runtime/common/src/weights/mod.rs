@@ -30,6 +30,7 @@ pub mod pallet_crowdloan_rewards;
 pub mod pallet_democracy;
 pub mod pallet_evm;
 pub mod pallet_identity;
+pub mod pallet_moonbeam_lazy_migrations;
 pub mod pallet_moonbeam_orbiters;
 pub mod pallet_multisig;
 pub mod pallet_parachain_staking;

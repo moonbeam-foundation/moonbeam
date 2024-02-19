@@ -1,0 +1,130 @@
+name: Subxt Diff
+on:
+  workflow_dispatch:
+    inputs:
+      last_release_sha8:
+        description: The sha8 of the last release, with which to compare local to.
+        required: true
+      spec_version:
+        description: runtime spec version (ex. 1601)
+        required: true
+
+jobs:
+  build:
+    runs-on:
+      labels: bare-metal
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Local build new Node
+        uses: ./.github/workflow-templates/cargo-build
+      - name: Upload Node
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonbeam
+          path: build
+
+  local-diff:
+    needs: build
+    runs-on: bare-metal
+    strategy:
+      matrix:
+        runtime: [moonbeam, moonbase, moonriver]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download Node
+        uses: actions/download-artifact@v4
+        with:
+          name: moonbeam
+          path: build
+      - name: Install Subxt-cli
+        run: |
+          cargo install subxt-cli
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - name: Run last_release node via Docker
+        run: |
+          docker pull moonbeamfoundation/moonbeam:sha-${{ github.event.inputs.last_release_sha8 }}
+          docker run -d --name moonbeam_container -p 9911:9911 moonbeamfoundation/moonbeam:sha-${{ github.event.inputs.last_release_sha8 }} \
+          --chain=${{ matrix.runtime }}-dev \
+          --no-hardware-benchmarks \
+          --no-telemetry \
+          --reserved-only \
+          --rpc-cors=all \
+          --no-grandpa \
+          --sealing=manual \
+          --force-authoring \
+          --no-prometheus \
+          --unsafe-rpc-external \
+          --alice \
+          --rpc-port=9911 \
+          --tmp
+
+          sleep 2
+      - name: Run Local Node
+        run: |
+          chmod +x build/moonbeam
+          nohup sh -c './build/moonbeam \
+          --chain=${{ matrix.runtime }}-dev \
+          --no-hardware-benchmarks \
+          --no-telemetry \
+          --reserved-only \
+          --rpc-cors=all \
+          --no-grandpa \
+          --sealing=manual \
+          --force-authoring \
+          --no-prometheus \
+          --unsafe-rpc-external \
+          --alice \
+          --rpc-port=9977 \
+          --tmp & sleep 2' &
+
+      - name: Run Diffs
+        run: |
+          mkdir -p runtime-diffs/${{ matrix.runtime }}
+          subxt diff -a ws://127.0.0.1:9911 ws://127.0.0.1:9977 | sed 's/\x1b\[[0-9;]*m//g' > runtime-diffs/${{ matrix.runtime }}/${{ github.event.inputs.spec_version }}.txt
+      - name: Stop Node Services
+        if: always()
+        run: |
+          docker stop moonbeam_container
+          docker rm moonbeam_container
+          pkill moonbeam
+
+      - name: Upload diff artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-diff-${{ matrix.runtime }}-${{ github.event.inputs.spec_version }}
+          path: runtime-diffs/${{ matrix.runtime }}
+
+  create_pr:
+    needs: local-diff
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      # Download artifacts from the local-diff job
+      - name: Download diff artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: runtime-diff-moonbase-${{ github.event.inputs.spec_version }}
+          path: runtime-diffs/moonbase
+      - name: Download diff artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: runtime-diff-moonbeam-${{ github.event.inputs.spec_version }}
+          path: runtime-diffs/moonbeam
+      - name: Download diff artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: runtime-diff-moonriver-${{ github.event.inputs.spec_version }}
+          path: runtime-diffs/moonriver
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          base: master
+          branch: "runtime-diff-${{ github.event.inputs.spec_version }}"
+          commit-message: "runtime diff: v0.${{ github.event.inputs.spec_version }}.0"
+          draft: true
+          title: "Notorize runtime upgrade differences: ${{ github.event.inputs.spec_version }}"
+          reviewers: "librelois,noandrea"
+          labels: "B0-silent,D2-notlive"

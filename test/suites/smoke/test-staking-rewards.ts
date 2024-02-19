@@ -20,7 +20,7 @@ import { AccountId20 } from "@polkadot/types/interfaces";
 const limiter = rateLimiter();
 
 describeSuite({
-  id: "S2000",
+  id: "S22",
   title: "When verifying ParachainStaking rewards",
   foundationMethods: "read_only",
   testCases: function ({ context, it, log }) {

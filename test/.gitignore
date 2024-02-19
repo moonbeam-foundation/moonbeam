@@ -4,6 +4,7 @@ tmp/*
 *.zip
 
 moonbeam
+!suites/dev/moonbeam
 polkadot
 
 *spec.json

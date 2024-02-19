@@ -68,6 +68,12 @@ Running a particular smoke test:
 pnpm moonwall test smoke_moonbeam S100
 ```
 
+Rename all prefixes for a suite (to keep them consistent)
+
+```bash
+pnpm moonwall derive <suite_root_dir> 
+```
+
 > [!NOTE]\
 > For a full list of test environments and suites available, inspect the `moonwall.config.json` file.
 Alternatively, use the CLI to browse networks and tests available.
