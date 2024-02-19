@@ -192,8 +192,10 @@ type MoonbasePrecompilesAt<R> = (
 		XcmTransactorPrecompileV2<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
-	RevertPrecompile<AddressU64<2062>>,
-	RevertPrecompile<AddressU64<2063>>,
+	// CouncilCollective precompile
+	RemovedPrecompileAt<AddressU64<2062>>,
+	// TechCommitteeCollective precompile
+	RemovedPrecompileAt<AddressU64<2063>>,
 	PrecompileAt<
 		AddressU64<2064>,
 		CollectivePrecompile<R, TreasuryCouncilInstance>,
