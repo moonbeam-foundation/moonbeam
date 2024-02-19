@@ -1306,7 +1306,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type NormalCallFilter = NormalFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 2, 3>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
 	type XcmExecutionManager = XcmExecutionManager;
 	type NormalDmpHandler = NormalDmpHandler;
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
