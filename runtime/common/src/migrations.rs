@@ -24,10 +24,9 @@ use frame_support::ensure;
 #[cfg(feature = "try-runtime")]
 use frame_support::migration::get_storage_value;
 use frame_support::{
-	pallet_prelude::GetStorageVersion,
 	parameter_types,
 	sp_runtime::traits::{Block as BlockT, Header as HeaderT},
-	traits::{OnRuntimeUpgrade, PalletInfoAccess},
+	traits::OnRuntimeUpgrade,
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -236,18 +235,14 @@ where
 	}
 }
 
-pub struct CommonMigrations<Runtime, Treasury, OpenTech>(
-	PhantomData<(Runtime, Treasury, OpenTech)>,
-);
+pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime, Treasury, OpenTech> GetMigrations for CommonMigrations<Runtime, Treasury, OpenTech>
+impl<Runtime> GetMigrations for CommonMigrations<Runtime>
 where
 	Runtime: pallet_author_mapping::Config,
 	Runtime: pallet_parachain_staking::Config,
 	Runtime: pallet_scheduler::Config,
 	Runtime: AuthorSlotFilterConfig,
-	Treasury: GetStorageVersion + PalletInfoAccess + 'static,
-	OpenTech: GetStorageVersion + PalletInfoAccess + 'static,
 	Runtime: pallet_democracy::Config,
 	Runtime: pallet_preimage::Config,
 	Runtime: pallet_asset_manager::Config,

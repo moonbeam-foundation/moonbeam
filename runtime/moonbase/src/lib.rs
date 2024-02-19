@@ -1131,10 +1131,6 @@ impl pallet_migrations::Config for Runtime {
 	type MigrationsList = (
 		moonbeam_runtime_common::migrations::CommonMigrations<
 			Runtime,
-			// TODO: GovV1 CouncilCollective,
-			// TODO: GovV1 TechCommitteeCollective,
-			TreasuryCouncilCollective,
-			OpenTechCommitteeCollective,
 		>,
 		ParachainStakingRoundMigration<Runtime>,
 	);

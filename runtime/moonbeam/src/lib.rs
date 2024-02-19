@@ -1118,13 +1118,7 @@ where
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MigrationsList = (
-		moonbeam_runtime_common::migrations::CommonMigrations<
-			Runtime,
-			// CouncilCollective,
-			// TechCommitteeCollective,
-			TreasuryCouncilCollective,
-			OpenTechCommitteeCollective,
-		>,
+		moonbeam_runtime_common::migrations::CommonMigrations<Runtime>,
 		ParachainStakingRoundMigration<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
