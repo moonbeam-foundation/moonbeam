@@ -939,12 +939,10 @@ fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bo
 	matches!(
 		precompile_name,
 		PrecompileName::DemocracyPrecompile
-			// TODO: GovV1| PrecompileName::CouncilInstance
-			// TODO: GovV1| PrecompileName::TechCommitteeInstance
 			| PrecompileName::TreasuryCouncilInstance
 			| PrecompileName::ReferendaPrecompile
 			| PrecompileName::ConvictionVotingPrecompile
-			| PrecompileName::PreimagePrecompile 
+			| PrecompileName::PreimagePrecompile
 			| PrecompileName::OpenTechCommitteeInstance,
 	)
 }
@@ -1129,9 +1127,7 @@ impl pallet_migrations::Config for Runtime {
 	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
 	// `moonbeam_runtime_common`.
 	type MigrationsList = (
-		moonbeam_runtime_common::migrations::CommonMigrations<
-			Runtime,
-		>,
+		moonbeam_runtime_common::migrations::CommonMigrations<Runtime>,
 		ParachainStakingRoundMigration<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
