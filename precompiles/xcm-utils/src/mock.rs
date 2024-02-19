@@ -31,7 +31,6 @@ use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup, TryConvert};
 use sp_runtime::BuildStorage;
-use sp_std::borrow::Borrow;
 use xcm::latest::Error as XcmError;
 use xcm_builder::AllowUnpaidExecutionFrom;
 use xcm_builder::FixedWeightBounds;
