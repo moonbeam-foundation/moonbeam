@@ -56,7 +56,7 @@ describeSuite({
         id: "T01",
         title: "should successfully verify the Timestamp value in the proof",
         test: async function () {
-          let readProof = context.polkadotJs().createType("ReadProof", proof);
+          const readProof = context.polkadotJs().createType("ReadProof", proof);
 
           expect(
             await context.readContract!({
@@ -72,7 +72,7 @@ describeSuite({
       id: "T02",
       title: "should successfully verify the values in the proof (order of values matters)",
       test: async function () {
-        let readProof = context.polkadotJs().createType("ReadProof", proof);
+        const readProof = context.polkadotJs().createType("ReadProof", proof);
 
         expect(
           await context.readContract!({
