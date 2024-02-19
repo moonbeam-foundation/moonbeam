@@ -24,7 +24,7 @@
   "telemetryEndpoints": [
     ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]
   ],
-  "protocolId": null,
+  "protocolId": "moonbeam",
   "properties": {
     "SS58Prefix": 1284,
     "tokenDecimals": 18,
