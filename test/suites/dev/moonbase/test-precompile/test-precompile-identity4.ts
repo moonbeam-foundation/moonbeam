@@ -9,7 +9,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D3403",
+  id: "D012752",
   title: "Precompiles - Identity precompile - request judgement",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

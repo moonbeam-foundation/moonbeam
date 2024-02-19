@@ -19,10 +19,15 @@
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
+
+pub mod weights;
+pub use weights::WeightInfo;
 
 use frame_support::pallet;
 
@@ -35,6 +40,10 @@ pub mod pallet {
 	use frame_support::traits::{LockIdentifier, LockableCurrency};
 	use frame_system::pallet_prelude::*;
 	use pallet_democracy::VotingOf;
+	use sp_core::H160;
+
+	pub const ARRAY_LIMIT: u32 = 1000;
+	pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 
 	const INTERMEDIATES_NODES_SIZE: u64 = 4096;
 	const MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE: u64 =
@@ -54,14 +63,20 @@ pub mod pallet {
 	#[pallet::storage]
 	/// If true, it means that LocalAssets storage has been removed.
 	pub(crate) type LocalAssetsMigrationCompleted<T: Config> = StorageValue<_, bool, ValueQuery>;
-	
+
 	#[pallet::storage]
 	/// If true, it means that Democracy funds have been unlocked.
 	pub(crate) type DemocracyLocksMigrationCompleted<T: Config> = StorageValue<_, bool, ValueQuery>;
 
+	#[pallet::storage]
+	/// The total number of suicided contracts that were removed
+	pub(crate) type SuicidedContractsRemoved<T: Config> = StorageValue<_, u32, ValueQuery>;
+
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_democracy::Config {}
+	pub trait Config: frame_system::Config + pallet_evm::Config + pallet_democracy::Config {
+		type WeightInfo: WeightInfo;
+	}
 
 	#[pallet::error]
 	pub enum Error<T> {
@@ -73,6 +88,10 @@ pub mod pallet {
 		UnlockLimitTooHigh,
 		/// There are no more VotingOf entries to be removed and democracy funds to be unlocked
 		AllDemocracyFundsUnlocked,
+		/// There must be at least one address
+		AddressesLengthCannotBeZero,
+		/// The contract is not corrupted (Still exist or properly suicided)
+		ContractNotCorrupted,
 	}
 
 	#[pallet::call]
@@ -89,7 +108,7 @@ pub mod pallet {
 			limit: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
-			ensure!(limit != 0, "Limit cannot be zero!");
+			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
 
 			let mut weight = <T as frame_system::Config>::DbWeight::get().reads(1);
 			ensure!(
@@ -126,10 +145,66 @@ pub mod pallet {
 			.into())
 		}
 
+		// TODO(rodrigo): This extrinsic should be removed once the storage of destroyed contracts
+		// has been removed
+		#[pallet::call_index(1)]
+		#[pallet::weight({
+			let addresses_len = addresses.len() as u32;
+			<T as crate::Config>::WeightInfo::clear_suicided_storage(addresses_len, *limit)
+		})]
+		pub fn clear_suicided_storage(
+			origin: OriginFor<T>,
+			addresses: BoundedVec<H160, GetArrayLimit>,
+			limit: u32,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+
+			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
+			ensure!(
+				addresses.len() != 0,
+				Error::<T>::AddressesLengthCannotBeZero
+			);
+
+			let mut limit = limit as usize;
+
+			for address in &addresses {
+				// Ensure that the contract is corrupted by checking
+				// that it has no code and at least one storage entry.
+				let suicided = pallet_evm::Suicided::<T>::contains_key(&address);
+				let has_code = pallet_evm::AccountCodes::<T>::contains_key(&address);
+				ensure!(
+					!suicided
+						&& !has_code && pallet_evm::AccountStorages::<T>::iter_key_prefix(&address)
+						.next()
+						.is_some(),
+					Error::<T>::ContractNotCorrupted
+				);
+
+				let deleted = pallet_evm::AccountStorages::<T>::drain_prefix(*address)
+					.take(limit)
+					.count();
+
+				// Check if the storage of this contract has been completly removed
+				if pallet_evm::AccountStorages::<T>::iter_key_prefix(&address)
+					.next()
+					.is_none()
+				{
+					// All entries got removed, lets count this address as migrated
+					SuicidedContractsRemoved::<T>::mutate(|x| *x = x.saturating_add(1));
+				}
+
+				limit = limit.saturating_sub(deleted);
+				if limit == 0 {
+					return Ok(Pays::No.into());
+				}
+			}
+			Ok(Pays::No.into())
+		}
+
 		// TODO(alexandru): This extrinsic should be removed once Gov V1 is removed.
 		// Note: We don't need to unreserve any funds, as they are assumed to be already
 		// unreserved prior to this operation and the proposal submission disabled.
-		#[pallet::call_index(1)]
+		#[pallet::call_index(2)]
 		#[pallet::weight(
 			Weight::from_parts(0,
 				INTERMEDIATES_NODES_SIZE + (MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE + 
@@ -155,7 +230,7 @@ pub mod pallet {
 			let unlocked_accounts = VotingOf::<T>::iter()
 				.drain()
 				.take(limit as usize)
-				.map(|(account, _)| T::Currency::remove_lock(DEMOCRACY_ID, &account))
+				.map(|(account, _)| <T as pallet_democracy::Config>::Currency::remove_lock(DEMOCRACY_ID, &account))
 				.count() as u32;
 
 			if unlocked_accounts < limit {
@@ -163,7 +238,6 @@ pub mod pallet {
 			}
 
 			log::info!("Unlocked {} accounts 🧹", unlocked_accounts);
-
 			Ok(Pays::No.into())
 		}
 	}

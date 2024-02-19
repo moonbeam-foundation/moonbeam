@@ -4,7 +4,7 @@ import { MIN_GLMR_STAKING, baltathar } from "@moonwall/util";
 import { fromBytes } from "viem";
 
 describeSuite({
-  id: "D2976",
+  id: "D013176",
   title: "Staking - Locks - join candidates",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

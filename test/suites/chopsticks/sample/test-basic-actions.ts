@@ -5,7 +5,7 @@ import { parseEther, ethers, Transaction, Wallet, parseUnits } from "ethers";
 import "@moonbeam-network/api-augment";
 
 describeSuite({
-  id: "CMB01",
+  id: "C0101",
   title: "Chopsticks test suite",
   foundationMethods: "chopsticks",
   testCases: ({ it, context, log }) => {

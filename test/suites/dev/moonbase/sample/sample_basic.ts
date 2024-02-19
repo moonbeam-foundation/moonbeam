@@ -5,7 +5,7 @@ import { BN } from "@polkadot/util";
 import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
-  id: "D01",
+  id: "D014001",
   title: "Dev test suite",
   foundationMethods: "dev",
   testCases: ({ it, context, log }) => {

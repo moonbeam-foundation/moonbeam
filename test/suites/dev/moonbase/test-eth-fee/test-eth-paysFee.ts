@@ -5,7 +5,7 @@ import { BALTATHAR_ADDRESS, GLMR, createRawTransfer } from "@moonwall/util";
 // We use ethers library in this test as apparently web3js's types are not fully EIP-1559
 // compliant yet.
 describeSuite({
-  id: "D1002",
+  id: "D011102",
   title: "Ethereum - PaysFee",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -4,7 +4,7 @@ import { BALTATHAR_SESSION_ADDRESS, CHARLETH_SESSION_ADDRESS, alith } from "@moo
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D0214",
+  id: "D010214",
   title: "Author Mapping - unregistered cannot rotate",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

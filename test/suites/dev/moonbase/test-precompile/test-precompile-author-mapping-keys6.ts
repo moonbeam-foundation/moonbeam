@@ -13,7 +13,7 @@ import { encodeFunctionData } from "viem";
 import { originalKeys, setAuthorMappingKeysViaPrecompile } from "../../../../helpers";
 
 describeSuite({
-  id: "D2514",
+  id: "D012715",
   title: "Precompile Author Mapping - Update someone else nimbus key",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -9,7 +9,7 @@ import {
 import { getAccountPayable } from "../../../../helpers";
 
 describeSuite({
-  id: "D0705",
+  id: "D010805",
   title: "Crowdloan - Democracy",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

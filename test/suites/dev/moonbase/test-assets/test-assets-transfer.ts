@@ -10,7 +10,7 @@ import { mockAssetBalance } from "../../../../helpers";
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
 describeSuite({
-  id: "D0105",
+  id: "D010105",
   title: "Pallet Assets - Transfer",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

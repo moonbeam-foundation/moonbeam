@@ -5,7 +5,7 @@ import { Abi, encodeFunctionData } from "viem";
 import { extractRevertReason } from "../../../../helpers";
 
 describeSuite({
-  id: "D2584",
+  id: "D012701",
   title: "Precompiles - Assets-ERC20 (LocalAssets Removal)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

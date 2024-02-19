@@ -18,14 +18,20 @@ sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 pallet-democracy = { workspace = true }
 pallet-scheduler = { workspace = true }
+sp-std = { workspace = true }
+
+# Frontier
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 
 # Benchmarks
 frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
-pallet-balances = { workspace = true }
+pallet-balances = { workspace = true, features = ["std"] }
+pallet-timestamp = { workspace = true, features = ["std"] }
 frame-benchmarking = { workspace = true, features = ["std"] }
 sp-io = { workspace = true, features = ["std"] }
+rlp = { workspace = true, features = ["std"] }
 
 [features]
 default = ["std"]
@@ -37,6 +43,10 @@ std = [
     "sp-core/std",
     "sp-io/std",
     "sp-runtime/std",
+    "sp-std/std",
+    "pallet-evm/std",
+    "pallet-timestamp/std",
+    "rlp/std",
 ]
 runtime-benchmarks = ["frame-benchmarking"]
 try-runtime = ["frame-support/try-runtime"]

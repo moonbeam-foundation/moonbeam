@@ -24,13 +24,13 @@ use frame_support::{
 	weights::{constants::RocksDbWeight, Weight},
 };
 use frame_system::{EnsureRoot, EnsureSigned, EnsureSignedBy};
-use sp_core::{ConstU32, H256};
+use pallet_evm::{AddressMapping, EnsureAddressTruncated};
+use sp_core::{ConstU32, H160, H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
-	BuildStorage, Perbill,
+	AccountId32, BuildStorage, Perbill,
 };
 
-pub type AccountId = u64;
 pub type Balance = u128;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
@@ -40,6 +40,8 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Timestamp: pallet_timestamp,
+		EVM: pallet_evm,
 		LazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call},
 		Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
@@ -62,7 +64,7 @@ impl frame_system::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = AccountId;
+	type AccountId = AccountId32;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
@@ -160,22 +162,96 @@ impl pallet_democracy::Config for Runtime {
 	type Preimages = ();
 }
 
-impl Config for Runtime {}
+parameter_types! {
+	pub const MinimumPeriod: u64 = 6000 / 2;
+}
+
+impl pallet_timestamp::Config for Runtime {
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = MinimumPeriod;
+	type WeightInfo = ();
+}
+
+const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
+/// Block Storage Limit in bytes. Set to 40KB.
+const BLOCK_STORAGE_LIMIT: u64 = 40 * 1024;
+
+parameter_types! {
+	pub BlockGasLimit: U256 = U256::from(u64::MAX);
+	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
+	pub GasLimitPovSizeRatio: u64 = {
+		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
+		block_gas_limit.saturating_div(MAX_POV_SIZE)
+	};
+	pub GasLimitStorageGrowthRatio: u64 = {
+		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
+		block_gas_limit.saturating_div(BLOCK_STORAGE_LIMIT)
+	};
+	pub SuicideQuickClearLimit: u32 = 0;
+}
+pub struct HashedAddressMapping;
+
+impl AddressMapping<AccountId32> for HashedAddressMapping {
+	fn into_account_id(address: H160) -> AccountId32 {
+		let mut data = [0u8; 32];
+		data[0..20].copy_from_slice(&address[..]);
+		AccountId32::from(Into::<[u8; 32]>::into(data))
+	}
+}
+
+impl pallet_evm::Config for Runtime {
+	type FeeCalculator = ();
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
+	type CallOrigin = EnsureAddressTruncated;
+	type WithdrawOrigin = EnsureAddressTruncated;
+	type AddressMapping = HashedAddressMapping;
+	type Currency = Balances;
+	type RuntimeEvent = RuntimeEvent;
+	type Runner = pallet_evm::runner::stack::Runner<Self>;
+	type PrecompilesType = ();
+	type PrecompilesValue = ();
+	type ChainId = ();
+	type OnChargeTransaction = ();
+	type BlockGasLimit = BlockGasLimit;
+	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
+	type FindAuthor = ();
+	type OnCreate = ();
+	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
+	type Timestamp = Timestamp;
+	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
+	type SuicideQuickClearLimit = SuicideQuickClearLimit;
+}
+
+impl Config for Runtime {
+	type WeightInfo = ();
+}
 
 /// Externality builder for pallet migration's mock runtime
-pub(crate) struct ExtBuilder;
+pub(crate) struct ExtBuilder {
+	// endowed accounts with balances
+	balances: Vec<(AccountId32, Balance)>,
+}
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
-		Self
+		ExtBuilder { balances: vec![] }
 	}
 }
 
 impl ExtBuilder {
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let storage = frame_system::GenesisConfig::<Runtime>::default()
+		let mut storage = frame_system::GenesisConfig::<Runtime>::default()
 			.build_storage()
 			.expect("Frame system builds valid default genesis config");
+
+		pallet_balances::GenesisConfig::<Runtime> {
+			balances: self.balances,
+		}
+		.assimilate_storage(&mut storage)
+		.expect("Pallet balances storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(storage);
 		ext.execute_with(|| System::set_block_number(1));

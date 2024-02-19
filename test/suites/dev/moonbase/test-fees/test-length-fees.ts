@@ -4,7 +4,7 @@ import { BALTATHAR_ADDRESS, baltathar } from "@moonwall/util";
 
 //TODO: Change these to be less literal
 describeSuite({
-  id: "D1606",
+  id: "D011706",
   title: "Substrate Length Fees",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

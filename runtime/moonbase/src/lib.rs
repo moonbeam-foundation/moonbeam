@@ -22,7 +22,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
-#![recursion_limit = "256"]
+#![recursion_limit = "512"]
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -1151,7 +1151,9 @@ impl pallet_migrations::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
-impl pallet_moonbeam_lazy_migrations::Config for Runtime {}
+impl pallet_moonbeam_lazy_migrations::Config for Runtime {
+	type WeightInfo = moonbeam_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
+}
 
 /// Maintenance mode Call filter
 pub struct MaintenanceFilter;
@@ -1564,6 +1566,7 @@ mod benches {
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
 		[moonbeam_xcm_benchmarks::weights::generic, MoonbeamXcmGenericBench::<Runtime>]
+		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 	);
 }
 

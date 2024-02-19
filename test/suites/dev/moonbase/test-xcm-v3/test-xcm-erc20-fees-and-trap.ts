@@ -15,7 +15,7 @@ import {
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D3535",
+  id: "D013834",
   title: "Mock XCM - Fails trying to pay fees with ERC20",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

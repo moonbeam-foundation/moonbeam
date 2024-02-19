@@ -12,7 +12,7 @@ import {
 import { GAS_LIMIT_POV_RATIO } from "@moonwall/util";
 
 describeSuite({
-  id: "D3523",
+  id: "D013824",
   title: "Mock XCM - receive horizontal transact ETHEREUM (call)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

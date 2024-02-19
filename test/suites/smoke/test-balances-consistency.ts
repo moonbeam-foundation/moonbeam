@@ -46,7 +46,7 @@ type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
 // is not exhausted.
 
 describeSuite({
-  id: "S300",
+  id: "S03",
   title: "Verifying balances consistency",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

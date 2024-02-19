@@ -10,7 +10,7 @@ import { createEthersTransaction } from "@moonwall/util";
 import { Abi, encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D3608",
+  id: "T08",
   title: "Trace filter - Concurrency",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

@@ -7,7 +7,7 @@ import { ApiPromise } from "@polkadot/api";
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 describeSuite({
-  id: "D0111",
+  id: "D010109",
   title: "XCM - asset manager - Remove asset from supported",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

@@ -10,7 +10,7 @@ import {
 import { jumpBlocks, SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({
-  id: "D2709",
+  id: "D012909",
   title: "Randomness Result - Fulfilling all of random numbers",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

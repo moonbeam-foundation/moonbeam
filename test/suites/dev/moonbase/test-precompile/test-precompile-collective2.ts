@@ -36,7 +36,7 @@ const successfulTreasuryCouncilCall = async (
   expect(result?.successful).to.equal(true);
 };
 describeSuite({
-  id: "D2528",
+  id: "D012730",
   title: "Treasury council precompile #2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

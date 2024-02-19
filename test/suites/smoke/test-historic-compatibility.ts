@@ -9,7 +9,7 @@ import { ethers } from "ethers";
 const limiter = rateLimiter();
 
 describeSuite({
-  id: "S1200",
+  id: "S14",
   title: "Verifying historic compatibility",
   foundationMethods: "read_only",
   testCases: async ({ context, it, log }) => {

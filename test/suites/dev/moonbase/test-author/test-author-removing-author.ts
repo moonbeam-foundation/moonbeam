@@ -12,7 +12,7 @@ const originalKeys = [
 const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
 describeSuite({
-  id: "D0209",
+  id: "D010209",
   title: "Author Mapping - Removing non-existing author",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

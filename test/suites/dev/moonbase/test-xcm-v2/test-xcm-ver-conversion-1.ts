@@ -15,7 +15,7 @@ import {
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D3432",
+  id: "D013730",
   title: "XCM Moonbase: version compatibility",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

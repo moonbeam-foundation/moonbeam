@@ -4,7 +4,7 @@ import { BALTATHAR_ADDRESS, CHARLETH_ADDRESS, DOROTHY_ADDRESS, GLMR } from "@moo
 import { setupPoolWithParticipants } from "../../../../helpers";
 
 describeSuite({
-  id: "D2542",
+  id: "D012762",
   title: "Proxy Leader Demo - Preparing Participation Pool",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

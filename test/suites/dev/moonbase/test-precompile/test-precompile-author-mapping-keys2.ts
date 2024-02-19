@@ -8,7 +8,7 @@ import {
 } from "../../../../helpers/precompiles.js";
 
 describeSuite({
-  id: "D2510",
+  id: "D012711",
   title: "Precompile Author Mapping - Update Faith mapping to the same keys",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
