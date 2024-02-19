@@ -191,18 +191,8 @@ type MoonbasePrecompilesAt<R> = (
 		XcmTransactorPrecompileV2<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
-	// PrecompileAt<
-	// 	// TODO: Is it safe to remove a precompile?
-	// 	AddressU64<2062>,
-	// 	CollectivePrecompile<R, CouncilInstance>,
-	// 	(CallableByContract, CallableByPrecompile),
-	// >,
-	// PrecompileAt<
-	// 	// TODO: Is it safe to remove a precompile?
-	// 	AddressU64<2063>,
-	// 	CollectivePrecompile<R, TechCommitteeInstance>,
-	// 	(CallableByContract, CallableByPrecompile),
-	// >,
+	RevertPrecompile<AddressU64<2062>>,
+	RevertPrecompile<AddressU64<2063>>,
 	PrecompileAt<
 		AddressU64<2064>,
 		CollectivePrecompile<R, TreasuryCouncilInstance>,
