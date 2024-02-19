@@ -56,7 +56,7 @@ pub mod pallet {
 	const MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE: u64 =
 		(/* biggest key on moonbeam */60) + (/* biggest value on moonbeam */26 * 3);
 	const MAX_UNLOCK_PROOF_PER_ACCOUNT: u64 =
-		(MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE + MAX_DEMOCRACY_VOTINGOF_STORAGE_ENTRY_SIZE);
+		MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE + MAX_DEMOCRACY_VOTINGOF_STORAGE_ENTRY_SIZE;
 
 	/// Pallet for multi block migrations
 	#[pallet::pallet]
