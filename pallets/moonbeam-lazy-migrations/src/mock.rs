@@ -23,7 +23,7 @@ use frame_support::{
 	traits::{EqualPrivilegeOnly, Everything, SortedMembers},
 	weights::{constants::RocksDbWeight, Weight},
 };
-use frame_system::{EnsureRoot, EnsureSigned, EnsureSignedBy};
+use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_evm::{AddressMapping, EnsureAddressTruncated};
 use sp_core::{ConstU32, H160, H256, U256};
 use sp_runtime::{
@@ -107,7 +107,7 @@ impl pallet_scheduler::Config for Runtime {
 	type PalletsOrigin = OriginCaller;
 	type RuntimeCall = RuntimeCall;
 	type MaximumWeight = ();
-	type ScheduleOrigin = EnsureRoot<u64>;
+	type ScheduleOrigin = EnsureRoot<Self::AccountId>;
 	type MaxScheduledPerBlock = ConstU32<100>;
 	type WeightInfo = ();
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
@@ -141,18 +141,18 @@ impl pallet_democracy::Config for Runtime {
 	type MinimumDeposit = ();
 	type MaxDeposits = ();
 	type MaxBlacklisted = ();
-	type SubmitOrigin = EnsureSigned<Self::AccountId>;
-	type ExternalOrigin = EnsureSignedBy<Two, u64>;
-	type ExternalMajorityOrigin = EnsureSignedBy<Three, u64>;
-	type ExternalDefaultOrigin = EnsureSignedBy<One, u64>;
-	type FastTrackOrigin = EnsureSignedBy<Five, u64>;
-	type CancellationOrigin = EnsureSignedBy<Four, u64>;
-	type BlacklistOrigin = EnsureRoot<u64>;
-	type CancelProposalOrigin = EnsureRoot<u64>;
-	type VetoOrigin = EnsureSignedBy<OneToFive, u64>;
+	type SubmitOrigin = EnsureSigned<AccountId32>;
+	type ExternalOrigin = EnsureRoot<AccountId32>;
+	type ExternalMajorityOrigin = EnsureRoot<AccountId32>;
+	type ExternalDefaultOrigin = EnsureRoot<AccountId32>;
+	type FastTrackOrigin = EnsureRoot<AccountId32>;
+	type CancellationOrigin = EnsureRoot<AccountId32>;
+	type BlacklistOrigin = EnsureRoot<AccountId32>;
+	type CancelProposalOrigin = EnsureRoot<AccountId32>;
+	type VetoOrigin = EnsureSigned<AccountId32>;
 	type CooloffPeriod = ();
 	type Slash = ();
-	type InstantOrigin = EnsureSignedBy<Six, u64>;
+	type InstantOrigin = EnsureRoot<AccountId32>;
 	type InstantAllowed = ();
 	type Scheduler = Scheduler;
 	type MaxVotes = ();
