@@ -19,7 +19,7 @@ import { ALITH_GENESIS_TRANSFERABLE_BALANCE, verifyLatestBlockFees } from "../..
 import { parseGwei } from "viem";
 
 describeSuite({
-  id: "D0306",
+  id: "D010306",
   title: "Balance Transfers",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

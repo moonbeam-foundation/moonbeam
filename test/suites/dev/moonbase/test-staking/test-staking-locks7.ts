@@ -4,7 +4,7 @@ import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({
-  id: "D2981",
+  id: "D013181",
   title: "Staking - Locks - execute revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

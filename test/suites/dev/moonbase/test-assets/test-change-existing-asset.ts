@@ -12,7 +12,7 @@ import {
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 describeSuite({
-  id: "D0106",
+  id: "D010106",
   title: "XCM - asset manager - Change existing asset",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

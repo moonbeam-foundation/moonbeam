@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { encodeDeployData } from "viem";
 
 describeSuite({
-  id: "D0604",
+  id: "D010604",
   title: "Contract event",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

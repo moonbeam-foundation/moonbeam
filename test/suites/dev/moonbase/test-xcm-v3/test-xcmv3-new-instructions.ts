@@ -15,7 +15,7 @@ import { parseEther } from "ethers";
 // the important thing (and what we are testing) is that they are
 // executed and are not blocked with 'WeightNotComputable' due to using max weight.
 describeSuite({
-  id: "D3541",
+  id: "D013840",
   title: "XCM V3 - Max Weight Instructions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

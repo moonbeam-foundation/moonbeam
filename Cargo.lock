@@ -7095,6 +7095,7 @@ dependencies = [
  "pallet-evm-chain-id",
  "pallet-identity",
  "pallet-migrations",
+ "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
@@ -9608,11 +9609,15 @@ dependencies = [
  "frame-system",
  "log",
  "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
  "parity-scale-codec",
+ "rlp",
  "scale-info",
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]

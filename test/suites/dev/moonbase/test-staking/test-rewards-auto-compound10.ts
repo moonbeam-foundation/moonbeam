@@ -13,7 +13,7 @@ import {
 import { chunk } from "../../../../helpers";
 
 describeSuite({
-  id: "D2963",
+  id: "D013152",
   title: "Staking - Rewards Auto-Compound - bottom delegation kick",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

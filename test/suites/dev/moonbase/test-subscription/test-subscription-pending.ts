@@ -4,7 +4,7 @@ import { BALTATHAR_ADDRESS, GLMR, createRawTransfer, sendRawTransaction } from "
 import { setTimeout } from "timers/promises";
 
 describeSuite({
-  id: "D3004",
+  id: "D013304",
   title: "Subscription -  Pending transactions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

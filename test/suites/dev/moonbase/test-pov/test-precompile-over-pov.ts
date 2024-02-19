@@ -12,7 +12,7 @@ import { Abi, encodeFunctionData } from "viem";
 import { ALITH_ADDRESS, PRECOMPILE_BATCH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 
 describeSuite({
-  id: "D2403",
+  id: "D012604",
   title: "PoV precompile test - gasLimit",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

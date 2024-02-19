@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { expectEVMResult, extractRevertReason } from "../../../../helpers";
 
 describeSuite({
-  id: "D2569",
+  id: "D012789",
   title: "Test GMP Killswitch",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

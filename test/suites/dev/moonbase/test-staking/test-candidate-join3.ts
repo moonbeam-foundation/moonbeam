@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_STAKING, alith, ethan } from "@moonwall/util";
 
 describeSuite({
-  id: "D2903",
+  id: "D013104",
   title: "Staking - Candidate Join - valid request",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

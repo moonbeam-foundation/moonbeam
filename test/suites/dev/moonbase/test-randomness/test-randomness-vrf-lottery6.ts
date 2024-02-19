@@ -5,7 +5,7 @@ import { TransactionReceipt } from "viem";
 import { setupLotteryWithParticipants } from "../../../../helpers";
 
 describeSuite({
-  id: "D2716",
+  id: "D012916",
   title: "Randomness VRF - Static fulfilling Lottery Demo",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -17,7 +17,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D2529-3",
+  id: "D012734",
   title: "Precompiles - Conviction on General Admin Track",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

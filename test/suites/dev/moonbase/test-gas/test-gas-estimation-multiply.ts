@@ -4,7 +4,7 @@ import { ALITH_ADDRESS } from "@moonwall/util";
 import { Abi } from "viem";
 
 describeSuite({
-  id: "D1804",
+  id: "D011904",
   title: "Estimate Gas - Multiply",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

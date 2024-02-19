@@ -10,7 +10,7 @@ import {
 import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
-  id: "D2979",
+  id: "D013179",
   title: "Staking - Locks - democracy vote",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, MIN_GLMR_STAKING, alith, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
-  id: "D2978",
+  id: "D013178",
   title: "Staking - Locks - candidate balance is locked",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

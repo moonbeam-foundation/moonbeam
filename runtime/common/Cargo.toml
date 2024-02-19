@@ -24,6 +24,7 @@ pallet-randomness = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
 precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
+pallet-moonbeam-lazy-migrations = { workspace = true }
 
 # Substrate
 cumulus-pallet-xcmp-queue = { workspace = true }
@@ -58,7 +59,7 @@ sp-std = { workspace = true }
 # Frontier
 fp-ethereum = { workspace = true }
 fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm-chain-id = { workspace = true }
 
 # Moonkit
@@ -94,6 +95,7 @@ std = [
 	"pallet-referenda/std",
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
+	"pallet-moonbeam-lazy-migrations/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-consensus-slots/std",
@@ -102,7 +104,7 @@ std = [
 	"sp-std/std",
 	"xcm-executor/std",
 	"xcm/std",
-	"account/std"
+	"account/std",
 ]
 runtime-benchmarks = [
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
@@ -135,9 +137,7 @@ runtime-benchmarks = [
 	"pallet-whitelist/runtime-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
+	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 ]
-try-runtime = [
-	"frame-support/try-runtime",
-	"pallet-migrations/try-runtime",
-]
+try-runtime = ["frame-support/try-runtime", "pallet-migrations/try-runtime"]

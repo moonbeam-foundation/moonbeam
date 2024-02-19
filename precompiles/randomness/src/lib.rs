@@ -361,7 +361,7 @@ where
 
 		let request_randomness_weight =
 			<<Runtime as pallet_randomness::Config>::WeightInfo>::request_randomness();
-		RuntimeHelper::<Runtime>::reocrd_external_cost(handle, request_randomness_weight, 0)?;
+		RuntimeHelper::<Runtime>::record_external_cost(handle, request_randomness_weight, 0)?;
 		let request_id = Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| revert(alloc::format!("Error in pallet_randomness: {:?}", e)))?;
 		RuntimeHelper::<Runtime>::refund_weight_v2_cost(handle, request_randomness_weight, None)?;
@@ -412,7 +412,7 @@ where
 
 		let request_randomness_weight =
 			<<Runtime as pallet_randomness::Config>::WeightInfo>::request_randomness();
-		RuntimeHelper::<Runtime>::reocrd_external_cost(handle, request_randomness_weight, 0)?;
+		RuntimeHelper::<Runtime>::record_external_cost(handle, request_randomness_weight, 0)?;
 		let request_id = Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| revert(alloc::format!("Error in pallet_randomness: {:?}", e)))?;
 		RuntimeHelper::<Runtime>::refund_weight_v2_cost(handle, request_randomness_weight, None)?;
@@ -433,7 +433,7 @@ where
 			<<Runtime as pallet_randomness::Config>::WeightInfo>::prepare_fulfillment(
 				<Runtime as pallet_randomness::Config>::MaxRandomWords::get() as u32,
 			);
-		RuntimeHelper::<Runtime>::reocrd_external_cost(handle, prepare_fulfillment_max_weight, 0)?;
+		RuntimeHelper::<Runtime>::record_external_cost(handle, prepare_fulfillment_max_weight, 0)?;
 		let pallet_randomness::FulfillArgs {
 			request,
 			deposit,
@@ -457,7 +457,7 @@ where
 		// prepare_and_finish_fulfillment_used_gas)
 		let finish_fulfillment_weight =
 			<<Runtime as pallet_randomness::Config>::WeightInfo>::finish_fulfillment();
-		RuntimeHelper::<Runtime>::reocrd_external_cost(handle, finish_fulfillment_weight, 0)?;
+		RuntimeHelper::<Runtime>::record_external_cost(handle, finish_fulfillment_weight, 0)?;
 		prepare_and_finish_fulfillment_used_gas += RuntimeHelper::<Runtime>::refund_weight_v2_cost(
 			handle,
 			finish_fulfillment_weight,
@@ -527,7 +527,7 @@ where
 	) -> EvmResult {
 		let increase_fee_weight =
 			<<Runtime as pallet_randomness::Config>::WeightInfo>::increase_fee();
-		RuntimeHelper::<Runtime>::reocrd_external_cost(handle, increase_fee_weight, 0)?;
+		RuntimeHelper::<Runtime>::record_external_cost(handle, increase_fee_weight, 0)?;
 
 		let request_id = request_id.converted();
 
@@ -551,7 +551,7 @@ where
 	) -> EvmResult {
 		let execute_request_expiration_weight =
 			<<Runtime as pallet_randomness::Config>::WeightInfo>::execute_request_expiration();
-		RuntimeHelper::<Runtime>::reocrd_external_cost(
+		RuntimeHelper::<Runtime>::record_external_cost(
 			handle,
 			execute_request_expiration_weight,
 			0,

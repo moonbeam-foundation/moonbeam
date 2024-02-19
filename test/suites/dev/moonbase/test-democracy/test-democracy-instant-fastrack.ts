@@ -15,7 +15,7 @@ import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
-  id: "D0803",
+  id: "D010901",
   title: "Democracy - Instant FastTracking",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

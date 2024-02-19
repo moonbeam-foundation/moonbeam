@@ -1,7 +1,7 @@
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
-  id: "D0610",
+  id: "D010610",
   title: "Block Contract - Block variables",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

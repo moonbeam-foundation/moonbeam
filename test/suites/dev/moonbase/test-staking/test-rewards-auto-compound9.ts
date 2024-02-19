@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith, baltathar, ethan } from "@
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({
-  id: "D2962",
+  id: "D013160",
   title: "Staking - Rewards Auto-Compound - candidate leave",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

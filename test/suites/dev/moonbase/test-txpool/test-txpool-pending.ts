@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, createEthersTransaction, sendRawTransaction } from "@moo
 import { encodeDeployData, toHex } from "viem";
 
 describeSuite({
-  id: "D3310",
+  id: "D013607",
   title: "TxPool - Pending Ethereum transaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

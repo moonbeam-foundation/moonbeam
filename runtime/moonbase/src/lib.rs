@@ -1151,7 +1151,9 @@ impl pallet_migrations::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
-impl pallet_moonbeam_lazy_migrations::Config for Runtime {}
+impl pallet_moonbeam_lazy_migrations::Config for Runtime {
+	type WeightInfo = moonbeam_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
+}
 
 /// Maintenance mode Call filter
 pub struct MaintenanceFilter;
@@ -1582,6 +1584,7 @@ mod benches {
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[moonbeam_xcm_benchmarks::weights::generic, MoonbeamXcmGenericBench::<Runtime>]
+		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 	);
 }
 
