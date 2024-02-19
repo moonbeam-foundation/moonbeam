@@ -109,7 +109,7 @@ impl ConvertLocation<AccountId> for MockParentMultilocationToAccountConverter {
 pub struct MockParachainMultilocationToAccountConverter;
 impl ConvertLocation<AccountId> for MockParachainMultilocationToAccountConverter {
 	fn convert_location(location: &MultiLocation) -> Option<AccountId> {
-		match location.borrow() {
+		match location {
 			MultiLocation {
 				parents: 1,
 				interior: Junctions::X1(Parachain(id)),
