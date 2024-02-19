@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["CommonMigrations","FixIncorrectPalletVersions","MissingBalancesMigrations","OldRoundInfo","PalletReferendaMigrateV0ToV1","UpdateFirstRoundNumberType","UpdateFirstRoundNumberValue"]};
+window.SIDEBAR_ITEMS = {"struct":["CommonMigrations","OldRoundInfo","UpdateFirstRoundNumberType","UpdateFirstRoundNumberValue"]};
