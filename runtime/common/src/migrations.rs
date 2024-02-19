@@ -26,7 +26,7 @@ use frame_support::migration::get_storage_value;
 use frame_support::{
 	pallet_prelude::GetStorageVersion,
 	sp_runtime::traits::{Block as BlockT, Header as HeaderT},
-	traits::{OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
+	traits::PalletInfoAccess,
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -37,32 +37,6 @@ use parity_scale_codec::{Decode, Encode};
 use sp_consensus_slots::Slot;
 use sp_core::Get;
 use sp_std::{marker::PhantomData, prelude::*};
-
-pub struct PalletReferendaMigrateV0ToV1<T>(pub PhantomData<T>);
-impl<T> Migration for PalletReferendaMigrateV0ToV1<T>
-where
-	T: pallet_referenda::Config + frame_system::Config,
-{
-	fn friendly_name(&self) -> &str {
-		"MM_PalletReferendaMigrateV0ToV1"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		pallet_referenda::migration::v1::MigrateV0ToV1::<T>::on_runtime_upgrade()
-	}
-
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		pallet_referenda::migration::v1::MigrateV0ToV1::<T>::pre_upgrade()
-	}
-
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		pallet_referenda::migration::v1::MigrateV0ToV1::<T>::post_upgrade(state)
-	}
-}
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode)]
 pub struct OldRoundInfo<BlockNumber> {
@@ -204,73 +178,6 @@ where
 	}
 }
 
-pub struct MissingBalancesMigrations<T>(PhantomData<T>);
-impl<T> Migration for MissingBalancesMigrations<T>
-where
-	T: pallet_balances::Config,
-	<T as frame_system::Config>::AccountId: Default,
-{
-	fn friendly_name(&self) -> &str {
-		"MM_MissingBalancesMigrations"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		pallet_balances::migration::MigrateToTrackInactive::<T, ()>::on_runtime_upgrade();
-		pallet_balances::migration::ResetInactive::<T, ()>::on_runtime_upgrade();
-		pallet_balances::migration::MigrateToTrackInactive::<T, ()>::on_runtime_upgrade()
-	}
-}
-
-pub struct FixIncorrectPalletVersions<Runtime, Treasury, OpenTech>(
-	pub PhantomData<(Runtime, Treasury, OpenTech)>,
-);
-impl<Runtime, Treasury, OpenTech> Migration
-	for FixIncorrectPalletVersions<Runtime, Treasury, OpenTech>
-where
-	Treasury: GetStorageVersion + PalletInfoAccess,
-	OpenTech: GetStorageVersion + PalletInfoAccess,
-	Runtime: frame_system::Config,
-	Runtime: pallet_referenda::Config,
-{
-	fn friendly_name(&self) -> &str {
-		"MM_FixIncorrectPalletVersions"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		log::info!("Setting collectives pallet versions to 4");
-		StorageVersion::new(4).put::<Treasury>();
-		StorageVersion::new(4).put::<OpenTech>();
-		Runtime::DbWeight::get().writes(2)
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		ensure!(
-			<Treasury as GetStorageVersion>::on_chain_storage_version() == 0,
-			"TreasuryCouncilCollective storage version should be 0"
-		);
-		ensure!(
-			<OpenTech as GetStorageVersion>::on_chain_storage_version() == 0,
-			"OpenTechCommitteeCollective storage version should be 0"
-		);
-
-		Ok(vec![])
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		ensure!(
-			<Treasury as GetStorageVersion>::on_chain_storage_version() == 4,
-			"Treasury storage version should be 4"
-		);
-		ensure!(
-			<OpenTech as GetStorageVersion>::on_chain_storage_version() == 4,
-			"OpenTech storage version should be 4"
-		);
-		Ok(())
-	}
-}
-
 pub struct CommonMigrations<Runtime, Council, Tech, Treasury, OpenTech>(
 	PhantomData<(Runtime, Council, Tech, Treasury, OpenTech)>,
 );
@@ -364,11 +271,11 @@ where
 		//	RemoveMinBondForOrbiterCollators::<Runtime>(Default::default());
 
 		// RT2700
-		let missing_balances_migrations = MissingBalancesMigrations::<Runtime>(Default::default());
-		let fix_pallet_versions =
-			FixIncorrectPalletVersions::<Runtime, Treasury, OpenTech>(Default::default());
-		let pallet_referenda_migrate_v0_to_v1 =
-			PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
+		// let missing_balances_migrations = MissingBalancesMigrations::<Runtime>(Default::default());
+		// let fix_pallet_versions =
+		// 	FixIncorrectPalletVersions::<Runtime, Treasury, OpenTech>(Default::default());
+		// let pallet_referenda_migrate_v0_to_v1 =
+		// 	PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
 
 		vec![
 			// completed in runtime 800
@@ -414,14 +321,15 @@ where
 			//Box::new(scheduler_to_v4),
 			//Box::new(democracy_migration_hash_to_bounded_call),
 			//Box::new(preimage_migration_hash_to_bounded_call),
+			// completed in runtime 2100
 			//Box::new(asset_manager_to_xcm_v3),
 			//Box::new(xcm_transactor_to_xcm_v3),
 			// completed in runtime 2600
 			//Box::new(remove_min_bond_for_old_orbiter_collators),
-			// Runtime 2700
-			Box::new(missing_balances_migrations),
-			Box::new(fix_pallet_versions),
-			Box::new(pallet_referenda_migrate_v0_to_v1),
+			// completed in runtime 2700
+			// Box::new(missing_balances_migrations),
+			// Box::new(fix_pallet_versions),
+			// Box::new(pallet_referenda_migrate_v0_to_v1),
 		]
 	}
 }
