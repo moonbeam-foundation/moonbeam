@@ -55,6 +55,8 @@ pub mod pallet {
 		(/* biggest key on moonbeam */60) + (/* biggest value on moonbeam */1440);
 	const MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE: u64 =
 		(/* biggest key on moonbeam */60) + (/* biggest value on moonbeam */26 * 3);
+	const MAX_UNLOCK_PROOF_PER_ACCOUNT: u64 =
+		(MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE + MAX_DEMOCRACY_VOTINGOF_STORAGE_ENTRY_SIZE);
 
 	/// Pallet for multi block migrations
 	#[pallet::pallet]
@@ -207,8 +209,7 @@ pub mod pallet {
 		#[pallet::call_index(2)]
 		#[pallet::weight(
 			Weight::from_parts(0,
-				INTERMEDIATES_NODES_SIZE + (MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE + 
-					MAX_DEMOCRACY_VOTINGOF_STORAGE_ENTRY_SIZE) * <u64>::from(*limit))
+				INTERMEDIATES_NODES_SIZE + MAX_UNLOCK_PROOF_PER_ACCOUNT * <u64>::from(*limit))
 				.saturating_add(<T as frame_system::Config>::DbWeight::get()
 				.reads_writes((*limit + 1).into(), (*limit + 1).into()).saturating_mul(2))
 		)]
@@ -230,7 +231,9 @@ pub mod pallet {
 			let unlocked_accounts = VotingOf::<T>::iter()
 				.drain()
 				.take(limit as usize)
-				.map(|(account, _)| <T as pallet_democracy::Config>::Currency::remove_lock(DEMOCRACY_ID, &account))
+				.map(|(account, _)| {
+					<T as pallet_democracy::Config>::Currency::remove_lock(DEMOCRACY_ID, &account)
+				})
 				.count() as u32;
 
 			if unlocked_accounts < limit {
