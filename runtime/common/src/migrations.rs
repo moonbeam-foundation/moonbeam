@@ -474,9 +474,11 @@ where
 			// completed in runtime 2600
 			//Box::new(remove_min_bond_for_old_orbiter_collators),
 			// Runtime 2700
-			Box::new(missing_balances_migrations),
-			Box::new(fix_pallet_versions),
-			Box::new(pallet_referenda_migrate_v0_to_v1),
+			// Box::new(missing_balances_migrations),
+			// Box::new(fix_pallet_versions),
+			// Box::new(pallet_referenda_migrate_v0_to_v1),
+			// completed in runtime 2800
+			Box::new(pallet_collective_drop_gov_v1_collectives),
 		]
 	}
 }
