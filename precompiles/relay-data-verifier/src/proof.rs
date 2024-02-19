@@ -55,9 +55,7 @@ impl StorageProofChecker {
 		Ok(Self { trie_backend })
 	}
 
-	/// Returns the value of the storage given the key, if the proof is valid. If the value
-	/// specified by the key according to the proof is empty, the `fallback` value will be returned.
-	///
+	/// Returns the value of the storage given the key, if the proof is valid.
 	/// Returns `Err` if the proof is invalid, or if the value specified by the key according to the
 	/// proof is not present.
 	pub fn read_entry(&self, key: &[u8]) -> Result<Vec<u8>, ProofError> {
