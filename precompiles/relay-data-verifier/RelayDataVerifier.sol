@@ -22,22 +22,29 @@ RelayDataVerifier constant RELAY_DATA_VERIFIER_CONTRACT = RelayDataVerifier(
 ///    is the relay block hash obtained in step 2 to get the storage proof for the keys.
 /// 4. Moonbeam RPC Call: Submit an ethereum transaction (direclty or through a SC) to call the
 ///    `verifyEntry` or `verifyEntries` function to verify the data against the latest relay block
-///    number. The call data contain the relay block number obtained in step 1, and the storage
-///    proof generated in step 3.
+///    number. The call data contain the relay block number obtained in step 1, and the read
+///    proof generated in step 3, along with the key/s to verify.
 /// @custom:address 0x0000000000000000000000000000000000000819
 interface RelayDataVerifier {
+    /// @dev ReadProof struct returned by the `state_getReadProof` RPC method.
+    struct ReadProof {
+        bytes32 at;
+        /// The storage proof
+        bytes[] proof;
+    }
+
     /// @dev Verifies a storage entry in the Relay Chain using a relay block number and a storage
     /// proof. This function takes a relay block number, a storage proof, and the key of the storage
     /// entry to verify. It returns the value associated with the key if the verification is
     /// successful.
-    /// @custom:selector f525a56c
+    /// @custom:selector 27001faa
     /// @param relayBlockNumber The relay block number against which the entry is being verified.
-    /// @param storageProof The storage proof used to verify the entry.
+    /// @param readProof The storage proof used to verify the entry.
     /// @param key The key of the storage entry to verify.
     /// @return value The value associated with the key, returned as a bytes array.
     function verifyEntry(
         uint32 relayBlockNumber,
-        bytes calldata storageProof,
+        ReadProof calldata readProof,
         bytes calldata key
     ) external returns (bytes memory value);
 
@@ -45,14 +52,14 @@ interface RelayDataVerifier {
     /// This function takes a relay block number, a storage proof, and an array of keys for the
     /// storage entries to verify. It returns an array of values associated with the keys, in the
     /// same order as the keys.
-    /// @custom:selector d667a31e
+    /// @custom:selector 2da33a45
     /// @param relayBlockNumber The relay block number for which the data is being verified.
-    /// @param storageProof The storage proof used to verify the data.
+    /// @param readProof The storage proof used to verify the data.
     /// @param keys The keys of the storage entries to verify.
     /// @return values The values associated with the keys, returned in the same order as the keys.
     function verifyEntries(
         uint32 relayBlockNumber,
-        bytes calldata storageProof,
+        ReadProof calldata readProof,
         bytes[] calldata keys
     ) external returns (bytes[] memory values);
 

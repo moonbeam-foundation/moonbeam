@@ -23,8 +23,7 @@ use cumulus_primitives_core::relay_chain::BlockNumber as RelayBlockNumber;
 use frame_support::pallet;
 pub use pallet::*;
 use pallet_evm_precompile_relay_verifier::{
-	proof::{ReadProof, StorageProofChecker},
-	GetCallDataLimit, GetKeyLengthLimit,
+	proof::StorageProofChecker, GetKeyLengthLimit, ReadProof,
 };
 use sp_core::H256;
 
@@ -53,16 +52,11 @@ pub mod pallet {
 		pub fn verify_relay_entry(
 			relay_block_number: RelayBlockNumber,
 			key: BoundedVec<u8, GetKeyLengthLimit>,
-			proof: BoundedVec<u8, GetCallDataLimit>,
+			proof: ReadProof,
 		) -> Result<Vec<u8>, Error<T>> {
 			let storage_root = Self::get_storage_root(relay_block_number)?;
 
-			// Decode the proof of type `ReadProof` (The proof is expected to be
-			// a SCALE encoded `ReadProof` that is returned by the `state_getProof` RPC call).
-			let proof =
-				ReadProof::decode(&mut proof.as_slice()).map_err(|_| Error::<T>::BenchmarkError)?;
-
-			let proof_checker = StorageProofChecker::new(storage_root, proof.proof)
+			let proof_checker = StorageProofChecker::new(storage_root, proof.to_raw_proof())
 				.map_err(|_| Error::<T>::BenchmarkError)?;
 
 			let value: Vec<u8> = proof_checker
@@ -75,14 +69,11 @@ pub mod pallet {
 		pub fn verify_relay_entries(
 			relay_block_number: RelayBlockNumber,
 			keys: Vec<Vec<u8>>,
-			proof: Vec<u8>,
+			proof: ReadProof,
 		) -> Result<Vec<Vec<u8>>, Error<T>> {
 			let storage_root = Self::get_storage_root(relay_block_number)?;
 
-			let proof =
-				ReadProof::decode(&mut proof.as_slice()).map_err(|_| Error::<T>::BenchmarkError)?;
-
-			let proof_checker = StorageProofChecker::new(storage_root, proof.proof)
+			let proof_checker = StorageProofChecker::new(storage_root, proof.to_raw_proof())
 				.map_err(|_| Error::<T>::BenchmarkError)?;
 
 			let mut values = Vec::new();

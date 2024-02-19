@@ -16,19 +16,10 @@
 
 use cumulus_primitives_core::relay_chain;
 use frame_support::sp_runtime::traits::HashingFor;
-use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 use sp_state_machine::{Backend, TrieBackend, TrieBackendBuilder};
 use sp_std::vec::Vec;
 use sp_trie::{HashDBT, MemoryDB, StorageProof, EMPTY_PREFIX};
-
-#[derive(Encode, Decode, Debug, PartialEq)]
-pub struct ReadProof {
-	// Block Hash used to generate the proof
-	pub at: H256,
-	// A storage proof
-	pub proof: Vec<Vec<u8>>,
-}
 
 #[derive(Debug, PartialEq)]
 pub enum ProofError {
@@ -81,12 +72,13 @@ impl StorageProofChecker {
 mod tests {
 	use super::*;
 	use crate::mock::{
-		hex_to_bytes, mock_raw_read_proof, STORAGE_ROOT_HEX, TIMESTAMP_KEY_HEX,
-		TOTAL_ISSUANCE_KEY_HEX, TREASURY_APPROVAL_KEY_HEX,
+		hex_to_bytes, mock_raw_proof, STORAGE_ROOT_HEX, TIMESTAMP_KEY_HEX, TOTAL_ISSUANCE_KEY_HEX,
+		TREASURY_APPROVAL_KEY_HEX,
 	};
+	use parity_scale_codec::Decode;
 
-	fn construct_proof() -> ReadProof {
-		// Construct a ReadProof from a real example obtained from the relay chain using the
+	fn construct_proof() -> Vec<Vec<u8>> {
+		// Mock a storage proof obtained from the relay chain using the
 		// state_getReadProof RPC call, for the following keys:
 		// TimeStamp:
 		// 0xf0c365c3cf59d671eb72da0e7a4113c49f1f0515f462cdcf84e0f1d6045dfcbb
@@ -96,8 +88,7 @@ mod tests {
 		// 0x89d139e01a5eb2256f222e5fc5dbe6b33c9c1284130706f5aea0c8b3d4c54d89
 		// at Block Hash:
 		// 0x1272470f226fc0e955838262e8dd17a7d7bad6563739cc53a3b1744ddf0ea872
-
-		ReadProof::decode(&mut mock_raw_read_proof().as_slice()).unwrap()
+		mock_raw_proof()
 	}
 
 	#[test]
@@ -105,7 +96,7 @@ mod tests {
 		let proof = construct_proof();
 		let storage_root = H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX));
 
-		assert!(StorageProofChecker::new(storage_root, proof.proof).is_ok());
+		assert!(StorageProofChecker::new(storage_root, proof).is_ok());
 	}
 
 	#[test]
@@ -117,7 +108,7 @@ mod tests {
 		));
 
 		assert_eq!(
-			StorageProofChecker::new(storage_root, proof.proof).unwrap_err(),
+			StorageProofChecker::new(storage_root, proof).unwrap_err(),
 			ProofError::RootMismatch
 		);
 	}
@@ -126,7 +117,7 @@ mod tests {
 	fn test_storage_proof_read_entries() {
 		let proof = construct_proof();
 		let storage_root = H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX));
-		let proof_checker = StorageProofChecker::new(storage_root, proof.proof).unwrap();
+		let proof_checker = StorageProofChecker::new(storage_root, proof).unwrap();
 
 		let key1 = hex_to_bytes(TIMESTAMP_KEY_HEX);
 		let key2 = hex_to_bytes(TOTAL_ISSUANCE_KEY_HEX);
@@ -161,7 +152,7 @@ mod tests {
 		let proof = construct_proof();
 		let storage_root = H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX));
 
-		let proof_checker = StorageProofChecker::new(storage_root, proof.proof).unwrap();
+		let proof_checker = StorageProofChecker::new(storage_root, proof).unwrap();
 
 		// A key that is not present in the proof
 		let key = hex_to_bytes("89d139e01a5eb2256f222e5fc5dbe6b33c9c1284130706f5aea0c8b3d4c54d2c");

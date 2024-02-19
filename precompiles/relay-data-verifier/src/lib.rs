@@ -22,7 +22,6 @@ use core::marker::PhantomData;
 use cumulus_primitives_core::relay_chain::BlockNumber as RelayBlockNumber;
 use fp_evm::{PrecompileFailure, PrecompileHandle};
 use frame_support::{ensure, traits::ConstU32};
-use parity_scale_codec::Decode;
 use precompile_utils::prelude::*;
 use sp_core::H256;
 use sp_std::vec::Vec;
@@ -34,7 +33,7 @@ mod tests;
 
 pub mod proof;
 mod weights;
-use proof::{ProofError, ReadProof, StorageProofChecker};
+use proof::{ProofError, StorageProofChecker};
 use weights::{SubstrateWeight, WeightInfo};
 
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
@@ -45,7 +44,6 @@ pub type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 pub type GetKeyLengthLimit = ConstU32<KEY_LENGTH_LIMIT>;
 pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 
-type RawStorageProof = BoundedBytes<GetCallDataLimit>;
 type RawKey = BoundedBytes<GetKeyLengthLimit>;
 
 /// Relay Data Verifier precompile.
@@ -58,23 +56,16 @@ where
 {
 	/// Verify the storage entry using the provided relay block number and proof. Return the value
 	/// of the storage entry if the proof is valid and the entry exists.
-	#[precompile::public("verifyEntry(uint32,bytes,bytes)")]
-	#[precompile::public("verify_entry(uint32,bytes,bytes)")]
+	#[precompile::public("verifyEntry(uint32,(bytes32,bytes[]),bytes)")]
+	#[precompile::public("verify_entry(uint32,(bytes32,bytes[]),bytes)")]
 	fn verify_entry(
 		_handle: &mut impl PrecompileHandle,
 		relay_block_number: RelayBlockNumber,
-		proof: RawStorageProof,
+		proof: ReadProof,
 		key: RawKey,
 	) -> EvmResult<UnboundedBytes> {
 		let storage_root = Self::get_storage_root(relay_block_number)?;
-
-		// Decode the proof of type `ReadProof` (The proof is expected to be
-		// a SCALE encoded `ReadProof` that is returned by the `state_getProof` RPC call).
-		let proof = ReadProof::decode(&mut proof.as_bytes()).map_err(|_| {
-			revert("Failed to decode the proof. The proof is invalid or corrupted.")
-		})?;
-
-		let proof_checker = StorageProofChecker::new(storage_root, proof.proof)?;
+		let proof_checker = StorageProofChecker::new(storage_root, proof.to_raw_proof())?;
 
 		let value = proof_checker.read_entry(key.as_bytes())?;
 
@@ -84,24 +75,19 @@ where
 	/// Verify the storage entries using the provided relay block number and proof. Return the
 	/// values of the storage entries in the same order of keys, if the proof is valid and the
 	/// entries exist.
-	#[precompile::public("verifyEntries(uint32,bytes,bytes[])")]
-	#[precompile::public("verify_entries(uint32,bytes,bytes[])")]
+	#[precompile::public("verifyEntries(uint32,(bytes32,bytes[]),bytes[])")]
+	#[precompile::public("verify_entries(uint32,(bytes32,bytes[]),bytes[])")]
 	fn verify_entries(
 		_handle: &mut impl PrecompileHandle,
 		relay_block_number: RelayBlockNumber,
-		proof: RawStorageProof,
+		proof: ReadProof,
 		keys: BoundedVec<RawKey, GetArrayLimit>,
 	) -> EvmResult<BoundedVec<UnboundedBytes, GetArrayLimit>> {
 		let keys = Vec::from(keys);
 		ensure!(!keys.is_empty(), revert("Keys must not be empty"));
 
 		let storage_root = Self::get_storage_root(relay_block_number)?;
-
-		let proof = ReadProof::decode(&mut proof.as_bytes()).map_err(|_| {
-			revert("Failed to decode the proof. The proof is invalid or corrupted.")
-		})?;
-
-		let proof_checker = StorageProofChecker::new(storage_root, proof.proof)?;
+		let proof_checker = StorageProofChecker::new(storage_root, proof.to_raw_proof())?;
 
 		let mut values = Vec::new();
 		for key in keys {
@@ -145,5 +131,22 @@ impl From<ProofError> for PrecompileFailure {
 			ProofError::Proof => revert("Invalid Proof"),
 			ProofError::Absent => revert("The entry is not present"),
 		}
+	}
+}
+
+#[derive(Clone, Debug, solidity::Codec)]
+pub struct ReadProof {
+	// Block Hash used to generate the proof
+	pub at: H256,
+	// A storage proof
+	pub proof: BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
+}
+
+impl ReadProof {
+	pub fn to_raw_proof(self) -> Vec<Vec<u8>> {
+		Vec::from(self.proof)
+			.iter()
+			.map(|x| x.as_bytes().to_vec())
+			.collect()
 	}
 }

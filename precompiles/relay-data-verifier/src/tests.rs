@@ -36,8 +36,8 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 
 #[test]
 fn selectors() {
-	assert!(PCall::verify_entry_selectors().contains(&0xf525a56c));
-	assert!(PCall::verify_entries_selectors().contains(&0xd667a31e));
+	assert!(PCall::verify_entry_selectors().contains(&0x27001faa));
+	assert!(PCall::verify_entries_selectors().contains(&0x2da33a45));
 	assert!(PCall::latest_relay_block_selectors().contains(&0xaed36869));
 }
 
@@ -118,7 +118,7 @@ fn test_block_not_found() {
 					Precompile1,
 					PCall::verify_entry {
 						relay_block_number: 4,
-						proof: BoundedBytes::from(mock_raw_read_proof()),
+						proof: mocked_read_proof(),
 						key: BoundedBytes::from(vec![0u8; 32]),
 					},
 				)
@@ -135,7 +135,7 @@ fn test_block_not_found() {
 					Precompile1,
 					PCall::verify_entries {
 						relay_block_number: 4,
-						proof: BoundedBytes::from(mock_raw_read_proof()),
+						proof: mocked_read_proof(),
 						keys: BoundedVec::from(vec![BoundedBytes::from(vec![0u8; 32])]),
 					},
 				)
@@ -168,7 +168,7 @@ fn test_root_mismatch() {
 					Precompile1,
 					PCall::verify_entry {
 						relay_block_number,
-						proof: BoundedBytes::from(mock_raw_read_proof()),
+						proof: mocked_read_proof(),
 						key: BoundedBytes::from(vec![0u8; 32]),
 					},
 				)
@@ -182,58 +182,13 @@ fn test_root_mismatch() {
 					Precompile1,
 					PCall::verify_entries {
 						relay_block_number,
-						proof: BoundedBytes::from(mock_raw_read_proof()),
+						proof: mocked_read_proof(),
 						keys: BoundedVec::from(vec![BoundedBytes::from(vec![0u8; 32])]),
 					},
 				)
 				.expect_cost(0)
 				.expect_no_logs()
 				.execute_reverts(|output| output == b"Root Mismatch");
-		});
-}
-
-// Test that verify_entry and verify_entries functions fail when the proof is invalid
-#[test]
-fn test_invalid_proof() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice.into(), 1000)])
-		.build()
-		.execute_with(|| {
-			fill_relay_storage_roots::<Runtime>();
-			let relay_block_number = 250;
-			set_current_relay_chain_state(relay_block_number, H256::default());
-
-			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile1,
-					PCall::verify_entry {
-						relay_block_number,
-						proof: BoundedBytes::from(vec![0u8; 32]),
-						key: BoundedBytes::from(vec![0u8; 32]),
-					},
-				)
-				.expect_cost(0)
-				.expect_no_logs()
-				.execute_reverts(|output| {
-					output == b"Failed to decode the proof. The proof is invalid or corrupted."
-				});
-
-			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile1,
-					PCall::verify_entries {
-						relay_block_number,
-						proof: BoundedBytes::from(vec![0u8; 32]),
-						keys: BoundedVec::from(vec![BoundedBytes::from(vec![0u8; 32])]),
-					},
-				)
-				.expect_cost(0)
-				.expect_no_logs()
-				.execute_reverts(|output| {
-					output == b"Failed to decode the proof. The proof is invalid or corrupted."
-				});
 		});
 }
 
@@ -257,7 +212,7 @@ fn test_entry_not_found() {
 					Precompile1,
 					PCall::verify_entry {
 						relay_block_number,
-						proof: BoundedBytes::from(mock_raw_read_proof()),
+						proof: mocked_read_proof(),
 						key: BoundedBytes::from(hex_to_bytes(
 							"89d139e01a5eb2256f222e5fc5dbe6b33c9c1284130706f5aea0c8b3d4c54d2c",
 						)),
@@ -273,7 +228,7 @@ fn test_entry_not_found() {
 					Precompile1,
 					PCall::verify_entries {
 						relay_block_number,
-						proof: BoundedBytes::from(mock_raw_read_proof()),
+						proof: mocked_read_proof(),
 						keys: BoundedVec::from(vec![
 							// BoundedBytes::from(hex_to_bytes(TIMESTAMP_KEY_HEX)),
 							BoundedBytes::from(hex_to_bytes(TOTAL_ISSUANCE_KEY_HEX)),
@@ -311,7 +266,7 @@ fn test_verify_entry() {
 					Precompile1,
 					PCall::verify_entry {
 						relay_block_number,
-						proof: BoundedBytes::from(mock_raw_read_proof()),
+						proof: mocked_read_proof(),
 						key: BoundedBytes::from(hex_to_bytes(TIMESTAMP_KEY_HEX)),
 					},
 				)
@@ -341,7 +296,7 @@ fn test_verify_entries_empty_keys() {
 					Precompile1,
 					PCall::verify_entries {
 						relay_block_number,
-						proof: BoundedBytes::from(mock_raw_read_proof()),
+						proof: mocked_read_proof(),
 						keys: BoundedVec::from(vec![]),
 					},
 				)
@@ -371,7 +326,7 @@ fn test_verify_entries() {
 					Precompile1,
 					PCall::verify_entries {
 						relay_block_number,
-						proof: BoundedBytes::from(mock_raw_read_proof()),
+						proof: mocked_read_proof(),
 						keys: BoundedVec::from(vec![
 							BoundedBytes::from(hex_to_bytes(TIMESTAMP_KEY_HEX)),
 							BoundedBytes::from(hex_to_bytes(TOTAL_ISSUANCE_KEY_HEX)),
