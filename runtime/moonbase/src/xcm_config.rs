@@ -65,7 +65,7 @@ use sp_std::{
 
 use orml_traits::parameter_type_with_key;
 
-use crate::governance::referenda::GeneralAdminOrRoot;
+use crate::governance::referenda::FastGeneralAdminOrRoot;
 
 parameter_types! {
 	// The network Id of the relay
@@ -600,7 +600,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = moonbeam_weights::pallet_xcm_transactor::WeightInfo<Runtime>;
-	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
+	type HrmpManipulatorOrigin = FastGeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
 }
 
