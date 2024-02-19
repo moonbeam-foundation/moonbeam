@@ -29,6 +29,9 @@ describeSuite({
       id: "T01",
       title: "should succeed",
       test: async () => {
+        // Create an extra block to prevent mismatches while comparing 'whenExecutable' field.
+        await context.createBlock();
+
         const currentRound = (
           await context.polkadotJs().query.parachainStaking.round()
         ).current.toNumber();

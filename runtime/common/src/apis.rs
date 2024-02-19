@@ -503,7 +503,11 @@ macro_rules! impl_runtime_apis_plus_common {
 					slot: u32,
 					parent_header: &<Block as BlockT>::Header
 				) -> bool {
+					use pallet_parachain_staking::Config as PalletParachainStakingConfig;
+
 					let block_number = parent_header.number + 1;
+					let parachain_staking_slot: u64 =
+						<Runtime as PalletParachainStakingConfig>::SlotProvider::get().into();
 
 					// The Moonbeam runtimes use an entropy source that needs to do some accounting
 					// work during block initialization. Therefore we initialize it here to match
@@ -518,7 +522,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					// Because the staking solution calculates the next staking set at the beginning
 					// of the first block in the new round, the only way to accurately predict the
 					// authors is to compute the selection during prediction.
-					if pallet_parachain_staking::Pallet::<Self>::round().should_update(block_number) {
+					if pallet_parachain_staking::Pallet::<Self>::round()
+						.should_update(parachain_staking_slot) {
 						// get author account id
 						use nimbus_primitives::AccountLookup;
 						let author_account_id = if let Some(account) =
