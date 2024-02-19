@@ -26,7 +26,7 @@ use frame_support::migration::get_storage_value;
 use frame_support::{
 	pallet_prelude::GetStorageVersion,
 	sp_runtime::traits::{Block as BlockT, Header as HeaderT},
-	traits::{OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
+	traits::PalletInfoAccess,
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -37,7 +37,6 @@ use parity_scale_codec::{Decode, Encode};
 use sp_consensus_slots::Slot;
 use sp_core::Get;
 use sp_std::{marker::PhantomData, prelude::*};
-
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode)]
 pub struct OldRoundInfo<BlockNumber> {
@@ -178,7 +177,6 @@ where
 		Ok(())
 	}
 }
-
 
 pub struct CommonMigrations<Runtime, Council, Tech, Treasury, OpenTech>(
 	PhantomData<(Runtime, Council, Tech, Treasury, OpenTech)>,
