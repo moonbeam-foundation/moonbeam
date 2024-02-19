@@ -157,9 +157,10 @@ fn test_root_mismatch() {
 		.execute_with(|| {
 			fill_relay_storage_roots::<Runtime>();
 			let relay_block_number = 250;
-			let state_root = H256::from_slice(&hex_to_bytes(
-				"767caa877bcea0d34dd515a202b75efa41bffbc9f814ab59e2c1c96716d4c65e",
-			));
+			let state_root = H256::from_slice(
+				&hex::decode("767caa877bcea0d34dd515a202b75efa41bffbc9f814ab59e2c1c96716d4c65e")
+					.unwrap(),
+			);
 			set_current_relay_chain_state(relay_block_number, state_root);
 
 			precompiles()
@@ -201,10 +202,7 @@ fn test_entry_not_found() {
 		.execute_with(|| {
 			fill_relay_storage_roots::<Runtime>();
 			let relay_block_number = 250;
-			set_current_relay_chain_state(
-				relay_block_number,
-				H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX)),
-			);
+			set_current_relay_chain_state(relay_block_number, H256::from_slice(STORAGE_ROOT));
 
 			precompiles()
 				.prepare_test(
@@ -213,9 +211,12 @@ fn test_entry_not_found() {
 					PCall::verify_entry {
 						relay_block_number,
 						proof: mocked_read_proof(),
-						key: BoundedBytes::from(hex_to_bytes(
-							"89d139e01a5eb2256f222e5fc5dbe6b33c9c1284130706f5aea0c8b3d4c54d2c",
-						)),
+						key: BoundedBytes::from(
+							hex::decode(
+								"89d139e01a5eb2256f222e5fc5dbe6b33c9c1284130706f5aea0c8b3d4c54d2c",
+							)
+							.unwrap(),
+						),
 					},
 				)
 				.expect_cost(0)
@@ -230,13 +231,13 @@ fn test_entry_not_found() {
 						relay_block_number,
 						proof: mocked_read_proof(),
 						keys: BoundedVec::from(vec![
-							// BoundedBytes::from(hex_to_bytes(TIMESTAMP_KEY_HEX)),
-							BoundedBytes::from(hex_to_bytes(TOTAL_ISSUANCE_KEY_HEX)),
-							BoundedBytes::from(hex_to_bytes(TREASURY_APPROVAL_KEY_HEX)),
+							BoundedBytes::from(TIMESTAMP_KEY),
+							BoundedBytes::from(TOTAL_ISSUANCE_KEY),
+							BoundedBytes::from(TREASURY_APPROVALS_KEY),
 							// This key is not present in the proof
-							BoundedBytes::from(hex_to_bytes(
+							BoundedBytes::from(hex::decode(
 								"89d139e01a5eb2256f222e5fc5dbe6b33c9c1284130706f5aea0c8b3d4c54d89ec",
-							)),
+							).unwrap()),
 						]),
 					},
 				)
@@ -255,10 +256,7 @@ fn test_verify_entry() {
 		.execute_with(|| {
 			fill_relay_storage_roots::<Runtime>();
 			let relay_block_number = 250;
-			set_current_relay_chain_state(
-				relay_block_number,
-				H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX)),
-			);
+			set_current_relay_chain_state(relay_block_number, H256::from_slice(STORAGE_ROOT));
 
 			precompiles()
 				.prepare_test(
@@ -267,7 +265,7 @@ fn test_verify_entry() {
 					PCall::verify_entry {
 						relay_block_number,
 						proof: mocked_read_proof(),
-						key: BoundedBytes::from(hex_to_bytes(TIMESTAMP_KEY_HEX)),
+						key: BoundedBytes::from(TIMESTAMP_KEY),
 					},
 				)
 				.expect_cost(0)
@@ -285,10 +283,7 @@ fn test_verify_entries_empty_keys() {
 		.execute_with(|| {
 			fill_relay_storage_roots::<Runtime>();
 			let relay_block_number = 250;
-			set_current_relay_chain_state(
-				relay_block_number,
-				H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX)),
-			);
+			set_current_relay_chain_state(relay_block_number, H256::from_slice(STORAGE_ROOT));
 
 			precompiles()
 				.prepare_test(
@@ -315,10 +310,7 @@ fn test_verify_entries() {
 		.execute_with(|| {
 			fill_relay_storage_roots::<Runtime>();
 			let relay_block_number = 250;
-			set_current_relay_chain_state(
-				relay_block_number,
-				H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX)),
-			);
+			set_current_relay_chain_state(relay_block_number, H256::from_slice(STORAGE_ROOT));
 
 			precompiles()
 				.prepare_test(
@@ -328,9 +320,9 @@ fn test_verify_entries() {
 						relay_block_number,
 						proof: mocked_read_proof(),
 						keys: BoundedVec::from(vec![
-							BoundedBytes::from(hex_to_bytes(TIMESTAMP_KEY_HEX)),
-							BoundedBytes::from(hex_to_bytes(TOTAL_ISSUANCE_KEY_HEX)),
-							BoundedBytes::from(hex_to_bytes(TREASURY_APPROVAL_KEY_HEX)),
+							BoundedBytes::from(TIMESTAMP_KEY),
+							BoundedBytes::from(TOTAL_ISSUANCE_KEY),
+							BoundedBytes::from(TREASURY_APPROVALS_KEY),
 						]),
 					},
 				)

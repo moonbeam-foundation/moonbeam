@@ -70,40 +70,32 @@ impl StorageProofChecker {
 mod tests {
 	use super::*;
 	use crate::mock::{
-		hex_to_bytes, mock_raw_proof, STORAGE_ROOT_HEX, TIMESTAMP_KEY_HEX, TOTAL_ISSUANCE_KEY_HEX,
-		TREASURY_APPROVAL_KEY_HEX,
+		mock_raw_proof, STORAGE_ROOT, TIMESTAMP_KEY, TOTAL_ISSUANCE_KEY, TREASURY_APPROVALS_KEY,
 	};
-	use parity_scale_codec::Decode;
+	use frame_support::assert_ok;
+	use parity_scale_codec::Encode;
 
 	fn construct_proof() -> Vec<Vec<u8>> {
-		// Mock a storage proof obtained from the relay chain using the
-		// state_getReadProof RPC call, for the following keys:
-		// TimeStamp:
-		// 0xf0c365c3cf59d671eb72da0e7a4113c49f1f0515f462cdcf84e0f1d6045dfcbb
-		// Balances (Total Issuance):
-		// 0xc2261276cc9d1f8598ea4b6a74b15c2f57c875e4cff74148e4628f264b974c80
-		// Treasury Approvals
-		// 0x89d139e01a5eb2256f222e5fc5dbe6b33c9c1284130706f5aea0c8b3d4c54d89
-		// at Block Hash:
-		// 0x1272470f226fc0e955838262e8dd17a7d7bad6563739cc53a3b1744ddf0ea872
 		mock_raw_proof()
 	}
 
 	#[test]
 	fn test_storage_proof_checker_valid() {
 		let proof = construct_proof();
-		let storage_root = H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX));
+		let storage_root = H256::from_slice(STORAGE_ROOT);
 
-		assert!(StorageProofChecker::new(storage_root, proof).is_ok());
+		assert_ok!(StorageProofChecker::new(storage_root, proof));
 	}
 
 	#[test]
-	fn test_storage_proof_checker_root_mismsatch() {
+	fn test_storage_proof_checker_root_mismatch() {
 		let proof = construct_proof();
 		// A different storage root
-		let storage_root = H256::from_slice(&hex_to_bytes(
-			"767caa877bcea0d34dd515a202b75efa41bffbc9f814ab59e2c1c96716d4c65e",
-		));
+		let storage_root = H256::from_slice(
+			hex::decode("767caa877bcea0d34dd515a202b75efa41bffbc9f814ab59e2c1c96716d4c65e")
+				.unwrap()
+				.as_slice(),
+		);
 
 		assert_eq!(
 			StorageProofChecker::new(storage_root, proof).unwrap_err(),
@@ -114,33 +106,29 @@ mod tests {
 	#[test]
 	fn test_storage_proof_read_entries() {
 		let proof = construct_proof();
-		let storage_root = H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX));
+		let storage_root = H256::from_slice(STORAGE_ROOT);
 		let proof_checker = StorageProofChecker::new(storage_root, proof).unwrap();
 
-		let key1 = hex_to_bytes(TIMESTAMP_KEY_HEX);
-		let key2 = hex_to_bytes(TOTAL_ISSUANCE_KEY_HEX);
-		let key3 = hex_to_bytes(TREASURY_APPROVAL_KEY_HEX);
-
-		let timestamp: u64 =
-			u64::decode(&mut &proof_checker.read_entry(&key1).unwrap()[..]).unwrap();
-		let total_issuance: u128 =
-			u128::decode(&mut &proof_checker.read_entry(&key2).unwrap()[..]).unwrap();
-		let approvals: Vec<u32> =
-			Vec::<u32>::decode(&mut &proof_checker.read_entry(&key3).unwrap()[..]).unwrap();
+		let timestamp = proof_checker.read_entry(TIMESTAMP_KEY).unwrap();
+		let total_issuance = proof_checker.read_entry(TOTAL_ISSUANCE_KEY).unwrap();
+		let approvals = proof_checker.read_entry(TREASURY_APPROVALS_KEY).unwrap();
 
 		assert_eq!(
-			timestamp, 1_708_190_328_000,
+			timestamp,
+			1_708_190_328_000u64.encode(),
 			"Timestamp does not match the expected value"
 		);
 		assert_eq!(
-			total_issuance, 14_123_366_426_803_276_130,
+			total_issuance,
+			14_123_366_426_803_276_130u128.encode(),
 			"Total issuance does not match the expected value"
 		);
 		assert_eq!(
 			approvals,
 			vec![
 				607, 608, 609, 610, 611, 612, 613, 614, 615, 616, 617, 618, 619, 620, 621, 622, 623
-			],
+			]
+			.encode(),
 			"Value 3 does not match the expected value"
 		);
 	}
@@ -148,12 +136,13 @@ mod tests {
 	#[test]
 	fn test_storage_proof_checker_absent() {
 		let proof = construct_proof();
-		let storage_root = H256::from_slice(&hex_to_bytes(STORAGE_ROOT_HEX));
+		let storage_root = H256::from_slice(STORAGE_ROOT);
 
 		let proof_checker = StorageProofChecker::new(storage_root, proof).unwrap();
 
 		// A key that is not present in the proof
-		let key = hex_to_bytes("89d139e01a5eb2256f222e5fc5dbe6b33c9c1284130706f5aea0c8b3d4c54d2c");
+		let key = hex::decode("89d139e01a5eb2256f222e5fc5dbe6b33c9c1284130706f5aea0c8b3d4c54d2c")
+			.unwrap();
 		let value = proof_checker.read_entry(&key);
 		assert_eq!(value.err(), Some(ProofError::Absent));
 	}

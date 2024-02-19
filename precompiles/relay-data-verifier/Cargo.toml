@@ -1,7 +1,7 @@
 [package]
 name = "pallet-evm-precompile-relay-verifier"
 authors = { workspace = true }
-description = "A Precompile to make pallet-relay-proof-verifier calls accessible to pallet-evm"
+description = "A Precompile to verify relay Data"
 edition = "2021"
 version = "0.1.0"
 

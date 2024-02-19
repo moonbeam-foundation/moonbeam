@@ -44,7 +44,7 @@ pub type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 pub type GetKeyLengthLimit = ConstU32<KEY_LENGTH_LIMIT>;
 pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 
-type RawKey = BoundedBytes<GetKeyLengthLimit>;
+pub type RawKey = BoundedBytes<GetKeyLengthLimit>;
 
 /// Relay Data Verifier precompile.
 pub struct RelayDataVerifierPrecompile<Runtime>(PhantomData<Runtime>);
@@ -64,12 +64,7 @@ where
 		proof: ReadProof,
 		key: RawKey,
 	) -> EvmResult<UnboundedBytes> {
-		let storage_root = Self::get_storage_root(relay_block_number)?;
-		let proof_checker = StorageProofChecker::new(storage_root, proof.to_raw_proof())?;
-
-		let value = proof_checker.read_entry(key.as_bytes())?;
-
-		Ok(value.into())
+		Self::do_verify_entry(relay_block_number, proof, key)
 	}
 
 	/// Verify the storage entries using the provided relay block number and proof. Return the
@@ -83,19 +78,7 @@ where
 		proof: ReadProof,
 		keys: BoundedVec<RawKey, GetArrayLimit>,
 	) -> EvmResult<BoundedVec<UnboundedBytes, GetArrayLimit>> {
-		let keys = Vec::from(keys);
-		ensure!(!keys.is_empty(), revert("Keys must not be empty"));
-
-		let storage_root = Self::get_storage_root(relay_block_number)?;
-		let proof_checker = StorageProofChecker::new(storage_root, proof.to_raw_proof())?;
-
-		let mut values = Vec::new();
-		for key in keys {
-			let value: Vec<u8> = proof_checker.read_entry(key.as_bytes())?;
-			values.push(value.into());
-		}
-
-		Ok(values.into())
+		Self::do_verify_entries(relay_block_number, proof, keys)
 	}
 
 	#[precompile::public("latestRelayBlockNumber()")]
@@ -121,6 +104,39 @@ where
 				))?;
 
 		Ok(storage_root)
+	}
+
+	pub fn do_verify_entry(
+		relay_block_number: RelayBlockNumber,
+		proof: ReadProof,
+		key: RawKey,
+	) -> EvmResult<UnboundedBytes> {
+		let storage_root = Self::get_storage_root(relay_block_number)?;
+		let proof_checker = StorageProofChecker::new(storage_root, proof.to_raw_proof())?;
+
+		let value = proof_checker.read_entry(key.as_bytes())?;
+
+		Ok(value.into())
+	}
+
+	pub fn do_verify_entries(
+		relay_block_number: RelayBlockNumber,
+		proof: ReadProof,
+		keys: BoundedVec<RawKey, GetArrayLimit>,
+	) -> EvmResult<BoundedVec<UnboundedBytes, GetArrayLimit>> {
+		let keys = Vec::from(keys);
+		ensure!(!keys.is_empty(), revert("Keys must not be empty"));
+
+		let storage_root = Self::get_storage_root(relay_block_number)?;
+		let proof_checker = StorageProofChecker::new(storage_root, proof.to_raw_proof())?;
+
+		let mut values = Vec::new();
+		for key in keys {
+			let value: Vec<u8> = proof_checker.read_entry(key.as_bytes())?;
+			values.push(value.into());
+		}
+
+		Ok(values.into())
 	}
 }
 
