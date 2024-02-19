@@ -721,7 +721,7 @@
 
 <span class="kw">use </span>orml_traits::parameter_type_with_key;
 
-<span class="kw">use </span><span class="kw">crate</span>::governance::referenda::GeneralAdminOrRoot;
+<span class="kw">use </span><span class="kw">crate</span>::governance::referenda::FastGeneralAdminOrRoot;
 
 <span class="macro">parameter_types! </span>{
 	<span class="comment">// The network Id of the relay
@@ -1256,7 +1256,7 @@
 	<span class="kw">type </span>AssetTransactor = AssetTransactors;
 	<span class="kw">type </span>ReserveProvider = AbsoluteAndRelativeReserve&lt;SelfLocationAbsolute&gt;;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_xcm_transactor::WeightInfo&lt;Runtime&gt;;
-	<span class="kw">type </span>HrmpManipulatorOrigin = GeneralAdminOrRoot;
+	<span class="kw">type </span>HrmpManipulatorOrigin = FastGeneralAdminOrRoot;
 	<span class="kw">type </span>MaxHrmpFee = xcm_builder::Case&lt;MaxHrmpRelayFee&gt;;
 }
 
