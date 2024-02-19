@@ -12,7 +12,7 @@ import { StorageKey } from "@polkadot/types";
 import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
-  id: "S1400",
+  id: "S15",
   title: "Verify orbiters",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

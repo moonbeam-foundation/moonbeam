@@ -5,7 +5,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 // We want to compare both to verify recent db data consistency and rpc impl across client versions.
 
 describeSuite({
-  id: "S800",
+  id: "S10",
   title: "Ethereum secondary DB should contains valid data",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

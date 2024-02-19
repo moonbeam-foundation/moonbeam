@@ -6,7 +6,7 @@ import { ethers } from "ethers";
 import fs from "node:fs";
 
 describeSuite({
-  id: "ZAN",
+  id: "Z01",
   title: "Zombie AlphaNet Upgrade Test",
   foundationMethods: "zombie",
   testCases: ({ it, context, log }) => {

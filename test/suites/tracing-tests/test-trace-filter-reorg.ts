@@ -3,7 +3,7 @@ import { describeSuite, customDevRpcRequest } from "@moonwall/cli";
 import { createEthersTransaction, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
-  id: "D3612",
+  id: "T12",
   title: "Trace filter reorg",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

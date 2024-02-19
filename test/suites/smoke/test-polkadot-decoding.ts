@@ -8,7 +8,7 @@ const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 5
 
 // TODO: This test case really spams the logs, we should find a way to make it less verbose
 describeSuite({
-  id: "S1500",
+  id: "S16",
   title: "Polkadot API - Storage items",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

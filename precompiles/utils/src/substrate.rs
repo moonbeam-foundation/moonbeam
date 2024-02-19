@@ -64,7 +64,7 @@ where
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
 	#[inline(always)]
-	pub fn reocrd_external_cost(
+	pub fn record_external_cost(
 		handle: &mut impl PrecompileHandle,
 		weight: Weight,
 		storage_growth: u64,
@@ -116,7 +116,7 @@ where
 		let call = Runtime::RuntimeCall::from(call);
 		let dispatch_info = call.get_dispatch_info();
 
-		Self::reocrd_external_cost(handle, dispatch_info.weight, storage_growth)
+		Self::record_external_cost(handle, dispatch_info.weight, storage_growth)
 			.map_err(|e| TryDispatchError::Evm(e))?;
 
 		// Dispatch call.
