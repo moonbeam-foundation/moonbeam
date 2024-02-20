@@ -13,6 +13,9 @@ describeSuite({
     let randomAccount: KeyringPair;
 
     beforeEach(async () => {
+      log(`Disabled test D010904 (Gov V1)`);
+      return;
+
       randomAccount = generateKeyringPair();
       randomAddress = randomAccount.address;
       encodedHash = await instantFastTrack(
@@ -26,6 +29,8 @@ describeSuite({
       id: "T01",
       title: "should succeed with enough votes",
       test: async function () {
+        log(`Disabled test D010904 (Gov V1)`);
+        return;
         await context.createBlock(
           context.polkadotJs().tx.democracy.vote(currentRef, {
             Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
@@ -64,6 +69,8 @@ describeSuite({
       id: "T02",
       title: "should fail with enough no votes",
       test: async function () {
+        log(`Disabled test D010904 (Gov V1)`);
+        return;
         await context.createBlock(
           context.polkadotJs().tx.democracy.vote(currentRef, {
             Standard: { balance: VOTE_AMOUNT, vote: { aye: false, conviction: 1 } },
@@ -101,6 +108,8 @@ describeSuite({
       id: "T03",
       title: "should be votable while staked",
       test: async function () {
+        log(`Disabled test D010904 (Gov V1)`);
+        return;
         encodedHash = await instantFastTrack(
           context,
           context.polkadotJs().tx.system.remark("Just a simple vote"),

@@ -10,12 +10,17 @@ import { GLMR, VOTE_AMOUNT, dorothy, ethan } from "@moonwall/util";
 
 const proposalHash = "0xf3d039875302d49d52fb1af6877a2c46bc55b004afb8130f94dd9d0489ca3185";
 
+const disableGovTest = true;
+
 describeSuite({
   id: "D012804",
   title: "Proxing governance",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeAll(async () => {
+      log(`Disabled test D012804 (Gov V1)`);
+      return;
+
       await execCouncilProposal(
         context,
         context.polkadotJs().tx.democracy.externalProposeMajority({
@@ -37,6 +42,8 @@ describeSuite({
       id: "T01",
       title: "should be able to vote on behalf of the delegate account",
       test: async function () {
+        log(`Disabled test D012804 (Gov V1)`);
+        return;
         const referendumCount = await context.polkadotJs().query.democracy.referendumCount();
         expect(referendumCount.toBigInt(), "Test expects only a single referendum").to.equal(1n);
 

@@ -21,7 +21,7 @@ describeSuite({
         const { result: rejectResult } = await context.createBlock(
           context
             .polkadotJs()
-            .tx.councilCollective.propose(
+            .tx.openTechCommitteeCollective.propose(
               2,
               context.polkadotJs().tx.treasury.rejectProposal(0),
               1_000
@@ -36,18 +36,18 @@ describeSuite({
         await context.createBlock([
           context
             .polkadotJs()
-            .tx.councilCollective.vote(councilProposalHash, 0, true)
+            .tx.openTechCommitteeCollective.vote(councilProposalHash, 0, true)
             .signAsync(charleth),
           context
             .polkadotJs()
-            .tx.councilCollective.vote(councilProposalHash, 0, true)
+            .tx.openTechCommitteeCollective.vote(councilProposalHash, 0, true)
             .signAsync(dorothy),
         ]);
 
         const { result: closeResult } = await context.createBlock(
           context
             .polkadotJs()
-            .tx.councilCollective.close(
+            .tx.openTechCommitteeCollective.close(
               councilProposalHash,
               0,
               {
@@ -57,12 +57,12 @@ describeSuite({
               1_000
             )
             .signAsync(dorothy),
-          { expectEvents: [context.polkadotJs().events.councilCollective.Closed] }
+          { expectEvents: [context.polkadotJs().events.openTechCommitteeCollective.Closed] }
         );
 
         expect(
           closeResult!.events.find((evt) =>
-            context.polkadotJs().events.councilCollective.Executed.is(evt.event)
+            context.polkadotJs().events.openTechCommitteeCollective.Executed.is(evt.event)
           ).event.data.result.asErr.isBadOrigin,
           "Proposal should be rejected due to wrong collective"
         ).toBe(true);
