@@ -63,7 +63,7 @@ describeSuite({
 
         await paraApi.tx.parachainSystem.enactAuthorizedUpgrade(rtHex).signAndSend(alith);
 
-        await context.waitBlock(5);
+        await context.waitBlock(10);
 
         const rtafter = paraApi.consts.system.version.specVersion.toNumber();
         expect(rtafter).to.be.greaterThan(rtBefore);
@@ -121,10 +121,13 @@ describeSuite({
           .signAndSend(charleth);
 
         // TODO: Remove waitBlock below when we are using polkadot 1.7.0
-        await context.waitBlock(2);
+        await context.waitBlock(6);
 
         const balAfter = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
-        expect(balBefore.lt(balAfter)).to.be.true;
+        expect(
+          balBefore.lt(balAfter),
+          `${balBefore.toHuman()} is not less than ${balAfter.toHuman()}`
+        ).to.be.true;
       },
     });
 
