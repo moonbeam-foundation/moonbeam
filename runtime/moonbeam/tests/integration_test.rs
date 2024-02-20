@@ -350,7 +350,7 @@ fn collective_set_members_general_admin_origin_works() {
 				})
 				.collect::<Vec<_>>()
 				.len(),
-			4
+			2
 		)
 	});
 }
