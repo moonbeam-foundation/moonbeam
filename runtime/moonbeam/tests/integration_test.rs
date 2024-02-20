@@ -36,10 +36,10 @@ use moonbeam_runtime::{
 	asset_config::ForeignAssetInstance,
 	currency::GLMR,
 	xcm_config::{CurrencyId, SelfReserve},
-	AccountId, Balances, CouncilCollective, CrowdloanRewards, OpenTechCommitteeCollective,
-	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
-	RuntimeEvent, System, TechCommitteeCollective, TransactionPayment, TreasuryCouncilCollective,
-	XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	AccountId, Balances, CrowdloanRewards, OpenTechCommitteeCollective, ParachainStaking,
+	PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
+	TransactionPayment, TreasuryCouncilCollective, XTokens, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
@@ -130,8 +130,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::ParachainStaking>("ParachainStaking");
 	is_pallet_prefix::<moonbeam_runtime::Scheduler>("Scheduler");
 	is_pallet_prefix::<moonbeam_runtime::Democracy>("Democracy");
-	is_pallet_prefix::<moonbeam_runtime::CouncilCollective>("CouncilCollective");
-	is_pallet_prefix::<moonbeam_runtime::TechCommitteeCollective>("TechCommitteeCollective");
 	is_pallet_prefix::<moonbeam_runtime::OpenTechCommitteeCollective>(
 		"OpenTechCommitteeCollective",
 	);
