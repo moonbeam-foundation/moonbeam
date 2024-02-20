@@ -150,16 +150,18 @@ of 1284, symbolizing the 1284 milliseconds it takes for a moonbeam to reach Eart
 
 Moonbeam nodes support a variety of public chains and testnets, each with their respective Chain Ids as follows:
 
-| Network Description                | Chain ID    |
-|------------------------------------|-------------|
-| Local Parachain TestNet            | 1280        |
-| Local Development TestNet          | 1281        |
-| Reserved for other TestNets        | 1282 - 1283 |
-| Moonbeam (Polkadot)                | 1284        |
-| Moonriver (Kusama)                 | 1285        |
-| Moonrock (Rococo)                  | 1286        |
-| Moonbase Alpha TestNet             | 1287        |
-| Reserved for other public networks | 1288 - 1289 |
+| Network Description                | Chain ID    | Target Relay Runtime |
+| ---------------------------------- | ----------- | -------------------- |
+| Local Parachain TestNet            | 1280        |                      |
+| Local Development TestNet          | 1281        |                      |
+| Reserved for other TestNets        | 1282 - 1283 |                      |
+| Moonbeam                           | 1284        | Polkadot             |
+| Moonriver                          | 1285        | Kusama               |
+| Moonrock                           | 1286        | Rococo               |
+| Moonbase Alpha TestNet             | 1287        | Westend              |
+| Reserved for other public networks | 1288 - 1289 |                      |
+
+Note that the runtimes can also be configured to target different relay networks.
 
 ## Runtime Architecture
 
