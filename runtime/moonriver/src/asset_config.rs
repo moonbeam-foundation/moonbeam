@@ -67,7 +67,7 @@ parameter_types! {
 	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
 }
 
-/// We allow root and Chain council to execute privileged asset operations.
+/// We allow Root and General Admin to execute privileged asset operations.
 pub type AssetsForceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
