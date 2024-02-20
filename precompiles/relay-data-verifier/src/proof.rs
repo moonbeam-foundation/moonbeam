@@ -129,7 +129,7 @@ mod tests {
 				607, 608, 609, 610, 611, 612, 613, 614, 615, 616, 617, 618, 619, 620, 621, 622, 623
 			]
 			.encode(),
-			"Value 3 does not match the expected value"
+			"Treasury Approvals does not match the expected value"
 		);
 	}
 
