@@ -19,8 +19,7 @@
 
 use super::{
 	currency, governance, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances,
-	CouncilInstance, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use moonbeam_runtime_common::weights as moonbeam_weights;
@@ -69,13 +68,8 @@ parameter_types! {
 }
 
 /// We allow root and Chain council to execute privileged asset operations.
-pub type AssetsForceOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
-		governance::custom_origins::GeneralAdmin,
-	>,
->;
+pub type AssetsForceOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 // Required for runtime benchmarks
 pallet_assets::runtime_benchmarks_enabled! {
@@ -191,20 +185,10 @@ pub struct AssetRegistrarMetadata {
 	pub is_frozen: bool,
 }
 
-pub type ForeignAssetModifierOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
-		governance::custom_origins::GeneralAdmin,
-	>,
->;
-pub type LocalAssetModifierOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
-		governance::custom_origins::GeneralAdmin,
-	>,
->;
+pub type ForeignAssetModifierOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+pub type LocalAssetModifierOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_asset_manager::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
