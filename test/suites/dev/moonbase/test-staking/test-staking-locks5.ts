@@ -2,13 +2,12 @@ import "@moonbeam-network/api-augment";
 import {
   beforeAll,
   describeSuite,
-  execCouncilProposal,
   execTechnicalCommitteeProposal,
   expect,
   notePreimage,
 } from "@moonwall/cli";
 import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/util";
-import { executeExtViaOpenTechCommittee, mockAssetBalance } from "../../../../helpers";
+import { executeExtViaOpenTechCommittee } from "../../../../helpers";
 
 const disableTest = true;
 

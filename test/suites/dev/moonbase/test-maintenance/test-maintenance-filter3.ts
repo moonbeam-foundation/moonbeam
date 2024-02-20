@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, beforeEach, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import { u128 } from "@polkadot/types-codec";
 import { BN } from "@polkadot/util";
 import { executeExtViaOpenTechCommittee } from "../../../../helpers";
 
