@@ -179,12 +179,8 @@ where
 }
 
 parameter_types! {
-	pub const DemocracyPalletName: &'static str = "Democracy";
 	pub const CouncilPalletName: &'static str = "Council";
 	pub const TechnicalCommitteePalletName: &'static str = "TechnicalCommittee";
-	pub const PhragmenElectionPalletName: &'static str = "PhragmenElection";
-	pub const TechnicalMembershipPalletName: &'static str = "TechnicalMembership";
-	pub const TipsPalletName: &'static str = "Tips";
 }
 
 pub struct PalletCollectiveDropGovV1Collectives<Runtime>(pub PhantomData<Runtime>);
