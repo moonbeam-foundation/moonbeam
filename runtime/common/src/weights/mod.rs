@@ -38,6 +38,7 @@ pub mod pallet_preimage;
 pub mod pallet_proxy;
 pub mod pallet_randomness;
 pub mod pallet_referenda;
+pub mod pallet_relay_storage_roots;
 pub mod pallet_scheduler;
 pub mod pallet_sudo;
 pub mod pallet_timestamp;

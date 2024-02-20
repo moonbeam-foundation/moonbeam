@@ -25,6 +25,7 @@ pallet-xcm-transactor = { workspace = true }
 precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
 pallet-moonbeam-lazy-migrations = { workspace = true }
+pallet-relay-storage-roots = { workspace = true }
 
 # Substrate
 cumulus-pallet-xcmp-queue = { workspace = true }

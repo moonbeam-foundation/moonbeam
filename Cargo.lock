@@ -7103,6 +7103,7 @@ dependencies = [
  "pallet-proxy",
  "pallet-randomness",
  "pallet-referenda",
+ "pallet-relay-storage-roots",
  "pallet-scheduler",
  "pallet-sudo",
  "pallet-timestamp",

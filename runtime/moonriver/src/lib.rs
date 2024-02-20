@@ -1426,9 +1426,7 @@ parameter_types! {
 impl pallet_relay_storage_roots::Config for Runtime {
 	type MaxStorageRoots = MaxStorageRoots;
 	type RelaychainStateProvider = cumulus_pallet_parachain_system::RelaychainDataProvider<Self>;
-	// TODOs update weights
-	//type WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
-	type WeightInfo = ();
+	type WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
 }
 
 construct_runtime! {
