@@ -63,7 +63,7 @@ describeSuite({
 
         await paraApi.tx.parachainSystem.enactAuthorizedUpgrade(rtHex).signAndSend(alith);
 
-        await context.waitBlock(2);
+        await context.waitBlock(5);
 
         const rtafter = paraApi.consts.system.version.specVersion.toNumber();
         expect(rtafter).to.be.greaterThan(rtBefore);
@@ -88,8 +88,6 @@ describeSuite({
         const balBefore = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
 
         log("Please wait, this will take at least 30s for transaction to complete");
-
-        context.waitBlock(5);
 
         // TODO: Renable the below when we are using polkadot 1.7.0
         //       There is a discrepancy with polkadotJs and 1.3.0
