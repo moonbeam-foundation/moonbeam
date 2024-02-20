@@ -82,11 +82,10 @@ export const executeExtViaOpenTechCommittee = async <
   }
 
   console.log(
-    `🏛️ OpenTechCommittee proposal submitted with proposal id: ${openTechProposalIndex} and hash: ${
-      openTechProposal.slice(
-      0,
-      6
-    )}...${openTechProposal.slice(-4)}`
+    `🏛️ OpenTechCommittee proposal submitted with proposal id: 
+    ${openTechProposalIndex} and hash: ${openTechProposal.slice(0, 6)}...${openTechProposal.slice(
+      -4
+    )}`
   );
 
   // Vote on it
