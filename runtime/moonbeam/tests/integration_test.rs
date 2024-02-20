@@ -478,6 +478,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Identity>(33);
 	is_pallet_index::<moonbeam_runtime::Migrations>(34);
 	is_pallet_index::<moonbeam_runtime::ProxyGenesisCompanion>(35);
+	is_pallet_index::<moonbeam_runtime::MoonbeamLazyMigrations>(37);
 	// Ethereum compatibility
 	is_pallet_index::<moonbeam_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonbeam_runtime::EVM>(51);
@@ -503,7 +504,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::AssetManager>(105);
 	is_pallet_index::<moonbeam_runtime::XTokens>(106);
 	is_pallet_index::<moonbeam_runtime::XcmTransactor>(107);
-	is_pallet_index::<moonbeam_runtime::MoonbeamLazyMigrations>(111);
 }
 
 #[test]
