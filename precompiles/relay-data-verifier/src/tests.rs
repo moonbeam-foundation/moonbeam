@@ -221,7 +221,7 @@ fn test_entry_not_found() {
 				)
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_reverts(|output| output == b"The entry is not present");
+				.execute_reverts(|output| output == b"Value is not present");
 
 			precompiles()
 				.prepare_test(
@@ -243,7 +243,7 @@ fn test_entry_not_found() {
 				)
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_reverts(|output| output == b"The entry is not present");
+				.execute_reverts(|output| output == b"Value is not present");
 		});
 }
 

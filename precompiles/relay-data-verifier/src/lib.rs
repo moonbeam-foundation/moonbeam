@@ -145,7 +145,7 @@ impl From<ProofError> for PrecompileFailure {
 		match err {
 			ProofError::RootMismatch => revert("Root Mismatch"),
 			ProofError::Proof => revert("Invalid Proof"),
-			ProofError::Absent => revert("The entry is not present"),
+			ProofError::Absent => revert("Value is not present"),
 		}
 	}
 }

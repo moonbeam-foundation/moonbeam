@@ -19,9 +19,9 @@ RelayDataVerifier constant RELAY_DATA_VERIFIER_CONTRACT = RelayDataVerifier(
 /// 2. Relay RPC Call: Call `chain_getBlockHash(blockNumber)` RPC method to get the relay block hash
 ///    for the block number obtained in step 1.
 /// 3. Relay RPC Call: Call `state_getReadProof(keys, at)` RPC method where `at`
-///    is the relay block hash obtained in step 2 to get the storage proof for the keys.
-/// 4. Moonbeam RPC Call: Submit an ethereum transaction (direclty or through a SC) to call the
-///    `verifyEntry` or `verifyEntries` function to verify the data against the latest relay block
+///    is the relay block hash obtained in step 2 to get the 'ReadProof` of the entries.
+/// 4. Moonbeam RPC Call: Submit an ethereum transaction (directly or through a SC) to call the
+///    `verifyEntry` or `verifyEntries` function to verify the data against the relay block
 ///    number. The call data contain the relay block number obtained in step 1, and the read
 ///    proof generated in step 3, along with the key/s to verify.
 /// @custom:address 0x0000000000000000000000000000000000000819
