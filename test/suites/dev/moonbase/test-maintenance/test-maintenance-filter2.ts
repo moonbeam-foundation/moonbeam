@@ -2,14 +2,13 @@ import "@moonbeam-network/api-augment";
 import {
   beforeAll,
   describeSuite,
-  execTechnicalCommitteeProposal,
   expect,
   customDevRpcRequest,
 } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith, baltathar } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { RELAY_SOURCE_LOCATION, mockAssetBalance } from "../../../../helpers";
+import { RELAY_SOURCE_LOCATION, mockAssetBalance, executeExtViaOpenTechCommittee } from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
@@ -56,7 +55,7 @@ describeSuite({
           )
       );
 
-      await execTechnicalCommitteeProposal(
+      await executeExtViaOpenTechCommittee(
         context,
         context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode()
       );
@@ -65,7 +64,7 @@ describeSuite({
     it({
       id: "T01",
       title: "should queue DMP until resuming operations",
-      test: async function () {
+      test: async () => {
         // Send RPC call to inject DMP message
         // You can provide a message, but if you don't a downward transfer is the default
         await customDevRpcRequest("xcm_injectDownwardMessage", [[]]);
@@ -82,7 +81,7 @@ describeSuite({
         expect(alithBalance.isNone).to.eq(true);
 
         // turn maintenance off
-        await execTechnicalCommitteeProposal(
+        await executeExtViaOpenTechCommittee(
           context,
           context.polkadotJs().tx.maintenanceMode.resumeNormalOperation()
         );

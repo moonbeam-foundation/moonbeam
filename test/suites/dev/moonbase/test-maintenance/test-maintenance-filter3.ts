@@ -1,22 +1,16 @@
 import "@moonbeam-network/api-augment";
-import {
-  beforeAll,
-  beforeEach,
-  customDevRpcRequest,
-  describeSuite,
-  execTechnicalCommitteeProposal,
-  expect,
-} from "@moonwall/cli";
+import { beforeAll, beforeEach, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { BN } from "@polkadot/util";
+import { executeExtViaOpenTechCommittee } from "../../../../helpers";
 
 describeSuite({
   id: "D012103",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let assetId: u128;
+    let assetId: string;
     const foreignParaId = 2000;
 
     beforeAll(async () => {
@@ -42,10 +36,15 @@ describeSuite({
           )
       );
 
-      assetId = result?.events
-        .find(({ event: { section } }) => section.toString() === "assetManager")
-        .event.data[0].toHex()
-        .replace(/,/g, "");
+      const events = result?.events.find(
+        ({ event: { section } }) => section.toString() === "assetManager"
+      );
+
+      if (!events) {
+        throw new Error("Events Not Found!");
+      }
+
+      assetId = events.event.data[0].toHex().replace(/,/g, "");
 
       // setAssetUnitsPerSecond
       await context.createBlock(
@@ -58,7 +57,7 @@ describeSuite({
     });
 
     beforeEach(async () => {
-      await execTechnicalCommitteeProposal(
+      await executeExtViaOpenTechCommittee(
         context,
         context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode()
       );
@@ -67,7 +66,7 @@ describeSuite({
     it({
       id: "T01",
       title: "should queue XCM messages until resuming operations",
-      test: async function () {
+      test: async () => {
         // Send RPC call to inject XCMP message
         // You can provide a message, but if you don't a downward transfer is the default
         await customDevRpcRequest("xcm_injectHrmpMessage", [foreignParaId, []]);
@@ -83,7 +82,7 @@ describeSuite({
         expect(alithBalance.isNone).to.eq(true);
 
         // turn maintenance off
-        await execTechnicalCommitteeProposal(
+        await executeExtViaOpenTechCommittee(
           context,
           context.polkadotJs().tx.maintenanceMode.resumeNormalOperation()
         );
