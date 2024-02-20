@@ -59,7 +59,7 @@ pnpm moonwall download polkadot latest
 Running a chopsticks forked Moonbeam network:
 
 ```bash
-pnpm moonwall run chopsticks_moonbeam
+pnpm moonwall run upgrade_moonbeam
 ```
 
 Running a particular smoke test:

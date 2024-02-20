@@ -39,6 +39,8 @@ describeSuite({
         const codeString = currentCode.toString();
         const upgradePath = (await MoonwallContext.getContext()).rtUpgradePath;
 
+        const rtBefore = paraApi.consts.system.version.specVersion.toNumber();
+
         if (!upgradePath) {
           throw new Error("Runtime upgrade path not set");
         }
@@ -62,6 +64,12 @@ describeSuite({
         await paraApi.tx.parachainSystem.enactAuthorizedUpgrade(rtHex).signAndSend(alith);
 
         await context.waitBlock(2);
+
+        const rtafter = paraApi.consts.system.version.specVersion.toNumber();
+        expect(rtafter).to.be.greaterThan(rtBefore);
+
+        log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
+
         const blockNumberAfter = (
           await paraApi.rpc.chain.getBlock()
         ).block.header.number.toNumber();
