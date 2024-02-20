@@ -9,7 +9,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     it({
       id: "T01",
-      title: "should not be approved by COUNCIL collective vote",
+      title: "should not be approved by the wrong collective vote",
       test: async function () {
         await context.createBlock(
           context
@@ -36,7 +36,7 @@ describeSuite({
           .find(({ event: { method } }) => method.toString() == "Proposed")
           .event.data[2].toHex();
 
-        // Charleth and Dorothy vote for proposal to approve
+        // Charleth and Baltahar vote for proposal to approve
         const { result: result2 } = await context.createBlock(
           [
             context
@@ -46,7 +46,7 @@ describeSuite({
             context
               .polkadotJs()
               .tx.openTechCommitteeCollective.vote(proposalHash, 0, true)
-              .signAsync(dorothy, { nonce: 0 }),
+              .signAsync(baltathar, { nonce: 0 }),
             context
               .polkadotJs()
               .tx.openTechCommitteeCollective.close(
@@ -58,7 +58,7 @@ describeSuite({
                 },
                 1_000
               )
-              .signAsync(dorothy, { nonce: 1 }),
+              .signAsync(baltathar, { nonce: 1 }),
           ],
           { expectEvents: [context.polkadotJs().events.openTechCommitteeCollective.Closed] }
         );
