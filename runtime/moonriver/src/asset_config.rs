@@ -19,7 +19,8 @@
 
 use super::{
 	currency, governance, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances,
-	Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	OpenTechCommitteeInstance, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use moonbeam_runtime_common::weights as moonbeam_weights;
@@ -185,8 +186,13 @@ pub struct AssetRegistrarMetadata {
 	pub is_frozen: bool,
 }
 
-pub type ForeignAssetModifierOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+pub type ForeignAssetModifierOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::GeneralAdmin,
+	>,
+>;
 pub type LocalAssetModifierOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
