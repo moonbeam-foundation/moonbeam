@@ -63,7 +63,7 @@ where
 		proof: ReadProof,
 		key: RawKey,
 	) -> EvmResult<UnboundedBytes> {
-		let weight = weights::WeightInfo::<Runtime>::verify_entry(proof.proof.len() as u32);
+		let weight = weights::WeightInfo::<Runtime>::verify_entry(proof.proof.len() as u32, 1);
 		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
 
 		Self::do_verify_entry(relay_block_number, proof, key)
@@ -80,7 +80,10 @@ where
 		proof: ReadProof,
 		keys: BoundedVec<RawKey, GetArrayLimit>,
 	) -> EvmResult<BoundedVec<UnboundedBytes, GetArrayLimit>> {
-		let weight = weights::WeightInfo::<Runtime>::verify_entry(proof.proof.len() as u32);
+		let weight = weights::WeightInfo::<Runtime>::verify_entry(
+			proof.proof.len() as u32,
+			keys.len() as u32,
+		);
 		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
 
 		Self::do_verify_entries(relay_block_number, proof, keys)
