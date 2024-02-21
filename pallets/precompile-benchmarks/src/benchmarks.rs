@@ -22,7 +22,7 @@ use frame_benchmarking::benchmarks;
 use frame_support::{traits::Get, BoundedVec};
 use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
-use sp_std::collections::btree_map::BTreeMap;
+use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 fn fill_relay_storage_roots<T: Config>() -> Vec<u32> {
 	// Initialize keys BoundedVec for RelayStorageRoots
