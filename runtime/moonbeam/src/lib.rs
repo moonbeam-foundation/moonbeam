@@ -1417,10 +1417,6 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
-parameter_types! {
-	pub const MaxStorageRoots: u32 = 10;
-}
-
 construct_runtime! {
 	pub enum Runtime
 	{

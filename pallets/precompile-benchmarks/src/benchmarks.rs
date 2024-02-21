@@ -50,7 +50,6 @@ benchmarks! {
 
 		// if x is not multiple of 100, we will use the proof for the closest multiple of 100
 		let x = (x / 100) * 100;
-		log::info!("x: {}", x);
 		let (state_root, mocked_proof) =
 			mocked_proofs.get(&x).expect("Not Found");
 

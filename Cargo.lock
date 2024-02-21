@@ -6993,7 +6993,6 @@ dependencies = [
  "pallet-evm-precompile-referenda",
  "pallet-evm-precompile-registry",
  "pallet-evm-precompile-relay-encoder",
- "pallet-evm-precompile-relay-verifier",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-xcm-transactor",
