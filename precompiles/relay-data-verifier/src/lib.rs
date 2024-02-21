@@ -26,6 +26,7 @@ use moonbeam_runtime_common::weights::pallet_precompile_benchmarks::WeightInfo;
 use pallet_precompile_benchmarks::WeightInfo as TWeightInfo;
 use precompile_utils::prelude::*;
 use sp_core::H256;
+use sp_std::vec::Vec;
 use storage_proof_primitives::*;
 
 #[cfg(test)]
