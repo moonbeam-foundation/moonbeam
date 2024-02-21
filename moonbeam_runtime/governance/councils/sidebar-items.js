@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["MaxProposalWeight"],"type":["CouncilInstance","OpenTechCommitteeInstance","TechCommitteeInstance","TreasuryCouncilInstance"]};
+window.SIDEBAR_ITEMS = {"struct":["MaxProposalWeight"],"type":["OpenTechCommitteeInstance","TreasuryCouncilInstance"]};

@@ -377,31 +377,6 @@
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -430,12 +405,12 @@
 <span class="kw">use </span>hex_literal::hex;
 <span class="kw">use </span>moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EligibilityValue,
-	EthereumChainIdConfig, EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig,
+	CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig,
+	EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig,
 	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
 	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig, SystemConfig,
-	TechCommitteeCollectiveConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
-	XcmTransactorConfig, HOURS, WASM_BINARY,
+	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
+	WASM_BINARY,
 };
 <span class="kw">use </span>nimbus_primitives::NimbusId;
 <span class="kw">use </span>pallet_transaction_payment::Multiplier;
@@ -473,14 +448,10 @@
 			testnet_genesis(
 				<span class="comment">// Alith is Sudo
 				</span>accounts[<span class="number">0</span>],
-				<span class="comment">// Council members: Baltathar, Charleth and Dorothy
-				</span><span class="macro">vec!</span>[accounts[<span class="number">1</span>], accounts[<span class="number">2</span>], accounts[<span class="number">3</span>]],
-				<span class="comment">// Tech comitee members: Alith and Baltathar
-				</span><span class="macro">vec!</span>[accounts[<span class="number">0</span>], accounts[<span class="number">1</span>]],
 				<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy
 				</span><span class="macro">vec!</span>[accounts[<span class="number">1</span>], accounts[<span class="number">2</span>], accounts[<span class="number">3</span>]],
-				<span class="comment">// Open Tech committee members: Alith and Baltathar
-				</span><span class="macro">vec!</span>[accounts[<span class="number">0</span>], accounts[<span class="number">1</span>]],
+				<span class="comment">// Open Tech committee members: Alith, Baltathar and Charleth
+				</span><span class="macro">vec!</span>[accounts[<span class="number">0</span>], accounts[<span class="number">1</span>], accounts[<span class="number">2</span>]],
 				<span class="comment">// Collator Candidate: Alice -&gt; Alith
 				</span><span class="macro">vec!</span>[(
 					accounts[<span class="number">0</span>],
@@ -532,17 +503,6 @@
 			testnet_genesis(
 				<span class="comment">// Alith is Sudo
 				</span>AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
-				<span class="comment">// Council members: Baltathar, Charleth and Dorothy
-				</span><span class="macro">vec!</span>[
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
-				],
-				<span class="comment">// Tech comitee members: Alith and Baltathar
-				</span><span class="macro">vec!</span>[
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-				],
 				<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy
 				</span><span class="macro">vec!</span>[
 					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
@@ -640,8 +600,6 @@
 
 <span class="kw">pub fn </span>testnet_genesis(
 	root_key: AccountId,
-	council_members: Vec&lt;AccountId&gt;,
-	tech_comittee_members: Vec&lt;AccountId&gt;,
 	treasury_council_members: Vec&lt;AccountId&gt;,
 	open_tech_committee_members: Vec&lt;AccountId&gt;,
 	candidates: Vec&lt;(AccountId, NimbusId, Balance)&gt;,
@@ -719,14 +677,6 @@
 			parachain_bond_reserve_percent: PARACHAIN_BOND_RESERVE_PERCENT,
 			blocks_per_round: BLOCKS_PER_ROUND,
 			num_selected_candidates: NUM_SELECTED_CANDIDATES,
-		},
-		council_collective: CouncilCollectiveConfig {
-			phantom: Default::default(),
-			members: council_members,
-		},
-		tech_committee_collective: TechCommitteeCollectiveConfig {
-			phantom: Default::default(),
-			members: tech_comittee_members,
 		},
 		treasury_council_collective: TreasuryCouncilCollectiveConfig {
 			phantom: Default::default(),

@@ -256,14 +256,6 @@
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -281,8 +273,8 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="kw">use crate</span>::{
-	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, CouncilInstance,
-	OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
+	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
+	TreasuryCouncilInstance,
 };
 <span class="kw">use </span>frame_support::parameter_types;
 <span class="kw">use </span>pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
@@ -454,17 +446,9 @@
 		XcmTransactorPrecompileV2&lt;R&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
-	PrecompileAt&lt;
-		AddressU64&lt;<span class="number">2062</span>&gt;,
-		CollectivePrecompile&lt;R, CouncilInstance&gt;,
-		(CallableByContract, CallableByPrecompile),
-	&gt;,
-	PrecompileAt&lt;
-		AddressU64&lt;<span class="number">2063</span>&gt;,
-		CollectivePrecompile&lt;R, TechCommitteeInstance&gt;,
-		(CallableByContract, CallableByPrecompile),
-	&gt;,
-	PrecompileAt&lt;
+	RemovedPrecompileAt&lt;AddressU64&lt;<span class="number">2062</span>&gt;&gt;, <span class="comment">//CouncilInstance
+	</span>RemovedPrecompileAt&lt;AddressU64&lt;<span class="number">2063</span>&gt;&gt;, <span class="comment">// TechCommitteeInstance
+	</span>PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2064</span>&gt;,
 		CollectivePrecompile&lt;R, TreasuryCouncilInstance&gt;,
 		(CallableByContract, CallableByPrecompile),
