@@ -43,11 +43,11 @@ use core::marker::PhantomData;
 
 /// Weight functions for `pallet_precompile_benchmarks`.
 pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo<T> {
+impl<T: frame_system::Config> pallet_precompile_benchmarks::WeightInfo for WeightInfo<T> {
 	/// Storage: `RelayStorageRoots::RelayStorageRoot` (r:1 w:0)
 	/// Proof: `RelayStorageRoots::RelayStorageRoot` (`max_values`: None, `max_size`: Some(44), added: 2519, mode: `MaxEncodedLen`)
 	/// The range of component `x` is `[100, 2000]`.
-	pub fn verify_entry(x: u32, ) -> Weight {
+	fn verify_entry(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `110`
 		//  Estimated: `3509`
@@ -60,7 +60,7 @@ impl<T: frame_system::Config> WeightInfo<T> {
 	}
 	/// Storage: `RelayStorageRoots::RelayStorageRootKeys` (r:1 w:0)
 	/// Proof: `RelayStorageRoots::RelayStorageRootKeys` (`max_values`: Some(1), `max_size`: Some(41), added: 536, mode: `MaxEncodedLen`)
-	pub fn latest_relay_block() -> Weight {
+	fn latest_relay_block() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `146`
 		//  Estimated: `1526`

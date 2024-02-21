@@ -271,43 +271,7 @@ pub const TREASURY_APPROVALS_KEY: &[u8] = &[
 // at Block Hash:
 // 0x1272470f226fc0e955838262e8dd17a7d7bad6563739cc53a3b1744ddf0ea872
 pub fn mock_raw_proof() -> Vec<Vec<u8>> {
-	vec![
-		"5f07c875e4cff74148e4628f264b974c8040628949b6ef4600c40000000000000000",
-		"5f0c9c1284130706f5aea0c8b3d4c54d891501445f020000600200006102000062020000630200006402000065\
-		020000660200006702000068020000690200006a0200006b0200006c0200006d0200006e0200006f020000" ,
-		"80046480ae6dc31222118597e5aaf1a34a195c282822e9f147bd2113fc611c2d8ad0daaf80106e32398477afa8\
-		7370d207850b5c2fcc9edde886bbbff970f30e870cb016ae806eb4916897c8a0f14604da0b634e5102e814e3b35\
-		64d52a6a987b3822f35845980ce9727320ca95ab80f36e3f416706757f73bdc4b6a844b54184864cf6f4d3783" ,
-		"8061008051c5d06fc458e469b187e464073a9b1a27b78bc92f79e7519439b85509aebe67807c2154d55dc4efdf\
-		670330add5144d07ed6efa4bdc6ffae6f1dd5eaa2f429e3080af579d5ddc5c697d42bfc014076594e66c7b324cf\
-		d3017810c4e93e4f6f0ae9e",
-		"80ffff80a544fa461df3dc9358b0f7f88095a7e37d2037ce25934f9c47956687a94c79d7803413c0780b32567f\
-		e87b4b5c073c992f0f50118f44f68ee4cea51bc7d1bc125c8000c1699c8f59a00b69d7034f91cad97e7637a93e3\
-		f54984a01ca08c8dc9f9ad080699e1d4c85f1e4e73590d69882f9188db0445e1f6414dd753d69aa4a201ccdfb80\
-		e2c14ce9239d367bde39f9625cf2dae689dff77760a6478bb5dc7a28309d95ce809992bee3f46c3be2e44aec660\
-		c4a3109d71548441dd8bd4f8dcdeda20c6105f88002c9c0b5dbb322abfe7edfbb9167049d0824d19cab106c6223\
-		3d7da53517f8ca80583d87fe18e8d9ed0f9601d98f7614a6f12bdcccbc9e62db443b0753fe1320ab800ab44d080\
-		2168f45ff9cff687769b6d4664c8ca1bc94b086df19e000f805d33b801802363d7de5b2d26805f5c86c4ad99384\
-		fa61184024cf597e2d65614625050580c161755bb505e8bdb1125229bad3bc41c2ede4dba0789c0c1fa2eac866b\
-		bc6d580f697d83a00387c4123875066a7c74c97b09db562d99ce515032da7826564fc2d808ee71cb07ac490d2c0\
-		1144fde0f85c784a9e45d1eb50e1fc7f71d414e26894b78090b075ba89594ceb80523aea74a75d35d16810920b3\
-		6378e23cb173b408f2749807a57bac6b45c618551ec2afc20378cb9fe2da367249c9fa1975e1c81bd0a641d80a0\
-		197196bf1ae5833408f7c6cb410ddaa9d524bfb29f6805a365ca353c19e931",
-		"9e261276cc9d1f8598ea4b6a74b15c2f360080888a8ef6d6b18947204b9d2a2caec570f31bcca8de3d62cb3047\
-		50bfe750e799802530be352ac1dcc99fe5693df3c6445cdf72b2e3ded3ccd8275851b24fdd8d53505f0e7b90120\
-		96b41c4eb3aaf947f6ea42908010080fc6475d793cf00f4eefb53e649aa37823d402f10863ccd12868397067ed2\
-		4e16",
-		"9ec365c3cf59d671eb72da0e7a4113c41002505f0e7b9012096b41c4eb3aaf947f6ea429080000685f0f1f0515\
-		f462cdcf84e0f1d6045dfcbb20c0e413b88d010000",
-		"9f09d139e01a5eb2256f222e5fc5dbe6b3581580495b645f9c559f6d1b4047d2b84cdd96247886647e03c12d15\
-		3b00247e17bfd2505f0e7b9012096b41c4eb3aaf947f6ea429080000585f0254e9d55588784fa2a62b726696e2b\
-		1107002000080595d98af3421f8e2e99d30442ea36735a8047c30975f58d69e9684cfadd26e69805e53a3e74921\
-		c6bf8c0e1c24d25a60d10fcbb7fa789d6c2263c568ce01c0aee180298a8183623b166f4e75de0160dc695e2620f\
-		96bb4cc5b34a9467ddb937b0b1c",
-	]
-	.iter()
-	.map(|x| hex::decode(x).unwrap())
-	.collect()
+	Vec::decode(&mut &include_bytes!("../proof").to_vec()[..]).unwrap()
 }
 
 pub fn mocked_read_proof() -> ReadProof {
@@ -324,52 +288,67 @@ pub fn mocked_read_proof() -> ReadProof {
 	}
 }
 
-#[derive(Encode, Decode)]
-pub struct MockedStorageProof {
-	pub proof: Vec<Vec<u8>>,
-	pub state_root: H256,
+pub fn build_mocked_proof(
+	entries: Vec<(Vec<u8>, Vec<u8>)>,
+	keys: Vec<Vec<u8>>,
+) -> (H256, Vec<Vec<u8>>) {
+	let (db, root) = PrefixedMemoryDB::<HashingFor<relay_chain::Block>>::default_with_root();
+	let state_version = Default::default();
+	let mut backend = sp_state_machine::TrieBackendBuilder::new(db, root).build();
+
+	entries.into_iter().for_each(|(key, value)| {
+		backend.insert(vec![(None, vec![(key, Some(value))])], state_version);
+	});
+
+	let root = *backend.root();
+	let proof = sp_state_machine::prove_read(backend, keys).expect("prove read");
+
+	(root, proof.into_iter_nodes().collect())
 }
 
-impl MockedStorageProof {
-	pub fn build(entries: Vec<(Vec<u8>, Vec<u8>)>) -> MockedStorageProof {
-		let (db, root) = PrefixedMemoryDB::<HashingFor<relay_chain::Block>>::default_with_root();
-		let state_version = Default::default();
-		let mut backend = sp_state_machine::TrieBackendBuilder::new(db, root).build();
-		let mut relevant_keys = Vec::new();
-
-		entries.into_iter().for_each(|(key, value)| {
-			relevant_keys.push(key.clone());
-			backend.insert(vec![(None, vec![(key, Some(value))])], state_version);
-		});
-
-		let root = *backend.root();
-		let proof = sp_state_machine::prove_read(backend, relevant_keys).expect("prove read");
-		MockedStorageProof {
-			proof: proof.into_iter_nodes().collect(),
-			state_root: root,
-		}
-	}
-
-	pub fn build_benchmark_proof(entries: u32) -> MockedStorageProof {
-		let entries = (0..entries)
-			.map(|i| {
-				let key = format!("key{i}").as_bytes().to_vec();
-				let value = vec![i as u8; 128];
-				(key, value)
-			})
-			.collect();
-		Self::build(entries)
-	}
-}
-
+// Generate mocked proofs for the benchmarks. The proofs are generated for a set of
+// keys and values, and then stored in a file. The proofs are then used in the benchmarks
+// to simulate the proofs obtained from the relay chain.
 #[test]
 fn test_mocked_storage_proof() {
+	// This set of entries generates proofs with number of nodes in proof increasing by 100 for
+	// each entry (Number of Proof Node, Number of Entries)
+	let entries: Vec<(u32, u32)> = vec![
+		(100, 95),
+		(200, 190),
+		(300, 270),
+		(400, 320),
+		(500, 370),
+		(600, 420),
+		(700, 470),
+		(800, 530),
+		(900, 630),
+		(1000, 730),
+		(1100, 830),
+		(1200, 930),
+		(1300, 1030),
+		(1400, 1130),
+		(1500, 1230),
+		(1600, 1330),
+		(1700, 1430),
+		(1800, 1530),
+		(1900, 1630),
+		(2000, 1730),
+	];
+
 	let mut proofs = BTreeMap::new();
-	(1..GetArrayLimit::get()).into_iter().for_each(|x| {
-		let proof = MockedStorageProof::build_benchmark_proof(x);
-		let proof = proof.encode();
-		proofs.insert(x, proof);
+	entries.into_iter().for_each(|(i, x)| {
+		let keys: Vec<Vec<u8>> = (1..x as u128).into_iter().map(|y| y.encode()).collect();
+		let entries = keys
+			.iter()
+			.enumerate()
+			.map(|(i, key)| (key.clone(), (i as u128).encode()))
+			.collect();
+
+		let (state_root, proof) = build_mocked_proof(entries, keys);
+		proofs.insert(i, (state_root, proof));
 	});
+
 	let mut file = File::create(format!("benchmark_proofs")).unwrap();
 	file.write_all(&proofs.encode()).unwrap();
 }

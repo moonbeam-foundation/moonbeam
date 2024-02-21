@@ -30,7 +30,6 @@ mod benchmarks;
 #[pallet]
 pub mod pallet {
 	use super::*;
-	use sp_std::vec::Vec;
 
 	#[pallet::config]
 	pub trait Config:
@@ -48,27 +47,13 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		pub fn verify_entry(
+		pub fn verify(
 			relay_block_number: RelayBlockNumber,
 			proof: ReadProof,
 			key: RawKey,
 		) -> Result<(), Error<T>> {
 			RelayDataVerifierPrecompile::<T>::do_verify_entry(relay_block_number, proof, key)
 				.map_err(|_| Error::<T>::BenchmarkError)?;
-			Ok(())
-		}
-
-		pub fn verify_entries(
-			relay_block_number: RelayBlockNumber,
-			proof: ReadProof,
-			keys: Vec<RawKey>,
-		) -> Result<(), Error<T>> {
-			RelayDataVerifierPrecompile::<T>::do_verify_entries(
-				relay_block_number,
-				proof,
-				keys.into(),
-			)
-			.map_err(|_| Error::<T>::BenchmarkError)?;
 			Ok(())
 		}
 

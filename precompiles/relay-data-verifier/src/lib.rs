@@ -34,10 +34,9 @@ mod tests;
 pub mod proof;
 mod weights;
 use proof::{ProofError, StorageProofChecker};
-use weights::{SubstrateWeight, WeightInfo};
 
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
-pub const ARRAY_LIMIT: u32 = 512;
+pub const ARRAY_LIMIT: u32 = 2048;
 pub const KEY_LENGTH_LIMIT: u32 = 256;
 
 pub type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
@@ -59,11 +58,14 @@ where
 	#[precompile::public("verifyEntry(uint32,(bytes32,bytes[]),bytes)")]
 	#[precompile::public("verify_entry(uint32,(bytes32,bytes[]),bytes)")]
 	fn verify_entry(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		relay_block_number: RelayBlockNumber,
 		proof: ReadProof,
 		key: RawKey,
 	) -> EvmResult<UnboundedBytes> {
+		let weight = weights::WeightInfo::<Runtime>::verify_entry(proof.proof.len() as u32);
+		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
+
 		Self::do_verify_entry(relay_block_number, proof, key)
 	}
 
@@ -73,11 +75,14 @@ where
 	#[precompile::public("verifyEntries(uint32,(bytes32,bytes[]),bytes[])")]
 	#[precompile::public("verify_entries(uint32,(bytes32,bytes[]),bytes[])")]
 	fn verify_entries(
-		_handle: &mut impl PrecompileHandle,
+		handle: &mut impl PrecompileHandle,
 		relay_block_number: RelayBlockNumber,
 		proof: ReadProof,
 		keys: BoundedVec<RawKey, GetArrayLimit>,
 	) -> EvmResult<BoundedVec<UnboundedBytes, GetArrayLimit>> {
+		let weight = weights::WeightInfo::<Runtime>::verify_entry(proof.proof.len() as u32);
+		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
+
 		Self::do_verify_entries(relay_block_number, proof, keys)
 	}
 
@@ -85,7 +90,7 @@ where
 	#[precompile::public("latest_relay_block_number()")]
 	#[precompile::view]
 	fn latest_relay_block(handle: &mut impl PrecompileHandle) -> EvmResult<RelayBlockNumber> {
-		let weight = <SubstrateWeight<Runtime> as WeightInfo>::latest_relay_block();
+		let weight = weights::WeightInfo::<Runtime>::latest_relay_block();
 		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
 
 		pallet_relay_storage_roots::RelayStorageRootKeys::<Runtime>::get()
