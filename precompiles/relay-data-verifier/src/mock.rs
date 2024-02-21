@@ -37,6 +37,7 @@ construct_runtime!(
 		Evm: pallet_evm,
 		Timestamp: pallet_timestamp,
 		RelayStorageRoots: pallet_relay_storage_roots,
+		PrecompileBenchmarks: pallet_precompile_benchmarks
 	}
 );
 
@@ -186,6 +187,10 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_precompile_benchmarks::Config for Runtime {
+	type WeightInfo = ();
 }
 
 pub(crate) struct ExtBuilder {
