@@ -343,28 +343,6 @@
       ]
     },
     {
-      "name": "chopsticks_moonbeam",
-      "testFileDir": ["suites/chopsticks/"],
-      "foundation": {
-        "type": "chopsticks",
-        "launchSpec": [
-          {
-            "name": "mb",
-            "type": "parachain",
-            "allowUnresolvedImports": true,
-            "configPath": "./configs/moonbeam.yml"
-          }
-        ]
-      },
-      "connections": [
-        {
-          "name": "MB",
-          "type": "polkadotJs",
-          "endpoints": ["ws://127.0.0.1:8000"]
-        }
-      ]
-    },
-    {
       "name": "dev_moonbeam",
       "testFileDir": ["suites/dev/moonbeam"],
       "include": ["**/*test*"],
@@ -540,7 +518,7 @@
     },
     {
       "name": "upgrade_moonbeam",
-      "testFileDir": ["suites/rt-upgrade/"],
+      "testFileDir": ["suites/chopsticks/"],
       "foundation": {
         "type": "chopsticks",
         "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
@@ -563,7 +541,7 @@
     },
     {
       "name": "upgrade_moonriver",
-      "testFileDir": ["suites/rt-upgrade/"],
+      "testFileDir": ["suites/chopsticks/"],
       "foundation": {
         "type": "chopsticks",
         "rtUpgradePath": "../target/release/wbuild/moonriver-runtime/moonriver_runtime.compact.compressed.wasm",
@@ -586,7 +564,7 @@
     },
     {
       "name": "upgrade_moonbase",
-      "testFileDir": ["suites/rt-upgrade/"],
+      "testFileDir": ["suites/chopsticks/"],
       "foundation": {
         "type": "chopsticks",
         "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",

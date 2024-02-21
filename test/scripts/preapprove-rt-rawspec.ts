@@ -60,7 +60,7 @@ yargs(hideBin(process.argv))
 
       localRaw.genesis.raw.top = {
         ...localRaw.genesis.raw.top,
-        [storageKey]: `${runtimeHash}00`,
+        [storageKey]: `${runtimeHash}01`, // 01 sets RT version check = true
       };
 
       process.stdout.write(`Writing to: ${argv.outputPath} ...`);

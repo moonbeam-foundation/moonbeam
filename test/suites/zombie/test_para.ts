@@ -39,6 +39,8 @@ describeSuite({
         const codeString = currentCode.toString();
         const upgradePath = (await MoonwallContext.getContext()).rtUpgradePath;
 
+        const rtBefore = paraApi.consts.system.version.specVersion.toNumber();
+
         if (!upgradePath) {
           throw new Error("Runtime upgrade path not set");
         }
@@ -61,7 +63,13 @@ describeSuite({
 
         await paraApi.tx.parachainSystem.enactAuthorizedUpgrade(rtHex).signAndSend(alith);
 
-        await context.waitBlock(2);
+        await context.waitBlock(10);
+
+        const rtafter = paraApi.consts.system.version.specVersion.toNumber();
+        expect(rtafter).to.be.greaterThan(rtBefore);
+
+        log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
+
         const blockNumberAfter = (
           await paraApi.rpc.chain.getBlock()
         ).block.header.number.toNumber();
@@ -80,8 +88,6 @@ describeSuite({
         const balBefore = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
 
         log("Please wait, this will take at least 30s for transaction to complete");
-
-        context.waitBlock(5);
 
         // TODO: Renable the below when we are using polkadot 1.7.0
         //       There is a discrepancy with polkadotJs and 1.3.0
@@ -115,10 +121,13 @@ describeSuite({
           .signAndSend(charleth);
 
         // TODO: Remove waitBlock below when we are using polkadot 1.7.0
-        await context.waitBlock(2);
+        await context.waitBlock(6);
 
         const balAfter = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
-        expect(balBefore.lt(balAfter)).to.be.true;
+        expect(
+          balBefore.lt(balAfter),
+          `${balBefore.toHuman()} is not less than ${balAfter.toHuman()}`
+        ).to.be.true;
       },
     });
 

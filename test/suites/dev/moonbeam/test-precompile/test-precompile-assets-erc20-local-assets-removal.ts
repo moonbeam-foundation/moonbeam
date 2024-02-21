@@ -15,8 +15,8 @@ describeSuite({
       "0xFFfffFFecB45aFD30a637967995394Cc88C0c194",
     ];
     const notLocalAssets = [
-      "0xffFfFffeFd9d0bf45a2947A519a741c4b9E99EB7",
-      "0xFFfffFFecB45aFD30a637967995394Cc88C0c195",
+      "0xfffffFFeFD9D0bF45A2947A519a741C4B9e99eB7",
+      "0xfFFffffEcB45AFd30a637967995394cC88c0C195",
     ];
     let erc20Abi: Abi;
     let precompileRegistryAbi: Abi;
@@ -34,7 +34,7 @@ describeSuite({
     it({
       id: "T01",
       title: "ensure evm calls on local xc-20 addresses get reverted",
-      test: async function () {
+      test: async () => {
         const addresses = [
           ...localAssets.map((address) => ({ address, local: true })),
           ...notLocalAssets.map((address) => ({ address, local: false })),
@@ -66,7 +66,7 @@ describeSuite({
     it({
       id: "T02",
       title: "Local assets should be inactive in the precompile registry",
-      test: async function () {
+      test: async () => {
         const addresses = [
           ...localAssets.map((address) => ({ address, local: true })),
           ...notLocalAssets.map((address) => ({ address, local: false })),

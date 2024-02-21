@@ -16,13 +16,17 @@ describeSuite({
       api = context.polkadotJs();
 
       const rtBefore = api.consts.system.version.specVersion.toNumber();
-      log(`About to upgrade to runtime at:`);
+      log("About to upgrade to runtime at:");
       log((await MoonwallContext.getContext()).rtUpgradePath);
 
       await context.upgradeRuntime();
 
       const rtafter = api.consts.system.version.specVersion.toNumber();
       log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
+
+      if (rtBefore === rtafter) {
+        throw new Error("Runtime upgrade failed");
+      }
 
       const specName = api.consts.system.version.specName.toString();
       log(`Currently connected to chain: ${specName}`);
