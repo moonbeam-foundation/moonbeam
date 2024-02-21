@@ -114,17 +114,548 @@ jobs:
           echo polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
           echo polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver }}
 
-  docker-moonbeam:
+  check-copyright:
     runs-on: ubuntu-latest
     needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Find un-copyrighted files
+        run: |
+          find . \! -name '*.expanded.rs' -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
+          FILECOUNT=$(find . \! -name '*.expanded.rs' -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep -c ':0' || true)
+          if [[ $FILECOUNT -eq 0 ]]; then
+            true
+          else
+            false
+          fi
+
+  check-links:
+    runs-on: ubuntu-latest
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: "yes"
+          max-depth: 4
+
+  check-editorconfig:
+    name: "Check editorconfig"
+    runs-on: ubuntu-latest
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Setup editorconfig checker
+        run: |
+          ls /tmp/bin/ec-linux-amd64 || \
+          cd /tmp && \
+          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.7.0/ec-linux-amd64.tar.gz && \
+          tar xvf ec-linux-amd64.tar.gz && \
+          chmod +x bin/ec-linux-amd64
+      - name: Check files
+        # Prettier and editorconfig-checker have different ideas about indentation
+        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/src\/moon(?:base|beam|river)\/interfaces\/.*\.ts)|(test\/contracts\/lib\/.*)" -disable-indent-size
+
+  check-prettier:
+    name: "Check with Prettier"
+    runs-on: ubuntu-latest
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - name: Check with Prettier
+        run: |
+          bun x prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)' \
+          || (git diff --quiet \
+          || (echo 'Unable to show a diff because there are unstaged changes'; false) \
+          && (bun x prettier@2 --ignore-path \
+              .prettierignore '**/*.(yml|js|ts|json)' -w --loglevel silent \
+          && git --no-pager diff; git restore .) && false)
+
+          bun x prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
+
+  check-eslint:
+    name: "Check with EsLint"
+    runs-on: ubuntu-latest
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Use pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.6.12
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.10.0
+          cache: "pnpm"
+          cache-dependency-path: test/pnpm-lock.yaml
+      - name: Run Eslint check
+        run: |
+          cd test
+          pnpm i
+          pnpm lint
+
+  check-cargo-toml-format:
+    name: "Check Cargo.toml files format"
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: Check Cargo.toml files format with toml_sort
+        run: ./scripts/check-cargo-toml-files-format.sh
+
+  check-forbid-evm-reentrancy:
+    name: "Check 'forbid-evm-reentrancy'"
+    runs-on: ubuntu-latest
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: Verifies all 'pallet-evm/ethereum' use 'forbid-evm-reentrancy' feature
+        run: ./scripts/check-forbid-evm-reentrancy.sh
+
+  check-rust-fmt:
+    name: "Check with rustfmt"
+    runs-on: ubuntu-latest
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: Format code with rustfmt
+        run: cargo fmt -- --check
+
+  ####### Building and Testing binaries #######
+
+  cargo-clippy:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+      - name: Setup Rust toolchain
+        run: rustup show
+      # Development branch clippy check
+      - name: Clippy (dev)
+        if: github.ref != 'refs/heads/master' && !startsWith(github.ref, 'perm-')
+        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks
+      # Main branch (master, perm-*) clippy check
+      # Disallows: todo
+      - name: Clippy (main)
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'perm-')
+        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks -- -Dclippy::todo
+
+  build:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Cargo build
+        uses: ./.github/workflow-templates/cargo-build
+      - name: Upload runtimes
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: runtimes
+          path: runtimes
+      - name: Upload binary
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: moonbeam
+          path: build
+
+  rust-test:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags"]
+    env:
+      RUSTC_WRAPPER: "sccache"
+      CARGO_INCREMENTAL: "0"
+      SCCACHE_CACHE_SIZE: "100GB"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.3
+      - name: Setup Variables
+        shell: bash
+        run: |
+          echo "RUSTFLAGS=-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
+      - name: Setup Mold Linker
+        shell: bash
+        run: |
+          mkdir -p mold
+          curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v1.1.1/mold-1.1.1-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: |
+          if ! which "rustup" > /dev/null; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          fi
+          rustup show
+          rustup target add wasm32-unknown-unknown
+      # Checks are run after uploading artifacts since they are modified by the tests
+      - name: Unit tests
+        run: |
+          cargo test --profile testnet --all --features=evm-tracing,runtime-benchmarks
+      - name: Run sccache stat for check pre test
+        run: ${SCCACHE_PATH} --show-stats
+
+  dev-test:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags", "build"]
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        chain: ["moonbase", "moonbeam"]
+    env:
+      GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+      DEBUG_COLORS: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - run: |
+          mkdir -p target/release
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeam
+          path: target/release
+      - name: "Run Moonwall Dev Tests"
+        uses: ./.github/workflow-templates/dev-tests
+        with:
+          moonwall_environment: dev_${{ matrix.chain }}
+      - name: Upload HTML report to s3
+        if: ${{ !github.event.pull_request.head.repo.fork}}
+        uses: mario-sangar/upload-s3-action@master
+        id: S3
+        with:
+          aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
+          aws_secret_access_key: ${{ secrets.S3_COVERAGE_KEY }}
+          aws_bucket: ${{ vars.S3_COVERAGE_BUCKET }}
+          destination_dir: "${{ needs.set-tags.outputs.test_s3_dir }}"
+          source_dir: "test/html"
+          acl: "none"
+      # - name: Upload to Moonscope
+      #   if: github.event.pull_request.head.repo.full_name == github.repository
+      #   run: |
+      #     curl --location 'https://api.moonscope.kaki.dev/insert' \
+      #     -X POST \
+      #     --header 'moonwallenv: dev_${{ matrix.chain }}' \
+      #     --header 'Authorization: Bearer ${{ secrets.MOONSCOPE_TOKEN }}' \
+      #     --header 'table: dev_reports' \
+      #     --header 'branch: ${{ needs.set-tags.outputs.git_branch }}' \
+      #     --header 'Content-Type: application/json' \
+      #     --max-time 30 \
+      #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
+
+  typescript-tracing-tests:
+    if: >
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags", "build"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeam
+          path: build
+      - name: Use pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.6.12
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.10.0
+          cache: "pnpm"
+          cache-dependency-path: test/pnpm-lock.yaml
+      - run: |
+          mkdir -p target/release
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeam
+          path: target/release
+      - name: Get tracing runtimes
+        run: |
+          ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
+          mkdir -p test/moonbase-overrides/
+          mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm test/moonbase-overrides/
+      - name: Preparing the repository
+        run: |
+          chmod uog+x build/moonbeam
+          chmod uog+x target/release/moonbeam
+
+          ####  Preparing the repository
+          cd moonbeam-types-bundle
+          npm ci
+          npm run build
+
+          ####  Preparing the typescript api
+          cd ../typescript-api
+          npm ci
+      - name: Running Tracing Tests
+        env:
+          DEBUG_COLOURS: "1"
+          NODE_OPTIONS: "--max-old-space-size=12288"
+        run: |
+          cd test
+          pnpm install
+          pnpm compile-solidity
+          pnpm moonwall test dev_moonbase_tracing
+
+  docker-moonbeam:
+    runs-on: ubuntu-latest
+    needs: ["set-tags", "build"]
     if: ${{ needs.set-tags.outputs.image_exists == 'false' && !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeam
+          path: build
       - name: Prepare
         id: prep
         run: |
-          echo "image_exists=${{ needs.set-tags.outputs.image_exists == 'false' }}"
-          echo "github.event.pull_request.head.repo.fork=${{ github.event.pull_request.head.repo.fork }}"
+          DOCKER_IMAGE=moonbeamfoundation/moonbeam
+          TAGS="${DOCKER_IMAGE}:sha-${{ needs.set-tags.outputs.sha8 }}"
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2.1.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2.5.0
+        with:
+          version: latest
+          driver-opts: |
+            image=moby/buildkit:master
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.2.0
+        with:
+          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
+      - name: Build and push moonbeam
+        id: docker_build
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./docker/moonbeam.Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.prep.outputs.tags }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.2.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Tag it with purestake for 6 month
+        run: |
+          PURESTAKE_TAG=`echo "${{ steps.prep.outputs.tags }}" | sed 's/moonbeamfoundation/purestake/'`
+          docker pull ${{ steps.prep.outputs.tags }}
+          docker tag ${{ steps.prep.outputs.tags }} $PURESTAKE_TAG
+          docker push $PURESTAKE_TAG
+
+  chopsticks-upgrade-test:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags", "build"]
+    strategy:
+      fail-fast: false
+      matrix:
+        chain: ["moonbase", "moonriver", "moonbeam"]
+    env:
+      GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+      DEBUG_COLORS: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.10.0
+          cache: "pnpm"
+          cache-dependency-path: test/pnpm-lock.yaml
+      - name: Create local folders
+        run: |
+          mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
+          mkdir -p test/tmp/node_logs
+      - name: "Download runtime"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: runtimes
+          path: target/release/wbuild/${{ matrix.chain }}-runtime/
+      - name: "Install and run upgrade test"
+        run: |
+          cd test
+          pnpm install
+      - name: Run Upgrade Test (with retry)
+        uses: nick-fields/retry@v2
+        with:
+          max_attempts: 3
+          timeout_minutes: 2
+          retry_on: error
+          command: |
+            cd test
+            pnpm moonwall test upgrade_${{matrix.chain}}
+
+  zombie_upgrade_test:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags", "build"]
+    strategy:
+      fail-fast: false
+      matrix:
+        ## TODO: add moonriver here when it is ready
+        chain: ["moonbase", "moonbeam"]
+    env:
+      GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+      DEBUG_COLORS: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.10.0
+      - name: Create local folders
+        run: |
+          mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
+          mkdir -p test/tmp
+      - name: "Download branch built runtime"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: runtimes
+          path: target/release/wbuild/${{ matrix.chain }}-runtime/
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: moonbeam
+          path: target/release
+      - name: Retrieve moonbeam binary from docker (for plainSpec generation)
+        run: |
+          MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
+          DOCKER_TAG="moonbeamfoundation/moonbeam:sha-$MOONBEAM_COMMIT"
+
+          docker rm -f moonbeam_container 2> /dev/null | true
+          docker create --name moonbeam_container $DOCKER_TAG bash
+          docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
+          docker rm -f moonbeam_container
+      - name: "TEMPORARY: Download forked polkadot-bins"
+        run: |
+          # When we remove this step, re-add "runScripts": ["download-polkadot.sh"]," to moonwall config
+          cd test/tmp
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot-execute-worker
+          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot-prepare-worker
+
+          chmod +x polkadot
+          chmod +x polkadot-execute-worker
+          chmod +x polkadot-prepare-worker
+      - name: Prepare Chainspecs
+        run: |
+          cd test
+          pnpm install
+
+          ## Generate old spec using latest published node, modify it, and generate raw spec
+          chmod uog+x tmp/moonbeam_rt
+          chmod uog+x ../target/release/moonbeam
+          tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
+          pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json
+          tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
+          pnpm tsx scripts/preapprove-rt-rawspec.ts process tmp/${{ matrix.chain }}-raw-spec.json tmp/${{ matrix.chain }}-modified-raw-spec.json ../target/release/wbuild/${{ matrix.chain }}-runtime/${{ matrix.chain }}_runtime.compact.compressed.wasm
+      - name: "Run zombie upgrade test"
+        run: |
+          cd test
+          pnpm moonwall test zombie_${{ matrix.chain }}
+      - name: "Run zombie RPC test"
+        run: |
+          cd test
+          pnpm moonwall test zombie_${{ matrix.chain }}_rpc
+      - name: Zip and Upload Node Logs on Failure
+        if: failure()
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          export NODE_LOGS_ZIP="node_logs_$TIMESTAMP.zip"
+          MOST_RECENT_ZOMBIE_DIR=$(ls -td /tmp/zombie-* | head -n 1)
+          find $MOST_RECENT_ZOMBIE_DIR -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
+          echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v3.1.2
+        if: failure()
+        with:
+          name: failed-node-logs
+          path: ${{ env.NODE_LOGS_ZIP }}
