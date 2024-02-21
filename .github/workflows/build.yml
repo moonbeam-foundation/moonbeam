@@ -463,7 +463,7 @@ jobs:
   docker-moonbeam:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: ${{ !needs.set-tags.outputs.image_exists && !github.event.pull_request.head.repo.fork }}
+    if: ${{ needs.set-tags.outputs.image_exists == 'false' && !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
