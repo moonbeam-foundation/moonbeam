@@ -1444,7 +1444,9 @@ impl pallet_relay_storage_roots::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
 }
 
-impl pallet_precompile_benchmarks::Config for Runtime {}
+impl pallet_precompile_benchmarks::Config for Runtime {
+	type WeightInfo = moonbeam_weights::pallet_precompile_benchmarks::WeightInfo<Runtime>;
+}
 
 construct_runtime! {
 	pub enum Runtime

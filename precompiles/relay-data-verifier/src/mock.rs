@@ -19,22 +19,15 @@
 
 use super::*;
 use cumulus_pallet_parachain_system::{RelayChainState, RelaychainStateProvider};
-use cumulus_primitives_core::relay_chain;
 use frame_support::{
 	construct_runtime, parameter_types, sp_runtime::traits::IdentityLookup, traits::Everything,
 	weights::Weight,
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::Decode;
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{Get, U256};
-use sp_runtime::{
-	traits::{BlakeTwo256, HashingFor},
-	BuildStorage,
-};
-use sp_std::collections::btree_map::BTreeMap;
-use sp_trie::PrefixedMemoryDB;
-use std::{fs::File, io::Write};
+use sp_runtime::{traits::BlakeTwo256, BuildStorage};
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
@@ -236,6 +229,7 @@ pub fn fill_relay_storage_roots<T: pallet_relay_storage_roots::Config>() {
 		pallet_relay_storage_roots::Pallet::<T>::set_relay_storage_root();
 	})
 }
+
 // Storage Root: 767caa877bcea0d34dd515a202b75efa41bffbc9f814ab59e2c1c96716d4c65d
 pub const STORAGE_ROOT: &[u8] = &[
 	118, 124, 170, 135, 123, 206, 160, 211, 77, 213, 21, 162, 2, 183, 94, 250, 65, 191, 251, 201,
@@ -270,85 +264,19 @@ pub const TREASURY_APPROVALS_KEY: &[u8] = &[
 // 0x89d139e01a5eb2256f222e5fc5dbe6b33c9c1284130706f5aea0c8b3d4c54d89
 // at Block Hash:
 // 0x1272470f226fc0e955838262e8dd17a7d7bad6563739cc53a3b1744ddf0ea872
-pub fn mock_raw_proof() -> Vec<Vec<u8>> {
-	Vec::decode(&mut &include_bytes!("../proof").to_vec()[..]).unwrap()
-}
 
 pub fn mocked_read_proof() -> ReadProof {
 	// Mock a storage proof obtained from the relay chain using the
 	// state_getReadProof RPC call, for the following
+	let proof: Vec<Vec<u8>> = Vec::decode(&mut &include_bytes!("../proof").to_vec()[..]).unwrap();
+
 	ReadProof {
 		at: H256::default(),
 		proof: BoundedVec::from(
-			mock_raw_proof()
+			proof
 				.iter()
 				.map(|x| BoundedBytes::from(x.clone()))
 				.collect::<Vec<_>>(),
 		),
 	}
-}
-
-pub fn build_mocked_proof(
-	entries: Vec<(Vec<u8>, Vec<u8>)>,
-	keys: Vec<Vec<u8>>,
-) -> (H256, Vec<Vec<u8>>) {
-	let (db, root) = PrefixedMemoryDB::<HashingFor<relay_chain::Block>>::default_with_root();
-	let state_version = Default::default();
-	let mut backend = sp_state_machine::TrieBackendBuilder::new(db, root).build();
-
-	entries.into_iter().for_each(|(key, value)| {
-		backend.insert(vec![(None, vec![(key, Some(value))])], state_version);
-	});
-
-	let root = *backend.root();
-	let proof = sp_state_machine::prove_read(backend, keys).expect("prove read");
-
-	(root, proof.into_iter_nodes().collect())
-}
-
-// Generate mocked proofs for the benchmarks. The proofs are generated for a set of
-// keys and values, and then stored in a file. The proofs are then used in the benchmarks
-// to simulate the proofs obtained from the relay chain.
-#[test]
-fn test_mocked_storage_proof() {
-	// This set of entries generates proofs with number of nodes in proof increasing by 100 for
-	// each entry (Number of Proof Node, Number of Entries)
-	let entries: Vec<(u32, u32)> = vec![
-		(100, 95),
-		(200, 190),
-		(300, 270),
-		(400, 320),
-		(500, 370),
-		(600, 420),
-		(700, 470),
-		(800, 530),
-		(900, 630),
-		(1000, 730),
-		(1100, 830),
-		(1200, 930),
-		(1300, 1030),
-		(1400, 1130),
-		(1500, 1230),
-		(1600, 1330),
-		(1700, 1430),
-		(1800, 1530),
-		(1900, 1630),
-		(2000, 1730),
-	];
-
-	let mut proofs = BTreeMap::new();
-	entries.into_iter().for_each(|(i, x)| {
-		let keys: Vec<Vec<u8>> = (1..x as u128).into_iter().map(|y| y.encode()).collect();
-		let entries = keys
-			.iter()
-			.enumerate()
-			.map(|(i, key)| (key.clone(), (i as u128).encode()))
-			.collect();
-
-		let (state_root, proof) = build_mocked_proof(entries, keys);
-		proofs.insert(i, (state_root, proof));
-	});
-
-	let mut file = File::create(format!("benchmark_proofs")).unwrap();
-	file.write_all(&proofs.encode()).unwrap();
 }

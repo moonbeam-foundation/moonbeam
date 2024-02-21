@@ -22,18 +22,16 @@ use core::marker::PhantomData;
 use cumulus_primitives_core::relay_chain::BlockNumber as RelayBlockNumber;
 use fp_evm::{PrecompileFailure, PrecompileHandle};
 use frame_support::{ensure, traits::ConstU32};
+use moonbeam_runtime_common::weights::pallet_precompile_benchmarks::WeightInfo;
+use pallet_precompile_benchmarks::WeightInfo as TWeightInfo;
 use precompile_utils::prelude::*;
 use sp_core::H256;
-use sp_std::vec::Vec;
+use storage_proof_primitives::*;
 
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
-
-pub mod proof;
-mod weights;
-use proof::{ProofError, StorageProofChecker};
 
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 pub const ARRAY_LIMIT: u32 = 2048;
@@ -51,7 +49,10 @@ pub struct RelayDataVerifierPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile_utils::precompile]
 impl<Runtime> RelayDataVerifierPrecompile<Runtime>
 where
-	Runtime: frame_system::Config + pallet_relay_storage_roots::Config + pallet_evm::Config,
+	Runtime: frame_system::Config
+		+ pallet_relay_storage_roots::Config
+		+ pallet_evm::Config
+		+ pallet_precompile_benchmarks::Config,
 {
 	/// Verify the storage entry using the provided relay block number and proof. Return the value
 	/// of the storage entry if the proof is valid and the entry exists.
@@ -63,10 +64,14 @@ where
 		proof: ReadProof,
 		key: RawKey,
 	) -> EvmResult<UnboundedBytes> {
-		let weight = weights::WeightInfo::<Runtime>::verify_entry(proof.proof.len() as u32, 1);
+		let weight = WeightInfo::<Runtime>::verify_entry(proof.proof.len() as u32);
 		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
+		// record one db read
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		Self::do_verify_entry(relay_block_number, proof, key)
+		verify_relay_entry::<Runtime>(relay_block_number, proof.to_raw_proof(), key.as_bytes())
+			.map_err(map_err)
+			.map(UnboundedBytes::from)
 	}
 
 	/// Verify the storage entries using the provided relay block number and proof. Return the
@@ -80,20 +85,28 @@ where
 		proof: ReadProof,
 		keys: BoundedVec<RawKey, GetArrayLimit>,
 	) -> EvmResult<BoundedVec<UnboundedBytes, GetArrayLimit>> {
-		let weight = weights::WeightInfo::<Runtime>::verify_entry(
-			proof.proof.len() as u32,
-			keys.len() as u32,
-		);
-		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
+		ensure!(keys.len() > 0, revert("Keys must not be empty"));
 
-		Self::do_verify_entries(relay_block_number, proof, keys)
+		let weight = WeightInfo::<Runtime>::verify_entry(proof.proof.len() as u32);
+		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
+		handle.record_cost(
+			(keys.len() as u64).saturating_mul(RuntimeHelper::<Runtime>::db_read_gas_cost()),
+		)?;
+
+		let keys = Vec::from(keys);
+		let keys: Vec<_> = keys.iter().map(|x| x.as_bytes()).collect();
+
+		verify_relay_entries::<Runtime>(relay_block_number, proof.to_raw_proof(), &keys)
+			.map_err(map_err)
+			.map(|x| x.into_iter().map(UnboundedBytes::from).collect::<Vec<_>>())
+			.map(|x| BoundedVec::from(x))
 	}
 
 	#[precompile::public("latestRelayBlockNumber()")]
 	#[precompile::public("latest_relay_block_number()")]
 	#[precompile::view]
 	fn latest_relay_block(handle: &mut impl PrecompileHandle) -> EvmResult<RelayBlockNumber> {
-		let weight = weights::WeightInfo::<Runtime>::latest_relay_block();
+		let weight = WeightInfo::<Runtime>::latest_relay_block();
 		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
 
 		pallet_relay_storage_roots::RelayStorageRootKeys::<Runtime>::get()
@@ -101,60 +114,14 @@ where
 			.cloned()
 			.ok_or(revert("No relay block found"))
 	}
-
-	/// Returns the storage root at the given relay block number stored on-chain. Use the pallet
-	/// `pallet_relay_storage_roots` to store the storage roots on-chain.
-	fn get_storage_root(relay_block_number: RelayBlockNumber) -> EvmResult<H256> {
-		let storage_root =
-			pallet_relay_storage_roots::RelayStorageRoot::<Runtime>::get(relay_block_number)
-				.ok_or(revert(
-					"Storage root is not stored on chain for the given relay block number",
-				))?;
-
-		Ok(storage_root)
-	}
-
-	pub fn do_verify_entry(
-		relay_block_number: RelayBlockNumber,
-		proof: ReadProof,
-		key: RawKey,
-	) -> EvmResult<UnboundedBytes> {
-		let storage_root = Self::get_storage_root(relay_block_number)?;
-		let proof_checker = StorageProofChecker::new(storage_root, proof.to_raw_proof())?;
-
-		let value = proof_checker.read_entry(key.as_bytes())?;
-
-		Ok(value.into())
-	}
-
-	pub fn do_verify_entries(
-		relay_block_number: RelayBlockNumber,
-		proof: ReadProof,
-		keys: BoundedVec<RawKey, GetArrayLimit>,
-	) -> EvmResult<BoundedVec<UnboundedBytes, GetArrayLimit>> {
-		let keys = Vec::from(keys);
-		ensure!(!keys.is_empty(), revert("Keys must not be empty"));
-
-		let storage_root = Self::get_storage_root(relay_block_number)?;
-		let proof_checker = StorageProofChecker::new(storage_root, proof.to_raw_proof())?;
-
-		let mut values = Vec::new();
-		for key in keys {
-			let value: Vec<u8> = proof_checker.read_entry(key.as_bytes())?;
-			values.push(value.into());
-		}
-
-		Ok(values.into())
-	}
 }
 
-impl From<ProofError> for PrecompileFailure {
-	fn from(err: ProofError) -> Self {
-		match err {
-			ProofError::RootMismatch => revert("Root Mismatch"),
-			ProofError::Proof => revert("Invalid Proof"),
-			ProofError::Absent => revert("Value is not present"),
-		}
+fn map_err(err: ProofError) -> PrecompileFailure {
+	match err {
+		ProofError::RootMismatch => revert("Root Mismatch"),
+		ProofError::Proof => revert("Invalid Proof"),
+		ProofError::Absent => revert("Value is not present"),
+		ProofError::BlockNumberNotPresent => revert("Block number not present"),
 	}
 }
 

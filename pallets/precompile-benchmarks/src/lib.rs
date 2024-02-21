@@ -22,19 +22,22 @@
 use cumulus_primitives_core::relay_chain::BlockNumber as RelayBlockNumber;
 use frame_support::pallet;
 pub use pallet::*;
-use pallet_evm_precompile_relay_verifier::{RawKey, ReadProof, RelayDataVerifierPrecompile};
-
+use storage_proof_primitives::verify_relay_entry;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks;
 
+pub mod weights;
+pub use crate::weights::WeightInfo;
+
 #[pallet]
 pub mod pallet {
+	use storage_proof_primitives::RawStorageProof;
+
 	use super::*;
 
 	#[pallet::config]
-	pub trait Config:
-		frame_system::Config + pallet_relay_storage_roots::Config + pallet_evm::Config
-	{
+	pub trait Config: frame_system::Config + pallet_relay_storage_roots::Config {
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::pallet]
@@ -49,10 +52,10 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		pub fn verify(
 			relay_block_number: RelayBlockNumber,
-			proof: ReadProof,
-			key: RawKey,
+			proof: RawStorageProof,
+			key: &[u8],
 		) -> Result<(), Error<T>> {
-			RelayDataVerifierPrecompile::<T>::do_verify_entry(relay_block_number, proof, key)
+			verify_relay_entry::<T>(relay_block_number, proof, key)
 				.map_err(|_| Error::<T>::BenchmarkError)?;
 			Ok(())
 		}

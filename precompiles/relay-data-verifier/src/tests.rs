@@ -124,10 +124,7 @@ fn test_block_not_found() {
 				)
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_reverts(|output| {
-					output
-						== b"Storage root is not stored on chain for the given relay block number"
-				});
+				.execute_reverts(|output| output == b"Block number not present");
 
 			precompiles()
 				.prepare_test(
@@ -141,10 +138,7 @@ fn test_block_not_found() {
 				)
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_reverts(|output| {
-					output
-						== b"Storage root is not stored on chain for the given relay block number"
-				});
+				.execute_reverts(|output| output == b"Block number not present");
 		});
 }
 

@@ -20,11 +20,9 @@
 use crate::{Config, Pallet};
 use frame_benchmarking::benchmarks;
 use frame_support::{traits::Get, BoundedVec};
-use pallet_evm_precompile_relay_verifier::ReadProof;
 use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 use sp_std::collections::btree_map::BTreeMap;
-use sp_std::vec::Vec;
 
 fn fill_relay_storage_roots<T: Config>() -> Vec<u32> {
 	// Initialize keys BoundedVec for RelayStorageRoots
@@ -52,21 +50,15 @@ benchmarks! {
 		// if x is not multiple of 100, we will use the proof for the closest multiple of 100
 		let x = (x / 100) * 100;
 		let (state_root, mocked_proof) =
-			mocked_proofs.get(&x).expect("Not Found");
+			mocked_proofs.get(&x).expect("Not Found").clone();
 
 		// Set the state root for the relay block in the relay storage roots pallet
 		let relay_block = 10;
 		pallet_relay_storage_roots::RelayStorageRoot::<T>::insert(relay_block, state_root);
 
-		// Create a read proof with the mocked proof
-		let read_proof = ReadProof {
-			at: H256::default(),
-			proof: mocked_proof.into_iter().map(|x| x.clone().into()).collect::<Vec<_>>().into(),
-		};
-
 		let key = 2u128.encode();
 	}:{
-		Pallet::<T>::verify(relay_block, read_proof, key.into())
+		Pallet::<T>::verify(relay_block, mocked_proof, &key)
 			.expect("Should verify the entry without error.");
 	}
 

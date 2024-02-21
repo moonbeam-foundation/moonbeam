@@ -7097,6 +7097,7 @@ dependencies = [
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
+ "pallet-precompile-benchmarks",
  "pallet-preimage",
  "pallet-proxy",
  "pallet-randomness",
@@ -9250,8 +9251,10 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hex",
+ "moonbeam-runtime-common",
  "pallet-balances",
  "pallet-evm",
+ "pallet-precompile-benchmarks",
  "pallet-relay-storage-roots",
  "pallet-timestamp",
  "parity-scale-codec",
@@ -9260,9 +9263,8 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-state-machine",
  "sp-std",
- "sp-trie",
+ "storage-proof-primitives",
 ]
 
 [[package]]
@@ -9788,13 +9790,12 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "pallet-evm",
- "pallet-evm-precompile-relay-verifier",
  "pallet-relay-storage-roots",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
  "sp-std",
+ "storage-proof-primitives",
 ]
 
 [[package]]
@@ -15798,6 +15799,22 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "storage-proof-primitives"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "hex",
+ "pallet-relay-storage-roots",
+ "parity-scale-codec",
+ "sp-core",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
