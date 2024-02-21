@@ -319,7 +319,6 @@ pub(crate) fn roll_to(n: BlockNumber) {
 	// We may be able to simulate this by poking its storage directly, but I don't see any value
 	// added from doing that.
 	while System::block_number() < n {
-		CouncilCollective::on_finalize(System::block_number());
 		Treasury::on_finalize(System::block_number());
 		// Times tamp::on_finalize(System::block_number());
 		Evm::on_finalize(System::block_number());
@@ -333,7 +332,6 @@ pub(crate) fn roll_to(n: BlockNumber) {
 		Evm::on_initialize(System::block_number());
 		Timestamp::on_initialize(System::block_number());
 		Treasury::on_initialize(System::block_number());
-		CouncilCollective::on_initialize(System::block_number());
 	}
 }
 

@@ -24,9 +24,9 @@ use frame_support::ensure;
 #[cfg(feature = "try-runtime")]
 use frame_support::migration::get_storage_value;
 use frame_support::{
-	pallet_prelude::GetStorageVersion,
+	parameter_types,
 	sp_runtime::traits::{Block as BlockT, Header as HeaderT},
-	traits::PalletInfoAccess,
+	traits::OnRuntimeUpgrade,
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -178,21 +178,67 @@ where
 	}
 }
 
-pub struct CommonMigrations<Runtime, Council, Tech, Treasury, OpenTech>(
-	PhantomData<(Runtime, Council, Tech, Treasury, OpenTech)>,
-);
+parameter_types! {
+	pub const CouncilPalletName: &'static str = "Council";
+	pub const TechnicalCommitteePalletName: &'static str = "TechnicalCommittee";
+}
 
-impl<Runtime, Council, Tech, Treasury, OpenTech> GetMigrations
-	for CommonMigrations<Runtime, Council, Tech, Treasury, OpenTech>
+pub struct PalletCollectiveDropGovV1Collectives<Runtime>(pub PhantomData<Runtime>);
+impl<Runtime> Migration for PalletCollectiveDropGovV1Collectives<Runtime>
+where
+	Runtime: frame_system::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_RemoveGovV1Collectives"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		log::info!("Removing Council and Tech from pallet_collective");
+
+		let mut weight = Weight::zero();
+
+		let w = frame_support::migrations::RemovePallet::<
+			CouncilPalletName,
+			<Runtime as frame_system::Config>::DbWeight,
+		>::on_runtime_upgrade();
+		weight = weight.saturating_add(w);
+
+		let w = frame_support::migrations::RemovePallet::<
+			TechnicalCommitteePalletName,
+			<Runtime as frame_system::Config>::DbWeight,
+		>::on_runtime_upgrade();
+		weight = weight.saturating_add(w);
+		weight
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		frame_support::migrations::RemovePallet::<
+			TechnicalCommitteePalletName,
+			<Runtime as frame_system::Config>::DbWeight,
+		>::pre_upgrade();
+
+		Ok(vec![])
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		frame_support::migrations::RemovePallet::<
+			TechnicalCommitteePalletName,
+			<Runtime as frame_system::Config>::DbWeight,
+		>::post_upgrade(_state);
+		Ok(())
+	}
+}
+
+pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
+
+impl<Runtime> GetMigrations for CommonMigrations<Runtime>
 where
 	Runtime: pallet_author_mapping::Config,
 	Runtime: pallet_parachain_staking::Config,
 	Runtime: pallet_scheduler::Config,
 	Runtime: AuthorSlotFilterConfig,
-	Council: GetStorageVersion + PalletInfoAccess + 'static,
-	Tech: GetStorageVersion + PalletInfoAccess + 'static,
-	Treasury: GetStorageVersion + PalletInfoAccess + 'static,
-	OpenTech: GetStorageVersion + PalletInfoAccess + 'static,
 	Runtime: pallet_democracy::Config,
 	Runtime: pallet_preimage::Config,
 	Runtime: pallet_asset_manager::Config,
@@ -269,13 +315,13 @@ where
 		//	PalletXcmTransactorMigrateXcmV2ToV3::<Runtime>(Default::default());
 		//let remove_min_bond_for_old_orbiter_collators =
 		//	RemoveMinBondForOrbiterCollators::<Runtime>(Default::default());
-
-		// RT2700
 		// let missing_balances_migrations = MissingBalancesMigrations::<Runtime>(Default::default());
 		// let fix_pallet_versions =
 		// 	FixIncorrectPalletVersions::<Runtime, Treasury, OpenTech>(Default::default());
 		// let pallet_referenda_migrate_v0_to_v1 =
 		// 	PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
+		let pallet_collective_drop_gov_v1_collectives =
+			PalletCollectiveDropGovV1Collectives::<Runtime>(Default::default());
 
 		vec![
 			// completed in runtime 800
@@ -330,6 +376,8 @@ where
 			// Box::new(missing_balances_migrations),
 			// Box::new(fix_pallet_versions),
 			// Box::new(pallet_referenda_migrate_v0_to_v1),
+			// completed in runtime 2800
+			Box::new(pallet_collective_drop_gov_v1_collectives),
 		]
 	}
 }

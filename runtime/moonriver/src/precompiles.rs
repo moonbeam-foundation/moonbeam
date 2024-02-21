@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, CouncilInstance,
-	OpenTechCommitteeInstance, TechCommitteeInstance, TreasuryCouncilInstance,
+	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
+	TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
@@ -188,16 +188,8 @@ type MoonriverPrecompilesAt<R> = (
 		XcmTransactorPrecompileV2<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
-	PrecompileAt<
-		AddressU64<2062>,
-		CollectivePrecompile<R, CouncilInstance>,
-		(CallableByContract, CallableByPrecompile),
-	>,
-	PrecompileAt<
-		AddressU64<2063>,
-		CollectivePrecompile<R, TechCommitteeInstance>,
-		(CallableByContract, CallableByPrecompile),
-	>,
+	RemovedPrecompileAt<AddressU64<2062>>, //CouncilInstance
+	RemovedPrecompileAt<AddressU64<2063>>, // TechCommitteeInstance
 	PrecompileAt<
 		AddressU64<2064>,
 		CollectivePrecompile<R, TreasuryCouncilInstance>,

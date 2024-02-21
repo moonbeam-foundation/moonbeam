@@ -26,12 +26,12 @@ use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EligibilityValue,
-	EthereumChainIdConfig, EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig,
+	CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig,
+	EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig,
 	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
 	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig, SystemConfig,
-	TechCommitteeCollectiveConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
-	XcmTransactorConfig, HOURS, WASM_BINARY,
+	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
+	WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
@@ -69,14 +69,10 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 			testnet_genesis(
 				// Alith is Sudo
 				accounts[0],
-				// Council members: Baltathar, Charleth and Dorothy
-				vec![accounts[1], accounts[2], accounts[3]],
-				// Tech comitee members: Alith and Baltathar
-				vec![accounts[0], accounts[1]],
 				// Treasury Council members: Baltathar, Charleth and Dorothy
 				vec![accounts[1], accounts[2], accounts[3]],
-				// Open Tech committee members: Alith and Baltathar
-				vec![accounts[0], accounts[1]],
+				// Open Tech committee members: Alith, Baltathar and Charleth
+				vec![accounts[0], accounts[1], accounts[2]],
 				// Collator Candidate: Alice -> Alith
 				vec![(
 					accounts[0],
@@ -128,17 +124,6 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 			testnet_genesis(
 				// Alith is Sudo
 				AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-				// Council members: Baltathar, Charleth and Dorothy
-				vec![
-					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
-					AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
-				],
-				// Tech comitee members: Alith and Baltathar
-				vec![
-					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-				],
 				// Treasury Council members: Baltathar, Charleth and Dorothy
 				vec![
 					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
@@ -236,8 +221,6 @@ pub fn moonbase_inflation_config() -> InflationInfo<Balance> {
 
 pub fn testnet_genesis(
 	root_key: AccountId,
-	council_members: Vec<AccountId>,
-	tech_comittee_members: Vec<AccountId>,
 	treasury_council_members: Vec<AccountId>,
 	open_tech_committee_members: Vec<AccountId>,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
@@ -315,14 +298,6 @@ pub fn testnet_genesis(
 			parachain_bond_reserve_percent: PARACHAIN_BOND_RESERVE_PERCENT,
 			blocks_per_round: BLOCKS_PER_ROUND,
 			num_selected_candidates: NUM_SELECTED_CANDIDATES,
-		},
-		council_collective: CouncilCollectiveConfig {
-			phantom: Default::default(),
-			members: council_members,
-		},
-		tech_committee_collective: TechCommitteeCollectiveConfig {
-			phantom: Default::default(),
-			members: tech_comittee_members,
 		},
 		treasury_council_collective: TreasuryCouncilCollectiveConfig {
 			phantom: Default::default(),

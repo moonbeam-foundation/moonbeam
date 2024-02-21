@@ -2,12 +2,14 @@ import "@moonbeam-network/api-augment";
 import {
   beforeAll,
   describeSuite,
-  execCouncilProposal,
   execTechnicalCommitteeProposal,
   expect,
   notePreimage,
 } from "@moonwall/cli";
 import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/util";
+import { executeExtViaOpenTechCommittee } from "../../../../helpers";
+
+const disableTest = true;
 
 describeSuite({
   id: "D013179",
@@ -17,6 +19,9 @@ describeSuite({
     const randomAccount = generateKeyringPair();
 
     beforeAll(async function () {
+      log(`Disabled test D013179 (Gov V1)`);
+      return;
+
       await context.createBlock(
         context
           .polkadotJs()
@@ -36,7 +41,7 @@ describeSuite({
         .polkadotJs()
         .tx.parachainStaking.setParachainBondAccount(alith.address);
       const proposalHash = await notePreimage(context, proposal, alith);
-      await execCouncilProposal(
+      await executeExtViaOpenTechCommittee(
         context,
         context.polkadotJs().tx.democracy.externalProposeMajority({
           LookUp: {
@@ -55,6 +60,8 @@ describeSuite({
       id: "T01",
       title: "should be usable for democracy vote",
       test: async function () {
+        log(`Disabled test D013179 (Gov V1)`);
+        return;
         const { result } = await context.createBlock(
           context
             .polkadotJs()

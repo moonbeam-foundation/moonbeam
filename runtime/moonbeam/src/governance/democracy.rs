@@ -35,33 +35,33 @@ impl pallet_democracy::Config for Runtime {
 	type MinimumDeposit = ConstU128<{ 4 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	/// To decide what their next motion is.
 	type ExternalOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 1, 2>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 3, 5>;
 	/// To have the next scheduled referendum be a straight majority-carries vote.
 	type ExternalMajorityOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 3, 5>;
 	/// To have the next scheduled referendum be a straight default-carries (NTB) vote.
 	type ExternalDefaultOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 3, 5>;
 	/// To allow a shorter voting/enactment period for external proposals.
 	type FastTrackOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 1, 2>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 3, 5>;
 	/// To instant fast track.
 	type InstantOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 3, 5>;
 	// To cancel a proposal which has been passed.
 	type CancellationOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 3, 5>,
 	>;
 	// To cancel a proposal before it has been passed.
 	type CancelProposalOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 3, 5>,
 	>;
 	type BlacklistOrigin = EnsureRoot<AccountId>;
 	// Any single technical committee member may veto a coming council proposal, however they can
 	// only do it once and it lasts only for the cooloff period.
-	type VetoOrigin = pallet_collective::EnsureMember<AccountId, TechCommitteeInstance>;
+	type VetoOrigin = pallet_collective::EnsureMember<AccountId, OpenTechCommitteeInstance>;
 	type CooloffPeriod = ConstU32<{ 7 * DAYS }>;
 	type Slash = ();
 	type InstantAllowed = ConstBool<true>;

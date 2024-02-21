@@ -17,6 +17,8 @@ describeSuite({
       id: "T01",
       title: "should be able to initialize through democracy",
       test: async function () {
+        log(`Disabled test D010805 (Gov V1)`);
+        return;
         const calls: any[] = [];
         // We are gonna put the initialization and completion in a batch_all utility call
         calls.push(

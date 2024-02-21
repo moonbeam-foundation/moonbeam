@@ -36,10 +36,10 @@ use moonbeam_runtime::{
 	asset_config::ForeignAssetInstance,
 	currency::GLMR,
 	xcm_config::{CurrencyId, SelfReserve},
-	AccountId, Balances, CouncilCollective, CrowdloanRewards, OpenTechCommitteeCollective,
-	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
-	RuntimeEvent, System, TechCommitteeCollective, TransactionPayment, TreasuryCouncilCollective,
-	XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	AccountId, Balances, CrowdloanRewards, OpenTechCommitteeCollective, ParachainStaking,
+	PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
+	TransactionPayment, TreasuryCouncilCollective, XTokens, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
@@ -130,8 +130,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::ParachainStaking>("ParachainStaking");
 	is_pallet_prefix::<moonbeam_runtime::Scheduler>("Scheduler");
 	is_pallet_prefix::<moonbeam_runtime::Democracy>("Democracy");
-	is_pallet_prefix::<moonbeam_runtime::CouncilCollective>("CouncilCollective");
-	is_pallet_prefix::<moonbeam_runtime::TechCommitteeCollective>("TechCommitteeCollective");
 	is_pallet_prefix::<moonbeam_runtime::OpenTechCommitteeCollective>(
 		"OpenTechCommitteeCollective",
 	);
@@ -268,18 +266,6 @@ fn verify_pallet_prefixes() {
 #[test]
 fn test_collectives_storage_item_prefixes() {
 	for StorageInfo { pallet_name, .. } in
-		<moonbeam_runtime::CouncilCollective as StorageInfoTrait>::storage_info()
-	{
-		assert_eq!(pallet_name, b"CouncilCollective".to_vec());
-	}
-
-	for StorageInfo { pallet_name, .. } in
-		<moonbeam_runtime::TechCommitteeCollective as StorageInfoTrait>::storage_info()
-	{
-		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
-	}
-
-	for StorageInfo { pallet_name, .. } in
 		<moonbeam_runtime::TreasuryCouncilCollective as StorageInfoTrait>::storage_info()
 	{
 		assert_eq!(pallet_name, b"TreasuryCouncilCollective".to_vec());
@@ -295,20 +281,6 @@ fn test_collectives_storage_item_prefixes() {
 #[test]
 fn collective_set_members_root_origin_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		// CouncilCollective
-		assert_ok!(CouncilCollective::set_members(
-			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
-			vec![AccountId::from(ALICE), AccountId::from(BOB)],
-			Some(AccountId::from(ALICE)),
-			2
-		));
-		// TechCommitteeCollective
-		assert_ok!(TechCommitteeCollective::set_members(
-			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
-			vec![AccountId::from(ALICE), AccountId::from(BOB)],
-			Some(AccountId::from(ALICE)),
-			2
-		));
 		// TreasuryCouncilCollective
 		assert_ok!(TreasuryCouncilCollective::set_members(
 			<Runtime as frame_system::Config>::RuntimeOrigin::root(),
@@ -336,32 +308,6 @@ fn collective_set_members_general_admin_origin_works() {
 		let root_caller = <Runtime as frame_system::Config>::RuntimeOrigin::root();
 		let alice = AccountId::from(ALICE);
 
-		// CouncilCollective
-		let _ = Utility::dispatch_as(
-			root_caller.clone(),
-			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
-			Box::new(
-				pallet_collective::Call::<Runtime, pallet_collective::Instance1>::set_members {
-					new_members: vec![alice, AccountId::from(BOB)],
-					prime: Some(alice),
-					old_count: 2,
-				}
-				.into(),
-			),
-		);
-		// TechCommitteeCollective
-		let _ = Utility::dispatch_as(
-			root_caller.clone(),
-			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
-			Box::new(
-				pallet_collective::Call::<Runtime, pallet_collective::Instance2>::set_members {
-					new_members: vec![alice, AccountId::from(BOB)],
-					prime: Some(alice),
-					old_count: 2,
-				}
-				.into(),
-			),
-		);
 		// TreasuryCouncilCollective
 		let _ = Utility::dispatch_as(
 			root_caller.clone(),
@@ -404,7 +350,7 @@ fn collective_set_members_general_admin_origin_works() {
 				})
 				.collect::<Vec<_>>()
 				.len(),
-			4
+			2
 		)
 	});
 }
@@ -413,22 +359,6 @@ fn collective_set_members_general_admin_origin_works() {
 fn collective_set_members_signed_origin_does_not_work() {
 	let alice = AccountId::from(ALICE);
 	ExtBuilder::default().build().execute_with(|| {
-		// CouncilCollective
-		assert!(CouncilCollective::set_members(
-			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
-			vec![alice, AccountId::from(BOB)],
-			Some(alice),
-			2
-		)
-		.is_err());
-		// TechCommitteeCollective
-		assert!(TechCommitteeCollective::set_members(
-			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
-			vec![AccountId::from(ALICE), AccountId::from(BOB)],
-			Some(AccountId::from(ALICE)),
-			2
-		)
-		.is_err());
 		// TreasuryCouncilCollective
 		assert!(TreasuryCouncilCollective::set_members(
 			<Runtime as frame_system::Config>::RuntimeOrigin::signed(alice),
@@ -487,8 +417,8 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Scheduler>(60);
 	is_pallet_index::<moonbeam_runtime::Democracy>(61);
 	// Council
-	is_pallet_index::<moonbeam_runtime::CouncilCollective>(70);
-	is_pallet_index::<moonbeam_runtime::TechCommitteeCollective>(71);
+	// is_pallet_index::<moonbeam_runtime::CouncilCollective>(70); Removed
+	// is_pallet_index::<moonbeam_runtime::TechCommitteeCollective>(71); Removed
 	is_pallet_index::<moonbeam_runtime::TreasuryCouncilCollective>(72);
 	is_pallet_index::<moonbeam_runtime::OpenTechCommitteeCollective>(73);
 	// Treasury
@@ -2554,7 +2484,7 @@ fn precompile_existence() {
 fn removed_precompiles() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
-		let removed_precompiles = [1025];
+		let removed_precompiles = [1025, 2062, 2063];
 
 		for i in 1..3000 {
 			let address = H160::from_low_u64_be(i);

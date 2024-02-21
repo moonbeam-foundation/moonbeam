@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, execTechnicalCommitteeProposal, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -12,7 +12,7 @@ import {
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { hexToU8a } from "@polkadot/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { mockAssetBalance } from "../../../../helpers";
+import { executeExtViaOpenTechCommittee, mockAssetBalance } from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
@@ -25,7 +25,7 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     beforeAll(async () => {
-      await execTechnicalCommitteeProposal(
+      await executeExtViaOpenTechCommittee(
         context,
         context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode()
       );
@@ -34,7 +34,7 @@ describeSuite({
     it({
       id: "T01",
       title: "should forbid transferring tokens",
-      test: async function () {
+      test: async () => {
         await context.createBlock(await createRawTransfer(context, CHARLETH_ADDRESS, 512));
         expect(
           async () =>
@@ -48,7 +48,7 @@ describeSuite({
     it({
       id: "T02",
       title: "should allow EVM extrinsic from sudo",
-      test: async function () {
+      test: async () => {
         const randomAccount = privateKeyToAccount(generatePrivateKey());
         const { result } = await context.createBlock(
           context
@@ -69,7 +69,7 @@ describeSuite({
                 )
             )
         );
-        expect(result!.successful).to.be.true;
+        expect(result?.successful).to.be.true;
         expect(await context.viem().getBalance({ address: randomAccount.address })).to.equal(
           100n * GLMR
         );

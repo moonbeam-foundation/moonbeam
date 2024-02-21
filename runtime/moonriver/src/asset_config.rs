@@ -19,7 +19,7 @@
 
 use super::{
 	currency, governance, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances,
-	CouncilInstance, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
+	OpenTechCommitteeInstance, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
@@ -68,14 +68,9 @@ parameter_types! {
 	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
 }
 
-/// We allow root and Chain council to execute privileged asset operations.
-pub type AssetsForceOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
-		governance::custom_origins::GeneralAdmin,
-	>,
->;
+/// We allow Root and General Admin to execute privileged asset operations.
+pub type AssetsForceOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 // Required for runtime benchmarks
 pallet_assets::runtime_benchmarks_enabled! {
@@ -194,17 +189,12 @@ pub struct AssetRegistrarMetadata {
 pub type ForeignAssetModifierOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
 		governance::custom_origins::GeneralAdmin,
 	>,
 >;
-pub type LocalAssetModifierOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
-		governance::custom_origins::GeneralAdmin,
-	>,
->;
+pub type LocalAssetModifierOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_asset_manager::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;

@@ -593,20 +593,10 @@ impl pallet_treasury::Config for Runtime {
 	type BenchmarkHelper = BenchmarkHelper;
 }
 
-type IdentityForceOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
-		governance::custom_origins::GeneralAdmin,
-	>,
->;
-type IdentityRegistrarOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
-		governance::custom_origins::GeneralAdmin,
-	>,
->;
+type IdentityForceOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+type IdentityRegistrarOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_identity::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -905,8 +895,6 @@ fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bo
 	matches!(
 		precompile_name,
 		PrecompileName::DemocracyPrecompile
-			| PrecompileName::CouncilInstance
-			| PrecompileName::TechCommitteeInstance
 			| PrecompileName::TreasuryCouncilInstance
 			| PrecompileName::PreimagePrecompile
 			| PrecompileName::ReferendaPrecompile
@@ -1022,9 +1010,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						| RuntimeCall::Referenda(..)
 						| RuntimeCall::Preimage(..)
 						| RuntimeCall::ConvictionVoting(..)
-						| RuntimeCall::CouncilCollective(..)
 						| RuntimeCall::TreasuryCouncilCollective(..)
-						| RuntimeCall::TechCommitteeCollective(..)
 						| RuntimeCall::OpenTechCommitteeCollective(..)
 						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
@@ -1040,9 +1026,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 					| RuntimeCall::Referenda(..)
 					| RuntimeCall::Preimage(..)
 					| RuntimeCall::ConvictionVoting(..)
-					| RuntimeCall::CouncilCollective(..)
 					| RuntimeCall::TreasuryCouncilCollective(..)
-					| RuntimeCall::TechCommitteeCollective(..)
 					| RuntimeCall::OpenTechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
@@ -1120,13 +1104,7 @@ where
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MigrationsList = (
-		moonbeam_runtime_common::migrations::CommonMigrations<
-			Runtime,
-			CouncilCollective,
-			TechCommitteeCollective,
-			TreasuryCouncilCollective,
-			OpenTechCommitteeCollective,
-		>,
+		moonbeam_runtime_common::migrations::CommonMigrations<Runtime>,
 		ParachainStakingRoundMigration<Runtime>,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
@@ -1301,7 +1279,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type NormalCallFilter = NormalFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 2, 3>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
 	type XcmExecutionManager = XcmExecutionManager;
 	type NormalDmpHandler = NormalDmpHandler;
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
@@ -1468,10 +1446,8 @@ construct_runtime! {
 		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 66,
 
 		// Council stuff.
-		CouncilCollective:
-			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 70,
-		TechCommitteeCollective:
-			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 71,
+		// CouncilCollective: 70
+		// TechCommitteeCollective: 71,
 		TreasuryCouncilCollective:
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 72,
 		OpenTechCommitteeCollective:
@@ -1515,7 +1491,6 @@ mod benches {
 		[pallet_balances, Balances]
 		[pallet_evm, EVM]
 		[pallet_assets, Assets]
-		[pallet_collective, CouncilCollective]
 		[pallet_parachain_staking, ParachainStaking]
 		[pallet_scheduler, Scheduler]
 		[pallet_democracy, Democracy]

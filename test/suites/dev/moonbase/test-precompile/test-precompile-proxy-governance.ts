@@ -28,6 +28,9 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeAll(async () => {
+      log(`Disabled test D012761 (Gov V1)`);
+      return;
+
       await execCouncilProposal(
         context,
         context.polkadotJs().tx.democracy.externalProposeMajority({
@@ -48,6 +51,8 @@ describeSuite({
       id: "T01",
       title: "should be able to vote on behalf of the delegate account",
       test: async function () {
+        log(`Disabled test D012761 (Gov V1)`);
+        return;
         // Verify that one referundum is triggered
         const referendumCount = await context.polkadotJs().query.democracy.referendumCount();
         expect(referendumCount.toBigInt()).to.equal(1n);
