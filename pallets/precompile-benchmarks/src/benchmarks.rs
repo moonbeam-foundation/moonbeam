@@ -67,6 +67,11 @@ benchmarks! {
 	}:{
 		Pallet::<T>::verify(relay_block, read_proof, key.into())
 			.expect("Should verify the entry without error.");
+	}verify {
+		// dummy check for clippy warning
+		assert!(
+			Pallet::<T>::latest_relay_block().is_ok(),
+		);
 	}
 
 	latest_relay_block {
