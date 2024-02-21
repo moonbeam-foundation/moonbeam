@@ -28,6 +28,7 @@ RelayDataVerifier constant RELAY_DATA_VERIFIER_CONTRACT = RelayDataVerifier(
 interface RelayDataVerifier {
     /// @dev ReadProof struct returned by the `state_getReadProof` RPC method.
     struct ReadProof {
+        // The block hash against which the proof is generated
         bytes32 at;
         /// The storage proof
         bytes[] proof;
