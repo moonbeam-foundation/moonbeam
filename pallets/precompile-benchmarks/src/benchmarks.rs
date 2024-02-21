@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg(feature = "runtime-benchmarks")]
+#![allow(clippy::no_effect)]
 
 use crate::{Config, Pallet};
 use frame_benchmarking::benchmarks;
@@ -67,11 +68,6 @@ benchmarks! {
 	}:{
 		Pallet::<T>::verify(relay_block, read_proof, key.into())
 			.expect("Should verify the entry without error.");
-	}verify {
-		// dummy check for clippy warning
-		assert!(
-			Pallet::<T>::latest_relay_block().is_ok(),
-		);
 	}
 
 	latest_relay_block {
