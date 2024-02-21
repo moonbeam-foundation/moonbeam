@@ -127,5 +127,5 @@ jobs:
         id: prep
         run: |
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
-          echo "image_exists=${{ needs.set-tags.outputs.image_exists == false }}"
+          echo "image_exists=${{ needs.set-tags.outputs.image_exists == 'false' }}"
           echo "github.event.pull_request.head.repo.fork=${{ github.event.pull_request.head.repo.fork }}"
