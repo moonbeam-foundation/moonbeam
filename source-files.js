@@ -1,4 +1,4 @@
-var srcIndex = JSON.parse('{\
+var sourcesIndex = JSON.parse('{\
 "account":["",[],["lib.rs"]],\
 "evm_tracing_events":["",[],["evm.rs","gasometer.rs","lib.rs","runtime.rs"]],\
 "manual_xcm_rpc":["",[],["lib.rs"]],\
@@ -63,4 +63,4 @@ var srcIndex = JSON.parse('{\
 "summarize_precompile_checks":["",[],["main.rs"]],\
 "xcm_primitives":["",[],["asset_id_conversions.rs","constants.rs","ethereum_xcm.rs","fee_handlers.rs","filter_asset_max_fee.rs","lib.rs","origin_conversion.rs","transactor_traits.rs"]]\
 }');
-createSrcSidebar();
+createSourceSidebar();
