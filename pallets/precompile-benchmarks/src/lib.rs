@@ -19,15 +19,16 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use cumulus_primitives_core::relay_chain::BlockNumber as RelayBlockNumber;
-use frame_support::pallet;
-pub use pallet::*;
-use storage_proof_primitives::verify_relay_entry;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks;
-
 pub mod weights;
+
 pub use crate::weights::WeightInfo;
+
+pub use pallet::*;
+
+use frame_support::pallet;
+use sp_core::H256;
 
 #[pallet]
 pub mod pallet {
@@ -50,22 +51,14 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		pub fn verify(
-			relay_block_number: RelayBlockNumber,
+		pub fn verify_entry(
+			expected_root: H256,
 			proof: RawStorageProof,
 			key: &[u8],
 		) -> Result<(), Error<T>> {
-			verify_relay_entry::<T>(relay_block_number, proof, key)
+			storage_proof_primitives::verify_entry(expected_root, proof, key)
 				.map_err(|_| Error::<T>::BenchmarkError)?;
 			Ok(())
-		}
-
-		#[allow(dead_code)]
-		pub fn latest_relay_block() -> Result<RelayBlockNumber, Error<T>> {
-			pallet_relay_storage_roots::RelayStorageRootKeys::<T>::get()
-				.last()
-				.cloned()
-				.ok_or(Error::<T>::BenchmarkError)
 		}
 	}
 }

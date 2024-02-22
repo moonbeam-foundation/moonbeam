@@ -16,10 +16,6 @@ sp-core = { workspace = true }
 sp-std = { workspace = true }
 sp-trie = { workspace = true }
 
-# Moonkit
-pallet-relay-storage-roots = { workspace = true }
-
-
 [dev-dependencies]
 hex = { workspace = true }
 parity-scale-codec = { workspace = true }
@@ -29,7 +25,6 @@ default = ["std"]
 std = [
     "cumulus-primitives-core/std",
     "frame-support/std",
-    "pallet-relay-storage-roots/std",
     "parity-scale-codec/std",
     "sp-runtime/std",
     "sp-core/std",

@@ -18,6 +18,7 @@
 #![allow(clippy::no_effect)]
 
 use crate::{Config, Pallet};
+use cumulus_primitives_core::relay_chain::BlockNumber as RelayBlockNumber;
 use frame_benchmarking::benchmarks;
 use frame_support::{traits::Get, BoundedVec};
 use parity_scale_codec::{Decode, Encode};
@@ -35,6 +36,13 @@ fn fill_relay_storage_roots<T: Config>() -> Vec<u32> {
 	}
 	pallet_relay_storage_roots::RelayStorageRootKeys::<T>::put(keys.clone());
 	keys.to_vec()
+}
+
+fn get_latest_relay_block<T: Config>() -> RelayBlockNumber {
+	pallet_relay_storage_roots::RelayStorageRootKeys::<T>::get()
+		.last()
+		.cloned()
+		.expect("At least one relay block should be store")
 }
 
 benchmarks! {
@@ -58,19 +66,19 @@ benchmarks! {
 
 		let key = 2u128.encode();
 	}:{
-		Pallet::<T>::verify(relay_block, mocked_proof, &key)
+
+		Pallet::<T>::verify_entry(state_root, mocked_proof, &key)
 			.expect("Should verify the entry without error.");
 	}
 
 	latest_relay_block {
 		let keys = fill_relay_storage_roots::<T>();
 	}:{
-		Pallet::<T>::latest_relay_block().expect("There should be at least one relay block entry.");
+		get_latest_relay_block::<T>()
 	}
 	verify {
 		assert_eq!(
-			Pallet::<T>::latest_relay_block()
-				.expect("Should return the latest relay block without error."),
+			get_latest_relay_block::<T>(),
 			keys.last().cloned().expect("There should be at least one key")
 		);
 	}

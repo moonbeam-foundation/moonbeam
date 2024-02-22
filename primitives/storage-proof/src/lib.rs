@@ -88,35 +88,24 @@ impl<H: Hash> StorageProofChecker<H> {
 	}
 }
 
-pub fn verify_relay_entry<T: pallet_relay_storage_roots::Config>(
-	relay_block_number: relay_chain::BlockNumber,
+pub fn verify_entry(
+	expected_root: H256,
 	proof: impl IntoIterator<Item = Vec<u8>>,
 	key: &[u8],
 ) -> Result<Vec<u8>, ProofError> {
-	let storage_root = get_storage_root::<T>(relay_block_number)?;
 	let proof_checker =
-		StorageProofChecker::<HashingFor<relay_chain::Block>>::new(storage_root, proof)?;
+		StorageProofChecker::<HashingFor<relay_chain::Block>>::new(expected_root, proof)?;
 
 	proof_checker.read_entry(key)
 }
 
-pub fn verify_relay_entries<T: pallet_relay_storage_roots::Config>(
-	relay_block_number: relay_chain::BlockNumber,
+pub fn verify_entries(
+	expected_root: H256,
 	proof: impl IntoIterator<Item = Vec<u8>>,
 	keys: &[&[u8]],
 ) -> Result<Vec<Vec<u8>>, ProofError> {
-	let storage_root = get_storage_root::<T>(relay_block_number)?;
 	let proof_checker =
-		StorageProofChecker::<HashingFor<relay_chain::Block>>::new(storage_root, proof)?;
+		StorageProofChecker::<HashingFor<relay_chain::Block>>::new(expected_root, proof)?;
 
 	proof_checker.read_entries(keys)
-}
-
-fn get_storage_root<T: pallet_relay_storage_roots::Config>(
-	relay_block_number: relay_chain::BlockNumber,
-) -> Result<H256, ProofError> {
-	let storage_root = pallet_relay_storage_roots::RelayStorageRoot::<T>::get(relay_block_number)
-		.ok_or(ProofError::BlockNumberNotPresent)?;
-
-	Ok(storage_root)
 }

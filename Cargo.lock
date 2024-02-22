@@ -15808,7 +15808,6 @@ dependencies = [
  "cumulus-primitives-core",
  "frame-support",
  "hex",
- "pallet-relay-storage-roots",
  "parity-scale-codec",
  "sp-core",
  "sp-runtime",

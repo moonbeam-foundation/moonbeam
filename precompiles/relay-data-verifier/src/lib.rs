@@ -65,12 +65,18 @@ where
 		proof: ReadProof,
 		key: RawKey,
 	) -> EvmResult<UnboundedBytes> {
+		// Charge gas for storage proof verification
 		let weight = WeightInfo::<Runtime>::verify_entry(proof.proof.len() as u32);
-		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
-		// record one db read
+		handle.record_external_cost(Some(weight.ref_time()), Some(0), Some(0))?;
+
+		// Get the storage root of the relay block
+		let storage_root = Self::get_storage_root(handle, relay_block_number)?;
+
+		// One read per key
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		verify_relay_entry::<Runtime>(relay_block_number, proof.to_raw_proof(), key.as_bytes())
+		// Read and return the value associated ton the key
+		verify_entry(storage_root, proof.to_raw_proof(), key.as_bytes())
 			.map_err(map_err)
 			.map(UnboundedBytes::from)
 	}
@@ -88,16 +94,22 @@ where
 	) -> EvmResult<BoundedVec<UnboundedBytes, GetArrayLimit>> {
 		ensure!(keys.len() > 0, revert("Keys must not be empty"));
 
+		//  Charge gas for storage proof verification
 		let weight = WeightInfo::<Runtime>::verify_entry(proof.proof.len() as u32);
-		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
+		handle.record_external_cost(Some(weight.ref_time()), Some(0), Some(0))?;
+
+		// Get the storage root of the relay block
+		let storage_root = Self::get_storage_root(handle, relay_block_number)?;
+
+		// Charge one db read per key
 		handle.record_cost(
 			(keys.len() as u64).saturating_mul(RuntimeHelper::<Runtime>::db_read_gas_cost()),
 		)?;
 
+		// Read and return the values associated ton the keys
 		let keys = Vec::from(keys);
 		let keys: Vec<_> = keys.iter().map(|x| x.as_bytes()).collect();
-
-		verify_relay_entries::<Runtime>(relay_block_number, proof.to_raw_proof(), &keys)
+		verify_entries(storage_root, proof.to_raw_proof(), &keys)
 			.map_err(map_err)
 			.map(|x| x.into_iter().map(UnboundedBytes::from).collect::<Vec<_>>())
 			.map(|x| BoundedVec::from(x))
@@ -113,6 +125,15 @@ where
 		pallet_relay_storage_roots::RelayStorageRootKeys::<Runtime>::get()
 			.last()
 			.cloned()
+			.ok_or(revert("No relay block found"))
+	}
+
+	fn get_storage_root(
+		handle: &mut impl PrecompileHandle,
+		relay_block_number: RelayBlockNumber,
+	) -> EvmResult<H256> {
+		handle.record_db_read::<Runtime>(84)?;
+		pallet_relay_storage_roots::RelayStorageRoot::<Runtime>::get(relay_block_number)
 			.ok_or(revert("No relay block found"))
 	}
 }

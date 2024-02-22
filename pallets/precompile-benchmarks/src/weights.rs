@@ -58,18 +58,12 @@ pub trait WeightInfo {
 /// Weights for pallet_precompile_benchmarks using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
-	/// Storage: `RelayStorageRoots::RelayStorageRoot` (r:1 w:0)
-	/// Proof: `RelayStorageRoots::RelayStorageRoot` (`max_values`: None, `max_size`: Some(44), added: 2519, mode: `MaxEncodedLen`)
 	/// The range of component `x` is `[100, 2000]`.
 	fn verify_entry(x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `110`
-		//  Estimated: `3509`
 		// Minimum execution time: 97_000_000 picoseconds.
-		Weight::from_parts(98_000_000, 3509)
+		Weight::from_parts(98_000_000, 0)
 			// Standard Error: 2_811
 			.saturating_add(Weight::from_parts(813_171, 0).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(1_u64))
 	}
 	/// Storage: `RelayStorageRoots::RelayStorageRootKeys` (r:1 w:0)
 	/// Proof: `RelayStorageRoots::RelayStorageRootKeys` (`max_values`: Some(1), `max_size`: Some(41), added: 536, mode: `MaxEncodedLen`)
