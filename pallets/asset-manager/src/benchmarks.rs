@@ -154,26 +154,6 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::asset_type_units_per_second(asset_type_to_be_removed), None);
 	}
 
-	register_local_asset {
-		const USER_SEED: u32 = 1;
-		let (caller, deposit_amount) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let asset_id = T::LocalAssetIdCreator::create_asset_id_from_metadata(0);
-		let owner: T::AccountId  = account("account id", 1u32, 0u32);
-		let current_local_counter: u128 =Pallet::<T>::local_asset_counter();
-		let min_balance: T::Balance = 1u32.into();
-
-	}: _(
-			RawOrigin::Root,
-			caller.clone(),
-			owner.clone(),
-			true,
-			min_balance.clone()
-	)
-	verify {
-		assert_eq!(Pallet::<T>::local_asset_counter(), current_local_counter+1);
-		assert!(Pallet::<T>::local_asset_deposit(asset_id).is_some());
-
-	}
 	remove_existing_asset_type {
 		// We make it dependent on the number of existing assets already
 		// Worst case is we need to remove it from SupportedAAssetsFeePayment too

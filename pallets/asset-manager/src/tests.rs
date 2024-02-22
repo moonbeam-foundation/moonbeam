@@ -48,39 +48,6 @@ fn registering_foreign_works() {
 }
 
 #[test]
-fn registering_local_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20)])
-		.build()
-		.execute_with(|| {
-			let asset_id = MockLocalAssetIdCreator::create_asset_id_from_metadata(0);
-
-			assert_ok!(AssetManager::register_local_asset(
-				RuntimeOrigin::root(),
-				1u64,
-				1u64,
-				true,
-				0u32.into(),
-			));
-
-			assert_eq!(AssetManager::local_asset_counter(), 1);
-			assert_eq!(
-				AssetManager::local_asset_deposit(asset_id),
-				Some(AssetInfo {
-					creator: 1,
-					deposit: 1
-				})
-			);
-
-			expect_events(vec![crate::Event::LocalAssetRegistered {
-				asset_id,
-				creator: 1,
-				owner: 1,
-			}])
-		});
-}
-
-#[test]
 fn test_asset_exists_error() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
@@ -529,42 +496,4 @@ fn test_destroy_foreign_asset_also_removes_everything() {
 			},
 		])
 	});
-}
-
-#[test]
-fn test_destroy_local_asset_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20)])
-		.build()
-		.execute_with(|| {
-			let asset_id = MockLocalAssetIdCreator::create_asset_id_from_metadata(0);
-
-			assert_ok!(AssetManager::register_local_asset(
-				RuntimeOrigin::root(),
-				1u64,
-				1u64,
-				true,
-				0u32.into(),
-			));
-			assert_eq!(
-				AssetManager::local_asset_deposit(asset_id),
-				Some(AssetInfo {
-					creator: 1,
-					deposit: 1
-				})
-			);
-
-			assert_ok!(AssetManager::destroy_local_asset(RuntimeOrigin::root(), 0,));
-
-			assert_eq!(AssetManager::local_asset_counter(), 1);
-			assert_eq!(AssetManager::local_asset_deposit(asset_id), None);
-			expect_events(vec![
-				crate::Event::LocalAssetRegistered {
-					asset_id,
-					creator: 1,
-					owner: 1,
-				},
-				crate::Event::LocalAssetDestroyed { asset_id },
-			]);
-		});
 }
