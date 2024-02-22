@@ -98,6 +98,8 @@ describeSuite({
             .tx.sudo.sudo(context.polkadotJs().tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
         );
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
+        console.log("pre  val", initialValue);
+        console.log("post val", postValue);
         expect(initialValue.eq(postValue), "Fee multiplier not static on ideal fill ratio").to.be
           .true;
       },
