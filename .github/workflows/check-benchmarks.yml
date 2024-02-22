@@ -1,4 +1,4 @@
-name: Check Benchmarks
+name: Check benchmarks
 
 on:
   workflow_dispatch:
@@ -60,6 +60,10 @@ jobs:
         shell: bash
         run: |
           ./scripts/run-benches-for-runtime.sh
+          if test -f "benchmarking_errors.txt"; then
+            cat benchmarking_errors.txt
+            false
+          fi
       - name: Display sccache stats
         shell: bash
         run: ${SCCACHE_PATH} --show-stats
