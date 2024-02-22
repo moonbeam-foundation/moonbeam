@@ -387,3 +387,9 @@ impl<T, S> Default for BoundedVec<T, S> {
 		}
 	}
 }
+
+impl<T, S> BoundedVec<T, S> {
+	pub fn len(&self) -> usize {
+		self.inner.len()
+	}
+}
