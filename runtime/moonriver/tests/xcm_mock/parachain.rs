@@ -805,10 +805,6 @@ impl pallet_asset_manager::Config for Runtime {
 	type ForeignAssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
-	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
-	type LocalAssetIdCreator = LocalAssetIdCreator;
-	type Currency = Balances;
-	type LocalAssetDeposit = AssetDeposit;
 	type WeightInfo = ();
 }
 

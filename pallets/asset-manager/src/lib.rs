@@ -24,10 +24,7 @@
 //! This pallet has five storage items: AssetIdType, which holds a mapping from AssetId->AssetType
 //! AssetTypeUnitsPerSecond: an AssetType->u128 mapping that holds how much each AssetType should
 //! be charged per unit of second, in the case such an Asset is received as a XCM asset. Finally,
-//! AssetTypeId holds a mapping from AssetType -> AssetId. LocalAssetCounter
-//! which holds the counter of local assets that have been created so far. And LocalAssetDeposit,
-//! which holds a mapping between assetId and assetInfo, i.e., the asset creator (from which
-//! we take the deposit) and the deposit amount itself.
+//! AssetTypeId holds a mapping from AssetType -> AssetId.
 //!
 //! This pallet has eight extrinsics: register_foreign_asset, which registers a foreign
 //! asset in this pallet and creates the asset as dictated by the AssetRegistrar trait.
