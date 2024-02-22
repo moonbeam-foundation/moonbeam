@@ -36,7 +36,7 @@ use pallet_parachain_staking::{Round, RoundIndex, RoundInfo};
 use parity_scale_codec::{Decode, Encode};
 use sp_consensus_slots::Slot;
 use sp_core::Get;
-use sp_std::{marker::PhantomData, prelude::*};
+use sp_std::{marker::PhantomData, prelude::*, vec};
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode)]
 pub struct OldRoundInfo<BlockNumber> {
