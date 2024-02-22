@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["ARRAY_LIMIT","CALL_DATA_LIMIT","KEY_LENGTH_LIMIT"],"enum":["RelayDataVerifierPrecompileCall"],"struct":["ReadProof","RelayDataVerifierPrecompile"],"type":["GetArrayLimit","GetCallDataLimit","GetKeyLengthLimit","RawKey"]};
