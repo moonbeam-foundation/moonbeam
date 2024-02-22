@@ -134,7 +134,7 @@ where
 	) -> EvmResult<H256> {
 		handle.record_db_read::<Runtime>(84)?;
 		pallet_relay_storage_roots::RelayStorageRoot::<Runtime>::get(relay_block_number)
-			.ok_or(revert("No relay block found"))
+			.ok_or(revert("Block number not present"))
 	}
 }
 
