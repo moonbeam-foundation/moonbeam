@@ -18,7 +18,7 @@
 use crate::{Call, Config, GetArrayLimit, Pallet};
 use core::cmp::max;
 use frame_benchmarking::{account, benchmarks};
-use frame_support::{traits::Get, BoundedVec};
+use frame_support::BoundedVec;
 use frame_system::RawOrigin;
 use sp_core::{H160, H256};
 
