@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/weights/pallet_scheduler.rs`."><title>pallet_scheduler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/weights/pallet_scheduler.rs`."><title>pallet_scheduler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0 (8ede3aae2 2023-07-12)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -203,6 +203,8 @@
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -221,13 +223,13 @@
 </span><span class="doccomment">//! Autogenerated weights for `pallet_scheduler`
 //!
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev
-//! DATE: 2023-11-01, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
+//! DATE: 2024-02-22, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
 //! HOSTNAME: `ip-10-0-0-176`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
-//! EXECUTION: None, WASM-EXECUTION: Compiled, CHAIN: Some(&quot;moonbase-dev&quot;), DB CACHE: 1024
+//! WASM-EXECUTION: `Compiled`, CHAIN: `Some(&quot;moonbase-dev&quot;)`, DB CACHE: 1024
 
 </span><span class="comment">// Executed Command:
-// ./target/release/moonbeam
+// ./target/production/moonbeam
 // benchmark
 // pallet
 // --chain=moonbase-dev
@@ -250,30 +252,30 @@
 <span class="doccomment">/// Weight functions for `pallet_scheduler`.
 </span><span class="kw">pub struct </span>WeightInfo&lt;T&gt;(PhantomData&lt;T&gt;);
 <span class="kw">impl</span>&lt;T: frame_system::Config&gt; pallet_scheduler::WeightInfo <span class="kw">for </span>WeightInfo&lt;T&gt; {
-	<span class="doccomment">/// Storage: Scheduler IncompleteSince (r:1 w:1)
-	/// Proof: Scheduler IncompleteSince (max_values: Some(1), max_size: Some(4), added: 499, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Scheduler::IncompleteSince` (r:1 w:1)
+	/// Proof: `Scheduler::IncompleteSince` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
 	</span><span class="kw">fn </span>service_agendas_base() -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `31`
 		//  Estimated: `1489`
-		// Minimum execution time: 2_877_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">2_990_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 2_828_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">3_109_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">1489</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Scheduler Agenda (r:1 w:1)
-	/// Proof: Scheduler Agenda (max_values: None, max_size: Some(38963), added: 41438, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Scheduler::Agenda` (r:1 w:1)
+	/// Proof: `Scheduler::Agenda` (`max_values`: None, `max_size`: Some(38963), added: 41438, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[0, 50]`.
 	</span><span class="kw">fn </span>service_agenda_base(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `78 + s * (177 ±0)`
 		//  Estimated: `42428`
-		// Minimum execution time: 1_931_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">3_725_545</span>, <span class="number">0</span>)
+		// Minimum execution time: 3_784_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">6_028_179</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">42428</span>))
-			<span class="comment">// Standard Error: 1_433
-			</span>.saturating_add(Weight::from_parts(<span class="number">317_299</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 1_488
+			</span>.saturating_add(Weight::from_parts(<span class="number">820_989</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
@@ -281,36 +283,38 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 2_319_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">2_385_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 4_126_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">4_283_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">0</span>))
 	}
-	<span class="doccomment">/// Storage: Preimage PreimageFor (r:1 w:1)
-	/// Proof: Preimage PreimageFor (max_values: None, max_size: Some(4194344), added: 4196819, mode: Measured)
-	/// Storage: Preimage StatusFor (r:1 w:1)
-	/// Proof: Preimage StatusFor (max_values: None, max_size: Some(79), added: 2554, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Preimage::PreimageFor` (r:1 w:1)
+	/// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `Measured`)
+	/// Storage: `Preimage::StatusFor` (r:1 w:0)
+	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
+	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
+	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(79), added: 2554, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[128, 4194304]`.
 	</span><span class="kw">fn </span>service_task_fetched(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `179 + s * (1 ±0)`
 		//  Estimated: `3644 + s * (1 ±0)`
-		// Minimum execution time: 11_954_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">12_114_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 19_092_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">19_483_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3644</span>))
-			<span class="comment">// Standard Error: 6
-			</span>.saturating_add(Weight::from_parts(<span class="number">1_099</span>, <span class="number">0</span>).saturating_mul(s.into()))
-			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
+			<span class="comment">// Standard Error: 3
+			</span>.saturating_add(Weight::from_parts(<span class="number">1_268</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			.saturating_add(T::DbWeight::get().reads(<span class="number">3</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">1</span>).saturating_mul(s.into()))
 	}
-	<span class="doccomment">/// Storage: Scheduler Lookup (r:0 w:1)
-	/// Proof: Scheduler Lookup (max_values: None, max_size: Some(48), added: 2523, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Scheduler::Lookup` (r:0 w:1)
+	/// Proof: `Scheduler::Lookup` (`max_values`: None, `max_size`: Some(48), added: 2523, mode: `MaxEncodedLen`)
 	</span><span class="kw">fn </span>service_task_named() -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 2_893_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">3_012_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 5_810_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">6_091_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">0</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
@@ -318,18 +322,18 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 2_257_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">2_333_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 4_093_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">4_202_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">0</span>))
 	}
-	<span class="doccomment">/// Storage: MaintenanceMode MaintenanceMode (r:1 w:0)
-	/// Proof Skipped: MaintenanceMode MaintenanceMode (max_values: Some(1), max_size: None, mode: Measured)
+	<span class="doccomment">/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	</span><span class="kw">fn </span>execute_dispatch_signed() -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `42`
 		//  Estimated: `1527`
-		// Minimum execution time: 3_422_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">3_493_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 4_937_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">5_180_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">1527</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 	}
@@ -337,73 +341,73 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 1_243_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">1_316_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 2_704_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">2_833_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">0</span>))
 	}
-	<span class="doccomment">/// Storage: Scheduler Agenda (r:1 w:1)
-	/// Proof: Scheduler Agenda (max_values: None, max_size: Some(38963), added: 41438, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Scheduler::Agenda` (r:1 w:1)
+	/// Proof: `Scheduler::Agenda` (`max_values`: None, `max_size`: Some(38963), added: 41438, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[0, 49]`.
 	</span><span class="kw">fn </span>schedule(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `78 + s * (177 ±0)`
 		//  Estimated: `42428`
-		// Minimum execution time: 6_376_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">8_258_368</span>, <span class="number">0</span>)
+		// Minimum execution time: 11_513_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">13_684_677</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">42428</span>))
-			<span class="comment">// Standard Error: 1_696
-			</span>.saturating_add(Weight::from_parts(<span class="number">375_190</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 1_340
+			</span>.saturating_add(Weight::from_parts(<span class="number">837_742</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Scheduler Agenda (r:1 w:1)
-	/// Proof: Scheduler Agenda (max_values: None, max_size: Some(38963), added: 41438, mode: MaxEncodedLen)
-	/// Storage: Scheduler Lookup (r:0 w:1)
-	/// Proof: Scheduler Lookup (max_values: None, max_size: Some(48), added: 2523, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Scheduler::Agenda` (r:1 w:1)
+	/// Proof: `Scheduler::Agenda` (`max_values`: None, `max_size`: Some(38963), added: 41438, mode: `MaxEncodedLen`)
+	/// Storage: `Scheduler::Lookup` (r:0 w:1)
+	/// Proof: `Scheduler::Lookup` (`max_values`: None, `max_size`: Some(48), added: 2523, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[1, 50]`.
 	</span><span class="kw">fn </span>cancel(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `78 + s * (177 ±0)`
 		//  Estimated: `42428`
-		// Minimum execution time: 9_362_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">8_447_528</span>, <span class="number">0</span>)
+		// Minimum execution time: 16_464_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">14_530_659</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">42428</span>))
-			<span class="comment">// Standard Error: 2_297
-			</span>.saturating_add(Weight::from_parts(<span class="number">599_518</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 1_796
+			</span>.saturating_add(Weight::from_parts(<span class="number">1_521_071</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 	}
-	<span class="doccomment">/// Storage: Scheduler Lookup (r:1 w:1)
-	/// Proof: Scheduler Lookup (max_values: None, max_size: Some(48), added: 2523, mode: MaxEncodedLen)
-	/// Storage: Scheduler Agenda (r:1 w:1)
-	/// Proof: Scheduler Agenda (max_values: None, max_size: Some(38963), added: 41438, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Scheduler::Lookup` (r:1 w:1)
+	/// Proof: `Scheduler::Lookup` (`max_values`: None, `max_size`: Some(48), added: 2523, mode: `MaxEncodedLen`)
+	/// Storage: `Scheduler::Agenda` (r:1 w:1)
+	/// Proof: `Scheduler::Agenda` (`max_values`: None, `max_size`: Some(38963), added: 41438, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[0, 49]`.
 	</span><span class="kw">fn </span>schedule_named(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `255 + s * (185 ±0)`
 		//  Estimated: `42428`
-		// Minimum execution time: 8_278_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">11_068_336</span>, <span class="number">0</span>)
+		// Minimum execution time: 14_935_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">17_881_261</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">42428</span>))
-			<span class="comment">// Standard Error: 2_406
-			</span>.saturating_add(Weight::from_parts(<span class="number">412_321</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 2_191
+			</span>.saturating_add(Weight::from_parts(<span class="number">866_677</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 	}
-	<span class="doccomment">/// Storage: Scheduler Lookup (r:1 w:1)
-	/// Proof: Scheduler Lookup (max_values: None, max_size: Some(48), added: 2523, mode: MaxEncodedLen)
-	/// Storage: Scheduler Agenda (r:1 w:1)
-	/// Proof: Scheduler Agenda (max_values: None, max_size: Some(38963), added: 41438, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Scheduler::Lookup` (r:1 w:1)
+	/// Proof: `Scheduler::Lookup` (`max_values`: None, `max_size`: Some(48), added: 2523, mode: `MaxEncodedLen`)
+	/// Storage: `Scheduler::Agenda` (r:1 w:1)
+	/// Proof: `Scheduler::Agenda` (`max_values`: None, `max_size`: Some(38963), added: 41438, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[1, 50]`.
 	</span><span class="kw">fn </span>cancel_named(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `281 + s * (185 ±0)`
 		//  Estimated: `42428`
-		// Minimum execution time: 11_072_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">11_042_516</span>, <span class="number">0</span>)
+		// Minimum execution time: 17_892_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">16_621_767</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">42428</span>))
-			<span class="comment">// Standard Error: 2_254
-			</span>.saturating_add(Weight::from_parts(<span class="number">623_730</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 1_838
+			</span>.saturating_add(Weight::from_parts(<span class="number">1_542_735</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 	}

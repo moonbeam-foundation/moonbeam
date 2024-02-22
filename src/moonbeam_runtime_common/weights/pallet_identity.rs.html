@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/weights/pallet_identity.rs`."><title>pallet_identity.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/weights/pallet_identity.rs`."><title>pallet_identity.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0 (8ede3aae2 2023-07-12)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -370,13 +370,13 @@
 </span><span class="doccomment">//! Autogenerated weights for `pallet_identity`
 //!
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev
-//! DATE: 2023-11-01, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
+//! DATE: 2024-02-22, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
 //! HOSTNAME: `ip-10-0-0-176`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
-//! EXECUTION: None, WASM-EXECUTION: Compiled, CHAIN: Some(&quot;moonbase-dev&quot;), DB CACHE: 1024
+//! WASM-EXECUTION: `Compiled`, CHAIN: `Some(&quot;moonbase-dev&quot;)`, DB CACHE: 1024
 
 </span><span class="comment">// Executed Command:
-// ./target/release/moonbeam
+// ./target/production/moonbeam
 // benchmark
 // pallet
 // --chain=moonbase-dev
@@ -399,87 +399,87 @@
 <span class="doccomment">/// Weight functions for `pallet_identity`.
 </span><span class="kw">pub struct </span>WeightInfo&lt;T&gt;(PhantomData&lt;T&gt;);
 <span class="kw">impl</span>&lt;T: frame_system::Config&gt; pallet_identity::WeightInfo <span class="kw">for </span>WeightInfo&lt;T&gt; {
-	<span class="doccomment">/// Storage: Identity Registrars (r:1 w:1)
-	/// Proof: Identity Registrars (max_values: Some(1), max_size: Some(901), added: 1396, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::Registrars` (r:1 w:1)
+	/// Proof: `Identity::Registrars` (`max_values`: Some(1), `max_size`: Some(901), added: 1396, mode: `MaxEncodedLen`)
 	/// The range of component `r` is `[1, 19]`.
 	</span><span class="kw">fn </span>add_registrar(r: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `32 + r * (45 ±0)`
 		//  Estimated: `2386`
-		// Minimum execution time: 7_157_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">7_518_611</span>, <span class="number">0</span>)
+		// Minimum execution time: 8_943_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">9_593_622</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2386</span>))
-			<span class="comment">// Standard Error: 991
-			</span>.saturating_add(Weight::from_parts(<span class="number">100_030</span>, <span class="number">0</span>).saturating_mul(r.into()))
+			<span class="comment">// Standard Error: 1_459
+			</span>.saturating_add(Weight::from_parts(<span class="number">99_156</span>, <span class="number">0</span>).saturating_mul(r.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Identity IdentityOf (r:1 w:1)
-	/// Proof: Identity IdentityOf (max_values: None, max_size: Some(7526), added: 10001, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::IdentityOf` (r:1 w:1)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
 	/// The range of component `r` is `[1, 20]`.
 	/// The range of component `x` is `[0, 100]`.
 	</span><span class="kw">fn </span>set_identity(r: u32, x: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `430 + r * (5 ±0)`
 		//  Estimated: `10991`
-		// Minimum execution time: 18_174_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">15_674_240</span>, <span class="number">0</span>)
+		// Minimum execution time: 32_324_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">30_424_080</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10991</span>))
-			<span class="comment">// Standard Error: 2_987
-			</span>.saturating_add(Weight::from_parts(<span class="number">138_510</span>, <span class="number">0</span>).saturating_mul(r.into()))
-			<span class="comment">// Standard Error: 582
-			</span>.saturating_add(Weight::from_parts(<span class="number">130_131</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			<span class="comment">// Standard Error: 3_785
+			</span>.saturating_add(Weight::from_parts(<span class="number">150_588</span>, <span class="number">0</span>).saturating_mul(r.into()))
+			<span class="comment">// Standard Error: 738
+			</span>.saturating_add(Weight::from_parts(<span class="number">514_331</span>, <span class="number">0</span>).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Identity IdentityOf (r:1 w:0)
-	/// Proof: Identity IdentityOf (max_values: None, max_size: Some(7526), added: 10001, mode: MaxEncodedLen)
-	/// Storage: Identity SubsOf (r:1 w:1)
-	/// Proof: Identity SubsOf (max_values: None, max_size: Some(2046), added: 4521, mode: MaxEncodedLen)
-	/// Storage: Identity SuperOf (r:100 w:100)
-	/// Proof: Identity SuperOf (max_values: None, max_size: Some(90), added: 2565, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::IdentityOf` (r:1 w:0)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::SubsOf` (r:1 w:1)
+	/// Proof: `Identity::SubsOf` (`max_values`: None, `max_size`: Some(2046), added: 4521, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::SuperOf` (r:100 w:100)
+	/// Proof: `Identity::SuperOf` (`max_values`: None, `max_size`: Some(90), added: 2565, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[0, 100]`.
 	</span><span class="kw">fn </span>set_subs_new(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `89`
 		//  Estimated: `10991 + s * (2565 ±0)`
-		// Minimum execution time: 6_059_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">12_820_827</span>, <span class="number">0</span>)
+		// Minimum execution time: 9_515_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">23_106_874</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10991</span>))
-			<span class="comment">// Standard Error: 1_998
-			</span>.saturating_add(Weight::from_parts(<span class="number">1_521_486</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 4_246
+			</span>.saturating_add(Weight::from_parts(<span class="number">3_589_907</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().reads((<span class="number">1_u64</span>).saturating_mul(s.into())))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(s.into())))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2565</span>).saturating_mul(s.into()))
 	}
-	<span class="doccomment">/// Storage: Identity IdentityOf (r:1 w:0)
-	/// Proof: Identity IdentityOf (max_values: None, max_size: Some(7526), added: 10001, mode: MaxEncodedLen)
-	/// Storage: Identity SubsOf (r:1 w:1)
-	/// Proof: Identity SubsOf (max_values: None, max_size: Some(2046), added: 4521, mode: MaxEncodedLen)
-	/// Storage: Identity SuperOf (r:0 w:100)
-	/// Proof: Identity SuperOf (max_values: None, max_size: Some(90), added: 2565, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::IdentityOf` (r:1 w:0)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::SubsOf` (r:1 w:1)
+	/// Proof: `Identity::SubsOf` (`max_values`: None, `max_size`: Some(2046), added: 4521, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::SuperOf` (r:0 w:100)
+	/// Proof: `Identity::SuperOf` (`max_values`: None, `max_size`: Some(90), added: 2565, mode: `MaxEncodedLen`)
 	/// The range of component `p` is `[0, 100]`.
 	</span><span class="kw">fn </span>set_subs_old(p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `169 + p * (20 ±0)`
 		//  Estimated: `10991`
-		// Minimum execution time: 6_030_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">13_394_171</span>, <span class="number">0</span>)
+		// Minimum execution time: 9_420_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">23_856_903</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10991</span>))
-			<span class="comment">// Standard Error: 1_864
-			</span>.saturating_add(Weight::from_parts(<span class="number">718_549</span>, <span class="number">0</span>).saturating_mul(p.into()))
+			<span class="comment">// Standard Error: 3_447
+			</span>.saturating_add(Weight::from_parts(<span class="number">1_497_213</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(p.into())))
 	}
-	<span class="doccomment">/// Storage: Identity SubsOf (r:1 w:1)
-	/// Proof: Identity SubsOf (max_values: None, max_size: Some(2046), added: 4521, mode: MaxEncodedLen)
-	/// Storage: Identity IdentityOf (r:1 w:1)
-	/// Proof: Identity IdentityOf (max_values: None, max_size: Some(7526), added: 10001, mode: MaxEncodedLen)
-	/// Storage: Identity SuperOf (r:0 w:100)
-	/// Proof: Identity SuperOf (max_values: None, max_size: Some(90), added: 2565, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::SubsOf` (r:1 w:1)
+	/// Proof: `Identity::SubsOf` (`max_values`: None, `max_size`: Some(2046), added: 4521, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::IdentityOf` (r:1 w:1)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::SuperOf` (r:0 w:100)
+	/// Proof: `Identity::SuperOf` (`max_values`: None, `max_size`: Some(90), added: 2565, mode: `MaxEncodedLen`)
 	/// The range of component `r` is `[1, 20]`.
 	/// The range of component `s` is `[0, 100]`.
 	/// The range of component `x` is `[0, 100]`.
@@ -487,221 +487,221 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `445 + r * (5 ±0) + s * (20 ±0) + x * (66 ±0)`
 		//  Estimated: `10991`
-		// Minimum execution time: 30_009_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">19_908_009</span>, <span class="number">0</span>)
+		// Minimum execution time: 59_657_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">29_331_865</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10991</span>))
-			<span class="comment">// Standard Error: 9_160
-			</span>.saturating_add(Weight::from_parts(<span class="number">116_985</span>, <span class="number">0</span>).saturating_mul(r.into()))
-			<span class="comment">// Standard Error: 1_788
-			</span>.saturating_add(Weight::from_parts(<span class="number">728_921</span>, <span class="number">0</span>).saturating_mul(s.into()))
-			<span class="comment">// Standard Error: 1_788
-			</span>.saturating_add(Weight::from_parts(<span class="number">122_488</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			<span class="comment">// Standard Error: 7_077
+			</span>.saturating_add(Weight::from_parts(<span class="number">275_001</span>, <span class="number">0</span>).saturating_mul(r.into()))
+			<span class="comment">// Standard Error: 1_382
+			</span>.saturating_add(Weight::from_parts(<span class="number">1_492_955</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 1_382
+			</span>.saturating_add(Weight::from_parts(<span class="number">283_758</span>, <span class="number">0</span>).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(s.into())))
 	}
-	<span class="doccomment">/// Storage: Identity Registrars (r:1 w:0)
-	/// Proof: Identity Registrars (max_values: Some(1), max_size: Some(901), added: 1396, mode: MaxEncodedLen)
-	/// Storage: Identity IdentityOf (r:1 w:1)
-	/// Proof: Identity IdentityOf (max_values: None, max_size: Some(7526), added: 10001, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::Registrars` (r:1 w:0)
+	/// Proof: `Identity::Registrars` (`max_values`: Some(1), `max_size`: Some(901), added: 1396, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::IdentityOf` (r:1 w:1)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
 	/// The range of component `r` is `[1, 20]`.
 	/// The range of component `x` is `[0, 100]`.
 	</span><span class="kw">fn </span>request_judgement(r: u32, x: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `355 + r * (45 ±0) + x * (66 ±0)`
 		//  Estimated: `10991`
-		// Minimum execution time: 19_215_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">17_566_122</span>, <span class="number">0</span>)
+		// Minimum execution time: 32_035_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">31_277_555</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10991</span>))
-			<span class="comment">// Standard Error: 3_387
-			</span>.saturating_add(Weight::from_parts(<span class="number">103_336</span>, <span class="number">0</span>).saturating_mul(r.into()))
-			<span class="comment">// Standard Error: 660
-			</span>.saturating_add(Weight::from_parts(<span class="number">148_440</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			<span class="comment">// Standard Error: 3_421
+			</span>.saturating_add(Weight::from_parts(<span class="number">109_577</span>, <span class="number">0</span>).saturating_mul(r.into()))
+			<span class="comment">// Standard Error: 667
+			</span>.saturating_add(Weight::from_parts(<span class="number">537_126</span>, <span class="number">0</span>).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Identity IdentityOf (r:1 w:1)
-	/// Proof: Identity IdentityOf (max_values: None, max_size: Some(7526), added: 10001, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::IdentityOf` (r:1 w:1)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
 	/// The range of component `r` is `[1, 20]`.
 	/// The range of component `x` is `[0, 100]`.
 	</span><span class="kw">fn </span>cancel_request(r: u32, x: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `386 + x * (66 ±0)`
 		//  Estimated: `10991`
-		// Minimum execution time: 16_100_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">15_271_614</span>, <span class="number">0</span>)
+		// Minimum execution time: 29_698_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">28_787_784</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10991</span>))
-			<span class="comment">// Standard Error: 2_865
-			</span>.saturating_add(Weight::from_parts(<span class="number">64_053</span>, <span class="number">0</span>).saturating_mul(r.into()))
-			<span class="comment">// Standard Error: 559
-			</span>.saturating_add(Weight::from_parts(<span class="number">144_144</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			<span class="comment">// Standard Error: 3_232
+			</span>.saturating_add(Weight::from_parts(<span class="number">84_735</span>, <span class="number">0</span>).saturating_mul(r.into()))
+			<span class="comment">// Standard Error: 630
+			</span>.saturating_add(Weight::from_parts(<span class="number">531_372</span>, <span class="number">0</span>).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Identity Registrars (r:1 w:1)
-	/// Proof: Identity Registrars (max_values: Some(1), max_size: Some(901), added: 1396, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::Registrars` (r:1 w:1)
+	/// Proof: `Identity::Registrars` (`max_values`: Some(1), `max_size`: Some(901), added: 1396, mode: `MaxEncodedLen`)
 	/// The range of component `r` is `[1, 19]`.
 	</span><span class="kw">fn </span>set_fee(r: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `77 + r * (45 ±0)`
 		//  Estimated: `2386`
-		// Minimum execution time: 4_963_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">5_207_820</span>, <span class="number">0</span>)
+		// Minimum execution time: 6_433_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">6_763_771</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2386</span>))
-			<span class="comment">// Standard Error: 817
-			</span>.saturating_add(Weight::from_parts(<span class="number">82_469</span>, <span class="number">0</span>).saturating_mul(r.into()))
+			<span class="comment">// Standard Error: 1_060
+			</span>.saturating_add(Weight::from_parts(<span class="number">76_031</span>, <span class="number">0</span>).saturating_mul(r.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Identity Registrars (r:1 w:1)
-	/// Proof: Identity Registrars (max_values: Some(1), max_size: Some(901), added: 1396, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::Registrars` (r:1 w:1)
+	/// Proof: `Identity::Registrars` (`max_values`: Some(1), `max_size`: Some(901), added: 1396, mode: `MaxEncodedLen`)
 	/// The range of component `r` is `[1, 19]`.
 	</span><span class="kw">fn </span>set_account_id(r: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `77 + r * (45 ±0)`
 		//  Estimated: `2386`
-		// Minimum execution time: 4_912_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">5_187_188</span>, <span class="number">0</span>)
+		// Minimum execution time: 6_530_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">6_764_139</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2386</span>))
-			<span class="comment">// Standard Error: 807
-			</span>.saturating_add(Weight::from_parts(<span class="number">81_365</span>, <span class="number">0</span>).saturating_mul(r.into()))
+			<span class="comment">// Standard Error: 829
+			</span>.saturating_add(Weight::from_parts(<span class="number">75_980</span>, <span class="number">0</span>).saturating_mul(r.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Identity Registrars (r:1 w:1)
-	/// Proof: Identity Registrars (max_values: Some(1), max_size: Some(901), added: 1396, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::Registrars` (r:1 w:1)
+	/// Proof: `Identity::Registrars` (`max_values`: Some(1), `max_size`: Some(901), added: 1396, mode: `MaxEncodedLen`)
 	/// The range of component `r` is `[1, 19]`.
 	</span><span class="kw">fn </span>set_fields(r: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `77 + r * (45 ±0)`
 		//  Estimated: `2386`
-		// Minimum execution time: 4_889_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">5_229_571</span>, <span class="number">0</span>)
+		// Minimum execution time: 6_422_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">6_845_806</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2386</span>))
-			<span class="comment">// Standard Error: 758
-			</span>.saturating_add(Weight::from_parts(<span class="number">76_901</span>, <span class="number">0</span>).saturating_mul(r.into()))
+			<span class="comment">// Standard Error: 913
+			</span>.saturating_add(Weight::from_parts(<span class="number">69_740</span>, <span class="number">0</span>).saturating_mul(r.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Identity Registrars (r:1 w:0)
-	/// Proof: Identity Registrars (max_values: Some(1), max_size: Some(901), added: 1396, mode: MaxEncodedLen)
-	/// Storage: Identity IdentityOf (r:1 w:1)
-	/// Proof: Identity IdentityOf (max_values: None, max_size: Some(7526), added: 10001, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::Registrars` (r:1 w:0)
+	/// Proof: `Identity::Registrars` (`max_values`: Some(1), `max_size`: Some(901), added: 1396, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::IdentityOf` (r:1 w:1)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
 	/// The range of component `r` is `[1, 19]`.
 	/// The range of component `x` is `[0, 100]`.
 	</span><span class="kw">fn </span>provide_judgement(r: u32, x: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `421 + r * (45 ±0) + x * (66 ±0)`
 		//  Estimated: `10991`
-		// Minimum execution time: 14_325_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">11_759_619</span>, <span class="number">0</span>)
+		// Minimum execution time: 21_684_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">21_175_027</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10991</span>))
-			<span class="comment">// Standard Error: 3_780
-			</span>.saturating_add(Weight::from_parts(<span class="number">131_885</span>, <span class="number">0</span>).saturating_mul(r.into()))
-			<span class="comment">// Standard Error: 699
-			</span>.saturating_add(Weight::from_parts(<span class="number">231_319</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			<span class="comment">// Standard Error: 4_037
+			</span>.saturating_add(Weight::from_parts(<span class="number">77_912</span>, <span class="number">0</span>).saturating_mul(r.into()))
+			<span class="comment">// Standard Error: 747
+			</span>.saturating_add(Weight::from_parts(<span class="number">883_021</span>, <span class="number">0</span>).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Identity SubsOf (r:1 w:1)
-	/// Proof: Identity SubsOf (max_values: None, max_size: Some(2046), added: 4521, mode: MaxEncodedLen)
-	/// Storage: Identity IdentityOf (r:1 w:1)
-	/// Proof: Identity IdentityOf (max_values: None, max_size: Some(7526), added: 10001, mode: MaxEncodedLen)
-	/// Storage: System Account (r:2 w:2)
-	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
-	/// Storage: Identity SuperOf (r:0 w:100)
-	/// Proof: Identity SuperOf (max_values: None, max_size: Some(90), added: 2565, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::SubsOf` (r:1 w:1)
+	/// Proof: `Identity::SubsOf` (`max_values`: None, `max_size`: Some(2046), added: 4521, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::IdentityOf` (r:1 w:1)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:2 w:2)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::SuperOf` (r:0 w:100)
+	/// Proof: `Identity::SuperOf` (`max_values`: None, `max_size`: Some(90), added: 2565, mode: `MaxEncodedLen`)
 	/// The range of component `r` is `[1, 20]`.
 	/// The range of component `s` is `[0, 100]`.
 	/// The range of component `x` is `[0, 100]`.
 	</span><span class="kw">fn </span>kill_identity(r: u32, s: u32, x: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `680 + r * (5 ±0) + s * (20 ±0) + x * (66 ±0)`
+		//  Measured:  `712 + r * (5 ±0) + s * (20 ±0) + x * (66 ±0)`
 		//  Estimated: `10991`
-		// Minimum execution time: 45_060_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">30_044_300</span>, <span class="number">0</span>)
+		// Minimum execution time: 82_142_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">52_763_268</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10991</span>))
-			<span class="comment">// Standard Error: 8_943
-			</span>.saturating_add(Weight::from_parts(<span class="number">270_510</span>, <span class="number">0</span>).saturating_mul(r.into()))
-			<span class="comment">// Standard Error: 1_746
-			</span>.saturating_add(Weight::from_parts(<span class="number">747_775</span>, <span class="number">0</span>).saturating_mul(s.into()))
-			<span class="comment">// Standard Error: 1_746
-			</span>.saturating_add(Weight::from_parts(<span class="number">150_732</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			<span class="comment">// Standard Error: 7_326
+			</span>.saturating_add(Weight::from_parts(<span class="number">283_613</span>, <span class="number">0</span>).saturating_mul(r.into()))
+			<span class="comment">// Standard Error: 1_430
+			</span>.saturating_add(Weight::from_parts(<span class="number">1_493_205</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 1_430
+			</span>.saturating_add(Weight::from_parts(<span class="number">282_393</span>, <span class="number">0</span>).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">4</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">4</span>))
 			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(s.into())))
 	}
-	<span class="doccomment">/// Storage: Identity IdentityOf (r:1 w:0)
-	/// Proof: Identity IdentityOf (max_values: None, max_size: Some(7526), added: 10001, mode: MaxEncodedLen)
-	/// Storage: Identity SuperOf (r:1 w:1)
-	/// Proof: Identity SuperOf (max_values: None, max_size: Some(90), added: 2565, mode: MaxEncodedLen)
-	/// Storage: Identity SubsOf (r:1 w:1)
-	/// Proof: Identity SubsOf (max_values: None, max_size: Some(2046), added: 4521, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::IdentityOf` (r:1 w:0)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::SuperOf` (r:1 w:1)
+	/// Proof: `Identity::SuperOf` (`max_values`: None, `max_size`: Some(90), added: 2565, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::SubsOf` (r:1 w:1)
+	/// Proof: `Identity::SubsOf` (`max_values`: None, `max_size`: Some(2046), added: 4521, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[0, 99]`.
 	</span><span class="kw">fn </span>add_sub(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `536 + s * (23 ±0)`
 		//  Estimated: `10991`
-		// Minimum execution time: 15_619_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">19_839_769</span>, <span class="number">0</span>)
+		// Minimum execution time: 28_438_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">32_896_151</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10991</span>))
-			<span class="comment">// Standard Error: 1_102
-			</span>.saturating_add(Weight::from_parts(<span class="number">73_705</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 1_176
+			</span>.saturating_add(Weight::from_parts(<span class="number">74_450</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">3</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 	}
-	<span class="doccomment">/// Storage: Identity IdentityOf (r:1 w:0)
-	/// Proof: Identity IdentityOf (max_values: None, max_size: Some(7526), added: 10001, mode: MaxEncodedLen)
-	/// Storage: Identity SuperOf (r:1 w:1)
-	/// Proof: Identity SuperOf (max_values: None, max_size: Some(90), added: 2565, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::IdentityOf` (r:1 w:0)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::SuperOf` (r:1 w:1)
+	/// Proof: `Identity::SuperOf` (`max_values`: None, `max_size`: Some(90), added: 2565, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[1, 100]`.
 	</span><span class="kw">fn </span>rename_sub(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `615 + s * (4 ±0)`
 		//  Estimated: `10991`
-		// Minimum execution time: 8_768_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">10_076_423</span>, <span class="number">0</span>)
+		// Minimum execution time: 13_006_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">16_462_133</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10991</span>))
-			<span class="comment">// Standard Error: 1_363
-			</span>.saturating_add(Weight::from_parts(<span class="number">68_020</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 1_374
+			</span>.saturating_add(Weight::from_parts(<span class="number">58_282</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Identity IdentityOf (r:1 w:0)
-	/// Proof: Identity IdentityOf (max_values: None, max_size: Some(7526), added: 10001, mode: MaxEncodedLen)
-	/// Storage: Identity SuperOf (r:1 w:1)
-	/// Proof: Identity SuperOf (max_values: None, max_size: Some(90), added: 2565, mode: MaxEncodedLen)
-	/// Storage: Identity SubsOf (r:1 w:1)
-	/// Proof: Identity SubsOf (max_values: None, max_size: Some(2046), added: 4521, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::IdentityOf` (r:1 w:0)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::SuperOf` (r:1 w:1)
+	/// Proof: `Identity::SuperOf` (`max_values`: None, `max_size`: Some(90), added: 2565, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::SubsOf` (r:1 w:1)
+	/// Proof: `Identity::SubsOf` (`max_values`: None, `max_size`: Some(2046), added: 4521, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[1, 100]`.
 	</span><span class="kw">fn </span>remove_sub(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `647 + s * (24 ±0)`
 		//  Estimated: `10991`
-		// Minimum execution time: 19_137_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">23_700_395</span>, <span class="number">0</span>)
+		// Minimum execution time: 31_845_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">36_646_202</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10991</span>))
-			<span class="comment">// Standard Error: 1_375
-			</span>.saturating_add(Weight::from_parts(<span class="number">94_036</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 1_281
+			</span>.saturating_add(Weight::from_parts(<span class="number">89_740</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">3</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 	}
-	<span class="doccomment">/// Storage: Identity SuperOf (r:1 w:1)
-	/// Proof: Identity SuperOf (max_values: None, max_size: Some(90), added: 2565, mode: MaxEncodedLen)
-	/// Storage: Identity SubsOf (r:1 w:1)
-	/// Proof: Identity SubsOf (max_values: None, max_size: Some(2046), added: 4521, mode: MaxEncodedLen)
-	/// Storage: System Account (r:1 w:0)
-	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Identity::SuperOf` (r:1 w:1)
+	/// Proof: `Identity::SuperOf` (`max_values`: None, `max_size`: Some(90), added: 2565, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::SubsOf` (r:1 w:1)
+	/// Proof: `Identity::SubsOf` (`max_values`: None, `max_size`: Some(2046), added: 4521, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:1 w:0)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[0, 99]`.
 	</span><span class="kw">fn </span>quit_sub(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `620 + s * (24 ±0)`
 		//  Estimated: `5511`
-		// Minimum execution time: 15_642_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">17_017_310</span>, <span class="number">0</span>)
+		// Minimum execution time: 23_322_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">25_422_652</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">5511</span>))
-			<span class="comment">// Standard Error: 571
-			</span>.saturating_add(Weight::from_parts(<span class="number">71_443</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 1_320
+			</span>.saturating_add(Weight::from_parts(<span class="number">111_345</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">3</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 	}

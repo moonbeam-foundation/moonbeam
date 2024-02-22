@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/weights/pallet_proxy.rs`."><title>pallet_proxy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/weights/pallet_proxy.rs`."><title>pallet_proxy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0 (8ede3aae2 2023-07-12)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -222,8 +222,6 @@
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -242,13 +240,13 @@
 </span><span class="doccomment">//! Autogenerated weights for `pallet_proxy`
 //!
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev
-//! DATE: 2023-11-01, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
+//! DATE: 2024-02-22, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
 //! HOSTNAME: `ip-10-0-0-176`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
-//! EXECUTION: None, WASM-EXECUTION: Compiled, CHAIN: Some(&quot;moonbase-dev&quot;), DB CACHE: 1024
+//! WASM-EXECUTION: `Compiled`, CHAIN: `Some(&quot;moonbase-dev&quot;)`, DB CACHE: 1024
 
 </span><span class="comment">// Executed Command:
-// ./target/release/moonbeam
+// ./target/production/moonbeam
 // benchmark
 // pallet
 // --chain=moonbase-dev
@@ -271,181 +269,179 @@
 <span class="doccomment">/// Weight functions for `pallet_proxy`.
 </span><span class="kw">pub struct </span>WeightInfo&lt;T&gt;(PhantomData&lt;T&gt;);
 <span class="kw">impl</span>&lt;T: frame_system::Config&gt; pallet_proxy::WeightInfo <span class="kw">for </span>WeightInfo&lt;T&gt; {
-	<span class="doccomment">/// Storage: Proxy Proxies (r:1 w:0)
-	/// Proof: Proxy Proxies (max_values: None, max_size: Some(845), added: 3320, mode: MaxEncodedLen)
-	/// Storage: MaintenanceMode MaintenanceMode (r:1 w:0)
-	/// Proof Skipped: MaintenanceMode MaintenanceMode (max_values: Some(1), max_size: None, mode: Measured)
+	<span class="doccomment">/// Storage: `Proxy::Proxies` (r:1 w:0)
+	/// Proof: `Proxy::Proxies` (`max_values`: None, `max_size`: Some(845), added: 3320, mode: `MaxEncodedLen`)
+	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// The range of component `p` is `[1, 31]`.
 	</span><span class="kw">fn </span>proxy(p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `191 + p * (25 ±0)`
 		//  Estimated: `4310 + p * (25 ±0)`
-		// Minimum execution time: 11_482_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">12_093_037</span>, <span class="number">0</span>)
+		// Minimum execution time: 15_939_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">16_541_456</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">4310</span>))
-			<span class="comment">// Standard Error: 943
-			</span>.saturating_add(Weight::from_parts(<span class="number">40_718</span>, <span class="number">0</span>).saturating_mul(p.into()))
-			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
-			<span class="comment">// Manually adding 1 DB read that happen when filtering the proxy call transaction
-			</span>.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
+			<span class="comment">// Standard Error: 1_068
+			</span>.saturating_add(Weight::from_parts(<span class="number">29_118</span>, <span class="number">0</span>).saturating_mul(p.into()))
+			.saturating_add(T::DbWeight::get().reads(<span class="number">3</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">25</span>).saturating_mul(p.into()))
 	}
-	<span class="doccomment">/// Storage: Proxy Proxies (r:1 w:0)
-	/// Proof: Proxy Proxies (max_values: None, max_size: Some(845), added: 3320, mode: MaxEncodedLen)
-	/// Storage: Proxy Announcements (r:1 w:1)
-	/// Proof: Proxy Announcements (max_values: None, max_size: Some(1837), added: 4312, mode: MaxEncodedLen)
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
-	/// Storage: MaintenanceMode MaintenanceMode (r:1 w:0)
-	/// Proof Skipped: MaintenanceMode MaintenanceMode (max_values: Some(1), max_size: None, mode: Measured)
+	<span class="doccomment">/// Storage: `Proxy::Proxies` (r:1 w:0)
+	/// Proof: `Proxy::Proxies` (`max_values`: None, `max_size`: Some(845), added: 3320, mode: `MaxEncodedLen`)
+	/// Storage: `Proxy::Announcements` (r:1 w:1)
+	/// Proof: `Proxy::Announcements` (`max_values`: None, `max_size`: Some(1837), added: 4312, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:1 w:1)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// The range of component `a` is `[0, 31]`.
 	/// The range of component `p` is `[1, 31]`.
 	</span><span class="kw">fn </span>proxy_announced(a: u32, p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `443 + a * (56 ±0) + p * (25 ±0)`
-		//  Estimated: `5302 + a * (59 ±0) + p * (23 ±0)`
-		// Minimum execution time: 26_926_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">27_170_528</span>, <span class="number">0</span>)
+		//  Measured:  `441 + a * (56 ±0) + p * (25 ±0)`
+		//  Estimated: `5302 + a * (60 ±0) + p * (22 ±0)`
+		// Minimum execution time: 39_909_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">40_787_698</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">5302</span>))
-			<span class="comment">// Standard Error: 2_005
-			</span>.saturating_add(Weight::from_parts(<span class="number">82_968</span>, <span class="number">0</span>).saturating_mul(a.into()))
-			<span class="comment">// Standard Error: 2_072
-			</span>.saturating_add(Weight::from_parts(<span class="number">20_197</span>, <span class="number">0</span>).saturating_mul(p.into()))
+			<span class="comment">// Standard Error: 2_365
+			</span>.saturating_add(Weight::from_parts(<span class="number">147_319</span>, <span class="number">0</span>).saturating_mul(a.into()))
+			<span class="comment">// Standard Error: 2_443
+			</span>.saturating_add(Weight::from_parts(<span class="number">11_236</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">4</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">59</span>).saturating_mul(a.into()))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">23</span>).saturating_mul(p.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">60</span>).saturating_mul(a.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">22</span>).saturating_mul(p.into()))
 	}
-	<span class="doccomment">/// Storage: Proxy Announcements (r:1 w:1)
-	/// Proof: Proxy Announcements (max_values: None, max_size: Some(1837), added: 4312, mode: MaxEncodedLen)
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Proxy::Announcements` (r:1 w:1)
+	/// Proof: `Proxy::Announcements` (`max_values`: None, `max_size`: Some(1837), added: 4312, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:1 w:1)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// The range of component `a` is `[0, 31]`.
 	/// The range of component `p` is `[1, 31]`.
 	</span><span class="kw">fn </span>remove_announcement(a: u32, _p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `329 + a * (56 ±0)`
 		//  Estimated: `5302`
-		// Minimum execution time: 14_555_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">15_212_728</span>, <span class="number">0</span>)
+		// Minimum execution time: 23_186_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">24_682_780</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">5302</span>))
-			<span class="comment">// Standard Error: 2_156
-			</span>.saturating_add(Weight::from_parts(<span class="number">75_335</span>, <span class="number">0</span>).saturating_mul(a.into()))
+			<span class="comment">// Standard Error: 4_986
+			</span>.saturating_add(Weight::from_parts(<span class="number">168_805</span>, <span class="number">0</span>).saturating_mul(a.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 	}
-	<span class="doccomment">/// Storage: Proxy Announcements (r:1 w:1)
-	/// Proof: Proxy Announcements (max_values: None, max_size: Some(1837), added: 4312, mode: MaxEncodedLen)
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Proxy::Announcements` (r:1 w:1)
+	/// Proof: `Proxy::Announcements` (`max_values`: None, `max_size`: Some(1837), added: 4312, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:1 w:1)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// The range of component `a` is `[0, 31]`.
 	/// The range of component `p` is `[1, 31]`.
 	</span><span class="kw">fn </span>reject_announcement(a: u32, _p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `329 + a * (56 ±0)`
 		//  Estimated: `5302`
-		// Minimum execution time: 14_589_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">15_095_034</span>, <span class="number">0</span>)
+		// Minimum execution time: 23_340_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">24_867_304</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">5302</span>))
-			<span class="comment">// Standard Error: 2_092
-			</span>.saturating_add(Weight::from_parts(<span class="number">79_740</span>, <span class="number">0</span>).saturating_mul(a.into()))
+			<span class="comment">// Standard Error: 4_956
+			</span>.saturating_add(Weight::from_parts(<span class="number">160_959</span>, <span class="number">0</span>).saturating_mul(a.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 	}
-	<span class="doccomment">/// Storage: Proxy Proxies (r:1 w:0)
-	/// Proof: Proxy Proxies (max_values: None, max_size: Some(845), added: 3320, mode: MaxEncodedLen)
-	/// Storage: Proxy Announcements (r:1 w:1)
-	/// Proof: Proxy Announcements (max_values: None, max_size: Some(1837), added: 4312, mode: MaxEncodedLen)
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Proxy::Proxies` (r:1 w:0)
+	/// Proof: `Proxy::Proxies` (`max_values`: None, `max_size`: Some(845), added: 3320, mode: `MaxEncodedLen`)
+	/// Storage: `Proxy::Announcements` (r:1 w:1)
+	/// Proof: `Proxy::Announcements` (`max_values`: None, `max_size`: Some(1837), added: 4312, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:1 w:1)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// The range of component `a` is `[0, 31]`.
 	/// The range of component `p` is `[1, 31]`.
 	</span><span class="kw">fn </span>announce(a: u32, p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `345 + a * (56 ±0) + p * (25 ±0)`
+		//  Measured:  `343 + a * (56 ±0) + p * (25 ±0)`
 		//  Estimated: `5302`
-		// Minimum execution time: 19_613_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">22_016_278</span>, <span class="number">0</span>)
+		// Minimum execution time: 31_142_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">33_453_242</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">5302</span>))
-			<span class="comment">// Standard Error: 2_419
-			</span>.saturating_add(Weight::from_parts(<span class="number">100_259</span>, <span class="number">0</span>).saturating_mul(a.into()))
-			<span class="comment">// Standard Error: 2_499
-			</span>.saturating_add(Weight::from_parts(<span class="number">26_733</span>, <span class="number">0</span>).saturating_mul(p.into()))
+			<span class="comment">// Standard Error: 2_216
+			</span>.saturating_add(Weight::from_parts(<span class="number">171_609</span>, <span class="number">0</span>).saturating_mul(a.into()))
+			<span class="comment">// Standard Error: 2_289
+			</span>.saturating_add(Weight::from_parts(<span class="number">21_281</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">3</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 	}
-	<span class="doccomment">/// Storage: Proxy Proxies (r:1 w:1)
-	/// Proof: Proxy Proxies (max_values: None, max_size: Some(845), added: 3320, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Proxy::Proxies` (r:1 w:1)
+	/// Proof: `Proxy::Proxies` (`max_values`: None, `max_size`: Some(845), added: 3320, mode: `MaxEncodedLen`)
 	/// The range of component `p` is `[1, 31]`.
 	</span><span class="kw">fn </span>add_proxy(p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `149 + p * (25 ±0)`
 		//  Estimated: `4310`
-		// Minimum execution time: 13_603_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">14_296_527</span>, <span class="number">0</span>)
+		// Minimum execution time: 23_027_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">23_771_068</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">4310</span>))
-			<span class="comment">// Standard Error: 808
-			</span>.saturating_add(Weight::from_parts(<span class="number">42_189</span>, <span class="number">0</span>).saturating_mul(p.into()))
+			<span class="comment">// Standard Error: 1_276
+			</span>.saturating_add(Weight::from_parts(<span class="number">42_599</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Proxy Proxies (r:1 w:1)
-	/// Proof: Proxy Proxies (max_values: None, max_size: Some(845), added: 3320, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Proxy::Proxies` (r:1 w:1)
+	/// Proof: `Proxy::Proxies` (`max_values`: None, `max_size`: Some(845), added: 3320, mode: `MaxEncodedLen`)
 	/// The range of component `p` is `[1, 31]`.
 	</span><span class="kw">fn </span>remove_proxy(p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `149 + p * (25 ±0)`
 		//  Estimated: `4310`
-		// Minimum execution time: 13_627_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">14_289_242</span>, <span class="number">0</span>)
+		// Minimum execution time: 23_134_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">24_345_303</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">4310</span>))
-			<span class="comment">// Standard Error: 915
-			</span>.saturating_add(Weight::from_parts(<span class="number">42_530</span>, <span class="number">0</span>).saturating_mul(p.into()))
+			<span class="comment">// Standard Error: 1_768
+			</span>.saturating_add(Weight::from_parts(<span class="number">31_049</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Proxy Proxies (r:1 w:1)
-	/// Proof: Proxy Proxies (max_values: None, max_size: Some(845), added: 3320, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Proxy::Proxies` (r:1 w:1)
+	/// Proof: `Proxy::Proxies` (`max_values`: None, `max_size`: Some(845), added: 3320, mode: `MaxEncodedLen`)
 	/// The range of component `p` is `[1, 31]`.
 	</span><span class="kw">fn </span>remove_proxies(p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `149 + p * (25 ±0)`
 		//  Estimated: `4310`
-		// Minimum execution time: 12_681_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">13_132_149</span>, <span class="number">0</span>)
+		// Minimum execution time: 21_791_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">22_943_249</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">4310</span>))
-			<span class="comment">// Standard Error: 815
-			</span>.saturating_add(Weight::from_parts(<span class="number">41_809</span>, <span class="number">0</span>).saturating_mul(p.into()))
+			<span class="comment">// Standard Error: 1_274
+			</span>.saturating_add(Weight::from_parts(<span class="number">30_215</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Proxy Proxies (r:1 w:1)
-	/// Proof: Proxy Proxies (max_values: None, max_size: Some(845), added: 3320, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Proxy::Proxies` (r:1 w:1)
+	/// Proof: `Proxy::Proxies` (`max_values`: None, `max_size`: Some(845), added: 3320, mode: `MaxEncodedLen`)
 	/// The range of component `p` is `[1, 31]`.
 	</span><span class="kw">fn </span>create_pure(p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `161`
 		//  Estimated: `4310`
-		// Minimum execution time: 14_212_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">14_890_418</span>, <span class="number">0</span>)
+		// Minimum execution time: 24_280_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">25_255_463</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">4310</span>))
-			<span class="comment">// Standard Error: 962
-			</span>.saturating_add(Weight::from_parts(<span class="number">3_235</span>, <span class="number">0</span>).saturating_mul(p.into()))
+			<span class="comment">// Standard Error: 1_243
+			</span>.saturating_add(Weight::from_parts(<span class="number">11_365</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Proxy Proxies (r:1 w:1)
-	/// Proof: Proxy Proxies (max_values: None, max_size: Some(845), added: 3320, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Proxy::Proxies` (r:1 w:1)
+	/// Proof: `Proxy::Proxies` (`max_values`: None, `max_size`: Some(845), added: 3320, mode: `MaxEncodedLen`)
 	/// The range of component `p` is `[0, 30]`.
 	</span><span class="kw">fn </span>kill_pure(p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `174 + p * (25 ±0)`
 		//  Estimated: `4310`
-		// Minimum execution time: 13_035_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">13_606_961</span>, <span class="number">0</span>)
+		// Minimum execution time: 22_691_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">23_654_957</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">4310</span>))
-			<span class="comment">// Standard Error: 773
-			</span>.saturating_add(Weight::from_parts(<span class="number">38_899</span>, <span class="number">0</span>).saturating_mul(p.into()))
+			<span class="comment">// Standard Error: 1_031
+			</span>.saturating_add(Weight::from_parts(<span class="number">28_090</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}

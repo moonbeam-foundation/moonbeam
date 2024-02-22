@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/weights/pallet_preimage.rs`."><title>pallet_preimage.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/weights/pallet_preimage.rs`."><title>pallet_preimage.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0 (8ede3aae2 2023-07-12)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -260,6 +260,7 @@
 <a href="#260" id="260">260</a>
 <a href="#261" id="261">261</a>
 <a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -278,7 +279,7 @@
 </span><span class="doccomment">//! Autogenerated weights for `pallet_preimage`
 //!
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev
-//! DATE: 2023-12-29, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
+//! DATE: 2024-02-22, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
 //! HOSTNAME: `ip-10-0-0-176`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some(&quot;moonbase-dev&quot;)`, DB CACHE: 1024
@@ -292,6 +293,7 @@
 // --repeat=20
 // --pallet=pallet_preimage
 // --extrinsic=*
+// --wasm-execution=compiled
 // --header=./file_header.txt
 // --output=./runtime/common/src/weights/
 
@@ -319,11 +321,11 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `42`
 		//  Estimated: `3544`
-		// Minimum execution time: 42_438_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">42_871_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 48_221_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">48_851_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3544</span>))
-			<span class="comment">// Standard Error: 4
-			</span>.saturating_add(Weight::from_parts(<span class="number">2_343</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 5
+			</span>.saturating_add(Weight::from_parts(<span class="number">2_395</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">3</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">3</span>))
 	}
@@ -338,11 +340,11 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `106`
 		//  Estimated: `3544`
-		// Minimum execution time: 14_582_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">14_830_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 16_074_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">16_345_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3544</span>))
-			<span class="comment">// Standard Error: 4
-			</span>.saturating_add(Weight::from_parts(<span class="number">2_355</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 5
+			</span>.saturating_add(Weight::from_parts(<span class="number">2_394</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 	}
@@ -357,11 +359,11 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `106`
 		//  Estimated: `3544`
-		// Minimum execution time: 13_989_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">14_259_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 15_391_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">15_829_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3544</span>))
-			<span class="comment">// Standard Error: 4
-			</span>.saturating_add(Weight::from_parts(<span class="number">2_268</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 5
+			</span>.saturating_add(Weight::from_parts(<span class="number">2_391</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 	}
@@ -377,8 +379,8 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `220`
 		//  Estimated: `3544`
-		// Minimum execution time: 45_436_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">47_383_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 59_580_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">62_769_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3544</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">3</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">3</span>))
@@ -393,8 +395,8 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `144`
 		//  Estimated: `3544`
-		// Minimum execution time: 20_696_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">21_356_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 30_323_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">34_296_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3544</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
@@ -407,8 +409,8 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `176`
 		//  Estimated: `3544`
-		// Minimum execution time: 18_023_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">18_340_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 25_476_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">27_194_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3544</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
@@ -421,8 +423,8 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `144`
 		//  Estimated: `3544`
-		// Minimum execution time: 12_682_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">13_131_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 18_991_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">21_123_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3544</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
@@ -435,8 +437,8 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `42`
 		//  Estimated: `3544`
-		// Minimum execution time: 14_305_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">14_751_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 17_206_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">18_628_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3544</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
@@ -449,8 +451,8 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `106`
 		//  Estimated: `3544`
-		// Minimum execution time: 9_682_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">10_105_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 11_459_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">12_009_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3544</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
@@ -465,8 +467,8 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `144`
 		//  Estimated: `3544`
-		// Minimum execution time: 18_660_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">18_921_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 26_604_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">28_637_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3544</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
@@ -479,8 +481,8 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `106`
 		//  Estimated: `3544`
-		// Minimum execution time: 9_921_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">10_340_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 11_331_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">11_776_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3544</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
@@ -493,8 +495,8 @@
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `106`
 		//  Estimated: `3544`
-		// Minimum execution time: 9_686_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">10_099_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 10_875_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">11_604_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3544</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
@@ -510,15 +512,16 @@
 	/// The range of component `n` is `[1, 1024]`.
 	</span><span class="kw">fn </span>ensure_updated(n: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `747 + n * (203 ±0)`
+		//  Measured:  `1292 + n * (203 ±0)`
 		//  Estimated: `990 + n * (2591 ±0)`
-		// Minimum execution time: 47_705_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">48_184_000</span>, <span class="number">0</span>)
+		// Minimum execution time: 55_987_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">57_045_000</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">990</span>))
-			<span class="comment">// Standard Error: 27_608
-			</span>.saturating_add(Weight::from_parts(<span class="number">46_842_973</span>, <span class="number">0</span>).saturating_mul(n.into()))
+			<span class="comment">// Standard Error: 45_798
+			</span>.saturating_add(Weight::from_parts(<span class="number">56_349_823</span>, <span class="number">0</span>).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads((<span class="number">3_u64</span>).saturating_mul(n.into())))
 			.saturating_add(T::DbWeight::get().writes((<span class="number">4_u64</span>).saturating_mul(n.into())))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2591</span>).saturating_mul(n.into()))
 	}
-}</code></pre></div></section></main></body></html>
+}
+</code></pre></div></section></main></body></html>

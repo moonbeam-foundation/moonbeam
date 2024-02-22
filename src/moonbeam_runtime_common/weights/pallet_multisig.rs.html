@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/weights/pallet_multisig.rs`."><title>pallet_multisig.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/weights/pallet_multisig.rs`."><title>pallet_multisig.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0 (8ede3aae2 2023-07-12)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -182,13 +182,13 @@
 </span><span class="doccomment">//! Autogenerated weights for `pallet_multisig`
 //!
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev
-//! DATE: 2023-11-01, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
+//! DATE: 2024-02-22, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
 //! HOSTNAME: `ip-10-0-0-176`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
-//! EXECUTION: None, WASM-EXECUTION: Compiled, CHAIN: Some(&quot;moonbase-dev&quot;), DB CACHE: 1024
+//! WASM-EXECUTION: `Compiled`, CHAIN: `Some(&quot;moonbase-dev&quot;)`, DB CACHE: 1024
 
 </span><span class="comment">// Executed Command:
-// ./target/release/moonbeam
+// ./target/production/moonbeam
 // benchmark
 // pallet
 // --chain=moonbase-dev
@@ -211,121 +211,121 @@
 <span class="doccomment">/// Weight functions for `pallet_multisig`.
 </span><span class="kw">pub struct </span>WeightInfo&lt;T&gt;(PhantomData&lt;T&gt;);
 <span class="kw">impl</span>&lt;T: frame_system::Config&gt; pallet_multisig::WeightInfo <span class="kw">for </span>WeightInfo&lt;T&gt; {
-	<span class="doccomment">/// Storage: MaintenanceMode MaintenanceMode (r:1 w:0)
-	/// Proof Skipped: MaintenanceMode MaintenanceMode (max_values: Some(1), max_size: None, mode: Measured)
+	<span class="doccomment">/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// The range of component `z` is `[0, 10000]`.
 	</span><span class="kw">fn </span>as_multi_threshold_1(z: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `42`
 		//  Estimated: `1527`
-		// Minimum execution time: 11_468_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">12_264_301</span>, <span class="number">0</span>)
+		// Minimum execution time: 16_161_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">17_161_034</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">1527</span>))
-			<span class="comment">// Standard Error: 4
-			</span>.saturating_add(Weight::from_parts(<span class="number">99</span>, <span class="number">0</span>).saturating_mul(z.into()))
+			<span class="comment">// Standard Error: 3
+			</span>.saturating_add(Weight::from_parts(<span class="number">522</span>, <span class="number">0</span>).saturating_mul(z.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Multisig Multisigs (r:1 w:1)
-	/// Proof: Multisig Multisigs (max_values: None, max_size: Some(2122), added: 4597, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Multisig::Multisigs` (r:1 w:1)
+	/// Proof: `Multisig::Multisigs` (`max_values`: None, `max_size`: Some(2122), added: 4597, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[2, 100]`.
 	/// The range of component `z` is `[0, 10000]`.
 	</span><span class="kw">fn </span>as_multi_create(s: u32, z: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `304`
 		//  Estimated: `5587`
-		// Minimum execution time: 27_229_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">17_646_947</span>, <span class="number">0</span>)
+		// Minimum execution time: 43_279_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">32_447_371</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">5587</span>))
-			<span class="comment">// Standard Error: 650
-			</span>.saturating_add(Weight::from_parts(<span class="number">115_590</span>, <span class="number">0</span>).saturating_mul(s.into()))
-			<span class="comment">// Standard Error: 6
-			</span>.saturating_add(Weight::from_parts(<span class="number">1_008</span>, <span class="number">0</span>).saturating_mul(z.into()))
+			<span class="comment">// Standard Error: 810
+			</span>.saturating_add(Weight::from_parts(<span class="number">123_629</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 7
+			</span>.saturating_add(Weight::from_parts(<span class="number">1_495</span>, <span class="number">0</span>).saturating_mul(z.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Multisig Multisigs (r:1 w:1)
-	/// Proof: Multisig Multisigs (max_values: None, max_size: Some(2122), added: 4597, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Multisig::Multisigs` (r:1 w:1)
+	/// Proof: `Multisig::Multisigs` (`max_values`: None, `max_size`: Some(2122), added: 4597, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[3, 100]`.
 	/// The range of component `z` is `[0, 10000]`.
 	</span><span class="kw">fn </span>as_multi_approve(s: u32, z: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `312`
 		//  Estimated: `5587`
-		// Minimum execution time: 19_809_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">10_872_947</span>, <span class="number">0</span>)
+		// Minimum execution time: 27_544_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">17_727_948</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">5587</span>))
-			<span class="comment">// Standard Error: 509
-			</span>.saturating_add(Weight::from_parts(<span class="number">100_638</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 465
+			</span>.saturating_add(Weight::from_parts(<span class="number">108_927</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			<span class="comment">// Standard Error: 4
-			</span>.saturating_add(Weight::from_parts(<span class="number">976</span>, <span class="number">0</span>).saturating_mul(z.into()))
+			</span>.saturating_add(Weight::from_parts(<span class="number">1_492</span>, <span class="number">0</span>).saturating_mul(z.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Multisig Multisigs (r:1 w:1)
-	/// Proof: Multisig Multisigs (max_values: None, max_size: Some(2122), added: 4597, mode: MaxEncodedLen)
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
-	/// Storage: MaintenanceMode MaintenanceMode (r:1 w:0)
-	/// Proof Skipped: MaintenanceMode MaintenanceMode (max_values: Some(1), max_size: None, mode: Measured)
+	<span class="doccomment">/// Storage: `Multisig::Multisigs` (r:1 w:1)
+	/// Proof: `Multisig::Multisigs` (`max_values`: None, `max_size`: Some(2122), added: 4597, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:1 w:1)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// The range of component `s` is `[2, 100]`.
 	/// The range of component `z` is `[0, 10000]`.
 	</span><span class="kw">fn </span>as_multi_complete(s: u32, z: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `475 + s * (20 ±0)`
 		//  Estimated: `5587 + s * (20 ±0)`
-		// Minimum execution time: 33_146_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">24_322_085</span>, <span class="number">0</span>)
+		// Minimum execution time: 51_602_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">38_665_804</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">5587</span>))
-			<span class="comment">// Standard Error: 763
-			</span>.saturating_add(Weight::from_parts(<span class="number">156_521</span>, <span class="number">0</span>).saturating_mul(s.into()))
-			<span class="comment">// Standard Error: 7
-			</span>.saturating_add(Weight::from_parts(<span class="number">959</span>, <span class="number">0</span>).saturating_mul(z.into()))
+			<span class="comment">// Standard Error: 1_763
+			</span>.saturating_add(Weight::from_parts(<span class="number">152_204</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 17
+			</span>.saturating_add(Weight::from_parts(<span class="number">1_517</span>, <span class="number">0</span>).saturating_mul(z.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">3</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">20</span>).saturating_mul(s.into()))
 	}
-	<span class="doccomment">/// Storage: Multisig Multisigs (r:1 w:1)
-	/// Proof: Multisig Multisigs (max_values: None, max_size: Some(2122), added: 4597, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Multisig::Multisigs` (r:1 w:1)
+	/// Proof: `Multisig::Multisigs` (`max_values`: None, `max_size`: Some(2122), added: 4597, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[2, 100]`.
 	</span><span class="kw">fn </span>approve_as_multi_create(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `304`
 		//  Estimated: `5587`
-		// Minimum execution time: 17_400_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">17_831_464</span>, <span class="number">0</span>)
+		// Minimum execution time: 29_730_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">30_978_811</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">5587</span>))
-			<span class="comment">// Standard Error: 792
-			</span>.saturating_add(Weight::from_parts(<span class="number">111_017</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 758
+			</span>.saturating_add(Weight::from_parts(<span class="number">121_770</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Multisig Multisigs (r:1 w:1)
-	/// Proof: Multisig Multisigs (max_values: None, max_size: Some(2122), added: 4597, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Multisig::Multisigs` (r:1 w:1)
+	/// Proof: `Multisig::Multisigs` (`max_values`: None, `max_size`: Some(2122), added: 4597, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[2, 100]`.
 	</span><span class="kw">fn </span>approve_as_multi_approve(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `312`
 		//  Estimated: `5587`
-		// Minimum execution time: 10_697_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">10_842_736</span>, <span class="number">0</span>)
+		// Minimum execution time: 15_849_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">16_259_686</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">5587</span>))
-			<span class="comment">// Standard Error: 606
-			</span>.saturating_add(Weight::from_parts(<span class="number">92_557</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 489
+			</span>.saturating_add(Weight::from_parts(<span class="number">108_993</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
-	<span class="doccomment">/// Storage: Multisig Multisigs (r:1 w:1)
-	/// Proof: Multisig Multisigs (max_values: None, max_size: Some(2122), added: 4597, mode: MaxEncodedLen)
+	<span class="doccomment">/// Storage: `Multisig::Multisigs` (r:1 w:1)
+	/// Proof: `Multisig::Multisigs` (`max_values`: None, `max_size`: Some(2122), added: 4597, mode: `MaxEncodedLen`)
 	/// The range of component `s` is `[2, 100]`.
 	</span><span class="kw">fn </span>cancel_as_multi(s: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `474`
 		//  Estimated: `5587`
-		// Minimum execution time: 19_175_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">19_433_900</span>, <span class="number">0</span>)
+		// Minimum execution time: 30_901_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">32_143_107</span>, <span class="number">0</span>)
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">5587</span>))
-			<span class="comment">// Standard Error: 626
-			</span>.saturating_add(Weight::from_parts(<span class="number">106_848</span>, <span class="number">0</span>).saturating_mul(s.into()))
+			<span class="comment">// Standard Error: 689
+			</span>.saturating_add(Weight::from_parts(<span class="number">122_500</span>, <span class="number">0</span>).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
 	}
