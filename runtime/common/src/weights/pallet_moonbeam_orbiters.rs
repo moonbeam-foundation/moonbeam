@@ -53,8 +53,8 @@ impl<T: frame_system::Config> pallet_moonbeam_orbiters::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `562`
 		//  Estimated: `4502`
-		// Minimum execution time: 21_009_000 picoseconds.
-		Weight::from_parts(21_655_000, 0)
+		// Minimum execution time: 20_952_000 picoseconds.
+		Weight::from_parts(21_713_000, 0)
 			.saturating_add(Weight::from_parts(0, 4502))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -65,8 +65,8 @@ impl<T: frame_system::Config> pallet_moonbeam_orbiters::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `366`
 		//  Estimated: `3831`
-		// Minimum execution time: 16_802_000 picoseconds.
-		Weight::from_parts(17_731_000, 0)
+		// Minimum execution time: 16_938_000 picoseconds.
+		Weight::from_parts(17_578_000, 0)
 			.saturating_add(Weight::from_parts(0, 3831))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -77,8 +77,8 @@ impl<T: frame_system::Config> pallet_moonbeam_orbiters::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `366`
 		//  Estimated: `3831`
-		// Minimum execution time: 16_818_000 picoseconds.
-		Weight::from_parts(17_277_000, 0)
+		// Minimum execution time: 17_257_000 picoseconds.
+		Weight::from_parts(17_565_000, 0)
 			.saturating_add(Weight::from_parts(0, 3831))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
@@ -95,8 +95,8 @@ impl<T: frame_system::Config> pallet_moonbeam_orbiters::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `282`
 		//  Estimated: `4502`
-		// Minimum execution time: 30_737_000 picoseconds.
-		Weight::from_parts(31_676_000, 0)
+		// Minimum execution time: 31_217_000 picoseconds.
+		Weight::from_parts(32_007_000, 0)
 			.saturating_add(Weight::from_parts(0, 4502))
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(3))
@@ -116,11 +116,11 @@ impl<T: frame_system::Config> pallet_moonbeam_orbiters::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `391 + n * (48 ±0)`
 		//  Estimated: `4502 + n * (2524 ±0)`
-		// Minimum execution time: 39_535_000 picoseconds.
-		Weight::from_parts(37_789_090, 0)
+		// Minimum execution time: 39_397_000 picoseconds.
+		Weight::from_parts(39_812_952, 0)
 			.saturating_add(Weight::from_parts(0, 4502))
-			// Standard Error: 8_758
-			.saturating_add(Weight::from_parts(7_325_322, 0).saturating_mul(n.into()))
+			// Standard Error: 9_185
+			.saturating_add(Weight::from_parts(7_271_451, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(4))
 			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(n.into())))
 			.saturating_add(T::DbWeight::get().writes(3))
@@ -134,8 +134,8 @@ impl<T: frame_system::Config> pallet_moonbeam_orbiters::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `82`
 		//  Estimated: `3547`
-		// Minimum execution time: 11_413_000 picoseconds.
-		Weight::from_parts(11_631_000, 0)
+		// Minimum execution time: 11_227_000 picoseconds.
+		Weight::from_parts(11_428_000, 0)
 			.saturating_add(Weight::from_parts(0, 3547))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
@@ -150,8 +150,8 @@ impl<T: frame_system::Config> pallet_moonbeam_orbiters::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `366`
 		//  Estimated: `3831`
-		// Minimum execution time: 24_211_000 picoseconds.
-		Weight::from_parts(24_877_000, 0)
+		// Minimum execution time: 23_410_000 picoseconds.
+		Weight::from_parts(24_220_000, 0)
 			.saturating_add(Weight::from_parts(0, 3831))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(11))
@@ -165,11 +165,11 @@ impl<T: frame_system::Config> pallet_moonbeam_orbiters::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `140 + x * (61 ±0)`
 		//  Estimated: `1624 + x * (2537 ±0)`
-		// Minimum execution time: 6_653_000 picoseconds.
-		Weight::from_parts(6_291_558, 0)
+		// Minimum execution time: 6_709_000 picoseconds.
+		Weight::from_parts(6_364_316, 0)
 			.saturating_add(Weight::from_parts(0, 1624))
-			// Standard Error: 1_274
-			.saturating_add(Weight::from_parts(873_107, 0).saturating_mul(x.into()))
+			// Standard Error: 1_697
+			.saturating_add(Weight::from_parts(874_402, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(x.into())))
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(x.into())))
@@ -183,8 +183,8 @@ impl<T: frame_system::Config> pallet_moonbeam_orbiters::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `298`
 		//  Estimated: `3763`
-		// Minimum execution time: 21_986_000 picoseconds.
-		Weight::from_parts(22_507_000, 0)
+		// Minimum execution time: 22_137_000 picoseconds.
+		Weight::from_parts(22_649_000, 0)
 			.saturating_add(Weight::from_parts(0, 3763))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
@@ -203,8 +203,8 @@ impl<T: frame_system::Config> pallet_moonbeam_orbiters::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `256`
 		//  Estimated: `6196`
-		// Minimum execution time: 30_976_000 picoseconds.
-		Weight::from_parts(32_027_000, 0)
+		// Minimum execution time: 31_344_000 picoseconds.
+		Weight::from_parts(32_475_000, 0)
 			.saturating_add(Weight::from_parts(0, 6196))
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(9))

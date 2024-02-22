@@ -50,11 +50,11 @@ impl<T: frame_system::Config> pallet_precompile_benchmarks::WeightInfo for Weigh
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 75_306_000 picoseconds.
-		Weight::from_parts(76_271_000, 0)
+		// Minimum execution time: 77_020_000 picoseconds.
+		Weight::from_parts(77_773_000, 0)
 			.saturating_add(Weight::from_parts(0, 0))
-			// Standard Error: 2_431
-			.saturating_add(Weight::from_parts(666_460, 0).saturating_mul(x.into()))
+			// Standard Error: 2_411
+			.saturating_add(Weight::from_parts(670_586, 0).saturating_mul(x.into()))
 	}
 	/// Storage: `RelayStorageRoots::RelayStorageRootKeys` (r:1 w:0)
 	/// Proof: `RelayStorageRoots::RelayStorageRootKeys` (`max_values`: Some(1), `max_size`: Some(41), added: 536, mode: `MaxEncodedLen`)
@@ -62,8 +62,8 @@ impl<T: frame_system::Config> pallet_precompile_benchmarks::WeightInfo for Weigh
 		// Proof Size summary in bytes:
 		//  Measured:  `146`
 		//  Estimated: `1526`
-		// Minimum execution time: 4_278_000 picoseconds.
-		Weight::from_parts(4_503_000, 0)
+		// Minimum execution time: 4_295_000 picoseconds.
+		Weight::from_parts(4_664_000, 0)
 			.saturating_add(Weight::from_parts(0, 1526))
 			.saturating_add(T::DbWeight::get().reads(1))
 	}

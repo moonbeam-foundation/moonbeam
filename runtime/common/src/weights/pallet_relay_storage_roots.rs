@@ -55,8 +55,8 @@ impl<T: frame_system::Config> pallet_relay_storage_roots::WeightInfo for WeightI
 		// Proof Size summary in bytes:
 		//  Measured:  `594`
 		//  Estimated: `3509`
-		// Minimum execution time: 16_014_000 picoseconds.
-		Weight::from_parts(16_487_000, 0)
+		// Minimum execution time: 16_052_000 picoseconds.
+		Weight::from_parts(16_756_000, 0)
 			.saturating_add(Weight::from_parts(0, 3509))
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(T::DbWeight::get().writes(3))
