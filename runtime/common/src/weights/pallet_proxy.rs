@@ -59,7 +59,7 @@ impl<T: frame_system::Config> pallet_proxy::WeightInfo for WeightInfo<T> {
 			.saturating_add(Weight::from_parts(0, 4310))
 			// Standard Error: 1_068
 			.saturating_add(Weight::from_parts(29_118, 0).saturating_mul(p.into()))
-			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(Weight::from_parts(0, 25).saturating_mul(p.into()))
 	}
 	/// Storage: `Proxy::Proxies` (r:1 w:0)
