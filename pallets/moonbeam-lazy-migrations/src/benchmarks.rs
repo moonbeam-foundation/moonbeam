@@ -26,9 +26,9 @@ benchmarks! {
 	clear_suicided_storage {
 		let caller = account("caller", 1, 100);
 		// a is the number of addresses
-		let a in 1 .. GetArrayLimit::get() => 100;
+		let a in 1 .. 100;
 		// l is the limit of the number of storage entries to be deleted
-		let l in 1 .. 32500 => 500;
+		let l in 1 .. 1000;
 
 		// Create the addresses to be used in the test
 		let mut addresses = BoundedVec::<H160, GetArrayLimit>::new();
