@@ -26,17 +26,11 @@ jobs:
     needs: ["set-tags"]
     runs-on:
       labels: bare-metal
-    env:
-      RUSTC_WRAPPER: "sccache"
-      CARGO_INCREMENTAL: "0"
-      SCCACHE_CACHE_SIZE: "100GB"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.3
       - name: Setup Variables
         shell: bash
         run: |
@@ -64,6 +58,3 @@ jobs:
             cat benchmarking_errors.txt
             false
           fi
-      - name: Display sccache stats
-        shell: bash
-        run: ${SCCACHE_PATH} --show-stats
