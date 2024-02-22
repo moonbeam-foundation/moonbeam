@@ -44,6 +44,7 @@ pallet-parachain-staking = { workspace = true }
 pallet-proxy-genesis-companion = { workspace = true }
 pallet-randomness = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
+pallet-precompile-benchmarks = { workspace = true }
 
 # Moonbeam precompiles
 pallet-evm-precompile-author-mapping = { workspace = true }
@@ -63,6 +64,7 @@ pallet-evm-precompile-randomness = { workspace = true }
 pallet-evm-precompile-referenda = { workspace = true }
 pallet-evm-precompile-registry = { workspace = true }
 pallet-evm-precompile-relay-encoder = { workspace = true }
+pallet-evm-precompile-relay-verifier = { workspace = true }
 pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
@@ -163,6 +165,7 @@ nimbus-primitives = { workspace = true }
 pallet-async-backing = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
+pallet-relay-storage-roots = { workspace = true }
 
 # Benchmarking
 frame-benchmarking = { workspace = true, optional = true }
@@ -256,11 +259,13 @@ std = [
 	"pallet-moonbeam-orbiters/std",
 	"pallet-multisig/std",
 	"pallet-parachain-staking/std",
+	"pallet-precompile-benchmarks/std",
 	"pallet-preimage/std",
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness/std",
 	"pallet-referenda/std",
+	"pallet-relay-storage-roots/std",
 	"pallet-root-testing/std",
 	"pallet-scheduler/std",
 	"pallet-society/std",
@@ -340,10 +345,12 @@ runtime-benchmarks = [
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
+	"pallet-precompile-benchmarks/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
 	"pallet-proxy/runtime-benchmarks",
 	"pallet-randomness/runtime-benchmarks",
 	"pallet-referenda/runtime-benchmarks",
+	"pallet-relay-storage-roots/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
@@ -379,6 +386,7 @@ try-runtime = [
 	"pallet-parachain-staking/try-runtime",
 	"pallet-preimage/try-runtime",
 	"pallet-referenda/try-runtime",
+	"pallet-relay-storage-roots/try-runtime",
 	"pallet-root-testing/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",

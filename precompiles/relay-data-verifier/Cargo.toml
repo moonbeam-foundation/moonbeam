@@ -1,0 +1,59 @@
+[package]
+name = "pallet-evm-precompile-relay-verifier"
+authors = { workspace = true }
+description = "A Precompile to verify relay Data"
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+# Moonbeam
+precompile-utils = { workspace = true }
+storage-proof-primitives = { workspace = true }
+pallet-precompile-benchmarks = { workspace = true }
+moonbeam-runtime-common = { workspace = true }
+
+# Substrate
+cumulus-primitives-core = { workspace = true }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+sp-core = { workspace = true }
+sp-std = { workspace = true }
+parity-scale-codec = { workspace = true, features = [ "derive" ] }
+scale-info = { workspace = true, features = [ "derive" ] }
+
+# Frontier
+fp-evm = { workspace = true }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+
+# Moonkit
+pallet-relay-storage-roots = { workspace = true }
+
+[dev-dependencies]
+hex = { workspace = true }
+precompile-utils = { workspace = true, features = [ "std", "testing" ] }
+
+# Substrate
+cumulus-pallet-parachain-system = { workspace = true }
+pallet-balances = { workspace = true }
+pallet-timestamp = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+
+[features]
+default = [ "std" ]
+std = [
+    "cumulus-primitives-core/std",
+    "frame-support/std",
+    "frame-system/std",
+    "fp-evm/std",
+    "moonbeam-runtime-common/std",
+    "parity-scale-codec/std",
+    "precompile-utils/std",
+    "pallet-evm/std",
+    "pallet-precompile-benchmarks/std",
+    "pallet-relay-storage-roots/std",
+    "storage-proof-primitives/std",
+    "sp-core/std",
+    "sp-std/std",
+    "scale-info/std",
+]

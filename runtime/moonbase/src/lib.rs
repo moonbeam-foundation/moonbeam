@@ -1417,6 +1417,20 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
+parameter_types! {
+	pub const MaxStorageRoots: u32 = 10;
+}
+
+impl pallet_relay_storage_roots::Config for Runtime {
+	type MaxStorageRoots = MaxStorageRoots;
+	type RelaychainStateProvider = cumulus_pallet_parachain_system::RelaychainDataProvider<Self>;
+	type WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
+}
+
+impl pallet_precompile_benchmarks::Config for Runtime {
+	type WeightInfo = moonbeam_weights::pallet_precompile_benchmarks::WeightInfo<Runtime>;
+}
+
 construct_runtime! {
 	pub enum Runtime
 	{
@@ -1474,7 +1488,9 @@ construct_runtime! {
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
 		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 50,
-		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 51
+		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 51,
+		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 52,
+		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 53,
 	}
 }
 
@@ -1548,6 +1564,8 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
+		[pallet_relay_storage_roots, RelayStorageRoots]
+		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[moonbeam_xcm_benchmarks::weights::generic, MoonbeamXcmGenericBench::<Runtime>]
 		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 	);
