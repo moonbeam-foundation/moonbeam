@@ -75,12 +75,6 @@ describeSuite({
         expect(tx4.result?.successful, "Failed to unlock democracy funds");
         expect((await api.query.democracy.votingOf.entries()).length).is.equal(0);
 
-        const tx5 = await context.createBlock(
-          await api.tx.moonbeamLazyMigrations.unlockDemocracyFunds(1)
-        );
-        expect(tx5.result?.successful).is.equal(false);
-        expect(tx5.result?.error?.name).is.equal("AllDemocracyFundsUnlocked");
-
         /// Check there is no democracy lock left
         for (let i = 0; i < locks.length; i++) {
           const account_locks = await api.query.balances.locks(locks[i]["account"]);
@@ -88,6 +82,18 @@ describeSuite({
             expect(account_locks[j].id.toHuman()).is.not.equal("democrac");
           }
         }
+      },
+    });
+
+    it({
+      id: "T03",
+      title: "Test that after migration is complete, we get AllDemocracyFundsUnlocked error.",
+      test: async function () {
+        const tx5 = await context.createBlock(
+          await api.tx.moonbeamLazyMigrations.unlockDemocracyFunds(1)
+        );
+        expect(tx5.result?.successful).is.equal(false);
+        expect(tx5.result?.error?.name).is.equal("AllDemocracyFundsUnlocked");
       },
     });
   },
