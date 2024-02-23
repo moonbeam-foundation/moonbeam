@@ -23,6 +23,10 @@ pallet-relay-storage-roots = { workspace = true }
 # Benchmarks
 frame-benchmarking = { workspace = true, optional = true }
 
+[dev-dependencies]
+sp-state-machine = { workspace = true }
+sp-trie = { workspace = true }
+
 [features]
 default = [ "std" ]
 std = [

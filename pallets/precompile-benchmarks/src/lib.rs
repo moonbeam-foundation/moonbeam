@@ -21,13 +21,13 @@
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks;
+#[cfg(test)]
+mod tests;
+
 pub mod weights;
-
 pub use crate::weights::WeightInfo;
-
-pub use pallet::*;
-
 use frame_support::pallet;
+pub use pallet::*;
 use sp_core::H256;
 
 #[pallet]

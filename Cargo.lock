@@ -9796,7 +9796,9 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-core",
+ "sp-state-machine",
  "sp-std",
+ "sp-trie",
  "storage-proof-primitives",
 ]
 
