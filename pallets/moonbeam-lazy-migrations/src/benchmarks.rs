@@ -15,9 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg(feature = "runtime-benchmarks")]
+
 use crate::{Call, Config, GetArrayLimit, Pallet};
 use core::cmp::max;
-use frame_benchmarking::{account, benchmarks};
+use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::BoundedVec;
 use frame_system::RawOrigin;
 use sp_core::{H160, H256};
@@ -54,3 +55,23 @@ benchmarks! {
 	verify {
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use crate::mock::Test;
+	use sp_io::TestExternalities;
+	use sp_runtime::BuildStorage;
+
+	pub fn new_test_ext() -> TestExternalities {
+		let t = frame_system::GenesisConfig::<Test>::default()
+			.build_storage()
+			.unwrap();
+		TestExternalities::new(t)
+	}
+}
+
+impl_benchmark_test_suite!(
+	Pallet,
+	crate::benchmarks::tests::new_test_ext(),
+	crate::mock::Test
+);
