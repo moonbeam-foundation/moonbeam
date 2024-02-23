@@ -62,7 +62,7 @@ describeSuite({
             expect(account_locks[j].id.toHuman()).is.not.equal("democrac");
           }
         }
-      }
+      },
     });
 
     it({
@@ -82,7 +82,7 @@ describeSuite({
             expect(account_locks[j].id.toHuman()).is.not.equal("democrac");
           }
         }
-      }
+      },
     });
 
     it({
