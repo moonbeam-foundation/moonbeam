@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeAll} from "@moonwall/cli";
+import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { votingOf, locks } from "./first-100-votingof-and-locks-data.json";
@@ -16,21 +16,17 @@ describeSuite({
 
       for (let i = 0; i < votingOf.length; i++) {
         await context.createBlock(
-          api.tx.sudo.sudo(
-              api.tx.system.setStorage([[votingOf[i]["key"], votingOf[i]["data"]]])
-            )
+          api.tx.sudo
+            .sudo(api.tx.system.setStorage([[votingOf[i]["key"], votingOf[i]["data"]]]))
             .signAsync(alith)
         );
       }
-      expect((await api.query.democracy.votingOf.entries()).length).is.equal(
-        100
-      );
+      expect((await api.query.democracy.votingOf.entries()).length).is.equal(100);
 
       for (let i = 0; i < locks.length; i++) {
         await context.createBlock(
-          api.tx.sudo.sudo(
-              api.tx.system.setStorage([[locks[i]["key"], locks[i]["data"]]])
-            )
+          api.tx.sudo
+            .sudo(api.tx.system.setStorage([[locks[i]["key"], locks[i]["data"]]]))
             .signAsync(alith)
         );
       }
@@ -46,7 +42,7 @@ describeSuite({
           await api.tx.moonbeamLazyMigrations.unlockDemocracyFunds(51)
         );
         expect(tx1.result?.error?.name).is.equal("UnlockLimitTooHigh");
-      }
+      },
     });
 
     it({
