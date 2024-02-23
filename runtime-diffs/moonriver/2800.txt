@@ -1,0 +1,70 @@
+Pallets:
+    ~ AuthorInherent
+        Storage Entries:
+            + InherentIncluded
+    - CouncilCollective
+    ~ EVM
+    - LocalAssets
+    + MoonbeamLazyMigrations
+    ~ Multisig
+        Calls:
+            ~ as_multi
+            ~ as_multi_threshold_1
+    ~ OpenTechCommitteeCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: )
+    ~ ParachainStaking
+        Storage Entries:
+            ~ Round (Changed: value type, default value)
+    ~ Proxy
+        Calls:
+            ~ proxy
+            ~ proxy_announced
+    ~ Referenda
+        Calls:
+            ~ submit
+        Storage Entries:
+            ~ ReferendumInfoFor (Changed: value type)
+    ~ Scheduler
+        Calls:
+            ~ schedule
+            ~ schedule_after
+            ~ schedule_named
+            ~ schedule_named_after
+        Storage Entries:
+            ~ Agenda (Changed: value type)
+    ~ System
+        Storage Entries:
+            ~ Events (Changed: )
+    - TechCommitteeCollective
+    ~ TreasuryCouncilCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: )
+    ~ Utility
+        Calls:
+            ~ as_derivative
+            ~ batch
+            ~ batch_all
+            ~ dispatch_as
+            ~ force_batch
+            ~ with_weight
+    ~ Whitelist
+        Calls:
+            ~ dispatch_whitelisted_call_with_preimage
+    ~ XTokens
+        Calls:
+            ~ transfer
+            ~ transfer_multicurrencies
+            ~ transfer_with_fee
+    ~ XcmTransactor
+        Calls:
+            ~ hrmp_manage
+            ~ transact_through_derivative
+            ~ transact_through_signed
+            ~ transact_through_sovereign
