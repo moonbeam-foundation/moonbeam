@@ -47,7 +47,7 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "Test unlockDemocracyFunds drains democracy votingOf and also unlocks the funds.",
+      title: "Unlock democracy funds for 30 accounts. Check that the locks are removed.",
       test: async function () {
         const tx1 = await context.createBlock(
           await api.tx.moonbeamLazyMigrations.unlockDemocracyFunds(30)
@@ -62,13 +62,33 @@ describeSuite({
             expect(account_locks[j].id.toHuman()).is.not.equal("democrac");
           }
         }
+      }
+    });
 
+    it({
+      id: "T03",
+      title: "Unlock for maximum limit (50) accounts. Check that the locks are removed.",
+      test: async function () {
         const tx2 = await context.createBlock(
           await api.tx.moonbeamLazyMigrations.unlockDemocracyFunds(50)
         );
         expect(tx2.result?.successful, "Failed to unlock democracy funds");
         expect((await api.query.democracy.votingOf.entries()).length).is.equal(20);
 
+        /// Check that the locks are removed for the first 70 accounts
+        for (let i = 0; i < 70; i++) {
+          const account_locks = await api.query.balances.locks(locks[i]["account"]);
+          for (let j = 0; j < account_locks.length; j++) {
+            expect(account_locks[j].id.toHuman()).is.not.equal("democrac");
+          }
+        }
+      }
+    });
+
+    it({
+      id: "T04",
+      title: "Unlock the remaining accounts. Check that all locks are removed.",
+      test: async function () {
         const tx4 = await context.createBlock(
           await api.tx.moonbeamLazyMigrations.unlockDemocracyFunds(50)
         );
