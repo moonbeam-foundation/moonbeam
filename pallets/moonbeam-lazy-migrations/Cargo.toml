@@ -27,7 +27,7 @@ pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
-pallet-balances = { workspace = true, features = ["std"] }
+pallet-balances = { workspace = true, features = ["std", "insecure_zero_ed"] }
 pallet-timestamp = { workspace = true, features = ["std"] }
 frame-benchmarking = { workspace = true, features = ["std"] }
 sp-io = { workspace = true, features = ["std"] }
