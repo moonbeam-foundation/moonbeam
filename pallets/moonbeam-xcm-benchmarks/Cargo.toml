@@ -28,7 +28,7 @@ xcm-executor = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
-pallet-balances = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = [ "std", "insecure_zero_ed" ] }
 sp-core = { workspace = true, features = [ "std" ] }
 sp-io = { workspace = true, features = [ "std" ] }
 sp-runtime = { workspace = true, features = [ "std" ] }
@@ -57,4 +57,5 @@ runtime-benchmarks = [
 	"parity-scale-codec",
 	"scale-info",
 	"xcm-executor/runtime-benchmarks",
+	"xcm-primitives/runtime-benchmarks",
 ]
