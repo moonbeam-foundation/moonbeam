@@ -40,7 +40,7 @@ xcm-primitives = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
-pallet-evm-precompile-proxy = { workspace = true }
+pallet-evm-precompile-proxy = { workspace = true, features = [ "std" ] }
 
 pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy", "std" ] }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy", "std" ] }
@@ -80,5 +80,13 @@ std = [
 	"sp-std/std",
 	"xcm-primitives/std",
 ]
-runtime-benchmarks = [ "frame-benchmarking", "frame-benchmarking/runtime-benchmarks", "frame-support/runtime-benchmarks", "frame-system/runtime-benchmarks", "pallet-evm/runtime-benchmarks", "xcm-primitives/runtime-benchmarks" ]
+runtime-benchmarks = [ 
+	"frame-benchmarking", 
+	"frame-benchmarking/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"pallet-evm/runtime-benchmarks", 
+	"xcm-primitives/runtime-benchmarks",
+	"pallet-ethereum/runtime-benchmarks"
+]
 try-runtime = [ "frame-support/try-runtime" ]
