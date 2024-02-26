@@ -23,19 +23,11 @@
 use frame_support::ensure;
 #[cfg(feature = "try-runtime")]
 use frame_support::migration::get_storage_value;
-use frame_support::{
-	parameter_types,
-	sp_runtime::traits::{Block as BlockT, Header as HeaderT},
-	traits::OnRuntimeUpgrade,
-	weights::Weight,
-};
-use frame_system::pallet_prelude::BlockNumberFor;
+use frame_support::{parameter_types, traits::OnRuntimeUpgrade, weights::Weight};
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_migrations::{GetMigrations, Migration};
-use pallet_parachain_staking::{Round, RoundIndex, RoundInfo};
+use pallet_parachain_staking::RoundIndex;
 use parity_scale_codec::{Decode, Encode};
-use sp_consensus_slots::Slot;
-use sp_core::Get;
 use sp_std::{marker::PhantomData, prelude::*, vec};
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode)]
