@@ -1465,6 +1465,40 @@ pub mod pallet {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
 			Self::join_candidates_inner(account, bond, candidate_count)
 		}
+
+		/// Manually rewards `limit` collators for the past round index `for_round`
+		#[pallet::call_index(32)]
+		#[pallet::weight(
+			T::WeightInfo::pay_one_collator_reward(T::MaxTopDelegationsPerCandidate::get())
+				.saturating_mul(*limit as u64)
+				.saturating_add(T::DbWeight::get().reads_writes(1u64, 2u64))
+		)]
+		pub fn reward_collators(
+			origin: OriginFor<T>,
+			for_round: RoundIndex,
+			limit: u8,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+
+			if let Some(payout_info) = <DelayedPayouts<T>>::get(for_round) {
+				let mut actual_weight = T::DbWeight::get().reads_writes(1, 0);
+				for _ in 0..limit {
+					let result = Self::pay_one_collator_reward(for_round, &payout_info);
+
+					// clean up storage items that we no longer need
+					if matches!(result.0, RewardPayment::Finished) {
+						<DelayedPayouts<T>>::remove(for_round);
+						<Points<T>>::remove(for_round);
+						actual_weight = actual_weight.saturating_add(result.1);
+					}
+					actual_weight =
+						actual_weight.saturating_add(T::DbWeight::get().reads_writes(0, 2));
+				}
+				Ok(Some(actual_weight).into())
+			} else {
+				Ok(Some(T::DbWeight::get().reads_writes(1, 0)).into())
+			}
+		}
 	}
 
 	/// Represents a payout made via `pay_one_collator_reward`.
@@ -1862,7 +1896,7 @@ pub mod pallet {
 			let paid_for_round = now.saturating_sub(delay);
 
 			if let Some(payout_info) = <DelayedPayouts<T>>::get(paid_for_round) {
-				let result = Self::pay_one_collator_reward(paid_for_round, payout_info);
+				let result = Self::pay_one_collator_reward(paid_for_round, &payout_info);
 
 				// clean up storage items that we no longer need
 				if matches!(result.0, RewardPayment::Finished) {
@@ -1881,7 +1915,7 @@ pub mod pallet {
 		/// or None if there were no more payouts to be made for the round.
 		pub(crate) fn pay_one_collator_reward(
 			paid_for_round: RoundIndex,
-			payout_info: DelayedPayout<BalanceOf<T>>,
+			payout_info: &DelayedPayout<BalanceOf<T>>,
 		) -> (RewardPayment, Weight) {
 			// 'early_weight' tracks weight used for reads/writes done early in this fn before its
 			// early-exit codepaths.
