@@ -1713,16 +1713,19 @@ pub struct RoundInfo<BlockNumber> {
 	pub first: BlockNumber,
 	/// The length of the current round in number of blocks
 	pub length: u32,
+	/// The first slot of the current round
+	pub first_slot: u64,
 }
 impl<
 		B: Copy + sp_std::ops::Add<Output = B> + sp_std::ops::Sub<Output = B> + From<u32> + PartialOrd,
 	> RoundInfo<B>
 {
-	pub fn new(current: RoundIndex, first: B, length: u32) -> RoundInfo<B> {
+	pub fn new(current: RoundIndex, first: B, length: u32, first_slot: u64) -> RoundInfo<B> {
 		RoundInfo {
 			current,
 			first,
 			length,
+			first_slot,
 		}
 	}
 	/// Check if the round should be updated
@@ -1730,9 +1733,10 @@ impl<
 		now - self.first >= self.length.into()
 	}
 	/// New round
-	pub fn update(&mut self, now: B) {
+	pub fn update(&mut self, now: B, now_slot: u64) {
 		self.current = self.current.saturating_add(1u32);
 		self.first = now;
+		self.first_slot = now_slot;
 	}
 }
 impl<
@@ -1740,7 +1744,7 @@ impl<
 	> Default for RoundInfo<B>
 {
 	fn default() -> RoundInfo<B> {
-		RoundInfo::new(1u32, 1u32.into(), 20u32)
+		RoundInfo::new(1u32, 1u32.into(), 20u32, 0)
 	}
 }
 

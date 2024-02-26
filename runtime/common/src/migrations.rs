@@ -44,7 +44,7 @@ pub struct OldRoundInfo<BlockNumber> {
 	pub first: BlockNumber,
 	pub length: u32,
 }
-pub struct UpdateFirstRoundNumberValue<T>(pub PhantomData<T>);
+/*pub struct UpdateFirstRoundNumberValue<T>(pub PhantomData<T>);
 impl<T> Migration for UpdateFirstRoundNumberValue<T>
 where
 	T: pallet_parachain_staking::Config,
@@ -82,6 +82,7 @@ where
 				current: old_current,
 				first: new_first,
 				length: old_length,
+				first_slot: relay_slot,
 			})
 		});
 
@@ -120,9 +121,9 @@ where
 		);
 		Ok(())
 	}
-}
+}*/
 
-/// Translates the Round.first value type from BlockNumberFor to u64
+/*/// Translates the Round.first value type from BlockNumberFor to u64
 pub struct UpdateFirstRoundNumberType<T>(pub PhantomData<T>);
 impl<T> Migration for UpdateFirstRoundNumberType<T>
 where
@@ -176,7 +177,7 @@ where
 		);
 		Ok(())
 	}
-}
+}*/
 
 parameter_types! {
 	pub const CouncilPalletName: &'static str = "Council";

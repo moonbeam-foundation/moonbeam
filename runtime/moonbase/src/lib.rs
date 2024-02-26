@@ -822,7 +822,8 @@ impl pallet_parachain_staking::Config for Runtime {
 	type SlotProvider = RelayChainSlotProvider;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
-	type SlotsPerYear = ConstU32<{ 31_557_600 / 6 }>;
+	type SlotDuration = ConstU64<6_000>;
+	type BlockTime = ConstU64<6_000>;
 }
 
 impl pallet_author_inherent::Config for Runtime {
@@ -1106,30 +1107,12 @@ impl pallet_proxy::Config for Runtime {
 }
 
 use pallet_migrations::{GetMigrations, Migration};
-pub struct ParachainStakingRoundMigration<Runtime>(sp_std::marker::PhantomData<Runtime>);
-
-impl<Runtime> GetMigrations for ParachainStakingRoundMigration<Runtime>
-where
-	Runtime: pallet_parachain_staking::Config + pallet_async_backing::Config,
-	u32: From<<<<Runtime as frame_system::Config>::Block as BlockT>::Header as HeaderT>::Number>,
-{
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		vec![Box::new(
-			moonbeam_runtime_common::migrations::UpdateFirstRoundNumberValue::<Runtime>(
-				Default::default(),
-			),
-		)]
-	}
-}
 
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
 	// `moonbeam_runtime_common`.
-	type MigrationsList = (
-		moonbeam_runtime_common::migrations::CommonMigrations<Runtime>,
-		ParachainStakingRoundMigration<Runtime>,
-	);
+	type MigrationsList = (moonbeam_runtime_common::migrations::CommonMigrations<Runtime>,);
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
