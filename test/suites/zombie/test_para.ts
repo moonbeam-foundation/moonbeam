@@ -65,6 +65,10 @@ describeSuite({
 
         await context.waitBlock(10);
 
+        const rtafter = paraApi.consts.system.version.specVersion.toNumber();
+        expect(rtafter).to.be.greaterThan(rtBefore);
+
+        log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
 
         const blockNumberAfter = (
           await paraApi.rpc.chain.getBlock()
@@ -73,11 +77,6 @@ describeSuite({
         expect(blockNumberAfter, "Block number did not increase").to.be.greaterThan(
           blockNumberBefore
         );
-
-        const rtafter = paraApi.consts.system.version.specVersion.toNumber();
-        expect(rtafter).to.be.greaterThan(rtBefore);
-
-        log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
       },
     });
 
