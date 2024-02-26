@@ -15,3 +15,35 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Migrations
+
+use crate::Config;
+use frame_support::storage::generator::StorageValue;
+use frame_support::storage::unhashed;
+use frame_support::traits::OnRuntimeUpgrade;
+
+/// Migrates RoundInfo and add the field first_slot
+pub struct MigrateRoundWithFirstSlot<T: Config>(core::marker::PhantomData<T>);
+
+impl<T: Config> OnRuntimeUpgrade for MigrateRoundWithFirstSlot<T> {
+	fn on_runtime_upgrade() -> frame_support::pallet_prelude::Weight {
+		let raw_key = crate::Round::<T>::storage_prefix();
+
+		if let Some(bytes) = unhashed::get_raw(&raw_key) {
+			let len = bytes.len();
+			match len {
+				20 => {
+					// migration already done
+				}
+				16 => {
+					// migrate from 2800
+				}
+				12 => {
+					// migrater from 2700
+				}
+				_ => panic!("corrupted storage"),
+			}
+		}
+
+		Default::default()
+	}
+}
