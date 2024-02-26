@@ -12,7 +12,7 @@ import { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
 import { jumpBlocks, SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({
-  id: "D012908",
+  id: "D013108",
   title: "Randomness Result - Fulfilling one of multiple random numbers",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

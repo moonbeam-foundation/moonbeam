@@ -3,7 +3,7 @@ import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
-  id: "D012805",
+  id: "D013005",
   title: "Proxy : IdentityJudgement",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -11,7 +11,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D012731",
+  id: "D012931",
   title: "Precompiles - Conviction Voting precompile",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

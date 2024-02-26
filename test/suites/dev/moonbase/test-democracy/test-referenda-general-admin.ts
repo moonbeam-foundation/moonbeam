@@ -4,7 +4,7 @@ import { alith } from "@moonwall/util";
 import "@polkadot/api-augment";
 
 describeSuite({
-  id: "D010905",
+  id: "D010904",
   title: "Referenda - GeneralAdmin",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

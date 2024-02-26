@@ -11,7 +11,7 @@ import {
 import { ALITH_GENESIS_TRANSFERABLE_BALANCE, verifyLatestBlockFees } from "../../../../helpers";
 
 describeSuite({
-  id: "D013401",
+  id: "D013601",
   title: "Sudo - successful setParachainBondAccount",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

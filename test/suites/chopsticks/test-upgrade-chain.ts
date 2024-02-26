@@ -5,7 +5,7 @@ import { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
 
 describeSuite({
-  id: "R01",
+  id: "C01",
   title: "Chopsticks Upgrade",
   foundationMethods: "chopsticks",
   testCases: ({ it, context, log }) => {

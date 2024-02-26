@@ -11,7 +11,7 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D013828",
+  id: "D014028",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -23,7 +23,7 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectEVMResult } from "../../../../helpers";
 
 describeSuite({
-  id: "D012770",
+  id: "D012970",
   title: "Precompile - Proxy",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

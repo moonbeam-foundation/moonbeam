@@ -4,7 +4,7 @@ import { CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS, GLMR, alith } from "@moonwa
 import { SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({
-  id: "D012904",
+  id: "D013104",
   title: "Randomness Babe - Requesting a random number",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

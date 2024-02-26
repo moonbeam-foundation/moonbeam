@@ -4,7 +4,7 @@ import { GLMR, alith } from "@moonwall/util";
 import { SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({
-  id: "D012920",
+  id: "D013120",
   title: "Randomness VRF - Fulfilling a random request",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

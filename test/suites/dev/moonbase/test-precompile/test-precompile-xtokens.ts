@@ -8,7 +8,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D012703",
+  id: "D012904",
   title: "Precompiles - xtokens",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

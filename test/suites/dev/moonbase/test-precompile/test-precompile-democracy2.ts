@@ -11,7 +11,7 @@ import { Abi, encodeFunctionData } from "viem";
 import { notePreimagePrecompile } from "../../../../helpers";
 
 describeSuite({
-  id: "D012738",
+  id: "D012938",
   title: "Democracy - propose",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

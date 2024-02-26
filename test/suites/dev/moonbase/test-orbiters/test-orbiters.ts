@@ -4,7 +4,7 @@ import { alith, baltathar, charleth, dorothy, ethan, faith, goliath } from "@moo
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({
-  id: "TX01",
+  id: "D012601",
   title: "Orbiters",
   foundationMethods: "dev",
   testCases: ({ it, context, log }) => {

@@ -11,7 +11,7 @@ import { fromBytes } from "viem";
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({
-  id: "D013182",
+  id: "D013382",
   title: "Staking - Locks - multiple delegations single revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

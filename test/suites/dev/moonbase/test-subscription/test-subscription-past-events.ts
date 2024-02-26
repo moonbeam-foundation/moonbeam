@@ -5,7 +5,7 @@ import { encodeDeployData } from "viem";
 import { web3SubscribeHistoricalLogs } from "../../../../helpers";
 
 describeSuite({
-  id: "D013303",
+  id: "D013503",
   title: "Subscription - Past Events",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

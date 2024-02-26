@@ -4,7 +4,7 @@ import { MIN_GLMR_STAKING, alith, ethan } from "@moonwall/util";
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({
-  id: "D013109",
+  id: "D013309",
   title: "Staking - Candidate Leave Execute - exact round delay",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

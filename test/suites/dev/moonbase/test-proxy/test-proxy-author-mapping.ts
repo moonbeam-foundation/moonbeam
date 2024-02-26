@@ -9,7 +9,7 @@ import {
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D012801",
+  id: "D013001",
   title: "Proxy : Author Mapping - simple association",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

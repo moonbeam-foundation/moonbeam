@@ -11,7 +11,7 @@ import { expectOk } from "helpers/expect";
 import { Abi, encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D013203",
+  id: "D013403",
   title: "Storage growth limit - New Entries",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

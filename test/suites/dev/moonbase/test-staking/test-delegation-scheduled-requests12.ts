@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith, baltathar, ethan } from "@
 import { jumpToRound } from "../../../../helpers";
 
 describeSuite({
-  id: "D013125",
+  id: "D013325",
   title: "Staking - Delegation Scheduled Requests - collator leave",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
