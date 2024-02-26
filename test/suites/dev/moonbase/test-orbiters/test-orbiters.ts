@@ -34,7 +34,8 @@ describeSuite({
         );
 
         // ceil(2 / 3 * 8) = 6 collators are needed to be able to mark
-        // collators offline
+        // collators offline. Alith is arleady a collator so 5 extra
+        // are added.
         const collators = [baltathar, charleth, dorothy, ethan, faith];
 
         const joinCandidateTxs = collators.map((c, i) =>
