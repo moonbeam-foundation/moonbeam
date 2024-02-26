@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
-import { votingOf, locks } from "./first-100-votingof-and-locks-data.json";
+import { votingOf, locks } from "../../../../helpers";
 
 describeSuite({
   id: "LM01",
