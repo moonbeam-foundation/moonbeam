@@ -41,8 +41,7 @@ yargs(hideBin(process.argv))
       plainSpec.genesis.runtime.authorMapping.mappings = [
         ["5HEL3iLyDyaqmfibHXAXVzyQq4fBqLCHGMEYxZXgRAuhEKXX", ALITH_ADDRESS],
       ];
-      plainSpec.genesis.runtime.councilCollective.members = [ALITH_ADDRESS];
-      plainSpec.genesis.runtime.techCommitteeCollective.members = [ALITH_ADDRESS];
+      plainSpec.genesis.runtime.openTechCommitteeCollective.members = [ALITH_ADDRESS];
 
       process.stdout.write(`Writing to: ${argv.outputPath} ...`);
       await fs.writeFile(
