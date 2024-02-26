@@ -179,42 +179,30 @@ where
 }
 
 parameter_types! {
-	pub const CouncilPalletName: &'static str = "Council";
-	pub const TechnicalCommitteePalletName: &'static str = "TechnicalCommittee";
+	pub const DemocracyPalletName: &'static str = "Democracy";
 }
 
-pub struct PalletCollectiveDropGovV1Collectives<Runtime>(pub PhantomData<Runtime>);
-impl<Runtime> Migration for PalletCollectiveDropGovV1Collectives<Runtime>
+pub struct RemovePalletDemocracy<Runtime>(pub PhantomData<Runtime>);
+impl<Runtime> Migration for RemovePalletDemocracy<Runtime>
 where
 	Runtime: frame_system::Config,
 {
 	fn friendly_name(&self) -> &str {
-		"MM_RemoveGovV1Collectives"
+		"MM_RemoveDemocracyPallet"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		log::info!("Removing Council and Tech from pallet_collective");
-
-		let mut weight = Weight::zero();
-
-		let w = frame_support::migrations::RemovePallet::<
-			CouncilPalletName,
+		log::info!("Removing pallet democracy");
+		frame_support::migrations::RemovePallet::<
+			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
-		>::on_runtime_upgrade();
-		weight = weight.saturating_add(w);
-
-		let w = frame_support::migrations::RemovePallet::<
-			TechnicalCommitteePalletName,
-			<Runtime as frame_system::Config>::DbWeight,
-		>::on_runtime_upgrade();
-		weight = weight.saturating_add(w);
-		weight
+		>::on_runtime_upgrade()
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
 		frame_support::migrations::RemovePallet::<
-			TechnicalCommitteePalletName,
+			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
 		>::pre_upgrade();
 
@@ -224,7 +212,7 @@ where
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
 		frame_support::migrations::RemovePallet::<
-			TechnicalCommitteePalletName,
+			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
 		>::post_upgrade(_state);
 		Ok(())
@@ -320,8 +308,9 @@ where
 		// 	FixIncorrectPalletVersions::<Runtime, Treasury, OpenTech>(Default::default());
 		// let pallet_referenda_migrate_v0_to_v1 =
 		// 	PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
-		let pallet_collective_drop_gov_v1_collectives =
-			PalletCollectiveDropGovV1Collectives::<Runtime>(Default::default());
+		// let pallet_collective_drop_gov_v1_collectives =
+		// PalletCollectiveDropGovV1Collectives::<Runtime>(Default::default());
+		let remove_pallet_democracy = RemovePalletDemocracy::<Runtime>(Default::default());
 
 		vec![
 			// completed in runtime 800
@@ -377,7 +366,9 @@ where
 			// Box::new(fix_pallet_versions),
 			// Box::new(pallet_referenda_migrate_v0_to_v1),
 			// completed in runtime 2800
-			Box::new(pallet_collective_drop_gov_v1_collectives),
+			// Box::new(pallet_collective_drop_gov_v1_collectives),
+			// completed in runtime 2900
+			Box::new(remove_pallet_democracy),
 		]
 	}
 }
