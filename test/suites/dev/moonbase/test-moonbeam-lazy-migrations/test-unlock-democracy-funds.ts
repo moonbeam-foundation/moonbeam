@@ -14,22 +14,18 @@ describeSuite({
     beforeAll(async () => {
       api = context.polkadotJs();
 
-      for (let i = 0; i < votingOf.length; i++) {
-        await context.createBlock(
-          api.tx.sudo
-            .sudo(api.tx.system.setStorage([[votingOf[i]["key"], votingOf[i]["data"]]]))
-            .signAsync(alith)
-        );
-      }
+      await context.createBlock(
+        api.tx.sudo
+          .sudo(api.tx.system.setStorage(votingOf.map((v) => [v.key, v.data])))
+          .signAsync(alith)
+      );
       expect((await api.query.democracy.votingOf.entries()).length).is.equal(100);
 
-      for (let i = 0; i < locks.length; i++) {
-        await context.createBlock(
-          api.tx.sudo
-            .sudo(api.tx.system.setStorage([[locks[i]["key"], locks[i]["data"]]]))
-            .signAsync(alith)
-        );
-      }
+      await context.createBlock(
+        api.tx.sudo
+          .sudo(api.tx.system.setStorage(locks.map((l) => [l.key, l.data])))
+          .signAsync(alith)
+      );
       // 100 just added + alith
       expect((await api.query.balances.locks.entries()).length).is.equal(101);
     });
