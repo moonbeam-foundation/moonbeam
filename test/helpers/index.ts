@@ -5,7 +5,6 @@ export * from "./common";
 export * from "./constants";
 export * from "./contracts";
 export * from "./crowdloan";
-export * from "./democracy-unlock-test-data";
 export * from "./eth-transactions";
 export * from "./expect";
 export * from "./foreign-chains";
