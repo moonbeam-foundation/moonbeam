@@ -36,11 +36,11 @@ struct RoundInfoRt2800 {
 	/// The length of the current round in number of blocks
 	pub length: u32,
 }
-impl<BlockNumber: From<u64>> From<RoundInfoRt2800> for RoundInfo<BlockNumber> {
+impl<BlockNumber: From<u32>> From<RoundInfoRt2800> for RoundInfo<BlockNumber> {
 	fn from(round: RoundInfoRt2800) -> Self {
 		Self {
 			current: round.current,
-			first: round.first.into(),
+			first: (round.first as u32).into(),
 			length: round.length,
 			first_slot: 0,
 		}
@@ -70,8 +70,23 @@ impl<BlockNumber: From<u32>> From<RoundInfoRt2700> for RoundInfo<BlockNumber> {
 impl<T> OnRuntimeUpgrade for MigrateRoundWithFirstSlot<T>
 where
 	T: Config,
-	BlockNumberFor<T>: From<u32> + From<u64> + Into<u64>,
+	BlockNumberFor<T>: From<u32> + Into<u64>,
 {
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::TryRuntimeError> {
+		let raw_key = crate::Round::<T>::storage_prefix();
+		let maybe_raw_value = unhashed::get_raw(&raw_key);
+		let len = maybe_raw_value
+			.expect("parachainStaking.Round should exist!")
+			.len();
+		ensure!(
+			len == 16 || len == 18,
+			"parachainStaking.Round should have 12 or 16 bytes length!"
+		);
+
+		Ok(Vec::new())
+	}
+
 	fn on_runtime_upgrade() -> frame_support::pallet_prelude::Weight {
 		let raw_key = crate::Round::<T>::storage_prefix();
 
@@ -120,5 +135,11 @@ where
 		crate::Round::<T>::put(round);
 
 		Default::default()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(_state: Vec<u8>) -> Result<(), sp_runtime::TryRuntimeError> {
+		let round = crate::Round::<T>::get(); // Should panic if SCALE decode fail
+		Ok(())
 	}
 }
