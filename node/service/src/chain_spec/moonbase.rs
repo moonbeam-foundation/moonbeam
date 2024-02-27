@@ -26,12 +26,11 @@ use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig,
-	EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig,
-	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
-	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig, SystemConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
-	WASM_BINARY,
+	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
+	GenesisAccount, InflationInfo, MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig,
+	ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range,
+	RuntimeGenesisConfig, SudoConfig, SystemConfig, TransactionPaymentConfig,
+	TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
@@ -285,7 +284,6 @@ pub fn testnet_genesis(
 		ethereum: EthereumConfig {
 			..Default::default()
 		},
-		democracy: DemocracyConfig::default(),
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
 				.iter()

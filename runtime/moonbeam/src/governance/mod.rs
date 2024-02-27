@@ -17,7 +17,6 @@
 //! Governance configurations
 
 pub mod councils;
-mod democracy;
 pub mod referenda;
 
 use super::*;

@@ -27,11 +27,10 @@ use hex_literal::hex;
 use moonbase_runtime::EligibilityValue;
 use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig,
-	GenesisAccount, InflationInfo, MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig,
-	ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range,
-	RuntimeGenesisConfig, SystemConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
-	HOURS, WASM_BINARY,
+	CrowdloanRewardsConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisAccount,
+	InflationInfo, MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
+	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
+	SystemConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
@@ -270,7 +269,6 @@ pub fn testnet_genesis(
 		ethereum: EthereumConfig {
 			..Default::default()
 		},
-		democracy: DemocracyConfig::default(),
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
 				.iter()
