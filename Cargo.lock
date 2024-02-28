@@ -7111,6 +7111,7 @@ dependencies = [
  "sp-api",
  "sp-consensus-slots",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "staging-xcm",
