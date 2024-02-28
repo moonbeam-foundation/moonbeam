@@ -26,6 +26,7 @@ use frame_support::migration::get_storage_value;
 use frame_support::{
 	parameter_types,
 	sp_runtime::traits::{Block as BlockT, Header as HeaderT},
+	storage::unhashed::contains_prefixed_key,
 	traits::OnRuntimeUpgrade,
 	weights::Weight,
 };
@@ -35,7 +36,7 @@ use pallet_migrations::{GetMigrations, Migration};
 use pallet_parachain_staking::{Round, RoundIndex, RoundInfo};
 use parity_scale_codec::{Decode, Encode};
 use sp_consensus_slots::Slot;
-use sp_core::Get;
+use sp_core::{twox_128, Get};
 use sp_std::{marker::PhantomData, prelude::*, vec};
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode)]
@@ -178,8 +179,9 @@ where
 	}
 }
 
+const DEMOCRACY_PALLET: &'static str = "Democracy";
 parameter_types! {
-	pub const DemocracyPalletName: &'static str = "Democracy";
+	pub const DemocracyPalletName: &'static str = DEMOCRACY_PALLET;
 }
 
 pub struct RemovePalletDemocracy<Runtime>(pub PhantomData<Runtime>);
@@ -193,6 +195,16 @@ where
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
 		log::info!("Removing pallet democracy");
+
+		let hashed_prefix = twox_128(DEMOCRACY_PALLET.as_bytes());
+		if contains_prefixed_key(&hashed_prefix) {
+			// PoV failsafe: do not execute the migration if there are keys for this pallet
+			log::info!(
+				"Found keys {} pre-removal - skipping migration",
+				DEMOCRACY_PALLET
+			);
+			return Weight::zero();
+		};
 		frame_support::migrations::RemovePallet::<
 			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
