@@ -162,7 +162,7 @@ impl Config for Test {
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
 	type SlotDuration = frame_support::traits::ConstU64<6_000>;
-	type BlockTime = ConstU64<6_000>;
+	type BlockTime = frame_support::traits::ConstU64<6_000>;
 }
 
 pub(crate) struct ExtBuilder {

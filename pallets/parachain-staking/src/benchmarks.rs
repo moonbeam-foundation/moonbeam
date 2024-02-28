@@ -205,7 +205,7 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 	let total_rounds = round_delay + 1u32;
 	let round_length: BlockNumberFor<T> = Pallet::<T>::round().length.into();
 	let mut now = <frame_system::Pallet<T>>::block_number() + 1u32.into();
-	let first: BlockNumberFor<T> = (Pallet::<T>::round().first as u32).into();
+	let first: BlockNumberFor<T> = Pallet::<T>::round().first;
 	let end = first + (round_length * total_rounds.into());
 	while now < end {
 		parachain_staking_on_finalize::<T>(author.clone());
@@ -1542,8 +1542,14 @@ benchmarks! {
 
 	prepare_staking_payouts {
 		let reward_delay = <<T as Config>::RewardPaymentDelay as Get<u32>>::get();
-		let round = reward_delay + 2u32;
-		let payout_round = round - reward_delay;
+		let round = crate::RoundInfo {
+			current: reward_delay + 2u32,
+			length: 10,
+			first: 5u32.into(),
+			first_slot: 5,
+		};
+		let current_slot = 15;
+		let payout_round = round.current - reward_delay;
 		// may need:
 		//  <Points<T>>
 		//  <Staked<T>>
@@ -1563,7 +1569,7 @@ benchmarks! {
 			percent: Percent::from_percent(50),
 		});
 
-	}: { Pallet::<T>::prepare_staking_payouts(round); }
+	}: { Pallet::<T>::prepare_staking_payouts(round, current_slot); }
 	verify {
 	}
 
