@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { ALITH_SESSION_ADDRESS, BALTATHAR_SESSION_ADDRESS } from "@moonwall/util";
 
 describeSuite({
-  id: "D012773",
+  id: "D012973",
   title: "Precompiles - relay-encoder",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

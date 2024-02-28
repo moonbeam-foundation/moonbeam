@@ -7,7 +7,7 @@ import { createViemTransaction } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D012723",
+  id: "D012923",
   title: "Precompiles - blake2",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

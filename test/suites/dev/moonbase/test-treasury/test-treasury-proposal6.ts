@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { alith, baltathar, ethan } from "@moonwall/util";
 
 describeSuite({
-  id: "D013507",
+  id: "D013707",
   title: "Treasury proposal #6",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
