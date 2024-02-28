@@ -126,6 +126,15 @@ describeSuite({
         // and the OrbiterPerRoundEntry is cleared
         await jumpRounds(context, 6);
 
+        const afterRemoveOrbiterRound = await context.polkadotJs().query.parachainStaking.round();
+        const afterRemoveOrbiterOrbiter = await context
+          .polkadotJs()
+          .query.moonbeamOrbiters.orbiterPerRound(
+            afterRemoveOrbiterRound.current,
+            orbiterPool.address
+          );
+        expect(afterRemoveOrbiterOrbiter.isNone).toBe(true);
+
         // Marking the orbiter pool without active orbiters should
         // make the orbiter pool idle
         await context.createBlock(
@@ -136,19 +145,17 @@ describeSuite({
           { allowFailures: false }
         );
 
-        const afterRemoveOrbiterRound = await context.polkadotJs().query.parachainStaking.round();
-        const afterRemoveOrbiterOrbiter = await context
-          .polkadotJs()
-          .query.moonbeamOrbiters.orbiterPerRound(
-            afterRemoveOrbiterRound.current,
-            orbiterPool.address
-          );
-        expect(afterRemoveOrbiterOrbiter.isNone).toBe(true);
-
-        const afterOrbiterRemoveInfo = await context
+        const afterOrbPoolInnactiveInfo = await context
           .polkadotJs()
           .query.parachainStaking.candidateInfo(orbiterPool.address);
-        expect(afterOrbiterRemoveInfo.unwrap().status.isIdle).toBe(true);
+        expect(afterOrbPoolInnactiveInfo.unwrap().status.isIdle).toBe(true);
+        const afterOrbPoolInnactiveCandidatePool = await context
+          .polkadotJs()
+          .query.parachainStaking.candidatePool();
+        const afterOrbPoolInnactiveCandidates = afterOrbPoolInnactiveCandidatePool
+          .toJSON()
+          .map((c) => c.owner);
+        expect(afterOrbPoolInnactiveCandidates).not.toContain(orbiterPool.address);
       },
     });
   },
