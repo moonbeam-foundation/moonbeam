@@ -14,7 +14,7 @@ moonbeam-rococo = " build --release -p moonbeam --no-default-features --features
 #
 # If you want standard clippy run:
 # RUSTFLAGS= cargo clippy
-[target.'cfg(feature = "cargo-clippy")']
+[target.'cfg(clippy)']
 rustflags = [
   "-Aclippy::all",
   "-Dclippy::correctness",
