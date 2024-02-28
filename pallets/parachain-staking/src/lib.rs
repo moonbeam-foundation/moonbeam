@@ -459,20 +459,25 @@ pub mod pallet {
 		fn on_initialize(n: BlockNumberFor<T>) -> Weight {
 			let mut weight = <T as Config>::WeightInfo::base_on_initialize();
 
-			// fetch current slot number
-			let current_slot: u64 = T::SlotProvider::get().into();
-
-			// account for SlotProvider read
-			weight = weight.saturating_add(T::DbWeight::get().reads_writes(1, 0));
-
 			let mut round = <Round<T>>::get();
 			if round.should_update(n.into()) {
+				// fetch current slot number
+				let current_slot: u64 = T::SlotProvider::get().into();
+
+				// account for SlotProvider read
+				weight = weight.saturating_add(T::DbWeight::get().reads_writes(1, 0));
+
+				// Compute round duration in slots
+				let round_duration = (current_slot.saturating_sub(round.first_slot))
+					.saturating_mul(T::SlotDuration::get());
+
 				// mutate round
 				round.update(n.into(), current_slot);
 				// notify that new round begin
 				weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
 				// pay all stakers for T::RewardPaymentDelay rounds ago
-				weight = weight.saturating_add(Self::prepare_staking_payouts(round, current_slot));
+				weight =
+					weight.saturating_add(Self::prepare_staking_payouts(round, round_duration));
 				// select top collator candidates for next round
 				let (extra_weight, collator_count, _delegation_count, total_staked) =
 					Self::select_top_candidates(round.current);
@@ -1814,11 +1819,10 @@ pub mod pallet {
 
 		pub(crate) fn prepare_staking_payouts(
 			round_info: RoundInfo<BlockNumberFor<T>>,
-			current_slot: u64,
+			round_duration: u64,
 		) -> Weight {
 			let RoundInfo {
 				current: now,
-				first_slot,
 				length: round_length,
 				..
 			} = round_info;
@@ -1829,8 +1833,6 @@ pub mod pallet {
 			}
 
 			// Compute total issuance based on round duration
-			let round_duration =
-				(current_slot.saturating_sub(first_slot)).saturating_mul(T::SlotDuration::get());
 			let total_issuance = Self::compute_issuance(round_duration, round_length);
 
 			// reserve portion of issuance for parachain bond account
@@ -1854,7 +1856,9 @@ pub mod pallet {
 				collator_commission: <CollatorCommission<T>>::get(),
 			};
 
-			<DelayedPayouts<T>>::insert(now, payout);
+			//
+			<DelayedPayouts<T>>::insert(now - 1, payout);
+
 			<T as Config>::WeightInfo::prepare_staking_payouts()
 		}
 
