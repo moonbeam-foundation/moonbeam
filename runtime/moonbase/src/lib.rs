@@ -33,6 +33,7 @@ pub mod governance;
 pub mod timestamp;
 pub mod xcm_config;
 
+mod migrations;
 mod precompiles;
 
 // Re-export required by get! macro.
@@ -1110,7 +1111,10 @@ impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
 	// `moonbeam_runtime_common`.
-	type MigrationsList = (moonbeam_runtime_common::migrations::CommonMigrations<Runtime>,);
+	type MigrationsList = (
+		moonbeam_runtime_common::migrations::CommonMigrations<Runtime>,
+		migrations::MoonbaseMigrations,
+	);
 	type XcmExecutionManager = XcmExecutionManager;
 }
 

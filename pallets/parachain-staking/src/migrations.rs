@@ -24,6 +24,26 @@ use frame_support::traits::OnRuntimeUpgrade;
 use frame_system::pallet_prelude::*;
 use sp_runtime::Saturating;
 
+/// Multiply round length by 2
+pub struct MultiplyRoundLenBy2<T: Config>(core::marker::PhantomData<T>);
+
+impl<T> OnRuntimeUpgrade for MultiplyRoundLenBy2<T>
+where
+	T: Config,
+	BlockNumberFor<T>: From<u32> + Into<u64>,
+{
+	fn on_runtime_upgrade() -> frame_support::pallet_prelude::Weight {
+		let mut round = crate::Round::<T>::get();
+
+		// Multiply round length by 2
+		round.length = round.length * 2;
+
+		crate::Round::<T>::put(round);
+
+		Default::default()
+	}
+}
+
 /// Migrates RoundInfo and add the field first_slot
 pub struct MigrateRoundWithFirstSlot<T: Config>(core::marker::PhantomData<T>);
 
@@ -90,6 +110,7 @@ where
 	fn on_runtime_upgrade() -> frame_support::pallet_prelude::Weight {
 		let raw_key = crate::Round::<T>::storage_prefix();
 
+		// Read old round info
 		let mut round: RoundInfo<BlockNumberFor<T>> = if let Some(bytes) =
 			unhashed::get_raw(&raw_key)
 		{
