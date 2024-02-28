@@ -121,15 +121,23 @@ where
 		};
 
 		// Compute new field `first_slot``
-		let current_block: BlockNumberFor<T> = <frame_system::Pallet<T>>::block_number();
-		let blocks_since_first: u64 = (current_block.saturating_sub(round.first)).into();
-		let current_slot = u64::from(T::SlotProvider::get());
-		let slots_since_first = match T::BlockTime::get() {
-			12_000 => blocks_since_first * 2,
-			6_000 => blocks_since_first,
-			_ => panic!("Unsupported BlockTime"),
-		};
-		round.first_slot = current_slot.saturating_sub(slots_since_first);
+		round.first_slot = compute_theoretical_first_slot(
+			<frame_system::Pallet<T>>::block_number(),
+			round.first,
+			u64::from(T::SlotProvider::get()),
+			T::BlockTime::get(),
+		);
+
+		// Fill DelayedPayouts for rounds N and N-1
+		if let Some(delayed_payout) =
+			<crate::DelayedPayouts<T>>::get(round.current.saturating_sub(2))
+		{
+			<crate::DelayedPayouts<T>>::insert(
+				round.current.saturating_sub(1),
+				delayed_payout.clone(),
+			);
+			<crate::DelayedPayouts<T>>::insert(round.current, delayed_payout);
+		}
 
 		// Apply the migration (write new Round value)
 		crate::Round::<T>::put(round);
@@ -141,5 +149,33 @@ where
 	fn post_upgrade(_state: Vec<u8>) -> Result<(), sp_runtime::TryRuntimeError> {
 		let round = crate::Round::<T>::get(); // Should panic if SCALE decode fail
 		Ok(())
+	}
+}
+
+fn compute_theoretical_first_slot<BlockNumber: Saturating + Into<u64>>(
+	current_block: BlockNumber,
+	first_block: BlockNumber,
+	current_slot: u64,
+	block_time: u64,
+) -> u64 {
+	let blocks_since_first: u64 = (current_block.saturating_sub(first_block)).into();
+	let slots_since_first = match block_time {
+		12_000 => blocks_since_first * 2,
+		6_000 => blocks_since_first,
+		_ => panic!("Unsupported BlockTime"),
+	};
+	current_slot.saturating_sub(slots_since_first)
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn test_compute_theoretical_first_slot() {
+		assert_eq!(
+			compute_theoretical_first_slot::<u32>(10, 5, 100, 12_000),
+			90,
+		);
 	}
 }

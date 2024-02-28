@@ -170,7 +170,7 @@ impl<A, B: Default> Default for CollatorSnapshot<A, B> {
 	}
 }
 
-#[derive(Default, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(Clone, Default, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// Info needed to make delayed payments to stakers after round end
 pub struct DelayedPayout<Balance> {
 	/// Total round reward (result of compute_issuance() at round end)

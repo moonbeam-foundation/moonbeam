@@ -1823,22 +1823,18 @@ pub mod pallet {
 				..
 			} = round_info;
 
+			// Return early if there is no blocks for this round
+			if <Points<T>>::get(now).is_zero() {
+				return Weight::zero();
+			}
+
+			// Compute total issuance based on round duration
 			let round_duration =
 				(current_slot.saturating_sub(first_slot)).saturating_mul(T::SlotDuration::get());
-
-			// payout is now - delay rounds ago => now - delay > 0 else return early
-			let delay = T::RewardPaymentDelay::get();
-			if now <= delay {
-				return Weight::zero();
-			}
-			let round_to_payout = now.saturating_sub(delay);
-			let total_points = <Points<T>>::get(round_to_payout);
-			if total_points.is_zero() {
-				return Weight::zero();
-			}
 			let total_issuance = Self::compute_issuance(round_duration, round_length);
-			let mut left_issuance = total_issuance;
+
 			// reserve portion of issuance for parachain bond account
+			let mut left_issuance = total_issuance;
 			let bond_config = <ParachainBondInfo<T>>::get();
 			let parachain_bond_reserve = bond_config.percent * total_issuance;
 			if let Ok(imb) =
@@ -1858,7 +1854,7 @@ pub mod pallet {
 				collator_commission: <CollatorCommission<T>>::get(),
 			};
 
-			<DelayedPayouts<T>>::insert(round_to_payout, payout);
+			<DelayedPayouts<T>>::insert(now, payout);
 			<T as Config>::WeightInfo::prepare_staking_payouts()
 		}
 
