@@ -20,7 +20,7 @@
 
 use frame_support::{traits::Get, weights::Weight};
 use sp_std::marker::PhantomData;
-use xcm::latest::MultiAsset;
+use xcm::latest::Asset;
 
 // Values copied from statemint benchmarks
 const ASSET_BURN_MAX_PROOF_SIZE: u64 = 7242;
@@ -30,7 +30,7 @@ const ASSET_TRANSFER_MAX_PROOF_SIZE: u64 = 13412;
 /// Weights for `pallet_xcm_benchmarks::fungible`.
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config + pallet_erc20_xcm_bridge::Config> WeightInfo<T> {
-	pub(crate) fn withdraw_asset(asset: &MultiAsset) -> Weight {
+	pub(crate) fn withdraw_asset(asset: &Asset) -> Weight {
 		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer(&asset.id)
 			
@@ -38,14 +38,14 @@ impl<T: frame_system::Config + pallet_erc20_xcm_bridge::Config> WeightInfo<T> {
 			Weight::from_parts(200_000_000 as u64, ASSET_BURN_MAX_PROOF_SIZE)
 		}
 	}
-	pub(crate) fn transfer_asset(asset: &MultiAsset) -> Weight {
+	pub(crate) fn transfer_asset(asset: &Asset) -> Weight {
 		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer(&asset.id)
 		} else {
 			Weight::from_parts(200_000_000 as u64, ASSET_TRANSFER_MAX_PROOF_SIZE)
 		}
 	}
-	pub(crate) fn transfer_reserve_asset(asset: &MultiAsset) -> Weight {
+	pub(crate) fn transfer_reserve_asset(asset: &Asset) -> Weight {
 		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer(&asset.id)
 		} else {

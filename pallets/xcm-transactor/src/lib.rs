@@ -103,7 +103,7 @@ pub mod pallet {
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
 	use sp_std::vec::Vec;
-	use xcm::{latest::prelude::*, VersionedMultiLocation};
+	use xcm::{latest::prelude::*, VersionedLocation};
 	use xcm_executor::traits::{TransactAsset, WeightBounds};
 	use xcm_primitives::{
 		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls,
@@ -129,8 +129,8 @@ pub mod pallet {
 		/// Currency Id.
 		type CurrencyId: Parameter + Member + Clone;
 
-		/// Convert `T::CurrencyId` to `MultiLocation`.
-		type CurrencyIdToMultiLocation: Convert<Self::CurrencyId, Option<MultiLocation>>;
+		/// Convert `T::CurrencyId` to `Location`.
+		type CurrencyIdToLocation: Convert<Self::CurrencyId, Option<Location>>;
 
 		// XcmTransact needs to be implemented. This type needs to implement
 		// utility call encoding and multilocation gathering
@@ -146,18 +146,18 @@ pub mod pallet {
 		// The origin that is allowed to register derivative address indices
 		type HrmpManipulatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
-		/// Convert `T::AccountId` to `MultiLocation`.
-		type AccountIdToMultiLocation: Convert<Self::AccountId, MultiLocation>;
+		/// Convert `T::AccountId` to `Location`.
+		type AccountIdToLocation: Convert<Self::AccountId, Location>;
 
 		/// Means of measuring the weight consumed by an XCM message locally.
 		type Weigher: WeightBounds<Self::RuntimeCall>;
 
 		/// This chain's Universal Location.
-		type UniversalLocation: Get<InteriorMultiLocation>;
+		type UniversalLocation: Get<InteriorLocation>;
 
 		/// Self chain location.
 		#[pallet::constant]
-		type SelfLocation: Get<MultiLocation>;
+		type SelfLocation: Get<Location>;
 
 		// The origin that is allowed to dispatch calls from the sovereign account directly
 		type SovereignAccountDispatcherOrigin: EnsureOrigin<Self::RuntimeOrigin>;
@@ -172,7 +172,7 @@ pub mod pallet {
 		#[pallet::constant]
 		type BaseXcmWeight: Get<Weight>;
 
-		/// The way to retrieve the reserve of a MultiAsset. This can be
+		/// The way to retrieve the reserve of a Asset. This can be
 		/// configured to accept absolute or relative paths for self tokens
 		type ReserveProvider: Reserve;
 
@@ -217,12 +217,12 @@ pub mod pallet {
 		// Express the Currency as a CurrencyId
 		AsCurrencyId(CurrencyId),
 		// Express the Currency as its MultiLOcation
-		AsMultiLocation(Box<VersionedMultiLocation>),
+		AsMultiLocation(Box<VersionedLocation>),
 	}
 
 	impl<T> Default for Currency<T> {
 		fn default() -> Currency<T> {
-			Currency::<T>::AsMultiLocation(Box::new(MultiLocation::default().into()))
+			Currency::<T>::AsMultiLocation(Box::new(Location::default().into()))
 		}
 	}
 
@@ -262,7 +262,7 @@ pub mod pallet {
 	/// Struct that defines how to express the payment in a particular currency
 	/// currency is defined by the Currency enum, which can be expressed as:
 	/// - CurrencyId
-	/// - MultiLocation
+	/// - Location
 	///
 	/// The fee_amount is an option. In case of None, the fee will be tried to
 	/// be calculated from storage. If the storage item for the currency is not
@@ -302,20 +302,19 @@ pub mod pallet {
 	#[pallet::getter(fn index_to_account)]
 	pub type IndexToAccount<T: Config> = StorageMap<_, Blake2_128Concat, u16, T::AccountId>;
 
-	/// Stores the transact info of a MultiLocation. This defines how much extra weight we need to
+	/// Stores the transact info of a Location. This defines how much extra weight we need to
 	/// add when we want to transact in the destination chain and maximum amount of weight allowed
 	/// by the destination chain
 	#[pallet::storage]
 	#[pallet::getter(fn transact_info)]
 	pub type TransactInfoWithWeightLimit<T: Config> =
-		StorageMap<_, Blake2_128Concat, MultiLocation, RemoteTransactInfoWithMaxWeight>;
+		StorageMap<_, Blake2_128Concat, Location, RemoteTransactInfoWithMaxWeight>;
 
 	/// Stores the fee per second for an asset in its reserve chain. This allows us to convert
 	/// from weight to fee
 	#[pallet::storage]
 	#[pallet::getter(fn dest_asset_fee_per_second)]
-	pub type DestinationAssetFeePerSecond<T: Config> =
-		StorageMap<_, Twox64Concat, MultiLocation, u128>;
+	pub type DestinationAssetFeePerSecond<T: Config> = StorageMap<_, Twox64Concat, Location, u128>;
 
 	/// Stores the indices of relay chain pallets
 	#[pallet::storage]
@@ -360,20 +359,20 @@ pub mod pallet {
 		/// Transacted the inner call through a derivative account in a destination chain.
 		TransactedDerivative {
 			account_id: T::AccountId,
-			dest: MultiLocation,
+			dest: Location,
 			call: Vec<u8>,
 			index: u16,
 		},
 		/// Transacted the call through the sovereign account in a destination chain.
 		TransactedSovereign {
 			fee_payer: T::AccountId,
-			dest: MultiLocation,
+			dest: Location,
 			call: Vec<u8>,
 		},
 		/// Transacted the call through a signed account in a destination chain.
 		TransactedSigned {
 			fee_payer: T::AccountId,
-			dest: MultiLocation,
+			dest: Location,
 			call: Vec<u8>,
 		},
 		/// Registered a derivative index for an account id.
@@ -390,21 +389,21 @@ pub mod pallet {
 		},
 		/// Changed the transact info of a location
 		TransactInfoChanged {
-			location: MultiLocation,
+			location: Location,
 			remote_info: RemoteTransactInfoWithMaxWeight,
 		},
 		/// Removed the transact info of a location
 		TransactInfoRemoved {
-			location: MultiLocation,
+			location: Location,
 		},
 		/// Set dest fee per second
 		DestFeePerSecondChanged {
-			location: MultiLocation,
+			location: Location,
 			fee_per_second: u128,
 		},
 		/// Remove dest fee per second
 		DestFeePerSecondRemoved {
-			location: MultiLocation,
+			location: Location,
 		},
 		/// HRMP manage action succesfully sent
 		HrmpManagementSent {
@@ -597,7 +596,7 @@ pub mod pallet {
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,
 			// destination to which the message should be sent
-			dest: Box<VersionedMultiLocation>,
+			dest: Box<VersionedLocation>,
 			// account paying for fees
 			fee_payer: T::AccountId,
 			// fee to be used
@@ -616,7 +615,7 @@ pub mod pallet {
 			let fee_location = Self::currency_to_multilocation(fee.currency)
 				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
 
-			let dest = MultiLocation::try_from(*dest).map_err(|()| Error::<T>::BadVersion)?;
+			let dest = Location::try_from(*dest).map_err(|()| Error::<T>::BadVersion)?;
 
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
@@ -682,14 +681,13 @@ pub mod pallet {
 		#[pallet::weight(T::WeightInfo::set_transact_info())]
 		pub fn set_transact_info(
 			origin: OriginFor<T>,
-			location: Box<VersionedMultiLocation>,
+			location: Box<VersionedLocation>,
 			transact_extra_weight: Weight,
 			max_weight: Weight,
 			transact_extra_weight_signed: Option<Weight>,
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
-			let location =
-				MultiLocation::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
+			let location = Location::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
 			let remote_info = RemoteTransactInfoWithMaxWeight {
 				transact_extra_weight,
 				max_weight,
@@ -710,11 +708,10 @@ pub mod pallet {
 		#[pallet::weight(T::WeightInfo::remove_transact_info())]
 		pub fn remove_transact_info(
 			origin: OriginFor<T>,
-			location: Box<VersionedMultiLocation>,
+			location: Box<VersionedLocation>,
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
-			let location =
-				MultiLocation::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
+			let location = Location::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
 
 			// Remove transact info
 			TransactInfoWithWeightLimit::<T>::remove(&location);
@@ -733,7 +730,7 @@ pub mod pallet {
 		pub fn transact_through_signed(
 			origin: OriginFor<T>,
 			// destination to which the message should be sent
-			dest: Box<VersionedMultiLocation>,
+			dest: Box<VersionedLocation>,
 			// fee to be used
 			fee: CurrencyPayment<CurrencyIdOf<T>>,
 			// call to be executed in destination
@@ -745,7 +742,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let dest = MultiLocation::try_from(*dest).map_err(|()| Error::<T>::BadVersion)?;
+			let dest = Location::try_from(*dest).map_err(|()| Error::<T>::BadVersion)?;
 
 			let fee_location = Self::currency_to_multilocation(fee.currency)
 				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
@@ -780,7 +777,7 @@ pub mod pallet {
 			// If refund is true, the appendix instruction will be a deposit back to the sender
 			let appendix = refund
 				.then(|| -> Result<_, DispatchError> {
-					let sender = T::AccountIdToMultiLocation::convert(who.clone());
+					let sender = T::AccountIdToLocation::convert(who.clone());
 					Ok(vec![
 						RefundSurplus,
 						Self::deposit_instruction(sender, &dest, 1u32)?,
@@ -815,12 +812,12 @@ pub mod pallet {
 		#[pallet::weight(T::WeightInfo::set_fee_per_second())]
 		pub fn set_fee_per_second(
 			origin: OriginFor<T>,
-			asset_location: Box<VersionedMultiLocation>,
+			asset_location: Box<VersionedLocation>,
 			fee_per_second: u128,
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 			let asset_location =
-				MultiLocation::try_from(*asset_location).map_err(|()| Error::<T>::BadVersion)?;
+				Location::try_from(*asset_location).map_err(|()| Error::<T>::BadVersion)?;
 
 			DestinationAssetFeePerSecond::<T>::insert(&asset_location, &fee_per_second);
 
@@ -836,11 +833,11 @@ pub mod pallet {
 		#[pallet::weight(T::WeightInfo::set_fee_per_second())]
 		pub fn remove_fee_per_second(
 			origin: OriginFor<T>,
-			asset_location: Box<VersionedMultiLocation>,
+			asset_location: Box<VersionedLocation>,
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 			let asset_location =
-				MultiLocation::try_from(*asset_location).map_err(|()| Error::<T>::BadVersion)?;
+				Location::try_from(*asset_location).map_err(|()| Error::<T>::BadVersion)?;
 
 			DestinationAssetFeePerSecond::<T>::remove(&asset_location);
 
@@ -895,7 +892,7 @@ pub mod pallet {
 
 			// Grab the destination
 			// For hrmp, it is always parent
-			let destination = MultiLocation::parent();
+			let destination = Location::parent();
 
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
@@ -951,9 +948,9 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		fn transact_in_dest_chain_asset_non_signed(
-			dest: MultiLocation,
+			dest: Location,
 			fee_payer: Option<T::AccountId>,
-			fee: MultiAsset,
+			fee: Asset,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
 			total_weight: WeightLimit,
@@ -962,7 +959,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			if let Some(fee_payer) = fee_payer {
 				// Convert origin to multilocation
-				let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
+				let origin_as_mult = T::AccountIdToLocation::convert(fee_payer);
 
 				// Construct the local withdraw message with the previous calculated amount
 				// This message deducts and burns "amount" from the caller when executed
@@ -996,9 +993,9 @@ pub mod pallet {
 		}
 
 		fn transact_in_dest_chain_asset_signed(
-			dest: MultiLocation,
+			dest: Location,
 			fee_payer: T::AccountId,
-			fee: MultiAsset,
+			fee: Asset,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
 			total_weight: WeightLimit,
@@ -1006,7 +1003,7 @@ pub mod pallet {
 			with_appendix: Option<Vec<Instruction<()>>>,
 		) -> DispatchResult {
 			// Convert origin to multilocation
-			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
+			let origin_as_mult = T::AccountIdToLocation::convert(fee_payer);
 
 			// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
 			// Transact.
@@ -1045,11 +1042,11 @@ pub mod pallet {
 		/// Calculate the amount of fee based on the multilocation of the fee asset and
 		/// the total weight to be spent
 		fn calculate_fee(
-			fee_location: MultiLocation,
+			fee_location: Location,
 			fee_amount: Option<u128>,
-			destination: MultiLocation,
+			destination: Location,
 			total_weight: Weight,
-		) -> Result<MultiAsset, DispatchError> {
+		) -> Result<Asset, DispatchError> {
 			// If amount is provided, just use it
 			// Else, multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
@@ -1064,17 +1061,17 @@ pub mod pallet {
 				|v| Ok(v),
 			)?;
 
-			// Construct MultiAsset
-			Ok(MultiAsset {
-				id: Concrete(fee_location),
+			// Construct Asset
+			Ok(Asset {
+				id: AssetId(fee_location),
 				fun: Fungible(amount),
 			})
 		}
 
 		/// Construct the transact xcm message with the provided parameters
 		fn transact_message(
-			dest: MultiLocation,
-			asset: MultiAsset,
+			dest: Location,
+			asset: Asset,
 			dest_weight: WeightLimit,
 			call: Vec<u8>,
 			dispatch_weight: Weight,
@@ -1098,13 +1095,13 @@ pub mod pallet {
 
 		/// Construct a buy execution xcm order with the provided parameters
 		fn buy_execution(
-			asset: MultiAsset,
-			at: &MultiLocation,
+			asset: Asset,
+			at: &Location,
 			weight: WeightLimit,
 		) -> Result<Instruction<()>, DispatchError> {
 			let universal_location = T::UniversalLocation::get();
 			let fees = asset
-				.reanchored(at, universal_location)
+				.reanchored(at, &universal_location)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 
 			Ok(BuyExecution {
@@ -1115,12 +1112,12 @@ pub mod pallet {
 
 		/// Construct a withdraw instruction from a sovereign account
 		fn withdraw_instruction(
-			asset: MultiAsset,
-			at: &MultiLocation,
+			asset: Asset,
+			at: &Location,
 		) -> Result<Instruction<()>, DispatchError> {
 			let universal_location = T::UniversalLocation::get();
 			let fees = asset
-				.reanchored(at, universal_location)
+				.reanchored(at, &universal_location)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 
 			Ok(WithdrawAsset(fees.into()))
@@ -1128,13 +1125,13 @@ pub mod pallet {
 
 		/// Construct a deposit instruction to a sovereign account
 		fn deposit_instruction(
-			mut beneficiary: MultiLocation,
-			at: &MultiLocation,
+			mut beneficiary: Location,
+			at: &Location,
 			max_assets: u32,
 		) -> Result<Instruction<()>, DispatchError> {
 			let universal_location = T::UniversalLocation::get();
 			beneficiary
-				.reanchor(at, universal_location)
+				.reanchor(at, &universal_location)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 			Ok(DepositAsset {
 				assets: Wild(AllCounted(max_assets)),
@@ -1150,7 +1147,7 @@ pub mod pallet {
 		}
 
 		/// Ensure `dest` has chain part and none recipient part.
-		fn ensure_valid_dest(dest: &MultiLocation) -> Result<MultiLocation, DispatchError> {
+		fn ensure_valid_dest(dest: &Location) -> Result<Location, DispatchError> {
 			if let (Some(dest), None) = (dest.chain_part(), dest.non_chain_part()) {
 				Ok(dest)
 			} else {
@@ -1162,10 +1159,7 @@ pub mod pallet {
 		///
 		/// Returns `Err` if `asset` is not a reserved asset of `dest`,
 		/// else returns `dest`, parachain or relay chain location.
-		fn transfer_allowed(
-			asset: &MultiAsset,
-			dest: &MultiLocation,
-		) -> Result<MultiLocation, DispatchError> {
+		fn transfer_allowed(asset: &Asset, dest: &Location) -> Result<Location, DispatchError> {
 			let dest = Self::ensure_valid_dest(dest)?;
 
 			let self_location = T::SelfLocation::get();
@@ -1182,21 +1176,21 @@ pub mod pallet {
 
 		/// Returns weight of `weight_of_initiate_reserve_withdraw` call.
 		fn weight_of_initiate_reserve_withdraw() -> Weight {
-			let dest = MultiLocation::parent();
+			let dest = Location::parent();
 
 			// We can use whatever asset here
-			let asset = MultiLocation::parent();
+			let asset = Location::parent();
 
-			// Construct MultiAsset
-			let fee = MultiAsset {
-				id: Concrete(asset.clone()),
+			// Construct Asset
+			let fee = Asset {
+				id: AssetId(asset.clone()),
 				fun: Fungible(0),
 			};
 
 			let xcm: Xcm<()> = Xcm(vec![
 				WithdrawAsset(fee.into()),
 				InitiateReserveWithdraw {
-					assets: MultiAssetFilter::Wild(All),
+					assets: AssetFilter::Wild(All),
 					reserve: dest.clone(),
 					xcm: Xcm(vec![]),
 				},
@@ -1223,7 +1217,7 @@ pub mod pallet {
 		/// Returns the weight information for a destination from storage
 		/// it returns the weight to be used in non-signed cases
 		pub fn take_weight_from_transact_info(
-			dest: MultiLocation,
+			dest: Location,
 			dest_weight: Weight,
 			refund: bool,
 		) -> Result<Weight, DispatchError> {
@@ -1248,7 +1242,7 @@ pub mod pallet {
 		/// Returns the weight information for a destination from storage
 		/// it returns the weight to be used in signed cases
 		pub fn take_weight_from_transact_info_signed(
-			dest: MultiLocation,
+			dest: Location,
 			dest_weight: Weight,
 			refund: bool,
 		) -> Result<Weight, DispatchError> {
@@ -1279,8 +1273,8 @@ pub mod pallet {
 		/// Returns the fee per second charged by a reserve chain for an asset
 		/// it takes this information from storage
 		pub fn take_fee_per_second_from_storage(
-			fee_location: MultiLocation,
-			destination: MultiLocation,
+			fee_location: Location,
+			destination: Location,
 			total_weight: Weight,
 		) -> Result<u128, DispatchError> {
 			let fee_per_second = DestinationAssetFeePerSecond::<T>::get(&fee_location)
@@ -1295,12 +1289,10 @@ pub mod pallet {
 		}
 
 		/// Converts Currency to multilocation
-		pub fn currency_to_multilocation(
-			currency: Currency<CurrencyIdOf<T>>,
-		) -> Option<MultiLocation> {
+		pub fn currency_to_multilocation(currency: Currency<CurrencyIdOf<T>>) -> Option<Location> {
 			match currency {
-				Currency::AsCurrencyId(id) => T::CurrencyIdToMultiLocation::convert(id),
-				Currency::AsMultiLocation(multiloc) => MultiLocation::try_from(*multiloc).ok(),
+				Currency::AsCurrencyId(id) => T::CurrencyIdToLocation::convert(id),
+				Currency::AsMultiLocation(multiloc) => Location::try_from(*multiloc).ok(),
 			}
 		}
 	}

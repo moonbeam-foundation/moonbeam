@@ -26,7 +26,7 @@ use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use frame_support::sp_runtime::traits::StaticLookup;
 use frame_support::traits::Currency;
 use pallet_evm::AddressMapping;
-use pallet_identity::simple::IdentityField;
+use pallet_identity::legacy::IdentityField;
 use parity_scale_codec::MaxEncodedLen;
 use precompile_utils::prelude::*;
 use sp_core::{ConstU32, Get, H160, H256, U256};
@@ -45,8 +45,7 @@ type BalanceOf<T> = <<T as pallet_identity::Config>::Currency as Currency<
 >>::Balance;
 
 type IdentityFieldOf<T> = <<T as pallet_identity::Config>::IdentityInformation
-	as pallet_identity::IdentityInformationProvider>::IdentityField;
-type MaxAdditionalFieldsOf<T> = <T as pallet_identity::Config>::MaxAdditionalFields;
+	as pallet_identity::IdentityInformationProvider>::FieldsIdentifier;
 
 /// Solidity selector of the Vote log, which is the Keccak of the Log signature.
 pub(crate) const SELECTOR_LOG_IDENTITY_SET: [u8; 32] = keccak256!("IdentitySet(address)");
@@ -65,24 +64,23 @@ pub(crate) const SELECTOR_LOG_SUB_IDENTITY_REVOKED: [u8; 32] =
 	keccak256!("SubIdentityRevoked(address)");
 
 /// A precompile to wrap the functionality from pallet-identity
-pub struct IdentityPrecompile<Runtime>(PhantomData<Runtime>);
+pub struct IdentityPrecompile<Runtime, MaxAdditionalFields>(
+	PhantomData<(Runtime, MaxAdditionalFields)>,
+);
 
 #[precompile_utils::precompile]
-#[precompile::test_concrete_types(mock::Runtime)]
-impl<Runtime> IdentityPrecompile<Runtime>
+#[precompile::test_concrete_types(mock::Runtime, ConstU32<2>)]
+impl<Runtime, MaxAdditionalFields> IdentityPrecompile<Runtime, MaxAdditionalFields>
 where
-	Runtime: pallet_evm::Config
-		+ pallet_identity::Config<
-			IdentityInformation = pallet_identity::simple::IdentityInfo<
-				MaxAdditionalFieldsOf<Runtime>,
-			>,
-		>,
+	Runtime: pallet_evm::Config + pallet_identity::Config,
+	<Runtime::IdentityInformation as pallet_identity::IdentityInformationProvider>::FieldsIdentifier: From<u64>,
 	Runtime::AccountId: Into<H160>,
 	Runtime::Hash: From<H256>,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::RuntimeCall: From<pallet_identity::Call<Runtime>>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
+	MaxAdditionalFields: Get<u32>
 {
 	// Note: addRegistrar(address) & killIdentity(address) are not supported since they use a
 	// force origin.
@@ -91,7 +89,7 @@ where
 	#[precompile::public("setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))")]
 	fn set_identity(
 		handle: &mut impl PrecompileHandle,
-		info: IdentityInfo<Runtime::MaxAdditionalFields>,
+		info: IdentityInfo<MaxAdditionalFields>
 	) -> EvmResult {
 		// editorconfig-checker-enable
 		let caller = handle.context().caller;
@@ -371,7 +369,7 @@ where
 	fn identity(
 		handle: &mut impl PrecompileHandle,
 		who: Address,
-	) -> EvmResult<Registration<Runtime::MaxAdditionalFields>> {
+	) -> EvmResult<Registration<Runtime>> {
 		// Storage item: IdentityOf ->
 		//		Registration<BalanceOf<T>, T::MaxRegistrars, T::MaxAdditionalFields>
 		handle.record_db_read::<Runtime>(pallet_identity::Registration::<
@@ -485,10 +483,7 @@ where
 
 	fn identity_fields_to_input(
 		fields: IdentityFields,
-	) -> Result<
-		pallet_identity::IdentityFields<IdentityFieldOf<Runtime>>,
-		enumflags2::FromBitsError<IdentityFieldOf<Runtime>>,
-	> {
+	) -> IdentityFieldOf<Runtime> {
 		let mut field_bits = 0u64;
 		if fields.display {
 			field_bits = field_bits | IdentityField::Display as u64;
@@ -515,18 +510,16 @@ where
 			field_bits = field_bits | IdentityField::Twitter as u64;
 		}
 
-		let bit_flags = BitFlags::<IdentityFieldOf<Runtime>>::from_bits(field_bits)?;
-
-		Ok(pallet_identity::IdentityFields(bit_flags))
+		IdentityFieldOf::<Runtime>::from(field_bits)
 	}
 
 	fn identity_to_input(
-		info: IdentityInfo<Runtime::MaxAdditionalFields>,
-	) -> MayRevert<Box<pallet_identity::simple::IdentityInfo<Runtime::MaxAdditionalFields>>> {
+		info: IdentityInfo<MaxAdditionalFields>,
+	) -> MayRevert<Box<pallet_identity::legacy::IdentityInfo<MaxAdditionalFields>>> {
 		// let additional: Vec<(pallet_identity::Data, pallet_identity::Data)> = info.additional.into();
 		let mut additional: sp_runtime::BoundedVec<
 			(pallet_identity::Data, pallet_identity::Data),
-			Runtime::MaxAdditionalFields,
+			MaxAdditionalFields,
 		> = Default::default();
 		let iter: Vec<_> = info.additional.into();
 		for (i, (k, v)) in iter.into_iter().enumerate() {
@@ -550,7 +543,7 @@ where
 		} else {
 			None
 		};
-		let identity_info = pallet_identity::simple::IdentityInfo::<Runtime::MaxAdditionalFields> {
+		let identity_info = pallet_identity::legacy::IdentityInfo::<MaxAdditionalFields> {
 			additional,
 			display: info
 				.display
@@ -594,7 +587,7 @@ where
 				Runtime::IdentityInformation,
 			>,
 		>,
-	) -> MayRevert<Registration<Runtime::MaxAdditionalFields>> {
+	) -> MayRevert<Registration<Runtime>> {
 		if registration.is_none() {
 			return Ok(Registration::<Runtime::MaxAdditionalFields>::default());
 		}
@@ -814,14 +807,14 @@ pub struct Judgement {
 }
 
 #[derive(Eq, PartialEq, Debug, solidity::Codec)]
-pub struct Registration<FieldLimit> {
+pub struct Registration<T: pallet_identity::Config> {
 	is_valid: bool,
 	judgements: Vec<(u32, Judgement)>,
 	deposit: U256,
-	info: IdentityInfo<FieldLimit>,
+	info: T::IdentityInformation,
 }
 
-impl<T> Default for Registration<T> {
+impl<T: pallet_identity::Config> Default for Registration<T> {
 	fn default() -> Self {
 		Self {
 			is_valid: false,

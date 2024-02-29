@@ -18,8 +18,8 @@ interface Xtokens {
         bytes[] interior;
     }
 
-    // A MultiAsset is defined by a multilocation and an amount
-    struct MultiAsset {
+    // A Asset is defined by a multilocation and an amount
+    struct Asset {
         Multilocation location;
         uint256 amount;
     }
@@ -63,7 +63,7 @@ interface Xtokens {
         uint64 weight
     ) external;
 
-    /// Transfer a token through XCM based on its MultiLocation
+    /// Transfer a token through XCM based on its Location
     ///
     /// @dev The token transfer burns/transfers the corresponding amount before sending
     /// @param asset The asset we want to transfer, defined by its multilocation.
@@ -80,7 +80,7 @@ interface Xtokens {
         uint64 weight
     ) external;
 
-    /// Transfer a token through XCM based on its MultiLocation specifying fee
+    /// Transfer a token through XCM based on its Location specifying fee
     ///
     /// @dev The token transfer burns/transfers the corresponding amount before sending
     /// @param asset The asset we want to transfer, defined by its multilocation.
@@ -124,7 +124,7 @@ interface Xtokens {
     /// (uint64::MAX means Unlimited weight)
     /// @custom:selector 797b45fd
     function transferMultiAssets(
-        MultiAsset[] memory assets,
+        Asset[] memory assets,
         uint32 feeItem,
         Multilocation memory destination,
         uint64 weight

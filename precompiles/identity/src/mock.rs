@@ -23,7 +23,7 @@ use frame_support::{
 };
 use frame_system::{EnsureRoot, EnsureSignedBy};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
-use pallet_identity::simple::IdentityInfo;
+use pallet_identity::legacy::IdentityInfo;
 use precompile_utils::mock_account;
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};

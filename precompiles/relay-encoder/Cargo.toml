@@ -19,14 +19,14 @@ xcm-primitives = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-staking = { workspace = true }
-parity-scale-codec = { workspace = true, features = [ "derive" ] }
+parity-scale-codec = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 
 # Frontier
 fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 
 # Cumulus
 cumulus-primitives-core = { workspace = true }
@@ -38,32 +38,33 @@ serde = { workspace = true }
 sha3 = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true, features = [ "testing" ] }
+precompile-utils = { workspace = true, features = ["std", "testing"] }
 
 # Substrate
-pallet-balances = { workspace = true }
-pallet-timestamp = { workspace = true }
-scale-info = { workspace = true, features = [ "derive" ] }
-sp-io = { workspace = true }
+pallet-balances = { workspace = true, features = ["std"] }
+pallet-timestamp = { workspace = true, features = ["std"] }
+scale-info = { workspace = true, features = ["std", "derive"] }
+sp-io = { workspace = true, features = ["std"] }
 
 # Cumulus
-cumulus-pallet-parachain-system = { workspace = true }
+cumulus-pallet-parachain-system = { workspace = true, features = ["std"] }
 
 # Polkadot
-xcm = { workspace = true }
-xcm-builder = { workspace = true }
-xcm-executor = { workspace = true }
+xcm = { workspace = true, features = ["std"] }
+xcm-builder = { workspace = true, features = ["std"] }
+xcm-executor = { workspace = true, features = ["std"] }
 
 # ORML
-orml-traits = { workspace = true }
+orml-traits = { workspace = true, features = ["std"] }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"cumulus-primitives-core/std",
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
+	"sp-core/std",
 	"pallet-evm/std",
 	"pallet-staking/std",
 	"pallet-xcm-transactor/std",

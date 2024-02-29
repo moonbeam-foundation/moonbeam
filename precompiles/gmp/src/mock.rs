@@ -35,7 +35,7 @@ use xcm::latest::{prelude::*, Error as XcmError};
 use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds};
 use xcm_executor::{
 	traits::{TransactAsset, WeightTrader},
-	Assets, XcmExecutor,
+	AssetsInHolding, XcmExecutor,
 };
 use xcm_primitives::XcmV2Weight;
 
@@ -60,7 +60,7 @@ mock_account!(SelfReserveAccount, |_| MockAccount::from_u64(2));
 
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
-	pub UniversalLocation: InteriorMultiLocation = RelayNetwork::get().into();
+	pub UniversalLocation: InteriorLocation = RelayNetwork::get().into();
 }
 
 parameter_types! {
@@ -75,6 +75,7 @@ impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeTask = RuntimeTask;
 	type Nonce = u64;
 	type Block = Block;
 	type RuntimeCall = RuntimeCall;
@@ -111,14 +112,13 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
-	type MaxHolds = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
 }
 
 #[cfg(feature = "runtime-benchmarks")]
 parameter_types! {
-	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
+	pub ReachableDest: Option<Location> = Some(Parent.into());
 }
 
 pub struct DoNothingRouter;
@@ -126,10 +126,10 @@ impl SendXcm for DoNothingRouter {
 	type Ticket = ();
 
 	fn validate(
-		_destination: &mut Option<MultiLocation>,
+		_destination: &mut Option<Location>,
 		_message: &mut Option<Xcm<()>>,
 	) -> SendResult<Self::Ticket> {
-		Ok(((), MultiAssets::new()))
+		Ok(((), Assets::new()))
 	}
 
 	fn deliver(_: Self::Ticket) -> Result<XcmHash, SendError> {
@@ -195,6 +195,8 @@ impl xcm_executor::Config for XcmConfig {
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
 	type Aliasers = Nothing;
+
+	type TransactionalProcessor = ();
 }
 
 pub type Precompiles<R> = PrecompileSetBuilder<
@@ -209,20 +211,16 @@ pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
 
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
-	fn deposit_asset(
-		_what: &MultiAsset,
-		_who: &MultiLocation,
-		_context: Option<&XcmContext>,
-	) -> XcmResult {
+	fn deposit_asset(_what: &Asset, _who: &Location, _context: Option<&XcmContext>) -> XcmResult {
 		Ok(())
 	}
 
 	fn withdraw_asset(
-		_what: &MultiAsset,
-		_who: &MultiLocation,
+		_what: &Asset,
+		_who: &Location,
 		_maybe_context: Option<&XcmContext>,
-	) -> Result<Assets, XcmError> {
-		Ok(Assets::default())
+	) -> Result<AssetsInHolding, XcmError> {
+		Ok(AssetsInHolding::default())
 	}
 }
 
@@ -235,10 +233,10 @@ impl WeightTrader for DummyWeightTrader {
 	fn buy_weight(
 		&mut self,
 		_weight: Weight,
-		_payment: Assets,
+		_payment: AssetsInHolding,
 		_context: &XcmContext,
-	) -> Result<Assets, XcmError> {
-		Ok(Assets::default())
+	) -> Result<AssetsInHolding, XcmError> {
+		Ok(AssetsInHolding::default())
 	}
 }
 
@@ -302,10 +300,10 @@ impl pallet_timestamp::Config for Runtime {
 
 pub struct ConvertOriginToLocal;
 impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
-	type Success = MultiLocation;
+	type Success = Location;
 
-	fn try_origin(_: Origin) -> Result<MultiLocation, Origin> {
-		Ok(MultiLocation::here())
+	fn try_origin(_: Origin) -> Result<Location, Origin> {
+		Ok(Location::here())
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
@@ -333,65 +331,62 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	}
 }
 
-pub struct AccountIdToMultiLocation;
-impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
-	fn convert(account: AccountId) -> MultiLocation {
+pub struct AccountIdToLocation;
+impl sp_runtime::traits::Convert<AccountId, Location> for AccountIdToLocation {
+	fn convert(account: AccountId) -> Location {
 		let as_h160: H160 = account.into();
-		MultiLocation::new(
+		Location::new(
 			1,
-			Junctions::X1(AccountKey20 {
+			[AccountKey20 {
 				network: None,
 				key: as_h160.as_fixed_bytes().clone(),
-			}),
+			}],
 		)
 	}
 }
 
 parameter_types! {
-	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
+	pub Ancestry: Location = Parachain(ParachainId::get().into()).into();
 
 	pub const BaseXcmWeight: XcmV2Weight = 1000;
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub const MaxAssetsForTransfer: usize = 2;
 
-	pub SelfLocation: MultiLocation =
-		MultiLocation::new(1, Junctions::X1(Parachain(ParachainId::get().into())));
+	pub SelfLocation: Location =
+		Location::new(1, [Parachain(ParachainId::get().into())]);
 
-	pub SelfReserve: MultiLocation = MultiLocation::new(
+	pub SelfReserve: Location = Location::new(
 		1,
-		Junctions::X2(
+		[
 			Parachain(ParachainId::get().into()),
 			PalletInstance(
 				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
 			)
-		));
+		]);
 	pub MaxInstructions: u32 = 100;
 }
 
 parameter_type_with_key! {
-	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
+	pub ParachainMinFee: |_location: Location| -> Option<u128> {
 		Some(u128::MAX)
 	};
 }
 
 pub struct CurrencyIdToMultiLocation;
 
-impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for CurrencyIdToMultiLocation {
-	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
+impl sp_runtime::traits::Convert<CurrencyId, Option<Location>> for CurrencyIdToMultiLocation {
+	fn convert(currency: CurrencyId) -> Option<Location> {
 		match currency {
 			CurrencyId::SelfReserve => {
-				let multi: MultiLocation = SelfReserve::get();
+				let multi: Location = SelfReserve::get();
 				Some(multi)
 			}
 			// To distinguish between relay and others, specially for reserve asset
 			CurrencyId::OtherReserve(asset) => {
 				if asset == 0 {
-					Some(MultiLocation::parent())
+					Some(Location::parent())
 				} else {
-					Some(MultiLocation::new(
-						1,
-						Junctions::X2(Parachain(2), GeneralIndex(asset)),
-					))
+					Some(Location::new(1, [Parachain(2), GeneralIndex(asset)]))
 				}
 			}
 		}
@@ -402,7 +397,7 @@ impl orml_xtokens::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type CurrencyId = CurrencyId;
-	type AccountIdToMultiLocation = AccountIdToMultiLocation;
+	type AccountIdToLocation = AccountIdToLocation;
 	type CurrencyIdConvert = CurrencyIdToMultiLocation;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;
@@ -410,7 +405,7 @@ impl orml_xtokens::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 	type MinXcmFee = ParachainMinFee;
-	type MultiLocationsFilter = Everything;
+	type LocationsFilter = Everything;
 	type ReserveProvider = AbsoluteReserveProvider;
 	type UniversalLocation = UniversalLocation;
 }

@@ -28,15 +28,13 @@ use cumulus_client_cli::CollatorOptions;
 use cumulus_client_collator::service::CollatorService;
 use cumulus_client_consensus_common::ParachainBlockImport as TParachainBlockImport;
 use cumulus_client_consensus_proposer::Proposer;
+use cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
 use cumulus_client_service::{
 	prepare_node_config, start_relay_chain_tasks, CollatorSybilResistance, DARecoveryProfile,
 	StartRelayChainTasksParams,
 };
 use cumulus_primitives_core::relay_chain::CollatorPair;
 use cumulus_primitives_core::ParaId;
-use cumulus_primitives_parachain_inherent::{
-	MockValidationDataInherentDataProvider, MockXcmConfig,
-};
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface, RelayChainResult};
 use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node_with_rpc;
@@ -1001,7 +999,8 @@ where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>: sp_api::StateBackend<BlakeTwo256>,
+	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>:
+		sc_client_api::StateBackend<BlakeTwo256>,
 	Executor: sc_executor::NativeExecutionDispatch + 'static,
 	SO: SyncOracle + Send + Sync + Clone + 'static,
 {
@@ -1091,6 +1090,7 @@ where
 				relay_client: relay_chain_interface,
 				slot_duration: None,
 				sync_oracle,
+				reinitialize: false,
 			}),
 		);
 	} else {
@@ -1725,30 +1725,22 @@ mod tests {
 	fn test_config(chain_id: &str) -> Configuration {
 		let network_config = NetworkConfiguration::new("", "", Default::default(), None);
 		let runtime = tokio::runtime::Runtime::new().expect("failed creating tokio runtime");
-		let spec = ChainSpec::from_genesis(
-			"test",
-			chain_id,
-			ChainType::Local,
-			move || {
-				testnet_genesis(
-					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
-					vec![],
-					vec![],
-					vec![],
-					vec![],
-					vec![],
-					1000 * UNIT,
-					ParaId::new(0),
-					0,
-				)
-			},
-			vec![],
-			None,
-			None,
-			None,
-			None,
-			Extensions::default(),
-		);
+		let spec = ChainSpec::builder(&[0u8], Extensions::default())
+			.with_name("test")
+			.with_id(chain_id)
+			.with_chain_type(ChainType::Local)
+			.with_genesis_config(testnet_genesis(
+				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+				vec![],
+				vec![],
+				vec![],
+				vec![],
+				vec![],
+				1000 * UNIT,
+				ParaId::new(0),
+				0,
+			))
+			.build();
 
 		Configuration {
 			impl_name: String::from("test-impl"),

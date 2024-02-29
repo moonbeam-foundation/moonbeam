@@ -47,12 +47,11 @@ pub mod pallet {
 	use sp_core::{H160, H256, U256};
 	use sp_std::vec::Vec;
 	use xcm::latest::{
-		AssetId, Error as XcmError, Junction, MultiAsset, MultiLocation, Result as XcmResult,
-		XcmContext,
+		Asset, AssetId, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext,
 	};
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
-	use xcm_executor::Assets;
+	use xcm_executor::AssetsInHolding;
 
 	const ERC20_TRANSFER_CALL_DATA_SIZE: usize = 4 + 32 + 32; // selector + from + amount
 	const ERC20_TRANSFER_SELECTOR: [u8; 4] = [0xa9, 0x05, 0x9c, 0xbb];
@@ -63,36 +62,35 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_evm::Config {
 		type AccountIdConverter: ConvertLocation<H160>;
-		type Erc20MultilocationPrefix: Get<MultiLocation>;
+		type Erc20MultilocationPrefix: Get<Location>;
 		type Erc20TransferGasLimit: Get<u64>;
 		type EvmRunner: Runner<Self>;
 	}
 
 	impl<T: Config> Pallet<T> {
-		pub fn is_erc20_asset(asset: &MultiAsset) -> bool {
+		pub fn is_erc20_asset(asset: &Asset) -> bool {
 			Erc20Matcher::<T::Erc20MultilocationPrefix>::is_erc20_asset(asset)
 		}
 		pub fn gas_limit_of_erc20_transfer(asset_id: &AssetId) -> u64 {
-			if let AssetId::Concrete(multilocation) = asset_id {
-				if let Some(Junction::GeneralKey {
-					length: _,
-					ref data,
-				}) = multilocation.interior().into_iter().next_back()
-				{
-					// As GeneralKey definition might change in future versions of XCM, this is meant
-					// to throw a compile error as a warning that data type has changed.
-					// If that happens, a new check is needed to ensure that data has at least 18
-					// bytes (size of b"gas_limit:" + u64)
-					let data: &[u8; 32] = &data;
-					if let Ok(content) = core::str::from_utf8(&data[0..10]) {
-						if content == "gas_limit:" {
-							let mut bytes: [u8; 8] = Default::default();
-							bytes.copy_from_slice(&data[10..18]);
-							return u64::from_le_bytes(bytes);
-						}
+			let location = &asset_id.0;
+			if let Some(Junction::GeneralKey {
+				length: _,
+				ref data,
+			}) = location.interior().into_iter().next_back()
+			{
+				// As GeneralKey definition might change in future versions of XCM, this is meant
+				// to throw a compile error as a warning that data type has changed.
+				// If that happens, a new check is needed to ensure that data has at least 18
+				// bytes (size of b"gas_limit:" + u64)
+				let data: &[u8; 32] = &data;
+				if let Ok(content) = core::str::from_utf8(&data[0..10]) {
+					if content == "gas_limit:" {
+						let mut bytes: [u8; 8] = Default::default();
+						bytes.copy_from_slice(&data[10..18]);
+						return u64::from_le_bytes(bytes);
 					}
 				}
-			};
+			}
 			T::Erc20TransferGasLimit::get()
 		}
 		pub fn weight_of_erc20_transfer(asset_id: &AssetId) -> Weight {
@@ -159,11 +157,7 @@ pub mod pallet {
 		// For optimization reasons, the asset we want to deposit has not really been withdrawn,
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
-		fn deposit_asset(
-			what: &MultiAsset,
-			who: &MultiLocation,
-			_context: Option<&XcmContext>,
-		) -> XcmResult {
+		fn deposit_asset(what: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
 
@@ -206,11 +200,11 @@ pub mod pallet {
 		}
 
 		fn internal_transfer_asset(
-			asset: &MultiAsset,
-			from: &MultiLocation,
-			to: &MultiLocation,
+			asset: &Asset,
+			from: &Location,
+			to: &Location,
 			_context: &XcmContext,
-		) -> Result<Assets, XcmError> {
+		) -> Result<AssetsInHolding, XcmError> {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(asset)?;
 
@@ -239,10 +233,10 @@ pub mod pallet {
 		// In order to perform only one evm call, we just trace the origin of the asset,
 		// and then the transfer will only really be performed in the deposit instruction.
 		fn withdraw_asset(
-			what: &MultiAsset,
-			who: &MultiLocation,
+			what: &Asset,
+			who: &Location,
 			_context: Option<&XcmContext>,
-		) -> Result<Assets, XcmError> {
+		) -> Result<AssetsInHolding, XcmError> {
 			let (contract_address, amount) =
 				Erc20Matcher::<T::Erc20MultilocationPrefix>::matches_fungibles(what)?;
 			let who = T::AccountIdConverter::convert_location(who)

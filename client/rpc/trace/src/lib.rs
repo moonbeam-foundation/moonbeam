@@ -34,12 +34,12 @@ use tracing::{instrument, Instrument};
 
 use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
 use sc_utils::mpsc::TracingUnboundedSender;
-use sp_api::{ApiExt, Core, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, Core, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
-use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
+use sp_runtime::traits::{BlakeTwo256, Block as BlockT, Header as HeaderT};
 use substrate_prometheus_endpoint::{
 	register, Counter, PrometheusError, Registry as PrometheusRegistry, U64,
 };
