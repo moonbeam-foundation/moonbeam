@@ -1787,7 +1787,7 @@ pub mod pallet {
 
 		/// Compute round issuance based on duration of the given round
 		fn compute_issuance(round_duration: u64, round_lenght: u32) -> BalanceOf<T> {
-			let ideal_duration = round_lenght.saturating_mul(T::BlockTime::get() as u32 * 2);
+			let ideal_duration = round_lenght.saturating_mul(T::BlockTime::get() as u32);
 			let duration_proportion = Perbill::from_rational(round_duration, ideal_duration as u64);
 			let config = <InflationConfig<T>>::get();
 			let round_issuance = crate::inflation::round_issuance_range::<T>(config.round);
@@ -1827,8 +1827,13 @@ pub mod pallet {
 				..
 			} = round_info;
 
+			// This function is called right after the round index increment,
+			// and the goal is to compute the payout informations for the round that just ended.
+			// We don't need to saturate ehre because the genesis round is 1.
+			let prepare_payout_for_round = now - 1;
+
 			// Return early if there is no blocks for this round
-			if <Points<T>>::get(now).is_zero() {
+			if <Points<T>>::get(prepare_payout_for_round).is_zero() {
 				return Weight::zero();
 			}
 
@@ -1842,7 +1847,7 @@ pub mod pallet {
 			if let Ok(imb) =
 				T::Currency::deposit_into_existing(&bond_config.account, parachain_bond_reserve)
 			{
-				// update round issuance iff transfer succeeds
+				// update round issuance if transfer succeeds
 				left_issuance = left_issuance.saturating_sub(imb.peek());
 				Self::deposit_event(Event::ReservedForParachainBond {
 					account: bond_config.account,
@@ -1857,7 +1862,7 @@ pub mod pallet {
 			};
 
 			//
-			<DelayedPayouts<T>>::insert(now - 1, payout);
+			<DelayedPayouts<T>>::insert(prepare_payout_for_round, payout);
 
 			<T as Config>::WeightInfo::prepare_staking_payouts()
 		}
