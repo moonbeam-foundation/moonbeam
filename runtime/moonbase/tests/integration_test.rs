@@ -613,17 +613,16 @@ fn reward_block_authors() {
 		)])
 		.build()
 		.execute_with(|| {
-			increase_last_relay_slot_number(2);
-			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
-			}
+			increase_last_relay_slot_number(1);
+			// Just before round 3
+			run_to_block(2399, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
 				1_100 * UNIT,
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * UNIT,);
-			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(2401, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -657,15 +656,14 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		)])
 		.build()
 		.execute_with(|| {
-			increase_last_relay_slot_number(2);
+			increase_last_relay_slot_number(1);
 			assert_ok!(ParachainStaking::set_parachain_bond_account(
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
 
-			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
-			}
+			// Stop just before round 2
+			run_to_block(1199, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 
 			// no rewards doled out yet
 			assert_eq!(
@@ -674,7 +672,19 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * UNIT,);
 			assert_eq!(Balances::usable_balance(AccountId::from(CHARLIE)), UNIT,);
+
+
+			// Go to round 2
 			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+
+			// 30% reserved for parachain bond
+			assert_eq!(
+				Balances::usable_balance(AccountId::from(CHARLIE)),
+				47515000000000000000,
+			);
+
+			// Go to round 3
+			run_to_block(2401, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -684,10 +694,10 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				Balances::usable_balance(AccountId::from(BOB)),
 				525841666640825000000,
 			);
-			// 30% reserved for parachain bond
+			// 30% again reserved for parachain bond
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				47515000000000000000,
+				94727725000000000000,
 			);
 		});
 }

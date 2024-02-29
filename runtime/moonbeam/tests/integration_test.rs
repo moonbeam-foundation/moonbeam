@@ -667,10 +667,10 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
-			for x in 2..3599 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
-			}
-			// no rewards doled out yet
+
+			// Stop just before round 3
+			run_to_block(3599, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			// no collators rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
 				8_010_000 * GLMR,
@@ -679,12 +679,16 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				Balances::usable_balance(AccountId::from(BOB)),
 				9_950_000 * GLMR,
 			);
+			// 30% reserved for parachain bond
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				10_000 * GLMR,
+				310300000000000000000000,
 			);
+
+			// Go to round 3
 			run_to_block(3601, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
-			// rewards minted and distributed
+
+			// collators rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
 				8698492682878000000000000,
@@ -693,10 +697,10 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				Balances::usable_balance(AccountId::from(BOB)),
 				9962207316621500000000000,
 			);
-			// 30% reserved for parachain bond
+			// 30% reserved for parachain bond again
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				310300000000000000000000,
+				615104500000000000000000,
 			);
 		});
 }
