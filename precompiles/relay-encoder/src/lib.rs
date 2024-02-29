@@ -417,6 +417,7 @@ impl solidity::Codec for RewardDestinationWrapper {
 		match enum_selector[0] {
 			0u8 => Ok(RewardDestinationWrapper(RewardDestination::Staked)),
 			1u8 => Ok(RewardDestinationWrapper(RewardDestination::Stash)),
+			// Deprecated in https://github.com/paritytech/polkadot-sdk/pull/2380
 			2u8 => Ok(RewardDestinationWrapper(RewardDestination::Controller)),
 			3u8 => {
 				let address = encoded_reward_destination.read::<H256>()?;
@@ -440,6 +441,7 @@ impl solidity::Codec for RewardDestinationWrapper {
 				encoded.push(1);
 				encoded.as_slice().into()
 			}
+			// Deprecated in https://github.com/paritytech/polkadot-sdk/pull/2380
 			RewardDestination::Controller => {
 				encoded.push(2);
 				encoded.as_slice().into()

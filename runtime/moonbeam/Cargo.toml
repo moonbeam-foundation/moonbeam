@@ -55,7 +55,7 @@ pallet-evm-precompile-conviction-voting = { workspace = true }
 pallet-evm-precompile-crowdloan-rewards = { workspace = true }
 pallet-evm-precompile-democracy = { workspace = true }
 pallet-evm-precompile-gmp = { workspace = true }
-pallet-evm-precompile-identity = { workspace = true }
+# TODO(RODRIGO) pallet-evm-precompile-identity = { workspace = true }
 pallet-evm-precompile-parachain-staking = { workspace = true }
 pallet-evm-precompile-preimage = { workspace = true }
 pallet-evm-precompile-proxy = { workspace = true }
@@ -137,6 +137,7 @@ orml-xcm-support = { workspace = true }
 orml-xtokens = { workspace = true }
 pallet-xcm = { workspace = true }
 pallet-xcm-benchmarks = { workspace = true, optional = true }
+pallet-message-queue = { workspace = true }
 polkadot-core-primitives = { workspace = true }
 polkadot-runtime-common = { workspace = true }
 polkadot-parachain = { workspace = true }
@@ -153,6 +154,7 @@ cumulus-primitives-core = { workspace = true }
 cumulus-primitives-timestamp = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
 parachain-info = { workspace = true }
+parachains-common = { workspace = true }
 
 # Moonkit
 async-backing-primitives = { workspace = true }
@@ -175,7 +177,6 @@ sha3 = { workspace = true, features = ["std"] }
 cumulus-primitives-parachain-inherent = { workspace = true }
 cumulus-test-relay-sproof-builder = { workspace = true }
 
-pallet-message-queue = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }
 
@@ -195,6 +196,7 @@ std = [
 	"cumulus-pallet-xcmp-queue/std",
 	"cumulus-primitives-core/std",
 	"cumulus-primitives-timestamp/std",
+	"cumulus-primitives-utility/std",
 	"evm-tracing-events/std",
 	"fp-evm/std",
 	"fp-rpc/std",
@@ -268,6 +270,7 @@ std = [
 	"pallet-xcm-transactor/std",
 	"pallet-xcm/std",
 	"parachain-info/std",
+	"parachains-common/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"scale-info/std",
@@ -311,6 +314,7 @@ runtime-benchmarks = [
 	"moonbeam-relay-encoder/runtime-benchmarks",
 	"moonbeam-runtime-common/runtime-benchmarks",
 	"moonbeam-xcm-benchmarks/runtime-benchmarks",
+	"parachains-common/runtime-benchmarks",
 	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",

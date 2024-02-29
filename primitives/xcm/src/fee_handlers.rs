@@ -28,24 +28,22 @@ use frame_support::{
 };
 use sp_runtime::traits::Zero;
 use sp_std::marker::PhantomData;
-use xcm::latest::{
-	AssetId as xcmAssetId, Error as XcmError, Fungibility, MultiAsset, MultiLocation,
-};
+use xcm::latest::{Asset, AssetId as xcmAssetId, Error as XcmError, Fungibility, Location};
 
 use xcm_builder::TakeRevenue;
 use xcm_executor::traits::{MatchesFungibles, WeightTrader};
 
 pub struct FirstAssetTrader<
-	AssetType: From<MultiLocation> + Clone,
+	AssetType: From<Location> + Clone,
 	AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 	R: TakeRevenue,
 >(
 	Weight,
-	Option<(MultiLocation, u128, u128)>, // id, amount, units_per_second
+	Option<(Location, u128, u128)>, // id, amount, units_per_second
 	PhantomData<(AssetType, AssetIdInfoGetter, R)>,
 );
 impl<
-		AssetType: From<MultiLocation> + Clone,
+		AssetType: From<Location> + Clone,
 		AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 		R: TakeRevenue,
 	> WeightTrader for FirstAssetTrader<AssetType, AssetIdInfoGetter, R>
@@ -56,9 +54,9 @@ impl<
 	fn buy_weight(
 		&mut self,
 		weight: Weight,
-		payment: xcm_executor::Assets,
+		payment: xcm_executor::AssetsInHolding,
 		_context: &XcmContext,
-	) -> Result<xcm_executor::Assets, XcmError> {
+	) -> Result<xcm_executor::AssetsInHolding, XcmError> {
 		// can only call one time
 		if self.1.is_some() {
 			// TODO: better error
@@ -75,8 +73,8 @@ impl<
 		// We are only going to check first asset for now. This should be sufficient for simple token
 		// transfers. We will see later if we change this.
 		match (first_asset.id, first_asset.fun) {
-			(xcmAssetId::Concrete(id), Fungibility::Fungible(_)) => {
-				let asset_type: AssetType = id.clone().into();
+			(xcmAssetId(location), Fungibility::Fungible(_)) => {
+				let asset_type: AssetType = location.clone().into();
 				// Shortcut if we know the asset is not supported
 				// This involves the same db read per block, mitigating any attack based on
 				// non-supported assets
@@ -96,16 +94,16 @@ impl<
 						return Ok(payment);
 					}
 
-					let required = MultiAsset {
+					let required = Asset {
 						fun: Fungibility::Fungible(amount),
-						id: xcmAssetId::Concrete(id.clone()),
+						id: xcmAssetId(location.clone()),
 					};
 					let unused = payment
 						.checked_sub(required)
 						.map_err(|_| XcmError::TooExpensive)?;
 
 					self.0 = weight;
-					self.1 = Some((id, amount, units_per_second));
+					self.1 = Some((location, amount, units_per_second));
 
 					return Ok(unused);
 				} else {
@@ -117,21 +115,21 @@ impl<
 	}
 
 	// Refund weight. We will refund in whatever asset is stored in self.
-	fn refund_weight(&mut self, weight: Weight, _context: &XcmContext) -> Option<MultiAsset> {
-		if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
+	fn refund_weight(&mut self, weight: Weight, _context: &XcmContext) -> Option<Asset> {
+		if let Some((location, prev_amount, units_per_second)) = self.1.clone() {
 			let weight = weight.min(self.0);
 			self.0 -= weight;
 			let amount = units_per_second * (weight.ref_time() as u128)
 				/ (WEIGHT_REF_TIME_PER_SECOND as u128);
 			let amount = amount.min(prev_amount);
 			self.1 = Some((
-				id.clone(),
+				location.clone(),
 				prev_amount.saturating_sub(amount),
 				units_per_second,
 			));
-			Some(MultiAsset {
+			Some(Asset {
 				fun: Fungibility::Fungible(amount),
-				id: xcmAssetId::Concrete(id.clone()),
+				id: xcmAssetId(location.clone()),
 			})
 		} else {
 			None
@@ -141,7 +139,7 @@ impl<
 
 /// Deal with spent fees, deposit them as dictated by R
 impl<
-		AssetType: From<MultiLocation> + Clone,
+		AssetType: From<Location> + Clone,
 		AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 		R: TakeRevenue,
 	> Drop for FirstAssetTrader<AssetType, AssetIdInfoGetter, R>
@@ -156,7 +154,7 @@ impl<
 }
 
 /// XCM fee depositor to which we implement the TakeRevenue trait
-/// It receives a fungibles::Mutate implemented argument, a matcher to convert MultiAsset into
+/// It receives a fungibles::Mutate implemented argument, a matcher to convert Asset into
 /// AssetId and amount, and the fee receiver account
 pub struct XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>(
 	PhantomData<(Assets, Matcher, AccountId, ReceiverAccount)>,
@@ -168,7 +166,7 @@ impl<
 		ReceiverAccount: Get<AccountId>,
 	> TakeRevenue for XcmFeesToAccount<Assets, Matcher, AccountId, ReceiverAccount>
 {
-	fn take_revenue(revenue: MultiAsset) {
+	fn take_revenue(revenue: Asset) {
 		match Matcher::matches_fungibles(&revenue) {
 			Ok((asset_id, amount)) => {
 				let ok = Assets::mint_into(asset_id, &ReceiverAccount::get(), amount).is_ok();
@@ -198,19 +196,19 @@ mod test {
 	use super::*;
 	use cumulus_primitives_core::XcmHash;
 	use xcm::latest::{AssetId, Fungibility, Junction, Junctions};
-	use xcm_executor::Assets;
+	use xcm_executor::AssetsInHolding;
 
-	const ARBITRARY_ML: MultiLocation = MultiLocation {
+	const ARBITRARY_ML: Location = Location {
 		parents: 0u8,
 		interior: Junctions::Here,
 	};
-	const ARBITRARY_ID: AssetId = AssetId::Concrete(ARBITRARY_ML);
+	const ARBITRARY_ID: AssetId = AssetId(ARBITRARY_ML);
 
-	impl UnitsToWeightRatio<MultiLocation> for () {
-		fn payment_is_supported(_asset_type: MultiLocation) -> bool {
+	impl UnitsToWeightRatio<Location> for () {
+		fn payment_is_supported(_asset_type: Location) -> bool {
 			true
 		}
-		fn get_units_per_second(_asset_type: MultiLocation) -> Option<u128> {
+		fn get_units_per_second(_asset_type: Location) -> Option<u128> {
 			// return WEIGHT_REF_TIME_PER_SECOND to cancel the division out in buy_weight()
 			// this should make weight and payment amounts directly comparable
 			Some(WEIGHT_REF_TIME_PER_SECOND as u128)
@@ -221,19 +219,19 @@ mod test {
 	fn test_buy_weight_accounts_weight_properly() {
 		let amount = 1000u128;
 
-		let mut payment = Assets::new();
-		let multilocation = MultiLocation {
+		let mut payment = AssetsInHolding::new();
+		let location = Location {
 			parents: 0u8,
 			interior: Junctions::Here,
 		};
-		payment.subsume(MultiAsset {
-			id: AssetId::Concrete(multilocation),
+		payment.subsume(Asset {
+			id: AssetId(location.clone()),
 			fun: Fungibility::Fungible(amount),
 		});
 
-		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
+		let mut trader: FirstAssetTrader<Location, (), ()> = FirstAssetTrader::new();
 		let ctx = XcmContext {
-			origin: Some(multilocation),
+			origin: Some(location),
 			message_id: XcmHash::default(),
 			topic: None,
 		};
@@ -246,20 +244,20 @@ mod test {
 
 	#[test]
 	fn cant_call_buy_weight_twice() {
-		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
+		let mut trader: FirstAssetTrader<Location, (), ()> = FirstAssetTrader::new();
 
 		// should be able to buy once
-		let mut asset_one_payment = Assets::new();
-		let multilocation = MultiLocation {
+		let mut asset_one_payment = AssetsInHolding::new();
+		let location = Location {
 			parents: 0u8,
-			interior: Junctions::X1(Junction::Parachain(1000)),
+			interior: [Junction::Parachain(1000)].into(),
 		};
-		asset_one_payment.subsume(MultiAsset {
-			id: AssetId::Concrete(multilocation),
+		asset_one_payment.subsume(Asset {
+			id: AssetId(location.clone()),
 			fun: Fungibility::Fungible(100u128),
 		});
 		let ctx = XcmContext {
-			origin: Some(multilocation),
+			origin: Some(location),
 			message_id: XcmHash::default(),
 			topic: None,
 		};
@@ -271,9 +269,9 @@ mod test {
 		assert_eq!(
 			trader.1,
 			Some((
-				MultiLocation {
+				Location {
 					parents: 0u8,
-					interior: Junctions::X1(Junction::Parachain(1000))
+					interior: [Junction::Parachain(1000)].into()
 				},
 				100,
 				WEIGHT_REF_TIME_PER_SECOND as u128
@@ -281,17 +279,17 @@ mod test {
 		);
 
 		// but not twice
-		let mut asset_two_payment = xcm_executor::Assets::new();
-		let multi_location = MultiLocation {
+		let mut asset_two_payment = xcm_executor::AssetsInHolding::new();
+		let location = Location {
 			parents: 0u8,
-			interior: Junctions::X1(Junction::Parachain(1001)),
+			interior: [Junction::Parachain(1001)].into(),
 		};
-		asset_two_payment.subsume(MultiAsset {
-			id: AssetId::Concrete(multi_location),
+		asset_two_payment.subsume(Asset {
+			id: AssetId(location.clone()),
 			fun: Fungibility::Fungible(10_000u128),
 		});
 		let ctx = XcmContext {
-			origin: Some(multi_location),
+			origin: Some(location),
 			message_id: XcmHash::default(),
 			topic: None,
 		};
@@ -305,9 +303,9 @@ mod test {
 		assert_eq!(
 			trader.1,
 			Some((
-				MultiLocation {
+				Location {
 					parents: 0u8,
-					interior: Junctions::X1(Junction::Parachain(1000))
+					interior: [Junction::Parachain(1000)].into()
 				},
 				100,
 				WEIGHT_REF_TIME_PER_SECOND as u128
@@ -319,13 +317,13 @@ mod test {
 	fn can_call_refund_weight_with_all_weight() {
 		let amount = 1000u128;
 
-		let mut payment = Assets::new();
-		payment.subsume(MultiAsset {
+		let mut payment = AssetsInHolding::new();
+		payment.subsume(Asset {
 			id: ARBITRARY_ID,
 			fun: Fungibility::Fungible(amount),
 		});
 
-		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
+		let mut trader: FirstAssetTrader<Location, (), ()> = FirstAssetTrader::new();
 		let ctx = XcmContext {
 			origin: Some(ARBITRARY_ML),
 			message_id: XcmHash::default(),
@@ -339,7 +337,7 @@ mod test {
 
 		assert_eq!(
 			trader.refund_weight(1000u64.into(), &ctx),
-			Some(MultiAsset {
+			Some(Asset {
 				fun: Fungibility::Fungible(1000),
 				id: ARBITRARY_ID,
 			})
@@ -350,13 +348,13 @@ mod test {
 	fn can_call_refund_multiple_times() {
 		let amount = 1000u128;
 
-		let mut payment = Assets::new();
-		payment.subsume(MultiAsset {
+		let mut payment = AssetsInHolding::new();
+		payment.subsume(Asset {
 			id: ARBITRARY_ID,
 			fun: Fungibility::Fungible(amount),
 		});
 
-		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
+		let mut trader: FirstAssetTrader<Location, (), ()> = FirstAssetTrader::new();
 		let ctx = XcmContext {
 			origin: Some(ARBITRARY_ML),
 			message_id: XcmHash::default(),
@@ -370,7 +368,7 @@ mod test {
 
 		assert_eq!(
 			trader.refund_weight(100u64.into(), &ctx),
-			Some(MultiAsset {
+			Some(Asset {
 				fun: Fungibility::Fungible(100),
 				id: ARBITRARY_ID,
 			})
@@ -383,7 +381,7 @@ mod test {
 		// can call again
 		assert_eq!(
 			trader.refund_weight(200u64.into(), &ctx),
-			Some(MultiAsset {
+			Some(Asset {
 				fun: Fungibility::Fungible(200),
 				id: ARBITRARY_ID,
 			})
@@ -398,8 +396,8 @@ mod test {
 	fn refund_weight_caps_weight() {
 		let amount = 1000u128;
 
-		let mut payment = Assets::new();
-		payment.subsume(MultiAsset {
+		let mut payment = AssetsInHolding::new();
+		payment.subsume(Asset {
 			id: ARBITRARY_ID,
 			fun: Fungibility::Fungible(amount),
 		});
@@ -408,7 +406,7 @@ mod test {
 			message_id: XcmHash::default(),
 			topic: None,
 		};
-		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
+		let mut trader: FirstAssetTrader<Location, (), ()> = FirstAssetTrader::new();
 		let unused = trader
 			.buy_weight((amount as u64).into(), payment.clone(), &ctx)
 			.expect("can buy weight once");
@@ -418,7 +416,7 @@ mod test {
 		// can't call with more weight
 		assert_eq!(
 			trader.refund_weight(9999u64.into(), &ctx),
-			Some(MultiAsset {
+			Some(Asset {
 				fun: Fungibility::Fungible(1000),
 				id: ARBITRARY_ID,
 			})
@@ -430,8 +428,8 @@ mod test {
 	fn refund_weight_caps_currency() {
 		let amount = 1000u128;
 
-		let mut payment = Assets::new();
-		payment.subsume(MultiAsset {
+		let mut payment = AssetsInHolding::new();
+		payment.subsume(Asset {
 			id: ARBITRARY_ID,
 			fun: Fungibility::Fungible(amount),
 		});
@@ -441,7 +439,7 @@ mod test {
 			message_id: XcmHash::default(),
 			topic: None,
 		};
-		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
+		let mut trader: FirstAssetTrader<Location, (), ()> = FirstAssetTrader::new();
 		let unused = trader
 			.buy_weight((amount as u64).into(), payment.clone(), &ctx)
 			.expect("can buy weight once");
@@ -455,7 +453,7 @@ mod test {
 		// can't call with more weight
 		assert_eq!(
 			trader.refund_weight(1500u64.into(), &ctx),
-			Some(MultiAsset {
+			Some(Asset {
 				fun: Fungibility::Fungible(1000),
 				id: ARBITRARY_ID,
 			})

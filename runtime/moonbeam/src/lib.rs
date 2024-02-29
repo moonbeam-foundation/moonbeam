@@ -30,11 +30,9 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use account::AccountId20;
 use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainDataProvider};
-use cumulus_primitives_core::relay_chain;
 use fp_rpc::TransactionStatus;
 
-// Re-export required by get! macro.
-use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
+use cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
 pub use frame_support::traits::Get;
@@ -148,7 +146,7 @@ pub mod currency {
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
 	.saturating_div(2)
-	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
+	.set_proof_size(relay_chain::MAX_POV_SIZE as u64);
 
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -251,6 +249,8 @@ impl frame_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	/// The ubiquitous origin type.
 	type RuntimeOrigin = RuntimeOrigin;
+	/// The aggregated RuntimeTask type.
+	type RuntimeTask = RuntimeTask;
 	/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
 	type BlockHashCount = ConstU32<256>;
 	/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.
@@ -302,7 +302,6 @@ impl pallet_balances::Config for Runtime {
 	type MaxFreezes = ConstU32<0>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
-	type MaxHolds = ConstU32<1>;
 	type WeightInfo = moonbeam_weights::pallet_balances::WeightInfo<Runtime>;
 }
 
@@ -593,6 +592,15 @@ impl pallet_treasury::Config for Runtime {
 	type BenchmarkHelper = BenchmarkHelper;
 }
 
+parameter_types! {
+	pub const MaxSubAccounts: u32 = 100;
+	pub const MaxAdditionalFields: u32 = 100;
+	pub const MaxRegistrars: u32 = 20;
+	pub const PendingUsernameExpiration: u32 = 7 * DAYS;
+	pub const MaxSuffixLength: u32 = 7;
+	pub const MaxUsernameLength: u32 = 32;
+}
+
 type IdentityForceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 type IdentityRegistrarOrigin =
@@ -603,18 +611,22 @@ impl pallet_identity::Config for Runtime {
 	type Currency = Balances;
 	// Add one item in storage and take 258 bytes
 	type BasicDeposit = ConstU128<{ currency::deposit(1, 258) }>;
-	// Not add any item to the storage but takes 66 bytes
-	type FieldDeposit = ConstU128<{ currency::deposit(0, 66) }>;
+	// Does not add any item to the storage but takes 1 bytes
+	type ByteDeposit = ConstU128<{ currency::deposit(0, 1) }>;
 	// Add one item in storage and take 53 bytes
 	type SubAccountDeposit = ConstU128<{ currency::deposit(1, 53) }>;
-	type MaxSubAccounts = ConstU32<100>;
-	type MaxAdditionalFields = ConstU32<100>;
-	type IdentityInformation = pallet_identity::simple::IdentityInfo<Self::MaxAdditionalFields>;
-
-	type MaxRegistrars = ConstU32<20>;
+	type MaxSubAccounts = MaxSubAccounts;
+	type IdentityInformation = pallet_identity::legacy::IdentityInfo<MaxAdditionalFields>;
+	type MaxRegistrars = MaxRegistrars;
 	type Slashed = Treasury;
 	type ForceOrigin = IdentityForceOrigin;
 	type RegistrarOrigin = IdentityRegistrarOrigin;
+	type OffchainSignature = Signature;
+	type SigningPublicKey = <Signature as sp_runtime::traits::Verify>::Signer;
+	type UsernameAuthorityOrigin = EnsureRoot<Self::AccountId>;
+	type PendingUsernameExpiration = PendingUsernameExpiration;
+	type MaxSuffixLength = MaxSuffixLength;
+	type MaxUsernameLength = MaxUsernameLength;
 	type WeightInfo = moonbeam_weights::pallet_identity::WeightInfo<Runtime>;
 }
 
@@ -657,13 +669,14 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
 	type SelfParaId = ParachainInfo;
-	type DmpMessageHandler = MaintenanceMode;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 	type ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
+	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
+	type WeightInfo = cumulus_pallet_parachain_system::weights::SubstrateWeight<Runtime>;
 }
 
 pub struct EthereumXcmEnsureProxy;
@@ -695,6 +708,7 @@ impl pallet_ethereum_xcm::Config for Runtime {
 parameter_types! {
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
+	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
 impl parachain_info::Config for Runtime {}
@@ -1200,34 +1214,6 @@ impl moonkit_xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 	}
 }
 
-pub struct NormalDmpHandler;
-impl DmpMessageHandler for NormalDmpHandler {
-	// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	fn handle_dmp_messages(
-		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
-		limit: Weight,
-	) -> Weight {
-		(if Migrations::should_pause_xcm() {
-			DmpQueue::handle_dmp_messages(iter, Weight::zero())
-		} else {
-			DmpQueue::handle_dmp_messages(iter, limit)
-		}) + <Runtime as frame_system::Config>::DbWeight::get().reads(1)
-	}
-}
-
-pub struct MaintenanceDmpHandler;
-impl DmpMessageHandler for MaintenanceDmpHandler {
-	// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	fn handle_dmp_messages(
-		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
-		_limit: Weight,
-	) -> Weight {
-		DmpQueue::handle_dmp_messages(iter, Weight::zero())
-	}
-}
-
 /// The hooks we want to run in Maintenance Mode
 pub struct MaintenanceHooks;
 
@@ -1279,12 +1265,6 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
 	type XcmExecutionManager = XcmExecutionManager;
-	type NormalDmpHandler = NormalDmpHandler;
-	type MaintenanceDmpHandler = MaintenanceDmpHandler;
-	// We use AllPalletsWithSystem because we dont want to change the hooks in normal
-	// operation
-	type NormalExecutiveHooks = AllPalletsWithSystem;
-	type MaintenanceExecutiveHooks = MaintenanceHooks;
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {
@@ -1375,7 +1355,9 @@ impl pallet_randomness::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_randomness::WeightInfo<Runtime>;
 }
 
-impl pallet_root_testing::Config for Runtime {}
+impl pallet_root_testing::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+}
 
 parameter_types! {
 	// One storage item; key size is 32 + 20; value is size 4+4+16+20 bytes = 44 bytes.
@@ -1404,7 +1386,7 @@ construct_runtime! {
 		// Previously 2: pallet_randomness_collective_flip
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config<T>} = 4,
-		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 5,
+		RootTesting: pallet_root_testing::{Pallet, Call, Storage, Event<T>} = 5,
 
 		// Monetary stuff.
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
@@ -1470,7 +1452,7 @@ construct_runtime! {
 		// Previously 108: pallet_assets::<Instance1>
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 109,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
-
+		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 111,
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
@@ -1547,7 +1529,7 @@ pub type Executive = frame_executive::Executive<
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	pallet_maintenance_mode::ExecutiveHooks<Runtime>,
+	AllPalletsWithSystem,
 >;
 
 // All of our runtimes share most of their Runtime API implementations.
@@ -1759,7 +1741,7 @@ mod tests {
 			Balance::from(10 * GLMR + 2580 * MILLIGLMR)
 		);
 		assert_eq!(
-			get!(pallet_identity, FieldDeposit, u128),
+			get!(pallet_identity, ByteDeposit, u128),
 			Balance::from(660 * MILLIGLMR)
 		);
 		assert_eq!(

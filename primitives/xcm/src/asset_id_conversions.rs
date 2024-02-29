@@ -16,28 +16,28 @@
 
 use sp_runtime::traits::MaybeEquivalence;
 use sp_std::marker::PhantomData;
-use xcm::latest::MultiLocation;
+use xcm::latest::Location;
 use xcm_executor::traits::ConvertLocation;
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
-/// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and vice versa through
+/// (must be `TryFrom/TryInto<u128>`) into a Location Value and vice versa through
 /// an intermediate generic type AssetType.
 /// The trait bounds enforce is that the AssetTypeGetter trait is also implemented for
 /// AssetIdInfoGetter
 pub struct AsAssetType<AssetId, AssetType, AssetIdInfoGetter>(
 	PhantomData<(AssetId, AssetType, AssetIdInfoGetter)>,
 );
-impl<AssetId, AssetType, AssetIdInfoGetter> MaybeEquivalence<MultiLocation, AssetId>
+impl<AssetId, AssetType, AssetIdInfoGetter> MaybeEquivalence<Location, AssetId>
 	for AsAssetType<AssetId, AssetType, AssetIdInfoGetter>
 where
 	AssetId: Clone,
-	AssetType: From<MultiLocation> + Into<Option<MultiLocation>> + Clone,
+	AssetType: From<Location> + Into<Option<Location>> + Clone,
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
-	fn convert(id: &MultiLocation) -> Option<AssetId> {
+	fn convert(id: &Location) -> Option<AssetId> {
 		AssetIdInfoGetter::get_asset_id(id.clone().into())
 	}
-	fn convert_back(what: &AssetId) -> Option<MultiLocation> {
+	fn convert_back(what: &AssetId) -> Option<Location> {
 		AssetIdInfoGetter::get_asset_type(what.clone()).and_then(Into::into)
 	}
 }
@@ -45,10 +45,10 @@ impl<AssetId, AssetType, AssetIdInfoGetter> ConvertLocation<AssetId>
 	for AsAssetType<AssetId, AssetType, AssetIdInfoGetter>
 where
 	AssetId: Clone,
-	AssetType: From<MultiLocation> + Into<Option<MultiLocation>> + Clone,
+	AssetType: From<Location> + Into<Option<Location>> + Clone,
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
-	fn convert_location(id: &MultiLocation) -> Option<AssetId> {
+	fn convert_location(id: &Location) -> Option<AssetId> {
 		AssetIdInfoGetter::get_asset_id(id.clone().into())
 	}
 }

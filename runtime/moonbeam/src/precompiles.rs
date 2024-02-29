@@ -31,7 +31,7 @@ use pallet_evm_precompile_conviction_voting::ConvictionVotingPrecompile;
 use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 use pallet_evm_precompile_democracy::DemocracyPrecompile;
 use pallet_evm_precompile_gmp::GmpPrecompile;
-use pallet_evm_precompile_identity::IdentityPrecompile;
+// TODO(RODRIGO) use pallet_evm_precompile_identity::IdentityPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
@@ -232,11 +232,12 @@ type MoonbeamPrecompilesAt<R> = (
 		XcmTransactorPrecompileV3<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
-	PrecompileAt<
-		AddressU64<2072>,
-		IdentityPrecompile<R>,
-		(CallableByContract, CallableByPrecompile),
-	>,
+	// TODO(RODRIGO)
+	// PrecompileAt<
+	// 	AddressU64<2072>,
+	// 	IdentityPrecompile<R>,
+	// 	(CallableByContract, CallableByPrecompile),
+	// >,
 );
 
 pub struct DisabledLocalAssets<Runtime>(sp_std::marker::PhantomData<Runtime>);

@@ -50,6 +50,7 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
+	type RuntimeTask = RuntimeTask;
 	type Nonce = u64;
 	type Block = Block;
 	type Hash = H256;
@@ -86,7 +87,6 @@ impl pallet_balances::Config for Test {
 	type ReserveIdentifier = [u8; 8];
 	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
-	type MaxHolds = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
 }
@@ -107,7 +107,7 @@ parameter_types! {
 pub type AssetId = u128;
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub enum MockAssetType {
-	Xcm(MultiLocation),
+	Xcm(Location),
 	MockAsset(AssetId),
 }
 
@@ -131,14 +131,14 @@ impl From<MockAssetType> for AssetId {
 	}
 }
 
-impl From<MultiLocation> for MockAssetType {
-	fn from(location: MultiLocation) -> Self {
+impl From<Location> for MockAssetType {
+	fn from(location: Location) -> Self {
 		Self::Xcm(location)
 	}
 }
 
-impl Into<Option<MultiLocation>> for MockAssetType {
-	fn into(self) -> Option<MultiLocation> {
+impl Into<Option<Location>> for MockAssetType {
+	fn into(self) -> Option<Location> {
 		match self {
 			Self::Xcm(location) => Some(location),
 			_ => None,

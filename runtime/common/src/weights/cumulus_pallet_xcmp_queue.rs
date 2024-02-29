@@ -57,16 +57,28 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
 	}
-	/// Storage: `XcmpQueue::QueueConfig` (r:1 w:1)
-	/// Proof: `XcmpQueue::QueueConfig` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	fn set_config_with_weight() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `142`
-		//  Estimated: `1627`
-		// Minimum execution time: 4_831_000 picoseconds.
-		Weight::from_parts(4_988_000, 0)
-			.saturating_add(Weight::from_parts(0, 1627))
-			.saturating_add(T::DbWeight::get().reads(1))
-			.saturating_add(T::DbWeight::get().writes(1))
-	}
+	
+	fn enqueue_xcmp_message() -> Weight {
+			todo!()
+		}
+	
+	fn suspend_channel() -> Weight {
+			todo!()
+		}
+	
+	fn resume_channel() -> Weight {
+			todo!()
+		}
+	
+	fn take_first_concatenated_xcm() -> Weight {
+			todo!()
+		}
+	
+	fn on_idle_good_msg() -> Weight {
+			todo!()
+		}
+	
+	fn on_idle_large_msg() -> Weight {
+			todo!()
+		}
 }

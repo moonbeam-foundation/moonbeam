@@ -61,11 +61,11 @@ where
 			let old_current = v0
 				.expect("old current round value must be present!")
 				.current;
-			let old_first: u32 = v0.expect("old first should be present!").first.into();
+			let old_first: u32 = u32::from(v0.expect("old first should be present!").first);
 			let old_length = v0.expect("old round length value must be present!").length;
 
 			// Fetch the last parachain block
-			let para_block: u32 = frame_system::Pallet::<T>::block_number().into();
+			let para_block: u32 = u32::from(frame_system::Pallet::<T>::block_number());
 
 			// Calculate how many blocks have passed so far in this round
 			let para_block_diff: u64 = para_block.saturating_sub(old_first).into();
@@ -140,7 +140,7 @@ where
 				.expect("old current round value must be present!")
 				.current;
 
-			let new_first: u64 = v0.expect("old first should be present!").first.into();
+			let new_first: u64 = u64::from(v0.expect("old first should be present!").first);
 			let old_length = v0.expect("old round length value must be present!").length;
 
 			Some(RoundInfo {
@@ -242,7 +242,7 @@ where
 	Runtime: pallet_democracy::Config,
 	Runtime: pallet_preimage::Config,
 	Runtime: pallet_asset_manager::Config,
-	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
+	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v4::Location>,
 	Runtime: pallet_xcm_transactor::Config,
 	Runtime: pallet_moonbeam_orbiters::Config,
 	Runtime: pallet_balances::Config,

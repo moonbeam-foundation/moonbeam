@@ -24,8 +24,8 @@ pub struct AssetTrapWrapper<AssetTrap, T>(core::marker::PhantomData<(AssetTrap, 
 // Morph a given `DropAssets` implementation into one which filter out erc20 assets.
 impl<AssetTrap: DropAssets, T: crate::Config> DropAssets for AssetTrapWrapper<AssetTrap, T> {
 	fn drop_assets(
-		origin: &xcm::latest::MultiLocation,
-		mut assets: xcm_executor::Assets,
+		origin: &xcm::latest::Location,
+		mut assets: xcm_executor::AssetsInHolding,
 		context: &XcmContext,
 	) -> xcm::latest::Weight {
 		// Remove all erc20 assets
@@ -36,8 +36,8 @@ impl<AssetTrap: DropAssets, T: crate::Config> DropAssets for AssetTrapWrapper<As
 			})
 			.collect();
 		for id in assets_to_remove {
-			assets.saturating_take(xcm::latest::MultiAssetFilter::Wild(
-				xcm::latest::WildMultiAsset::AllOf {
+			assets.saturating_take(xcm::latest::AssetFilter::Wild(
+				xcm::latest::WildAsset::AllOf {
 					fun: WildFungible,
 					id,
 				},

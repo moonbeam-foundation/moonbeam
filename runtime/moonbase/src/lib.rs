@@ -53,7 +53,7 @@ use account::AccountId20;
 use cumulus_pallet_parachain_system::{
 	RelayChainStateProof, RelayNumberMonotonicallyIncreases, RelaychainDataProvider,
 };
-use cumulus_primitives_core::relay_chain;
+use cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
 use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime,
@@ -155,7 +155,7 @@ pub mod currency {
 // TODO: multiply MAXIMUM_BLOCK_WEIGHT times 4 when async backing will be definitly enabled
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
 	.saturating_div(2)
-	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64);
+	.set_proof_size(relay_chain::MAX_POV_SIZE as u64);
 
 pub const MILLISECS_PER_BLOCK: u64 = 6_000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -261,6 +261,8 @@ impl frame_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	/// The ubiquitous origin type.
 	type RuntimeOrigin = RuntimeOrigin;
+	/// The aggregated RuntimeTask type.
+	type RuntimeTask = RuntimeTask;
 	/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
 	type BlockHashCount = ConstU32<256>;
 	/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.
@@ -312,7 +314,6 @@ impl pallet_balances::Config for Runtime {
 	type MaxFreezes = ConstU32<0>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
-	type MaxHolds = ConstU32<1>;
 	type WeightInfo = moonbeam_weights::pallet_balances::WeightInfo<Runtime>;
 }
 
@@ -607,6 +608,15 @@ impl pallet_treasury::Config for Runtime {
 	type BenchmarkHelper = BenchmarkHelper;
 }
 
+parameter_types! {
+	pub const MaxSubAccounts: u32 = 100;
+	pub const MaxAdditionalFields: u32 = 100;
+	pub const MaxRegistrars: u32 = 20;
+	pub const PendingUsernameExpiration: u32 = 7 * DAYS;
+	pub const MaxSuffixLength: u32 = 7;
+	pub const MaxUsernameLength: u32 = 32;
+}
+
 type IdentityForceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 type IdentityRegistrarOrigin =
@@ -617,17 +627,22 @@ impl pallet_identity::Config for Runtime {
 	type Currency = Balances;
 	// Add one item in storage and take 258 bytes
 	type BasicDeposit = ConstU128<{ currency::deposit(1, 258) }>;
-	// Not add any item to the storage but takes 66 bytes
-	type FieldDeposit = ConstU128<{ currency::deposit(0, 66) }>;
+	// Does not add any item to the storage but takes 1 bytes
+	type ByteDeposit = ConstU128<{ currency::deposit(0, 1) }>;
 	// Add one item in storage and take 53 bytes
 	type SubAccountDeposit = ConstU128<{ currency::deposit(1, 53) }>;
-	type MaxSubAccounts = ConstU32<100>;
-	type MaxAdditionalFields = ConstU32<100>;
-	type IdentityInformation = pallet_identity::simple::IdentityInfo<Self::MaxAdditionalFields>;
-	type MaxRegistrars = ConstU32<20>;
+	type MaxSubAccounts = MaxSubAccounts;
+	type IdentityInformation = pallet_identity::legacy::IdentityInfo<MaxAdditionalFields>;
+	type MaxRegistrars = MaxRegistrars;
 	type Slashed = Treasury;
 	type ForceOrigin = IdentityForceOrigin;
 	type RegistrarOrigin = IdentityRegistrarOrigin;
+	type OffchainSignature = Signature;
+	type SigningPublicKey = <Signature as sp_runtime::traits::Verify>::Signer;
+	type UsernameAuthorityOrigin = EnsureRoot<Self::AccountId>;
+	type PendingUsernameExpiration = PendingUsernameExpiration;
+	type MaxSuffixLength = MaxSuffixLength;
+	type MaxUsernameLength = MaxUsernameLength;
 	type WeightInfo = moonbeam_weights::pallet_identity::WeightInfo<Runtime>;
 }
 
@@ -695,6 +710,7 @@ impl pallet_ethereum_xcm::Config for Runtime {
 parameter_types! {
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
+	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
@@ -714,13 +730,14 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
 	type SelfParaId = ParachainInfo;
-	type DmpMessageHandler = MaintenanceMode;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
 	type ConsensusHook = crate::timestamp::ConsensusHookWrapperForRelayTimestamp<ConsensusHook>;
+	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
+	type WeightInfo = cumulus_pallet_parachain_system::weights::SubstrateWeight<Runtime>;
 }
 
 impl parachain_info::Config for Runtime {}
@@ -879,7 +896,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
 	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
-	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
+	type VestingBlockNumber = relay_chain::BlockNumber;
 	type VestingBlockProvider = RelaychainDataProvider<Self>;
 	type WeightInfo = moonbeam_weights::pallet_crowdloan_rewards::WeightInfo<Runtime>;
 }
@@ -963,7 +980,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 					&& match PrecompileName::from_address(call.to.0) {
 						Some(
 							PrecompileName::AuthorMappingPrecompile
-							| PrecompileName::IdentityPrecompile
+							//TODO (RODRIGO) | PrecompileName::IdentityPrecompile
 							| PrecompileName::ParachainStakingPrecompile,
 						) => true,
 						Some(ref precompile) if is_governance_precompile(precompile) => true,
@@ -1210,8 +1227,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 	}
 }
 
-use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
-
 pub struct XcmExecutionManager;
 impl moonkit_xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 	fn suspend_xcm_execution() -> DispatchResult {
@@ -1219,34 +1234,6 @@ impl moonkit_xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 	}
 	fn resume_xcm_execution() -> DispatchResult {
 		XcmpQueue::resume_xcm_execution(RuntimeOrigin::root())
-	}
-}
-
-pub struct NormalDmpHandler;
-impl DmpMessageHandler for NormalDmpHandler {
-	// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	fn handle_dmp_messages(
-		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
-		limit: Weight,
-	) -> Weight {
-		(if Migrations::should_pause_xcm() {
-			DmpQueue::handle_dmp_messages(iter, Weight::zero())
-		} else {
-			DmpQueue::handle_dmp_messages(iter, limit)
-		}) + <Runtime as frame_system::Config>::DbWeight::get().reads(1)
-	}
-}
-
-pub struct MaintenanceDmpHandler;
-impl DmpMessageHandler for MaintenanceDmpHandler {
-	// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	fn handle_dmp_messages(
-		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
-		_limit: Weight,
-	) -> Weight {
-		DmpQueue::handle_dmp_messages(iter, Weight::zero())
 	}
 }
 
@@ -1301,12 +1288,6 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
 	type XcmExecutionManager = XcmExecutionManager;
-	type NormalDmpHandler = NormalDmpHandler;
-	type MaintenanceDmpHandler = MaintenanceDmpHandler;
-	// We use AllPalletsWithSystem because we dont want to change the hooks in normal
-	// operation
-	type NormalExecutiveHooks = AllPalletsWithSystem;
-	type MaintenanceExecutiveHooks = MaintenanceHooks;
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {
@@ -1397,7 +1378,9 @@ impl pallet_randomness::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_randomness::WeightInfo<Runtime>;
 }
 
-impl pallet_root_testing::Config for Runtime {}
+impl pallet_root_testing::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+}
 
 parameter_types! {
 	// One storage item; key size is 32 + 20; value is size 4+4+16+20 bytes = 44 bytes.
@@ -1471,6 +1454,7 @@ construct_runtime! {
 		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config<T>, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
+		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 35,
 		// Previously 36: pallet_assets::<Instance1>
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 38,
@@ -1484,7 +1468,7 @@ construct_runtime! {
 		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 45,
 		OpenTechCommitteeCollective:
 			pallet_collective::<Instance4>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 46,
-		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = 47,
+		RootTesting: pallet_root_testing::{Pallet, Call, Storage, Event<T>} = 47,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
 		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 50,
@@ -1524,7 +1508,7 @@ pub type Executive = frame_executive::Executive<
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	pallet_maintenance_mode::ExecutiveHooks<Runtime>,
+	AllPalletsWithSystem,
 >;
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -1770,8 +1754,8 @@ mod tests {
 			Balance::from(1 * UNIT + 25800 * MICROUNIT)
 		);
 		assert_eq!(
-			get!(pallet_identity, FieldDeposit, u128),
-			Balance::from(6600 * MICROUNIT)
+			get!(pallet_identity, ByteDeposit, u128),
+			Balance::from(100 * MICROUNIT)
 		);
 		assert_eq!(
 			get!(pallet_identity, SubAccountDeposit, u128),

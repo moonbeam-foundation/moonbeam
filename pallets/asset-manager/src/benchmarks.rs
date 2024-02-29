@@ -45,7 +45,7 @@ fn create_funded_user<T: Config>(
 
 benchmarks! {
 	// This where clause allows us to create ForeignAssetTypes
-	where_clause { where T::ForeignAssetType: From<MultiLocation> }
+	where_clause { where T::ForeignAssetType: From<Location> }
 	register_foreign_asset {
 		// does not really matter what we register
 		let asset_type = T::ForeignAssetType::default();
@@ -62,9 +62,9 @@ benchmarks! {
 		// We make it dependent on the number of existing assets already
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::ForeignAssetType = MultiLocation::new(
+			let asset_type:  T::ForeignAssetType = Location::new(
 				0,
-				X1(GeneralIndex(i as u128))
+				[(GeneralIndex(i as u128))]
 			).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
@@ -101,7 +101,7 @@ benchmarks! {
 		// We make it dependent on the number of existing assets already
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::ForeignAssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
+			let asset_type:  T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
 			Pallet::<T>::register_foreign_asset(
@@ -115,9 +115,9 @@ benchmarks! {
 		}
 
 		let new_asset_type = T::ForeignAssetType::default();
-		let asset_type_to_be_changed: T::ForeignAssetType = MultiLocation::new(
+		let asset_type_to_be_changed: T::ForeignAssetType = Location::new(
 			0,
-			X1(GeneralIndex((x-1) as u128))
+			[(GeneralIndex((x-1) as u128))]
 		).into();
 		let asset_id_to_be_changed = asset_type_to_be_changed.into();
 	}: _(RawOrigin::Root, asset_id_to_be_changed, new_asset_type.clone(), x)
@@ -131,7 +131,7 @@ benchmarks! {
 		// We make it dependent on the number of existing assets already
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::ForeignAssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
+			let asset_type:  T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
 			Pallet::<T>::register_foreign_asset(
@@ -143,9 +143,9 @@ benchmarks! {
 			)?;
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
 		}
-		let asset_type_to_be_removed: T::ForeignAssetType = MultiLocation::new(
+		let asset_type_to_be_removed: T::ForeignAssetType = Location::new(
 			0,
-			X1(GeneralIndex((x-1) as u128))
+			[(GeneralIndex((x-1) as u128))]
 		).into();
 		// We try to remove the last asset type
 	}: _(RawOrigin::Root, asset_type_to_be_removed.clone(), x)
@@ -179,7 +179,7 @@ benchmarks! {
 		// Worst case is we need to remove it from SupportedAAssetsFeePayment too
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::ForeignAssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
+			let asset_type:  T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
 			Pallet::<T>::register_foreign_asset(
@@ -192,9 +192,9 @@ benchmarks! {
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
 		}
 
-		let asset_type_to_be_removed: T::ForeignAssetType = MultiLocation::new(
+		let asset_type_to_be_removed: T::ForeignAssetType = Location::new(
 			0,
-			X1(GeneralIndex((x-1) as u128))
+			[(GeneralIndex((x-1) as u128))]
 		).into();
 		let asset_id: T::AssetId = asset_type_to_be_removed.clone().into();
 	}: _(RawOrigin::Root, asset_id, x)

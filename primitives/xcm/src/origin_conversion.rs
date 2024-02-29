@@ -17,22 +17,22 @@
 use frame_support::traits::{Get, OriginTrait};
 use orml_traits::location::{RelativeReserveProvider, Reserve};
 use sp_std::{convert::TryInto, marker::PhantomData};
-use xcm::latest::{Junction::AccountKey20, Junctions::*, MultiAsset, MultiLocation, NetworkId};
+use xcm::latest::{Asset, Junction::AccountKey20, Location, NetworkId};
 
-/// Instructs how to convert a 20 byte accountId into a MultiLocation
-pub struct AccountIdToMultiLocation<AccountId>(sp_std::marker::PhantomData<AccountId>);
-impl<AccountId> sp_runtime::traits::Convert<AccountId, MultiLocation>
-	for AccountIdToMultiLocation<AccountId>
+/// Instructs how to convert a 20 byte accountId into a Location
+pub struct AccountIdToLocation<AccountId>(sp_std::marker::PhantomData<AccountId>);
+impl<AccountId> sp_runtime::traits::Convert<AccountId, Location> for AccountIdToLocation<AccountId>
 where
 	AccountId: Into<[u8; 20]>,
 {
-	fn convert(account: AccountId) -> MultiLocation {
-		MultiLocation {
+	fn convert(account: AccountId) -> Location {
+		Location {
 			parents: 0,
-			interior: X1(AccountKey20 {
+			interior: [AccountKey20 {
 				network: None,
 				key: account.into(),
-			}),
+			}]
+			.into(),
 		}
 	}
 }
@@ -42,13 +42,12 @@ pub struct SignedToAccountId20<Origin, AccountId, Network>(
 	sp_std::marker::PhantomData<(Origin, AccountId, Network)>,
 );
 impl<Origin: OriginTrait + Clone, AccountId: Into<[u8; 20]>, Network: Get<NetworkId>>
-	sp_runtime::traits::TryConvert<Origin, MultiLocation>
-	for SignedToAccountId20<Origin, AccountId, Network>
+	sp_runtime::traits::TryConvert<Origin, Location> for SignedToAccountId20<Origin, AccountId, Network>
 where
 	Origin::PalletsOrigin: From<frame_system::RawOrigin<AccountId>>
 		+ TryInto<frame_system::RawOrigin<AccountId>, Error = Origin::PalletsOrigin>,
 {
-	fn try_convert(o: Origin) -> Result<MultiLocation, Origin> {
+	fn try_convert(o: Origin) -> Result<Location, Origin> {
 		o.try_with_caller(|caller| match caller.try_into() {
 			Ok(frame_system::RawOrigin::Signed(who)) => Ok(AccountKey20 {
 				key: who.into(),
@@ -62,20 +61,20 @@ where
 }
 
 /// This struct offers uses RelativeReserveProvider to output relative views of multilocations
-/// However, additionally accepts a MultiLocation that aims at representing the chain part
+/// However, additionally accepts a Location that aims at representing the chain part
 /// (parent: 1, Parachain(paraId)) of the absolute representation of our chain.
-/// If a token reserve matches against this absolute view, we return  Some(MultiLocation::here())
+/// If a token reserve matches against this absolute view, we return  Some(Location::here())
 /// This helps users by preventing errors when they try to transfer a token through xtokens
 /// to our chain (either inserting the relative or the absolute value).
 pub struct AbsoluteAndRelativeReserve<AbsoluteMultiLocation>(PhantomData<AbsoluteMultiLocation>);
 impl<AbsoluteMultiLocation> Reserve for AbsoluteAndRelativeReserve<AbsoluteMultiLocation>
 where
-	AbsoluteMultiLocation: Get<MultiLocation>,
+	AbsoluteMultiLocation: Get<Location>,
 {
-	fn reserve(asset: &MultiAsset) -> Option<MultiLocation> {
+	fn reserve(asset: &Asset) -> Option<Location> {
 		RelativeReserveProvider::reserve(asset).map(|relative_reserve| {
 			if relative_reserve == AbsoluteMultiLocation::get() {
-				MultiLocation::here()
+				Location::here()
 			} else {
 				relative_reserve
 			}

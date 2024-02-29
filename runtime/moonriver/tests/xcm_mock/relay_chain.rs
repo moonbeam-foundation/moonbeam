@@ -116,10 +116,10 @@ impl configuration::Config for Runtime {
 }
 
 parameter_types! {
-	pub KsmLocation: MultiLocation = Here.into();
+	pub KsmLocation: Location = Here.into();
 	pub const KusamaNetwork: NetworkId = NetworkId::Kusama;
 	pub const AnyNetwork: Option<NetworkId> = None;
-	pub UniversalLocation: InteriorMultiLocation = Here;
+	pub UniversalLocation: InteriorLocation = Here;
 }
 
 pub type SovereignAccountOf = (
@@ -145,7 +145,7 @@ parameter_types! {
 	pub KsmPerSecond: (AssetId, u128, u128) = (Concrete(KsmLocation::get()), 1, 1);
 	pub const MaxInstructions: u32 = 100;
 	pub const MaxAssetsIntoHolding: u32 = 64;
-	pub MatcherLocation: MultiLocation = MultiLocation::here();
+	pub MatcherLocation: Location = Location::here();
 }
 
 pub type XcmRouter = super::RelayChainXcmRouter;
@@ -168,9 +168,9 @@ pub type XcmBarrier = (
 );
 
 parameter_types! {
-	pub Kusama: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(KsmLocation::get()) });
-	pub Statemine: MultiLocation = Parachain(4).into();
-	pub KusamaForStatemine: (MultiAssetFilter, MultiLocation) = (Kusama::get(), Statemine::get());
+	pub Kusama: AssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(KsmLocation::get()) });
+	pub Statemine: Location = Parachain(4).into();
+	pub KusamaForStatemine: (AssetFilter, Location) = (Kusama::get(), Statemine::get());
 }
 
 pub type TrustedTeleporters = xcm_builder::Case<KusamaForStatemine>;
@@ -207,7 +207,7 @@ pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, K
 
 #[cfg(feature = "runtime-benchmarks")]
 parameter_types! {
-	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
+	pub ReachableDest: Option<Location> = Some(Parent.into());
 }
 
 impl pallet_xcm::Config for Runtime {

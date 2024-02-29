@@ -38,7 +38,7 @@ use xcm_builder::IsConcrete;
 use xcm_builder::SovereignSignedViaLocation;
 use xcm_executor::{
 	traits::{ConvertLocation, TransactAsset, WeightTrader},
-	Assets,
+	AssetsInHolding,
 };
 use Junctions::Here;
 
@@ -70,13 +70,13 @@ use frame_system::RawOrigin as SystemRawOrigin;
 use xcm::latest::Junction;
 pub struct MockAccountToAccountKey20<Origin, AccountId>(PhantomData<(Origin, AccountId)>);
 
-impl<Origin: OriginTrait + Clone, AccountId: Into<H160>> TryConvert<Origin, MultiLocation>
+impl<Origin: OriginTrait + Clone, AccountId: Into<H160>> TryConvert<Origin, Location>
 	for MockAccountToAccountKey20<Origin, AccountId>
 where
 	Origin::PalletsOrigin: From<SystemRawOrigin<AccountId>>
 		+ TryInto<SystemRawOrigin<AccountId>, Error = Origin::PalletsOrigin>,
 {
-	fn try_convert(o: Origin) -> Result<MultiLocation, Origin> {
+	fn try_convert(o: Origin) -> Result<Location, Origin> {
 		o.try_with_caller(|caller| match caller.try_into() {
 			Ok(SystemRawOrigin::Signed(who)) => {
 				let account_h160: H160 = who.into();
@@ -94,9 +94,9 @@ where
 
 pub struct MockParentMultilocationToAccountConverter;
 impl ConvertLocation<AccountId> for MockParentMultilocationToAccountConverter {
-	fn convert_location(location: &MultiLocation) -> Option<AccountId> {
+	fn convert_location(location: &Location) -> Option<AccountId> {
 		match location {
-			MultiLocation {
+			Location {
 				parents: 1,
 				interior: Here,
 			} => Some(ParentAccount.into()),
@@ -107,12 +107,9 @@ impl ConvertLocation<AccountId> for MockParentMultilocationToAccountConverter {
 
 pub struct MockParachainMultilocationToAccountConverter;
 impl ConvertLocation<AccountId> for MockParachainMultilocationToAccountConverter {
-	fn convert_location(location: &MultiLocation) -> Option<AccountId> {
-		match location {
-			MultiLocation {
-				parents: 1,
-				interior: Junctions::X1(Parachain(id)),
-			} => Some(SiblingParachainAccount(*id).into()),
+	fn convert_location(location: &Location) -> Option<AccountId> {
+		match location.unpack() {
+			(1, [Parachain(id)]) => Some(SiblingParachainAccount(*id).into()),
 			_ => None,
 		}
 	}
@@ -124,16 +121,16 @@ pub type LocationToAccountId = (
 	xcm_builder::AccountKey20Aliases<LocalNetworkId, AccountId>,
 );
 
-pub struct AccountIdToMultiLocation;
-impl sp_runtime::traits::Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
-	fn convert(account: AccountId) -> MultiLocation {
+pub struct AccountIdToLocation;
+impl sp_runtime::traits::Convert<AccountId, Location> for AccountIdToLocation {
+	fn convert(account: AccountId) -> Location {
 		let as_h160: H160 = account.into();
-		MultiLocation::new(
+		Location::new(
 			0,
-			Junctions::X1(AccountKey20 {
+			[AccountKey20 {
 				network: None,
 				key: as_h160.as_fixed_bytes().clone(),
-			}),
+			}],
 		)
 	}
 }
@@ -156,6 +153,7 @@ impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = MockDbWeight;
 	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeTask = RuntimeTask;
 	type Nonce = u64;
 	type Block = Block;
 	type RuntimeCall = RuntimeCall;
@@ -192,18 +190,17 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
-	type MaxHolds = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
 }
 
 #[cfg(feature = "runtime-benchmarks")]
 parameter_types! {
-	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
+	pub ReachableDest: Option<Location> = Some(Parent.into());
 }
 
 parameter_types! {
-	pub MatcherLocation: MultiLocation = MultiLocation::here();
+	pub MatcherLocation: Location = Location::here();
 }
 pub type LocalOriginToLocation = MockAccountToAccountKey20<RuntimeOrigin, AccountId>;
 impl pallet_xcm::Config for Runtime {
@@ -316,10 +313,10 @@ pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
 
 pub struct ConvertOriginToLocal;
 impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
-	type Success = MultiLocation;
+	type Success = Location;
 
-	fn try_origin(_: Origin) -> Result<MultiLocation, Origin> {
-		Ok(MultiLocation::here())
+	fn try_origin(_: Origin) -> Result<Location, Origin> {
+		Ok(Location::here())
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
@@ -332,9 +329,9 @@ use sp_std::cell::RefCell;
 use xcm::latest::opaque;
 // Simulates sending a XCM message
 thread_local! {
-	pub static SENT_XCM: RefCell<Vec<(MultiLocation, opaque::Xcm)>> = RefCell::new(Vec::new());
+	pub static SENT_XCM: RefCell<Vec<(Location, opaque::Xcm)>> = RefCell::new(Vec::new());
 }
-pub fn sent_xcm() -> Vec<(MultiLocation, opaque::Xcm)> {
+pub fn sent_xcm() -> Vec<(Location, opaque::Xcm)> {
 	SENT_XCM.with(|q| (*q.borrow()).clone())
 }
 pub struct TestSendXcm;
@@ -342,14 +339,14 @@ impl SendXcm for TestSendXcm {
 	type Ticket = ();
 
 	fn validate(
-		destination: &mut Option<MultiLocation>,
+		destination: &mut Option<Location>,
 		message: &mut Option<opaque::Xcm>,
 	) -> SendResult<Self::Ticket> {
 		SENT_XCM.with(|q| {
 			q.borrow_mut()
 				.push((destination.clone().unwrap(), message.clone().unwrap()))
 		});
-		Ok(((), MultiAssets::new()))
+		Ok(((), Assets::new()))
 	}
 
 	fn deliver(_: Self::Ticket) -> Result<XcmHash, SendError> {
@@ -359,20 +356,16 @@ impl SendXcm for TestSendXcm {
 
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
-	fn deposit_asset(
-		_what: &MultiAsset,
-		_who: &MultiLocation,
-		_context: Option<&XcmContext>,
-	) -> XcmResult {
+	fn deposit_asset(_what: &Asset, _who: &Location, _context: Option<&XcmContext>) -> XcmResult {
 		Ok(())
 	}
 
 	fn withdraw_asset(
-		_what: &MultiAsset,
-		_who: &MultiLocation,
+		_what: &Asset,
+		_who: &Location,
 		_maybe_context: Option<&XcmContext>,
-	) -> Result<Assets, XcmError> {
-		Ok(Assets::default())
+	) -> Result<AssetsInHolding, XcmError> {
+		Ok(AssetsInHolding::default())
 	}
 }
 
@@ -385,11 +378,10 @@ impl WeightTrader for DummyWeightTrader {
 	fn buy_weight(
 		&mut self,
 		weight: Weight,
-		payment: Assets,
+		payment: AssetsInHolding,
 		_context: &XcmContext,
-	) -> Result<Assets, XcmError> {
-		let asset_to_charge: MultiAsset =
-			(MultiLocation::parent(), weight.ref_time() as u128).into();
+	) -> Result<AssetsInHolding, XcmError> {
+		let asset_to_charge: Asset = (Location::parent(), weight.ref_time() as u128).into();
 		let unused = payment
 			.checked_sub(asset_to_charge)
 			.map_err(|_| XcmError::TooExpensive)?;
@@ -402,20 +394,20 @@ parameter_types! {
 	pub const BaseXcmWeight: Weight = Weight::from_parts(1000u64, 0u64);
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
-	pub SelfLocation: MultiLocation =
-		MultiLocation::new(1, Junctions::X1(Parachain(ParachainId::get().into())));
+	pub SelfLocation: Location =
+		Location::new(1, [Parachain(ParachainId::get().into())]);
 
-	pub SelfReserve: MultiLocation = MultiLocation::new(
+	pub SelfReserve: Location = Location::new(
 		1,
-		Junctions::X2(
+		[
 			Parachain(ParachainId::get().into()),
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
-		));
+		]);
 	pub MaxInstructions: u32 = 100;
 
-	pub UniversalLocation: InteriorMultiLocation = Here;
-	pub Ancestry: InteriorMultiLocation =
-		X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainId::get().into()).into());
+	pub UniversalLocation: InteriorLocation = Here;
+	pub Ancestry: InteriorLocation =
+		[GlobalConsensus(RelayNetwork::get()), Parachain(ParachainId::get().into())].into();
 
 	pub const MaxAssetsIntoHolding: u32 = 64;
 }
@@ -452,6 +444,8 @@ impl xcm_executor::Config for XcmConfig {
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
 	type Aliasers = Nothing;
+
+	type TransactionalProcessor = ();
 }
 
 pub(crate) struct ExtBuilder {

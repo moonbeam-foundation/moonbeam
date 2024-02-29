@@ -17,7 +17,7 @@
 //! This module constructs and executes the appropriate service components for the given subcommand
 
 use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
-use cumulus_client_cli::{extract_genesis_wasm, generate_genesis_block};
+use cumulus_client_cli::extract_genesis_wasm;
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::{info, warn};
@@ -35,7 +35,10 @@ use sc_service::{
 	DatabaseSource, PartialComponents,
 };
 use sp_core::hexdisplay::HexDisplay;
-use sp_runtime::traits::{AccountIdConversion, Block as _};
+use sp_runtime::{
+	traits::{AccountIdConversion, Block as BlockT, Hash as HashT, Header as HeaderT, Zero},
+	StateVersion,
+};
 use std::{io::Write, net::SocketAddr};
 
 fn load_spec(
@@ -388,7 +391,7 @@ pub fn run() -> Result<()> {
 				_ => panic!("invalid chain spec"),
 			}
 		}
-		Some(Subcommand::ExportGenesisState(params)) => {
+		Some(Subcommand::ExportGenesisHead(params)) => {
 			let mut builder = sc_cli::LoggerBuilder::new("");
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
@@ -955,4 +958,40 @@ impl CliConfiguration<Self> for RelayChainCli {
 	fn announce_block(&self) -> Result<bool> {
 		self.base.base.announce_block()
 	}
+}
+
+/// Generate the genesis block from a given ChainSpec.
+pub fn generate_genesis_block<Block: BlockT>(
+	chain_spec: &dyn ChainSpec,
+	genesis_state_version: StateVersion,
+) -> std::result::Result<Block, String> {
+	let storage = chain_spec.build_storage()?;
+
+	let child_roots = storage.children_default.iter().map(|(sk, child_content)| {
+		let state_root = <<<Block as BlockT>::Header as HeaderT>::Hashing as HashT>::trie_root(
+			child_content.data.clone().into_iter().collect(),
+			genesis_state_version,
+		);
+		(sk.clone(), state_root.encode())
+	});
+	let state_root = <<<Block as BlockT>::Header as HeaderT>::Hashing as HashT>::trie_root(
+		storage.top.clone().into_iter().chain(child_roots).collect(),
+		genesis_state_version,
+	);
+
+	let extrinsics_root = <<<Block as BlockT>::Header as HeaderT>::Hashing as HashT>::trie_root(
+		Vec::new(),
+		genesis_state_version,
+	);
+
+	Ok(Block::new(
+		<<Block as BlockT>::Header as HeaderT>::new(
+			Zero::zero(),
+			extrinsics_root,
+			state_root,
+			Default::default(),
+			Default::default(),
+		),
+		Default::default(),
+	))
 }

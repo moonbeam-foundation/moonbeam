@@ -64,7 +64,7 @@ use sp_runtime::{
 };
 use std::str::from_utf8;
 use xcm::latest::prelude::*;
-use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
+use xcm::{VersionedAsset, VersionedAssets, VersionedLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
 
@@ -1582,7 +1582,7 @@ fn root_can_change_default_xcm_vers() {
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			asset_type: AssetType::Xcm(Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -1594,8 +1594,8 @@ fn root_can_change_default_xcm_vers() {
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(MultiLocation::parent());
-			let dest = MultiLocation {
+			let source_location = AssetType::Xcm(Location::parent());
+			let dest = Location {
 				parents: 1,
 				interior: X1(AccountId32 {
 					network: None,
@@ -1610,7 +1610,7 @@ fn root_can_change_default_xcm_vers() {
 					origin_of(AccountId::from(ALICE)),
 					CurrencyId::ForeignAsset(source_id),
 					100_000_000_000_000,
-					Box::new(xcm::VersionedMultiLocation::V3(dest.clone())),
+					Box::new(xcm::VersionedLocation::V3(dest.clone())),
 					WeightLimit::Limited(4000000000.into())
 				),
 				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
@@ -1627,7 +1627,7 @@ fn root_can_change_default_xcm_vers() {
 				origin_of(AccountId::from(ALICE)),
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
-				Box::new(xcm::VersionedMultiLocation::V3(dest)),
+				Box::new(xcm::VersionedLocation::V3(dest)),
 				WeightLimit::Limited(4000000000.into())
 			));
 		})
@@ -1636,7 +1636,7 @@ fn root_can_change_default_xcm_vers() {
 #[test]
 fn asset_can_be_registered() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = AssetType::Xcm(MultiLocation::parent());
+		let source_location = AssetType::Xcm(Location::parent());
 		let source_id: moonbeam_runtime::AssetId = source_location.clone().into();
 		let asset_metadata = AssetRegistrarMetadata {
 			name: b"RelayToken".to_vec(),
@@ -1659,7 +1659,7 @@ fn asset_can_be_registered() {
 fn xcm_asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			asset_type: AssetType::Xcm(Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -1677,7 +1677,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 		.execute_with(|| {
 			// We have the assetId that corresponds to the relay chain registered
 			let relay_asset_id: moonbeam_runtime::AssetId =
-				AssetType::Xcm(MultiLocation::parent()).into();
+				AssetType::Xcm(Location::parent()).into();
 
 			// Its address is
 			let asset_precompile_address = Runtime::asset_id_to_account(
@@ -1718,7 +1718,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 fn xcm_asset_erc20_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			asset_type: AssetType::Xcm(Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -1736,7 +1736,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 		.execute_with(|| {
 			// We have the assetId that corresponds to the relay chain registered
 			let relay_asset_id: moonbeam_runtime::AssetId =
-				AssetType::Xcm(MultiLocation::parent()).into();
+				AssetType::Xcm(Location::parent()).into();
 
 			// Its address is
 			let asset_precompile_address = Runtime::asset_id_to_account(
@@ -1783,7 +1783,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 fn xcm_asset_erc20_precompiles_approve() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			asset_type: AssetType::Xcm(Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -1801,7 +1801,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 		.execute_with(|| {
 			// We have the assetId that corresponds to the relay chain registered
 			let relay_asset_id: moonbeam_runtime::AssetId =
-				AssetType::Xcm(MultiLocation::parent()).into();
+				AssetType::Xcm(Location::parent()).into();
 
 			// Its address is
 			let asset_precompile_address = Runtime::asset_id_to_account(
@@ -1869,7 +1869,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 fn xtokens_precompile_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			asset_type: AssetType::Xcm(Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -1890,7 +1890,7 @@ fn xtokens_precompile_transfer() {
 
 			// We have the assetId that corresponds to the relay chain registered
 			let relay_asset_id: moonbeam_runtime::AssetId =
-				AssetType::Xcm(MultiLocation::parent()).into();
+				AssetType::Xcm(Location::parent()).into();
 
 			// Its address is
 			let asset_precompile_address = Runtime::asset_id_to_account(
@@ -1899,7 +1899,7 @@ fn xtokens_precompile_transfer() {
 			);
 
 			// Alice has 1000 tokens. She should be able to send through precompile
-			let destination = MultiLocation::new(
+			let destination = Location::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
 					network: None,
@@ -1929,7 +1929,7 @@ fn xtokens_precompile_transfer() {
 fn xtokens_precompile_transfer_multiasset() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			asset_type: AssetType::Xcm(Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -1949,7 +1949,7 @@ fn xtokens_precompile_transfer_multiasset() {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
 
 			// Alice has 1000 tokens. She should be able to send through precompile
-			let destination = MultiLocation::new(
+			let destination = Location::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
 					network: None,
@@ -1965,7 +1965,7 @@ fn xtokens_precompile_transfer_multiasset() {
 					xtokens_precompile_address,
 					XtokensPCall::transfer_multiasset {
 						// We want to transfer the relay token
-						asset: MultiLocation::parent(),
+						asset: Location::parent(),
 						amount: 500_000_000_000_000u128.into(),
 						destination: destination.clone(),
 						weight: 4_000_000,
@@ -1992,7 +1992,7 @@ fn make_sure_glmr_can_be_transferred_precompile() {
 		.with_safe_xcm_version(2)
 		.build()
 		.execute_with(|| {
-			let dest = MultiLocation {
+			let dest = Location {
 				parents: 1,
 				interior: X1(AccountId32 {
 					network: None,
@@ -2001,11 +2001,11 @@ fn make_sure_glmr_can_be_transferred_precompile() {
 			};
 			assert_ok!(XTokens::transfer_multiasset(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedMultiAsset::V3(MultiAsset {
+				Box::new(VersionedAsset::V3(Asset {
 					id: Concrete(moonbeam_runtime::xcm_config::SelfReserve::get()),
 					fun: Fungible(1000)
 				})),
-				Box::new(VersionedMultiLocation::V3(dest)),
+				Box::new(VersionedLocation::V3(dest)),
 				WeightLimit::Limited(40000.into())
 			));
 		});
@@ -2026,7 +2026,7 @@ fn make_sure_glmr_can_be_transferred() {
 		.with_safe_xcm_version(2)
 		.build()
 		.execute_with(|| {
-			let dest = MultiLocation {
+			let dest = Location {
 				parents: 1,
 				interior: X1(AccountId32 {
 					network: None,
@@ -2037,7 +2037,7 @@ fn make_sure_glmr_can_be_transferred() {
 				origin_of(AccountId::from(ALICE)),
 				CurrencyId::SelfReserve,
 				100,
-				Box::new(VersionedMultiLocation::V3(dest)),
+				Box::new(VersionedLocation::V3(dest)),
 				WeightLimit::Limited(40000.into())
 			));
 		});
@@ -2057,14 +2057,14 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 		)])
 		.build()
 		.execute_with(|| {
-			let dest = MultiLocation {
+			let dest = Location {
 				parents: 1,
 				interior: X1(AccountId32 {
 					network: None,
 					id: [1u8; 32],
 				}),
 			};
-			let multiassets: MultiAssets = [MultiAsset {
+			let multiassets: Assets = [Asset {
 				id: Concrete(moonbeam_runtime::xcm_config::SelfLocation::get()),
 				fun: Fungible(1000),
 			}]
@@ -2072,9 +2072,9 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			.into();
 			assert_noop!(
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
-					dest: Box::new(VersionedMultiLocation::V3(dest.clone())),
-					beneficiary: Box::new(VersionedMultiLocation::V3(dest)),
-					assets: Box::new(VersionedMultiAssets::V3(multiassets)),
+					dest: Box::new(VersionedLocation::V3(dest.clone())),
+					beneficiary: Box::new(VersionedLocation::V3(dest)),
+					assets: Box::new(VersionedAssets::V3(multiassets)),
 					fee_asset_item: 0,
 				})
 				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
@@ -2096,9 +2096,9 @@ fn transact_through_signed_precompile_works_v2() {
 		.build()
 		.execute_with(|| {
 			// Destination
-			let dest = MultiLocation::parent();
+			let dest = Location::parent();
 
-			let fee_payer_asset = MultiLocation::parent();
+			let fee_payer_asset = Location::parent();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -2136,9 +2136,9 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 		.build()
 		.execute_with(|| {
 			// Destination
-			let dest = MultiLocation::here();
+			let dest = Location::here();
 
-			let fee_payer_asset = MultiLocation::parent();
+			let fee_payer_asset = Location::parent();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -2176,7 +2176,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			asset_type: AssetType::Xcm(Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -2188,7 +2188,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(MultiLocation::parent());
+			let source_location = AssetType::Xcm(Location::parent());
 			let source_id: moonbeam_runtime::AssetId = source_location.clone().into();
 			assert_ok!(XcmTransactor::register(
 				root_origin(),
@@ -2199,7 +2199,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V3(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				20000.into(),
@@ -2209,7 +2209,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V3(Location::parent())),
 				1,
 			));
 
@@ -2219,9 +2219,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonbeam_runtime::xcm_config::Transactors::Relay,
 					0,
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(
-							xcm::VersionedMultiLocation::V3(MultiLocation::parent())
-						)),
+						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V3(
+							Location::parent()
+						))),
 						fee_amount: None
 					},
 					vec![],
@@ -2265,7 +2265,7 @@ fn call_xtokens_with_fee() {
 		])
 		.with_safe_xcm_version(2)
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			asset_type: AssetType::Xcm(Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -2277,8 +2277,8 @@ fn call_xtokens_with_fee() {
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(MultiLocation::parent());
-			let dest = MultiLocation {
+			let source_location = AssetType::Xcm(Location::parent());
+			let dest = Location {
 				parents: 1,
 				interior: X1(AccountId32 {
 					network: None,
@@ -2295,7 +2295,7 @@ fn call_xtokens_with_fee() {
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
 				100,
-				Box::new(xcm::VersionedMultiLocation::V3(dest.clone())),
+				Box::new(xcm::VersionedLocation::V3(dest.clone())),
 				WeightLimit::Limited(4000000000.into())
 			));
 
@@ -2310,7 +2310,7 @@ fn test_xcm_utils_ml_tp_account() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
 		let expected_address_parent: H160 =
-			ParentIsPreset::<AccountId>::convert_location(&MultiLocation::parent())
+			ParentIsPreset::<AccountId>::convert_location(&Location::parent())
 				.unwrap()
 				.into();
 
@@ -2319,14 +2319,14 @@ fn test_xcm_utils_ml_tp_account() {
 				ALICE,
 				xcm_utils_precompile_address,
 				XcmUtilsPCall::multilocation_to_address {
-					multilocation: MultiLocation::parent(),
+					multilocation: Location::parent(),
 				},
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
-		let parachain_2000_multilocation = MultiLocation::new(1, X1(Parachain(2000)));
+		let parachain_2000_multilocation = Location::new(1, X1(Parachain(2000)));
 		let expected_address_parachain: H160 =
 			SiblingParachainConvertsVia::<Sibling, AccountId>::convert_location(
 				&parachain_2000_multilocation,
@@ -2346,7 +2346,7 @@ fn test_xcm_utils_ml_tp_account() {
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
-		let alice_in_parachain_2000_multilocation = MultiLocation::new(
+		let alice_in_parachain_2000_multilocation = Location::new(
 			1,
 			X2(
 				Parachain(2000),

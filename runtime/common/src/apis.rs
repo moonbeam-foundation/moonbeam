@@ -441,7 +441,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn gas_limit_multiplier_support() {}
 
 				fn pending_block(
-					xts: Vec<<Block as sp_api::BlockT>::Extrinsic>
+					xts: Vec<<Block as sp_runtime::traits::Block>::Extrinsic>
 				) -> (
 					Option<pallet_ethereum::Block>, Option<sp_std::prelude::Vec<TransactionStatus>>
 				) {
@@ -617,16 +617,16 @@ macro_rules! impl_runtime_apis_plus_common {
 						type XcmConfig = xcm_config::XcmExecutorConfig;
 						type AccountIdConverter = xcm_config::LocationToAccountId;
 						type DeliveryHelper = ();
-						fn valid_destination() -> Result<MultiLocation, BenchmarkError> {
-							Ok(MultiLocation::parent())
+						fn valid_destination() -> Result<Location, BenchmarkError> {
+							Ok(Location::parent())
 						}
-						fn worst_case_holding(_depositable_count: u32) -> MultiAssets {
+						fn worst_case_holding(_depositable_count: u32) -> Assets {
 						// 100 fungibles
 							const HOLDING_FUNGIBLES: u32 = 100;
 							let fungibles_amount: u128 = 100;
 							let assets = (0..HOLDING_FUNGIBLES).map(|i| {
-								let location: MultiLocation = GeneralIndex(i as u128).into();
-								MultiAsset {
+								let location: Location = GeneralIndex(i as u128).into();
+								Asset {
 									id: Concrete(location),
 									fun: Fungible(fungibles_amount * i as u128),
 								}
@@ -634,8 +634,8 @@ macro_rules! impl_runtime_apis_plus_common {
 							})
 							.chain(
 								core::iter::once(
-									MultiAsset {
-										id: Concrete(MultiLocation::parent()),
+									Asset {
+										id: Concrete(Location::parent()),
 										fun: Fungible(u128::MAX)
 									}
 								)
@@ -644,7 +644,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 
 							for (i, asset) in assets.iter().enumerate() {
-								if let MultiAsset {
+								if let Asset {
 									id: Concrete(location),
 									fun: Fungible(_)
 								} = asset {
@@ -677,45 +677,45 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 
 						fn worst_case_asset_exchange()
-							-> Result<(MultiAssets, MultiAssets), BenchmarkError> {
+							-> Result<(Assets, Assets), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 
-						fn universal_alias() -> Result<(MultiLocation, Junction), BenchmarkError> {
+						fn universal_alias() -> Result<(Location, Junction), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 
 						fn export_message_origin_and_destination()
-							-> Result<(MultiLocation, NetworkId, Junctions), BenchmarkError> {
+							-> Result<(Location, NetworkId, Junctions), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 
 						fn transact_origin_and_runtime_call()
-							-> Result<(MultiLocation, RuntimeCall), BenchmarkError> {
-							Ok((MultiLocation::parent(), frame_system::Call::remark_with_event {
+							-> Result<(Location, RuntimeCall), BenchmarkError> {
+							Ok((Location::parent(), frame_system::Call::remark_with_event {
 								remark: vec![]
 							}.into()))
 						}
 
-						fn subscribe_origin() -> Result<MultiLocation, BenchmarkError> {
-							Ok(MultiLocation::parent())
+						fn subscribe_origin() -> Result<Location, BenchmarkError> {
+							Ok(Location::parent())
 						}
 
 						fn claimable_asset()
-							-> Result<(MultiLocation, MultiLocation, MultiAssets), BenchmarkError> {
-							let origin = MultiLocation::parent();
-							let assets: MultiAssets = (Concrete(MultiLocation::parent()), 1_000u128)
+							-> Result<(Location, Location, Assets), BenchmarkError> {
+							let origin = Location::parent();
+							let assets: Assets = (Concrete(Location::parent()), 1_000u128)
 								.into();
-							let ticket = MultiLocation { parents: 0, interior: Here };
+							let ticket = Location { parents: 0, interior: Here };
 							Ok((origin, ticket, assets))
 						}
 
 						fn unlockable_asset()
-							-> Result<(MultiLocation, MultiLocation, MultiAsset), BenchmarkError> {
+							-> Result<(Location, Location, Asset), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 
-						fn alias_origin() -> Result<(MultiLocation, MultiLocation), BenchmarkError> {
+						fn alias_origin() -> Result<(Location, Location), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 					}

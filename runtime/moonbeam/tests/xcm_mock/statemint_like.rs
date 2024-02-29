@@ -156,18 +156,18 @@ impl pallet_assets::Config for Runtime {
 }
 
 parameter_types! {
-	pub const KsmLocation: MultiLocation = MultiLocation::parent();
+	pub const KsmLocation: Location = Location::parent();
 	pub const RelayNetwork: NetworkId = NetworkId::Kusama;
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
-	pub UniversalLocation: InteriorMultiLocation =
+	pub UniversalLocation: InteriorLocation =
 		X2(GlobalConsensus(RelayNetwork::get()), Parachain(MsgQueue::parachain_id().into()));
-	pub Local: MultiLocation = Here.into();
+	pub Local: Location = Here.into();
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub KsmPerSecond: (xcm::latest::prelude::AssetId, u128, u128) =
 		(Concrete(KsmLocation::get()), 1, 1);
 }
 
-/// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
+/// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
 pub type LocationToAccountId = (
@@ -185,7 +185,7 @@ pub type CurrencyTransactor = CurrencyAdapter<
 	Balances,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	IsConcrete<KsmLocation>,
-	// Convert an XCM MultiLocation into a local account id:
+	// Convert an XCM Location into a local account id:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
@@ -204,7 +204,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 		AsPrefixedGeneralIndex<PrefixChanger, AssetId, JustTry>,
 		JustTry,
 	>,
-	// Convert an XCM MultiLocation into a local account id:
+	// Convert an XCM Location into a local account id:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
@@ -248,15 +248,15 @@ parameter_types! {
 }
 
 match_types! {
-	pub type ParentOrParentsExecutivePlurality: impl Contains<MultiLocation> = {
-		MultiLocation { parents: 1, interior: Here } |
-		MultiLocation { parents: 1, interior: X1(Plurality { id: BodyId::Executive, .. }) }
+	pub type ParentOrParentsExecutivePlurality: impl Contains<Location> = {
+		Location { parents: 1, interior: Here } |
+		Location { parents: 1, interior: X1(Plurality { id: BodyId::Executive, .. }) }
 	};
 }
 match_types! {
-	pub type ParentOrSiblings: impl Contains<MultiLocation> = {
-		MultiLocation { parents: 1, interior: Here } |
-		MultiLocation { parents: 1, interior: X1(_) }
+	pub type ParentOrSiblings: impl Contains<Location> = {
+		Location { parents: 1, interior: Here } |
+		Location { parents: 1, interior: [_] }
 	};
 }
 
@@ -272,7 +272,7 @@ pub type Barrier = (
 );
 
 parameter_types! {
-	pub MatcherLocation: MultiLocation = MultiLocation::here();
+	pub MatcherLocation: Location = Location::here();
 	pub const MaxAssetsIntoHolding: u32 = 64;
 }
 
@@ -312,7 +312,7 @@ pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 #[cfg(feature = "runtime-benchmarks")]
 parameter_types! {
-	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
+	pub ReachableDest: Option<Location> = Some(Parent.into());
 }
 
 impl pallet_xcm::Config for Runtime {
@@ -413,7 +413,7 @@ pub mod mock_msg_queue {
 			let hash = Encode::using_encoded(&xcm, T::Hashing::hash);
 			let (result, event) = match Xcm::<T::RuntimeCall>::try_from(xcm) {
 				Ok(xcm) => {
-					let location = MultiLocation::new(1, Junctions::X1(Parachain(sender.into())));
+					let location = Location::new(1, Junctions::X1(Parachain(sender.into())));
 					let mut id = [0u8; 32];
 					id.copy_from_slice(hash.as_ref());
 					match T::XcmExecutor::execute_xcm(location, xcm, id, max_weight) {
@@ -510,10 +510,10 @@ pub mod mock_statemint_prefix {
 
 	#[pallet::storage]
 	#[pallet::getter(fn current_prefix)]
-	pub(super) type CurrentPrefix<T: Config> = StorageValue<_, MultiLocation, ValueQuery>;
+	pub(super) type CurrentPrefix<T: Config> = StorageValue<_, Location, ValueQuery>;
 
-	impl<T: Config> Get<MultiLocation> for Pallet<T> {
-		fn get() -> MultiLocation {
+	impl<T: Config> Get<Location> for Pallet<T> {
+		fn get() -> Location {
 			Self::current_prefix()
 		}
 	}
@@ -522,11 +522,11 @@ pub mod mock_statemint_prefix {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		// Changed Prefix
-		PrefixChanged(MultiLocation),
+		PrefixChanged(Location),
 	}
 
 	impl<T: Config> Pallet<T> {
-		pub fn set_prefix(prefix: MultiLocation) {
+		pub fn set_prefix(prefix: Location) {
 			CurrentPrefix::<T>::put(&prefix);
 			Self::deposit_event(Event::PrefixChanged(prefix));
 		}

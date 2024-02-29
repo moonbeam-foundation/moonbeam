@@ -145,4 +145,8 @@ impl<T: frame_system::Config> pallet_balances::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(u.into())))
 			.saturating_add(Weight::from_parts(0, 2591).saturating_mul(u.into()))
 	}
+	
+	fn force_adjust_total_issuance() -> Weight {
+			todo!()
+		}
 }
