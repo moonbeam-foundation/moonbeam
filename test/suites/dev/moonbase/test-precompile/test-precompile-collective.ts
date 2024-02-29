@@ -41,7 +41,7 @@ const successfulCouncilCall = async (
 };
 
 describeSuite({
-  id: "D012729",
+  id: "D012929",
   title: "Treasury council precompile #1",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

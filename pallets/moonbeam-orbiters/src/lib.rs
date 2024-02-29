@@ -162,7 +162,6 @@ pub mod pallet {
 		pub min_orbiter_deposit: BalanceOf<T>,
 	}
 
-	#[cfg(feature = "std")]
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {

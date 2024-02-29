@@ -10,7 +10,7 @@ import { ALITH_ADDRESS, MIN_GLMR_STAKING } from "@moonwall/util";
 // We have to make sure that's not possible
 
 describeSuite({
-  id: "D012774",
+  id: "D012975",
   title: "Precompiles - Reverting Staking precompile",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

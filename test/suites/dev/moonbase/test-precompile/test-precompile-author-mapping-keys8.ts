@@ -4,7 +4,7 @@ import { FAITH_ADDRESS, FAITH_PRIVATE_KEY, getBlockExtrinsic } from "@moonwall/u
 import { setAuthorMappingKeysViaPrecompile } from "../../../../helpers";
 
 describeSuite({
-  id: "D012717",
+  id: "D012917",
   title: "Precompile Author Mapping - Set Faith mapping with 0 keys",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -4,7 +4,7 @@ import { GLMR, KeyringPair, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } fro
 import { chunk } from "../../../../helpers";
 
 describeSuite({
-  id: "D013174",
+  id: "D013374",
   title: "Staking - Locks - bottom delegator removed",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

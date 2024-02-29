@@ -10,7 +10,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D012735",
+  id: "D012935",
   title: "Precompiles - Ended proposal",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {
