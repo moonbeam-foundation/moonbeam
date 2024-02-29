@@ -37,7 +37,6 @@ use pallet_parachain_staking::{Round, RoundIndex, RoundInfo};
 use parity_scale_codec::{Decode, Encode};
 use sp_consensus_slots::Slot;
 use sp_core::Get;
-use sp_io::hashing::twox_128;
 use sp_std::{marker::PhantomData, prelude::*, vec};
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode)]
@@ -180,9 +179,8 @@ where
 	}
 }
 
-const DEMOCRACY_PALLET: &'static str = "Democracy";
 parameter_types! {
-	pub const DemocracyPalletName: &'static str = DEMOCRACY_PALLET;
+	pub const DemocracyPalletName: &'static str = "Democracy";
 }
 
 pub struct RemovePalletDemocracy<Runtime>(pub PhantomData<Runtime>);
@@ -197,13 +195,14 @@ where
 	fn migrate(&self, _available_weight: Weight) -> Weight {
 		log::info!("Removing pallet democracy");
 
-		let hashed_prefix = twox_128(DEMOCRACY_PALLET.as_bytes());
-		if contains_prefixed_key(&hashed_prefix) {
-			// PoV failsafe: do not execute the migration if there are keys for this pallet
-			log::info!(
-				"Found keys {} pre-removal - skipping migration",
-				DEMOCRACY_PALLET
-			);
+		// Democracy: f2794c22e353e9a839f12faab03a911b
+		// VotingOf: e470c6afbbbc027eb288ade7595953c2
+		let prefix =
+			hex_literal::hex!("f2794c22e353e9a839f12faab03a911be470c6afbbbc027eb288ade7595953c2");
+		if contains_prefixed_key(&prefix) {
+			// PoV failsafe: do not execute the migration if there are VotingOf keys
+			// that have not been cleaned up
+			log::info!("Found keys for Democracy.VotingOf pre-removal - skipping migration",);
 			return Weight::zero();
 		};
 		frame_support::migrations::RemovePallet::<
