@@ -484,16 +484,14 @@ pub mod pallet {
 				weight = weight.saturating_add(extra_weight);
 				// start next round
 				<Round<T>>::put(round);
-				// snapshot total stake
-				<Staked<T>>::insert(round.current, <Total<T>>::get());
 				Self::deposit_event(Event::NewRound {
 					starting_block: round.first,
 					round: round.current,
 					selected_collators_number: collator_count,
 					total_balance: total_staked,
 				});
-				// account for Round and Staked writes
-				weight = weight.saturating_add(T::DbWeight::get().reads_writes(0, 2));
+				// account for Round write
+				weight = weight.saturating_add(T::DbWeight::get().reads_writes(0, 1));
 			} else {
 				weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 			}
@@ -648,11 +646,6 @@ pub mod pallet {
 	/// Delayed payouts
 	pub type DelayedPayouts<T: Config> =
 		StorageMap<_, Twox64Concat, RoundIndex, DelayedPayout<BalanceOf<T>>, OptionQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn staked)]
-	/// Total counted stake for selected candidates in the round
-	pub type Staked<T: Config> = StorageMap<_, Twox64Concat, RoundIndex, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn inflation_config)]
@@ -818,8 +811,6 @@ pub mod pallet {
 			let round: RoundInfo<BlockNumberFor<T>> =
 				RoundInfo::new(1u32, Zero::zero(), self.blocks_per_round, 0);
 			<Round<T>>::put(round);
-			// Snapshot total stake
-			<Staked<T>>::insert(1u32, <Total<T>>::get());
 			<Pallet<T>>::deposit_event(Event::NewRound {
 				starting_block: Zero::zero(),
 				round: 1u32,
