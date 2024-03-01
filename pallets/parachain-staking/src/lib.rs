@@ -1787,12 +1787,16 @@ pub mod pallet {
 
 		/// Compute round issuance based on duration of the given round
 		fn compute_issuance(round_duration: u64, round_length: u32) -> BalanceOf<T> {
-			let ideal_duration = round_length.saturating_mul(T::BlockTime::get() as u32);
-			let duration_proportion = Perbill::from_rational(round_duration, ideal_duration as u64);
+			let ideal_duration: BalanceOf<T> = round_length
+				.saturating_mul(T::BlockTime::get() as u32)
+				.into();
 			let config = <InflationConfig<T>>::get();
 			let round_issuance = crate::inflation::round_issuance_range::<T>(config.round);
 
-			duration_proportion * round_issuance.ideal
+			// Initial formula: (round_duration / ideal_duration) * ideal_issuance
+			// We multiply before the division to reduce rounding effects
+			BalanceOf::<T>::from(round_duration as u32).saturating_mul(round_issuance.ideal)
+				/ (ideal_duration)
 		}
 
 		/// Remove delegation from candidate state
