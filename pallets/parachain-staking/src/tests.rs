@@ -8672,12 +8672,11 @@ fn test_on_initialize_weights() {
 			let weight = ParachainStaking::on_initialize(1);
 
 			// TODO: build this with proper db reads/writes
-			assert_eq!(Weight::from_parts(302168000, 0), weight);
+			assert_eq!(Weight::from_parts(277168000, 0), weight);
 
 			// roll to the end of the round, then run on_init again, we should see round change...
+			set_author(3, 1, 100); // must set some points for prepare_staking_payouts
 			roll_to_round_end(3);
-			set_author(2, 1, 100); // must set some points for prepare_staking_payouts
-			System::set_block_number(System::block_number() + 1);
 			let block = System::block_number() + 1;
 			let weight = ParachainStaking::on_initialize(block);
 
@@ -8687,7 +8686,7 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2504547135;
+			let expected_on_init = 2404547135;
 			assert_eq!(Weight::from_parts(expected_on_init, 32562), weight);
 
 			// assemble weight manually to ensure it is well understood
