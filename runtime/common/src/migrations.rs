@@ -25,7 +25,6 @@ use frame_support::ensure;
 use frame_support::migration::get_storage_value;
 use frame_support::{
 	parameter_types,
-	sp_runtime::traits::{Block as BlockT, Header as HeaderT},
 	storage::unhashed::contains_prefixed_key,
 	traits::OnRuntimeUpgrade,
 	weights::Weight,
