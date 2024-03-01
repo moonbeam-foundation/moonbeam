@@ -24,6 +24,9 @@ use frame_support::traits::OnRuntimeUpgrade;
 use frame_system::pallet_prelude::*;
 use sp_runtime::Saturating;
 
+#[cfg(feature = "try-runtime")]
+use sp_std::vec::Vec;
+
 /// Multiply round length by 2
 pub struct MultiplyRoundLenBy2<T: Config>(core::marker::PhantomData<T>);
 
@@ -94,21 +97,21 @@ where
 {
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::TryRuntimeError> {
-		let raw_key = crate::Round::<T>::storage_prefix();
+		let raw_key = crate::Round::<T>::storage_value_final_key();
 		let maybe_raw_value = unhashed::get_raw(&raw_key);
 		let len = maybe_raw_value
-			.expect("parachainStaking.Round should exist!")
+			.expect("ParachainStaking.Round should exist!")
 			.len();
 		ensure!(
-			len == 16 || len == 18,
-			"parachainStaking.Round should have 12 or 16 bytes length!"
+			len == 12 || len == 16,
+			"ParachainStaking.Round should have 12 or 16 bytes length!"
 		);
 
 		Ok(Vec::new())
 	}
 
 	fn on_runtime_upgrade() -> frame_support::pallet_prelude::Weight {
-		let raw_key = crate::Round::<T>::storage_prefix();
+		let raw_key = crate::Round::<T>::storage_value_final_key();
 
 		// Read old round info
 		let mut round: RoundInfo<BlockNumberFor<T>> = if let Some(bytes) =
