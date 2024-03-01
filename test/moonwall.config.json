@@ -389,7 +389,7 @@
     },
     {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/moonbase/test-staking"],
+      "testFileDir": ["suites/dev/moonbase"],
       "include": ["**/*test*"],
       "timeout": 180000,
       "contracts": "contracts/",
