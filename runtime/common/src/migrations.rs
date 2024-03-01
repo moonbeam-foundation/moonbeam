@@ -24,9 +24,7 @@ use frame_support::ensure;
 #[cfg(feature = "try-runtime")]
 use frame_support::migration::get_storage_value;
 use frame_support::{
-	parameter_types,
-	storage::unhashed::contains_prefixed_key,
-	traits::OnRuntimeUpgrade,
+	parameter_types, storage::unhashed::contains_prefixed_key, traits::OnRuntimeUpgrade,
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
