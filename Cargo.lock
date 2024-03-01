@@ -6480,7 +6480,6 @@ dependencies = [
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
- "pallet-democracy",
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
  "pallet-ethereum-xcm",
@@ -6495,7 +6494,6 @@ dependencies = [
  "pallet-evm-precompile-collective",
  "pallet-evm-precompile-conviction-voting",
  "pallet-evm-precompile-crowdloan-rewards",
- "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-gmp",
  "pallet-evm-precompile-identity",
@@ -6966,7 +6964,6 @@ dependencies = [
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
- "pallet-democracy",
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
  "pallet-ethereum-xcm",
@@ -6981,7 +6978,6 @@ dependencies = [
  "pallet-evm-precompile-collective",
  "pallet-evm-precompile-conviction-voting",
  "pallet-evm-precompile-crowdloan-rewards",
- "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-gmp",
  "pallet-evm-precompile-identity",
@@ -7087,7 +7083,6 @@ dependencies = [
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
- "pallet-democracy",
  "pallet-ethereum-xcm",
  "pallet-evm",
  "pallet-evm-chain-id",
@@ -7116,6 +7111,7 @@ dependencies = [
  "sp-api",
  "sp-consensus-slots",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "staging-xcm",
@@ -7359,7 +7355,6 @@ dependencies = [
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
- "pallet-democracy",
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
  "pallet-ethereum-xcm",
@@ -7374,7 +7369,6 @@ dependencies = [
  "pallet-evm-precompile-collective",
  "pallet-evm-precompile-conviction-voting",
  "pallet-evm-precompile-crowdloan-rewards",
- "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-gmp",
  "pallet-evm-precompile-identity",
@@ -8932,33 +8926,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-evm-precompile-democracy"
-version = "0.2.0"
-dependencies = [
- "derive_more",
- "fp-evm",
- "frame-support",
- "frame-system",
- "hex-literal 0.3.4",
- "log",
- "num_enum 0.5.11",
- "pallet-balances",
- "pallet-democracy",
- "pallet-evm",
- "pallet-preimage",
- "pallet-scheduler",
- "pallet-timestamp",
- "parity-scale-codec",
- "precompile-utils",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.3.0#8c90bb75ed280318465dcbedebd534a40ad09aa5"
@@ -9608,7 +9575,6 @@ dependencies = [
  "frame-system",
  "log",
  "pallet-balances",
- "pallet-democracy",
  "pallet-evm",
  "pallet-scheduler",
  "pallet-timestamp",

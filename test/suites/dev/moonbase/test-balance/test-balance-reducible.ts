@@ -28,7 +28,6 @@ describeSuite({
         const existentialDeposit = context
           .polkadotJs()
           .consts.balances.existentialDeposit.toBigInt();
-        const minDepositAmount = context.polkadotJs().consts.democracy.minimumDeposit.toBigInt();
         const proposal = context
           .polkadotJs()
           .tx.balances.forceSetBalance(randomAccount.address, 100);

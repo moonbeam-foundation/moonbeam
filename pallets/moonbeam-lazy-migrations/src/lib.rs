@@ -37,9 +37,7 @@ pub use pallet::*;
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{LockIdentifier, LockableCurrency};
 	use frame_system::pallet_prelude::*;
-	use pallet_democracy::VotingOf;
 	use sp_core::H160;
 
 	pub const ARRAY_LIMIT: u32 = 1000;
@@ -48,15 +46,6 @@ pub mod pallet {
 	const INTERMEDIATES_NODES_SIZE: u64 = 4096;
 	const MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE: u64 =
 		(/* biggest key on moonbeam */136) + (/* biggest value on moonbeam */142);
-
-	/// Copied from pallet-democracy
-	const DEMOCRACY_ID: LockIdentifier = *b"democrac";
-	const MAX_DEMOCRACY_VOTINGOF_STORAGE_ENTRY_SIZE: u64 =
-		(/* biggest key on moonbeam */60) + (/* biggest value on moonbeam */1440);
-	const MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE: u64 =
-		(/* biggest key on moonbeam */60) + (/* biggest value on moonbeam */26 * 3);
-	const MAX_UNLOCK_PROOF_PER_ACCOUNT: u64 =
-		MAX_BALANCES_LOCKS_STORAGE_ENTRY_SIZE + MAX_DEMOCRACY_VOTINGOF_STORAGE_ENTRY_SIZE;
 
 	/// Pallet for multi block migrations
 	#[pallet::pallet]
@@ -67,16 +56,12 @@ pub mod pallet {
 	pub(crate) type LocalAssetsMigrationCompleted<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
-	/// If true, it means that Democracy funds have been unlocked.
-	pub(crate) type DemocracyLocksMigrationCompleted<T: Config> = StorageValue<_, bool, ValueQuery>;
-
-	#[pallet::storage]
 	/// The total number of suicided contracts that were removed
 	pub(crate) type SuicidedContractsRemoved<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_evm::Config + pallet_democracy::Config {
+	pub trait Config: frame_system::Config + pallet_evm::Config {
 		type WeightInfo: WeightInfo;
 	}
 
@@ -200,47 +185,6 @@ pub mod pallet {
 					return Ok(Pays::No.into());
 				}
 			}
-			Ok(Pays::No.into())
-		}
-
-		// TODO(alexandru): This extrinsic should be removed once Gov V1 is removed.
-		// Note: We don't need to unreserve any funds, as they are assumed to be already
-		// unreserved prior to this operation and the proposal submission disabled.
-		#[pallet::call_index(2)]
-		#[pallet::weight(
-			Weight::from_parts(0,
-				INTERMEDIATES_NODES_SIZE + MAX_UNLOCK_PROOF_PER_ACCOUNT * <u64>::from(*limit))
-				.saturating_add(<T as frame_system::Config>::DbWeight::get()
-				.reads_writes((*limit + 1).into(), (*limit + 1).into()).saturating_mul(2))
-		)]
-		pub fn unlock_democracy_funds(
-			origin: OriginFor<T>,
-			limit: u32,
-		) -> DispatchResultWithPostInfo {
-			ensure_signed(origin)?;
-			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
-			ensure!(limit <= 50, Error::<T>::UnlockLimitTooHigh);
-
-			ensure!(
-				!DemocracyLocksMigrationCompleted::<T>::get(),
-				Error::<T>::AllDemocracyFundsUnlocked
-			);
-
-			// Unlock staked funds and remove the voting entry. This way we can keep track of what
-			// is left without extra cost.
-			let unlocked_accounts = VotingOf::<T>::iter()
-				.drain()
-				.take(limit as usize)
-				.map(|(account, _)| {
-					<T as pallet_democracy::Config>::Currency::remove_lock(DEMOCRACY_ID, &account)
-				})
-				.count() as u32;
-
-			if unlocked_accounts < limit {
-				DemocracyLocksMigrationCompleted::<T>::set(true);
-			}
-
-			log::info!("Unlocked {} accounts 🧹", unlocked_accounts);
 			Ok(Pays::No.into())
 		}
 	}

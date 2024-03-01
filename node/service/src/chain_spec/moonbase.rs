@@ -26,8 +26,8 @@ use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig,
-	EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig, MoonbeamOrbitersConfig,
+	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
+	GenesisAccount, InflationInfo, MaintenanceModeConfig, MoonbeamOrbitersConfig,
 	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
 	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig, SystemConfig,
 	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
@@ -285,7 +285,6 @@ pub fn testnet_genesis(
 		ethereum: EthereumConfig {
 			..Default::default()
 		},
-		democracy: DemocracyConfig::default(),
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
 				.iter()
