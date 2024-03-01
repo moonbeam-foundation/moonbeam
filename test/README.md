@@ -15,7 +15,7 @@ It is written in typescript, using the [Moonwall](https://moonsong-labs.github.i
 
 > [!NOTE]\
 > PNPM is the package manager of choice for this repo, due to its superior handling of heavily nested dependencies.
-There are [many](https://pnpm.io/installation) ways to install it, but perhaps the easiest is `sudo npm -g i pnpm`
+There are [various](https://pnpm.io/installation) ways to install it, but perhaps the easiest is `sudo npm -g i pnpm`
 
 Before running tests always install and update the package dependencies:
 

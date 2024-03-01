@@ -755,11 +755,12 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 		collator_id: AccountId,
 		amount: Balance,
 	) -> Weight {
-		let extra_weight = if MoonbeamOrbiters::is_orbiter(for_round, collator_id) {
-			MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
-		} else {
-			ParachainStaking::mint_collator_reward(for_round, collator_id, amount)
-		};
+		let extra_weight =
+			if MoonbeamOrbiters::is_collator_pool_with_active_orbiter(for_round, collator_id) {
+				MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
+			} else {
+				ParachainStaking::mint_collator_reward(for_round, collator_id, amount)
+			};
 
 		<Runtime as frame_system::Config>::DbWeight::get()
 			.reads(1)
@@ -773,7 +774,10 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 		collator_id: AccountId,
 		round: pallet_parachain_staking::RoundIndex,
 	) -> Result<Weight, DispatchErrorWithPostInfo<PostDispatchInfo>> {
-		let extra_weight = if !MoonbeamOrbiters::is_orbiter(round, collator_id.clone()) {
+		let extra_weight = if !MoonbeamOrbiters::is_collator_pool_with_active_orbiter(
+			round,
+			collator_id.clone(),
+		) {
 			ParachainStaking::go_offline_inner(collator_id)?;
 			<Runtime as pallet_parachain_staking::Config>::WeightInfo::go_offline(
 				pallet_parachain_staking::MAX_CANDIDATES,
@@ -1456,7 +1460,7 @@ construct_runtime! {
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 35,
 		// Previously 36: pallet_assets::<Instance1>
-		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
+		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>, Config<T>} = 37,
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 38,
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 39,
 		TreasuryCouncilCollective:

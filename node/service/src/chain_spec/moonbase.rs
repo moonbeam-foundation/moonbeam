@@ -27,7 +27,7 @@ use hex_literal::hex;
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig,
-	EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig,
+	EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig, MoonbeamOrbitersConfig,
 	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
 	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig,
 	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
@@ -38,7 +38,7 @@ use pallet_transaction_payment::Multiplier;
 use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
-use sp_runtime::{Perbill, Percent};
+use sp_runtime::{traits::One, Perbill, Percent};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions>;
@@ -305,6 +305,9 @@ pub fn testnet_genesis(
 		transaction_payment: TransactionPaymentConfig {
 			multiplier: Multiplier::from(8u128),
 			..Default::default()
+		},
+		moonbeam_orbiters: MoonbeamOrbitersConfig {
+			min_orbiter_deposit: One::one(),
 		},
 		xcm_transactor: XcmTransactorConfig {
 			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,

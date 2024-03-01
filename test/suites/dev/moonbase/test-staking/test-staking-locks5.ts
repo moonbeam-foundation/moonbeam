@@ -12,7 +12,7 @@ import { executeExtViaOpenTechCommittee } from "../../../../helpers";
 const disableTest = true;
 
 describeSuite({
-  id: "D013179",
+  id: "D013379",
   title: "Staking - Locks - democracy vote",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

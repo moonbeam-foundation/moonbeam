@@ -11,7 +11,7 @@ import { expectOk } from "../../../../helpers";
 import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
-  id: "D5001",
+  id: "D012301",
   title: "Lazy Migrations Pallet - Clear Suicided Storage",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

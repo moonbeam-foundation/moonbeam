@@ -727,11 +727,12 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 		collator_id: AccountId,
 		amount: Balance,
 	) -> Weight {
-		let extra_weight = if MoonbeamOrbiters::is_orbiter(for_round, collator_id) {
-			MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
-		} else {
-			ParachainStaking::mint_collator_reward(for_round, collator_id, amount)
-		};
+		let extra_weight =
+			if MoonbeamOrbiters::is_collator_pool_with_active_orbiter(for_round, collator_id) {
+				MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
+			} else {
+				ParachainStaking::mint_collator_reward(for_round, collator_id, amount)
+			};
 
 		<Runtime as frame_system::Config>::DbWeight::get()
 			.reads(1)
@@ -745,7 +746,10 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 		collator_id: AccountId,
 		round: pallet_parachain_staking::RoundIndex,
 	) -> Result<Weight, DispatchErrorWithPostInfo<PostDispatchInfo>> {
-		let extra_weight = if !MoonbeamOrbiters::is_orbiter(round, collator_id.clone()) {
+		let extra_weight = if !MoonbeamOrbiters::is_collator_pool_with_active_orbiter(
+			round,
+			collator_id.clone(),
+		) {
 			ParachainStaking::go_offline_inner(collator_id)?;
 			<Runtime as pallet_parachain_staking::Config>::WeightInfo::go_offline(
 				pallet_parachain_staking::MAX_CANDIDATES,
