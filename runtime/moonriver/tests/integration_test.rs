@@ -1572,10 +1572,11 @@ fn root_can_change_default_xcm_vers() {
 			let source_location = AssetType::Xcm(Location::parent());
 			let dest = Location {
 				parents: 1,
-				interior: X1(AccountId32 {
+				interior: [AccountId32 {
 					network: None,
 					id: [1u8; 32],
-				}),
+				}]
+				.into(),
 			};
 			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
 			// Default XCM version is not set yet, so xtokens should fail because it does not
@@ -1585,7 +1586,7 @@ fn root_can_change_default_xcm_vers() {
 					origin_of(AccountId::from(ALICE)),
 					CurrencyId::ForeignAsset(source_id),
 					100_000_000_000_000,
-					Box::new(xcm::VersionedLocation::V3(dest.clone())),
+					Box::new(xcm::VersionedLocation::V4(dest.clone())),
 					WeightLimit::Limited(4000000000.into())
 				),
 				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
@@ -1602,7 +1603,7 @@ fn root_can_change_default_xcm_vers() {
 				origin_of(AccountId::from(ALICE)),
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
-				Box::new(xcm::VersionedLocation::V3(dest)),
+				Box::new(xcm::VersionedLocation::V4(dest)),
 				WeightLimit::Limited(4000000000.into())
 			));
 		})
@@ -1660,7 +1661,10 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 			);
 
 			// Assert the asset has been created with the correct supply
-			assert_eq!(Assets::total_supply(relay_asset_id), 1_000 * MOVR);
+			assert_eq!(
+				moonriver_runtime::Assets::total_supply(relay_asset_id),
+				1_000 * MOVR
+			);
 
 			// Access totalSupply through precompile. Important that the context is correct
 			Precompiles::new()
@@ -1873,10 +1877,10 @@ fn xtokens_precompiles_transfer() {
 			// Alice has 1000 tokens. She should be able to send through precompile
 			let destination = Location::new(
 				1,
-				Junctions::X1(Junction::AccountId32 {
+				[Junction::AccountId32 {
 					network: None,
 					id: [1u8; 32],
-				}),
+				}],
 			);
 
 			// We use the address of the asset as an identifier of the asset we want to transferS
@@ -1923,10 +1927,10 @@ fn xtokens_precompiles_transfer_multiasset() {
 			// Alice has 1000 tokens. She should be able to send through precompile
 			let destination = Location::new(
 				1,
-				Junctions::X1(Junction::AccountId32 {
+				[Junction::AccountId32 {
 					network: None,
 					id: [1u8; 32],
-				}),
+				}],
 			);
 
 			// This time we transfer it through TransferMultiAsset
@@ -1965,22 +1969,23 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 		.execute_with(|| {
 			let dest = Location {
 				parents: 1,
-				interior: X1(AccountId32 {
+				interior: [AccountId32 {
 					network: None,
 					id: [1u8; 32],
-				}),
+				}]
+				.into(),
 			};
-			let multiassets: Assets = [Asset {
-				id: Concrete(moonriver_runtime::xcm_config::SelfLocation::get()),
+			let assets: Assets = [Asset {
+				id: AssetId(moonriver_runtime::xcm_config::SelfLocation::get()),
 				fun: Fungible(1000),
 			}]
 			.to_vec()
 			.into();
 			assert_noop!(
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
-					dest: Box::new(VersionedLocation::V3(dest.clone())),
-					beneficiary: Box::new(VersionedLocation::V3(dest)),
-					assets: Box::new(VersionedAssets::V3(multiassets)),
+					dest: Box::new(VersionedLocation::V4(dest.clone())),
+					beneficiary: Box::new(VersionedLocation::V4(dest)),
+					assets: Box::new(VersionedAssets::V4(assets)),
 					fee_asset_item: 0,
 				})
 				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
@@ -2022,7 +2027,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V3(Location::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				20000.into(),
@@ -2032,7 +2037,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V3(Location::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				1
 			));
 
@@ -2042,7 +2047,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V3(
+						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 							Location::parent()
 						))),
 						fee_amount: None
@@ -2186,14 +2191,16 @@ fn call_xtokens_with_fee() {
 			let source_location = AssetType::Xcm(Location::parent());
 			let dest = Location {
 				parents: 1,
-				interior: X1(AccountId32 {
+				interior: [AccountId32 {
 					network: None,
 					id: [1u8; 32],
-				}),
+				}]
+				.into(),
 			};
 			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
 
-			let before_balance = Assets::balance(source_id, &AccountId::from(ALICE));
+			let before_balance =
+				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
 
 			// We are able to transfer with fee
 			assert_ok!(XTokens::transfer_with_fee(
@@ -2201,11 +2208,12 @@ fn call_xtokens_with_fee() {
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
 				100,
-				Box::new(xcm::VersionedLocation::V3(dest.clone())),
+				Box::new(xcm::VersionedLocation::V4(dest.clone())),
 				WeightLimit::Limited(4000000000.into())
 			),);
 
-			let after_balance = Assets::balance(source_id, &AccountId::from(ALICE));
+			let after_balance =
+				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
 			// At least these much (plus fees) should have been charged
 			assert_eq!(before_balance - 100_000_000_000_000 - 100, after_balance);
 		});
@@ -2225,14 +2233,14 @@ fn test_xcm_utils_ml_tp_account() {
 				ALICE,
 				xcm_utils_precompile_address,
 				XcmUtilsPCall::multilocation_to_address {
-					multilocation: Location::parent(),
+					location: Location::parent(),
 				},
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
-		let parachain_2000_multilocation = Location::new(1, X1(Parachain(2000)));
+		let parachain_2000_multilocation = Location::new(1, [Parachain(2000)]);
 		let expected_address_parachain: H160 =
 			SiblingParachainConvertsVia::<Sibling, AccountId>::convert_location(
 				&parachain_2000_multilocation,
@@ -2245,27 +2253,28 @@ fn test_xcm_utils_ml_tp_account() {
 				ALICE,
 				xcm_utils_precompile_address,
 				XcmUtilsPCall::multilocation_to_address {
-					multilocation: parachain_2000_multilocation,
+					location: parachain_2000_multilocation,
 				},
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
-		let alice_in_parachain_2000_multilocation = Location::new(
+		let alice_in_parachain_2000_location = Location::new(
 			1,
-			X2(
+			[
 				Parachain(2000),
 				AccountKey20 {
 					network: None,
 					key: ALICE,
 				},
-			),
+			],
 		);
-		let expected_address_alice_in_parachain_2000: H160 =
-			xcm_builder::HashedDescriptionDescribeFamilyAllTerminal::<AccountId>::convert_location(
-				&alice_in_parachain_2000_multilocation,
-			)
+		let expected_address_alice_in_parachain_2000 =
+			xcm_builder::HashedDescription::<
+				AccountId,
+				xcm_builder::DescribeFamily<xcm_builder::DescribeAllTerminal>,
+			>::convert_location(&alice_in_parachain_2000_location)
 			.unwrap()
 			.into();
 
@@ -2274,7 +2283,7 @@ fn test_xcm_utils_ml_tp_account() {
 				ALICE,
 				xcm_utils_precompile_address,
 				XcmUtilsPCall::multilocation_to_address {
-					multilocation: alice_in_parachain_2000_multilocation,
+					location: alice_in_parachain_2000_location,
 				},
 			)
 			.expect_cost(1000)
@@ -2290,7 +2299,7 @@ fn test_xcm_utils_weight_message() {
 		let expected_weight =
 			XcmWeight::<moonriver_runtime::Runtime, RuntimeCall>::clear_origin().ref_time();
 
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V3(Xcm(vec![ClearOrigin])).encode();
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
 
 		let input = XcmUtilsPCall::weight_message {
 			message: message.into(),
@@ -2308,9 +2317,9 @@ fn test_xcm_utils_weight_message() {
 fn test_xcm_utils_get_units_per_second() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
-		let multilocation = SelfReserve::get();
+		let location = SelfReserve::get();
 
-		let input = XcmUtilsPCall::get_units_per_second { multilocation };
+		let input = XcmUtilsPCall::get_units_per_second { location };
 
 		let expected_units =
 			WEIGHT_REF_TIME_PER_SECOND as u128 * moonriver_runtime::currency::WEIGHT_FEE;

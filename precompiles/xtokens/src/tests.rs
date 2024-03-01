@@ -23,7 +23,7 @@ use orml_xtokens::Event as XtokensEvent;
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::U256;
 use sp_runtime::traits::Convert;
-use xcm::latest::{Asset, AssetId, Assets, Fungibility, Junction, Junctions, Location};
+use xcm::latest::{Asset, AssetId, Assets, Fungibility, Junction, Location};
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()

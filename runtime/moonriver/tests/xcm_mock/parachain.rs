@@ -45,12 +45,12 @@ use polkadot_parachain::primitives::{Id as ParaId, Sibling};
 use xcm::latest::{
 	AssetId as XcmAssetId, Error as XcmError, ExecuteXcm,
 	Junction::{PalletInstance, Parachain},
-	Junctions, Location, NetworkId, Outcome, Xcm,
+	Location, NetworkId, Outcome, Xcm,
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, CurrencyAdapter as XcmCurrencyAdapter,
-	EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, FungiblesAdapter, IsConcrete,
+	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, EnsureXcmOrigin, FixedRateOfFungible,
+	FixedWeightBounds, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, IsConcrete,
 	NoChecking, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
 	TakeWeightCredit, WithComputedOrigin,
@@ -181,7 +181,10 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 	// Generate remote accounts according to polkadot standards
-	xcm_builder::HashedDescriptionDescribeFamilyAllTerminal<AccountId>,
+	xcm_builder::HashedDescription<
+		AccountId,
+		xcm_builder::DescribeFamily<xcm_builder::DescribeAllTerminal>,
+	>,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -240,7 +243,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	// Use this currency when it is a fungible asset matching any of the locations in
 	// SelfReserveRepresentations
 	IsConcrete<SelfReserve>,
-	// We can convert the MultiLocations with our converter above:
+	// We can convert the Locations with our converter above:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
@@ -294,7 +297,7 @@ parameter_types! {
 	// We cannot skip the native trader for some specific tests, so we will have to work with
 	// a native trader that charges same number of units as weight
 	pub ParaTokensPerSecond: (XcmAssetId, u128, u128) = (
-		Concrete(SelfReserve::get()),
+		AssetId(SelfReserve::get()),
 		1000000000000,
 		0,
 	);
@@ -304,15 +307,12 @@ parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorLocation =
-		X2(GlobalConsensus(RelayNetwork::get()), Parachain(MsgQueue::parachain_id().into()));
-
-	// This is used to match it against our Balances pallet when we receive such a Location
-	// (Parent, Self Para Id, Self Balances pallet index)
+		[GlobalConsensus(RelayNetwork::get()), Parachain(MsgQueue::parachain_id().into())].into();
 	pub SelfReserve: Location = Location {
 		parents:0,
-		interior: Junctions::X1(
+		interior: [
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
-		)
+		].into()
 	};
 	pub const MaxAssetsIntoHolding: u32 = 64;
 }
@@ -344,7 +344,6 @@ impl Config for XcmConfig {
 		FixedRateOfFungible<ParaTokensPerSecond, ()>,
 		xcm_primitives::FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount_>,
 	);
-
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -359,7 +358,8 @@ impl Config for XcmConfig {
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
 	type Aliasers = Nothing;
-	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
+
+	type TransactionalProcessor = ();
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -375,9 +375,9 @@ pub enum CurrencyId {
 }
 
 // How to convert from CurrencyId to Location
-pub struct CurrencyIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
+pub struct CurrencyIdToLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<Location>>
-	for CurrencyIdtoMultiLocation<AssetXConverter>
+	for CurrencyIdToLocation<AssetXConverter>
 where
 	AssetXConverter: MaybeEquivalence<Location, AssetId>,
 {
@@ -403,9 +403,9 @@ parameter_types! {
 	pub SelfLocation: Location = Location::here();
 	pub SelfLocationAbsolute: Location = Location {
 		parents:1,
-		interior: Junctions::X1(
+		interior: [
 			Parachain(MsgQueue::parachain_id().into())
-		)
+		].into()
 	};
 }
 
@@ -425,7 +425,7 @@ impl orml_xtokens::Config for Runtime {
 	type CurrencyId = CurrencyId;
 	type AccountIdToLocation = xcm_primitives::AccountIdToLocation<AccountId>;
 	type CurrencyIdConvert =
-		CurrencyIdtoMultiLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
+		CurrencyIdToLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
@@ -538,15 +538,25 @@ pub mod mock_msg_queue {
 			let hash = Encode::using_encoded(&xcm, T::Hashing::hash);
 			let (result, event) = match Xcm::<T::RuntimeCall>::try_from(xcm) {
 				Ok(xcm) => {
-					let location = Location::new(1, Junctions::X1(Parachain(sender.into())));
+					let location = Location::new(1, [Parachain(sender.into())]);
 					let mut id = [0u8; 32];
 					id.copy_from_slice(hash.as_ref());
-					match T::XcmExecutor::execute_xcm(location, xcm, id, max_weight) {
-						Outcome::Error(e) => (Err(e.clone()), Event::Fail(Some(hash), e)),
-						Outcome::Complete(w) => (Ok(w), Event::Success(Some(hash))),
+					match T::XcmExecutor::prepare_and_execute(
+						location,
+						xcm,
+						&mut id,
+						max_weight,
+						Weight::zero(),
+					) {
+						Outcome::Error { error } => {
+							(Err(error.clone()), Event::Fail(Some(hash), error))
+						}
+						Outcome::Complete { used } => (Ok(used), Event::Success(Some(hash))),
 						// As far as the caller is concerned, this was dispatched without error, so
 						// we just report the weight used.
-						Outcome::Incomplete(w, e) => (Ok(w), Event::Fail(Some(hash), e)),
+						Outcome::Incomplete { used, error } => {
+							(Ok(used), Event::Fail(Some(hash), error))
+						}
 					}
 				}
 				Err(()) => (
@@ -590,7 +600,7 @@ pub mod mock_msg_queue {
 			limit: Weight,
 		) -> Weight {
 			for (_i, (_sent_at, data)) in iter.enumerate() {
-				let id = sp_io::hashing::blake2_256(&data[..]);
+				let mut id = sp_io::hashing::blake2_256(&data[..]);
 				let maybe_msg = VersionedXcm::<T::RuntimeCall>::decode(&mut &data[..])
 					.map(Xcm::<T::RuntimeCall>::try_from);
 				match maybe_msg {
@@ -601,7 +611,13 @@ pub mod mock_msg_queue {
 						Self::deposit_event(Event::UnsupportedVersion(id));
 					}
 					Ok(Ok(x)) => {
-						let outcome = T::XcmExecutor::execute_xcm(Parent, x, id, limit);
+						let outcome = T::XcmExecutor::prepare_and_execute(
+							Parent,
+							x,
+							&mut id,
+							limit,
+							Weight::zero(),
+						);
 
 						Self::deposit_event(Event::ExecutedDownward(id, outcome));
 					}
@@ -777,14 +793,16 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 
 	fn destroy_foreign_asset(asset: AssetId) -> DispatchResult {
 		// Mark the asset as destroying
-		Assets::start_destroy(RuntimeOrigin::root(), asset)?;
+		Assets::start_destroy(RuntimeOrigin::root(), asset.into())?;
 
 		Ok(())
 	}
 
 	fn destroy_asset_dispatch_info_weight(asset: AssetId) -> Weight {
 		RuntimeCall::Assets(
-			pallet_assets::Call::<Runtime, ForeignAssetInstance>::start_destroy { id: asset },
+			pallet_assets::Call::<Runtime, ForeignAssetInstance>::start_destroy {
+				id: asset.into(),
+			},
 		)
 		.get_dispatch_info()
 		.weight
