@@ -96,15 +96,6 @@ fn xcmp_queue_controller_origin_is_root() {
 }
 
 #[test]
-fn fast_track_available() {
-	assert!(moonbeam_runtime::get!(
-		pallet_democracy,
-		InstantAllowed,
-		bool
-	));
-}
-
-#[test]
 fn verify_pallet_prefixes() {
 	fn is_pallet_prefix<P: 'static>(name: &str) {
 		// Compares the unhashed pallet prefix in the `StorageInstance` implementation by every
@@ -129,7 +120,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::Ethereum>("Ethereum");
 	is_pallet_prefix::<moonbeam_runtime::ParachainStaking>("ParachainStaking");
 	is_pallet_prefix::<moonbeam_runtime::Scheduler>("Scheduler");
-	is_pallet_prefix::<moonbeam_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonbeam_runtime::OpenTechCommitteeCollective>(
 		"OpenTechCommitteeCollective",
 	);
@@ -415,7 +405,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Ethereum>(52);
 	// Governance
 	is_pallet_index::<moonbeam_runtime::Scheduler>(60);
-	is_pallet_index::<moonbeam_runtime::Democracy>(61);
+	// is_pallet_index::<moonbeam_runtime::Democracy>(61); Removed
 	// Council
 	// is_pallet_index::<moonbeam_runtime::CouncilCollective>(70); Removed
 	// is_pallet_index::<moonbeam_runtime::TechCommitteeCollective>(71); Removed
@@ -2488,7 +2478,7 @@ fn precompile_existence() {
 fn removed_precompiles() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
-		let removed_precompiles = [1025, 2062, 2063];
+		let removed_precompiles = [1025, 2051, 2062, 2063];
 
 		for i in 1..3000 {
 			let address = H160::from_low_u64_be(i);

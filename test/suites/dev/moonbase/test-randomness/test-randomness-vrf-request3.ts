@@ -10,7 +10,7 @@ import {
 import { expectEVMResult, extractRevertReason, SIMPLE_SALT, jumpBlocks } from "../../../../helpers";
 
 describeSuite({
-  id: "D012919",
+  id: "D013119",
   title: "Randomness VRF - Requesting a random number",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

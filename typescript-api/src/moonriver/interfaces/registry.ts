@@ -182,6 +182,8 @@ import type {
   PalletMaintenanceModeEvent,
   PalletMigrationsError,
   PalletMigrationsEvent,
+  PalletMoonbeamLazyMigrationsCall,
+  PalletMoonbeamLazyMigrationsError,
   PalletMoonbeamOrbitersCall,
   PalletMoonbeamOrbitersCollatorPoolInfo,
   PalletMoonbeamOrbitersCurrentOrbiter,
@@ -548,6 +550,8 @@ declare module "@polkadot/types/types/registry" {
     PalletMaintenanceModeEvent: PalletMaintenanceModeEvent;
     PalletMigrationsError: PalletMigrationsError;
     PalletMigrationsEvent: PalletMigrationsEvent;
+    PalletMoonbeamLazyMigrationsCall: PalletMoonbeamLazyMigrationsCall;
+    PalletMoonbeamLazyMigrationsError: PalletMoonbeamLazyMigrationsError;
     PalletMoonbeamOrbitersCall: PalletMoonbeamOrbitersCall;
     PalletMoonbeamOrbitersCollatorPoolInfo: PalletMoonbeamOrbitersCollatorPoolInfo;
     PalletMoonbeamOrbitersCurrentOrbiter: PalletMoonbeamOrbitersCurrentOrbiter;

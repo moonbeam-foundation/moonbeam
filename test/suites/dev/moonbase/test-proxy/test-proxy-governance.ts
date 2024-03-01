@@ -13,7 +13,7 @@ const proposalHash = "0xf3d039875302d49d52fb1af6877a2c46bc55b004afb8130f94dd9d04
 const disableGovTest = true;
 
 describeSuite({
-  id: "D012804",
+  id: "D013004",
   title: "Proxing governance",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

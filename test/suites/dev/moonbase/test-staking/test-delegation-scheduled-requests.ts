@@ -5,7 +5,7 @@ import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 const numberToHex = (n: bigint): string => `0x${n.toString(16).padStart(32, "0")}`;
 
 describeSuite({
-  id: "D013119",
+  id: "D013319",
   title: "Staking - Delegation Scheduled Requests - schedule revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

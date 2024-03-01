@@ -15,7 +15,7 @@ import {
 // TODO: Make the test cases atomic
 
 describeSuite({
-  id: "D012301",
+  id: "D012401",
   title: "Multisigs - perform multisigs operations",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
