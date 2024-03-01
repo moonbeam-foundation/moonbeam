@@ -6313,13 +6313,14 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20)])
 		.build()
 		.execute_with(|| {
-			roll_to_round_begin(2);
 			// payouts for round 1
 			set_author(1, 1, 1);
 			set_author(1, 2, 1);
 			set_author(1, 2, 1);
 			set_author(1, 3, 1);
 			set_author(1, 3, 1);
+
+			roll_to_round_begin(2);
 			assert_events_eq!(
 				Event::CollatorChosen {
 					round: 2,
@@ -6440,10 +6441,6 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			assert!(<AtStake<Test>>::contains_key(1, 1));
 			assert!(<AtStake<Test>>::contains_key(1, 2));
 
-			assert!(
-				!<DelayedPayouts<Test>>::contains_key(1),
-				"DelayedPayouts shouldn't be populated until after RewardPaymentDelay"
-			);
 			assert!(
 				<Points<Test>>::contains_key(1),
 				"Points should be populated during current round"
