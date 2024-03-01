@@ -357,7 +357,6 @@
 <a href="#357" id="357">357</a>
 <a href="#358" id="358">358</a>
 <a href="#359" id="359">359</a>
-<a href="#360" id="360">360</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -387,8 +386,8 @@
 <span class="kw">use </span>moonbase_runtime::EligibilityValue;
 <span class="kw">use </span>moonbeam_runtime::{
 	currency::GLMR, currency::SUPPLY_FACTOR, AccountId, AuthorFilterConfig, AuthorMappingConfig,
-	Balance, BalancesConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig,
+	Balance, BalancesConfig, CrowdloanRewardsConfig, EVMConfig, EthereumChainIdConfig,
+	EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig,
 	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
 	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SystemConfig,
 	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
@@ -630,7 +629,6 @@
 		ethereum: EthereumConfig {
 			..Default::default()
 		},
-		democracy: DemocracyConfig::default(),
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
 				.iter()

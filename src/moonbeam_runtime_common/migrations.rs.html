@@ -381,6 +381,8 @@
 <a href="#381" id="381">381</a>
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -409,6 +411,7 @@
 <span class="kw">use </span>frame_support::{
 	parameter_types,
 	sp_runtime::traits::{Block <span class="kw">as </span>BlockT, Header <span class="kw">as </span>HeaderT},
+	storage::unhashed::contains_prefixed_key,
 	traits::OnRuntimeUpgrade,
 	weights::Weight,
 };
@@ -562,42 +565,41 @@
 }
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub const </span>CouncilPalletName: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Council&quot;</span>;
-	<span class="kw">pub const </span>TechnicalCommitteePalletName: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;TechnicalCommittee&quot;</span>;
+	<span class="kw">pub const </span>DemocracyPalletName: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Democracy&quot;</span>;
 }
 
-<span class="kw">pub struct </span>PalletCollectiveDropGovV1Collectives&lt;Runtime&gt;(<span class="kw">pub </span>PhantomData&lt;Runtime&gt;);
-<span class="kw">impl</span>&lt;Runtime&gt; Migration <span class="kw">for </span>PalletCollectiveDropGovV1Collectives&lt;Runtime&gt;
+<span class="kw">pub struct </span>RemovePalletDemocracy&lt;Runtime&gt;(<span class="kw">pub </span>PhantomData&lt;Runtime&gt;);
+<span class="kw">impl</span>&lt;Runtime&gt; Migration <span class="kw">for </span>RemovePalletDemocracy&lt;Runtime&gt;
 <span class="kw">where
 	</span>Runtime: frame_system::Config,
 {
 	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-		<span class="string">&quot;MM_RemoveGovV1Collectives&quot;
+		<span class="string">&quot;MM_RemoveDemocracyPallet&quot;
 	</span>}
 
 	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
-		<span class="macro">log::info!</span>(<span class="string">&quot;Removing Council and Tech from pallet_collective&quot;</span>);
+		<span class="macro">log::info!</span>(<span class="string">&quot;Removing pallet democracy&quot;</span>);
 
-		<span class="kw">let </span><span class="kw-2">mut </span>weight = Weight::zero();
-
-		<span class="kw">let </span>w = frame_support::migrations::RemovePallet::&lt;
-			CouncilPalletName,
+		<span class="comment">// Democracy: f2794c22e353e9a839f12faab03a911b
+		// VotingOf: e470c6afbbbc027eb288ade7595953c2
+		</span><span class="kw">let </span>prefix =
+			<span class="macro">hex_literal::hex!</span>(<span class="string">&quot;f2794c22e353e9a839f12faab03a911be470c6afbbbc027eb288ade7595953c2&quot;</span>);
+		<span class="kw">if </span>contains_prefixed_key(<span class="kw-2">&amp;</span>prefix) {
+			<span class="comment">// PoV failsafe: do not execute the migration if there are VotingOf keys
+			// that have not been cleaned up
+			</span><span class="macro">log::info!</span>(<span class="string">&quot;Found keys for Democracy.VotingOf pre-removal - skipping migration&quot;</span>,);
+			<span class="kw">return </span>Weight::zero();
+		};
+		frame_support::migrations::RemovePallet::&lt;
+			DemocracyPalletName,
 			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight,
-		&gt;::on_runtime_upgrade();
-		weight = weight.saturating_add(w);
-
-		<span class="kw">let </span>w = frame_support::migrations::RemovePallet::&lt;
-			TechnicalCommitteePalletName,
-			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight,
-		&gt;::on_runtime_upgrade();
-		weight = weight.saturating_add(w);
-		weight
+		&gt;::on_runtime_upgrade()
 	}
 
 	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sp_runtime::DispatchError&gt; {
 		frame_support::migrations::RemovePallet::&lt;
-			TechnicalCommitteePalletName,
+			DemocracyPalletName,
 			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight,
 		&gt;::pre_upgrade();
 
@@ -607,7 +609,7 @@
 	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>, _state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt; {
 		frame_support::migrations::RemovePallet::&lt;
-			TechnicalCommitteePalletName,
+			DemocracyPalletName,
 			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight,
 		&gt;::post_upgrade(_state);
 		<span class="prelude-val">Ok</span>(())
@@ -622,7 +624,6 @@
 	Runtime: pallet_parachain_staking::Config,
 	Runtime: pallet_scheduler::Config,
 	Runtime: AuthorSlotFilterConfig,
-	Runtime: pallet_democracy::Config,
 	Runtime: pallet_preimage::Config,
 	Runtime: pallet_asset_manager::Config,
 	&lt;Runtime <span class="kw">as </span>pallet_asset_manager::Config&gt;::ForeignAssetType: From&lt;xcm::v3::MultiLocation&gt;,
@@ -703,8 +704,9 @@
 		// 	FixIncorrectPalletVersions::&lt;Runtime, Treasury, OpenTech&gt;(Default::default());
 		// let pallet_referenda_migrate_v0_to_v1 =
 		// 	PalletReferendaMigrateV0ToV1::&lt;Runtime&gt;(Default::default());
-		</span><span class="kw">let </span>pallet_collective_drop_gov_v1_collectives =
-			PalletCollectiveDropGovV1Collectives::&lt;Runtime&gt;(Default::default());
+		// let pallet_collective_drop_gov_v1_collectives =
+		// PalletCollectiveDropGovV1Collectives::&lt;Runtime&gt;(Default::default());
+		</span><span class="kw">let </span>remove_pallet_democracy = RemovePalletDemocracy::&lt;Runtime&gt;(Default::default());
 
 		<span class="macro">vec!</span>[
 			<span class="comment">// completed in runtime 800
@@ -760,7 +762,9 @@
 			// Box::new(fix_pallet_versions),
 			// Box::new(pallet_referenda_migrate_v0_to_v1),
 			// completed in runtime 2800
-			</span>Box::new(pallet_collective_drop_gov_v1_collectives),
+			// Box::new(pallet_collective_drop_gov_v1_collectives),
+			// completed in runtime 2900
+			</span>Box::new(remove_pallet_democracy),
 		]
 	}
 }

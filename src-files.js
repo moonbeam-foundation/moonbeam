@@ -2,7 +2,7 @@ var srcIndex = JSON.parse('{\
 "account":["",[],["lib.rs"]],\
 "evm_tracing_events":["",[],["evm.rs","gasometer.rs","lib.rs","runtime.rs"]],\
 "manual_xcm_rpc":["",[],["lib.rs"]],\
-"moonbase_runtime":["",[["governance",[],["councils.rs","democracy.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]]],["asset_config.rs","lib.rs","precompiles.rs","timestamp.rs","xcm_config.rs"]],\
+"moonbase_runtime":["",[["governance",[],["councils.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]]],["asset_config.rs","lib.rs","precompiles.rs","timestamp.rs","xcm_config.rs"]],\
 "moonbeam":["",[],["main.rs"]],\
 "moonbeam_cli":["",[],["cli.rs","command.rs","lib.rs"]],\
 "moonbeam_cli_opt":["",[],["account_key.rs","lib.rs"]],\
@@ -21,13 +21,13 @@ var srcIndex = JSON.parse('{\
 "moonbeam_rpc_primitives_txpool":["",[],["lib.rs"]],\
 "moonbeam_rpc_trace":["",[],["lib.rs"]],\
 "moonbeam_rpc_txpool":["",[],["lib.rs"]],\
-"moonbeam_runtime":["",[["governance",[],["councils.rs","democracy.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]]],["asset_config.rs","lib.rs","precompiles.rs","xcm_config.rs"]],\
-"moonbeam_runtime_common":["",[["weights",[],["cumulus_pallet_xcmp_queue.rs","mod.rs","moonbeam_xcm_benchmarks_weights_generic.rs","pallet_asset_manager.rs","pallet_assets.rs","pallet_author_inherent.rs","pallet_author_mapping.rs","pallet_author_slot_filter.rs","pallet_balances.rs","pallet_collective.rs","pallet_conviction_voting.rs","pallet_crowdloan_rewards.rs","pallet_democracy.rs","pallet_evm.rs","pallet_identity.rs","pallet_moonbeam_lazy_migrations.rs","pallet_moonbeam_orbiters.rs","pallet_multisig.rs","pallet_parachain_staking.rs","pallet_precompile_benchmarks.rs","pallet_preimage.rs","pallet_proxy.rs","pallet_randomness.rs","pallet_referenda.rs","pallet_relay_storage_roots.rs","pallet_scheduler.rs","pallet_sudo.rs","pallet_timestamp.rs","pallet_treasury.rs","pallet_utility.rs","pallet_whitelist.rs","pallet_xcm.rs","pallet_xcm_transactor.rs"]]],["apis.rs","impl_moonbeam_xcm_call.rs","impl_moonbeam_xcm_call_tracing.rs","impl_on_charge_evm_transaction.rs","impl_self_contained_call.rs","impl_xcm_evm_runner.rs","lib.rs","migrations.rs"]],\
+"moonbeam_runtime":["",[["governance",[],["councils.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]]],["asset_config.rs","lib.rs","precompiles.rs","xcm_config.rs"]],\
+"moonbeam_runtime_common":["",[["weights",[],["cumulus_pallet_xcmp_queue.rs","mod.rs","moonbeam_xcm_benchmarks_weights_generic.rs","pallet_asset_manager.rs","pallet_assets.rs","pallet_author_inherent.rs","pallet_author_mapping.rs","pallet_author_slot_filter.rs","pallet_balances.rs","pallet_collective.rs","pallet_conviction_voting.rs","pallet_crowdloan_rewards.rs","pallet_evm.rs","pallet_identity.rs","pallet_moonbeam_lazy_migrations.rs","pallet_moonbeam_orbiters.rs","pallet_multisig.rs","pallet_parachain_staking.rs","pallet_precompile_benchmarks.rs","pallet_preimage.rs","pallet_proxy.rs","pallet_randomness.rs","pallet_referenda.rs","pallet_relay_storage_roots.rs","pallet_scheduler.rs","pallet_sudo.rs","pallet_timestamp.rs","pallet_treasury.rs","pallet_utility.rs","pallet_whitelist.rs","pallet_xcm.rs","pallet_xcm_transactor.rs"]]],["apis.rs","impl_moonbeam_xcm_call.rs","impl_moonbeam_xcm_call_tracing.rs","impl_on_charge_evm_transaction.rs","impl_self_contained_call.rs","impl_xcm_evm_runner.rs","lib.rs","migrations.rs"]],\
 "moonbeam_service":["",[["chain_spec",[],["fake_spec.rs","mod.rs","moonbase.rs","moonbeam.rs","moonriver.rs","test_spec.rs"]],["rpc",[],["tracing.rs"]]],["client.rs","lib.rs","rpc.rs"]],\
 "moonbeam_vrf":["",[],["lib.rs"]],\
 "moonbeam_xcm_benchmarks":["",[["weights",[],["fungible.rs","generic.rs","mod.rs"]]],["lib.rs"]],\
 "moonkey":["",[],["main.rs"]],\
-"moonriver_runtime":["",[["governance",[],["councils.rs","democracy.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]]],["asset_config.rs","lib.rs","precompiles.rs","xcm_config.rs"]],\
+"moonriver_runtime":["",[["governance",[],["councils.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]]],["asset_config.rs","lib.rs","precompiles.rs","xcm_config.rs"]],\
 "pallet_asset_manager":["",[],["lib.rs","migrations.rs","weights.rs"]],\
 "pallet_erc20_xcm_bridge":["",[],["erc20_matcher.rs","erc20_trap.rs","errors.rs","lib.rs","xcm_holding_ext.rs"]],\
 "pallet_ethereum_xcm":["",[],["lib.rs"]],\
@@ -38,7 +38,6 @@ var srcIndex = JSON.parse('{\
 "pallet_evm_precompile_collective":["",[],["lib.rs"]],\
 "pallet_evm_precompile_conviction_voting":["",[],["lib.rs"]],\
 "pallet_evm_precompile_crowdloan_rewards":["",[],["lib.rs"]],\
-"pallet_evm_precompile_democracy":["",[],["lib.rs"]],\
 "pallet_evm_precompile_gmp":["",[],["lib.rs","types.rs"]],\
 "pallet_evm_precompile_identity":["",[],["lib.rs"]],\
 "pallet_evm_precompile_parachain_staking":["",[],["lib.rs"]],\

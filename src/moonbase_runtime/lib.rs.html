@@ -1879,24 +1879,6 @@
 <a href="#1879" id="1879">1879</a>
 <a href="#1880" id="1880">1880</a>
 <a href="#1881" id="1881">1881</a>
-<a href="#1882" id="1882">1882</a>
-<a href="#1883" id="1883">1883</a>
-<a href="#1884" id="1884">1884</a>
-<a href="#1885" id="1885">1885</a>
-<a href="#1886" id="1886">1886</a>
-<a href="#1887" id="1887">1887</a>
-<a href="#1888" id="1888">1888</a>
-<a href="#1889" id="1889">1889</a>
-<a href="#1890" id="1890">1890</a>
-<a href="#1891" id="1891">1891</a>
-<a href="#1892" id="1892">1892</a>
-<a href="#1893" id="1893">1893</a>
-<a href="#1894" id="1894">1894</a>
-<a href="#1895" id="1895">1895</a>
-<a href="#1896" id="1896">1896</a>
-<a href="#1897" id="1897">1897</a>
-<a href="#1898" id="1898">1898</a>
-<a href="#1899" id="1899">1899</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2841,8 +2823,7 @@
 <span class="kw">fn </span>is_governance_precompile(precompile_name: <span class="kw-2">&amp;</span>precompiles::PrecompileName) -&gt; bool {
 	<span class="macro">matches!</span>(
 		precompile_name,
-		PrecompileName::DemocracyPrecompile
-			| PrecompileName::TreasuryCouncilInstance
+		PrecompileName::TreasuryCouncilInstance
 			| PrecompileName::ReferendaPrecompile
 			| PrecompileName::ConvictionVotingPrecompile
 			| PrecompileName::PreimagePrecompile
@@ -2926,14 +2907,11 @@
 						| RuntimeCall::ParachainSystem(..)
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
-						| RuntimeCall::Democracy(..)
 						| RuntimeCall::Referenda(..)
 						| RuntimeCall::Preimage(..)
 						| RuntimeCall::ConvictionVoting(..)
-						<span class="comment">// TODO: GovV1| RuntimeCall::CouncilCollective(..)
-						</span>| RuntimeCall::TreasuryCouncilCollective(..)
-						<span class="comment">// TODO: GovV1 | RuntimeCall::TechCommitteeCollective(..)
-						</span>| RuntimeCall::OpenTechCommitteeCollective(..)
+						| RuntimeCall::TreasuryCouncilCollective(..)
+						| RuntimeCall::OpenTechCommitteeCollective(..)
 						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
 						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
@@ -2944,14 +2922,11 @@
 			}
 			ProxyType::Governance =&gt; <span class="macro">matches!</span>(
 				c,
-				RuntimeCall::Democracy(..)
-					| RuntimeCall::Referenda(..)
+				RuntimeCall::Referenda(..)
 					| RuntimeCall::Preimage(..)
 					| RuntimeCall::ConvictionVoting(..)
-					<span class="comment">// TODO: GovV1 | RuntimeCall::CouncilCollective(..)
-					</span>| RuntimeCall::TreasuryCouncilCollective(..)
-					<span class="comment">// TODO: GovV1 | RuntimeCall::TechCommitteeCollective(..)
-					</span>| RuntimeCall::OpenTechCommitteeCollective(..)
+					| RuntimeCall::TreasuryCouncilCollective(..)
+					| RuntimeCall::OpenTechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
 			ProxyType::Staking =&gt; <span class="macro">matches!</span>(
@@ -3058,7 +3033,6 @@
 			RuntimeCall::Treasury(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::XcmTransactor(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::EthereumXcm(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) =&gt; <span class="bool-val">false</span>,
 			<span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
 		}
 	}
@@ -3100,8 +3074,6 @@
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			</span>RuntimeCall::EVM(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			<span class="comment">// TODO: Shall this be replaced with OpenGov ?
-			</span>RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::Treasury(
 				pallet_treasury::Call::spend { .. }
 				| pallet_treasury::Call::payout { .. }
@@ -3351,11 +3323,9 @@
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config&lt;T&gt;} = <span class="number">11</span>,
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">12</span>,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event&lt;T&gt;, Call} = <span class="number">13</span>,
-		Democracy: pallet_democracy::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;, Call} = <span class="number">14</span>,
-		<span class="comment">// CouncilCollective:
-		// 	pallet_collective::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Origin&lt;T&gt;, Config&lt;T&gt;} = 15,
-		// TechCommitteeCollective:
-		// 	pallet_collective::&lt;Instance2&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Origin&lt;T&gt;, Config&lt;T&gt;} = 16,
+		<span class="comment">// Previously 14: pallet_democracy::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;, Call} = 14,
+		// Previously 15: CouncilCollective: pallet_collective::&lt;Instance1&gt;
+		// Previously 16: TechCommitteeCollective: pallet_collective::&lt;Instance2&gt;
 		</span>Treasury: pallet_treasury::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;, Call} = <span class="number">17</span>,
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = <span class="number">18</span>,
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config&lt;T&gt;} = <span class="number">19</span>,
@@ -3445,10 +3415,8 @@
 		[pallet_sudo, Sudo]
 		[pallet_evm, EVM]
 		[pallet_assets, Assets]
-		<span class="comment">// [pallet_collective, CouncilCollective]
-		</span>[pallet_parachain_staking, ParachainStaking]
+		[pallet_parachain_staking, ParachainStaking]
 		[pallet_scheduler, Scheduler]
-		[pallet_democracy, Democracy]
 		[pallet_treasury, Treasury]
 		[pallet_author_inherent, AuthorInherent]
 		[pallet_author_slot_filter, AuthorFilter]
@@ -3657,12 +3625,8 @@
 		</span>);
 		<span class="macro">assert_eq!</span>(STORAGE_BYTE_FEE, Balance::from(<span class="number">100 </span>* MICROUNIT));
 
-		<span class="comment">// democracy minimums
+		<span class="comment">// treasury minimums
 		</span><span class="macro">assert_eq!</span>(
-			<span class="macro">get!</span>(pallet_democracy, MinimumDeposit, u128),
-			Balance::from(<span class="number">4 </span>* UNIT)
-		);
-		<span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(pallet_treasury, ProposalBondMinimum, u128),
 			Balance::from(<span class="number">1 </span>* UNIT)
 		);

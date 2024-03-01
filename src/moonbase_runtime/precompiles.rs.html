@@ -308,11 +308,6 @@
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
 <a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -344,7 +339,6 @@
 <span class="kw">use </span>pallet_evm_precompile_collective::CollectivePrecompile;
 <span class="kw">use </span>pallet_evm_precompile_conviction_voting::ConvictionVotingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
-<span class="kw">use </span>pallet_evm_precompile_democracy::DemocracyPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_gmp::GmpPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_identity::IdentityPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_modexp::Modexp;
@@ -440,12 +434,8 @@
 		Erc20BalancesPrecompile&lt;R, NativeErc20Metadata&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
-	PrecompileAt&lt;
-		AddressU64&lt;<span class="number">2051</span>&gt;,
-		DemocracyPrecompile&lt;R&gt;,
-		(CallableByContract, CallableByPrecompile),
-	&gt;,
-	PrecompileAt&lt;
+	RemovedPrecompileAt&lt;AddressU64&lt;<span class="number">2051</span>&gt;&gt;, <span class="comment">// DemocracyPrecompile
+	</span>PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2052</span>&gt;,
 		XtokensPrecompile&lt;R&gt;,
 		(

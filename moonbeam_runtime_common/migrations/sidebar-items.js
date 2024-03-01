@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["CommonMigrations","CouncilPalletName","OldRoundInfo","PalletCollectiveDropGovV1Collectives","TechnicalCommitteePalletName","UpdateFirstRoundNumberType","UpdateFirstRoundNumberValue"]};
+window.SIDEBAR_ITEMS = {"struct":["CommonMigrations","DemocracyPalletName","OldRoundInfo","RemovePalletDemocracy","UpdateFirstRoundNumberType","UpdateFirstRoundNumberValue"]};
