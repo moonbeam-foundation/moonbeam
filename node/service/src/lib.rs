@@ -1651,7 +1651,7 @@ mod tests {
 	#[test]
 	fn dalek_does_not_panic() {
 		use futures::executor::block_on;
-		use sc_block_builder::BlockBuilderProvider;
+		use sc_block_builder::BlockBuilderBuilder;
 		use sc_client_db::{Backend, BlocksPruning, DatabaseSettings, DatabaseSource, PruningMode};
 		use sp_api::ProvideRuntimeApi;
 		use sp_consensus::BlockOrigin;
@@ -1701,12 +1701,17 @@ mod tests {
 			sp_io::UseDalekExt,
 		>::new(1));
 
-		let a1 = client
-			.new_block_at(client.chain_info().genesis_hash, Default::default(), false)
+		let a1 = BlockBuilderBuilder::new(&client)
+			.on_parent_block(client.chain_info().genesis_hash)
+			.with_parent_block_number(0)
+			// Enable proof recording if required. This call is optional.
+			.enable_proof_recording()
+			.build()
 			.unwrap()
 			.build()
 			.unwrap()
 			.block;
+
 		block_on(client.import(BlockOrigin::NetworkInitialSync, a1.clone())).unwrap();
 
 		// On block zero it will use dalek
@@ -1772,6 +1777,7 @@ mod tests {
 			rpc_max_subs_per_conn: Default::default(),
 			rpc_addr: None,
 			rpc_port: Default::default(),
+			rpc_message_buffer_capacity: Default::default(),
 			data_path: Default::default(),
 			prometheus_config: None,
 			telemetry_endpoints: None,

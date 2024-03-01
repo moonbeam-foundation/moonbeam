@@ -101,7 +101,7 @@ benchmarks! {
 		// We make it dependent on the number of existing assets already
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
+			let asset_type:  T::ForeignAssetType = Location::new(0, [GeneralIndex(i as u128)]).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
 			Pallet::<T>::register_foreign_asset(
@@ -131,7 +131,7 @@ benchmarks! {
 		// We make it dependent on the number of existing assets already
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
+			let asset_type:  T::ForeignAssetType = Location::new(0, [GeneralIndex(i as u128)]).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
 			Pallet::<T>::register_foreign_asset(
@@ -179,7 +179,7 @@ benchmarks! {
 		// Worst case is we need to remove it from SupportedAAssetsFeePayment too
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
+			let asset_type:  T::ForeignAssetType = Location::new(0, [GeneralIndex(i as u128)]).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
 			Pallet::<T>::register_foreign_asset(

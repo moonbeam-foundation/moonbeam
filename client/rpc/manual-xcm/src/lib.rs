@@ -25,7 +25,7 @@ use jsonrpsee::{
 };
 use parity_scale_codec::Encode;
 use xcm::opaque::lts::Weight;
-use xcm::v3::prelude::*;
+use xcm::v4::prelude::*;
 use xcm_primitives::DEFAULT_PROOF_SIZE;
 
 /// This RPC interface is used to manually submit XCM messages that will be injected into a
@@ -66,7 +66,7 @@ impl ManualXcmApiServer for ManualXcm {
 		let downward_message_channel = self.downward_message_channel.clone();
 		// If no message is supplied, inject a default one.
 		let msg = if msg.is_empty() {
-			xcm::VersionedXcm::<()>::V3(Xcm(vec![
+			xcm::VersionedXcm::<()>::V4(Xcm(vec![
 				ReserveAssetDeposited((Parent, 10000000000000u128).into()),
 				ClearOrigin,
 				BuyExecution {
@@ -106,7 +106,7 @@ impl ManualXcmApiServer for ManualXcm {
 		let msg = if msg.is_empty() {
 			let mut mes = XcmpMessageFormat::ConcatenatedVersionedXcm.encode();
 			mes.append(
-				&mut (xcm::VersionedXcm::<()>::V3(Xcm(vec![
+				&mut (xcm::VersionedXcm::<()>::V4(Xcm(vec![
 					ReserveAssetDeposited(
 						((Parent, Parachain(sender.into())), 10000000000000u128).into(),
 					),
