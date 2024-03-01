@@ -184,7 +184,7 @@ pub mod pallet {
 		type OnNewRound: OnNewRound;
 		/// Get the current slot number
 		type SlotProvider: Get<Slot>;
-		/// Get the slot duration oin milliseconds
+		/// Get the slot duration in milliseconds
 		#[pallet::constant]
 		type SlotDuration: Get<u64>;
 		/// Get the average time beetween 2 blocks in milliseconds
@@ -1786,8 +1786,8 @@ pub mod pallet {
 		}
 
 		/// Compute round issuance based on duration of the given round
-		fn compute_issuance(round_duration: u64, round_lenght: u32) -> BalanceOf<T> {
-			let ideal_duration = round_lenght.saturating_mul(T::BlockTime::get() as u32);
+		fn compute_issuance(round_duration: u64, round_length: u32) -> BalanceOf<T> {
+			let ideal_duration = round_length.saturating_mul(T::BlockTime::get() as u32);
 			let duration_proportion = Perbill::from_rational(round_duration, ideal_duration as u64);
 			let config = <InflationConfig<T>>::get();
 			let round_issuance = crate::inflation::round_issuance_range::<T>(config.round);

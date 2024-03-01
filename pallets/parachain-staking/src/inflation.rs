@@ -25,7 +25,7 @@ use sp_runtime::{Perbill, RuntimeDebug};
 use substrate_fixed::transcendental::pow as floatpow;
 use substrate_fixed::types::I64F64;
 
-// Millisecodns per year
+// Milliseconds per year
 const MS_PER_YEAR: u64 = 31_557_600_000;
 
 fn rounds_per_year<T: Config>() -> u32 {
