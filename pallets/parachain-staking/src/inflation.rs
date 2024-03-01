@@ -137,7 +137,7 @@ impl<Balance> InflationInfo<Balance> {
 	}
 	/// Reset round inflation rate based on changes to round length
 	pub fn reset_round<T: Config>(&mut self, new_length: u32) {
-		let periods = (T::SlotDuration::get() / MS_PER_YEAR) / (new_length as u64);
+		let periods = (MS_PER_YEAR / T::BlockTime::get()) / (new_length as u64);
 		self.round = perbill_annual_to_perbill_round(self.annual, periods as u32);
 	}
 	/// Set staking expectations
