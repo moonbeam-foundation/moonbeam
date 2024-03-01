@@ -20,7 +20,7 @@
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
 	DelegationAction, EnableMarkingOffline, Pallet, ParachainBondConfig, ParachainBondInfo, Points,
-	Range, RewardPayment, Round, ScheduledRequest, Staked, TopDelegations,
+	Range, RewardPayment, Round, ScheduledRequest, TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
@@ -1552,11 +1552,9 @@ benchmarks! {
 		let payout_round = round.current - reward_delay;
 		// may need:
 		//  <Points<T>>
-		//  <Staked<T>>
 		//  <ParachainBondInfo<T>>
 		//  ensure parachain bond account exists so that deposit_into_existing succeeds
 		<Points<T>>::insert(payout_round, 100);
-		<Staked<T>>::insert(payout_round, min_candidate_stk::<T>());
 
 		// set an account in the bond config so that we will measure the payout to it
 		let account = create_funded_user::<T>(

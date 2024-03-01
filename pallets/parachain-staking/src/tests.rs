@@ -6448,18 +6448,10 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 				<Points<Test>>::contains_key(1),
 				"Points should be populated during current round"
 			);
-			assert!(
-				<Staked<Test>>::contains_key(1),
-				"Staked should be populated when round changes"
-			);
 
 			assert!(
 				!<Points<Test>>::contains_key(2),
 				"Points should not be populated until author noted"
-			);
-			assert!(
-				<Staked<Test>>::contains_key(2),
-				"Staked should be populated when round changes"
 			);
 
 			// first payout occurs in round 3
@@ -6500,24 +6492,17 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 				"DelayedPayouts should be populated after RewardPaymentDelay"
 			);
 			assert!(<Points<Test>>::contains_key(1));
-			assert!(
-				!<Staked<Test>>::contains_key(1),
-				"Staked should be cleaned up after round change"
-			);
-
 			assert!(!<DelayedPayouts<Test>>::contains_key(2));
 			assert!(
 				!<Points<Test>>::contains_key(2),
 				"We never rewarded points for round 2"
 			);
-			assert!(<Staked<Test>>::contains_key(2));
 
 			assert!(!<DelayedPayouts<Test>>::contains_key(3));
 			assert!(
 				!<Points<Test>>::contains_key(3),
 				"We never awarded points for round 3"
 			);
-			assert!(<Staked<Test>>::contains_key(3));
 
 			// collator 1 has been paid in this last block and associated storage cleaned up
 			assert!(!<AtStake<Test>>::contains_key(1, 1));
@@ -6557,7 +6542,6 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			// collators have both been paid and storage fully cleaned up for round 1
 			assert!(!<AtStake<Test>>::contains_key(1, 2));
 			assert!(!<AwardedPts<Test>>::contains_key(1, 2));
-			assert!(!<Staked<Test>>::contains_key(1));
 			assert!(!<Points<Test>>::contains_key(1)); // points should be cleaned up
 			assert!(!<DelayedPayouts<Test>>::contains_key(1));
 
@@ -6592,7 +6576,6 @@ fn deferred_payment_and_at_stake_storage_items_cleaned_up_for_candidates_not_pro
 			assert!(<AwardedPts<Test>>::contains_key(1, 1));
 			assert!(<AwardedPts<Test>>::contains_key(1, 2));
 			assert!(!<AwardedPts<Test>>::contains_key(1, 3));
-			assert!(<Staked<Test>>::contains_key(1));
 			assert!(<Points<Test>>::contains_key(1));
 			roll_to_round_begin(3);
 			assert!(<DelayedPayouts<Test>>::contains_key(1));
@@ -6605,7 +6588,6 @@ fn deferred_payment_and_at_stake_storage_items_cleaned_up_for_candidates_not_pro
 			assert!(!<AwardedPts<Test>>::contains_key(1, 1));
 			assert!(!<AwardedPts<Test>>::contains_key(1, 2));
 			assert!(!<AwardedPts<Test>>::contains_key(1, 3));
-			assert!(!<Staked<Test>>::contains_key(1));
 			assert!(!<Points<Test>>::contains_key(1));
 			assert!(!<DelayedPayouts<Test>>::contains_key(1));
 		});
@@ -8726,8 +8708,8 @@ fn test_on_initialize_weights() {
 			.ref_time();
 			// SlotProvider read
 			expected_weight += RocksDbWeight::get().reads_writes(1, 0).ref_time();
-			// Round and Staked writes, done in on-round-change code block inside on_initialize()
-			expected_weight += RocksDbWeight::get().reads_writes(0, 2).ref_time();
+			// Round write, done in on-round-change code block inside on_initialize()
+			expected_weight += RocksDbWeight::get().reads_writes(0, 1).ref_time();
 			// more reads/writes manually accounted for for on_finalize
 			expected_weight += RocksDbWeight::get().reads_writes(3, 2).ref_time();
 
