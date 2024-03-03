@@ -5395,6 +5395,9 @@ fn payouts_follow_delegation_changes() {
 		])
 		.build()
 		.execute_with(|| {
+			// ~ set block author as 1 for all blocks this round
+			set_author(1, 1, 100);
+			set_author(2, 1, 100);
 			roll_to_round_begin(2);
 			// chooses top TotalSelectedCandidates (5), in order
 			assert_events_eq!(
@@ -5425,8 +5428,10 @@ fn payouts_follow_delegation_changes() {
 					total_balance: 130,
 				},
 			);
-			// ~ set block author as 1 for all blocks this round
-			set_author(2, 1, 100);
+
+			set_author(3, 1, 100);
+			set_author(4, 1, 100);
+
 			roll_to_round_begin(4);
 			// distribute total issuance to collator 1 and its delegators 6, 7, 19
 			assert_events_eq!(
@@ -5477,10 +5482,7 @@ fn payouts_follow_delegation_changes() {
 				},
 			);
 			// ~ set block author as 1 for all blocks this round
-			set_author(3, 1, 100);
-			set_author(4, 1, 100);
 			set_author(5, 1, 100);
-			set_author(6, 1, 100);
 
 			roll_blocks(1);
 			// 1. ensure delegators are paid for 2 rounds after they leave
@@ -5547,6 +5549,8 @@ fn payouts_follow_delegation_changes() {
 					rewards: 8,
 				},
 			);
+
+			set_author(6, 1, 100);
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			roll_to_round_begin(6);
 			assert_ok!(ParachainStaking::execute_delegation_request(
@@ -5663,6 +5667,7 @@ fn payouts_follow_delegation_changes() {
 					rewards: 10,
 				},
 			);
+			set_author(8, 1, 100);
 			roll_to_round_begin(8);
 			assert_events_eq!(
 				Event::CollatorChosen {
@@ -5696,7 +5701,7 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 33,
+					rewards: 32,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -5707,7 +5712,7 @@ fn payouts_follow_delegation_changes() {
 					rewards: 11,
 				},
 			);
-			set_author(8, 1, 100);
+			set_author(9, 1, 100);
 			roll_to_round_begin(9);
 			// no more paying 6
 			assert_events_eq!(
@@ -5754,7 +5759,6 @@ fn payouts_follow_delegation_changes() {
 				},
 			);
 			roll_blocks(1);
-			set_author(9, 1, 100);
 			assert_ok!(ParachainStaking::delegate(
 				RuntimeOrigin::signed(8),
 				1,
@@ -5770,6 +5774,7 @@ fn payouts_follow_delegation_changes() {
 				auto_compound: Percent::zero(),
 			});
 
+			set_author(10, 1, 100);
 			roll_to_round_begin(10);
 			// new delegation is not rewarded yet
 			assert_events_eq!(
@@ -5815,7 +5820,6 @@ fn payouts_follow_delegation_changes() {
 					rewards: 12,
 				},
 			);
-			set_author(10, 1, 100);
 			roll_to_round_begin(11);
 			// new delegation not rewarded yet
 			assert_events_eq!(
@@ -5850,7 +5854,7 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 38,
+					rewards: 37,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -5900,15 +5904,15 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 11,
+					rewards: 10,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 11,
+					rewards: 10,
 				},
 				Event::Rewarded {
 					account: 8,
-					rewards: 11,
+					rewards: 10,
 				},
 			);
 		});
