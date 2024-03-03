@@ -27,8 +27,8 @@ use hex_literal::hex;
 use moonbase_runtime::EligibilityValue;
 use moonbeam_runtime::{
 	currency::GLMR, currency::SUPPLY_FACTOR, AccountId, AuthorFilterConfig, AuthorMappingConfig,
-	Balance, BalancesConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig,
+	Balance, BalancesConfig, CrowdloanRewardsConfig, EVMConfig, EthereumChainIdConfig,
+	EthereumConfig, GenesisAccount, InflationInfo, MaintenanceModeConfig,
 	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
 	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, TransactionPaymentConfig,
 	TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
@@ -246,7 +246,6 @@ pub fn testnet_genesis(
 		ethereum: EthereumConfig {
 			..Default::default()
 		},
-		democracy: DemocracyConfig::default(),
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
 				.iter()

@@ -54,7 +54,6 @@ pallet-evm-precompile-call-permit = { workspace = true }
 pallet-evm-precompile-collective = { workspace = true }
 pallet-evm-precompile-conviction-voting = { workspace = true }
 pallet-evm-precompile-crowdloan-rewards = { workspace = true }
-pallet-evm-precompile-democracy = { workspace = true }
 pallet-evm-precompile-gmp = { workspace = true }
 # TODO(RODRIGO) pallet-evm-precompile-identity = { workspace = true }
 pallet-evm-precompile-parachain-staking = { workspace = true }
@@ -85,7 +84,6 @@ pallet-assets = { workspace = true }
 pallet-balances = { workspace = true, features = ["insecure_zero_ed"] }
 pallet-collective = { workspace = true }
 pallet-conviction-voting = { workspace = true }
-pallet-democracy = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-preimage = { workspace = true }
@@ -232,7 +230,6 @@ std = [
 	"pallet-collective/std",
 	"pallet-conviction-voting/std",
 	"pallet-crowdloan-rewards/std",
-	"pallet-democracy/std",
 	"pallet-erc20-xcm-bridge/std",
 	"pallet-evm-chain-id/std",
 	"pallet-ethereum-xcm/std",
@@ -243,7 +240,6 @@ std = [
 	"pallet-evm-precompile-call-permit/std",
 	"pallet-evm-precompile-collective/std",
 	"pallet-evm-precompile-conviction-voting/std",
-	"pallet-evm-precompile-democracy/std",
 	"pallet-evm-precompile-parachain-staking/std",
 	"pallet-evm-precompile-preimage/std",
 	"pallet-evm-precompile-randomness/std",
@@ -339,7 +335,6 @@ runtime-benchmarks = [
 	"pallet-collective/runtime-benchmarks",
 	"pallet-conviction-voting/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
-	"pallet-democracy/runtime-benchmarks",
 	"pallet-ethereum-xcm/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
 	"pallet-evm/runtime-benchmarks",
@@ -382,7 +377,6 @@ try-runtime = [
 	"pallet-balances/try-runtime",
 	"pallet-collective/try-runtime",
 	"pallet-conviction-voting/try-runtime",
-	"pallet-democracy/try-runtime",
 	"pallet-maintenance-mode/try-runtime",
 	"pallet-maintenance-mode/try-runtime",
 	"pallet-migrations/try-runtime",

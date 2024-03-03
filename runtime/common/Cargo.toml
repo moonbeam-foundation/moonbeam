@@ -37,7 +37,6 @@ pallet-assets = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-collective = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
-pallet-democracy = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
 pallet-multisig = { workspace = true }
@@ -119,7 +118,6 @@ runtime-benchmarks = [
 	"pallet-balances/runtime-benchmarks",
 	"pallet-conviction-voting/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
-	"pallet-democracy/runtime-benchmarks",
 	"pallet-ethereum-xcm/runtime-benchmarks",
 	"pallet-evm/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",

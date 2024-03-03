@@ -21,7 +21,6 @@ members = [
 	"precompiles/crowdloan-rewards",
 	"precompiles/gmp",
 	# TODO(RODRIGO) "precompiles/identity",
-	"precompiles/pallet-democracy",
 	"precompiles/parachain-staking",
 	"precompiles/precompile-registry",
 	"precompiles/preimage",
@@ -79,7 +78,6 @@ pallet-evm-precompile-call-permit = { path = "precompiles/call-permit", default-
 pallet-evm-precompile-collective = { path = "precompiles/collective", default-features = false }
 pallet-evm-precompile-conviction-voting = { path = "precompiles/conviction-voting", default-features = false }
 pallet-evm-precompile-crowdloan-rewards = { path = "precompiles/crowdloan-rewards", default-features = false }
-pallet-evm-precompile-democracy = { path = "precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-gmp = { path = "precompiles/gmp", default-features = false }
 # TODO(RODRIGO) pallet-evm-precompile-identity = { path = "precompiles/identity", default-features = false }
 pallet-evm-precompile-parachain-staking = { path = "precompiles/parachain-staking", default-features = false }
@@ -138,7 +136,6 @@ pallet-assets = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", b
 pallet-balances = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.7.0", default-features = false }
 pallet-collective = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.7.0", default-features = false }
 pallet-conviction-voting = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.7.0", default-features = false }
-pallet-democracy = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.7.0", default-features = false }
 pallet-identity = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.7.0", default-features = false }
 pallet-message-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.7.0", default-features = false }
 pallet-multisig = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.7.0", default-features = false }

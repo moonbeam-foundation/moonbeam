@@ -959,8 +959,7 @@ impl Default for ProxyType {
 fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bool {
 	matches!(
 		precompile_name,
-		PrecompileName::DemocracyPrecompile
-			| PrecompileName::TreasuryCouncilInstance
+		PrecompileName::TreasuryCouncilInstance
 			| PrecompileName::ReferendaPrecompile
 			| PrecompileName::ConvictionVotingPrecompile
 			| PrecompileName::PreimagePrecompile
@@ -1044,13 +1043,10 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						| RuntimeCall::ParachainSystem(..)
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
-						| RuntimeCall::Democracy(..)
 						| RuntimeCall::Referenda(..)
 						| RuntimeCall::Preimage(..)
 						| RuntimeCall::ConvictionVoting(..)
-						// TODO: GovV1| RuntimeCall::CouncilCollective(..)
 						| RuntimeCall::TreasuryCouncilCollective(..)
-						// TODO: GovV1 | RuntimeCall::TechCommitteeCollective(..)
 						| RuntimeCall::OpenTechCommitteeCollective(..)
 						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
@@ -1062,13 +1058,10 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			}
 			ProxyType::Governance => matches!(
 				c,
-				RuntimeCall::Democracy(..)
-					| RuntimeCall::Referenda(..)
+				RuntimeCall::Referenda(..)
 					| RuntimeCall::Preimage(..)
 					| RuntimeCall::ConvictionVoting(..)
-					// TODO: GovV1 | RuntimeCall::CouncilCollective(..)
 					| RuntimeCall::TreasuryCouncilCollective(..)
-					// TODO: GovV1 | RuntimeCall::TechCommitteeCollective(..)
 					| RuntimeCall::OpenTechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
@@ -1176,7 +1169,6 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 			RuntimeCall::Treasury(_) => false,
 			RuntimeCall::XcmTransactor(_) => false,
 			RuntimeCall::EthereumXcm(_) => false,
-			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			_ => true,
 		}
 	}
@@ -1218,8 +1210,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
-			// TODO: Shall this be replaced with OpenGov ?
-			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			RuntimeCall::Treasury(
 				pallet_treasury::Call::spend { .. }
 				| pallet_treasury::Call::payout { .. }
@@ -1435,11 +1425,9 @@ construct_runtime! {
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config<T>} = 11,
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 13,
-		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
-		// CouncilCollective:
-		// 	pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 15,
-		// TechCommitteeCollective:
-		// 	pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 16,
+		// Previously 14: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
+		// Previously 15: CouncilCollective: pallet_collective::<Instance1>
+		// Previously 16: TechCommitteeCollective: pallet_collective::<Instance2>
 		Treasury: pallet_treasury::{Pallet, Storage, Config<T>, Event<T>, Call} = 17,
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 18,
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config<T>} = 19,
@@ -1530,10 +1518,8 @@ mod benches {
 		[pallet_sudo, Sudo]
 		[pallet_evm, EVM]
 		[pallet_assets, Assets]
-		// [pallet_collective, CouncilCollective]
 		[pallet_parachain_staking, ParachainStaking]
 		[pallet_scheduler, Scheduler]
-		[pallet_democracy, Democracy]
 		[pallet_treasury, Treasury]
 		[pallet_author_inherent, AuthorInherent]
 		[pallet_author_slot_filter, AuthorFilter]
@@ -1742,11 +1728,7 @@ mod tests {
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROUNIT));
 
-		// democracy minimums
-		assert_eq!(
-			get!(pallet_democracy, MinimumDeposit, u128),
-			Balance::from(4 * UNIT)
-		);
+		// treasury minimums
 		assert_eq!(
 			get!(pallet_treasury, ProposalBondMinimum, u128),
 			Balance::from(1 * UNIT)

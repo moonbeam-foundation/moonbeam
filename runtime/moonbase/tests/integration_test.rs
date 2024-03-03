@@ -38,7 +38,6 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	asset_config::{AssetRegistrarMetadata, ForeignAssetInstance},
-	get,
 	xcm_config::{AssetType, SelfReserve},
 	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards,
 	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
@@ -102,11 +101,6 @@ fn xcmp_queue_controller_origin_is_root() {
 }
 
 #[test]
-fn fast_track_available() {
-	assert!(get!(pallet_democracy, InstantAllowed, bool));
-}
-
-#[test]
 fn verify_pallet_prefixes() {
 	fn is_pallet_prefix<P: 'static>(name: &str) {
 		// Compares the unhashed pallet prefix in the `StorageInstance` implementation by every
@@ -131,7 +125,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::Ethereum>("Ethereum");
 	is_pallet_prefix::<moonbase_runtime::ParachainStaking>("ParachainStaking");
 	is_pallet_prefix::<moonbase_runtime::Scheduler>("Scheduler");
-	is_pallet_prefix::<moonbase_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonbase_runtime::Treasury>("Treasury");
 	is_pallet_prefix::<moonbase_runtime::OpenTechCommitteeCollective>(
 		"OpenTechCommitteeCollective",
@@ -415,7 +408,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::Ethereum>(11);
 	is_pallet_index::<moonbase_runtime::ParachainStaking>(12);
 	is_pallet_index::<moonbase_runtime::Scheduler>(13);
-	is_pallet_index::<moonbase_runtime::Democracy>(14);
+	//is_pallet_index::<moonbase_runtime::Democracy>(14); Removed
 	is_pallet_index::<moonbase_runtime::Treasury>(17);
 	is_pallet_index::<moonbase_runtime::AuthorInherent>(18);
 	is_pallet_index::<moonbase_runtime::AuthorFilter>(19);
@@ -2573,7 +2566,7 @@ fn precompile_existence() {
 fn removed_precompiles() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
-		let removed_precompiles = [1025, 2062, 2063];
+		let removed_precompiles = [1025, 2051, 2062, 2063];
 
 		for i in 1..3000 {
 			let address = H160::from_low_u64_be(i);
