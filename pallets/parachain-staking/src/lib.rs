@@ -1824,7 +1824,7 @@ pub mod pallet {
 
 			// This function is called right after the round index increment,
 			// and the goal is to compute the payout informations for the round that just ended.
-			// We don't need to saturate ehre because the genesis round is 1.
+			// We don't need to saturate here because the genesis round is 1.
 			let prepare_payout_for_round = now - 1;
 
 			// Return early if there is no blocks for this round
