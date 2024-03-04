@@ -1766,6 +1766,10 @@
 <a href="#1766" id="1766">1766</a>
 <a href="#1767" id="1767">1767</a>
 <a href="#1768" id="1768">1768</a>
+<a href="#1769" id="1769">1769</a>
+<a href="#1770" id="1770">1770</a>
+<a href="#1771" id="1771">1771</a>
+<a href="#1772" id="1772">1772</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1938,7 +1942,7 @@
 	}
 }
 
-<span class="attr">#[derive(Default, Encode, Decode, RuntimeDebug, TypeInfo)]
+<span class="attr">#[derive(Clone, Default, Encode, Decode, RuntimeDebug, TypeInfo)]
 </span><span class="doccomment">/// Info needed to make delayed payments to stakers after round end
 </span><span class="kw">pub struct </span>DelayedPayout&lt;Balance&gt; {
 	<span class="doccomment">/// Total round reward (result of compute_issuance() at round end)
@@ -3481,16 +3485,19 @@
 	</span><span class="kw">pub </span>first: BlockNumber,
 	<span class="doccomment">/// The length of the current round in number of blocks
 	</span><span class="kw">pub </span>length: u32,
+	<span class="doccomment">/// The first slot of the current round
+	</span><span class="kw">pub </span>first_slot: u64,
 }
 <span class="kw">impl</span>&lt;
 		B: Copy + sp_std::ops::Add&lt;Output = B&gt; + sp_std::ops::Sub&lt;Output = B&gt; + From&lt;u32&gt; + PartialOrd,
 	&gt; RoundInfo&lt;B&gt;
 {
-	<span class="kw">pub fn </span>new(current: RoundIndex, first: B, length: u32) -&gt; RoundInfo&lt;B&gt; {
+	<span class="kw">pub fn </span>new(current: RoundIndex, first: B, length: u32, first_slot: u64) -&gt; RoundInfo&lt;B&gt; {
 		RoundInfo {
 			current,
 			first,
 			length,
+			first_slot,
 		}
 	}
 	<span class="doccomment">/// Check if the round should be updated
@@ -3498,9 +3505,10 @@
 		now - <span class="self">self</span>.first &gt;= <span class="self">self</span>.length.into()
 	}
 	<span class="doccomment">/// New round
-	</span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, now: B) {
+	</span><span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, now: B, now_slot: u64) {
 		<span class="self">self</span>.current = <span class="self">self</span>.current.saturating_add(<span class="number">1u32</span>);
 		<span class="self">self</span>.first = now;
+		<span class="self">self</span>.first_slot = now_slot;
 	}
 }
 <span class="kw">impl</span>&lt;
@@ -3508,7 +3516,7 @@
 	&gt; Default <span class="kw">for </span>RoundInfo&lt;B&gt;
 {
 	<span class="kw">fn </span>default() -&gt; RoundInfo&lt;B&gt; {
-		RoundInfo::new(<span class="number">1u32</span>, <span class="number">1u32</span>.into(), <span class="number">20u32</span>)
+		RoundInfo::new(<span class="number">1u32</span>, <span class="number">1u32</span>.into(), <span class="number">20u32</span>, <span class="number">0</span>)
 	}
 }
 

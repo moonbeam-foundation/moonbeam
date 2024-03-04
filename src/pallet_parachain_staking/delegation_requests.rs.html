@@ -552,6 +552,9 @@
 <a href="#552" id="552">552</a>
 <a href="#553" id="553">553</a>
 <a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -636,7 +639,7 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator);
 
 		<span class="kw">let </span>actual_weight =
-			T::WeightInfo::schedule_revoke_delegation(scheduled_requests.len() <span class="kw">as </span>u32);
+			&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::schedule_revoke_delegation(scheduled_requests.len() <span class="kw">as </span>u32);
 
 		<span class="macro">ensure!</span>(
 			!scheduled_requests
@@ -685,8 +688,9 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;DelegatorState&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>delegator).ok_or(&lt;Error&lt;T&gt;&gt;::DelegatorDNE)<span class="question-mark">?</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator);
 
-		<span class="kw">let </span>actual_weight =
-			T::WeightInfo::schedule_delegator_bond_less(scheduled_requests.len() <span class="kw">as </span>u32);
+		<span class="kw">let </span>actual_weight = &lt;T <span class="kw">as </span>Config&gt;::WeightInfo::schedule_delegator_bond_less(
+			scheduled_requests.len() <span class="kw">as </span>u32,
+		);
 
 		<span class="macro">ensure!</span>(
 			!scheduled_requests
@@ -765,7 +769,7 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;DelegatorState&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>delegator).ok_or(&lt;Error&lt;T&gt;&gt;::DelegatorDNE)<span class="question-mark">?</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator);
 		<span class="kw">let </span>actual_weight =
-			T::WeightInfo::cancel_delegation_request(scheduled_requests.len() <span class="kw">as </span>u32);
+			&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::cancel_delegation_request(scheduled_requests.len() <span class="kw">as </span>u32);
 
 		<span class="kw">let </span>request =
 			<span class="self">Self</span>::cancel_request_with_state(<span class="kw-2">&amp;</span>delegator, <span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;mut </span>scheduled_requests)
@@ -824,7 +828,8 @@
 
 		<span class="kw">match </span>request.action {
 			DelegationAction::Revoke(amount) =&gt; {
-				<span class="kw">let </span>actual_weight = T::WeightInfo::execute_delegator_revoke_delegation_worst();
+				<span class="kw">let </span>actual_weight =
+					&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::execute_delegator_revoke_delegation_worst();
 
 				<span class="comment">// revoking last delegation =&gt; leaving set of delegators
 				</span><span class="kw">let </span>leaving = <span class="kw">if </span>state.delegations.<span class="number">0</span>.len() == <span class="number">1usize </span>{
@@ -875,7 +880,8 @@
 				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
 			}
 			DelegationAction::Decrease(<span class="kw">_</span>) =&gt; {
-				<span class="kw">let </span>actual_weight = T::WeightInfo::execute_delegator_revoke_delegation_worst();
+				<span class="kw">let </span>actual_weight =
+					&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::execute_delegator_revoke_delegation_worst();
 
 				<span class="comment">// remove from pending requests
 				</span><span class="kw">let </span>amount = scheduled_requests.remove(request_idx).action.amount();

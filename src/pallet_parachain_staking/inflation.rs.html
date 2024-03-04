@@ -232,6 +232,10 @@
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -259,9 +263,13 @@
 <span class="kw">use </span>substrate_fixed::transcendental::pow <span class="kw">as </span>floatpow;
 <span class="kw">use </span>substrate_fixed::types::I64F64;
 
+<span class="comment">// Milliseconds per year
+</span><span class="kw">const </span>MS_PER_YEAR: u64 = <span class="number">31_557_600_000</span>;
+
 <span class="kw">fn </span>rounds_per_year&lt;T: Config&gt;() -&gt; u32 {
-	<span class="kw">let </span>blocks_per_round = &lt;Pallet&lt;T&gt;&gt;::round().length;
-	T::SlotsPerYear::get() / blocks_per_round
+	<span class="kw">let </span>blocks_per_round = &lt;Pallet&lt;T&gt;&gt;::round().length <span class="kw">as </span>u64;
+	<span class="kw">let </span>blocks_per_year = MS_PER_YEAR / T::BlockTime::get();
+	(blocks_per_year / blocks_per_round) <span class="kw">as </span>u32
 }
 
 <span class="attr">#[derive(
@@ -367,8 +375,8 @@
 	}
 	<span class="doccomment">/// Reset round inflation rate based on changes to round length
 	</span><span class="kw">pub fn </span>reset_round&lt;T: Config&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_length: u32) {
-		<span class="kw">let </span>periods = T::SlotsPerYear::get() / new_length;
-		<span class="self">self</span>.round = perbill_annual_to_perbill_round(<span class="self">self</span>.annual, periods);
+		<span class="kw">let </span>periods = (MS_PER_YEAR / T::BlockTime::get()) / (new_length <span class="kw">as </span>u64);
+		<span class="self">self</span>.round = perbill_annual_to_perbill_round(<span class="self">self</span>.annual, periods <span class="kw">as </span>u32);
 	}
 	<span class="doccomment">/// Set staking expectations
 	</span><span class="kw">pub fn </span>set_expectations(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expect: Range&lt;Balance&gt;) {

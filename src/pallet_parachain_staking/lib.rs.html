@@ -2305,6 +2305,24 @@
 <a href="#2305" id="2305">2305</a>
 <a href="#2306" id="2306">2306</a>
 <a href="#2307" id="2307">2307</a>
+<a href="#2308" id="2308">2308</a>
+<a href="#2309" id="2309">2309</a>
+<a href="#2310" id="2310">2310</a>
+<a href="#2311" id="2311">2311</a>
+<a href="#2312" id="2312">2312</a>
+<a href="#2313" id="2313">2313</a>
+<a href="#2314" id="2314">2314</a>
+<a href="#2315" id="2315">2315</a>
+<a href="#2316" id="2316">2316</a>
+<a href="#2317" id="2317">2317</a>
+<a href="#2318" id="2318">2318</a>
+<a href="#2319" id="2319">2319</a>
+<a href="#2320" id="2320">2320</a>
+<a href="#2321" id="2321">2321</a>
+<a href="#2322" id="2322">2322</a>
+<a href="#2323" id="2323">2323</a>
+<a href="#2324" id="2324">2324</a>
+<a href="#2325" id="2325">2325</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2489,16 +2507,19 @@
 		<span class="doccomment">/// Handler to notify the runtime when a new round begin.
 		/// If you don&#39;t need it, you can specify the type `()`.
 		</span><span class="kw">type </span>OnNewRound: OnNewRound;
-		<span class="doccomment">/// Get the slot number to use as clocktime for staking rounds
+		<span class="doccomment">/// Get the current slot number
 		</span><span class="kw">type </span>SlotProvider: Get&lt;Slot&gt;;
-		<span class="doccomment">/// Weight information for extrinsics in this pallet.
-		</span><span class="kw">type </span>WeightInfo: WeightInfo;
+		<span class="doccomment">/// Get the slot duration in milliseconds
+		</span><span class="attr">#[pallet::constant]
+		</span><span class="kw">type </span>SlotDuration: Get&lt;u64&gt;;
+		<span class="doccomment">/// Get the average time beetween 2 blocks in milliseconds
+		</span><span class="attr">#[pallet::constant]
+		</span><span class="kw">type </span>BlockTime: Get&lt;u64&gt;;
 		<span class="doccomment">/// Maximum candidates
 		</span><span class="attr">#[pallet::constant]
 		</span><span class="kw">type </span>MaxCandidates: Get&lt;u32&gt;;
-		<span class="doccomment">/// Average number of slots per year
-		/// A slot here is the unit of time for staking rounds (provided by SlotProvider)
-		</span><span class="kw">type </span>SlotsPerYear: Get&lt;u32&gt;;
+		<span class="doccomment">/// Weight information for extrinsics in this pallet.
+		</span><span class="kw">type </span>WeightInfo: WeightInfo;
 	}
 
 	<span class="attr">#[pallet::error]
@@ -2565,7 +2586,7 @@
 	</span><span class="kw">pub enum </span>Event&lt;T: Config&gt; {
 		<span class="doccomment">/// Started new round.
 		</span>NewRound {
-			starting_block: u64,
+			starting_block: BlockNumberFor&lt;T&gt;,
 			round: RoundIndex,
 			selected_collators_number: u32,
 			total_balance: BalanceOf&lt;T&gt;,
@@ -2737,7 +2758,7 @@
 		<span class="doccomment">/// Set blocks per round
 		</span>BlocksPerRoundSet {
 			current_round: RoundIndex,
-			first_block: u64,
+			first_block: BlockNumberFor&lt;T&gt;,
 			old: u32,
 			new: u32,
 			new_per_round_inflation_min: Perbill,
@@ -2760,39 +2781,42 @@
 
 	<span class="attr">#[pallet::hooks]
 	</span><span class="kw">impl</span>&lt;T: Config&gt; Hooks&lt;BlockNumberFor&lt;T&gt;&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
-		<span class="kw">fn </span>on_initialize(_n: BlockNumberFor&lt;T&gt;) -&gt; Weight {
-			<span class="kw">let </span><span class="kw-2">mut </span>weight = T::WeightInfo::base_on_initialize();
-
-			<span class="comment">// fetch slot number
-			</span><span class="kw">let </span>slot: u64 = T::SlotProvider::get().into();
-
-			<span class="comment">// account for SlotProvider read
-			</span>weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">0</span>));
+		<span class="kw">fn </span>on_initialize(n: BlockNumberFor&lt;T&gt;) -&gt; Weight {
+			<span class="kw">let </span><span class="kw-2">mut </span>weight = &lt;T <span class="kw">as </span>Config&gt;::WeightInfo::base_on_initialize();
 
 			<span class="kw">let </span><span class="kw-2">mut </span>round = &lt;Round&lt;T&gt;&gt;::get();
-			<span class="kw">if </span>round.should_update(slot) {
+			<span class="kw">if </span>round.should_update(n.into()) {
+				<span class="comment">// fetch current slot number
+				</span><span class="kw">let </span>current_slot: u64 = T::SlotProvider::get().into();
+
+				<span class="comment">// account for SlotProvider read
+				</span>weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">0</span>));
+
+				<span class="comment">// Compute round duration in slots
+				</span><span class="kw">let </span>round_duration = (current_slot.saturating_sub(round.first_slot))
+					.saturating_mul(T::SlotDuration::get());
+
 				<span class="comment">// mutate round
-				</span>round.update(slot);
+				</span>round.update(n.into(), current_slot);
 				<span class="comment">// notify that new round begin
 				</span>weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
 				<span class="comment">// pay all stakers for T::RewardPaymentDelay rounds ago
-				</span>weight = weight.saturating_add(<span class="self">Self</span>::prepare_staking_payouts(round.current));
+				</span>weight =
+					weight.saturating_add(<span class="self">Self</span>::prepare_staking_payouts(round, round_duration));
 				<span class="comment">// select top collator candidates for next round
 				</span><span class="kw">let </span>(extra_weight, collator_count, _delegation_count, total_staked) =
 					<span class="self">Self</span>::select_top_candidates(round.current);
 				weight = weight.saturating_add(extra_weight);
 				<span class="comment">// start next round
 				</span>&lt;Round&lt;T&gt;&gt;::put(round);
-				<span class="comment">// snapshot total stake
-				</span>&lt;Staked&lt;T&gt;&gt;::insert(round.current, &lt;Total&lt;T&gt;&gt;::get());
 				<span class="self">Self</span>::deposit_event(Event::NewRound {
 					starting_block: round.first,
 					round: round.current,
 					selected_collators_number: collator_count,
 					total_balance: total_staked,
 				});
-				<span class="comment">// account for Round and Staked writes
-				</span>weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">0</span>, <span class="number">2</span>));
+				<span class="comment">// account for Round write
+				</span>weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">0</span>, <span class="number">1</span>));
 			} <span class="kw">else </span>{
 				weight = weight.saturating_add(<span class="self">Self</span>::handle_delayed_payouts(round.current));
 			}
@@ -2827,7 +2851,7 @@
 	<span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>round)]
 	</span><span class="doccomment">/// Current round index and next round scheduled transition
-	</span><span class="kw">pub type </span>Round&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, RoundInfo&lt;u64&gt;, ValueQuery&gt;;
+	</span><span class="kw">pub type </span>Round&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, RoundInfo&lt;BlockNumberFor&lt;T&gt;&gt;, ValueQuery&gt;;
 
 	<span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>delegator_state)]
@@ -2947,11 +2971,6 @@
 	</span><span class="doccomment">/// Delayed payouts
 	</span><span class="kw">pub type </span>DelayedPayouts&lt;T: Config&gt; =
 		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, RoundIndex, DelayedPayout&lt;BalanceOf&lt;T&gt;&gt;, OptionQuery&gt;;
-
-	<span class="attr">#[pallet::storage]
-	#[pallet::getter(<span class="kw">fn </span>staked)]
-	</span><span class="doccomment">/// Total counted stake for selected candidates in the round
-	</span><span class="kw">pub type </span>Staked&lt;T: Config&gt; = StorageMap&lt;<span class="kw">_</span>, Twox64Concat, RoundIndex, BalanceOf&lt;T&gt;, ValueQuery&gt;;
 
 	<span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>inflation_config)]
@@ -3114,12 +3133,11 @@
 			<span class="comment">// Choose top TotalSelected collator candidates
 			</span><span class="kw">let </span>(<span class="kw">_</span>, v_count, <span class="kw">_</span>, total_staked) = &lt;Pallet&lt;T&gt;&gt;::select_top_candidates(<span class="number">1u32</span>);
 			<span class="comment">// Start Round 1 at Block 0
-			</span><span class="kw">let </span>round: RoundInfo&lt;u64&gt; = RoundInfo::new(<span class="number">1u32</span>, <span class="number">0u64</span>, <span class="self">self</span>.blocks_per_round);
+			</span><span class="kw">let </span>round: RoundInfo&lt;BlockNumberFor&lt;T&gt;&gt; =
+				RoundInfo::new(<span class="number">1u32</span>, Zero::zero(), <span class="self">self</span>.blocks_per_round, <span class="number">0</span>);
 			&lt;Round&lt;T&gt;&gt;::put(round);
-			<span class="comment">// Snapshot total stake
-			</span>&lt;Staked&lt;T&gt;&gt;::insert(<span class="number">1u32</span>, &lt;Total&lt;T&gt;&gt;::get());
 			&lt;Pallet&lt;T&gt;&gt;::deposit_event(Event::NewRound {
-				starting_block: u64::default(),
+				starting_block: Zero::zero(),
 				round: <span class="number">1u32</span>,
 				selected_collators_number: v_count,
 				total_balance: total_staked,
@@ -3587,7 +3605,7 @@
 		/// rewards for rounds while the request is pending use the reduced bonded amount.
 		/// A bond less may not be performed if any other scheduled request is pending.
 		</span><span class="attr">#[pallet::call_index(<span class="number">24</span>)]
-		#[pallet::weight(T::WeightInfo::schedule_delegator_bond_less(
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::schedule_delegator_bond_less(
 			T::MaxTopDelegationsPerCandidate::get() + T::MaxBottomDelegationsPerCandidate::get()
 		))]
 		</span><span class="kw">pub fn </span>schedule_delegator_bond_less(
@@ -3787,7 +3805,8 @@
 
 	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 		<span class="kw">pub fn </span>set_candidate_bond_to_zero(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; Weight {
-			<span class="kw">let </span>actual_weight = T::WeightInfo::set_candidate_bond_to_zero(T::MaxCandidates::get());
+			<span class="kw">let </span>actual_weight =
+				&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::set_candidate_bond_to_zero(T::MaxCandidates::get());
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>state) = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>acc) {
 				state.bond_less::&lt;T&gt;(acc.clone(), state.bond);
 				&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>acc, state);
@@ -3854,7 +3873,7 @@
 		<span class="kw">pub fn </span>go_offline_inner(collator: T::AccountId) -&gt; DispatchResultWithPostInfo {
 			<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator).ok_or(Error::&lt;T&gt;::CandidateDNE)<span class="question-mark">?</span>;
 			<span class="kw">let </span><span class="kw-2">mut </span>candidates = &lt;CandidatePool&lt;T&gt;&gt;::get();
-			<span class="kw">let </span>actual_weight = T::WeightInfo::go_offline(candidates.<span class="number">0</span>.len() <span class="kw">as </span>u32);
+			<span class="kw">let </span>actual_weight = &lt;T <span class="kw">as </span>Config&gt;::WeightInfo::go_offline(candidates.<span class="number">0</span>.len() <span class="kw">as </span>u32);
 
 			<span class="macro">ensure!</span>(
 				state.is_active(),
@@ -3878,7 +3897,7 @@
 		<span class="kw">pub fn </span>go_online_inner(collator: T::AccountId) -&gt; DispatchResultWithPostInfo {
 			<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator).ok_or(Error::&lt;T&gt;::CandidateDNE)<span class="question-mark">?</span>;
 			<span class="kw">let </span><span class="kw-2">mut </span>candidates = &lt;CandidatePool&lt;T&gt;&gt;::get();
-			<span class="kw">let </span>actual_weight = T::WeightInfo::go_online(candidates.<span class="number">0</span>.len() <span class="kw">as </span>u32);
+			<span class="kw">let </span>actual_weight = &lt;T <span class="kw">as </span>Config&gt;::WeightInfo::go_online(candidates.<span class="number">0</span>.len() <span class="kw">as </span>u32);
 
 			<span class="macro">ensure!</span>(
 				!state.is_active(),
@@ -3923,7 +3942,8 @@
 			more: BalanceOf&lt;T&gt;,
 		) -&gt; DispatchResultWithPostInfo {
 			<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator).ok_or(Error::&lt;T&gt;::CandidateDNE)<span class="question-mark">?</span>;
-			<span class="kw">let </span>actual_weight = T::WeightInfo::candidate_bond_more(T::MaxCandidates::get());
+			<span class="kw">let </span>actual_weight =
+				&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::candidate_bond_more(T::MaxCandidates::get());
 
 			state
 				.bond_more::&lt;T&gt;(collator.clone(), more)
@@ -3943,7 +3963,8 @@
 			candidate: T::AccountId,
 		) -&gt; DispatchResultWithPostInfo {
 			<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>candidate).ok_or(Error::&lt;T&gt;::CandidateDNE)<span class="question-mark">?</span>;
-			<span class="kw">let </span>actual_weight = T::WeightInfo::execute_candidate_bond_less(T::MaxCandidates::get());
+			<span class="kw">let </span>actual_weight =
+				&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::execute_candidate_bond_less(T::MaxCandidates::get());
 
 			state
 				.execute_bond_less::&lt;T&gt;(candidate.clone())
@@ -3964,7 +3985,7 @@
 
 			<span class="comment">// TODO use these to return actual weight used via `execute_leave_candidates_ideal`
 			</span><span class="kw">let </span>actual_delegation_count = state.delegation_count;
-			<span class="kw">let </span>actual_weight = T::WeightInfo::execute_leave_candidates_ideal(
+			<span class="kw">let </span>actual_weight = &lt;T <span class="kw">as </span>Config&gt;::WeightInfo::execute_leave_candidates_ideal(
 				actual_delegation_count,
 				actual_auto_compound_delegation_count,
 			);
@@ -4080,18 +4101,18 @@
 			&lt;CandidatePool&lt;T&gt;&gt;::put(candidates);
 		}
 
-		<span class="doccomment">/// Compute round issuance based on total staked for the given round
-		</span><span class="kw">fn </span>compute_issuance(staked: BalanceOf&lt;T&gt;) -&gt; BalanceOf&lt;T&gt; {
+		<span class="doccomment">/// Compute round issuance based on duration of the given round
+		</span><span class="kw">fn </span>compute_issuance(round_duration: u64, round_length: u32) -&gt; BalanceOf&lt;T&gt; {
+			<span class="kw">let </span>ideal_duration: BalanceOf&lt;T&gt; = round_length
+				.saturating_mul(T::BlockTime::get() <span class="kw">as </span>u32)
+				.into();
 			<span class="kw">let </span>config = &lt;InflationConfig&lt;T&gt;&gt;::get();
 			<span class="kw">let </span>round_issuance = <span class="kw">crate</span>::inflation::round_issuance_range::&lt;T&gt;(config.round);
-			<span class="comment">// TODO: consider interpolation instead of bounded range
-			</span><span class="kw">if </span>staked &lt; config.expect.min {
-				round_issuance.min
-			} <span class="kw">else if </span>staked &gt; config.expect.max {
-				round_issuance.max
-			} <span class="kw">else </span>{
-				round_issuance.ideal
-			}
+
+			<span class="comment">// Initial formula: (round_duration / ideal_duration) * ideal_issuance
+			// We multiply before the division to reduce rounding effects
+			</span>BalanceOf::&lt;T&gt;::from(round_duration <span class="kw">as </span>u32).saturating_mul(round_issuance.ideal)
+				/ (ideal_duration)
 		}
 
 		<span class="doccomment">/// Remove delegation from candidate state
@@ -4116,27 +4137,37 @@
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>prepare_staking_payouts(now: RoundIndex) -&gt; Weight {
-			<span class="comment">// payout is now - delay rounds ago =&gt; now - delay &gt; 0 else return early
-			</span><span class="kw">let </span>delay = T::RewardPaymentDelay::get();
-			<span class="kw">if </span>now &lt;= delay {
+		<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>prepare_staking_payouts(
+			round_info: RoundInfo&lt;BlockNumberFor&lt;T&gt;&gt;,
+			round_duration: u64,
+		) -&gt; Weight {
+			<span class="kw">let </span>RoundInfo {
+				current: now,
+				length: round_length,
+				..
+			} = round_info;
+
+			<span class="comment">// This function is called right after the round index increment,
+			// and the goal is to compute the payout informations for the round that just ended.
+			// We don&#39;t need to saturate here because the genesis round is 1.
+			</span><span class="kw">let </span>prepare_payout_for_round = now - <span class="number">1</span>;
+
+			<span class="comment">// Return early if there is no blocks for this round
+			</span><span class="kw">if </span>&lt;Points&lt;T&gt;&gt;::get(prepare_payout_for_round).is_zero() {
 				<span class="kw">return </span>Weight::zero();
 			}
-			<span class="kw">let </span>round_to_payout = now.saturating_sub(delay);
-			<span class="kw">let </span>total_points = &lt;Points&lt;T&gt;&gt;::get(round_to_payout);
-			<span class="kw">if </span>total_points.is_zero() {
-				<span class="kw">return </span>Weight::zero();
-			}
-			<span class="kw">let </span>total_staked = &lt;Staked&lt;T&gt;&gt;::take(round_to_payout);
-			<span class="kw">let </span>total_issuance = <span class="self">Self</span>::compute_issuance(total_staked);
-			<span class="kw">let </span><span class="kw-2">mut </span>left_issuance = total_issuance;
+
+			<span class="comment">// Compute total issuance based on round duration
+			</span><span class="kw">let </span>total_issuance = <span class="self">Self</span>::compute_issuance(round_duration, round_length);
+
 			<span class="comment">// reserve portion of issuance for parachain bond account
-			</span><span class="kw">let </span>bond_config = &lt;ParachainBondInfo&lt;T&gt;&gt;::get();
+			</span><span class="kw">let </span><span class="kw-2">mut </span>left_issuance = total_issuance;
+			<span class="kw">let </span>bond_config = &lt;ParachainBondInfo&lt;T&gt;&gt;::get();
 			<span class="kw">let </span>parachain_bond_reserve = bond_config.percent * total_issuance;
 			<span class="kw">if let </span><span class="prelude-val">Ok</span>(imb) =
 				T::Currency::deposit_into_existing(<span class="kw-2">&amp;</span>bond_config.account, parachain_bond_reserve)
 			{
-				<span class="comment">// update round issuance iff transfer succeeds
+				<span class="comment">// update round issuance if transfer succeeds
 				</span>left_issuance = left_issuance.saturating_sub(imb.peek());
 				<span class="self">Self</span>::deposit_event(Event::ReservedForParachainBond {
 					account: bond_config.account,
@@ -4150,8 +4181,9 @@
 				collator_commission: &lt;CollatorCommission&lt;T&gt;&gt;::get(),
 			};
 
-			&lt;DelayedPayouts&lt;T&gt;&gt;::insert(round_to_payout, payout);
-			T::WeightInfo::prepare_staking_payouts()
+			&lt;DelayedPayouts&lt;T&gt;&gt;::insert(prepare_payout_for_round, payout);
+
+			&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::prepare_staking_payouts()
 		}
 
 		<span class="doccomment">/// Wrapper around pay_one_collator_reward which handles the following logic:
@@ -4290,16 +4322,17 @@
 					}
 				}
 
-				extra_weight =
-					extra_weight.saturating_add(T::WeightInfo::pay_one_collator_reward_best(
+				extra_weight = extra_weight.saturating_add(
+					&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::pay_one_collator_reward_best(
 						num_paid_delegations,
 						num_auto_compounding,
 						num_scheduled_requests <span class="kw">as </span>u32,
-					));
+					),
+				);
 
 				(
 					RewardPayment::Paid,
-					T::WeightInfo::pay_one_collator_reward(num_delegators <span class="kw">as </span>u32)
+					&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::pay_one_collator_reward(num_delegators <span class="kw">as </span>u32)
 						.saturating_add(extra_weight),
 				)
 			} <span class="kw">else </span>{
@@ -4387,7 +4420,7 @@
 						total_exposed_amount: <span class="kw-2">*</span>snapshot_total,
 					})
 				}
-				<span class="kw">let </span>weight = T::WeightInfo::select_top_candidates(<span class="number">0</span>, <span class="number">0</span>);
+				<span class="kw">let </span>weight = &lt;T <span class="kw">as </span>Config&gt;::WeightInfo::select_top_candidates(<span class="number">0</span>, <span class="number">0</span>);
 				<span class="kw">return </span>(weight, collator_count, delegation_count, total);
 			}
 
@@ -4440,7 +4473,10 @@
 			);
 
 			<span class="kw">let </span>avg_delegator_count = delegation_count.checked_div(collator_count).unwrap_or(<span class="number">0</span>);
-			<span class="kw">let </span>weight = T::WeightInfo::select_top_candidates(collator_count, avg_delegator_count);
+			<span class="kw">let </span>weight = &lt;T <span class="kw">as </span>Config&gt;::WeightInfo::select_top_candidates(
+				collator_count,
+				avg_delegator_count,
+			);
 			(weight, collator_count, delegation_count, total)
 		}
 
@@ -4504,7 +4540,7 @@
 				Error::&lt;T&gt;::PendingDelegationRevoke
 			);
 
-			<span class="kw">let </span>actual_weight = T::WeightInfo::delegator_bond_more(
+			<span class="kw">let </span>actual_weight = &lt;T <span class="kw">as </span>Config&gt;::WeightInfo::delegator_bond_more(
 				&lt;DelegationScheduledRequests&lt;T&gt;&gt;::decode_len(<span class="kw-2">&amp;</span>candidate).unwrap_or_default() <span class="kw">as </span>u32,
 			);
 			<span class="kw">let </span>in_top = state
@@ -4539,7 +4575,7 @@
 					rewards: amount_transferred.peek(),
 				});
 			}
-			T::WeightInfo::mint_collator_reward()
+			&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::mint_collator_reward()
 		}
 
 		<span class="doccomment">/// Mint and compound delegation rewards. The function mints the amount towards the
