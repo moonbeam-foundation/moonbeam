@@ -2939,6 +2939,12 @@ mod fee_tests {
 				TransactionPaymentAsGasPrice::min_gas_price().0
 			};
 
+			// The expected values are the ones observed during test execution,
+			// they are expected to change when parameters that influence
+			// the fee calculation are changed, and should be updated accordingly.
+			// If a test fails when nothing specific to fees has changed,
+			// it may indicate an unexpected collateral effect and should be investigated
+
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 1),
 				U256::from(998_002_000),
