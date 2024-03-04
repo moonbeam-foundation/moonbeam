@@ -18,10 +18,9 @@
 //!
 
 use super::{
-	governance, AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees,
-	Erc20XcmBridge, MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem, Perbill,
-	PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury,
-	XcmpQueue,
+	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees, Erc20XcmBridge,
+	MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 
 use frame_support::{
@@ -49,7 +48,10 @@ use xcm_builder::{
 };
 
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
-use xcm::latest::prelude::*;
+use xcm::latest::prelude::{
+	Asset, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId, PalletInstance,
+	Parachain,
+};
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
@@ -120,7 +122,7 @@ impl ConvertLocation<H160> for LocationToH160 {
 // It will use pallet-assets, and the Id will be matched against AsAssetType
 pub type ForeignFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
-	Assets,
+	super::Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	(
 		ConvertedConcreteId<
@@ -230,7 +232,7 @@ parameter_types! {
 /// We do not burn anything because we want to mimic exactly what
 /// the sovereign account has
 pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
-	Assets,
+	super::Assets,
 	(
 		ConvertedConcreteId<
 			AssetId,
@@ -329,11 +331,6 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
-#[cfg(feature = "runtime-benchmarks")]
-parameter_types! {
-	pub ReachableDest: Option<Location> = Some(Parent.into());
-}
-
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
@@ -358,8 +355,6 @@ impl pallet_xcm::Config for Runtime {
 	type RemoteLockConsumerIdentifier = ();
 	// TODO pallet-xcm weights
 	type WeightInfo = moonbeam_weights::pallet_xcm::WeightInfo<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type ReachableDest = ReachableDest;
 	type AdminOrigin = EnsureRoot<AccountId>;
 }
 
