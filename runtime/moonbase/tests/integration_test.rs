@@ -2948,37 +2948,37 @@ mod fee_tests {
 
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 1),
-				U256::from(999_000_500),
+				U256::from(998_002_000),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 1),
-				U256::from(1_000_000_000),
+				U256::from(999_000_500),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 1),
-				U256::from(1_001_000_500),
+				U256::from(1_000_000_000),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 1),
-				U256::from(1_003_004_500),
+				U256::from(1_002_002_000),
 			);
 
 			// 1 "real" hour (at 12-second blocks)
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 300),
-				U256::from(740_818_257),
+				U256::from(548_811_855),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 300),
-				U256::from(1_000_000_000),
+				U256::from(740_818_257),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 300),
-				U256::from(1_349_858_740),
+				U256::from(1_000_000_000),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 300),
-				U256::from(2_459_599_798u128),
+				U256::from(1_822_118_072u128),
 			);
 
 			// 1 "real" day (at 12-second blocks)
@@ -2988,11 +2988,11 @@ mod fee_tests {
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 7200),
-				U256::from(1_000_000_000),
+				U256::from(125_000_000),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 7200),
-				U256::from(1_339_429_158_283u128),
+				U256::from(1_000_000_000u128),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 7200),
