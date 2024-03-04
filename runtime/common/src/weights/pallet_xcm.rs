@@ -282,13 +282,13 @@ impl<T: frame_system::Config> pallet_xcm::WeightInfo for WeightInfo<T> {
 	
 	fn transfer_assets() -> Weight {
 			todo!()
-		}
+	}
 	
 	fn new_query() -> Weight {
 			todo!()
-		}
+	}
 	
 	fn take_response() -> Weight {
 			todo!()
-		}
+	}
 }

@@ -79,7 +79,7 @@ impl ContainsPair<Asset, Location> for AllAssetLocationsPass {
 #[cfg(feature = "runtime-benchmarks")]
 pub fn mock_worst_case_holding() -> Assets {
 	let assets: Vec<Asset> = vec![Asset {
-		id: Concrete(Location::parent()),
+		id: AssetId(Location::parent()),
 		fun: Fungible(u128::MAX),
 	}];
 	assets.into()

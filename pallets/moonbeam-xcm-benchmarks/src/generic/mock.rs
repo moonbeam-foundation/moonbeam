@@ -165,7 +165,7 @@ impl pallet_xcm_benchmarks::generic::Config for Test {
 	type TransactAsset = Balances;
 
 	fn worst_case_response() -> (u64, Response) {
-		let assets: Assets = (Concrete(Here.into()), 100).into();
+		let assets: Assets = (AssetId(Here.into()), 100).into();
 		(0, Response::Assets(assets))
 	}
 
@@ -194,7 +194,7 @@ impl pallet_xcm_benchmarks::generic::Config for Test {
 	}
 
 	fn claimable_asset() -> Result<(Location, Location, Assets), BenchmarkError> {
-		let assets: Assets = (Concrete(Here.into()), 100).into();
+		let assets: Assets = (AssetId(Here.into()), 100).into();
 		let ticket = Location {
 			parents: 0,
 			interior: X1(GeneralIndex(0)),

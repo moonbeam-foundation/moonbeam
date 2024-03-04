@@ -250,7 +250,6 @@ impl WeightTrader for DummyWeightTrader {
 parameter_types! {
 	pub UniversalLocation: InteriorLocation = Here;
 	pub MatcherLocation: Location = Location::here();
-	pub ReachableDest: Option<Location> = Some(Location::here());
 	pub const MaxAssetsIntoHolding: u32 = 64;
 }
 
@@ -280,8 +279,6 @@ impl pallet_xcm::Config for Runtime {
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type ReachableDest = ReachableDest;
 }
 
 pub struct XcmConfig;

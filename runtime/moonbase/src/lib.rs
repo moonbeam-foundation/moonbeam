@@ -1431,7 +1431,7 @@ construct_runtime! {
 		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config<T>, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
-		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 35,
+		// Previously 35: BaseFee
 		// Previously 36: pallet_assets::<Instance1>
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>, Config<T>} = 37,
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 38,
@@ -1452,6 +1452,7 @@ construct_runtime! {
 		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 51,
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 52,
 		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 53,
+		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 54,
 	}
 }
 
@@ -1511,9 +1512,9 @@ mod benches {
 		[pallet_crowdloan_rewards, CrowdloanRewards]
 		[pallet_author_mapping, AuthorMapping]
 		[pallet_proxy, Proxy]
-		[pallet_identity, Identity]
+		// TODO(RODRIGO) [pallet_identity, Identity]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
-		[pallet_xcm, PolkadotXcm]
+		[pallet_xcm, PalletXcmExtrinsiscsBenchmark::<Runtime>]
 		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
