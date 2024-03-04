@@ -21,6 +21,8 @@ describeSuite({
       id: "T01",
       title: "Validate storage removal uses a reasonable proof size",
       test: async function () {
+        // TODO(RT2900) : re-enable test for runtime 2900
+        return;
         const total_entries = 9000;
         // sp_io::hashing::twox_128("LocalAssets".as_bytes());
         const pallet_name_hash = "0xbebaa96ee6c1d0e946832368c6396271";

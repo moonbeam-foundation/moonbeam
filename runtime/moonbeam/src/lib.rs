@@ -1166,6 +1166,10 @@ impl Contains<RuntimeCall> for NormalFilter {
 				| pallet_treasury::Call::check_status { .. }
 				| pallet_treasury::Call::void_spend { .. },
 			) => false,
+			// TODO(RT29000): Remove this filter for runtime upgrade 2900
+			RuntimeCall::MoonbeamLazyMigrations(
+				pallet_moonbeam_lazy_migrations::Call::clear_local_assets_storage { .. },
+			) => false,
 			_ => true,
 		}
 	}
