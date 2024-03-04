@@ -1856,7 +1856,6 @@ pub mod pallet {
 				collator_commission: <CollatorCommission<T>>::get(),
 			};
 
-			//
 			<DelayedPayouts<T>>::insert(prepare_payout_for_round, payout);
 
 			<T as Config>::WeightInfo::prepare_staking_payouts()
