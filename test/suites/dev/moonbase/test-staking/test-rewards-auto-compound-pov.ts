@@ -84,7 +84,7 @@ describeSuite({
       title: "should be under the limit of 3_500_000",
       test: async () => {
         // Moves to the next payout block
-        await jumpRounds(context, 1);
+        await jumpRounds(context, 2);
         const { block } = await context.createBlock();
 
         const weights = await context.pjsApi.query.system.blockWeight();

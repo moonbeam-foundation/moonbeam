@@ -161,7 +161,8 @@ impl Config for Test {
 	type SlotProvider = StakingRoundSlotProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
-	type SlotsPerYear = frame_support::traits::ConstU32<{ 31_557_600 / 6 }>;
+	type SlotDuration = frame_support::traits::ConstU64<6_000>;
+	type BlockTime = frame_support::traits::ConstU64<6_000>;
 }
 
 pub(crate) struct ExtBuilder {

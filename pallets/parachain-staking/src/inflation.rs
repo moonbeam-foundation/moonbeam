@@ -25,9 +25,13 @@ use sp_runtime::{Perbill, RuntimeDebug};
 use substrate_fixed::transcendental::pow as floatpow;
 use substrate_fixed::types::I64F64;
 
+// Milliseconds per year
+const MS_PER_YEAR: u64 = 31_557_600_000;
+
 fn rounds_per_year<T: Config>() -> u32 {
-	let blocks_per_round = <Pallet<T>>::round().length;
-	T::SlotsPerYear::get() / blocks_per_round
+	let blocks_per_round = <Pallet<T>>::round().length as u64;
+	let blocks_per_year = MS_PER_YEAR / T::BlockTime::get();
+	(blocks_per_year / blocks_per_round) as u32
 }
 
 #[derive(
@@ -133,8 +137,8 @@ impl<Balance> InflationInfo<Balance> {
 	}
 	/// Reset round inflation rate based on changes to round length
 	pub fn reset_round<T: Config>(&mut self, new_length: u32) {
-		let periods = T::SlotsPerYear::get() / new_length;
-		self.round = perbill_annual_to_perbill_round(self.annual, periods);
+		let periods = (MS_PER_YEAR / T::BlockTime::get()) / (new_length as u64);
+		self.round = perbill_annual_to_perbill_round(self.annual, periods as u32);
 	}
 	/// Set staking expectations
 	pub fn set_expectations(&mut self, expect: Range<Balance>) {
