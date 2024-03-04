@@ -30,7 +30,8 @@ impl GetMigrations for MoonbaseMigrations {
 	}
 }
 
-pub struct PalletStakingMultiplyRoundLenBy2;
+// This migration should only be applieonly tos runtime with async backing enabled
+pub struct PalletStakingMultiplyRoundLenBy2
 impl Migration for PalletStakingMultiplyRoundLenBy2 {
 	fn friendly_name(&self) -> &str {
 		"MM_MultiplyRoundLenBy2"
