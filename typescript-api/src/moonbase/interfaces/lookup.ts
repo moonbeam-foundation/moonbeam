@@ -4448,6 +4448,7 @@ export default {
     current: "u32",
     first: "u64",
     length: "u32",
+    firstSlot: "u64",
   },
   /** Lookup433: pallet_parachain_staking::types::Delegator<account::AccountId20, Balance> */
   PalletParachainStakingDelegator: {
