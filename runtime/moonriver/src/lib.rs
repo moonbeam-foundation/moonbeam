@@ -624,7 +624,7 @@ impl pallet_identity::Config for Runtime {
 	type RegistrarOrigin = IdentityRegistrarOrigin;
 	type OffchainSignature = Signature;
 	type SigningPublicKey = <Signature as sp_runtime::traits::Verify>::Signer;
-	type UsernameAuthorityOrigin = EnsureRoot<Self::AccountId>;
+	type UsernameAuthorityOrigin = EnsureRoot<AccountId>;
 	type PendingUsernameExpiration = PendingUsernameExpiration;
 	type MaxSuffixLength = MaxSuffixLength;
 	type MaxUsernameLength = MaxUsernameLength;
@@ -1463,7 +1463,7 @@ mod benches {
 		[pallet_crowdloan_rewards, CrowdloanRewards]
 		[pallet_author_mapping, AuthorMapping]
 		[pallet_proxy, Proxy]
-		// TODO(RODRIGO) [pallet_identity, Identity]
+		[pallet_identity, Identity]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[pallet_xcm, PalletXcmExtrinsiscsBenchmark::<Runtime>]
 		[pallet_asset_manager, AssetManager]
