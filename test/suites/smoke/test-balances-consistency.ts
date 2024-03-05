@@ -30,6 +30,9 @@ enum ReserveType {
   ReferendumInfo = "11",
   Asset = "12",
   AssetMetadata = "13",
+  LocalAsset = "14",
+  LocalAssetMetadata = "15",
+  LocalAssetDeposit = "16",
   Named = "17",
   SubIdentity = "18",
   PreimageStatus = "19",
@@ -583,6 +586,72 @@ describeSuite({
           });
       });
 
+      if (specVersion < 2800) {
+        await new Promise((resolve, reject) => {
+          apiAt.query.localAssets.asset
+            .entries()
+            .then(async (localAssets) => {
+              localAssets.forEach((localAsset) => {
+                updateReserveMap(localAsset[1].unwrap().owner.toHex().slice(-40), {
+                  [ReserveType.LocalAsset]: localAsset[1].unwrap().deposit.toBigInt(),
+                });
+              });
+
+              await new Promise((resolve, reject) => {
+                apiAt.query.localAssets.metadata
+                  .entries()
+                  .then((localAssetMetadata) => {
+                    localAssetMetadata.forEach((localAssetMetadata) => {
+                      updateReserveMap(
+                        localAssets
+                          .find(
+                            (localAsset) =>
+                              localAsset[0].toHex().slice(-64) ==
+                              localAssetMetadata[0].toHex().slice(-64)
+                          )![1]
+                          .unwrap()
+                          .owner.toHex()
+                          .slice(-40),
+                        {
+                          [ReserveType.LocalAssetMetadata]:
+                            localAssetMetadata[1].deposit.toBigInt(),
+                        }
+                      );
+                    });
+                    resolve("localAssetsMetadata scraped");
+                  })
+                  .catch((error) => {
+                    console.error("Error fetching localAssetsMetadata:", error);
+                    reject(error);
+                  });
+              });
+
+              resolve("localAssets scraped");
+            })
+            .catch((error) => {
+              console.error("Error fetching localAssets :", error);
+              reject(error);
+            });
+        });
+
+        await new Promise((resolve, reject) => {
+          apiAt.query.assetManager.localAssetDeposit
+            .entries()
+            .then((localAssetDeposits) => {
+              localAssetDeposits.forEach((assetDeposit) => {
+                updateReserveMap(assetDeposit[1].unwrap().creator.toHex(), {
+                  [ReserveType.LocalAssetDeposit]: assetDeposit[1].unwrap().deposit.toBigInt(),
+                });
+              });
+              resolve("localAssetDeposits scraped");
+            })
+            .catch((error) => {
+              console.error("Error fetching localAssetDeposits:", error);
+              reject(error);
+            });
+        });
+      }
+
       await new Promise((resolve, reject) => {
         apiAt.query.balances.reserves
           .entries()
@@ -846,14 +915,26 @@ describeSuite({
         checkReservedBalance(userId, user.data.reserved.toBigInt());
         totalAccounts++;
       } else {
+        const chainName = (await paraApi.rpc.system.chain()).toString();
+        const shortFallExists = AccountShortfalls[chainName];
+        const runtimeVersion = paraApi.consts.system.version.specVersion.toNumber();
+
         await processAllStorage(paraApi, keyPrefix, blockHash, (items) => {
           for (const { key, value } of items) {
             const accountId = key.slice(-40);
             const accountInfo = value;
             const freeBal = hexToBigInt(accountInfo.slice(34, 66), { isLe: true });
-            const reservedBalance = hexToBigInt(accountInfo.slice(66, 98), { isLe: true });
+            let reservedBalance = hexToBigInt(accountInfo.slice(66, 98), { isLe: true });
             totalIssuance += freeBal + reservedBalance;
             totalAccounts++;
+
+            if (
+              shortFallExists?.[`0x${accountId}`] &&
+              shortFallExists[`0x${accountId}`].brokenIn <= runtimeVersion
+            ) {
+              reservedBalance -= shortFallExists[`0x${accountId}`].reserved;
+            }
+
             checkReservedBalance(accountId, reservedBalance);
           }
         });
@@ -945,3 +1026,20 @@ describeSuite({
     });
   },
 });
+
+const AccountShortfalls = {
+  "Moonbase Stage": {
+    "0x7cb3790906f902a02f0d6784058362db929c5f3f": {
+      comment: "localAssetDeposit to be manually returned",
+      brokenIn: 2801,
+      reserved: 300000000000000000000n,
+      locks: 0n,
+    },
+    "0x56c97e8fb7faebebe643473d5c9adaeb3fb2538e": {
+      comment: "localAssetDeposit to be manually returned",
+      brokenIn: 2801,
+      reserved: 1009200000000000000n,
+      locks: 0n,
+    },
+  },
+} as const;
