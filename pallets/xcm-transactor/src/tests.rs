@@ -1264,7 +1264,7 @@ fn test_hrmp_manipulator_init_v3_convert_works() {
 }
 
 #[test]
-fn test_hrmp_manipulator_init_v4_convert_fails() {
+fn test_hrmp_manipulator_init_v5_convert_fails() {
 	ExtBuilder::default()
 		.with_balances(vec![])
 		.build()
@@ -1276,7 +1276,7 @@ fn test_hrmp_manipulator_init_v4_convert_fails() {
 			let total_fee = 100u128;
 
 			// Change xcm version
-			CustomVersionWrapper::set_version(4);
+			CustomVersionWrapper::set_version(5);
 
 			assert_noop!(
 				XcmTransactor::hrmp_manage(
