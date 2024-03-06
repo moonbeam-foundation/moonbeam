@@ -96,7 +96,7 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 										}
 										dispatch_call()
 									},
-									_ => unreachable!()
+									EthereumXcmTracingStatus::TransactionExited => Ok(()),
 								},
 								// This runtime instance is importing a block.
 								None => dispatch_call()
