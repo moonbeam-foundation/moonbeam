@@ -8,8 +8,8 @@ import {
 import { hexToNumber, Abi, encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "T10",
-  title: "Trace ethereum xcm #2: Multiple xcms in a block",
+  id: "T12",
+  title: "Trace ethereum xcm #3: Multiple xcms in a block",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let incremetorAddress: `0x${string}`;
