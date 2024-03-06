@@ -16,6 +16,7 @@
 
 use frame_support::traits::{Get, OriginTrait};
 use orml_traits::location::{RelativeReserveProvider, Reserve};
+use sp_runtime::traits::TryConvert;
 use sp_std::{convert::TryInto, marker::PhantomData};
 use xcm::latest::{Asset, Junction::AccountKey20, Location, NetworkId};
 
@@ -42,7 +43,7 @@ pub struct SignedToAccountId20<Origin, AccountId, Network>(
 	sp_std::marker::PhantomData<(Origin, AccountId, Network)>,
 );
 impl<Origin: OriginTrait + Clone, AccountId: Into<[u8; 20]>, Network: Get<NetworkId>>
-	sp_runtime::traits::TryConvert<Origin, Location> for SignedToAccountId20<Origin, AccountId, Network>
+	TryConvert<Origin, Location> for SignedToAccountId20<Origin, AccountId, Network>
 where
 	Origin::PalletsOrigin: From<frame_system::RawOrigin<AccountId>>
 		+ TryInto<frame_system::RawOrigin<AccountId>, Error = Origin::PalletsOrigin>,

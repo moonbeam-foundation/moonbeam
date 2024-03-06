@@ -72,14 +72,16 @@ pub struct IdentityPrecompile<Runtime, MaxAdditionalFields>(
 impl<Runtime, MaxAdditionalFields> IdentityPrecompile<Runtime, MaxAdditionalFields>
 where
 	MaxAdditionalFields: Get<u32> + 'static,
-	Runtime: pallet_evm::Config + pallet_identity::Config<IdentityInformation = pallet_identity::legacy::IdentityInfo<MaxAdditionalFields>>,
-	<Runtime::IdentityInformation as pallet_identity::IdentityInformationProvider>::FieldsIdentifier: Into<u64> + From<u64>,
+	Runtime: pallet_evm::Config
+		+ pallet_identity::Config<
+			IdentityInformation = pallet_identity::legacy::IdentityInfo<MaxAdditionalFields>,
+		>,
 	Runtime::AccountId: Into<H160>,
 	Runtime::Hash: From<H256>,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::RuntimeCall: From<pallet_identity::Call<Runtime>>,
-	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec
+	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
 {
 	// Note: addRegistrar(address) & killIdentity(address) are not supported since they use a
 	// force origin.
@@ -88,7 +90,7 @@ where
 	#[precompile::public("setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))")]
 	fn set_identity(
 		handle: &mut impl PrecompileHandle,
-		info: IdentityInfo<MaxAdditionalFields>
+		info: IdentityInfo<MaxAdditionalFields>,
 	) -> EvmResult {
 		// editorconfig-checker-enable
 		let caller = handle.context().caller;
@@ -102,9 +104,7 @@ where
 
 		let info: Box<Runtime::IdentityInformation> = Self::identity_to_input(info)?;
 
-		let call = pallet_identity::Call::<Runtime>::set_identity {
-			info,
-		};
+		let call = pallet_identity::Call::<Runtime>::set_identity { info };
 
 		let origin = Runtime::AddressMapping::into_account_id(caller);
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
@@ -459,14 +459,22 @@ where
 						account: Address(reg.account.into()),
 						fee: reg.fee.into(),
 						fields: IdentityFields {
-							display: fields & (IdentityField::Display as u64) == (IdentityField::Display as u64),
-							legal: fields & (IdentityField::Legal as u64) == (IdentityField::Legal as u64),
-							web: fields & (IdentityField::Web as u64) == (IdentityField::Web as u64),
-							riot: fields & (IdentityField::Riot as u64) == (IdentityField::Riot as u64),
-							email: fields & (IdentityField::Email as u64) == (IdentityField::Email as u64),
-							pgp_fingerprint: fields & (IdentityField::PgpFingerprint as u64) == (IdentityField::PgpFingerprint as u64),
-							image: fields & (IdentityField::Image as u64) == (IdentityField::Image as u64),
-							twitter: fields & (IdentityField::Twitter as u64) == (IdentityField::Twitter as u64),
+							display: fields & (IdentityField::Display as u64)
+								== (IdentityField::Display as u64),
+							legal: fields & (IdentityField::Legal as u64)
+								== (IdentityField::Legal as u64),
+							web: fields & (IdentityField::Web as u64)
+								== (IdentityField::Web as u64),
+							riot: fields & (IdentityField::Riot as u64)
+								== (IdentityField::Riot as u64),
+							email: fields & (IdentityField::Email as u64)
+								== (IdentityField::Email as u64),
+							pgp_fingerprint: fields & (IdentityField::PgpFingerprint as u64)
+								== (IdentityField::PgpFingerprint as u64),
+							image: fields & (IdentityField::Image as u64)
+								== (IdentityField::Image as u64),
+							twitter: fields & (IdentityField::Twitter as u64)
+								== (IdentityField::Twitter as u64),
 						},
 					}
 				} else {
@@ -482,9 +490,7 @@ where
 		Ok(registrars)
 	}
 
-	fn identity_fields_to_input(
-		fields: IdentityFields,
-	) -> IdentityFieldOf<Runtime> {
+	fn identity_fields_to_input(fields: IdentityFields) -> IdentityFieldOf<Runtime> {
 		let mut field_bits = 0u64;
 		if fields.display {
 			field_bits = field_bits | IdentityField::Display as u64;
@@ -581,16 +587,19 @@ where
 	}
 
 	fn identity_to_output(
-		registration: Option<
-			(
-				pallet_identity::Registration<
-					BalanceOf<Runtime>,
-					Runtime::MaxRegistrars,
-					Runtime::IdentityInformation,
+		registration: Option<(
+			pallet_identity::Registration<
+				BalanceOf<Runtime>,
+				Runtime::MaxRegistrars,
+				Runtime::IdentityInformation,
+			>,
+			Option<
+				frame_support::BoundedVec<
+					u8,
+					<Runtime as pallet_identity::Config>::MaxUsernameLength,
 				>,
-				Option<frame_support::BoundedVec<u8, <Runtime as pallet_identity::Config>::MaxUsernameLength>>
-			)
-		>,
+			>,
+		)>,
 	) -> MayRevert<Registration<MaxAdditionalFields>> {
 		if registration.is_none() {
 			return Ok(Registration::<MaxAdditionalFields>::default());

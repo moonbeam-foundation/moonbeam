@@ -381,7 +381,8 @@ parameter_types! {
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
-// TODO: This pallet can be removed after the lazy migration is done and event `Completed` is emitted.
+// TODO: This pallet can be removed after the lazy migration is done and
+// event `Completed` is emitted.
 // https://github.com/paritytech/polkadot-sdk/pull/1246
 impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -390,7 +391,8 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 }
 
 parameter_types! {
-	pub MessageQueueServiceWeight: Weight = Perbill::from_percent(25) * RuntimeBlockWeights::get().max_block;
+	pub MessageQueueServiceWeight: Weight =
+		Perbill::from_percent(25) * RuntimeBlockWeights::get().max_block;
 	// TODO: describe
 	pub const MessageQueueMaxStale: u32 = 8;
 	// TODO: describe
