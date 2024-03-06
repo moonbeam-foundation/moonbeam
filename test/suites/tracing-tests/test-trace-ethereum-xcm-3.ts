@@ -29,7 +29,7 @@ describeSuite({
       const sendingAddress2 = originAddress2;
       const transferredBalance = 10_000_000_000_000_000_000n;
 
-      // We first fund parachain 2000 sovreign account
+      // We first fund parachain sovreign accounts
       await context.createBlock(
         context
           .polkadotJs()
