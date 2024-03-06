@@ -96,7 +96,10 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 										}
 										dispatch_call()
 									},
-									EthereumXcmTracingStatus::TransactionExited => Ok(()),
+									EthereumXcmTracingStatus::TransactionExited => Ok(PostDispatchInfo {
+		actual_weight: None,
+		pays_fee: Pays::No,
+		}),
 								},
 								// This runtime instance is importing a block.
 								None => dispatch_call()
