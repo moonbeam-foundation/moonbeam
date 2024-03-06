@@ -137,8 +137,9 @@ impl sp_runtime::traits::Verify for MockSignature {
 		m.copy_from_slice(<sha3::Keccak256 as sha3::Digest>::digest(msg.get()).as_slice());
 		match sp_io::crypto::secp256k1_ecdsa_recover(self.0.as_ref(), &m) {
 			Ok(pubkey) => {
-				MockAccount(sp_core::H160::from_slice(&<sha3::Keccak256 as sha3::Digest>::digest(pubkey).as_slice()[12..32]))
-					== *signer
+				MockAccount(sp_core::H160::from_slice(
+					&<sha3::Keccak256 as sha3::Digest>::digest(pubkey).as_slice()[12..32],
+				)) == *signer
 			}
 			Err(sp_io::EcdsaVerifyError::BadRS) => {
 				log::error!(target: "evm", "Error recovering: Incorrect value of R or S");
@@ -155,7 +156,6 @@ impl sp_runtime::traits::Verify for MockSignature {
 		}
 	}
 }
-
 
 /// Public key for an Ethereum / Moonbeam compatible account
 #[derive(
