@@ -84,9 +84,7 @@ describeSuite({
             },
           ],
           weight_limit: {
-            //refTime: 4000000000n,
             refTime: 4000000000n,
-            //proofSize: 80000n,
             proofSize: 60000n,
           } as any,
           descend_origin: sendingAddress,
@@ -98,9 +96,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                //refTime: 3000000000n,
                 refTime: 3000000000n,
-                //proofSize: 50000n,
                 proofSize: 30000n,
               },
               call: {
