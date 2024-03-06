@@ -43,6 +43,7 @@ precompile-utils = { workspace = true, features = ["std", "testing"] }
 # Substrate
 pallet-balances = { workspace = true, features = ["std"] }
 pallet-timestamp = { workspace = true, features = ["std"] }
+pallet-message-queue = { workspace = true, features = ["std"] }
 scale-info = { workspace = true, features = ["std", "derive"] }
 sp-io = { workspace = true, features = ["std"] }
 

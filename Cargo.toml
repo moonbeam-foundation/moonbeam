@@ -20,7 +20,7 @@ members = [
 	"precompiles/conviction-voting",
 	"precompiles/crowdloan-rewards",
 	"precompiles/gmp",
-	# TODO(RODRIGO) "precompiles/identity",
+	"precompiles/identity",
 	"precompiles/parachain-staking",
 	"precompiles/precompile-registry",
 	"precompiles/preimage",
@@ -79,7 +79,7 @@ pallet-evm-precompile-collective = { path = "precompiles/collective", default-fe
 pallet-evm-precompile-conviction-voting = { path = "precompiles/conviction-voting", default-features = false }
 pallet-evm-precompile-crowdloan-rewards = { path = "precompiles/crowdloan-rewards", default-features = false }
 pallet-evm-precompile-gmp = { path = "precompiles/gmp", default-features = false }
-# TODO(RODRIGO) pallet-evm-precompile-identity = { path = "precompiles/identity", default-features = false }
+pallet-evm-precompile-identity = { path = "precompiles/identity", default-features = false }
 pallet-evm-precompile-parachain-staking = { path = "precompiles/parachain-staking", default-features = false }
 pallet-evm-precompile-preimage = { path = "precompiles/preimage", default-features = false }
 pallet-evm-precompile-proxy = { path = "precompiles/proxy", default-features = false }

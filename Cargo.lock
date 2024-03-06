@@ -6209,6 +6209,7 @@ dependencies = [
  "pallet-evm-precompile-crowdloan-rewards",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-gmp",
+ "pallet-evm-precompile-identity",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-preimage",
@@ -6694,6 +6695,7 @@ dependencies = [
  "pallet-evm-precompile-crowdloan-rewards",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-gmp",
+ "pallet-evm-precompile-identity",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-preimage",
@@ -7087,6 +7089,7 @@ dependencies = [
  "pallet-evm-precompile-crowdloan-rewards",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-gmp",
+ "pallet-evm-precompile-identity",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-preimage",
@@ -8831,6 +8834,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-evm-precompile-identity"
+version = "0.1.0"
+dependencies = [
+ "enumflags2",
+ "evm",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex",
+ "hex-literal 0.3.4",
+ "log",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-identity",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "scale-info",
+ "serde",
+ "sha3",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.7.2)",
+]
+
+[[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#2f9e56585d75a87926c222b32d1107d9ce56d934"
@@ -9018,6 +9048,7 @@ dependencies = [
  "orml-traits",
  "pallet-balances",
  "pallet-evm",
+ "pallet-message-queue",
  "pallet-staking",
  "pallet-timestamp",
  "pallet-xcm-transactor",

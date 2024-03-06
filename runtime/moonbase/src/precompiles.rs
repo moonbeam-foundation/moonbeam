@@ -30,7 +30,7 @@ use pallet_evm_precompile_collective::CollectivePrecompile;
 use pallet_evm_precompile_conviction_voting::ConvictionVotingPrecompile;
 use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 use pallet_evm_precompile_gmp::GmpPrecompile;
-// TODO(RODRIGO) use pallet_evm_precompile_identity::IdentityPrecompile;
+use pallet_evm_precompile_identity::IdentityPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
@@ -228,12 +228,11 @@ type MoonbasePrecompilesAt<R> = (
 		XcmTransactorPrecompileV3<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
-	// TODO(RODRIGO)
-	// PrecompileAt<
-	// 	AddressU64<2072>,
-	// 	IdentityPrecompile<R>,
-	// 	(CallableByContract, CallableByPrecompile),
-	// >,
+	PrecompileAt<
+		AddressU64<2072>,
+		IdentityPrecompile<R, crate::MaxAdditionalFields>,
+		(CallableByContract, CallableByPrecompile),
+	>,
 	PrecompileAt<
 		AddressU64<2073>,
 		RelayDataVerifierPrecompile<R>,

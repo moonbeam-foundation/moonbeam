@@ -30,9 +30,8 @@ use pallet_xcm_transactor::{
 };
 use sp_core::ConstU32;
 use xcm::latest::prelude::{
-	AccountId32, AccountKey20, All, BuyExecution, ClearOrigin, DepositAsset, GeneralIndex,
-	Junction, Junctions, Limited, Location, OriginKind, PalletInstance, Parachain, QueryResponse,
-	Reanchorable, Response, WeightLimit, WithdrawAsset, Xcm,
+	AccountId32, AccountKey20, GeneralIndex, Junction, Junctions, Limited, Location, OriginKind,
+	PalletInstance, Parachain, QueryResponse, Reanchorable, Response, WeightLimit, Xcm,
 };
 use xcm::{VersionedLocation, WrapVersion};
 use xcm_executor::traits::ConvertLocation;

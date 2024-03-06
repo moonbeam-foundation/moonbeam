@@ -1717,7 +1717,7 @@ mod tests {
 		);
 		assert_eq!(
 			get!(pallet_identity, ByteDeposit, u128),
-			Balance::from(660 * MILLIGLMR)
+			Balance::from(10 * MILLIGLMR)
 		);
 		assert_eq!(
 			get!(pallet_identity, SubAccountDeposit, u128),

@@ -1719,7 +1719,7 @@ mod tests {
 		);
 		assert_eq!(
 			get!(pallet_identity, ByteDeposit, u128),
-			Balance::from(6600 * MICROMOVR)
+			Balance::from(100 * MICROMOVR)
 		);
 		assert_eq!(
 			get!(pallet_identity, SubAccountDeposit, u128),
