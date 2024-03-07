@@ -7,13 +7,12 @@ runs:
     - name: Install components and targets
       shell: bash
       run: |
-        apt install --assume-yes git clang curl libssl-dev llvm libudev-dev make protobuf-compiler
         if ! which "rustup" > /dev/null; then
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         fi
         rustup override unset
-        rustup toolchain install 1.74
-        rustup default 1.74
+        rustup toolchain install 1.75
+        rustup default 1.75
         rustup component add rust-src rustfmt clippy llvm-tools-preview
         rustup target add wasm32-unknown-unknown
     - name: Shows the name of the active toolchain and the version of `rustc`
