@@ -103,7 +103,11 @@ impl xcm_executor::traits::TransactAsset for NoAssetTransactor {
 		unreachable!();
 	}
 
-	fn withdraw_asset(_: &Asset, _: &Location, _: Option<&XcmContext>) -> Result<Assets, XcmError> {
+	fn withdraw_asset(
+		_: &Asset,
+		_: &Location,
+		_: Option<&XcmContext>,
+	) -> Result<xcm_executor::AssetsInHolding, XcmError> {
 		unreachable!();
 	}
 }
@@ -140,6 +144,8 @@ impl xcm_executor::Config for XcmConfig {
 	type CallDispatcher = RuntimeCall;
 	type SafeCallFilter = Everything;
 	type Aliasers = ();
+
+	type TransactionalProcessor = ();
 }
 
 impl pallet_xcm_benchmarks::Config for Test {
@@ -177,6 +183,10 @@ impl pallet_xcm_benchmarks::generic::Config for Test {
 		Err(BenchmarkError::Skip)
 	}
 
+	fn fee_asset() -> Result<Asset, BenchmarkError> {
+		Err(BenchmarkError::Skip)
+	}
+
 	fn export_message_origin_and_destination(
 	) -> Result<(Location, NetworkId, Junctions), BenchmarkError> {
 		Err(BenchmarkError::Skip)
@@ -197,7 +207,7 @@ impl pallet_xcm_benchmarks::generic::Config for Test {
 		let assets: Assets = (AssetId(Here.into()), 100).into();
 		let ticket = Location {
 			parents: 0,
-			interior: X1(GeneralIndex(0)),
+			interior: [GeneralIndex(0)].into(),
 		};
 		Ok((Default::default(), ticket, assets))
 	}

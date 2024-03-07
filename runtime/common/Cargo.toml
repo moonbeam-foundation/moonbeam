@@ -97,6 +97,7 @@ std = [
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
 	"pallet-moonbeam-lazy-migrations/std",
+	"pallet-identity/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-consensus-slots/std",
