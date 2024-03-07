@@ -19,7 +19,7 @@ interface Xtokens {
     }
 
     // A Asset is defined by a multilocation and an amount
-    struct Asset {
+    struct MultiAsset {
         Multilocation location;
         uint256 amount;
     }
@@ -124,7 +124,7 @@ interface Xtokens {
     /// (uint64::MAX means Unlimited weight)
     /// @custom:selector 797b45fd
     function transferMultiAssets(
-        Asset[] memory assets,
+        MultiAsset[] memory assets,
         uint32 feeItem,
         Multilocation memory destination,
         uint64 weight
