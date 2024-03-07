@@ -115,6 +115,7 @@ describeSuite({
       await context.createBlock();
 
       const txHashes = (await context.viem().getBlock({ blockTag: "latest" })).transactions;
+      expect(txHashes.length).toBe(2);
       transactionHashes.push(...txHashes);
     });
 
