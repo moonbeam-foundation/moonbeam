@@ -47,8 +47,8 @@ use frame_support::{
 		tokens::imbalance::ResolveTo,
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOfDiverse,
-		EqualPrivilegeOnly, Imbalance, InstanceFilter, LinearStoragePrice, OffchainWorker,
-		OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
+		EqualPrivilegeOnly, Imbalance, InstanceFilter, LinearStoragePrice, OnFinalize,
+		OnUnbalanced,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
@@ -81,8 +81,6 @@ use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
 use sp_consensus_slots::Slot;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
-#[cfg(feature = "try-runtime")]
-use sp_runtime::TryRuntimeError;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
@@ -1191,50 +1189,6 @@ impl moonkit_xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 	}
 	fn resume_xcm_execution() -> DispatchResult {
 		XcmpQueue::resume_xcm_execution(RuntimeOrigin::root())
-	}
-}
-
-/// The hooks we want to run in Maintenance Mode
-pub struct MaintenanceHooks;
-
-impl OnInitialize<BlockNumber> for MaintenanceHooks {
-	fn on_initialize(n: BlockNumber) -> Weight {
-		AllPalletsWithSystem::on_initialize(n)
-	}
-}
-
-// return 0
-// For some reason using empty tuple () isnt working
-// There exist only two pallets that use onIdle and these are xcmp and dmp queues
-// For some reason putting an empty tumple does not work (transaction never finishes)
-// We use an empty onIdle, if on the future we want one of the pallets to execute it
-// we need to provide it here
-impl OnIdle<BlockNumber> for MaintenanceHooks {
-	fn on_idle(_n: BlockNumber, _max_weight: Weight) -> Weight {
-		Weight::zero()
-	}
-}
-
-impl OnRuntimeUpgrade for MaintenanceHooks {
-	fn on_runtime_upgrade() -> Weight {
-		AllPalletsWithSystem::on_runtime_upgrade()
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn try_on_runtime_upgrade(checks: bool) -> Result<Weight, TryRuntimeError> {
-		AllPalletsWithSystem::try_on_runtime_upgrade(checks)
-	}
-}
-
-impl OnFinalize<BlockNumber> for MaintenanceHooks {
-	fn on_finalize(n: BlockNumber) {
-		AllPalletsWithSystem::on_finalize(n)
-	}
-}
-
-impl OffchainWorker<BlockNumber> for MaintenanceHooks {
-	fn offchain_worker(n: BlockNumber) {
-		AllPalletsWithSystem::offchain_worker(n)
 	}
 }
 

@@ -1235,9 +1235,9 @@ dependencies = [
 
 [[package]]
 name = "bumpalo"
-version = "3.15.3"
+version = "3.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ea184aa71bb362a1157c896979544cc23974e08fd265f29ea96b59f0b4a555b"
+checksum = "7ff69b9dd49fd426c69a0db9fc04dd934cdb6645ff000864d98f7e2af8830eaa"
 
 [[package]]
 name = "byte-slice-cast"
@@ -1330,9 +1330,9 @@ checksum = "fd6c0e7b807d60291f42f33f58480c0bfafe28ed08286446f45e463728cf9c1c"
 
 [[package]]
 name = "cc"
-version = "1.0.89"
+version = "1.0.90"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0ba8f7aaa012f30d5b2861462f6708eccd49c3c39863fe083a308035f63d723"
+checksum = "8cd6604a82acf3039f1144f54b8eb34e91ffba622051189e71b781822d5ee1f5"
 dependencies = [
  "jobserver",
  "libc",
@@ -1404,9 +1404,9 @@ dependencies = [
 
 [[package]]
 name = "chrono"
-version = "0.4.34"
+version = "0.4.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bc015644b92d5890fab7489e49d21f879d5c990186827d42ec511919404f38b"
+checksum = "8eaf5903dcbc0a39312feb77df2ff4c76387d591b9fc7b04a238dcf8bb62639a"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
@@ -1471,9 +1471,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.1"
+version = "4.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c918d541ef2913577a0f9566e9ce27cb35b6df072075769e0b26cb5a554520da"
+checksum = "b230ab84b0ffdf890d5a10abdbc8b83ae1c4918275daea1ab8801f71536b2651"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -1481,9 +1481,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.1"
+version = "4.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f3e7391dad68afb0c2ede1bf619f579a3dc9c2ec67f089baa397123a2f3d1eb"
+checksum = "ae129e2e766ae0ec03484e609954119f123cc1fe650337e155d03b022f24f7b4"
 dependencies = [
  "anstream",
  "anstyle",
@@ -4649,7 +4649,7 @@ dependencies = [
  "iana-time-zone-haiku",
  "js-sys",
  "wasm-bindgen",
- "windows-core 0.52.0",
+ "windows-core",
 ]
 
 [[package]]
@@ -6785,6 +6785,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "frame-try-runtime",
  "hex-literal 0.3.4",
  "impl-trait-for-tuples",
  "log",
@@ -8354,7 +8355,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/moonbeam-foundation/crowdloan-rewards?branch=moonbeam-polkadot-v1.7.2#df3b3772383ddc985c93673414e4af6597f4bb34"
+source = "git+https://github.com/moonbeam-foundation/crowdloan-rewards?branch=moonbeam-polkadot-v1.7.2#f398e102dbff742db441bf00502565aa9c863828"
 dependencies = [
  "ed25519-dalek 1.0.1",
  "frame-benchmarking",
@@ -14906,7 +14907,7 @@ dependencies = [
 [[package]]
 name = "sp-crypto-ec-utils"
 version = "0.10.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#475e7a147676a4e7a9d255ddc7969dd35ea22882"
+source = "git+https://github.com/paritytech/polkadot-sdk#629506ce061db76d31d4f7a81f4a497752b27259"
 dependencies = [
  "ark-bls12-377",
  "ark-bls12-377-ext",
@@ -14969,7 +14970,7 @@ dependencies = [
 [[package]]
 name = "sp-debug-derive"
 version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#475e7a147676a4e7a9d255ddc7969dd35ea22882"
+source = "git+https://github.com/paritytech/polkadot-sdk#629506ce061db76d31d4f7a81f4a497752b27259"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -14990,7 +14991,7 @@ dependencies = [
 [[package]]
 name = "sp-externalities"
 version = "0.25.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#475e7a147676a4e7a9d255ddc7969dd35ea22882"
+source = "git+https://github.com/paritytech/polkadot-sdk#629506ce061db76d31d4f7a81f4a497752b27259"
 dependencies = [
  "environmental",
  "parity-scale-codec",
@@ -15209,7 +15210,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface"
 version = "24.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#475e7a147676a4e7a9d255ddc7969dd35ea22882"
+source = "git+https://github.com/paritytech/polkadot-sdk#629506ce061db76d31d4f7a81f4a497752b27259"
 dependencies = [
  "bytes",
  "impl-trait-for-tuples",
@@ -15241,7 +15242,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface-proc-macro"
 version = "17.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#475e7a147676a4e7a9d255ddc7969dd35ea22882"
+source = "git+https://github.com/paritytech/polkadot-sdk#629506ce061db76d31d4f7a81f4a497752b27259"
 dependencies = [
  "Inflector",
  "expander 2.0.0",
@@ -15334,7 +15335,7 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 [[package]]
 name = "sp-std"
 version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#475e7a147676a4e7a9d255ddc7969dd35ea22882"
+source = "git+https://github.com/paritytech/polkadot-sdk#629506ce061db76d31d4f7a81f4a497752b27259"
 
 [[package]]
 name = "sp-storage"
@@ -15352,7 +15353,7 @@ dependencies = [
 [[package]]
 name = "sp-storage"
 version = "19.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#475e7a147676a4e7a9d255ddc7969dd35ea22882"
+source = "git+https://github.com/paritytech/polkadot-sdk#629506ce061db76d31d4f7a81f4a497752b27259"
 dependencies = [
  "impl-serde 0.4.0",
  "parity-scale-codec",
@@ -15390,7 +15391,7 @@ dependencies = [
 [[package]]
 name = "sp-tracing"
 version = "16.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#475e7a147676a4e7a9d255ddc7969dd35ea22882"
+source = "git+https://github.com/paritytech/polkadot-sdk#629506ce061db76d31d4f7a81f4a497752b27259"
 dependencies = [
  "parity-scale-codec",
  "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
@@ -15491,7 +15492,7 @@ dependencies = [
 [[package]]
 name = "sp-wasm-interface"
 version = "20.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#475e7a147676a4e7a9d255ddc7969dd35ea22882"
+source = "git+https://github.com/paritytech/polkadot-sdk#629506ce061db76d31d4f7a81f4a497752b27259"
 dependencies = [
  "anyhow",
  "impl-trait-for-tuples",
@@ -17685,7 +17686,7 @@ version = "0.51.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca229916c5ee38c2f2bc1e9d8f04df975b4bd93f9955dc69fabb5d91270045c9"
 dependencies = [
- "windows-core 0.51.1",
+ "windows-core",
  "windows-targets 0.48.5",
 ]
 
@@ -17696,15 +17697,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1f8cf84f35d2db49a46868f947758c7a1138116f7fac3bc844f43ade1292e64"
 dependencies = [
  "windows-targets 0.48.5",
-]
-
-[[package]]
-name = "windows-core"
-version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33ab640c8d7e35bf8ba19b884ba838ceb4fba93a4e8c65a9059d08afcfc683d9"
-dependencies = [
- "windows-targets 0.52.4",
 ]
 
 [[package]]

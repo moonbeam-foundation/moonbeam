@@ -19,10 +19,6 @@
 //! This module acts as a registry where each migration is defined. Each migration should implement
 //! the "Migration" trait declared in the pallet-migrations crate.
 
-#[cfg(feature = "try-runtime")]
-use frame_support::ensure;
-#[cfg(feature = "try-runtime")]
-use frame_support::migration::get_storage_value;
 use frame_support::{
 	parameter_types, storage::unhashed::contains_prefixed_key, traits::OnRuntimeUpgrade,
 	weights::Weight,
@@ -92,7 +88,7 @@ where
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		frame_support::migrations::RemovePallet::<
+		let _ = frame_support::migrations::RemovePallet::<
 			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
 		>::pre_upgrade();
@@ -102,7 +98,7 @@ where
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		frame_support::migrations::RemovePallet::<
+		let _ = frame_support::migrations::RemovePallet::<
 			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
 		>::post_upgrade(_state);
