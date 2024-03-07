@@ -9,3 +9,6 @@ runs:
       with:
         toolchain: 1.74.0
         override: true
+      run: |
+        rustup component add rust-src
+        rustup target add wasm32-unknown-unknown
