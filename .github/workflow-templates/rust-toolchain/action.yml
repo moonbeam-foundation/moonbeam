@@ -1,0 +1,11 @@
+name: Rust Toolchain
+description: Install Rust toolchain
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: 1.74.0
+        override: true

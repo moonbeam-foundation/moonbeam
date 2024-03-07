@@ -13,6 +13,8 @@ runs:
   steps:
     - name: Run sccache-cache
       uses: mozilla-actions/sccache-action@v0.0.3
+    - name: Install Rust Toolchain
+      uses: ./.github/workflow-templates/rust-toolchain
     - name: Setup Variables
       shell: bash
       run: |
