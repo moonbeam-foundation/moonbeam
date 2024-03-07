@@ -9,6 +9,8 @@ runs:
       with:
         toolchain: 1.74.0
         override: true
+    - name: Install components and targets
+      shell: bash
       run: |
         rustup component add rust-src
         rustup target add wasm32-unknown-unknown
