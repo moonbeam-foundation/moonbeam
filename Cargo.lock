@@ -8355,7 +8355,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/moonbeam-foundation/crowdloan-rewards?branch=moonbeam-polkadot-v1.7.2#f398e102dbff742db441bf00502565aa9c863828"
+source = "git+https://github.com/moonbeam-foundation/crowdloan-rewards?branch=moonbeam-polkadot-v1.7.2#e5eabcc061a360589534191257b9caf5cd715945"
 dependencies = [
  "ed25519-dalek 1.0.1",
  "frame-benchmarking",
