@@ -4,16 +4,15 @@ description: Install Rust toolchain
 runs:
   using: "composite"
   steps:
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: 1.74.0
+        override: true
+        components: rust-src, rustfmt, clippy
     - name: Install components and targets
       shell: bash
       run: |
-        if ! which "rustup" > /dev/null; then
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-        fi
-        rustup override unset
-        rustup toolchain install 1.75
-        rustup default 1.75
-        rustup component add rust-src rustfmt clippy llvm-tools-preview
         rustup target add wasm32-unknown-unknown
     - name: Shows the name of the active toolchain and the version of `rustc`
       shell: bash
