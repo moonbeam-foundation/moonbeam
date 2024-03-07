@@ -7,7 +7,7 @@ runs:
     - name: Install components and targets
       shell: bash
       run: |
-        sudo apt install --assume-yes git clang curl libssl-dev llvm libudev-dev make protobuf-compiler
+        apt install --assume-yes git clang curl libssl-dev llvm libudev-dev make protobuf-compiler
         if ! which "rustup" > /dev/null; then
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         fi
