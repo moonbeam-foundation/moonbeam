@@ -529,13 +529,11 @@ describeSuite({
         const firstSlot = (
           (await lastBlockOfRoundApi.query.parachainStaking.round()) as any
         ).firstSlot.toBigInt();
-        // @ts-expect-error - needs ApiAugment upgrade
         const slotDuration = lastBlockOfRoundApi.consts.parachainStaking.slotDuration.toBigInt();
         const roundDuration = (currentSlot - firstSlot) * slotDuration;
         const idealDuration =
-          (await lastBlockOfRoundApi.query.parachainStaking.round()).length
-            // @ts-expect-error - needs ApiAugment upgrade
-            .toBigInt() * lastBlockOfRoundApi.consts.parachainStaking.blockTime.toBigInt();
+          (await lastBlockOfRoundApi.query.parachainStaking.round()).length.toBigInt() *
+          lastBlockOfRoundApi.consts.parachainStaking.blockTime.toBigInt();
 
         const idealIssuance =
           ((

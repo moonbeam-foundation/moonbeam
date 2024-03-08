@@ -17,7 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@acala-network/chopsticks": "0.9.8",
-    "@moonbeam-network/api-augment": "0.2800.0",
+    "@moonbeam-network/api-augment": "0.2801.0",
     "@moonwall/cli": "^5.0.3",
     "@moonwall/util": "^5.0.3",
     "@openzeppelin/contracts": "4.9.3",

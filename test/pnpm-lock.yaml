@@ -9,8 +9,8 @@ dependencies:
     specifier: 0.9.8
     version: 0.9.8(debug@4.3.4)
   '@moonbeam-network/api-augment':
-    specifier: 0.2800.0
-    version: 0.2800.0
+    specifier: 0.2801.0
+    version: 0.2801.0
   '@moonwall/cli':
     specifier: ^5.0.3
     version: 5.0.3(@acala-network/chopsticks@0.9.8)(@polkadot/api@10.11.2)(@types/node@20.11.25)(@vitest/ui@1.3.0)(typescript@5.4.2)(vitest@1.3.0)
@@ -955,8 +955,8 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: false
 
-  /@moonbeam-network/api-augment@0.2800.0:
-    resolution: {integrity: sha512-eB3qpmWx9qMjg1UkPBNXNfPNtITXcfZX6Yt+Wb76/7wegmUIbNbmC4InY0uAWkbrXj+1JSX4IlzB1AaaXC+Zhg==}
+  /@moonbeam-network/api-augment@0.2801.0:
+    resolution: {integrity: sha512-xlhiaTr+6i1O1D0CVf7hs5ENeAG0oBWFCY/Uxc6u7LR+1+cXkAfOjPigTE+K4thLaMRfCL5ERD58VBo1s67W0g==}
     engines: {node: '>=14.0.0'}
     dev: false
 
