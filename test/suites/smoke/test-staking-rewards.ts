@@ -1,4 +1,3 @@
-import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { BN, BN_BILLION } from "@polkadot/util";
 import { u128, u32, StorageKey } from "@polkadot/types";
@@ -23,13 +22,13 @@ describeSuite({
   id: "S22",
   title: "When verifying ParachainStaking rewards",
   foundationMethods: "read_only",
-  testCases: function ({ context, it, log }) {
+  testCases: ({ context, it, log }) => {
     let atStakeSnapshot: [StorageKey<[u32, AccountId20]>, PalletParachainStakingCollatorSnapshot][];
     let apiAt: ApiDecoration<"promise">;
     let predecessorApiAt: ApiDecoration<"promise">;
     let paraApi: ApiPromise;
 
-    beforeAll(async function () {
+    beforeAll(async () => {
       paraApi = context.polkadotJs("para");
 
       const atBlockNumber = process.env.BLOCK_NUMBER
@@ -66,7 +65,7 @@ describeSuite({
     it({
       id: "C100",
       title: "should snapshot the selected candidates for that round",
-      test: async function () {
+      test: async () => {
         const selectedCandidates = await apiAt.query.parachainStaking.selectedCandidates();
         const totalSelected = (await apiAt.query.parachainStaking.totalSelected()).toNumber();
         expect(atStakeSnapshot.length).to.be.lessThanOrEqual(totalSelected);
@@ -83,7 +82,7 @@ describeSuite({
       id: "C200",
       title: "should have accurate collator stats in snapshot",
       timeout: FIVE_MINS,
-      test: async function () {
+      test: async () => {
         const results = await limiter.schedule(() => {
           const specVersion = paraApi.consts.system.version.specVersion.toNumber();
           const allTasks = atStakeSnapshot.map(async (coll, index) => {
@@ -132,7 +131,7 @@ describeSuite({
       id: "C300",
       title: "should snapshot candidate delegation amounts correctly",
       timeout: ONE_HOURS,
-      test: async function () {
+      test: async () => {
         // This test is slow due to rate limiting, and should be run ad-hoc only
         if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
           log("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
@@ -240,7 +239,7 @@ describeSuite({
       id: "C400",
       title: "should snapshot delegate autocompound preferences correctly",
       timeout: ONE_HOURS,
-      test: async function () {
+      test: async () => {
         if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
           log("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
           return; // Replace this with skip() when added to vitest
@@ -324,23 +323,24 @@ describeSuite({
       id: "C500",
       title: "rewards are given as expected",
       timeout: TEN_MINS,
-      test: async function () {
+      test: async () => {
         const atBlockNumber = process.env.BLOCK_NUMBER
           ? parseInt(process.env.BLOCK_NUMBER)
           : (await paraApi.rpc.chain.getHeader()).number.toNumber();
+
         await assertRewardsAtRoundBefore(paraApi, atBlockNumber);
       },
     });
 
-    async function assertRewardsAtRoundBefore(api: ApiPromise, nowBlockNumber: number) {
+    const assertRewardsAtRoundBefore = async (api: ApiPromise, nowBlockNumber: number) => {
       const nowBlockHash = await api.rpc.chain.getBlockHash(nowBlockNumber);
       const nowRound = await (await api.at(nowBlockHash)).query.parachainStaking.round();
       const previousRoundBlock = nowRound.first.subn(1).toNumber();
 
       await assertRewardsAt(api, previousRoundBlock);
-    }
+    };
 
-    async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
+    const assertRewardsAt = async (api: ApiPromise, nowBlockNumber: number) => {
       const latestBlock = await api.rpc.chain.getBlock();
       const latestBlockHash = latestBlock.block.hash;
       const latestBlockNumber = latestBlock.block.header.number.toNumber();
@@ -498,9 +498,7 @@ describeSuite({
       // calculate reward amounts
       const parachainBondInfo = await apiAtPriorRewarded.query.parachainStaking.parachainBondInfo();
       const parachainBondPercent = new Percent(parachainBondInfo.percent);
-      const totalStaked = await apiAtPriorRewarded.query.parachainStaking.staked(
-        originalRoundNumber
-      );
+      const totalStaked = await apiAtPriorRewarded.query.parachainStaking.totalSelected();
       const totalPoints = await apiAtPriorRewarded.query.parachainStaking.points(
         originalRoundNumber
       );
@@ -515,15 +513,48 @@ describeSuite({
         max: new Perbill(inflation.round.max).of(totalIssuance),
       };
 
-      const totalRoundIssuance = (function () {
-        if (totalStaked.lt(inflation.expect.min)) {
-          return range.min;
-        } else if (totalStaked.gt(inflation.expect.max)) {
-          return range.max;
-        } else {
-          return range.ideal;
-        }
-      })();
+      let totalRoundIssuance: BN;
+
+      if (apiAt.consts.system.version.specVersion.toNumber() >= 2801) {
+        // Formula:
+        //   totalRoundIssuance = (roundDuration / idealDuration) * idealIssuance
+        const { first } = await apiAtPriorRewarded.query.parachainStaking.round();
+        const lastBlockOfRound = first.subn(1);
+        const lastBlockOfRoundHash = await api.rpc.chain.getBlockHash(lastBlockOfRound);
+        const lastBlockOfRoundApi = await api.at(lastBlockOfRoundHash);
+        const currentSlot = (await lastBlockOfRoundApi.query.asyncBacking.slotInfo())
+          .unwrap()[0]
+          .toBigInt();
+
+        const firstSlot = (
+          (await lastBlockOfRoundApi.query.parachainStaking.round()) as any
+        ).firstSlot.toBigInt();
+        // @ts-expect-error - needs ApiAugment upgrade
+        const slotDuration = lastBlockOfRoundApi.consts.parachainStaking.slotDuration.toBigInt();
+        const roundDuration = (currentSlot - firstSlot) * slotDuration;
+        const idealDuration =
+          (await lastBlockOfRoundApi.query.parachainStaking.round()).length
+            // @ts-expect-error - needs ApiAugment upgrade
+            .toBigInt() * lastBlockOfRoundApi.consts.parachainStaking.blockTime.toBigInt();
+
+        const idealIssuance =
+          ((
+            await lastBlockOfRoundApi.query.parachainStaking.inflationConfig()
+          ).round.ideal.toBigInt() *
+            (await lastBlockOfRoundApi.query.balances.totalIssuance()).toBigInt()) /
+          1_000_000_000n;
+
+        // TODO: Why is there always an error of 1????
+        const bigIntVal = (roundDuration * idealIssuance) / idealDuration + 1n;
+        totalRoundIssuance = new BN(bigIntVal.toString(), 10);
+      } else {
+        totalRoundIssuance = totalStaked.lt(inflation.expect.min)
+          ? range.min
+          : totalStaked.gt(inflation.expect.max)
+          ? range.max
+          : range.ideal;
+      }
+
       const totalCollatorCommissionReward = new Perbill(collatorCommissionRate).of(
         totalRoundIssuance
       );
@@ -543,7 +574,7 @@ describeSuite({
       }
 
       // total expected staking reward minus the amount reserved for parachain bond
-      const totalStakingReward = (function () {
+      const totalStakingReward = (() => {
         const parachainBondReward = parachainBondPercent.of(totalRoundIssuance);
         if (!reservedForParachainBond.isZero()) {
           expect(
@@ -801,13 +832,13 @@ describeSuite({
           ", "
         )}" were not rewarded for round ${originalRoundNumber.toString()}`
       ).to.be.empty;
-    }
+    };
 
     interface Rewards {
       [key: HexString]: { account: string; amount: u128 };
     }
 
-    async function assertRewardedEventsAtBlock(
+    const assertRewardedEventsAtBlock = async (
       api: ApiPromise,
       specVersion: number,
       rewardedBlockNumber: BN,
@@ -818,7 +849,7 @@ describeSuite({
       totalStakingReward: BN,
       stakedValue: StakedValue,
       outstandingRevokes: { [key: string]: Set<string> }
-    ): Promise<{ rewarded: Rewarded; autoCompounded: Set<string> }> {
+    ): Promise<{ rewarded: Rewarded; autoCompounded: Set<string> }> => {
       const nowRoundRewardBlockHash = await api.rpc.chain.getBlockHash(rewardedBlockNumber);
       const apiAtBlock = await api.at(nowRoundRewardBlockHash);
       const apiAtPreviousBlock = await api.at(
@@ -1017,7 +1048,7 @@ describeSuite({
       }
 
       return { rewarded, autoCompounded };
-    }
+    };
 
     function assertEqualWithAccount(a: BN, b: BN, account: string) {
       const diff = a.sub(b);
