@@ -257,6 +257,9 @@ declare module "@polkadot/api-base/types/storage" {
       /** Author of current block. */
       author: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
         QueryableStorageEntry<ApiType, []>;
+      /** Check if the inherent was included */
+      inherentIncluded: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -387,36 +390,6 @@ declare module "@polkadot/api-base/types/storage" {
         [AccountId20, u16]
       > &
         QueryableStorageEntry<ApiType, [AccountId20, u16]>;
-      /** Generic query */
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
-    councilCollective: {
-      /** The current members of the collective. This is stored sorted (just by value). */
-      members: AugmentedQuery<ApiType, () => Observable<Vec<AccountId20>>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /** The prime member that helps determine the default vote behavior in case of absentations. */
-      prime: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /** Proposals so far. */
-      proposalCount: AugmentedQuery<ApiType, () => Observable<u32>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /** Actual proposal for a given hash, if it's current. */
-      proposalOf: AugmentedQuery<
-        ApiType,
-        (arg: H256 | string | Uint8Array) => Observable<Option<Call>>,
-        [H256]
-      > &
-        QueryableStorageEntry<ApiType, [H256]>;
-      /** The hashes of the active proposals. */
-      proposals: AugmentedQuery<ApiType, () => Observable<Vec<H256>>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /** Votes on a given proposal, if it is ongoing. */
-      voting: AugmentedQuery<
-        ApiType,
-        (arg: H256 | string | Uint8Array) => Observable<Option<PalletCollectiveVotes>>,
-        [H256]
-      > &
-        QueryableStorageEntry<ApiType, [H256]>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -742,49 +715,6 @@ declare module "@polkadot/api-base/types/storage" {
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
-    localAssets: {
-      /** The holdings of a specific account for a specific asset. */
-      account: AugmentedQuery<
-        ApiType,
-        (
-          arg1: u128 | AnyNumber | Uint8Array,
-          arg2: AccountId20 | string | Uint8Array
-        ) => Observable<Option<PalletAssetsAssetAccount>>,
-        [u128, AccountId20]
-      > &
-        QueryableStorageEntry<ApiType, [u128, AccountId20]>;
-      /**
-       * Approved balance transfers. First balance is the amount approved for transfer. Second is
-       * the amount of `T::Currency` reserved for storing this. First key is the asset ID, second
-       * key is the owner and third key is the delegate.
-       */
-      approvals: AugmentedQuery<
-        ApiType,
-        (
-          arg1: u128 | AnyNumber | Uint8Array,
-          arg2: AccountId20 | string | Uint8Array,
-          arg3: AccountId20 | string | Uint8Array
-        ) => Observable<Option<PalletAssetsApproval>>,
-        [u128, AccountId20, AccountId20]
-      > &
-        QueryableStorageEntry<ApiType, [u128, AccountId20, AccountId20]>;
-      /** Details of an asset. */
-      asset: AugmentedQuery<
-        ApiType,
-        (arg: u128 | AnyNumber | Uint8Array) => Observable<Option<PalletAssetsAssetDetails>>,
-        [u128]
-      > &
-        QueryableStorageEntry<ApiType, [u128]>;
-      /** Metadata of an asset. */
-      metadata: AugmentedQuery<
-        ApiType,
-        (arg: u128 | AnyNumber | Uint8Array) => Observable<PalletAssetsAssetMetadata>,
-        [u128]
-      > &
-        QueryableStorageEntry<ApiType, [u128]>;
-      /** Generic query */
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
     maintenanceMode: {
       /** Whether the site is in maintenance mode */
       maintenanceMode: AugmentedQuery<ApiType, () => Observable<bool>, []> &
@@ -811,6 +741,19 @@ declare module "@polkadot/api-base/types/storage" {
        * execution of xcm messages must be paused.
        */
       shouldPauseXcm: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    moonbeamLazyMigrations: {
+      /** If true, it means that Democracy funds have been unlocked. */
+      democracyLocksMigrationCompleted: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** If true, it means that LocalAssets storage has been removed. */
+      localAssetsMigrationCompleted: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** The total number of suicided contracts that were removed */
+      suicidedContractsRemoved: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
@@ -1032,13 +975,6 @@ declare module "@polkadot/api-base/types/storage" {
       /** The collator candidates selected for the current round */
       selectedCandidates: AugmentedQuery<ApiType, () => Observable<Vec<AccountId20>>, []> &
         QueryableStorageEntry<ApiType, []>;
-      /** Total counted stake for selected candidates in the round */
-      staked: AugmentedQuery<
-        ApiType,
-        (arg: u32 | AnyNumber | Uint8Array) => Observable<u128>,
-        [u32]
-      > &
-        QueryableStorageEntry<ApiType, [u32]>;
       /** Top delegations for collator candidate */
       topDelegations: AugmentedQuery<
         ApiType,
@@ -1534,6 +1470,23 @@ declare module "@polkadot/api-base/types/storage" {
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
+    relayStorageRoots: {
+      /** Map of relay block number to relay storage root */
+      relayStorageRoot: AugmentedQuery<
+        ApiType,
+        (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<H256>>,
+        [u32]
+      > &
+        QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * List of all the keys in `RelayStorageRoot`. Used to remove the oldest key without having to
+       * iterate over all of them.
+       */
+      relayStorageRootKeys: AugmentedQuery<ApiType, () => Observable<Vec<u32>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
     rootTesting: {
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
@@ -1664,36 +1617,6 @@ declare module "@polkadot/api-base/types/storage" {
       /** True if we have upgraded so that `type RefCount` is `u32`. False (default) if not. */
       upgradedToU32RefCount: AugmentedQuery<ApiType, () => Observable<bool>, []> &
         QueryableStorageEntry<ApiType, []>;
-      /** Generic query */
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
-    techCommitteeCollective: {
-      /** The current members of the collective. This is stored sorted (just by value). */
-      members: AugmentedQuery<ApiType, () => Observable<Vec<AccountId20>>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /** The prime member that helps determine the default vote behavior in case of absentations. */
-      prime: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /** Proposals so far. */
-      proposalCount: AugmentedQuery<ApiType, () => Observable<u32>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /** Actual proposal for a given hash, if it's current. */
-      proposalOf: AugmentedQuery<
-        ApiType,
-        (arg: H256 | string | Uint8Array) => Observable<Option<Call>>,
-        [H256]
-      > &
-        QueryableStorageEntry<ApiType, [H256]>;
-      /** The hashes of the active proposals. */
-      proposals: AugmentedQuery<ApiType, () => Observable<Vec<H256>>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /** Votes on a given proposal, if it is ongoing. */
-      voting: AugmentedQuery<
-        ApiType,
-        (arg: H256 | string | Uint8Array) => Observable<Option<PalletCollectiveVotes>>,
-        [H256]
-      > &
-        QueryableStorageEntry<ApiType, [H256]>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };

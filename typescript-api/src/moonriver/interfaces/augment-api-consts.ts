@@ -96,12 +96,6 @@ declare module "@polkadot/api-base/types/consts" {
       /** Generic const */
       [key: string]: Codec;
     };
-    councilCollective: {
-      /** The maximum weight of a dispatch call that can be proposed and executed. */
-      maxProposalWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
-      /** Generic const */
-      [key: string]: Codec;
-    };
     crowdloanRewards: {
       /** Percentage to be payed at initialization */
       initializationPayment: Perbill & AugmentedConst<ApiType>;
@@ -193,28 +187,6 @@ declare module "@polkadot/api-base/types/consts" {
       /** Generic const */
       [key: string]: Codec;
     };
-    localAssets: {
-      /** The amount of funds that must be reserved when creating a new approval. */
-      approvalDeposit: u128 & AugmentedConst<ApiType>;
-      /** The amount of funds that must be reserved for a non-provider asset account to be maintained. */
-      assetAccountDeposit: u128 & AugmentedConst<ApiType>;
-      /** The basic amount of funds that must be reserved for an asset. */
-      assetDeposit: u128 & AugmentedConst<ApiType>;
-      /** The basic amount of funds that must be reserved when adding metadata to your asset. */
-      metadataDepositBase: u128 & AugmentedConst<ApiType>;
-      /** The additional funds that must be reserved for the number of bytes you store in your metadata. */
-      metadataDepositPerByte: u128 & AugmentedConst<ApiType>;
-      /**
-       * Max number of items to destroy per `destroy_accounts` and `destroy_approvals` call.
-       *
-       * Must be configured to result in a weight that makes each call fit in a block.
-       */
-      removeItemsLimit: u32 & AugmentedConst<ApiType>;
-      /** The maximum length of a name or symbol stored on-chain. */
-      stringLimit: u32 & AugmentedConst<ApiType>;
-      /** Generic const */
-      [key: string]: Codec;
-    };
     moonbeamOrbiters: {
       /** Maximum number of orbiters per collator. */
       maxPoolSize: u32 & AugmentedConst<ApiType>;
@@ -256,6 +228,8 @@ declare module "@polkadot/api-base/types/consts" {
       [key: string]: Codec;
     };
     parachainStaking: {
+      /** Get the average time beetween 2 blocks in milliseconds */
+      blockTime: u64 & AugmentedConst<ApiType>;
       /** Number of rounds candidate requests to decrease self-bond must wait to be executable */
       candidateBondLessDelay: u32 & AugmentedConst<ApiType>;
       /** Number of rounds that delegation less requests must wait before executable */
@@ -289,6 +263,8 @@ declare module "@polkadot/api-base/types/consts" {
       revokeDelegationDelay: u32 & AugmentedConst<ApiType>;
       /** Number of rounds after which block authors are rewarded */
       rewardPaymentDelay: u32 & AugmentedConst<ApiType>;
+      /** Get the slot duration in milliseconds */
+      slotDuration: u64 & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };
@@ -405,12 +381,6 @@ declare module "@polkadot/api-base/types/consts" {
       ss58Prefix: u16 & AugmentedConst<ApiType>;
       /** Get the chain's current version. */
       version: SpVersionRuntimeVersion & AugmentedConst<ApiType>;
-      /** Generic const */
-      [key: string]: Codec;
-    };
-    techCommitteeCollective: {
-      /** The maximum weight of a dispatch call that can be proposed and executed. */
-      maxProposalWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };
