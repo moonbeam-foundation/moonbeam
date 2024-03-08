@@ -527,7 +527,7 @@ describeSuite({
           .toBigInt();
 
         const firstSlot = (
-          (await lastBlockOfRoundApi.query.parachainStaking.round()) as any
+          await lastBlockOfRoundApi.query.parachainStaking.round()
         ).firstSlot.toBigInt();
         const slotDuration = lastBlockOfRoundApi.consts.parachainStaking.slotDuration.toBigInt();
         const roundDuration = (currentSlot - firstSlot) * slotDuration;
