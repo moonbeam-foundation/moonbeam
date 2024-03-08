@@ -17,9 +17,9 @@
   "license": "ISC",
   "dependencies": {
     "@acala-network/chopsticks": "0.9.8",
-    "@moonbeam-network/api-augment": "0.2700.0",
-    "@moonwall/cli": "^5.0.0",
-    "@moonwall/util": "^5.0.0",
+    "@moonbeam-network/api-augment": "0.2800.0",
+    "@moonwall/cli": "^5.0.3",
+    "@moonwall/util": "^5.0.3",
     "@openzeppelin/contracts": "4.9.3",
     "@polkadot/api": "10.11.2",
     "@polkadot/api-augment": "10.11.2",
@@ -55,8 +55,8 @@
   "devDependencies": {
     "@types/debug": "4.1.12",
     "@types/json-bigint": "^1.0.4",
-    "@types/node": "20.11.19",
-    "@types/semver": "7.5.7",
+    "@types/node": "20.11.25",
+    "@types/semver": "7.5.8",
     "@types/yargs": "17.0.32",
     "@typescript-eslint/eslint-plugin": "7.0.2",
     "@typescript-eslint/parser": "7.0.2",
@@ -65,7 +65,7 @@
     "eslint": "8.56.0",
     "eslint-plugin-unused-imports": "3.1.0",
     "prettier": "2.8.8",
-    "typescript": "5.3.3",
+    "typescript": "5.4.2",
     "yargs": "17.7.2"
   },
   "engines": {
