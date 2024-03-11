@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { BN, BN_BILLION } from "@polkadot/util";
-import { u128, u32, StorageKey } from "@polkadot/types";
+import { u128, u32, StorageKey, u64 } from "@polkadot/types";
 import { ApiPromise } from "@polkadot/api";
 import { HexString } from "@polkadot/util/types";
 import {
@@ -522,29 +522,24 @@ describeSuite({
         const lastBlockOfRound = first.subn(1);
         const lastBlockOfRoundHash = await api.rpc.chain.getBlockHash(lastBlockOfRound);
         const lastBlockOfRoundApi = await api.at(lastBlockOfRoundHash);
-        const currentSlot = (await lastBlockOfRoundApi.query.asyncBacking.slotInfo())
-          .unwrap()[0]
-          .toBigInt();
+        const currentSlot: u64 = (await lastBlockOfRoundApi.query.asyncBacking.slotInfo())
+          // @ts-expect-error - apiAt doesn't have asyncBacking
+          .unwrap()[0];
 
-        const firstSlot = (
-          await lastBlockOfRoundApi.query.parachainStaking.round()
-        ).firstSlot.toBigInt();
-        const slotDuration = lastBlockOfRoundApi.consts.parachainStaking.slotDuration.toBigInt();
-        const roundDuration = (currentSlot - firstSlot) * slotDuration;
-        const idealDuration =
-          (await lastBlockOfRoundApi.query.parachainStaking.round()).length.toBigInt() *
-          lastBlockOfRoundApi.consts.parachainStaking.blockTime.toBigInt();
+        const firstSlot = (await lastBlockOfRoundApi.query.parachainStaking.round()).firstSlot;
+        const slotDuration = lastBlockOfRoundApi.consts.parachainStaking.slotDuration;
+        const roundDuration = currentSlot.sub(firstSlot).mul(slotDuration);
+        const idealDuration = (await lastBlockOfRoundApi.query.parachainStaking.round()).length.mul(
+          lastBlockOfRoundApi.consts.parachainStaking.blockTime
+        );
 
-        const idealIssuance =
-          ((
-            await lastBlockOfRoundApi.query.parachainStaking.inflationConfig()
-          ).round.ideal.toBigInt() *
-            (await lastBlockOfRoundApi.query.balances.totalIssuance()).toBigInt()) /
-          1_000_000_000n;
+        const idealIssuance = (
+          await lastBlockOfRoundApi.query.parachainStaking.inflationConfig()
+        ).round.ideal
+          .mul(await lastBlockOfRoundApi.query.balances.totalIssuance())
+          .div(new BN("1000000000"));
 
-        // TODO: Why is there always an error of 1????
-        const bigIntVal = (roundDuration * idealIssuance) / idealDuration + 1n;
-        totalRoundIssuance = new BN(bigIntVal.toString(), 10);
+        totalRoundIssuance = roundDuration.mul(idealIssuance).div(idealDuration);
       } else {
         totalRoundIssuance = totalStaked.lt(inflation.expect.min)
           ? range.min
