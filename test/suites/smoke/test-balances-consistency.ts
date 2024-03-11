@@ -12,7 +12,7 @@ import type {
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { TWO_HOURS, printTokens } from "@moonwall/util";
 import { StorageKey } from "@polkadot/types";
-import { extractPreimageDeposit } from "../../helpers/block.js";
+import { extractPreimageDeposit, AccountShortfalls } from "../../helpers";
 import { ApiPromise } from "@polkadot/api";
 import { processAllStorage } from "../../helpers/storageQueries.js";
 
@@ -1026,20 +1026,3 @@ describeSuite({
     });
   },
 });
-
-const AccountShortfalls = {
-  "Moonbase Stage": {
-    "0x7cb3790906f902a02f0d6784058362db929c5f3f": {
-      comment: "localAssetDeposit to be manually returned",
-      brokenIn: 2801,
-      reserved: 300000000000000000000n,
-      locks: 0n,
-    },
-    "0x56c97e8fb7faebebe643473d5c9adaeb3fb2538e": {
-      comment: "localAssetDeposit to be manually returned",
-      brokenIn: 2801,
-      reserved: 1009200000000000000n,
-      locks: 0n,
-    },
-  },
-} as const;
