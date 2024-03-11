@@ -87,7 +87,7 @@ export const AccountShortfalls = {
       locks: 0n,
     },
     "0xe6c5b9500035cb5557e8fdbaa758d78a15361a0e": {
-      comment: "unreleased from init event #2075239",
+      comment: "localAssetDeposit & metadata to be manually returned",
       brokenIn: 2801,
       reserved: 101009600000000000000n,
       locks: 0n,
