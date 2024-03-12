@@ -134,7 +134,7 @@ pub enum BlockImportPipeline<T, E> {
 /// of network.
 /// For the moment, this feature is only used to specify the first block compatible with
 /// ed25519-zebra, but it could be used for other things in the future.
-pub trait RuntimeCustomizations {
+pub trait ClientCustomizations {
 	/// The host function ed25519_verify has changed its behavior in the substrate history,
 	/// because of the change from lib ed25519-dalek to lib ed25519-zebra.
 	/// Some networks may have old blocks that are not compatible with ed25519-zebra,
@@ -149,7 +149,7 @@ pub trait RuntimeCustomizations {
 #[cfg(feature = "moonbeam-native")]
 pub struct MoonbeamCustomizations;
 #[cfg(feature = "moonbeam-native")]
-impl RuntimeCustomizations for MoonbeamCustomizations {
+impl ClientCustomizations for MoonbeamCustomizations {
 	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
 		Some(2_000_000)
 	}
@@ -158,7 +158,7 @@ impl RuntimeCustomizations for MoonbeamCustomizations {
 #[cfg(feature = "moonriver-native")]
 pub struct MoonriverCustomizations;
 #[cfg(feature = "moonriver-native")]
-impl RuntimeCustomizations for MoonriverCustomizations {
+impl ClientCustomizations for MoonriverCustomizations {
 	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
 		Some(3_000_000)
 	}
@@ -167,7 +167,7 @@ impl RuntimeCustomizations for MoonriverCustomizations {
 #[cfg(feature = "moonbase-native")]
 pub struct MoonbaseCustomizations;
 #[cfg(feature = "moonbase-native")]
-impl RuntimeCustomizations for MoonbaseCustomizations {
+impl ClientCustomizations for MoonbaseCustomizations {
 	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
 		Some(3_000_000)
 	}
@@ -370,7 +370,7 @@ where
 	Client: From<Arc<crate::FullClient<RuntimeApi>>>,
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Customizations: RuntimeCustomizations + 'static,
+	Customizations: ClientCustomizations + 'static,
 {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
 	let PartialComponents {
@@ -422,7 +422,7 @@ pub fn new_partial<RuntimeApi, Customizations>(
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Customizations: RuntimeCustomizations + 'static,
+	Customizations: ClientCustomizations + 'static,
 {
 	set_prometheus_registry(config, rpc_config.no_prometheus_prefix)?;
 
@@ -601,7 +601,7 @@ async fn start_node_impl<RuntimeApi, Customizations>(
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Customizations: RuntimeCustomizations + 'static,
+	Customizations: ClientCustomizations + 'static,
 {
 	let mut parachain_config = prepare_node_config(parachain_config);
 
@@ -1090,7 +1090,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection,
-	Customizations: RuntimeCustomizations + 'static,
+	Customizations: ClientCustomizations + 'static,
 {
 	start_node_impl::<RuntimeApi, Customizations>(
 		parachain_config,
@@ -1116,7 +1116,7 @@ pub async fn new_dev<RuntimeApi, Customizations>(
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Customizations: RuntimeCustomizations + 'static,
+	Customizations: ClientCustomizations + 'static,
 {
 	use async_io::Timer;
 	use futures::Stream;
