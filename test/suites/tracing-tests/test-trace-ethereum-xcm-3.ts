@@ -112,6 +112,10 @@ describeSuite({
           payload: xcmMessage,
         } as RawXcmMessage);
       }
+
+      // Create block which includes xcm message
+      await context.createBlock();
+      // Create next block
       await context.createBlock();
 
       const txHashes = (await context.viem().getBlock({ blockTag: "latest" })).transactions;

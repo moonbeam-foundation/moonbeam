@@ -112,6 +112,9 @@ describeSuite({
         payload: xcmMessage,
       });
 
+      // Create next block
+      await context.createBlock();
+
       transactionHash = (await context.viem().getBlock()).transactions[0];
 
       // Erc20 tokens should have been received
