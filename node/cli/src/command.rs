@@ -579,7 +579,7 @@ pub fn run() -> Result<()> {
 							return runner.sync_run(|mut config| {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonriver_runtime::RuntimeApi,
-									moonbeam_service::MoonriverExecutor,
+									moonbeam_service::MoonriverCustomizations,
 								>(&mut config, &rpc_config, false)?;
 
 								let db = params.backend.expose_db();
@@ -593,7 +593,7 @@ pub fn run() -> Result<()> {
 							return runner.sync_run(|mut config| {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbeam_runtime::RuntimeApi,
-									moonbeam_service::MoonbeamExecutor,
+									moonbeam_service::MoonbeamCustomizations,
 								>(&mut config, &rpc_config, false)?;
 
 								let db = params.backend.expose_db();
@@ -607,7 +607,7 @@ pub fn run() -> Result<()> {
 							return runner.sync_run(|mut config| {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbase_runtime::RuntimeApi,
-									moonbeam_service::MoonbaseExecutor,
+									moonbeam_service::MoonbaseCustomizations,
 								>(&mut config, &rpc_config, false)?;
 
 								let db = params.backend.expose_db();
