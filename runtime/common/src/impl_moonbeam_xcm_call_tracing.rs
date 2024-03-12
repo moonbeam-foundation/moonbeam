@@ -62,7 +62,7 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 								ETHEREUM_XCM_TRACING_STORAGE_KEY
 							) {
 								// This runtime instance is used for tracing.
-								Some(transaction) => match transaction {
+								Some(tracing_status) => match tracing_status {
 									// Tracing a block, all calls are done using environmental.
 									EthereumXcmTracingStatus::Block => {
 										// Each known extrinsic is a new call stack.
@@ -96,7 +96,13 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 										}
 										dispatch_call()
 									},
-									_ => unreachable!()
+									// Tracing a transaction that has already been found and
+									// executed. There's no need to dispatch the rest of the
+									// calls.
+									EthereumXcmTracingStatus::TransactionExited => Ok(crate::PostDispatchInfo {
+										actual_weight: None,
+										pays_fee: frame_support::pallet_prelude::Pays::No,
+									}),
 								},
 								// This runtime instance is importing a block.
 								None => dispatch_call()

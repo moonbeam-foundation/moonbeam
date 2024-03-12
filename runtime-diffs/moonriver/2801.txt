@@ -1,0 +1,11 @@
+Pallets:
+    ~ ParachainStaking
+        Constants:
+            + BlockTime
+            + SlotDuration
+        Storage Entries:
+            ~ Round (Changed: default value)
+            - Staked
+    ~ System
+        Storage Entries:
+            ~ Events (Changed: )

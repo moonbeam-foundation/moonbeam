@@ -5861,6 +5861,7 @@ declare module "@polkadot/types/lookup" {
     readonly current: u32;
     readonly first: u64;
     readonly length: u32;
+    readonly firstSlot: u64;
   }
 
   /** @name PalletParachainStakingDelegator (408) */
