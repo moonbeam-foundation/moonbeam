@@ -147,42 +147,30 @@ pub trait ClientHandle {
 #[derive(Clone)]
 pub enum Client {
 	#[cfg(feature = "moonbeam-native")]
-	Moonbeam(Arc<crate::FullClient<moonbeam_runtime::RuntimeApi, crate::MoonbeamExecutor>>),
+	Moonbeam(Arc<crate::FullClient<moonbeam_runtime::RuntimeApi>>),
 	#[cfg(feature = "moonriver-native")]
-	Moonriver(Arc<crate::FullClient<moonriver_runtime::RuntimeApi, crate::MoonriverExecutor>>),
+	Moonriver(Arc<crate::FullClient<moonriver_runtime::RuntimeApi>>),
 	#[cfg(feature = "moonbase-native")]
-	Moonbase(Arc<crate::FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>),
+	Moonbase(Arc<crate::FullClient<moonbase_runtime::RuntimeApi>>),
 }
 
 #[cfg(feature = "moonbeam-native")]
-impl From<Arc<crate::FullClient<moonbeam_runtime::RuntimeApi, crate::MoonbeamExecutor>>>
-	for Client
-{
-	fn from(
-		client: Arc<crate::FullClient<moonbeam_runtime::RuntimeApi, crate::MoonbeamExecutor>>,
-	) -> Self {
+impl From<Arc<crate::FullClient<moonbeam_runtime::RuntimeApi>>> for Client {
+	fn from(client: Arc<crate::FullClient<moonbeam_runtime::RuntimeApi>>) -> Self {
 		Self::Moonbeam(client)
 	}
 }
 
 #[cfg(feature = "moonriver-native")]
-impl From<Arc<crate::FullClient<moonriver_runtime::RuntimeApi, crate::MoonriverExecutor>>>
-	for Client
-{
-	fn from(
-		client: Arc<crate::FullClient<moonriver_runtime::RuntimeApi, crate::MoonriverExecutor>>,
-	) -> Self {
+impl From<Arc<crate::FullClient<moonriver_runtime::RuntimeApi>>> for Client {
+	fn from(client: Arc<crate::FullClient<moonriver_runtime::RuntimeApi>>) -> Self {
 		Self::Moonriver(client)
 	}
 }
 
 #[cfg(feature = "moonbase-native")]
-impl From<Arc<crate::FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>>
-	for Client
-{
-	fn from(
-		client: Arc<crate::FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>,
-	) -> Self {
+impl From<Arc<crate::FullClient<moonbase_runtime::RuntimeApi>>> for Client {
+	fn from(client: Arc<crate::FullClient<moonbase_runtime::RuntimeApi>>) -> Self {
 		Self::Moonbase(client)
 	}
 }

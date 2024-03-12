@@ -58,9 +58,7 @@ use sc_client_api::{
 	ExecutorProvider,
 };
 use sc_consensus::ImportQueue;
-use sc_executor::{
-	HeapAllocStrategy, NativeElseWasmExecutor, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY,
-};
+use sc_executor::{HeapAllocStrategy, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 use sc_network::{config::FullNetworkConfiguration, NetworkBlock};
 use sc_service::config::PrometheusConfig;
 use sc_service::{
@@ -83,30 +81,23 @@ pub use client::*;
 pub mod chain_spec;
 mod client;
 
-type FullClient<RuntimeApi, Executor> =
-	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
+type FullClient<RuntimeApi> = TFullClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
 type FullBackend = TFullBackend<Block>;
 
 type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
-type FrontierBlockImport<RuntimeApi, Executor> = TFrontierBlockImport<
-	Block,
-	Arc<FullClient<RuntimeApi, Executor>>,
-	FullClient<RuntimeApi, Executor>,
->;
-type ParachainBlockImport<RuntimeApi, Executor> =
-	TParachainBlockImport<Block, FrontierBlockImport<RuntimeApi, Executor>, FullBackend>;
-type PartialComponentsResult<RuntimeApi, Executor> = Result<
+type FrontierBlockImport<RuntimeApi> =
+	TFrontierBlockImport<Block, Arc<FullClient<RuntimeApi>>, FullClient<RuntimeApi>>;
+type ParachainBlockImport<RuntimeApi> =
+	TParachainBlockImport<Block, FrontierBlockImport<RuntimeApi>, FullBackend>;
+type PartialComponentsResult<RuntimeApi> = Result<
 	PartialComponents<
-		FullClient<RuntimeApi, Executor>,
+		FullClient<RuntimeApi>,
 		FullBackend,
 		MaybeSelectChain,
 		sc_consensus::DefaultImportQueue<Block>,
-		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
+		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi>>,
 		(
-			BlockImportPipeline<
-				FrontierBlockImport<RuntimeApi, Executor>,
-				ParachainBlockImport<RuntimeApi, Executor>,
-			>,
+			BlockImportPipeline<FrontierBlockImport<RuntimeApi>, ParachainBlockImport<RuntimeApi>>,
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
@@ -117,8 +108,15 @@ type PartialComponentsResult<RuntimeApi, Executor> = Result<
 	ServiceError,
 >;
 
+#[cfg(feature = "runtime-benchmarks")]
 pub type HostFunctions = (
 	frame_benchmarking::benchmarking::HostFunctions,
+	sp_io::SubstrateHostFunctions,
+	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
+);
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type HostFunctions = (
+	sp_io::SubstrateHostFunctions,
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
 
@@ -136,7 +134,7 @@ pub enum BlockImportPipeline<T, E> {
 /// of network.
 /// For the moment, this feature is only used to specify the first block compatible with
 /// ed25519-zebra, but it could be used for other things in the future.
-pub trait ExecutorT: sc_executor::NativeExecutionDispatch {
+pub trait RuntimeCustomizations {
 	/// The host function ed25519_verify has changed its behavior in the substrate history,
 	/// because of the change from lib ed25519-dalek to lib ed25519-zebra.
 	/// Some networks may have old blocks that are not compatible with ed25519-zebra,
@@ -149,69 +147,27 @@ pub trait ExecutorT: sc_executor::NativeExecutionDispatch {
 }
 
 #[cfg(feature = "moonbeam-native")]
-pub struct MoonbeamExecutor;
-
+pub struct MoonbeamCustomizations;
 #[cfg(feature = "moonbeam-native")]
-impl sc_executor::NativeExecutionDispatch for MoonbeamExecutor {
-	type ExtendHostFunctions = HostFunctions;
-
-	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		moonbeam_runtime::api::dispatch(method, data)
-	}
-
-	fn native_version() -> sc_executor::NativeVersion {
-		moonbeam_runtime::native_version()
-	}
-}
-
-#[cfg(feature = "moonbeam-native")]
-impl ExecutorT for MoonbeamExecutor {
+impl RuntimeCustomizations for MoonbeamCustomizations {
 	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
 		Some(2_000_000)
 	}
 }
 
 #[cfg(feature = "moonriver-native")]
-pub struct MoonriverExecutor;
-
+pub struct MoonriverCustomizations;
 #[cfg(feature = "moonriver-native")]
-impl sc_executor::NativeExecutionDispatch for MoonriverExecutor {
-	type ExtendHostFunctions = HostFunctions;
-
-	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		moonriver_runtime::api::dispatch(method, data)
-	}
-
-	fn native_version() -> sc_executor::NativeVersion {
-		moonriver_runtime::native_version()
-	}
-}
-
-#[cfg(feature = "moonriver-native")]
-impl ExecutorT for MoonriverExecutor {
+impl RuntimeCustomizations for MoonriverCustomizations {
 	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
 		Some(3_000_000)
 	}
 }
 
 #[cfg(feature = "moonbase-native")]
-pub struct MoonbaseExecutor;
-
+pub struct MoonbaseCustomizations;
 #[cfg(feature = "moonbase-native")]
-impl sc_executor::NativeExecutionDispatch for MoonbaseExecutor {
-	type ExtendHostFunctions = HostFunctions;
-
-	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		moonbase_runtime::api::dispatch(method, data)
-	}
-
-	fn native_version() -> sc_executor::NativeVersion {
-		moonbase_runtime::native_version()
-	}
-}
-
-#[cfg(feature = "moonbase-native")]
-impl ExecutorT for MoonbaseExecutor {
+impl RuntimeCustomizations for MoonbaseCustomizations {
 	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
 		Some(3_000_000)
 	}
@@ -381,16 +337,15 @@ pub fn new_chain_ops(
 		#[cfg(feature = "moonriver-native")]
 		spec if spec.is_moonriver() => new_chain_ops_inner::<
 			moonriver_runtime::RuntimeApi,
-			MoonriverExecutor,
+			MoonriverCustomizations,
 		>(config, rpc_config),
 		#[cfg(feature = "moonbeam-native")]
-		spec if spec.is_moonbeam() => {
-			new_chain_ops_inner::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
-				config, rpc_config,
-			)
-		}
+		spec if spec.is_moonbeam() => new_chain_ops_inner::<
+			moonbeam_runtime::RuntimeApi,
+			MoonbeamCustomizations,
+		>(config, rpc_config),
 		#[cfg(feature = "moonbase-native")]
-		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
+		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseCustomizations>(
 			config, rpc_config,
 		),
 		#[cfg(not(feature = "moonbase-native"))]
@@ -399,7 +354,7 @@ pub fn new_chain_ops(
 }
 
 #[allow(clippy::type_complexity)]
-fn new_chain_ops_inner<RuntimeApi, Executor>(
+fn new_chain_ops_inner<RuntimeApi, Customizations>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 ) -> Result<
@@ -412,11 +367,10 @@ fn new_chain_ops_inner<RuntimeApi, Executor>(
 	ServiceError,
 >
 where
-	Client: From<Arc<crate::FullClient<RuntimeApi, Executor>>>,
-	RuntimeApi:
-		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	Client: From<Arc<crate::FullClient<RuntimeApi>>>,
+	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Executor: ExecutorT + 'static,
+	Customizations: RuntimeCustomizations + 'static,
 {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
 	let PartialComponents {
@@ -425,7 +379,7 @@ where
 		import_queue,
 		task_manager,
 		..
-	} = new_partial::<RuntimeApi, Executor>(config, rpc_config, config.chain_spec.is_dev())?;
+	} = new_partial::<RuntimeApi, Customizations>(config, rpc_config, config.chain_spec.is_dev())?;
 	Ok((
 		Arc::new(Client::from(client)),
 		backend,
@@ -460,16 +414,15 @@ fn set_prometheus_registry(
 /// Use this function if you don't actually need the full service, but just the partial in order to
 /// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
-pub fn new_partial<RuntimeApi, Executor>(
+pub fn new_partial<RuntimeApi, Customizations>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
-) -> PartialComponentsResult<RuntimeApi, Executor>
+) -> PartialComponentsResult<RuntimeApi>
 where
-	RuntimeApi:
-		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Executor: ExecutorT + 'static,
+	Customizations: RuntimeCustomizations + 'static,
 {
 	set_prometheus_registry(config, rpc_config.no_prometheus_prefix)?;
 
@@ -504,9 +457,7 @@ where
 		wasm_builder = wasm_builder.with_wasmtime_precompiled_path(wasmtime_precompiled_path);
 	}
 
-	let wasm_executor = wasm_builder.build();
-
-	let executor = NativeElseWasmExecutor::<Executor>::new_with_wasm_executor(wasm_executor);
+	let executor = wasm_builder.build();
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, _>(
@@ -515,7 +466,7 @@ where
 			executor,
 		)?;
 
-	if let Some(block_number) = Executor::first_block_number_compatible_with_ed25519_zebra() {
+	if let Some(block_number) = Customizations::first_block_number_compatible_with_ed25519_zebra() {
 		client
 			.execution_extensions()
 			.set_extensions_factory(sc_client_api::execution_extensions::ExtensionBeforeBlock::<
@@ -638,7 +589,7 @@ async fn build_relay_chain_interface(
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
 #[sc_tracing::logging::prefix_logs_with("🌗")]
-async fn start_node_impl<RuntimeApi, Executor>(
+async fn start_node_impl<RuntimeApi, Customizations>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
 	collator_options: CollatorOptions,
@@ -646,16 +597,16 @@ async fn start_node_impl<RuntimeApi, Executor>(
 	rpc_config: RpcConfig,
 	async_backing: bool,
 	hwbench: Option<sc_sysinfo::HwBench>,
-) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
+) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
-	RuntimeApi:
-		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Executor: ExecutorT + 'static,
+	Customizations: RuntimeCustomizations + 'static,
 {
 	let mut parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial(&mut parachain_config, &rpc_config, false)?;
+	let params =
+		new_partial::<RuntimeApi, Customizations>(&mut parachain_config, &rpc_config, false)?;
 	let (
 		block_import,
 		filter_pool,
@@ -914,7 +865,7 @@ where
 	};
 
 	if collator {
-		start_consensus::<RuntimeApi, Executor, _>(
+		start_consensus::<RuntimeApi, _>(
 			async_backing,
 			backend.clone(),
 			client.clone(),
@@ -976,16 +927,16 @@ where
 	Ok((task_manager, client))
 }
 
-fn start_consensus<RuntimeApi, Executor, SO>(
+fn start_consensus<RuntimeApi, SO>(
 	async_backing: bool,
 	backend: Arc<FullBackend>,
-	client: Arc<FullClient<RuntimeApi, Executor>>,
-	block_import: ParachainBlockImport<RuntimeApi, Executor>,
+	client: Arc<FullClient<RuntimeApi>>,
+	block_import: ParachainBlockImport<RuntimeApi>,
 	prometheus_registry: Option<&Registry>,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
 	relay_chain_interface: Arc<dyn RelayChainInterface>,
-	transaction_pool: Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>>,
+	transaction_pool: Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi>>>,
 	keystore: KeystorePtr,
 	para_id: ParaId,
 	collator_key: CollatorPair,
@@ -996,12 +947,10 @@ fn start_consensus<RuntimeApi, Executor, SO>(
 	sync_oracle: SO,
 ) -> Result<(), sc_service::Error>
 where
-	RuntimeApi:
-		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>:
 		sc_client_api::StateBackend<BlakeTwo256>,
-	Executor: sc_executor::NativeExecutionDispatch + 'static,
 	SO: SyncOracle + Send + Sync + Clone + 'static,
 {
 	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
@@ -1035,7 +984,7 @@ where
 	let keystore_clone = keystore.clone();
 	let maybe_provide_vrf_digest =
 		move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
-			moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+			moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi>>(
 				&client_clone,
 				&keystore_clone,
 				nimbus_id,
@@ -1127,7 +1076,7 @@ where
 /// Start a normal parachain node.
 // Rustfmt wants to format the closure with space identation.
 #[rustfmt::skip]
-pub async fn start_node<RuntimeApi, Executor>(
+pub async fn start_node<RuntimeApi, Customizations>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
 	collator_options: CollatorOptions,
@@ -1135,15 +1084,15 @@ pub async fn start_node<RuntimeApi, Executor>(
 	rpc_config: RpcConfig,
 	async_backing: bool,
 	hwbench: Option<sc_sysinfo::HwBench>,
-) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
+) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi:
-		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection,
-	Executor: ExecutorT + 'static,
+	Customizations: RuntimeCustomizations + 'static,
 {
-	start_node_impl(
+	start_node_impl::<RuntimeApi, Customizations>(
 		parachain_config,
 		polkadot_config,
 		collator_options,
@@ -1157,7 +1106,7 @@ where
 
 /// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
-pub async fn new_dev<RuntimeApi, Executor>(
+pub async fn new_dev<RuntimeApi, Customizations>(
 	mut config: Configuration,
 	_author_id: Option<NimbusId>,
 	sealing: moonbeam_cli_opt::Sealing,
@@ -1165,10 +1114,9 @@ pub async fn new_dev<RuntimeApi, Executor>(
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> Result<TaskManager, ServiceError>
 where
-	RuntimeApi:
-		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Executor: ExecutorT + 'static,
+	Customizations: RuntimeCustomizations + 'static,
 {
 	use async_io::Timer;
 	use futures::Stream;
@@ -1191,7 +1139,7 @@ where
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial::<RuntimeApi, Executor>(&mut config, &rpc_config, true)?;
+	} = new_partial::<RuntimeApi, Customizations>(&mut config, &rpc_config, true)?;
 
 	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
 		block_import
@@ -1312,7 +1260,7 @@ where
 		let keystore_clone = keystore_container.keystore().clone();
 		let maybe_provide_vrf_digest =
 			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
-				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi>>(
 					&client_clone,
 					&keystore_clone,
 					nimbus_id,
@@ -1798,34 +1746,29 @@ mod tests {
 	}
 }
 
-struct PendingConsensusDataProvider<RuntimeApi, Executor>
+struct PendingConsensusDataProvider<RuntimeApi>
 where
 	RuntimeApi: Send + Sync,
-	Executor: ExecutorT + 'static,
 {
-	client: Arc<FullClient<RuntimeApi, Executor>>,
+	client: Arc<FullClient<RuntimeApi>>,
 	keystore: Arc<dyn Keystore>,
 }
 
-impl<RuntimeApi, Executor> PendingConsensusDataProvider<RuntimeApi, Executor>
+impl<RuntimeApi> PendingConsensusDataProvider<RuntimeApi>
 where
-	RuntimeApi:
-		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Executor: ExecutorT + 'static,
 {
-	pub fn new(client: Arc<FullClient<RuntimeApi, Executor>>, keystore: Arc<dyn Keystore>) -> Self {
+	pub fn new(client: Arc<FullClient<RuntimeApi>>, keystore: Arc<dyn Keystore>) -> Self {
 		Self { client, keystore }
 	}
 }
 
-impl<RuntimeApi, Executor> fc_rpc::pending::ConsensusDataProvider<Block>
-	for PendingConsensusDataProvider<RuntimeApi, Executor>
+impl<RuntimeApi> fc_rpc::pending::ConsensusDataProvider<Block>
+	for PendingConsensusDataProvider<RuntimeApi>
 where
-	RuntimeApi:
-		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Executor: ExecutorT + 'static,
 {
 	fn create_digest(
 		&self,

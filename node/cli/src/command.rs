@@ -355,7 +355,7 @@ pub fn run() -> Result<()> {
 				spec if spec.is_moonriver() => runner.async_run(|mut config| {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonriver_runtime::RuntimeApi,
-						moonbeam_service::MoonriverExecutor,
+						moonbeam_service::MoonriverCustomizations,
 					>(&mut config, &rpc_config, false)?;
 
 					Ok((
@@ -367,7 +367,7 @@ pub fn run() -> Result<()> {
 				spec if spec.is_moonbeam() => runner.async_run(|mut config| {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
-						moonbeam_service::MoonbeamExecutor,
+						moonbeam_service::MoonbeamCustomizations,
 					>(&mut config, &rpc_config, false)?;
 
 					Ok((
@@ -379,7 +379,7 @@ pub fn run() -> Result<()> {
 				_ => runner.async_run(|mut config| {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonbase_runtime::RuntimeApi,
-						moonbeam_service::MoonbaseExecutor,
+						moonbeam_service::MoonbaseCustomizations,
 					>(&mut config, &rpc_config, false)?;
 
 					Ok((
@@ -532,7 +532,7 @@ pub fn run() -> Result<()> {
 							return runner.sync_run(|mut config| {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonriver_runtime::RuntimeApi,
-									moonbeam_service::MoonriverExecutor,
+									moonbeam_service::MoonriverCustomizations,
 								>(&mut config, &rpc_config, false)?;
 
 								cmd.run(params.client)
@@ -543,7 +543,7 @@ pub fn run() -> Result<()> {
 							return runner.sync_run(|mut config| {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbeam_runtime::RuntimeApi,
-									moonbeam_service::MoonbeamExecutor,
+									moonbeam_service::MoonbeamCustomizations,
 								>(&mut config, &rpc_config, false)?;
 
 								cmd.run(params.client)
@@ -554,7 +554,7 @@ pub fn run() -> Result<()> {
 							return runner.sync_run(|mut config| {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbase_runtime::RuntimeApi,
-									moonbeam_service::MoonbaseExecutor,
+									moonbeam_service::MoonbaseCustomizations,
 								>(&mut config, &rpc_config, false)?;
 
 								cmd.run(params.client)
@@ -650,7 +650,7 @@ pub fn run() -> Result<()> {
 						..
 					} = moonbeam_service::new_partial::<
 						moonbeam_service::moonriver_runtime::RuntimeApi,
-						moonbeam_service::MoonriverExecutor,
+						moonbeam_service::MoonriverCustomizations,
 					>(&mut config, &rpc_config, false)?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
@@ -663,7 +663,7 @@ pub fn run() -> Result<()> {
 						..
 					} = moonbeam_service::new_partial::<
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
-						moonbeam_service::MoonbeamExecutor,
+						moonbeam_service::MoonbeamCustomizations,
 					>(&mut config, &rpc_config, false)?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
@@ -676,7 +676,7 @@ pub fn run() -> Result<()> {
 						..
 					} = moonbeam_service::new_partial::<
 						moonbeam_service::moonbase_runtime::RuntimeApi,
-						moonbeam_service::MoonbaseExecutor,
+						moonbeam_service::MoonbaseCustomizations,
 					>(&mut config, &rpc_config, false)?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
@@ -727,21 +727,21 @@ pub fn run() -> Result<()> {
 						#[cfg(feature = "moonriver-native")]
 						spec if spec.is_moonriver() => moonbeam_service::new_dev::<
 							moonbeam_service::moonriver_runtime::RuntimeApi,
-							moonbeam_service::MoonriverExecutor,
+							moonbeam_service::MoonriverCustomizations,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.await
 						.map_err(Into::into),
 						#[cfg(feature = "moonbeam-native")]
 						spec if spec.is_moonbeam() => moonbeam_service::new_dev::<
 							moonbeam_service::moonbeam_runtime::RuntimeApi,
-							moonbeam_service::MoonbeamExecutor,
+							moonbeam_service::MoonbeamCustomizations,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.await
 						.map_err(Into::into),
 						#[cfg(feature = "moonbase-native")]
 						_ => moonbeam_service::new_dev::<
 							moonbeam_service::moonbase_runtime::RuntimeApi,
-							moonbeam_service::MoonbaseExecutor,
+							moonbeam_service::MoonbaseCustomizations,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.await
 						.map_err(Into::into),
@@ -787,7 +787,7 @@ pub fn run() -> Result<()> {
 					#[cfg(feature = "moonriver-native")]
 					spec if spec.is_moonriver() => moonbeam_service::start_node::<
 						moonbeam_service::moonriver_runtime::RuntimeApi,
-						moonbeam_service::MoonriverExecutor,
+						moonbeam_service::MoonriverCustomizations,
 					>(
 						config,
 						polkadot_config,
@@ -803,7 +803,7 @@ pub fn run() -> Result<()> {
 					#[cfg(feature = "moonbeam-native")]
 					spec if spec.is_moonbeam() => moonbeam_service::start_node::<
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
-						moonbeam_service::MoonbeamExecutor,
+						moonbeam_service::MoonbeamCustomizations,
 					>(
 						config,
 						polkadot_config,
@@ -819,7 +819,7 @@ pub fn run() -> Result<()> {
 					#[cfg(feature = "moonbase-native")]
 					_ => moonbeam_service::start_node::<
 						moonbeam_service::moonbase_runtime::RuntimeApi,
-						moonbeam_service::MoonbaseExecutor,
+						moonbeam_service::MoonbaseCustomizations,
 					>(
 						config,
 						polkadot_config,
