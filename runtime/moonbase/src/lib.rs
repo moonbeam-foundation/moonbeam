@@ -1370,7 +1370,7 @@ construct_runtime! {
 		Treasury: pallet_treasury::{Pallet, Storage, Config<T>, Event<T>, Call} = 17,
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 18,
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config<T>} = 19,
-		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Event<T>} = 20,
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 20,
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 21,
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 22,
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config<T>, Storage, Event} = 23,
