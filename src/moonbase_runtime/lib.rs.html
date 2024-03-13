@@ -2569,7 +2569,7 @@
 </span><span class="kw">const </span>UNINCLUDED_SEGMENT_CAPACITY: u32 = <span class="number">3</span>;
 <span class="doccomment">/// How many parachain blocks are processed by the relay chain per parent. Limits the
 /// number of blocks authored per slot.
-</span><span class="kw">const </span>BLOCK_PROCESSING_VELOCITY: u32 = <span class="number">2</span>;
+</span><span class="kw">const </span>BLOCK_PROCESSING_VELOCITY: u32 = <span class="number">1</span>;
 
 <span class="kw">type </span>ConsensusHook = pallet_async_backing::consensus_hook::FixedVelocityConsensusHook&lt;
 	Runtime,
