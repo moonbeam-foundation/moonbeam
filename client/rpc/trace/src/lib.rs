@@ -846,13 +846,37 @@ where
 			})?
 			.ok_or_else(|| format!("Could not find block {} when fetching extrinsics.", height))?;
 
+		// Get DebugRuntimeApi version
+		let trace_api_version = if let Ok(Some(api_version)) =
+			api.api_version::<dyn DebugRuntimeApi<B>>(substrate_parent_hash)
+		{
+			api_version
+		} else {
+			return Err(format!("Runtime api version call failed (trace)"));
+		};
+
 		// Trace the block.
 		let f = || -> Result<_, String> {
-			api.initialize_block(substrate_parent_hash, &block_header)
-				.map_err(|e| format!("Runtime api access error: {:?}", e))?;
+			let result = if trace_api_version >= 5 {
+				api.trace_block(
+					substrate_parent_hash,
+					extrinsics,
+					eth_tx_hashes,
+					&block_header,
+				)
+			} else {
+				// Pre pallet-message-queue
 
-			let _result = api
-				.trace_block(substrate_parent_hash, extrinsics, eth_tx_hashes)
+				// Initialize block: calls the "on_initialize" hook on every pallet
+				// in AllPalletsWithSystem
+				api.initialize_block(substrate_parent_hash, &block_header)
+					.map_err(|e| format!("Runtime api access error: {:?}", e))?;
+
+				#[allow(deprecated)]
+				api.trace_block_before_version_5(substrate_parent_hash, extrinsics, eth_tx_hashes)
+			};
+
+			result
 				.map_err(|e| format!("Blockchain error when replaying block {} : {:?}", height, e))?
 				.map_err(|e| {
 					tracing::warn!(
@@ -865,6 +889,7 @@ where
 						height, e
 					)
 				})?;
+
 			Ok(moonbeam_rpc_primitives_debug::Response::Block)
 		};
 

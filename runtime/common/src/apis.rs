@@ -109,6 +109,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn trace_transaction(
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					traced_transaction: &EthereumTransaction,
+					header: &<Block as BlockT>::Header,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
@@ -127,6 +128,10 @@ macro_rules! impl_runtime_apis_plus_common {
 							ETHEREUM_XCM_TRACING_STORAGE_KEY,
 							&EthereumXcmTracingStatus::Transaction(traced_transaction.hash()),
 						);
+
+						// Initialize block: calls the "on_initialize" hook on every pallet
+						// in AllPalletsWithSystem
+						Executive::initialize_block(header);
 
 						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
 						// transactions that preceded the requested transaction.
@@ -161,6 +166,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn trace_block(
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					known_transactions: Vec<H256>,
+					header: &<Block as BlockT>::Header,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
@@ -178,6 +184,10 @@ macro_rules! impl_runtime_apis_plus_common {
 
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
 						config.estimate = true;
+
+						// Initialize block: calls the "on_initialize" hook on every pallet
+						// in AllPalletsWithSystem
+						Executive::initialize_block(header);
 
 						// Apply all extrinsics. Ethereum extrinsics are traced.
 						for ext in extrinsics.into_iter() {

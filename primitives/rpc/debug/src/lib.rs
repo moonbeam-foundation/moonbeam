@@ -30,8 +30,14 @@ sp_api::decl_runtime_apis! {
 	// In order to be able to use ApiExt as part of the RPC handler logic we need to be always
 	// above the version that exists on chain for this Api, even if this Api is only meant
 	// to be used overridden.
-	#[api_version(4)]
+	#[api_version(5)]
 	pub trait DebugRuntimeApi {
+		#[changed_in(5)]
+		fn trace_transaction(
+			extrinsics: Vec<Block::Extrinsic>,
+			transaction: &Transaction,
+		) -> Result<(), sp_runtime::DispatchError>;
+
 		#[changed_in(4)]
 		fn trace_transaction(
 			extrinsics: Vec<Block::Extrinsic>,
@@ -41,11 +47,19 @@ sp_api::decl_runtime_apis! {
 		fn trace_transaction(
 			extrinsics: Vec<Block::Extrinsic>,
 			transaction: &Transaction,
+			header: &Block::Header,
+		) -> Result<(), sp_runtime::DispatchError>;
+
+		#[changed_in(5)]
+		fn trace_block(
+			extrinsics: Vec<Block::Extrinsic>,
+			known_transactions: Vec<H256>,
 		) -> Result<(), sp_runtime::DispatchError>;
 
 		fn trace_block(
 			extrinsics: Vec<Block::Extrinsic>,
 			known_transactions: Vec<H256>,
+			header: &Block::Header,
 		) -> Result<(), sp_runtime::DispatchError>;
 	}
 }
