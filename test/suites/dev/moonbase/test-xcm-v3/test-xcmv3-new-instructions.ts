@@ -8,6 +8,7 @@ import {
   injectHrmpMessage,
   sovereignAccountOfSibling,
   XcmFragmentConfig,
+  injectHrmpMessageAndSeal,
 } from "../../../../helpers/xcm.js";
 import { parseEther } from "ethers";
 import { ApiPromise } from "@polkadot/api";
@@ -65,15 +66,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for Success
         const events = (await api.query.system.events())
@@ -96,15 +92,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for Success
         const events = (await api.query.system.events())
@@ -127,15 +118,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for Success
         const events = (await api.query.system.events())
@@ -158,15 +144,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for Success
         const events = (await api.query.system.events())
@@ -189,15 +170,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for Success
         const events = (await api.query.system.events())
@@ -221,15 +197,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for Success
         const events = (await api.query.system.events())
@@ -252,15 +223,11 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for failure
         const events = (await api.query.system.events())
@@ -287,15 +254,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for failure
         const events = (await api.query.system.events())
@@ -322,15 +284,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for failure
         const events = (await api.query.system.events())
@@ -357,15 +314,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for failure
         const events = (await api.query.system.events())
@@ -392,15 +344,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for failure
         const events = (await api.query.system.events())
@@ -427,15 +374,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for failure
         const events = (await api.query.system.events())
@@ -462,15 +404,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for failure
         const events = (await api.query.system.events())
@@ -499,15 +436,10 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
-        // Include hrmp message
-        await context.createBlock();
-        // Process the next block
-        await context.createBlock();
 
         // Search for failure
         const events = (await api.query.system.events())

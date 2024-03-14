@@ -122,12 +122,10 @@ describeSuite({
           });
 
           const allRecords = await polkadotJs.query.system.events();
-          const [{ event }] = allRecords.filter(
-            ({ event: { section, method } }) =>
-              section === "xcmpQueue" && method === "OverweightEnqueued"
-          );
-          const [_paraId, _messageId, _weight, proof] = event.data;
-          return proof.proofSize.toNumber();
+          const [{ weightUsed }] = allRecords
+            .filter(({ event }) => polkadotJs.events.messageQueue.Processed.is(event))
+            .map((e) => e.event.data as unknown as { weightUsed: { proofSize: unknown } });
+          return Number(weightUsed.proofSize);
         };
 
         const limit = 64n;

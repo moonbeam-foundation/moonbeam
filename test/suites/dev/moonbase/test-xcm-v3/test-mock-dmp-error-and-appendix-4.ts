@@ -69,6 +69,8 @@ describeSuite({
         // Send RPC call to inject XCM message
         await customDevRpcRequest("xcm_injectDownwardMessage", [totalMessage]);
 
+        // Process the next block
+        await context.createBlock();
         // Create a block in which the XCM will be executed
         await context.createBlock();
         // Make sure the state has ALITH's to DOT tokens

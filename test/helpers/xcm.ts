@@ -213,6 +213,7 @@ export async function injectHrmpMessageAndSeal(
   await injectHrmpMessage(context, paraId, message);
   // Create a block in which the XCM will be executed
   await context.createBlock();
+  await context.createBlock();
 }
 
 interface Junction {
@@ -479,6 +480,13 @@ export class XcmFragment {
   as_v3(): any {
     return {
       V3: this.instructions,
+    };
+  }
+
+  /// XCM V4 calls
+  as_v4(): any {
+    return {
+      V4: this.instructions,
     };
   }
 
