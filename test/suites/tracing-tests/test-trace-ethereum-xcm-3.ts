@@ -113,7 +113,7 @@ describeSuite({
         } as RawXcmMessage);
       }
 
-      // Create block which includes xcm message
+      // Create a new block to include the xcm message
       await context.createBlock();
       // Create next block
       await context.createBlock();

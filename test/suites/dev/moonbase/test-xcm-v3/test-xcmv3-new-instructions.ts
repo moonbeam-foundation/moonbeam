@@ -34,9 +34,7 @@ describeSuite({
         .index.toNumber();
 
       // Send some native tokens to the sovereign account of paraId (to pay fees)
-      await api
-        .tx.balances.transferAllowDeath(paraSovereign, parseEther("1"))
-        .signAndSend(alith);
+      await api.tx.balances.transferAllowDeath(paraSovereign, parseEther("1")).signAndSend(alith);
       await context.createBlock();
 
       amount = 1_000_000_000_000_000n;
@@ -71,7 +69,7 @@ describeSuite({
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        
+
         // Include hrmp message
         await context.createBlock();
         // Process the next block
@@ -80,7 +78,7 @@ describeSuite({
         // Search for Success
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => success);
 
         expect(events).to.have.lengthOf(1);
@@ -111,7 +109,7 @@ describeSuite({
         // Search for Success
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => success);
 
         expect(events).to.have.lengthOf(1);
@@ -142,7 +140,7 @@ describeSuite({
         // Search for Success
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => success);
 
         expect(events).to.have.lengthOf(1);
@@ -173,7 +171,7 @@ describeSuite({
         // Search for Success
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => success);
 
         expect(events).to.have.lengthOf(1);
@@ -204,7 +202,7 @@ describeSuite({
         // Search for Success
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => success);
 
         expect(events).to.have.lengthOf(1);
@@ -236,7 +234,7 @@ describeSuite({
         // Search for Success
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => success);
 
         expect(events).to.have.lengthOf(1);
@@ -267,11 +265,14 @@ describeSuite({
         // Search for failure
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => !success);
 
         expect(events).to.have.lengthOf(1);
-        //expect(events[0].event.data[2].toString()).equals("Transport");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("Transport");
       },
     });
 
@@ -299,10 +300,14 @@ describeSuite({
         // Search for failure
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => !success);
 
         expect(events).to.have.lengthOf(1);
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("ExpectationFalse");
       },
     });
 
@@ -330,11 +335,14 @@ describeSuite({
         // Search for failure
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => !success);
 
         expect(events).to.have.lengthOf(1);
-        //expect(events[0].event.data[2].toString()).equals("ExpectationFalse");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("ExpectationFalse");
       },
     });
 
@@ -362,11 +370,14 @@ describeSuite({
         // Search for failure
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => !success);
-        
+
         expect(events).to.have.lengthOf(1);
-        //expect(events[0].event.data[2].toString()).equals("ExpectationFalse");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("ExpectationFalse");
       },
     });
 
@@ -394,11 +405,14 @@ describeSuite({
         // Search for failure
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => !success);
 
         expect(events).to.have.lengthOf(1);
-        //expect(events[0].event.data[2].toString()).equals("Transport");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("Transport");
       },
     });
 
@@ -426,10 +440,13 @@ describeSuite({
         // Search for failure
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => !success);
 
         expect(events).to.have.lengthOf(1);
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
         // expect(events[0].event.data[2].toString()).equals("NameMismatch");
       },
     });
@@ -458,11 +475,16 @@ describeSuite({
         // Search for failure
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => !success);
 
+        await new Promise((r) => setTimeout(r, 120000));
+
         expect(events).to.have.lengthOf(1);
-        //expect(events[0].event.data[2].toString()).equals("Transport");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("Transport");
       },
     });
 
@@ -490,11 +512,14 @@ describeSuite({
         // Search for failure
         const events = (await api.query.system.events())
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map(e => e.event.data.toHuman() as { success: boolean })
+          .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => !success);
 
         expect(events).to.have.lengthOf(1);
-        //expect(events[0].event.data[2].toString()).equals("BadOrigin");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("BadOrigin");
       },
     });
   },
