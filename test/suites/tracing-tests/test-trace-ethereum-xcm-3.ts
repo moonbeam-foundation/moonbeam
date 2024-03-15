@@ -114,9 +114,9 @@ describeSuite({
       }
 
       // Block that includes the hrmp messages
-      context.createBlock();
+      await context.createBlock();
       // Block that processes the hrmp messasges in the message queue
-      context.createBlock();
+      await context.createBlock();
 
       const txHashes = (await context.viem().getBlock({ blockTag: "latest" })).transactions;
       expect(txHashes.length).toBe(2);
