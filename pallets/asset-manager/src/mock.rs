@@ -25,7 +25,7 @@ use sp_core::{RuntimeDebug, H256};
 use sp_runtime::traits::Hash as THash;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::{BuildStorage, DispatchError};
-use xcm::latest::prelude::*;
+use xcm::v3::prelude::*;
 
 type Block = frame_system::mocking::MockBlock<Test>;
 

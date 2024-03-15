@@ -696,6 +696,7 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 #[cfg(feature = "runtime-benchmarks")]
 mod testing {
 	use super::*;
+	use xcm_builder::V4V3LocationConverter;
 
 	/// This From exists for benchmarking purposes. It has the potential side-effect of calling
 	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
@@ -709,7 +710,9 @@ mod testing {
 			{
 				asset_id
 			} else {
-				let asset_type = AssetType::Xcm(location);
+				let asset_type = AssetType::Xcm(
+					V4V3LocationConverter::convert(&location).expect("convert to v3"),
+				);
 				let asset_id: AssetId = asset_type.clone().into();
 				AssetManager::set_asset_type_asset_id(asset_type, asset_id);
 				asset_id

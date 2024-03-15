@@ -20,7 +20,7 @@ use crate::{pallet::LocalAssetIdCreator, Call, Config, DepositBalanceOf, Pallet}
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get};
 use frame_system::RawOrigin;
-use xcm::latest::prelude::*;
+use xcm::v3::prelude::*;
 
 ///RLocal asset deposit amount
 fn min_candidate_stk<T: Config>() -> DepositBalanceOf<T> {
@@ -62,9 +62,9 @@ benchmarks! {
 		// We make it dependent on the number of existing assets already
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::ForeignAssetType = Location::new(
+			let asset_type: T::ForeignAssetType = Location::new(
 				0,
-				[(GeneralIndex(i as u128))]
+				X1(GeneralIndex(i as u128))
 			).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
@@ -101,7 +101,7 @@ benchmarks! {
 		// We make it dependent on the number of existing assets already
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::ForeignAssetType = Location::new(0, [GeneralIndex(i as u128)]).into();
+			let asset_type: T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
 			Pallet::<T>::register_foreign_asset(
@@ -117,7 +117,7 @@ benchmarks! {
 		let new_asset_type = T::ForeignAssetType::default();
 		let asset_type_to_be_changed: T::ForeignAssetType = Location::new(
 			0,
-			[(GeneralIndex((x-1) as u128))]
+			X1(GeneralIndex((x-1) as u128))
 		).into();
 		let asset_id_to_be_changed = asset_type_to_be_changed.into();
 	}: _(RawOrigin::Root, asset_id_to_be_changed, new_asset_type.clone(), x)
@@ -131,7 +131,7 @@ benchmarks! {
 		// We make it dependent on the number of existing assets already
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::ForeignAssetType = Location::new(0, [GeneralIndex(i as u128)]).into();
+			let asset_type: T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
 			Pallet::<T>::register_foreign_asset(
@@ -145,7 +145,7 @@ benchmarks! {
 		}
 		let asset_type_to_be_removed: T::ForeignAssetType = Location::new(
 			0,
-			[(GeneralIndex((x-1) as u128))]
+			X1(GeneralIndex((x-1) as u128))
 		).into();
 		// We try to remove the last asset type
 	}: _(RawOrigin::Root, asset_type_to_be_removed.clone(), x)
@@ -179,7 +179,7 @@ benchmarks! {
 		// Worst case is we need to remove it from SupportedAAssetsFeePayment too
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::ForeignAssetType = Location::new(0, [GeneralIndex(i as u128)]).into();
+			let asset_type: T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
 			Pallet::<T>::register_foreign_asset(
@@ -194,7 +194,7 @@ benchmarks! {
 
 		let asset_type_to_be_removed: T::ForeignAssetType = Location::new(
 			0,
-			[(GeneralIndex((x-1) as u128))]
+			X1(GeneralIndex((x-1) as u128))
 		).into();
 		let asset_id: T::AssetId = asset_type_to_be_removed.clone().into();
 	}: _(RawOrigin::Root, asset_id, x)

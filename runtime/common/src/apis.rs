@@ -711,14 +711,14 @@ macro_rules! impl_runtime_apis_plus_common {
 										<Runtime as PalletAssetManagerConfig>::AssetId,
 										<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
 									>::set_asset_type_asset_id(
-										location.clone().into(),
+										location.clone().try_into().expect("convert to v3"),
 										i as u128
 									);
 									// set 1-1
 									<AssetManager as xcm_primitives::UnitsToWeightRatio<
 										<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
 									>::set_units_per_second(
-										location.clone().into(),
+										location.clone().try_into().expect("convert to v3"),
 										1_000_000_000_000u128
 									);
 								}
