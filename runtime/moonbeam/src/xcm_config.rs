@@ -30,7 +30,7 @@ use frame_support::{
 use moonbeam_runtime_common::weights as moonbeam_weights;
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 use sp_runtime::{
-	traits::{Hash as THash, PostDispatchInfoOf},
+	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
 	DispatchErrorWithPostInfo,
 };
 use sp_weights::Weight;
@@ -399,7 +399,7 @@ parameter_types! {
 	/// A good value depends on the expected message sizes, their weights, the weight that is
 	/// available for processing them and the maximal needed message size. The maximal message
 	/// size is slightly lower than this as defined by [`MaxMessageLenOf`].
-	pub const MessageQueueHeapSize: u32 = 64 * 1024;
+	pub const MessageQueueHeapSize: u32 = 64 * 2048;
 }
 
 impl pallet_message_queue::Config for Runtime {
@@ -425,23 +425,40 @@ impl pallet_message_queue::Config for Runtime {
 // Our AssetType. For now we only handle Xcm Assets
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum AssetType {
-	Xcm(Location),
+	Xcm(xcm::v3::Location),
 }
 impl Default for AssetType {
 	fn default() -> Self {
-		Self::Xcm(Location::here())
+		Self::Xcm(xcm::v3::Location::here())
 	}
 }
 
-impl From<Location> for AssetType {
-	fn from(location: Location) -> Self {
+impl From<xcm::v3::Location> for AssetType {
+	fn from(location: xcm::v3::Location) -> Self {
 		Self::Xcm(location)
 	}
 }
+
+// This can be removed once we fully adopt xcm::v4 everywhere
+impl TryFrom<Location> for AssetType {
+	type Error = ();
+	fn try_from(location: Location) -> Result<Self, Self::Error> {
+		Ok(Self::Xcm(location.try_into()?))
+	}
+}
+
+impl Into<Option<xcm::v3::Location>> for AssetType {
+	fn into(self) -> Option<xcm::v3::Location> {
+		match self {
+			Self::Xcm(location) => Some(location),
+		}
+	}
+}
+
 impl Into<Option<Location>> for AssetType {
 	fn into(self) -> Option<Location> {
 		match self {
-			Self::Xcm(location) => Some(location),
+			Self::Xcm(location) => xcm_builder::V4V3LocationConverter::convert_back(&location),
 		}
 	}
 }

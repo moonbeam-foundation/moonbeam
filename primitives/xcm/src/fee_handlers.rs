@@ -34,7 +34,7 @@ use xcm_builder::TakeRevenue;
 use xcm_executor::traits::{MatchesFungibles, WeightTrader};
 
 pub struct FirstAssetTrader<
-	AssetType: From<Location> + Clone,
+	AssetType: TryFrom<Location> + Clone,
 	AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 	R: TakeRevenue,
 >(
@@ -43,7 +43,7 @@ pub struct FirstAssetTrader<
 	PhantomData<(AssetType, AssetIdInfoGetter, R)>,
 );
 impl<
-		AssetType: From<Location> + Clone,
+		AssetType: TryFrom<Location> + Clone,
 		AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 		R: TakeRevenue,
 	> WeightTrader for FirstAssetTrader<AssetType, AssetIdInfoGetter, R>
@@ -74,7 +74,10 @@ impl<
 		// transfers. We will see later if we change this.
 		match (first_asset.id, first_asset.fun) {
 			(xcmAssetId(location), Fungibility::Fungible(_)) => {
-				let asset_type: AssetType = location.clone().into();
+				let asset_type: AssetType = location
+					.clone()
+					.try_into()
+					.map_err(|_| XcmError::InvalidLocation)?;
 				// Shortcut if we know the asset is not supported
 				// This involves the same db read per block, mitigating any attack based on
 				// non-supported assets
@@ -139,7 +142,7 @@ impl<
 
 /// Deal with spent fees, deposit them as dictated by R
 impl<
-		AssetType: From<Location> + Clone,
+		AssetType: TryFrom<Location> + Clone,
 		AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 		R: TakeRevenue,
 	> Drop for FirstAssetTrader<AssetType, AssetIdInfoGetter, R>

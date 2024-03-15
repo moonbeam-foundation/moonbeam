@@ -1553,7 +1553,7 @@ fn root_can_change_default_xcm_vers() {
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(Location::parent()),
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -1565,7 +1565,7 @@ fn root_can_change_default_xcm_vers() {
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(Location::parent());
+			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 			let dest = Location {
 				parents: 1,
 				interior: [AccountId32 {
@@ -1608,7 +1608,7 @@ fn root_can_change_default_xcm_vers() {
 #[test]
 fn asset_can_be_registered() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = AssetType::Xcm(Location::parent());
+		let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 		let source_id: moonriver_runtime::AssetId = source_location.clone().into();
 		let asset_metadata = AssetRegistrarMetadata {
 			name: b"RelayToken".to_vec(),
@@ -1631,7 +1631,7 @@ fn asset_can_be_registered() {
 fn xcm_asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(Location::parent()),
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -1648,7 +1648,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 		.build()
 		.execute_with(|| {
 			// We have the assetId that corresponds to the relay chain registered
-			let relay_asset_id: AssetId = AssetType::Xcm(Location::parent()).into();
+			let relay_asset_id: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
 
 			// Its address is
 			let asset_precompile_address = Runtime::asset_id_to_account(
@@ -1692,7 +1692,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 fn xcm_asset_erc20_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(Location::parent()),
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -1709,7 +1709,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 		.build()
 		.execute_with(|| {
 			// We have the assetId that corresponds to the relay chain registered
-			let relay_asset_id: AssetId = AssetType::Xcm(Location::parent()).into();
+			let relay_asset_id: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
 
 			// Its address is
 			let asset_precompile_address = Runtime::asset_id_to_account(
@@ -1756,7 +1756,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 fn xcm_asset_erc20_precompiles_approve() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(Location::parent()),
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -1773,7 +1773,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 		.build()
 		.execute_with(|| {
 			// We have the assetId that corresponds to the relay chain registered
-			let relay_asset_id: AssetId = AssetType::Xcm(Location::parent()).into();
+			let relay_asset_id: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
 
 			// Its address is
 			let asset_precompile_address = Runtime::asset_id_to_account(
@@ -1841,7 +1841,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 fn xtokens_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(Location::parent()),
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -1862,7 +1862,7 @@ fn xtokens_precompiles_transfer() {
 
 			// We have the assetId that corresponds to the relay chain registered
 			let relay_asset_id: moonriver_runtime::AssetId =
-				AssetType::Xcm(Location::parent()).into();
+				AssetType::Xcm(xcm::v3::Location::parent()).into();
 
 			// Its address is
 			let asset_precompile_address = Runtime::asset_id_to_account(
@@ -1901,7 +1901,7 @@ fn xtokens_precompiles_transfer() {
 fn xtokens_precompiles_transfer_multiasset() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(Location::parent()),
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -2000,7 +2000,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(Location::parent()),
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -2012,7 +2012,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(Location::parent());
+			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
 			assert_ok!(XcmTransactor::register(
 				root_origin(),
@@ -2172,7 +2172,7 @@ fn call_xtokens_with_fee() {
 		])
 		.with_safe_xcm_version(2)
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(Location::parent()),
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -2184,7 +2184,7 @@ fn call_xtokens_with_fee() {
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(Location::parent());
+			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 			let dest = Location {
 				parents: 1,
 				interior: [AccountId32 {

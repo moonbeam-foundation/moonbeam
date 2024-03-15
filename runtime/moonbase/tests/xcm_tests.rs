@@ -27,6 +27,7 @@ use frame_support::{
 use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
 };
+use sp_runtime::traits::MaybeEquivalence;
 use sp_std::boxed::Box;
 use xcm::latest::prelude::{
 	AccountId32, AccountKey20, All, BuyExecution, ClearOrigin, DepositAsset, GeneralIndex,
@@ -45,7 +46,7 @@ use cumulus_primitives_core::relay_chain::HrmpChannelId;
 fn receive_relay_asset_from_relay() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
@@ -97,7 +98,7 @@ fn receive_relay_asset_from_relay() {
 fn send_relay_asset_to_relay() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -189,7 +190,7 @@ fn send_relay_asset_to_relay() {
 fn send_relay_asset_to_para_b() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -293,7 +294,9 @@ fn send_para_a_asset_to_para_b() {
 
 	// this represents the asset in paraA
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -363,7 +366,9 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 
 	// Represents para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -477,7 +482,9 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 
 	// Para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -574,7 +581,9 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -684,7 +693,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 fn receive_relay_asset_with_trader() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -746,7 +755,9 @@ fn send_para_a_asset_to_para_b_with_trader() {
 	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -821,7 +832,9 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -889,7 +902,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 fn error_when_not_paying_enough() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -945,7 +958,7 @@ fn error_when_not_paying_enough() {
 fn transact_through_derivative_multilocation() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -1114,7 +1127,7 @@ fn transact_through_derivative_multilocation() {
 fn transact_through_derivative_with_custom_fee_weight() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -1269,7 +1282,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 fn transact_through_derivative_with_custom_fee_weight_refund() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -1423,7 +1436,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 fn transact_through_sovereign() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -1590,7 +1603,7 @@ fn transact_through_sovereign() {
 fn transact_through_sovereign_with_custom_fee_weight() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -1743,7 +1756,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -1897,7 +1910,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
 		symbol: b"Relay".to_vec(),
@@ -2028,7 +2041,9 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -2181,7 +2196,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	MockNet::reset();
 
 	let fresh_account = [2u8; 20];
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
@@ -2259,7 +2274,7 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 	MockNet::reset();
 
 	let fresh_account = [2u8; 20];
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
@@ -2320,7 +2335,7 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 		assert_eq!(parachain::System::account(evm_account_id).sufficients, 1);
 	});
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
 		symbol: b"Relay".to_vec(),
@@ -2388,7 +2403,7 @@ fn empty_account_should_not_be_reset() {
 
 	let evm_account_id = parachain::AccountId::from(sufficient_account);
 
-	let source_location = parachain::AssetType::Xcm(Location::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
@@ -2500,7 +2515,10 @@ fn test_statemint_like() {
 			xcm::latest::prelude::GeneralIndex(0u128),
 		],
 	);
-	let source_location = parachain::AssetType::Xcm(statemint_asset_a_balances);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&statemint_asset_a_balances)
+			.expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -2589,7 +2607,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	MockNet::reset();
 
 	// Relay asset
-	let relay_location = parachain::AssetType::Xcm(Location::parent());
+	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_relay_id: parachain::AssetId = relay_location.clone().into();
 
 	let relay_asset_metadata = parachain::AssetMetadata {
@@ -2603,7 +2621,9 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 		1,
 		[Parachain(4u32), PalletInstance(5u8), GeneralIndex(10u128)],
 	);
-	let statemint_location_asset = parachain::AssetType::Xcm(statemint_asset);
+	let statemint_location_asset = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&statemint_asset).expect("convert to v3"),
+	);
 	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
 
 	let asset_metadata_statemint_asset = parachain::AssetMetadata {

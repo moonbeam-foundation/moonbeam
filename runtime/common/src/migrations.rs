@@ -116,7 +116,6 @@ where
 	Runtime: AuthorSlotFilterConfig,
 	Runtime: pallet_preimage::Config,
 	Runtime: pallet_asset_manager::Config,
-	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v4::Location>,
 	Runtime: pallet_xcm_transactor::Config,
 	Runtime: pallet_moonbeam_orbiters::Config,
 	Runtime: pallet_balances::Config,
