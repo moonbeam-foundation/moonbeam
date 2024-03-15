@@ -4,6 +4,7 @@ import {
   injectHrmpMessage,
   descendOriginFromAddress20,
   RawXcmMessage,
+  injectHrmpMessageAndSeal,
 } from "../../helpers";
 import { hexToNumber, Abi, encodeFunctionData } from "viem";
 
@@ -107,16 +108,11 @@ describeSuite({
           .as_v3();
 
         // Send an XCM and create block to execute it
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
       }
-
-      // Create a new block to include the xcm message
-      await context.createBlock();
-      // Create next block
-      await context.createBlock();
 
       const txHashes = (await context.viem().getBlock({ blockTag: "latest" })).transactions;
       expect(txHashes.length).toBe(2);

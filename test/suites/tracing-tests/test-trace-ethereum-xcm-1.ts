@@ -121,9 +121,6 @@ describeSuite({
           payload: xcmMessage,
         } as RawXcmMessage);
 
-        // Create next block
-        await context.createBlock();
-
         // Retrieve the stored ethereum transaction hash
         transactionHashes.push(
           (await context.viem().getBlock({ blockTag: "latest" })).transactions[0]
