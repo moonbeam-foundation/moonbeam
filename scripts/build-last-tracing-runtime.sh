@@ -7,7 +7,7 @@ echo ${1:-"$LOCAL_GIT_BRANCH"}
 
 rm -rf build/{moonbeam-runtime-overrides,wasm}
 mkdir -p build/wasm
-git clone --depth 1 -b rq/debug_api_version_5 https://github.com/moonbeam-foundation/moonbeam-runtime-overrides build/moonbeam-runtime-overrides
+git clone --depth 1 -b master-without-wasm https://github.com/moonbeam-foundation/moonbeam-runtime-overrides build/moonbeam-runtime-overrides
 
 cd build/moonbeam-runtime-overrides
 ./scripts/import-tracing-runtime.sh local ${1:-"$LOCAL_GIT_BRANCH"}
