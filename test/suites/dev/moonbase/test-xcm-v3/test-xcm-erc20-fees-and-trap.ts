@@ -336,7 +336,7 @@ describeSuite({
           .map((e) => e.event.data.toHuman() as { success: boolean })
           .filter(({ success }) => !success);
 
-        expect(events2).to.have.lengthOf(1);        
+        expect(events2).to.have.lengthOf(1);
         // pallet-message-queue does not show an error when "success" is false.
         // https://github.com/paritytech/polkadot-sdk/issues/478
         // >

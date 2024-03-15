@@ -5,7 +5,6 @@ import { alith, CHARLETH_ADDRESS } from "@moonwall/util";
 import {
   XcmFragment,
   RawXcmMessage,
-  injectHrmpMessage,
   sovereignAccountOfSibling,
   XcmFragmentConfig,
   injectHrmpMessageAndSeal,
@@ -227,7 +226,6 @@ describeSuite({
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-
 
         // Search for failure
         const events = (await api.query.system.events())

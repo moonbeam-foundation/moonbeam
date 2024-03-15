@@ -5,7 +5,6 @@ import { alith, CHARLETH_ADDRESS } from "@moonwall/util";
 import {
   XcmFragment,
   RawXcmMessage,
-  injectHrmpMessage,
   sovereignAccountOfSibling,
   XcmFragmentConfig,
   injectHrmpMessageAndSeal,
