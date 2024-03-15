@@ -144,6 +144,10 @@ where
 			panic!("corrupted storage: parachainStaking.Round don't exist");
 		};
 
+		// WARNING: This code should be specific to moonsama only, never merge it on master
+		// RT2801 doesn't support zero round length, so we should set it back to the old value (600)
+		round.length = 600;
+
 		// Compute new field `first_slot``
 		round.first_slot = compute_theoretical_first_slot(
 			<frame_system::Pallet<T>>::block_number(),
