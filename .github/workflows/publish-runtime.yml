@@ -17,7 +17,7 @@ jobs:
   setup-scripts:
     runs-on: bare-metal
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Upload scripts
         uses: actions/upload-artifact@v3
         with:
@@ -40,7 +40,7 @@ jobs:
         srtool_image_tag:
           - 1.74.0
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.to }}
       - name: Login to DockerHub
@@ -116,7 +116,7 @@ jobs:
       asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0

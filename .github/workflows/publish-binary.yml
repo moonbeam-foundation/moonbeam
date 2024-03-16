@@ -16,7 +16,7 @@ jobs:
   setup-scripts:
     runs-on: bare-metal
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Upload tools
         uses: actions/upload-artifact@v3.1.2
         with:
@@ -31,7 +31,7 @@ jobs:
         cpu: ["", "skylake", "znver3"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.to }}
       - name: Build production moonbeam
@@ -79,7 +79,7 @@ jobs:
       asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
@@ -157,7 +157,7 @@ jobs:
     needs: ["build-binary", "publish-draft-release"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.to }}
       - uses: actions/download-artifact@v3.0.2
