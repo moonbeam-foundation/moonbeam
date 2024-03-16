@@ -44,7 +44,7 @@ jobs:
         with:
           ref: ${{ github.event.inputs.to }}
       - name: Login to DockerHub
-        uses: docker/login-action@v2.2.0
+        uses: docker/login-action@v3
         if: github.repository == 'moonbeam-foundation/moonbeam'
         with:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
