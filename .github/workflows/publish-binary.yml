@@ -169,11 +169,12 @@ jobs:
         with:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
-          registry: index.docker.io
       - run: |
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
           COMMIT=`git rev-list -n 1 '${{ github.event.inputs.to }}'`
           SHA=sha-${COMMIT::8}
+          echo using "${DOCKER_IMAGE}:${SHA} as base image"
+
           TAG="${{ github.event.inputs.to }}-rc"
 
           echo building "${DOCKER_IMAGE}:${TAG}"
