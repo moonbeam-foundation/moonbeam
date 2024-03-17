@@ -185,7 +185,10 @@ export async function injectEncodedHrmpMessageAndSeal(
 ) {
   // Send RPC call to inject XCM message
   await customDevRpcRequest("xcm_injectHrmpMessage", [paraId, message]);
-  return await context.createBlock();
+  // Create a block in which the XCM will be executed
+  await context.createBlock();
+  // The next block will process the hrmp message in the message queue
+  return context.createBlock();
 }
 
 // Weight a particular message using the xcm utils precompile
@@ -213,6 +216,7 @@ export async function injectHrmpMessageAndSeal(
   await injectHrmpMessage(context, paraId, message);
   // Create a block in which the XCM will be executed
   await context.createBlock();
+  // The next block will process the hrmp message in the message queue
   await context.createBlock();
 }
 
@@ -347,7 +351,7 @@ export class XcmFragment {
         // Ticket seems to indicate the version of the assets
         ticket: {
           parents: 0,
-          interior: { X1: { GeneralIndex: 3 } },
+          interior: { X1: { GeneralIndex: 4 } },
         },
       },
     });
