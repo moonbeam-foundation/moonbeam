@@ -68,6 +68,7 @@ describeSuite({
 
         // Create a block in which the XCM will be executed
         await context.createBlock();
+        await context.createBlock();
         // Make sure the state has ALITH's to DOT tokens
         const alith_dot_balance = (
           await context.polkadotJs().query.assets.account(assetId, alith.address)

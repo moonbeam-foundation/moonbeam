@@ -71,6 +71,7 @@ describeSuite({
 
         // Create a block in which the XCM will be executed
         await context.createBlock();
+        await context.createBlock();
         // Make sure ALITH did not reveive anything
         const alith_dot_balance = await context
           .polkadotJs()
