@@ -4,7 +4,7 @@ import {
   CHARLETH_PRIVATE_KEY,
   DOROTHY_PRIVATE_KEY,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
-  PRECOMPILE_DEMOCRACY_ADDRESS,
+  PRECOMPILE_PREIMAGE_ADDRESS,
   baltathar,
   charleth,
   createViemTransaction,
@@ -74,7 +74,7 @@ export const notePreimagePrecompile = async <
   });
 
   const tx = await createViemTransaction(context, {
-    to: PRECOMPILE_DEMOCRACY_ADDRESS,
+    to: PRECOMPILE_PREIMAGE_ADDRESS,
     gas: 2_000_000n,
     data,
   });

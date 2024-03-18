@@ -1,14 +1,8 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import {
-  RUNTIME_CONSTANTS,
-  TARGET_FILL_PERMILL,
-  WEIGHT_FEE,
-  WEIGHT_PER_GAS,
-  getBlockArray,
-} from "@moonwall/util";
+import { WEIGHT_FEE, WEIGHT_PER_GAS, getBlockArray } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
-import { GenericExtrinsic, u256 } from "@polkadot/types";
+import { GenericExtrinsic } from "@polkadot/types";
 import type { u128 } from "@polkadot/types-codec";
 import type { DispatchInfo } from "@polkadot/types/interfaces";
 import {
@@ -20,9 +14,8 @@ import {
   SpWeightsWeightV2Weight,
 } from "@polkadot/types/lookup";
 import { AnyTuple } from "@polkadot/types/types";
-import { BN, BN_MILLION } from "@polkadot/util";
 import { ethers } from "ethers";
-import { checkTimeSliceForUpgrades, rateLimiter } from "../../helpers/common.js";
+import { checkTimeSliceForUpgrades, rateLimiter, RUNTIME_CONSTANTS } from "../../helpers";
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
@@ -60,6 +53,7 @@ describeSuite({
     let runtime: "MOONRIVER" | "MOONBEAM" | "MOONBASE";
     let paraApi: ApiPromise;
     let skipAll = false;
+    let targetFillPermill: bigint;
 
     const checkMultiplier = (prevBlock: BlockFilteredRecord, curr: u128) => {
       if (!prevBlock) {
@@ -78,21 +72,21 @@ describeSuite({
       }
     };
 
-    const isChangeDirectionValid = (fillPermill: BN, change: Change, feeMultiplier: BN) => {
+    const isChangeDirectionValid = (fillPermill: bigint, change: Change, feeMultiplier: bigint) => {
       switch (true) {
-        case fillPermill.gt(new BN(TARGET_FILL_PERMILL)) && change == Change.Increased:
+        case fillPermill > targetFillPermill && change == Change.Increased:
           return true;
-        case fillPermill.gt(new BN(TARGET_FILL_PERMILL)) &&
+        case fillPermill > targetFillPermill &&
           change == Change.Unchanged &&
-          feeMultiplier.eq(new BN(RUNTIME_CONSTANTS[runtime].MAX_FEE_MULTIPLIER)):
+          feeMultiplier === RUNTIME_CONSTANTS[runtime].MAX_FEE_MULTIPLIER:
           return true;
-        case fillPermill.lt(new BN(TARGET_FILL_PERMILL)) && change == Change.Decreased:
+        case fillPermill < targetFillPermill && change == Change.Decreased:
           return true;
-        case fillPermill.lt(new BN(TARGET_FILL_PERMILL)) &&
+        case fillPermill < targetFillPermill &&
           change == Change.Unchanged &&
-          feeMultiplier.eq(new BN(RUNTIME_CONSTANTS[runtime].MIN_FEE_MULTIPLIER)):
+          feeMultiplier === RUNTIME_CONSTANTS[runtime].MIN_FEE_MULTIPLIER:
           return true;
-        case fillPermill.eq(new BN(TARGET_FILL_PERMILL)) && change == Change.Unchanged:
+        case fillPermill === targetFillPermill && change == Change.Unchanged:
           return true;
         case change == Change.Unknown:
           return true;
@@ -124,6 +118,11 @@ describeSuite({
         );
         skipAll = true;
       }
+
+      targetFillPermill =
+        specVersion.toNumber() >= 2801
+          ? RUNTIME_CONSTANTS[runtime].TARGET_FILL_PERMILL
+          : RUNTIME_CONSTANTS[runtime].OLD_TARGET_FILL_PERMILL;
 
       const blockNumArray = atBlock > 0 ? [atBlock] : await getBlockArray(paraApi, timePeriod);
 
@@ -187,10 +186,9 @@ describeSuite({
         }
         const maxWeights = paraApi.consts.system.blockWeights;
         const enriched = blockData.map(({ weights, blockNum, nextFeeMultiplier }) => {
-          const fillPermill = weights.normal.refTime
-            .toBn()
-            .mul(new BN("1000000"))
-            .div(maxWeights.perClass.normal.maxTotal.unwrap().refTime.toBn());
+          const fillPermill =
+            (weights.normal.refTime.toBigInt() * 1000000n) /
+            maxWeights.perClass.normal.maxTotal.unwrap().refTime.toBigInt();
 
           const change = checkMultiplier(
             blockData.find((blockDatum) => blockDatum.blockNum == blockNum - 1)!,
@@ -201,14 +199,14 @@ describeSuite({
             blockNum,
             fillPermill,
             change,
-            valid: isChangeDirectionValid(fillPermill, change, nextFeeMultiplier),
+            valid: isChangeDirectionValid(fillPermill, change, nextFeeMultiplier.toBigInt()),
           };
         });
 
         const failures = enriched.filter(({ valid }) => !valid);
         failures.forEach(({ blockNum, fillPermill, change }) => {
           log(
-            `Block #${blockNum} is ${(fillPermill.toNumber() / 1_000_000).toFixed(
+            `Block #${blockNum} is ${(Number(fillPermill) / 10_000).toFixed(
               2
             )}% full with feeMultiplier ${change}`
           );
@@ -231,23 +229,15 @@ describeSuite({
           return;
         }
         const enriched = blockData.map(({ blockNum, nextFeeMultiplier, weights }) => {
-          const fillPermill = weights.normal.refTime
-            .unwrap()
-            .toBn()
-            .mul(BN_MILLION)
-            .div(
-              paraApi.consts.system.blockWeights.perClass.normal.maxTotal.unwrap().refTime.toBn()
-            );
+          const fillPermill =
+            (weights.normal.refTime.unwrap().toBigInt() * 1_000_000n) /
+            paraApi.consts.system.blockWeights.perClass.normal.maxTotal.unwrap().refTime.toBigInt();
 
           const change = checkMultiplier(
             blockData.find((blockDatum) => blockDatum.blockNum == blockNum - 1)!,
             nextFeeMultiplier
           );
-          const valid = isChangeDirectionValid(
-            new BN(fillPermill.toString()),
-            change,
-            nextFeeMultiplier
-          );
+          const valid = isChangeDirectionValid(fillPermill, change, nextFeeMultiplier.toBigInt());
 
           return { blockNum, fillPermill, change, valid };
         });
@@ -255,7 +245,7 @@ describeSuite({
         const failures = enriched.filter(({ valid }) => !valid);
         failures.forEach(({ blockNum, fillPermill, change }) => {
           log(
-            `Block #${blockNum} is ${(fillPermill.toNumber() / 1_000_000).toFixed(
+            `Block #${blockNum} is ${(Number(fillPermill) / 10_000).toFixed(
               2
             )}% full with feeMultiplier ${change}`
           );
@@ -348,11 +338,11 @@ describeSuite({
         const extractGasAmount = (item: EthereumReceiptReceiptV3) => {
           switch (true) {
             case item.isEip1559:
-              return item.asEip1559.usedGas;
+              return item.asEip1559.usedGas.toBigInt();
             case item.isEip2930:
-              return item.asEip2930.usedGas;
+              return item.asEip2930.usedGas.toBigInt();
             case item.isLegacy:
-              return item.asLegacy.usedGas;
+              return item.asLegacy.usedGas.toBigInt();
             default:
               throw new Error("Update test to include new transaction type");
           }
@@ -393,7 +383,7 @@ describeSuite({
                 return fee.refTime;
               });
 
-            const gasUsed: u256[] = filteredTxnEvents
+            const gasUsed = filteredTxnEvents
               .map((txnEvent) => {
                 if (isEthereumTxn(blockNum, txnEvent.phase.asApplyExtrinsic.toNumber())) {
                   const txnHash = (txnEvent.event.data as any).transactionHash;
@@ -404,9 +394,7 @@ describeSuite({
                   const gasUsed =
                     index === 0
                       ? extractGasAmount(receipts[index])
-                      : extractGasAmount(receipts[index]).sub(
-                          extractGasAmount(receipts[index - 1])
-                        );
+                      : extractGasAmount(receipts[index]) - extractGasAmount(receipts[index - 1]);
                   return gasUsed;
                 } else {
                   return [];
@@ -418,12 +406,10 @@ describeSuite({
               gasUsed.length
             );
 
-            const estimatedFees = gasUsed.map((amount) =>
-              amount.mul(new BN(WEIGHT_PER_GAS.toString()))
-            );
+            const estimatedFees = gasUsed.map((amount) => amount * WEIGHT_PER_GAS);
 
             const matchedAmounts = estimatedFees
-              .map((a, index) => a.eq(fees[index].toBn()).valueOf())
+              .map((a, index) => a === fees[index].toBigInt().valueOf())
               .reduce((curr, arr) => curr && arr, true);
 
             return { blockNum, fees, gasUsed, estimatedFees, matchedAmounts };

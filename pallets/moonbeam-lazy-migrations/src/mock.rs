@@ -23,7 +23,7 @@ use frame_support::{
 	traits::{EqualPrivilegeOnly, Everything, SortedMembers},
 	weights::{constants::RocksDbWeight, Weight},
 };
-use frame_system::{EnsureRoot, EnsureSigned};
+use frame_system::EnsureRoot;
 use pallet_evm::{AddressMapping, EnsureAddressTruncated};
 use sp_core::{ConstU32, H160, H256, U256};
 use sp_runtime::{
@@ -43,7 +43,6 @@ construct_runtime!(
 		Timestamp: pallet_timestamp,
 		EVM: pallet_evm,
 		LazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call},
-		Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 	}
 );
@@ -129,37 +128,6 @@ impl SortedMembers<u64> for OneToFive {
 	}
 	#[cfg(feature = "runtime-benchmarks")]
 	fn add(_m: &u64) {}
-}
-impl pallet_democracy::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = pallet_balances::Pallet<Self>;
-	type EnactmentPeriod = ();
-	type LaunchPeriod = ();
-	type VotingPeriod = ();
-	type VoteLockingPeriod = ();
-	type FastTrackVotingPeriod = ();
-	type MinimumDeposit = ();
-	type MaxDeposits = ();
-	type MaxBlacklisted = ();
-	type SubmitOrigin = EnsureSigned<AccountId32>;
-	type ExternalOrigin = EnsureRoot<AccountId32>;
-	type ExternalMajorityOrigin = EnsureRoot<AccountId32>;
-	type ExternalDefaultOrigin = EnsureRoot<AccountId32>;
-	type FastTrackOrigin = EnsureRoot<AccountId32>;
-	type CancellationOrigin = EnsureRoot<AccountId32>;
-	type BlacklistOrigin = EnsureRoot<AccountId32>;
-	type CancelProposalOrigin = EnsureRoot<AccountId32>;
-	type VetoOrigin = EnsureSigned<AccountId32>;
-	type CooloffPeriod = ();
-	type Slash = ();
-	type InstantOrigin = EnsureRoot<AccountId32>;
-	type InstantAllowed = ();
-	type Scheduler = Scheduler;
-	type MaxVotes = ();
-	type PalletsOrigin = OriginCaller;
-	type WeightInfo = ();
-	type MaxProposals = ();
-	type Preimages = ();
 }
 
 parameter_types! {

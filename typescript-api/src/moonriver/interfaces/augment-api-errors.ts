@@ -159,32 +159,6 @@ declare module "@polkadot/api-base/types/errors" {
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
-    councilCollective: {
-      /** Members are already initialized! */
-      AlreadyInitialized: AugmentedError<ApiType>;
-      /** Duplicate proposals not allowed */
-      DuplicateProposal: AugmentedError<ApiType>;
-      /** Duplicate vote ignored */
-      DuplicateVote: AugmentedError<ApiType>;
-      /** Account is not a member */
-      NotMember: AugmentedError<ApiType>;
-      /** Prime account is not a member */
-      PrimeAccountNotMember: AugmentedError<ApiType>;
-      /** Proposal must exist */
-      ProposalMissing: AugmentedError<ApiType>;
-      /** The close call was made too early, before the end of the voting. */
-      TooEarly: AugmentedError<ApiType>;
-      /** There can only be a maximum of `MaxProposals` active proposals. */
-      TooManyProposals: AugmentedError<ApiType>;
-      /** Mismatched index */
-      WrongIndex: AugmentedError<ApiType>;
-      /** The given length bound for the proposal was too low. */
-      WrongProposalLength: AugmentedError<ApiType>;
-      /** The given weight bound for the proposal was too low. */
-      WrongProposalWeight: AugmentedError<ApiType>;
-      /** Generic error */
-      [key: string]: AugmentedError<ApiType>;
-    };
     crowdloanRewards: {
       /**
        * User trying to associate a native identity with a relay chain identity for posterior reward
@@ -330,6 +304,8 @@ declare module "@polkadot/api-base/types/errors" {
       InvalidNonce: AugmentedError<ApiType>;
       /** The signature is invalid. */
       InvalidSignature: AugmentedError<ApiType>;
+      /** Invalid Transaction */
+      InvalidTransaction: AugmentedError<ApiType>;
       /** Calculating total payment overflowed */
       PaymentOverflow: AugmentedError<ApiType>;
       /** EVM reentrancy */
@@ -383,57 +359,6 @@ declare module "@polkadot/api-base/types/errors" {
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
-    localAssets: {
-      /** The asset-account already exists. */
-      AlreadyExists: AugmentedError<ApiType>;
-      /** The asset is not live, and likely being destroyed. */
-      AssetNotLive: AugmentedError<ApiType>;
-      /** Invalid metadata given. */
-      BadMetadata: AugmentedError<ApiType>;
-      /** Invalid witness data given. */
-      BadWitness: AugmentedError<ApiType>;
-      /** Account balance must be greater than or equal to the transfer amount. */
-      BalanceLow: AugmentedError<ApiType>;
-      /** Callback action resulted in error */
-      CallbackFailed: AugmentedError<ApiType>;
-      /** The origin account is frozen. */
-      Frozen: AugmentedError<ApiType>;
-      /** The asset status is not the expected status. */
-      IncorrectStatus: AugmentedError<ApiType>;
-      /** The asset ID is already taken. */
-      InUse: AugmentedError<ApiType>;
-      /**
-       * The asset is a live asset and is actively being used. Usually emit for operations such as
-       * `start_destroy` which require the asset to be in a destroying state.
-       */
-      LiveAsset: AugmentedError<ApiType>;
-      /** Minimum balance should be non-zero. */
-      MinBalanceZero: AugmentedError<ApiType>;
-      /** The account to alter does not exist. */
-      NoAccount: AugmentedError<ApiType>;
-      /** The asset-account doesn't have an associated deposit. */
-      NoDeposit: AugmentedError<ApiType>;
-      /** The signing account has no permission to do the operation. */
-      NoPermission: AugmentedError<ApiType>;
-      /** The asset should be frozen before the given operation. */
-      NotFrozen: AugmentedError<ApiType>;
-      /** No approval exists that would allow the transfer. */
-      Unapproved: AugmentedError<ApiType>;
-      /**
-       * Unable to increment the consumer reference counters on the account. Either no provider
-       * reference exists to allow a non-zero balance of a non-self-sufficient asset, or one fewer
-       * then the maximum number of consumers has been reached.
-       */
-      UnavailableConsumer: AugmentedError<ApiType>;
-      /** The given asset ID is unknown. */
-      Unknown: AugmentedError<ApiType>;
-      /** The operation would result in funds being burned. */
-      WouldBurn: AugmentedError<ApiType>;
-      /** The source account would not survive the transfer and it needs to stay alive. */
-      WouldDie: AugmentedError<ApiType>;
-      /** Generic error */
-      [key: string]: AugmentedError<ApiType>;
-    };
     maintenanceMode: {
       /** The chain cannot enter maintenance mode because it is already in maintenance mode */
       AlreadyInMaintenanceMode: AugmentedError<ApiType>;
@@ -451,6 +376,22 @@ declare module "@polkadot/api-base/types/errors" {
       PreimageMissing: AugmentedError<ApiType>;
       /** Provided upper bound is too low. */
       WrongUpperBound: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    moonbeamLazyMigrations: {
+      /** There must be at least one address */
+      AddressesLengthCannotBeZero: AugmentedError<ApiType>;
+      /** There are no more VotingOf entries to be removed and democracy funds to be unlocked */
+      AllDemocracyFundsUnlocked: AugmentedError<ApiType>;
+      /** There are no more storage entries to be removed */
+      AllStorageEntriesHaveBeenRemoved: AugmentedError<ApiType>;
+      /** The contract is not corrupted (Still exist or properly suicided) */
+      ContractNotCorrupted: AugmentedError<ApiType>;
+      /** The limit cannot be zero */
+      LimitCannotBeZero: AugmentedError<ApiType>;
+      /** The limit for unlocking funds is too high */
+      UnlockLimitTooHigh: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -783,32 +724,6 @@ declare module "@polkadot/api-base/types/errors" {
       NonZeroRefCount: AugmentedError<ApiType>;
       /** The specification version is not allowed to decrease between the current runtime and the new runtime. */
       SpecVersionNeedsToIncrease: AugmentedError<ApiType>;
-      /** Generic error */
-      [key: string]: AugmentedError<ApiType>;
-    };
-    techCommitteeCollective: {
-      /** Members are already initialized! */
-      AlreadyInitialized: AugmentedError<ApiType>;
-      /** Duplicate proposals not allowed */
-      DuplicateProposal: AugmentedError<ApiType>;
-      /** Duplicate vote ignored */
-      DuplicateVote: AugmentedError<ApiType>;
-      /** Account is not a member */
-      NotMember: AugmentedError<ApiType>;
-      /** Prime account is not a member */
-      PrimeAccountNotMember: AugmentedError<ApiType>;
-      /** Proposal must exist */
-      ProposalMissing: AugmentedError<ApiType>;
-      /** The close call was made too early, before the end of the voting. */
-      TooEarly: AugmentedError<ApiType>;
-      /** There can only be a maximum of `MaxProposals` active proposals. */
-      TooManyProposals: AugmentedError<ApiType>;
-      /** Mismatched index */
-      WrongIndex: AugmentedError<ApiType>;
-      /** The given length bound for the proposal was too low. */
-      WrongProposalLength: AugmentedError<ApiType>;
-      /** The given weight bound for the proposal was too low. */
-      WrongProposalWeight: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };

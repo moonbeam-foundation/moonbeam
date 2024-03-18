@@ -1,8 +1,8 @@
 [package]
-name = "pallet-moonbeam-lazy-migrations"
 authors = { workspace = true }
 description = "A pallet for performing migrations from extrinsics"
 edition = "2021"
+name = "pallet-moonbeam-lazy-migrations"
 version = "0.1.0"
 
 [dependencies]
@@ -11,13 +11,12 @@ log = { workspace = true }
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
+pallet-scheduler = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
-pallet-democracy = { workspace = true }
-pallet-scheduler = { workspace = true }
 sp-std = { workspace = true }
 
 # Frontier
@@ -36,21 +35,17 @@ rlp = { workspace = true, features = ["std"] }
 [features]
 default = ["std"]
 std = [
-    "pallet-democracy/std",
-    "pallet-balances/std",
-    "frame-support/std",
-    "frame-system/std",
-    "scale-info/std",
-    "sp-core/std",
-    "sp-io/std",
-    "sp-runtime/std",
-    "sp-std/std",
-    "pallet-evm/std",
-    "pallet-timestamp/std",
-    "rlp/std",
+  "pallet-balances/std",
+  "frame-support/std",
+  "frame-system/std",
+  "scale-info/std",
+  "sp-core/std",
+  "sp-io/std",
+  "sp-runtime/std",
+  "sp-std/std",
+  "pallet-evm/std",
+  "pallet-timestamp/std",
+  "rlp/std",
 ]
-runtime-benchmarks = [
-    "frame-benchmarking",
-    "pallet-democracy/runtime-benchmarks",
-]
+runtime-benchmarks = ["frame-benchmarking"]
 try-runtime = ["frame-support/try-runtime"]

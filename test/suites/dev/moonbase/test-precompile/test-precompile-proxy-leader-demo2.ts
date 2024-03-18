@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { expectEVMResult, setupPoolWithParticipants } from "../../../../helpers";
 
 describeSuite({
-  id: "D012763",
+  id: "D012963",
   title: "Proxy Leader Demo - Start Voting",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

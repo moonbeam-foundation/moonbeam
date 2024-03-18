@@ -1,50 +1,49 @@
 [workspace]
 exclude = ["bin/utils/moonkey"]
 members = [
-	"bin/utils/moonkey",
-	"client/rpc/finality",
-	"client/rpc/manual-xcm",
-	"client/vrf",
-	"node",
-	"node/cli",
-	"node/service",
-	"pallets/asset-manager",
-	"pallets/erc20-xcm-bridge",
-	"pallets/ethereum-xcm",
-	"pallets/moonbeam-lazy-migrations",
-	"pallets/moonbeam-orbiters",
-	"pallets/moonbeam-xcm-benchmarks",
-	"pallets/parachain-staking",
-	"pallets/precompile-benchmarks",
-	"pallets/proxy-genesis-companion",
-	"pallets/xcm-transactor",
-	"precompiles/balances-erc20",
-	"precompiles/batch",
-	"precompiles/call-permit",
-	"precompiles/collective",
-	"precompiles/conviction-voting",
-	"precompiles/crowdloan-rewards",
-	"precompiles/gmp",
-	"precompiles/identity",
-	"precompiles/pallet-democracy",
-	"precompiles/parachain-staking",
-	"precompiles/precompile-registry",
-	"precompiles/preimage",
-	"precompiles/proxy",
-	"precompiles/referenda",
-	"precompiles/relay-encoder",
-	"precompiles/relay-data-verifier",
-	"precompiles/utils",
-	"precompiles/utils/macro",
-	"precompiles/utils/tests-external",
-	"precompiles/xcm-transactor",
-	"precompiles/xtokens",
-	"primitives/storage-proof",
-	"runtime/moonbase",
-	"runtime/moonbeam",
-	"runtime/moonriver",
-	"runtime/relay-encoder",
-	"runtime/summarize-precompile-checks",
+  "bin/utils/moonkey",
+  "client/rpc/finality",
+  "client/rpc/manual-xcm",
+  "client/vrf",
+  "node",
+  "node/cli",
+  "node/service",
+  "pallets/asset-manager",
+  "pallets/erc20-xcm-bridge",
+  "pallets/ethereum-xcm",
+  "pallets/moonbeam-lazy-migrations",
+  "pallets/moonbeam-orbiters",
+  "pallets/moonbeam-xcm-benchmarks",
+  "pallets/parachain-staking",
+  "pallets/precompile-benchmarks",
+  "pallets/proxy-genesis-companion",
+  "pallets/xcm-transactor",
+  "precompiles/balances-erc20",
+  "precompiles/batch",
+  "precompiles/call-permit",
+  "precompiles/collective",
+  "precompiles/conviction-voting",
+  "precompiles/crowdloan-rewards",
+  "precompiles/gmp",
+  "precompiles/identity",
+  "precompiles/parachain-staking",
+  "precompiles/precompile-registry",
+  "precompiles/preimage",
+  "precompiles/proxy",
+  "precompiles/referenda",
+  "precompiles/relay-encoder",
+  "precompiles/relay-data-verifier",
+  "precompiles/utils",
+  "precompiles/utils/macro",
+  "precompiles/utils/tests-external",
+  "precompiles/xcm-transactor",
+  "precompiles/xtokens",
+  "primitives/storage-proof",
+  "runtime/moonbase",
+  "runtime/moonbeam",
+  "runtime/moonriver",
+  "runtime/relay-encoder",
+  "runtime/summarize-precompile-checks",
 ]
 resolver = "2"
 
@@ -84,7 +83,6 @@ pallet-evm-precompile-call-permit = { path = "precompiles/call-permit", default-
 pallet-evm-precompile-collective = { path = "precompiles/collective", default-features = false }
 pallet-evm-precompile-conviction-voting = { path = "precompiles/conviction-voting", default-features = false }
 pallet-evm-precompile-crowdloan-rewards = { path = "precompiles/crowdloan-rewards", default-features = false }
-pallet-evm-precompile-democracy = { path = "precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-gmp = { path = "precompiles/gmp", default-features = false }
 pallet-evm-precompile-identity = { path = "precompiles/identity", default-features = false }
 pallet-evm-precompile-parachain-staking = { path = "precompiles/parachain-staking", default-features = false }
@@ -99,12 +97,12 @@ pallet-evm-precompile-xcm-transactor = { path = "precompiles/xcm-transactor", de
 pallet-evm-precompile-xcm-utils = { path = "precompiles/xcm-utils", default-features = false }
 pallet-evm-precompile-xtokens = { path = "precompiles/xtokens", default-features = false }
 pallet-evm-precompileset-assets-erc20 = { path = "precompiles/assets-erc20", default-features = false }
+pallet-moonbeam-lazy-migrations = { path = "pallets/moonbeam-lazy-migrations", default-features = false }
 pallet-moonbeam-orbiters = { path = "pallets/moonbeam-orbiters", default-features = false }
 pallet-parachain-staking = { path = "pallets/parachain-staking", default-features = false }
 pallet-precompile-benchmarks = { path = "pallets/precompile-benchmarks", default-features = false }
 pallet-proxy-genesis-companion = { path = "pallets/proxy-genesis-companion", default-features = false }
 pallet-xcm-transactor = { path = "pallets/xcm-transactor", default-features = false }
-pallet-moonbeam-lazy-migrations = { path = "pallets/moonbeam-lazy-migrations", default-features = false }
 precompile-utils = { path = "precompiles/utils", default-features = false }
 xcm-primitives = { path = "primitives/xcm", default-features = false }
 
@@ -143,7 +141,6 @@ pallet-assets = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", b
 pallet-balances = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-collective = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-conviction-voting = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
-pallet-democracy = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-identity = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-message-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0" }
 pallet-multisig = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
@@ -162,10 +159,10 @@ pallet-treasury = { git = "https://github.com/moonbeam-foundation/polkadot-sdk",
 pallet-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-whitelist = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 parity-scale-codec = { version = "3.2.2", default-features = false, features = [
-	"derive",
+  "derive",
 ] }
 scale-info = { version = "2.0", default-features = false, features = [
-	"derive",
+  "derive",
 ] }
 sp-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-application-crypto = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
@@ -182,8 +179,8 @@ sp-offchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", bra
 sp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-runtime-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-session = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
-sp-std = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-state-machine = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
+sp-std = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-transaction-pool = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-trie = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 sp-version = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
@@ -233,7 +230,7 @@ try-runtime-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk",
 
 # Frontier (wasm)
 ethereum = { version = "0.14.0", default-features = false, features = [
-	"with-codec",
+  "with-codec",
 ] }
 ethereum-types = { version = "0.14", default-features = false }
 evm = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
@@ -244,10 +241,10 @@ fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "mo
 fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 fp-self-contained = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false, features = [
-	"forbid-evm-reentrancy",
+  "forbid-evm-reentrancy",
 ] }
 pallet-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false, features = [
-	"forbid-evm-reentrancy",
+  "forbid-evm-reentrancy",
 ] }
 pallet-evm-chain-id = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 pallet-evm-precompile-blake2 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
@@ -258,12 +255,12 @@ pallet-evm-precompile-sha3fips = { git = "https://github.com/moonbeam-foundation
 pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 
 # Frontier (client)
+fc-api = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0" }
 fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0" }
 fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0" }
-fc-api = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0" }
 fc-mapping-sync = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0" }
 fc-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0", features = [
-	"rpc-binary-search-estimate",
+  "rpc-binary-search-estimate",
 ] }
 fc-rpc-core = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0" }
 fc-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.3.0" }
@@ -273,7 +270,7 @@ fp-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch =
 # Cumulus (wasm)
 cumulus-pallet-dmp-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 cumulus-pallet-parachain-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false, features = [
-	"parameterized-consensus-hook",
+  "parameterized-consensus-hook",
 ] }
 cumulus-pallet-xcm = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
 cumulus-pallet-xcmp-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.3.0", default-features = false }
@@ -345,7 +342,7 @@ blake2-rfc = { version = "0.2.18", default-features = false }
 derive_more = "0.99"
 environmental = { version = "1.1.2", default-features = false }
 frame-metadata = { version = "16.0.0", default-features = false, features = [
-	"current",
+  "current",
 ] }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.3.4" }
@@ -381,8 +378,8 @@ primitive-types = "0.12.0"
 prometheus = { version = "0.13.0", default-features = false }
 rand = "0.7.3"
 schnorrkel = { version = "0.9.1", default-features = false, features = [
-	"preaudit_deprecated",
-	"u64_backend",
+  "preaudit_deprecated",
+  "u64_backend",
 ] }
 serde_json = { version = "1.0" }
 similar-asserts = "1.1.0"

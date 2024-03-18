@@ -38,7 +38,6 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	asset_config::{AssetRegistrarMetadata, ForeignAssetInstance},
-	get,
 	xcm_config::{AssetType, SelfReserve},
 	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards,
 	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
@@ -102,11 +101,6 @@ fn xcmp_queue_controller_origin_is_root() {
 }
 
 #[test]
-fn fast_track_available() {
-	assert!(get!(pallet_democracy, InstantAllowed, bool));
-}
-
-#[test]
 fn verify_pallet_prefixes() {
 	fn is_pallet_prefix<P: 'static>(name: &str) {
 		// Compares the unhashed pallet prefix in the `StorageInstance` implementation by every
@@ -131,7 +125,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::Ethereum>("Ethereum");
 	is_pallet_prefix::<moonbase_runtime::ParachainStaking>("ParachainStaking");
 	is_pallet_prefix::<moonbase_runtime::Scheduler>("Scheduler");
-	is_pallet_prefix::<moonbase_runtime::Democracy>("Democracy");
 	is_pallet_prefix::<moonbase_runtime::Treasury>("Treasury");
 	is_pallet_prefix::<moonbase_runtime::OpenTechCommitteeCollective>(
 		"OpenTechCommitteeCollective",
@@ -415,7 +408,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::Ethereum>(11);
 	is_pallet_index::<moonbase_runtime::ParachainStaking>(12);
 	is_pallet_index::<moonbase_runtime::Scheduler>(13);
-	is_pallet_index::<moonbase_runtime::Democracy>(14);
+	//is_pallet_index::<moonbase_runtime::Democracy>(14); Removed
 	is_pallet_index::<moonbase_runtime::Treasury>(17);
 	is_pallet_index::<moonbase_runtime::AuthorInherent>(18);
 	is_pallet_index::<moonbase_runtime::AuthorFilter>(19);
@@ -613,17 +606,16 @@ fn reward_block_authors() {
 		)])
 		.build()
 		.execute_with(|| {
-			increase_last_relay_slot_number(2);
-			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
-			}
+			increase_last_relay_slot_number(1);
+			// Just before round 3
+			run_to_block(2399, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
 				1_100 * UNIT,
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * UNIT,);
-			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(2401, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -657,15 +649,14 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		)])
 		.build()
 		.execute_with(|| {
-			increase_last_relay_slot_number(2);
+			increase_last_relay_slot_number(1);
 			assert_ok!(ParachainStaking::set_parachain_bond_account(
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
 
-			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
-			}
+			// Stop just before round 2
+			run_to_block(1199, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 
 			// no rewards doled out yet
 			assert_eq!(
@@ -674,7 +665,18 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * UNIT,);
 			assert_eq!(Balances::usable_balance(AccountId::from(CHARLIE)), UNIT,);
+
+			// Go to round 2
 			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+
+			// 30% reserved for parachain bond
+			assert_eq!(
+				Balances::usable_balance(AccountId::from(CHARLIE)),
+				47515000000000000000,
+			);
+
+			// Go to round 3
+			run_to_block(2401, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -684,10 +686,10 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				Balances::usable_balance(AccountId::from(BOB)),
 				525841666640825000000,
 			);
-			// 30% reserved for parachain bond
+			// 30% again reserved for parachain bond
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				47515000000000000000,
+				94727725000000000000,
 			);
 		});
 }
@@ -2571,7 +2573,7 @@ fn precompile_existence() {
 fn removed_precompiles() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
-		let removed_precompiles = [1025, 2062, 2063];
+		let removed_precompiles = [1025, 2051, 2062, 2063];
 
 		for i in 1..3000 {
 			let address = H160::from_low_u64_be(i);
@@ -2937,39 +2939,45 @@ mod fee_tests {
 				TransactionPaymentAsGasPrice::min_gas_price().0
 			};
 
+			// The expected values are the ones observed during test execution,
+			// they are expected to change when parameters that influence
+			// the fee calculation are changed, and should be updated accordingly.
+			// If a test fails when nothing specific to fees has changed,
+			// it may indicate an unexpected collateral effect and should be investigated
+
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 1),
-				U256::from(999_000_500),
+				U256::from(998_002_000),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 1),
-				U256::from(1_000_000_000),
+				U256::from(999_000_500),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 1),
-				U256::from(1_001_000_500),
+				U256::from(1_000_000_000),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 1),
-				U256::from(1_003_004_500),
+				U256::from(1_002_002_000),
 			);
 
 			// 1 "real" hour (at 12-second blocks)
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 300),
-				U256::from(740_818_257),
+				U256::from(548_811_855),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 300),
-				U256::from(1_000_000_000),
+				U256::from(740_818_257),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 300),
-				U256::from(1_349_858_740),
+				U256::from(1_000_000_000),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 300),
-				U256::from(2_459_599_798u128),
+				U256::from(1_822_118_072u128),
 			);
 
 			// 1 "real" day (at 12-second blocks)
@@ -2979,11 +2987,11 @@ mod fee_tests {
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 7200),
-				U256::from(1_000_000_000),
+				U256::from(125_000_000),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 7200),
-				U256::from(1_339_429_158_283u128),
+				U256::from(1_000_000_000u128),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 7200),

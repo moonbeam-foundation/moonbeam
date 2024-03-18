@@ -162,7 +162,6 @@ pub mod pallet {
 		pub min_orbiter_deposit: BalanceOf<T>,
 	}
 
-	#[cfg(feature = "std")]
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
@@ -556,8 +555,12 @@ pub mod pallet {
 			}
 		}
 
-		/// Check if an account is an orbiter account for a given round
-		pub fn is_orbiter(for_round: T::RoundIndex, collator: T::AccountId) -> bool {
+		/// Check if an account is a collator pool account with an
+		/// orbiter assigned for a given round
+		pub fn is_collator_pool_with_active_orbiter(
+			for_round: T::RoundIndex,
+			collator: T::AccountId,
+		) -> bool {
 			OrbiterPerRound::<T>::contains_key(for_round, &collator)
 		}
 	}

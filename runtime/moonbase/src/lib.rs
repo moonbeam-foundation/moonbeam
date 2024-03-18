@@ -33,6 +33,7 @@ pub mod governance;
 pub mod timestamp;
 pub mod xcm_config;
 
+mod migrations;
 mod precompiles;
 
 // Re-export required by get! macro.
@@ -101,8 +102,8 @@ use sp_runtime::TryRuntimeError;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
-		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Header as HeaderT,
-		IdentityLookup, PostDispatchInfoOf, UniqueSaturatedInto, Zero,
+		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
+		PostDispatchInfoOf, UniqueSaturatedInto, Zero,
 	},
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
@@ -410,7 +411,7 @@ parameter_types! {
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
 	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
 	/// than this will decrease the weight and more will increase.
-	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
+	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(50);
 	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
 	/// change the fees more rapidly. This fast multiplier responds by doubling/halving in
 	/// approximately one hour at extreme block congestion levels.
@@ -702,7 +703,7 @@ parameter_types! {
 const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
 /// How many parachain blocks are processed by the relay chain per parent. Limits the
 /// number of blocks authored per slot.
-const BLOCK_PROCESSING_VELOCITY: u32 = 2;
+const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 
 type ConsensusHook = pallet_async_backing::consensus_hook::FixedVelocityConsensusHook<
 	Runtime,
@@ -738,11 +739,12 @@ impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorO
 		collator_id: AccountId,
 		amount: Balance,
 	) -> Weight {
-		let extra_weight = if MoonbeamOrbiters::is_orbiter(for_round, collator_id) {
-			MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
-		} else {
-			ParachainStaking::mint_collator_reward(for_round, collator_id, amount)
-		};
+		let extra_weight =
+			if MoonbeamOrbiters::is_collator_pool_with_active_orbiter(for_round, collator_id) {
+				MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
+			} else {
+				ParachainStaking::mint_collator_reward(for_round, collator_id, amount)
+			};
 
 		<Runtime as frame_system::Config>::DbWeight::get()
 			.reads(1)
@@ -756,7 +758,10 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 		collator_id: AccountId,
 		round: pallet_parachain_staking::RoundIndex,
 	) -> Result<Weight, DispatchErrorWithPostInfo<PostDispatchInfo>> {
-		let extra_weight = if !MoonbeamOrbiters::is_orbiter(round, collator_id.clone()) {
+		let extra_weight = if !MoonbeamOrbiters::is_collator_pool_with_active_orbiter(
+			round,
+			collator_id.clone(),
+		) {
 			ParachainStaking::go_offline_inner(collator_id)?;
 			<Runtime as pallet_parachain_staking::Config>::WeightInfo::go_offline(
 				pallet_parachain_staking::MAX_CANDIDATES,
@@ -822,7 +827,8 @@ impl pallet_parachain_staking::Config for Runtime {
 	type SlotProvider = RelayChainSlotProvider;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
-	type SlotsPerYear = ConstU32<{ 31_557_600 / 6 }>;
+	type SlotDuration = ConstU64<6_000>;
+	type BlockTime = ConstU64<6_000>;
 }
 
 impl pallet_author_inherent::Config for Runtime {
@@ -938,8 +944,7 @@ impl Default for ProxyType {
 fn is_governance_precompile(precompile_name: &precompiles::PrecompileName) -> bool {
 	matches!(
 		precompile_name,
-		PrecompileName::DemocracyPrecompile
-			| PrecompileName::TreasuryCouncilInstance
+		PrecompileName::TreasuryCouncilInstance
 			| PrecompileName::ReferendaPrecompile
 			| PrecompileName::ConvictionVotingPrecompile
 			| PrecompileName::PreimagePrecompile
@@ -1023,13 +1028,10 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						| RuntimeCall::ParachainSystem(..)
 						| RuntimeCall::Timestamp(..)
 						| RuntimeCall::ParachainStaking(..)
-						| RuntimeCall::Democracy(..)
 						| RuntimeCall::Referenda(..)
 						| RuntimeCall::Preimage(..)
 						| RuntimeCall::ConvictionVoting(..)
-						// TODO: GovV1| RuntimeCall::CouncilCollective(..)
 						| RuntimeCall::TreasuryCouncilCollective(..)
-						// TODO: GovV1 | RuntimeCall::TechCommitteeCollective(..)
 						| RuntimeCall::OpenTechCommitteeCollective(..)
 						| RuntimeCall::Identity(..)
 						| RuntimeCall::Utility(..)
@@ -1041,13 +1043,10 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			}
 			ProxyType::Governance => matches!(
 				c,
-				RuntimeCall::Democracy(..)
-					| RuntimeCall::Referenda(..)
+				RuntimeCall::Referenda(..)
 					| RuntimeCall::Preimage(..)
 					| RuntimeCall::ConvictionVoting(..)
-					// TODO: GovV1 | RuntimeCall::CouncilCollective(..)
 					| RuntimeCall::TreasuryCouncilCollective(..)
-					// TODO: GovV1 | RuntimeCall::TechCommitteeCollective(..)
 					| RuntimeCall::OpenTechCommitteeCollective(..)
 					| RuntimeCall::Utility(..)
 			),
@@ -1105,30 +1104,13 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
-use pallet_migrations::{GetMigrations, Migration};
-pub struct ParachainStakingRoundMigration<Runtime>(sp_std::marker::PhantomData<Runtime>);
-
-impl<Runtime> GetMigrations for ParachainStakingRoundMigration<Runtime>
-where
-	Runtime: pallet_parachain_staking::Config + pallet_async_backing::Config,
-	u32: From<<<<Runtime as frame_system::Config>::Block as BlockT>::Header as HeaderT>::Number>,
-{
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		vec![Box::new(
-			moonbeam_runtime_common::migrations::UpdateFirstRoundNumberValue::<Runtime>(
-				Default::default(),
-			),
-		)]
-	}
-}
-
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
 	// `moonbeam_runtime_common`.
 	type MigrationsList = (
 		moonbeam_runtime_common::migrations::CommonMigrations<Runtime>,
-		ParachainStakingRoundMigration<Runtime>,
+		migrations::MoonbaseMigrations,
 	);
 	type XcmExecutionManager = XcmExecutionManager;
 }
@@ -1155,7 +1137,6 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 			RuntimeCall::Treasury(_) => false,
 			RuntimeCall::XcmTransactor(_) => false,
 			RuntimeCall::EthereumXcm(_) => false,
-			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			_ => true,
 		}
 	}
@@ -1197,8 +1178,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
-			// TODO: Shall this be replaced with OpenGov ?
-			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			RuntimeCall::Treasury(
 				pallet_treasury::Call::spend { .. }
 				| pallet_treasury::Call::payout { .. }
@@ -1448,11 +1427,9 @@ construct_runtime! {
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config<T>} = 11,
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 13,
-		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
-		// CouncilCollective:
-		// 	pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 15,
-		// TechCommitteeCollective:
-		// 	pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 16,
+		// Previously 14: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
+		// Previously 15: CouncilCollective: pallet_collective::<Instance1>
+		// Previously 16: TechCommitteeCollective: pallet_collective::<Instance2>
 		Treasury: pallet_treasury::{Pallet, Storage, Config<T>, Event<T>, Call} = 17,
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 18,
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config<T>} = 19,
@@ -1472,7 +1449,7 @@ construct_runtime! {
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config<T>, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		// Previously 36: pallet_assets::<Instance1>
-		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
+		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>, Config<T>} = 37,
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 38,
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 39,
 		TreasuryCouncilCollective:
@@ -1542,10 +1519,8 @@ mod benches {
 		[pallet_sudo, Sudo]
 		[pallet_evm, EVM]
 		[pallet_assets, Assets]
-		// [pallet_collective, CouncilCollective]
 		[pallet_parachain_staking, ParachainStaking]
 		[pallet_scheduler, Scheduler]
-		[pallet_democracy, Democracy]
 		[pallet_treasury, Treasury]
 		[pallet_author_inherent, AuthorInherent]
 		[pallet_author_slot_filter, AuthorFilter]
@@ -1754,11 +1729,7 @@ mod tests {
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROUNIT));
 
-		// democracy minimums
-		assert_eq!(
-			get!(pallet_democracy, MinimumDeposit, u128),
-			Balance::from(4 * UNIT)
-		);
+		// treasury minimums
 		assert_eq!(
 			get!(pallet_treasury, ProposalBondMinimum, u128),
 			Balance::from(1 * UNIT)
