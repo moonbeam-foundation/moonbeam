@@ -111,6 +111,7 @@ macro_rules! impl_runtime_apis_plus_common {
 							EthereumXcmTracingStatus
 						};
 						use frame_support::storage::unhashed;
+						use frame_system::pallet_prelude::BlockNumberFor;
 
 						// Tell the CallDispatcher we are tracing a specific Transaction.
 						unhashed::put::<EthereumXcmTracingStatus>(
@@ -144,7 +145,15 @@ macro_rules! impl_runtime_apis_plus_common {
 						) {
 							// If the transaction was not found, it might be
 							// an eth-xcm transaction that was executed at on_idle
-							Executive::finalize_block();
+							let weight = <frame_system::Pallet<Runtime>>::block_weight();
+							let max_weight = <<Runtime as frame_system::Config>::BlockWeights as frame_support::traits::Get<_>>::get().max_block;
+							let remaining_weight = max_weight.saturating_sub(weight.total());
+							if remaining_weight.all_gt(Weight::zero()) {
+								let used_weight = <AllPalletsWithSystem as OnIdle<BlockNumberFor<Runtime>>>::on_idle(
+									<frame_system::Pallet<Runtime>>::block_number(),
+									remaining_weight,
+								);
+							}
 						}
 
 						if let Some(EthereumXcmTracingStatus::TransactionExited) = unhashed::get(
@@ -175,6 +184,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					#[cfg(feature = "evm-tracing")]
 					{
 						use moonbeam_evm_tracer::tracer::EvmTracer;
+						use frame_system::pallet_prelude::BlockNumberFor;
 						use xcm_primitives::EthereumXcmTracingStatus;
 
 						// Tell the CallDispatcher we are tracing a full Block.
@@ -205,8 +215,16 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 
 						// Replay on_idle
-						// Somme XCM messages with eth-xcm transaction might be executed at on_idle
-						Executive::finalize_block();
+						// Some XCM messages with eth-xcm transaction might be executed at on_idle
+						let weight = <frame_system::Pallet<Runtime>>::block_weight();
+						let max_weight = <<Runtime as frame_system::Config>::BlockWeights as frame_support::traits::Get<_>>::get().max_block;
+						let remaining_weight = max_weight.saturating_sub(weight.total());
+						if remaining_weight.all_gt(Weight::zero()) {
+							let used_weight = <AllPalletsWithSystem as OnIdle<BlockNumberFor<Runtime>>>::on_idle(
+								<frame_system::Pallet<Runtime>>::block_number(),
+								remaining_weight,
+							);
+						}
 
 						Ok(())
 					}
