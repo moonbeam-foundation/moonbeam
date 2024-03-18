@@ -339,7 +339,7 @@ describeSuite({
         const block = await context.createBlock(rawTx);
 
         expectEVMResult(block.result!.events, "Succeed", "Returned");
-        const events = expectSubstrateEvents(block, "xTokens", "TransferredMultiAssets");
+        const events = expectSubstrateEvents(block, "xTokens", "TransferredAssets");
         const transferFungible = events[0].data[1][0].fun;
         expect(transferFungible.isFungible);
         const transferAmount = transferFungible.asFungible.toBigInt();
@@ -381,7 +381,7 @@ describeSuite({
         const block = await context.createBlock(rawTx);
 
         expectEVMResult(block.result!.events, "Succeed", "Returned");
-        const events = expectSubstrateEvents(block, "xTokens", "TransferredMultiAssets");
+        const events = expectSubstrateEvents(block, "xTokens", "TransferredAssets");
         const transferFungible = events[0].data[1][0].fun;
         expect(transferFungible.isFungible);
         const transferAmount = transferFungible.asFungible.toBigInt();
@@ -427,7 +427,7 @@ describeSuite({
 
         expectEVMResult(block.result!.events, "Succeed", "Returned");
         // there should be no xTokens TransferredMultiAssets event since fee >= amount sent
-        const events = expectSubstrateEvents(block!, "xTokens", "TransferredMultiAssets");
+        const events = expectSubstrateEvents(block!, "xTokens", "TransferredAssets");
         expect(events.length).to.eq(0); // TODO: isn't expectSubstrateEvents supposed to expect > 0?
 
         const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
@@ -469,7 +469,7 @@ describeSuite({
         const block = await context.createBlock(rawTx);
 
         expectEVMResult(block.result!.events, "Succeed", "Returned");
-        const events = expectSubstrateEvents(block, "xTokens", "TransferredMultiAssets");
+        const events = expectSubstrateEvents(block, "xTokens", "TransferredAssets");
         const transferFungible = events[0].data[1][0].fun;
         expect(transferFungible.isFungible);
         const transferAmount = transferFungible.asFungible.toBigInt();
@@ -566,7 +566,7 @@ describeSuite({
         const result = await context.createBlock(rawTx);
 
         expectEVMResult(result.result.events, "Succeed", "Returned");
-        const events = expectSubstrateEvents(result, "xTokens", "TransferredMultiAssets");
+        const events = expectSubstrateEvents(result, "xTokens", "TransferredAssets");
         const transferFungible = events[0].data[1][0].fun;
         expect(transferFungible.isFungible);
         const transferAmount = transferFungible.asFungible.toBigInt();
