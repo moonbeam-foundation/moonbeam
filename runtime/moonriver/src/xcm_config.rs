@@ -407,7 +407,7 @@ parameter_types! {
 	/// A good value depends on the expected message sizes, their weights, the weight that is
 	/// available for processing them and the maximal needed message size. The maximal message
 	/// size is slightly lower than this as defined by [`MaxMessageLenOf`].
-	pub const MessageQueueHeapSize: u32 = 64 * 2048;
+	pub const MessageQueueHeapSize: u32 = 128 * 1048;
 }
 
 impl pallet_message_queue::Config for Runtime {

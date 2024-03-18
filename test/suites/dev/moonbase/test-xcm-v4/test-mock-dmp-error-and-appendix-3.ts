@@ -15,7 +15,7 @@ const RELAY_TOKEN = 1_000_000_000_000n;
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 describeSuite({
-  id: "D013904",
+  id: "D013903",
   title: "Mock XCM V3 - downward transfer with always triggered appendix",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -34,7 +34,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should make sure Alith receives 10 dot with appendix and error",
+      title: "Should make sure Alith receives 10 dot with appendix and without error",
       test: async function () {
         const xcmMessage = new XcmFragment({
           assets: [
@@ -52,14 +52,11 @@ describeSuite({
         })
           .reserve_asset_deposited()
           .buy_execution()
-          // BuyExecution does not charge for fees because we registered it for not doing so
-          // As a consequence the trapped assets will be entirely credited
-          // The goal is to show appendix runs even if there is an error
+          // Set an appendix to be executed after the XCM message is executed. No matter if errors
           .with(function () {
-            return this.set_appendix_with([this.deposit_asset]);
+            return this.set_appendix_with([this.deposit_asset_v3]);
           })
-          .trap()
-          .as_v2();
+          .as_v4();
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()

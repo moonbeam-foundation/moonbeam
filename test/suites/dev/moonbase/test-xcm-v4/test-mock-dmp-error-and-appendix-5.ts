@@ -56,10 +56,10 @@ describeSuite({
           // As a consequence the trapped assets will be entirely credited
           // The goal is to show appendix runs even if there is an error
           .with(function () {
-            return this.set_appendix_with([this.deposit_asset]);
+            return this.set_appendix_with([this.deposit_asset_v3]);
           })
           .trap()
-          .as_v2();
+          .as_v4();
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()

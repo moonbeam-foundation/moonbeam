@@ -258,7 +258,12 @@ export interface XcmFragmentConfig {
     multilocation: MultiLocation;
     fungible: bigint;
   }[];
-  weight_limit?: BN;
+  weight_limit?:
+    | BN
+    | {
+        refTime: BN | number | bigint;
+        proofSize: BN | number | bigint;
+      };
   descend_origin?: string;
   beneficiary?: string;
 }
@@ -489,8 +494,24 @@ export class XcmFragment {
 
   /// XCM V4 calls
   as_v4(): any {
+    const patchLocationV4recursively = (value: any) => {
+      // e.g. Convert this: { X1: { Parachain: 1000 } } to { X1: [ { Parachain: 1000 } ] }
+      if (value && typeof value == "object") {
+        Object.keys(value).forEach((k) => {
+          if (k == "Concrete" || k == "Abstract") {
+            value = value[k];
+          }
+          if (k.match(/^X\d$/g)) {
+            value[k] = Object.entries(value[k]).map(([k, v]) => ({ [k]: v }));
+          } else {
+            value[k] = patchLocationV4recursively(value[k]);
+          }
+        });
+      }
+      return value;
+    };
     return {
-      V4: this.instructions,
+      V4: this.instructions.map((inst) => patchLocationV4recursively(inst)),
     };
   }
 
