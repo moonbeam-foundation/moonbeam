@@ -138,6 +138,12 @@ macro_rules! impl_runtime_apis_plus_common {
 								return Ok(());
 							}
 						}
+
+						// Replay on_idle
+						// Somme XCM messages with eth-xcm transaction might be executed at on_idle
+						Executive::on_idle();
+
+						// The transaction was not-found
 						Err(sp_runtime::DispatchError::Other(
 							"Failed to find Ethereum transaction among the extrinsics.",
 						))
@@ -186,6 +192,10 @@ macro_rules! impl_runtime_apis_plus_common {
 								}
 							};
 						}
+
+						// Replay on_idle
+						// Somme XCM messages with eth-xcm transaction might be executed at on_idle
+						Executive::on_idle();
 
 						Ok(())
 					}
