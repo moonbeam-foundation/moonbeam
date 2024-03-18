@@ -139,14 +139,25 @@ macro_rules! impl_runtime_apis_plus_common {
 							}
 						}
 
-						// Replay on_idle
-						// Somme XCM messages with eth-xcm transaction might be executed at on_idle
-						Executive::on_idle();
+						if let Some(EthereumXcmTracingStatus::Transaction(_)) = unhashed::get(
+							ETHEREUM_XCM_TRACING_STORAGE_KEY
+						) {
+							// If the transaction was not found, it might be
+							// an eth-xcm transaction that was executed at on_idle
+							Executive::finalize_block();
+						}
 
-						// The transaction was not-found
-						Err(sp_runtime::DispatchError::Other(
-							"Failed to find Ethereum transaction among the extrinsics.",
-						))
+						if let Some(EthereumXcmTracingStatus::TransactionExited) = unhashed::get(
+							ETHEREUM_XCM_TRACING_STORAGE_KEY
+						) {
+							// The transaction was found
+							Ok(())
+						} else {
+							// The transaction was not-found
+							Err(sp_runtime::DispatchError::Other(
+								"Failed to find Ethereum transaction among the extrinsics.",
+							))
+						}
 					}
 					#[cfg(not(feature = "evm-tracing"))]
 					Err(sp_runtime::DispatchError::Other(
@@ -195,7 +206,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 						// Replay on_idle
 						// Somme XCM messages with eth-xcm transaction might be executed at on_idle
-						Executive::on_idle();
+						Executive::finalize_block();
 
 						Ok(())
 					}
