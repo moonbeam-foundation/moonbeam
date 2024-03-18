@@ -497,16 +497,21 @@ export class XcmFragment {
     const patchLocationV4recursively = (value: any) => {
       // e.g. Convert this: { X1: { Parachain: 1000 } } to { X1: [ { Parachain: 1000 } ] }
       if (value && typeof value == "object") {
-        Object.keys(value).forEach((k) => {
-          if (k == "Concrete" || k == "Abstract") {
-            value = value[k];
+        if (Array.isArray(value)) {
+          return value.map(patchLocationV4recursively);
+        }
+        for (const k of Object.keys(value)) {
+          if (k === "Concrete" || k === "Abstract") {
+            return patchLocationV4recursively(value[k]);
           }
-          if (k.match(/^X\d$/g)) {
-            value[k] = Object.entries(value[k]).map(([k, v]) => ({ [k]: v }));
+          if (k.match(/^X\d$/g) && !Array.isArray(value[k])) {
+            value[k] = Object.entries(value[k]).map(([k, v]) => ({
+              [k]: patchLocationV4recursively(v),
+            }));
           } else {
             value[k] = patchLocationV4recursively(value[k]);
           }
-        });
+        }
       }
       return value;
     };
