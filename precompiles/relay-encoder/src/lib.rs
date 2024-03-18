@@ -418,10 +418,8 @@ impl solidity::Codec for RewardDestinationWrapper {
 			0u8 => Ok(RewardDestinationWrapper(RewardDestination::Staked)),
 			1u8 => Ok(RewardDestinationWrapper(RewardDestination::Stash)),
 			// Deprecated in https://github.com/paritytech/polkadot-sdk/pull/2380
-			2u8 => Err(RevertReason::custom(
-				"`Controller` was deprecated. Use `Account(controller)` instead.",
-			)
-			.into()),
+			#[allow(deprecated)]
+			2u8 => Ok(RewardDestinationWrapper(RewardDestination::Controller)),
 			3u8 => {
 				let address = encoded_reward_destination.read::<H256>()?;
 				Ok(RewardDestinationWrapper(RewardDestination::Account(
