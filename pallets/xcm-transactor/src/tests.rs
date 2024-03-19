@@ -1037,20 +1037,15 @@ fn test_transact_through_sovereign_with_fee_payer_none() {
 			// Root can register
 			assert_ok!(XcmTransactor::register(RuntimeOrigin::root(), 1u64, 1));
 
-			// We are gonna use a total weight of 10_100, a tx weight of 100,
-			// and a total fee of 100
 			let total_weight: Weight = 10_100u64.into();
 			let tx_weight: Weight = 100_u64.into();
 			let total_fee = 100u128;
 
-			// By specifying total fee and total weight, we ensure
-			// that even if the transact_info is not populated,
-			// the message is forged with our parameters
-
-			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_sovereign(
 				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				// We don't specify any fee_payer, instead we pay fees with the
+				// sovereign account funds directly on the destination.
 				None,
 				CurrencyPayment {
 					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
@@ -1081,7 +1076,8 @@ fn test_transact_through_sovereign_with_fee_payer_none() {
 			assert_eq!(events(), expected);
 			let sent_messages = mock::sent_xcm();
 			let (_, sent_message) = sent_messages.first().unwrap();
-			// Lets make sure the message is as expected
+			// Lets make sure the message is as expected even if we haven't indicated a
+			// fee_payer.
 			assert!(sent_message
 				.0
 				.contains(&WithdrawAsset((Location::here(), total_fee).into())));

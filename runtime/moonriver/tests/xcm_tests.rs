@@ -1608,7 +1608,7 @@ fn transact_through_sovereign() {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedLocation::V4(dest)),
-			PARAALICE.into(),
+			Some(PARAALICE.into()),
 			CurrencyPayment {
 				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					Location::parent()
@@ -1630,6 +1630,111 @@ fn transact_through_sovereign() {
 		assert!(RelayBalances::free_balance(&para_a_account()) == 100);
 
 		assert!(RelayBalances::free_balance(&registered_address) == 0);
+	});
+}
+
+#[test]
+fn transact_through_sovereign_fee_payer_none() {
+	MockNet::reset();
+
+	ParaA::execute_with(|| {
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_transact_info(
+			parachain::RuntimeOrigin::root(),
+			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			// Relay charges 1000 for every instruction, and we have 3, so 3000
+			3000.into(),
+			20000000000.into(),
+			None
+		));
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_fee_per_second(
+			parachain::RuntimeOrigin::root(),
+			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			WEIGHT_REF_TIME_PER_SECOND as u128,
+		));
+	});
+
+	let derivative_address = derivative_account_id(para_a_account(), 0);
+
+	Relay::execute_with(|| {
+		// Transfer 100 tokens to registered_address on the relay
+		assert_ok!(RelayBalances::transfer_keep_alive(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			derivative_address.clone(),
+			100u128
+		));
+
+		// Transfer the XCM execution fee amount to ParaA's sovereign account
+		assert_ok!(RelayBalances::transfer_keep_alive(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			para_a_account(),
+			4000003000u128
+		));
+	});
+
+	// Check balances before the transact call
+	Relay::execute_with(|| {
+		assert_eq!(RelayBalances::free_balance(&para_a_account()), 4000003000);
+		assert_eq!(RelayBalances::free_balance(&derivative_address), 100);
+		assert_eq!(RelayBalances::free_balance(&RELAYBOB), 0);
+	});
+
+	// Encode the call. Balances transfer of 100 relay tokens to RELAYBOB
+	let mut encoded: Vec<u8> = Vec::new();
+	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
+		relay_chain::Balances,
+	>()
+	.unwrap() as u8;
+
+	encoded.push(index);
+
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
+		dest: RELAYBOB,
+		value: 100u32.into(),
+	}
+	.encode();
+	encoded.append(&mut call_bytes);
+
+	// The final call will be an AsDerivative using index 0
+	let utility_bytes = parachain::MockTransactors::Relay.encode_call(
+		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
+	);
+
+	// We send the xcm transact operation to parent
+	let dest = Location {
+		parents: 1,
+		interior: /* Here */ [].into(),
+	};
+
+	// Root can directly pass the execution byes to the sovereign
+	ParaA::execute_with(|| {
+		assert_ok!(XcmTransactor::transact_through_sovereign(
+			parachain::RuntimeOrigin::root(),
+			Box::new(xcm::VersionedLocation::V4(dest)),
+			// No fee_payer here. The sovereign account will pay the fees on destination.
+			None,
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
+				))),
+				fee_amount: None
+			},
+			utility_bytes,
+			OriginKind::SovereignAccount,
+			TransactWeights {
+				transact_required_weight_at_most: 4000000000.into(),
+				overall_weight: None
+			},
+			false
+		));
+	});
+
+	// Check balances after the transact call are correct
+	Relay::execute_with(|| {
+		assert_eq!(RelayBalances::free_balance(&para_a_account()), 0);
+		assert_eq!(RelayBalances::free_balance(&derivative_address), 0);
+		assert_eq!(RelayBalances::free_balance(&RELAYBOB), 100);
 	});
 }
 
@@ -1760,7 +1865,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedLocation::V4(dest)),
-			PARAALICE.into(),
+			Some(PARAALICE.into()),
 			CurrencyPayment {
 				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					Location::parent()
@@ -1913,7 +2018,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedLocation::V4(dest)),
-			PARAALICE.into(),
+			Some(PARAALICE.into()),
 			CurrencyPayment {
 				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					Location::parent()
