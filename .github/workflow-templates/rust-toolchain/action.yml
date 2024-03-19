@@ -9,7 +9,7 @@ runs:
       with:
         toolchain: 1.74.0
         override: true
-        components: rust-src, rustfmt, clippy
+        components: rust-src, rustfmt, clippy, llvm-tools-preview
     - name: Install components and targets
       shell: bash
       run: |

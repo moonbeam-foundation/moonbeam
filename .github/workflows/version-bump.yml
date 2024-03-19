@@ -3,10 +3,10 @@ on:
   workflow_dispatch:
     inputs:
       from:
-        description: "Polkadot version to bump from (ex: v0.9.40)"
+        description: "Polkadot version to bump from (ex: v1.3.0)"
         required: true
       to:
-        description: "Polkadot version to bump to (ex: v0.9.42)"
+        description: "Polkadot version to bump to (ex: v1.7.2)"
         required: true
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
       - name: Create version bump issue
         uses: peter-evans/create-issue-from-file@v3
         with:
-          title: Update substrate/polkadot/cumulus from ${{ github.event.inputs.from }} to ${{ github.event.inputs.to }}
+          title: Update polkadot-sdk from ${{ github.event.inputs.from }} to ${{ github.event.inputs.to }}
           content-filepath: ./version-bump.md
           labels: |
             automated issue
