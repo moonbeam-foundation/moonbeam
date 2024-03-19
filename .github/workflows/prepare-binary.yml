@@ -24,7 +24,7 @@ jobs:
         with:
           ref: ${{ github.event.inputs.sha }}
       - name: Setup Rust toolchain
-        uses: ./.github/workflow-templates/rust-toolchain
+        run: rustup show
       - name: Build Node
         run: cargo build --profile=production --all
       - name: Save parachain binary
