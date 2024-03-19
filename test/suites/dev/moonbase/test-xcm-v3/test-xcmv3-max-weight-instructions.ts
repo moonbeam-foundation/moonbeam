@@ -13,7 +13,7 @@ import { parseEther } from "ethers";
 import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
-  id: "D014039",
+  id: "D013939",
   title: "XCM V3 - Max Weight Instructions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
