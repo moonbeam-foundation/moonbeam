@@ -9,8 +9,8 @@ runs:
       with:
         toolchain: 1.74.0
         override: true
-        components: rust-src, rustfmt, clippy, llvm-tools-preview
-    - name: Install components and targets
+        components: rust-src, rustfmt, clippy
+    - name: Install targets
       shell: bash
       run: |
         rustup target add wasm32-unknown-unknown
