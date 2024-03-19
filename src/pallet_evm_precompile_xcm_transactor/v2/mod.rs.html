@@ -218,7 +218,7 @@
 <span class="kw">use </span>sp_core::{H160, U256};
 <span class="kw">use </span>sp_runtime::traits::Dispatchable;
 <span class="kw">use </span>sp_std::{convert::TryFrom, marker::PhantomData};
-<span class="kw">use </span>xcm::latest::MultiLocation;
+<span class="kw">use </span>xcm::latest::Location;
 <span class="kw">use </span>xcm_primitives::AccountIdToCurrencyId;
 
 <span class="doccomment">/// A precompile to wrap the functionality from xcm transactor
@@ -245,7 +245,7 @@
 	#[precompile::view]
 	</span><span class="kw">fn </span>transact_info_with_signed(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: Location,
 	) -&gt; EvmResult&lt;(u64, u64, u64)&gt; {
 		XcmTransactorWrapper::&lt;Runtime&gt;::transact_info_with_signed(handle, multilocation)
 	}
@@ -254,7 +254,7 @@
 	#[precompile::view]
 	</span><span class="kw">fn </span>fee_per_second(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: Location,
 	) -&gt; EvmResult&lt;U256&gt; {
 		XcmTransactorWrapper::&lt;Runtime&gt;::fee_per_second(handle, multilocation)
 	}
@@ -272,7 +272,7 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		transactor: u8,
 		index: u16,
-		fee_asset: MultiLocation,
+		fee_asset: Location,
 		weight: u64,
 		inner_call: BoundedBytes&lt;GetDataLimit&gt;,
 		fee_amount: Convert&lt;U256, u128&gt;,
@@ -333,8 +333,8 @@
 	</span>)]
 	</span><span class="kw">fn </span>transact_through_signed_multilocation(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		dest: MultiLocation,
-		fee_asset: MultiLocation,
+		dest: Location,
+		fee_asset: Location,
 		weight: u64,
 		call: BoundedBytes&lt;GetDataLimit&gt;,
 		fee_amount: Convert&lt;U256, u128&gt;,
@@ -356,7 +356,7 @@
 	</span>)]
 	</span><span class="kw">fn </span>transact_through_signed(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		dest: MultiLocation,
+		dest: Location,
 		fee_asset: Address,
 		weight: u64,
 		call: BoundedBytes&lt;GetDataLimit&gt;,

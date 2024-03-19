@@ -72,6 +72,24 @@
 <a href="#72" id="72">72</a>
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -90,40 +108,58 @@
 
 </span><span class="kw">use </span>sp_runtime::traits::MaybeEquivalence;
 <span class="kw">use </span>sp_std::marker::PhantomData;
-<span class="kw">use </span>xcm::latest::MultiLocation;
+<span class="kw">use </span>xcm::v3::Location;
 <span class="kw">use </span>xcm_executor::traits::ConvertLocation;
 
 <span class="doccomment">/// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
-/// (must be `TryFrom/TryInto&lt;u128&gt;`) into a MultiLocation Value and vice versa through
+/// (must be `TryFrom/TryInto&lt;u128&gt;`) into a Location Value and vice versa through
 /// an intermediate generic type AssetType.
 /// The trait bounds enforce is that the AssetTypeGetter trait is also implemented for
 /// AssetIdInfoGetter
 </span><span class="kw">pub struct </span>AsAssetType&lt;AssetId, AssetType, AssetIdInfoGetter&gt;(
 	PhantomData&lt;(AssetId, AssetType, AssetIdInfoGetter)&gt;,
 );
-<span class="kw">impl</span>&lt;AssetId, AssetType, AssetIdInfoGetter&gt; MaybeEquivalence&lt;MultiLocation, AssetId&gt;
+<span class="kw">impl</span>&lt;AssetId, AssetType, AssetIdInfoGetter&gt; MaybeEquivalence&lt;Location, AssetId&gt;
 	<span class="kw">for </span>AsAssetType&lt;AssetId, AssetType, AssetIdInfoGetter&gt;
 <span class="kw">where
 	</span>AssetId: Clone,
-	AssetType: From&lt;MultiLocation&gt; + Into&lt;<span class="prelude-ty">Option</span>&lt;MultiLocation&gt;&gt; + Clone,
+	AssetType: From&lt;Location&gt; + Into&lt;<span class="prelude-ty">Option</span>&lt;Location&gt;&gt; + Clone,
 	AssetIdInfoGetter: AssetTypeGetter&lt;AssetId, AssetType&gt;,
 {
-	<span class="kw">fn </span>convert(id: <span class="kw-2">&amp;</span>MultiLocation) -&gt; <span class="prelude-ty">Option</span>&lt;AssetId&gt; {
+	<span class="kw">fn </span>convert(id: <span class="kw-2">&amp;</span>Location) -&gt; <span class="prelude-ty">Option</span>&lt;AssetId&gt; {
 		AssetIdInfoGetter::get_asset_id(id.clone().into())
 	}
-	<span class="kw">fn </span>convert_back(what: <span class="kw-2">&amp;</span>AssetId) -&gt; <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; {
+	<span class="kw">fn </span>convert_back(what: <span class="kw-2">&amp;</span>AssetId) -&gt; <span class="prelude-ty">Option</span>&lt;Location&gt; {
 		AssetIdInfoGetter::get_asset_type(what.clone()).and_then(Into::into)
+	}
+}
+<span class="kw">impl</span>&lt;AssetId, AssetType, AssetIdInfoGetter&gt; MaybeEquivalence&lt;xcm::v4::Location, AssetId&gt;
+	<span class="kw">for </span>AsAssetType&lt;AssetId, AssetType, AssetIdInfoGetter&gt;
+<span class="kw">where
+	</span>AssetId: Clone,
+	AssetType: From&lt;Location&gt; + Into&lt;<span class="prelude-ty">Option</span>&lt;Location&gt;&gt; + Clone,
+	AssetIdInfoGetter: AssetTypeGetter&lt;AssetId, AssetType&gt;,
+{
+	<span class="kw">fn </span>convert(id: <span class="kw-2">&amp;</span>xcm::v4::Location) -&gt; <span class="prelude-ty">Option</span>&lt;AssetId&gt; {
+		<span class="kw">let </span>v3_location = xcm_builder::V4V3LocationConverter::convert(id)<span class="question-mark">?</span>;
+		AssetIdInfoGetter::get_asset_id(v3_location.clone().into())
+	}
+	<span class="kw">fn </span>convert_back(what: <span class="kw-2">&amp;</span>AssetId) -&gt; <span class="prelude-ty">Option</span>&lt;xcm::v4::Location&gt; {
+		<span class="kw">let </span>v3_location: Location =
+			AssetIdInfoGetter::get_asset_type(what.clone()).and_then(Into::into)<span class="question-mark">?</span>;
+		xcm_builder::V4V3LocationConverter::convert_back(<span class="kw-2">&amp;</span>v3_location)
 	}
 }
 <span class="kw">impl</span>&lt;AssetId, AssetType, AssetIdInfoGetter&gt; ConvertLocation&lt;AssetId&gt;
 	<span class="kw">for </span>AsAssetType&lt;AssetId, AssetType, AssetIdInfoGetter&gt;
 <span class="kw">where
 	</span>AssetId: Clone,
-	AssetType: From&lt;MultiLocation&gt; + Into&lt;<span class="prelude-ty">Option</span>&lt;MultiLocation&gt;&gt; + Clone,
+	AssetType: From&lt;Location&gt; + Into&lt;<span class="prelude-ty">Option</span>&lt;Location&gt;&gt; + Clone,
 	AssetIdInfoGetter: AssetTypeGetter&lt;AssetId, AssetType&gt;,
 {
-	<span class="kw">fn </span>convert_location(id: <span class="kw-2">&amp;</span>MultiLocation) -&gt; <span class="prelude-ty">Option</span>&lt;AssetId&gt; {
-		AssetIdInfoGetter::get_asset_id(id.clone().into())
+	<span class="kw">fn </span>convert_location(id: <span class="kw-2">&amp;</span>xcm::v4::Location) -&gt; <span class="prelude-ty">Option</span>&lt;AssetId&gt; {
+		<span class="kw">let </span>v3_location = xcm_builder::V4V3LocationConverter::convert(id)<span class="question-mark">?</span>;
+		AssetIdInfoGetter::get_asset_id(v3_location.clone().into())
 	}
 }
 

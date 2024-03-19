@@ -846,6 +846,8 @@
 <a href="#846" id="846">846</a>
 <a href="#847" id="847">847</a>
 <a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1104,6 +1106,7 @@
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_stake_bond() {
 		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
+		<span class="kw">let </span>controller: AccountId32 = [<span class="number">1u8</span>; <span class="number">32</span>].into();
 
 		<span class="kw">let </span>index = &lt;westend_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
 			westend_runtime::Staking,
@@ -1113,7 +1116,7 @@
 
 		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;westend_runtime::Runtime&gt;::bond {
 			value: <span class="number">100u32</span>.into(),
-			payee: pallet_staking::RewardDestination::Controller,
+			payee: pallet_staking::RewardDestination::Account(controller.clone()),
 		}
 		.encode();
 		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
@@ -1122,7 +1125,7 @@
 			&lt;WestendEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
 				xcm_primitives::AvailableStakeCalls::Bond(
 					<span class="number">100u32</span>.into(),
-					pallet_staking::RewardDestination::Controller
+					pallet_staking::RewardDestination::Account(controller.clone()),
 				)
 			),
 			expected_encoded.clone()
@@ -1139,7 +1142,7 @@
 				&gt;::encode_call(
 					xcm_primitives::AvailableStakeCalls::Bond(
 						<span class="number">100u32</span>.into(),
-						pallet_staking::RewardDestination::Controller
+						pallet_staking::RewardDestination::Account(controller)
 					)
 				),
 				expected_encoded
@@ -1383,6 +1386,7 @@
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_set_payee() {
 		<span class="kw">let </span><span class="kw-2">mut </span>expected_encoded: Vec&lt;u8&gt; = Vec::new();
+		<span class="kw">let </span>controller: AccountId32 = [<span class="number">1u8</span>; <span class="number">32</span>].into();
 
 		<span class="kw">let </span>index = &lt;westend_runtime::Runtime <span class="kw">as </span>frame_system::Config&gt;::PalletInfo::index::&lt;
 			westend_runtime::Staking,
@@ -1391,7 +1395,7 @@
 		expected_encoded.push(index);
 
 		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_staking::Call::&lt;westend_runtime::Runtime&gt;::set_payee {
-			payee: pallet_staking::RewardDestination::Controller,
+			payee: pallet_staking::RewardDestination::Account(controller.clone()),
 		}
 		.encode();
 		expected_encoded.append(<span class="kw-2">&amp;mut </span>expected);
@@ -1399,7 +1403,7 @@
 		<span class="macro">assert_eq!</span>(
 			&lt;WestendEncoder <span class="kw">as </span>StakeEncodeCall&gt;::encode_call(
 				xcm_primitives::AvailableStakeCalls::SetPayee(
-					pallet_staking::RewardDestination::Controller
+					pallet_staking::RewardDestination::Account(controller.clone())
 				)
 			),
 			expected_encoded.clone()
@@ -1415,7 +1419,7 @@
 					moonbase_runtime::Runtime&gt; <span class="kw">as </span>StakeEncodeCall
 				&gt;::encode_call(
 					xcm_primitives::AvailableStakeCalls::SetPayee(
-						pallet_staking::RewardDestination::Controller
+						pallet_staking::RewardDestination::Account(controller)
 					)
 				),
 				expected_encoded

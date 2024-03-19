@@ -113,21 +113,21 @@
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H256, U256};
 <span class="kw">use </span>sp_std::vec::Vec;
-<span class="kw">use </span>xcm::VersionedMultiLocation;
+<span class="kw">use </span>xcm::VersionedLocation;
 
 <span class="comment">// A user action which will attempt to route the transferred assets to the account/chain specified
-// by the given MultiLocation. Recall that a MultiLocation can contain both a chain and an account
+// by the given Location. Recall that a Location can contain both a chain and an account
 // on that chain, as this one should.
 </span><span class="attr">#[derive(Encode, Decode, Debug)]
 </span><span class="kw">pub struct </span>XcmRoutingUserAction {
-	<span class="kw">pub </span>destination: VersionedMultiLocation,
+	<span class="kw">pub </span>destination: VersionedLocation,
 }
 
 <span class="comment">// A user action which is the same as XcmRoutingUserAction but also allows a fee to be paid. The
 // fee is paid in the same asset being transferred, and must be &lt;= the amount being sent.
 </span><span class="attr">#[derive(Encode, Decode, Debug)]
 </span><span class="kw">pub struct </span>XcmRoutingUserActionWithFee {
-	<span class="kw">pub </span>destination: VersionedMultiLocation,
+	<span class="kw">pub </span>destination: VersionedLocation,
 	<span class="kw">pub </span>fee: U256,
 }
 

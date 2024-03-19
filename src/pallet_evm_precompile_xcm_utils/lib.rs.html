@@ -366,14 +366,14 @@
 	#[precompile::view]
 	</span><span class="kw">fn </span>multilocation_to_address(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		multilocation: MultiLocation,
+		location: Location,
 	) -&gt; EvmResult&lt;Address&gt; {
 		<span class="comment">// storage item: AssetTypeUnitsPerSecond
 		// max encoded len: hash (16) + Multilocation + u128 (16)
-		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">32 </span>+ MultiLocation::max_encoded_len())<span class="question-mark">?</span>;
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">32 </span>+ Location::max_encoded_len())<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>origin =
-			XcmConfig::OriginConverter::convert_origin(multilocation, OriginKind::SovereignAccount)
+			XcmConfig::OriginConverter::convert_origin(location, OriginKind::SovereignAccount)
 				.map_err(|<span class="kw">_</span>| {
 					RevertReason::custom(<span class="string">&quot;Failed multilocation conversion&quot;</span>)
 						.in_field(<span class="string">&quot;multilocation&quot;</span>)
@@ -392,21 +392,21 @@
 	#[precompile::view]
 	</span><span class="kw">fn </span>get_units_per_second(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		multilocation: MultiLocation,
+		location: Location,
 	) -&gt; EvmResult&lt;U256&gt; {
 		<span class="comment">// storage item: AssetTypeUnitsPerSecond
 		// max encoded len: hash (16) + Multilocation + u128 (16)
-		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">32 </span>+ MultiLocation::max_encoded_len())<span class="question-mark">?</span>;
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">32 </span>+ Location::max_encoded_len())<span class="question-mark">?</span>;
 
 		<span class="comment">// We will construct an asset with the max amount, and check how much we
 		// get in return to substract
-		</span><span class="kw">let </span>multiasset: xcm::latest::MultiAsset = (multilocation.clone(), u128::MAX).into();
+		</span><span class="kw">let </span>multiasset: xcm::latest::Asset = (location.clone(), u128::MAX).into();
 		<span class="kw">let </span>weight_per_second = <span class="number">1_000_000_000_000u64</span>;
 
 		<span class="kw">let </span><span class="kw-2">mut </span>trader = &lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::Trader::new();
 
 		<span class="kw">let </span>ctx = XcmContext {
-			origin: <span class="prelude-val">Some</span>(multilocation),
+			origin: <span class="prelude-val">Some</span>(location),
 			message_id: XcmHash::default(),
 			topic: <span class="prelude-val">None</span>,
 		};
@@ -492,7 +492,7 @@
 	<span class="attr">#[precompile::public(<span class="string">&quot;xcmSend((uint8,bytes[]),bytes)&quot;</span>)]
 	</span><span class="kw">fn </span>xcm_send(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		dest: MultiLocation,
+		dest: Location,
 		message: BoundedBytes&lt;GetXcmSizeLimit&gt;,
 	) -&gt; EvmResult {
 		<span class="kw">let </span>message: Vec&lt;u8&gt; = message.into();

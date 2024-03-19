@@ -377,18 +377,6 @@
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -406,12 +394,12 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 </span><span class="kw">pub use </span>moonbeam_core_primitives::{AccountId, Balance, Block, BlockNumber, Hash, Header, Index};
 <span class="kw">use </span>sc_client_api::{Backend <span class="kw">as </span>BackendT, BlockchainEvents, KeysIter, MerkleValue, PairsIter};
-<span class="kw">use </span>sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
+<span class="kw">use </span>sp_api::{CallApiAt, ProvideRuntimeApi};
 <span class="kw">use </span>sp_blockchain::HeaderBackend;
 <span class="kw">use </span>sp_consensus::BlockStatus;
 <span class="kw">use </span>sp_runtime::{
 	generic::SignedBlock,
-	traits::{BlakeTwo256, Block <span class="kw">as </span>BlockT},
+	traits::{BlakeTwo256, Block <span class="kw">as </span>BlockT, NumberFor},
 	Justifications,
 };
 <span class="kw">use </span>sp_storage::{ChildInfo, StorageData, StorageKey};
@@ -475,7 +463,7 @@
 <span class="kw">where
 	</span>Block: BlockT,
 	Backend: BackendT&lt;Block&gt;,
-	Backend::State: sp_api::StateBackend&lt;BlakeTwo256&gt;,
+	Backend::State: sc_client_api::backend::StateBackend&lt;BlakeTwo256&gt;,
 	<span class="self">Self</span>::Api: RuntimeApiCollection,
 {
 }
@@ -484,7 +472,7 @@
 <span class="kw">where
 	</span>Block: BlockT,
 	Backend: BackendT&lt;Block&gt;,
-	Backend::State: sp_api::StateBackend&lt;BlakeTwo256&gt;,
+	Backend::State: sc_client_api::backend::StateBackend&lt;BlakeTwo256&gt;,
 	Client: BlockchainEvents&lt;Block&gt;
 		+ ProvideRuntimeApi&lt;Block&gt;
 		+ HeaderBackend&lt;Block&gt;
@@ -517,7 +505,7 @@
 	</span><span class="kw">fn </span>execute_with_client&lt;Client, Api, Backend&gt;(<span class="self">self</span>, client: Arc&lt;Client&gt;) -&gt; <span class="self">Self</span>::Output
 	<span class="kw">where
 		</span>Backend: sc_client_api::Backend&lt;Block&gt;,
-		Backend::State: sp_api::StateBackend&lt;BlakeTwo256&gt;,
+		Backend::State: sc_client_api::backend::StateBackend&lt;BlakeTwo256&gt;,
 		Api: <span class="kw">crate</span>::RuntimeApiCollection,
 		Client: AbstractClient&lt;Block, Backend, Api = Api&gt; + <span class="lifetime">&#39;static</span>;
 }
@@ -538,42 +526,30 @@
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub enum </span>Client {
 	<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
-	</span>Moonbeam(Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonbeam_runtime::RuntimeApi, <span class="kw">crate</span>::MoonbeamExecutor&gt;&gt;),
+	</span>Moonbeam(Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonbeam_runtime::RuntimeApi&gt;&gt;),
 	<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
-	</span>Moonriver(Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonriver_runtime::RuntimeApi, <span class="kw">crate</span>::MoonriverExecutor&gt;&gt;),
+	</span>Moonriver(Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonriver_runtime::RuntimeApi&gt;&gt;),
 	<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
-	</span>Moonbase(Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonbase_runtime::RuntimeApi, <span class="kw">crate</span>::MoonbaseExecutor&gt;&gt;),
+	</span>Moonbase(Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonbase_runtime::RuntimeApi&gt;&gt;),
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
-</span><span class="kw">impl </span>From&lt;Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonbeam_runtime::RuntimeApi, <span class="kw">crate</span>::MoonbeamExecutor&gt;&gt;&gt;
-	<span class="kw">for </span>Client
-{
-	<span class="kw">fn </span>from(
-		client: Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonbeam_runtime::RuntimeApi, <span class="kw">crate</span>::MoonbeamExecutor&gt;&gt;,
-	) -&gt; <span class="self">Self </span>{
+</span><span class="kw">impl </span>From&lt;Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonbeam_runtime::RuntimeApi&gt;&gt;&gt; <span class="kw">for </span>Client {
+	<span class="kw">fn </span>from(client: Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonbeam_runtime::RuntimeApi&gt;&gt;) -&gt; <span class="self">Self </span>{
 		<span class="self">Self</span>::Moonbeam(client)
 	}
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
-</span><span class="kw">impl </span>From&lt;Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonriver_runtime::RuntimeApi, <span class="kw">crate</span>::MoonriverExecutor&gt;&gt;&gt;
-	<span class="kw">for </span>Client
-{
-	<span class="kw">fn </span>from(
-		client: Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonriver_runtime::RuntimeApi, <span class="kw">crate</span>::MoonriverExecutor&gt;&gt;,
-	) -&gt; <span class="self">Self </span>{
+</span><span class="kw">impl </span>From&lt;Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonriver_runtime::RuntimeApi&gt;&gt;&gt; <span class="kw">for </span>Client {
+	<span class="kw">fn </span>from(client: Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonriver_runtime::RuntimeApi&gt;&gt;) -&gt; <span class="self">Self </span>{
 		<span class="self">Self</span>::Moonriver(client)
 	}
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
-</span><span class="kw">impl </span>From&lt;Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonbase_runtime::RuntimeApi, <span class="kw">crate</span>::MoonbaseExecutor&gt;&gt;&gt;
-	<span class="kw">for </span>Client
-{
-	<span class="kw">fn </span>from(
-		client: Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonbase_runtime::RuntimeApi, <span class="kw">crate</span>::MoonbaseExecutor&gt;&gt;,
-	) -&gt; <span class="self">Self </span>{
+</span><span class="kw">impl </span>From&lt;Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonbase_runtime::RuntimeApi&gt;&gt;&gt; <span class="kw">for </span>Client {
+	<span class="kw">fn </span>from(client: Arc&lt;<span class="kw">crate</span>::FullClient&lt;moonbase_runtime::RuntimeApi&gt;&gt;) -&gt; <span class="self">Self </span>{
 		<span class="self">Self</span>::Moonbase(client)
 	}
 }

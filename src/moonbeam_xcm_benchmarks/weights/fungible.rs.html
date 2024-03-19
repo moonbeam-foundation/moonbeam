@@ -93,7 +93,7 @@
 
 </span><span class="kw">use </span>frame_support::{traits::Get, weights::Weight};
 <span class="kw">use </span>sp_std::marker::PhantomData;
-<span class="kw">use </span>xcm::latest::MultiAsset;
+<span class="kw">use </span>xcm::latest::Asset;
 
 <span class="comment">// Values copied from statemint benchmarks
 </span><span class="kw">const </span>ASSET_BURN_MAX_PROOF_SIZE: u64 = <span class="number">7242</span>;
@@ -103,7 +103,7 @@
 <span class="doccomment">/// Weights for `pallet_xcm_benchmarks::fungible`.
 </span><span class="kw">pub struct </span>WeightInfo&lt;T&gt;(PhantomData&lt;T&gt;);
 <span class="kw">impl</span>&lt;T: frame_system::Config + pallet_erc20_xcm_bridge::Config&gt; WeightInfo&lt;T&gt; {
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>withdraw_asset(asset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; Weight {
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>withdraw_asset(asset: <span class="kw-2">&amp;</span>Asset) -&gt; Weight {
 		<span class="kw">if </span>pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::weight_of_erc20_transfer(<span class="kw-2">&amp;</span>asset.id)
 			
@@ -111,14 +111,14 @@
 			Weight::from_parts(<span class="number">200_000_000 </span><span class="kw">as </span>u64, ASSET_BURN_MAX_PROOF_SIZE)
 		}
 	}
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_asset(asset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; Weight {
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_asset(asset: <span class="kw-2">&amp;</span>Asset) -&gt; Weight {
 		<span class="kw">if </span>pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::weight_of_erc20_transfer(<span class="kw-2">&amp;</span>asset.id)
 		} <span class="kw">else </span>{
 			Weight::from_parts(<span class="number">200_000_000 </span><span class="kw">as </span>u64, ASSET_TRANSFER_MAX_PROOF_SIZE)
 		}
 	}
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_reserve_asset(asset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; Weight {
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transfer_reserve_asset(asset: <span class="kw-2">&amp;</span>Asset) -&gt; Weight {
 		<span class="kw">if </span>pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::&lt;T&gt;::weight_of_erc20_transfer(<span class="kw-2">&amp;</span>asset.id)
 		} <span class="kw">else </span>{

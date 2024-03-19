@@ -170,7 +170,7 @@
 	<span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(signature)) = try_sign {
 		<span class="kw">let </span>public = PublicKey::from_bytes(<span class="kw-2">&amp;</span>key.to_raw_vec()).ok()<span class="question-mark">?</span>;
 		<span class="kw">if </span>signature
-			.output
+			.pre_output
 			.<span class="number">0
 			</span>.attach_input_hash(<span class="kw-2">&amp;</span>public, transcript.<span class="number">0</span>.clone())
 			.is_err()
@@ -179,7 +179,7 @@
 			</span><span class="kw">return </span><span class="prelude-val">None</span>;
 		}
 		<span class="prelude-val">Some</span>(PreDigest {
-			vrf_output: signature.output,
+			vrf_output: signature.pre_output,
 			vrf_proof: signature.proof,
 		})
 	} <span class="kw">else </span>{

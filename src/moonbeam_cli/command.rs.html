@@ -956,6 +956,45 @@
 <a href="#956" id="956">956</a>
 <a href="#957" id="957">957</a>
 <a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -975,7 +1014,7 @@
 </span><span class="doccomment">//! This module constructs and executes the appropriate service components for the given subcommand
 
 </span><span class="kw">use </span><span class="kw">crate</span>::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
-<span class="kw">use </span>cumulus_client_cli::{extract_genesis_wasm, generate_genesis_block};
+<span class="kw">use </span>cumulus_client_cli::extract_genesis_wasm;
 <span class="kw">use </span>cumulus_primitives_core::ParaId;
 <span class="kw">use </span>frame_benchmarking_cli::BenchmarkCmd;
 <span class="kw">use </span>log::{info, warn};
@@ -993,7 +1032,10 @@
 	DatabaseSource, PartialComponents,
 };
 <span class="kw">use </span>sp_core::hexdisplay::HexDisplay;
-<span class="kw">use </span>sp_runtime::traits::{AccountIdConversion, Block <span class="kw">as _</span>};
+<span class="kw">use </span>sp_runtime::{
+	traits::{AccountIdConversion, Block <span class="kw">as </span>BlockT, Hash <span class="kw">as </span>HashT, Header <span class="kw">as </span>HeaderT, Zero},
+	StateVersion,
+};
 <span class="kw">use </span>std::{io::Write, net::SocketAddr};
 
 <span class="kw">fn </span>load_spec(
@@ -1310,7 +1352,7 @@
 				</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; runner.async_run(|<span class="kw-2">mut </span>config| {
 					<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
 						moonbeam_service::moonriver_runtime::RuntimeApi,
-						moonbeam_service::MoonriverExecutor,
+						moonbeam_service::MoonriverCustomizations,
 					&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((
@@ -1322,7 +1364,7 @@
 				</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; runner.async_run(|<span class="kw-2">mut </span>config| {
 					<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
-						moonbeam_service::MoonbeamExecutor,
+						moonbeam_service::MoonbeamCustomizations,
 					&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((
@@ -1334,7 +1376,7 @@
 				</span><span class="kw">_ </span>=&gt; runner.async_run(|<span class="kw-2">mut </span>config| {
 					<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
 						moonbeam_service::moonbase_runtime::RuntimeApi,
-						moonbeam_service::MoonbaseExecutor,
+						moonbeam_service::MoonbaseCustomizations,
 					&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((
@@ -1346,7 +1388,7 @@
 				</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
 			}
 		}
-		<span class="prelude-val">Some</span>(Subcommand::ExportGenesisState(params)) =&gt; {
+		<span class="prelude-val">Some</span>(Subcommand::ExportGenesisHead(params)) =&gt; {
 			<span class="kw">let </span><span class="kw-2">mut </span>builder = sc_cli::LoggerBuilder::new(<span class="string">&quot;&quot;</span>);
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, <span class="string">&quot;&quot;</span>);
 			<span class="kw">let _ </span>= builder.init();
@@ -1487,7 +1529,7 @@
 							<span class="kw">return </span>runner.sync_run(|<span class="kw-2">mut </span>config| {
 								<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
 									moonbeam_service::moonriver_runtime::RuntimeApi,
-									moonbeam_service::MoonriverExecutor,
+									moonbeam_service::MoonriverCustomizations,
 								&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
 								cmd.run(params.client)
@@ -1498,7 +1540,7 @@
 							<span class="kw">return </span>runner.sync_run(|<span class="kw-2">mut </span>config| {
 								<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
 									moonbeam_service::moonbeam_runtime::RuntimeApi,
-									moonbeam_service::MoonbeamExecutor,
+									moonbeam_service::MoonbeamCustomizations,
 								&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
 								cmd.run(params.client)
@@ -1509,7 +1551,7 @@
 							<span class="kw">return </span>runner.sync_run(|<span class="kw-2">mut </span>config| {
 								<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
 									moonbeam_service::moonbase_runtime::RuntimeApi,
-									moonbeam_service::MoonbaseExecutor,
+									moonbeam_service::MoonbaseCustomizations,
 								&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
 								cmd.run(params.client)
@@ -1534,7 +1576,7 @@
 							<span class="kw">return </span>runner.sync_run(|<span class="kw-2">mut </span>config| {
 								<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
 									moonbeam_service::moonriver_runtime::RuntimeApi,
-									moonbeam_service::MoonriverExecutor,
+									moonbeam_service::MoonriverCustomizations,
 								&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
 								<span class="kw">let </span>db = params.backend.expose_db();
@@ -1548,7 +1590,7 @@
 							<span class="kw">return </span>runner.sync_run(|<span class="kw-2">mut </span>config| {
 								<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
 									moonbeam_service::moonbeam_runtime::RuntimeApi,
-									moonbeam_service::MoonbeamExecutor,
+									moonbeam_service::MoonbeamCustomizations,
 								&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
 								<span class="kw">let </span>db = params.backend.expose_db();
@@ -1562,7 +1604,7 @@
 							<span class="kw">return </span>runner.sync_run(|<span class="kw-2">mut </span>config| {
 								<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
 									moonbeam_service::moonbase_runtime::RuntimeApi,
-									moonbeam_service::MoonbaseExecutor,
+									moonbeam_service::MoonbaseCustomizations,
 								&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
 								<span class="kw">let </span>db = params.backend.expose_db();
@@ -1605,7 +1647,7 @@
 						..
 					} = moonbeam_service::new_partial::&lt;
 						moonbeam_service::moonriver_runtime::RuntimeApi,
-						moonbeam_service::MoonriverExecutor,
+						moonbeam_service::MoonriverCustomizations,
 					&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((cmd.run(backend, config.chain_spec), task_manager))
@@ -1618,7 +1660,7 @@
 						..
 					} = moonbeam_service::new_partial::&lt;
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
-						moonbeam_service::MoonbeamExecutor,
+						moonbeam_service::MoonbeamCustomizations,
 					&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((cmd.run(backend, config.chain_spec), task_manager))
@@ -1631,7 +1673,7 @@
 						..
 					} = moonbeam_service::new_partial::&lt;
 						moonbeam_service::moonbase_runtime::RuntimeApi,
-						moonbeam_service::MoonbaseExecutor,
+						moonbeam_service::MoonbaseCustomizations,
 					&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((cmd.run(backend, config.chain_spec), task_manager))
@@ -1682,21 +1724,21 @@
 						<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
 						</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; moonbeam_service::new_dev::&lt;
 							moonbeam_service::moonriver_runtime::RuntimeApi,
-							moonbeam_service::MoonriverExecutor,
+							moonbeam_service::MoonriverCustomizations,
 						&gt;(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.<span class="kw">await
 						</span>.map_err(Into::into),
 						<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
 						</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; moonbeam_service::new_dev::&lt;
 							moonbeam_service::moonbeam_runtime::RuntimeApi,
-							moonbeam_service::MoonbeamExecutor,
+							moonbeam_service::MoonbeamCustomizations,
 						&gt;(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.<span class="kw">await
 						</span>.map_err(Into::into),
 						<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
 						</span><span class="kw">_ </span>=&gt; moonbeam_service::new_dev::&lt;
 							moonbeam_service::moonbase_runtime::RuntimeApi,
-							moonbeam_service::MoonbaseExecutor,
+							moonbeam_service::MoonbaseCustomizations,
 						&gt;(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.<span class="kw">await
 						</span>.map_err(Into::into),
@@ -1742,7 +1784,7 @@
 					<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
 					</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; moonbeam_service::start_node::&lt;
 						moonbeam_service::moonriver_runtime::RuntimeApi,
-						moonbeam_service::MoonriverExecutor,
+						moonbeam_service::MoonriverCustomizations,
 					&gt;(
 						config,
 						polkadot_config,
@@ -1758,7 +1800,7 @@
 					<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
 					</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; moonbeam_service::start_node::&lt;
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
-						moonbeam_service::MoonbeamExecutor,
+						moonbeam_service::MoonbeamCustomizations,
 					&gt;(
 						config,
 						polkadot_config,
@@ -1774,7 +1816,7 @@
 					<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
 					</span><span class="kw">_ </span>=&gt; moonbeam_service::start_node::&lt;
 						moonbeam_service::moonbase_runtime::RuntimeApi,
-						moonbeam_service::MoonbaseExecutor,
+						moonbeam_service::MoonbaseCustomizations,
 					&gt;(
 						config,
 						polkadot_config,
@@ -1913,5 +1955,41 @@
 	<span class="kw">fn </span>announce_block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
 		<span class="self">self</span>.base.base.announce_block()
 	}
+}
+
+<span class="doccomment">/// Generate the genesis block from a given ChainSpec.
+</span><span class="kw">pub fn </span>generate_genesis_block&lt;Block: BlockT&gt;(
+	chain_spec: <span class="kw-2">&amp;</span><span class="kw">dyn </span>ChainSpec,
+	genesis_state_version: StateVersion,
+) -&gt; std::result::Result&lt;Block, String&gt; {
+	<span class="kw">let </span>storage = chain_spec.build_storage()<span class="question-mark">?</span>;
+
+	<span class="kw">let </span>child_roots = storage.children_default.iter().map(|(sk, child_content)| {
+		<span class="kw">let </span>state_root = &lt;&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Header <span class="kw">as </span>HeaderT&gt;::Hashing <span class="kw">as </span>HashT&gt;::trie_root(
+			child_content.data.clone().into_iter().collect(),
+			genesis_state_version,
+		);
+		(sk.clone(), state_root.encode())
+	});
+	<span class="kw">let </span>state_root = &lt;&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Header <span class="kw">as </span>HeaderT&gt;::Hashing <span class="kw">as </span>HashT&gt;::trie_root(
+		storage.top.clone().into_iter().chain(child_roots).collect(),
+		genesis_state_version,
+	);
+
+	<span class="kw">let </span>extrinsics_root = &lt;&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Header <span class="kw">as </span>HeaderT&gt;::Hashing <span class="kw">as </span>HashT&gt;::trie_root(
+		Vec::new(),
+		genesis_state_version,
+	);
+
+	<span class="prelude-val">Ok</span>(Block::new(
+		&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Header <span class="kw">as </span>HeaderT&gt;::new(
+			Zero::zero(),
+			extrinsics_root,
+			state_root,
+			Default::default(),
+			Default::default(),
+		),
+		Default::default(),
+	))
 }
 </code></pre></div></section></main></body></html>

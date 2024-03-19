@@ -356,29 +356,6 @@
 <a href="#356" id="356">356</a>
 <a href="#357" id="357">357</a>
 <a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a>
-<a href="#360" id="360">360</a>
-<a href="#361" id="361">361</a>
-<a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -410,7 +387,7 @@
 	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
 	GenesisAccount, InflationInfo, MaintenanceModeConfig, MoonbeamOrbitersConfig,
 	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
-	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig, SystemConfig,
+	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig,
 	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
 	WASM_BINARY,
 };
@@ -442,130 +419,110 @@
 		<span class="string">&quot;1000000000000000000000000000000000000001&quot;
 	</span>)));
 
-	ChainSpec::from_genesis(
-		<span class="string">&quot;Moonbase Development Testnet&quot;</span>,
-		<span class="string">&quot;moonbase_dev&quot;</span>,
-		ChainType::Development,
-		<span class="kw">move </span>|| {
-			testnet_genesis(
-				<span class="comment">// Alith is Sudo
-				</span>accounts[<span class="number">0</span>],
-				<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy
-				</span><span class="macro">vec!</span>[accounts[<span class="number">1</span>], accounts[<span class="number">2</span>], accounts[<span class="number">3</span>]],
-				<span class="comment">// Open Tech committee members: Alith, Baltathar and Charleth
-				</span><span class="macro">vec!</span>[accounts[<span class="number">0</span>], accounts[<span class="number">1</span>], accounts[<span class="number">2</span>]],
-				<span class="comment">// Collator Candidate: Alice -&gt; Alith
-				</span><span class="macro">vec!</span>[(
-					accounts[<span class="number">0</span>],
-					get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Alice&quot;</span>),
-					<span class="number">1_000 </span>* UNIT,
-				)],
-				<span class="comment">// Delegations
-				</span><span class="macro">vec!</span>[],
-				accounts.clone(),
-				<span class="number">3_000_000 </span>* UNIT,
-				Default::default(), <span class="comment">// para_id
-				</span><span class="number">1281</span>,               <span class="comment">//ChainId
-			</span>)
-		},
-		<span class="comment">// Bootnodes
-		</span><span class="macro">vec!</span>[],
-		<span class="comment">// Telemetry
-		</span><span class="prelude-val">None</span>,
-		<span class="comment">// Protocol ID
-		</span><span class="prelude-val">None</span>,
-		<span class="comment">// Fork ID
-		</span><span class="prelude-val">None</span>,
-		<span class="comment">// Properties
-		</span><span class="prelude-val">Some</span>(
-			serde_json::from_str(
-				<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;UNIT\&quot;, \&quot;SS58Prefix\&quot;: 1287}&quot;</span>,
-			)
-			.expect(<span class="string">&quot;Provided valid json map&quot;</span>),
-		),
-		<span class="comment">// Extensions
-		</span>Extensions {
+	ChainSpec::builder(
+		WASM_BINARY.expect(<span class="string">&quot;WASM binary was not build, please build it!&quot;</span>),
+		Extensions {
 			relay_chain: <span class="string">&quot;dev-service&quot;</span>.into(),
 			para_id: Default::default(),
 		},
 	)
+	.with_name(<span class="string">&quot;Moonbase Development Testnet&quot;</span>)
+	.with_id(<span class="string">&quot;moonbase_dev&quot;</span>)
+	.with_chain_type(ChainType::Development)
+	.with_properties(
+		serde_json::from_str(
+			<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;UNIT\&quot;, \&quot;SS58Prefix\&quot;: 1287}&quot;</span>,
+		)
+		.expect(<span class="string">&quot;Provided valid json map&quot;</span>),
+	)
+	.with_genesis_config(testnet_genesis(
+		<span class="comment">// Alith is Sudo
+		</span>accounts[<span class="number">0</span>],
+		<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy
+		</span><span class="macro">vec!</span>[accounts[<span class="number">1</span>], accounts[<span class="number">2</span>], accounts[<span class="number">3</span>]],
+		<span class="comment">// Open Tech committee members: Alith, Baltathar and Charleth
+		</span><span class="macro">vec!</span>[accounts[<span class="number">0</span>], accounts[<span class="number">1</span>], accounts[<span class="number">2</span>]],
+		<span class="comment">// Collator Candidate: Alice -&gt; Alith
+		</span><span class="macro">vec!</span>[(
+			accounts[<span class="number">0</span>],
+			get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Alice&quot;</span>),
+			<span class="number">1_000 </span>* UNIT,
+		)],
+		<span class="comment">// Delegations
+		</span><span class="macro">vec!</span>[],
+		accounts.clone(),
+		<span class="number">3_000_000 </span>* UNIT,
+		Default::default(), <span class="comment">// para_id
+		</span><span class="number">1281</span>,               <span class="comment">//ChainId
+	</span>))
+	.build()
 }
 
 <span class="doccomment">/// Generate a default spec for the parachain service. Use this as a starting point when launching
 /// a custom chain.
 </span><span class="kw">pub fn </span>get_chain_spec(para_id: ParaId) -&gt; ChainSpec {
-	ChainSpec::from_genesis(
-		<span class="comment">// TODO Apps depends on this string to determine whether the chain is an ethereum compat
-		// or not. We should decide the proper strings, and update Apps accordingly.
-		// Or maybe Apps can be smart enough to say if the string contains &quot;moonbeam&quot; at all...
-		</span><span class="string">&quot;Moonbase Local Testnet&quot;</span>,
-		<span class="string">&quot;moonbase_local&quot;</span>,
-		ChainType::Local,
-		<span class="kw">move </span>|| {
-			testnet_genesis(
-				<span class="comment">// Alith is Sudo
-				</span>AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
-				<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy
-				</span><span class="macro">vec!</span>[
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
-				],
-				<span class="comment">// Open Tech committee members: Alith and Baltathar
-				</span><span class="macro">vec!</span>[
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-				],
-				<span class="comment">// Collator Candidates
-				</span><span class="macro">vec!</span>[
-					<span class="comment">// Alice -&gt; Alith
-					</span>(
-						AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
-						get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Alice&quot;</span>),
-						<span class="number">1_000 </span>* UNIT,
-					),
-					<span class="comment">// Bob -&gt; Baltathar
-					</span>(
-						AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-						get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Bob&quot;</span>),
-						<span class="number">1_000 </span>* UNIT,
-					),
-				],
-				<span class="comment">// Delegations
-				</span><span class="macro">vec!</span>[],
-				<span class="comment">// Endowed: Alith, Baltathar, Charleth and Dorothy
-				</span><span class="macro">vec!</span>[
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
-					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
-				],
-				<span class="number">3_000_000 </span>* UNIT,
-				para_id,
-				<span class="number">1280</span>, <span class="comment">//ChainId
-			</span>)
-		},
-		<span class="comment">// Bootnodes
-		</span><span class="macro">vec!</span>[],
-		<span class="comment">// Telemetry
-		</span><span class="prelude-val">None</span>,
-		<span class="comment">// Protocol ID
-		</span><span class="prelude-val">None</span>,
-		<span class="comment">// Fork ID
-		</span><span class="prelude-val">None</span>,
-		<span class="comment">// Properties
-		</span><span class="prelude-val">Some</span>(
-			serde_json::from_str(
-				<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;UNIT\&quot;, \&quot;SS58Prefix\&quot;: 1287}&quot;</span>,
-			)
-			.expect(<span class="string">&quot;Provided valid json map&quot;</span>),
-		),
-		<span class="comment">// Extensions
-		</span>Extensions {
+	ChainSpec::builder(
+		WASM_BINARY.expect(<span class="string">&quot;WASM binary was not build, please build it!&quot;</span>),
+		Extensions {
 			relay_chain: <span class="string">&quot;westend-local&quot;</span>.into(),
 			para_id: para_id.into(),
 		},
 	)
+	<span class="comment">// TODO Apps depends on this string to determine whether the chain is an ethereum compat
+	// or not. We should decide the proper strings, and update Apps accordingly.
+	// Or maybe Apps can be smart enough to say if the string contains &quot;moonbeam&quot; at all...
+	</span>.with_name(<span class="string">&quot;Moonbase Local Testnet&quot;</span>)
+	.with_id(<span class="string">&quot;moonbase_local&quot;</span>)
+	.with_chain_type(ChainType::Local)
+	.with_properties(
+		serde_json::from_str(
+			<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;UNIT\&quot;, \&quot;SS58Prefix\&quot;: 1287}&quot;</span>,
+		)
+		.expect(<span class="string">&quot;Provided valid json map&quot;</span>),
+	)
+	.with_genesis_config(testnet_genesis(
+		<span class="comment">// Alith is Sudo
+		</span>AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
+		<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy
+		</span><span class="macro">vec!</span>[
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
+		],
+		<span class="comment">// Open Tech committee members: Alith and Baltathar
+		</span><span class="macro">vec!</span>[
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+		],
+		<span class="comment">// Collator Candidates
+		</span><span class="macro">vec!</span>[
+			<span class="comment">// Alice -&gt; Alith
+			</span>(
+				AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
+				get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Alice&quot;</span>),
+				<span class="number">1_000 </span>* UNIT,
+			),
+			<span class="comment">// Bob -&gt; Baltathar
+			</span>(
+				AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+				get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Bob&quot;</span>),
+				<span class="number">1_000 </span>* UNIT,
+			),
+		],
+		<span class="comment">// Delegations
+		</span><span class="macro">vec!</span>[],
+		<span class="comment">// Endowed: Alith, Baltathar, Charleth and Dorothy
+		</span><span class="macro">vec!</span>[
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
+		],
+		<span class="number">3_000_000 </span>* UNIT,
+		para_id,
+		<span class="number">1280</span>, <span class="comment">//ChainId
+	</span>))
+	.build()
 }
 
 <span class="kw">const </span>COLLATOR_COMMISSION: Perbill = Perbill::from_percent(<span class="number">20</span>);
@@ -610,20 +567,15 @@
 	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
 	chain_id: u64,
-) -&gt; RuntimeGenesisConfig {
+) -&gt; serde_json::Value {
 	<span class="comment">// This is the simplest bytecode to revert without returning any data.
 	// We will pre-deploy it under all of our precompiles to ensure they can be called from
 	// within contracts.
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	</span><span class="kw">let </span>revert_bytecode = <span class="macro">vec!</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xFD</span>];
 
-	RuntimeGenesisConfig {
-		system: SystemConfig {
-			code: WASM_BINARY
-				.expect(<span class="string">&quot;WASM binary was not build, please build it!&quot;</span>)
-				.to_vec(),
-			..Default::default()
-		},
+	<span class="kw">let </span>config = RuntimeGenesisConfig {
+		system: Default::default(),
 		balances: BalancesConfig {
 			balances: endowed_accounts
 				.iter()
@@ -718,7 +670,9 @@
 			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
 			..Default::default()
 		},
-	}
+	};
+
+	serde_json::to_value(<span class="kw-2">&amp;</span>config).expect(<span class="string">&quot;Could not build genesis config.&quot;</span>)
 }
 
 <span class="attr">#[cfg(test)]

@@ -759,9 +759,6 @@
 <a href="#759" id="759">759</a>
 <a href="#760" id="760">760</a>
 <a href="#761" id="761">761</a>
-<a href="#762" id="762">762</a>
-<a href="#763" id="763">763</a>
-<a href="#764" id="764">764</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -800,7 +797,7 @@
 };
 <span class="kw">use </span>sp_weights::Weight;
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>xcm::latest::MultiLocation;
+<span class="kw">use </span>xcm::latest::Location;
 <span class="kw">use </span>xcm_primitives::{
 	AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall, DEFAULT_PROOF_SIZE,
 };
@@ -841,22 +838,21 @@
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transact_info(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: Location,
 	) -&gt; EvmResult&lt;(u64, U256, u64)&gt; {
 		<span class="comment">// fetch data from pallet
-		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + MultiLocation
+		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + Location
 		// + RemoteTransactInfoWithMaxWeight
 		</span>handle.record_db_read::&lt;Runtime&gt;(
-			<span class="number">16 </span>+ MultiLocation::max_encoded_len()
-				+ RemoteTransactInfoWithMaxWeight::max_encoded_len(),
+			<span class="number">16 </span>+ Location::max_encoded_len() + RemoteTransactInfoWithMaxWeight::max_encoded_len(),
 		)<span class="question-mark">?</span>;
 		<span class="kw">let </span>remote_transact_info: RemoteTransactInfoWithMaxWeight =
 			pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::transact_info(<span class="kw-2">&amp;</span>multilocation)
 				.ok_or(revert(<span class="string">&quot;Transact Info not set&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="comment">// fetch data from pallet
-		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + MultiLocation + u128(16)
-		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">32 </span>+ MultiLocation::max_encoded_len())<span class="question-mark">?</span>;
+		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + Location + u128(16)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">32 </span>+ Location::max_encoded_len())<span class="question-mark">?</span>;
 		<span class="kw">let </span>fee_per_second: u128 =
 			pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::dest_asset_fee_per_second(<span class="kw-2">&amp;</span>multilocation)
 				.ok_or(revert(<span class="string">&quot;Fee Per Second not set&quot;</span>))<span class="question-mark">?</span>;
@@ -870,14 +866,13 @@
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transact_info_with_signed(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: Location,
 	) -&gt; EvmResult&lt;(u64, u64, u64)&gt; {
 		<span class="comment">// fetch data from pallet
-		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + MultiLocation
+		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + Location
 		// + RemoteTransactInfoWithMaxWeight
 		</span>handle.record_db_read::&lt;Runtime&gt;(
-			<span class="number">16 </span>+ MultiLocation::max_encoded_len()
-				+ RemoteTransactInfoWithMaxWeight::max_encoded_len(),
+			<span class="number">16 </span>+ Location::max_encoded_len() + RemoteTransactInfoWithMaxWeight::max_encoded_len(),
 		)<span class="question-mark">?</span>;
 		<span class="kw">let </span>remote_transact_info: RemoteTransactInfoWithMaxWeight =
 			pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::transact_info(multilocation)
@@ -896,13 +891,13 @@
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fee_per_second(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		multilocation: MultiLocation,
+		location: Location,
 	) -&gt; EvmResult&lt;U256&gt; {
 		<span class="comment">// fetch data from pallet
-		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + MultiLocation + u128(16)
-		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">32 </span>+ MultiLocation::max_encoded_len())<span class="question-mark">?</span>;
+		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + Location + u128(16)
+		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">32 </span>+ Location::max_encoded_len())<span class="question-mark">?</span>;
 		<span class="kw">let </span>fee_per_second: u128 =
-			pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::dest_asset_fee_per_second(multilocation)
+			pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::dest_asset_fee_per_second(location)
 				.ok_or(revert(<span class="string">&quot;Fee Per Second not set&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(fee_per_second.into())
@@ -912,7 +907,7 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		transactor: u8,
 		index: u16,
-		fee_asset: MultiLocation,
+		fee_asset: Location,
 		weight: u64,
 		inner_call: BoundedBytes&lt;GetDataLimit&gt;,
 	) -&gt; EvmResult {
@@ -928,7 +923,7 @@
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					fee_asset,
 				))),
 				fee_amount: <span class="prelude-val">None</span>,
@@ -957,7 +952,7 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		transactor: u8,
 		index: u16,
-		fee_asset: MultiLocation,
+		fee_asset: Location,
 		weight: u64,
 		inner_call: BoundedBytes&lt;GetDataLimit&gt;,
 		fee_amount: u128,
@@ -976,7 +971,7 @@
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					fee_asset,
 				))),
 				fee_amount: <span class="prelude-val">Some</span>(fee_amount),
@@ -1108,8 +1103,8 @@
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transact_through_signed_multilocation(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		dest: MultiLocation,
-		fee_asset: MultiLocation,
+		dest: Location,
+		fee_asset: Location,
 		weight: u64,
 		call: BoundedBytes&lt;GetDataLimit&gt;,
 	) -&gt; EvmResult {
@@ -1119,9 +1114,9 @@
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = pallet_xcm_transactor::Call::&lt;Runtime&gt;::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			dest: Box::new(xcm::VersionedLocation::V4(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					fee_asset,
 				))),
 				fee_amount: <span class="prelude-val">None</span>,
@@ -1144,8 +1139,8 @@
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transact_through_signed_multilocation_fee_weight(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		dest: MultiLocation,
-		fee_asset: MultiLocation,
+		dest: Location,
+		fee_asset: Location,
 		weight: u64,
 		call: BoundedBytes&lt;GetDataLimit&gt;,
 		fee_amount: u128,
@@ -1157,9 +1152,9 @@
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = pallet_xcm_transactor::Call::&lt;Runtime&gt;::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			dest: Box::new(xcm::VersionedLocation::V4(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					fee_asset,
 				))),
 				fee_amount: <span class="prelude-val">Some</span>(fee_amount),
@@ -1185,7 +1180,7 @@
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transact_through_signed(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		dest: MultiLocation,
+		dest: Location,
 		fee_asset: Address,
 		weight: u64,
 		call: BoundedBytes&lt;GetDataLimit&gt;,
@@ -1208,7 +1203,7 @@
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = pallet_xcm_transactor::Call::&lt;Runtime&gt;::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			dest: Box::new(xcm::VersionedLocation::V4(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: <span class="prelude-val">None</span>,
@@ -1231,7 +1226,7 @@
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transact_through_signed_fee_weight(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		dest: MultiLocation,
+		dest: Location,
 		fee_asset: Address,
 		weight: u64,
 		call: BoundedBytes&lt;GetDataLimit&gt;,
@@ -1256,7 +1251,7 @@
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = pallet_xcm_transactor::Call::&lt;Runtime&gt;::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			dest: Box::new(xcm::VersionedLocation::V4(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: <span class="prelude-val">Some</span>(fee_amount),
@@ -1306,14 +1301,13 @@
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transact_info_with_signed_v3(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: Location,
 	) -&gt; EvmResult&lt;(Weight, Weight, Weight)&gt; {
 		<span class="comment">// fetch data from pallet
-		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + MultiLocation
+		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + Location
 		// + RemoteTransactInfoWithMaxWeight
 		</span>handle.record_db_read::&lt;Runtime&gt;(
-			<span class="number">16 </span>+ MultiLocation::max_encoded_len()
-				+ RemoteTransactInfoWithMaxWeight::max_encoded_len(),
+			<span class="number">16 </span>+ Location::max_encoded_len() + RemoteTransactInfoWithMaxWeight::max_encoded_len(),
 		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>remote_transact_info: RemoteTransactInfoWithMaxWeight =
@@ -1335,7 +1329,7 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		transactor: u8,
 		index: u16,
-		fee_asset: MultiLocation,
+		fee_asset: Location,
 		weight: Weight,
 		inner_call: BoundedBytes&lt;GetDataLimit&gt;,
 		fee_amount: u128,
@@ -1360,7 +1354,7 @@
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					fee_asset,
 				))),
 				fee_amount: <span class="prelude-val">Some</span>(fee_amount),
@@ -1436,8 +1430,8 @@
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transact_through_signed_multilocation_v3(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		dest: MultiLocation,
-		fee_asset: MultiLocation,
+		dest: Location,
+		fee_asset: Location,
 		weight: Weight,
 		call: BoundedBytes&lt;GetDataLimit&gt;,
 		fee_amount: u128,
@@ -1455,9 +1449,9 @@
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = pallet_xcm_transactor::Call::&lt;Runtime&gt;::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			dest: Box::new(xcm::VersionedLocation::V4(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					fee_asset,
 				))),
 				fee_amount: <span class="prelude-val">Some</span>(fee_amount),
@@ -1477,7 +1471,7 @@
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transact_through_signed_v3(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		dest: MultiLocation,
+		dest: Location,
 		fee_asset: Address,
 		weight: Weight,
 		call: BoundedBytes&lt;GetDataLimit&gt;,
@@ -1508,7 +1502,7 @@
 		// moonbeam, as we are using IdentityMapping
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = pallet_xcm_transactor::Call::&lt;Runtime&gt;::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			dest: Box::new(xcm::VersionedLocation::V4(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: <span class="prelude-val">Some</span>(fee_amount),

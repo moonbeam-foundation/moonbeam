@@ -596,6 +596,45 @@
 <a href="#596" id="596">596</a>
 <a href="#597" id="597">597</a>
 <a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -628,12 +667,15 @@
 <span class="kw">use </span>moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
 <span class="kw">use </span>sc_client_api::backend::{Backend, StateBackend, StorageProvider};
 <span class="kw">use </span>sc_utils::mpsc::TracingUnboundedSender;
-<span class="kw">use </span>sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
+<span class="kw">use </span>sp_api::{ApiExt, Core, ProvideRuntimeApi};
 <span class="kw">use </span>sp_block_builder::BlockBuilder;
 <span class="kw">use </span>sp_blockchain::{
 	Backend <span class="kw">as </span>BlockchainBackend, Error <span class="kw">as </span>BlockChainError, HeaderBackend, HeaderMetadata,
 };
-<span class="kw">use </span>sp_runtime::traits::{BlakeTwo256, Block <span class="kw">as </span>BlockT, UniqueSaturatedInto};
+<span class="kw">use </span>sp_runtime::{
+	generic::BlockId,
+	traits::{BlakeTwo256, Block <span class="kw">as </span>BlockT, Header <span class="kw">as </span>HeaderT, UniqueSaturatedInto},
+};
 <span class="kw">use </span>std::{future::Future, marker::PhantomData, sync::Arc};
 
 <span class="kw">pub enum </span>RequesterInput {
@@ -957,13 +999,35 @@
 			.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;Fail to read blockchain db: {:?}&quot;</span>, e)))<span class="question-mark">?
 			</span>.unwrap_or_default();
 
+		<span class="comment">// Get DebugRuntimeApi version
+		</span><span class="kw">let </span>trace_api_version = <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(api_version)) =
+			api.api_version::&lt;<span class="kw">dyn </span>DebugRuntimeApi&lt;B&gt;&gt;(parent_block_hash)
+		{
+			api_version
+		} <span class="kw">else </span>{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(
+				<span class="string">&quot;Runtime api version call failed (trace)&quot;</span>.to_string(),
+			));
+		};
+
 		<span class="comment">// Trace the block.
 		</span><span class="kw">let </span>f = || -&gt; RpcResult&lt;<span class="kw">_</span>&gt; {
-			api.initialize_block(parent_block_hash, <span class="kw-2">&amp;</span>header)
-				.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+			<span class="kw">let </span>result = <span class="kw">if </span>trace_api_version &gt;= <span class="number">5 </span>{
+				<span class="comment">// The block is initialized inside &quot;trace_block&quot;
+				</span>api.trace_block(parent_block_hash, exts, eth_tx_hashes, <span class="kw-2">&amp;</span>header)
+			} <span class="kw">else </span>{
+				<span class="comment">// Pre pallet-message-queue
 
-			<span class="kw">let </span>_result = api
-				.trace_block(parent_block_hash, exts, eth_tx_hashes)
+				// Initialize block: calls the &quot;on_initialize&quot; hook on every pallet
+				// in AllPalletsWithSystem
+				</span>api.initialize_block(parent_block_hash, <span class="kw-2">&amp;</span>header)
+					.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+
+				<span class="attr">#[allow(deprecated)]
+				</span>api.trace_block_before_version_5(parent_block_hash, exts, eth_tx_hashes)
+			};
+
+			result
 				.map_err(|e| {
 					internal_err(<span class="macro">format!</span>(
 						<span class="string">&quot;Blockchain error when replaying block {} : {:?}&quot;</span>,
@@ -976,6 +1040,7 @@
 						reference_id, e
 					))
 				})<span class="question-mark">?</span>;
+
 			<span class="prelude-val">Ok</span>(moonbeam_rpc_primitives_debug::Response::Block)
 		};
 
@@ -1097,42 +1162,55 @@
 			<span class="kw">let </span>transactions = block.transactions;
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(transaction) = transactions.get(index) {
 				<span class="kw">let </span>f = || -&gt; RpcResult&lt;<span class="kw">_</span>&gt; {
-					api.initialize_block(parent_block_hash, <span class="kw-2">&amp;</span>header)
-						.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
-
-					<span class="kw">if </span>trace_api_version &gt;= <span class="number">4 </span>{
-						<span class="kw">let </span>_result = api
-							.trace_transaction(parent_block_hash, exts, <span class="kw-2">&amp;</span>transaction)
-							.map_err(|e| {
-								internal_err(<span class="macro">format!</span>(
-									<span class="string">&quot;Runtime api access error (version {:?}): {:?}&quot;</span>,
-									trace_api_version, e
-								))
-							})<span class="question-mark">?
-							</span>.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+					<span class="kw">let </span>result = <span class="kw">if </span>trace_api_version &gt;= <span class="number">5 </span>{
+						<span class="comment">// The block is initialized inside &quot;trace_transaction&quot;
+						</span>api.trace_transaction(parent_block_hash, exts, <span class="kw-2">&amp;</span>transaction, <span class="kw-2">&amp;</span>header)
 					} <span class="kw">else </span>{
-						<span class="comment">// Pre-london update, legacy transactions.
-						</span><span class="kw">let </span>_result = <span class="kw">match </span>transaction {
-							ethereum::TransactionV2::Legacy(tx) =&gt;
-							{
-								<span class="attr">#[allow(deprecated)]
-								</span>api.trace_transaction_before_version_4(parent_block_hash, exts, <span class="kw-2">&amp;</span>tx)
-									.map_err(|e| {
-										internal_err(<span class="macro">format!</span>(
-											<span class="string">&quot;Runtime api access error (legacy): {:?}&quot;</span>,
-											e
-										))
-									})<span class="question-mark">?
-									</span>.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, e)))<span class="question-mark">?
-							</span>}
-							<span class="kw">_ </span>=&gt; {
-								<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(
-									<span class="string">&quot;Bug: pre-london runtime expects legacy transactions&quot;
-										</span>.to_string(),
-								))
+						<span class="comment">// Initialize block: calls the &quot;on_initialize&quot; hook on every pallet
+						// in AllPalletsWithSystem
+						</span>api.initialize_block(parent_block_hash, <span class="kw-2">&amp;</span>header)
+							.map_err(|e| {
+								internal_err(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e))
+							})<span class="question-mark">?</span>;
+
+						<span class="kw">if </span>trace_api_version == <span class="number">4 </span>{
+							<span class="comment">// Pre pallet-message-queue
+							</span><span class="attr">#[allow(deprecated)]
+							</span>api.trace_transaction_before_version_5(
+								parent_block_hash,
+								exts,
+								<span class="kw-2">&amp;</span>transaction,
+							)
+						} <span class="kw">else </span>{
+							<span class="comment">// Pre-london update, legacy transactions.
+							</span><span class="kw">match </span>transaction {
+								ethereum::TransactionV2::Legacy(tx) =&gt;
+								{
+									<span class="attr">#[allow(deprecated)]
+									</span>api.trace_transaction_before_version_4(
+										parent_block_hash,
+										exts,
+										<span class="kw-2">&amp;</span>tx,
+									)
+								}
+								<span class="kw">_ </span>=&gt; {
+									<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(
+										<span class="string">&quot;Bug: pre-london runtime expects legacy transactions&quot;
+											</span>.to_string(),
+									))
+								}
 							}
-						};
-					}
+						}
+					};
+
+					result
+						.map_err(|e| {
+							internal_err(<span class="macro">format!</span>(
+								<span class="string">&quot;Runtime api access error (version {:?}): {:?}&quot;</span>,
+								trace_api_version, e
+							))
+						})<span class="question-mark">?
+						</span>.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>(moonbeam_rpc_primitives_debug::Response::Single)
 				};

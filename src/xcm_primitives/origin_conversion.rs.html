@@ -100,23 +100,24 @@
 
 </span><span class="kw">use </span>frame_support::traits::{Get, OriginTrait};
 <span class="kw">use </span>orml_traits::location::{RelativeReserveProvider, Reserve};
+<span class="kw">use </span>sp_runtime::traits::TryConvert;
 <span class="kw">use </span>sp_std::{convert::TryInto, marker::PhantomData};
-<span class="kw">use </span>xcm::latest::{Junction::AccountKey20, Junctions::<span class="kw-2">*</span>, MultiAsset, MultiLocation, NetworkId};
+<span class="kw">use </span>xcm::latest::{Asset, Junction::AccountKey20, Location, NetworkId};
 
-<span class="doccomment">/// Instructs how to convert a 20 byte accountId into a MultiLocation
-</span><span class="kw">pub struct </span>AccountIdToMultiLocation&lt;AccountId&gt;(sp_std::marker::PhantomData&lt;AccountId&gt;);
-<span class="kw">impl</span>&lt;AccountId&gt; sp_runtime::traits::Convert&lt;AccountId, MultiLocation&gt;
-	<span class="kw">for </span>AccountIdToMultiLocation&lt;AccountId&gt;
+<span class="doccomment">/// Instructs how to convert a 20 byte accountId into a Location
+</span><span class="kw">pub struct </span>AccountIdToLocation&lt;AccountId&gt;(sp_std::marker::PhantomData&lt;AccountId&gt;);
+<span class="kw">impl</span>&lt;AccountId&gt; sp_runtime::traits::Convert&lt;AccountId, Location&gt; <span class="kw">for </span>AccountIdToLocation&lt;AccountId&gt;
 <span class="kw">where
 	</span>AccountId: Into&lt;[u8; <span class="number">20</span>]&gt;,
 {
-	<span class="kw">fn </span>convert(account: AccountId) -&gt; MultiLocation {
-		MultiLocation {
+	<span class="kw">fn </span>convert(account: AccountId) -&gt; Location {
+		Location {
 			parents: <span class="number">0</span>,
-			interior: X1(AccountKey20 {
+			interior: [AccountKey20 {
 				network: <span class="prelude-val">None</span>,
 				key: account.into(),
-			}),
+			}]
+			.into(),
 		}
 	}
 }
@@ -126,13 +127,12 @@
 	sp_std::marker::PhantomData&lt;(Origin, AccountId, Network)&gt;,
 );
 <span class="kw">impl</span>&lt;Origin: OriginTrait + Clone, AccountId: Into&lt;[u8; <span class="number">20</span>]&gt;, Network: Get&lt;NetworkId&gt;&gt;
-	sp_runtime::traits::TryConvert&lt;Origin, MultiLocation&gt;
-	<span class="kw">for </span>SignedToAccountId20&lt;Origin, AccountId, Network&gt;
+	TryConvert&lt;Origin, Location&gt; <span class="kw">for </span>SignedToAccountId20&lt;Origin, AccountId, Network&gt;
 <span class="kw">where
 	</span>Origin::PalletsOrigin: From&lt;frame_system::RawOrigin&lt;AccountId&gt;&gt;
 		+ TryInto&lt;frame_system::RawOrigin&lt;AccountId&gt;, Error = Origin::PalletsOrigin&gt;,
 {
-	<span class="kw">fn </span>try_convert(o: Origin) -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, Origin&gt; {
+	<span class="kw">fn </span>try_convert(o: Origin) -&gt; <span class="prelude-ty">Result</span>&lt;Location, Origin&gt; {
 		o.try_with_caller(|caller| <span class="kw">match </span>caller.try_into() {
 			<span class="prelude-val">Ok</span>(frame_system::RawOrigin::Signed(who)) =&gt; <span class="prelude-val">Ok</span>(AccountKey20 {
 				key: who.into(),
@@ -146,20 +146,20 @@
 }
 
 <span class="doccomment">/// This struct offers uses RelativeReserveProvider to output relative views of multilocations
-/// However, additionally accepts a MultiLocation that aims at representing the chain part
+/// However, additionally accepts a Location that aims at representing the chain part
 /// (parent: 1, Parachain(paraId)) of the absolute representation of our chain.
-/// If a token reserve matches against this absolute view, we return  Some(MultiLocation::here())
+/// If a token reserve matches against this absolute view, we return  Some(Location::here())
 /// This helps users by preventing errors when they try to transfer a token through xtokens
 /// to our chain (either inserting the relative or the absolute value).
 </span><span class="kw">pub struct </span>AbsoluteAndRelativeReserve&lt;AbsoluteMultiLocation&gt;(PhantomData&lt;AbsoluteMultiLocation&gt;);
 <span class="kw">impl</span>&lt;AbsoluteMultiLocation&gt; Reserve <span class="kw">for </span>AbsoluteAndRelativeReserve&lt;AbsoluteMultiLocation&gt;
 <span class="kw">where
-	</span>AbsoluteMultiLocation: Get&lt;MultiLocation&gt;,
+	</span>AbsoluteMultiLocation: Get&lt;Location&gt;,
 {
-	<span class="kw">fn </span>reserve(asset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; {
+	<span class="kw">fn </span>reserve(asset: <span class="kw-2">&amp;</span>Asset) -&gt; <span class="prelude-ty">Option</span>&lt;Location&gt; {
 		RelativeReserveProvider::reserve(asset).map(|relative_reserve| {
 			<span class="kw">if </span>relative_reserve == AbsoluteMultiLocation::get() {
-				MultiLocation::here()
+				Location::here()
 			} <span class="kw">else </span>{
 				relative_reserve
 			}

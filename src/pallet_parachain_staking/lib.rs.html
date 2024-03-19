@@ -2785,7 +2785,7 @@
 			<span class="kw">let </span><span class="kw-2">mut </span>weight = &lt;T <span class="kw">as </span>Config&gt;::WeightInfo::base_on_initialize();
 
 			<span class="kw">let </span><span class="kw-2">mut </span>round = &lt;Round&lt;T&gt;&gt;::get();
-			<span class="kw">if </span>round.should_update(n.into()) {
+			<span class="kw">if </span>round.should_update(n) {
 				<span class="comment">// fetch current slot number
 				</span><span class="kw">let </span>current_slot: u64 = T::SlotProvider::get().into();
 
@@ -2797,7 +2797,7 @@
 					.saturating_mul(T::SlotDuration::get());
 
 				<span class="comment">// mutate round
-				</span>round.update(n.into(), current_slot);
+				</span>round.update(n, current_slot);
 				<span class="comment">// notify that new round begin
 				</span>weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
 				<span class="comment">// pay all stakers for T::RewardPaymentDelay rounds ago

@@ -924,6 +924,31 @@
 <a href="#924" id="924">924</a>
 <a href="#925" id="925">925</a>
 <a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -960,12 +985,12 @@
 
 <span class="kw">use </span>sc_client_api::backend::{Backend, StateBackend, StorageProvider};
 <span class="kw">use </span>sc_utils::mpsc::TracingUnboundedSender;
-<span class="kw">use </span>sp_api::{ApiExt, Core, HeaderT, ProvideRuntimeApi};
+<span class="kw">use </span>sp_api::{ApiExt, Core, ProvideRuntimeApi};
 <span class="kw">use </span>sp_block_builder::BlockBuilder;
 <span class="kw">use </span>sp_blockchain::{
 	Backend <span class="kw">as </span>BlockchainBackend, Error <span class="kw">as </span>BlockChainError, HeaderBackend, HeaderMetadata,
 };
-<span class="kw">use </span>sp_runtime::traits::{BlakeTwo256, Block <span class="kw">as </span>BlockT};
+<span class="kw">use </span>sp_runtime::traits::{BlakeTwo256, Block <span class="kw">as </span>BlockT, Header <span class="kw">as </span>HeaderT};
 <span class="kw">use </span>substrate_prometheus_endpoint::{
 	register, Counter, PrometheusError, Registry <span class="kw">as </span>PrometheusRegistry, U64,
 };
@@ -1772,13 +1797,37 @@
 			})<span class="question-mark">?
 			</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Could not find block {} when fetching extrinsics.&quot;</span>, height))<span class="question-mark">?</span>;
 
+		<span class="comment">// Get DebugRuntimeApi version
+		</span><span class="kw">let </span>trace_api_version = <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(api_version)) =
+			api.api_version::&lt;<span class="kw">dyn </span>DebugRuntimeApi&lt;B&gt;&gt;(substrate_parent_hash)
+		{
+			api_version
+		} <span class="kw">else </span>{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime api version call failed (trace)&quot;</span>));
+		};
+
 		<span class="comment">// Trace the block.
 		</span><span class="kw">let </span>f = || -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, String&gt; {
-			api.initialize_block(substrate_parent_hash, <span class="kw-2">&amp;</span>block_header)
-				.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e))<span class="question-mark">?</span>;
+			<span class="kw">let </span>result = <span class="kw">if </span>trace_api_version &gt;= <span class="number">5 </span>{
+				api.trace_block(
+					substrate_parent_hash,
+					extrinsics,
+					eth_tx_hashes,
+					<span class="kw-2">&amp;</span>block_header,
+				)
+			} <span class="kw">else </span>{
+				<span class="comment">// Pre pallet-message-queue
 
-			<span class="kw">let </span>_result = api
-				.trace_block(substrate_parent_hash, extrinsics, eth_tx_hashes)
+				// Initialize block: calls the &quot;on_initialize&quot; hook on every pallet
+				// in AllPalletsWithSystem
+				</span>api.initialize_block(substrate_parent_hash, <span class="kw-2">&amp;</span>block_header)
+					.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e))<span class="question-mark">?</span>;
+
+				<span class="attr">#[allow(deprecated)]
+				</span>api.trace_block_before_version_5(substrate_parent_hash, extrinsics, eth_tx_hashes)
+			};
+
+			result
 				.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Blockchain error when replaying block {} : {:?}&quot;</span>, height, e))<span class="question-mark">?
 				</span>.map_err(|e| {
 					<span class="macro">tracing::warn!</span>(
@@ -1791,6 +1840,7 @@
 						height, e
 					)
 				})<span class="question-mark">?</span>;
+
 			<span class="prelude-val">Ok</span>(moonbeam_rpc_primitives_debug::Response::Block)
 		};
 
