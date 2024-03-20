@@ -91,7 +91,7 @@ jobs:
       labels: bare-metal
     needs: ["set-tags"]
     if: ${{ !github.event.pull_request.head.repo.fork }}
-    timeout-minutes: 60
+    timeout-minutes: 240
     env:
       RUSTC_WRAPPER: "sccache"
       CARGO_INCREMENTAL: "0"
