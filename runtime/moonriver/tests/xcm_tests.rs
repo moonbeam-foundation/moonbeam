@@ -1658,7 +1658,7 @@ fn transact_through_sovereign_fee_payer_none() {
 	let derivative_address = derivative_account_id(para_a_account(), 0);
 
 	Relay::execute_with(|| {
-		// Transfer 100 tokens to registered_address on the relay
+		// Transfer 100 tokens to derivative_address on the relay
 		assert_ok!(RelayBalances::transfer_keep_alive(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			derivative_address.clone(),
