@@ -18,7 +18,7 @@ interface XcmUtils {
         bytes[] interior;
     }
 
-    /// Get retrieve the account associated to a given Location
+    /// Get retrieve the account associated to a given MultiLocation
     /// @custom:selector 343b3e00
     /// @param multilocation The multilocation that we want to know to which account maps to
     /// @return account The account the multilocation maps to in this chain
