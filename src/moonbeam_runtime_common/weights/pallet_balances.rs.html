@@ -146,17 +146,6 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -303,17 +292,6 @@
 			.saturating_add(T::DbWeight::get().reads((<span class="number">1_u64</span>).saturating_mul(u.into())))
 			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(u.into())))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2591</span>).saturating_mul(u.into()))
-	}
-	<span class="doccomment">/// Storage: `Balances::InactiveIssuance` (r:1 w:0)
-	/// Proof: `Balances::InactiveIssuance` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
-	</span><span class="kw">fn </span>force_adjust_total_issuance() -&gt; Weight {
-		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `1501`
-		// Minimum execution time: 5_000_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">6_000_000</span>, <span class="number">0</span>)
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">1501</span>))
-			.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 	}
 }
 </code></pre></div></section></main></body></html>

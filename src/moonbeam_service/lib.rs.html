@@ -1818,6 +1818,63 @@
 <a href="#1818" id="1818">1818</a>
 <a href="#1819" id="1819">1819</a>
 <a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
+<a href="#1855" id="1855">1855</a>
+<a href="#1856" id="1856">1856</a>
+<a href="#1857" id="1857">1857</a>
+<a href="#1858" id="1858">1858</a>
+<a href="#1859" id="1859">1859</a>
+<a href="#1860" id="1860">1860</a>
+<a href="#1861" id="1861">1861</a>
+<a href="#1862" id="1862">1862</a>
+<a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
+<a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
+<a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
+<a href="#1877" id="1877">1877</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1848,13 +1905,15 @@
 <span class="kw">use </span>cumulus_client_collator::service::CollatorService;
 <span class="kw">use </span>cumulus_client_consensus_common::ParachainBlockImport <span class="kw">as </span>TParachainBlockImport;
 <span class="kw">use </span>cumulus_client_consensus_proposer::Proposer;
-<span class="kw">use </span>cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
 <span class="kw">use </span>cumulus_client_service::{
 	prepare_node_config, start_relay_chain_tasks, CollatorSybilResistance, DARecoveryProfile,
 	StartRelayChainTasksParams,
 };
 <span class="kw">use </span>cumulus_primitives_core::relay_chain::CollatorPair;
 <span class="kw">use </span>cumulus_primitives_core::ParaId;
+<span class="kw">use </span>cumulus_primitives_parachain_inherent::{
+	MockValidationDataInherentDataProvider, MockXcmConfig,
+};
 <span class="kw">use </span>cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 <span class="kw">use </span>cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface, RelayChainResult};
 <span class="kw">use </span>cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node_with_rpc;
@@ -1878,7 +1937,9 @@
 	ExecutorProvider,
 };
 <span class="kw">use </span>sc_consensus::ImportQueue;
-<span class="kw">use </span>sc_executor::{HeapAllocStrategy, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
+<span class="kw">use </span>sc_executor::{
+	HeapAllocStrategy, NativeElseWasmExecutor, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY,
+};
 <span class="kw">use </span>sc_network::{config::FullNetworkConfiguration, NetworkBlock};
 <span class="kw">use </span>sc_service::config::PrometheusConfig;
 <span class="kw">use </span>sc_service::{
@@ -1901,23 +1962,30 @@
 <span class="kw">pub mod </span>chain_spec;
 <span class="kw">mod </span>client;
 
-<span class="kw">type </span>FullClient&lt;RuntimeApi&gt; = TFullClient&lt;Block, RuntimeApi, WasmExecutor&lt;HostFunctions&gt;&gt;;
+<span class="kw">type </span>FullClient&lt;RuntimeApi, Executor&gt; =
+	TFullClient&lt;Block, RuntimeApi, NativeElseWasmExecutor&lt;Executor&gt;&gt;;
 <span class="kw">type </span>FullBackend = TFullBackend&lt;Block&gt;;
 
 <span class="kw">type </span>MaybeSelectChain = <span class="prelude-ty">Option</span>&lt;sc_consensus::LongestChain&lt;FullBackend, Block&gt;&gt;;
-<span class="kw">type </span>FrontierBlockImport&lt;RuntimeApi&gt; =
-	TFrontierBlockImport&lt;Block, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;, FullClient&lt;RuntimeApi&gt;&gt;;
-<span class="kw">type </span>ParachainBlockImport&lt;RuntimeApi&gt; =
-	TParachainBlockImport&lt;Block, FrontierBlockImport&lt;RuntimeApi&gt;, FullBackend&gt;;
-<span class="kw">type </span>PartialComponentsResult&lt;RuntimeApi&gt; = <span class="prelude-ty">Result</span>&lt;
+<span class="kw">type </span>FrontierBlockImport&lt;RuntimeApi, Executor&gt; = TFrontierBlockImport&lt;
+	Block,
+	Arc&lt;FullClient&lt;RuntimeApi, Executor&gt;&gt;,
+	FullClient&lt;RuntimeApi, Executor&gt;,
+&gt;;
+<span class="kw">type </span>ParachainBlockImport&lt;RuntimeApi, Executor&gt; =
+	TParachainBlockImport&lt;Block, FrontierBlockImport&lt;RuntimeApi, Executor&gt;, FullBackend&gt;;
+<span class="kw">type </span>PartialComponentsResult&lt;RuntimeApi, Executor&gt; = <span class="prelude-ty">Result</span>&lt;
 	PartialComponents&lt;
-		FullClient&lt;RuntimeApi&gt;,
+		FullClient&lt;RuntimeApi, Executor&gt;,
 		FullBackend,
 		MaybeSelectChain,
 		sc_consensus::DefaultImportQueue&lt;Block&gt;,
-		sc_transaction_pool::FullPool&lt;Block, FullClient&lt;RuntimeApi&gt;&gt;,
+		sc_transaction_pool::FullPool&lt;Block, FullClient&lt;RuntimeApi, Executor&gt;&gt;,
 		(
-			BlockImportPipeline&lt;FrontierBlockImport&lt;RuntimeApi&gt;, ParachainBlockImport&lt;RuntimeApi&gt;&gt;,
+			BlockImportPipeline&lt;
+				FrontierBlockImport&lt;RuntimeApi, Executor&gt;,
+				ParachainBlockImport&lt;RuntimeApi, Executor&gt;,
+			&gt;,
 			<span class="prelude-ty">Option</span>&lt;FilterPool&gt;,
 			<span class="prelude-ty">Option</span>&lt;Telemetry&gt;,
 			<span class="prelude-ty">Option</span>&lt;TelemetryWorkerHandle&gt;,
@@ -1928,15 +1996,8 @@
 	ServiceError,
 &gt;;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
-</span><span class="kw">pub type </span>HostFunctions = (
+<span class="kw">pub type </span>HostFunctions = (
 	frame_benchmarking::benchmarking::HostFunctions,
-	sp_io::SubstrateHostFunctions,
-	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
-);
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
-</span><span class="kw">pub type </span>HostFunctions = (
-	sp_io::SubstrateHostFunctions,
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
 
@@ -1954,7 +2015,7 @@
 /// of network.
 /// For the moment, this feature is only used to specify the first block compatible with
 /// ed25519-zebra, but it could be used for other things in the future.
-</span><span class="kw">pub trait </span>ClientCustomizations {
+</span><span class="kw">pub trait </span>ExecutorT: sc_executor::NativeExecutionDispatch {
 	<span class="doccomment">/// The host function ed25519_verify has changed its behavior in the substrate history,
 	/// because of the change from lib ed25519-dalek to lib ed25519-zebra.
 	/// Some networks may have old blocks that are not compatible with ed25519-zebra,
@@ -1967,27 +2028,69 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
-</span><span class="kw">pub struct </span>MoonbeamCustomizations;
+</span><span class="kw">pub struct </span>MoonbeamExecutor;
+
 <span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
-</span><span class="kw">impl </span>ClientCustomizations <span class="kw">for </span>MoonbeamCustomizations {
+</span><span class="kw">impl </span>sc_executor::NativeExecutionDispatch <span class="kw">for </span>MoonbeamExecutor {
+	<span class="kw">type </span>ExtendHostFunctions = HostFunctions;
+
+	<span class="kw">fn </span>dispatch(method: <span class="kw-2">&amp;</span>str, data: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt; {
+		moonbeam_runtime::api::dispatch(method, data)
+	}
+
+	<span class="kw">fn </span>native_version() -&gt; sc_executor::NativeVersion {
+		moonbeam_runtime::native_version()
+	}
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+</span><span class="kw">impl </span>ExecutorT <span class="kw">for </span>MoonbeamExecutor {
 	<span class="kw">fn </span>first_block_number_compatible_with_ed25519_zebra() -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
 		<span class="prelude-val">Some</span>(<span class="number">2_000_000</span>)
 	}
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
-</span><span class="kw">pub struct </span>MoonriverCustomizations;
+</span><span class="kw">pub struct </span>MoonriverExecutor;
+
 <span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
-</span><span class="kw">impl </span>ClientCustomizations <span class="kw">for </span>MoonriverCustomizations {
+</span><span class="kw">impl </span>sc_executor::NativeExecutionDispatch <span class="kw">for </span>MoonriverExecutor {
+	<span class="kw">type </span>ExtendHostFunctions = HostFunctions;
+
+	<span class="kw">fn </span>dispatch(method: <span class="kw-2">&amp;</span>str, data: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt; {
+		moonriver_runtime::api::dispatch(method, data)
+	}
+
+	<span class="kw">fn </span>native_version() -&gt; sc_executor::NativeVersion {
+		moonriver_runtime::native_version()
+	}
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+</span><span class="kw">impl </span>ExecutorT <span class="kw">for </span>MoonriverExecutor {
 	<span class="kw">fn </span>first_block_number_compatible_with_ed25519_zebra() -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
 		<span class="prelude-val">Some</span>(<span class="number">3_000_000</span>)
 	}
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
-</span><span class="kw">pub struct </span>MoonbaseCustomizations;
+</span><span class="kw">pub struct </span>MoonbaseExecutor;
+
 <span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
-</span><span class="kw">impl </span>ClientCustomizations <span class="kw">for </span>MoonbaseCustomizations {
+</span><span class="kw">impl </span>sc_executor::NativeExecutionDispatch <span class="kw">for </span>MoonbaseExecutor {
+	<span class="kw">type </span>ExtendHostFunctions = HostFunctions;
+
+	<span class="kw">fn </span>dispatch(method: <span class="kw-2">&amp;</span>str, data: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt; {
+		moonbase_runtime::api::dispatch(method, data)
+	}
+
+	<span class="kw">fn </span>native_version() -&gt; sc_executor::NativeVersion {
+		moonbase_runtime::native_version()
+	}
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+</span><span class="kw">impl </span>ExecutorT <span class="kw">for </span>MoonbaseExecutor {
 	<span class="kw">fn </span>first_block_number_compatible_with_ed25519_zebra() -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
 		<span class="prelude-val">Some</span>(<span class="number">3_000_000</span>)
 	}
@@ -2157,15 +2260,16 @@
 		<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
 		</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; new_chain_ops_inner::&lt;
 			moonriver_runtime::RuntimeApi,
-			MoonriverCustomizations,
+			MoonriverExecutor,
 		&gt;(config, rpc_config),
 		<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
-		</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; new_chain_ops_inner::&lt;
-			moonbeam_runtime::RuntimeApi,
-			MoonbeamCustomizations,
-		&gt;(config, rpc_config),
+		</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; {
+			new_chain_ops_inner::&lt;moonbeam_runtime::RuntimeApi, MoonbeamExecutor&gt;(
+				config, rpc_config,
+			)
+		}
 		<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
-		</span><span class="kw">_ </span>=&gt; new_chain_ops_inner::&lt;moonbase_runtime::RuntimeApi, MoonbaseCustomizations&gt;(
+		</span><span class="kw">_ </span>=&gt; new_chain_ops_inner::&lt;moonbase_runtime::RuntimeApi, MoonbaseExecutor&gt;(
 			config, rpc_config,
 		),
 		<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
@@ -2174,7 +2278,7 @@
 }
 
 <span class="attr">#[allow(clippy::type_complexity)]
-</span><span class="kw">fn </span>new_chain_ops_inner&lt;RuntimeApi, Customizations&gt;(
+</span><span class="kw">fn </span>new_chain_ops_inner&lt;RuntimeApi, Executor&gt;(
 	config: <span class="kw-2">&amp;mut </span>Configuration,
 	rpc_config: <span class="kw-2">&amp;</span>RpcConfig,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;
@@ -2187,10 +2291,11 @@
 	ServiceError,
 &gt;
 <span class="kw">where
-	</span>Client: From&lt;Arc&lt;<span class="kw">crate</span>::FullClient&lt;RuntimeApi&gt;&gt;&gt;,
-	RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>Client: From&lt;Arc&lt;<span class="kw">crate</span>::FullClient&lt;RuntimeApi, Executor&gt;&gt;&gt;,
+	RuntimeApi:
+		ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi, Executor&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Customizations: ClientCustomizations + <span class="lifetime">&#39;static</span>,
+	Executor: ExecutorT + <span class="lifetime">&#39;static</span>,
 {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
 	<span class="kw">let </span>PartialComponents {
@@ -2199,7 +2304,7 @@
 		import_queue,
 		task_manager,
 		..
-	} = new_partial::&lt;RuntimeApi, Customizations&gt;(config, rpc_config, config.chain_spec.is_dev())<span class="question-mark">?</span>;
+	} = new_partial::&lt;RuntimeApi, Executor&gt;(config, rpc_config, config.chain_spec.is_dev())<span class="question-mark">?</span>;
 	<span class="prelude-val">Ok</span>((
 		Arc::new(Client::from(client)),
 		backend,
@@ -2234,15 +2339,16 @@
 /// Use this function if you don&#39;t actually need the full service, but just the partial in order to
 /// be able to perform chain operations.
 </span><span class="attr">#[allow(clippy::type_complexity)]
-</span><span class="kw">pub fn </span>new_partial&lt;RuntimeApi, Customizations&gt;(
+</span><span class="kw">pub fn </span>new_partial&lt;RuntimeApi, Executor&gt;(
 	config: <span class="kw-2">&amp;mut </span>Configuration,
 	rpc_config: <span class="kw-2">&amp;</span>RpcConfig,
 	dev_service: bool,
-) -&gt; PartialComponentsResult&lt;RuntimeApi&gt;
+) -&gt; PartialComponentsResult&lt;RuntimeApi, Executor&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>RuntimeApi:
+		ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi, Executor&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Customizations: ClientCustomizations + <span class="lifetime">&#39;static</span>,
+	Executor: ExecutorT + <span class="lifetime">&#39;static</span>,
 {
 	set_prometheus_registry(config, rpc_config.no_prometheus_prefix)<span class="question-mark">?</span>;
 
@@ -2277,7 +2383,9 @@
 		wasm_builder = wasm_builder.with_wasmtime_precompiled_path(wasmtime_precompiled_path);
 	}
 
-	<span class="kw">let </span>executor = wasm_builder.build();
+	<span class="kw">let </span>wasm_executor = wasm_builder.build();
+
+	<span class="kw">let </span>executor = NativeElseWasmExecutor::&lt;Executor&gt;::new_with_wasm_executor(wasm_executor);
 
 	<span class="kw">let </span>(client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::&lt;Block, RuntimeApi, <span class="kw">_</span>&gt;(
@@ -2286,7 +2394,7 @@
 			executor,
 		)<span class="question-mark">?</span>;
 
-	<span class="kw">if let </span><span class="prelude-val">Some</span>(block_number) = Customizations::first_block_number_compatible_with_ed25519_zebra() {
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(block_number) = Executor::first_block_number_compatible_with_ed25519_zebra() {
 		client
 			.execution_extensions()
 			.set_extensions_factory(sc_client_api::execution_extensions::ExtensionBeforeBlock::&lt;
@@ -2344,10 +2452,8 @@
 			BlockImportPipeline::Dev(frontier_block_import),
 		)
 	} <span class="kw">else </span>{
-		<span class="kw">let </span>parachain_block_import = ParachainBlockImport::new_with_delayed_best_block(
-			frontier_block_import,
-			backend.clone(),
-		);
+		<span class="kw">let </span>parachain_block_import =
+			ParachainBlockImport::new(frontier_block_import, backend.clone());
 		(
 			nimbus_consensus::import_queue(
 				client.clone(),
@@ -2411,7 +2517,7 @@
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
 </span><span class="attr">#[sc_tracing::logging::prefix_logs_with(<span class="string">&quot;🌗&quot;</span>)]
-</span><span class="kw">async fn </span>start_node_impl&lt;RuntimeApi, Customizations&gt;(
+</span><span class="kw">async fn </span>start_node_impl&lt;RuntimeApi, Executor&gt;(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
 	collator_options: CollatorOptions,
@@ -2419,16 +2525,16 @@
 	rpc_config: RpcConfig,
 	async_backing: bool,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
-) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;)&gt;
+) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi, Executor&gt;&gt;)&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>RuntimeApi:
+		ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi, Executor&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Customizations: ClientCustomizations + <span class="lifetime">&#39;static</span>,
+	Executor: ExecutorT + <span class="lifetime">&#39;static</span>,
 {
 	<span class="kw">let </span><span class="kw-2">mut </span>parachain_config = prepare_node_config(parachain_config);
 
-	<span class="kw">let </span>params =
-		new_partial::&lt;RuntimeApi, Customizations&gt;(<span class="kw-2">&amp;mut </span>parachain_config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+	<span class="kw">let </span>params = new_partial(<span class="kw-2">&amp;mut </span>parachain_config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 	<span class="kw">let </span>(
 		block_import,
 		filter_pool,
@@ -2687,7 +2793,7 @@
 	};
 
 	<span class="kw">if </span>collator {
-		start_consensus::&lt;RuntimeApi, <span class="kw">_</span>&gt;(
+		start_consensus::&lt;RuntimeApi, Executor, <span class="kw">_</span>&gt;(
 			async_backing,
 			backend.clone(),
 			client.clone(),
@@ -2749,16 +2855,16 @@
 	<span class="prelude-val">Ok</span>((task_manager, client))
 }
 
-<span class="kw">fn </span>start_consensus&lt;RuntimeApi, SO&gt;(
+<span class="kw">fn </span>start_consensus&lt;RuntimeApi, Executor, SO&gt;(
 	async_backing: bool,
 	backend: Arc&lt;FullBackend&gt;,
-	client: Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;,
-	block_import: ParachainBlockImport&lt;RuntimeApi&gt;,
+	client: Arc&lt;FullClient&lt;RuntimeApi, Executor&gt;&gt;,
+	block_import: ParachainBlockImport&lt;RuntimeApi, Executor&gt;,
 	prometheus_registry: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Registry&gt;,
 	telemetry: <span class="prelude-ty">Option</span>&lt;TelemetryHandle&gt;,
 	task_manager: <span class="kw-2">&amp;</span>TaskManager,
 	relay_chain_interface: Arc&lt;<span class="kw">dyn </span>RelayChainInterface&gt;,
-	transaction_pool: Arc&lt;sc_transaction_pool::FullPool&lt;Block, FullClient&lt;RuntimeApi&gt;&gt;&gt;,
+	transaction_pool: Arc&lt;sc_transaction_pool::FullPool&lt;Block, FullClient&lt;RuntimeApi, Executor&gt;&gt;&gt;,
 	keystore: KeystorePtr,
 	para_id: ParaId,
 	collator_key: CollatorPair,
@@ -2769,10 +2875,11 @@
 	sync_oracle: SO,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), sc_service::Error&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>RuntimeApi:
+		ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi, Executor&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	sc_client_api::StateBackendFor&lt;TFullBackend&lt;Block&gt;, Block&gt;:
-		sc_client_api::StateBackend&lt;BlakeTwo256&gt;,
+	sc_client_api::StateBackendFor&lt;TFullBackend&lt;Block&gt;, Block&gt;: sp_api::StateBackend&lt;BlakeTwo256&gt;,
+	Executor: sc_executor::NativeExecutionDispatch + <span class="lifetime">&#39;static</span>,
 	SO: SyncOracle + Send + Sync + Clone + <span class="lifetime">&#39;static</span>,
 {
 	<span class="kw">let </span>proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
@@ -2806,7 +2913,7 @@
 	<span class="kw">let </span>keystore_clone = keystore.clone();
 	<span class="kw">let </span>maybe_provide_vrf_digest =
 		<span class="kw">move </span>|nimbus_id: NimbusId, parent: Hash| -&gt; <span class="prelude-ty">Option</span>&lt;sp_runtime::generic::DigestItem&gt; {
-			moonbeam_vrf::vrf_pre_digest::&lt;Block, FullClient&lt;RuntimeApi&gt;&gt;(
+			moonbeam_vrf::vrf_pre_digest::&lt;Block, FullClient&lt;RuntimeApi, Executor&gt;&gt;(
 				<span class="kw-2">&amp;</span>client_clone,
 				<span class="kw-2">&amp;</span>keystore_clone,
 				nimbus_id,
@@ -2861,7 +2968,6 @@
 				relay_client: relay_chain_interface,
 				slot_duration: <span class="prelude-val">None</span>,
 				sync_oracle,
-				reinitialize: <span class="bool-val">false</span>,
 			}),
 		);
 	} <span class="kw">else </span>{
@@ -2898,7 +3004,7 @@
 <span class="doccomment">/// Start a normal parachain node.
 </span><span class="comment">// Rustfmt wants to format the closure with space identation.
 </span><span class="attr">#[rustfmt::skip]
-</span><span class="kw">pub async fn </span>start_node&lt;RuntimeApi, Customizations&gt;(
+</span><span class="kw">pub async fn </span>start_node&lt;RuntimeApi, Executor&gt;(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
 	collator_options: CollatorOptions,
@@ -2906,15 +3012,15 @@
 	rpc_config: RpcConfig,
 	async_backing: bool,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
-) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;)&gt;
+) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi, Executor&gt;&gt;)&gt;
 <span class="kw">where
 	</span>RuntimeApi:
-		ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+		ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi, Executor&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection,
-	Customizations: ClientCustomizations + <span class="lifetime">&#39;static</span>,
+	Executor: ExecutorT + <span class="lifetime">&#39;static</span>,
 {
-	start_node_impl::&lt;RuntimeApi, Customizations&gt;(
+	start_node_impl(
 		parachain_config,
 		polkadot_config,
 		collator_options,
@@ -2928,7 +3034,7 @@
 
 <span class="doccomment">/// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
-</span><span class="kw">pub async fn </span>new_dev&lt;RuntimeApi, Customizations&gt;(
+</span><span class="kw">pub async fn </span>new_dev&lt;RuntimeApi, Executor&gt;(
 	<span class="kw-2">mut </span>config: Configuration,
 	_author_id: <span class="prelude-ty">Option</span>&lt;NimbusId&gt;,
 	sealing: moonbeam_cli_opt::Sealing,
@@ -2936,9 +3042,10 @@
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TaskManager, ServiceError&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>RuntimeApi:
+		ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi, Executor&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Customizations: ClientCustomizations + <span class="lifetime">&#39;static</span>,
+	Executor: ExecutorT + <span class="lifetime">&#39;static</span>,
 {
 	<span class="kw">use </span>async_io::Timer;
 	<span class="kw">use </span>futures::Stream;
@@ -2961,7 +3068,7 @@
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial::&lt;RuntimeApi, Customizations&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+	} = new_partial::&lt;RuntimeApi, Executor&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
 	<span class="kw">let </span>block_import = <span class="kw">if let </span>BlockImportPipeline::Dev(block_import) = block_import_pipeline {
 		block_import
@@ -3082,7 +3189,7 @@
 		<span class="kw">let </span>keystore_clone = keystore_container.keystore().clone();
 		<span class="kw">let </span>maybe_provide_vrf_digest =
 			<span class="kw">move </span>|nimbus_id: NimbusId, parent: Hash| -&gt; <span class="prelude-ty">Option</span>&lt;sp_runtime::generic::DigestItem&gt; {
-				moonbeam_vrf::vrf_pre_digest::&lt;Block, FullClient&lt;RuntimeApi&gt;&gt;(
+				moonbeam_vrf::vrf_pre_digest::&lt;Block, FullClient&lt;RuntimeApi, Executor&gt;&gt;(
 					<span class="kw-2">&amp;</span>client_clone,
 					<span class="kw-2">&amp;</span>keystore_clone,
 					nimbus_id,
@@ -3421,7 +3528,7 @@
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>dalek_does_not_panic() {
 		<span class="kw">use </span>futures::executor::block_on;
-		<span class="kw">use </span>sc_block_builder::BlockBuilderBuilder;
+		<span class="kw">use </span>sc_block_builder::BlockBuilderProvider;
 		<span class="kw">use </span>sc_client_db::{Backend, BlocksPruning, DatabaseSettings, DatabaseSource, PruningMode};
 		<span class="kw">use </span>sp_api::ProvideRuntimeApi;
 		<span class="kw">use </span>sp_consensus::BlockOrigin;
@@ -3471,17 +3578,12 @@
 			sp_io::UseDalekExt,
 		&gt;::new(<span class="number">1</span>));
 
-		<span class="kw">let </span>a1 = BlockBuilderBuilder::new(<span class="kw-2">&amp;</span>client)
-			.on_parent_block(client.chain_info().genesis_hash)
-			.with_parent_block_number(<span class="number">0</span>)
-			<span class="comment">// Enable proof recording if required. This call is optional.
-			</span>.enable_proof_recording()
-			.build()
+		<span class="kw">let </span>a1 = client
+			.new_block_at(client.chain_info().genesis_hash, Default::default(), <span class="bool-val">false</span>)
 			.unwrap()
 			.build()
 			.unwrap()
 			.block;
-
 		block_on(client.import(BlockOrigin::NetworkInitialSync, a1.clone())).unwrap();
 
 		<span class="comment">// On block zero it will use dalek
@@ -3500,22 +3602,30 @@
 	<span class="kw">fn </span>test_config(chain_id: <span class="kw-2">&amp;</span>str) -&gt; Configuration {
 		<span class="kw">let </span>network_config = NetworkConfiguration::new(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>, Default::default(), <span class="prelude-val">None</span>);
 		<span class="kw">let </span>runtime = tokio::runtime::Runtime::new().expect(<span class="string">&quot;failed creating tokio runtime&quot;</span>);
-		<span class="kw">let </span>spec = ChainSpec::builder(<span class="kw-2">&amp;</span>[<span class="number">0u8</span>], Extensions::default())
-			.with_name(<span class="string">&quot;test&quot;</span>)
-			.with_id(chain_id)
-			.with_chain_type(ChainType::Local)
-			.with_genesis_config(testnet_genesis(
-				AccountId::from_str(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>).unwrap(),
-				<span class="macro">vec!</span>[],
-				<span class="macro">vec!</span>[],
-				<span class="macro">vec!</span>[],
-				<span class="macro">vec!</span>[],
-				<span class="macro">vec!</span>[],
-				<span class="number">1000 </span>* UNIT,
-				ParaId::new(<span class="number">0</span>),
-				<span class="number">0</span>,
-			))
-			.build();
+		<span class="kw">let </span>spec = ChainSpec::from_genesis(
+			<span class="string">&quot;test&quot;</span>,
+			chain_id,
+			ChainType::Local,
+			<span class="kw">move </span>|| {
+				testnet_genesis(
+					AccountId::from_str(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>).unwrap(),
+					<span class="macro">vec!</span>[],
+					<span class="macro">vec!</span>[],
+					<span class="macro">vec!</span>[],
+					<span class="macro">vec!</span>[],
+					<span class="macro">vec!</span>[],
+					<span class="number">1000 </span>* UNIT,
+					ParaId::new(<span class="number">0</span>),
+					<span class="number">0</span>,
+				)
+			},
+			<span class="macro">vec!</span>[],
+			<span class="prelude-val">None</span>,
+			<span class="prelude-val">None</span>,
+			<span class="prelude-val">None</span>,
+			<span class="prelude-val">None</span>,
+			Extensions::default(),
+		);
 
 		Configuration {
 			impl_name: String::from(<span class="string">&quot;test-impl&quot;</span>),
@@ -3547,7 +3657,6 @@
 			rpc_max_subs_per_conn: Default::default(),
 			rpc_addr: <span class="prelude-val">None</span>,
 			rpc_port: Default::default(),
-			rpc_message_buffer_capacity: Default::default(),
 			data_path: Default::default(),
 			prometheus_config: <span class="prelude-val">None</span>,
 			telemetry_endpoints: <span class="prelude-val">None</span>,
@@ -3568,29 +3677,34 @@
 	}
 }
 
-<span class="kw">struct </span>PendingConsensusDataProvider&lt;RuntimeApi&gt;
+<span class="kw">struct </span>PendingConsensusDataProvider&lt;RuntimeApi, Executor&gt;
 <span class="kw">where
 	</span>RuntimeApi: Send + Sync,
+	Executor: ExecutorT + <span class="lifetime">&#39;static</span>,
 {
-	client: Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;,
+	client: Arc&lt;FullClient&lt;RuntimeApi, Executor&gt;&gt;,
 	keystore: Arc&lt;<span class="kw">dyn </span>Keystore&gt;,
 }
 
-<span class="kw">impl</span>&lt;RuntimeApi&gt; PendingConsensusDataProvider&lt;RuntimeApi&gt;
+<span class="kw">impl</span>&lt;RuntimeApi, Executor&gt; PendingConsensusDataProvider&lt;RuntimeApi, Executor&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>RuntimeApi:
+		ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi, Executor&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Executor: ExecutorT + <span class="lifetime">&#39;static</span>,
 {
-	<span class="kw">pub fn </span>new(client: Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;, keystore: Arc&lt;<span class="kw">dyn </span>Keystore&gt;) -&gt; <span class="self">Self </span>{
+	<span class="kw">pub fn </span>new(client: Arc&lt;FullClient&lt;RuntimeApi, Executor&gt;&gt;, keystore: Arc&lt;<span class="kw">dyn </span>Keystore&gt;) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{ client, keystore }
 	}
 }
 
-<span class="kw">impl</span>&lt;RuntimeApi&gt; fc_rpc::pending::ConsensusDataProvider&lt;Block&gt;
-	<span class="kw">for </span>PendingConsensusDataProvider&lt;RuntimeApi&gt;
+<span class="kw">impl</span>&lt;RuntimeApi, Executor&gt; fc_rpc::pending::ConsensusDataProvider&lt;Block&gt;
+	<span class="kw">for </span>PendingConsensusDataProvider&lt;RuntimeApi, Executor&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>RuntimeApi:
+		ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi, Executor&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Executor: ExecutorT + <span class="lifetime">&#39;static</span>,
 {
 	<span class="kw">fn </span>create_digest(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,

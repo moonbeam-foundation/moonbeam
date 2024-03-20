@@ -171,19 +171,19 @@
 
 </span><span class="kw">use </span>sp_core::{Get, H160, U256};
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>xcm::latest::{Junction, Location};
+<span class="kw">use </span>xcm::latest::{Junction, MultiLocation};
 <span class="kw">use </span>xcm_executor::traits::{Error <span class="kw">as </span>MatchError, MatchesFungibles};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Erc20Matcher&lt;Erc20MultilocationPrefix&gt;(
 	core::marker::PhantomData&lt;Erc20MultilocationPrefix&gt;,
 );
 
-<span class="kw">impl</span>&lt;Erc20MultilocationPrefix: Get&lt;Location&gt;&gt; MatchesFungibles&lt;H160, U256&gt;
+<span class="kw">impl</span>&lt;Erc20MultilocationPrefix: Get&lt;MultiLocation&gt;&gt; MatchesFungibles&lt;H160, U256&gt;
 	<span class="kw">for </span>Erc20Matcher&lt;Erc20MultilocationPrefix&gt;
 {
-	<span class="kw">fn </span>matches_fungibles(multiasset: <span class="kw-2">&amp;</span>Asset) -&gt; <span class="prelude-ty">Result</span>&lt;(H160, U256), MatchError&gt; {
+	<span class="kw">fn </span>matches_fungibles(multiasset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; <span class="prelude-ty">Result</span>&lt;(H160, U256), MatchError&gt; {
 		<span class="kw">let </span>(amount, id) = <span class="kw">match </span>(<span class="kw-2">&amp;</span>multiasset.fun, <span class="kw-2">&amp;</span>multiasset.id) {
-			(Fungible(<span class="kw-2">ref </span>amount), AssetId(<span class="kw-2">ref </span>id)) =&gt; (amount, id),
+			(Fungible(<span class="kw-2">ref </span>amount), Concrete(<span class="kw-2">ref </span>id)) =&gt; (amount, id),
 			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(MatchError::AssetNotHandled),
 		};
 		<span class="kw">let </span>contract_address = <span class="self">Self</span>::matches_erc20_multilocation(id)
@@ -194,14 +194,14 @@
 	}
 }
 
-<span class="kw">impl</span>&lt;Erc20MultilocationPrefix: Get&lt;Location&gt;&gt; Erc20Matcher&lt;Erc20MultilocationPrefix&gt; {
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_erc20_asset(multiasset: <span class="kw-2">&amp;</span>Asset) -&gt; bool {
+<span class="kw">impl</span>&lt;Erc20MultilocationPrefix: Get&lt;MultiLocation&gt;&gt; Erc20Matcher&lt;Erc20MultilocationPrefix&gt; {
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_erc20_asset(multiasset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; bool {
 		<span class="kw">match </span>(<span class="kw-2">&amp;</span>multiasset.fun, <span class="kw-2">&amp;</span>multiasset.id) {
-			(Fungible(<span class="kw">_</span>), AssetId(<span class="kw-2">ref </span>id)) =&gt; <span class="self">Self</span>::matches_erc20_multilocation(id).is_ok(),
+			(Fungible(<span class="kw">_</span>), Concrete(<span class="kw-2">ref </span>id)) =&gt; <span class="self">Self</span>::matches_erc20_multilocation(id).is_ok(),
 			<span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
 		}
 	}
-	<span class="kw">fn </span>matches_erc20_multilocation(multilocation: <span class="kw-2">&amp;</span>Location) -&gt; <span class="prelude-ty">Result</span>&lt;H160, ()&gt; {
+	<span class="kw">fn </span>matches_erc20_multilocation(multilocation: <span class="kw-2">&amp;</span>MultiLocation) -&gt; <span class="prelude-ty">Result</span>&lt;H160, ()&gt; {
 		<span class="kw">let </span>prefix = Erc20MultilocationPrefix::get();
 		<span class="kw">if </span>prefix.parent_count() != multilocation.parent_count()
 			|| prefix
@@ -237,28 +237,29 @@
 	}
 
 	<span class="macro">frame_support::parameter_types! </span>{
-		<span class="kw">pub </span>Erc20MultilocationPrefix: Location = Location {
+		<span class="kw">pub const </span>Erc20MultilocationPrefix: MultiLocation = MultiLocation {
 			parents:<span class="number">0</span>,
-			interior: [PalletInstance(<span class="number">42u8</span>)].into()
+			interior: Junctions::X1(
+				PalletInstance(<span class="number">42u8</span>)
+			)
 		};
 	}
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>should_match_valid_erc20_location() {
-		<span class="kw">let </span>location = Location {
+		<span class="kw">let </span>location = MultiLocation {
 			parents: <span class="number">0</span>,
-			interior: [
+			interior: Junctions::X2(
 				PalletInstance(<span class="number">42u8</span>),
 				AccountKey20 {
 					key: [<span class="number">0</span>; <span class="number">20</span>],
 					network: <span class="prelude-val">None</span>,
 				},
-			]
-			.into(),
+			),
 		};
 
 		<span class="macro">assert_ok!</span>(
-			Erc20Matcher::&lt;Erc20MultilocationPrefix&gt;::matches_fungibles(<span class="kw-2">&amp;</span>Asset::from((
+			Erc20Matcher::&lt;Erc20MultilocationPrefix&gt;::matches_fungibles(<span class="kw-2">&amp;</span>MultiAsset::from((
 				location, <span class="number">100u128
 			</span>))),
 			(H160([<span class="number">0</span>; <span class="number">20</span>]), U256([<span class="number">100</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]))
@@ -267,20 +268,19 @@
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>should_match_valid_erc20_location_with_amount_greater_than_u64() {
-		<span class="kw">let </span>location = Location {
+		<span class="kw">let </span>location = MultiLocation {
 			parents: <span class="number">0</span>,
-			interior: [
+			interior: Junctions::X2(
 				PalletInstance(<span class="number">42u8</span>),
 				AccountKey20 {
 					key: [<span class="number">0</span>; <span class="number">20</span>],
 					network: <span class="prelude-val">None</span>,
 				},
-			]
-			.into(),
+			),
 		};
 
 		<span class="macro">assert_ok!</span>(
-			Erc20Matcher::&lt;Erc20MultilocationPrefix&gt;::matches_fungibles(<span class="kw-2">&amp;</span>Asset::from((
+			Erc20Matcher::&lt;Erc20MultilocationPrefix&gt;::matches_fungibles(<span class="kw-2">&amp;</span>MultiAsset::from((
 				location,
 				<span class="number">100000000000000000u128
 			</span>))),
@@ -290,13 +290,13 @@
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>should_not_match_invalid_erc20_location() {
-		<span class="kw">let </span>invalid_location = Location {
+		<span class="kw">let </span>invalid_location = MultiLocation {
 			parents: <span class="number">0</span>,
-			interior: [PalletInstance(<span class="number">42u8</span>), GeneralIndex(<span class="number">0</span>)].into(),
+			interior: Junctions::X2(PalletInstance(<span class="number">42u8</span>), GeneralIndex(<span class="number">0</span>)),
 		};
 
 		<span class="macro">assert!</span>(
-			Erc20Matcher::&lt;Erc20MultilocationPrefix&gt;::matches_fungibles(<span class="kw-2">&amp;</span>Asset::from((
+			Erc20Matcher::&lt;Erc20MultilocationPrefix&gt;::matches_fungibles(<span class="kw-2">&amp;</span>MultiAsset::from((
 				invalid_location,
 				<span class="number">100u128
 			</span>)))

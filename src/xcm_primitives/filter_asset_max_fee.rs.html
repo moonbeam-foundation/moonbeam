@@ -66,7 +66,7 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="kw">use </span>frame_support::traits::Get;
-<span class="kw">use </span>xcm::latest::Asset;
+<span class="kw">use </span>xcm::latest::MultiAsset;
 <span class="kw">use </span>xcm_builder::Case;
 
 <span class="doccomment">/// Filters max fee for a given multiasset.
@@ -75,12 +75,12 @@
 /// If any item returns `true`, it short-circuits, else `false` is returned.
 </span><span class="kw">pub trait </span>FilterMaxAssetFee {
 	<span class="doccomment">/// A filter to be able to compare against a max asset.
-	</span><span class="kw">fn </span>filter_max_asset_fee(asset: <span class="kw-2">&amp;</span>Asset) -&gt; bool;
+	</span><span class="kw">fn </span>filter_max_asset_fee(asset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; bool;
 }
 
 <span class="attr">#[impl_trait_for_tuples::impl_for_tuples(<span class="number">30</span>)]
 </span><span class="kw">impl </span>FilterMaxAssetFee <span class="kw">for </span>Tuple {
-	<span class="kw">fn </span>filter_max_asset_fee(what: <span class="kw-2">&amp;</span>Asset) -&gt; bool {
+	<span class="kw">fn </span>filter_max_asset_fee(what: <span class="kw-2">&amp;</span>MultiAsset) -&gt; bool {
 		<span class="macro">for_tuples!</span>( #(
 			<span class="kw">if </span>Tuple::filter_max_asset_fee(what) { <span class="kw">return </span><span class="bool-val">true </span>}
 		)* );
@@ -93,8 +93,8 @@
 	</span>}
 }
 
-<span class="kw">impl</span>&lt;T: Get&lt;Asset&gt;&gt; FilterMaxAssetFee <span class="kw">for </span>Case&lt;T&gt; {
-	<span class="kw">fn </span>filter_max_asset_fee(asset: <span class="kw-2">&amp;</span>Asset) -&gt; bool {
+<span class="kw">impl</span>&lt;T: Get&lt;MultiAsset&gt;&gt; FilterMaxAssetFee <span class="kw">for </span>Case&lt;T&gt; {
+	<span class="kw">fn </span>filter_max_asset_fee(asset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; bool {
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::filter_max_asset_fee&quot;</span>, <span class="string">&quot;Case asset: {:?}&quot;</span>, asset);
 		<span class="kw">let </span>max = T::get();
 		max.contains(asset)

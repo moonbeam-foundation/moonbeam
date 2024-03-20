@@ -87,6 +87,14 @@
 <a href="#87" id="87">87</a>
 <a href="#88" id="88">88</a>
 <a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -108,72 +116,80 @@
 <span class="kw">use </span><span class="kw">crate</span>::chain_spec::{get_from_seed, Extensions};
 <span class="kw">use </span>cumulus_primitives_core::ParaId;
 <span class="kw">use </span>hex_literal::hex;
-<span class="kw">use </span>moonbase_runtime::{currency::UNIT, AccountId, WASM_BINARY};
+<span class="kw">use </span>moonbase_runtime::{currency::UNIT, AccountId};
 <span class="kw">use </span>nimbus_primitives::NimbusId;
 <span class="kw">use </span>sc_service::ChainType;
 
 <span class="doccomment">/// Generate testing chain_spec for staking integration tests with accounts initialized for
 /// collating and nominating.
 </span><span class="kw">pub fn </span>staking_spec(para_id: ParaId) -&gt; ChainSpec {
-	ChainSpec::builder(
-		WASM_BINARY.expect(<span class="string">&quot;WASM binary was not build, please build it!&quot;</span>),
-		Extensions {
+	ChainSpec::from_genesis(
+		<span class="string">&quot;Moonbase Development Testnet&quot;</span>,
+		<span class="string">&quot;staking&quot;</span>,
+		ChainType::Local,
+		<span class="kw">move </span>|| {
+			testnet_genesis(
+				<span class="comment">// Root
+				</span>AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>)),
+				<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy
+				</span><span class="macro">vec!</span>[
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
+				],
+				<span class="comment">// Open Tech Committee members: Alith and Baltathar
+				</span><span class="macro">vec!</span>[
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+				],
+				<span class="comment">// Collators
+				</span><span class="macro">vec!</span>[
+					(
+						AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>)),
+						get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Alice&quot;</span>),
+						<span class="number">1_000 </span>* UNIT,
+					),
+					(
+						AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;C0F0f4ab324C46e55D02D0033343B4Be8A55532d&quot;</span>)),
+						get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Faith&quot;</span>),
+						<span class="number">1_000 </span>* UNIT,
+					),
+				],
+				<span class="comment">// Delegations
+				</span><span class="macro">vec!</span>[],
+				<span class="comment">// Endowed accounts (each minted 1 &lt;&lt; 80 balance)
+				</span><span class="macro">vec!</span>[
+					<span class="comment">// Alith, Baltathar, Charleth, Dorothy and Faith
+					</span>AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;C0F0f4ab324C46e55D02D0033343B4Be8A55532d&quot;</span>)),
+					<span class="comment">// Additional accounts
+					</span>AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
+				],
+				<span class="number">3_000_000 </span>* UNIT,
+				para_id,
+				<span class="comment">// Chain ID
+				</span><span class="number">1280</span>,
+			)
+		},
+		<span class="comment">// Bootnodes
+		</span><span class="macro">vec!</span>[],
+		<span class="comment">// Telemetry
+		</span><span class="prelude-val">None</span>,
+		<span class="comment">// Protocol ID
+		</span><span class="prelude-val">None</span>,
+		<span class="comment">// Fork ID
+		</span><span class="prelude-val">None</span>,
+		<span class="comment">// Properties
+		</span><span class="prelude-val">Some</span>(serde_json::from_str(<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18}&quot;</span>).expect(<span class="string">&quot;Provided valid json map&quot;</span>)),
+		<span class="comment">// Extensions
+		</span>Extensions {
 			relay_chain: <span class="string">&quot;westend_local&quot;</span>.into(),
 			para_id: para_id.into(),
 		},
 	)
-	.with_name(<span class="string">&quot;Moonbase Development Testnet&quot;</span>)
-	.with_id(<span class="string">&quot;staking&quot;</span>)
-	.with_chain_type(ChainType::Local)
-	.with_properties(
-		serde_json::from_str(<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18}&quot;</span>).expect(<span class="string">&quot;Provided valid json map&quot;</span>),
-	)
-	.with_genesis_config(testnet_genesis(
-		<span class="comment">// Root
-		</span>AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>)),
-		<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy
-		</span><span class="macro">vec!</span>[
-			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
-			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
-		],
-		<span class="comment">// Open Tech Committee members: Alith and Baltathar
-		</span><span class="macro">vec!</span>[
-			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>)),
-			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-		],
-		<span class="comment">// Collators
-		</span><span class="macro">vec!</span>[
-			(
-				AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>)),
-				get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Alice&quot;</span>),
-				<span class="number">1_000 </span>* UNIT,
-			),
-			(
-				AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;C0F0f4ab324C46e55D02D0033343B4Be8A55532d&quot;</span>)),
-				get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Faith&quot;</span>),
-				<span class="number">1_000 </span>* UNIT,
-			),
-		],
-		<span class="comment">// Delegations
-		</span><span class="macro">vec!</span>[],
-		<span class="comment">// Endowed accounts (each minted 1 &lt;&lt; 80 balance)
-		</span><span class="macro">vec!</span>[
-			<span class="comment">// Alith, Baltathar, Charleth, Dorothy and Faith
-			</span>AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>)),
-			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
-			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
-			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;C0F0f4ab324C46e55D02D0033343B4Be8A55532d&quot;</span>)),
-			<span class="comment">// Additional accounts
-			</span>AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB&quot;</span>)),
-			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
-		],
-		<span class="number">3_000_000 </span>* UNIT,
-		para_id,
-		<span class="comment">// Chain ID
-		</span><span class="number">1280</span>,
-	))
-	.build()
 }
 </code></pre></div></section></main></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Error","KeyCmd","Subcommand"],"fn":["generate_genesis_block","run"],"struct":["BuildSpecCommand","Cli","ExportGenesisHeadCommand","ExportGenesisWasmCommand","RelayChainCli","RunCmd"],"type":["Result"]};
+window.SIDEBAR_ITEMS = {"enum":["Error","KeyCmd","Subcommand"],"fn":["run"],"struct":["BuildSpecCommand","Cli","ExportGenesisStateCommand","ExportGenesisWasmCommand","RelayChainCli","RunCmd"],"type":["Result"]};

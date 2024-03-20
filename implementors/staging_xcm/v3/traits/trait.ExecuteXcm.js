@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"pallet_erc20_xcm_bridge":[["impl&lt;RuntimeCall, InnerXcmExecutor&gt; ExecuteXcm&lt;RuntimeCall&gt; for <a class=\"struct\" href=\"pallet_erc20_xcm_bridge/struct.XcmExecutorWrapper.html\" title=\"struct pallet_erc20_xcm_bridge::XcmExecutorWrapper\">XcmExecutorWrapper</a>&lt;RuntimeCall, InnerXcmExecutor&gt;<span class=\"where fmt-newline\">where\n    InnerXcmExecutor: ExecuteXcm&lt;RuntimeCall&gt;,</span>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
