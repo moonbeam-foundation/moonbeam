@@ -79,7 +79,8 @@ async function main(args: any) {
   const tmpDir = await fs.mkdtemp("tmp/base-path");
   try {
     // Generate plain chain spec
-    const generateChainSpecCmd = `${binaryPath} build-spec --chain ${args.argv.Chain} > tmp/${args.argv.Chain}.json`;
+    const generateChainSpecCmd =
+      `${binaryPath} build-spec` + `--chain ${args.argv.Chain} > tmp/${args.argv.Chain}.json`;
     console.log(`🗃️  ${generateChainSpecCmd}`);
     await spawn(generateChainSpecCmd);
 
