@@ -84,6 +84,7 @@ mod tests {
 				let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
 				let eth_tx = ethereum_transaction(VALID_ETH_TX);
 				let eth_extrinsic_hash = eth_tx.hash();
+
 				assert!(Runtime::trace_block(
 					vec![non_eth_uxt.clone(), eth_uxt.clone(), non_eth_uxt, eth_uxt],
 					vec![eth_extrinsic_hash, eth_extrinsic_hash]
