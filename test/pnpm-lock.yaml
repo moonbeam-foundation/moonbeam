@@ -12,11 +12,11 @@ dependencies:
     specifier: 0.2801.0
     version: 0.2801.0
   '@moonwall/cli':
-    specifier: 5.1.1
-    version: 5.1.1(@acala-network/chopsticks@0.9.10)(@polkadot/api@10.12.4)(@types/node@20.11.30)(@vitest/ui@1.4.0)(typescript@5.4.2)(vitest@1.4.0)
+    specifier: 5.1.2
+    version: 5.1.2(@acala-network/chopsticks@0.9.10)(@polkadot/api@10.12.4)(@types/node@20.11.30)(@vitest/ui@1.4.0)(typescript@5.4.2)(vitest@1.4.0)
   '@moonwall/util':
-    specifier: 5.1.1
-    version: 5.1.1(@polkadot/api@10.12.4)(typescript@5.4.2)(vitest@1.4.0)
+    specifier: 5.1.2
+    version: 5.1.2(@polkadot/api@10.12.4)(typescript@5.4.2)(vitest@1.4.0)
   '@openzeppelin/contracts':
     specifier: 4.9.3
     version: 4.9.3
@@ -951,8 +951,8 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: false
 
-  /@moonwall/cli@5.1.1(@acala-network/chopsticks@0.9.10)(@polkadot/api@10.12.4)(@types/node@20.11.30)(@vitest/ui@1.4.0)(typescript@5.4.2)(vitest@1.4.0):
-    resolution: {integrity: sha512-cgNQvH4mXiwzpld/5oGKLg69/mP2IJZKI5kUm8pQZrv+PDCKmK9Cs29sXq+vcan/UejXEqm7hr/jjh/+Cndd4A==}
+  /@moonwall/cli@5.1.2(@acala-network/chopsticks@0.9.10)(@polkadot/api@10.12.4)(@types/node@20.11.30)(@vitest/ui@1.4.0)(typescript@5.4.2)(vitest@1.4.0):
+    resolution: {integrity: sha512-jYrGuIHSJi6iUAkwiIRY1/Bn34LpCCV4E4djLZszBJtI8+IAkdXOazqCjJrBzzXyFsMbU2vjeXaBDs4yKmubqQ==}
     engines: {node: '>=20', pnpm: '>=7'}
     hasBin: true
     peerDependencies:
@@ -963,8 +963,8 @@ packages:
     dependencies:
       '@acala-network/chopsticks': 0.9.10(debug@4.3.4)
       '@moonbeam-network/api-augment': 0.2801.0
-      '@moonwall/types': 5.1.1(@polkadot/api@10.12.4)(typescript@5.4.2)
-      '@moonwall/util': 5.1.1(@polkadot/api@10.12.4)(typescript@5.4.2)(vitest@1.4.0)
+      '@moonwall/types': 5.1.2(@polkadot/api@10.12.4)(typescript@5.4.2)
+      '@moonwall/util': 5.1.2(@polkadot/api@10.12.4)(typescript@5.4.2)(vitest@1.4.0)
       '@octokit/rest': 20.0.2
       '@polkadot/api': 10.12.4
       '@polkadot/api-derive': 10.12.4
@@ -984,7 +984,7 @@ packages:
       debug: 4.3.4(supports-color@8.1.1)
       dotenv: 16.4.5
       ethers: 6.11.1
-      get-port: 7.0.0
+      get-port: 7.1.0
       inquirer: 9.2.16
       inquirer-press-to-continue: 1.2.0(inquirer@9.2.16)
       jsonc-parser: 3.2.1
@@ -1012,8 +1012,8 @@ packages:
       - zod
     dev: false
 
-  /@moonwall/types@5.1.1(@polkadot/api@10.12.4)(typescript@5.4.2):
-    resolution: {integrity: sha512-AHthO/xhLFa/Dd7F1sBHcUkBMMVWU9eW2Ztw/gMwpiZ5Yfz34zZOaPFhyoh/j6HvuMASJjC/w91q3VTGniOKUw==}
+  /@moonwall/types@5.1.2(@polkadot/api@10.12.4)(typescript@5.4.2):
+    resolution: {integrity: sha512-ij/x/JhVnDq42JVigwweibNc9+5WfcjaT3fnLXpPLH6zEjomTcdgFQbV6NMDYH0WMX2SFnBFt36NZ6R4g8+ysw==}
     engines: {node: '>=20', pnpm: '>=7'}
     peerDependencies:
       '@polkadot/api': 10.11.2
@@ -1043,15 +1043,15 @@ packages:
       - zod
     dev: false
 
-  /@moonwall/util@5.1.1(@polkadot/api@10.12.4)(typescript@5.4.2)(vitest@1.4.0):
-    resolution: {integrity: sha512-fv5cv5hISs2ne5PWcUor86F0sKqhrYVJhmJjzFGcLuq+NXYPLywTJokp39T5cgGWKH+CS8oIZ6PQ/Vz2wNmttw==}
+  /@moonwall/util@5.1.2(@polkadot/api@10.12.4)(typescript@5.4.2)(vitest@1.4.0):
+    resolution: {integrity: sha512-rSZKLM/cMrahd8JCyH6MzdLDQCwlTR/7AUNbJvOaaz9M62eMsfovlTdIkoG9eeriFNC2T7fcZTG3qypuuJX4ag==}
     engines: {node: '>=20', pnpm: '>=7'}
     peerDependencies:
       '@polkadot/api': 10.11.2
       vitest: 1.2.2
     dependencies:
       '@moonbeam-network/api-augment': 0.2801.0
-      '@moonwall/types': 5.1.1(@polkadot/api@10.12.4)(typescript@5.4.2)
+      '@moonwall/types': 5.1.2(@polkadot/api@10.12.4)(typescript@5.4.2)
       '@polkadot/api': 10.12.4
       '@polkadot/api-derive': 10.12.4
       '@polkadot/keyring': 12.6.2(@polkadot/util-crypto@12.6.2)(@polkadot/util@12.6.2)
@@ -6152,8 +6152,8 @@ packages:
       hasown: 2.0.0
     dev: false
 
-  /get-port@7.0.0:
-    resolution: {integrity: sha512-mDHFgApoQd+azgMdwylJrv2DX47ywGq1i5VFJE7fZ0dttNq3iQMfsU4IvEgBHojA3KqEudyu7Vq+oN8kNaNkWw==}
+  /get-port@7.1.0:
+    resolution: {integrity: sha512-QB9NKEeDg3xxVwCCwJQ9+xycaz6pBB6iQ76wiWMl1927n0Kir6alPiP+yuiICLLU4jpMe08dXfpebuQppFA2zw==}
     engines: {node: '>=16'}
     dev: false
 
