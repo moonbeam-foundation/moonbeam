@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Upload tools
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4
         with:
           name: original-tools
           path: tools
@@ -64,7 +64,7 @@ jobs:
           mkdir -p build
           cp moonbeam build/moonbeam-${{matrix.cpu}}
       - name: Upload binary
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4
         with:
           name: binaries
           path: build
