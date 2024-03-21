@@ -185,7 +185,7 @@ export async function injectEncodedHrmpMessageAndSeal(
 ) {
   // Send RPC call to inject XCM message
   await customDevRpcRequest("xcm_injectHrmpMessage", [paraId, message]);
-  // Create a block in which the XCM will be executed
+  // Create a block in which the XCM will be enqueued
   await context.createBlock();
   // The next block will process the hrmp message in the message queue
   return context.createBlock();
@@ -214,7 +214,7 @@ export async function injectHrmpMessageAndSeal(
   message?: RawXcmMessage
 ) {
   await injectHrmpMessage(context, paraId, message);
-  // Create a block in which the XCM will be executed
+  // Create a block in which the XCM will be enqueued
   await context.createBlock();
   // The next block will process the hrmp message in the message queue
   await context.createBlock();

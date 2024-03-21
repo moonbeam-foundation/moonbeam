@@ -22,7 +22,7 @@ use parity_scale_codec::{Decode, Encode};
 use sp_std::vec::Vec;
 
 sp_api::decl_runtime_apis! {
-	// Api version is virtually 4.
+	// Api version is virtually 5.
 	//
 	// We realized that even using runtime overrides, using the ApiExt interface reads the api
 	// versions from the state runtime, meaning we cannot just reset the versioning as we see fit.

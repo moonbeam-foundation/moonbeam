@@ -425,7 +425,7 @@ impl pallet_message_queue::Config for Runtime {
 	type ServiceWeight = MessageQueueServiceWeight;
 	// The XCMP queue pallet is only ever able to handle the `Sibling(ParaId)` origin:
 	type QueueChangeHandler = NarrowOriginToSibling<XcmpQueue>;
-	// NarrowOriginToSibling calls XcmpQueue's is_pause if Origin is sibling. Allows all other origins
+	// NarrowOriginToSibling calls XcmpQueue's is_paused if Origin is sibling. Allows all other origins
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
 	type WeightInfo = pallet_message_queue::weights::SubstrateWeight<Runtime>;
 }

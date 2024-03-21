@@ -13,7 +13,7 @@ const RELAY_TOKEN = 1_000_000_000_000n;
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 describeSuite({
-  id: "D014001",
+  id: "D013901",
   title: "Mock XCM - receive downward transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

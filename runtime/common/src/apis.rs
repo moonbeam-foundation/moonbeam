@@ -130,7 +130,10 @@ macro_rules! impl_runtime_apis_plus_common {
 						);
 
 						// Initialize block: calls the "on_initialize" hook on every pallet
-						// in AllPalletsWithSystem
+						// in AllPalletsWithSystem.
+						// After pallet message queue was introduced, this must be done only after
+						// enabling XCM tracing by setting ETHEREUM_XCM_TRACING_STORAGE_KEY
+						// in the storage
 						Executive::initialize_block(header);
 
 						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
@@ -186,7 +189,10 @@ macro_rules! impl_runtime_apis_plus_common {
 						config.estimate = true;
 
 						// Initialize block: calls the "on_initialize" hook on every pallet
-						// in AllPalletsWithSystem
+						// in AllPalletsWithSystem.
+						// After pallet message queue was introduced, this must be done only after
+						// enabling XCM tracing by setting ETHEREUM_XCM_TRACING_STORAGE_KEY
+						// in the storage
 						Executive::initialize_block(header);
 
 						// Apply all extrinsics. Ethereum extrinsics are traced.

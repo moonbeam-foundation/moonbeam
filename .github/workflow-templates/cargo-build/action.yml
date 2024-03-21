@@ -13,8 +13,6 @@ runs:
   steps:
     - name: Run sccache-cache
       uses: mozilla-actions/sccache-action@v0.0.3
-    - name: Install Rust Toolchain
-      uses: ./.github/workflow-templates/rust-toolchain
     - name: Setup Variables
       shell: bash
       run: |
@@ -29,7 +27,17 @@ runs:
       shell: bash
       run: |
         mkdir -p mold
-        curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v1.1.1/mold-1.1.1-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
+        curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.30.0/mold-2.30.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
+    # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+    # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+    - name: Setup Rust toolchain
+      shell: bash
+      run: |
+        if ! which "rustup" > /dev/null; then
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        fi
+        rustup show
+        rustup target add wasm32-unknown-unknown
     - name: Build Node
       shell: bash
       run: |

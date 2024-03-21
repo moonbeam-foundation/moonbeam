@@ -23,8 +23,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.sha }}
-      - name: Cargo build
-        uses: ./.github/workflow-templates/rust-toolchain
+      - name: Setup Rust toolchain
+        run: rustup show
       - name: Build Node
         run: cargo build --profile=production --all
       - name: Save parachain binary
