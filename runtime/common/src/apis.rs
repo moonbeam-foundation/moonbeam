@@ -27,6 +27,7 @@ macro_rules! impl_runtime_apis_plus_common {
 		// to replay only on_idle, so we need to copy here some code inside frame executive.
 		fn replay_on_idle() {
 			use frame_system::pallet_prelude::BlockNumberFor;
+			use frame_support::traits::OnIdle;
 
 			let weight = <frame_system::Pallet<Runtime>>::block_weight();
 			let max_weight = <

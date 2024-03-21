@@ -80,7 +80,7 @@ async function main(args: any) {
   try {
     // Generate plain chain spec
     const generateChainSpecCmd =
-      `${binaryPath} build-spec` + `--chain ${args.argv.Chain} > tmp/${args.argv.Chain}.json`;
+      `${binaryPath} build-spec` + ` --chain ${args.argv.Chain} > tmp/${args.argv.Chain}.json`;
     console.log(`🗃️  ${generateChainSpecCmd}`);
     await spawn(generateChainSpecCmd);
 
