@@ -106,6 +106,30 @@ where
 	}
 }
 
+pub struct MigrateToLatestXcmVersion<Runtime>(PhantomData<Runtime>);
+impl<Runtime> Migration for MigrateToLatestXcmVersion<Runtime>
+where
+	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>: OnRuntimeUpgrade,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_MigrateToLatestXcmVersion"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::on_runtime_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::pre_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::post_upgrade()
+	}
+}
+
 pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> GetMigrations for CommonMigrations<Runtime>
@@ -120,6 +144,7 @@ where
 	Runtime: pallet_moonbeam_orbiters::Config,
 	Runtime: pallet_balances::Config,
 	Runtime: pallet_referenda::Config,
+	Runtime: pallet_xcm::Config,
 	Runtime::AccountId: Default,
 	BlockNumberFor<Runtime>: Into<u64>,
 {
@@ -259,6 +284,8 @@ where
 			// Box::new(pallet_collective_drop_gov_v1_collectives),
 			// completed in runtime 2900
 			Box::new(remove_pallet_democracy),
+			// permanent migrations
+			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
 		]
 	}
 }
