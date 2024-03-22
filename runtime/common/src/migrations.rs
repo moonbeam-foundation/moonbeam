@@ -125,8 +125,8 @@ where
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::post_upgrade()
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::post_upgrade(state)
 	}
 }
 
