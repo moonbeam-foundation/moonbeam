@@ -11,7 +11,7 @@ import { ALITH_ADDRESS } from "@moonwall/util";
 import { BN } from "@polkadot/util";
 
 describeSuite({
-  id: "D012103",
+  id: "D012003",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

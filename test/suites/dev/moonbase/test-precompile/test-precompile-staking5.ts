@@ -9,7 +9,7 @@ import {
 } from "@moonwall/util";
 
 describeSuite({
-  id: "D012987",
+  id: "D012885",
   title: "Precompiles - Staking - Join Delegators",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

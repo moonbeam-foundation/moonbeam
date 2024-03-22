@@ -4,7 +4,7 @@ import { alith, charleth } from "@moonwall/util";
 import { expectEVMResult, PRECOMPILE_IDENTITY_ADDRESS } from "../../../../helpers";
 
 describeSuite({
-  id: "D012945",
+  id: "D012844",
   title: "Precompiles - Identity precompile - set account id",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

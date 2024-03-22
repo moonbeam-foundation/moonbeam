@@ -33,7 +33,7 @@ const STATEMINT_LOCATION = {
 };
 
 describeSuite({
-  id: "D014015",
+  id: "D014115",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -14,7 +14,7 @@ import {
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D014013",
+  id: "D014113",
   title: "Mock XCM - receive horizontal transfer of DEV with new reanchor",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

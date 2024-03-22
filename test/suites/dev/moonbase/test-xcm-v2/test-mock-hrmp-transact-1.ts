@@ -12,7 +12,7 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D013914",
+  id: "D014014",
   title: "Mock XCM - receive horizontal transact",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

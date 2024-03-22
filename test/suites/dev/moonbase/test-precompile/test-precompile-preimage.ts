@@ -6,7 +6,7 @@ import { Preimage, expectEVMResult, expectSubstrateEvent } from "../../../../hel
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
 // Be careful to not reach the maximum number of proposals.
 describeSuite({
-  id: "D012959",
+  id: "D012858",
   title: "Precompiles - Preimage precompile",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

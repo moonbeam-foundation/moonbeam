@@ -14,7 +14,7 @@ import { RELAY_SOURCE_LOCATION, mockAssetBalance } from "../../../../helpers";
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
 describeSuite({
-  id: "D012102",
+  id: "D012002",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
