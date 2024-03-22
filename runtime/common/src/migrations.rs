@@ -24,7 +24,9 @@ use frame_support::ensure;
 #[cfg(feature = "try-runtime")]
 use frame_support::migration::get_storage_value;
 use frame_support::{
-	parameter_types, storage::unhashed::contains_prefixed_key, traits::OnRuntimeUpgrade,
+	parameter_types,
+	storage::unhashed::{clear_prefix, contains_prefixed_key},
+	traits::{IsType, OnRuntimeUpgrade},
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -88,6 +90,50 @@ where
 			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
 		>::on_runtime_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		frame_support::migrations::RemovePallet::<
+			DemocracyPalletName,
+			<Runtime as frame_system::Config>::DbWeight,
+		>::pre_upgrade();
+
+		Ok(vec![])
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		frame_support::migrations::RemovePallet::<
+			DemocracyPalletName,
+			<Runtime as frame_system::Config>::DbWeight,
+		>::post_upgrade(_state);
+		Ok(())
+	}
+}
+
+pub struct RemoveCollectivesAddresses<Runtime>(pub PhantomData<Runtime>);
+impl<Runtime> Migration for RemoveCollectivesAddresses<Runtime>
+where
+	Runtime: frame_system::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_RemoveCollectivesAddresses"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		log::info!("Removing gov v1 collective addresses storage");
+
+		// CouncilCollective: d59b9be6f0a7187ca6630c1d0a9bb045
+		let prefix = hex_literal::hex!("d59b9be6f0a7187ca6630c1d0a9bb045");
+		let result = clear_prefix(&prefix, Some(10), None);
+		log::info!("Removed {} CouncilCollective keys", result.unique);
+		// TechCommitteeCollective: a06bfb73a86f8f98d5c5dc14e20e8a03
+		let prefix = hex_literal::hex!("a06bfb73a86f8f98d5c5dc14e20e8a03");
+		let result = clear_prefix(&prefix, Some(10), None);
+		log::info!("Removed {} TechCommitteeCollective", result.unique);
+
+		Weight::reads_writes(result.unique + 1, result.unique)
 	}
 
 	#[cfg(feature = "try-runtime")]
