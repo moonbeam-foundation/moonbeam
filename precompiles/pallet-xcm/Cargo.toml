@@ -1,0 +1,82 @@
+[package]
+name = "pallet-evm-precompile-xcm"
+authors = { workspace = true }
+description = "A Precompile to make pallet-xcm accessible to pallet-evm"
+edition = "2021"
+version = "0.2.0"
+
+[dependencies]
+log = { workspace = true }
+num_enum = { workspace = true }
+rustc-hex = { workspace = true }
+
+# Moonbeam
+pallet-xcm-transactor = { workspace = true }
+precompile-utils = { workspace = true }
+xcm-primitives = { workspace = true }
+
+# Substrate
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+sp-core = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
+sp-weights = { workspace = true }
+
+# Frontier
+evm = { workspace = true, features = [ "with-codec" ] }
+fp-evm = { workspace = true }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+
+# Polkadot
+xcm = { workspace = true }
+pallet-xcm = { workspace = true }
+
+# Cumulus
+cumulus-primitives-core = { workspace = true }
+
+[dev-dependencies]
+derive_more = { workspace = true }
+serde = { workspace = true }
+sha3 = { workspace = true }
+
+# Moonbeam
+precompile-utils = { workspace = true, features = [ "testing", "codec-xcm" ] }
+xcm-primitives = { workspace = true }
+
+# Substrate
+pallet-balances = { workspace = true, features = [ "std", "insecure_zero_ed" ] }
+pallet-timestamp = { workspace = true }
+parity-scale-codec = { workspace = true, features = [ "max-encoded-len" ] }
+scale-info = { workspace = true, features = [ "derive" ] }
+sp-io = { workspace = true }
+
+# Polkadot
+pallet-xcm = { workspace = true }
+xcm-builder = { workspace = true }
+xcm-executor = { workspace = true }
+
+# ORML
+orml-traits = { workspace = true }
+
+[features]
+default = [ "std" ]
+std = [
+	"cumulus-primitives-core/std",
+	"frame-support/std",
+	"frame-system/std",
+	"pallet-evm/std",
+    "pallet-xcm/std",
+	"pallet-xcm-transactor/std",
+	"precompile-utils/std",
+	"sp-core/std",
+	"sp-std/std",
+	"xcm-builder/std",
+	"xcm-executor/std",
+	"xcm-primitives/std",
+]
+runtime-benchmarks = [
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
+]

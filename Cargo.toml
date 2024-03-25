@@ -21,6 +21,7 @@ members = [
 	"precompiles/crowdloan-rewards",
 	"precompiles/gmp",
 	"precompiles/identity",
+	"precompiles/pallet-xcm",
 	"precompiles/parachain-staking",
 	"precompiles/precompile-registry",
 	"precompiles/preimage",
