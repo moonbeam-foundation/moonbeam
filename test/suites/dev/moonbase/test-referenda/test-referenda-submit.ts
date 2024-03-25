@@ -24,7 +24,7 @@ describeSuite({
   title: "Referenda - Submit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let wLPreimage: string;
+    let whitelistedHash: string;
     let preimageLen: bigint;
     let currentRef: number;
     let randomAddress: string;
@@ -51,13 +51,14 @@ describeSuite({
         }
       );
 
-      wLPreimage = await notePreimage(context, dispatchWLCall);
-      const wLPreimageLen = dispatchWLCall.encodedLength - 2;
+      whitelistedHash = await notePreimage(context, dispatchWLCall);
+      const whitelistedHashLen = dispatchWLCall.encodedLength - 2;
 
       console.log(
-        `📝 DispatchWhitelistedCall preimage noted: ${wLPreimage.slice(0, 6)}...${wLPreimage.slice(
-          -4
-        )}, len: ${wLPreimageLen}`
+        `📝 DispatchWhitelistedCall preimage noted: ${whitelistedHash.slice(
+          0,
+          6
+        )}...${whitelistedHash.slice(-4)}, len: ${whitelistedHashLen}`
       );
 
       randomAccount = generateKeyringPair();
@@ -68,7 +69,7 @@ describeSuite({
           {
             Origins: { whitelistedcaller: "WhitelistedCaller" },
           },
-          { Lookup: { hash: wLPreimage, len: wLPreimageLen } },
+          { Lookup: { hash: whitelistedHash, len: whitelistedHashLen } },
           { After: { After: 0 } }
         )
         .signAsync(faith);
@@ -116,7 +117,7 @@ describeSuite({
         expect(
           onGoing.proposal.asLookup.hash_.toHex(),
           "Current proposal Hash doesn't match expected"
-        ).to.equal(wLPreimage);
+        ).to.equal(whitelistedHash);
         expect(onGoing.tally.ayes.toBigInt() > 1000n * GLMR, "Unexpected voting amounts").to.be
           .true;
         expect(onGoing.tally.support.toBigInt() > 1000n * GLMR, "Unexpected voting amounts").to.be
@@ -165,7 +166,7 @@ describeSuite({
         expect(
           onGoing.proposal.asLookup.hash_.toHex(),
           "Current proposal hash doesn't match expected"
-        ).to.equal(wLPreimage);
+        ).to.equal(whitelistedHash);
         expect(onGoing.tally.nays.toBigInt(), "Incorrect Nay votes").to.equal(60n * GLMR);
         expect(onGoing.tally.support.toBigInt() === 0n, "Incorrect support count").to.be.true;
         await fastFowardToNextEvent(context); // Fast forward past preparation
