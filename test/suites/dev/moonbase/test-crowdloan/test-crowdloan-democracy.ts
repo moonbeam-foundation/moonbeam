@@ -1,12 +1,19 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, instantFastTrack } from "@moonwall/cli";
-import { DEFAULT_GENESIS_BALANCE, GLMR, GOLIATH_ADDRESS, VOTE_AMOUNT } from "@moonwall/util";
 import {
+  describeSuite,
+  expect,
+  fastFowardToNextEvent,
+  maximizeConvictionVotingOf,
+  whiteListTrackNoSend,
+} from "@moonwall/cli";
+import { DEFAULT_GENESIS_BALANCE, ethan, GLMR, GOLIATH_ADDRESS } from "@moonwall/util";
+import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
+import {
+  getAccountPayable,
   RELAYCHAIN_ARBITRARY_ADDRESS_1,
   RELAYCHAIN_ARBITRARY_ADDRESS_2,
   VESTING_PERIOD,
-} from "../../../../helpers/constants.js";
-import { getAccountPayable } from "../../../../helpers";
+} from "../../../../helpers";
 
 describeSuite({
   id: "D010805",
@@ -16,12 +23,9 @@ describeSuite({
     it({
       id: "T01",
       title: "should be able to initialize through democracy",
-      test: async function () {
-        log(`Disabled test D010805 (Gov V1)`);
-        return;
-        const calls: any[] = [];
-        // We are gonna put the initialization and completion in a batch_all utility call
-        calls.push(
+      test: async () => {
+        const batchedCalls: SubmittableExtrinsic[] = [];
+        batchedCalls.push(
           context.polkadotJs().tx.crowdloanRewards.initializeRewardVec([
             [RELAYCHAIN_ARBITRARY_ADDRESS_1, GOLIATH_ADDRESS, 1_500_000n * GLMR],
             [RELAYCHAIN_ARBITRARY_ADDRESS_2, null, 1_500_000n * GLMR],
@@ -29,43 +33,30 @@ describeSuite({
         );
 
         const initBlock = await context.polkadotJs().query.crowdloanRewards.initRelayBlock();
-        calls.push(
+        batchedCalls.push(
           context
             .polkadotJs()
             .tx.crowdloanRewards.completeInitialization(initBlock.toBigInt() + VESTING_PERIOD)
         );
 
         // Here we build the utility call
-        const proposal = context.polkadotJs().tx.utility.batchAll(calls);
+        const proposal = context.polkadotJs().tx.utility.batchAll(batchedCalls);
 
-        await instantFastTrack(context, proposal);
+        await whiteListTrackNoSend(context, proposal);
 
-        // vote
-        await context.createBlock(
-          context.polkadotJs().tx.democracy.vote(0, {
-            Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
-          })
-        );
+        await maximizeConvictionVotingOf(context, [ethan], 0);
+        await context.createBlock();
 
-        // referendumInfoOf
-        const referendumInfoOf = (
-          await context.polkadotJs().query.democracy.referendumInfoOf(0)
-        ).unwrap();
-        const onGoing = referendumInfoOf.asOngoing;
-
-        const blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toNumber();
-        for (let i = 0; i < onGoing.end.toNumber() - blockNumber + 1; i++) {
-          await context.createBlock();
-        }
+        await fastFowardToNextEvent(context); // ⏩️ until preparation done
+        await fastFowardToNextEvent(context); // ⏩️ until proposal confirmed
+        await fastFowardToNextEvent(context); // ⏩️ until proposal enacted
 
         const isInitialized = await context.polkadotJs().query.crowdloanRewards.initialized();
 
         expect(isInitialized.toHuman()).to.be.true;
 
-        // Get reward info of associated
         const reward_info_associated = await getAccountPayable(context, GOLIATH_ADDRESS);
 
-        // Get reward info of unassociated
         const reward_info_unassociated = (
           await context
             .polkadotJs()

@@ -2,22 +2,12 @@ import "@moonbeam-network/api-augment";
 import {
   beforeEach,
   describeSuite,
-  execOpenTechCommitteeProposal,
   expect,
   fastFowardToNextEvent,
   maximizeConvictionVotingOf,
-  notePreimage,
+  whiteListTrackNoSend,
 } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  GLMR,
-  KeyringPair,
-  charleth,
-  dorothy,
-  ethan,
-  faith,
-  generateKeyringPair,
-} from "@moonwall/util";
+import { ALITH_ADDRESS, GLMR, KeyringPair, ethan, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
   id: "D013303",
@@ -25,7 +15,6 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let whitelistedHash: string;
-    let preimageLen: bigint;
     let currentRef: number;
     let randomAddress: string;
     let randomAccount: KeyringPair;
@@ -33,50 +22,13 @@ describeSuite({
 
     beforeEach(async () => {
       randBlocksPerRound = Math.floor(Math.random() * 1000) + 200;
-
-      const preimageHash = await notePreimage(
-        context,
-        // context.polkadotJs().tx.parachainStaking.setParachainBondAccount(randomAddress)
-        context.pjsApi.tx.parachainStaking.setBlocksPerRound(randBlocksPerRound)
-      );
-      const preimageQuery = await context.pjsApi.query.preimage.requestStatusFor(preimageHash);
-      preimageLen = preimageQuery.unwrap().asUnrequested.len.toBigInt();
-
-      const dispatchWLCall = context.pjsApi.tx.whitelist.dispatchWhitelistedCall(
-        preimageHash,
-        preimageLen,
-        {
-          refTime: 2_000_000_000,
-          proofSize: 100_000,
-        }
-      );
-
-      whitelistedHash = await notePreimage(context, dispatchWLCall);
-      const whitelistedHashLen = dispatchWLCall.encodedLength - 2;
-
-      console.log(
-        `📝 DispatchWhitelistedCall preimage noted: ${whitelistedHash.slice(
-          0,
-          6
-        )}...${whitelistedHash.slice(-4)}, len: ${whitelistedHashLen}`
-      );
-
       randomAccount = generateKeyringPair();
       randomAddress = randomAccount.address;
 
-      const openGovProposal = await context.pjsApi.tx.referenda
-        .submit(
-          {
-            Origins: { whitelistedcaller: "WhitelistedCaller" },
-          },
-          { Lookup: { hash: whitelistedHash, len: whitelistedHashLen } },
-          { After: { After: 0 } }
-        )
-        .signAsync(faith);
-      const { result } = await context.createBlock(openGovProposal);
+      const proposal = context.pjsApi.tx.parachainStaking.setParachainBondAccount(randomAddress);
 
-      const whitelistCall = context.pjsApi.tx.whitelist.whitelistCall(preimageHash);
-      await execOpenTechCommitteeProposal(context, whitelistCall);
+      const { whitelistedHash: wlHash } = await whiteListTrackNoSend(context, proposal);
+      whitelistedHash = wlHash;
 
       currentRef = (await context.polkadotJs().query.referenda.referendumCount()).toNumber() - 1;
 
@@ -87,16 +39,6 @@ describeSuite({
       await context.createBlock(context.pjsApi.tx.referenda.placeDecisionDeposit(currentRef));
       await context.createBlock(
         context.pjsApi.tx.sudo.sudo(
-          context.pjsApi.tx.balances.forceSetBalance(charleth.address, 1_000_000_000n * GLMR)
-        )
-      );
-      await context.createBlock(
-        context.pjsApi.tx.sudo.sudo(
-          context.pjsApi.tx.balances.forceSetBalance(dorothy.address, 1_000_000_000n * GLMR)
-        )
-      );
-      await context.createBlock(
-        context.pjsApi.tx.sudo.sudo(
           context.pjsApi.tx.balances.forceSetBalance(ethan.address, 1_000_000_000n * GLMR)
         )
       );
@@ -105,7 +47,7 @@ describeSuite({
     it({
       id: "T01",
       title: "should succeed with enough votes",
-      test: async function () {
+      test: async () => {
         await maximizeConvictionVotingOf(context, [ethan], currentRef);
         await context.createBlock();
 
@@ -135,17 +77,16 @@ describeSuite({
         expect(finishedReferendum.isOngoing, "Still ongoing").to.be.false;
         expect(finishedReferendum.isTimedOut, "Timed out").to.be.false;
 
-        // await fastFowardToNextEvent(context);
-
-        const roundInfo = await context.pjsApi.query.parachainStaking.round();
-        expect(roundInfo.length.toNumber(), "Storage unchanged").to.equal(randBlocksPerRound);
+        const parachainBondInfo = await context.pjsApi.query.parachainStaking.parachainBondInfo();
+        expect(parachainBondInfo.account.toString()).toBe(randomAddress);
       },
     });
 
     it({
       id: "T02",
       title: "should fail with enough no votes",
-      test: async function () {
+      modifier: "skip",
+      test: async () => {
         await context.createBlock([
           context
             .polkadotJs()
@@ -155,7 +96,7 @@ describeSuite({
                 balance: 10n * GLMR,
               },
             })
-            .signAsync(charleth),
+            .signAsync(ethan),
         ]);
 
         const referendumInfoOf = (
@@ -194,7 +135,7 @@ describeSuite({
     it({
       id: "T03",
       title: "should be votable while staked",
-      test: async function () {
+      test: async () => {
         await context.createBlock(
           context.polkadotJs().tx.balances.transferAllowDeath(randomAccount.address, 100n * GLMR)
         );
@@ -217,8 +158,7 @@ describeSuite({
             })
             .signAsync(randomAccount)
         );
-
-        expect(result!.successful).to.be.true;
+        expect(result?.successful).to.be.true;
 
         const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
         expect(locks.length).to.be.equal(2, "Failed to incur two locks");

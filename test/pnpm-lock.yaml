@@ -12,11 +12,11 @@ dependencies:
     specifier: 0.2801.0
     version: 0.2801.0
   '@moonwall/cli':
-    specifier: 5.1.3
-    version: 5.1.3(@acala-network/chopsticks@0.9.10)(@polkadot/api@10.12.4)(@types/node@20.11.30)(@vitest/ui@1.4.0)(typescript@5.4.3)(vitest@1.4.0)
+    specifier: ^5.1.4
+    version: 5.1.4(@acala-network/chopsticks@0.9.10)(@polkadot/api@10.12.4)(@types/node@20.11.30)(@vitest/ui@1.4.0)(typescript@5.4.3)(vitest@1.4.0)
   '@moonwall/util':
-    specifier: 5.1.3
-    version: 5.1.3(@polkadot/api@10.12.4)(typescript@5.4.3)(vitest@1.4.0)
+    specifier: ^5.1.4
+    version: 5.1.4(@polkadot/api@10.12.4)(typescript@5.4.3)(vitest@1.4.0)
   '@openzeppelin/contracts':
     specifier: 4.9.3
     version: 4.9.3
@@ -30,8 +30,8 @@ dependencies:
     specifier: 10.12.4
     version: 10.12.4
   '@polkadot/apps-config':
-    specifier: 0.134.1
-    version: 0.134.1(@polkadot/keyring@12.6.2)(@polkadot/util-crypto@12.6.2)(react-dom@18.2.0)(react-is@18.2.0)(react@18.2.0)
+    specifier: 0.135.1
+    version: 0.135.1(@polkadot/keyring@12.6.2)(@polkadot/util-crypto@12.6.2)(react-dom@18.2.0)(react-is@18.2.0)(react@18.2.0)
   '@polkadot/keyring':
     specifier: 12.6.2
     version: 12.6.2(@polkadot/util-crypto@12.6.2)(@polkadot/util@12.6.2)
@@ -951,8 +951,8 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: false
 
-  /@moonwall/cli@5.1.3(@acala-network/chopsticks@0.9.10)(@polkadot/api@10.12.4)(@types/node@20.11.30)(@vitest/ui@1.4.0)(typescript@5.4.3)(vitest@1.4.0):
-    resolution: {integrity: sha512-zqvUAEgWO6Z9REDOCkqAbew3Ji83hHhPHBEmC53O3JQ98saT5ikYNSNxkHQFyVjCuLfdr6h9oF427mDiT8Nh4g==}
+  /@moonwall/cli@5.1.4(@acala-network/chopsticks@0.9.10)(@polkadot/api@10.12.4)(@types/node@20.11.30)(@vitest/ui@1.4.0)(typescript@5.4.3)(vitest@1.4.0):
+    resolution: {integrity: sha512-WABkrnSRffpkRUe3lVSH9nFdWlw4N2c+NYHmnhE5H46NNF48GirJPgFNuDgthW2I6LRyuIX00aGk/5Yj/26Srw==}
     engines: {node: '>=20', pnpm: '>=7'}
     hasBin: true
     peerDependencies:
@@ -963,8 +963,8 @@ packages:
     dependencies:
       '@acala-network/chopsticks': 0.9.10(debug@4.3.4)
       '@moonbeam-network/api-augment': 0.2801.0
-      '@moonwall/types': 5.1.3(@polkadot/api@10.12.4)(typescript@5.4.3)
-      '@moonwall/util': 5.1.3(@polkadot/api@10.12.4)(typescript@5.4.3)(vitest@1.4.0)
+      '@moonwall/types': 5.1.4(@polkadot/api@10.12.4)(typescript@5.4.3)
+      '@moonwall/util': 5.1.4(@polkadot/api@10.12.4)(typescript@5.4.3)(vitest@1.4.0)
       '@octokit/rest': 20.0.2
       '@polkadot/api': 10.12.4
       '@polkadot/api-derive': 10.12.4
@@ -1012,8 +1012,8 @@ packages:
       - zod
     dev: false
 
-  /@moonwall/types@5.1.3(@polkadot/api@10.12.4)(typescript@5.4.3):
-    resolution: {integrity: sha512-/QV2zCFwuyhyhLXh5BinlF4b4et+BB6UkEzR5S3cUY4SCINJMef0XdMBO+BjBXbb2lpFvzDjk34g90iACcvLcQ==}
+  /@moonwall/types@5.1.4(@polkadot/api@10.12.4)(typescript@5.4.3):
+    resolution: {integrity: sha512-gbzmgyGAywbmD3+W83W+jCaRwtR9XEpoP9DGlyVQOqksTV8Zy4mfwYLyLBElRQVPHU1HE9jvfFwTIbcsbqh2pA==}
     engines: {node: '>=20', pnpm: '>=7'}
     peerDependencies:
       '@polkadot/api': 10.11.2
@@ -1043,15 +1043,15 @@ packages:
       - zod
     dev: false
 
-  /@moonwall/util@5.1.3(@polkadot/api@10.12.4)(typescript@5.4.3)(vitest@1.4.0):
-    resolution: {integrity: sha512-Me56xj+URzaHOqcQVXRTZuSzHLcvSqbN7MRx1PeW0zMDSp9w8Amb+H/4Tsw09IOe/ZQLonhjhxGHOY6Ok0nJtA==}
+  /@moonwall/util@5.1.4(@polkadot/api@10.12.4)(typescript@5.4.3)(vitest@1.4.0):
+    resolution: {integrity: sha512-m3dFlh02wK3EU7/cVYduF38LJnoKA39yU3E9GQEd4btF3Pm97AhmT0UdBKtdiUcA9CoFncqKhhOYAo9oLTdJfg==}
     engines: {node: '>=20', pnpm: '>=7'}
     peerDependencies:
       '@polkadot/api': 10.11.2
       vitest: 1.2.2
     dependencies:
       '@moonbeam-network/api-augment': 0.2801.0
-      '@moonwall/types': 5.1.3(@polkadot/api@10.12.4)(typescript@5.4.3)
+      '@moonwall/types': 5.1.4(@polkadot/api@10.12.4)(typescript@5.4.3)
       '@polkadot/api': 10.12.4
       '@polkadot/api-derive': 10.12.4
       '@polkadot/keyring': 12.6.2(@polkadot/util-crypto@12.6.2)(@polkadot/util@12.6.2)
@@ -1805,8 +1805,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@polkadot/apps-config@0.134.1(@polkadot/keyring@12.6.2)(@polkadot/util-crypto@12.6.2)(react-dom@18.2.0)(react-is@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-gEORWwJS0vFZYWFnEXOut2RsBw4ygsWb/HhZorDvMOsbKuTy7nEWn1WpKF8Id5x44H+nICwLnB1tyJf4rn/QlQ==}
+  /@polkadot/apps-config@0.135.1(@polkadot/keyring@12.6.2)(@polkadot/util-crypto@12.6.2)(react-dom@18.2.0)(react-is@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-Y9nfYO55dHT5Zalp9m8/lwG3WbXjX0JhPRlsCD0n/nskLAwGMV/q7FR/HFb3bA4q+Mq/Ka8Y+7aVYqV0iIjLtw==}
     engines: {node: '>=18'}
     dependencies:
       '@acala-network/type-definitions': 5.1.2(@polkadot/types@10.12.4)
@@ -8413,7 +8413,7 @@ packages:
     dependencies:
       nanoid: 3.3.7
       picocolors: 1.0.0
-      source-map-js: 1.1.0
+      source-map-js: 1.2.0
     dev: false
 
   /postcss@8.4.36:
@@ -9244,6 +9244,11 @@ packages:
 
   /source-map-js@1.1.0:
     resolution: {integrity: sha512-9vC2SfsJzlej6MAaMPLu8HiBSHGdRAJ9hVFYN1ibZoNkeanmDmLUcIrj6G9DGL7XMJ54AKg/G75akXl1/izTOw==}
+    engines: {node: '>=0.10.0'}
+    dev: false
+
+  /source-map-js@1.2.0:
+    resolution: {integrity: sha512-itJW8lvSA0TXEphiRoawsCksnlf8SyvmFzIhltqAHluXd88pkCd+cXJVHTDwdCr0IzwptSm035IHQktUu1QUMg==}
     engines: {node: '>=0.10.0'}
     dev: false
 
