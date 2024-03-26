@@ -63,6 +63,10 @@ runtime-benchmarks = [
 	"moonbeam-service/runtime-benchmarks",
 	"polkadot-service/runtime-benchmarks",
 ]
-try-runtime = ["moonbeam-service/try-runtime", "try-runtime-cli/try-runtime"]
+try-runtime = [
+	"moonbeam-service/try-runtime",
+	"try-runtime-cli/try-runtime",
+	"polkadot-service/try-runtime",
+]
 
 moonbase-runtime-benchmarks = ["moonbeam-service/moonbase-runtime-benchmarks"]

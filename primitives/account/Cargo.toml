@@ -8,14 +8,14 @@ repository = { workspace = true }
 version = "0.1.1"
 
 [package.metadata.docs.rs]
-targets = [ "x86_64-unknown-linux-gnu" ]
+targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 blake2-rfc = { workspace = true, optional = true }
 impl-serde = { workspace = true }
-libsecp256k1 = { workspace = true, features = [ "hmac" ] }
+libsecp256k1 = { workspace = true, features = ["hmac"] }
 log = { workspace = true }
-serde = { workspace = true, features = [ "derive" ] }
+serde = { workspace = true, features = ["derive"] }
 sha3 = { workspace = true }
 
 # Substrate
@@ -31,7 +31,7 @@ sp-std = { workspace = true }
 hex = { workspace = true }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"full_crypto",
 	"hex/std",

@@ -5,33 +5,34 @@ import { alith, CHARLETH_ADDRESS } from "@moonwall/util";
 import {
   XcmFragment,
   RawXcmMessage,
-  injectHrmpMessage,
   sovereignAccountOfSibling,
   XcmFragmentConfig,
+  injectHrmpMessageAndSeal,
 } from "../../../../helpers/xcm.js";
 import { parseEther } from "ethers";
+import { ApiPromise } from "@polkadot/api";
 
 describeSuite({
-  id: "D014039",
+  id: "D013939",
   title: "XCM V3 - Max Weight Instructions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let dotAsset: XcmFragmentConfig;
     let amount: bigint;
     const paraId: number = 888;
+    let api: ApiPromise;
 
     beforeAll(async () => {
+      api = await context.polkadotJs();
+
       const paraSovereign = sovereignAccountOfSibling(context, paraId);
-      const metadata = await context.polkadotJs().rpc.state.getMetadata();
+      const metadata = await api.rpc.state.getMetadata();
       const balancesPalletIndex = metadata.asLatest.pallets
         .find(({ name }) => name.toString() === "Balances")!
         .index.toNumber();
 
       // Send some native tokens to the sovereign account of paraId (to pay fees)
-      await context
-        .polkadotJs()
-        .tx.balances.transferAllowDeath(paraSovereign, parseEther("1"))
-        .signAndSend(alith);
+      await api.tx.balances.transferAllowDeath(paraSovereign, parseEther("1")).signAndSend(alith);
       await context.createBlock();
 
       amount = 1_000_000_000_000_000n;
@@ -62,18 +63,18 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for WeightNotComputable error
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.ProcessingFailed.is(event))
+          .map((e) => e.event.data.toHuman() as { error: string });
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
+        expect(events[0].error).equals("Unsupported");
       },
     });
 
@@ -88,18 +89,18 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for WeightNotComputable error
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.ProcessingFailed.is(event))
+          .map((e) => e.event.data.toHuman() as { error: string });
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
+        expect(events[0].error).equals("Unsupported");
       },
     });
 
@@ -114,18 +115,18 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for WeightNotComputable error
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.ProcessingFailed.is(event))
+          .map((e) => e.event.data.toHuman() as { error: string });
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
+        expect(events[0].error).equals("Unsupported");
       },
     });
 
@@ -140,18 +141,18 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for WeightNotComputable error
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.ProcessingFailed.is(event))
+          .map((e) => e.event.data.toHuman() as { error: string });
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
+        expect(events[0].error).equals("Unsupported");
       },
     });
 
@@ -166,18 +167,18 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for WeightNotComputable error
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.ProcessingFailed.is(event))
+          .map((e) => e.event.data.toHuman() as { error: string });
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
+        expect(events[0].error).equals("Unsupported");
       },
     });
 
@@ -192,18 +193,18 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for WeightNotComputable error
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.ProcessingFailed.is(event))
+          .map((e) => e.event.data.toHuman() as { error: string });
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
+        expect(events[0].error).equals("Unsupported");
       },
     });
 
@@ -218,18 +219,18 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for WeightNotComputable error
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.ProcessingFailed.is(event))
+          .map((e) => e.event.data.toHuman() as { error: string });
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("WeightNotComputable");
+        expect(events[0].error).equals("Unsupported");
       },
     });
   },

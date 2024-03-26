@@ -36,7 +36,7 @@ use sp_std::{
 };
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
-use xcm::latest::MultiLocation;
+use xcm::latest::Location;
 use xcm_primitives::{
 	AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall, DEFAULT_PROOF_SIZE,
 };
@@ -77,22 +77,21 @@ where
 
 	pub(crate) fn transact_info(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: Location,
 	) -> EvmResult<(u64, U256, u64)> {
 		// fetch data from pallet
-		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + MultiLocation
+		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + Location
 		// + RemoteTransactInfoWithMaxWeight
 		handle.record_db_read::<Runtime>(
-			16 + MultiLocation::max_encoded_len()
-				+ RemoteTransactInfoWithMaxWeight::max_encoded_len(),
+			16 + Location::max_encoded_len() + RemoteTransactInfoWithMaxWeight::max_encoded_len(),
 		)?;
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
 			pallet_xcm_transactor::Pallet::<Runtime>::transact_info(&multilocation)
 				.ok_or(revert("Transact Info not set"))?;
 
 		// fetch data from pallet
-		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + MultiLocation + u128(16)
-		handle.record_db_read::<Runtime>(32 + MultiLocation::max_encoded_len())?;
+		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + Location + u128(16)
+		handle.record_db_read::<Runtime>(32 + Location::max_encoded_len())?;
 		let fee_per_second: u128 =
 			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(&multilocation)
 				.ok_or(revert("Fee Per Second not set"))?;
@@ -106,14 +105,13 @@ where
 
 	pub(crate) fn transact_info_with_signed(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: Location,
 	) -> EvmResult<(u64, u64, u64)> {
 		// fetch data from pallet
-		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + MultiLocation
+		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + Location
 		// + RemoteTransactInfoWithMaxWeight
 		handle.record_db_read::<Runtime>(
-			16 + MultiLocation::max_encoded_len()
-				+ RemoteTransactInfoWithMaxWeight::max_encoded_len(),
+			16 + Location::max_encoded_len() + RemoteTransactInfoWithMaxWeight::max_encoded_len(),
 		)?;
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
 			pallet_xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
@@ -132,13 +130,13 @@ where
 
 	pub(crate) fn fee_per_second(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		location: Location,
 	) -> EvmResult<U256> {
 		// fetch data from pallet
-		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + MultiLocation + u128(16)
-		handle.record_db_read::<Runtime>(32 + MultiLocation::max_encoded_len())?;
+		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + Location + u128(16)
+		handle.record_db_read::<Runtime>(32 + Location::max_encoded_len())?;
 		let fee_per_second: u128 =
-			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(multilocation)
+			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(location)
 				.ok_or(revert("Fee Per Second not set"))?;
 
 		Ok(fee_per_second.into())
@@ -148,7 +146,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		transactor: u8,
 		index: u16,
-		fee_asset: MultiLocation,
+		fee_asset: Location,
 		weight: u64,
 		inner_call: BoundedBytes<GetDataLimit>,
 	) -> EvmResult {
@@ -164,7 +162,7 @@ where
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					fee_asset,
 				))),
 				fee_amount: None,
@@ -193,7 +191,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		transactor: u8,
 		index: u16,
-		fee_asset: MultiLocation,
+		fee_asset: Location,
 		weight: u64,
 		inner_call: BoundedBytes<GetDataLimit>,
 		fee_amount: u128,
@@ -212,7 +210,7 @@ where
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					fee_asset,
 				))),
 				fee_amount: Some(fee_amount),
@@ -344,8 +342,8 @@ where
 
 	pub(crate) fn transact_through_signed_multilocation(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
-		fee_asset: MultiLocation,
+		dest: Location,
+		fee_asset: Location,
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,
 	) -> EvmResult {
@@ -355,9 +353,9 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			dest: Box::new(xcm::VersionedLocation::V4(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					fee_asset,
 				))),
 				fee_amount: None,
@@ -380,8 +378,8 @@ where
 
 	pub(crate) fn transact_through_signed_multilocation_fee_weight(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
-		fee_asset: MultiLocation,
+		dest: Location,
+		fee_asset: Location,
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,
 		fee_amount: u128,
@@ -393,9 +391,9 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			dest: Box::new(xcm::VersionedLocation::V4(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					fee_asset,
 				))),
 				fee_amount: Some(fee_amount),
@@ -421,7 +419,7 @@ where
 
 	pub(crate) fn transact_through_signed(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
+		dest: Location,
 		fee_asset: Address,
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,
@@ -444,7 +442,7 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			dest: Box::new(xcm::VersionedLocation::V4(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: None,
@@ -467,7 +465,7 @@ where
 
 	pub(crate) fn transact_through_signed_fee_weight(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
+		dest: Location,
 		fee_asset: Address,
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,
@@ -492,7 +490,7 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			dest: Box::new(xcm::VersionedLocation::V4(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: Some(fee_amount),
@@ -542,14 +540,13 @@ where
 
 	pub(crate) fn transact_info_with_signed_v3(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: Location,
 	) -> EvmResult<(Weight, Weight, Weight)> {
 		// fetch data from pallet
-		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + MultiLocation
+		// storage item: TransactInfoWithWeightLimit: Blake2_128(16) + Location
 		// + RemoteTransactInfoWithMaxWeight
 		handle.record_db_read::<Runtime>(
-			16 + MultiLocation::max_encoded_len()
-				+ RemoteTransactInfoWithMaxWeight::max_encoded_len(),
+			16 + Location::max_encoded_len() + RemoteTransactInfoWithMaxWeight::max_encoded_len(),
 		)?;
 
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
@@ -571,7 +568,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		transactor: u8,
 		index: u16,
-		fee_asset: MultiLocation,
+		fee_asset: Location,
 		weight: Weight,
 		inner_call: BoundedBytes<GetDataLimit>,
 		fee_amount: u128,
@@ -596,7 +593,7 @@ where
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					fee_asset,
 				))),
 				fee_amount: Some(fee_amount),
@@ -672,8 +669,8 @@ where
 
 	pub(crate) fn transact_through_signed_multilocation_v3(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
-		fee_asset: MultiLocation,
+		dest: Location,
+		fee_asset: Location,
 		weight: Weight,
 		call: BoundedBytes<GetDataLimit>,
 		fee_amount: u128,
@@ -691,9 +688,9 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			dest: Box::new(xcm::VersionedLocation::V4(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					fee_asset,
 				))),
 				fee_amount: Some(fee_amount),
@@ -713,7 +710,7 @@ where
 
 	pub(crate) fn transact_through_signed_v3(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
+		dest: Location,
 		fee_asset: Address,
 		weight: Weight,
 		call: BoundedBytes<GetDataLimit>,
@@ -744,7 +741,7 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			dest: Box::new(xcm::VersionedLocation::V4(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: Some(fee_amount),

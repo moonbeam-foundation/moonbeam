@@ -1,9 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
-import { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair } from "@moonwall/util";
+import { Abi, encodeFunctionData } from "viem";
 import {
   XcmFragment,
   RawXcmMessage,
@@ -12,23 +10,25 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D013922",
-  title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
+  id: "D014018",
+  title: "Mock XCM - transact ETHEREUM input size check fails",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let transferredBalance: bigint;
     let sendingAddress: `0x${string}`;
-    let descendAddress: `0x${string}`;
-    let random: KeyringPair;
+    let contractDeployed: `0x${string}`;
+    let contractABI: Abi;
 
     beforeAll(async () => {
+      const { contractAddress, abi } = await context.deployContract!("CallForwarder");
+      contractDeployed = contractAddress;
+      contractABI = abi;
+
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
-      descendAddress = descendOriginAddress;
-      random = generateKeyringPair();
       transferredBalance = 10_000_000_000_000_000_000n;
 
-      // We first fund the descend origin derivated address
+      // We first fund parachain 2000 sovreign account
       await context.createBlock(
         context
           .polkadotJs()
@@ -44,7 +44,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "should fail to transact_through_proxy without proxy",
+      title: "should fail to call the contract due to BoundedVec restriction",
       test: async function () {
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
@@ -52,52 +52,60 @@ describeSuite({
           .find(({ name }) => name.toString() == "Balances")!
           .index.toNumber();
 
-        const amountToTransfer = transferredBalance / 10n;
+        // Matches the BoundedVec limit in the runtime.
+        const CALL_INPUT_SIZE_LIMIT = Math.pow(2, 16);
 
         const xcmTransactions = [
           {
             V1: {
-              gas_limit: 21000,
+              gas_limit: 1000000,
               fee_payment: {
                 Auto: {
                   Low: null,
                 },
               },
               action: {
-                Call: random.address,
+                Call: contractDeployed,
               },
-              value: amountToTransfer,
-              input: [],
+              value: 0n,
+              input: encodeFunctionData({
+                abi: contractABI,
+                functionName: "call",
+                args: [
+                  "0x0000000000000000000000000000000000000001",
+                  context
+                    .web3()
+                    .utils.bytesToHex(new Uint8Array(CALL_INPUT_SIZE_LIMIT - 127).fill(0)),
+                ],
+              }),
               access_list: null,
             },
           },
           {
             V2: {
-              gas_limit: 21000,
+              gas_limit: 1000000,
               action: {
-                Call: random.address,
+                Call: contractDeployed,
               },
-              value: amountToTransfer,
-              input: [],
+              value: 0n,
+              input: encodeFunctionData({
+                abi: contractABI,
+                functionName: "call",
+                args: [
+                  "0x0000000000000000000000000000000000000001",
+                  context
+                    .web3()
+                    .utils.bytesToHex(new Uint8Array(CALL_INPUT_SIZE_LIMIT - 127).fill(0)),
+                ],
+              }),
               access_list: null,
             },
           },
         ];
 
-        let feeAmount = 0n;
-
-        // Gas limit + 2 db reads
-        const targetXcmWeight = 1_325_000_000n + 100_000_000n;
-        const targetXcmFee = targetXcmWeight * 50_000n;
-
         for (const xcmTransaction of xcmTransactions) {
-          feeAmount += targetXcmFee;
-          // TODO need to update lookup types for xcm ethereum transaction V2
-          const transferCall = context
-            .polkadotJs()
-            .tx.ethereumXcm.transactThroughProxy(sendingAddress, xcmTransaction);
+          const transferCall = context.polkadotJs().tx.ethereumXcm.transact(xcmTransaction as any);
           const transferCallEncoded = transferCall?.method.toHex();
-
           // We are going to test that we can receive a transact operation from parachain 1
           // using descendOrigin first
           const xcmMessage = new XcmFragment({
@@ -109,10 +117,13 @@ describeSuite({
                     X1: { PalletInstance: balancesPalletIndex },
                   },
                 },
-                fungible: targetXcmFee,
+                fungible: transferredBalance / 2n,
               },
             ],
-            weight_limit: new BN(targetXcmWeight.toString()),
+            weight_limit: {
+              refTime: 40000000000n,
+              proofSize: 110000n,
+            },
             descend_origin: sendingAddress,
           })
             .descend_origin()
@@ -120,15 +131,17 @@ describeSuite({
             .buy_execution()
             .push_any({
               Transact: {
-                originType: "SovereignAccount",
-                // 100_000 gas + 2 db read
-                requireWeightAtMost: 575_000_000n,
+                originKind: "SovereignAccount",
+                requireWeightAtMost: {
+                  refTime: 30000000000n,
+                  proofSize: 80000n,
+                },
                 call: {
                   encoded: transferCallEncoded,
                 },
               },
             })
-            .as_v2();
+            .as_v4();
 
           // Send an XCM and create block to execute it
           await injectHrmpMessageAndSeal(context, 1, {
@@ -136,16 +149,10 @@ describeSuite({
             payload: xcmMessage,
           } as RawXcmMessage);
 
-          // Make sure the state for the transfer recipient didn't change
-          const testAccountBalance = (
-            await context.polkadotJs().query.system.account(random.address)
-          ).data.free.toBigInt();
-          expect(testAccountBalance).to.eq(0n);
-
-          // Make sure the descended address has been deducted fees once (in xcm-executor) but
-          // transfered nothing.
-          const descendOriginBalance = await context.viem().getBalance({ address: descendAddress });
-          expect(BigInt(descendOriginBalance)).to.eq(transferredBalance - feeAmount);
+          const block = await context.viem().getBlock({ blockTag: "latest" });
+          // Input size is invalid by 1 byte, expect block to not include a transaction.
+          // That means the pallet-ethereum-xcm couldn't decode the provided input to a BoundedVec.
+          expect(block.transactions.length).to.be.eq(0);
         }
       },
     });

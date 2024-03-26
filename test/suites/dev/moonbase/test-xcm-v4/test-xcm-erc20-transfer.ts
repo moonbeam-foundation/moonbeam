@@ -14,7 +14,7 @@ import {
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D013929",
+  id: "D014027",
   title: "Mock XCM - Send local erc20",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -156,7 +156,7 @@ describeSuite({
                     },
                     {
                       AccountKey20: {
-                        network: "Any",
+                        network: null,
                         key: erc20ContractAddress,
                       },
                     },
@@ -173,8 +173,8 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset(2n)
-          .as_v2();
+          .deposit_asset_v3(2n)
+          .as_v4();
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {

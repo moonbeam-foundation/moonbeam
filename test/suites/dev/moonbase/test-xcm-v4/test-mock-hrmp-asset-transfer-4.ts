@@ -1,21 +1,21 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
   RawXcmMessage,
   injectHrmpMessageAndSeal,
+  weightMessage,
   sovereignAccountOfSibling,
 } from "../../../../helpers/xcm.js";
 
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D013910",
-  title: "Mock XCM - receive horizontal transfer of DEV",
+  id: "D014010",
+  title: "Mock XCM - receive horizontal transfer of DEV with new reanchor",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let random: KeyringPair;
@@ -25,12 +25,15 @@ describeSuite({
     beforeAll(async () => {
       random = generateKeyringPair();
       sovereignAddress = sovereignAccountOfSibling(context, 2000);
+
       transferredBalance = 100000000000000n;
 
       // We first fund parachain 2000 sovreign account
       await context.createBlock(
-        context.polkadotJs().tx.balances.transferAllowDeath(sovereignAddress, transferredBalance)
+        context.polkadotJs().tx.balances.transferAllowDeath(sovereignAddress, transferredBalance),
+        { allowFailures: false }
       );
+
       const balance = (
         await context.polkadotJs().query.system.account(sovereignAddress)
       ).data.free.toBigInt();
@@ -39,40 +42,46 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should NOT receive MOVR from para Id 2000 with old reanchor",
+      title: "Should receive MOVR from para Id 2000 with new reanchor logic",
       test: async function () {
-        const ownParaId = (await context.polkadotJs().query.parachainInfo.parachainId()).toNumber();
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
           .find(({ name }) => name.toString() == "Balances")!
           .index.toNumber();
 
-        // We are charging 100_000_000 weight for every XCM instruction
-        // We are executing 4 instructions
-        // 100_000_000 * 4 * 50000 = 20000000000000
-        // We are charging 20 micro DEV for this operation
         // The rest should be going to the deposit account
         const xcmMessage = new XcmFragment({
           assets: [
             {
               multilocation: {
-                parents: 1,
+                parents: 0,
                 interior: {
-                  X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
+                  X1: { PalletInstance: balancesPalletIndex },
                 },
               },
               fungible: transferredBalance,
             },
           ],
-          weight_limit: new BN(4000000000),
+          weight_limit: {
+            refTime: 40000000000n,
+            proofSize: 110000n,
+          },
           beneficiary: random.address,
         })
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset()
-          .as_v2();
+          .deposit_asset_v3()
+          .as_v4();
+
+        const chargedWeight = await weightMessage(
+          context,
+          context.polkadotJs().createType("XcmVersionedXcm", xcmMessage)
+        );
+        // We are charging chargedWeight
+        // chargedWeight * 50000 = chargedFee
+        const chargedFee = chargedWeight * 50000n;
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, foreign_para_id, {
@@ -80,18 +89,20 @@ describeSuite({
           payload: xcmMessage,
         } as RawXcmMessage);
 
-        // The message should not have been succesfully executed, since old prefix is not supported
-        // anymore
+        // We should expect sovereign balance to be 0, since we have transferred the full amount
         const balance = (
           await context.polkadotJs().query.system.account(sovereignAddress)
         ).data.free.toBigInt();
-        expect(balance.toString()).to.eq(transferredBalance.toString());
+        expect(balance.toString()).to.eq(0n.toString());
 
-        // the random address does not receive anything
+        // In the case of the random address: we have transferred 100000000000000,
+        // but chargedFee have been deducted
+        // for weight payment
         const randomBalance = (
           await context.polkadotJs().query.system.account(random.address)
         ).data.free.toBigInt();
-        expect(randomBalance).to.eq(0n);
+        const expectedRandomBalance = transferredBalance - chargedFee;
+        expect(randomBalance).to.eq(expectedRandomBalance);
       },
     });
   },

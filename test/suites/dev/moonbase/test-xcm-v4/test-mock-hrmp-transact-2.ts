@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair } from "@moonwall/util";
 import {
@@ -12,8 +11,8 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D013917",
-  title: "Mock XCM - receive horizontal transact without buy execution",
+  id: "D014014",
+  title: "Mock XCM - receive horizontal transact with two Descends",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let transferredBalance: bigint;
@@ -41,7 +40,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should fail to transact because barrier blocks without buy execution",
+      title: "Should fail to transact because barrier only allows one descend origin",
       test: async function () {
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
@@ -55,7 +54,7 @@ describeSuite({
         const transferCallEncoded = transferCall?.method.toHex();
 
         // We are going to test that we can receive a transact operation from parachain 1
-        // using descendOrigin first but without buy execution
+        // using 2 descendOrigin first
         const xcmMessage = new XcmFragment({
           assets: [
             {
@@ -68,21 +67,29 @@ describeSuite({
               fungible: transferredBalance / 2n,
             },
           ],
-          weight_limit: new BN(4000000000),
+          weight_limit: {
+            refTime: 40000000000n,
+            proofSize: 110000n,
+          },
           descend_origin: sendingAddress,
         })
           .descend_origin()
+          .descend_origin()
           .withdraw_asset()
+          .buy_execution()
           .push_any({
             Transact: {
-              originType: "SovereignAccount",
-              requireWeightAtMost: new BN(1000000000),
+              originKind: "SovereignAccount",
+              requireWeightAtMost: {
+                refTime: 1000000000n,
+                proofSize: 80000n,
+              },
               call: {
                 encoded: transferCallEncoded,
               },
             },
           })
-          .as_v2();
+          .as_v4();
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, 1, {

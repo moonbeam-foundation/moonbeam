@@ -22,7 +22,7 @@ describeSuite({
       title: "should have expensive runtime-upgrade fees",
       test: async () => {
         const fee = await testRuntimeUpgrade(context);
-        expect(fee).toBeLessThanOrEqual(9226801665723667008n);
+        expect(fee).toBeLessThanOrEqual(9274087607203200560n);
       },
     });
   },

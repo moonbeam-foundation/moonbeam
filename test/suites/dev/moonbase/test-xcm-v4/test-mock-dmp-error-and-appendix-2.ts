@@ -15,8 +15,8 @@ const RELAY_TOKEN = 1_000_000_000_000n;
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 describeSuite({
-  id: "D013903",
-  title: "Mock XCM V3 - downward transfer with always triggered appendix",
+  id: "D014002",
+  title: "Mock XCM V3 - downward transfer with triggered error handler",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let assetId: string;
@@ -34,7 +34,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should make sure Alith receives 10 dot with appendix and without error",
+      title: "Should make sure that Alith does receive 10 dot because there is error",
       test: async function () {
         const xcmMessage = new XcmFragment({
           assets: [
@@ -52,21 +52,25 @@ describeSuite({
         })
           .reserve_asset_deposited()
           .buy_execution()
-          // Set an appendix to be executed after the XCM message is executed. No matter if errors
+          // BuyExecution does not charge for fees because we registered it for not doing so
+          // As a consequence the trapped assets will be entirely credited
           .with(function () {
-            return this.set_appendix_with([this.deposit_asset]);
+            return this.set_error_handler_with([this.deposit_asset_v3]);
           })
-          .as_v2();
+          .trap()
+          .as_v4();
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
           .createType("XcmVersionedXcm", xcmMessage);
 
         const totalMessage = [...receivedMessage.toU8a()];
+
         // Send RPC call to inject XCM message
         await customDevRpcRequest("xcm_injectDownwardMessage", [totalMessage]);
 
         // Create a block in which the XCM will be executed
+        await context.createBlock();
         await context.createBlock();
         // Make sure the state has ALITH's to DOT tokens
         const alith_dot_balance = (

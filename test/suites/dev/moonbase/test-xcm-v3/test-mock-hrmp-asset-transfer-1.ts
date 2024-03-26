@@ -16,7 +16,7 @@ const assetMetadata = {
 };
 
 describeSuite({
-  id: "D014009",
+  id: "D013909",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -41,9 +41,10 @@ describeSuite({
         // You can provide a message, but if you don't a horizontal transfer is the default
         await customDevRpcRequest("xcm_injectHrmpMessage", [foreign_para_id, []]);
 
+        // Process the next block
+        await context.createBlock();
         // Create a block in which the XCM will be executed
         await context.createBlock();
-
         // Make sure the state has ALITH's foreign parachain tokens
         const alith_dot_balance = (
           await context.polkadotJs().query.assets.account(assetId, alith.address)

@@ -34,7 +34,7 @@ const STATEMINT_LOCATION = {
 };
 
 describeSuite({
-  id: "D013913",
+  id: "D014007",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -53,10 +53,15 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should not receive 10 asset 0 tokens because fee not supported",
+      title: "Should NOT receive a 10 Statemine tokens to Alith with old prefix",
       test: async function () {
-        // We are going to test that, using one of them as fee payment (assetOne),
-        // we can receive the other
+        // We are going to test that, using the prefix prior to
+        // https://github.com/paritytech/cumulus/pull/831
+        // we cannot receive the tokens on the assetId registed with the old prefix
+
+        // Old prefix:
+        // Parachain(Statemint parachain)
+        // GeneralIndex(assetId being transferred)
         const xcmMessage = new XcmFragment({
           assets: [
             {
@@ -73,8 +78,8 @@ describeSuite({
           .reserve_asset_deposited()
           .clear_origin()
           .buy_execution()
-          .deposit_asset(2n)
-          .as_v2();
+          .deposit_asset_v3()
+          .as_v4();
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, statemint_para_id, {
@@ -83,11 +88,12 @@ describeSuite({
         } as RawXcmMessage);
 
         // Make sure the state has ALITH's foreign parachain tokens
-        const alithAssetZeroBalance = await context
+        const alith_dot_balance = await context
           .polkadotJs()
           .query.assets.account(assetId, alith.address);
 
-        expect(alithAssetZeroBalance.isNone).to.eq(true);
+        // The message execution failed
+        expect(alith_dot_balance.isNone).to.be.true;
       },
     });
   },

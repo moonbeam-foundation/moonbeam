@@ -1,8 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
-
 import { alith } from "@moonwall/util";
 
 import {
@@ -50,7 +48,7 @@ const STATEMINT_ASSET_ONE_LOCATION = {
 };
 
 describeSuite({
-  id: "D013912",
+  id: "D014011",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -106,14 +104,17 @@ describeSuite({
               fungible: 10000000000000n,
             },
           ],
-          weight_limit: new BN(4000000000),
+          weight_limit: {
+            refTime: 40000000000n,
+            proofSize: 110000n,
+          },
           beneficiary: alith.address,
         })
           .reserve_asset_deposited()
           .clear_origin()
           .buy_execution(1) // buy execution with asset at index 1
-          .deposit_asset(2n)
-          .as_v2();
+          .deposit_asset_v3(2n)
+          .as_v4();
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, statemint_para_id, {
