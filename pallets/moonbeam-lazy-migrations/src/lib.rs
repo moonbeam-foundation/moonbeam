@@ -72,6 +72,8 @@ pub mod pallet {
 		AllStorageEntriesHaveBeenRemoved,
 		/// The limit cannot be zero
 		LimitCannotBeZero,
+		/// The maximum number of assets cannot be zero
+		MaxAssetsCannotBeZero,
 		/// The limit for unlocking funds is too high
 		UnlockLimitTooHigh,
 		/// There are no more VotingOf entries to be removed and democracy funds to be unlocked
@@ -98,6 +100,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
+			ensure!(max_assets != 0, Error::<T>::MaxAssetsCannotBeZero);
 
 			ensure!(
 				!LocalAssetsMigrationCompleted::<T>::get(),
@@ -136,17 +139,16 @@ pub mod pallet {
 				pub(super) deposit: DepositBalance,
 			}
 
-			let asset_id_iter = frame_support::storage::types::StorageMap::<
+			type AssetMap = frame_support::storage::types::StorageMap<
 				LocalAssetsStorageAsset,
 				Blake2_128Concat,
 				u128,
 				// It is fine to add a dummy `Value` type
 				// The value is not going to be decoded, since we only care about the keys)
 				(),
-			>::iter_keys()
-			.take(max_assets as usize);
+			>;
 
-			for asset_id in asset_id_iter {
+			for asset_id in AssetMap::iter_keys().take(max_assets as usize) {
 				let approvals_iter = frame_support::storage::types::StorageNMap::<
 					LocalAssetsStorageApprovals,
 					(
@@ -164,6 +166,13 @@ pub mod pallet {
 					if allowed_removals < 1 {
 						break;
 					}
+				}
+				// Remove asset, since it does not contain more approvals
+				AssetMap::remove(asset_id);
+				allowed_removals = allowed_removals.saturating_sub(1);
+				// Check if the removal limit was reached
+				if allowed_removals < 1 {
+					break;
 				}
 			}
 
