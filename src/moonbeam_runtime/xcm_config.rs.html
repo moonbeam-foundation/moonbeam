@@ -644,6 +644,71 @@
 <a href="#644" id="644">644</a>
 <a href="#645" id="645">645</a>
 <a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -664,19 +729,19 @@
 //!
 
 </span><span class="kw">use super</span>::{
-	governance, AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees,
-	Erc20XcmBridge, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall,
-	RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees, Erc20XcmBridge,
+	MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 
 <span class="kw">use </span>frame_support::{
 	parameter_types,
-	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
+	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
 <span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbeam_weights;
 <span class="kw">use </span>pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 <span class="kw">use </span>sp_runtime::{
-	traits::{Hash <span class="kw">as </span>THash, PostDispatchInfoOf},
+	traits::{Hash <span class="kw">as </span>THash, MaybeEquivalence, PostDispatchInfoOf},
 	DispatchErrorWithPostInfo,
 };
 <span class="kw">use </span>sp_weights::Weight;
@@ -686,25 +751,31 @@
 
 <span class="kw">use </span>xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter,
-	DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin, FungiblesAdapter, HashedDescription,
+	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
+	EnsureXcmOrigin, FungibleAdapter <span class="kw">as </span>XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
 	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
 	TakeWeightCredit, UsingComponents, WeightInfoBounds, WithComputedOrigin,
 };
 
-<span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
+<span class="kw">use </span>xcm::latest::prelude::{
+	Asset, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId, PalletInstance,
+	Parachain,
+};
 <span class="kw">use </span>xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
+<span class="kw">use </span>cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 <span class="kw">use </span>orml_xcm_support::MultiNativeAsset;
 <span class="kw">use </span>xcm_primitives::{
-	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
+	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
 	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 };
 
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>scale_info::TypeInfo;
 
+<span class="kw">use </span>sp_core::Get;
 <span class="kw">use </span>sp_std::{
 	convert::{From, Into, TryFrom},
 	prelude::<span class="kw-2">*</span>,
@@ -719,21 +790,21 @@
 	</span><span class="kw">pub const </span>RelayNetwork: NetworkId = NetworkId::Polkadot;
 	<span class="comment">// The relay chain Origin type
 	</span><span class="kw">pub </span>RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
-	<span class="kw">pub </span>UniversalLocation: InteriorMultiLocation =
-		X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into()));
+	<span class="kw">pub </span>UniversalLocation: InteriorLocation =
+		[GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into())].into();
 	<span class="comment">// Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
-	// a MultiLocation: (Self Balances pallet index)
+	// a Location: (Self Balances pallet index)
 	// We use the RELATIVE multilocation
-	</span><span class="kw">pub </span>SelfReserve: MultiLocation = MultiLocation {
+	</span><span class="kw">pub </span>SelfReserve: Location = Location {
 		parents:<span class="number">0</span>,
-		interior: Junctions::X1(
+		interior: [
 			PalletInstance(&lt;Balances <span class="kw">as </span>PalletInfoAccess&gt;::index() <span class="kw">as </span>u8)
-		)
+		].into()
 	};
 }
 
-<span class="doccomment">/// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
+<span class="doccomment">/// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
 </span><span class="kw">pub type </span>LocationToAccountId = (
@@ -741,7 +812,7 @@
 	</span>ParentIsPreset&lt;AccountId&gt;,
 	<span class="comment">// Sibling parachain origins convert to AccountId via the `ParaId::into`.
 	</span>SiblingParachainConvertsVia&lt;polkadot_parachain::primitives::Sibling, AccountId&gt;,
-	<span class="comment">// If we receive a MultiLocation of type AccountKey20, just generate a native account
+	<span class="comment">// If we receive a Location of type AccountKey20, just generate a native account
 	</span>AccountKey20Aliases&lt;RelayNetwork, AccountId&gt;,
 	<span class="comment">// Generate remote accounts according to polkadot standards
 	</span>HashedDescription&lt;AccountId, DescribeFamily&lt;DescribeAllTerminal&gt;&gt;,
@@ -750,7 +821,7 @@
 <span class="doccomment">/// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
 </span><span class="kw">pub struct </span>LocationToH160;
 <span class="kw">impl </span>ConvertLocation&lt;H160&gt; <span class="kw">for </span>LocationToH160 {
-	<span class="kw">fn </span>convert_location(location: <span class="kw-2">&amp;</span>MultiLocation) -&gt; <span class="prelude-ty">Option</span>&lt;H160&gt; {
+	<span class="kw">fn </span>convert_location(location: <span class="kw-2">&amp;</span>Location) -&gt; <span class="prelude-ty">Option</span>&lt;H160&gt; {
 		&lt;LocationToAccountId <span class="kw">as </span>ConvertLocation&lt;AccountId&gt;&gt;::convert_location(location)
 			.map(Into::into)
 	}
@@ -760,7 +831,7 @@
 // It will use pallet-assets, and the Id will be matched against AsAssetType
 </span><span class="kw">pub type </span>ForeignFungiblesTransactor = FungiblesAdapter&lt;
 	<span class="comment">// Use this fungibles implementation:
-	</span>Assets,
+	</span><span class="kw">super</span>::Assets,
 	<span class="comment">// Use this currency when it is a fungible asset matching the given location or name:
 	</span>(
 		ConvertedConcreteId&lt;
@@ -770,7 +841,7 @@
 			JustTry,
 		&gt;,
 	),
-	<span class="comment">// Do a simple punn to convert an AccountId20 MultiLocation into a native chain account ID:
+	<span class="comment">// Do a simple punn to convert an AccountId20 Location into a native chain account ID:
 	</span>LocationToAccountId,
 	<span class="comment">// Our chain&#39;s account ID type (we can&#39;t get away without mentioning it explicitly):
 	</span>AccountId,
@@ -864,7 +935,7 @@
 /// We do not burn anything because we want to mimic exactly what
 /// the sovereign account has
 </span><span class="kw">pub type </span>XcmFeesToAccount = xcm_primitives::XcmFeesToAccount&lt;
-	Assets,
+	<span class="kw">super</span>::Assets,
 	(
 		ConvertedConcreteId&lt;
 			AssetId,
@@ -943,14 +1014,15 @@
 	<span class="kw">type </span>UniversalAliases = Nothing;
 	<span class="kw">type </span>SafeCallFilter = SafeCallFilter;
 	<span class="kw">type </span>Aliasers = Nothing;
+	<span class="kw">type </span>TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
 }
 
 <span class="kw">type </span>XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper&lt;
-	RuntimeCall,
+	XcmExecutorConfig,
 	xcm_executor::XcmExecutor&lt;XcmExecutorConfig&gt;,
 &gt;;
 
-<span class="comment">// Converts a Signed Local Origin into a MultiLocation
+<span class="comment">// Converts a Signed Local Origin into a Location
 </span><span class="kw">pub type </span>LocalOriginToLocation = SignedToAccountId20&lt;RuntimeOrigin, AccountId, RelayNetwork&gt;;
 
 <span class="doccomment">/// The means for routing XCM messages which are not for local execution into the right message
@@ -961,11 +1033,6 @@
 	<span class="comment">// ..and XCMP to communicate with the sibling chains.
 	</span>XcmpQueue,
 );
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
-</span><span class="macro">parameter_types! </span>{
-	<span class="kw">pub </span>ReachableDest: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; = <span class="prelude-val">Some</span>(Parent.into());
-}
 
 <span class="kw">impl </span>pallet_xcm::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
@@ -991,8 +1058,6 @@
 	<span class="kw">type </span>RemoteLockConsumerIdentifier = ();
 	<span class="comment">// TODO pallet-xcm weights
 	</span><span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_xcm::WeightInfo&lt;Runtime&gt;;
-	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
-	</span><span class="kw">type </span>ReachableDest = ReachableDest;
 	<span class="kw">type </span>AdminOrigin = EnsureRoot&lt;AccountId&gt;;
 }
 
@@ -1003,10 +1068,10 @@
 
 <span class="kw">impl </span>cumulus_pallet_xcmp_queue::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>XcmExecutor = XcmExecutor;
 	<span class="kw">type </span>ChannelInfo = ParachainSystem;
 	<span class="kw">type </span>VersionWrapper = PolkadotXcm;
-	<span class="kw">type </span>ExecuteOverweightOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>XcmpQueue = TransformOrigin&lt;MessageQueue, AggregateMessageOrigin, ParaId, ParaIdToSibling&gt;;
+	<span class="kw">type </span>MaxInboundSuspended = sp_core::ConstU32&lt;<span class="number">1_000</span>&gt;;
 	<span class="kw">type </span>ControllerOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::cumulus_pallet_xcmp_queue::WeightInfo&lt;Runtime&gt;;
@@ -1015,32 +1080,96 @@
 	&gt;;
 }
 
-<span class="kw">impl </span>cumulus_pallet_dmp_queue::Config <span class="kw">for </span>Runtime {
+<span class="macro">parameter_types! </span>{
+	<span class="kw">pub const </span>RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
+}
+
+<span class="comment">// TODO: This pallet can be removed after the lazy migration is done and
+// event `Completed` is emitted.
+// https://github.com/paritytech/polkadot-sdk/pull/1246
+</span><span class="kw">impl </span>cumulus_pallet_dmp_queue::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>XcmExecutor = XcmExecutor;
-	<span class="kw">type </span>ExecuteOverweightOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>DmpSink = frame_support::traits::EnqueueWithOrigin&lt;MessageQueue, RelayOrigin&gt;;
+	<span class="kw">type </span>WeightInfo = cumulus_pallet_dmp_queue::weights::SubstrateWeight&lt;Runtime&gt;;
+}
+
+<span class="macro">parameter_types! </span>{
+	<span class="doccomment">/// The amount of weight (if any) which should be provided to the message queue for
+	/// servicing enqueued items.
+	///
+	/// This may be legitimately `None` in the case that you will call
+	/// `ServiceQueues::service_queues` manually.
+	</span><span class="kw">pub </span>MessageQueueServiceWeight: Weight =
+		Perbill::from_percent(<span class="number">25</span>) * RuntimeBlockWeights::get().max_block;
+	<span class="doccomment">/// The maximum number of stale pages (i.e. of overweight messages) allowed before culling
+	/// can happen. Once there are more stale pages than this, then historical pages may be
+	/// dropped, even if they contain unprocessed overweight messages.
+	</span><span class="kw">pub const </span>MessageQueueMaxStale: u32 = <span class="number">8</span>;
+	<span class="doccomment">/// The size of the page; this implies the maximum message size which can be sent.
+	///
+	/// A good value depends on the expected message sizes, their weights, the weight that is
+	/// available for processing them and the maximal needed message size. The maximal message
+	/// size is slightly lower than this as defined by [`MaxMessageLenOf`].
+	</span><span class="kw">pub const </span>MessageQueueHeapSize: u32 = <span class="number">128 </span>* <span class="number">1048</span>;
+}
+
+<span class="kw">impl </span>pallet_message_queue::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+	</span><span class="kw">type </span>MessageProcessor = pallet_message_queue::mock_helpers::NoopMessageProcessor&lt;
+		cumulus_primitives_core::AggregateMessageOrigin,
+	&gt;;
+	<span class="attr">#[cfg(not(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
+	</span><span class="kw">type </span>MessageProcessor =
+		xcm_builder::ProcessXcmMessage&lt;AggregateMessageOrigin, XcmExecutor, RuntimeCall&gt;;
+	<span class="kw">type </span>Size = u32;
+	<span class="kw">type </span>HeapSize = MessageQueueHeapSize;
+	<span class="kw">type </span>MaxStale = MessageQueueMaxStale;
+	<span class="kw">type </span>ServiceWeight = MessageQueueServiceWeight;
+	<span class="comment">// The XCMP queue pallet is only ever able to handle the `Sibling(ParaId)` origin:
+	</span><span class="kw">type </span>QueueChangeHandler = NarrowOriginToSibling&lt;XcmpQueue&gt;;
+	<span class="comment">// NarrowOriginToSibling calls XcmpQueue&#39;s is_paused if Origin is sibling. Allows all other origins
+	</span><span class="kw">type </span>QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling&lt;XcmpQueue&gt;);
+	<span class="kw">type </span>WeightInfo = pallet_message_queue::weights::SubstrateWeight&lt;Runtime&gt;;
 }
 
 <span class="comment">// Our AssetType. For now we only handle Xcm Assets
 </span><span class="attr">#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 </span><span class="kw">pub enum </span>AssetType {
-	Xcm(MultiLocation),
+	Xcm(xcm::v3::Location),
 }
 <span class="kw">impl </span>Default <span class="kw">for </span>AssetType {
 	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-		<span class="self">Self</span>::Xcm(MultiLocation::here())
+		<span class="self">Self</span>::Xcm(xcm::v3::Location::here())
 	}
 }
 
-<span class="kw">impl </span>From&lt;MultiLocation&gt; <span class="kw">for </span>AssetType {
-	<span class="kw">fn </span>from(location: MultiLocation) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;xcm::v3::Location&gt; <span class="kw">for </span>AssetType {
+	<span class="kw">fn </span>from(location: xcm::v3::Location) -&gt; <span class="self">Self </span>{
 		<span class="self">Self</span>::Xcm(location)
 	}
 }
-<span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;MultiLocation&gt;&gt; <span class="kw">for </span>AssetType {
-	<span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; {
+
+<span class="comment">// This can be removed once we fully adopt xcm::v4 everywhere
+</span><span class="kw">impl </span>TryFrom&lt;Location&gt; <span class="kw">for </span>AssetType {
+	<span class="kw">type </span>Error = ();
+	<span class="kw">fn </span>try_from(location: Location) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+		<span class="prelude-val">Ok</span>(<span class="self">Self</span>::Xcm(location.try_into()<span class="question-mark">?</span>))
+	}
+}
+
+<span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;xcm::v3::Location&gt;&gt; <span class="kw">for </span>AssetType {
+	<span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;xcm::v3::Location&gt; {
 		<span class="kw">match </span><span class="self">self </span>{
 			<span class="self">Self</span>::Xcm(location) =&gt; <span class="prelude-val">Some</span>(location),
+		}
+	}
+}
+
+<span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;Location&gt;&gt; <span class="kw">for </span>AssetType {
+	<span class="kw">fn </span>into(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Location&gt; {
+		<span class="kw">match </span><span class="self">self </span>{
+			<span class="self">Self</span>::Xcm(location) =&gt; xcm_builder::V4V3LocationConverter::convert_back(<span class="kw-2">&amp;</span>location),
 		}
 	}
 }
@@ -1092,17 +1221,17 @@
 		})
 	}
 }
-<span class="comment">// How to convert from CurrencyId to MultiLocation
-</span><span class="kw">pub struct </span>CurrencyIdtoMultiLocation&lt;AssetXConverter&gt;(sp_std::marker::PhantomData&lt;AssetXConverter&gt;);
-<span class="kw">impl</span>&lt;AssetXConverter&gt; sp_runtime::traits::Convert&lt;CurrencyId, <span class="prelude-ty">Option</span>&lt;MultiLocation&gt;&gt;
-	<span class="kw">for </span>CurrencyIdtoMultiLocation&lt;AssetXConverter&gt;
+<span class="comment">// How to convert from CurrencyId to Location
+</span><span class="kw">pub struct </span>CurrencyIdToLocation&lt;AssetXConverter&gt;(sp_std::marker::PhantomData&lt;AssetXConverter&gt;);
+<span class="kw">impl</span>&lt;AssetXConverter&gt; sp_runtime::traits::Convert&lt;CurrencyId, <span class="prelude-ty">Option</span>&lt;Location&gt;&gt;
+	<span class="kw">for </span>CurrencyIdToLocation&lt;AssetXConverter&gt;
 <span class="kw">where
-	</span>AssetXConverter: sp_runtime::traits::MaybeEquivalence&lt;MultiLocation, AssetId&gt;,
+	</span>AssetXConverter: sp_runtime::traits::MaybeEquivalence&lt;Location, AssetId&gt;,
 {
-	<span class="kw">fn </span>convert(currency: CurrencyId) -&gt; <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; {
+	<span class="kw">fn </span>convert(currency: CurrencyId) -&gt; <span class="prelude-ty">Option</span>&lt;Location&gt; {
 		<span class="kw">match </span>currency {
 			CurrencyId::SelfReserve =&gt; {
-				<span class="kw">let </span>multi: MultiLocation = SelfReserve::get();
+				<span class="kw">let </span>multi: Location = SelfReserve::get();
 				<span class="prelude-val">Some</span>(multi)
 			}
 			CurrencyId::ForeignAsset(asset) =&gt; AssetXConverter::convert_back(<span class="kw-2">&amp;</span>asset),
@@ -1127,19 +1256,19 @@
 
 	<span class="comment">// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
-	</span><span class="kw">pub </span>SelfLocation: MultiLocation = MultiLocation::here();
+	</span><span class="kw">pub </span>SelfLocation: Location = Location::here();
 	<span class="comment">// We need this to be able to catch when someone is trying to execute a non-
 	// cross-chain transfer in xtokens through the absolute path way
-	</span><span class="kw">pub </span>SelfLocationAbsolute: MultiLocation = MultiLocation {
+	</span><span class="kw">pub </span>SelfLocationAbsolute: Location = Location {
 		parents:<span class="number">1</span>,
-		interior: Junctions::X1(
+		interior: [
 			Parachain(ParachainInfo::parachain_id().into())
-		)
+		].into()
 	};
 }
 
 <span class="macro">parameter_type_with_key! </span>{
-	<span class="kw">pub </span>ParachainMinFee: |location: MultiLocation| -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt; {
+	<span class="kw">pub </span>ParachainMinFee: |location: Location| -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt; {
 		<span class="kw">match </span>(location.parents, location.first_interior()) {
 			<span class="comment">// Polkadot AssetHub fee
 			</span>(<span class="number">1</span>, <span class="prelude-val">Some</span>(Parachain(<span class="number">1000u32</span>))) =&gt; <span class="prelude-val">Some</span>(<span class="number">50_000_000u128</span>),
@@ -1152,9 +1281,8 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Balance = Balance;
 	<span class="kw">type </span>CurrencyId = CurrencyId;
-	<span class="kw">type </span>AccountIdToMultiLocation = AccountIdToMultiLocation&lt;AccountId&gt;;
-	<span class="kw">type </span>CurrencyIdConvert =
-		CurrencyIdtoMultiLocation&lt;AsAssetType&lt;AssetId, AssetType, AssetManager&gt;&gt;;
+	<span class="kw">type </span>AccountIdToLocation = AccountIdToLocation&lt;AccountId&gt;;
+	<span class="kw">type </span>CurrencyIdConvert = CurrencyIdToLocation&lt;AsAssetType&lt;AssetId, AssetType, AssetManager&gt;&gt;;
 	<span class="kw">type </span>XcmExecutor = XcmExecutor;
 	<span class="kw">type </span>SelfLocation = SelfLocation;
 	<span class="kw">type </span>Weigher = XcmWeigher;
@@ -1162,13 +1290,13 @@
 	<span class="kw">type </span>UniversalLocation = UniversalLocation;
 	<span class="kw">type </span>MaxAssetsForTransfer = MaxAssetsForTransfer;
 	<span class="kw">type </span>MinXcmFee = ParachainMinFee;
-	<span class="kw">type </span>MultiLocationsFilter = Everything;
+	<span class="kw">type </span>LocationsFilter = Everything;
 	<span class="kw">type </span>ReserveProvider = AbsoluteAndRelativeReserve&lt;SelfLocationAbsolute&gt;;
 }
 
 <span class="comment">// 1 DOT should be enough
 </span><span class="macro">parameter_types! </span>{
-	<span class="kw">pub </span>MaxHrmpRelayFee: MultiAsset = (MultiLocation::parent(), <span class="number">1_000_000_000_000u128</span>).into();
+	<span class="kw">pub </span>MaxHrmpRelayFee: Asset = (Location::parent(), <span class="number">1_000_000_000_000u128</span>).into();
 }
 
 <span class="comment">// For now we only allow to transact in the relay, although this might change in the future
@@ -1209,9 +1337,9 @@
 }
 
 <span class="kw">impl </span>XcmTransact <span class="kw">for </span>Transactors {
-	<span class="kw">fn </span>destination(<span class="self">self</span>) -&gt; MultiLocation {
+	<span class="kw">fn </span>destination(<span class="self">self</span>) -&gt; Location {
 		<span class="kw">match </span><span class="self">self </span>{
-			Transactors::Relay =&gt; MultiLocation::parent(),
+			Transactors::Relay =&gt; Location::parent(),
 		}
 	}
 }
@@ -1226,9 +1354,8 @@
 	<span class="kw">type </span>DerivativeAddressRegistrationOrigin = DerivativeAddressRegistrationOrigin;
 	<span class="kw">type </span>SovereignAccountDispatcherOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>CurrencyId = CurrencyId;
-	<span class="kw">type </span>AccountIdToMultiLocation = AccountIdToMultiLocation&lt;AccountId&gt;;
-	<span class="kw">type </span>CurrencyIdToMultiLocation =
-		CurrencyIdtoMultiLocation&lt;AsAssetType&lt;AssetId, AssetType, AssetManager&gt;&gt;;
+	<span class="kw">type </span>AccountIdToLocation = AccountIdToLocation&lt;AccountId&gt;;
+	<span class="kw">type </span>CurrencyIdToLocation = CurrencyIdToLocation&lt;AsAssetType&lt;AssetId, AssetType, AssetManager&gt;&gt;;
 	<span class="kw">type </span>XcmSender = XcmRouter;
 	<span class="kw">type </span>SelfLocation = SelfLocation;
 	<span class="kw">type </span>Weigher = XcmWeigher;
@@ -1245,11 +1372,11 @@
 	<span class="comment">// This is the relative view of erc20 assets.
 	// Identified by this prefix + AccountKey20(contractAddress)
 	// We use the RELATIVE multilocation
-	</span><span class="kw">pub </span>Erc20XcmBridgePalletLocation: MultiLocation = MultiLocation {
+	</span><span class="kw">pub </span>Erc20XcmBridgePalletLocation: Location = Location {
 		parents:<span class="number">0</span>,
-		interior: Junctions::X1(
+		interior: [
 			PalletInstance(&lt;Erc20XcmBridge <span class="kw">as </span>PalletInfoAccess&gt;::index() <span class="kw">as </span>u8)
-		)
+		].into()
 	};
 
 	<span class="comment">// To be able to support almost all erc20 implementations,
@@ -1267,11 +1394,12 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
 </span><span class="kw">mod </span>testing {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>xcm_builder::V4V3LocationConverter;
 
 	<span class="doccomment">/// This From exists for benchmarking purposes. It has the potential side-effect of calling
 	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
-	</span><span class="kw">impl </span>From&lt;MultiLocation&gt; <span class="kw">for </span>CurrencyId {
-		<span class="kw">fn </span>from(location: MultiLocation) -&gt; CurrencyId {
+	</span><span class="kw">impl </span>From&lt;Location&gt; <span class="kw">for </span>CurrencyId {
+		<span class="kw">fn </span>from(location: Location) -&gt; CurrencyId {
 			<span class="kw">use </span>xcm_primitives::AssetTypeGetter;
 
 			<span class="comment">// If it does not exist, for benchmarking purposes, we create the association
@@ -1280,7 +1408,9 @@
 			{
 				asset_id
 			} <span class="kw">else </span>{
-				<span class="kw">let </span>asset_type = AssetType::Xcm(location);
+				<span class="kw">let </span>asset_type = AssetType::Xcm(
+					V4V3LocationConverter::convert(<span class="kw-2">&amp;</span>location).expect(<span class="string">&quot;convert to v3&quot;</span>),
+				);
 				<span class="kw">let </span>asset_id: AssetId = asset_type.clone().into();
 				AssetManager::set_asset_type_asset_id(asset_type, asset_id);
 				asset_id

@@ -72,8 +72,8 @@
 <span class="comment">// Morph a given `DropAssets` implementation into one which filter out erc20 assets.
 </span><span class="kw">impl</span>&lt;AssetTrap: DropAssets, T: <span class="kw">crate</span>::Config&gt; DropAssets <span class="kw">for </span>AssetTrapWrapper&lt;AssetTrap, T&gt; {
 	<span class="kw">fn </span>drop_assets(
-		origin: <span class="kw-2">&amp;</span>xcm::latest::MultiLocation,
-		<span class="kw-2">mut </span>assets: xcm_executor::Assets,
+		origin: <span class="kw-2">&amp;</span>xcm::latest::Location,
+		<span class="kw-2">mut </span>assets: xcm_executor::AssetsInHolding,
 		context: <span class="kw-2">&amp;</span>XcmContext,
 	) -&gt; xcm::latest::Weight {
 		<span class="comment">// Remove all erc20 assets
@@ -84,8 +84,8 @@
 			})
 			.collect();
 		<span class="kw">for </span>id <span class="kw">in </span>assets_to_remove {
-			assets.saturating_take(xcm::latest::MultiAssetFilter::Wild(
-				xcm::latest::WildMultiAsset::AllOf {
+			assets.saturating_take(xcm::latest::AssetFilter::Wild(
+				xcm::latest::WildAsset::AllOf {
 					fun: WildFungible,
 					id,
 				},

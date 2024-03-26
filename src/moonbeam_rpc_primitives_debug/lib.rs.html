@@ -64,6 +64,20 @@
 <a href="#64" id="64">64</a>
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -88,7 +102,7 @@
 <span class="kw">use </span>sp_std::vec::Vec;
 
 <span class="macro">sp_api::decl_runtime_apis! </span>{
-	<span class="comment">// Api version is virtually 4.
+	<span class="comment">// Api version is virtually 5.
 	//
 	// We realized that even using runtime overrides, using the ApiExt interface reads the api
 	// versions from the state runtime, meaning we cannot just reset the versioning as we see fit.
@@ -96,8 +110,14 @@
 	// In order to be able to use ApiExt as part of the RPC handler logic we need to be always
 	// above the version that exists on chain for this Api, even if this Api is only meant
 	// to be used overridden.
-	</span><span class="attr">#[api_version(<span class="number">4</span>)]
+	</span><span class="attr">#[api_version(<span class="number">5</span>)]
 	</span><span class="kw">pub trait </span>DebugRuntimeApi {
+		<span class="attr">#[changed_in(<span class="number">5</span>)]
+		</span><span class="kw">fn </span>trace_transaction(
+			extrinsics: Vec&lt;Block::Extrinsic&gt;,
+			transaction: <span class="kw-2">&amp;</span>Transaction,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt;;
+
 		<span class="attr">#[changed_in(<span class="number">4</span>)]
 		</span><span class="kw">fn </span>trace_transaction(
 			extrinsics: Vec&lt;Block::Extrinsic&gt;,
@@ -107,11 +127,19 @@
 		<span class="kw">fn </span>trace_transaction(
 			extrinsics: Vec&lt;Block::Extrinsic&gt;,
 			transaction: <span class="kw-2">&amp;</span>Transaction,
+			header: <span class="kw-2">&amp;</span>Block::Header,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt;;
+
+		<span class="attr">#[changed_in(<span class="number">5</span>)]
+		</span><span class="kw">fn </span>trace_block(
+			extrinsics: Vec&lt;Block::Extrinsic&gt;,
+			known_transactions: Vec&lt;H256&gt;,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt;;
 
 		<span class="kw">fn </span>trace_block(
 			extrinsics: Vec&lt;Block::Extrinsic&gt;,
 			known_transactions: Vec&lt;H256&gt;,
+			header: <span class="kw-2">&amp;</span>Block::Header,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt;;
 	}
 }

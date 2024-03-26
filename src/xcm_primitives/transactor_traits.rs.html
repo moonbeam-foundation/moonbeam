@@ -106,7 +106,7 @@
 	ParaId,
 };
 <span class="kw">use </span>sp_std::vec::Vec;
-<span class="kw">use </span>xcm::latest::{Error <span class="kw">as </span>XcmError, MultiLocation};
+<span class="kw">use </span>xcm::latest::{Error <span class="kw">as </span>XcmError, Location};
 
 <span class="comment">// The utility calls that need to be implemented as part of
 // using a derivative account from a certain account
@@ -151,7 +151,7 @@
 // It must implement UtilityEncodeCall
 </span><span class="kw">pub trait </span>XcmTransact: UtilityEncodeCall {
 	<span class="doccomment">/// Encode call from the relay.
-	</span><span class="kw">fn </span>destination(<span class="self">self</span>) -&gt; MultiLocation;
+	</span><span class="kw">fn </span>destination(<span class="self">self</span>) -&gt; Location;
 }
 
 <span class="kw">pub enum </span>AvailableStakeCalls {

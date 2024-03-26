@@ -1297,14 +1297,6 @@
 <a href="#1297" id="1297">1297</a>
 <a href="#1298" id="1298">1298</a>
 <a href="#1299" id="1299">1299</a>
-<a href="#1300" id="1300">1300</a>
-<a href="#1301" id="1301">1301</a>
-<a href="#1302" id="1302">1302</a>
-<a href="#1303" id="1303">1303</a>
-<a href="#1304" id="1304">1304</a>
-<a href="#1305" id="1305">1305</a>
-<a href="#1306" id="1306">1306</a>
-<a href="#1307" id="1307">1307</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1410,7 +1402,7 @@
 	<span class="kw">use </span>sp_std::convert::TryFrom;
 	<span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
 	<span class="kw">use </span>sp_std::vec::Vec;
-	<span class="kw">use </span>xcm::{latest::prelude::<span class="kw-2">*</span>, VersionedMultiLocation};
+	<span class="kw">use </span>xcm::{latest::prelude::<span class="kw-2">*</span>, VersionedLocation};
 	<span class="kw">use </span>xcm_executor::traits::{TransactAsset, WeightBounds};
 	<span class="kw">use </span>xcm_primitives::{
 		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls,
@@ -1436,8 +1428,8 @@
 		<span class="doccomment">/// Currency Id.
 		</span><span class="kw">type </span>CurrencyId: Parameter + Member + Clone;
 
-		<span class="doccomment">/// Convert `T::CurrencyId` to `MultiLocation`.
-		</span><span class="kw">type </span>CurrencyIdToMultiLocation: Convert&lt;<span class="self">Self</span>::CurrencyId, <span class="prelude-ty">Option</span>&lt;MultiLocation&gt;&gt;;
+		<span class="doccomment">/// Convert `T::CurrencyId` to `Location`.
+		</span><span class="kw">type </span>CurrencyIdToLocation: Convert&lt;<span class="self">Self</span>::CurrencyId, <span class="prelude-ty">Option</span>&lt;Location&gt;&gt;;
 
 		<span class="comment">// XcmTransact needs to be implemented. This type needs to implement
 		// utility call encoding and multilocation gathering
@@ -1453,18 +1445,18 @@
 		<span class="comment">// The origin that is allowed to register derivative address indices
 		</span><span class="kw">type </span>HrmpManipulatorOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin&gt;;
 
-		<span class="doccomment">/// Convert `T::AccountId` to `MultiLocation`.
-		</span><span class="kw">type </span>AccountIdToMultiLocation: Convert&lt;<span class="self">Self</span>::AccountId, MultiLocation&gt;;
+		<span class="doccomment">/// Convert `T::AccountId` to `Location`.
+		</span><span class="kw">type </span>AccountIdToLocation: Convert&lt;<span class="self">Self</span>::AccountId, Location&gt;;
 
 		<span class="doccomment">/// Means of measuring the weight consumed by an XCM message locally.
 		</span><span class="kw">type </span>Weigher: WeightBounds&lt;<span class="self">Self</span>::RuntimeCall&gt;;
 
 		<span class="doccomment">/// This chain&#39;s Universal Location.
-		</span><span class="kw">type </span>UniversalLocation: Get&lt;InteriorMultiLocation&gt;;
+		</span><span class="kw">type </span>UniversalLocation: Get&lt;InteriorLocation&gt;;
 
 		<span class="doccomment">/// Self chain location.
 		</span><span class="attr">#[pallet::constant]
-		</span><span class="kw">type </span>SelfLocation: Get&lt;MultiLocation&gt;;
+		</span><span class="kw">type </span>SelfLocation: Get&lt;Location&gt;;
 
 		<span class="comment">// The origin that is allowed to dispatch calls from the sovereign account directly
 		</span><span class="kw">type </span>SovereignAccountDispatcherOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin&gt;;
@@ -1479,7 +1471,7 @@
 		</span><span class="attr">#[pallet::constant]
 		</span><span class="kw">type </span>BaseXcmWeight: Get&lt;Weight&gt;;
 
-		<span class="doccomment">/// The way to retrieve the reserve of a MultiAsset. This can be
+		<span class="doccomment">/// The way to retrieve the reserve of a Asset. This can be
 		/// configured to accept absolute or relative paths for self tokens
 		</span><span class="kw">type </span>ReserveProvider: Reserve;
 
@@ -1524,12 +1516,12 @@
 		<span class="comment">// Express the Currency as a CurrencyId
 		</span>AsCurrencyId(CurrencyId),
 		<span class="comment">// Express the Currency as its MultiLOcation
-		</span>AsMultiLocation(Box&lt;VersionedMultiLocation&gt;),
+		</span>AsMultiLocation(Box&lt;VersionedLocation&gt;),
 	}
 
 	<span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>Currency&lt;T&gt; {
 		<span class="kw">fn </span>default() -&gt; Currency&lt;T&gt; {
-			Currency::&lt;T&gt;::AsMultiLocation(Box::new(MultiLocation::default().into()))
+			Currency::&lt;T&gt;::AsMultiLocation(Box::new(Location::default().into()))
 		}
 	}
 
@@ -1569,7 +1561,7 @@
 	</span><span class="doccomment">/// Struct that defines how to express the payment in a particular currency
 	/// currency is defined by the Currency enum, which can be expressed as:
 	/// - CurrencyId
-	/// - MultiLocation
+	/// - Location
 	///
 	/// The fee_amount is an option. In case of None, the fee will be tried to
 	/// be calculated from storage. If the storage item for the currency is not
@@ -1609,20 +1601,19 @@
 	#[pallet::getter(<span class="kw">fn </span>index_to_account)]
 	</span><span class="kw">pub type </span>IndexToAccount&lt;T: Config&gt; = StorageMap&lt;<span class="kw">_</span>, Blake2_128Concat, u16, T::AccountId&gt;;
 
-	<span class="doccomment">/// Stores the transact info of a MultiLocation. This defines how much extra weight we need to
+	<span class="doccomment">/// Stores the transact info of a Location. This defines how much extra weight we need to
 	/// add when we want to transact in the destination chain and maximum amount of weight allowed
 	/// by the destination chain
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>transact_info)]
 	</span><span class="kw">pub type </span>TransactInfoWithWeightLimit&lt;T: Config&gt; =
-		StorageMap&lt;<span class="kw">_</span>, Blake2_128Concat, MultiLocation, RemoteTransactInfoWithMaxWeight&gt;;
+		StorageMap&lt;<span class="kw">_</span>, Blake2_128Concat, Location, RemoteTransactInfoWithMaxWeight&gt;;
 
 	<span class="doccomment">/// Stores the fee per second for an asset in its reserve chain. This allows us to convert
 	/// from weight to fee
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>dest_asset_fee_per_second)]
-	</span><span class="kw">pub type </span>DestinationAssetFeePerSecond&lt;T: Config&gt; =
-		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, MultiLocation, u128&gt;;
+	</span><span class="kw">pub type </span>DestinationAssetFeePerSecond&lt;T: Config&gt; = StorageMap&lt;<span class="kw">_</span>, Twox64Concat, Location, u128&gt;;
 
 	<span class="doccomment">/// Stores the indices of relay chain pallets
 	</span><span class="attr">#[pallet::storage]
@@ -1667,20 +1658,20 @@
 		<span class="doccomment">/// Transacted the inner call through a derivative account in a destination chain.
 		</span>TransactedDerivative {
 			account_id: T::AccountId,
-			dest: MultiLocation,
+			dest: Location,
 			call: Vec&lt;u8&gt;,
 			index: u16,
 		},
 		<span class="doccomment">/// Transacted the call through the sovereign account in a destination chain.
 		</span>TransactedSovereign {
 			fee_payer: T::AccountId,
-			dest: MultiLocation,
+			dest: Location,
 			call: Vec&lt;u8&gt;,
 		},
 		<span class="doccomment">/// Transacted the call through a signed account in a destination chain.
 		</span>TransactedSigned {
 			fee_payer: T::AccountId,
-			dest: MultiLocation,
+			dest: Location,
 			call: Vec&lt;u8&gt;,
 		},
 		<span class="doccomment">/// Registered a derivative index for an account id.
@@ -1697,21 +1688,21 @@
 		},
 		<span class="doccomment">/// Changed the transact info of a location
 		</span>TransactInfoChanged {
-			location: MultiLocation,
+			location: Location,
 			remote_info: RemoteTransactInfoWithMaxWeight,
 		},
 		<span class="doccomment">/// Removed the transact info of a location
 		</span>TransactInfoRemoved {
-			location: MultiLocation,
+			location: Location,
 		},
 		<span class="doccomment">/// Set dest fee per second
 		</span>DestFeePerSecondChanged {
-			location: MultiLocation,
+			location: Location,
 			fee_per_second: u128,
 		},
 		<span class="doccomment">/// Remove dest fee per second
 		</span>DestFeePerSecondRemoved {
-			location: MultiLocation,
+			location: Location,
 		},
 		<span class="doccomment">/// HRMP manage action succesfully sent
 		</span>HrmpManagementSent {
@@ -1904,7 +1895,7 @@
 		</span><span class="kw">pub fn </span>transact_through_sovereign(
 			origin: OriginFor&lt;T&gt;,
 			<span class="comment">// destination to which the message should be sent
-			</span>dest: Box&lt;VersionedMultiLocation&gt;,
+			</span>dest: Box&lt;VersionedLocation&gt;,
 			<span class="comment">// account paying for fees
 			</span>fee_payer: T::AccountId,
 			<span class="comment">// fee to be used
@@ -1923,7 +1914,7 @@
 			<span class="kw">let </span>fee_location = <span class="self">Self</span>::currency_to_multilocation(fee.currency)
 				.ok_or(Error::&lt;T&gt;::NotCrossChainTransferableCurrency)<span class="question-mark">?</span>;
 
-			<span class="kw">let </span>dest = MultiLocation::try_from(<span class="kw-2">*</span>dest).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
+			<span class="kw">let </span>dest = Location::try_from(<span class="kw-2">*</span>dest).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
 
 			<span class="comment">// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
@@ -1989,14 +1980,13 @@
 		#[pallet::weight(T::WeightInfo::set_transact_info())]
 		</span><span class="kw">pub fn </span>set_transact_info(
 			origin: OriginFor&lt;T&gt;,
-			location: Box&lt;VersionedMultiLocation&gt;,
+			location: Box&lt;VersionedLocation&gt;,
 			transact_extra_weight: Weight,
 			max_weight: Weight,
 			transact_extra_weight_signed: <span class="prelude-ty">Option</span>&lt;Weight&gt;,
 		) -&gt; DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
-			<span class="kw">let </span>location =
-				MultiLocation::try_from(<span class="kw-2">*</span>location).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
+			<span class="kw">let </span>location = Location::try_from(<span class="kw-2">*</span>location).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
 			<span class="kw">let </span>remote_info = RemoteTransactInfoWithMaxWeight {
 				transact_extra_weight,
 				max_weight,
@@ -2017,11 +2007,10 @@
 		#[pallet::weight(T::WeightInfo::remove_transact_info())]
 		</span><span class="kw">pub fn </span>remove_transact_info(
 			origin: OriginFor&lt;T&gt;,
-			location: Box&lt;VersionedMultiLocation&gt;,
+			location: Box&lt;VersionedLocation&gt;,
 		) -&gt; DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
-			<span class="kw">let </span>location =
-				MultiLocation::try_from(<span class="kw-2">*</span>location).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
+			<span class="kw">let </span>location = Location::try_from(<span class="kw-2">*</span>location).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
 
 			<span class="comment">// Remove transact info
 			</span>TransactInfoWithWeightLimit::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>location);
@@ -2040,7 +2029,7 @@
 		</span><span class="kw">pub fn </span>transact_through_signed(
 			origin: OriginFor&lt;T&gt;,
 			<span class="comment">// destination to which the message should be sent
-			</span>dest: Box&lt;VersionedMultiLocation&gt;,
+			</span>dest: Box&lt;VersionedLocation&gt;,
 			<span class="comment">// fee to be used
 			</span>fee: CurrencyPayment&lt;CurrencyIdOf&lt;T&gt;&gt;,
 			<span class="comment">// call to be executed in destination
@@ -2052,7 +2041,7 @@
 		) -&gt; DispatchResult {
 			<span class="kw">let </span>who = ensure_signed(origin)<span class="question-mark">?</span>;
 
-			<span class="kw">let </span>dest = MultiLocation::try_from(<span class="kw-2">*</span>dest).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
+			<span class="kw">let </span>dest = Location::try_from(<span class="kw-2">*</span>dest).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
 
 			<span class="kw">let </span>fee_location = <span class="self">Self</span>::currency_to_multilocation(fee.currency)
 				.ok_or(Error::&lt;T&gt;::NotCrossChainTransferableCurrency)<span class="question-mark">?</span>;
@@ -2087,7 +2076,7 @@
 			<span class="comment">// If refund is true, the appendix instruction will be a deposit back to the sender
 			</span><span class="kw">let </span>appendix = refund
 				.then(|| -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, DispatchError&gt; {
-					<span class="kw">let </span>sender = T::AccountIdToMultiLocation::convert(who.clone());
+					<span class="kw">let </span>sender = T::AccountIdToLocation::convert(who.clone());
 					<span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[
 						RefundSurplus,
 						<span class="self">Self</span>::deposit_instruction(sender, <span class="kw-2">&amp;</span>dest, <span class="number">1u32</span>)<span class="question-mark">?</span>,
@@ -2122,12 +2111,12 @@
 		#[pallet::weight(T::WeightInfo::set_fee_per_second())]
 		</span><span class="kw">pub fn </span>set_fee_per_second(
 			origin: OriginFor&lt;T&gt;,
-			asset_location: Box&lt;VersionedMultiLocation&gt;,
+			asset_location: Box&lt;VersionedLocation&gt;,
 			fee_per_second: u128,
 		) -&gt; DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 			<span class="kw">let </span>asset_location =
-				MultiLocation::try_from(<span class="kw-2">*</span>asset_location).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
+				Location::try_from(<span class="kw-2">*</span>asset_location).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
 
 			DestinationAssetFeePerSecond::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>asset_location, <span class="kw-2">&amp;</span>fee_per_second);
 
@@ -2143,11 +2132,11 @@
 		#[pallet::weight(T::WeightInfo::set_fee_per_second())]
 		</span><span class="kw">pub fn </span>remove_fee_per_second(
 			origin: OriginFor&lt;T&gt;,
-			asset_location: Box&lt;VersionedMultiLocation&gt;,
+			asset_location: Box&lt;VersionedLocation&gt;,
 		) -&gt; DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 			<span class="kw">let </span>asset_location =
-				MultiLocation::try_from(<span class="kw-2">*</span>asset_location).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
+				Location::try_from(<span class="kw-2">*</span>asset_location).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
 
 			DestinationAssetFeePerSecond::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>asset_location);
 
@@ -2202,7 +2191,7 @@
 
 			<span class="comment">// Grab the destination
 			// For hrmp, it is always parent
-			</span><span class="kw">let </span>destination = MultiLocation::parent();
+			</span><span class="kw">let </span>destination = Location::parent();
 
 			<span class="comment">// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
@@ -2258,9 +2247,9 @@
 
 	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 		<span class="kw">fn </span>transact_in_dest_chain_asset_non_signed(
-			dest: MultiLocation,
+			dest: Location,
 			fee_payer: <span class="prelude-ty">Option</span>&lt;T::AccountId&gt;,
-			fee: MultiAsset,
+			fee: Asset,
 			call: Vec&lt;u8&gt;,
 			origin_kind: OriginKind,
 			total_weight: WeightLimit,
@@ -2269,7 +2258,7 @@
 		) -&gt; DispatchResult {
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(fee_payer) = fee_payer {
 				<span class="comment">// Convert origin to multilocation
-				</span><span class="kw">let </span>origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
+				</span><span class="kw">let </span>origin_as_mult = T::AccountIdToLocation::convert(fee_payer);
 
 				<span class="comment">// Construct the local withdraw message with the previous calculated amount
 				// This message deducts and burns &quot;amount&quot; from the caller when executed
@@ -2303,9 +2292,9 @@
 		}
 
 		<span class="kw">fn </span>transact_in_dest_chain_asset_signed(
-			dest: MultiLocation,
+			dest: Location,
 			fee_payer: T::AccountId,
-			fee: MultiAsset,
+			fee: Asset,
 			call: Vec&lt;u8&gt;,
 			origin_kind: OriginKind,
 			total_weight: WeightLimit,
@@ -2313,7 +2302,7 @@
 			with_appendix: <span class="prelude-ty">Option</span>&lt;Vec&lt;Instruction&lt;()&gt;&gt;&gt;,
 		) -&gt; DispatchResult {
 			<span class="comment">// Convert origin to multilocation
-			</span><span class="kw">let </span>origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
+			</span><span class="kw">let </span>origin_as_mult = T::AccountIdToLocation::convert(fee_payer);
 
 			<span class="comment">// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
 			// Transact.
@@ -2352,11 +2341,11 @@
 		<span class="doccomment">/// Calculate the amount of fee based on the multilocation of the fee asset and
 		/// the total weight to be spent
 		</span><span class="kw">fn </span>calculate_fee(
-			fee_location: MultiLocation,
+			fee_location: Location,
 			fee_amount: <span class="prelude-ty">Option</span>&lt;u128&gt;,
-			destination: MultiLocation,
+			destination: Location,
 			total_weight: Weight,
-		) -&gt; <span class="prelude-ty">Result</span>&lt;MultiAsset, DispatchError&gt; {
+		) -&gt; <span class="prelude-ty">Result</span>&lt;Asset, DispatchError&gt; {
 			<span class="comment">// If amount is provided, just use it
 			// Else, multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
@@ -2371,17 +2360,17 @@
 				|v| <span class="prelude-val">Ok</span>(v),
 			)<span class="question-mark">?</span>;
 
-			<span class="comment">// Construct MultiAsset
-			</span><span class="prelude-val">Ok</span>(MultiAsset {
-				id: Concrete(fee_location),
+			<span class="comment">// Construct Asset
+			</span><span class="prelude-val">Ok</span>(Asset {
+				id: AssetId(fee_location),
 				fun: Fungible(amount),
 			})
 		}
 
 		<span class="doccomment">/// Construct the transact xcm message with the provided parameters
 		</span><span class="kw">fn </span>transact_message(
-			dest: MultiLocation,
-			asset: MultiAsset,
+			dest: Location,
+			asset: Asset,
 			dest_weight: WeightLimit,
 			call: Vec&lt;u8&gt;,
 			dispatch_weight: Weight,
@@ -2405,13 +2394,13 @@
 
 		<span class="doccomment">/// Construct a buy execution xcm order with the provided parameters
 		</span><span class="kw">fn </span>buy_execution(
-			asset: MultiAsset,
-			at: <span class="kw-2">&amp;</span>MultiLocation,
+			asset: Asset,
+			at: <span class="kw-2">&amp;</span>Location,
 			weight: WeightLimit,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;Instruction&lt;()&gt;, DispatchError&gt; {
 			<span class="kw">let </span>universal_location = T::UniversalLocation::get();
 			<span class="kw">let </span>fees = asset
-				.reanchored(at, universal_location)
+				.reanchored(at, <span class="kw-2">&amp;</span>universal_location)
 				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::CannotReanchor)<span class="question-mark">?</span>;
 
 			<span class="prelude-val">Ok</span>(BuyExecution {
@@ -2422,12 +2411,12 @@
 
 		<span class="doccomment">/// Construct a withdraw instruction from a sovereign account
 		</span><span class="kw">fn </span>withdraw_instruction(
-			asset: MultiAsset,
-			at: <span class="kw-2">&amp;</span>MultiLocation,
+			asset: Asset,
+			at: <span class="kw-2">&amp;</span>Location,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;Instruction&lt;()&gt;, DispatchError&gt; {
 			<span class="kw">let </span>universal_location = T::UniversalLocation::get();
 			<span class="kw">let </span>fees = asset
-				.reanchored(at, universal_location)
+				.reanchored(at, <span class="kw-2">&amp;</span>universal_location)
 				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::CannotReanchor)<span class="question-mark">?</span>;
 
 			<span class="prelude-val">Ok</span>(WithdrawAsset(fees.into()))
@@ -2435,13 +2424,13 @@
 
 		<span class="doccomment">/// Construct a deposit instruction to a sovereign account
 		</span><span class="kw">fn </span>deposit_instruction(
-			<span class="kw-2">mut </span>beneficiary: MultiLocation,
-			at: <span class="kw-2">&amp;</span>MultiLocation,
+			<span class="kw-2">mut </span>beneficiary: Location,
+			at: <span class="kw-2">&amp;</span>Location,
 			max_assets: u32,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;Instruction&lt;()&gt;, DispatchError&gt; {
 			<span class="kw">let </span>universal_location = T::UniversalLocation::get();
 			beneficiary
-				.reanchor(at, universal_location)
+				.reanchor(at, <span class="kw-2">&amp;</span>universal_location)
 				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::CannotReanchor)<span class="question-mark">?</span>;
 			<span class="prelude-val">Ok</span>(DepositAsset {
 				assets: Wild(AllCounted(max_assets)),
@@ -2457,7 +2446,7 @@
 		}
 
 		<span class="doccomment">/// Ensure `dest` has chain part and none recipient part.
-		</span><span class="kw">fn </span>ensure_valid_dest(dest: <span class="kw-2">&amp;</span>MultiLocation) -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, DispatchError&gt; {
+		</span><span class="kw">fn </span>ensure_valid_dest(dest: <span class="kw-2">&amp;</span>Location) -&gt; <span class="prelude-ty">Result</span>&lt;Location, DispatchError&gt; {
 			<span class="kw">if let </span>(<span class="prelude-val">Some</span>(dest), <span class="prelude-val">None</span>) = (dest.chain_part(), dest.non_chain_part()) {
 				<span class="prelude-val">Ok</span>(dest)
 			} <span class="kw">else </span>{
@@ -2469,10 +2458,7 @@
 		///
 		/// Returns `Err` if `asset` is not a reserved asset of `dest`,
 		/// else returns `dest`, parachain or relay chain location.
-		</span><span class="kw">fn </span>transfer_allowed(
-			asset: <span class="kw-2">&amp;</span>MultiAsset,
-			dest: <span class="kw-2">&amp;</span>MultiLocation,
-		) -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, DispatchError&gt; {
+		</span><span class="kw">fn </span>transfer_allowed(asset: <span class="kw-2">&amp;</span>Asset, dest: <span class="kw-2">&amp;</span>Location) -&gt; <span class="prelude-ty">Result</span>&lt;Location, DispatchError&gt; {
 			<span class="kw">let </span>dest = <span class="self">Self</span>::ensure_valid_dest(dest)<span class="question-mark">?</span>;
 
 			<span class="kw">let </span>self_location = T::SelfLocation::get();
@@ -2489,21 +2475,21 @@
 
 		<span class="doccomment">/// Returns weight of `weight_of_initiate_reserve_withdraw` call.
 		</span><span class="kw">fn </span>weight_of_initiate_reserve_withdraw() -&gt; Weight {
-			<span class="kw">let </span>dest = MultiLocation::parent();
+			<span class="kw">let </span>dest = Location::parent();
 
 			<span class="comment">// We can use whatever asset here
-			</span><span class="kw">let </span>asset = MultiLocation::parent();
+			</span><span class="kw">let </span>asset = Location::parent();
 
-			<span class="comment">// Construct MultiAsset
-			</span><span class="kw">let </span>fee = MultiAsset {
-				id: Concrete(asset.clone()),
+			<span class="comment">// Construct Asset
+			</span><span class="kw">let </span>fee = Asset {
+				id: AssetId(asset.clone()),
 				fun: Fungible(<span class="number">0</span>),
 			};
 
 			<span class="kw">let </span>xcm: Xcm&lt;()&gt; = Xcm(<span class="macro">vec!</span>[
 				WithdrawAsset(fee.into()),
 				InitiateReserveWithdraw {
-					assets: MultiAssetFilter::Wild(All),
+					assets: AssetFilter::Wild(All),
 					reserve: dest.clone(),
 					xcm: Xcm(<span class="macro">vec!</span>[]),
 				},
@@ -2530,7 +2516,7 @@
 		<span class="doccomment">/// Returns the weight information for a destination from storage
 		/// it returns the weight to be used in non-signed cases
 		</span><span class="kw">pub fn </span>take_weight_from_transact_info(
-			dest: MultiLocation,
+			dest: Location,
 			dest_weight: Weight,
 			refund: bool,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, DispatchError&gt; {
@@ -2555,7 +2541,7 @@
 		<span class="doccomment">/// Returns the weight information for a destination from storage
 		/// it returns the weight to be used in signed cases
 		</span><span class="kw">pub fn </span>take_weight_from_transact_info_signed(
-			dest: MultiLocation,
+			dest: Location,
 			dest_weight: Weight,
 			refund: bool,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, DispatchError&gt; {
@@ -2586,8 +2572,8 @@
 		<span class="doccomment">/// Returns the fee per second charged by a reserve chain for an asset
 		/// it takes this information from storage
 		</span><span class="kw">pub fn </span>take_fee_per_second_from_storage(
-			fee_location: MultiLocation,
-			destination: MultiLocation,
+			fee_location: Location,
+			destination: Location,
 			total_weight: Weight,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;u128, DispatchError&gt; {
 			<span class="kw">let </span>fee_per_second = DestinationAssetFeePerSecond::&lt;T&gt;::get(<span class="kw-2">&amp;</span>fee_location)
@@ -2602,12 +2588,10 @@
 		}
 
 		<span class="doccomment">/// Converts Currency to multilocation
-		</span><span class="kw">pub fn </span>currency_to_multilocation(
-			currency: Currency&lt;CurrencyIdOf&lt;T&gt;&gt;,
-		) -&gt; <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; {
+		</span><span class="kw">pub fn </span>currency_to_multilocation(currency: Currency&lt;CurrencyIdOf&lt;T&gt;&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Location&gt; {
 			<span class="kw">match </span>currency {
-				Currency::AsCurrencyId(id) =&gt; T::CurrencyIdToMultiLocation::convert(id),
-				Currency::AsMultiLocation(multiloc) =&gt; MultiLocation::try_from(<span class="kw-2">*</span>multiloc).ok(),
+				Currency::AsCurrencyId(id) =&gt; T::CurrencyIdToLocation::convert(id),
+				Currency::AsMultiLocation(multiloc) =&gt; Location::try_from(<span class="kw-2">*</span>multiloc).ok(),
 			}
 		}
 	}

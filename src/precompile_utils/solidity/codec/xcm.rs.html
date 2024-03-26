@@ -390,6 +390,11 @@
 <a href="#390" id="390">390</a>
 <a href="#391" id="391">391</a>
 <a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -418,7 +423,7 @@
 	sp_core::H256,
 	sp_std::vec::Vec,
 	sp_weights::Weight,
-	xcm::latest::{Junction, Junctions, MultiLocation, NetworkId},
+	xcm::latest::{Junction, Junctions, Location, NetworkId},
 };
 
 <span class="kw">pub const </span>JUNCTION_SIZE_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
@@ -430,7 +435,7 @@
 // The first byte represents the enum variant to be used.
 // 		- Indexes 0,2,3 represent XCM V2 variants
 // 		- Index 1 changes name in V3 (`ByGenesis`), but is compatible with V2 `Named`
-// 		- Indexes 4~10 represent new XCM V3 variants
+// 		- Indexes 4~11 represent new XCM V3 variants
 // The rest of the bytes (if any), represent the additional data that such enum variant requires
 // In such a case, since NetworkIds will be appended at the end, we will read the buffer until the
 // end to recover the name
@@ -496,6 +501,11 @@
 		<span class="prelude-val">Some</span>(NetworkId::BitcoinCash) =&gt; {
 			encoded.push(<span class="number">10u8</span>);
 			encoded.push(<span class="number">9u8</span>);
+			encoded
+		}
+		<span class="prelude-val">Some</span>(NetworkId::PolkadotBulletin) =&gt; {
+			encoded.push(<span class="number">11u8</span>);
+			encoded.push(<span class="number">10u8</span>);
 			encoded
 		}
 	}
@@ -741,12 +751,12 @@
 }
 
 <span class="comment">// Cannot used derive macro since it is a foreign struct.
-</span><span class="kw">impl </span>Codec <span class="kw">for </span>MultiLocation {
+</span><span class="kw">impl </span>Codec <span class="kw">for </span>Location {
 	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>Reader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
 		<span class="kw">let </span>(parents, interior) = reader
 			.read()
 			.map_in_tuple_to_field(<span class="kw-2">&amp;</span>[<span class="string">&quot;parents&quot;</span>, <span class="string">&quot;interior&quot;</span>])<span class="question-mark">?</span>;
-		<span class="prelude-val">Ok</span>(MultiLocation { parents, interior })
+		<span class="prelude-val">Ok</span>(Location { parents, interior })
 	}
 
 	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>Writer, value: <span class="self">Self</span>) {

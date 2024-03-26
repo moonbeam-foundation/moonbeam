@@ -267,6 +267,28 @@
 <a href="#267" id="267">267</a>
 <a href="#268" id="268">268</a>
 <a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -288,11 +310,7 @@
 //! This module acts as a registry where each migration is defined. Each migration should implement
 //! the &quot;Migration&quot; trait declared in the pallet-migrations crate.
 
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-</span><span class="kw">use </span>frame_support::ensure;
-<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-</span><span class="kw">use </span>frame_support::migration::get_storage_value;
-<span class="kw">use </span>frame_support::{
+</span><span class="kw">use </span>frame_support::{
 	parameter_types, storage::unhashed::contains_prefixed_key, traits::OnRuntimeUpgrade,
 	weights::Weight,
 };
@@ -361,7 +379,7 @@
 
 	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sp_runtime::DispatchError&gt; {
-		frame_support::migrations::RemovePallet::&lt;
+		<span class="kw">let _ </span>= frame_support::migrations::RemovePallet::&lt;
 			DemocracyPalletName,
 			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight,
 		&gt;::pre_upgrade();
@@ -371,11 +389,35 @@
 
 	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>, _state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt; {
-		frame_support::migrations::RemovePallet::&lt;
+		<span class="kw">let _ </span>= frame_support::migrations::RemovePallet::&lt;
 			DemocracyPalletName,
 			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight,
 		&gt;::post_upgrade(_state);
 		<span class="prelude-val">Ok</span>(())
+	}
+}
+
+<span class="kw">pub struct </span>MigrateToLatestXcmVersion&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
+<span class="kw">impl</span>&lt;Runtime&gt; Migration <span class="kw">for </span>MigrateToLatestXcmVersion&lt;Runtime&gt;
+<span class="kw">where
+	</span>pallet_xcm::migration::MigrateToLatestXcmVersion&lt;Runtime&gt;: OnRuntimeUpgrade,
+{
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_MigrateToLatestXcmVersion&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::&lt;Runtime&gt;::on_runtime_upgrade()
+	}
+
+	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sp_runtime::DispatchError&gt; {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::&lt;Runtime&gt;::pre_upgrade()
+	}
+
+	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>, state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt; {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::&lt;Runtime&gt;::post_upgrade(state)
 	}
 }
 
@@ -389,11 +431,11 @@
 	Runtime: AuthorSlotFilterConfig,
 	Runtime: pallet_preimage::Config,
 	Runtime: pallet_asset_manager::Config,
-	&lt;Runtime <span class="kw">as </span>pallet_asset_manager::Config&gt;::ForeignAssetType: From&lt;xcm::v3::MultiLocation&gt;,
 	Runtime: pallet_xcm_transactor::Config,
 	Runtime: pallet_moonbeam_orbiters::Config,
 	Runtime: pallet_balances::Config,
 	Runtime: pallet_referenda::Config,
+	Runtime: pallet_xcm::Config,
 	Runtime::AccountId: Default,
 	BlockNumberFor&lt;Runtime&gt;: Into&lt;u64&gt;,
 {
@@ -533,6 +575,8 @@
 			<span class="comment">// Box::new(pallet_collective_drop_gov_v1_collectives),
 			// completed in runtime 2900
 			</span>Box::new(remove_pallet_democracy),
+			<span class="comment">// permanent migrations
+			</span>Box::new(MigrateToLatestXcmVersion::&lt;Runtime&gt;(Default::default())),
 		]
 	}
 }

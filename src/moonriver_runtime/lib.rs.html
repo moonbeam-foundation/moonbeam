@@ -1772,68 +1772,6 @@
 <a href="#1772" id="1772">1772</a>
 <a href="#1773" id="1773">1773</a>
 <a href="#1774" id="1774">1774</a>
-<a href="#1775" id="1775">1775</a>
-<a href="#1776" id="1776">1776</a>
-<a href="#1777" id="1777">1777</a>
-<a href="#1778" id="1778">1778</a>
-<a href="#1779" id="1779">1779</a>
-<a href="#1780" id="1780">1780</a>
-<a href="#1781" id="1781">1781</a>
-<a href="#1782" id="1782">1782</a>
-<a href="#1783" id="1783">1783</a>
-<a href="#1784" id="1784">1784</a>
-<a href="#1785" id="1785">1785</a>
-<a href="#1786" id="1786">1786</a>
-<a href="#1787" id="1787">1787</a>
-<a href="#1788" id="1788">1788</a>
-<a href="#1789" id="1789">1789</a>
-<a href="#1790" id="1790">1790</a>
-<a href="#1791" id="1791">1791</a>
-<a href="#1792" id="1792">1792</a>
-<a href="#1793" id="1793">1793</a>
-<a href="#1794" id="1794">1794</a>
-<a href="#1795" id="1795">1795</a>
-<a href="#1796" id="1796">1796</a>
-<a href="#1797" id="1797">1797</a>
-<a href="#1798" id="1798">1798</a>
-<a href="#1799" id="1799">1799</a>
-<a href="#1800" id="1800">1800</a>
-<a href="#1801" id="1801">1801</a>
-<a href="#1802" id="1802">1802</a>
-<a href="#1803" id="1803">1803</a>
-<a href="#1804" id="1804">1804</a>
-<a href="#1805" id="1805">1805</a>
-<a href="#1806" id="1806">1806</a>
-<a href="#1807" id="1807">1807</a>
-<a href="#1808" id="1808">1808</a>
-<a href="#1809" id="1809">1809</a>
-<a href="#1810" id="1810">1810</a>
-<a href="#1811" id="1811">1811</a>
-<a href="#1812" id="1812">1812</a>
-<a href="#1813" id="1813">1813</a>
-<a href="#1814" id="1814">1814</a>
-<a href="#1815" id="1815">1815</a>
-<a href="#1816" id="1816">1816</a>
-<a href="#1817" id="1817">1817</a>
-<a href="#1818" id="1818">1818</a>
-<a href="#1819" id="1819">1819</a>
-<a href="#1820" id="1820">1820</a>
-<a href="#1821" id="1821">1821</a>
-<a href="#1822" id="1822">1822</a>
-<a href="#1823" id="1823">1823</a>
-<a href="#1824" id="1824">1824</a>
-<a href="#1825" id="1825">1825</a>
-<a href="#1826" id="1826">1826</a>
-<a href="#1827" id="1827">1827</a>
-<a href="#1828" id="1828">1828</a>
-<a href="#1829" id="1829">1829</a>
-<a href="#1830" id="1830">1830</a>
-<a href="#1831" id="1831">1831</a>
-<a href="#1832" id="1832">1832</a>
-<a href="#1833" id="1833">1833</a>
-<a href="#1834" id="1834">1834</a>
-<a href="#1835" id="1835">1835</a>
-<a href="#1836" id="1836">1836</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1866,11 +1804,11 @@
 
 <span class="kw">use </span>account::AccountId20;
 <span class="kw">use </span>cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainDataProvider};
-<span class="kw">use </span>cumulus_primitives_core::relay_chain;
 <span class="kw">use </span>fp_rpc::TransactionStatus;
 
 <span class="comment">// Re-export required by get! macro.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">use </span>cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
+<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">pub use </span>fp_evm::GenesisAccount;
 <span class="kw">pub use </span>frame_support::traits::Get;
 <span class="kw">use </span>frame_support::{
@@ -1884,8 +1822,8 @@
 		tokens::imbalance::ResolveTo,
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOfDiverse,
-		EqualPrivilegeOnly, Imbalance, InstanceFilter, LinearStoragePrice, OffchainWorker,
-		OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
+		EqualPrivilegeOnly, Imbalance, InstanceFilter, LinearStoragePrice, OnFinalize,
+		OnUnbalanced,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
@@ -1916,8 +1854,6 @@
 <span class="kw">use </span>sp_api::impl_runtime_apis;
 <span class="kw">use </span>sp_consensus_slots::Slot;
 <span class="kw">use </span>sp_core::{OpaqueMetadata, H160, H256, U256};
-<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-</span><span class="kw">use </span>sp_runtime::TryRuntimeError;
 <span class="kw">use </span>sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	serde::{Deserialize, Serialize},
@@ -1933,7 +1869,6 @@
 };
 <span class="kw">use </span>sp_std::{convert::TryFrom, prelude::<span class="kw-2">*</span>};
 
-<span class="kw">use </span>cumulus_primitives_core::{relay_chain::BlockNumber <span class="kw">as </span>RelayBlockNumber, DmpMessageHandler};
 <span class="kw">use </span>smallvec::smallvec;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>sp_version::NativeVersion;
@@ -1985,7 +1920,7 @@
 <span class="doccomment">/// Maximum weight per block
 </span><span class="kw">pub const </span>MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
 	.saturating_div(<span class="number">2</span>)
-	.set_proof_size(cumulus_primitives_core::relay_chain::MAX_POV_SIZE <span class="kw">as </span>u64);
+	.set_proof_size(relay_chain::MAX_POV_SIZE <span class="kw">as </span>u64);
 
 <span class="kw">pub const </span>MILLISECS_PER_BLOCK: u64 = <span class="number">12000</span>;
 <span class="kw">pub const </span>MINUTES: BlockNumber = <span class="number">60_000 </span>/ (MILLISECS_PER_BLOCK <span class="kw">as </span>BlockNumber);
@@ -2087,6 +2022,8 @@
 	</span><span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="doccomment">/// The ubiquitous origin type.
 	</span><span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
+	<span class="doccomment">/// The aggregated RuntimeTask type.
+	</span><span class="kw">type </span>RuntimeTask = RuntimeTask;
 	<span class="doccomment">/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
 	</span><span class="kw">type </span>BlockHashCount = ConstU32&lt;<span class="number">256</span>&gt;;
 	<span class="doccomment">/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.
@@ -2138,7 +2075,6 @@
 	<span class="kw">type </span>MaxFreezes = ConstU32&lt;<span class="number">0</span>&gt;;
 	<span class="kw">type </span>RuntimeHoldReason = RuntimeHoldReason;
 	<span class="kw">type </span>RuntimeFreezeReason = RuntimeFreezeReason;
-	<span class="kw">type </span>MaxHolds = ConstU32&lt;<span class="number">1</span>&gt;;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_balances::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -2429,6 +2365,15 @@
 	</span><span class="kw">type </span>BenchmarkHelper = BenchmarkHelper;
 }
 
+<span class="macro">parameter_types! </span>{
+	<span class="kw">pub const </span>MaxSubAccounts: u32 = <span class="number">100</span>;
+	<span class="kw">pub const </span>MaxAdditionalFields: u32 = <span class="number">100</span>;
+	<span class="kw">pub const </span>MaxRegistrars: u32 = <span class="number">20</span>;
+	<span class="kw">pub const </span>PendingUsernameExpiration: u32 = <span class="number">7 </span>* DAYS;
+	<span class="kw">pub const </span>MaxSuffixLength: u32 = <span class="number">7</span>;
+	<span class="kw">pub const </span>MaxUsernameLength: u32 = <span class="number">32</span>;
+}
+
 <span class="kw">type </span>IdentityForceOrigin =
 	EitherOfDiverse&lt;EnsureRoot&lt;AccountId&gt;, governance::custom_origins::GeneralAdmin&gt;;
 <span class="kw">type </span>IdentityRegistrarOrigin =
@@ -2439,18 +2384,22 @@
 	<span class="kw">type </span>Currency = Balances;
 	<span class="comment">// Add one item in storage and take 258 bytes
 	</span><span class="kw">type </span>BasicDeposit = ConstU128&lt;{ currency::deposit(<span class="number">1</span>, <span class="number">258</span>) }&gt;;
-	<span class="comment">// Not add any item to the storage but takes 66 bytes
-	</span><span class="kw">type </span>FieldDeposit = ConstU128&lt;{ currency::deposit(<span class="number">0</span>, <span class="number">66</span>) }&gt;;
+	<span class="comment">// Does not add any item to the storage but takes 1 bytes
+	</span><span class="kw">type </span>ByteDeposit = ConstU128&lt;{ currency::deposit(<span class="number">0</span>, <span class="number">1</span>) }&gt;;
 	<span class="comment">// Add one item in storage and take 53 bytes
 	</span><span class="kw">type </span>SubAccountDeposit = ConstU128&lt;{ currency::deposit(<span class="number">1</span>, <span class="number">53</span>) }&gt;;
-	<span class="kw">type </span>MaxSubAccounts = ConstU32&lt;<span class="number">100</span>&gt;;
-	<span class="kw">type </span>MaxAdditionalFields = ConstU32&lt;<span class="number">100</span>&gt;;
-	<span class="kw">type </span>IdentityInformation = pallet_identity::simple::IdentityInfo&lt;<span class="self">Self</span>::MaxAdditionalFields&gt;;
-
-	<span class="kw">type </span>MaxRegistrars = ConstU32&lt;<span class="number">20</span>&gt;;
+	<span class="kw">type </span>MaxSubAccounts = MaxSubAccounts;
+	<span class="kw">type </span>IdentityInformation = pallet_identity::legacy::IdentityInfo&lt;MaxAdditionalFields&gt;;
+	<span class="kw">type </span>MaxRegistrars = MaxRegistrars;
 	<span class="kw">type </span>Slashed = Treasury;
 	<span class="kw">type </span>ForceOrigin = IdentityForceOrigin;
 	<span class="kw">type </span>RegistrarOrigin = IdentityRegistrarOrigin;
+	<span class="kw">type </span>OffchainSignature = Signature;
+	<span class="kw">type </span>SigningPublicKey = &lt;Signature <span class="kw">as </span>sp_runtime::traits::Verify&gt;::Signer;
+	<span class="kw">type </span>UsernameAuthorityOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>PendingUsernameExpiration = PendingUsernameExpiration;
+	<span class="kw">type </span>MaxSuffixLength = MaxSuffixLength;
+	<span class="kw">type </span>MaxUsernameLength = MaxUsernameLength;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_identity::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -2518,19 +2467,21 @@
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub const </span>ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(<span class="number">4</span>);
 	<span class="kw">pub const </span>ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(<span class="number">4</span>);
+	<span class="kw">pub const </span>RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
 <span class="kw">impl </span>cumulus_pallet_parachain_system::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>OnSystemEvent = ();
 	<span class="kw">type </span>SelfParaId = ParachainInfo;
-	<span class="kw">type </span>DmpMessageHandler = MaintenanceMode;
 	<span class="kw">type </span>ReservedDmpWeight = ReservedDmpWeight;
 	<span class="kw">type </span>OutboundXcmpMessageSource = XcmpQueue;
 	<span class="kw">type </span>XcmpMessageHandler = XcmpQueue;
 	<span class="kw">type </span>ReservedXcmpWeight = ReservedXcmpWeight;
 	<span class="kw">type </span>CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 	<span class="kw">type </span>ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
+	<span class="kw">type </span>DmpQueue = frame_support::traits::EnqueueWithOrigin&lt;MessageQueue, RelayOrigin&gt;;
+	<span class="kw">type </span>WeightInfo = cumulus_pallet_parachain_system::weights::SubstrateWeight&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>parachain_info::Config <span class="kw">for </span>Runtime {}
@@ -3018,78 +2969,6 @@
 	}
 }
 
-<span class="kw">pub struct </span>NormalDmpHandler;
-<span class="kw">impl </span>DmpMessageHandler <span class="kw">for </span>NormalDmpHandler {
-	<span class="comment">// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	</span><span class="kw">fn </span>handle_dmp_messages(
-		iter: <span class="kw">impl </span>Iterator&lt;Item = (RelayBlockNumber, Vec&lt;u8&gt;)&gt;,
-		limit: Weight,
-	) -&gt; Weight {
-		(<span class="kw">if </span>Migrations::should_pause_xcm() {
-			DmpQueue::handle_dmp_messages(iter, Weight::zero())
-		} <span class="kw">else </span>{
-			DmpQueue::handle_dmp_messages(iter, limit)
-		}) + &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().reads(<span class="number">1</span>)
-	}
-}
-
-<span class="kw">pub struct </span>MaintenanceDmpHandler;
-<span class="kw">impl </span>DmpMessageHandler <span class="kw">for </span>MaintenanceDmpHandler {
-	<span class="comment">// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	</span><span class="kw">fn </span>handle_dmp_messages(
-		iter: <span class="kw">impl </span>Iterator&lt;Item = (RelayBlockNumber, Vec&lt;u8&gt;)&gt;,
-		_limit: Weight,
-	) -&gt; Weight {
-		DmpQueue::handle_dmp_messages(iter, Weight::zero())
-	}
-}
-
-<span class="doccomment">/// The hooks we wantt to run in Maintenance Mode
-</span><span class="kw">pub struct </span>MaintenanceHooks;
-
-<span class="kw">impl </span>OnInitialize&lt;BlockNumber&gt; <span class="kw">for </span>MaintenanceHooks {
-	<span class="kw">fn </span>on_initialize(n: BlockNumber) -&gt; Weight {
-		AllPalletsWithSystem::on_initialize(n)
-	}
-}
-
-<span class="comment">// return 0
-// For some reason using empty tuple () isnt working
-// There exist only two pallets that use onIdle and these are xcmp and dmp queues
-// For some reason putting an empty tumple does not work (transaction never finishes)
-// We use an empty onIdle, if on the future we want one of the pallets to execute it
-// we need to provide it here
-</span><span class="kw">impl </span>OnIdle&lt;BlockNumber&gt; <span class="kw">for </span>MaintenanceHooks {
-	<span class="kw">fn </span>on_idle(_n: BlockNumber, _max_weight: Weight) -&gt; Weight {
-		Weight::zero()
-	}
-}
-
-<span class="kw">impl </span>OnRuntimeUpgrade <span class="kw">for </span>MaintenanceHooks {
-	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
-		AllPalletsWithSystem::on_runtime_upgrade()
-	}
-
-	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>try_on_runtime_upgrade(checks: bool) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, TryRuntimeError&gt; {
-		AllPalletsWithSystem::try_on_runtime_upgrade(checks)
-	}
-}
-
-<span class="kw">impl </span>OnFinalize&lt;BlockNumber&gt; <span class="kw">for </span>MaintenanceHooks {
-	<span class="kw">fn </span>on_finalize(n: BlockNumber) {
-		AllPalletsWithSystem::on_finalize(n)
-	}
-}
-
-<span class="kw">impl </span>OffchainWorker&lt;BlockNumber&gt; <span class="kw">for </span>MaintenanceHooks {
-	<span class="kw">fn </span>offchain_worker(n: BlockNumber) {
-		AllPalletsWithSystem::offchain_worker(n)
-	}
-}
-
 <span class="kw">impl </span>pallet_maintenance_mode::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>NormalCallFilter = NormalFilter;
@@ -3097,12 +2976,6 @@
 	<span class="kw">type </span>MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast&lt;AccountId, OpenTechCommitteeInstance, <span class="number">5</span>, <span class="number">9</span>&gt;;
 	<span class="kw">type </span>XcmExecutionManager = XcmExecutionManager;
-	<span class="kw">type </span>NormalDmpHandler = NormalDmpHandler;
-	<span class="kw">type </span>MaintenanceDmpHandler = MaintenanceDmpHandler;
-	<span class="comment">// We use AllPalletsWithSystem because we dont want to change the hooks in normal
-	// operation
-	</span><span class="kw">type </span>NormalExecutiveHooks = AllPalletsWithSystem;
-	<span class="kw">type </span>MaintenanceExecutiveHooks = MaintenanceHooks;
 }
 
 <span class="kw">impl </span>pallet_proxy_genesis_companion::Config <span class="kw">for </span>Runtime {
@@ -3193,7 +3066,9 @@
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_randomness::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="kw">impl </span>pallet_root_testing::Config <span class="kw">for </span>Runtime {}
+<span class="kw">impl </span>pallet_root_testing::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+}
 
 <span class="macro">parameter_types! </span>{
 	<span class="comment">// One storage item; key size is 32 + 20; value is size 4+4+16+20 bytes = 44 bytes.
@@ -3222,7 +3097,7 @@
 		<span class="comment">// Previously 2: pallet_randomness_collective_flip
 		</span>Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = <span class="number">3</span>,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config&lt;T&gt;} = <span class="number">4</span>,
-		RootTesting: pallet_root_testing::{Pallet, Call, Storage} = <span class="number">5</span>,
+		RootTesting: pallet_root_testing::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">5</span>,
 
 		<span class="comment">// Monetary stuff.
 		</span>Balances: pallet_balances::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">10</span>,
@@ -3287,6 +3162,7 @@
 		<span class="comment">// Previously 108: pallet_assets::&lt;Instance1&gt;
 		</span>EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = <span class="number">109</span>,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = <span class="number">110</span>,
+		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">111</span>,
 
 		<span class="comment">// Randomness
 		</span>Randomness: pallet_randomness::{Pallet, Call, Storage, Event&lt;T&gt;, Inherent} = <span class="number">120</span>,
@@ -3317,7 +3193,7 @@
 		[pallet_proxy, Proxy]
 		[pallet_identity, Identity]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
-		[pallet_xcm, PolkadotXcm]
+		[pallet_xcm, PalletXcmExtrinsiscsBenchmark::&lt;Runtime&gt;]
 		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
@@ -3362,7 +3238,7 @@
 	Block,
 	frame_system::ChainContext&lt;Runtime&gt;,
 	Runtime,
-	pallet_maintenance_mode::ExecutiveHooks&lt;Runtime&gt;,
+	AllPalletsWithSystem,
 &gt;;
 
 <span class="comment">// All of our runtimes share most of their Runtime API implementations.
@@ -3570,8 +3446,8 @@
 			Balance::from(<span class="number">1 </span>* MOVR + <span class="number">25800 </span>* MICROMOVR)
 		);
 		<span class="macro">assert_eq!</span>(
-			<span class="macro">get!</span>(pallet_identity, FieldDeposit, u128),
-			Balance::from(<span class="number">6600 </span>* MICROMOVR)
+			<span class="macro">get!</span>(pallet_identity, ByteDeposit, u128),
+			Balance::from(<span class="number">100 </span>* MICROMOVR)
 		);
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(pallet_identity, SubAccountDeposit, u128),

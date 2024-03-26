@@ -151,6 +151,10 @@
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -168,10 +172,17 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 </span><span class="kw">use </span>cumulus_primitives_core::ParaId;
 <span class="kw">use </span>cumulus_primitives_core::XcmpMessageFormat;
-<span class="kw">use </span>jsonrpsee::{core::RpcResult, proc_macros::rpc};
+<span class="kw">use </span>jsonrpsee::{
+	core::RpcResult,
+	proc_macros::rpc,
+	types::{
+		error::{INTERNAL_ERROR_CODE, INTERNAL_ERROR_MSG},
+		ErrorObjectOwned,
+	},
+};
 <span class="kw">use </span>parity_scale_codec::Encode;
-<span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm::opaque::lts::Weight;
+<span class="kw">use </span>xcm::v4::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm_primitives::DEFAULT_PROOF_SIZE;
 
 <span class="doccomment">/// This RPC interface is used to manually submit XCM messages that will be injected into a
@@ -212,7 +223,7 @@
 		<span class="kw">let </span>downward_message_channel = <span class="self">self</span>.downward_message_channel.clone();
 		<span class="comment">// If no message is supplied, inject a default one.
 		</span><span class="kw">let </span>msg = <span class="kw">if </span>msg.is_empty() {
-			xcm::VersionedXcm::&lt;()&gt;::V3(Xcm(<span class="macro">vec!</span>[
+			xcm::VersionedXcm::&lt;()&gt;::V4(Xcm(<span class="macro">vec!</span>[
 				ReserveAssetDeposited((Parent, <span class="number">10000000000000u128</span>).into()),
 				ClearOrigin,
 				BuyExecution {
@@ -221,12 +232,12 @@
 				},
 				DepositAsset {
 					assets: AllCounted(<span class="number">1</span>).into(),
-					beneficiary: MultiLocation::new(
+					beneficiary: Location::new(
 						<span class="number">0</span>,
-						X1(AccountKey20 {
+						[AccountKey20 {
 							network: <span class="prelude-val">None</span>,
 							key: <span class="macro">hex_literal::hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>),
-						}),
+						}],
 					),
 				},
 			]))
@@ -252,7 +263,7 @@
 		</span><span class="kw">let </span>msg = <span class="kw">if </span>msg.is_empty() {
 			<span class="kw">let </span><span class="kw-2">mut </span>mes = XcmpMessageFormat::ConcatenatedVersionedXcm.encode();
 			mes.append(
-				<span class="kw-2">&amp;mut </span>(xcm::VersionedXcm::&lt;()&gt;::V3(Xcm(<span class="macro">vec!</span>[
+				<span class="kw-2">&amp;mut </span>(xcm::VersionedXcm::&lt;()&gt;::V4(Xcm(<span class="macro">vec!</span>[
 					ReserveAssetDeposited(
 						((Parent, Parachain(sender.into())), <span class="number">10000000000000u128</span>).into(),
 					),
@@ -266,12 +277,12 @@
 					},
 					DepositAsset {
 						assets: AllCounted(<span class="number">1</span>).into(),
-						beneficiary: MultiLocation::new(
+						beneficiary: Location::new(
 							<span class="number">0</span>,
-							X1(AccountKey20 {
+							[AccountKey20 {
 								network: <span class="prelude-val">None</span>,
 								key: <span class="macro">hex_literal::hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>),
-							}),
+							}],
 						),
 					},
 				]))
@@ -294,14 +305,11 @@
 }
 
 <span class="comment">// This bit cribbed from frontier.
-</span><span class="kw">pub fn </span>internal_err&lt;T: AsRef&lt;str&gt;&gt;(message: T) -&gt; jsonrpsee::core::Error {
-	jsonrpsee::core::Error::Call(jsonrpsee::types::error::CallError::Custom(
-		jsonrpsee::types::error::ErrorObject::borrowed(
-			jsonrpsee::types::error::INTERNAL_ERROR_CODE,
-			<span class="kw-2">&amp;</span>message,
-			<span class="prelude-val">None</span>,
-		)
-		.into_owned(),
-	))
+</span><span class="kw">pub fn </span>internal_err&lt;T: ToString&gt;(message: T) -&gt; ErrorObjectOwned {
+	ErrorObjectOwned::owned(
+		INTERNAL_ERROR_CODE,
+		INTERNAL_ERROR_MSG,
+		<span class="prelude-val">Some</span>(message.to_string()),
+	)
 }
 </code></pre></div></section></main></body></html>

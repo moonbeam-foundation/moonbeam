@@ -865,6 +865,78 @@
 <a href="#865" id="865">865</a>
 <a href="#866" id="866">866</a>
 <a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -894,6 +966,7 @@
 		// to replay only on_idle, so we need to copy here some code inside frame executive.
 		</span><span class="kw">fn </span>replay_on_idle() {
 			<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
+			<span class="kw">use </span>frame_support::traits::OnIdle;
 
 			<span class="kw">let </span>weight = &lt;frame_system::Pallet&lt;Runtime&gt;&gt;::block_weight();
 			<span class="kw">let </span>max_weight = &lt;
@@ -981,6 +1054,16 @@
 				}
 			}
 
+			<span class="kw">impl </span>sp_genesis_builder::GenesisBuilder&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>create_default_config() -&gt; Vec&lt;u8&gt; {
+					frame_support::genesis_builder_helper::create_default_config::&lt;RuntimeGenesisConfig&gt;()
+				}
+
+				<span class="kw">fn </span>build_config(config: Vec&lt;u8&gt;) -&gt; sp_genesis_builder::Result {
+					frame_support::genesis_builder_helper::build_config::&lt;RuntimeGenesisConfig&gt;(config)
+				}
+			}
+
 			<span class="kw">impl </span>frame_system_rpc_runtime_api::AccountNonceApi&lt;Block, AccountId, Index&gt; <span class="kw">for </span>Runtime {
 				<span class="kw">fn </span>account_nonce(account: AccountId) -&gt; Index {
 					System::account_nonce(account)
@@ -991,6 +1074,7 @@
 				<span class="kw">fn </span>trace_transaction(
 					extrinsics: Vec&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic&gt;,
 					traced_transaction: <span class="kw-2">&amp;</span>EthereumTransaction,
+					header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header,
 				) -&gt; <span class="prelude-ty">Result</span>&lt;
 					(),
 					sp_runtime::DispatchError,
@@ -1010,6 +1094,13 @@
 							ETHEREUM_XCM_TRACING_STORAGE_KEY,
 							<span class="kw-2">&amp;</span>EthereumXcmTracingStatus::Transaction(traced_transaction.hash()),
 						);
+
+						<span class="comment">// Initialize block: calls the &quot;on_initialize&quot; hook on every pallet
+						// in AllPalletsWithSystem.
+						// After pallet message queue was introduced, this must be done only after
+						// enabling XCM tracing by setting ETHEREUM_XCM_TRACING_STORAGE_KEY
+						// in the storage
+						</span>Executive::initialize_block(header);
 
 						<span class="comment">// Apply the a subset of extrinsics: all the substrate-specific or ethereum
 						// transactions that preceded the requested transaction.
@@ -1061,6 +1152,7 @@
 				<span class="kw">fn </span>trace_block(
 					extrinsics: Vec&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic&gt;,
 					known_transactions: Vec&lt;H256&gt;,
+					header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header,
 				) -&gt; <span class="prelude-ty">Result</span>&lt;
 					(),
 					sp_runtime::DispatchError,
@@ -1079,6 +1171,13 @@
 
 						<span class="kw">let </span><span class="kw-2">mut </span>config = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::config().clone();
 						config.estimate = <span class="bool-val">true</span>;
+
+						<span class="comment">// Initialize block: calls the &quot;on_initialize&quot; hook on every pallet
+						// in AllPalletsWithSystem.
+						// After pallet message queue was introduced, this must be done only after
+						// enabling XCM tracing by setting ETHEREUM_XCM_TRACING_STORAGE_KEY
+						// in the storage
+						</span>Executive::initialize_block(header);
 
 						<span class="comment">// Apply all extrinsics. Ethereum extrinsics are traced.
 						</span><span class="kw">for </span>ext <span class="kw">in </span>extrinsics.into_iter() {
@@ -1356,7 +1455,7 @@
 				<span class="kw">fn </span>gas_limit_multiplier_support() {}
 
 				<span class="kw">fn </span>pending_block(
-					xts: Vec&lt;&lt;Block <span class="kw">as </span>sp_api::BlockT&gt;::Extrinsic&gt;
+					xts: Vec&lt;&lt;Block <span class="kw">as </span>sp_runtime::traits::Block&gt;::Extrinsic&gt;
 				) -&gt; (
 					<span class="prelude-ty">Option</span>&lt;pallet_ethereum::Block&gt;, <span class="prelude-ty">Option</span>&lt;sp_std::prelude::Vec&lt;TransactionStatus&gt;&gt;
 				) {
@@ -1502,6 +1601,8 @@
 					<span class="kw">use </span>frame_support::traits::StorageInfoTrait;
 					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
 
+					<span class="kw">use </span>pallet_xcm::benchmarking::Pallet <span class="kw">as </span>PalletXcmExtrinsiscsBenchmark;
+
 					<span class="kw">let </span><span class="kw-2">mut </span>list = Vec::&lt;BenchmarkList&gt;::new();
 					<span class="macro">list_benchmarks!</span>(list, extra);
 
@@ -1515,8 +1616,12 @@
 				) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;frame_benchmarking::BenchmarkBatch&gt;, sp_runtime::RuntimeString&gt; {
 					<span class="kw">use </span>frame_benchmarking::{add_benchmark, BenchmarkBatch, Benchmarking};
 					<span class="kw">use </span>frame_support::traits::TrackedStorageKey;
+					<span class="kw">use </span>cumulus_primitives_core::ParaId;
 
-					<span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
+					<span class="kw">use </span>xcm::latest::prelude::{
+						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
+						Assets <span class="kw">as </span>XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent
+					};
 					<span class="kw">use </span>frame_benchmarking::BenchmarkError;
 
 					<span class="kw">use </span>frame_system_benchmarking::Pallet <span class="kw">as </span>SystemBench;
@@ -1526,29 +1631,64 @@
 					<span class="kw">impl </span>moonbeam_xcm_benchmarks::generic::Config <span class="kw">for </span>Runtime {}
 
 					<span class="kw">use </span>pallet_asset_manager::Config <span class="kw">as </span>PalletAssetManagerConfig;
+
+					<span class="kw">use </span>pallet_xcm::benchmarking::Pallet <span class="kw">as </span>PalletXcmExtrinsiscsBenchmark;
+					<span class="kw">type </span>ExistentialDeposit = ConstU128&lt;<span class="number">0</span>&gt;;
+					<span class="macro">parameter_types! </span>{
+						<span class="kw">pub const </span>RandomParaId: ParaId = ParaId::new(<span class="number">43211234</span>);
+					}
+
+					<span class="kw">impl </span>pallet_xcm::benchmarking::Config <span class="kw">for </span>Runtime {
+						<span class="kw">fn </span>reachable_dest() -&gt; <span class="prelude-ty">Option</span>&lt;Location&gt; {
+							<span class="prelude-val">Some</span>(Parent.into())
+						}
+
+						<span class="kw">fn </span>teleportable_asset_and_dest() -&gt; <span class="prelude-ty">Option</span>&lt;(Asset, Location)&gt; {
+							<span class="comment">// Relay/native token can be teleported between AH and Relay.
+							</span><span class="prelude-val">Some</span>((
+								Asset {
+									fun: Fungible(ExistentialDeposit::get()),
+									id: AssetId(Parent.into())
+								},
+								Parent.into(),
+							))
+						}
+
+						<span class="kw">fn </span>reserve_transferable_asset_and_dest() -&gt; <span class="prelude-ty">Option</span>&lt;(Asset, Location)&gt; {
+							<span class="prelude-val">Some</span>((
+								Asset {
+									fun: Fungible(ExistentialDeposit::get()),
+									id: AssetId(Parent.into())
+								},
+								<span class="comment">// AH can reserve transfer native token to some random parachain.
+								</span>ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
+							))
+						}
+					}
+
 					<span class="kw">impl </span>pallet_xcm_benchmarks::Config <span class="kw">for </span>Runtime {
 						<span class="kw">type </span>XcmConfig = xcm_config::XcmExecutorConfig;
 						<span class="kw">type </span>AccountIdConverter = xcm_config::LocationToAccountId;
 						<span class="kw">type </span>DeliveryHelper = ();
-						<span class="kw">fn </span>valid_destination() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
-							<span class="prelude-val">Ok</span>(MultiLocation::parent())
+						<span class="kw">fn </span>valid_destination() -&gt; <span class="prelude-ty">Result</span>&lt;Location, BenchmarkError&gt; {
+							<span class="prelude-val">Ok</span>(Location::parent())
 						}
-						<span class="kw">fn </span>worst_case_holding(_depositable_count: u32) -&gt; MultiAssets {
+						<span class="kw">fn </span>worst_case_holding(_depositable_count: u32) -&gt; XcmAssets {
 						<span class="comment">// 100 fungibles
 							</span><span class="kw">const </span>HOLDING_FUNGIBLES: u32 = <span class="number">100</span>;
 							<span class="kw">let </span>fungibles_amount: u128 = <span class="number">100</span>;
 							<span class="kw">let </span>assets = (<span class="number">0</span>..HOLDING_FUNGIBLES).map(|i| {
-								<span class="kw">let </span>location: MultiLocation = GeneralIndex(i <span class="kw">as </span>u128).into();
-								MultiAsset {
-									id: Concrete(location),
+								<span class="kw">let </span>location: Location = GeneralIndex(i <span class="kw">as </span>u128).into();
+								Asset {
+									id: AssetId(location),
 									fun: Fungible(fungibles_amount * i <span class="kw">as </span>u128),
 								}
 								.into()
 							})
 							.chain(
 								core::iter::once(
-									MultiAsset {
-										id: Concrete(MultiLocation::parent()),
+									Asset {
+										id: AssetId(Location::parent()),
 										fun: Fungible(u128::MAX)
 									}
 								)
@@ -1557,22 +1697,22 @@
 
 
 							<span class="kw">for </span>(i, asset) <span class="kw">in </span>assets.iter().enumerate() {
-								<span class="kw">if let </span>MultiAsset {
-									id: Concrete(location),
+								<span class="kw">if let </span>Asset {
+									id: AssetId(location),
 									fun: Fungible(<span class="kw">_</span>)
 								} = asset {
 									&lt;AssetManager <span class="kw">as </span>xcm_primitives::AssetTypeGetter&lt;
 										&lt;Runtime <span class="kw">as </span>PalletAssetManagerConfig&gt;::AssetId,
 										&lt;Runtime <span class="kw">as </span>PalletAssetManagerConfig&gt;::ForeignAssetType&gt;
 									&gt;::set_asset_type_asset_id(
-										location.clone().into(),
+										location.clone().try_into().expect(<span class="string">&quot;convert to v3&quot;</span>),
 										i <span class="kw">as </span>u128
 									);
 									<span class="comment">// set 1-1
 									</span>&lt;AssetManager <span class="kw">as </span>xcm_primitives::UnitsToWeightRatio&lt;
 										&lt;Runtime <span class="kw">as </span>PalletAssetManagerConfig&gt;::ForeignAssetType&gt;
 									&gt;::set_units_per_second(
-										location.clone().into(),
+										location.clone().try_into().expect(<span class="string">&quot;convert to v3&quot;</span>),
 										<span class="number">1_000_000_000_000u128
 									</span>);
 								}
@@ -1590,45 +1730,49 @@
 						}
 
 						<span class="kw">fn </span>worst_case_asset_exchange()
-							-&gt; <span class="prelude-ty">Result</span>&lt;(MultiAssets, MultiAssets), BenchmarkError&gt; {
+							-&gt; <span class="prelude-ty">Result</span>&lt;(XcmAssets, XcmAssets), BenchmarkError&gt; {
 							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
 						}
 
-						<span class="kw">fn </span>universal_alias() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, Junction), BenchmarkError&gt; {
+						<span class="kw">fn </span>universal_alias() -&gt; <span class="prelude-ty">Result</span>&lt;(Location, Junction), BenchmarkError&gt; {
 							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
 						}
 
 						<span class="kw">fn </span>export_message_origin_and_destination()
-							-&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, NetworkId, Junctions), BenchmarkError&gt; {
+							-&gt; <span class="prelude-ty">Result</span>&lt;(Location, NetworkId, Junctions), BenchmarkError&gt; {
 							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
 						}
 
 						<span class="kw">fn </span>transact_origin_and_runtime_call()
-							-&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, RuntimeCall), BenchmarkError&gt; {
-							<span class="prelude-val">Ok</span>((MultiLocation::parent(), frame_system::Call::remark_with_event {
+							-&gt; <span class="prelude-ty">Result</span>&lt;(Location, RuntimeCall), BenchmarkError&gt; {
+							<span class="prelude-val">Ok</span>((Location::parent(), frame_system::Call::remark_with_event {
 								remark: <span class="macro">vec!</span>[]
 							}.into()))
 						}
 
-						<span class="kw">fn </span>subscribe_origin() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
-							<span class="prelude-val">Ok</span>(MultiLocation::parent())
+						<span class="kw">fn </span>subscribe_origin() -&gt; <span class="prelude-ty">Result</span>&lt;Location, BenchmarkError&gt; {
+							<span class="prelude-val">Ok</span>(Location::parent())
 						}
 
 						<span class="kw">fn </span>claimable_asset()
-							-&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation, MultiAssets), BenchmarkError&gt; {
-							<span class="kw">let </span>origin = MultiLocation::parent();
-							<span class="kw">let </span>assets: MultiAssets = (Concrete(MultiLocation::parent()), <span class="number">1_000u128</span>)
+							-&gt; <span class="prelude-ty">Result</span>&lt;(Location, Location, XcmAssets), BenchmarkError&gt; {
+							<span class="kw">let </span>origin = Location::parent();
+							<span class="kw">let </span>assets: XcmAssets = (AssetId(Location::parent()), <span class="number">1_000u128</span>)
 								.into();
-							<span class="kw">let </span>ticket = MultiLocation { parents: <span class="number">0</span>, interior: Here };
+							<span class="kw">let </span>ticket = Location { parents: <span class="number">0</span>, interior: [].into() <span class="comment">/* Here */ </span>};
 							<span class="prelude-val">Ok</span>((origin, ticket, assets))
 						}
 
-						<span class="kw">fn </span>unlockable_asset()
-							-&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation, MultiAsset), BenchmarkError&gt; {
+						<span class="kw">fn </span>fee_asset() -&gt; <span class="prelude-ty">Result</span>&lt;Asset, BenchmarkError&gt; {
 							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
 						}
 
-						<span class="kw">fn </span>alias_origin() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation), BenchmarkError&gt; {
+						<span class="kw">fn </span>unlockable_asset()
+							-&gt; <span class="prelude-ty">Result</span>&lt;(Location, Location, Asset), BenchmarkError&gt; {
+							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
+						}
+
+						<span class="kw">fn </span>alias_origin() -&gt; <span class="prelude-ty">Result</span>&lt;(Location, Location), BenchmarkError&gt; {
 							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
 						}
 					}
