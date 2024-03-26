@@ -89,16 +89,16 @@ pub mod pallet {
 		#[pallet::weight(Weight::from_parts(0,
 			INTERMEDIATES_NODES_SIZE + (MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE * <u64>::from(*limit)))
 			.saturating_add(<T as frame_system::Config>::DbWeight::get()
-				.reads_writes((*limit + 1).into(), (*limit + 1).into()))
+				.reads_writes((*max_assets + *limit + 1).into(), (*limit + 1).into()))
 		)]
 		pub fn clear_local_assets_storage(
 			origin: OriginFor<T>,
+			max_assets: u32,
 			limit: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
 
-			let mut weight = <T as frame_system::Config>::DbWeight::get().reads(1);
 			ensure!(
 				!LocalAssetsMigrationCompleted::<T>::get(),
 				Error::<T>::AllStorageEntriesHaveBeenRemoved
@@ -143,7 +143,8 @@ pub mod pallet {
 				// It is fine to add a dummy `Value` type
 				// The value is not going to be decoded, since we only care about the keys)
 				(),
-			>::iter_keys();
+			>::iter_keys()
+			.take(max_assets as usize);
 
 			for asset_id in asset_id_iter {
 				let approvals_iter = frame_support::storage::types::StorageNMap::<
@@ -174,9 +175,6 @@ pub mod pallet {
 					match sp_io::storage::clear_prefix(&hashed_prefix, Some(allowed_removals)) {
 						sp_io::KillStorageResult::AllRemoved(value) => {
 							LocalAssetsMigrationCompleted::<T>::set(true);
-							weight.saturating_accrue(
-								<T as frame_system::Config>::DbWeight::get().writes(1),
-							);
 							value
 						}
 						sp_io::KillStorageResult::SomeRemaining(value) => value,
