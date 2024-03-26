@@ -88,11 +88,17 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		// TODO(rodrigo): This extrinsic should be removed once LocalAssets pallet storage is removed
 		#[pallet::call_index(0)]
-		#[pallet::weight(Weight::from_parts(0,
-			INTERMEDIATES_NODES_SIZE + (MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE * <u64>::from(*limit)))
+		#[pallet::weight({
+			// "*limit" is used twice to account to the possibility that we may need to unreserve 
+			// deposits for every approval
+			let possible_iterations = max_assets.saturating_add(*limit).saturating_add(*limit);
+			let proof_size = INTERMEDIATES_NODES_SIZE + (MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE
+				.saturating_mul(<u64>::from(possible_iterations)));
+
+			Weight::from_parts(0, proof_size)
 			.saturating_add(<T as frame_system::Config>::DbWeight::get()
 				.reads_writes((*max_assets + *limit + 1).into(), (*limit + 1).into()))
-		)]
+		})]
 		pub fn clear_local_assets_storage(
 			origin: OriginFor<T>,
 			max_assets: u32,
