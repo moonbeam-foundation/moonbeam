@@ -379,7 +379,7 @@
               "--force-authoring",
               "--rpc-cors=all",
               "--alice",
-              "--chain=moonbeam-dev",
+              "--chain=tmp/moonbeam-dev-raw.json",
               "--sealing=manual",
               "--tmp"
             ]
@@ -421,7 +421,7 @@
               "--force-authoring",
               "--rpc-cors=all",
               "--alice",
-              "--chain=moonbase-dev",
+              "--chain=tmp/moonbase-dev-raw.json",
               "--sealing=manual",
               "--tmp"
             ]
@@ -459,7 +459,7 @@
               "--force-authoring",
               "--rpc-cors=all",
               "--alice",
-              "--chain=moonbase-dev",
+              "--chain=tmp/moonbase-dev-raw.json",
               "--sealing=manual",
               "--tmp",
               "--wasm-runtime-overrides=moonbase-overrides",

@@ -41,7 +41,8 @@ use sp_core::ecdsa;
 use sp_runtime::{traits::One, Perbill, Percent};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions>;
+pub type ChainSpec =
+	sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions, crate::HostFunctions>;
 
 /// Generate a chain spec for use with the development service.
 pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32>) -> ChainSpec {
