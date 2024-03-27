@@ -27,7 +27,7 @@ jobs:
           yarn install
           yarn --silent run print-version-bump-info -- --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../version-bump.md
       - name: Create version bump issue
-        uses: peter-evans/create-issue-from-file@v3
+        uses: peter-evans/create-issue-from-file@v5
         with:
           title: Update polkadot-sdk from ${{ github.event.inputs.from }} to ${{ github.event.inputs.to }}
           content-filepath: ./version-bump.md

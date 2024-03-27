@@ -43,7 +43,7 @@ jobs:
           npm i
           npm run --silent print-client-release-issue -- --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../client-release-issue.md
       - name: Create version bump issue
-        uses: peter-evans/create-issue-from-file@v3
+        uses: peter-evans/create-issue-from-file@v5
         with:
           title: client ${{ github.event.inputs.to }} release
           content-filepath: ./client-release-issue.md
