@@ -27,7 +27,7 @@ to be a reserve asset for the destination transactor::multilocation.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.transact_through_sovereign" class="method"><a class="src rightside" href="../../src/pallet_xcm_transactor/lib.rs.html#90">source</a><h4 class="code-header">pub fn <a href="#method.transact_through_sovereign" class="fn">transact_through_sovereign</a>(
     origin: OriginFor&lt;T&gt;,
     dest: <a class="struct" href="https://doc.rust-lang.org/1.74.0/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;VersionedLocation&gt;,
-    fee_payer: T::AccountId,
+    fee_payer: <a class="enum" href="https://doc.rust-lang.org/1.74.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;T::AccountId&gt;,
     fee: <a class="struct" href="struct.CurrencyPayment.html" title="struct pallet_xcm_transactor::pallet::CurrencyPayment">CurrencyPayment</a>&lt;&lt;T as <a class="trait" href="trait.Config.html" title="trait pallet_xcm_transactor::pallet::Config">Config</a>&gt;::<a class="associatedtype" href="trait.Config.html#associatedtype.CurrencyId" title="type pallet_xcm_transactor::pallet::Config::CurrencyId">CurrencyId</a>&gt;,
     call: <a class="struct" href="https://doc.rust-lang.org/1.74.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.u8.html">u8</a>&gt;,
     origin_kind: OriginKind,

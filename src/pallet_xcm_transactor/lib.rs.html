@@ -1664,7 +1664,7 @@
 		},
 		<span class="doccomment">/// Transacted the call through the sovereign account in a destination chain.
 		</span>TransactedSovereign {
-			fee_payer: T::AccountId,
+			fee_payer: <span class="prelude-ty">Option</span>&lt;T::AccountId&gt;,
 			dest: Location,
 			call: Vec&lt;u8&gt;,
 		},
@@ -1897,7 +1897,7 @@
 			<span class="comment">// destination to which the message should be sent
 			</span>dest: Box&lt;VersionedLocation&gt;,
 			<span class="comment">// account paying for fees
-			</span>fee_payer: T::AccountId,
+			</span>fee_payer: <span class="prelude-ty">Option</span>&lt;T::AccountId&gt;,
 			<span class="comment">// fee to be used
 			</span>fee: CurrencyPayment&lt;CurrencyIdOf&lt;T&gt;&gt;,
 			<span class="comment">// call to be executed in destination
@@ -1956,7 +1956,7 @@
 			<span class="comment">// Grab the destination
 			</span><span class="self">Self</span>::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
-				<span class="prelude-val">Some</span>(fee_payer.clone()),
+				fee_payer.clone(),
 				fee,
 				call.clone(),
 				origin_kind,
