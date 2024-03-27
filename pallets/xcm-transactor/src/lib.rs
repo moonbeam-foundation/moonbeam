@@ -365,7 +365,7 @@ pub mod pallet {
 		},
 		/// Transacted the call through the sovereign account in a destination chain.
 		TransactedSovereign {
-			fee_payer: T::AccountId,
+			fee_payer: Option<T::AccountId>,
 			dest: Location,
 			call: Vec<u8>,
 		},
@@ -598,7 +598,7 @@ pub mod pallet {
 			// destination to which the message should be sent
 			dest: Box<VersionedLocation>,
 			// account paying for fees
-			fee_payer: T::AccountId,
+			fee_payer: Option<T::AccountId>,
 			// fee to be used
 			fee: CurrencyPayment<CurrencyIdOf<T>>,
 			// call to be executed in destination
@@ -657,7 +657,7 @@ pub mod pallet {
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
-				Some(fee_payer.clone()),
+				fee_payer.clone(),
 				fee,
 				call.clone(),
 				origin_kind,
