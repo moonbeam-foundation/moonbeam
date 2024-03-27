@@ -17,7 +17,7 @@
 //! Unit testing
 use {
 	crate::{
-		mock::{ExtBuilder, LazyMigrations, Runtime, RuntimeOrigin},
+		mock::{ExtBuilder, LazyMigrations, RuntimeOrigin, Test},
 		Error,
 	},
 	frame_support::{assert_noop, assert_ok},
@@ -49,12 +49,12 @@ fn mock_contract_with_entries(seed: u8, nonce: u64, num_entries: u32) -> H160 {
 
 	let contract_address = contract_address(address, nonce);
 	let account_id =
-		<Runtime as pallet_evm::Config>::AddressMapping::into_account_id(contract_address);
-	let _ = frame_system::Pallet::<Runtime>::inc_sufficients(&account_id);
+		<Test as pallet_evm::Config>::AddressMapping::into_account_id(contract_address);
+	let _ = frame_system::Pallet::<Test>::inc_sufficients(&account_id);
 
 	// Add num_entries storage entries to the suicided contract
 	for i in 0..num_entries {
-		pallet_evm::AccountStorages::<Runtime>::insert(
+		pallet_evm::AccountStorages::<Test>::insert(
 			contract_address,
 			H256::from_low_u64_be(i as u64),
 			H256::from_low_u64_be(i as u64),
@@ -70,11 +70,11 @@ fn test_clear_suicided_contract_succesfull() {
 		let contract_address = mock_contract_with_entries(1, 1, 10);
 
 		// No addresses have been migrated yet
-		assert_eq!(crate::pallet::SuicidedContractsRemoved::<Runtime>::get(), 0);
+		assert_eq!(crate::pallet::SuicidedContractsRemoved::<Test>::get(), 0);
 
 		// The account has some storage entries
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address).count(),
 			10
 		);
 
@@ -86,10 +86,10 @@ fn test_clear_suicided_contract_succesfull() {
 		);
 
 		// One address has been migrated
-		assert_eq!(crate::pallet::SuicidedContractsRemoved::<Runtime>::get(), 1);
+		assert_eq!(crate::pallet::SuicidedContractsRemoved::<Test>::get(), 1);
 		// All the account storage should have been removed
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address).count(),
 			0
 		);
 	})
@@ -103,8 +103,8 @@ fn test_clear_suicided_contract_failed() {
 		let contract2_address = mock_contract_with_entries(2, 1, 10);
 
 		// The contracts have not been self-destructed.
-		pallet_evm::AccountCodes::<Runtime>::insert(contract1_address, vec![1, 2, 3]);
-		pallet_evm::Suicided::<Runtime>::insert(contract2_address, ());
+		pallet_evm::AccountCodes::<Test>::insert(contract1_address, vec![1, 2, 3]);
+		pallet_evm::Suicided::<Test>::insert(contract2_address, ());
 
 		assert_noop!(
 			LazyMigrations::clear_suicided_storage(
@@ -112,7 +112,7 @@ fn test_clear_suicided_contract_failed() {
 				vec![contract1_address].try_into().unwrap(),
 				1000
 			),
-			Error::<Runtime>::ContractNotCorrupted
+			Error::<Test>::ContractNotCorrupted
 		);
 
 		assert_noop!(
@@ -121,17 +121,17 @@ fn test_clear_suicided_contract_failed() {
 				vec![contract2_address].try_into().unwrap(),
 				1000
 			),
-			Error::<Runtime>::ContractNotCorrupted
+			Error::<Test>::ContractNotCorrupted
 		);
 
 		// Check that no storage has been removed
 
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract1_address).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract1_address).count(),
 			10
 		);
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract2_address).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract2_address).count(),
 			10
 		);
 	})
@@ -150,7 +150,7 @@ fn test_clear_suicided_empty_input() {
 		);
 
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address).count(),
 			10
 		);
 	})
@@ -176,15 +176,15 @@ fn test_clear_suicided_contract_multiple_addresses() {
 		.unwrap();
 
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address1).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address1).count(),
 			0
 		);
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address2).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address2).count(),
 			0
 		);
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address3).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address3).count(),
 			0
 		);
 	})
@@ -206,12 +206,12 @@ fn test_clear_suicided_entry_limit() {
 		)
 		.unwrap();
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address1).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address1).count(),
 			1000
 		);
 
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address2).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address2).count(),
 			1
 		);
 	})
@@ -227,7 +227,7 @@ fn test_clear_suicided_mixed_suicided_and_non_suicided() {
 		let contract_address4 = mock_contract_with_entries(4, 1, 10);
 
 		// Contract has not been self-destructed.
-		pallet_evm::AccountCodes::<Runtime>::insert(contract_address3, vec![1, 2, 3]);
+		pallet_evm::AccountCodes::<Test>::insert(contract_address3, vec![1, 2, 3]);
 
 		assert_noop!(
 			LazyMigrations::clear_suicided_storage(
@@ -242,23 +242,23 @@ fn test_clear_suicided_mixed_suicided_and_non_suicided() {
 				.unwrap(),
 				1000
 			),
-			Error::<Runtime>::ContractNotCorrupted
+			Error::<Test>::ContractNotCorrupted
 		);
 
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address1).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address1).count(),
 			10
 		);
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address2).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address2).count(),
 			10
 		);
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address3).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address3).count(),
 			10
 		);
 		assert_eq!(
-			pallet_evm::AccountStorages::<Runtime>::iter_prefix(contract_address4).count(),
+			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address4).count(),
 			10
 		);
 	})

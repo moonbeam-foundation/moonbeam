@@ -343,7 +343,7 @@ jobs:
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --profile testnet --all --features=evm-tracing,runtime-benchmarks
+          cargo test --profile testnet --workspace --features=evm-tracing,runtime-benchmarks
       - name: Run sccache stat for check pre test
         run: ${SCCACHE_PATH} --show-stats
 
