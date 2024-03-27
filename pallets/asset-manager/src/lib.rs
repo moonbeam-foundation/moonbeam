@@ -18,7 +18,6 @@
 //!
 //! This pallet allows to register new assets if certain conditions are met
 //! The main goal of this pallet is to allow moonbeam to register XCM assets
-//! and control the creation of local assets
 //! The assumption is we work with AssetTypes, which can then be compared to AssetIds
 //!
 //! This pallet has five storage items: AssetIdType, which holds a mapping from AssetId->AssetType
@@ -194,12 +193,6 @@ pub mod pallet {
 		},
 		/// Supported asset type for fee payment removed
 		SupportedAssetRemoved { asset_type: T::ForeignAssetType },
-		/// Local asset was created
-		LocalAssetRegistered {
-			asset_id: T::AssetId,
-			creator: T::AccountId,
-			owner: T::AccountId,
-		},
 		/// Removed all information related to an assetId and destroyed asset
 		ForeignAssetDestroyed {
 			asset_id: T::AssetId,
