@@ -256,6 +256,7 @@ mod tests {
 	#[test]
 	fn test_stake_bond() {
 		let mut expected_encoded: Vec<u8> = Vec::new();
+		let controller: AccountId32 = [1u8; 32].into();
 
 		let index = <westend_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 			westend_runtime::Staking,
@@ -265,7 +266,7 @@ mod tests {
 
 		let mut expected = pallet_staking::Call::<westend_runtime::Runtime>::bond {
 			value: 100u32.into(),
-			payee: pallet_staking::RewardDestination::Controller,
+			payee: pallet_staking::RewardDestination::Account(controller.clone()),
 		}
 		.encode();
 		expected_encoded.append(&mut expected);
@@ -274,7 +275,7 @@ mod tests {
 			<WestendEncoder as StakeEncodeCall>::encode_call(
 				xcm_primitives::AvailableStakeCalls::Bond(
 					100u32.into(),
-					pallet_staking::RewardDestination::Controller
+					pallet_staking::RewardDestination::Account(controller.clone()),
 				)
 			),
 			expected_encoded.clone()
@@ -291,7 +292,7 @@ mod tests {
 				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::Bond(
 						100u32.into(),
-						pallet_staking::RewardDestination::Controller
+						pallet_staking::RewardDestination::Account(controller)
 					)
 				),
 				expected_encoded
@@ -535,6 +536,7 @@ mod tests {
 	#[test]
 	fn test_set_payee() {
 		let mut expected_encoded: Vec<u8> = Vec::new();
+		let controller: AccountId32 = [1u8; 32].into();
 
 		let index = <westend_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
 			westend_runtime::Staking,
@@ -543,7 +545,7 @@ mod tests {
 		expected_encoded.push(index);
 
 		let mut expected = pallet_staking::Call::<westend_runtime::Runtime>::set_payee {
-			payee: pallet_staking::RewardDestination::Controller,
+			payee: pallet_staking::RewardDestination::Account(controller.clone()),
 		}
 		.encode();
 		expected_encoded.append(&mut expected);
@@ -551,7 +553,7 @@ mod tests {
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
 				xcm_primitives::AvailableStakeCalls::SetPayee(
-					pallet_staking::RewardDestination::Controller
+					pallet_staking::RewardDestination::Account(controller.clone())
 				)
 			),
 			expected_encoded.clone()
@@ -567,7 +569,7 @@ mod tests {
 					moonbase_runtime::Runtime> as StakeEncodeCall
 				>::encode_call(
 					xcm_primitives::AvailableStakeCalls::SetPayee(
-						pallet_staking::RewardDestination::Controller
+						pallet_staking::RewardDestination::Account(controller)
 					)
 				),
 				expected_encoded

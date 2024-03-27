@@ -11,7 +11,7 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D013818",
+  id: "D013918",
   title: "Mock XCM - receive horizontal transact without withdraw",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

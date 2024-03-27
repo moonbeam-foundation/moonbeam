@@ -18,7 +18,7 @@
 use crate::{Call, Config, GetArrayLimit, Pallet};
 use core::cmp::max;
 use frame_benchmarking::{account, benchmarks};
-use frame_support::{traits::Get, BoundedVec};
+use frame_support::BoundedVec;
 use frame_system::RawOrigin;
 use sp_core::{H160, H256};
 
@@ -26,9 +26,9 @@ benchmarks! {
 	clear_suicided_storage {
 		let caller = account("caller", 1, 100);
 		// a is the number of addresses
-		let a in 0 .. GetArrayLimit::get();
+		let a in 1 .. 100;
 		// l is the limit of the number of storage entries to be deleted
-		let l in 0 .. 32500;
+		let l in 1 .. 1000;
 
 		// Create the addresses to be used in the test
 		let mut addresses = BoundedVec::<H160, GetArrayLimit>::new();

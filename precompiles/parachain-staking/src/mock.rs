@@ -64,6 +64,7 @@ impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeTask = RuntimeTask;
 	type Nonce = u64;
 	type Block = Block;
 	type RuntimeCall = RuntimeCall;
@@ -101,7 +102,6 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
-	type MaxHolds = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
 }
@@ -221,7 +221,8 @@ impl pallet_parachain_staking::Config for Runtime {
 	type SlotProvider = StakingRoundSlotProvider;
 	type WeightInfo = ();
 	type MaxCandidates = MaxCandidates;
-	type SlotsPerYear = frame_support::traits::ConstU32<{ 31_557_600 / 6 }>;
+	type SlotDuration = frame_support::traits::ConstU64<6_000>;
+	type BlockTime = frame_support::traits::ConstU64<6_000>;
 }
 
 pub(crate) struct ExtBuilder {

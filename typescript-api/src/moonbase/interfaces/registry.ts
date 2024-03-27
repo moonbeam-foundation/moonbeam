@@ -183,6 +183,8 @@ import type {
   PalletMaintenanceModeEvent,
   PalletMigrationsError,
   PalletMigrationsEvent,
+  PalletMoonbeamLazyMigrationsCall,
+  PalletMoonbeamLazyMigrationsError,
   PalletMoonbeamOrbitersCall,
   PalletMoonbeamOrbitersCollatorPoolInfo,
   PalletMoonbeamOrbitersCurrentOrbiter,
@@ -217,6 +219,7 @@ import type {
   PalletParachainStakingRoundInfo,
   PalletParachainStakingSetBoundedOrderedSet,
   PalletParachainStakingSetOrderedSet,
+  PalletPrecompileBenchmarksError,
   PalletPreimageCall,
   PalletPreimageError,
   PalletPreimageEvent,
@@ -553,6 +556,8 @@ declare module "@polkadot/types/types/registry" {
     PalletMaintenanceModeEvent: PalletMaintenanceModeEvent;
     PalletMigrationsError: PalletMigrationsError;
     PalletMigrationsEvent: PalletMigrationsEvent;
+    PalletMoonbeamLazyMigrationsCall: PalletMoonbeamLazyMigrationsCall;
+    PalletMoonbeamLazyMigrationsError: PalletMoonbeamLazyMigrationsError;
     PalletMoonbeamOrbitersCall: PalletMoonbeamOrbitersCall;
     PalletMoonbeamOrbitersCollatorPoolInfo: PalletMoonbeamOrbitersCollatorPoolInfo;
     PalletMoonbeamOrbitersCurrentOrbiter: PalletMoonbeamOrbitersCurrentOrbiter;
@@ -587,6 +592,7 @@ declare module "@polkadot/types/types/registry" {
     PalletParachainStakingRoundInfo: PalletParachainStakingRoundInfo;
     PalletParachainStakingSetBoundedOrderedSet: PalletParachainStakingSetBoundedOrderedSet;
     PalletParachainStakingSetOrderedSet: PalletParachainStakingSetOrderedSet;
+    PalletPrecompileBenchmarksError: PalletPrecompileBenchmarksError;
     PalletPreimageCall: PalletPreimageCall;
     PalletPreimageError: PalletPreimageError;
     PalletPreimageEvent: PalletPreimageEvent;

@@ -14,7 +14,7 @@ import {
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D013833",
+  id: "D013933",
   title: "Mock XCM - Test bad contract with excess gas usage",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

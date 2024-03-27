@@ -1,10 +1,10 @@
 [package]
-name = "moonbeam-runtime-common"
 authors = { workspace = true }
 description = "Common code shared between runtimes"
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
+name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 
 [dependencies]
@@ -19,14 +19,14 @@ pallet-author-mapping = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
 pallet-migrations = { workspace = true }
+pallet-moonbeam-lazy-migrations = { workspace = true }
 pallet-parachain-staking = { workspace = true }
+pallet-precompile-benchmarks = { workspace = true }
 pallet-randomness = { workspace = true }
+pallet-relay-storage-roots = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
 precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
-pallet-moonbeam-lazy-migrations = { workspace = true }
-pallet-relay-storage-roots = { workspace = true }
-pallet-precompile-benchmarks = { workspace = true }
 
 # Substrate
 cumulus-pallet-xcmp-queue = { workspace = true }
@@ -37,7 +37,6 @@ pallet-assets = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-collective = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
-pallet-democracy = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
 pallet-multisig = { workspace = true }
@@ -56,7 +55,8 @@ sp-consensus-slots = { workspace = true }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
-
+sp-genesis-builder = { workspace = true }
+frame-try-runtime = { workspace = true }
 
 # Frontier
 fp-ethereum = { workspace = true }
@@ -98,12 +98,14 @@ std = [
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
 	"pallet-moonbeam-lazy-migrations/std",
+	"pallet-identity/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-consensus-slots/std",
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"sp-genesis-builder/std",
 	"xcm-executor/std",
 	"xcm/std",
 	"account/std",
@@ -119,7 +121,6 @@ runtime-benchmarks = [
 	"pallet-balances/runtime-benchmarks",
 	"pallet-conviction-voting/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
-	"pallet-democracy/runtime-benchmarks",
 	"pallet-ethereum-xcm/runtime-benchmarks",
 	"pallet-evm/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",

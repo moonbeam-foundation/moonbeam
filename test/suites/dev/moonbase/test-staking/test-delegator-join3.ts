@@ -10,7 +10,7 @@ import {
 } from "@moonwall/util";
 
 describeSuite({
-  id: "D013145",
+  id: "D013345",
   title: "Staking - Delegator Join - wrong candidate delegation hint",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

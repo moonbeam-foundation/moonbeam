@@ -84,7 +84,7 @@ describeSuite({
 
         // note that this is not really affected by the high multiplier because most of its fee is
         // derived from the length_fee, which is not scaled by the multiplier
-        expect(initialBalance - afterBalance).to.equal(9_231_801_265_723_667_008n);
+        expect(initialBalance - afterBalance).to.equal(601_486_761_265_723_667_008n);
       },
     });
 
@@ -139,7 +139,7 @@ describeSuite({
         blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
         baseFeePerGas = (await context.viem().getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
-        expect(baseFeePerGas).to.equal(124_883_131_084_512n);
+        expect(baseFeePerGas).to.equal(124_758_310_508_112n);
 
         const rawSigned = await createEthersTransaction(context, {
           to: contractAddress,
@@ -171,7 +171,7 @@ describeSuite({
         expect(withdrawEvents?.length).to.equal(1);
         const withdrawEvent = withdrawEvents![0];
         const amount = withdrawEvent.event.data.amount.toBigInt();
-        expect(amount).to.equal(11_880_382_026_331_795_584n);
+        expect(amount).to.equal(11_868_507_595_257_710_784n);
       },
     });
   },

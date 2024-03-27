@@ -80,6 +80,7 @@ fn no_selector_exists_but_length_is_right() {
 
 #[test]
 fn test_encode_bond() {
+	let controller = sp_runtime::AccountId32::from([0; 32]);
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
@@ -90,7 +91,9 @@ fn test_encode_bond() {
 					Precompile1,
 					PCall::encode_bond {
 						amount: 100.into(),
-						reward_destination: RewardDestinationWrapper(RewardDestination::Controller),
+						reward_destination: RewardDestinationWrapper(RewardDestination::Account(
+							controller.clone(),
+						)),
 					},
 				)
 				.expect_cost(1000)
@@ -98,7 +101,7 @@ fn test_encode_bond() {
 				.execute_returns(UnboundedBytes::from(
 					TestEncoder::encode_call(AvailableStakeCalls::Bond(
 						100u32.into(),
-						RewardDestination::Controller,
+						RewardDestination::Account(controller),
 					))
 					.as_slice(),
 				));
@@ -206,6 +209,7 @@ fn test_encode_set_controller() {
 
 #[test]
 fn test_encode_set_payee() {
+	let controller = sp_runtime::AccountId32::from([0; 32]);
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
@@ -215,14 +219,16 @@ fn test_encode_set_payee() {
 					Alice,
 					Precompile1,
 					PCall::encode_set_payee {
-						reward_destination: RewardDestinationWrapper(RewardDestination::Controller),
+						reward_destination: RewardDestinationWrapper(RewardDestination::Account(
+							controller.clone(),
+						)),
 					},
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
 					TestEncoder::encode_call(AvailableStakeCalls::SetPayee(
-						RewardDestination::Controller,
+						RewardDestination::Account(controller),
 					))
 					.as_slice(),
 				));

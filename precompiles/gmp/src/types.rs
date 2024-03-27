@@ -20,21 +20,21 @@ use parity_scale_codec::{Decode, Encode};
 use precompile_utils::prelude::*;
 use sp_core::{H256, U256};
 use sp_std::vec::Vec;
-use xcm::VersionedMultiLocation;
+use xcm::VersionedLocation;
 
 // A user action which will attempt to route the transferred assets to the account/chain specified
-// by the given MultiLocation. Recall that a MultiLocation can contain both a chain and an account
+// by the given Location. Recall that a Location can contain both a chain and an account
 // on that chain, as this one should.
 #[derive(Encode, Decode, Debug)]
 pub struct XcmRoutingUserAction {
-	pub destination: VersionedMultiLocation,
+	pub destination: VersionedLocation,
 }
 
 // A user action which is the same as XcmRoutingUserAction but also allows a fee to be paid. The
 // fee is paid in the same asset being transferred, and must be <= the amount being sent.
 #[derive(Encode, Decode, Debug)]
 pub struct XcmRoutingUserActionWithFee {
-	pub destination: VersionedMultiLocation,
+	pub destination: VersionedLocation,
 	pub fee: U256,
 }
 

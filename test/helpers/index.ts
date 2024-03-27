@@ -14,6 +14,7 @@ export * from "./precompiles";
 export * from "./providers";
 export * from "./randomness";
 export * from "./referenda";
+export * from "./shortfalls";
 export * from "./staking";
 export * from "./storageQueries";
 export * from "./tracing-txns";

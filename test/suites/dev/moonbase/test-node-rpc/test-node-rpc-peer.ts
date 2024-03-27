@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
-  id: "D012401",
+  id: "D012501",
   title: "Node - RPC",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

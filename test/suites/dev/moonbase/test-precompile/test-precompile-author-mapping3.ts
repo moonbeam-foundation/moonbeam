@@ -12,7 +12,7 @@ import { u8aToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D012720",
+  id: "D012920",
   title: "Precompiles - author mapping",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

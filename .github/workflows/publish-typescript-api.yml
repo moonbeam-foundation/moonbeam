@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.sha }}
       - name: Use Node.js
@@ -34,9 +34,13 @@ jobs:
     needs: ["publish-typescript-api"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.sha }}
+      - name: Use pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.6.12
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:

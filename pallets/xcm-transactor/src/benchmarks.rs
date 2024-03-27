@@ -25,7 +25,7 @@ use sp_std::vec;
 use xcm::latest::prelude::*;
 
 benchmarks! {
-	where_clause { where T::Transactor: Default, T::CurrencyId: From<MultiLocation>}
+	where_clause { where T::Transactor: Default, T::CurrencyId: From<Location>}
 	register {
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 
@@ -48,10 +48,10 @@ benchmarks! {
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let fee_per_second = 1;
 		let max_weight: Weight = Weight::from_parts(20000000000u64, 0);
-		let location = MultiLocation::parent();
+		let location = Location::parent();
 	}: _(
 		RawOrigin::Root,
-		Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+		Box::new(xcm::VersionedLocation::V4(location.clone())),
 		extra_weight,
 		max_weight,
 		None
@@ -67,25 +67,25 @@ benchmarks! {
 	remove_transact_info {
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
-		let location = MultiLocation::parent();
+		let location = Location::parent();
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+			Box::new(xcm::VersionedLocation::V4(location.clone())),
 			extra_weight,
 			max_weight,
 			None
 		).expect("must succeed");
-	}: _(RawOrigin::Root, Box::new(xcm::VersionedMultiLocation::V3(location.clone())))
+	}: _(RawOrigin::Root, Box::new(xcm::VersionedLocation::V4(location.clone())))
 	verify {
 		assert!(Pallet::<T>::transact_info(&location).is_none());
 	}
 
 	set_fee_per_second {
 		let fee_per_second = 1;
-		let location = MultiLocation::parent();
+		let location = Location::parent();
 	}: _(
 		RawOrigin::Root,
-		Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+		Box::new(xcm::VersionedLocation::V4(location.clone())),
 		fee_per_second
 	)
 	verify {
@@ -98,21 +98,21 @@ benchmarks! {
 		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
-		let location = MultiLocation::parent();
+		let location = Location::parent();
 		let call = vec![1u8];
 		let dest_weight: Weight = Weight::from_parts(100u64, 0);
 		let currency: T::CurrencyId = location.clone().into();
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+			Box::new(xcm::VersionedLocation::V4(location.clone())),
 			extra_weight,
 			max_weight,
 			Some(extra_weight)
 		).expect("must succeed");
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+			Box::new(xcm::VersionedLocation::V4(location.clone())),
 			fee_per_second
 		).expect("must succeed");
 		Pallet::<T>::register(
@@ -155,28 +155,28 @@ benchmarks! {
 		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
-		let location = MultiLocation::parent();
+		let location = Location::parent();
 		let currency: T::CurrencyId = location.clone().into();
 		let call = vec![1u8];
 		let dest_weight: Weight = Weight::from_parts(100u64, 0);
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+			Box::new(xcm::VersionedLocation::V4(location.clone())),
 			extra_weight,
 			max_weight,
 			Some(extra_weight)
 		).expect("must succeed");
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+			Box::new(xcm::VersionedLocation::V4(location.clone())),
 			fee_per_second
 		).expect("must succeed");
 	}: {
 
 		let result = Pallet::<T>::transact_through_sovereign(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+			Box::new(xcm::VersionedLocation::V4(location.clone())),
 			user.clone(),
 			CurrencyPayment {
 				// This might involve a db Read when translating, therefore worst case
@@ -208,26 +208,26 @@ benchmarks! {
 		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
-		let location = MultiLocation::parent();
+		let location = Location::parent();
 		let currency: T::CurrencyId = location.clone().into();
 		let call = vec![1u8];
 		let dest_weight: Weight = Weight::from_parts(100u64, 0);
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+			Box::new(xcm::VersionedLocation::V4(location.clone())),
 			extra_weight,
 			max_weight,
 			Some(extra_weight)
 		).expect("must succeed");
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+			Box::new(xcm::VersionedLocation::V4(location.clone())),
 			fee_per_second
 		).expect("must succeed");
 	}: _(
 		RawOrigin::Signed(user.clone()),
-		Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+		Box::new(xcm::VersionedLocation::V4(location.clone())),
 		CurrencyPayment {
 			// This might involve a db Read when translating, therefore worst case
 			currency: Currency::AsCurrencyId(currency),
@@ -247,21 +247,21 @@ benchmarks! {
 		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
-		let location = MultiLocation::parent();
+		let location = Location::parent();
 		let currency: T::CurrencyId = location.clone().into();
 		let call = vec![1u8];
 		let dest_weight: Weight = Weight::from_parts(100u64, 0);
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+			Box::new(xcm::VersionedLocation::V4(location.clone())),
 			extra_weight,
 			max_weight,
 			Some(extra_weight)
 		).expect("must succeed");
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
+			Box::new(xcm::VersionedLocation::V4(location.clone())),
 			fee_per_second
 		).expect("must succeed");
 	}: _(

@@ -9,7 +9,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D012754",
+  id: "D012953",
   title: "Precompiles - Identity precompile - provide judgement",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {
@@ -32,7 +32,7 @@ describeSuite({
 
       const identityHash = context
         .polkadotJs()
-        .registry.createType("PalletIdentitySimpleIdentityInfo", identityData)
+        .registry.createType("PalletIdentityLegacyIdentityInfo", identityData)
         .hash.toHex();
       const block = await context.createBlock(
         await context.writeContract!({
@@ -85,7 +85,7 @@ describeSuite({
         expect(identity.isValid).to.be.true;
         expect(identity.judgements).to.have.length(1);
         expect(identity.judgements[0].judgement.isKnownGood).to.be.true;
-        expect(identity.deposit).to.equal(1025800000000000000n);
+        expect(identity.deposit).to.equal(1027400000000000000n);
         expect(identity.info.display.hasData).to.be.true;
         expect(identity.info.display.value).to.equal(toHex("display"));
       },

@@ -9,21 +9,23 @@ version = "0.1.0"
 
 [dependencies]
 # Substrate
-parity-scale-codec = { workspace = true, features = [ "derive", "std" ] }
-sp-api = { workspace = true, features = [ "std" ] }
+parity-scale-codec = { workspace = true, features = ["derive", "std"] }
+sp-api = { workspace = true, features = ["std"] }
 sp-application-crypto = { workspace = true }
-sp-core = { workspace = true, features = [ "std" ] }
+sp-core = { workspace = true, features = ["std"] }
 sp-keystore = { workspace = true }
 sp-runtime = { workspace = true }
 
 # Moonbeam
-session-keys-primitives = { workspace = true, features = [ "std" ] }
+session-keys-primitives = { workspace = true, features = ["std"] }
 
 # Nimbus
-nimbus-primitives = { workspace = true, features = [ "std" ] }
+nimbus-primitives = { workspace = true, features = ["std"] }
 
 # Polkadot
 polkadot-primitives = { workspace = true }
 
 # Other
-schnorrkel = { workspace = true, default-features = false, features = [ "preaudit_deprecated", "u64_backend" ] }
+schnorrkel = { workspace = true, default-features = false, features = [
+    "preaudit_deprecated",
+] }
