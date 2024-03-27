@@ -425,8 +425,19 @@ impl pallet_message_queue::Config for Runtime {
 	// The XCMP queue pallet is only ever able to handle the `Sibling(ParaId)` origin:
 	type QueueChangeHandler = NarrowOriginToSibling<XcmpQueue>;
 	// NarrowOriginToSibling calls XcmpQueue's is_paused if Origin is sibling. Allows all other origins
-	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
+	type QueuePausedQuery = EmergencyParaXcm;
 	type WeightInfo = pallet_message_queue::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_emergency_para_xcm::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
+	type HrmpMessageHandler = XcmpQueue;
+	type PausedThreshold = ConstU32<300>;
+	type FastAuthorizeUpgradeOrigin = pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
+	type PausedToNormalOrigin = pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
+	type PausedToNormalOrigin = EnsureRoot<AccountId>;
 }
 
 // Our AssetType. For now we only handle Xcm Assets

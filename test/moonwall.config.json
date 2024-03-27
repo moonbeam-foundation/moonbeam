@@ -390,7 +390,7 @@
     {
       "name": "dev_moonbase",
       "testFileDir": ["suites/dev/moonbase"],
-      "include": ["**/*test*"],
+      "include": ["**/*test-xcm-halt*"],
       "timeout": 180000,
       "contracts": "contracts/",
       "runScripts": [

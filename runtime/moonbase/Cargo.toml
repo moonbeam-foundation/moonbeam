@@ -168,6 +168,7 @@ nimbus-primitives = { workspace = true }
 pallet-async-backing = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
+pallet-emergency-para-xcm = { workspace = true }
 pallet-relay-storage-roots = { workspace = true }
 
 # Benchmarking
