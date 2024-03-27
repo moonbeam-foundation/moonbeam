@@ -20,6 +20,7 @@ use core::marker::PhantomData;
 use sp_core::{H160, U256};
 use sp_std::collections::btree_map::BTreeMap;
 use sp_std::vec::Vec;
+use xcm_executor::traits::XcmAssetTransfers;
 
 environmental::environmental!(XCM_HOLDING_ERC20_ORIGINS: XcmHoldingErc20sOrigins);
 
@@ -95,24 +96,23 @@ impl XcmHoldingErc20sOrigins {
 }
 
 /// Xcm executor wrapper that inject xcm holding extension "XcmHoldingErc20sOrigins"
-pub struct XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor>(
-	PhantomData<(RuntimeCall, InnerXcmExecutor)>,
-);
-impl<RuntimeCall, InnerXcmExecutor> xcm::latest::ExecuteXcm<RuntimeCall>
-	for XcmExecutorWrapper<RuntimeCall, InnerXcmExecutor>
+pub struct XcmExecutorWrapper<Config, InnerXcmExecutor>(PhantomData<(Config, InnerXcmExecutor)>);
+impl<Config, InnerXcmExecutor> xcm::latest::ExecuteXcm<Config::RuntimeCall>
+	for XcmExecutorWrapper<Config, InnerXcmExecutor>
 where
-	InnerXcmExecutor: xcm::latest::ExecuteXcm<RuntimeCall>,
+	Config: xcm_executor::Config,
+	InnerXcmExecutor: xcm::latest::ExecuteXcm<Config::RuntimeCall>,
 {
 	type Prepared = InnerXcmExecutor::Prepared;
 
 	fn prepare(
-		message: xcm::latest::Xcm<RuntimeCall>,
-	) -> Result<Self::Prepared, xcm::latest::Xcm<RuntimeCall>> {
+		message: xcm::latest::Xcm<Config::RuntimeCall>,
+	) -> Result<Self::Prepared, xcm::latest::Xcm<Config::RuntimeCall>> {
 		InnerXcmExecutor::prepare(message)
 	}
 
 	fn execute(
-		origin: impl Into<xcm::latest::MultiLocation>,
+		origin: impl Into<xcm::latest::Location>,
 		pre: Self::Prepared,
 		hash: &mut xcm::latest::XcmHash,
 		weight_credit: xcm::latest::Weight,
@@ -124,11 +124,20 @@ where
 	}
 
 	fn charge_fees(
-		location: impl Into<xcm::latest::MultiLocation>,
-		fees: xcm::latest::MultiAssets,
+		location: impl Into<xcm::latest::Location>,
+		fees: xcm::latest::Assets,
 	) -> Result<(), xcm::latest::Error> {
 		InnerXcmExecutor::charge_fees(location, fees)
 	}
+}
+
+impl<Config, InnerXcmExecutor> XcmAssetTransfers for XcmExecutorWrapper<Config, InnerXcmExecutor>
+where
+	Config: xcm_executor::Config,
+{
+	type IsReserve = Config::IsReserve;
+	type IsTeleporter = Config::IsTeleporter;
+	type AssetTransactor = Config::AssetTransactor;
 }
 
 #[cfg(test)]

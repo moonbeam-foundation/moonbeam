@@ -15,8 +15,8 @@ const RELAY_TOKEN = 1_000_000_000_000n;
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 describeSuite({
-  id: "D013902",
-  title: "Mock XCM V3 - downward transfer with triggered error handler",
+  id: "D014001",
+  title: "Mock XCM V3 - downward transfer with non-triggered error handler",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let assetId: string;
@@ -34,7 +34,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should make sure that Alith does receive 10 dot because there is error",
+      title: "Should make sure that Alith does not receive 10 dot without error",
       test: async function () {
         const xcmMessage = new XcmFragment({
           assets: [
@@ -53,32 +53,31 @@ describeSuite({
           .reserve_asset_deposited()
           .buy_execution()
           // BuyExecution does not charge for fees because we registered it for not doing so
-          // As a consequence the trapped assets will be entirely credited
+          // But since there is no error, and the deposit is on the error handler, the assets
+          // will be trapped
           .with(function () {
-            return this.set_error_handler_with([this.deposit_asset]);
+            return this.set_error_handler_with([this.deposit_asset_v3]);
           })
-          .trap()
-          .as_v2();
+          .clear_origin()
+          .as_v4();
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
           .createType("XcmVersionedXcm", xcmMessage);
 
         const totalMessage = [...receivedMessage.toU8a()];
-
         // Send RPC call to inject XCM message
         await customDevRpcRequest("xcm_injectDownwardMessage", [totalMessage]);
 
         // Create a block in which the XCM will be executed
         await context.createBlock();
-        // Make sure the state has ALITH's to DOT tokens
-        const alith_dot_balance = (
-          await context.polkadotJs().query.assets.account(assetId, alith.address)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        await context.createBlock();
+        // Make sure ALITH did not reveive anything
+        const alith_dot_balance = await context
+          .polkadotJs()
+          .query.assets.account(assetId, alith.address);
 
-        expect(alith_dot_balance, "Alith's DOT balance is empty").to.eq(10n * RELAY_TOKEN);
+        expect(alith_dot_balance.isNone, "Alith's DOT balance is not empty").to.be.true;
       },
     });
   },

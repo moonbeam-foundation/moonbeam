@@ -17,7 +17,8 @@
 //! Test utilities
 use super::*;
 use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayChainBlockNumber, PersistedValidationData,
+	relay_chain::BlockNumber as RelayChainBlockNumber, AggregateMessageOrigin,
+	PersistedValidationData,
 };
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
@@ -53,11 +54,13 @@ construct_runtime!(
 		Timestamp: pallet_timestamp,
 		ParachainSystem: cumulus_pallet_parachain_system,
 		Crowdloan: pallet_crowdloan_rewards,
+		MessageQueue: pallet_message_queue,
 	}
 );
 
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
+	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
@@ -67,10 +70,30 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OutboundXcmpMessageSource = ();
 	type XcmpMessageHandler = ();
 	type ReservedXcmpWeight = ();
-	type DmpMessageHandler = ();
+	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type ReservedDmpWeight = ();
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 	type ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
+	type WeightInfo = cumulus_pallet_parachain_system::weights::SubstrateWeight<Runtime>;
+}
+
+parameter_types! {
+	pub MessageQueueServiceWeight: Weight = Weight::from_parts(1_000_000_000, 1_000_000);
+	pub const MessageQueueHeapSize: u32 = 65_536;
+	pub const MessageQueueMaxStale: u32 = 16;
+}
+
+impl pallet_message_queue::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Size = u32;
+	type HeapSize = MessageQueueHeapSize;
+	type MaxStale = MessageQueueMaxStale;
+	type ServiceWeight = MessageQueueServiceWeight;
+	type MessageProcessor =
+		pallet_message_queue::mock_helpers::NoopMessageProcessor<AggregateMessageOrigin>;
+	type QueueChangeHandler = ();
+	type WeightInfo = ();
+	type QueuePausedQuery = ();
 }
 
 parameter_types! {
@@ -81,6 +104,7 @@ impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeTask = RuntimeTask;
 	type Nonce = u64;
 	type Block = Block;
 	type RuntimeCall = RuntimeCall;
@@ -117,7 +141,6 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
-	type MaxHolds = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
 }

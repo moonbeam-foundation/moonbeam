@@ -15,7 +15,7 @@ const RELAY_TOKEN = 1_000_000_000_000n;
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 describeSuite({
-  id: "D013905",
+  id: "D014005",
   title: "Mock XCM V3 - downward transfer with always triggered appendix",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -56,10 +56,10 @@ describeSuite({
           // As a consequence the trapped assets will be entirely credited
           // The goal is to show appendix runs even if there is an error
           .with(function () {
-            return this.set_appendix_with([this.deposit_asset]);
+            return this.set_appendix_with([this.deposit_asset_v3]);
           })
           .trap()
-          .as_v2();
+          .as_v4();
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
@@ -70,6 +70,7 @@ describeSuite({
         await customDevRpcRequest("xcm_injectDownwardMessage", [totalMessage]);
 
         // Create a block in which the XCM will be executed
+        await context.createBlock();
         await context.createBlock();
         // Make sure the state has ALITH's to DOT tokens
         const alith_dot_balance = (

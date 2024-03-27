@@ -27,6 +27,7 @@ macro_rules! impl_runtime_apis_plus_common {
 		// to replay only on_idle, so we need to copy here some code inside frame executive.
 		fn replay_on_idle() {
 			use frame_system::pallet_prelude::BlockNumberFor;
+			use frame_support::traits::OnIdle;
 
 			let weight = <frame_system::Pallet<Runtime>>::block_weight();
 			let max_weight = <
@@ -114,6 +115,16 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
+			impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
+				fn create_default_config() -> Vec<u8> {
+					frame_support::genesis_builder_helper::create_default_config::<RuntimeGenesisConfig>()
+				}
+
+				fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
+					frame_support::genesis_builder_helper::build_config::<RuntimeGenesisConfig>(config)
+				}
+			}
+
 			impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
 				fn account_nonce(account: AccountId) -> Index {
 					System::account_nonce(account)
@@ -124,6 +135,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn trace_transaction(
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					traced_transaction: &EthereumTransaction,
+					header: &<Block as BlockT>::Header,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
@@ -143,6 +155,13 @@ macro_rules! impl_runtime_apis_plus_common {
 							ETHEREUM_XCM_TRACING_STORAGE_KEY,
 							&EthereumXcmTracingStatus::Transaction(traced_transaction.hash()),
 						);
+
+						// Initialize block: calls the "on_initialize" hook on every pallet
+						// in AllPalletsWithSystem.
+						// After pallet message queue was introduced, this must be done only after
+						// enabling XCM tracing by setting ETHEREUM_XCM_TRACING_STORAGE_KEY
+						// in the storage
+						Executive::initialize_block(header);
 
 						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
 						// transactions that preceded the requested transaction.
@@ -194,6 +213,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn trace_block(
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					known_transactions: Vec<H256>,
+					header: &<Block as BlockT>::Header,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
@@ -212,6 +232,13 @@ macro_rules! impl_runtime_apis_plus_common {
 
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
 						config.estimate = true;
+
+						// Initialize block: calls the "on_initialize" hook on every pallet
+						// in AllPalletsWithSystem.
+						// After pallet message queue was introduced, this must be done only after
+						// enabling XCM tracing by setting ETHEREUM_XCM_TRACING_STORAGE_KEY
+						// in the storage
+						Executive::initialize_block(header);
 
 						// Apply all extrinsics. Ethereum extrinsics are traced.
 						for ext in extrinsics.into_iter() {
@@ -489,7 +516,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn gas_limit_multiplier_support() {}
 
 				fn pending_block(
-					xts: Vec<<Block as sp_api::BlockT>::Extrinsic>
+					xts: Vec<<Block as sp_runtime::traits::Block>::Extrinsic>
 				) -> (
 					Option<pallet_ethereum::Block>, Option<sp_std::prelude::Vec<TransactionStatus>>
 				) {
@@ -635,6 +662,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					use frame_support::traits::StorageInfoTrait;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
+					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsiscsBenchmark;
+
 					let mut list = Vec::<BenchmarkList>::new();
 					list_benchmarks!(list, extra);
 
@@ -648,8 +677,12 @@ macro_rules! impl_runtime_apis_plus_common {
 				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
 					use frame_benchmarking::{add_benchmark, BenchmarkBatch, Benchmarking};
 					use frame_support::traits::TrackedStorageKey;
+					use cumulus_primitives_core::ParaId;
 
-					use xcm::latest::prelude::*;
+					use xcm::latest::prelude::{
+						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
+						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent
+					};
 					use frame_benchmarking::BenchmarkError;
 
 					use frame_system_benchmarking::Pallet as SystemBench;
@@ -659,29 +692,64 @@ macro_rules! impl_runtime_apis_plus_common {
 					impl moonbeam_xcm_benchmarks::generic::Config for Runtime {}
 
 					use pallet_asset_manager::Config as PalletAssetManagerConfig;
+
+					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsiscsBenchmark;
+					type ExistentialDeposit = ConstU128<0>;
+					parameter_types! {
+						pub const RandomParaId: ParaId = ParaId::new(43211234);
+					}
+
+					impl pallet_xcm::benchmarking::Config for Runtime {
+						fn reachable_dest() -> Option<Location> {
+							Some(Parent.into())
+						}
+
+						fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {
+							// Relay/native token can be teleported between AH and Relay.
+							Some((
+								Asset {
+									fun: Fungible(ExistentialDeposit::get()),
+									id: AssetId(Parent.into())
+								},
+								Parent.into(),
+							))
+						}
+
+						fn reserve_transferable_asset_and_dest() -> Option<(Asset, Location)> {
+							Some((
+								Asset {
+									fun: Fungible(ExistentialDeposit::get()),
+									id: AssetId(Parent.into())
+								},
+								// AH can reserve transfer native token to some random parachain.
+								ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
+							))
+						}
+					}
+
 					impl pallet_xcm_benchmarks::Config for Runtime {
 						type XcmConfig = xcm_config::XcmExecutorConfig;
 						type AccountIdConverter = xcm_config::LocationToAccountId;
 						type DeliveryHelper = ();
-						fn valid_destination() -> Result<MultiLocation, BenchmarkError> {
-							Ok(MultiLocation::parent())
+						fn valid_destination() -> Result<Location, BenchmarkError> {
+							Ok(Location::parent())
 						}
-						fn worst_case_holding(_depositable_count: u32) -> MultiAssets {
+						fn worst_case_holding(_depositable_count: u32) -> XcmAssets {
 						// 100 fungibles
 							const HOLDING_FUNGIBLES: u32 = 100;
 							let fungibles_amount: u128 = 100;
 							let assets = (0..HOLDING_FUNGIBLES).map(|i| {
-								let location: MultiLocation = GeneralIndex(i as u128).into();
-								MultiAsset {
-									id: Concrete(location),
+								let location: Location = GeneralIndex(i as u128).into();
+								Asset {
+									id: AssetId(location),
 									fun: Fungible(fungibles_amount * i as u128),
 								}
 								.into()
 							})
 							.chain(
 								core::iter::once(
-									MultiAsset {
-										id: Concrete(MultiLocation::parent()),
+									Asset {
+										id: AssetId(Location::parent()),
 										fun: Fungible(u128::MAX)
 									}
 								)
@@ -690,22 +758,22 @@ macro_rules! impl_runtime_apis_plus_common {
 
 
 							for (i, asset) in assets.iter().enumerate() {
-								if let MultiAsset {
-									id: Concrete(location),
+								if let Asset {
+									id: AssetId(location),
 									fun: Fungible(_)
 								} = asset {
 									<AssetManager as xcm_primitives::AssetTypeGetter<
 										<Runtime as PalletAssetManagerConfig>::AssetId,
 										<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
 									>::set_asset_type_asset_id(
-										location.clone().into(),
+										location.clone().try_into().expect("convert to v3"),
 										i as u128
 									);
 									// set 1-1
 									<AssetManager as xcm_primitives::UnitsToWeightRatio<
 										<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
 									>::set_units_per_second(
-										location.clone().into(),
+										location.clone().try_into().expect("convert to v3"),
 										1_000_000_000_000u128
 									);
 								}
@@ -723,45 +791,49 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 
 						fn worst_case_asset_exchange()
-							-> Result<(MultiAssets, MultiAssets), BenchmarkError> {
+							-> Result<(XcmAssets, XcmAssets), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 
-						fn universal_alias() -> Result<(MultiLocation, Junction), BenchmarkError> {
+						fn universal_alias() -> Result<(Location, Junction), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 
 						fn export_message_origin_and_destination()
-							-> Result<(MultiLocation, NetworkId, Junctions), BenchmarkError> {
+							-> Result<(Location, NetworkId, Junctions), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 
 						fn transact_origin_and_runtime_call()
-							-> Result<(MultiLocation, RuntimeCall), BenchmarkError> {
-							Ok((MultiLocation::parent(), frame_system::Call::remark_with_event {
+							-> Result<(Location, RuntimeCall), BenchmarkError> {
+							Ok((Location::parent(), frame_system::Call::remark_with_event {
 								remark: vec![]
 							}.into()))
 						}
 
-						fn subscribe_origin() -> Result<MultiLocation, BenchmarkError> {
-							Ok(MultiLocation::parent())
+						fn subscribe_origin() -> Result<Location, BenchmarkError> {
+							Ok(Location::parent())
 						}
 
 						fn claimable_asset()
-							-> Result<(MultiLocation, MultiLocation, MultiAssets), BenchmarkError> {
-							let origin = MultiLocation::parent();
-							let assets: MultiAssets = (Concrete(MultiLocation::parent()), 1_000u128)
+							-> Result<(Location, Location, XcmAssets), BenchmarkError> {
+							let origin = Location::parent();
+							let assets: XcmAssets = (AssetId(Location::parent()), 1_000u128)
 								.into();
-							let ticket = MultiLocation { parents: 0, interior: Here };
+							let ticket = Location { parents: 0, interior: [].into() /* Here */ };
 							Ok((origin, ticket, assets))
 						}
 
-						fn unlockable_asset()
-							-> Result<(MultiLocation, MultiLocation, MultiAsset), BenchmarkError> {
+						fn fee_asset() -> Result<Asset, BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 
-						fn alias_origin() -> Result<(MultiLocation, MultiLocation), BenchmarkError> {
+						fn unlockable_asset()
+							-> Result<(Location, Location, Asset), BenchmarkError> {
+							Err(BenchmarkError::Skip)
+						}
+
+						fn alias_origin() -> Result<(Location, Location), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 					}

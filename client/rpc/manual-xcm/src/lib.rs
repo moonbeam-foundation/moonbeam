@@ -15,10 +15,17 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use cumulus_primitives_core::ParaId;
 use cumulus_primitives_core::XcmpMessageFormat;
-use jsonrpsee::{core::RpcResult, proc_macros::rpc};
+use jsonrpsee::{
+	core::RpcResult,
+	proc_macros::rpc,
+	types::{
+		error::{INTERNAL_ERROR_CODE, INTERNAL_ERROR_MSG},
+		ErrorObjectOwned,
+	},
+};
 use parity_scale_codec::Encode;
-use xcm::latest::prelude::*;
 use xcm::opaque::lts::Weight;
+use xcm::v4::prelude::*;
 use xcm_primitives::DEFAULT_PROOF_SIZE;
 
 /// This RPC interface is used to manually submit XCM messages that will be injected into a
@@ -59,7 +66,7 @@ impl ManualXcmApiServer for ManualXcm {
 		let downward_message_channel = self.downward_message_channel.clone();
 		// If no message is supplied, inject a default one.
 		let msg = if msg.is_empty() {
-			xcm::VersionedXcm::<()>::V3(Xcm(vec![
+			xcm::VersionedXcm::<()>::V4(Xcm(vec![
 				ReserveAssetDeposited((Parent, 10000000000000u128).into()),
 				ClearOrigin,
 				BuyExecution {
@@ -68,12 +75,12 @@ impl ManualXcmApiServer for ManualXcm {
 				},
 				DepositAsset {
 					assets: AllCounted(1).into(),
-					beneficiary: MultiLocation::new(
+					beneficiary: Location::new(
 						0,
-						X1(AccountKey20 {
+						[AccountKey20 {
 							network: None,
 							key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"),
-						}),
+						}],
 					),
 				},
 			]))
@@ -99,7 +106,7 @@ impl ManualXcmApiServer for ManualXcm {
 		let msg = if msg.is_empty() {
 			let mut mes = XcmpMessageFormat::ConcatenatedVersionedXcm.encode();
 			mes.append(
-				&mut (xcm::VersionedXcm::<()>::V3(Xcm(vec![
+				&mut (xcm::VersionedXcm::<()>::V4(Xcm(vec![
 					ReserveAssetDeposited(
 						((Parent, Parachain(sender.into())), 10000000000000u128).into(),
 					),
@@ -113,12 +120,12 @@ impl ManualXcmApiServer for ManualXcm {
 					},
 					DepositAsset {
 						assets: AllCounted(1).into(),
-						beneficiary: MultiLocation::new(
+						beneficiary: Location::new(
 							0,
-							X1(AccountKey20 {
+							[AccountKey20 {
 								network: None,
 								key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"),
-							}),
+							}],
 						),
 					},
 				]))
@@ -141,13 +148,10 @@ impl ManualXcmApiServer for ManualXcm {
 }
 
 // This bit cribbed from frontier.
-pub fn internal_err<T: AsRef<str>>(message: T) -> jsonrpsee::core::Error {
-	jsonrpsee::core::Error::Call(jsonrpsee::types::error::CallError::Custom(
-		jsonrpsee::types::error::ErrorObject::borrowed(
-			jsonrpsee::types::error::INTERNAL_ERROR_CODE,
-			&message,
-			None,
-		)
-		.into_owned(),
-	))
+pub fn internal_err<T: ToString>(message: T) -> ErrorObjectOwned {
+	ErrorObjectOwned::owned(
+		INTERNAL_ERROR_CODE,
+		INTERNAL_ERROR_MSG,
+		Some(message.to_string()),
+	)
 }

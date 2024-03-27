@@ -223,7 +223,7 @@ type MoonriverPrecompilesAt<R> = (
 	>,
 	PrecompileAt<
 		AddressU64<2072>,
-		IdentityPrecompile<R>,
+		IdentityPrecompile<R, crate::MaxAdditionalFields>,
 		(CallableByContract, CallableByPrecompile),
 	>,
 );

@@ -24,7 +24,7 @@ use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_runtime::traits::Dispatchable;
 use sp_std::{convert::TryFrom, marker::PhantomData};
-use xcm::latest::MultiLocation;
+use xcm::latest::Location;
 use xcm_primitives::AccountIdToCurrencyId;
 
 /// A precompile to wrap the functionality from xcm transactor
@@ -53,9 +53,9 @@ where
 	#[precompile::view]
 	fn transact_info(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		location: Location,
 	) -> EvmResult<(u64, U256, u64)> {
-		XcmTransactorWrapper::<Runtime>::transact_info(handle, multilocation)
+		XcmTransactorWrapper::<Runtime>::transact_info(handle, location)
 	}
 
 	#[precompile::public("transactInfoWithSigned((uint8,bytes[]))")]
@@ -63,7 +63,7 @@ where
 	#[precompile::view]
 	fn transact_info_with_signed(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: Location,
 	) -> EvmResult<(u64, u64, u64)> {
 		XcmTransactorWrapper::<Runtime>::transact_info_with_signed(handle, multilocation)
 	}
@@ -73,7 +73,7 @@ where
 	#[precompile::view]
 	fn fee_per_second(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: Location,
 	) -> EvmResult<U256> {
 		XcmTransactorWrapper::<Runtime>::fee_per_second(handle, multilocation)
 	}
@@ -98,7 +98,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		transactor: u8,
 		index: u16,
-		fee_asset: MultiLocation,
+		fee_asset: Location,
 		weight: u64,
 		inner_call: BoundedBytes<GetDataLimit>,
 	) -> EvmResult {
@@ -143,8 +143,8 @@ where
 	)]
 	fn transact_through_signed_multilocation(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
-		fee_asset: MultiLocation,
+		dest: Location,
+		fee_asset: Location,
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,
 	) -> EvmResult {
@@ -157,7 +157,7 @@ where
 	#[precompile::public("transact_through_signed((uint8,bytes[]),address,uint64,bytes)")]
 	fn transact_through_signed(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
+		dest: Location,
 		fee_asset: Address,
 		weight: u64,
 		call: BoundedBytes<GetDataLimit>,

@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair } from "@moonwall/util";
 import {
@@ -12,8 +11,8 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D013916",
-  title: "Mock XCM - receive horizontal transact without withdraw",
+  id: "D014013",
+  title: "Mock XCM - receive horizontal transact",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let transferredBalance: bigint;
@@ -41,7 +40,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should fail to transact because barrier does not pass without withdraw",
+      title: "Should receive transact and should be able to execute",
       test: async function () {
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
@@ -55,7 +54,7 @@ describeSuite({
         const transferCallEncoded = transferCall?.method.toHex();
 
         // We are going to test that we can receive a transact operation from parachain 1
-        // using descendOrigin first but without withdraw
+        // using descendOrigin first
         const xcmMessage = new XcmFragment({
           assets: [
             {
@@ -68,21 +67,28 @@ describeSuite({
               fungible: transferredBalance / 2n,
             },
           ],
-          weight_limit: new BN(4000000000),
+          weight_limit: {
+            refTime: 40000000000n,
+            proofSize: 110000n,
+          },
           descend_origin: sendingAddress,
         })
           .descend_origin()
+          .withdraw_asset()
           .buy_execution()
           .push_any({
             Transact: {
-              originType: "SovereignAccount",
-              requireWeightAtMost: new BN(1000000000),
+              originKind: "SovereignAccount",
+              requireWeightAtMost: {
+                refTime: 1000000000n,
+                proofSize: 80000n,
+              },
               call: {
                 encoded: transferCallEncoded,
               },
             },
           })
-          .as_v2();
+          .as_v4();
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, 1, {
@@ -90,12 +96,12 @@ describeSuite({
           payload: xcmMessage,
         } as RawXcmMessage);
 
-        // Make sure testAccount did not receive, because barrier prevented it
+        // Make sure the state has ALITH's foreign parachain tokens
         const testAccountBalance = (
           await context.polkadotJs().query.system.account(random.address)
         ).data.free.toBigInt();
 
-        expect(testAccountBalance).to.eq(0n);
+        expect(testAccountBalance).to.eq(transferredBalance / 10n);
       },
     });
   },

@@ -11,7 +11,7 @@ import { parseEther } from "ethers";
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D014032",
+  id: "D013932",
   title: "Mock ERC20 <> XCM - Test wrong size of GeneralKey data field",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

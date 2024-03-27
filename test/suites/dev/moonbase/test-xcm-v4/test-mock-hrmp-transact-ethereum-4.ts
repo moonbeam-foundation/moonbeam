@@ -1,9 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair, charleth } from "@moonwall/util";
+import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
   RawXcmMessage,
@@ -12,58 +11,39 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D013924",
+  id: "D014020",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let charlethBalance: bigint;
-    let charlethNonce: number;
     let transferredBalance: bigint;
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
 
     beforeAll(async () => {
-      const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
-        context,
-        charleth.address as `0x${string}`
-      );
+      const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
       random = generateKeyringPair();
       transferredBalance = 10_000_000_000_000_000_000n;
 
-      // We fund the Delegatee, which will send the xcm and pay fees
+      // We first fund the descend origin derivated address
       await context.createBlock(
-        context.polkadotJs().tx.balances.transferAllowDeath(descendAddress, transferredBalance),
+        context
+          .polkadotJs()
+          .tx.balances.transferAllowDeath(descendOriginAddress, transferredBalance),
         { allowFailures: false }
       );
 
-      // Ensure funded
-      const balance_delegatee = (
-        await context.polkadotJs().query.system.account(descendAddress)
+      const balance = (
+        await context.polkadotJs().query.system.account(descendOriginAddress)
       ).data.free.toBigInt();
-      expect(balance_delegatee).to.eq(transferredBalance);
-
-      // Add proxy
-      await context.createBlock(
-        context.polkadotJs().tx.proxy.addProxy(descendAddress, "Any", 0).signAsync(charleth)
-      );
-
-      // Charleth balance after creating the proxy
-      charlethBalance = (
-        await context.polkadotJs().query.system.account(sendingAddress)
-      ).data.free.toBigInt();
-
-      // Charleth nonce
-      charlethNonce = parseInt(
-        (await context.polkadotJs().query.system.account(sendingAddress)).nonce.toString()
-      );
+      expect(balance).to.eq(transferredBalance);
     });
 
     it({
       id: "T01",
-      title: "should succeed to transact_through_proxy with proxy",
+      title: "should fail to transact_through_proxy without proxy",
       test: async function () {
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
@@ -103,15 +83,14 @@ describeSuite({
           },
         ];
 
-        let expectedTransferredAmount = 0n;
-        let expectedTransferredAmountPlusFees = 0n;
+        let feeAmount = 0n;
 
+        // Gas limit + 2 db reads
         const targetXcmWeight = 1_325_000_000n + 100_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {
-          expectedTransferredAmount += amountToTransfer;
-          expectedTransferredAmountPlusFees += amountToTransfer + targetXcmFee;
+          feeAmount += targetXcmFee;
           // TODO need to update lookup types for xcm ethereum transaction V2
           const transferCall = context
             .polkadotJs()
@@ -132,7 +111,10 @@ describeSuite({
                 fungible: targetXcmFee,
               },
             ],
-            weight_limit: new BN(targetXcmWeight.toString()),
+            weight_limit: {
+              refTime: targetXcmWeight,
+              proofSize: 110000n,
+            },
             descend_origin: sendingAddress,
           })
             .descend_origin()
@@ -140,15 +122,18 @@ describeSuite({
             .buy_execution()
             .push_any({
               Transact: {
-                originType: "SovereignAccount",
-                // 100_000 gas + 2db reads
-                requireWeightAtMost: 575_000_000n,
+                originKind: "SovereignAccount",
+                // 100_000 gas + 2 db read
+                requireWeightAtMost: {
+                  refTime: 575_000_000n,
+                  proofSize: 80000n,
+                },
                 call: {
                   encoded: transferCallEncoded,
                 },
               },
             })
-            .as_v2();
+            .as_v4();
 
           // Send an XCM and create block to execute it
           await injectHrmpMessageAndSeal(context, 1, {
@@ -156,40 +141,16 @@ describeSuite({
             payload: xcmMessage,
           } as RawXcmMessage);
 
-          // The transfer destination
-          // Make sure the destination address received the funds
+          // Make sure the state for the transfer recipient didn't change
           const testAccountBalance = (
             await context.polkadotJs().query.system.account(random.address)
           ).data.free.toBigInt();
-          expect(testAccountBalance).to.eq(expectedTransferredAmount);
+          expect(testAccountBalance).to.eq(0n);
 
-          // The EVM caller (proxy delegator)
-          // Make sure CHARLETH called the evm on behalf DESCENDED, and CHARLETH balance was
-          // deducted.
-          const charlethAccountBalance = await context
-            .viem()
-            .getBalance({ address: sendingAddress });
-          expect(BigInt(charlethAccountBalance)).to.eq(charlethBalance - expectedTransferredAmount);
-          // Make sure CHARLETH nonce was increased, as EVM caller.
-          const charlethAccountNonce = await context
-            .viem()
-            .getTransactionCount({ address: sendingAddress });
-          expect(charlethAccountNonce).to.eq(charlethNonce + 1);
-          charlethNonce++;
-
-          // The XCM sender (proxy delegatee)
-          // Make sure derived / descended account paid the xcm fees only.
-          const derivedAccountBalance = await context
-            .viem()
-            .getBalance({ address: descendAddress });
-          expect(BigInt(derivedAccountBalance)).to.eq(
-            transferredBalance - (expectedTransferredAmountPlusFees - expectedTransferredAmount)
-          );
-          // Make sure derived / descended account nonce still zero.
-          const derivedAccountNonce = await context
-            .viem()
-            .getTransactionCount({ address: descendAddress });
-          expect(derivedAccountNonce).to.eq(0);
+          // Make sure the descended address has been deducted fees once (in xcm-executor) but
+          // transfered nothing.
+          const descendOriginBalance = await context.viem().getBalance({ address: descendAddress });
+          expect(BigInt(descendOriginBalance)).to.eq(transferredBalance - feeAmount);
         }
       },
     });
