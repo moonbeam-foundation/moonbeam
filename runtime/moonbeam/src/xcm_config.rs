@@ -485,8 +485,6 @@ pub enum CurrencyId {
 	SelfReserve,
 	// Assets representing other chains native tokens
 	ForeignAsset(AssetId),
-	// Our local assets
-	DeprecatedLocalAssetReserve(AssetId),
 	// Erc20 token
 	Erc20 { contract_address: H160 },
 }
@@ -524,7 +522,6 @@ where
 				Some(multi)
 			}
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::convert_back(&asset),
-			CurrencyId::DeprecatedLocalAssetReserve(_) => None,
 			CurrencyId::Erc20 { contract_address } => {
 				let mut location = Erc20XcmBridgePalletLocation::get();
 				location

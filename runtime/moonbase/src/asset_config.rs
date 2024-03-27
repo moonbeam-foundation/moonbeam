@@ -58,8 +58,6 @@ pub type ForeignAssetInstance = ();
 // For foreign assets, these parameters dont matter much
 // as this will only be called by root with the forced arguments
 // No deposit is substracted with those methods
-// For local assets, they do matter. We use similar parameters
-// to those in statemine (except for approval)
 parameter_types! {
 	pub const AssetDeposit: Balance = 100 * currency::UNIT * currency::SUPPLY_FACTOR;
 	pub const ApprovalDeposit: Balance = 0;
