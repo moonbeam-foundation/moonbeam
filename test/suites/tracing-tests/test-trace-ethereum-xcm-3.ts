@@ -112,6 +112,10 @@ describeSuite({
           payload: xcmMessage,
         } as RawXcmMessage);
       }
+
+      // Block that includes the hrmp messages
+      await context.createBlock();
+      // Block that processes the hrmp messasges in the message queue
       await context.createBlock();
 
       const txHashes = (await context.viem().getBlock({ blockTag: "latest" })).transactions;

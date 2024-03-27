@@ -82,6 +82,12 @@ impl From<[u8; 32]> for AccountId20 {
 		Self(buffer)
 	}
 }
+impl From<sp_runtime::AccountId32> for AccountId20 {
+	fn from(account: sp_runtime::AccountId32) -> Self {
+		let bytes: &[u8; 32] = account.as_ref();
+		Self::from(*bytes)
+	}
+}
 
 impl From<H160> for AccountId20 {
 	fn from(h160: H160) -> Self {
@@ -113,6 +119,20 @@ pub struct EthereumSignature(ecdsa::Signature);
 impl From<ecdsa::Signature> for EthereumSignature {
 	fn from(x: ecdsa::Signature) -> Self {
 		EthereumSignature(x)
+	}
+}
+
+impl From<sp_runtime::MultiSignature> for EthereumSignature {
+	fn from(signature: sp_runtime::MultiSignature) -> Self {
+		match signature {
+			sp_runtime::MultiSignature::Ed25519(_) => {
+				panic!("Ed25519 not supported for EthereumSignature")
+			}
+			sp_runtime::MultiSignature::Sr25519(_) => {
+				panic!("Sr25519 not supported for EthereumSignature")
+			}
+			sp_runtime::MultiSignature::Ecdsa(sig) => Self(sig),
+		}
 	}
 }
 

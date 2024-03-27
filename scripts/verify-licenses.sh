@@ -9,6 +9,7 @@ LICENSES=(
     "Apache-2.0 OR BSD-1-Clause OR MIT"
     "Apache-2.0 OR BSD-2-Clause OR MIT"
     "Apache-2.0 OR BSD-3-Clause OR MIT"
+    "Apache-2.0 OR BSD-3-Clause"
     "Apache-2.0 OR BSL-1.0"
     "Apache-2.0 OR CC0-1.0 OR MIT-0"
     "Apache-2.0 OR CC0-1.0"
@@ -46,7 +47,8 @@ NAMES=(
 licenses_filter=$(printf ' .license != "%s" and' "${LICENSES[@]}")
 authors_filter=$(printf ' .authors != "%s" and' "${AUTHORS[@]}")
 names_filter=$(printf ' .name != "%s" and' "${NAMES[@]}")
-filter="${licenses_filter}${authors_filter}${names_filter:0:-4}"
+# "true" at the end is necessary to close the "and" conditional
+filter="${licenses_filter}${authors_filter}${names_filter} true"
 
 echo -e "checking licenses with filter:\n$filter\n"
 RESULT=$(jq "[.[] | select($filter)]" licenses.json)

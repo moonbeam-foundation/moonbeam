@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use frame_support::traits::Get;
-use xcm::latest::MultiAsset;
+use xcm::latest::Asset;
 use xcm_builder::Case;
 
 /// Filters max fee for a given multiasset.
@@ -24,12 +24,12 @@ use xcm_builder::Case;
 /// If any item returns `true`, it short-circuits, else `false` is returned.
 pub trait FilterMaxAssetFee {
 	/// A filter to be able to compare against a max asset.
-	fn filter_max_asset_fee(asset: &MultiAsset) -> bool;
+	fn filter_max_asset_fee(asset: &Asset) -> bool;
 }
 
 #[impl_trait_for_tuples::impl_for_tuples(30)]
 impl FilterMaxAssetFee for Tuple {
-	fn filter_max_asset_fee(what: &MultiAsset) -> bool {
+	fn filter_max_asset_fee(what: &Asset) -> bool {
 		for_tuples!( #(
 			if Tuple::filter_max_asset_fee(what) { return true }
 		)* );
@@ -42,8 +42,8 @@ impl FilterMaxAssetFee for Tuple {
 	}
 }
 
-impl<T: Get<MultiAsset>> FilterMaxAssetFee for Case<T> {
-	fn filter_max_asset_fee(asset: &MultiAsset) -> bool {
+impl<T: Get<Asset>> FilterMaxAssetFee for Case<T> {
+	fn filter_max_asset_fee(asset: &Asset) -> bool {
 		log::trace!(target: "xcm::filter_max_asset_fee", "Case asset: {:?}", asset);
 		let max = T::get();
 		max.contains(asset)

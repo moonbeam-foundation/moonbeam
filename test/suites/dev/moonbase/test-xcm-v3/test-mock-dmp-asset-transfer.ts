@@ -13,7 +13,7 @@ const RELAY_TOKEN = 1_000_000_000_000n;
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 describeSuite({
-  id: "D014001",
+  id: "D013901",
   title: "Mock XCM - receive downward transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -38,6 +38,8 @@ describeSuite({
         // You can provide a message, but if you don't a downward transfer is the default
         await customDevRpcRequest("xcm_injectDownwardMessage", [[]]);
 
+        // Process the next block
+        await context.createBlock();
         // Create a block in which the XCM will be executed
         await context.createBlock();
 

@@ -9,7 +9,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D012953",
+  id: "D012952",
   title: "Precompiles - Identity precompile - cancel requested judgement",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {
@@ -69,7 +69,7 @@ describeSuite({
 
         expect(identity.isValid).to.be.true;
         expect(identity.judgements).to.be.empty;
-        expect(identity.deposit).to.equal(1025800000000000000n);
+        expect(identity.deposit).to.equal(1027400000000000000n);
         expect(identity.info.display.hasData).to.be.true;
         expect(identity.info.display.value).to.equal(toHex("display"));
       },

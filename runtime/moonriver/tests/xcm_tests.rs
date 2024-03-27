@@ -24,9 +24,13 @@ use frame_support::{
 	BoundedVec,
 };
 use sp_core::ConstU32;
-use xcm::latest::prelude::*;
-use xcm::{VersionedMultiLocation, WrapVersion};
-use xcm_builder::HashedDescriptionDescribeFamilyAllTerminal;
+use sp_runtime::traits::MaybeEquivalence;
+use xcm::latest::prelude::{
+	AccountId32, AccountKey20, All, BuyExecution, ClearOrigin, DepositAsset, GeneralIndex,
+	Junction, Junctions, Limited, Location, OriginKind, PalletInstance, Parachain, QueryResponse,
+	Reanchorable, Response, WeightLimit, WithdrawAsset, Xcm,
+};
+use xcm::{VersionedLocation, WrapVersion};
 use xcm_executor::traits::ConvertLocation;
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
@@ -44,7 +48,7 @@ use xcm_primitives::{UtilityEncodeCall, DEFAULT_PROOF_SIZE};
 fn receive_relay_asset_from_relay() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
@@ -69,7 +73,7 @@ fn receive_relay_asset_from_relay() {
 	});
 
 	// Actually send relay asset to parachain
-	let dest: MultiLocation = AccountKey20 {
+	let dest: Location = AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -78,8 +82,8 @@ fn receive_relay_asset_from_relay() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 123).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 123).into()),
 			0,
 		));
 	});
@@ -96,7 +100,7 @@ fn receive_relay_asset_from_relay() {
 fn send_relay_asset_to_relay() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -123,7 +127,7 @@ fn send_relay_asset_to_relay() {
 		));
 	});
 
-	let dest: MultiLocation = Junction::AccountKey20 {
+	let dest: Location = Junction::AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -134,8 +138,8 @@ fn send_relay_asset_to_relay() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 123).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 123).into()),
 			0,
 		));
 	});
@@ -152,12 +156,13 @@ fn send_relay_asset_to_relay() {
 	});
 
 	// We now send back some money to the relay
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X1(AccountId32 {
+		interior: [AccountId32 {
 			network: None,
 			id: RELAYALICE.into(),
-		}),
+		}]
+		.into(),
 	};
 
 	ParaA::execute_with(|| {
@@ -165,7 +170,7 @@ fn send_relay_asset_to_relay() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			123,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -185,7 +190,7 @@ fn send_relay_asset_to_relay() {
 fn send_relay_asset_to_para_b() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -229,7 +234,7 @@ fn send_relay_asset_to_para_b() {
 	});
 
 	// First send relay chain asset to Parachain A like in previous test
-	let dest: MultiLocation = Junction::AccountKey20 {
+	let dest: Location = Junction::AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -238,8 +243,8 @@ fn send_relay_asset_to_para_b() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 123).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 123).into()),
 			0,
 		));
 	});
@@ -249,15 +254,16 @@ fn send_relay_asset_to_para_b() {
 	});
 
 	// Now send relay asset from para A to para B
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X2(
+		interior: [
 			Parachain(2),
 			AccountKey20 {
 				network: None,
 				key: PARAALICE.into(),
 			},
-		),
+		]
+		.into(),
 	};
 
 	ParaA::execute_with(|| {
@@ -265,7 +271,7 @@ fn send_relay_asset_to_para_b() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -286,8 +292,10 @@ fn send_para_a_asset_to_para_b() {
 	MockNet::reset();
 
 	// This represents the asset in paraA
-	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -314,15 +322,16 @@ fn send_para_a_asset_to_para_b() {
 	});
 
 	// Send para A asset from para A to para B
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X2(
+		interior: [
 			Parachain(2),
 			AccountKey20 {
 				network: None,
 				key: PARAALICE.into(),
 			},
-		),
+		]
+		.into(),
 	};
 
 	ParaA::execute_with(|| {
@@ -330,7 +339,7 @@ fn send_para_a_asset_to_para_b() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -356,8 +365,10 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	MockNet::reset();
 
 	// Represents para A asset
-	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -401,22 +412,23 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	});
 
 	// Send para A asset to para B
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X2(
+		interior: [
 			Parachain(2),
 			AccountKey20 {
 				network: None,
 				key: PARAALICE.into(),
 			},
-		),
+		]
+		.into(),
 	};
 	ParaA::execute_with(|| {
 		assert_ok!(XTokens::transfer(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -435,15 +447,16 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	});
 
 	// Send para A asset from para B to para C
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X2(
+		interior: [
 			Parachain(3),
 			AccountKey20 {
 				network: None,
 				key: PARAALICE.into(),
 			},
-		),
+		]
+		.into(),
 	};
 
 	ParaB::execute_with(|| {
@@ -451,7 +464,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -468,8 +481,10 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	MockNet::reset();
 
 	// Para A asset
-	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -496,22 +511,23 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	});
 
 	// Send para A asset to para B
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X2(
+		interior: [
 			Parachain(2),
 			AccountKey20 {
 				network: None,
 				key: PARAALICE.into(),
 			},
-		),
+		]
+		.into(),
 	};
 	ParaA::execute_with(|| {
 		assert_ok!(XTokens::transfer(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -530,22 +546,23 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	});
 
 	// Send back para A asset to para A
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X2(
+		interior: [
 			Parachain(1),
 			AccountKey20 {
 				network: None,
 				key: PARAALICE.into(),
 			},
-		),
+		]
+		.into(),
 	};
 	ParaB::execute_with(|| {
 		assert_ok!(XTokens::transfer(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -564,8 +581,10 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 	MockNet::reset();
 
-	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -590,22 +609,23 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 		));
 	});
 
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X2(
+		interior: [
 			Parachain(2),
 			AccountKey20 {
 				network: None,
 				key: PARAALICE.into(),
 			},
-		),
+		]
+		.into(),
 	};
 	ParaA::execute_with(|| {
 		assert_ok!(XTokens::transfer(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -626,14 +646,14 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 	// This time we will force the new reanchoring by manually sending the
 	// Message through polkadotXCM pallet
 
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X1(Parachain(1)),
+		interior: [Parachain(1)].into(),
 	};
 
-	let reanchored_para_a_balances = MultiLocation::new(0, X1(PalletInstance(1u8)));
+	let reanchored_para_a_balances = Location::new(0, [PalletInstance(1u8)]);
 
-	let message = xcm::VersionedXcm::<()>::V3(Xcm(vec![
+	let message = xcm::VersionedXcm::<()>::V4(Xcm(vec![
 		WithdrawAsset((reanchored_para_a_balances.clone(), 100).into()),
 		ClearOrigin,
 		BuyExecution {
@@ -642,12 +662,12 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 		},
 		DepositAsset {
 			assets: All.into(),
-			beneficiary: MultiLocation::new(
+			beneficiary: Location::new(
 				0,
-				X1(AccountKey20 {
+				[AccountKey20 {
 					network: None,
 					key: PARAALICE,
-				}),
+				}],
 			),
 		},
 	]));
@@ -669,14 +689,14 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 	// This time we will force the new reanchoring by manually sending the
 	// Message through polkadotXCM pallet
 
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X1(Parachain(1)),
+		interior: [Parachain(1)].into(),
 	};
 
-	let reanchored_para_a_balances = MultiLocation::new(0, X1(PalletInstance(1u8)));
+	let reanchored_para_a_balances = Location::new(0, [PalletInstance(1u8)]);
 
-	let message = xcm::VersionedXcm::<()>::V3(Xcm(vec![
+	let message = xcm::VersionedXcm::<()>::V4(Xcm(vec![
 		WithdrawAsset((reanchored_para_a_balances.clone(), 100).into()),
 		ClearOrigin,
 		BuyExecution {
@@ -685,12 +705,12 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 		},
 		DepositAsset {
 			assets: All.into(),
-			beneficiary: MultiLocation::new(
+			beneficiary: Location::new(
 				0,
-				X1(AccountKey20 {
+				[AccountKey20 {
 					network: None,
 					key: PARAALICE,
-				}),
+				}],
 			),
 		},
 	]));
@@ -717,7 +737,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 fn receive_relay_asset_with_trader() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -745,7 +765,7 @@ fn receive_relay_asset_with_trader() {
 		));
 	});
 
-	let dest: MultiLocation = Junction::AccountKey20 {
+	let dest: Location = Junction::AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -760,8 +780,8 @@ fn receive_relay_asset_with_trader() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 100).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 100).into()),
 			0,
 		));
 	});
@@ -778,8 +798,10 @@ fn receive_relay_asset_with_trader() {
 fn send_para_a_asset_to_para_b_with_trader() {
 	MockNet::reset();
 
-	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -804,15 +826,16 @@ fn send_para_a_asset_to_para_b_with_trader() {
 		));
 	});
 
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X2(
+		interior: [
 			Parachain(2),
 			AccountKey20 {
 				network: None,
 				key: PARAALICE.into(),
 			},
-		),
+		]
+		.into(),
 	};
 
 	// In destination chain, we only need 4 weight
@@ -822,7 +845,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(10u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -852,8 +875,10 @@ fn send_para_a_asset_to_para_b_with_trader() {
 fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 	MockNet::reset();
 
-	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -879,15 +904,16 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 		));
 	});
 
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X2(
+		interior: [
 			Parachain(2),
 			AccountKey20 {
 				network: None,
 				key: PARAALICE.into(),
 			},
-		),
+		]
+		.into(),
 	};
 
 	// we use transfer_with_fee
@@ -897,7 +923,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			1,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -920,7 +946,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 fn error_when_not_paying_enough() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -929,7 +955,7 @@ fn error_when_not_paying_enough() {
 		decimals: 12,
 	};
 
-	let dest: MultiLocation = Junction::AccountKey20 {
+	let dest: Location = Junction::AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -960,8 +986,8 @@ fn error_when_not_paying_enough() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 5).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 5).into()),
 			0,
 		));
 	});
@@ -976,7 +1002,7 @@ fn error_when_not_paying_enough() {
 fn transact_through_derivative_multilocation() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -1003,7 +1029,7 @@ fn transact_through_derivative_multilocation() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+			Box::new(xcm::VersionedLocation::V4(Location::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000.into(),
 			20000000000.into(),
@@ -1012,14 +1038,14 @@ fn transact_through_derivative_multilocation() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+			Box::new(xcm::VersionedLocation::V4(Location::parent())),
 			WEIGHT_REF_TIME_PER_SECOND as u128,
 		));
 	});
 
 	// Let's construct the call to know how much weight it is going to require
 
-	let dest: MultiLocation = AccountKey20 {
+	let dest: Location = AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -1029,8 +1055,8 @@ fn transact_through_derivative_multilocation() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 4000003100u128).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 4000003100u128).into()),
 			0,
 		));
 	});
@@ -1052,12 +1078,13 @@ fn transact_through_derivative_multilocation() {
 	// Send to registered address
 
 	let registered_address = derivative_account_id(para_a_account(), 0);
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X1(AccountId32 {
+		interior: [AccountId32 {
 			network: None,
 			id: registered_address.clone().into(),
-		}),
+		}]
+		.into(),
 	};
 
 	ParaA::execute_with(|| {
@@ -1066,7 +1093,7 @@ fn transact_through_derivative_multilocation() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1107,8 +1134,8 @@ fn transact_through_derivative_multilocation() {
 			parachain::MockTransactors::Relay,
 			0,
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
-					MultiLocation::parent()
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
 				))),
 				fee_amount: None
 			},
@@ -1134,7 +1161,7 @@ fn transact_through_derivative_multilocation() {
 fn transact_through_derivative_with_custom_fee_weight() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -1161,7 +1188,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 
 	// Let's construct the call to know how much weight it is going to require
 
-	let dest: MultiLocation = AccountKey20 {
+	let dest: Location = AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -1171,8 +1198,8 @@ fn transact_through_derivative_with_custom_fee_weight() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 4000003100u128).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 4000003100u128).into()),
 			0,
 		));
 	});
@@ -1194,12 +1221,13 @@ fn transact_through_derivative_with_custom_fee_weight() {
 	// Send to registered address
 
 	let registered_address = derivative_account_id(para_a_account(), 0);
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X1(AccountId32 {
+		interior: [AccountId32 {
 			network: None,
 			id: registered_address.clone().into(),
-		}),
+		}]
+		.into(),
 	};
 
 	ParaA::execute_with(|| {
@@ -1208,7 +1236,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1250,8 +1278,8 @@ fn transact_through_derivative_with_custom_fee_weight() {
 			parachain::MockTransactors::Relay,
 			0,
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
-					MultiLocation::parent()
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
 				))),
 				// 1-1 fee weight mapping
 				fee_amount: Some(overall_weight as u128)
@@ -1288,7 +1316,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 fn transact_through_derivative_with_custom_fee_weight_refund() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -1315,7 +1343,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 
 	// Let's construct the call to know how much weight it is going to require
 
-	let dest: MultiLocation = AccountKey20 {
+	let dest: Location = AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -1325,8 +1353,8 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 4000009100u128).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 4000009100u128).into()),
 			0,
 		));
 	});
@@ -1348,12 +1376,13 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 	// Send to registered address
 
 	let registered_address = derivative_account_id(para_a_account(), 0);
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X1(AccountId32 {
+		interior: [AccountId32 {
 			network: None,
 			id: registered_address.clone().into(),
-		}),
+		}]
+		.into(),
 	};
 
 	ParaA::execute_with(|| {
@@ -1362,7 +1391,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1404,8 +1433,8 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 			parachain::MockTransactors::Relay,
 			0,
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
-					MultiLocation::parent()
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
 				))),
 				// 1-1 fee weight mapping
 				fee_amount: Some(overall_weight as u128)
@@ -1441,7 +1470,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 fn transact_through_sovereign() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -1468,7 +1497,7 @@ fn transact_through_sovereign() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+			Box::new(xcm::VersionedLocation::V4(Location::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000.into(),
 			20000000000.into(),
@@ -1477,12 +1506,12 @@ fn transact_through_sovereign() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+			Box::new(xcm::VersionedLocation::V4(Location::parent())),
 			WEIGHT_REF_TIME_PER_SECOND as u128,
 		));
 	});
 
-	let dest: MultiLocation = AccountKey20 {
+	let dest: Location = AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -1491,8 +1520,8 @@ fn transact_through_sovereign() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 4000003100u128).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 4000003100u128).into()),
 			0,
 		));
 	});
@@ -1513,12 +1542,13 @@ fn transact_through_sovereign() {
 
 	// Send to registered address
 	let registered_address = derivative_account_id(para_a_account(), 0);
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X1(AccountId32 {
+		interior: [AccountId32 {
 			network: None,
 			id: registered_address.clone().into(),
-		}),
+		}]
+		.into(),
 	};
 
 	ParaA::execute_with(|| {
@@ -1527,7 +1557,7 @@ fn transact_through_sovereign() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1546,9 +1576,9 @@ fn transact_through_sovereign() {
 	});
 
 	// We send the xcm transact operation to parent
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: Here,
+		interior: /* Here */ [].into(),
 	};
 
 	// Encode the call. Balances transact to para_a_account
@@ -1577,11 +1607,11 @@ fn transact_through_sovereign() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			Box::new(xcm::VersionedLocation::V4(dest)),
 			PARAALICE.into(),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
-					MultiLocation::parent()
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
 				))),
 				fee_amount: None
 			},
@@ -1607,7 +1637,7 @@ fn transact_through_sovereign() {
 fn transact_through_sovereign_with_custom_fee_weight() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -1632,7 +1662,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 		));
 	});
 
-	let dest: MultiLocation = AccountKey20 {
+	let dest: Location = AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -1641,8 +1671,8 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 4000003100u128).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 4000003100u128).into()),
 			0,
 		));
 	});
@@ -1663,12 +1693,13 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 
 	// Send to registered address
 	let registered_address = derivative_account_id(para_a_account(), 0);
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X1(AccountId32 {
+		interior: [AccountId32 {
 			network: None,
 			id: registered_address.clone().into(),
-		}),
+		}]
+		.into(),
 	};
 
 	ParaA::execute_with(|| {
@@ -1677,7 +1708,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1696,9 +1727,9 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	});
 
 	// We send the xcm transact operation to parent
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: Here,
+		interior: /* Here */ [].into(),
 	};
 
 	// Encode the call. Balances transact to para_a_account
@@ -1728,11 +1759,11 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			Box::new(xcm::VersionedLocation::V4(dest)),
 			PARAALICE.into(),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
-					MultiLocation::parent()
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
 				))),
 				// 1-1 fee-weight mapping
 				fee_amount: Some(total_weight as u128)
@@ -1759,7 +1790,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -1784,7 +1815,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 		));
 	});
 
-	let dest: MultiLocation = AccountKey20 {
+	let dest: Location = AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -1793,8 +1824,8 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 4000009100u128).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 4000009100u128).into()),
 			0,
 		));
 	});
@@ -1815,12 +1846,13 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 
 	// Send to registered address
 	let registered_address = derivative_account_id(para_a_account(), 0);
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X1(AccountId32 {
+		interior: [AccountId32 {
 			network: None,
 			id: registered_address.clone().into(),
-		}),
+		}]
+		.into(),
 	};
 
 	ParaA::execute_with(|| {
@@ -1829,7 +1861,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1848,9 +1880,9 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	});
 
 	// We send the xcm transact operation to parent
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: Here,
+		interior: /* Here */ [].into(),
 	};
 
 	// Encode the call. Balances transact to para_a_account
@@ -1880,11 +1912,11 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(dest)),
+			Box::new(xcm::VersionedLocation::V4(dest)),
 			PARAALICE.into(),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
-					MultiLocation::parent()
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
 				))),
 				// 1-1 fee-weight mapping
 				fee_amount: Some(total_weight as u128)
@@ -1912,7 +1944,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
 		symbol: b"Relay".to_vec(),
@@ -1937,7 +1969,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	});
 
 	let response = Response::Version(2);
-	let querier: MultiLocation = Here.into();
+	let querier: Location = ([]/* Here */).into();
 
 	// This is irrelevant, nothing will be done with this message,
 	// but we need to pass a message as an argument to trigger the storage change
@@ -1950,7 +1982,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	// The router is mocked, and we cannot use WrapVersion in ChildParachainRouter. So we will force
 	// it directly here
 	// Actually send relay asset to parachain
-	let dest: MultiLocation = AccountKey20 {
+	let dest: Location = AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -1975,8 +2007,8 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 123).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 123).into()),
 			0,
 		));
 
@@ -1989,9 +2021,9 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 
 	let expected_supported_version: relay_chain::RuntimeEvent =
 		pallet_xcm::Event::SupportedVersionChanged {
-			location: MultiLocation {
+			location: Location {
 				parents: 0,
-				interior: X1(Parachain(1)),
+				interior: [Parachain(1)].into(),
 			},
 			version: 1,
 		}
@@ -2024,9 +2056,9 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	// This event should have been seen in the relay
 	let expected_supported_version_2: relay_chain::RuntimeEvent =
 		pallet_xcm::Event::SupportedVersionChanged {
-			location: MultiLocation {
+			location: Location {
 				parents: 0,
-				interior: X1(Parachain(1)),
+				interior: [Parachain(1)].into(),
 			},
 			version: 2,
 		}
@@ -2042,8 +2074,10 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	MockNet::reset();
 
-	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
-	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -2052,7 +2086,8 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		decimals: 18,
 	};
 	let response = Response::Version(2);
-	let querier: MultiLocation = Here.into();
+	let querier: Location = [] /* Here */
+		.into();
 
 	// This is irrelevant, nothing will be done with this message,
 	// but we need to pass a message as an argument to trigger the storage change
@@ -2095,7 +2130,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		));
 		// Wrap version, which sets VersionedStorage
 		assert_ok!(<ParachainPalletXcm as WrapVersion>::wrap_version(
-			&MultiLocation::new(1, X1(Parachain(2))).into(),
+			&Location::new(1, [Parachain(2)]).into(),
 			mock_message
 		));
 
@@ -2107,9 +2142,9 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 
 	let expected_supported_version: parachain::RuntimeEvent =
 		pallet_xcm::Event::SupportedVersionChanged {
-			location: MultiLocation {
+			location: Location {
 				parents: 1,
-				interior: X1(Parachain(2)),
+				interior: [Parachain(2)].into(),
 			},
 			version: 0,
 		}
@@ -2121,15 +2156,16 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	});
 
 	// Let's ensure talking in v0 works
-	let dest = MultiLocation {
+	let dest = Location {
 		parents: 1,
-		interior: X2(
+		interior: [
 			Parachain(2),
 			AccountKey20 {
 				network: None,
 				key: PARAALICE.into(),
 			},
-		),
+		]
+		.into(),
 	};
 	ParaA::execute_with(|| {
 		// free execution, full amount received
@@ -2137,7 +2173,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
-			Box::new(VersionedMultiLocation::V3(dest)),
+			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 		// free execution, full amount received
@@ -2174,9 +2210,9 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	// This event should have been seen in para A
 	let expected_supported_version_2: parachain::RuntimeEvent =
 		pallet_xcm::Event::SupportedVersionChanged {
-			location: MultiLocation {
+			location: Location {
 				parents: 1,
-				interior: X1(Parachain(2)),
+				interior: [Parachain(2)].into(),
 			},
 			version: 2,
 		}
@@ -2194,7 +2230,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	MockNet::reset();
 
 	let fresh_account = [2u8; 20];
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
@@ -2219,7 +2255,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	});
 
 	// Actually send relay asset to parachain
-	let dest: MultiLocation = AccountKey20 {
+	let dest: Location = AccountKey20 {
 		network: None,
 		key: fresh_account,
 	}
@@ -2228,8 +2264,8 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest.clone()).clone().into()),
-			Box::new((Here, 123).into()),
+			Box::new(VersionedLocation::V4(dest.clone()).clone().into()),
+			Box::new(([] /* Here */, 123).into()),
 			0,
 		));
 	});
@@ -2254,8 +2290,8 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 123).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(([] /* Here */, 123).into()),
 			0,
 		));
 	});
@@ -2272,7 +2308,7 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 	MockNet::reset();
 
 	let fresh_account = [2u8; 20];
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
@@ -2297,7 +2333,7 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 	});
 
 	// Actually send relay asset to parachain
-	let dest: MultiLocation = AccountKey20 {
+	let dest: Location = AccountKey20 {
 		network: None,
 		key: fresh_account,
 	}
@@ -2306,8 +2342,8 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest.clone()).clone().into()),
-			Box::new((Here, 123).into()),
+			Box::new(VersionedLocation::V4(dest.clone()).clone().into()),
+			Box::new(([] /* Here */, 123).into()),
 			0,
 		));
 	});
@@ -2333,7 +2369,7 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 		assert_eq!(parachain::System::account(evm_account_id).sufficients, 1);
 	});
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
 		symbol: b"Relay".to_vec(),
@@ -2357,7 +2393,7 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 	});
 
 	// Actually send relay asset to parachain
-	let dest: MultiLocation = AccountKey20 {
+	let dest: Location = AccountKey20 {
 		network: None,
 		key: sufficient_account,
 	}
@@ -2366,8 +2402,8 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest.clone()).clone().into()),
-			Box::new((Here, 123).into()),
+			Box::new(VersionedLocation::V4(dest.clone()).clone().into()),
+			Box::new(([] /* Here */, 123).into()),
 			0,
 		));
 	});
@@ -2401,7 +2437,7 @@ fn empty_account_should_not_be_reset() {
 
 	let evm_account_id = parachain::AccountId::from(sufficient_account);
 
-	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
@@ -2435,7 +2471,7 @@ fn empty_account_should_not_be_reset() {
 	});
 
 	// Actually send relay asset to parachain
-	let dest: MultiLocation = AccountKey20 {
+	let dest: Location = AccountKey20 {
 		network: None,
 		key: sufficient_account,
 	}
@@ -2444,8 +2480,8 @@ fn empty_account_should_not_be_reset() {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedMultiLocation::V3(dest.clone()).clone().into()),
-			Box::new((Here, 123).into()),
+			Box::new(VersionedLocation::V4(dest.clone()).clone().into()),
+			Box::new(([] /* Here */, 123).into()),
 			0,
 		));
 	});
@@ -2499,7 +2535,7 @@ fn empty_account_should_not_be_reset() {
 fn test_statemine_like() {
 	MockNet::reset();
 
-	let dest_para = MultiLocation::new(1, X1(Parachain(1)));
+	let dest_para = Location::new(1, [Parachain(1)]);
 
 	let sov = xcm_builder::SiblingParachainConvertsVia::<
 		polkadot_parachain::primitives::Sibling,
@@ -2507,15 +2543,18 @@ fn test_statemine_like() {
 	>::convert_location(&dest_para)
 	.unwrap();
 
-	let statemine_asset_a_balances = MultiLocation::new(
+	let statemine_asset_a_balances = Location::new(
 		1,
-		X3(
+		[
 			Parachain(4),
 			PalletInstance(5),
 			xcm::latest::prelude::GeneralIndex(0u128),
-		),
+		],
 	);
-	let source_location = parachain::AssetType::Xcm(statemine_asset_a_balances);
+	let source_location = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&statemine_asset_a_balances)
+			.expect("convert to v3"),
+	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -2567,7 +2606,7 @@ fn test_statemine_like() {
 		));
 
 		// Actually send relay asset to parachain
-		let dest: MultiLocation = AccountKey20 {
+		let dest: Location = AccountKey20 {
 			network: None,
 			key: PARAALICE,
 		}
@@ -2576,16 +2615,16 @@ fn test_statemine_like() {
 		// Send with new prefix
 		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
 			statemine_like::RuntimeOrigin::signed(RELAYALICE),
-			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
-			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(
 				(
-					X2(
+					[
 						xcm::latest::prelude::PalletInstance(
 							<StatemineAssets as PalletInfoAccess>::index() as u8
 						),
 						xcm::latest::prelude::GeneralIndex(0),
-					),
+					],
 					123
 				)
 					.into()
@@ -2604,7 +2643,7 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 	MockNet::reset();
 
 	// Relay asset
-	let relay_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_relay_id: parachain::AssetId = relay_location.clone().into();
 
 	let relay_asset_metadata = parachain::AssetMetadata {
@@ -2614,11 +2653,13 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 	};
 
 	// Statemine asset
-	let statemine_asset = MultiLocation::new(
+	let statemine_asset = Location::new(
 		1,
-		X3(Parachain(4u32), PalletInstance(5u8), GeneralIndex(10u128)),
+		[Parachain(4u32), PalletInstance(5u8), GeneralIndex(10u128)],
 	);
-	let statemine_location_asset = parachain::AssetType::Xcm(statemine_asset);
+	let statemine_location_asset = parachain::AssetType::Xcm(
+		xcm_builder::V4V3LocationConverter::convert(&statemine_asset).expect("convert to v3"),
+	);
 	let source_statemine_asset_id: parachain::AssetId = statemine_location_asset.clone().into();
 
 	let asset_metadata_statemine_asset = parachain::AssetMetadata {
@@ -2627,7 +2668,7 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 		decimals: 12,
 	};
 
-	let dest_para = MultiLocation::new(1, X1(Parachain(1)));
+	let dest_para = Location::new(1, [Parachain(1)]);
 
 	let sov = xcm_builder::SiblingParachainConvertsVia::<
 		polkadot_parachain::primitives::Sibling,
@@ -2665,7 +2706,7 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 		));
 	});
 
-	let parachain_beneficiary_from_relay: MultiLocation = Junction::AccountKey20 {
+	let parachain_beneficiary_from_relay: Location = Junction::AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
@@ -2677,11 +2718,11 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(
-				VersionedMultiLocation::V3(parachain_beneficiary_from_relay)
+				VersionedLocation::V4(parachain_beneficiary_from_relay)
 					.clone()
 					.into()
 			),
-			Box::new((Here, 200).into()),
+			Box::new(([] /* Here */, 200).into()),
 			0,
 		));
 	});
@@ -2715,7 +2756,7 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 		));
 
 		// Send statemine USDC asset to Alice in Parachain A
-		let parachain_beneficiary_from_statemint: MultiLocation = AccountKey20 {
+		let parachain_beneficiary_from_statemint: Location = AccountKey20 {
 			network: None,
 			key: PARAALICE,
 		}
@@ -2724,20 +2765,20 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 		// Send with new prefix
 		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
 			statemine_like::RuntimeOrigin::signed(RELAYALICE),
-			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedMultiLocation::V3(parachain_beneficiary_from_statemint)
+				VersionedLocation::V4(parachain_beneficiary_from_statemint)
 					.clone()
 					.into()
 			),
 			Box::new(
 				(
-					X2(
+					[
 						xcm::latest::prelude::PalletInstance(
 							<StatemineAssets as PalletInfoAccess>::index() as u8
 						),
 						GeneralIndex(10),
-					),
+					],
 					125
 				)
 					.into()
@@ -2746,15 +2787,16 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 		));
 	});
 
-	let statemine_beneficiary = MultiLocation {
+	let statemine_beneficiary = Location {
 		parents: 1,
-		interior: X2(
+		interior: [
 			Parachain(4),
 			AccountId32 {
 				network: None,
 				id: RELAYBOB.into(),
 			},
-		),
+		]
+		.into(),
 	};
 
 	ParaA::execute_with(|| {
@@ -2785,7 +2827,7 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 				(parachain::CurrencyId::ForeignAsset(source_relay_id), 100)
 			],
 			1,
-			Box::new(VersionedMultiLocation::V3(statemine_beneficiary)),
+			Box::new(VersionedLocation::V4(statemine_beneficiary)),
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
 	});
@@ -2810,13 +2852,13 @@ fn send_statemint_asset_from_para_a_to_statemine_with_relay_fee() {
 #[test]
 fn transact_through_signed_multilocation() {
 	MockNet::reset();
-	let mut ancestry = MultiLocation::parent();
+	let mut ancestry = Location::parent();
 
 	ParaA::execute_with(|| {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+			Box::new(xcm::VersionedLocation::V4(Location::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000.into(),
 			20000000000.into(),
@@ -2826,17 +2868,18 @@ fn transact_through_signed_multilocation() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+			Box::new(xcm::VersionedLocation::V4(Location::parent())),
 			WEIGHT_REF_TIME_PER_SECOND as u128,
 		));
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 
 	// Let's construct the Junction that we will append with DescendOrigin
-	let signed_origin: Junctions = X1(AccountKey20 {
+	let signed_origin: Junctions = [AccountKey20 {
 		network: None,
 		key: PARAALICE,
-	});
+	}]
+	.into();
 
 	let mut descend_origin_multilocation = parachain::SelfLocation::get();
 	descend_origin_multilocation
@@ -2845,7 +2888,7 @@ fn transact_through_signed_multilocation() {
 
 	// To convert it to what the relay will see instead of us
 	descend_origin_multilocation
-		.reanchor(&MultiLocation::parent(), ancestry.interior)
+		.reanchor(&Location::parent(), &ancestry.interior)
 		.unwrap();
 
 	let derived = xcm_builder::Account32Hash::<
@@ -2889,10 +2932,10 @@ fn transact_through_signed_multilocation() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+			Box::new(xcm::VersionedLocation::V4(Location::parent())),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
-					MultiLocation::parent()
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
 				))),
 				fee_amount: None
 			},
@@ -2917,17 +2960,18 @@ fn transact_through_signed_multilocation() {
 #[test]
 fn transact_through_signed_multilocation_custom_fee_and_weight() {
 	MockNet::reset();
-	let mut ancestry = MultiLocation::parent();
+	let mut ancestry = Location::parent();
 
 	ParaA::execute_with(|| {
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 
 	// Let's construct the Junction that we will append with DescendOrigin
-	let signed_origin: Junctions = X1(AccountKey20 {
+	let signed_origin: Junctions = [AccountKey20 {
 		network: None,
 		key: PARAALICE,
-	});
+	}]
+	.into();
 
 	let mut descend_origin_multilocation = parachain::SelfLocation::get();
 	descend_origin_multilocation
@@ -2936,7 +2980,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight() {
 
 	// To convert it to what the relay will see instead of us
 	descend_origin_multilocation
-		.reanchor(&MultiLocation::parent(), ancestry.interior)
+		.reanchor(&Location::parent(), &ancestry.interior)
 		.unwrap();
 
 	let derived = xcm_builder::Account32Hash::<
@@ -2981,10 +3025,10 @@ fn transact_through_signed_multilocation_custom_fee_and_weight() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+			Box::new(xcm::VersionedLocation::V4(Location::parent())),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
-					MultiLocation::parent()
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
 				))),
 				fee_amount: Some(total_weight as u128)
 			},
@@ -3008,17 +3052,18 @@ fn transact_through_signed_multilocation_custom_fee_and_weight() {
 #[test]
 fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 	MockNet::reset();
-	let mut ancestry = MultiLocation::parent();
+	let mut ancestry = Location::parent();
 
 	ParaA::execute_with(|| {
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 
 	// Let's construct the Junction that we will append with DescendOrigin
-	let signed_origin: Junctions = X1(AccountKey20 {
+	let signed_origin: Junctions = [AccountKey20 {
 		network: None,
 		key: PARAALICE,
-	});
+	}]
+	.into();
 
 	let mut descend_origin_multilocation = parachain::SelfLocation::get();
 	descend_origin_multilocation
@@ -3027,7 +3072,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 
 	// To convert it to what the relay will see instead of us
 	descend_origin_multilocation
-		.reanchor(&MultiLocation::parent(), ancestry.interior)
+		.reanchor(&Location::parent(), &ancestry.interior)
 		.unwrap();
 
 	let derived = xcm_builder::Account32Hash::<
@@ -3072,10 +3117,10 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+			Box::new(xcm::VersionedLocation::V4(Location::parent())),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
-					MultiLocation::parent()
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
 				))),
 				fee_amount: Some(total_weight as u128)
 			},
@@ -3101,18 +3146,18 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 #[test]
 fn transact_through_signed_multilocation_para_to_para() {
 	MockNet::reset();
-	let mut ancestry = MultiLocation::parent();
+	let mut ancestry = Location::parent();
 
-	let para_b_location = MultiLocation::new(1, X1(Parachain(2)));
+	let para_b_location = Location::new(1, [Parachain(2)]);
 
-	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
+	let para_b_balances = Location::new(1, [Parachain(2), PalletInstance(1u8)]);
 
 	ParaA::execute_with(|| {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
 			// ParaB
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
+			Box::new(xcm::VersionedLocation::V4(para_b_location.clone())),
 			// Para charges 1000 for every instruction, and we have 3, so 3
 			3.into(),
 			20000000000.into(),
@@ -3122,33 +3167,32 @@ fn transact_through_signed_multilocation_para_to_para() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
 			parachain::ParaTokensPerSecond::get().1 as u128,
 		));
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 
 	// Let's construct the Junction that we will append with DescendOrigin
-	let signed_origin: Junctions = X1(AccountKey20 {
+	let signed_origin: Junctions = [AccountKey20 {
 		network: None,
 		key: PARAALICE,
-	});
+	}]
+	.into();
 
-	let mut descend_origin_multilocation = parachain::SelfLocation::get();
-	descend_origin_multilocation
-		.append_with(signed_origin)
-		.unwrap();
+	let mut descend_origin_location = parachain::SelfLocation::get();
+	descend_origin_location.append_with(signed_origin).unwrap();
 
 	// To convert it to what the paraB will see instead of us
-	descend_origin_multilocation
-		.reanchor(&para_b_location, ancestry.interior)
+	descend_origin_location
+		.reanchor(&para_b_location, &ancestry.interior)
 		.unwrap();
 
-	let derived =
-		HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_location(
-			&descend_origin_multilocation,
-		)
-		.unwrap();
+	let derived = xcm_builder::HashedDescription::<
+		parachain::AccountId,
+		xcm_builder::DescribeFamily<xcm_builder::DescribeAllTerminal>,
+	>::convert_location(&descend_origin_location)
+	.unwrap();
 
 	ParaB::execute_with(|| {
 		// free execution, full amount received
@@ -3184,9 +3228,9 @@ fn transact_through_signed_multilocation_para_to_para() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
+			Box::new(xcm::VersionedLocation::V4(para_b_location)),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					para_b_balances
 				))),
 				fee_amount: None
@@ -3212,42 +3256,41 @@ fn transact_through_signed_multilocation_para_to_para() {
 #[test]
 fn transact_through_signed_multilocation_para_to_para_refund() {
 	MockNet::reset();
-	let mut ancestry = MultiLocation::parent();
+	let mut ancestry = Location::parent();
 
-	let para_b_location = MultiLocation::new(1, X1(Parachain(2)));
+	let para_b_location = Location::new(1, [Parachain(2)]);
 
-	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
+	let para_b_balances = Location::new(1, [Parachain(2), PalletInstance(1u8)]);
 
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
 			parachain::ParaTokensPerSecond::get().1 as u128,
 		));
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 
 	// Let's construct the Junction that we will append with DescendOrigin
-	let signed_origin: Junctions = X1(AccountKey20 {
+	let signed_origin: Junctions = [AccountKey20 {
 		network: None,
 		key: PARAALICE,
-	});
+	}]
+	.into();
 
-	let mut descend_origin_multilocation = parachain::SelfLocation::get();
-	descend_origin_multilocation
-		.append_with(signed_origin)
-		.unwrap();
+	let mut descend_origin_location = parachain::SelfLocation::get();
+	descend_origin_location.append_with(signed_origin).unwrap();
 
 	// To convert it to what the paraB will see instead of us
-	descend_origin_multilocation
-		.reanchor(&para_b_location, ancestry.interior)
+	descend_origin_location
+		.reanchor(&para_b_location, &ancestry.interior)
 		.unwrap();
 
-	let derived =
-		HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_location(
-			&descend_origin_multilocation,
-		)
-		.unwrap();
+	let derived = xcm_builder::HashedDescription::<
+		parachain::AccountId,
+		xcm_builder::DescribeFamily<xcm_builder::DescribeAllTerminal>,
+	>::convert_location(&descend_origin_location)
+	.unwrap();
 
 	ParaB::execute_with(|| {
 		// free execution, full amount received
@@ -3284,9 +3327,9 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
+			Box::new(xcm::VersionedLocation::V4(para_b_location)),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					para_b_balances
 				))),
 				fee_amount: Some(overall_weight as u128)
@@ -3313,18 +3356,18 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 #[test]
 fn transact_through_signed_multilocation_para_to_para_ethereum() {
 	MockNet::reset();
-	let mut ancestry = MultiLocation::parent();
+	let mut ancestry = Location::parent();
 
-	let para_b_location = MultiLocation::new(1, X1(Parachain(2)));
+	let para_b_location = Location::new(1, [Parachain(2)]);
 
-	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
+	let para_b_balances = Location::new(1, [Parachain(2), PalletInstance(1u8)]);
 
 	ParaA::execute_with(|| {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
 			// ParaB
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
+			Box::new(xcm::VersionedLocation::V4(para_b_location.clone())),
 			// Para charges 1000 for every instruction, and we have 3, so 3
 			3.into(),
 			20000000000.into(),
@@ -3334,33 +3377,32 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
 			parachain::ParaTokensPerSecond::get().1 as u128,
 		));
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 
 	// Let's construct the Junction that we will append with DescendOrigin
-	let signed_origin: Junctions = X1(AccountKey20 {
+	let signed_origin: Junctions = [AccountKey20 {
 		network: None,
 		key: PARAALICE,
-	});
+	}]
+	.into();
 
-	let mut descend_origin_multilocation = parachain::SelfLocation::get();
-	descend_origin_multilocation
-		.append_with(signed_origin)
-		.unwrap();
+	let mut descend_origin_location = parachain::SelfLocation::get();
+	descend_origin_location.append_with(signed_origin).unwrap();
 
 	// To convert it to what the paraB will see instead of us
-	descend_origin_multilocation
-		.reanchor(&para_b_location, ancestry.interior)
+	descend_origin_location
+		.reanchor(&para_b_location, &ancestry.interior)
 		.unwrap();
 
-	let derived =
-		HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_location(
-			&descend_origin_multilocation,
-		)
-		.unwrap();
+	let derived = xcm_builder::HashedDescription::<
+		parachain::AccountId,
+		xcm_builder::DescribeFamily<xcm_builder::DescribeAllTerminal>,
+	>::convert_location(&descend_origin_location)
+	.unwrap();
 
 	let mut parachain_b_alice_balances_before = 0;
 	ParaB::execute_with(|| {
@@ -3411,9 +3453,9 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
+			Box::new(xcm::VersionedLocation::V4(para_b_location)),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					para_b_balances
 				))),
 				fee_amount: None
@@ -3441,18 +3483,18 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 #[test]
 fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() {
 	MockNet::reset();
-	let mut ancestry = MultiLocation::parent();
+	let mut ancestry = Location::parent();
 
-	let para_b_location = MultiLocation::new(1, X1(Parachain(2)));
+	let para_b_location = Location::new(1, [Parachain(2)]);
 
-	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
+	let para_b_balances = Location::new(1, [Parachain(2), PalletInstance(1u8)]);
 
 	ParaA::execute_with(|| {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
 			// ParaB
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
+			Box::new(xcm::VersionedLocation::V4(para_b_location.clone())),
 			// Para charges 1000 for every instruction, and we have 3, so 3
 			3.into(),
 			20000000000.into(),
@@ -3462,33 +3504,32 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
 			parachain::ParaTokensPerSecond::get().1 as u128,
 		));
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 
 	// Let's construct the Junction that we will append with DescendOrigin
-	let signed_origin: Junctions = X1(AccountKey20 {
+	let signed_origin: Junctions = [AccountKey20 {
 		network: None,
 		key: PARAALICE,
-	});
+	}]
+	.into();
 
-	let mut descend_origin_multilocation = parachain::SelfLocation::get();
-	descend_origin_multilocation
-		.append_with(signed_origin)
-		.unwrap();
+	let mut descend_origin_location = parachain::SelfLocation::get();
+	descend_origin_location.append_with(signed_origin).unwrap();
 
 	// To convert it to what the paraB will see instead of us
-	descend_origin_multilocation
-		.reanchor(&para_b_location, ancestry.interior)
+	descend_origin_location
+		.reanchor(&para_b_location, &ancestry.interior)
 		.unwrap();
 
-	let derived =
-		HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_location(
-			&descend_origin_multilocation,
-		)
-		.unwrap();
+	let derived = xcm_builder::HashedDescription::<
+		parachain::AccountId,
+		xcm_builder::DescribeFamily<xcm_builder::DescribeAllTerminal>,
+	>::convert_location(&descend_origin_location)
+	.unwrap();
 
 	let mut parachain_b_alice_balances_before = 0;
 	ParaB::execute_with(|| {
@@ -3540,9 +3581,9 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
+			Box::new(xcm::VersionedLocation::V4(para_b_location)),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					para_b_balances
 				))),
 				fee_amount: None
@@ -3565,18 +3606,18 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 #[test]
 fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() {
 	MockNet::reset();
-	let mut ancestry = MultiLocation::parent();
+	let mut ancestry = Location::parent();
 
-	let para_b_location = MultiLocation::new(1, X1(Parachain(2)));
+	let para_b_location = Location::new(1, [Parachain(2)]);
 
-	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
+	let para_b_balances = Location::new(1, [Parachain(2), PalletInstance(1u8)]);
 
 	ParaA::execute_with(|| {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
 			// ParaB
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location.clone())),
+			Box::new(xcm::VersionedLocation::V4(para_b_location.clone())),
 			// Para charges 1000 for every instruction, and we have 3, so 3
 			3.into(),
 			20000000000.into(),
@@ -3586,33 +3627,32 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_balances.clone())),
+			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
 			parachain::ParaTokensPerSecond::get().1 as u128,
 		));
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 
 	// Let's construct the Junction that we will append with DescendOrigin
-	let signed_origin: Junctions = X1(AccountKey20 {
+	let signed_origin: Junctions = [AccountKey20 {
 		network: None,
 		key: PARAALICE,
-	});
+	}]
+	.into();
 
-	let mut descend_origin_multilocation = parachain::SelfLocation::get();
-	descend_origin_multilocation
-		.append_with(signed_origin)
-		.unwrap();
+	let mut descend_origin_location = parachain::SelfLocation::get();
+	descend_origin_location.append_with(signed_origin).unwrap();
 
 	// To convert it to what the paraB will see instead of us
-	descend_origin_multilocation
-		.reanchor(&para_b_location, ancestry.interior)
+	descend_origin_location
+		.reanchor(&para_b_location, &ancestry.interior)
 		.unwrap();
 
-	let derived =
-		HashedDescriptionDescribeFamilyAllTerminal::<parachain::AccountId>::convert_location(
-			&descend_origin_multilocation,
-		)
-		.unwrap();
+	let derived = xcm_builder::HashedDescription::<
+		parachain::AccountId,
+		xcm_builder::DescribeFamily<xcm_builder::DescribeAllTerminal>,
+	>::convert_location(&descend_origin_location)
+	.unwrap();
 
 	let transfer_recipient = evm_account();
 	let mut transfer_recipient_balance_before = 0;
@@ -3672,9 +3712,9 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedMultiLocation::V3(para_b_location)),
+			Box::new(xcm::VersionedLocation::V4(para_b_location)),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
 					para_b_balances
 				))),
 				fee_amount: None
@@ -3727,8 +3767,8 @@ fn hrmp_init_accept_through_root() {
 				proposed_max_message_size: 1
 			}),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
-					MultiLocation::parent()
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
 				))),
 				fee_amount: Some(total_fee)
 			},
@@ -3760,8 +3800,8 @@ fn hrmp_init_accept_through_root() {
 				para_id: 1u32.into()
 			},
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
-					MultiLocation::parent()
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
 				))),
 				fee_amount: Some(total_fee)
 			},
@@ -3818,8 +3858,8 @@ fn hrmp_close_works() {
 				recipient: 2u32.into()
 			}),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V3(
-					MultiLocation::parent()
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+					Location::parent()
 				))),
 				fee_amount: Some(total_fee)
 			},

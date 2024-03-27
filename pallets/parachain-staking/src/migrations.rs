@@ -171,7 +171,7 @@ where
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(_state: Vec<u8>) -> Result<(), sp_runtime::TryRuntimeError> {
-		let round = crate::Round::<T>::get(); // Should panic if SCALE decode fail
+		let _round = crate::Round::<T>::get(); // Should panic if SCALE decode fail
 		Ok(())
 	}
 }
