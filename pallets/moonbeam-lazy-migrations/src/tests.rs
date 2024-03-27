@@ -300,6 +300,7 @@ fn test_call_clear_local_assets_storage() {
 		// Clear all storage entries
 		assert_ok!(LazyMigrations::clear_local_assets_storage(
 			RuntimeOrigin::signed(AccountId32::from([0; 32])),
+			1,
 			total_storage_entries.into()
 		));
 		// Check that all storage entries got deleted
@@ -317,6 +318,7 @@ fn test_call_clear_local_assets_storage() {
 		// No more storage entries to be removed (expect failure)
 		assert!(LazyMigrations::clear_local_assets_storage(
 			RuntimeOrigin::signed(AccountId32::from([0; 32])),
+			1,
 			1
 		)
 		.is_err())
