@@ -18,29 +18,26 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOrigin, Everything, Nothing, OriginTrait, PalletInfo as PalletInfoTrait},
+	traits::{Everything, Nothing, OriginTrait, PalletInfo as PalletInfoTrait},
 	weights::{RuntimeDbWeight, Weight},
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, GasWeightMapping};
-use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{
 	mock_account,
 	precompile_set::*,
 	testing::{AddressInPrefixedSet, MockAccount},
 };
-use scale_info::TypeInfo;
 use sp_core::{ConstU32, H160, H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup, TryConvert};
 use sp_runtime::BuildStorage;
 use xcm::latest::{prelude::*, Error as XcmError};
 use xcm_builder::{
-	AllowUnpaidExecutionFrom, FixedWeightBounds, IsConcrete, SovereignSignedViaLocation,
+	AllowUnpaidExecutionFrom, Case, FixedWeightBounds, IsConcrete, SovereignSignedViaLocation,
 };
 use xcm_executor::{
 	traits::{ConvertLocation, TransactAsset, WeightTrader},
 	AssetsInHolding,
 };
-use xcm_primitives::AccountIdToCurrencyId;
 use Junctions::Here;
 
 pub type AccountId = MockAccount;
@@ -72,8 +69,6 @@ impl sp_runtime::traits::Convert<AccountId, Location> for AccountIdToLocation {
 		)
 	}
 }
-
-pub type AssetId = u128;
 
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
@@ -149,7 +144,7 @@ pub type Precompiles<R> =
 
 pub type PCall = PalletXcmPrecompileCall<Runtime>;
 
-mock_account!(ParentAccount, |_| MockAccount::from_u64(3));
+mock_account!(ParentAccount, |_| MockAccount::from_u64(4));
 mock_account!(SelfReserveAddress, |_| MockAccount::from_u64(3));
 mock_account!(AssetAddress(u128), |value: AssetAddress| {
 	AddressInPrefixedSet(0xffffffff, value.0).into()
@@ -167,7 +162,7 @@ const BLOCK_STORAGE_LIMIT: u64 = 40 * 1024;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
-	//pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
 	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
 	pub GasLimitPovSizeRatio: u64 = {
 		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
@@ -201,8 +196,8 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type PrecompilesValue = (); //PrecompilesValue;
-	type PrecompilesType = (); //Precompiles<Self>;
+	type PrecompilesValue = PrecompilesValue;
+	type PrecompilesType = Precompiles<Self>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
@@ -288,7 +283,7 @@ pub type LocalOriginToLocation = MockAccountToAccountKey20<RuntimeOrigin, Accoun
 parameter_types! {
 	pub MatcherLocation: Location = Location::here();
 
-	pub Ancestry: InteriorLocation =
+	pub UniversalLocation: InteriorLocation =
 		[GlobalConsensus(RelayNetwork::get()), Parachain(ParachainId::get().into())].into();
 
 	pub const BaseXcmWeight: Weight = Weight::from_parts(1000u64, 1000u64);
@@ -298,16 +293,13 @@ parameter_types! {
 		Location::new(1, [Parachain(ParachainId::get().into())]);
 
 	pub SelfReserve: Location = Location::new(
-		1,
+		0,
 		[
-			Parachain(ParachainId::get().into()),
 			PalletInstance(
 				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
 			)
 		]);
 	pub MaxInstructions: u32 = 100;
-
-	pub UniversalLocation: InteriorLocation = Here;
 	pub const MaxAssetsIntoHolding: u32 = 64;
 }
 
@@ -318,11 +310,10 @@ impl pallet_xcm::Config for Runtime {
 	type ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmExecuteFilter = frame_support::traits::Everything;
 	type XcmExecutor = xcm_executor::XcmExecutor<XcmConfig>;
-	// Do not allow teleports
 	type XcmTeleportFilter = Everything;
 	type XcmReserveTransferFilter = Everything;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
-	type UniversalLocation = Ancestry;
+	type UniversalLocation = UniversalLocation;
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
 	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
@@ -345,9 +336,7 @@ use xcm::latest::opaque;
 thread_local! {
 	pub static SENT_XCM: RefCell<Vec<(Location, opaque::Xcm)>> = RefCell::new(Vec::new());
 }
-pub fn sent_xcm() -> Vec<(Location, opaque::Xcm)> {
-	SENT_XCM.with(|q| (*q.borrow()).clone())
-}
+
 pub struct TestSendXcm;
 impl SendXcm for TestSendXcm {
 	type Ticket = ();
@@ -365,20 +354,6 @@ impl SendXcm for TestSendXcm {
 
 	fn deliver(_: Self::Ticket) -> Result<XcmHash, SendError> {
 		Ok(XcmHash::default())
-	}
-}
-
-pub struct ConvertOriginToLocal;
-impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
-	type Success = Location;
-
-	fn try_origin(_: Origin) -> Result<Location, Origin> {
-		Ok(Location::here())
-	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	fn try_successful_origin() -> Result<Origin, ()> {
-		Ok(Origin::root())
 	}
 }
 
@@ -429,25 +404,38 @@ impl WeightTrader for DummyWeightTrader {
 	}
 }
 
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
-pub enum CurrencyId {
-	SelfReserve,
-	OtherReserve(AssetId),
-}
-
 pub type XcmOriginToTransactDispatchOrigin = (
 	// Sovereign account converter; this attempts to derive an `AccountId` from the origin location
 	// using `LocationToAccountId` and then turn that into the usual `Signed` origin. Useful for
 	// foreign chains who want to have a local sovereign account on this chain which they control.
 	SovereignSignedViaLocation<LocationToAccountId, RuntimeOrigin>,
 );
+
+parameter_types! {
+	pub ForeignReserveLocation: Location = Location::new(
+		1,
+		[Parachain(2)]
+	);
+
+	pub ForeignAsset: Asset = Asset {
+		fun: Fungible(10000000),
+		id: AssetId(Location::new(
+			1,
+			[Parachain(2), PalletInstance(3)],
+		)),
+	};
+
+	pub LocalAsset: (AssetFilter, Location) = (All.into(), Location::here());
+	pub TrustedForeignAsset: (AssetFilter, Location) = (ForeignAsset::get().into(), ForeignReserveLocation::get());
+}
+
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
 	type XcmSender = TestSendXcm;
 	type AssetTransactor = DummyAssetTransactor;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = ();
+	type IsReserve = (Case<LocalAsset>, Case<TrustedForeignAsset>);
 	type IsTeleporter = ();
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
@@ -469,93 +457,6 @@ impl xcm_executor::Config for XcmConfig {
 	type Aliasers = Nothing;
 
 	type TransactionalProcessor = ();
-}
-
-// We need to use the encoding from the relay mock runtime
-#[derive(Encode, Decode)]
-pub enum RelayCall {
-	#[codec(index = 5u8)]
-	// the index should match the position of the module in `construct_runtime!`
-	Utility(UtilityCall),
-}
-
-#[derive(Encode, Decode)]
-pub enum UtilityCall {
-	#[codec(index = 1u8)]
-	AsDerivative(u16),
-}
-
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
-pub enum MockTransactors {
-	Relay,
-}
-
-impl TryFrom<u8> for MockTransactors {
-	type Error = ();
-
-	fn try_from(value: u8) -> Result<Self, Self::Error> {
-		match value {
-			0x0 => Ok(MockTransactors::Relay),
-			_ => Err(()),
-		}
-	}
-}
-
-impl xcm_primitives::XcmTransact for MockTransactors {
-	fn destination(self) -> Location {
-		match self {
-			MockTransactors::Relay => Location::parent(),
-		}
-	}
-}
-
-impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			MockTransactors::Relay => match call {
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
-		}
-	}
-}
-
-// Implement the trait, where we convert AccountId to AssetID
-impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
-	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
-	/// and by taking the lowest 128 bits as the assetId
-	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
-		match account {
-			a if a.has_prefix_u32(0xffffffff) => Some(CurrencyId::OtherReserve(a.without_prefix())),
-			a if a == SelfReserveAddress.into() => Some(CurrencyId::SelfReserve),
-			_ => None,
-		}
-	}
-}
-
-pub struct CurrencyIdToLocation;
-
-impl sp_runtime::traits::Convert<CurrencyId, Option<Location>> for CurrencyIdToLocation {
-	fn convert(currency: CurrencyId) -> Option<Location> {
-		match currency {
-			CurrencyId::SelfReserve => {
-				let multi: Location = SelfReserve::get();
-				Some(multi)
-			}
-			// To distinguish between relay and others, specially for reserve asset
-			CurrencyId::OtherReserve(asset) => {
-				if asset == 0 {
-					Some(Location::parent())
-				} else {
-					Some(Location::new(1, [Parachain(2), GeneralIndex(asset)]))
-				}
-			}
-		}
-	}
 }
 
 pub(crate) struct ExtBuilder {

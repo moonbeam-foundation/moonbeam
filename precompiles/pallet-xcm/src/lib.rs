@@ -65,15 +65,6 @@ where
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<pallet_xcm::Call<Runtime>>,
 {
-	/* 	"transactThroughSigned(\
-	(uint8,bytes[]),\
-	address,\
-	(uint64,uint64),\
-	bytes,\
-	uint256,\
-	(uint64,uint64),\
-	bool)" */
-
 	#[precompile::public(
 		"transferAssets(\
 		(uint8,bytes[]),\
@@ -82,7 +73,14 @@ where
 		uint32,\
 		(uint64,uint64))"
 	)]
-	//#[precompile::public("transfer_assets()")]
+	#[precompile::public(
+		"transfer_assets(\
+		(uint8,bytes[]),\
+		(uint8,bytes[]),\
+		((uint8,bytes[]),uint256)[],\
+		uint32,\
+		(uint64,uint64))"
+	)]
 	fn transfer_assets(
 		handle: &mut impl PrecompileHandle,
 		dest: Location,

@@ -270,7 +270,7 @@ fn test_transact_derivative_multilocation_v2() {
 						fee_asset: fee_payer_asset,
 						weight: 4000000,
 						inner_call: bytes.into(),
-						fee_amount: u128::from(total_weight).into(),
+						fee_amount: u128::from(total_weight),
 						overall_weight: total_weight,
 					},
 				)

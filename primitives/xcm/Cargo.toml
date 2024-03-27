@@ -49,6 +49,7 @@ std = [
 	"hex/std",
 	"pallet-staking/std",
 	"parity-scale-codec/std",
+	"polkadot-runtime-common/std",
 	"serde/std",
 	"sha3/std",
 	"sp-io/std",

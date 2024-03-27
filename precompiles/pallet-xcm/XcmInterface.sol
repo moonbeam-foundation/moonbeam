@@ -31,7 +31,7 @@ interface XCM {
     }
 
     /// @dev TODO
-    /// @custom:selector TODO
+    /// @custom:selector 650ef8c7
     function transferAssets(
         Location memory dest,
         Location memory beneficiary,

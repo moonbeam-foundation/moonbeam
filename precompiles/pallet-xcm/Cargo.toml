@@ -11,7 +11,6 @@ num_enum = { workspace = true }
 rustc-hex = { workspace = true }
 
 # Moonbeam
-pallet-xcm-transactor = { workspace = true }
 precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
 
@@ -67,10 +66,10 @@ std = [
 	"frame-system/std",
 	"pallet-evm/std",
     "pallet-xcm/std",
-	"pallet-xcm-transactor/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-std/std",
+	"xcm/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
 	"xcm-primitives/std",
