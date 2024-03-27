@@ -82,7 +82,7 @@ impl<T: Config> Pallet<T> {
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 
 		let actual_weight =
-			T::WeightInfo::schedule_revoke_delegation(scheduled_requests.len() as u32);
+			<T as Config>::WeightInfo::schedule_revoke_delegation(scheduled_requests.len() as u32);
 
 		ensure!(
 			!scheduled_requests
@@ -131,8 +131,9 @@ impl<T: Config> Pallet<T> {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 
-		let actual_weight =
-			T::WeightInfo::schedule_delegator_bond_less(scheduled_requests.len() as u32);
+		let actual_weight = <T as Config>::WeightInfo::schedule_delegator_bond_less(
+			scheduled_requests.len() as u32,
+		);
 
 		ensure!(
 			!scheduled_requests
@@ -211,7 +212,7 @@ impl<T: Config> Pallet<T> {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 		let actual_weight =
-			T::WeightInfo::cancel_delegation_request(scheduled_requests.len() as u32);
+			<T as Config>::WeightInfo::cancel_delegation_request(scheduled_requests.len() as u32);
 
 		let request =
 			Self::cancel_request_with_state(&delegator, &mut state, &mut scheduled_requests)
@@ -270,7 +271,8 @@ impl<T: Config> Pallet<T> {
 
 		match request.action {
 			DelegationAction::Revoke(amount) => {
-				let actual_weight = T::WeightInfo::execute_delegator_revoke_delegation_worst();
+				let actual_weight =
+					<T as Config>::WeightInfo::execute_delegator_revoke_delegation_worst();
 
 				// revoking last delegation => leaving set of delegators
 				let leaving = if state.delegations.0.len() == 1usize {
@@ -321,7 +323,8 @@ impl<T: Config> Pallet<T> {
 				Ok(Some(actual_weight).into())
 			}
 			DelegationAction::Decrease(_) => {
-				let actual_weight = T::WeightInfo::execute_delegator_revoke_delegation_worst();
+				let actual_weight =
+					<T as Config>::WeightInfo::execute_delegator_revoke_delegation_worst();
 
 				// remove from pending requests
 				let amount = scheduled_requests.remove(request_idx).action.amount();

@@ -4,15 +4,15 @@ import { ALITH_ADDRESS, ZERO_ADDRESS } from "@moonwall/util";
 import { notePreimagePrecompile } from "../../../../helpers";
 
 describeSuite({
-  id: "D012737",
-  title: "Democracy - genesis and preimage",
+  id: "D012937",
+  title: "Governance - genesis and preimage",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     it({
       id: "T01",
       title: "should check initial state - no referendum",
       test: async function () {
-        const referendumCount = await context.polkadotJs().query.democracy.referendumCount();
+        const referendumCount = await context.polkadotJs().query.referenda.referendumCount();
         const blockNum = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
         if (blockNum == 0n) {
           expect(referendumCount.toNumber()).to.equal(0);
@@ -54,7 +54,7 @@ describeSuite({
         ).toHuman();
 
         // TODO: uncomment when we have types
-        // expect(preimageStatus.unwrap().isUnrequested).to.be.true;
+        // expect(preimageStatus!.unwrap().isUnrequested).to.be.true;
 
         // TODO: change syntax when we have types
         const proposer = preimageStatus!["Unrequested"]["ticket"][0];

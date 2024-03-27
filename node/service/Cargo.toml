@@ -4,7 +4,7 @@ authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.36.0"
+version = "0.37.0"
 
 [dependencies]
 ansi_term = { workspace = true }
@@ -128,6 +128,7 @@ cumulus-client-network = { workspace = true }
 cumulus-client-service = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 cumulus-primitives-parachain-inherent = { workspace = true }
+cumulus-client-parachain-inherent = { workspace = true }
 cumulus-relay-chain-inprocess-interface = { workspace = true }
 cumulus-relay-chain-interface = { workspace = true }
 cumulus-relay-chain-minimal-node = { workspace = true }
@@ -199,7 +200,11 @@ runtime-benchmarks = [
 	"pallet-ethereum/runtime-benchmarks",
 ]
 
-try-runtime = ["moonbase-runtime", "moonbase-runtime/try-runtime"]
+try-runtime = [
+	"moonbase-runtime",
+	"moonbase-runtime/try-runtime",
+	"polkadot-service/try-runtime",
+]
 
 moonbase-runtime-benchmarks = [
 	"moonbase-native",

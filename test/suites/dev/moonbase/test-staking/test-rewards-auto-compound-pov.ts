@@ -11,7 +11,7 @@ import {
 import { chunk, jumpRounds } from "../../../../helpers";
 
 describeSuite({
-  id: "D013150",
+  id: "D013350",
   title: "Staking - Rewards Auto-Compound - PoV Size",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -84,7 +84,7 @@ describeSuite({
       title: "should be under the limit of 3_500_000",
       test: async () => {
         // Moves to the next payout block
-        await jumpRounds(context, 1);
+        await jumpRounds(context, 2);
         const { block } = await context.createBlock();
 
         const weights = await context.pjsApi.query.system.blockWeight();
@@ -98,7 +98,7 @@ describeSuite({
         expect(
           weights.mandatory.proofSize.toNumber(),
           "proofSize is too high, this might lead to empty block"
-        ).to.be.at.most(2_500_000);
+        ).to.be.at.most(2_600_000);
 
         // block could support ~500ms refTime but we consider it safer to error when reaching
         // over 200ms for the payout

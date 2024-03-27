@@ -54,7 +54,7 @@ jobs:
             echo "coverage_report=false" >> $GITHUB_OUTPUT
           fi
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
       - name: Get Latest RT Release
@@ -99,7 +99,7 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Variables

@@ -22,7 +22,6 @@
 //! for the Xcm Transactor pallet
 
 #![cfg_attr(not(feature = "std"), no_std)]
-
 use frame_support::pallet_prelude::*;
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_std::prelude::*;

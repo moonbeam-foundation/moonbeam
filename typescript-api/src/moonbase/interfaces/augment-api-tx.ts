@@ -604,64 +604,6 @@ declare module "@polkadot/api-base/types/submittable" {
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
-    councilCollective: {
-      /** See [`Pallet::close`]. */
-      close: AugmentedSubmittable<
-        (
-          proposalHash: H256 | string | Uint8Array,
-          index: Compact<u32> | AnyNumber | Uint8Array,
-          proposalWeightBound:
-            | SpWeightsWeightV2Weight
-            | { refTime?: any; proofSize?: any }
-            | string
-            | Uint8Array,
-          lengthBound: Compact<u32> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, SpWeightsWeightV2Weight, Compact<u32>]
-      >;
-      /** See [`Pallet::disapprove_proposal`]. */
-      disapproveProposal: AugmentedSubmittable<
-        (proposalHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [H256]
-      >;
-      /** See [`Pallet::execute`]. */
-      execute: AugmentedSubmittable<
-        (
-          proposal: Call | IMethod | string | Uint8Array,
-          lengthBound: Compact<u32> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Call, Compact<u32>]
-      >;
-      /** See [`Pallet::propose`]. */
-      propose: AugmentedSubmittable<
-        (
-          threshold: Compact<u32> | AnyNumber | Uint8Array,
-          proposal: Call | IMethod | string | Uint8Array,
-          lengthBound: Compact<u32> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u32>, Call, Compact<u32>]
-      >;
-      /** See [`Pallet::set_members`]. */
-      setMembers: AugmentedSubmittable<
-        (
-          newMembers: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[],
-          prime: Option<AccountId20> | null | Uint8Array | AccountId20 | string,
-          oldCount: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Vec<AccountId20>, Option<AccountId20>, u32]
-      >;
-      /** See [`Pallet::vote`]. */
-      vote: AugmentedSubmittable<
-        (
-          proposal: H256 | string | Uint8Array,
-          index: Compact<u32> | AnyNumber | Uint8Array,
-          approve: bool | boolean | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, bool]
-      >;
-      /** Generic tx */
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
     crowdloanRewards: {
       /** See [`Pallet::associate_native_identity`]. */
       associateNativeIdentity: AugmentedSubmittable<
@@ -1199,279 +1141,33 @@ declare module "@polkadot/api-base/types/submittable" {
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
-    localAssets: {
-      /** See [`Pallet::approve_transfer`]. */
-      approveTransfer: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          delegate: AccountId20 | string | Uint8Array,
-          amount: Compact<u128> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20, Compact<u128>]
-      >;
-      /** See [`Pallet::block`]. */
-      block: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          who: AccountId20 | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20]
-      >;
-      /** See [`Pallet::burn`]. */
-      burn: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          who: AccountId20 | string | Uint8Array,
-          amount: Compact<u128> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20, Compact<u128>]
-      >;
-      /** See [`Pallet::cancel_approval`]. */
-      cancelApproval: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          delegate: AccountId20 | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20]
-      >;
-      /** See [`Pallet::clear_metadata`]. */
-      clearMetadata: AugmentedSubmittable<
-        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>]
-      >;
-      /** See [`Pallet::create`]. */
-      create: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          admin: AccountId20 | string | Uint8Array,
-          minBalance: u128 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20, u128]
-      >;
-      /** See [`Pallet::destroy_accounts`]. */
-      destroyAccounts: AugmentedSubmittable<
-        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>]
-      >;
-      /** See [`Pallet::destroy_approvals`]. */
-      destroyApprovals: AugmentedSubmittable<
-        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>]
-      >;
-      /** See [`Pallet::finish_destroy`]. */
-      finishDestroy: AugmentedSubmittable<
-        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>]
-      >;
-      /** See [`Pallet::force_asset_status`]. */
-      forceAssetStatus: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          owner: AccountId20 | string | Uint8Array,
-          issuer: AccountId20 | string | Uint8Array,
-          admin: AccountId20 | string | Uint8Array,
-          freezer: AccountId20 | string | Uint8Array,
-          minBalance: Compact<u128> | AnyNumber | Uint8Array,
-          isSufficient: bool | boolean | Uint8Array,
-          isFrozen: bool | boolean | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [
-          Compact<u128>,
-          AccountId20,
-          AccountId20,
-          AccountId20,
-          AccountId20,
-          Compact<u128>,
-          bool,
-          bool
-        ]
-      >;
-      /** See [`Pallet::force_cancel_approval`]. */
-      forceCancelApproval: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          owner: AccountId20 | string | Uint8Array,
-          delegate: AccountId20 | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20, AccountId20]
-      >;
-      /** See [`Pallet::force_clear_metadata`]. */
-      forceClearMetadata: AugmentedSubmittable<
-        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>]
-      >;
-      /** See [`Pallet::force_create`]. */
-      forceCreate: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          owner: AccountId20 | string | Uint8Array,
-          isSufficient: bool | boolean | Uint8Array,
-          minBalance: Compact<u128> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20, bool, Compact<u128>]
-      >;
-      /** See [`Pallet::force_set_metadata`]. */
-      forceSetMetadata: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          name: Bytes | string | Uint8Array,
-          symbol: Bytes | string | Uint8Array,
-          decimals: u8 | AnyNumber | Uint8Array,
-          isFrozen: bool | boolean | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, Bytes, Bytes, u8, bool]
-      >;
-      /** See [`Pallet::force_transfer`]. */
-      forceTransfer: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          source: AccountId20 | string | Uint8Array,
-          dest: AccountId20 | string | Uint8Array,
-          amount: Compact<u128> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20, AccountId20, Compact<u128>]
-      >;
-      /** See [`Pallet::freeze`]. */
-      freeze: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          who: AccountId20 | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20]
-      >;
-      /** See [`Pallet::freeze_asset`]. */
-      freezeAsset: AugmentedSubmittable<
-        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>]
-      >;
-      /** See [`Pallet::mint`]. */
-      mint: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          beneficiary: AccountId20 | string | Uint8Array,
-          amount: Compact<u128> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20, Compact<u128>]
-      >;
-      /** See [`Pallet::refund`]. */
-      refund: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          allowBurn: bool | boolean | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, bool]
-      >;
-      /** See [`Pallet::refund_other`]. */
-      refundOther: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          who: AccountId20 | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20]
-      >;
-      /** See [`Pallet::set_metadata`]. */
-      setMetadata: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          name: Bytes | string | Uint8Array,
-          symbol: Bytes | string | Uint8Array,
-          decimals: u8 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, Bytes, Bytes, u8]
-      >;
-      /** See [`Pallet::set_min_balance`]. */
-      setMinBalance: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          minBalance: u128 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, u128]
-      >;
-      /** See [`Pallet::set_team`]. */
-      setTeam: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          issuer: AccountId20 | string | Uint8Array,
-          admin: AccountId20 | string | Uint8Array,
-          freezer: AccountId20 | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20, AccountId20, AccountId20]
-      >;
-      /** See [`Pallet::start_destroy`]. */
-      startDestroy: AugmentedSubmittable<
-        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>]
-      >;
-      /** See [`Pallet::thaw`]. */
-      thaw: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          who: AccountId20 | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20]
-      >;
-      /** See [`Pallet::thaw_asset`]. */
-      thawAsset: AugmentedSubmittable<
-        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>]
-      >;
-      /** See [`Pallet::touch`]. */
-      touch: AugmentedSubmittable<
-        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>]
-      >;
-      /** See [`Pallet::touch_other`]. */
-      touchOther: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          who: AccountId20 | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20]
-      >;
-      /** See [`Pallet::transfer`]. */
-      transfer: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          target: AccountId20 | string | Uint8Array,
-          amount: Compact<u128> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20, Compact<u128>]
-      >;
-      /** See [`Pallet::transfer_approved`]. */
-      transferApproved: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          owner: AccountId20 | string | Uint8Array,
-          destination: AccountId20 | string | Uint8Array,
-          amount: Compact<u128> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20, AccountId20, Compact<u128>]
-      >;
-      /** See [`Pallet::transfer_keep_alive`]. */
-      transferKeepAlive: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          target: AccountId20 | string | Uint8Array,
-          amount: Compact<u128> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20, Compact<u128>]
-      >;
-      /** See [`Pallet::transfer_ownership`]. */
-      transferOwnership: AugmentedSubmittable<
-        (
-          id: Compact<u128> | AnyNumber | Uint8Array,
-          owner: AccountId20 | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, AccountId20]
-      >;
-      /** Generic tx */
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
     maintenanceMode: {
       /** See [`Pallet::enter_maintenance_mode`]. */
       enterMaintenanceMode: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /** See [`Pallet::resume_normal_operation`]. */
       resumeNormalOperation: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /** Generic tx */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    moonbeamLazyMigrations: {
+      /** See [`Pallet::clear_local_assets_storage`]. */
+      clearLocalAssetsStorage: AugmentedSubmittable<
+        (limit: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [u32]
+      >;
+      /** See [`Pallet::clear_suicided_storage`]. */
+      clearSuicidedStorage: AugmentedSubmittable<
+        (
+          addresses: Vec<H160> | (H160 | string | Uint8Array)[],
+          limit: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Vec<H160>, u32]
+      >;
+      /** See [`Pallet::unlock_democracy_funds`]. */
+      unlockDemocracyFunds: AugmentedSubmittable<
+        (limit: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [u32]
+      >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
@@ -2257,8 +1953,6 @@ declare module "@polkadot/api-base/types/submittable" {
             | { system: any }
             | { Void: any }
             | { Ethereum: any }
-            | { CouncilCollective: any }
-            | { TechCommitteeCollective: any }
             | { CumulusXcm: any }
             | { PolkadotXcm: any }
             | { EthereumXcm: any }
@@ -2459,64 +2153,6 @@ declare module "@polkadot/api-base/types/submittable" {
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
-    techCommitteeCollective: {
-      /** See [`Pallet::close`]. */
-      close: AugmentedSubmittable<
-        (
-          proposalHash: H256 | string | Uint8Array,
-          index: Compact<u32> | AnyNumber | Uint8Array,
-          proposalWeightBound:
-            | SpWeightsWeightV2Weight
-            | { refTime?: any; proofSize?: any }
-            | string
-            | Uint8Array,
-          lengthBound: Compact<u32> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, SpWeightsWeightV2Weight, Compact<u32>]
-      >;
-      /** See [`Pallet::disapprove_proposal`]. */
-      disapproveProposal: AugmentedSubmittable<
-        (proposalHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [H256]
-      >;
-      /** See [`Pallet::execute`]. */
-      execute: AugmentedSubmittable<
-        (
-          proposal: Call | IMethod | string | Uint8Array,
-          lengthBound: Compact<u32> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Call, Compact<u32>]
-      >;
-      /** See [`Pallet::propose`]. */
-      propose: AugmentedSubmittable<
-        (
-          threshold: Compact<u32> | AnyNumber | Uint8Array,
-          proposal: Call | IMethod | string | Uint8Array,
-          lengthBound: Compact<u32> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u32>, Call, Compact<u32>]
-      >;
-      /** See [`Pallet::set_members`]. */
-      setMembers: AugmentedSubmittable<
-        (
-          newMembers: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[],
-          prime: Option<AccountId20> | null | Uint8Array | AccountId20 | string,
-          oldCount: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Vec<AccountId20>, Option<AccountId20>, u32]
-      >;
-      /** See [`Pallet::vote`]. */
-      vote: AugmentedSubmittable<
-        (
-          proposal: H256 | string | Uint8Array,
-          index: Compact<u32> | AnyNumber | Uint8Array,
-          approve: bool | boolean | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, bool]
-      >;
-      /** Generic tx */
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
     timestamp: {
       /** See [`Pallet::set`]. */
       set: AugmentedSubmittable<
@@ -2675,8 +2311,6 @@ declare module "@polkadot/api-base/types/submittable" {
             | { system: any }
             | { Void: any }
             | { Ethereum: any }
-            | { CouncilCollective: any }
-            | { TechCommitteeCollective: any }
             | { CumulusXcm: any }
             | { PolkadotXcm: any }
             | { EthereumXcm: any }
@@ -3004,7 +2638,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | MoonbaseRuntimeXcmConfigCurrencyId
             | { SelfReserve: any }
             | { ForeignAsset: any }
-            | { LocalAssetReserve: any }
+            | { DeprecatedLocalAssetReserve: any }
             | { Erc20: any }
             | string
             | Uint8Array,
@@ -3078,7 +2712,7 @@ declare module "@polkadot/api-base/types/submittable" {
                   | MoonbaseRuntimeXcmConfigCurrencyId
                   | { SelfReserve: any }
                   | { ForeignAsset: any }
-                  | { LocalAssetReserve: any }
+                  | { DeprecatedLocalAssetReserve: any }
                   | { Erc20: any }
                   | string
                   | Uint8Array
@@ -3108,7 +2742,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | MoonbaseRuntimeXcmConfigCurrencyId
             | { SelfReserve: any }
             | { ForeignAsset: any }
-            | { LocalAssetReserve: any }
+            | { DeprecatedLocalAssetReserve: any }
             | { Erc20: any }
             | string
             | Uint8Array,

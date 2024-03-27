@@ -26,7 +26,7 @@ pub use moonriver_runtime::{
 	asset_config::AssetRegistrarMetadata,
 	currency::{GIGAWEI, MOVR, SUPPLY_FACTOR, WEI},
 	xcm_config::AssetType,
-	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, CrowdloanRewards,
+	AccountId, AssetId, AssetManager, AuthorInherent, Balance, Balances, CrowdloanRewards,
 	Ethereum, Executive, Header, InflationInfo, ParachainStaking, Range, Runtime, RuntimeCall,
 	RuntimeEvent, System, TransactionConverter, TransactionPaymentAsGasPrice, UncheckedExtrinsic,
 	HOURS, WEEKS,
@@ -305,7 +305,7 @@ impl ExtBuilder {
 				)
 				.unwrap();
 				for (account, balance) in xcm_asset_initialization.balances {
-					Assets::mint(
+					moonriver_runtime::Assets::mint(
 						origin_of(AssetManager::account_id()),
 						asset_id.into(),
 						account,

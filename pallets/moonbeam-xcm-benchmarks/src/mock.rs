@@ -24,10 +24,10 @@ impl SendXcm for DevNull {
 	type Ticket = ();
 
 	fn validate(
-		_destination: &mut Option<MultiLocation>,
+		_destination: &mut Option<Location>,
 		_message: &mut Option<opaque::Xcm>,
 	) -> SendResult<Self::Ticket> {
-		Ok(((), MultiAssets::new()))
+		Ok(((), Assets::new()))
 	}
 
 	fn deliver(_: Self::Ticket) -> Result<XcmHash, SendError> {
@@ -36,13 +36,13 @@ impl SendXcm for DevNull {
 }
 
 impl xcm_executor::traits::OnResponse for DevNull {
-	fn expecting_response(_: &MultiLocation, _: u64, _: Option<&MultiLocation>) -> bool {
+	fn expecting_response(_: &Location, _: u64, _: Option<&Location>) -> bool {
 		false
 	}
 	fn on_response(
-		_: &MultiLocation,
+		_: &Location,
 		_: u64,
-		_: Option<&MultiLocation>,
+		_: Option<&Location>,
 		_: Response,
 		_: Weight,
 		_: &XcmContext,
@@ -53,34 +53,33 @@ impl xcm_executor::traits::OnResponse for DevNull {
 
 pub struct AccountIdConverter;
 impl ConvertLocation<u64> for AccountIdConverter {
-	fn convert_location(ml: &MultiLocation) -> Option<u64> {
-		match ml {
-			MultiLocation {
-				parents: 0,
-				interior: X1(Junction::AccountId32 { id, .. }),
-			} => Some(<u64 as parity_scale_codec::Decode>::decode(&mut &*id.to_vec()).unwrap()),
+	fn convert_location(ml: &Location) -> Option<u64> {
+		match ml.unpack() {
+			(0, [Junction::AccountId32 { id, .. }]) => {
+				Some(<u64 as parity_scale_codec::Decode>::decode(&mut &*id.to_vec()).unwrap())
+			}
 			_ => None,
 		}
 	}
 }
 
 parameter_types! {
-	pub Ancestry: MultiLocation = Junction::Parachain(101).into();
+	pub Ancestry: Location = Junction::Parachain(101).into();
 	pub UnitWeightCost: u64 = 10;
-	pub WeightPrice: (AssetId, u128, u128) = (Concrete(MultiLocation::parent()), 1_000_000, 1024);
+	pub WeightPrice: (AssetId, u128, u128) = (AssetId(Location::parent()), 1_000_000, 1024);
 }
 
 pub struct AllAssetLocationsPass;
-impl ContainsPair<MultiAsset, MultiLocation> for AllAssetLocationsPass {
-	fn contains(_: &MultiAsset, _: &MultiLocation) -> bool {
+impl ContainsPair<Asset, Location> for AllAssetLocationsPass {
+	fn contains(_: &Asset, _: &Location) -> bool {
 		true
 	}
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-pub fn mock_worst_case_holding() -> MultiAssets {
-	let assets: Vec<MultiAsset> = vec![MultiAsset {
-		id: Concrete(MultiLocation::parent()),
+pub fn mock_worst_case_holding() -> Assets {
+	let assets: Vec<Asset> = vec![Asset {
+		id: AssetId(Location::parent()),
 		fun: Fungible(u128::MAX),
 	}];
 	assets.into()

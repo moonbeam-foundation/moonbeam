@@ -5395,6 +5395,9 @@ fn payouts_follow_delegation_changes() {
 		])
 		.build()
 		.execute_with(|| {
+			// ~ set block author as 1 for all blocks this round
+			set_author(1, 1, 100);
+			set_author(2, 1, 100);
 			roll_to_round_begin(2);
 			// chooses top TotalSelectedCandidates (5), in order
 			assert_events_eq!(
@@ -5425,8 +5428,10 @@ fn payouts_follow_delegation_changes() {
 					total_balance: 130,
 				},
 			);
-			// ~ set block author as 1 for all blocks this round
-			set_author(2, 1, 100);
+
+			set_author(3, 1, 100);
+			set_author(4, 1, 100);
+
 			roll_to_round_begin(4);
 			// distribute total issuance to collator 1 and its delegators 6, 7, 19
 			assert_events_eq!(
@@ -5477,10 +5482,7 @@ fn payouts_follow_delegation_changes() {
 				},
 			);
 			// ~ set block author as 1 for all blocks this round
-			set_author(3, 1, 100);
-			set_author(4, 1, 100);
 			set_author(5, 1, 100);
-			set_author(6, 1, 100);
 
 			roll_blocks(1);
 			// 1. ensure delegators are paid for 2 rounds after they leave
@@ -5547,6 +5549,8 @@ fn payouts_follow_delegation_changes() {
 					rewards: 8,
 				},
 			);
+
+			set_author(6, 1, 100);
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			roll_to_round_begin(6);
 			assert_ok!(ParachainStaking::execute_delegation_request(
@@ -5663,6 +5667,7 @@ fn payouts_follow_delegation_changes() {
 					rewards: 10,
 				},
 			);
+			set_author(8, 1, 100);
 			roll_to_round_begin(8);
 			assert_events_eq!(
 				Event::CollatorChosen {
@@ -5696,7 +5701,7 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 33,
+					rewards: 32,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -5707,7 +5712,7 @@ fn payouts_follow_delegation_changes() {
 					rewards: 11,
 				},
 			);
-			set_author(8, 1, 100);
+			set_author(9, 1, 100);
 			roll_to_round_begin(9);
 			// no more paying 6
 			assert_events_eq!(
@@ -5754,7 +5759,6 @@ fn payouts_follow_delegation_changes() {
 				},
 			);
 			roll_blocks(1);
-			set_author(9, 1, 100);
 			assert_ok!(ParachainStaking::delegate(
 				RuntimeOrigin::signed(8),
 				1,
@@ -5770,6 +5774,7 @@ fn payouts_follow_delegation_changes() {
 				auto_compound: Percent::zero(),
 			});
 
+			set_author(10, 1, 100);
 			roll_to_round_begin(10);
 			// new delegation is not rewarded yet
 			assert_events_eq!(
@@ -5815,7 +5820,6 @@ fn payouts_follow_delegation_changes() {
 					rewards: 12,
 				},
 			);
-			set_author(10, 1, 100);
 			roll_to_round_begin(11);
 			// new delegation not rewarded yet
 			assert_events_eq!(
@@ -5850,7 +5854,7 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 38,
+					rewards: 37,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -5900,15 +5904,15 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 11,
+					rewards: 10,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 11,
+					rewards: 10,
 				},
 				Event::Rewarded {
 					account: 8,
-					rewards: 11,
+					rewards: 10,
 				},
 			);
 		});
@@ -6313,13 +6317,14 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20)])
 		.build()
 		.execute_with(|| {
-			roll_to_round_begin(2);
 			// payouts for round 1
 			set_author(1, 1, 1);
 			set_author(1, 2, 1);
 			set_author(1, 2, 1);
 			set_author(1, 3, 1);
 			set_author(1, 3, 1);
+
+			roll_to_round_begin(2);
 			assert_events_eq!(
 				Event::CollatorChosen {
 					round: 2,
@@ -6441,25 +6446,13 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			assert!(<AtStake<Test>>::contains_key(1, 2));
 
 			assert!(
-				!<DelayedPayouts<Test>>::contains_key(1),
-				"DelayedPayouts shouldn't be populated until after RewardPaymentDelay"
-			);
-			assert!(
 				<Points<Test>>::contains_key(1),
 				"Points should be populated during current round"
-			);
-			assert!(
-				<Staked<Test>>::contains_key(1),
-				"Staked should be populated when round changes"
 			);
 
 			assert!(
 				!<Points<Test>>::contains_key(2),
 				"Points should not be populated until author noted"
-			);
-			assert!(
-				<Staked<Test>>::contains_key(2),
-				"Staked should be populated when round changes"
 			);
 
 			// first payout occurs in round 3
@@ -6500,24 +6493,17 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 				"DelayedPayouts should be populated after RewardPaymentDelay"
 			);
 			assert!(<Points<Test>>::contains_key(1));
-			assert!(
-				!<Staked<Test>>::contains_key(1),
-				"Staked should be cleaned up after round change"
-			);
-
 			assert!(!<DelayedPayouts<Test>>::contains_key(2));
 			assert!(
 				!<Points<Test>>::contains_key(2),
 				"We never rewarded points for round 2"
 			);
-			assert!(<Staked<Test>>::contains_key(2));
 
 			assert!(!<DelayedPayouts<Test>>::contains_key(3));
 			assert!(
 				!<Points<Test>>::contains_key(3),
 				"We never awarded points for round 3"
 			);
-			assert!(<Staked<Test>>::contains_key(3));
 
 			// collator 1 has been paid in this last block and associated storage cleaned up
 			assert!(!<AtStake<Test>>::contains_key(1, 1));
@@ -6557,7 +6543,6 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			// collators have both been paid and storage fully cleaned up for round 1
 			assert!(!<AtStake<Test>>::contains_key(1, 2));
 			assert!(!<AwardedPts<Test>>::contains_key(1, 2));
-			assert!(!<Staked<Test>>::contains_key(1));
 			assert!(!<Points<Test>>::contains_key(1)); // points should be cleaned up
 			assert!(!<DelayedPayouts<Test>>::contains_key(1));
 
@@ -6592,7 +6577,6 @@ fn deferred_payment_and_at_stake_storage_items_cleaned_up_for_candidates_not_pro
 			assert!(<AwardedPts<Test>>::contains_key(1, 1));
 			assert!(<AwardedPts<Test>>::contains_key(1, 2));
 			assert!(!<AwardedPts<Test>>::contains_key(1, 3));
-			assert!(<Staked<Test>>::contains_key(1));
 			assert!(<Points<Test>>::contains_key(1));
 			roll_to_round_begin(3);
 			assert!(<DelayedPayouts<Test>>::contains_key(1));
@@ -6605,7 +6589,6 @@ fn deferred_payment_and_at_stake_storage_items_cleaned_up_for_candidates_not_pro
 			assert!(!<AwardedPts<Test>>::contains_key(1, 1));
 			assert!(!<AwardedPts<Test>>::contains_key(1, 2));
 			assert!(!<AwardedPts<Test>>::contains_key(1, 3));
-			assert!(!<Staked<Test>>::contains_key(1));
 			assert!(!<Points<Test>>::contains_key(1));
 			assert!(!<DelayedPayouts<Test>>::contains_key(1));
 		});
@@ -6720,7 +6703,7 @@ fn deferred_payment_steady_state_event_flow() {
 						total_exposed_amount: 400,
 					},
 					Event::NewRound {
-						starting_block: (round as u64 - 1) * 5,
+						starting_block: (round as u32 - 1) * 5,
 						round: round as u32,
 						selected_collators_number: 4,
 						total_balance: 1600,
@@ -8693,12 +8676,11 @@ fn test_on_initialize_weights() {
 			let weight = ParachainStaking::on_initialize(1);
 
 			// TODO: build this with proper db reads/writes
-			assert_eq!(Weight::from_parts(302168000, 0), weight);
+			assert_eq!(Weight::from_parts(277168000, 0), weight);
 
 			// roll to the end of the round, then run on_init again, we should see round change...
+			set_author(3, 1, 100); // must set some points for prepare_staking_payouts
 			roll_to_round_end(3);
-			set_author(2, 1, 100); // must set some points for prepare_staking_payouts
-			System::set_block_number(System::block_number() + 1);
 			let block = System::block_number() + 1;
 			let weight = ParachainStaking::on_initialize(block);
 
@@ -8708,7 +8690,7 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2504547135;
+			let expected_on_init = 2404547135;
 			assert_eq!(Weight::from_parts(expected_on_init, 32562), weight);
 
 			// assemble weight manually to ensure it is well understood
@@ -8726,8 +8708,8 @@ fn test_on_initialize_weights() {
 			.ref_time();
 			// SlotProvider read
 			expected_weight += RocksDbWeight::get().reads_writes(1, 0).ref_time();
-			// Round and Staked writes, done in on-round-change code block inside on_initialize()
-			expected_weight += RocksDbWeight::get().reads_writes(0, 2).ref_time();
+			// Round write, done in on-round-change code block inside on_initialize()
+			expected_weight += RocksDbWeight::get().reads_writes(0, 1).ref_time();
 			// more reads/writes manually accounted for for on_finalize
 			expected_weight += RocksDbWeight::get().reads_writes(3, 2).ref_time();
 

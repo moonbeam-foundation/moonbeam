@@ -18,7 +18,7 @@ import { encodeFunctionData } from "viem";
 import { expectEVMResult, getAuthorMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D012765",
+  id: "D012964",
   title: "Proxy : Non transfer - Evm transfer",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

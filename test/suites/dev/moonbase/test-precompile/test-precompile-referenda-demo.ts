@@ -15,7 +15,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D012771",
+  id: "D012970",
   title: "Precompiles - Referenda Auto Upgrade Demo",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

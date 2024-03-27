@@ -29,7 +29,6 @@ use pallet_evm_precompile_call_permit::CallPermitPrecompile;
 use pallet_evm_precompile_collective::CollectivePrecompile;
 use pallet_evm_precompile_conviction_voting::ConvictionVotingPrecompile;
 use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
-use pallet_evm_precompile_democracy::DemocracyPrecompile;
 use pallet_evm_precompile_gmp::GmpPrecompile;
 use pallet_evm_precompile_identity::IdentityPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
@@ -125,11 +124,7 @@ type MoonbasePrecompilesAt<R> = (
 		Erc20BalancesPrecompile<R, NativeErc20Metadata>,
 		(CallableByContract, CallableByPrecompile),
 	>,
-	PrecompileAt<
-		AddressU64<2051>,
-		DemocracyPrecompile<R>,
-		(CallableByContract, CallableByPrecompile),
-	>,
+	RemovedPrecompileAt<AddressU64<2051>>, // DemocracyPrecompile
 	PrecompileAt<
 		AddressU64<2052>,
 		XtokensPrecompile<R>,
@@ -235,7 +230,7 @@ type MoonbasePrecompilesAt<R> = (
 	>,
 	PrecompileAt<
 		AddressU64<2072>,
-		IdentityPrecompile<R>,
+		IdentityPrecompile<R, crate::MaxAdditionalFields>,
 		(CallableByContract, CallableByPrecompile),
 	>,
 	PrecompileAt<

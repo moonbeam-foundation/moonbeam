@@ -23,9 +23,12 @@ use frame_support::{
 };
 use frame_system::{EnsureRoot, EnsureSignedBy};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
-use pallet_identity::simple::IdentityInfo;
+use pallet_identity::legacy::IdentityInfo;
 use precompile_utils::mock_account;
-use precompile_utils::{precompile_set::*, testing::MockAccount};
+use precompile_utils::{
+	precompile_set::*,
+	testing::{MockAccount, MockSignature},
+};
 use sp_core::{H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
@@ -59,6 +62,7 @@ impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeTask = RuntimeTask;
 	type Nonce = u64;
 	type Block = Block;
 	type RuntimeCall = RuntimeCall;
@@ -95,7 +99,6 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
-	type MaxHolds = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
 }
@@ -118,10 +121,12 @@ parameter_types! {
 	};
 }
 
-pub type Precompiles<R> =
-	PrecompileSetBuilder<R, (PrecompileAt<AddressU64<1>, IdentityPrecompile<R>>,)>;
+pub type Precompiles<R> = PrecompileSetBuilder<
+	R,
+	(PrecompileAt<AddressU64<1>, IdentityPrecompile<R, MaxAdditionalFields>>,),
+>;
 
-pub type PCall = IdentityPrecompileCall<Runtime>;
+pub type PCall = IdentityPrecompileCall<Runtime, MaxAdditionalFields>;
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
@@ -172,7 +177,7 @@ type EnsureRegistrarAndForceOriginOrRoot =
 
 parameter_types! {
 	pub const BasicDeposit: u64 = 10;
-	pub const FieldDeposit: u64 = 10;
+	pub const ByteDeposit: u64 = 10;
 	pub const SubAccountDeposit: u64 = 10;
 	pub const MaxSubAccounts: u32 = 2;
 	pub const MaxAdditionalFields: u32 = 2;
@@ -187,16 +192,21 @@ impl pallet_identity::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type BasicDeposit = BasicDeposit;
-	type FieldDeposit = FieldDeposit;
+	type ByteDeposit = ByteDeposit;
 	type SubAccountDeposit = SubAccountDeposit;
 	type MaxSubAccounts = MaxSubAccounts;
-	type MaxAdditionalFields = MaxAdditionalFields;
+	type IdentityInformation = IdentityInfo<MaxAdditionalFields>;
 	type MaxRegistrars = MaxRegistrars;
 	type Slashed = ();
 	type RegistrarOrigin = EnsureRegistrarAndForceOriginOrRoot;
 	type ForceOrigin = EnsureRegistrarAndForceOriginOrRoot;
+	type OffchainSignature = MockSignature;
+	type SigningPublicKey = <MockSignature as sp_runtime::traits::Verify>::Signer;
+	type UsernameAuthorityOrigin = EnsureRoot<Self::AccountId>;
+	type PendingUsernameExpiration = ConstU32<100>;
+	type MaxSuffixLength = ConstU32<7>;
+	type MaxUsernameLength = ConstU32<32>;
 	type WeightInfo = ();
-	type IdentityInformation = IdentityInfo<Self::MaxAdditionalFields>;
 }
 
 pub(crate) struct ExtBuilder {

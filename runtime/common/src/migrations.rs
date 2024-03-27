@@ -19,202 +19,77 @@
 //! This module acts as a registry where each migration is defined. Each migration should implement
 //! the "Migration" trait declared in the pallet-migrations crate.
 
-#[cfg(feature = "try-runtime")]
-use frame_support::ensure;
-#[cfg(feature = "try-runtime")]
-use frame_support::migration::get_storage_value;
 use frame_support::{
-	parameter_types,
-	sp_runtime::traits::{Block as BlockT, Header as HeaderT},
-	traits::OnRuntimeUpgrade,
+	parameter_types, storage::unhashed::contains_prefixed_key, traits::OnRuntimeUpgrade,
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_migrations::{GetMigrations, Migration};
-use pallet_parachain_staking::{Round, RoundIndex, RoundInfo};
-use parity_scale_codec::{Decode, Encode};
-use sp_consensus_slots::Slot;
-use sp_core::Get;
-use sp_std::{marker::PhantomData, prelude::*};
+use pallet_parachain_staking::migrations::MigrateRoundWithFirstSlot;
+use sp_std::{marker::PhantomData, prelude::*, vec};
 
-#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode)]
-pub struct OldRoundInfo<BlockNumber> {
-	pub current: RoundIndex,
-	pub first: BlockNumber,
-	pub length: u32,
-}
-pub struct UpdateFirstRoundNumberValue<T>(pub PhantomData<T>);
-impl<T> Migration for UpdateFirstRoundNumberValue<T>
+pub struct PalletStakingRoundMigration<Runtime>(PhantomData<Runtime>);
+impl<Runtime> Migration for PalletStakingRoundMigration<Runtime>
 where
-	T: pallet_parachain_staking::Config,
-	T: pallet_async_backing::Config,
-	T: frame_system::Config,
-	u32: From<<<<T as frame_system::Config>::Block as BlockT>::Header as HeaderT>::Number>,
+	Runtime: pallet_parachain_staking::Config,
+	BlockNumberFor<Runtime>: Into<u64>,
 {
 	fn friendly_name(&self) -> &str {
-		"MM_UpdateFirstRoundNumberValue"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		let _ = Round::<T>::translate::<OldRoundInfo<BlockNumberFor<T>>, _>(|v0| {
-			let old_current = v0
-				.expect("old current round value must be present!")
-				.current;
-			let old_first: u32 = v0.expect("old first should be present!").first.into();
-			let old_length = v0.expect("old round length value must be present!").length;
-
-			// Fetch the last parachain block
-			let para_block: u32 = frame_system::Pallet::<T>::block_number().into();
-
-			// Calculate how many blocks have passed so far in this round
-			let para_block_diff: u64 = para_block.saturating_sub(old_first).into();
-
-			// Read the last relay slot from the SlotInfo storage
-			let relay_slot = pallet_async_backing::Pallet::<T>::slot_info()
-				.unwrap_or((Slot::from(284_000_000u64), 0u32))
-				.0;
-
-			// Calculate the new first
-			let new_first = u64::from(relay_slot).saturating_sub(para_block_diff);
-
-			Some(RoundInfo {
-				current: old_current,
-				first: new_first,
-				length: old_length,
-			})
-		});
-
-		T::DbWeight::get().reads_writes(1, 1)
+		"MM_MigrateRoundWithFirstSlot"
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		let module: &[u8] = b"ParachainStaking";
-		let item: &[u8] = b"Round";
-		let pre_round_info = get_storage_value::<RoundInfo<BlockNumberFor<T>>>(module, item, &[]);
-		Ok(pre_round_info.unwrap_or_default().encode())
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		let pre_round_info =
-			<RoundInfo<BlockNumberFor<T>> as Decode>::decode(&mut &*state).unwrap_or_default();
-		let post_round_info = pallet_parachain_staking::Pallet::<T>::round();
-
-		let slot_after = pallet_async_backing::Pallet::<T>::slot_info()
-			.unwrap_or((Slot::from(280_000_000u64), 0u32))
-			.0;
-
-		ensure!(
-			u64::from(slot_after) > post_round_info.first,
-			"Post-round first must be lower than last relay slot"
-		);
-		ensure!(
-			post_round_info.current >= pre_round_info.current,
-			"Post-round number must be higher than or equal pre-round one"
-		);
-		ensure!(
-			pre_round_info.length == post_round_info.length,
-			"Post-round length must be equal to pre-round one"
-		);
-		Ok(())
-	}
-}
-
-/// Translates the Round.first value type from BlockNumberFor to u64
-pub struct UpdateFirstRoundNumberType<T>(pub PhantomData<T>);
-impl<T> Migration for UpdateFirstRoundNumberType<T>
-where
-	T: pallet_parachain_staking::Config,
-	T: frame_system::Config,
-	u64: From<<<<T as frame_system::Config>::Block as BlockT>::Header as HeaderT>::Number>,
-{
-	fn friendly_name(&self) -> &str {
-		"MM_UpdateFirstRoundNumberType"
+		MigrateRoundWithFirstSlot::<Runtime>::pre_upgrade()
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		let _ = Round::<T>::translate::<OldRoundInfo<BlockNumberFor<T>>, _>(|v0| {
-			let old_current = v0
-				.expect("old current round value must be present!")
-				.current;
-
-			let new_first: u64 = v0.expect("old first should be present!").first.into();
-			let old_length = v0.expect("old round length value must be present!").length;
-
-			Some(RoundInfo {
-				current: old_current,
-				first: new_first,
-				length: old_length,
-			})
-		});
-
-		T::DbWeight::get().reads_writes(1, 1)
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		let module: &[u8] = b"ParachainStaking";
-		let item: &[u8] = b"Round";
-		let pre_round_info = get_storage_value::<RoundInfo<BlockNumberFor<T>>>(module, item, &[]);
-		Ok(pre_round_info.unwrap_or_default().encode())
+		MigrateRoundWithFirstSlot::<Runtime>::on_runtime_upgrade()
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		let pre_round_info =
-			<RoundInfo<BlockNumberFor<T>> as Decode>::decode(&mut &*state).unwrap_or_default();
-		let post_round_info = pallet_parachain_staking::Pallet::<T>::round();
-		ensure!(
-			post_round_info.first == u64::from(pre_round_info.first),
-			"Post-round number must be equal to pre-round one"
-		);
-		ensure!(
-			pre_round_info.length == post_round_info.length,
-			"Post-round length must be equal to pre-round one"
-		);
-		Ok(())
+		MigrateRoundWithFirstSlot::<Runtime>::post_upgrade(state)
 	}
 }
 
 parameter_types! {
-	pub const CouncilPalletName: &'static str = "Council";
-	pub const TechnicalCommitteePalletName: &'static str = "TechnicalCommittee";
+	pub const DemocracyPalletName: &'static str = "Democracy";
 }
 
-pub struct PalletCollectiveDropGovV1Collectives<Runtime>(pub PhantomData<Runtime>);
-impl<Runtime> Migration for PalletCollectiveDropGovV1Collectives<Runtime>
+pub struct RemovePalletDemocracy<Runtime>(pub PhantomData<Runtime>);
+impl<Runtime> Migration for RemovePalletDemocracy<Runtime>
 where
 	Runtime: frame_system::Config,
 {
 	fn friendly_name(&self) -> &str {
-		"MM_RemoveGovV1Collectives"
+		"MM_RemoveDemocracyPallet"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		log::info!("Removing Council and Tech from pallet_collective");
+		log::info!("Removing pallet democracy");
 
-		let mut weight = Weight::zero();
-
-		let w = frame_support::migrations::RemovePallet::<
-			CouncilPalletName,
+		// Democracy: f2794c22e353e9a839f12faab03a911b
+		// VotingOf: e470c6afbbbc027eb288ade7595953c2
+		let prefix =
+			hex_literal::hex!("f2794c22e353e9a839f12faab03a911be470c6afbbbc027eb288ade7595953c2");
+		if contains_prefixed_key(&prefix) {
+			// PoV failsafe: do not execute the migration if there are VotingOf keys
+			// that have not been cleaned up
+			log::info!("Found keys for Democracy.VotingOf pre-removal - skipping migration",);
+			return Weight::zero();
+		};
+		frame_support::migrations::RemovePallet::<
+			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
-		>::on_runtime_upgrade();
-		weight = weight.saturating_add(w);
-
-		let w = frame_support::migrations::RemovePallet::<
-			TechnicalCommitteePalletName,
-			<Runtime as frame_system::Config>::DbWeight,
-		>::on_runtime_upgrade();
-		weight = weight.saturating_add(w);
-		weight
+		>::on_runtime_upgrade()
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		frame_support::migrations::RemovePallet::<
-			TechnicalCommitteePalletName,
+		let _ = frame_support::migrations::RemovePallet::<
+			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
 		>::pre_upgrade();
 
@@ -223,11 +98,35 @@ where
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		frame_support::migrations::RemovePallet::<
-			TechnicalCommitteePalletName,
+		let _ = frame_support::migrations::RemovePallet::<
+			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
 		>::post_upgrade(_state);
 		Ok(())
+	}
+}
+
+pub struct MigrateToLatestXcmVersion<Runtime>(PhantomData<Runtime>);
+impl<Runtime> Migration for MigrateToLatestXcmVersion<Runtime>
+where
+	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>: OnRuntimeUpgrade,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_MigrateToLatestXcmVersion"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::on_runtime_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::pre_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::post_upgrade(state)
 	}
 }
 
@@ -239,15 +138,15 @@ where
 	Runtime: pallet_parachain_staking::Config,
 	Runtime: pallet_scheduler::Config,
 	Runtime: AuthorSlotFilterConfig,
-	Runtime: pallet_democracy::Config,
 	Runtime: pallet_preimage::Config,
 	Runtime: pallet_asset_manager::Config,
-	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 	Runtime: pallet_xcm_transactor::Config,
 	Runtime: pallet_moonbeam_orbiters::Config,
 	Runtime: pallet_balances::Config,
 	Runtime: pallet_referenda::Config,
+	Runtime: pallet_xcm::Config,
 	Runtime::AccountId: Default,
+	BlockNumberFor<Runtime>: Into<u64>,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
@@ -320,8 +219,10 @@ where
 		// 	FixIncorrectPalletVersions::<Runtime, Treasury, OpenTech>(Default::default());
 		// let pallet_referenda_migrate_v0_to_v1 =
 		// 	PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
-		let pallet_collective_drop_gov_v1_collectives =
-			PalletCollectiveDropGovV1Collectives::<Runtime>(Default::default());
+		//let pallet_collective_drop_gov_v1_collectives =
+		//	PalletCollectiveDropGovV1Collectives::<Runtime>(Default::default());
+		let pallet_staking_round = PalletStakingRoundMigration::<Runtime>(Default::default());
+		let remove_pallet_democracy = RemovePalletDemocracy::<Runtime>(Default::default());
 
 		vec![
 			// completed in runtime 800
@@ -377,7 +278,14 @@ where
 			// Box::new(fix_pallet_versions),
 			// Box::new(pallet_referenda_migrate_v0_to_v1),
 			// completed in runtime 2800
-			Box::new(pallet_collective_drop_gov_v1_collectives),
+			//Box::new(pallet_collective_drop_gov_v1_collectives),
+			// completed in runtime 2801
+			Box::new(pallet_staking_round),
+			// Box::new(pallet_collective_drop_gov_v1_collectives),
+			// completed in runtime 2900
+			Box::new(remove_pallet_democracy),
+			// permanent migrations
+			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
 		]
 	}
 }

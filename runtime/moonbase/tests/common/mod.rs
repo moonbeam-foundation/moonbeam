@@ -85,7 +85,7 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 			}
 		}
 
-		increase_last_relay_slot_number(2);
+		increase_last_relay_slot_number(1);
 
 		// Initialize the new block
 		AuthorInherent::on_initialize(System::block_number());

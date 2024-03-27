@@ -12,7 +12,7 @@ storage-proof-primitives = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
-parity-scale-codec = { workspace = true, features = [ "derive" ] }
+parity-scale-codec = { workspace = true, features = ["derive"] }
 scale-info = { workspace = true }
 sp-core = { workspace = true }
 sp-std = { workspace = true }
@@ -24,7 +24,7 @@ pallet-relay-storage-roots = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
     "cumulus-primitives-core/std",
     "frame-benchmarking/std",
@@ -42,3 +42,4 @@ runtime-benchmarks = [
     "frame-system/runtime-benchmarks",
     "frame-support/runtime-benchmarks",
 ]
+try-runtime = ["frame-support/try-runtime"]

@@ -102,6 +102,9 @@ describeSuite({
         payload: xcmMessage,
       } as RawXcmMessage);
 
+      // Create a new block to include the xcm message
+      await context.createBlock();
+
       // By calling deployContract() a new block will be created,
       // including the ethereum xcm call + regular ethereum transaction
       const { contractAddress: eventEmitterAddress } = await context.deployContract!(

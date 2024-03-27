@@ -4,7 +4,7 @@ import { ALITH_CONTRACT_ADDRESSES } from "@moonwall/util";
 import { Log } from "web3";
 
 describeSuite({
-  id: "D013302",
+  id: "D013502",
   title: "Subscription - Logs",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

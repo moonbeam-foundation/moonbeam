@@ -22,7 +22,7 @@ use frame_support::{assert_ok, weights::Weight};
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::H160;
 use sp_std::boxed::Box;
-use xcm::latest::MultiLocation;
+use xcm::latest::Location;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -138,7 +138,7 @@ fn take_transact_info() {
 		.build()
 		.execute_with(|| {
 			let input: Vec<_> = PCallV1::transact_info {
-				multilocation: MultiLocation::parent(),
+				location: Location::parent(),
 			}
 			.into();
 
@@ -150,7 +150,7 @@ fn take_transact_info() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				Weight::zero(),
 				10000u64.into(),
 				None
@@ -159,7 +159,7 @@ fn take_transact_info() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				1
 			));
 
@@ -177,7 +177,7 @@ fn take_transact_info_with_signed() {
 		.build()
 		.execute_with(|| {
 			let input: Vec<_> = PCallV1::transact_info_with_signed {
-				multilocation: MultiLocation::parent(),
+				multilocation: Location::parent(),
 			}
 			.into();
 
@@ -189,7 +189,7 @@ fn take_transact_info_with_signed() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				Weight::zero(),
 				10000u64.into(),
 				Some(1.into())
@@ -198,7 +198,7 @@ fn take_transact_info_with_signed() {
 			// Root can set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				1
 			));
 
@@ -217,7 +217,7 @@ fn take_fee_per_second() {
 		.build()
 		.execute_with(|| {
 			let input: Vec<_> = PCallV1::fee_per_second {
-				multilocation: MultiLocation::parent(),
+				multilocation: Location::parent(),
 			}
 			.into();
 
@@ -229,7 +229,7 @@ fn take_fee_per_second() {
 			// Root can set fee per secnd
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				1
 			));
 			precompiles()
@@ -254,7 +254,7 @@ fn test_transact_derivative_multilocation_v2() {
 			));
 
 			// we pay with our current self reserve.
-			let fee_payer_asset = MultiLocation::parent();
+			let fee_payer_asset = Location::parent();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -294,7 +294,7 @@ fn test_transact_derivative_multilocation_v3() {
 			));
 
 			// we pay with our current self reserve.
-			let fee_payer_asset = MultiLocation::parent();
+			let fee_payer_asset = Location::parent();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -330,7 +330,7 @@ fn take_transact_info_with_signed_v3() {
 		.build()
 		.execute_with(|| {
 			let input: Vec<_> = PCallV3::transact_info_with_signed {
-				multilocation: MultiLocation::parent(),
+				multilocation: Location::parent(),
 			}
 			.into();
 
@@ -342,7 +342,7 @@ fn take_transact_info_with_signed_v3() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				Weight::zero(),
 				10000u64.into(),
 				Some(1.into())
@@ -351,7 +351,7 @@ fn take_transact_info_with_signed_v3() {
 			// Root can set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				1
 			));
 
@@ -387,7 +387,7 @@ fn test_transact_derivative_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				Weight::zero(),
 				10000000.into(),
 				None
@@ -396,12 +396,12 @@ fn test_transact_derivative_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				1
 			));
 
 			// we pay with our current self reserve.
-			let fee_payer_asset = MultiLocation::parent();
+			let fee_payer_asset = Location::parent();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -440,7 +440,7 @@ fn test_transact_derivative() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				Weight::zero(),
 				10000000.into(),
 				None
@@ -449,7 +449,7 @@ fn test_transact_derivative() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				1
 			));
 
@@ -562,7 +562,7 @@ fn test_transact_signed() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				Weight::zero(),
 				10000000.into(),
 				Some(1.into())
@@ -571,12 +571,12 @@ fn test_transact_signed() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				1
 			));
 
 			// Destination
-			let dest = MultiLocation::parent();
+			let dest = Location::parent();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -605,7 +605,7 @@ fn test_transact_signed_v2() {
 		.build()
 		.execute_with(|| {
 			// Destination
-			let dest = MultiLocation::parent();
+			let dest = Location::parent();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -654,7 +654,7 @@ fn test_transact_signed_v3() {
 					Alice,
 					TransactorV3,
 					PCallV3::transact_through_signed {
-						dest: MultiLocation::parent(),
+						dest: Location::parent(),
 						fee_asset: Address(AssetAddress(0).into()),
 						weight: require_weight_at_most,
 						call: bytes.into(),
@@ -678,7 +678,7 @@ fn test_transact_signed_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				Weight::zero(),
 				10000000.into(),
 				Some(1.into())
@@ -687,14 +687,14 @@ fn test_transact_signed_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
 				1
 			));
 
 			// Destination
-			let dest = MultiLocation::parent();
+			let dest = Location::parent();
 
-			let fee_payer_asset = MultiLocation::parent();
+			let fee_payer_asset = Location::parent();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -723,9 +723,9 @@ fn test_transact_signed_multilocation_v2() {
 		.build()
 		.execute_with(|| {
 			// Destination
-			let dest = MultiLocation::parent();
+			let dest = Location::parent();
 
-			let fee_payer_asset = MultiLocation::parent();
+			let fee_payer_asset = Location::parent();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -765,7 +765,7 @@ fn test_transact_through_signed_multilocation_v3() {
 			));
 
 			// we pay with our current self reserve.
-			let fee_payer_asset = MultiLocation::parent();
+			let fee_payer_asset = Location::parent();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -777,7 +777,7 @@ fn test_transact_through_signed_multilocation_v3() {
 					Alice,
 					TransactorV3,
 					PCallV3::transact_through_signed_multilocation {
-						dest: MultiLocation::parent(),
+						dest: Location::parent(),
 						fee_asset: fee_payer_asset,
 						weight: require_weight_at_most,
 						call: bytes.into(),
