@@ -6,7 +6,7 @@
 
 runtime="${1:-moonbase}"
 output="common"
-profile="production"
+profile="${2:-production}"
 
 echo "[+] Compiling benchmarks with $profile profile... (this will take a while)"
 cargo build --profile=$profile --locked --features=runtime-benchmarks
@@ -46,6 +46,7 @@ for PALLET in "${PALLETS[@]}"; do
     --extrinsic="*" \
     --wasm-execution=compiled \
     --header=./file_header.txt \
+    --template=./benchmarking/frame-weight-template.hbs \
     --output="./runtime/${output}/src/weights/${output_file}" 2>&1
   )
   if [ $? -ne 0 ]; then

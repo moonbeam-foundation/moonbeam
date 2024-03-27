@@ -60,6 +60,7 @@ function bench {
         --extrinsic "${2}" \
         --steps "${STEPS}" \
         --repeat "${REPEAT}" \
+        --header=./file_header.txt \
         --template=./benchmarking/frame-weight-template.hbs \
         --json-file raw.json \
         --output "${OUTPUT}"
