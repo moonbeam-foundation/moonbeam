@@ -161,6 +161,7 @@ moonkit-xcm-primitives = { workspace = true }
 nimbus-primitives = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
+pallet-relay-storage-roots = { workspace = true }
 
 # Benchmarking
 frame-benchmarking = { workspace = true, optional = true }
@@ -256,6 +257,7 @@ std = [
 	"pallet-proxy/std",
 	"pallet-randomness/std",
 	"pallet-referenda/std",
+	"pallet-relay-storage-roots/std",
 	"pallet-root-testing/std",
 	"pallet-scheduler/std",
 	"pallet-society/std",
@@ -337,6 +339,7 @@ runtime-benchmarks = [
 	"pallet-proxy/runtime-benchmarks",
 	"pallet-randomness/runtime-benchmarks",
 	"pallet-referenda/runtime-benchmarks",
+	"pallet-relay-storage-roots/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
@@ -373,6 +376,7 @@ try-runtime = [
 	"pallet-parachain-staking/try-runtime",
 	"pallet-preimage/try-runtime",
 	"pallet-referenda/try-runtime",
+	"pallet-relay-storage-roots/try-runtime",
 	"pallet-root-testing/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
