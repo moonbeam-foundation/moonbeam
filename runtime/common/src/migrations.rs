@@ -19,10 +19,6 @@
 //! This module acts as a registry where each migration is defined. Each migration should implement
 //! the "Migration" trait declared in the pallet-migrations crate.
 
-#[cfg(feature = "try-runtime")]
-use frame_support::ensure;
-#[cfg(feature = "try-runtime")]
-use frame_support::migration::get_storage_value;
 use frame_support::{
 	parameter_types,
 	storage::unhashed::{clear_prefix, contains_prefixed_key},
@@ -95,20 +91,31 @@ where
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		frame_support::migrations::RemovePallet::<
+		let r = frame_support::migrations::RemovePallet::<
 			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
 		>::pre_upgrade();
+
+		match r {
+			Err(e) => log::error!("MM_RemoveDemocracyPallet error pre-upgrade {:?}", e),
+			Ok(v) => log::info!("MM_RemoveDemocracyPallet pre-upgrade OK {:?}", v),
+		}
 
 		Ok(vec![])
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		frame_support::migrations::RemovePallet::<
+		let r = frame_support::migrations::RemovePallet::<
 			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
 		>::post_upgrade(_state);
+
+		match r {
+			Err(e) => log::error!("MM_RemoveDemocracyPallet error post-upgrade {:?}", e),
+			Ok(v) => log::info!("MM_RemoveDemocracyPallet post-upgrade OK {:?}", v),
+		}
+
 		Ok(())
 	}
 }
