@@ -1,9 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair } from "@moonwall/util";
+import { generateKeyringPair, charleth } from "@moonwall/util";
 import {
   XcmFragment,
   RawXcmMessage,
@@ -12,8 +11,8 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D014018",
-  title: "Mock XCM - receive horizontal transact ETHEREUM (transfer)",
+  id: "D014023",
+  title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let transferredBalance: bigint;
@@ -22,13 +21,16 @@ describeSuite({
     let random: KeyringPair;
 
     beforeAll(async () => {
-      const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
+      const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
+        context,
+        charleth.address as `0x${string}`
+      );
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
       random = generateKeyringPair();
       transferredBalance = 10_000_000_000_000_000_000n;
 
-      // We first fund parachain 2000 sovreign account
+      // We first fund the descend origin derivated address
       await context.createBlock(
         context
           .polkadotJs()
@@ -40,11 +42,16 @@ describeSuite({
         await context.polkadotJs().query.system.account(descendOriginAddress)
       ).data.free.toBigInt();
       expect(balance).to.eq(transferredBalance);
+
+      // Add proxy with delay 1
+      await context.createBlock(
+        context.polkadotJs().tx.proxy.addProxy(descendAddress, "Any", 1).signAsync(charleth)
+      );
     });
 
     it({
       id: "T01",
-      title: "should receive transact and should be able to execute",
+      title: "should fail to transact_through_proxy with non-zero delay proxy",
       test: async function () {
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
@@ -84,17 +91,17 @@ describeSuite({
           },
         ];
 
-        let expectedTransferredAmount = 0n;
-        let expectedTransferredAmountPlusFees = 0n;
+        let feeAmount = 0n;
 
-        const targetXcmWeight = 1_325_000_000n + 25_000_000n;
+        const targetXcmWeight = 1_325_000_000n + 100_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {
-          expectedTransferredAmount += amountToTransfer;
-          expectedTransferredAmountPlusFees += amountToTransfer + targetXcmFee;
+          feeAmount += targetXcmFee;
           // TODO need to update lookup types for xcm ethereum transaction V2
-          const transferCall = context.polkadotJs().tx.ethereumXcm.transact(xcmTransaction);
+          const transferCall = context
+            .polkadotJs()
+            .tx.ethereumXcm.transactThroughProxy(sendingAddress, xcmTransaction);
           const transferCallEncoded = transferCall?.method.toHex();
 
           // We are going to test that we can receive a transact operation from parachain 1
@@ -111,7 +118,10 @@ describeSuite({
                 fungible: targetXcmFee,
               },
             ],
-            weight_limit: new BN(targetXcmWeight.toString()),
+            weight_limit: {
+              refTime: targetXcmWeight,
+              proofSize: 110000n,
+            },
             descend_origin: sendingAddress,
           })
             .descend_origin()
@@ -119,15 +129,18 @@ describeSuite({
             .buy_execution()
             .push_any({
               Transact: {
-                originType: "SovereignAccount",
-                // 21_000 gas limit + db read
-                requireWeightAtMost: 550_000_000n,
+                originKind: "SovereignAccount",
+                // 100_000 gas + 2 reads
+                requireWeightAtMost: {
+                  refTime: 575_000_000n,
+                  proofSize: 80000n,
+                },
                 call: {
                   encoded: transferCallEncoded,
                 },
               },
             })
-            .as_v2();
+            .as_v4();
 
           // Send an XCM and create block to execute it
           await injectHrmpMessageAndSeal(context, 1, {
@@ -135,20 +148,16 @@ describeSuite({
             payload: xcmMessage,
           } as RawXcmMessage);
 
-          // Make sure the state has ALITH's foreign parachain tokens
+          // Make sure the state for the transfer recipient didn't change
           const testAccountBalance = (
             await context.polkadotJs().query.system.account(random.address)
           ).data.free.toBigInt();
-          expect(testAccountBalance).to.eq(expectedTransferredAmount);
+          expect(testAccountBalance).to.eq(0n);
 
-          // Make sure descend address has been deducted fees once (in xcm-executor) and balance
-          // has been transfered through evm.
-          const descendAccountBalance = await context
-            .viem()
-            .getBalance({ address: descendAddress });
-          expect(BigInt(descendAccountBalance)).to.eq(
-            transferredBalance - expectedTransferredAmountPlusFees
-          );
+          // Make sure the descended address has been deducted fees once (in xcm-executor) but
+          // transfered nothing.
+          const descendOriginBalance = await context.viem().getBalance({ address: descendAddress });
+          expect(BigInt(descendOriginBalance)).to.eq(transferredBalance - feeAmount);
         }
       },
     });

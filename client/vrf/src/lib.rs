@@ -61,7 +61,7 @@ fn sign_vrf(last_vrf_output: H256, key: VrfId, keystore: &KeystorePtr) -> Option
 	if let Ok(Some(signature)) = try_sign {
 		let public = PublicKey::from_bytes(&key.to_raw_vec()).ok()?;
 		if signature
-			.output
+			.pre_output
 			.0
 			.attach_input_hash(&public, transcript.0.clone())
 			.is_err()
@@ -70,7 +70,7 @@ fn sign_vrf(last_vrf_output: H256, key: VrfId, keystore: &KeystorePtr) -> Option
 			return None;
 		}
 		Some(PreDigest {
-			vrf_output: signature.output,
+			vrf_output: signature.pre_output,
 			vrf_proof: signature.proof,
 		})
 	} else {

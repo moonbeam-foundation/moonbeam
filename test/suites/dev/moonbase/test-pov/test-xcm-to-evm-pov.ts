@@ -138,6 +138,8 @@ describeSuite({
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
+        await context.createBlock();
+        // This block is the one that processes the xcm messages
         const { result, block } = await context.createBlock();
 
         // With 500k gas we are allowed to use ~150k of POV, so verify the range.
@@ -238,6 +240,8 @@ describeSuite({
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
+        context.createBlock();
+        // This block is the one that processes the xcm messages
         const { result, block } = await context.createBlock();
 
         expect(block.proofSize).to.be.at.least(EXPECTED_POV_ROUGH / 1.1);

@@ -15,12 +15,12 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 pub use moonbeam_core_primitives::{AccountId, Balance, Block, BlockNumber, Hash, Header, Index};
 use sc_client_api::{Backend as BackendT, BlockchainEvents, KeysIter, MerkleValue, PairsIter};
-use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
+use sp_api::{CallApiAt, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
 use sp_consensus::BlockStatus;
 use sp_runtime::{
 	generic::SignedBlock,
-	traits::{BlakeTwo256, Block as BlockT},
+	traits::{BlakeTwo256, Block as BlockT, NumberFor},
 	Justifications,
 };
 use sp_storage::{ChildInfo, StorageData, StorageKey};
@@ -84,7 +84,7 @@ pub trait AbstractClient<Block, Backend>:
 where
 	Block: BlockT,
 	Backend: BackendT<Block>,
-	Backend::State: sp_api::StateBackend<BlakeTwo256>,
+	Backend::State: sc_client_api::backend::StateBackend<BlakeTwo256>,
 	Self::Api: RuntimeApiCollection,
 {
 }
@@ -93,7 +93,7 @@ impl<Block, Backend, Client> AbstractClient<Block, Backend> for Client
 where
 	Block: BlockT,
 	Backend: BackendT<Block>,
-	Backend::State: sp_api::StateBackend<BlakeTwo256>,
+	Backend::State: sc_client_api::backend::StateBackend<BlakeTwo256>,
 	Client: BlockchainEvents<Block>
 		+ ProvideRuntimeApi<Block>
 		+ HeaderBackend<Block>
@@ -126,7 +126,7 @@ pub trait ExecuteWithClient {
 	fn execute_with_client<Client, Api, Backend>(self, client: Arc<Client>) -> Self::Output
 	where
 		Backend: sc_client_api::Backend<Block>,
-		Backend::State: sp_api::StateBackend<BlakeTwo256>,
+		Backend::State: sc_client_api::backend::StateBackend<BlakeTwo256>,
 		Api: crate::RuntimeApiCollection,
 		Client: AbstractClient<Block, Backend, Api = Api> + 'static;
 }
@@ -147,42 +147,30 @@ pub trait ClientHandle {
 #[derive(Clone)]
 pub enum Client {
 	#[cfg(feature = "moonbeam-native")]
-	Moonbeam(Arc<crate::FullClient<moonbeam_runtime::RuntimeApi, crate::MoonbeamExecutor>>),
+	Moonbeam(Arc<crate::FullClient<moonbeam_runtime::RuntimeApi>>),
 	#[cfg(feature = "moonriver-native")]
-	Moonriver(Arc<crate::FullClient<moonriver_runtime::RuntimeApi, crate::MoonriverExecutor>>),
+	Moonriver(Arc<crate::FullClient<moonriver_runtime::RuntimeApi>>),
 	#[cfg(feature = "moonbase-native")]
-	Moonbase(Arc<crate::FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>),
+	Moonbase(Arc<crate::FullClient<moonbase_runtime::RuntimeApi>>),
 }
 
 #[cfg(feature = "moonbeam-native")]
-impl From<Arc<crate::FullClient<moonbeam_runtime::RuntimeApi, crate::MoonbeamExecutor>>>
-	for Client
-{
-	fn from(
-		client: Arc<crate::FullClient<moonbeam_runtime::RuntimeApi, crate::MoonbeamExecutor>>,
-	) -> Self {
+impl From<Arc<crate::FullClient<moonbeam_runtime::RuntimeApi>>> for Client {
+	fn from(client: Arc<crate::FullClient<moonbeam_runtime::RuntimeApi>>) -> Self {
 		Self::Moonbeam(client)
 	}
 }
 
 #[cfg(feature = "moonriver-native")]
-impl From<Arc<crate::FullClient<moonriver_runtime::RuntimeApi, crate::MoonriverExecutor>>>
-	for Client
-{
-	fn from(
-		client: Arc<crate::FullClient<moonriver_runtime::RuntimeApi, crate::MoonriverExecutor>>,
-	) -> Self {
+impl From<Arc<crate::FullClient<moonriver_runtime::RuntimeApi>>> for Client {
+	fn from(client: Arc<crate::FullClient<moonriver_runtime::RuntimeApi>>) -> Self {
 		Self::Moonriver(client)
 	}
 }
 
 #[cfg(feature = "moonbase-native")]
-impl From<Arc<crate::FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>>
-	for Client
-{
-	fn from(
-		client: Arc<crate::FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>,
-	) -> Self {
+impl From<Arc<crate::FullClient<moonbase_runtime::RuntimeApi>>> for Client {
+	fn from(client: Arc<crate::FullClient<moonbase_runtime::RuntimeApi>>) -> Self {
 		Self::Moonbase(client)
 	}
 }

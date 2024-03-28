@@ -21,6 +21,7 @@ describeSuite({
       id: "T01",
       title: "Validate storage removal uses a reasonable proof size",
       test: async function () {
+        const max_assets = 1;
         const total_entries = 9000;
         // sp_io::hashing::twox_128("LocalAssets".as_bytes());
         const pallet_name_hash = "0xbebaa96ee6c1d0e946832368c6396271";
@@ -61,7 +62,7 @@ describeSuite({
           const entries_to_remove = 2000;
           const result = await context.createBlock(
             api.tx["moonbeamLazyMigrations"]
-              .clearLocalAssetsStorage(entries_to_remove)
+              .clearLocalAssetsStorage(max_assets, entries_to_remove)
               .signAsync(alith)
           );
 

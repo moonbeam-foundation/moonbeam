@@ -1,13 +1,13 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
-import { BN, bnToHex } from "@polkadot/util";
+import { bnToHex } from "@polkadot/util";
 import {
   RawXcmMessage,
   XcmFragment,
   descendOriginFromAddress20,
   expectOk,
-  injectHrmpMessageAndSeal,
+  injectHrmpMessage,
 } from "../../../../helpers";
 
 // Below should be the calculation:
@@ -162,7 +162,10 @@ describeSuite({
               fungible: transferredBalance / 3n,
             },
           ],
-          weight_limit: new BN(4000000000),
+          weight_limit: {
+            refTime: 4000000000n,
+            proofSize: 110000n,
+          },
           descend_origin: sendingAddress,
         })
           .descend_origin()
@@ -170,30 +173,39 @@ describeSuite({
           .buy_execution()
           .push_any({
             Transact: {
-              originType: "SovereignAccount",
-              requireWeightAtMost: new BN(1000000000),
+              originKind: "SovereignAccount",
+              requireWeightAtMost: {
+                refTime: 1000000000n,
+                proofSize: 80000n,
+              },
               call: {
                 encoded: transferCallEncoded,
               },
             },
           })
-          .as_v2();
+          .as_v3();
 
-        await injectHrmpMessageAndSeal(context, 1, {
+        await injectHrmpMessage(context, 1, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 
+        // Enqueue XCM message
+        await context.createBlock();
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
+        expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
+
+        // Process xcm message
+        await context.createBlock();
+
         const postBalance = (await context.polkadotJs().query.system.account(random.address)).data
           .free;
         const postHeight = (
           await context.polkadotJs().rpc.chain.getBlock()
         ).block.header.number.toNumber();
 
-        expect(initialHeight).to.equal(postHeight - 1);
+        expect(initialHeight).to.equal(postHeight - 2);
         expect(initialBalance.lt(postBalance), "Expected balances not updated").to.be.true;
-        expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
       },
     });
 
@@ -265,7 +277,10 @@ describeSuite({
               fungible: transferredBalance / 3n,
             },
           ],
-          weight_limit: new BN(4000000000),
+          weight_limit: {
+            refTime: 4000000000n,
+            proofSize: 110000n,
+          },
           descend_origin: sendingAddress,
         })
           .descend_origin()
@@ -273,30 +288,38 @@ describeSuite({
           .buy_execution()
           .push_any({
             Transact: {
-              originType: "SovereignAccount",
-              requireWeightAtMost: new BN(1000000000),
+              originKind: "SovereignAccount",
+              requireWeightAtMost: {
+                refTime: 1000000000n,
+                proofSize: 80000n,
+              },
               call: {
                 encoded: transferCallEncodedV1,
               },
             },
           })
-          .as_v2();
+          .as_v3();
 
-        await injectHrmpMessageAndSeal(context, 1, {
+        await injectHrmpMessage(context, 1, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 
+        // Enqueue XCM message
+        await context.createBlock();
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
+        expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
+
+        // Process xcm message
+        await context.createBlock();
+
         const postBalance = (await context.polkadotJs().query.system.account(random.address)).data
           .free;
         const postHeight = (
           await context.polkadotJs().rpc.chain.getBlock()
         ).block.header.number.toNumber();
-
-        expect(initialHeight).to.equal(postHeight - 1);
+        expect(initialHeight).to.equal(postHeight - 2);
         expect(initialBalance.lt(postBalance), "Expected balances not updated").to.be.true;
-        expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
       },
     });
   },

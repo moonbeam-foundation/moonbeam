@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair } from "@moonwall/util";
 import {
@@ -15,8 +14,8 @@ import {
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D014030",
-  title: "XCM Moonbase: version compatibility",
+  id: "D014031",
+  title: "XCM Moonriver: version compatibility",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let transferredBalance: bigint;
@@ -41,7 +40,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should execute v2 message",
+      title: "Should execute v4 message",
       test: async function () {
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
@@ -60,14 +59,17 @@ describeSuite({
               fungible: transferredBalance,
             },
           ],
-          weight_limit: new BN(8000000000),
+          weight_limit: {
+            refTime: 8000000000,
+            proofSize: 110000n,
+          },
           beneficiary: random.address,
         })
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset()
-          .as_v2();
+          .deposit_asset_v3()
+          .as_v4();
 
         const chargedWeight = await weightMessage(
           context,

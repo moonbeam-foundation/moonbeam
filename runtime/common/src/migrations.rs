@@ -19,10 +19,6 @@
 //! This module acts as a registry where each migration is defined. Each migration should implement
 //! the "Migration" trait declared in the pallet-migrations crate.
 
-#[cfg(feature = "try-runtime")]
-use frame_support::ensure;
-#[cfg(feature = "try-runtime")]
-use frame_support::migration::get_storage_value;
 use frame_support::{
 	parameter_types, storage::unhashed::contains_prefixed_key, traits::OnRuntimeUpgrade,
 	weights::Weight,
@@ -92,7 +88,7 @@ where
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		frame_support::migrations::RemovePallet::<
+		let _ = frame_support::migrations::RemovePallet::<
 			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
 		>::pre_upgrade();
@@ -102,11 +98,35 @@ where
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		frame_support::migrations::RemovePallet::<
+		let _ = frame_support::migrations::RemovePallet::<
 			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
 		>::post_upgrade(_state);
 		Ok(())
+	}
+}
+
+pub struct MigrateToLatestXcmVersion<Runtime>(PhantomData<Runtime>);
+impl<Runtime> Migration for MigrateToLatestXcmVersion<Runtime>
+where
+	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>: OnRuntimeUpgrade,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_MigrateToLatestXcmVersion"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::on_runtime_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::pre_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::post_upgrade(state)
 	}
 }
 
@@ -120,11 +140,11 @@ where
 	Runtime: AuthorSlotFilterConfig,
 	Runtime: pallet_preimage::Config,
 	Runtime: pallet_asset_manager::Config,
-	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: From<xcm::v3::MultiLocation>,
 	Runtime: pallet_xcm_transactor::Config,
 	Runtime: pallet_moonbeam_orbiters::Config,
 	Runtime: pallet_balances::Config,
 	Runtime: pallet_referenda::Config,
+	Runtime: pallet_xcm::Config,
 	Runtime::AccountId: Default,
 	BlockNumberFor<Runtime>: Into<u64>,
 {
@@ -264,6 +284,8 @@ where
 			// Box::new(pallet_collective_drop_gov_v1_collectives),
 			// completed in runtime 2900
 			Box::new(remove_pallet_democracy),
+			// permanent migrations
+			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
 		]
 	}
 }

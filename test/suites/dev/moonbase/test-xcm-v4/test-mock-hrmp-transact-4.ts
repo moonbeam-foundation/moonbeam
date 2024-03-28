@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair } from "@moonwall/util";
 import {
@@ -68,21 +67,27 @@ describeSuite({
               fungible: transferredBalance / 2n,
             },
           ],
-          weight_limit: new BN(4000000000),
+          weight_limit: {
+            refTime: 40000000000n,
+            proofSize: 110000n,
+          },
           descend_origin: sendingAddress,
         })
           .descend_origin()
           .withdraw_asset()
           .push_any({
             Transact: {
-              originType: "SovereignAccount",
-              requireWeightAtMost: new BN(1000000000),
+              originKind: "SovereignAccount",
+              requireWeightAtMost: {
+                refTime: 1000000000n,
+                proofSize: 80000n,
+              },
               call: {
                 encoded: transferCallEncoded,
               },
             },
           })
-          .as_v2();
+          .as_v4();
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, 1, {

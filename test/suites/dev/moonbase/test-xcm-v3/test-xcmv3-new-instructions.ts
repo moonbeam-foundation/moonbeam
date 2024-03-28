@@ -1,15 +1,16 @@
-import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { alith, CHARLETH_ADDRESS } from "@moonwall/util";
 import {
   XcmFragment,
   RawXcmMessage,
-  injectHrmpMessage,
   sovereignAccountOfSibling,
   XcmFragmentConfig,
+  injectHrmpMessageAndSeal,
 } from "../../../../helpers/xcm.js";
 import { parseEther } from "ethers";
+import { ApiPromise } from "@polkadot/api";
 
 // Here we are testing each allowed instruction to be executed. Even if some of them throw an error,
 // the important thing (and what we are testing) is that they are
@@ -22,19 +23,18 @@ describeSuite({
     let dotAsset: XcmFragmentConfig;
     let amount: bigint;
     const paraId: number = 888;
+    let api: ApiPromise;
 
     beforeAll(async () => {
+      api = await context.polkadotJs();
       const paraSovereign = sovereignAccountOfSibling(context, paraId);
-      const metadata = await context.polkadotJs().rpc.state.getMetadata();
+      const metadata = await api.rpc.state.getMetadata();
       const balancesPalletIndex = metadata.asLatest.pallets
         .find(({ name }) => name.toString() === "Balances")!
         .index.toNumber();
 
       // Send some native tokens to the sovereign account of paraId (to pay fees)
-      await context
-        .polkadotJs()
-        .tx.balances.transferAllowDeath(paraSovereign, parseEther("1"))
-        .signAndSend(alith);
+      await api.tx.balances.transferAllowDeath(paraSovereign, parseEther("1")).signAndSend(alith);
       await context.createBlock();
 
       amount = 1_000_000_000_000_000n;
@@ -65,16 +65,17 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Success.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => success);
+
         expect(events).to.have.lengthOf(1);
       },
     });
@@ -90,16 +91,17 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Success.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => success);
+
         expect(events).to.have.lengthOf(1);
       },
     });
@@ -115,16 +117,17 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Success.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => success);
+
         expect(events).to.have.lengthOf(1);
       },
     });
@@ -140,16 +143,17 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Success.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => success);
+
         expect(events).to.have.lengthOf(1);
       },
     });
@@ -165,16 +169,17 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Success.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => success);
+
         expect(events).to.have.lengthOf(1);
       },
     });
@@ -191,23 +196,24 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
         // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Success.is(event)
-        );
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => success);
+
         expect(events).to.have.lengthOf(1);
       },
     });
 
     it({
       id: "T07",
-      title: "Should execute ReportHolding (Transport)",
+      title: "Should fail to execute ReportHolding (Transport)",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
           .withdraw_asset()
@@ -216,24 +222,28 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
-        // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        // Search for failure
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => !success);
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("Transport");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("Transport");
       },
     });
 
     it({
       id: "T08",
-      title: "Should execute ExpectAsset (ExpectationFalse)",
+      title: "Should fail to execute ExpectAsset (ExpectationFalse)",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
           .withdraw_asset()
@@ -242,24 +252,28 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
-        // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        // Search for failure
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => !success);
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("ExpectationFalse");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("ExpectationFalse");
       },
     });
 
     it({
       id: "T09",
-      title: "Should execute ExpectOrigin (ExpectationFalse)",
+      title: "Should fail to execute ExpectOrigin (ExpectationFalse)",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
           .withdraw_asset()
@@ -268,24 +282,28 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
-        // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        // Search for failure
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => !success);
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("ExpectationFalse");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("ExpectationFalse");
       },
     });
 
     it({
       id: "T10",
-      title: "Should execute ExpectError (ExpectationFalse)",
+      title: "Should fail to execute ExpectError (ExpectationFalse)",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
           .withdraw_asset()
@@ -294,24 +312,28 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
-        // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        // Search for failure
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => !success);
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("ExpectationFalse");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("ExpectationFalse");
       },
     });
 
     it({
       id: "T11",
-      title: "Should execute QueryPallet (Transport)",
+      title: "Should fail to execute QueryPallet (Transport)",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
           .withdraw_asset()
@@ -320,24 +342,28 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
-        // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        // Search for failure
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => !success);
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("Transport");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("Transport");
       },
     });
 
     it({
       id: "T12",
-      title: "Should execute ExpectPallet (NameMismatch)",
+      title: "Should fail to execute ExpectPallet (NameMismatch)",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
           .withdraw_asset()
@@ -346,24 +372,28 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
-        // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        // Search for failure
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => !success);
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("NameMismatch");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("NameMismatch");
       },
     });
 
     it({
       id: "T13",
-      title: "Should execute ReportTransactStatus (Transport)",
+      title: "Should fail to execute ReportTransactStatus (Transport)",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
           .withdraw_asset()
@@ -372,24 +402,28 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
-        // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        // Search for failure
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => !success);
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("Transport");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("Transport");
       },
     });
 
     it({
       id: "T14",
-      title: "Should execute UnpaidExecution (BadOrigin)",
+      title: "Should fail to execute UnpaidExecution (BadOrigin)",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
           .withdraw_asset()
@@ -398,18 +432,22 @@ describeSuite({
           .as_v3();
 
         // Mock the reception of the xcm message
-        await injectHrmpMessage(context, paraId, {
+        await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
 
-        // Search for Success
-        const events = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
-          context.polkadotJs().events.xcmpQueue.Fail.is(event)
-        );
+        // Search for failure
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => !success);
+
         expect(events).to.have.lengthOf(1);
-        expect(events[0].event.data[2].toString()).equals("BadOrigin");
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(events[0].event.data[2].toString()).equals("BadOrigin");
       },
     });
   },

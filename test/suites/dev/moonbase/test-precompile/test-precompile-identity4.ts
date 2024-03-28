@@ -69,7 +69,7 @@ describeSuite({
         expect(identity.judgements[0].registrarIndex).to.equal(0);
         expect(identity.judgements[0].judgement.isFeePaid).to.be.true;
         expect(identity.judgements[0].judgement.feePaidDeposit).to.equal(100n);
-        expect(identity.deposit).to.equal(1025800000000000000n);
+        expect(identity.deposit).to.equal(1027400000000000000n);
         expect(identity.info.display.hasData).to.be.true;
         expect(identity.info.display.value).to.equal(toHex("display"));
       },

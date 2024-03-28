@@ -18,19 +18,19 @@
 
 use sp_core::{Get, H160, U256};
 use xcm::latest::prelude::*;
-use xcm::latest::{Junction, MultiLocation};
+use xcm::latest::{Junction, Location};
 use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
 
 pub(crate) struct Erc20Matcher<Erc20MultilocationPrefix>(
 	core::marker::PhantomData<Erc20MultilocationPrefix>,
 );
 
-impl<Erc20MultilocationPrefix: Get<MultiLocation>> MatchesFungibles<H160, U256>
+impl<Erc20MultilocationPrefix: Get<Location>> MatchesFungibles<H160, U256>
 	for Erc20Matcher<Erc20MultilocationPrefix>
 {
-	fn matches_fungibles(multiasset: &MultiAsset) -> Result<(H160, U256), MatchError> {
+	fn matches_fungibles(multiasset: &Asset) -> Result<(H160, U256), MatchError> {
 		let (amount, id) = match (&multiasset.fun, &multiasset.id) {
-			(Fungible(ref amount), Concrete(ref id)) => (amount, id),
+			(Fungible(ref amount), AssetId(ref id)) => (amount, id),
 			_ => return Err(MatchError::AssetNotHandled),
 		};
 		let contract_address = Self::matches_erc20_multilocation(id)
@@ -41,14 +41,14 @@ impl<Erc20MultilocationPrefix: Get<MultiLocation>> MatchesFungibles<H160, U256>
 	}
 }
 
-impl<Erc20MultilocationPrefix: Get<MultiLocation>> Erc20Matcher<Erc20MultilocationPrefix> {
-	pub(crate) fn is_erc20_asset(multiasset: &MultiAsset) -> bool {
+impl<Erc20MultilocationPrefix: Get<Location>> Erc20Matcher<Erc20MultilocationPrefix> {
+	pub(crate) fn is_erc20_asset(multiasset: &Asset) -> bool {
 		match (&multiasset.fun, &multiasset.id) {
-			(Fungible(_), Concrete(ref id)) => Self::matches_erc20_multilocation(id).is_ok(),
+			(Fungible(_), AssetId(ref id)) => Self::matches_erc20_multilocation(id).is_ok(),
 			_ => false,
 		}
 	}
-	fn matches_erc20_multilocation(multilocation: &MultiLocation) -> Result<H160, ()> {
+	fn matches_erc20_multilocation(multilocation: &Location) -> Result<H160, ()> {
 		let prefix = Erc20MultilocationPrefix::get();
 		if prefix.parent_count() != multilocation.parent_count()
 			|| prefix
@@ -84,29 +84,28 @@ mod tests {
 	}
 
 	frame_support::parameter_types! {
-		pub const Erc20MultilocationPrefix: MultiLocation = MultiLocation {
+		pub Erc20MultilocationPrefix: Location = Location {
 			parents:0,
-			interior: Junctions::X1(
-				PalletInstance(42u8)
-			)
+			interior: [PalletInstance(42u8)].into()
 		};
 	}
 
 	#[test]
 	fn should_match_valid_erc20_location() {
-		let location = MultiLocation {
+		let location = Location {
 			parents: 0,
-			interior: Junctions::X2(
+			interior: [
 				PalletInstance(42u8),
 				AccountKey20 {
 					key: [0; 20],
 					network: None,
 				},
-			),
+			]
+			.into(),
 		};
 
 		assert_ok!(
-			Erc20Matcher::<Erc20MultilocationPrefix>::matches_fungibles(&MultiAsset::from((
+			Erc20Matcher::<Erc20MultilocationPrefix>::matches_fungibles(&Asset::from((
 				location, 100u128
 			))),
 			(H160([0; 20]), U256([100, 0, 0, 0]))
@@ -115,19 +114,20 @@ mod tests {
 
 	#[test]
 	fn should_match_valid_erc20_location_with_amount_greater_than_u64() {
-		let location = MultiLocation {
+		let location = Location {
 			parents: 0,
-			interior: Junctions::X2(
+			interior: [
 				PalletInstance(42u8),
 				AccountKey20 {
 					key: [0; 20],
 					network: None,
 				},
-			),
+			]
+			.into(),
 		};
 
 		assert_ok!(
-			Erc20Matcher::<Erc20MultilocationPrefix>::matches_fungibles(&MultiAsset::from((
+			Erc20Matcher::<Erc20MultilocationPrefix>::matches_fungibles(&Asset::from((
 				location,
 				100000000000000000u128
 			))),
@@ -137,13 +137,13 @@ mod tests {
 
 	#[test]
 	fn should_not_match_invalid_erc20_location() {
-		let invalid_location = MultiLocation {
+		let invalid_location = Location {
 			parents: 0,
-			interior: Junctions::X2(PalletInstance(42u8), GeneralIndex(0)),
+			interior: [PalletInstance(42u8), GeneralIndex(0)].into(),
 		};
 
 		assert!(
-			Erc20Matcher::<Erc20MultilocationPrefix>::matches_fungibles(&MultiAsset::from((
+			Erc20Matcher::<Erc20MultilocationPrefix>::matches_fungibles(&Asset::from((
 				invalid_location,
 				100u128
 			)))

@@ -1,9 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair, charleth, alith } from "@moonwall/util";
+import { generateKeyringPair, charleth } from "@moonwall/util";
 import {
   XcmFragment,
   RawXcmMessage,
@@ -12,8 +11,8 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D014025",
-  title: "Mock XCM - transact ETHEREUM (proxy) disabled switch",
+  id: "D014024",
+  title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let charlethBalance: bigint;
@@ -59,19 +58,11 @@ describeSuite({
       charlethNonce = parseInt(
         (await context.polkadotJs().query.system.account(sendingAddress)).nonce.toString()
       );
-
-      // We activate the suspension switch
-      await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.sudo.sudo(context.polkadotJs().tx.ethereumXcm.suspendEthereumXcmExecution())
-          .signAsync(alith)
-      );
     });
 
     it({
       id: "T01",
-      title: "should fail to transact_through_proxy with proxy when disabled",
+      title: "should succeed to transact_through_proxy with proxy",
       test: async function () {
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
@@ -140,7 +131,10 @@ describeSuite({
                 fungible: targetXcmFee,
               },
             ],
-            weight_limit: new BN(targetXcmWeight.toString()),
+            weight_limit: {
+              refTime: targetXcmWeight,
+              proofSize: 110000n,
+            },
             descend_origin: sendingAddress,
           })
             .descend_origin()
@@ -148,15 +142,18 @@ describeSuite({
             .buy_execution()
             .push_any({
               Transact: {
-                originType: "SovereignAccount",
+                originKind: "SovereignAccount",
                 // 100_000 gas + 2db reads
-                requireWeightAtMost: 575_000_000n,
+                requireWeightAtMost: {
+                  refTime: 575_000_000n,
+                  proofSize: 80000n,
+                },
                 call: {
                   encoded: transferCallEncoded,
                 },
               },
             })
-            .as_v2();
+            .as_v4();
 
           // Send an XCM and create block to execute it
           await injectHrmpMessageAndSeal(context, 1, {
@@ -165,23 +162,25 @@ describeSuite({
           } as RawXcmMessage);
 
           // The transfer destination
-          // Make sure the destination address did not receive the funds
+          // Make sure the destination address received the funds
           const testAccountBalance = (
             await context.polkadotJs().query.system.account(random.address)
           ).data.free.toBigInt();
-          expect(testAccountBalance).to.eq(0n);
+          expect(testAccountBalance).to.eq(expectedTransferredAmount);
 
           // The EVM caller (proxy delegator)
-          // Make sure CHARLETH balance was not deducted.
+          // Make sure CHARLETH called the evm on behalf DESCENDED, and CHARLETH balance was
+          // deducted.
           const charlethAccountBalance = await context
             .viem()
             .getBalance({ address: sendingAddress });
-          expect(BigInt(charlethAccountBalance)).to.eq(charlethBalance);
-          // Make sure CHARLETH nonce did not increase.
+          expect(BigInt(charlethAccountBalance)).to.eq(charlethBalance - expectedTransferredAmount);
+          // Make sure CHARLETH nonce was increased, as EVM caller.
           const charlethAccountNonce = await context
             .viem()
             .getTransactionCount({ address: sendingAddress });
-          expect(charlethAccountNonce).to.eq(charlethNonce);
+          expect(charlethAccountNonce).to.eq(charlethNonce + 1);
+          charlethNonce++;
 
           // The XCM sender (proxy delegatee)
           // Make sure derived / descended account paid the xcm fees only.

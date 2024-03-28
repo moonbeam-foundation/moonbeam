@@ -201,7 +201,7 @@ describeSuite({
                     },
                     {
                       AccountKey20: {
-                        network: "Any",
+                        network: null,
                         key: erc20ContractAddress2,
                       },
                     },
@@ -220,7 +220,7 @@ describeSuite({
                     },
                     {
                       AccountKey20: {
-                        network: "Any",
+                        network: null,
                         key: erc20ContractAddress1,
                       },
                     },
@@ -238,8 +238,8 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset(3n)
-          .as_v2();
+          .deposit_asset_v3(3n)
+          .as_v4();
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {

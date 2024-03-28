@@ -54,9 +54,9 @@ describeSuite({
           .buy_execution()
           // Set an appendix to be executed after the XCM message is executed. No matter if errors
           .with(function () {
-            return this.set_appendix_with([this.deposit_asset]);
+            return this.set_appendix_with([this.deposit_asset_v3]);
           })
-          .as_v2();
+          .as_v4();
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
@@ -67,6 +67,7 @@ describeSuite({
         await customDevRpcRequest("xcm_injectDownwardMessage", [totalMessage]);
 
         // Create a block in which the XCM will be executed
+        await context.createBlock();
         await context.createBlock();
         // Make sure the state has ALITH's to DOT tokens
         const alith_dot_balance = (

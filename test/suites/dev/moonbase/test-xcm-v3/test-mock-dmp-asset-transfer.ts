@@ -38,6 +38,8 @@ describeSuite({
         // You can provide a message, but if you don't a downward transfer is the default
         await customDevRpcRequest("xcm_injectDownwardMessage", [[]]);
 
+        // Process the next block
+        await context.createBlock();
         // Create a block in which the XCM will be executed
         await context.createBlock();
 

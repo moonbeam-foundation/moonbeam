@@ -6,7 +6,6 @@ import { expectEVMResult } from "../../../../helpers";
 import {
   XcmFragment,
   XcmFragmentConfig,
-  expectXcmEventMessage,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
   weightMessage,
@@ -109,7 +108,16 @@ describeSuite({
           payload: xcmMessage,
         });
 
-        expect(await expectXcmEventMessage(context, "TooExpensive")).toBe(true);
+        const events = (await polkadotJs.query.system.events())
+          .filter(({ event }) => polkadotJs.events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => !success);
+
+        expect(events).to.have.lengthOf(1);
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(await expectXcmEventMessage(context, "TooExpensive")).toBe(true);
 
         // Charleth should not receive ERC20 tokens due to failed execution
         expect(
@@ -323,7 +331,16 @@ describeSuite({
           payload: xcmMessageFailedClaim,
         });
 
-        expect(await expectXcmEventMessage(context, "UnknownClaim")).toBe(true);
+        const events2 = (await context.polkadotJs().query.system.events())
+          .filter(({ event }) => context.polkadotJs().events.messageQueue.Processed.is(event))
+          .map((e) => e.event.data.toHuman() as { success: boolean })
+          .filter(({ success }) => !success);
+
+        expect(events2).to.have.lengthOf(1);
+        // pallet-message-queue does not show an error when "success" is false.
+        // https://github.com/paritytech/polkadot-sdk/issues/478
+        // >
+        // expect(await expectXcmEventMessage(context, "UnknownClaim")).toBe(true);
 
         // Check the sovereign account has the same initial amount of ERC20 tokens
         expect(

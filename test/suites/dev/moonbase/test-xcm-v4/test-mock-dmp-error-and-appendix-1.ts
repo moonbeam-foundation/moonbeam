@@ -56,10 +56,10 @@ describeSuite({
           // But since there is no error, and the deposit is on the error handler, the assets
           // will be trapped
           .with(function () {
-            return this.set_error_handler_with([this.deposit_asset]);
+            return this.set_error_handler_with([this.deposit_asset_v3]);
           })
           .clear_origin()
-          .as_v2();
+          .as_v4();
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
@@ -70,6 +70,7 @@ describeSuite({
         await customDevRpcRequest("xcm_injectDownwardMessage", [totalMessage]);
 
         // Create a block in which the XCM will be executed
+        await context.createBlock();
         await context.createBlock();
         // Make sure ALITH did not reveive anything
         const alith_dot_balance = await context

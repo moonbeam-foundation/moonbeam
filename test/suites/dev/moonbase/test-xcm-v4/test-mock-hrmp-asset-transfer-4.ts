@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair } from "@moonwall/util";
 import {
@@ -64,14 +63,17 @@ describeSuite({
               fungible: transferredBalance,
             },
           ],
-          weight_limit: new BN(4000000000),
+          weight_limit: {
+            refTime: 40000000000n,
+            proofSize: 110000n,
+          },
           beneficiary: random.address,
         })
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset()
-          .as_v2();
+          .deposit_asset_v3()
+          .as_v4();
 
         const chargedWeight = await weightMessage(
           context,

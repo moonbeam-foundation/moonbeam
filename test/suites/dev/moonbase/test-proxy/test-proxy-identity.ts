@@ -22,7 +22,7 @@ describeSuite({
       };
       const identity = context
         .polkadotJs()
-        .registry.createType("PalletIdentitySimpleIdentityInfo", identityData);
+        .registry.createType("PalletIdentityLegacyIdentityInfo", identityData);
       identityHash = identity.hash.toHex();
 
       const block = await context.createBlock([
@@ -37,7 +37,7 @@ describeSuite({
       });
 
       const identityOf = await context.polkadotJs().query.identity.identityOf(signer.address);
-      expect(identityOf.unwrap().info.hash.toHex(), "Identity hash should match").to.equal(
+      expect(identityOf.unwrap()[0].info.hash.toHex(), "Identity hash should match").to.equal(
         identityHash
       );
     });
@@ -148,7 +148,7 @@ describeSuite({
 //     };
 //     const identity = context
 //       .polkadotJs()
-//       .registry.createType("PalletIdentitySimpleIdentityInfo", identityData);
+//       .registry.createType("PalletIdentityLegacyIdentityInfo", identityData);
 //     identityHash = identity.hash.toHex();
 //     const block = await context.createBlock([
 //       context

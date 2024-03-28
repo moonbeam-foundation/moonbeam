@@ -68,7 +68,7 @@ describeSuite({
 
         expect(identity.isValid).to.be.true;
         expect(identity.judgements).to.be.empty;
-        expect(identity.deposit).to.equal(1032400000000000000n);
+        expect(identity.deposit).to.equal(1034200000000000000n);
         expect(identity.info.additional.length).to.equal(1);
         expect(identity.info.additional[0].key.hasData).to.be.true;
         expect(identity.info.additional[0].key.value).to.equal(toHex("discord"));
