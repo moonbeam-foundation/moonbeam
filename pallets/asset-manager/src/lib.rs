@@ -18,16 +18,12 @@
 //!
 //! This pallet allows to register new assets if certain conditions are met
 //! The main goal of this pallet is to allow moonbeam to register XCM assets
-//! and control the creation of local assets
 //! The assumption is we work with AssetTypes, which can then be compared to AssetIds
 //!
 //! This pallet has five storage items: AssetIdType, which holds a mapping from AssetId->AssetType
 //! AssetTypeUnitsPerSecond: an AssetType->u128 mapping that holds how much each AssetType should
 //! be charged per unit of second, in the case such an Asset is received as a XCM asset. Finally,
-//! AssetTypeId holds a mapping from AssetType -> AssetId. LocalAssetCounter
-//! which holds the counter of local assets that have been created so far. And LocalAssetDeposit,
-//! which holds a mapping between assetId and assetInfo, i.e., the asset creator (from which
-//! we take the deposit) and the deposit amount itself.
+//! AssetTypeId holds a mapping from AssetType -> AssetId.
 //!
 //! This pallet has eight extrinsics: register_foreign_asset, which registers a foreign
 //! asset in this pallet and creates the asset as dictated by the AssetRegistrar trait.
@@ -37,9 +33,7 @@
 //! AssetType
 //! remove_supported_asset: which removes an asset from the supported assets for fee payment
 //! remove_existing_asset_type: which removes a mapping from a foreign asset to an assetId
-//! register_local_asset: which creates a local asset with a specific owner
 //! destroy_foreign_asset: which destroys a foreign asset and all its associated data
-//! destroy_local_asset: which destroys a local asset and all its associated data
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -59,11 +53,7 @@ pub use crate::weights::WeightInfo;
 #[pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::{
-		pallet_prelude::*,
-		traits::{Currency, ReservableCurrency},
-		PalletId,
-	};
+	use frame_support::{pallet_prelude::*, PalletId};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::HasCompact;
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned};
@@ -75,16 +65,6 @@ pub mod pallet {
 
 	/// The AssetManagers's pallet id
 	pub const PALLET_ID: PalletId = PalletId(*b"asstmngr");
-
-	pub(crate) type DepositBalanceOf<T> =
-		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-
-	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
-	#[scale_info(skip_type_params(T))]
-	pub struct AssetInfo<T: Config> {
-		pub creator: T::AccountId,
-		pub deposit: DepositBalanceOf<T>,
-	}
 
 	// The registrar trait. We need to comply with this
 	pub trait AssetRegistrar<T: Config> {
@@ -100,37 +80,13 @@ pub mod pallet {
 			unimplemented!()
 		}
 
-		// Create a local asset, meaning an asset whose reserve chain is our chain
-		// These are created as non-sufficent by default
-		fn create_local_asset(
-			_asset: T::AssetId,
-			_account: T::AccountId,
-			_min_balance: T::Balance,
-			_is_sufficient: bool,
-			_owner: T::AccountId,
-		) -> DispatchResult {
-			unimplemented!()
-		}
-
 		// How to destroy a foreign asset
 		fn destroy_foreign_asset(_asset: T::AssetId) -> DispatchResult {
 			unimplemented!()
 		}
 
-		// How to destroy a local asset
-		fn destroy_local_asset(_asset: T::AssetId) -> DispatchResult {
-			unimplemented!()
-		}
-
 		// Get destroy asset weight dispatch info
 		fn destroy_asset_dispatch_info_weight(_asset: T::AssetId) -> Weight;
-	}
-
-	// The local asset id creator. We cannot let users choose assetIds for their assets
-	// because they can look for collisions in the EVM.
-	pub trait LocalAssetIdCreator<T: Config> {
-		// How to create an assetId from the local asset counter
-		fn create_asset_id_from_metadata(local_asset_counter: u128) -> T::AssetId;
 	}
 
 	// We implement this trait to be able to get the AssetType and units per second registered
@@ -195,19 +151,6 @@ pub mod pallet {
 		/// Origin that is allowed to create and modify asset information for foreign assets
 		type ForeignAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
-		/// Origin that is allowed to create and modify asset information for local assets
-		type LocalAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
-
-		/// Ways of creating local asset Ids
-		type LocalAssetIdCreator: LocalAssetIdCreator<Self>;
-
-		/// The currency mechanism in which we reserve deposits for local assets.
-		type Currency: ReservableCurrency<Self::AccountId>;
-
-		/// The basic amount of funds that must be reserved for a local asset.
-		#[pallet::constant]
-		type LocalAssetDeposit: Get<DepositBalanceOf<Self>>;
-
 		type WeightInfo: WeightInfo;
 	}
 
@@ -250,12 +193,6 @@ pub mod pallet {
 		},
 		/// Supported asset type for fee payment removed
 		SupportedAssetRemoved { asset_type: T::ForeignAssetType },
-		/// Local asset was created
-		LocalAssetRegistered {
-			asset_id: T::AssetId,
-			creator: T::AccountId,
-			owner: T::AccountId,
-		},
 		/// Removed all information related to an assetId and destroyed asset
 		ForeignAssetDestroyed {
 			asset_id: T::AssetId,
@@ -289,24 +226,6 @@ pub mod pallet {
 	#[pallet::getter(fn asset_type_units_per_second)]
 	pub type AssetTypeUnitsPerSecond<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::ForeignAssetType, u128>;
-
-	/// Stores the counter of the number of local assets that have been
-	/// created so far
-	/// This value can be used to salt the creation of an assetId, e.g.,
-	/// by hashing it. This is particularly useful for cases like moonbeam
-	/// where letting users choose their assetId would result in collision
-	/// in the evm side.
-	#[pallet::storage]
-	#[pallet::getter(fn local_asset_counter)]
-	pub type LocalAssetCounter<T: Config> = StorageValue<_, u128, ValueQuery>;
-
-	/// Local asset deposits, a mapping from assetId to a struct
-	/// holding the creator (from which the deposit was reserved) and
-	/// the deposit amount
-	#[pallet::storage]
-	#[pallet::getter(fn local_asset_deposit)]
-	pub type LocalAssetDeposit<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AssetId, AssetInfo<T>>;
 
 	// Supported fee asset payments
 	#[pallet::storage]
@@ -529,75 +448,6 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Register a new local asset
-		/// No information is stored in this pallet about the local asset
-		/// The reason is that we dont need to hold a mapping between the multilocation
-		/// and the local asset, as this conversion is deterministic
-		/// Further, we dont allow xcm fee payment in local assets
-		#[pallet::call_index(5)]
-		#[pallet::weight(T::WeightInfo::register_local_asset())]
-		pub fn register_local_asset(
-			origin: OriginFor<T>,
-			creator: T::AccountId,
-			owner: T::AccountId,
-			is_sufficient: bool,
-			min_balance: T::Balance,
-		) -> DispatchResult {
-			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
-
-			// Get the deposit amount
-			let deposit = T::LocalAssetDeposit::get();
-
-			// Verify we can reserve
-			T::Currency::can_reserve(&creator, deposit)
-				.then(|| true)
-				.ok_or(Error::<T>::NotSufficientDeposit)?;
-
-			// Read Local Asset Counter
-			let mut local_asset_counter = LocalAssetCounter::<T>::get();
-
-			// Create the assetId with LocalAssetIdCreator
-			let asset_id =
-				T::LocalAssetIdCreator::create_asset_id_from_metadata(local_asset_counter);
-
-			// Increment the counter
-			local_asset_counter = local_asset_counter
-				.checked_add(1)
-				.ok_or(Error::<T>::LocalAssetLimitReached)?;
-
-			// Create local asset
-			T::AssetRegistrar::create_local_asset(
-				asset_id,
-				creator.clone(),
-				min_balance,
-				is_sufficient,
-				owner.clone(),
-			)
-			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
-
-			// Reserve the deposit, we verified we can do this
-			T::Currency::reserve(&creator, deposit)?;
-
-			// Update assetInfo
-			LocalAssetDeposit::<T>::insert(
-				asset_id,
-				AssetInfo {
-					creator: creator.clone(),
-					deposit,
-				},
-			);
-
-			// Update local asset counter
-			LocalAssetCounter::<T>::put(local_asset_counter);
-
-			Self::deposit_event(Event::LocalAssetRegistered {
-				asset_id,
-				creator,
-				owner,
-			});
-			Ok(())
-		}
-
 		/// Destroy a given foreign assetId
 		/// The weight in this case is the one returned by the trait
 		/// plus the db writes and reads from removing all the associated
@@ -649,38 +499,6 @@ pub mod pallet {
 				asset_id,
 				asset_type,
 			});
-			Ok(())
-		}
-
-		/// Destroy a given local assetId
-		/// We do not store anything related to local assets in this pallet other than the counter
-		/// and the counter is not used for destroying the asset, so no additional db reads/writes
-		/// to be counter here
-		#[pallet::call_index(7)]
-		#[pallet::weight({
-			T::AssetRegistrar::destroy_asset_dispatch_info_weight(
-				*asset_id
-			)
-			.saturating_add(T::DbWeight::get().reads_writes(2, 2))
-		})]
-		pub fn destroy_local_asset(origin: OriginFor<T>, asset_id: T::AssetId) -> DispatchResult {
-			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
-
-			// Get asset creator and deposit amount
-			let asset_info =
-				LocalAssetDeposit::<T>::get(asset_id).ok_or(Error::<T>::NonExistentLocalAsset)?;
-
-			// Destroy local asset
-			T::AssetRegistrar::destroy_local_asset(asset_id)
-				.map_err(|_| Error::<T>::ErrorDestroyingAsset)?;
-
-			// Unreserve deposit
-			T::Currency::unreserve(&asset_info.creator, asset_info.deposit);
-
-			// Remove asset info
-			LocalAssetDeposit::<T>::remove(asset_id);
-
-			Self::deposit_event(Event::LocalAssetDestroyed { asset_id });
 			Ok(())
 		}
 	}

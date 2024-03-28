@@ -163,7 +163,6 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 // These correspond to
 // SelfReserve asset, both pre and post 0.9.16
 // Foreign assets
-// Local assets, both pre and post 0.9.16
 // We can remove the Old reanchor once
 // we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
 pub type AssetTransactors = (
@@ -493,8 +492,6 @@ pub enum CurrencyId {
 	SelfReserve,
 	// Assets representing other chains native tokens
 	ForeignAsset(AssetId),
-	// Our local assets
-	DeprecatedLocalAssetReserve(AssetId),
 	// Erc20 token
 	Erc20 { contract_address: H160 },
 }
@@ -532,7 +529,6 @@ where
 				Some(multi)
 			}
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::convert_back(&asset),
-			CurrencyId::DeprecatedLocalAssetReserve(_) => None,
 			CurrencyId::Erc20 { contract_address } => {
 				let mut location = Erc20XcmBridgePalletLocation::get();
 				location

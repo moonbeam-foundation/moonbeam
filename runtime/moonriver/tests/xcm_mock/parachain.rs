@@ -769,18 +769,6 @@ pub struct AssetMetadata {
 	pub symbol: Vec<u8>,
 	pub decimals: u8,
 }
-pub struct LocalAssetIdCreator;
-impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator {
-	fn create_asset_id_from_metadata(local_asset_counter: u128) -> AssetId {
-		// Our means of converting a creator to an assetId
-		// We basically hash (local asset counter)
-		let mut result: [u8; 16] = [0u8; 16];
-		let hash: H256 =
-			local_asset_counter.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
-		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
-		u128::from_le_bytes(result)
-	}
-}
 
 impl pallet_asset_manager::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -790,10 +778,6 @@ impl pallet_asset_manager::Config for Runtime {
 	type ForeignAssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
-	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
-	type LocalAssetIdCreator = LocalAssetIdCreator;
-	type Currency = Balances;
-	type LocalAssetDeposit = AssetDeposit;
 	type WeightInfo = ();
 }
 

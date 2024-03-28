@@ -26,7 +26,6 @@ use super::{
 
 use moonbeam_runtime_common::weights as moonbeam_weights;
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
-use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
 	dispatch::GetDispatchInfo,
@@ -38,7 +37,7 @@ use frame_support::{
 use frame_system::{EnsureNever, EnsureRoot};
 use parity_scale_codec::{Compact, Decode, Encode};
 use scale_info::TypeInfo;
-use sp_core::{H160, H256};
+use sp_core::H160;
 
 use sp_std::{
 	convert::{From, Into},
@@ -59,8 +58,6 @@ pub type ForeignAssetInstance = ();
 // For foreign assets, these parameters dont matter much
 // as this will only be called by root with the forced arguments
 // No deposit is substracted with those methods
-// For local assets, they do matter. We use similar parameters
-// to those in statemine (except for approval)
 parameter_types! {
 	pub const AssetDeposit: Balance = 100 * currency::UNIT * currency::SUPPLY_FACTOR;
 	pub const ApprovalDeposit: Balance = 0;
@@ -166,19 +163,6 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	}
 }
 
-pub struct LocalAssetIdCreator;
-impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator {
-	fn create_asset_id_from_metadata(local_asset_counter: u128) -> AssetId {
-		// Our means of converting a local asset counter to an assetId
-		// We basically hash (local asset counter)
-		let mut result: [u8; 16] = [0u8; 16];
-		let hash: H256 =
-			local_asset_counter.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
-		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
-		u128::from_le_bytes(result)
-	}
-}
-
 #[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub struct AssetRegistrarMetadata {
 	pub name: Vec<u8>,
@@ -206,10 +190,6 @@ impl pallet_asset_manager::Config for Runtime {
 	type ForeignAssetType = xcm_config::AssetType;
 	type AssetRegistrar = AssetRegistrar;
 	type ForeignAssetModifierOrigin = ForeignAssetModifierOrigin;
-	type LocalAssetModifierOrigin = LocalAssetModifierOrigin;
-	type LocalAssetIdCreator = LocalAssetIdCreator;
-	type Currency = Balances;
-	type LocalAssetDeposit = AssetDeposit;
 	type WeightInfo = moonbeam_weights::pallet_asset_manager::WeightInfo<Runtime>;
 }
 

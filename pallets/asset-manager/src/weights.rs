@@ -56,7 +56,6 @@ pub trait WeightInfo {
 	fn set_asset_units_per_second(x: u32, ) -> Weight;
 	fn change_existing_asset_type(x: u32, ) -> Weight;
 	fn remove_supported_asset(x: u32, ) -> Weight;
-	fn register_local_asset() -> Weight;
 	fn remove_existing_asset_type(x: u32, ) -> Weight;
 }
 
@@ -136,25 +135,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 			.saturating_add(Weight::from_parts(0, 10).saturating_mul(x.into()))
-	}
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
-	/// Storage: AssetManager LocalAssetCounter (r:1 w:1)
-	/// Proof Skipped: AssetManager LocalAssetCounter (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: LocalAssets Asset (r:1 w:1)
-	/// Proof: LocalAssets Asset (max_values: None, max_size: Some(174), added: 2649, mode: MaxEncodedLen)
-	/// Storage: EVM AccountCodes (r:0 w:1)
-	/// Proof Skipped: EVM AccountCodes (max_values: None, max_size: None, mode: Measured)
-	/// Storage: AssetManager LocalAssetDeposit (r:0 w:1)
-	/// Proof Skipped: AssetManager LocalAssetDeposit (max_values: None, max_size: None, mode: Measured)
-	fn register_local_asset() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `310`
-		//  Estimated: `9635`
-		// Minimum execution time: 59_851_000 picoseconds.
-		Weight::from_parts(60_452_000, 9635)
-			.saturating_add(T::DbWeight::get().reads(3_u64))
-			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
 	/// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
 	/// Proof Skipped: AssetManager SupportedFeePaymentAssets (max_values: Some(1), max_size: None, mode: Measured)
@@ -254,25 +234,6 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(1_u64))
 			.saturating_add(RocksDbWeight::get().writes(2_u64))
 			.saturating_add(Weight::from_parts(0, 10).saturating_mul(x.into()))
-	}
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
-	/// Storage: AssetManager LocalAssetCounter (r:1 w:1)
-	/// Proof Skipped: AssetManager LocalAssetCounter (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: LocalAssets Asset (r:1 w:1)
-	/// Proof: LocalAssets Asset (max_values: None, max_size: Some(174), added: 2649, mode: MaxEncodedLen)
-	/// Storage: EVM AccountCodes (r:0 w:1)
-	/// Proof Skipped: EVM AccountCodes (max_values: None, max_size: None, mode: Measured)
-	/// Storage: AssetManager LocalAssetDeposit (r:0 w:1)
-	/// Proof Skipped: AssetManager LocalAssetDeposit (max_values: None, max_size: None, mode: Measured)
-	fn register_local_asset() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `310`
-		//  Estimated: `9635`
-		// Minimum execution time: 59_851_000 picoseconds.
-		Weight::from_parts(60_452_000, 9635)
-			.saturating_add(RocksDbWeight::get().reads(3_u64))
-			.saturating_add(RocksDbWeight::get().writes(5_u64))
 	}
 	/// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
 	/// Proof Skipped: AssetManager SupportedFeePaymentAssets (max_values: Some(1), max_size: None, mode: Measured)

@@ -158,40 +158,13 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 		Ok(())
 	}
 
-	fn create_local_asset(
-		_asset: u128,
-		_account: u64,
-		_min_balance: u64,
-		_is_sufficient: bool,
-		_owner: u64,
-	) -> sp_runtime::DispatchResult {
-		Ok(())
-	}
-
 	fn destroy_foreign_asset(_asset: u128) -> Result<(), DispatchError> {
-		Ok(())
-	}
-
-	fn destroy_local_asset(_asset: u128) -> Result<(), DispatchError> {
 		Ok(())
 	}
 
 	fn destroy_asset_dispatch_info_weight(_asset: u128) -> Weight {
 		Weight::from_parts(0, 0)
 	}
-}
-
-pub struct MockLocalAssetIdCreator;
-impl pallet_asset_manager::LocalAssetIdCreator<Test> for MockLocalAssetIdCreator {
-	fn create_asset_id_from_metadata(local_asset_counter: u128) -> AssetId {
-		// Our means of converting a creator to an assetId
-		// We basically hash nonce+account
-		local_asset_counter
-	}
-}
-
-parameter_types! {
-	pub const LocalAssetDeposit: u64 = 1;
 }
 
 impl Config for Test {
@@ -202,10 +175,6 @@ impl Config for Test {
 	type ForeignAssetType = MockAssetType;
 	type AssetRegistrar = MockAssetPalletRegistrar;
 	type ForeignAssetModifierOrigin = EnsureRoot<u64>;
-	type LocalAssetModifierOrigin = EnsureRoot<u64>;
-	type LocalAssetIdCreator = MockLocalAssetIdCreator;
-	type Currency = Balances;
-	type LocalAssetDeposit = LocalAssetDeposit;
 	type WeightInfo = ();
 }
 
@@ -221,10 +190,6 @@ impl Default for ExtBuilder {
 }
 
 impl ExtBuilder {
-	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
-		self.balances = balances;
-		self
-	}
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::<Test>::default()
 			.build_storage()

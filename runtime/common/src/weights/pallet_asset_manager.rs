@@ -123,26 +123,6 @@ impl<T: frame_system::Config> pallet_asset_manager::WeightInfo for WeightInfo<T>
 			.saturating_add(T::DbWeight::get().writes(2))
 			.saturating_add(Weight::from_parts(0, 5).saturating_mul(x.into()))
 	}
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(116), added: 2591, mode: MaxEncodedLen)
-	/// Storage: AssetManager LocalAssetCounter (r:1 w:1)
-	/// Proof Skipped: AssetManager LocalAssetCounter (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: LocalAssets Asset (r:1 w:1)
-	/// Proof: LocalAssets Asset (max_values: None, max_size: Some(174), added: 2649, mode: MaxEncodedLen)
-	/// Storage: EVM AccountCodes (r:0 w:1)
-	/// Proof Skipped: EVM AccountCodes (max_values: None, max_size: None, mode: Measured)
-	/// Storage: AssetManager LocalAssetDeposit (r:0 w:1)
-	/// Proof Skipped: AssetManager LocalAssetDeposit (max_values: None, max_size: None, mode: Measured)
-	fn register_local_asset() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `310`
-		//  Estimated: `3639`
-		// Minimum execution time: 24_699_000 picoseconds.
-		Weight::from_parts(25_397_000, 0)
-			.saturating_add(Weight::from_parts(0, 3639))
-			.saturating_add(T::DbWeight::get().reads(3))
-			.saturating_add(T::DbWeight::get().writes(5))
-	}
 	/// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
 	/// Proof Skipped: AssetManager SupportedFeePaymentAssets (max_values: Some(1), max_size: None, mode: Measured)
 	/// Storage: AssetManager AssetIdType (r:1 w:1)
