@@ -141,6 +141,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
 	is_pallet_prefix::<moonriver_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
 	is_pallet_prefix::<moonriver_runtime::MoonbeamLazyMigrations>("MoonbeamLazyMigrations");
+	is_pallet_prefix::<moonriver_runtime::RelayStorageRoots>("RelayStorageRoots");
 
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
@@ -249,6 +250,25 @@ fn verify_pallet_prefixes() {
 			max_values: Some(1),
 			max_size: None,
 		},]
+	);
+	assert_eq!(
+		<moonriver_runtime::RelayStorageRoots as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				pallet_name: b"RelayStorageRoots".to_vec(),
+				storage_name: b"RelayStorageRoot".to_vec(),
+				prefix: prefix(b"RelayStorageRoots", b"RelayStorageRoot"),
+				max_values: None,
+				max_size: Some(44),
+			},
+			StorageInfo {
+				pallet_name: b"RelayStorageRoots".to_vec(),
+				storage_name: b"RelayStorageRootKeys".to_vec(),
+				prefix: prefix(b"RelayStorageRoots", b"RelayStorageRootKeys"),
+				max_values: Some(1),
+				max_size: Some(41),
+			},
+		]
 	);
 }
 
