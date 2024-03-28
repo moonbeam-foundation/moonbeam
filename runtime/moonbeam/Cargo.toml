@@ -62,6 +62,7 @@ pallet-evm-precompile-randomness = { workspace = true }
 pallet-evm-precompile-referenda = { workspace = true }
 pallet-evm-precompile-registry = { workspace = true }
 pallet-evm-precompile-relay-encoder = { workspace = true }
+pallet-evm-precompile-relay-verifier = { workspace = true }
 pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
@@ -240,6 +241,7 @@ std = [
 	"pallet-evm-precompile-randomness/std",
 	"pallet-evm-precompile-referenda/std",
 	"pallet-evm-precompile-relay-encoder/std",
+	"pallet-evm-precompile-relay-verifier/std",
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
