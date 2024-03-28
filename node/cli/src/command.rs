@@ -795,6 +795,7 @@ pub fn run() -> Result<()> {
 						id,
 						rpc_config,
 						false,
+						cli.run.block_authoring_duration,
 						hwbench,
 					)
 					.await
@@ -811,6 +812,7 @@ pub fn run() -> Result<()> {
 						id,
 						rpc_config,
 						false,
+						cli.run.block_authoring_duration,
 						hwbench,
 					)
 					.await
@@ -827,6 +829,7 @@ pub fn run() -> Result<()> {
 						id,
 						rpc_config,
 						true,
+						cli.run.block_authoring_duration,
 						hwbench,
 					)
 					.await

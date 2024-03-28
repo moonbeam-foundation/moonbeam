@@ -598,6 +598,7 @@ async fn start_node_impl<RuntimeApi, Customizations>(
 	para_id: ParaId,
 	rpc_config: RpcConfig,
 	async_backing: bool,
+	block_authoring_duration: Duration,
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
@@ -884,6 +885,7 @@ where
 			announce_block,
 			force_authoring,
 			relay_chain_slot_duration,
+			block_authoring_duration,
 			sync_service.clone(),
 		)?;
 		/*let parachain_consensus = build_consensus(
@@ -946,6 +948,7 @@ fn start_consensus<RuntimeApi, SO>(
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
 	force_authoring: bool,
 	relay_chain_slot_duration: Duration,
+	block_authoring_duration: Duration,
 	sync_oracle: SO,
 ) -> Result<(), sc_service::Error>
 where
@@ -1024,7 +1027,7 @@ where
 				additional_relay_keys: vec![
 					moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
 				],
-				authoring_duration: Duration::from_millis(1500),
+				authoring_duration: block_authoring_duration,
 				block_import,
 				code_hash_provider,
 				collator_key,
@@ -1085,6 +1088,7 @@ pub async fn start_node<RuntimeApi, Customizations>(
 	para_id: ParaId,
 	rpc_config: RpcConfig,
 	async_backing: bool,
+	block_authoring_duration: Duration,
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
@@ -1101,6 +1105,7 @@ where
 		para_id,
 		rpc_config,
 		async_backing,
+		block_authoring_duration,
 		hwbench,
 	)
 	.await
