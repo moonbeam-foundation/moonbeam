@@ -12,6 +12,8 @@ log = {workspace = true}
 frame-support = {workspace = true}
 frame-system = {workspace = true}
 pallet-scheduler = {workspace = true}
+pallet-assets = {workspace = true}
+pallet-balances = {workspace = true}
 parity-scale-codec = {workspace = true}
 scale-info = {workspace = true, features = ["derive"]}
 sp-core = {workspace = true}
@@ -27,7 +29,7 @@ frame-benchmarking = {workspace = true, optional = true}
 
 [dev-dependencies]
 frame-benchmarking = {workspace = true, features = ["std"]}
-pallet-balances = {workspace = true, features = ["std"]}
+pallet-balances = {workspace = true, features = ["std", "insecure_zero_ed"]}
 pallet-timestamp = {workspace = true, features = ["std"]}
 rlp = {workspace = true, features = ["std"]}
 sp-io = {workspace = true, features = ["std"]}

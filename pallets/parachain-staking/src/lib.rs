@@ -460,7 +460,7 @@ pub mod pallet {
 			let mut weight = <T as Config>::WeightInfo::base_on_initialize();
 
 			let mut round = <Round<T>>::get();
-			if round.should_update(n.into()) {
+			if round.should_update(n) {
 				// fetch current slot number
 				let current_slot: u64 = T::SlotProvider::get().into();
 
@@ -472,7 +472,7 @@ pub mod pallet {
 					.saturating_mul(T::SlotDuration::get());
 
 				// mutate round
-				round.update(n.into(), current_slot);
+				round.update(n, current_slot);
 				// notify that new round begin
 				weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
 				// pay all stakers for T::RewardPaymentDelay rounds ago

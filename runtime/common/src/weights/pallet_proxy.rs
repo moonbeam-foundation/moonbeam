@@ -61,6 +61,8 @@ impl<T: frame_system::Config> pallet_proxy::WeightInfo for WeightInfo<T> {
 			.saturating_add(Weight::from_parts(29_118, 0).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(3))
 			.saturating_add(Weight::from_parts(0, 25).saturating_mul(p.into()))
+			// 1 DB read that happen when filtering the proxy call transaction
+			.saturating_add(T::DbWeight::get().reads(1))
 	}
 	/// Storage: `Proxy::Proxies` (r:1 w:0)
 	/// Proof: `Proxy::Proxies` (`max_values`: None, `max_size`: Some(845), added: 3320, mode: `MaxEncodedLen`)

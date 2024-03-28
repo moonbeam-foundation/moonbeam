@@ -20,7 +20,7 @@ import { keccak256 } from "viem";
 const INIT_CODE = "0x600580600B6000396000F360006000fd";
 
 describeSuite({
-  id: "D012939",
+  id: "D012938",
   title: "Precompiles - precompiles dummy bytecode",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

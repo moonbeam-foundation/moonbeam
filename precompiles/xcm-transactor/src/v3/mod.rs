@@ -24,7 +24,7 @@ use sp_core::{H160, U256};
 use sp_runtime::traits::Dispatchable;
 use sp_std::{convert::TryFrom, marker::PhantomData};
 use sp_weights::Weight;
-use xcm::latest::MultiLocation;
+use xcm::latest::Location;
 use xcm_primitives::AccountIdToCurrencyId;
 
 /// A precompile to wrap the functionality from xcm transactor
@@ -51,7 +51,7 @@ where
 	#[precompile::view]
 	fn transact_info_with_signed(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: Location,
 	) -> EvmResult<(Weight, Weight, Weight)> {
 		XcmTransactorWrapper::<Runtime>::transact_info_with_signed_v3(handle, multilocation)
 	}
@@ -60,7 +60,7 @@ where
 	#[precompile::view]
 	fn fee_per_second(
 		handle: &mut impl PrecompileHandle,
-		multilocation: MultiLocation,
+		multilocation: Location,
 	) -> EvmResult<U256> {
 		XcmTransactorWrapper::<Runtime>::fee_per_second(handle, multilocation)
 	}
@@ -80,7 +80,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		transactor: u8,
 		index: u16,
-		fee_asset: MultiLocation,
+		fee_asset: Location,
 		weight: Weight,
 		inner_call: BoundedBytes<GetDataLimit>,
 		fee_amount: Convert<U256, u128>,
@@ -147,8 +147,8 @@ where
 	)]
 	fn transact_through_signed_multilocation(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
-		fee_asset: MultiLocation,
+		dest: Location,
+		fee_asset: Location,
 		weight: Weight,
 		call: BoundedBytes<GetDataLimit>,
 		fee_amount: Convert<U256, u128>,
@@ -179,7 +179,7 @@ where
 	)]
 	fn transact_through_signed(
 		handle: &mut impl PrecompileHandle,
-		dest: MultiLocation,
+		dest: Location,
 		fee_asset: Address,
 		weight: Weight,
 		call: BoundedBytes<GetDataLimit>,

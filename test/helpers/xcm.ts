@@ -185,7 +185,10 @@ export async function injectEncodedHrmpMessageAndSeal(
 ) {
   // Send RPC call to inject XCM message
   await customDevRpcRequest("xcm_injectHrmpMessage", [paraId, message]);
-  return await context.createBlock();
+  // Create a block in which the XCM will be enqueued
+  await context.createBlock();
+  // The next block will process the hrmp message in the message queue
+  return context.createBlock();
 }
 
 // Weight a particular message using the xcm utils precompile
@@ -211,7 +214,9 @@ export async function injectHrmpMessageAndSeal(
   message?: RawXcmMessage
 ) {
   await injectHrmpMessage(context, paraId, message);
-  // Create a block in which the XCM will be executed
+  // Create a block in which the XCM will be enqueued
+  await context.createBlock();
+  // The next block will process the hrmp message in the message queue
   await context.createBlock();
 }
 
@@ -253,7 +258,12 @@ export interface XcmFragmentConfig {
     multilocation: MultiLocation;
     fungible: bigint;
   }[];
-  weight_limit?: BN;
+  weight_limit?:
+    | BN
+    | {
+        refTime: BN | number | bigint;
+        proofSize: BN | number | bigint;
+      };
   descend_origin?: string;
   beneficiary?: string;
 }
@@ -346,7 +356,7 @@ export class XcmFragment {
         // Ticket seems to indicate the version of the assets
         ticket: {
           parents: 0,
-          interior: { X1: { GeneralIndex: 3 } },
+          interior: { X1: { GeneralIndex: 4 } },
         },
       },
     });
@@ -479,6 +489,34 @@ export class XcmFragment {
   as_v3(): any {
     return {
       V3: this.instructions,
+    };
+  }
+
+  /// XCM V4 calls
+  as_v4(): any {
+    const patchLocationV4recursively = (value: any) => {
+      // e.g. Convert this: { X1: { Parachain: 1000 } } to { X1: [ { Parachain: 1000 } ] }
+      if (value && typeof value == "object") {
+        if (Array.isArray(value)) {
+          return value.map(patchLocationV4recursively);
+        }
+        for (const k of Object.keys(value)) {
+          if (k === "Concrete" || k === "Abstract") {
+            return patchLocationV4recursively(value[k]);
+          }
+          if (k.match(/^X\d$/g) && !Array.isArray(value[k])) {
+            value[k] = Object.entries(value[k]).map(([k, v]) => ({
+              [k]: patchLocationV4recursively(v),
+            }));
+          } else {
+            value[k] = patchLocationV4recursively(value[k]);
+          }
+        }
+      }
+      return value;
+    };
+    return {
+      V4: this.instructions.map((inst) => patchLocationV4recursively(inst)),
     };
   }
 

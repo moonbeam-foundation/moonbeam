@@ -60,7 +60,7 @@ jobs:
           echo "repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
           echo "github.repository: ${{ github.repository }}"
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
       - name: Get Latest RT Release
@@ -119,7 +119,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Find un-copyrighted files
@@ -137,7 +137,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: gaurav-nelson/github-action-markdown-link-check@v1
@@ -151,7 +151,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup editorconfig checker
@@ -171,7 +171,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: oven-sh/setup-bun@v1
@@ -194,7 +194,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Use pnpm
@@ -220,7 +220,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -236,7 +236,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Rust toolchain
@@ -250,7 +250,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -268,7 +268,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Install Protoc
@@ -291,7 +291,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
@@ -317,7 +317,7 @@ jobs:
       SCCACHE_CACHE_SIZE: "100GB"
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Run sccache-cache
@@ -330,7 +330,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p mold
-          curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v1.1.1/mold-1.1.1-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
+          curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.30.0/mold-2.30.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
@@ -343,7 +343,7 @@ jobs:
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --profile testnet --all --features=evm-tracing,runtime-benchmarks
+          cargo test --profile testnet --workspace --features=evm-tracing,runtime-benchmarks
       - name: Run sccache stat for check pre test
         run: ${SCCACHE_PATH} --show-stats
 
@@ -361,7 +361,7 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - run: |
@@ -408,7 +408,7 @@ jobs:
     needs: ["set-tags", "build"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/download-artifact@v3.0.2
@@ -466,7 +466,7 @@ jobs:
     if: ${{ needs.set-tags.outputs.image_exists == 'false' && !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/download-artifact@v3.0.2
@@ -489,7 +489,7 @@ jobs:
           driver-opts: |
             image=moby/buildkit:master
       - name: Login to DockerHub
-        uses: docker/login-action@v2.2.0
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
@@ -511,7 +511,7 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
       - name: Login to DockerHub
-        uses: docker/login-action@v2.2.0
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -535,7 +535,7 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v2
@@ -583,7 +583,7 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v2
