@@ -23,7 +23,7 @@ const TARGET_FILL_AMOUNT = 374_427_918;
 // To make sense of them, basically remove 18 zeroes (divide by 10^18). This will give you the
 // number used internally by transaction-payment for fee calculations.
 describeSuite({
-  id: "D011704",
+  id: "D011604",
   title: "Fee Multiplier - XCM Executions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

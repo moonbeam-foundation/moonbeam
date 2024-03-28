@@ -2,8 +2,8 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
-  id: "D013908",
-  title: "Test DMP migration (This test should be removed in RT3000",
+  id: "D014008",
+  title: "Mock XCMP - test XCMP execution",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     it({

@@ -4,7 +4,7 @@ import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/
 import { fromBytes } from "viem";
 
 describeSuite({
-  id: "D013380",
+  id: "D013479",
   title: "Staking - Locks - schedule revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

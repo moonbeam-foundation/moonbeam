@@ -15,7 +15,7 @@ const RELAY_TOKEN = 1_000_000_000_000n;
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 describeSuite({
-  id: "D014005",
+  id: "D014105",
   title: "Mock XCM V3 - downward transfer with always triggered appendix",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

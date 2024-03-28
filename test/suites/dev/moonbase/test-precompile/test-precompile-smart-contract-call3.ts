@@ -11,7 +11,7 @@ import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../../helpers";
 
 describeSuite({
-  id: "D012979",
+  id: "D012878",
   title: "Smart Contract Precompile Call - Proxy - Any Proxy Type",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

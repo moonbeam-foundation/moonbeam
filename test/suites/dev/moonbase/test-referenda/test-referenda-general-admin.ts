@@ -4,8 +4,8 @@ import { alith } from "@moonwall/util";
 import "@polkadot/api-augment";
 
 describeSuite({
-  id: "D010903",
-  title: "Referenda - FastGeneralAdmin",
+  id: "D013302",
+  title: "Referenda - GeneralAdmin",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let refIndex: number;
@@ -43,20 +43,20 @@ describeSuite({
 
       // The origin we want to use, post a referenda and deposit.
       [refIndex, proposalHash] = await proposeReferendaAndDeposit(context, alith, proposal, {
-        Origins: "FastGeneralAdmin",
+        Origins: "GeneralAdmin",
       });
     });
 
     it({
       id: "T01",
-      title: "fastGeneralAdmin origin should match to general admin track",
+      title: "generalAdmin origin should match to general admin track",
       test: async function () {
         const refInfo = await context.polkadotJs().query.referenda.referendumInfoFor(refIndex);
         const track = refInfo.unwrap().asOngoing.track.toString();
         const tracks = context.polkadotJs().consts.referenda.tracks;
         const trackName = tracks.find(([index, info]) => index.toString() == track)![1].name;
 
-        expect(trackName.toString()).to.be.eq("fast_general_admin");
+        expect(trackName.toString()).to.be.eq("general_admin");
       },
     });
   },

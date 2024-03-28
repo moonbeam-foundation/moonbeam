@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, execOpenTechCommitteeProposal } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -12,7 +12,7 @@ import {
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { hexToU8a } from "@polkadot/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { executeExtViaOpenTechCommittee, mockAssetBalance } from "../../../../helpers";
+import { mockAssetBalance } from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
@@ -20,12 +20,12 @@ const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
 const ARBITRARY_VESTING_PERIOD = 201600n;
 
 describeSuite({
-  id: "D012101",
+  id: "D012001",
   title: "Maintenance Mode - Filter",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     beforeAll(async () => {
-      await executeExtViaOpenTechCommittee(
+      await execOpenTechCommitteeProposal(
         context,
         context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode()
       );

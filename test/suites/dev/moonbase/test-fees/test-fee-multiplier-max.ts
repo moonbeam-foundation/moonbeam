@@ -12,7 +12,7 @@ import { encodeFunctionData } from "viem";
 // number used internally by transaction-payment for fee calculations.
 
 describeSuite({
-  id: "D011702",
+  id: "D011602",
   title: "Max Fee Multiplier",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

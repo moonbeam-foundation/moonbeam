@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, alith } from "@moonwall/util";
 import { chunk, createAccounts, countExtrinsics } from "../../../../helpers";
 
 describeSuite({
-  id: "D013386",
+  id: "D013485",
   title: "Staking - Max Transaction Fit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

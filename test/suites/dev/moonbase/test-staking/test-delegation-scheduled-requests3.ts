@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 import { jumpToRound } from "../../../../helpers";
 
 describeSuite({
-  id: "D013327",
+  id: "D013427",
   title: "Staking - Delegation Scheduled Requests - execute revoke early",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

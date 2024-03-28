@@ -16,7 +16,7 @@ import { parseGwei } from "viem";
 import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../../helpers";
 
 describeSuite({
-  id: "D011202",
+  id: "D011102",
   title: "Ethereum Rpc pool errors",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

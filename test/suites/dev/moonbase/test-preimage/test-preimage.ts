@@ -5,8 +5,8 @@ import { blake2AsHex } from "@polkadot/util-crypto";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
-  id: "D010901",
-  title: "Democracy - Preimage",
+  id: "D012901",
+  title: "Preimage - general",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     it({
@@ -23,19 +23,16 @@ describeSuite({
         const encodedHash = blake2AsHex(encodedProposal);
         await context.createBlock(context.polkadotJs().tx.preimage.notePreimage(encodedProposal));
 
-        const preimageStatus = (
-          await context.polkadotJs().query.preimage.requestStatusFor(encodedHash)
-        ).toHuman();
-        expect(preimageStatus).to.not.be.undefined;
+        const preimageStatus = await context
+          .polkadotJs()
+          .query.preimage.requestStatusFor(encodedHash);
+        expect(preimageStatus.isEmpty).to.not.be.true;
+        expect(preimageStatus.unwrap().isUnrequested).to.be.true;
 
-        // TODO: uncomment when we have types
-        //expect(preimageStatus.unwrap().isUnrequested).to.be.true;
-
-        // TODO: change syntax when we have types
-        const proposer = preimageStatus!["Unrequested"]["ticket"][0];
-        const balance = preimageStatus!["Unrequested"]["ticket"][1].replaceAll(/,/g, "");
+        const proposer = preimageStatus.unwrap().asUnrequested.ticket[0].toString();
+        const balance = preimageStatus.unwrap().asUnrequested.ticket[1].toBigInt();
         expect(proposer.toLowerCase()).to.eq(ALITH_ADDRESS.toLowerCase());
-        expect(BigInt(balance)).to.eq(5002200n * MICROGLMR);
+        expect(balance).to.eq(5002200n * MICROGLMR);
       },
     });
 

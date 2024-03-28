@@ -6,7 +6,7 @@ import { expectEVMResult, createProposal, ConvictionVoting } from "../../../../h
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
 // Be careful to not reach the maximum number of proposals.
 describeSuite({
-  id: "D012936",
+  id: "D012836",
   title: "Precompiles - ClassLocksFor & VotingFor",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

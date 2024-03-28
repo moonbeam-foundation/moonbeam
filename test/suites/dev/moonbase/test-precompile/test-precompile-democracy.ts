@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, ZERO_ADDRESS } from "@moonwall/util";
 import { notePreimagePrecompile } from "../../../../helpers";
 
 describeSuite({
-  id: "D012937",
+  id: "D012837",
   title: "Governance - genesis and preimage",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -24,7 +24,7 @@ import {
 const HIGH_MAX_FEE_PER_GAS = GLMR;
 
 describeSuite({
-  id: "D013801",
+  id: "D013901",
   title: "Tip should be respected",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

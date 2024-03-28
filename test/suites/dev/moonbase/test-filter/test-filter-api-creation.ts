@@ -8,7 +8,7 @@ import {
 import { fromHex, toHex } from "viem";
 
 describeSuite({
-  id: "D011801",
+  id: "D011701",
   title: "Filter API",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -9,7 +9,7 @@ import {
 import { TransactionReceipt } from "viem";
 
 describeSuite({
-  id: "D011303",
+  id: "D011203",
   title: "Ethereum RPC - Filtering non-matching logs",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

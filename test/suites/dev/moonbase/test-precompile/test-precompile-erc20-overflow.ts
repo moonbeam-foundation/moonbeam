@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
-  id: "D012941",
+  id: "D012841",
   title: "Precompile ERC20 - Transfering through precompile",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

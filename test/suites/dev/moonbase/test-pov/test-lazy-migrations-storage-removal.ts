@@ -5,7 +5,7 @@ import { ApiPromise } from "@polkadot/api";
 import { u128 } from "@polkadot/types";
 
 describeSuite({
-  id: "D012803",
+  id: "D012703",
   title: "Remove LocalAssets storage - PoV Size validation",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

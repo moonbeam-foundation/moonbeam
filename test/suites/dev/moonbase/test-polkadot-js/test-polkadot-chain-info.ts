@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
-  id: "D012702",
+  id: "D012602",
   title: "Web3Api Information",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -3,7 +3,7 @@ import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 
 describeSuite({
-  id: "D011901",
+  id: "D011801",
   title: "Estimate Gas - Contract creation",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -9,7 +9,7 @@ import {
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D012914",
+  id: "D012814",
   title: "Precompile Author Mapping - Removing non-existing author",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -11,7 +11,7 @@ import {
 import { fromBytes } from "viem";
 
 describeSuite({
-  id: "D013373",
+  id: "D013473",
   title: "Staking - Locks - multiple delegations single lock",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

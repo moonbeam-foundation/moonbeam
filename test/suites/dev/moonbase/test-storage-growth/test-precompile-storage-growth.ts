@@ -12,7 +12,7 @@ import { expectEVMResult } from "helpers/eth-transactions";
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D013404",
+  id: "D013504",
   title: "Storage growth limit - Precompiles",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
