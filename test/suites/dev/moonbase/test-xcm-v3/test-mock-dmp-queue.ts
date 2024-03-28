@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
-  id: "D014108",
+  id: "D014008",
   title: "Mock XCMP - test XCMP execution",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
