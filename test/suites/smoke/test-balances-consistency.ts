@@ -37,6 +37,7 @@ enum ReserveType {
   SubIdentity = "18",
   PreimageStatus = "19",
   MultiSig = "20",
+  PreimageBalanceHolds = "21",
 }
 
 type ReservedInfo = { total?: bigint; reserved?: { [key: string]: bigint } };
@@ -475,12 +476,12 @@ describeSuite({
                     [ReserveType.PreimageStatus]: deposit == 0n ? 0n : deposit.toBigInt(),
                   });
                 });
-              resolve("proxies scraped");
             })
             .catch((error) => {
               console.error("Error fetching proxies:", error);
               reject(error);
             });
+          resolve("proxies scraped");
         }
       });
 
@@ -681,14 +682,14 @@ describeSuite({
                 holdsOf[1].forEach((holdOf) => {
                   if (holdOf.id.isPreimage) {
                     updateReserveMap(accountId, {
-                      [ReserveType.Preimage]: holdOf.amount.toBigInt(),
+                      [ReserveType.PreimageBalanceHolds]: holdOf.amount.toBigInt(),
                     });
                   } else {
                     throw `Unknown hold id ${holdOf.id}`;
                   }
                 });
               });
-              resolve("Preimages holds scraped");
+              resolve("Preimage balance hold scraped");
             })
             .catch((error) => {
               console.error("Error fetching holds:", error);

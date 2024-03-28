@@ -515,7 +515,11 @@ describeSuite({
 
       let totalRoundIssuance: BN;
 
-      if (apiAt.consts.system.version.specVersion.toNumber() >= 2801) {
+      // TODO: Update this as moonriver & moonbeam enable async backing
+      if (
+        apiAt.consts.system.version.specVersion.toNumber() >= 2801 &&
+        apiAt.consts.system.version.specName.toString() === "moonbase"
+      ) {
         // Formula:
         //   totalRoundIssuance = (roundDuration / idealDuration) * idealIssuance
         const { first } = await apiAtPriorRewarded.query.parachainStaking.round();
