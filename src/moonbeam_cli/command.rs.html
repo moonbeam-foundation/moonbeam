@@ -995,6 +995,9 @@
 <a href="#995" id="995">995</a>
 <a href="#996" id="996">996</a>
 <a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1792,6 +1795,7 @@
 						id,
 						rpc_config,
 						<span class="bool-val">false</span>,
+						cli.run.block_authoring_duration,
 						hwbench,
 					)
 					.<span class="kw">await
@@ -1808,6 +1812,7 @@
 						id,
 						rpc_config,
 						<span class="bool-val">false</span>,
+						cli.run.block_authoring_duration,
 						hwbench,
 					)
 					.<span class="kw">await
@@ -1824,6 +1829,7 @@
 						id,
 						rpc_config,
 						<span class="bool-val">true</span>,
+						cli.run.block_authoring_duration,
 						hwbench,
 					)
 					.<span class="kw">await

@@ -336,6 +336,17 @@
 <a href="#336" id="336">336</a>
 <a href="#337" id="337">337</a>
 <a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -362,6 +373,7 @@
 <span class="kw">use </span>moonbeam_service::chain_spec;
 <span class="kw">use </span>sc_cli::{Error <span class="kw">as </span>CliError, SubstrateCli};
 <span class="kw">use </span>std::path::PathBuf;
+<span class="kw">use </span>std::time::Duration;
 
 <span class="doccomment">/// Sub-commands supported by the collator.
 </span><span class="attr">#[derive(Debug, clap::Subcommand)]
@@ -570,6 +582,16 @@
 	<span class="doccomment">/// Removes moonbeam prefix from Prometheus metrics
 	</span><span class="attr">#[clap(long)]
 	</span><span class="kw">pub </span>no_prometheus_prefix: bool,
+
+	<span class="doccomment">/// Maximum duration in milliseconds to produce a block
+	</span><span class="attr">#[clap(long, default_value = <span class="string">&quot;1500&quot;</span>, value_parser=block_authoring_duration_parser)]
+	</span><span class="kw">pub </span>block_authoring_duration: Duration,
+}
+
+<span class="kw">fn </span>block_authoring_duration_parser(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Duration, String&gt; {
+	<span class="prelude-val">Ok</span>(Duration::from_millis(clap_num::number_range(
+		s, <span class="number">250</span>, <span class="number">2_000</span>,
+	)<span class="question-mark">?</span>))
 }
 
 <span class="kw">impl </span>RunCmd {
