@@ -357,7 +357,7 @@ where
 			// completed in runtime 2800
 			//Box::new(pallet_collective_drop_gov_v1_collectives),
 			// completed in runtime 2801
-			Box::new(pallet_staking_round),
+			// Box::new(pallet_staking_round),
 			// Box::new(pallet_collective_drop_gov_v1_collectives),
 			// completed in runtime 2900
 			Box::new(remove_pallet_democracy),
