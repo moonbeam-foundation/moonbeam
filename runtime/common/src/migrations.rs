@@ -296,7 +296,7 @@ where
 		// 	PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
 		//let pallet_collective_drop_gov_v1_collectives =
 		//	PalletCollectiveDropGovV1Collectives::<Runtime>(Default::default());
-		let pallet_staking_round = PalletStakingRoundMigration::<Runtime>(Default::default());
+		//let pallet_staking_round = PalletStakingRoundMigration::<Runtime>(Default::default());
 		let remove_pallet_democracy = RemovePalletDemocracy::<Runtime>(Default::default());
 		let remove_collectives_addresses =
 			RemoveCollectivesAddresses::<Runtime>(Default::default());
