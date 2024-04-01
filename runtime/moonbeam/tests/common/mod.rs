@@ -119,8 +119,6 @@ pub struct XcmAssetInitialization {
 }
 
 pub struct ExtBuilder {
-	// [asset, Vec<Account, Balance>, owner]
-	local_assets: Vec<(AssetId, Vec<(AccountId, Balance)>, AccountId)>,
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
@@ -145,7 +143,6 @@ pub struct ExtBuilder {
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
-			local_assets: vec![],
 			balances: vec![],
 			delegations: vec![],
 			collators: vec![],
