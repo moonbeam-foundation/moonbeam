@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["AssetIdType","AssetTypeId","AssetTypeUnitsPerSecond","LocalAssetCounter","LocalAssetDeposit","SupportedFeePaymentAssets"]};
+window.SIDEBAR_ITEMS = {"struct":["AssetIdType","AssetTypeId","AssetTypeUnitsPerSecond","SupportedFeePaymentAssets"]};

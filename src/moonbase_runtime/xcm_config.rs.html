@@ -714,10 +714,6 @@
 <a href="#714" id="714">714</a>
 <a href="#715" id="715">715</a>
 <a href="#716" id="716">716</a>
-<a href="#717" id="717">717</a>
-<a href="#718" id="718">718</a>
-<a href="#719" id="719">719</a>
-<a href="#720" id="720">720</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -883,7 +879,6 @@
 // These correspond to
 // SelfReserve asset, both pre and post 0.9.16
 // Foreign assets
-// Local assets, both pre and post 0.9.16
 // We can remove the Old reanchor once
 // we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
 </span><span class="kw">pub type </span>AssetTransactors = (
@@ -1213,8 +1208,6 @@
 	</span>SelfReserve,
 	<span class="comment">// Assets representing other chains native tokens
 	</span>ForeignAsset(AssetId),
-	<span class="comment">// Our local assets
-	</span>DeprecatedLocalAssetReserve(AssetId),
 	<span class="comment">// Erc20 token
 	</span>Erc20 { contract_address: H160 },
 }
@@ -1252,7 +1245,6 @@
 				<span class="prelude-val">Some</span>(multi)
 			}
 			CurrencyId::ForeignAsset(asset) =&gt; AssetXConverter::convert_back(<span class="kw-2">&amp;</span>asset),
-			CurrencyId::DeprecatedLocalAssetReserve(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
 			CurrencyId::Erc20 { contract_address } =&gt; {
 				<span class="kw">let </span><span class="kw-2">mut </span>location = Erc20XcmBridgePalletLocation::get();
 				location

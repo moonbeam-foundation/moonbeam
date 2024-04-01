@@ -719,9 +719,6 @@
 <a href="#719" id="719">719</a>
 <a href="#720" id="720">720</a>
 <a href="#721" id="721">721</a>
-<a href="#722" id="722">722</a>
-<a href="#723" id="723">723</a>
-<a href="#724" id="724">724</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1217,8 +1214,6 @@
 	</span>SelfReserve,
 	<span class="comment">// Assets representing other chains native tokens
 	</span>ForeignAsset(AssetId),
-	<span class="comment">// Our local assets
-	</span>DeprecatedLocalAssetReserve(AssetId),
 	<span class="comment">// Erc20 token
 	</span>Erc20 { contract_address: H160 },
 }
@@ -1261,7 +1256,6 @@
 				<span class="prelude-val">Some</span>(multi)
 			}
 			CurrencyId::ForeignAsset(asset) =&gt; AssetXConverter::convert_back(<span class="kw-2">&amp;</span>asset),
-			CurrencyId::DeprecatedLocalAssetReserve(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
 			CurrencyId::Erc20 { contract_address } =&gt; {
 				<span class="kw">let </span><span class="kw-2">mut </span>location = Erc20XcmBridgePalletLocation::get();
 				location
