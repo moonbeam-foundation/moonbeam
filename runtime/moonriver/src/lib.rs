@@ -580,13 +580,17 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
+	#[cfg(feature = "runtime-benchmarks")]
+	type SpendOrigin =
+		frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, benches::MaxBalance>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
 	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
 	type BalanceConverter = UnityAssetBalanceConversion;
-	type PayoutPeriod = ConstU32<0>;
+	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
 }
@@ -1403,6 +1407,10 @@ use {
 };
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
+	frame_support::parameter_types! {
+		pub const MaxBalance: crate::Balance = crate::Balance::max_value();
+	}
+
 	frame_benchmarking::define_benchmarks!(
 		[pallet_utility, Utility]
 		[pallet_timestamp, Timestamp]
