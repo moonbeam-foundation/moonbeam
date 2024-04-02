@@ -4,7 +4,7 @@ import { BALTATHAR_ADDRESS, createViemTransaction } from "@moonwall/util";
 import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../../helpers";
 
 describeSuite({
-  id: "D012201",
+  id: "D012101",
   title: "Moon RPC Methods - moon_isBlockFinalized ",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

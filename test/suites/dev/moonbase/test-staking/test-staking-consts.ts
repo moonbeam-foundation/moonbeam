@@ -12,7 +12,7 @@ import {
 import { chunk } from "../../../../helpers";
 
 describeSuite({
-  id: "D013371",
+  id: "D013471",
   title: "Staking - Consts - MaxDelegationsPerDelegator",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

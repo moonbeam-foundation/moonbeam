@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, alith, baltathar, ethan } from "@moonwall/util";
 import { jumpToRound } from "../../../../helpers/block.js";
 
 describeSuite({
-  id: "D013332",
+  id: "D013432",
   title:
     "Staking - Delegation Scheduled Requests with bondless collator \
         - execute revoke on last delegation",

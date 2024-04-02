@@ -6,7 +6,7 @@ import { createAccounts, countExtrinsics } from "../../../../helpers";
 const INITIAL_AMOUNT = 12n * MIN_GLMR_STAKING + 50n * GLMR;
 
 describeSuite({
-  id: "D013384",
+  id: "D013483",
   title: "Staking - Max Transaction Fit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

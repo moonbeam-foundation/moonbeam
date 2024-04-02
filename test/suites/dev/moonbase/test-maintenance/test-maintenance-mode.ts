@@ -1,20 +1,20 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
+import { beforeEach, describeSuite, expect, execOpenTechCommitteeProposal } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
 import { Result } from "@polkadot/types";
 import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
-import { executeExtViaOpenTechCommittee } from "../../../../helpers";
 
 describeSuite({
-  id: "D012104",
+  id: "D012004",
   title: "Maintenance Mode - General",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeEach(async () => {
-      const { successful } = await executeExtViaOpenTechCommittee(
+      const { successful } = await execOpenTechCommitteeProposal(
         context,
         context.polkadotJs().tx.maintenanceMode.resumeNormalOperation()
       );
+
       expect(successful).to.be.true;
     });
 
@@ -22,7 +22,7 @@ describeSuite({
       id: "T01",
       title: "should succeed with Technical Committee",
       test: async () => {
-        const { events, successful } = await executeExtViaOpenTechCommittee(
+        const { successful, events } = await execOpenTechCommitteeProposal(
           context,
           context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode()
         );
@@ -38,7 +38,7 @@ describeSuite({
       id: "T02",
       title: "should fail with half the technical Committee",
       test: async () => {
-        const { events } = await executeExtViaOpenTechCommittee(
+        const { events } = await execOpenTechCommitteeProposal(
           context,
           context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode(),
           [alith],
@@ -100,7 +100,7 @@ describeSuite({
       id: "T06",
       title: "resuming normal operation should fail without sudo",
       test: async () => {
-        await executeExtViaOpenTechCommittee(
+        await execOpenTechCommitteeProposal(
           context,
           context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode()
         );
@@ -119,12 +119,12 @@ describeSuite({
       id: "T07",
       title: "resuming normal operation should succeed with council",
       test: async () => {
-        await executeExtViaOpenTechCommittee(
+        await execOpenTechCommitteeProposal(
           context,
           context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode()
         );
 
-        const { events, successful } = await executeExtViaOpenTechCommittee(
+        const { successful, events } = await execOpenTechCommitteeProposal(
           context,
           context.polkadotJs().tx.maintenanceMode.resumeNormalOperation()
         );
@@ -140,12 +140,12 @@ describeSuite({
       id: "T08",
       title: "resuming normal operation should fail with half the technical Committee",
       test: async () => {
-        await executeExtViaOpenTechCommittee(
+        await execOpenTechCommitteeProposal(
           context,
           context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode()
         );
 
-        const { events } = await executeExtViaOpenTechCommittee(
+        const { events } = await execOpenTechCommitteeProposal(
           context,
           context.polkadotJs().tx.maintenanceMode.resumeNormalOperation(),
           [alith],

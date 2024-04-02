@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 
 describeSuite({
-  id: "D013810",
+  id: "D013910",
   title: "TxPool - New block",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
