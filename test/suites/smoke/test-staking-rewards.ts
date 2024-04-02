@@ -543,7 +543,7 @@ describeSuite({
         // Always apply max inflation
         // It work because the total staked amound is already 1000 times more than the max on
         // production, so it's very unlikely to change before RT2801 deployment on moonbeam
-        totalRoundIssuance =  range.max;
+        totalRoundIssuance = range.max;
       }
 
       const totalCollatorCommissionReward = new Perbill(collatorCommissionRate).of(
