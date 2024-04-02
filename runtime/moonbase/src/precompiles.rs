@@ -109,6 +109,11 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<AddressU64<1024>, Sha3FIPS256, (CallableByContract, CallableByPrecompile)>,
 	RemovedPrecompileAt<AddressU64<1025>>, // Dispatch<R>
 	PrecompileAt<AddressU64<1026>, ECRecoverPublicKey, (CallableByContract, CallableByPrecompile)>,
+	PrecompileAt<
+		AddressU64<1027>,
+		StorageCleanerPrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
 	// Moonbeam specific precompiles:
 	PrecompileAt<
 		AddressU64<2048>,
@@ -237,11 +242,6 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2073>,
 		RelayDataVerifierPrecompile<R>,
-		(CallableByContract, CallableByPrecompile),
-	>,
-	PrecompileAt<
-		AddressU64<2074>,
-		StorageCleanerPrecompile<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
 );

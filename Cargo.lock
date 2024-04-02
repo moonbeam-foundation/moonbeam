@@ -9114,6 +9114,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-evm",
+ "parity-scale-codec",
  "precompile-utils 0.1.0",
  "sp-core",
  "sp-runtime",
