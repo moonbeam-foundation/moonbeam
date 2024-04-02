@@ -39,7 +39,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p mold
-          curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v1.1.1/mold-1.1.1-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
+          curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.30.0/mold-2.30.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
@@ -53,7 +53,7 @@ jobs:
       - name: Run benchmarks
         shell: bash
         run: |
-          ./scripts/run-benches-for-runtime.sh
+          ./scripts/run-benches-for-runtime.sh moonbeam release
           if test -f "benchmarking_errors.txt"; then
             cat benchmarking_errors.txt
             false
