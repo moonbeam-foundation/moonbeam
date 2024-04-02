@@ -303,9 +303,9 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::collator_commission(), Perbill::from_percent(33));
 	}
 
-	set_blocks_per_round {}: _(RawOrigin::Root, 1200u32)
+	set_blocks_per_round {}: _(RawOrigin::Root, 600u32)
 	verify {
-		assert_eq!(Pallet::<T>::round().length, 1200u32);
+		assert_eq!(Pallet::<T>::round().length, 600u32);
 	}
 
 	// USER DISPATCHABLES
@@ -419,7 +419,7 @@ benchmarks! {
 			RawOrigin::Signed(candidate.clone()).into(),
 			3u32
 		)?;
-		roll_to_and_author::<T>(2, candidate.clone());
+		roll_to_and_author::<T>(T::LeaveCandidatesDelay::get(), candidate.clone());
 	}: {
 		<Pallet<T>>::execute_leave_candidates(
 			RawOrigin::Signed(candidate.clone()).into(),
@@ -507,7 +507,7 @@ benchmarks! {
 			RawOrigin::Signed(candidate.clone()).into(),
 			3u32
 		)?;
-		roll_to_and_author::<T>(2, candidate.clone());
+		roll_to_and_author::<T>(T::LeaveCandidatesDelay::get(), candidate.clone());
 	}: {
 		<Pallet<T>>::execute_leave_candidates_inner(candidate.clone())?;
 	}
@@ -665,7 +665,7 @@ benchmarks! {
 			state.request,
 			Some(CandidateBondLessRequest {
 				amount: min_candidate_stk,
-				when_executable: 3,
+				when_executable: T::CandidateBondLessDelay::get() + 1,
 			})
 		);
 	}
@@ -700,7 +700,7 @@ benchmarks! {
 			RawOrigin::Signed(caller.clone()).into(),
 			min_candidate_stk
 		)?;
-		roll_to_and_author::<T>(2, caller.clone());
+		roll_to_and_author::<T>(T::CandidateBondLessDelay::get(), caller.clone());
 	}: {
 		Pallet::<T>::execute_candidate_bond_less(
 			RawOrigin::Signed(caller.clone()).into(),
@@ -1188,7 +1188,7 @@ benchmarks! {
 			caller.clone()).into(),
 			collator.clone()
 		)?;
-		roll_to_and_author::<T>(2, collator.clone());
+		roll_to_and_author::<T>(T::RevokeDelegationDelay::get(), collator.clone());
 	}: {
 		Pallet::<T>::execute_delegation_request(
 			RawOrigin::Signed(caller.clone()).into(),
@@ -1310,7 +1310,7 @@ benchmarks! {
 				.map(|bd| bd.delegations.iter().any(|d| d.owner == highest_bottom_delegator))
 				.unwrap_or_default(),
 		);
-		roll_to_and_author::<T>(2, collator.clone());
+		roll_to_and_author::<T>(T::RevokeDelegationDelay::get(), collator.clone());
 	}: {
 		Pallet::<T>::execute_delegation_request(
 			RawOrigin::Signed(last_top_delegator.clone()).into(),
@@ -1371,11 +1371,10 @@ benchmarks! {
 		}
 
 		let last_top_delegator_bond_less = 1_000u32.into();
-		let last_top_delegator_total = decreasing_balance.take();
 		let last_top_delegator = create_account::<T>(
 			"delegator",
 			seed.take(),
-			AccountBalance::Value(last_top_delegator_total),
+			AccountBalance::Value(decreasing_balance.take()),
 			AccountAction::Delegate{
 				collator: collator.clone(),
 				amount: Amount::All,
@@ -1443,7 +1442,10 @@ benchmarks! {
 				.map(|bd| bd.delegations.iter().any(|d| d.owner == highest_bottom_delegator))
 				.unwrap_or_default(),
 		);
-		roll_to_and_author::<T>(2, collator.clone());
+		roll_to_and_author::<T>(T::DelegationBondLessDelay::get(), collator.clone());
+
+		let last_top_delegator_total = Pallet::<T>::delegator_state(&last_top_delegator)
+			.expect("could not get delegator state").total;
 	}: {
 		Pallet::<T>::execute_delegation_request(
 			RawOrigin::Signed(last_top_delegator.clone()).into(),
@@ -1453,7 +1455,7 @@ benchmarks! {
 	} verify {
 		let expected = last_top_delegator_total - last_top_delegator_bond_less;
 		assert_eq!(
-			Pallet::<T>::delegator_state(&last_top_delegator).expect("candidate was created, qed").total,
+			Pallet::<T>::delegator_state(&last_top_delegator).expect("could not get delegator state").total,
 			expected,
 		);
 		assert!(
