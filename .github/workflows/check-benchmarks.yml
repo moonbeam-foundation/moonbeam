@@ -1,0 +1,60 @@
+name: Check benchmarks
+
+on:
+  workflow_dispatch:
+
+jobs:
+  set-tags:
+    runs-on: ubuntu-latest
+    outputs:
+      git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
+    steps:
+      - name: Check git ref
+        id: check-git-ref
+        # if PR
+        # else if manual PR
+        # else (push)
+        run: |
+          if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
+            echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+          elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
+            echo "git_ref=refs/pull/${{ github.event.inputs.pull_request }}/head" >> $GITHUB_OUTPUT
+          else
+            echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
+          fi
+  verify:
+    needs: ["set-tags"]
+    runs-on:
+      labels: bare-metal
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Setup Variables
+        shell: bash
+        run: |
+          echo "RUSTFLAGS=-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
+      - name: Setup Mold Linker
+        shell: bash
+        run: |
+          mkdir -p mold
+          curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.30.0/mold-2.30.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        shell: bash
+        run: |
+          if ! which "rustup" > /dev/null; then
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          fi
+          rustup show
+          rustup target add wasm32-unknown-unknown
+      - name: Run benchmarks
+        shell: bash
+        run: |
+          ./scripts/run-benches-for-runtime.sh moonbeam release
+          if test -f "benchmarking_errors.txt"; then
+            cat benchmarking_errors.txt
+            false
+          fi
