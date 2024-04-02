@@ -56,9 +56,11 @@ std = [
 	"sp-std/std",
 	"xcm-builder/std",
 	"xcm/std",
+	"polkadot-runtime-common/std"
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",
 	"frame-benchmarking/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
+	"polkadot-runtime-common/runtime-benchmarks"
 ]

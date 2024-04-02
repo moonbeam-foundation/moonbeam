@@ -177,7 +177,7 @@ benchmarks! {
 		let result = Pallet::<T>::transact_through_sovereign(
 			RawOrigin::Root.into(),
 			Box::new(xcm::VersionedLocation::V4(location.clone())),
-			user.clone(),
+			Some(user.clone()),
 			CurrencyPayment {
 				// This might involve a db Read when translating, therefore worst case
 				currency: Currency::AsCurrencyId(currency),

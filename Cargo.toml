@@ -8,11 +8,16 @@ members = [
 	"node",
 	"node/cli",
 	"node/service",
+	"pallets/asset-manager",
 	"pallets/erc20-xcm-bridge",
+	"pallets/ethereum-xcm",
+	"pallets/moonbeam-lazy-migrations",
 	"pallets/moonbeam-orbiters",
+	"pallets/moonbeam-xcm-benchmarks",
+	"pallets/parachain-staking",
 	"pallets/precompile-benchmarks",
 	"pallets/proxy-genesis-companion",
-	"pallets/moonbeam-lazy-migrations",
+	"pallets/xcm-transactor",
 	"precompiles/balances-erc20",
 	"precompiles/batch",
 	"precompiles/call-permit",
@@ -367,6 +372,7 @@ assert_cmd = "2.0.10"
 async-io = "1.3"
 bip32 = { version = "0.5.1", default-features = false, features = ["bip39"] }
 clap = { version = "4.0.9", features = ["derive"] }
+clap-num = "=1.1.1"
 exit-future = "0.2"
 flume = "0.10.9"
 futures = { version = "0.3.21" }

@@ -37,6 +37,7 @@ pub use pallet::*;
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
+	use frame_support::traits::ReservableCurrency;
 	use frame_system::pallet_prelude::*;
 	use sp_core::H160;
 
@@ -61,7 +62,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_evm::Config {
+	pub trait Config: frame_system::Config + pallet_evm::Config + pallet_balances::Config {
 		type WeightInfo: WeightInfo;
 	}
 
@@ -71,6 +72,8 @@ pub mod pallet {
 		AllStorageEntriesHaveBeenRemoved,
 		/// The limit cannot be zero
 		LimitCannotBeZero,
+		/// The maximum number of assets cannot be zero
+		MaxAssetsCannotBeZero,
 		/// The limit for unlocking funds is too high
 		UnlockLimitTooHigh,
 		/// There are no more VotingOf entries to be removed and democracy funds to be unlocked
@@ -85,51 +88,122 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		// TODO(rodrigo): This extrinsic should be removed once LocalAssets pallet storage is removed
 		#[pallet::call_index(0)]
-		#[pallet::weight(Weight::from_parts(0,
-			INTERMEDIATES_NODES_SIZE + (MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE * <u64>::from(*limit)))
+		#[pallet::weight({
+			// "*limit" is used twice to account to the possibility that we may need to unreserve 
+			// deposits for every approval
+			let possible_iterations = max_assets.saturating_add(*limit).saturating_add(*limit);
+			let proof_size = INTERMEDIATES_NODES_SIZE + (MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE
+				.saturating_mul(<u64>::from(possible_iterations)));
+
+			Weight::from_parts(0, proof_size)
 			.saturating_add(<T as frame_system::Config>::DbWeight::get()
-				.reads_writes((*limit + 1).into(), (*limit + 1).into()))
-		)]
+				.reads_writes((*max_assets + *limit + 1).into(), (*limit + 1).into()))
+		})]
 		pub fn clear_local_assets_storage(
 			origin: OriginFor<T>,
+			max_assets: u32,
 			limit: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
+			ensure!(max_assets != 0, Error::<T>::MaxAssetsCannotBeZero);
 
-			let mut weight = <T as frame_system::Config>::DbWeight::get().reads(1);
 			ensure!(
 				!LocalAssetsMigrationCompleted::<T>::get(),
 				Error::<T>::AllStorageEntriesHaveBeenRemoved
 			);
 
-			let hashed_prefix = sp_io::hashing::twox_128("LocalAssets".as_bytes());
+			let mut allowed_removals = limit;
 
-			let keys_removed = match sp_io::storage::clear_prefix(&hashed_prefix, Some(limit)) {
-				sp_io::KillStorageResult::AllRemoved(value) => {
-					LocalAssetsMigrationCompleted::<T>::set(true);
-					weight
-						.saturating_accrue(<T as frame_system::Config>::DbWeight::get().writes(1));
-					value
+			const PALLET_PREFIX: &'static str = "LocalAssets";
+
+			struct LocalAssetsStorageAsset;
+			impl frame_support::traits::StorageInstance for LocalAssetsStorageAsset {
+				const STORAGE_PREFIX: &'static str = "Asset";
+				fn pallet_prefix() -> &'static str {
+					PALLET_PREFIX
 				}
-				sp_io::KillStorageResult::SomeRemaining(value) => value,
-			} as u64;
+			}
+			struct LocalAssetsStorageApprovals;
+			impl frame_support::traits::StorageInstance for LocalAssetsStorageApprovals {
+				const STORAGE_PREFIX: &'static str = "Approvals";
+				fn pallet_prefix() -> &'static str {
+					PALLET_PREFIX
+				}
+			}
 
-			log::info!("Removed {} keys 🧹", keys_removed);
+			/// Data concerning an approval.
+			/// Duplicated the type from pallet_assets (The original type is private)
+			#[derive(
+				Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, Default, MaxEncodedLen, TypeInfo,
+			)]
+			pub struct Approval<Balance, DepositBalance> {
+				/// The amount of funds approved for the balance transfer from the owner to some delegated
+				/// target.
+				pub(super) amount: Balance,
+				/// The amount reserved on the owner's account to hold this item in storage.
+				pub(super) deposit: DepositBalance,
+			}
 
-			Ok(Some(
-				weight
-					.saturating_add(Weight::from_parts(
-						0,
-						INTERMEDIATES_NODES_SIZE
-							+ MAX_LOCAL_ASSETS_STORAGE_ENTRY_SIZE * keys_removed,
-					))
-					.saturating_add(
-						<T as frame_system::Config>::DbWeight::get()
-							.reads_writes(keys_removed, keys_removed),
+			type AssetMap = frame_support::storage::types::StorageMap<
+				LocalAssetsStorageAsset,
+				Blake2_128Concat,
+				u128,
+				// It is fine to add a dummy `Value` type
+				// The value is not going to be decoded, since we only care about the keys)
+				(),
+			>;
+
+			for asset_id in AssetMap::iter_keys().take(max_assets as usize) {
+				let approvals_iter = frame_support::storage::types::StorageNMap::<
+					LocalAssetsStorageApprovals,
+					(
+						NMapKey<Blake2_128Concat, u128>,         // asset id
+						NMapKey<Blake2_128Concat, T::AccountId>, // owner
+						NMapKey<Blake2_128Concat, T::AccountId>, // delegate
 					),
-			)
-			.into())
+					Approval<T::Balance, T::Balance>,
+				>::drain_prefix((asset_id,));
+				for ((owner, _), approval) in approvals_iter {
+					allowed_removals = allowed_removals.saturating_sub(1);
+					// Unreserve deposit (most likely will be zero)
+					pallet_balances::Pallet::<T>::unreserve(&owner, approval.deposit);
+					// Check if the removal limit was reached
+					if allowed_removals < 1 {
+						break;
+					}
+				}
+				// Remove asset, since it does not contain more approvals
+				AssetMap::remove(asset_id);
+				allowed_removals = allowed_removals.saturating_sub(1);
+				// Check if the removal limit was reached
+				if allowed_removals < 1 {
+					break;
+				}
+			}
+
+			// Remove remaining storage
+			if allowed_removals > 0 {
+				let hashed_prefix = sp_io::hashing::twox_128(PALLET_PREFIX.as_bytes());
+
+				let keys_removed =
+					match sp_io::storage::clear_prefix(&hashed_prefix, Some(allowed_removals)) {
+						sp_io::KillStorageResult::AllRemoved(value) => {
+							LocalAssetsMigrationCompleted::<T>::set(true);
+							value
+						}
+						sp_io::KillStorageResult::SomeRemaining(value) => value,
+					};
+
+				allowed_removals = allowed_removals.saturating_sub(keys_removed);
+			}
+
+			log::info!(
+				"Removed {} storge keys 🧹",
+				limit.saturating_sub(allowed_removals)
+			);
+
+			Ok(Pays::No.into())
 		}
 
 		// TODO(rodrigo): This extrinsic should be removed once the storage of destroyed contracts

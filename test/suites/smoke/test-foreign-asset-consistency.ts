@@ -64,7 +64,7 @@ describeSuite({
       test: async function () {
         expect(
           foreignXcmAcceptedAssets.length,
-          `Number of local asset deposits does not much number of local assets`
+          `Number of foreign asset deposits does not match the number of foreign assets`
         ).to.be.lessThanOrEqual(Object.keys(foreignAssetIdType).length);
 
         log(

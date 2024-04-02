@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Upload tools
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4
         with:
           name: original-tools
           path: tools
@@ -64,7 +64,7 @@ jobs:
           mkdir -p build
           cp moonbeam build/moonbeam-${{matrix.cpu}}
       - name: Upload binary
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4
         with:
           name: binaries
           path: build
@@ -83,7 +83,7 @@ jobs:
         with:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
-      - uses: actions/download-artifact@v3.0.2
+      - uses: actions/download-artifact@v4
         with:
           name: binaries
           path: build
@@ -92,7 +92,7 @@ jobs:
         with:
           node-version: 20.10.0
       - name: Download Original Tools
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: original-tools
           path: original-tools
@@ -125,7 +125,7 @@ jobs:
         cpu: ["", "skylake", "znver3"]
         node: ["moonbeam"]
     steps:
-      - uses: actions/download-artifact@v3.0.2
+      - uses: actions/download-artifact@v4
         with:
           name: binaries
           path: build
@@ -160,7 +160,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.to }}
-      - uses: actions/download-artifact@v3.0.2
+      - uses: actions/download-artifact@v4
         with:
           name: binaries
           path: build
