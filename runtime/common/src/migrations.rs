@@ -168,7 +168,7 @@ where
 		let prefix = hex_literal::hex!("d59b9be6f0a7187ca6630c1d0a9bb045");
 		match contains_prefixed_key(&prefix) {
 			true => log::info!("Found keys for CouncilCollective (post-removal) ⚠️"),
-			false => log::warn!("No keys found for CouncilCollective (pre-removal) ✅"),
+			false => log::warn!("No keys found for CouncilCollective (post-removal) ✅"),
 		};
 
 		// TechCommitteeCollective: a06bfb73a86f8f98d5c5dc14e20e8a03
