@@ -3325,6 +3325,7 @@ dependencies = [
 [[package]]
 name = "fc-api"
 version = "1.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "async-trait",
  "fp-storage",
@@ -3336,6 +3337,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "async-trait",
  "fp-consensus",
@@ -3351,6 +3353,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "async-trait",
  "ethereum",
@@ -3381,6 +3384,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "fc-db",
  "fc-storage",
@@ -3403,6 +3407,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3457,6 +3462,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3471,6 +3477,7 @@ dependencies = [
 [[package]]
 name = "fc-storage"
 version = "1.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3665,6 +3672,7 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "hex",
  "impl-serde 0.4.0",
@@ -3683,6 +3691,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -3694,6 +3703,7 @@ dependencies = [
 [[package]]
 name = "fp-ethereum"
 version = "1.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3706,6 +3716,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "evm",
  "frame-support",
@@ -3721,6 +3732,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3737,6 +3749,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -3748,6 +3761,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "parity-scale-codec",
  "serde",
@@ -8475,6 +8489,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "environmental",
  "ethereum",
@@ -8530,6 +8545,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "environmental",
  "evm",
@@ -8555,6 +8571,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-chain-id"
 version = "1.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8648,6 +8665,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "fp-evm",
 ]
@@ -8655,6 +8673,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "fp-evm",
  "sp-core",
@@ -8784,6 +8803,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -8859,6 +8879,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "fp-evm",
  "num",
@@ -9092,6 +9113,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "fp-evm",
  "tiny-keccak",
@@ -9100,6 +9122,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "fp-evm",
  "ripemd",
@@ -9109,6 +9132,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-storage-cleaner"
 version = "0.1.0"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -11655,6 +11679,7 @@ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 [[package]]
 name = "precompile-utils"
 version = "0.1.0"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "environmental",
  "evm",
@@ -11711,6 +11736,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils-macro"
 version = "0.1.0"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#670966e3199e8e7a4399fe33a00a8bb962833ea7"
 dependencies = [
  "case",
  "num_enum 0.7.2",
@@ -18065,59 +18091,3 @@ dependencies = [
  "cc",
  "pkg-config",
 ]
-
-[[patch.unused]]
-name = "fc-cli"
-version = "1.0.0-dev"
-
-[[patch.unused]]
-name = "fp-dynamic-fee"
-version = "1.0.0"
-
-[[patch.unused]]
-name = "frontier-template-node"
-version = "0.0.0"
-
-[[patch.unused]]
-name = "frontier-template-runtime"
-version = "0.0.0"
-
-[[patch.unused]]
-name = "pallet-base-fee"
-version = "1.0.0"
-
-[[patch.unused]]
-name = "pallet-dynamic-fee"
-version = "4.0.0-dev"
-
-[[patch.unused]]
-name = "pallet-evm-precompile-bls12377"
-version = "1.0.0-dev"
-
-[[patch.unused]]
-name = "pallet-evm-precompile-bls12381"
-version = "1.0.0-dev"
-
-[[patch.unused]]
-name = "pallet-evm-precompile-bw6761"
-version = "1.0.0-dev"
-
-[[patch.unused]]
-name = "pallet-evm-precompile-curve25519"
-version = "1.0.0-dev"
-
-[[patch.unused]]
-name = "pallet-evm-precompile-ed25519"
-version = "2.0.0-dev"
-
-[[patch.unused]]
-name = "pallet-evm-test-vector-support"
-version = "1.0.0-dev"
-
-[[patch.unused]]
-name = "pallet-hotfix-sufficients"
-version = "1.0.0"
-
-[[patch.unused]]
-name = "precompile-utils-tests-external"
-version = "0.1.0"
