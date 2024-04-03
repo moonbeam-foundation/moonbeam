@@ -334,6 +334,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = frame_system::EnsureRoot<AccountId>;
+	type HrmpOpenOrigin = frame_system::EnsureRoot<AccountId>;
 	type MaxHrmpFee = ();
 }
 

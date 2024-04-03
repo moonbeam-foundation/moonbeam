@@ -95,7 +95,10 @@ pub mod pallet {
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
 	use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
-	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
+	use frame_support::traits::EitherOfDiverse;
+	use frame_support::{
+		dispatch::DispatchResult, pallet_prelude::*, weights::constants::WEIGHT_REF_TIME_PER_SECOND,
+	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, Convert};
@@ -143,8 +146,11 @@ pub mod pallet {
 		// The origin that is allowed to register derivative address indices
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
-		// The origin that is allowed to register derivative address indices
+		// The origin that is allowed to manipulate (open, close, accept, cancel) an Hrmp channel
 		type HrmpManipulatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+
+		// The origin that is allowed to open an Hrmp channel
+		type HrmpOpenOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Convert `T::AccountId` to `Location`.
 		type AccountIdToLocation: Convert<Self::AccountId, Location>;
@@ -862,7 +868,15 @@ pub mod pallet {
 			// BuyExecution
 			// SetAppendix(RefundSurplus, DepositAsset(sov account))
 			// Transact
-			T::HrmpManipulatorOrigin::ensure_origin(origin)?;
+
+			if let HrmpOperation::InitOpen(_) = &action {
+				<EitherOfDiverse<T::HrmpManipulatorOrigin, T::HrmpOpenOrigin>>::ensure_origin(
+					origin,
+				)?;
+			} else {
+				T::HrmpManipulatorOrigin::ensure_origin(origin)?;
+			}
+
 			let call_bytes = match action.clone() {
 				HrmpOperation::InitOpen(params) => {
 					Self::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
