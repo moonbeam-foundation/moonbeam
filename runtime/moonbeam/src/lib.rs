@@ -1311,12 +1311,8 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
-parameter_types! {
-	pub const MaxStorageRoots: u32 = 10;
-}
-
 impl pallet_relay_storage_roots::Config for Runtime {
-	type MaxStorageRoots = MaxStorageRoots;
+	type MaxStorageRoots = ConstU32<30>;
 	type RelaychainStateProvider = cumulus_pallet_parachain_system::RelaychainDataProvider<Self>;
 	type WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
 }
