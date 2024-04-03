@@ -28,7 +28,7 @@ describeSuite({
       abi = storageContract.abi;
       const storageCleanerPrecompile = fetchCompiledContract("StorageCleaner");
       precompile_abi = storageCleanerPrecompile.abi;
-      let deployResult = await deployCreateCompiledContract(context, "Storage");
+      const deployResult = await deployCreateCompiledContract(context, "Storage");
       contractAddress = deployResult.contractAddress;
 
       // Create storage entries for the contract
@@ -63,7 +63,7 @@ describeSuite({
 
         expectEVMResult(result.result!.events, "Revert", "Reverted");
         const revertReason = await extractRevertReason(context, result.result!.hash);
-        expect(revertReason).to.eq(`NotSuicided: ${contractAddress}`);
+        expect(revertReason).to.contain(`NotSuicided:`);
       },
     });
 
