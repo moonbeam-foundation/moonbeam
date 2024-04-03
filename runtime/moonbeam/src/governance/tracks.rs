@@ -28,7 +28,7 @@ const fn permill(x: i32) -> sp_runtime::FixedI64 {
 }
 
 use pallet_referenda::Curve;
-const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 5] = [
+const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 6] = [
 	(
 		0,
 		pallet_referenda::TrackInfo {
@@ -109,6 +109,20 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 5]
 			min_enactment_period: 10 * MINUTES,
 			min_approval: Curve::make_reciprocal(1, 14, percent(96), percent(50), percent(100)),
 			min_support: Curve::make_reciprocal(1, 14, percent(1), percent(0), percent(10)),
+		},
+	),
+	(
+		5,
+		pallet_referenda::TrackInfo {
+			name: "fast_general_admin",
+			max_deciding: 10,
+			decision_deposit: 100 * GLMR * SUPPLY_FACTOR,
+			prepare_period: 1 * HOURS,
+			decision_period: 14 * DAYS,
+			confirm_period: 3 * HOURS,
+			min_enactment_period: 10 * MINUTES,
+			min_approval: Curve::make_reciprocal(4, 14, percent(80), percent(50), percent(100)),
+			min_support: Curve::make_reciprocal(5, 14, percent(1), percent(0), percent(50)),
 		},
 	),
 ];

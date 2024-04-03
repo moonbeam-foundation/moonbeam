@@ -41,6 +41,8 @@ pub mod custom_origins {
 		ReferendumCanceller,
 		/// Origin able to kill referenda.
 		ReferendumKiller,
+		/// Fast General Admin
+		FastGeneralAdmin,
 	}
 
 	macro_rules! decl_unit_ensures {
@@ -77,6 +79,7 @@ pub mod custom_origins {
 		ReferendumCanceller,
 		ReferendumKiller,
 		WhitelistedCaller,
-		GeneralAdmin
+		GeneralAdmin,
+		FastGeneralAdmin,
 	);
 }
