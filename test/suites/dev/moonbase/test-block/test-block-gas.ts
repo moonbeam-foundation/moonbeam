@@ -55,7 +55,7 @@ describeSuite({
             args: [],
             functionName: "getGasLimit",
           })
-        ).to.equal(15000000n);
+        ).to.equal(60000000n);
       },
     });
   },
