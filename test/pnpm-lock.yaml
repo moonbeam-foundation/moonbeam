@@ -6,14 +6,14 @@ settings:
 
 dependencies:
   '@acala-network/chopsticks':
-    specifier: 0.9.13
-    version: 0.9.13(debug@4.3.4)
+    specifier: 0.9.10
+    version: 0.9.10(debug@4.3.4)
   '@moonbeam-network/api-augment':
     specifier: 0.2801.0
     version: 0.2801.0
   '@moonwall/cli':
     specifier: ^5.1.4
-    version: 5.1.5(@acala-network/chopsticks@0.9.13)(@polkadot/api@10.12.6)(@types/node@20.12.4)(@vitest/ui@1.4.0)(typescript@5.4.3)(vitest@1.4.0)
+    version: 5.1.5(@acala-network/chopsticks@0.9.10)(@polkadot/api@10.12.6)(@types/node@20.12.4)(@vitest/ui@1.4.0)(typescript@5.4.3)(vitest@1.4.0)
   '@moonwall/util':
     specifier: ^5.1.4
     version: 5.1.5(@polkadot/api@10.12.6)(typescript@5.4.3)(vitest@1.4.0)
@@ -165,10 +165,10 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /@acala-network/chopsticks-core@0.9.13:
-    resolution: {integrity: sha512-cuXTgg6hl9Jw6qHIxzsLd7rCWnfO+ZvCpFKx8MHCS6NXIyUj01O8S7vtz5B6pfDK8VoCKs8zEoOS/ahoTbDL/Q==}
+  /@acala-network/chopsticks-core@0.9.10:
+    resolution: {integrity: sha512-AJ0tcUl8oGxf+b8ReJzaEugea8fejzSkErtFl7WOxIVNyqRa6klo5IxcZSxj6oM3Q6sQ4rlRxvsrafcCQasNSg==}
     dependencies:
-      '@acala-network/chopsticks-executor': 0.9.13
+      '@acala-network/chopsticks-executor': 0.9.10
       '@polkadot/rpc-provider': 10.12.6
       '@polkadot/types': 10.12.6
       '@polkadot/types-codec': 10.12.6
@@ -180,7 +180,7 @@ packages:
       lodash: 4.17.21
       lru-cache: 10.2.0
       pino: 8.19.0
-      pino-pretty: 11.0.0
+      pino-pretty: 10.3.1
       rxjs: 7.8.1
       zod: 3.22.4
     transitivePeerDependencies:
@@ -189,10 +189,10 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@acala-network/chopsticks-db@0.9.13:
-    resolution: {integrity: sha512-Ipc3N9cxzSdrgyvDgcQDapnqN/hJpXsJ/WtDnhiQ8AbX2jZH9fd3kWMBvMRsUYx8TrT5HlQE7EryxTGYdy/y/A==}
+  /@acala-network/chopsticks-db@0.9.10:
+    resolution: {integrity: sha512-1uB30N8plKFbNqXxWoUnbQ0lizDiKTS3+SVmoMOPRiN6h/es1Tsl78JrG81wLxWB85laDt/E2QWkXxEYFAM1qQ==}
     dependencies:
-      '@acala-network/chopsticks-core': 0.9.13
+      '@acala-network/chopsticks-core': 0.9.10
       '@polkadot/util': 12.6.2
       idb: 8.0.0
       sqlite3: 5.1.7
@@ -220,19 +220,19 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@acala-network/chopsticks-executor@0.9.13:
-    resolution: {integrity: sha512-3Wl9YuHcEV0xJUyXOQrAil3knu4GDJqKwJX5OiQBYxfuAYals0GyAP1q5GMzALmMkPt1GCyAkam3zjcdzXWTXQ==}
+  /@acala-network/chopsticks-executor@0.9.10:
+    resolution: {integrity: sha512-tJgLkrxpwH6BaCfHIjihZrPsBWT7jMJWcn6AHP4f6KTWbJUGYH4Tl0pZDyGjJjHV1kA5esY8S0tRRgWlPZK97g==}
     dependencies:
       '@polkadot/util': 12.6.2
       '@polkadot/wasm-util': 7.3.2(@polkadot/util@12.6.2)
     dev: false
 
-  /@acala-network/chopsticks@0.9.13(debug@4.3.4):
-    resolution: {integrity: sha512-8KY6fEO+6ErCttzKpHssifClijoq7FSenTy00Rut6EPTMYKOlrz+DMRsi9TO9vIEm9oUro9wjCUhQVh8hUMcuw==}
+  /@acala-network/chopsticks@0.9.10(debug@4.3.4):
+    resolution: {integrity: sha512-fh5/Sdb878rBivvlxA01rdyUGRMKL5rIdlsoeisYvaWwO6pVfbYtsjaKRUAzqn2JA0cfhF22CM7b0CR6zVT2CQ==}
     hasBin: true
     dependencies:
-      '@acala-network/chopsticks-core': 0.9.13
-      '@acala-network/chopsticks-db': 0.9.13
+      '@acala-network/chopsticks-core': 0.9.10
+      '@acala-network/chopsticks-db': 0.9.10
       '@pnpm/npm-conf': 2.2.2
       '@polkadot/api-augment': 10.12.6
       '@polkadot/types': 10.12.6
@@ -951,7 +951,7 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: false
 
-  /@moonwall/cli@5.1.5(@acala-network/chopsticks@0.9.13)(@polkadot/api@10.12.6)(@types/node@20.12.4)(@vitest/ui@1.4.0)(typescript@5.4.3)(vitest@1.4.0):
+  /@moonwall/cli@5.1.5(@acala-network/chopsticks@0.9.10)(@polkadot/api@10.12.6)(@types/node@20.12.4)(@vitest/ui@1.4.0)(typescript@5.4.3)(vitest@1.4.0):
     resolution: {integrity: sha512-2DdhiurHjeovVtIc9Spb0W0AQXRkBZgFa2CdVmuL9b3KJNgK1lkjXeOKgcBMdY35gHIU9IBhh1HhMUZiSVYXvg==}
     engines: {node: '>=20', pnpm: '>=7'}
     hasBin: true
@@ -961,7 +961,7 @@ packages:
       '@vitest/ui': ^1.2.2
       vitest: ^1.2.2
     dependencies:
-      '@acala-network/chopsticks': 0.9.13(debug@4.3.4)
+      '@acala-network/chopsticks': 0.9.10(debug@4.3.4)
       '@moonbeam-network/api-augment': 0.2801.0
       '@moonwall/types': 5.1.5(@polkadot/api@10.12.6)(typescript@5.4.3)
       '@moonwall/util': 5.1.5(@polkadot/api@10.12.6)(typescript@5.4.3)(vitest@1.4.0)
@@ -8322,8 +8322,8 @@ packages:
       split2: 4.2.0
     dev: false
 
-  /pino-pretty@11.0.0:
-    resolution: {integrity: sha512-YFJZqw59mHIY72wBnBs7XhLGG6qpJMa4pEQTRgEPEbjIYbng2LXEZZF1DoyDg9CfejEy8uZCyzpcBXXG0oOCwQ==}
+  /pino-pretty@10.3.1:
+    resolution: {integrity: sha512-az8JbIYeN/1iLj2t0jR9DV48/LQ3RC6hZPpapKPkb84Q+yTidMCpgWxIT3N0flnBDilyBQ1luWNpOeJptjdp/g==}
     hasBin: true
     dependencies:
       colorette: 2.0.20
