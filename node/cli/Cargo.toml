@@ -6,6 +6,7 @@ version = "0.37.0"
 
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
+clap-num = { workspace = true }
 log = { workspace = true }
 parity-scale-codec = { workspace = true }
 

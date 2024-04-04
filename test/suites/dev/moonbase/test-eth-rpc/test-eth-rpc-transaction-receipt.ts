@@ -3,7 +3,7 @@ import { ApiPromise } from "@polkadot/api";
 import { BALTATHAR_ADDRESS, createViemTransaction, extractFee } from "@moonwall/util";
 
 describeSuite({
-  id: "D011304",
+  id: "D011204",
   title: "Ethereum RPC - eth_getTransactionReceipt",
   foundationMethods: "dev",
   testCases: ({ it, context, log }) => {

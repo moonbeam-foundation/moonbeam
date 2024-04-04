@@ -24,6 +24,7 @@ use moonbeam_cli_opt::{account_key::GenerateAccountKey, EthApi, FrontierBackendT
 use moonbeam_service::chain_spec;
 use sc_cli::{Error as CliError, SubstrateCli};
 use std::path::PathBuf;
+use std::time::Duration;
 
 /// Sub-commands supported by the collator.
 #[derive(Debug, clap::Subcommand)]
@@ -232,6 +233,16 @@ pub struct RunCmd {
 	/// Removes moonbeam prefix from Prometheus metrics
 	#[clap(long)]
 	pub no_prometheus_prefix: bool,
+
+	/// Maximum duration in milliseconds to produce a block
+	#[clap(long, default_value = "1500", value_parser=block_authoring_duration_parser)]
+	pub block_authoring_duration: Duration,
+}
+
+fn block_authoring_duration_parser(s: &str) -> Result<Duration, String> {
+	Ok(Duration::from_millis(clap_num::number_range(
+		s, 250, 2_000,
+	)?))
 }
 
 impl RunCmd {

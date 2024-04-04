@@ -1,11 +1,17 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import {
+  beforeAll,
+  beforeEach,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+  execOpenTechCommitteeProposal,
+} from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { BN } from "@polkadot/util";
-import { executeExtViaOpenTechCommittee } from "../../../../helpers";
 
 describeSuite({
-  id: "D012103",
+  id: "D012003",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -56,7 +62,7 @@ describeSuite({
     });
 
     beforeEach(async () => {
-      await executeExtViaOpenTechCommittee(
+      await execOpenTechCommitteeProposal(
         context,
         context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode()
       );
@@ -81,7 +87,7 @@ describeSuite({
         expect(alithBalance.isNone).to.eq(true);
 
         // turn maintenance off
-        await executeExtViaOpenTechCommittee(
+        await execOpenTechCommitteeProposal(
           context,
           context.polkadotJs().tx.maintenanceMode.resumeNormalOperation()
         );

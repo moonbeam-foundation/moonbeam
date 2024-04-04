@@ -4,7 +4,7 @@ import { createEthersTransaction, sendRawTransaction } from "@moonwall/util";
 import { encodeDeployData } from "viem";
 
 describeSuite({
-  id: "D013401",
+  id: "D013501",
   title: "Storage Block (40Kb) - Storage Growth Limit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

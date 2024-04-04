@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Upload tools
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: original-tools
           path: tools
@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: 20.10.0
       - name: Download Original Tools
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: original-tools
           path: original-tools
@@ -46,7 +46,7 @@ jobs:
           npm i
           npm run --silent print-runtime-release-issue -- --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} --client ${{ github.event.inputs.client }} | tee ../runtime-release-issue.md
       - name: Create version bump issue
-        uses: peter-evans/create-issue-from-file@v3
+        uses: peter-evans/create-issue-from-file@v5
         with:
           title: runtime-${{ github.event.inputs.to }} release
           content-filepath: ./runtime-release-issue.md

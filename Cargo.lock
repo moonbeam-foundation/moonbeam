@@ -1499,6 +1499,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "clap-num"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e063d263364859dc54fb064cedb7c122740cd4733644b14b176c097f51e8ab7"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "clap_builder"
 version = "4.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6348,6 +6357,7 @@ name = "moonbeam-cli"
 version = "0.37.0"
 dependencies = [
  "clap",
+ "clap-num",
  "cumulus-client-cli",
  "cumulus-client-service",
  "cumulus-primitives-core",
@@ -7738,7 +7748,7 @@ version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "681030a937600a36906c185595136d26abfebb4aa9c65701cefcaf8578bb982b"
 dependencies = [
- "proc-macro-crate 1.3.1",
+ "proc-macro-crate 3.1.0",
  "proc-macro2",
  "quote",
  "syn 2.0.53",

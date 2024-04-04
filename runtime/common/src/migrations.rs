@@ -20,13 +20,16 @@
 //! the "Migration" trait declared in the pallet-migrations crate.
 
 use frame_support::{
-	parameter_types, storage::unhashed::contains_prefixed_key, traits::OnRuntimeUpgrade,
+	parameter_types,
+	storage::unhashed::{clear_prefix, contains_prefixed_key},
+	traits::OnRuntimeUpgrade,
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use pallet_parachain_staking::migrations::MigrateRoundWithFirstSlot;
+use sp_core::Get;
 use sp_std::{marker::PhantomData, prelude::*, vec};
 
 pub struct PalletStakingRoundMigration<Runtime>(PhantomData<Runtime>);
@@ -102,6 +105,78 @@ where
 			DemocracyPalletName,
 			<Runtime as frame_system::Config>::DbWeight,
 		>::post_upgrade(_state);
+
+		Ok(())
+	}
+}
+
+pub struct RemoveCollectivesAddresses<Runtime>(pub PhantomData<Runtime>);
+impl<Runtime> Migration for RemoveCollectivesAddresses<Runtime>
+where
+	Runtime: frame_system::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_RemoveCollectivesAddresses"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		log::info!("Removing gov v1 collective addresses storage");
+
+		// CouncilCollective: d59b9be6f0a7187ca6630c1d0a9bb045
+		let prefix = hex_literal::hex!("d59b9be6f0a7187ca6630c1d0a9bb045");
+		let result = clear_prefix(&prefix, Some(10), None);
+		log::info!("Removed {} CouncilCollective keys", result.unique);
+
+		// record how many records have been deleted
+		let mut writes = result.unique;
+
+		// TechCommitteeCollective: a06bfb73a86f8f98d5c5dc14e20e8a03
+		let prefix = hex_literal::hex!("a06bfb73a86f8f98d5c5dc14e20e8a03");
+		let result = clear_prefix(&prefix, Some(10), None);
+		log::info!("Removed {} TechCommitteeCollective", result.unique);
+
+		// Account for weight
+		writes = writes.saturating_add(result.unique);
+		let reads = writes.saturating_add(2);
+
+		let w = Runtime::DbWeight::get();
+		w.reads_writes(reads.into(), writes.into())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		// CouncilCollective: d59b9be6f0a7187ca6630c1d0a9bb045
+		let prefix = hex_literal::hex!("d59b9be6f0a7187ca6630c1d0a9bb045");
+		match contains_prefixed_key(&prefix) {
+			true => log::info!("Found keys for CouncilCollective (pre-removal"),
+			false => log::warn!("No keys found for CouncilCollective (pre-removal)"),
+		};
+
+		// TechCommitteeCollective: a06bfb73a86f8f98d5c5dc14e20e8a03
+		let prefix = hex_literal::hex!("a06bfb73a86f8f98d5c5dc14e20e8a03");
+		match contains_prefixed_key(&prefix) {
+			true => log::info!("Found keys for TechCommitteeCollective (pre-removal)"),
+			false => log::warn!("No keys found for TechCommitteeCollective (pre-removal)"),
+		};
+
+		Ok(sp_std::vec::Vec::new())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		// CouncilCollective: d59b9be6f0a7187ca6630c1d0a9bb045
+		let prefix = hex_literal::hex!("d59b9be6f0a7187ca6630c1d0a9bb045");
+		match contains_prefixed_key(&prefix) {
+			true => log::info!("Found keys for CouncilCollective (post-removal) ⚠️"),
+			false => log::warn!("No keys found for CouncilCollective (post-removal) ✅"),
+		};
+
+		// TechCommitteeCollective: a06bfb73a86f8f98d5c5dc14e20e8a03
+		let prefix = hex_literal::hex!("a06bfb73a86f8f98d5c5dc14e20e8a03");
+		match contains_prefixed_key(&prefix) {
+			true => log::info!("Found keys for TechCommitteeCollective (post-removal) ⚠️"),
+			false => log::warn!("No keys found for TechCommitteeCollective (post-removal) ✅"),
+		};
 		Ok(())
 	}
 }
@@ -221,8 +296,10 @@ where
 		// 	PalletReferendaMigrateV0ToV1::<Runtime>(Default::default());
 		//let pallet_collective_drop_gov_v1_collectives =
 		//	PalletCollectiveDropGovV1Collectives::<Runtime>(Default::default());
-		let pallet_staking_round = PalletStakingRoundMigration::<Runtime>(Default::default());
+		//let pallet_staking_round = PalletStakingRoundMigration::<Runtime>(Default::default());
 		let remove_pallet_democracy = RemovePalletDemocracy::<Runtime>(Default::default());
+		let remove_collectives_addresses =
+			RemoveCollectivesAddresses::<Runtime>(Default::default());
 
 		vec![
 			// completed in runtime 800
@@ -280,10 +357,11 @@ where
 			// completed in runtime 2800
 			//Box::new(pallet_collective_drop_gov_v1_collectives),
 			// completed in runtime 2801
-			Box::new(pallet_staking_round),
+			// Box::new(pallet_staking_round),
 			// Box::new(pallet_collective_drop_gov_v1_collectives),
 			// completed in runtime 2900
 			Box::new(remove_pallet_democracy),
+			Box::new(remove_collectives_addresses),
 			// permanent migrations
 			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
 		]

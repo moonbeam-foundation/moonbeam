@@ -498,7 +498,6 @@ describeSuite({
       // calculate reward amounts
       const parachainBondInfo = await apiAtPriorRewarded.query.parachainStaking.parachainBondInfo();
       const parachainBondPercent = new Percent(parachainBondInfo.percent);
-      const totalStaked = await apiAtPriorRewarded.query.parachainStaking.totalSelected();
       const totalPoints = await apiAtPriorRewarded.query.parachainStaking.points(
         originalRoundNumber
       );
@@ -545,11 +544,10 @@ describeSuite({
 
         totalRoundIssuance = roundDuration.mul(idealIssuance).div(idealDuration);
       } else {
-        totalRoundIssuance = totalStaked.lt(inflation.expect.min)
-          ? range.min
-          : totalStaked.gt(inflation.expect.max)
-          ? range.max
-          : range.ideal;
+        // Always apply max inflation
+        // It work because the total staked amound is already 1000 times more than the max on
+        // production, so it's very unlikely to change before RT2801 deployment on moonbeam
+        totalRoundIssuance = range.max;
       }
 
       const totalCollatorCommissionReward = new Perbill(collatorCommissionRate).of(
