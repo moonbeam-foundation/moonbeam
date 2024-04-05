@@ -355,7 +355,7 @@
         "compile-contracts.ts compile",
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbeam-dev"
       ],
-      "multiThreads": 8,
+      "multiThreads": 5,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["basic", "html", "json"],
       "reportFile": {
@@ -391,7 +391,7 @@
       "name": "dev_moonbase",
       "testFileDir": ["suites/dev/moonbase"],
       "include": ["**/*test*"],
-      "timeout": 180001,
+      "timeout": 180000,
       "contracts": "contracts/",
       "runScripts": [
         "compile-contracts.ts compile",
