@@ -391,7 +391,7 @@
       "name": "dev_moonbase",
       "testFileDir": ["suites/dev/moonbase"],
       "include": ["**/*test*"],
-      "timeout": 180000,
+      "timeout": 180001,
       "contracts": "contracts/",
       "runScripts": [
         "compile-contracts.ts compile",
