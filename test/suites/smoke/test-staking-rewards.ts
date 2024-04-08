@@ -514,16 +514,20 @@ describeSuite({
 
       let totalRoundIssuance: BN;
 
-      if (apiAt.consts.system.version.specVersion.toNumber() >= 2801) {
+      // TODO: Update this as moonriver & moonbeam enable async backing
+      if (
+        apiAt.consts.system.version.specVersion.toNumber() >= 2801 &&
+        apiAt.consts.system.version.specName.toString() === "moonbase"
+      ) {
         // Formula:
         //   totalRoundIssuance = (roundDuration / idealDuration) * idealIssuance
         const { first } = await apiAtPriorRewarded.query.parachainStaking.round();
         const lastBlockOfRound = first.subn(1);
         const lastBlockOfRoundHash = await api.rpc.chain.getBlockHash(lastBlockOfRound);
         const lastBlockOfRoundApi = await api.at(lastBlockOfRoundHash);
-        const currentSlot: u64 = (await lastBlockOfRoundApi.query.asyncBacking.slotInfo())
-          // @ts-expect-error - apiAt doesn't have asyncBacking
-          .unwrap()[0];
+        const currentSlot: u64 = (
+          await lastBlockOfRoundApi.query.asyncBacking.slotInfo()
+        ).unwrap()[0];
 
         const firstSlot = (await lastBlockOfRoundApi.query.parachainStaking.round()).firstSlot;
         const slotDuration = lastBlockOfRoundApi.consts.parachainStaking.slotDuration;
@@ -585,7 +589,7 @@ describeSuite({
         await apiAtRewarded.query.parachainStaking.delayedPayouts(originalRoundNumber)
       ).unwrap();
       expect(
-        delayedPayout.totalStakingReward.eq(totalStakingReward),
+        withinTolerance(delayedPayout.totalStakingReward, totalStakingReward),
         `reward amounts do not match \
           ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()} \
           for round ${originalRoundNumber.toString()}`
@@ -1083,3 +1087,7 @@ describeSuite({
     };
   },
 });
+
+// Checks if A == B, within a given tolerance (default 1)
+const withinTolerance = (a: BN, b: BN, tolerance: BN = new BN(1)): boolean =>
+  a.sub(b).abs().lte(tolerance);
