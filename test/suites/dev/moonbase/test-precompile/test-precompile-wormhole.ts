@@ -1,11 +1,12 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, alith, createEthersTransaction } from "@moonwall/util";
-import { Enum, Struct, TypeRegistry } from "@polkadot/types";
+import { Enum, Struct } from "@polkadot/types";
+import type { Registry } from "@polkadot/types/types/registry";
 import { u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { InterfaceAbi, ethers } from "ethers";
-import { encodeFunctionData } from "viem";
+import { Abi, encodeFunctionData } from "viem";
 import {
   expectEVMResult,
   expectSubstrateEvents,
@@ -48,6 +49,19 @@ const PRECOMPILE_GMP_ADDRESS = "0x0000000000000000000000000000000000000816";
 // TODO: actually, something is wrong here -- I don't think this matches the WH compacting logic
 const WH_IMPLICIT_DECIMALS = 18n;
 const WH_IMPLICIT_MULTIPLIER = 10n ** WH_IMPLICIT_DECIMALS;
+
+const versionedMultiLocation = {
+  v1: {
+    parents: 1,
+    interior: {
+      X1: {
+        AccountKey20: {
+          id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+        },
+      },
+    },
+  },
+};
 
 describeSuite({
   id: "D012887",
@@ -94,14 +108,12 @@ describeSuite({
     let whNonce = 0;
     // TODO: ugh, clean this up. we don't need the WETH contract we deployed, we need the wrapped
     // version of it created by WH.
-    let wethAddress: string;
+    let wethAddress: `${string}`;
     let whWethContract: ethers.Contract;
-    let bridgeImplAbi;
-    let bridgeImplAddr;
-    let bridgeAddr;
-
-    let whWethAddress: string;
-    let localChainId;
+    let bridgeImplAbi: Abi;
+    let bridgeImplAddr: `0x${string}`;
+    let bridgeAddr: `0x${string}`;
+    let localChainId: number;
 
     // chain ids: for new we have "foreign" and "local" chains, which trigger different
     // code paths in both the precompile and the bridge contracts.
@@ -123,6 +135,24 @@ describeSuite({
         },
       },
     };
+
+    class VersionedUserAction extends Enum {
+      constructor(registry: Registry, value?: any) {
+        super(registry, { V1: XcmRoutingUserAction, V2: XcmRoutingUserActionWithFee }, value);
+      }
+    }
+
+    class XcmRoutingUserAction extends Struct {
+      constructor(registry: Registry, value?: any) {
+        super(registry, { destination: "VersionedMultiLocation" }, value);
+      }
+    }
+
+    class XcmRoutingUserActionWithFee extends Struct {
+      constructor(registry: Registry, value?: any) {
+        super(registry, { destination: "VersionedMultiLocation", fee: "U256" }, value);
+      }
+    }
 
     beforeAll(async function () {
       const wethDeployment = await deploy("MockWETH9");
@@ -300,7 +330,7 @@ describeSuite({
             .tx.system.setStorage([
               [
                 ENABLED_FLAG_STORAGE_ADDRESS,
-                context.polkadotJs().registry.createType("Option<bool>", true).toHex(),
+                context.polkadotJs().createType("Option<bool>", true).toHex(),
               ],
             ])
         )
@@ -315,10 +345,12 @@ describeSuite({
         // create payload
         const destination = context
           .polkadotJs()
-          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
+          .createType("VersionedMultiLocation", versionedMultiLocation);
 
-        const userAction = new XcmRoutingUserAction({ destination });
-        const versionedUserAction = new VersionedUserAction({ V1: userAction });
+        const userAction = new XcmRoutingUserAction(context.pjsApi.registry, { destination });
+        const versionedUserAction = new VersionedUserAction(context.pjsApi.registry, {
+          V1: userAction,
+        });
 
         const whAmount = 999n;
         const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
@@ -338,7 +370,11 @@ describeSuite({
         });
         const block = await context.createBlock(rawTx);
 
-        expectEVMResult(block.result!.events, "Succeed", "Returned");
+        if (!block.result?.events) {
+          throw new Error("no events in result");
+        }
+
+        expectEVMResult(block.result.events, "Succeed", "Returned");
         const events = expectSubstrateEvents(block, "xTokens", "TransferredAssets");
         const transferFungible = events[0].data[1][0].fun;
         expect(transferFungible.isFungible);
@@ -354,14 +390,19 @@ describeSuite({
         // create payload
         const destination = context
           .polkadotJs()
-          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
+          .createType("VersionedMultiLocation", versionedMultiLocation);
 
         const whAmount = 999n;
         const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
         const fee = 1234500n;
 
-        const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
-        const versionedUserAction = new VersionedUserAction({ V2: userAction });
+        const userAction = new XcmRoutingUserActionWithFee(context.pjsApi.registry, {
+          destination,
+          fee,
+        });
+        const versionedUserAction = new VersionedUserAction(context.pjsApi.registry, {
+          V2: userAction,
+        });
 
         const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
@@ -380,7 +421,11 @@ describeSuite({
         });
         const block = await context.createBlock(rawTx);
 
-        expectEVMResult(block.result!.events, "Succeed", "Returned");
+        if (!block.result?.events) {
+          throw new Error("no events in result");
+        }
+
+        expectEVMResult(block.result.events, "Succeed", "Returned");
         const events = expectSubstrateEvents(block, "xTokens", "TransferredAssets");
         const transferFungible = events[0].data[1][0].fun;
         expect(transferFungible.isFungible);
@@ -399,14 +444,19 @@ describeSuite({
         // create payload
         const destination = context
           .polkadotJs()
-          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
+          .createType("VersionedMultiLocation", versionedMultiLocation);
 
         const whAmount = 100n;
         const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
         const fee = realAmount + 1n;
 
-        const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
-        const versionedUserAction = new VersionedUserAction({ V2: userAction });
+        const userAction = new XcmRoutingUserActionWithFee(context.pjsApi.registry, {
+          destination,
+          fee,
+        });
+        const versionedUserAction = new VersionedUserAction(context.pjsApi.registry, {
+          V2: userAction,
+        });
 
         const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
@@ -425,7 +475,11 @@ describeSuite({
         });
         const block = await context.createBlock(rawTx);
 
-        expectEVMResult(block.result!.events, "Succeed", "Returned");
+        if (!block.result?.events) {
+          throw new Error("no events in result");
+        }
+
+        expectEVMResult(block.result.events, "Succeed", "Returned");
         // there should be no xTokens TransferredMultiAssets event since fee >= amount sent
         const events = expectSubstrateEvents(block!, "xTokens", "TransferredAssets");
         expect(events.length).to.eq(0); // TODO: isn't expectSubstrateEvents supposed to expect > 0?
@@ -442,14 +496,19 @@ describeSuite({
         // create payload
         const destination = context
           .polkadotJs()
-          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
+          .createType("VersionedMultiLocation", versionedMultiLocation);
 
         const whAmount = 100n;
         const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
         const fee = 0n;
 
-        const userAction = new XcmRoutingUserActionWithFee({ destination, fee });
-        const versionedUserAction = new VersionedUserAction({ V2: userAction });
+        const userAction = new XcmRoutingUserActionWithFee(context.pjsApi.registry, {
+          destination,
+          fee,
+        });
+        const versionedUserAction = new VersionedUserAction(context.pjsApi.registry, {
+          V2: userAction,
+        });
 
         const alithWHTokenBefore = await whWethContract.balanceOf(ALITH_ADDRESS);
 
@@ -468,7 +527,11 @@ describeSuite({
         });
         const block = await context.createBlock(rawTx);
 
-        expectEVMResult(block.result!.events, "Succeed", "Returned");
+        if (!block.result?.events) {
+          throw new Error("no events in result");
+        }
+
+        expectEVMResult(block.result.events, "Succeed", "Returned");
         const events = expectSubstrateEvents(block, "xTokens", "TransferredAssets");
         const transferFungible = events[0].data[1][0].fun;
         expect(transferFungible.isFungible);
@@ -498,7 +561,7 @@ describeSuite({
           "ERC20",
           "WHTEST",
           ALITH_ADDRESS,
-          100_000_000_000_000_000_000_000,
+          100_000_000_000_000_000_000_000n,
         ]);
         const localERC20Address = localERC20.contractAddress;
 
@@ -508,13 +571,18 @@ describeSuite({
           data: encodeFunctionData({
             abi: localERC20.abi,
             functionName: "approve",
-            args: [bridgeAddr, 100_000_000_000_000_000_000_000],
+            args: [bridgeAddr, 100_000_000_000_000_000_000_000n],
           }),
           gasLimit: "0x100000",
           value: "0x0",
         });
         const { result: approveResult } = await context.createBlock(approveTxn);
-        expectEVMResult(approveResult!.events, "Succeed");
+
+        if (!approveResult?.events) {
+          throw new Error("no events in result");
+        }
+
+        expectEVMResult(approveResult.events, "Succeed");
 
         // bridge tokens out
         const transferTokensData = encodeFunctionData({
@@ -522,7 +590,7 @@ describeSuite({
           functionName: "transferTokens",
           args: [
             localERC20Address,
-            100_000_000_000_000_000_000,
+            100_000_000_000_000_000_000n,
             ETHChain,
             "0x0000000000000000000000000000000000000000000000000000000000000001",
             10,
@@ -537,15 +605,21 @@ describeSuite({
           value: "0x0",
         });
         const { result: transferResult } = await context.createBlock(txn);
-        expectEVMResult(transferResult!.events, "Succeed");
+
+        if (!transferResult?.events) {
+          throw new Error("no events in result");
+        }
+        expectEVMResult(transferResult.events, "Succeed");
 
         // create payload
         const destination = context
           .polkadotJs()
-          .registry.createType("VersionedMultiLocation", versionedMultiLocation);
+          .createType("VersionedMultiLocation", versionedMultiLocation);
 
-        const userAction = new XcmRoutingUserAction({ destination });
-        const versionedUserAction = new VersionedUserAction({ V1: userAction });
+        const userAction = new XcmRoutingUserAction(context.pjsApi.registry, { destination });
+        const versionedUserAction = new VersionedUserAction(context.pjsApi.registry, {
+          V1: userAction,
+        });
 
         const whAmount = 42n;
         const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
@@ -565,6 +639,10 @@ describeSuite({
         });
         const result = await context.createBlock(rawTx);
 
+        if (!result.result?.events) {
+          throw new Error("no events in result");
+        }
+
         expectEVMResult(result.result.events, "Succeed", "Returned");
         const events = expectSubstrateEvents(result, "xTokens", "TransferredAssets");
         const transferFungible = events[0].data[1][0].fun;
@@ -575,23 +653,3 @@ describeSuite({
     });
   },
 });
-
-const registry = new TypeRegistry();
-
-class VersionedUserAction extends Enum {
-  constructor(value?: any) {
-    super(registry, { V1: XcmRoutingUserAction, V2: XcmRoutingUserActionWithFee }, value);
-  }
-}
-
-class XcmRoutingUserAction extends Struct {
-  constructor(value?: any) {
-    super(registry, { destination: "VersionedMultiLocation" }, value);
-  }
-}
-
-class XcmRoutingUserActionWithFee extends Struct {
-  constructor(value?: any) {
-    super(registry, { destination: "VersionedMultiLocation", fee: "U256" }, value);
-  }
-}

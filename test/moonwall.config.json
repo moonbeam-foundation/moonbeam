@@ -359,7 +359,7 @@
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["basic", "html", "json"],
       "reportFile": {
-        "json": "./tmp/testResults.json"
+        "json": "./tmp/testResultsMoonbeam.json"
       },
       "foundation": {
         "type": "dev",
@@ -401,7 +401,7 @@
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["basic", "html", "json"],
       "reportFile": {
-        "json": "./tmp/testResults.json"
+        "json": "./tmp/testResultsMoonbase.json"
       },
       "foundation": {
         "type": "dev",
