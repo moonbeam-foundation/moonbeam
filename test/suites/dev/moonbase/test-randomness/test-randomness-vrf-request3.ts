@@ -22,7 +22,7 @@ describeSuite({
           precompileName: "Randomness",
           functionName: "requestLocalVRFRandomWords",
           args: [alith.address, 1n * GLMR, 100_000n, SIMPLE_SALT, 1, 1],
-          gas: 100_000n,
+          gas: 120_000n,
           rawTxOnly: true,
         });
         const { result } = await context.createBlock(rawTxn);
@@ -51,12 +51,12 @@ describeSuite({
           args: [
             alith.address, // refund address
             1n * GLMR, // fee
-            100_000n, // gas limit
+            120_000n, // gas limit
             SIMPLE_SALT,
             1, // number of random words
             2001, // future blocks
           ],
-          gas: 100_000n,
+          gas: 120_000n,
           rawTxOnly: true,
         });
         const { result } = await context.createBlock(rawTxn);
@@ -83,7 +83,7 @@ describeSuite({
           precompileName: "Randomness",
           functionName: "requestLocalVRFRandomWords",
           args: [alith.address, 1n * GLMR, 100_000n, SIMPLE_SALT, 0, 2],
-          gas: 100_000n,
+          gas: 120_000n,
           rawTxOnly: true,
         });
 
@@ -110,7 +110,7 @@ describeSuite({
           precompileName: "Randomness",
           functionName: "requestLocalVRFRandomWords",
           args: [alith.address, 1n * GLMR, 100_000n, SIMPLE_SALT, 101, 2],
-          gas: 100_000n,
+          gas: 120_000n,
           rawTxOnly: true,
         });
 
@@ -139,7 +139,7 @@ describeSuite({
           precompileName: "Randomness",
           functionName: "requestLocalVRFRandomWords",
           args: [alith.address, 1n * GLMR, 100_000n, SIMPLE_SALT, 100, 2],
-          gas: 100_000n,
+          gas: 120_000n,
           rawTxOnly: true,
         });
 
@@ -163,7 +163,7 @@ describeSuite({
           precompileName: "Randomness",
           functionName: "requestLocalVRFRandomWords",
           args: [alith.address, 1n * GLMR, 100_000n, SIMPLE_SALT, 1, delayBlocks],
-          gas: 100_000n,
+          gas: 120_000n,
           rawTxOnly: true,
         });
 
@@ -191,7 +191,7 @@ describeSuite({
           precompileName: "Randomness",
           functionName: "requestLocalVRFRandomWords",
           args: [alith.address, 1n * GLMR, 100_000n, SIMPLE_SALT, 1, delayBlocks],
-          gas: 100_000n,
+          gas: 120_000n,
           rawTxOnly: true,
         });
 
