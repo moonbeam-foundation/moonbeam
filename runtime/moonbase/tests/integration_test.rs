@@ -267,7 +267,7 @@ fn verify_pallet_prefixes() {
 				storage_name: b"RelayStorageRootKeys".to_vec(),
 				prefix: prefix(b"RelayStorageRoots", b"RelayStorageRootKeys"),
 				max_values: Some(1),
-				max_size: Some(41),
+				max_size: Some(121),
 			},
 		]
 	);

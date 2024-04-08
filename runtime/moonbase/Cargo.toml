@@ -246,6 +246,7 @@ std = [
 	"pallet-evm-precompile-randomness/std",
 	"pallet-evm-precompile-referenda/std",
 	"pallet-evm-precompile-registry/std",
+	"pallet-evm-precompile-relay-verifier/std",
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
