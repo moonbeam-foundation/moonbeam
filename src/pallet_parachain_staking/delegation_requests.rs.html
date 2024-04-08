@@ -737,7 +737,7 @@
 		);
 
 		<span class="kw">let </span>now = &lt;Round&lt;T&gt;&gt;::get().current;
-		<span class="kw">let </span>when = now.saturating_add(T::RevokeDelegationDelay::get());
+		<span class="kw">let </span>when = now.saturating_add(T::DelegationBondLessDelay::get());
 		scheduled_requests
 			.try_push(ScheduledRequest {
 				delegator: delegator.clone(),
