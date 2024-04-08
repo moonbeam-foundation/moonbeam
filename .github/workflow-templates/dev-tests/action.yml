@@ -52,5 +52,5 @@ runs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: dev-test-report
+        name: ${{ inputs.moonwall_environment }}-dev-test-report
         path: test/html
