@@ -869,12 +869,21 @@ pub mod pallet {
 			// SetAppendix(RefundSurplus, DepositAsset(sov account))
 			// Transact
 
-			let call_bytes = match action.clone() {
-				HrmpOperation::InitOpen(params) => {
-					// allowed from The HRMP Open origin
+			// check permissions
+			match &action {
+				HrmpOperation::InitOpen(_) | HrmpOperation::Accept { .. } => {
 					<EitherOfDiverse<T::HrmpManipulatorOrigin, T::HrmpOpenOrigin>>::ensure_origin(
 						origin,
 					)?;
+				}
+				HrmpOperation::Close(_) | HrmpOperation::Cancel { .. } => {
+					T::HrmpManipulatorOrigin::ensure_origin(origin)?;
+				}
+			}
+
+			// process action
+			let call_bytes = match action.clone() {
+				HrmpOperation::InitOpen(params) => {
 					Self::hrmp_encode_call(HrmpAvailableCalls::InitOpenChannel(
 						params.para_id,
 						params.proposed_max_capacity,
@@ -882,26 +891,18 @@ pub mod pallet {
 					))
 				}
 				HrmpOperation::Accept { para_id } => {
-					// allowed from The HRMP Open origin
-					<EitherOfDiverse<T::HrmpManipulatorOrigin, T::HrmpOpenOrigin>>::ensure_origin(
-						origin,
-					)?;
 					Self::hrmp_encode_call(HrmpAvailableCalls::AcceptOpenChannel(para_id))
 				}
 				HrmpOperation::Close(close_params) => {
-					T::HrmpManipulatorOrigin::ensure_origin(origin)?;
 					Self::hrmp_encode_call(HrmpAvailableCalls::CloseChannel(close_params))
 				}
 				HrmpOperation::Cancel {
 					channel_id,
 					open_requests,
-				} => {
-					T::HrmpManipulatorOrigin::ensure_origin(origin)?;
-					Self::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
-						channel_id,
-						open_requests,
-					))
-				}
+				} => Self::hrmp_encode_call(HrmpAvailableCalls::CancelOpenRequest(
+					channel_id,
+					open_requests,
+				)),
 			}
 			.map_err(|_| Error::<T>::HrmpHandlerNotImplemented)?;
 
