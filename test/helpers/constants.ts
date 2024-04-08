@@ -53,3 +53,24 @@ export const RUNTIME_CONSTANTS = {
     OLD_TARGET_FILL_PERMILL: 250_000n,
   },
 } as const;
+
+// Weight correspond to 1 picosecond
+export const WEIGHT_PER_SECOND = 1_000_000_000_000n;
+
+// Current gas per second
+export const GAS_PER_SECOND = 40_000_000n;
+export const GAS_PER_WEIGHT = WEIGHT_PER_SECOND / GAS_PER_SECOND;
+
+// Maximum Gas to PoV ratio used in the gasometer
+export const GAS_PER_POV_BYTES = 16n;
+// Our weight limit is 2s.
+export const BLOCK_WEIGHT_LIMIT = WEIGHT_PER_SECOND * 2n;
+export const BLOCK_GAS_LIMIT = ((BLOCK_WEIGHT_LIMIT / GAS_PER_WEIGHT) * 3n) / 4n;
+
+// Maximum extrinsic weight is taken from the max allowed transaction weight per block (75%),
+// minus the block initialization (10%) and minus the extrinsic base cost.
+export const EXTRINSIC_GAS_LIMIT = (BLOCK_GAS_LIMIT * 3n) / 4n - BLOCK_GAS_LIMIT / 10n;
+// Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
+export const MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES;
+
+export const GAS_LIMIT_POV_RATIO = 16;

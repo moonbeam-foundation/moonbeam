@@ -6,13 +6,9 @@ import {
   expect,
   fetchCompiledContract,
 } from "@moonwall/cli";
-import {
-  MAX_ETH_POV_PER_TX,
-  PRECOMPILE_BATCH_ADDRESS,
-  createEthersTransaction,
-} from "@moonwall/util";
+import { PRECOMPILE_BATCH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { Abi, encodeFunctionData } from "viem";
-import { HeavyContract, deployHeavyContracts } from "../../../../helpers";
+import { HeavyContract, deployHeavyContracts, MAX_ETH_POV_PER_TX } from "../../../../helpers";
 
 describeSuite({
   id: "D012805",
@@ -73,7 +69,7 @@ describeSuite({
         const rawSigned = await createEthersTransaction(context, {
           to: PRECOMPILE_BATCH_ADDRESS,
           data: callData,
-          gasLimit: 13_000_000,
+          gasLimit: 45_000_000,
         });
 
         const { result, block } = await context.createBlock(rawSigned);
@@ -109,7 +105,7 @@ describeSuite({
         const rawSigned = await createEthersTransaction(context, {
           to: PRECOMPILE_BATCH_ADDRESS,
           data: callData,
-          gasLimit: 15_000_000,
+          gasLimit: 60_000_000,
         });
 
         const { result, block } = await context.createBlock(rawSigned);
