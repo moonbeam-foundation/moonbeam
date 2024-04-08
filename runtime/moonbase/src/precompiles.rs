@@ -112,7 +112,7 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<1027>,
 		StorageCleanerPrecompile<R>,
-		(CallableByContract, CallableByPrecompile),
+		 CallableByPrecompile,
 	>,
 	// Moonbeam specific precompiles:
 	PrecompileAt<
