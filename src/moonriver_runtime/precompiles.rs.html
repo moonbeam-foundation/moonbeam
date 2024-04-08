@@ -251,6 +251,12 @@
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
 <a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -291,6 +297,7 @@
 <span class="kw">use </span>pallet_evm_precompile_referenda::ReferendaPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_registry::PrecompileRegistry;
 <span class="kw">use </span>pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
+<span class="kw">use </span>pallet_evm_precompile_relay_verifier::RelayDataVerifierPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_sha3fips::Sha3FIPS256;
 <span class="kw">use </span>pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 <span class="kw">use </span>pallet_evm_precompile_xcm_transactor::{
@@ -477,6 +484,11 @@
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2072</span>&gt;,
 		IdentityPrecompile&lt;R, <span class="kw">crate</span>::MaxAdditionalFields&gt;,
+		(CallableByContract, CallableByPrecompile),
+	&gt;,
+	PrecompileAt&lt;
+		AddressU64&lt;<span class="number">2073</span>&gt;,
+		RelayDataVerifierPrecompile&lt;R&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
 );
