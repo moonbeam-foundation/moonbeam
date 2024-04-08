@@ -308,6 +308,8 @@
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
 <a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -352,6 +354,7 @@
 <span class="kw">use </span>pallet_evm_precompile_relay_verifier::RelayDataVerifierPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_sha3fips::Sha3FIPS256;
 <span class="kw">use </span>pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
+<span class="kw">use </span>pallet_evm_precompile_storage_cleaner::StorageCleanerPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_xcm_transactor::{
 	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2, v3::XcmTransactorPrecompileV3,
 };
@@ -418,6 +421,7 @@
 	</span>PrecompileAt&lt;AddressU64&lt;<span class="number">1024</span>&gt;, Sha3FIPS256, (CallableByContract, CallableByPrecompile)&gt;,
 	RemovedPrecompileAt&lt;AddressU64&lt;<span class="number">1025</span>&gt;&gt;, <span class="comment">// Dispatch&lt;R&gt;
 	</span>PrecompileAt&lt;AddressU64&lt;<span class="number">1026</span>&gt;, ECRecoverPublicKey, (CallableByContract, CallableByPrecompile)&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">1027</span>&gt;, StorageCleanerPrecompile&lt;R&gt;, CallableByPrecompile&gt;,
 	<span class="comment">// Moonbeam specific precompiles:
 	</span>PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2048</span>&gt;,
