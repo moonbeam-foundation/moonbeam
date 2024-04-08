@@ -30,20 +30,20 @@ async function main() {
     `-f from=runtime-${previousVersion} -f to=runtime-${newVersion}\`
 - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft).
 - [ ] Update moonbeam-networks stagenet (moonsama/moonlama) config.json to include:
-  - \`\`\`
+\`\`\`
   "binaries": [
     {
-      "docker": "docker.io/moonbeamfoundation/moonbeam:${newVersion}-rc",
+      "docker": "moonbeamfoundation/moonbeam:v${newVersion}-rc",
       "path": "/moonbeam/moonbeam",
       "name": "moonbeam"
     },
     {
-      "docker": "docker.io/moonbeamfoundation/moonbeam:${newVersion}-rc",
+      "docker": "moonbeamfoundation/moonbeam:v${newVersion}-rc",
       "path": "/moonbeam/moonbeam-skylake",
       "name": "moonbeam-skylake"
     }
   ]
-  \`\`\`
+\`\`\`
 (matching your ${newVersion} tag) and increase the config version + 1.
 - [ ] Test the new client on stagenet (moonsama/moonlama).
 - [ ] Publish the client release draft.
