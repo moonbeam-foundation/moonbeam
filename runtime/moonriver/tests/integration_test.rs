@@ -141,6 +141,7 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
 	is_pallet_prefix::<moonriver_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
 	is_pallet_prefix::<moonriver_runtime::MoonbeamLazyMigrations>("MoonbeamLazyMigrations");
+	is_pallet_prefix::<moonriver_runtime::RelayStorageRoots>("RelayStorageRoots");
 
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
@@ -249,6 +250,25 @@ fn verify_pallet_prefixes() {
 			max_values: Some(1),
 			max_size: None,
 		},]
+	);
+	assert_eq!(
+		<moonriver_runtime::RelayStorageRoots as StorageInfoTrait>::storage_info(),
+		vec![
+			StorageInfo {
+				pallet_name: b"RelayStorageRoots".to_vec(),
+				storage_name: b"RelayStorageRoot".to_vec(),
+				prefix: prefix(b"RelayStorageRoots", b"RelayStorageRoot"),
+				max_values: None,
+				max_size: Some(44),
+			},
+			StorageInfo {
+				pallet_name: b"RelayStorageRoots".to_vec(),
+				storage_name: b"RelayStorageRootKeys".to_vec(),
+				prefix: prefix(b"RelayStorageRoots", b"RelayStorageRootKeys"),
+				max_values: Some(1),
+				max_size: Some(121),
+			},
+		]
 	);
 }
 
@@ -2335,7 +2355,7 @@ fn precompile_existence() {
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
 			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
-			2069, 2070, 2071, 2072,
+			2069, 2070, 2071, 2072, 2073,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
