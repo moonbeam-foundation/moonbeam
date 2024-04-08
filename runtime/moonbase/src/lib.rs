@@ -51,9 +51,7 @@ pub use precompiles::{
 };
 
 use account::AccountId20;
-use cumulus_pallet_parachain_system::{
-	RelayChainStateProof, RelayNumberMonotonicallyIncreases, RelaychainDataProvider,
-};
+use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainDataProvider};
 use cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
 use fp_rpc::TransactionStatus;
 use frame_support::{
@@ -1408,7 +1406,7 @@ construct_runtime! {
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 52,
 		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 53,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 54,
-		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event<T>} = 55,
+		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 55,
 	}
 }
 

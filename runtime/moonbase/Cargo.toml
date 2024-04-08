@@ -234,6 +234,7 @@ std = [
 	"pallet-collective/std",
 	"pallet-conviction-voting/std",
 	"pallet-crowdloan-rewards/std",
+	"pallet-emergency-para-xcm/std",
 	"pallet-erc20-xcm-bridge/std",
 	"pallet-evm-chain-id/std",
 	"pallet-ethereum-xcm/std",

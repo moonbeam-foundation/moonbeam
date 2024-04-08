@@ -18,9 +18,10 @@
 //!
 
 use super::{
-	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees, Erc20XcmBridge,
-	MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees,
+	EmergencyParaXcm, Erc20XcmBridge, MaintenanceMode, MessageQueue, ParachainInfo,
+	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
+	RuntimeOrigin, Treasury, XcmpQueue,
 };
 use moonbeam_runtime_common::weights as moonbeam_weights;
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
@@ -431,12 +432,15 @@ impl pallet_message_queue::Config for Runtime {
 
 impl pallet_emergency_para_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+	type CheckAssociatedRelayNumber =
+		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
 	type HrmpMessageHandler = XcmpQueue;
 	type PausedThreshold = ConstU32<300>;
-	type FastAuthorizeUpgradeOrigin = pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
-	type PausedToNormalOrigin = pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
+	//type FastAuthorizeUpgradeOrigin =
+	//pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
+	//	type PausedToNormalOrigin = pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
+	type FastAuthorizeUpgradeOrigin = EnsureRoot<AccountId>;
 	type PausedToNormalOrigin = EnsureRoot<AccountId>;
 }
 
