@@ -390,6 +390,7 @@ try-runtime = [
 	"pallet-balances/try-runtime",
 	"pallet-collective/try-runtime",
 	"pallet-conviction-voting/try-runtime",
+	"pallet-emergency-para-xcm/try-runtime",
 	"pallet-maintenance-mode/try-runtime",
 	"pallet-migrations/try-runtime",
 	"pallet-moonbeam-lazy-migrations/try-runtime",
