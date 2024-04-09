@@ -1,18 +1,20 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
+import {
+  beforeAll,
+  describeSuite,
+  expect,
+  customDevRpcRequest,
+  execOpenTechCommitteeProposal,
+} from "@moonwall/cli";
 import { ALITH_ADDRESS, alith, baltathar } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import {
-  RELAY_SOURCE_LOCATION,
-  mockAssetBalance,
-  executeExtViaOpenTechCommittee,
-} from "../../../../helpers";
+import { RELAY_SOURCE_LOCATION, mockAssetBalance } from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
 describeSuite({
-  id: "D012102",
+  id: "D012002",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -54,7 +56,7 @@ describeSuite({
           )
       );
 
-      await executeExtViaOpenTechCommittee(
+      await execOpenTechCommitteeProposal(
         context,
         context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode()
       );
@@ -80,7 +82,7 @@ describeSuite({
         expect(alithBalance.isNone).to.eq(true);
 
         // turn maintenance off
-        await executeExtViaOpenTechCommittee(
+        await execOpenTechCommitteeProposal(
           context,
           context.polkadotJs().tx.maintenanceMode.resumeNormalOperation()
         );

@@ -6,7 +6,7 @@ import { HeavyContract, deployHeavyContracts } from "../../../../helpers";
 import { MAX_ETH_POV_PER_TX } from "../../../../helpers/constants";
 
 describeSuite({
-  id: "D012802",
+  id: "D012702",
   title: "PoV Limit (3.5Mb in Dev)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

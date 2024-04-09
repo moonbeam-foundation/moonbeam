@@ -579,13 +579,17 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
+	#[cfg(feature = "runtime-benchmarks")]
+	type SpendOrigin =
+		frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, benches::MaxBalance>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
 	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
 	type BalanceConverter = UnityAssetBalanceConversion;
-	type PayoutPeriod = ConstU32<0>;
+	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
 }
@@ -1311,6 +1315,16 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
+impl pallet_relay_storage_roots::Config for Runtime {
+	type MaxStorageRoots = ConstU32<30>;
+	type RelaychainStateProvider = cumulus_pallet_parachain_system::RelaychainDataProvider<Self>;
+	type WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
+}
+
+impl pallet_precompile_benchmarks::Config for Runtime {
+	type WeightInfo = moonbeam_weights::pallet_precompile_benchmarks::WeightInfo<Runtime>;
+}
+
 construct_runtime! {
 	pub enum Runtime
 	{
@@ -1387,6 +1401,8 @@ construct_runtime! {
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 109,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 111,
+		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 112,
+		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 113,
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
@@ -1401,6 +1417,10 @@ use {
 };
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
+	frame_support::parameter_types! {
+		pub const MaxBalance: crate::Balance = crate::Balance::max_value();
+	}
+
 	frame_benchmarking::define_benchmarks!(
 		[pallet_utility, Utility]
 		[pallet_timestamp, Timestamp]
@@ -1429,6 +1449,7 @@ mod benches {
 		[pallet_multisig, Multisig]
 		[moonbeam_xcm_benchmarks::weights::generic, MoonbeamXcmGenericBench::<Runtime>]
 		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
+		[pallet_relay_storage_roots, RelayStorageRoots]
 	);
 }
 

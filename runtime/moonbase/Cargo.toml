@@ -133,6 +133,8 @@ pallet-evm-precompile-dispatch = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
+pallet-evm-precompile-storage-cleaner = { workspace = true }
+
 
 # Polkadot / XCM
 orml-traits = { workspace = true }
@@ -246,10 +248,12 @@ std = [
 	"pallet-evm-precompile-randomness/std",
 	"pallet-evm-precompile-referenda/std",
 	"pallet-evm-precompile-registry/std",
+	"pallet-evm-precompile-relay-verifier/std",
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
 	"pallet-evm-precompileset-assets-erc20/std",
+  	"pallet-evm-precompile-storage-cleaner/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",

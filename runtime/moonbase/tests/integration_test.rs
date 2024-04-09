@@ -267,7 +267,7 @@ fn verify_pallet_prefixes() {
 				storage_name: b"RelayStorageRootKeys".to_vec(),
 				prefix: prefix(b"RelayStorageRoots", b"RelayStorageRootKeys"),
 				max_values: Some(1),
-				max_size: Some(41),
+				max_size: Some(121),
 			},
 		]
 	);
@@ -2513,9 +2513,9 @@ fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
-			2069, 2070, 2071, 2072, 2073,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 1027, 2048, 2049, 2050, 2051, 2052, 2053,
+			2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067,
+			2068, 2069, 2070, 2071, 2072, 2073,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

@@ -180,7 +180,7 @@ impl<T: Config> Pallet<T> {
 		);
 
 		let now = <Round<T>>::get().current;
-		let when = now.saturating_add(T::RevokeDelegationDelay::get());
+		let when = now.saturating_add(T::DelegationBondLessDelay::get());
 		scheduled_requests
 			.try_push(ScheduledRequest {
 				delegator: delegator.clone(),

@@ -38,6 +38,7 @@ use pallet_evm_precompile_randomness::RandomnessPrecompile;
 use pallet_evm_precompile_referenda::ReferendaPrecompile;
 use pallet_evm_precompile_registry::PrecompileRegistry;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
+use pallet_evm_precompile_relay_verifier::RelayDataVerifierPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use pallet_evm_precompile_xcm_transactor::{
@@ -224,6 +225,11 @@ type MoonriverPrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2072>,
 		IdentityPrecompile<R, crate::MaxAdditionalFields>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2073>,
+		RelayDataVerifierPrecompile<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
 );

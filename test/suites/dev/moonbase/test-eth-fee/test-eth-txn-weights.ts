@@ -19,7 +19,7 @@ import {
 // GasToWeight by gas_price, but does not adjust this afterwards. This leads to accounting for too
 // much weight in a block.
 describeSuite({
-  id: "D011103",
+  id: "D011003",
   title: "Ethereum Weight Accounting",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

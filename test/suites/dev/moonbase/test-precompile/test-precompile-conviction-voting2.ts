@@ -5,7 +5,7 @@ import { expectEVMResult, createProposal, ConvictionVoting } from "../../../../h
 const CONVICTION_VALUES = [0n, 1n, 2n, 3n, 4n, 5n, 6n];
 
 describeSuite({
-  id: "D012932",
+  id: "D012832",
   title: "Precompiles - Conviction",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

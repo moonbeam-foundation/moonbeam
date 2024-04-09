@@ -42,6 +42,7 @@ use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_relay_verifier::RelayDataVerifierPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
+use pallet_evm_precompile_storage_cleaner::StorageCleanerPrecompile;
 use pallet_evm_precompile_xcm_transactor::{
 	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2, v3::XcmTransactorPrecompileV3,
 };
@@ -108,6 +109,7 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<AddressU64<1024>, Sha3FIPS256, (CallableByContract, CallableByPrecompile)>,
 	RemovedPrecompileAt<AddressU64<1025>>, // Dispatch<R>
 	PrecompileAt<AddressU64<1026>, ECRecoverPublicKey, (CallableByContract, CallableByPrecompile)>,
+	PrecompileAt<AddressU64<1027>, StorageCleanerPrecompile<R>, CallableByPrecompile>,
 	// Moonbeam specific precompiles:
 	PrecompileAt<
 		AddressU64<2048>,

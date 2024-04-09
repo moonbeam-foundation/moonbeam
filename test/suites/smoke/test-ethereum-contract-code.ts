@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { THIRTY_MINS } from "@moonwall/util";
+import { ONE_HOURS } from "@moonwall/util";
 import { compactStripLength, hexToU8a, u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import chalk from "chalk";
@@ -56,7 +56,7 @@ describeSuite({
           : `${(checkTime / 60).toFixed(1)} minutes`;
 
       log(`Finished checking ${totalContracts} EVM.AccountCodes storage values in ${text} ✅`);
-    }, THIRTY_MINS);
+    }, ONE_HOURS);
 
     it({
       id: "C100",

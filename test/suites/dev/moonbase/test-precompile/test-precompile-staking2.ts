@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, ETHAN_ADDRESS, ETHAN_PRIVATE_KEY, MIN_GLMR_STAKING } fro
 import { verifyLatestBlockFees } from "../../../../helpers";
 
 describeSuite({
-  id: "D012983",
+  id: "D012882",
   title: "Precompiles - Staking - Join Candidates",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

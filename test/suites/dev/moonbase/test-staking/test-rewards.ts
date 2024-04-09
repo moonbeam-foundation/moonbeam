@@ -4,7 +4,7 @@ import { MIN_GLMR_STAKING, alith, ethan } from "@moonwall/util";
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({
-  id: "D013361",
+  id: "D013461",
   title: "Staking - Rewards - no scheduled requests",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -11,7 +11,7 @@ import { Abi, encodeFunctionData } from "viem";
 import { HeavyContract, deployHeavyContracts, MAX_ETH_POV_PER_TX } from "../../../../helpers";
 
 describeSuite({
-  id: "D012805",
+  id: "D012705",
   title: "PoV precompile test - PoV Limit (3.5Mb in Dev)",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

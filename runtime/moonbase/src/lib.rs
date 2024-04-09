@@ -596,13 +596,17 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
+	#[cfg(feature = "runtime-benchmarks")]
+	type SpendOrigin =
+		frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, benches::MaxBalance>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
 	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
 	type BalanceConverter = UnityAssetBalanceConversion;
-	type PayoutPeriod = ConstU32<0>;
+	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
 }
@@ -878,7 +882,7 @@ impl pallet_author_slot_filter::Config for Runtime {
 impl pallet_async_backing::Config for Runtime {
 	type AllowMultipleBlocksPerSlot = ConstBool<true>;
 	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
-	type ExpectedBlockTime = ConstU64<6>;
+	type ExpectedBlockTime = ConstU64<6000>;
 }
 
 parameter_types! {
@@ -1334,12 +1338,8 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
-parameter_types! {
-	pub const MaxStorageRoots: u32 = 10;
-}
-
 impl pallet_relay_storage_roots::Config for Runtime {
-	type MaxStorageRoots = MaxStorageRoots;
+	type MaxStorageRoots = ConstU32<30>;
 	type RelaychainStateProvider = cumulus_pallet_parachain_system::RelaychainDataProvider<Self>;
 	type WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
 }
@@ -1452,6 +1452,10 @@ use {
 };
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
+	frame_support::parameter_types! {
+		pub const MaxBalance: crate::Balance = crate::Balance::max_value();
+	}
+
 	frame_benchmarking::define_benchmarks!(
 		[pallet_utility, Utility]
 		[pallet_timestamp, Timestamp]

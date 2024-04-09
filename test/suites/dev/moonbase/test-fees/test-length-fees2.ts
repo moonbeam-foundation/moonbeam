@@ -4,7 +4,7 @@ import { createViemTransaction } from "@moonwall/util";
 import { EXTRINSIC_GAS_LIMIT, GAS_LIMIT_POV_RATIO } from "../../../../helpers/constants";
 
 describeSuite({
-  id: "D011707",
+  id: "D011607",
   title: "Substrate Length Fees - Ethereum txn Interaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment/moonbase";
 import { describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
-  id: "D011701",
+  id: "D011601",
   title: "Genesis Fee Multiplier",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

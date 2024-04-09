@@ -87,7 +87,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Crust",
         paraId: 2012,
-        mutedUntil: new Date("2023-11-09").getTime(),
       },
       {
         name: "Integritee",
@@ -147,11 +146,15 @@ export const ForeignChainsEndpoints = [
       {
         name: "Equilibrium",
         paraId: 2011,
-        mutedUntil: new Date("2024-02-28").getTime(),
+        mutedUntil: new Date("2024-06-01").getTime(),
       },
       {
         name: "Parallel",
         paraId: 2012,
+      },
+      {
+        name: "Composable",
+        paraId: 2019,
       },
       {
         name: "Nodle",
@@ -178,8 +181,28 @@ export const ForeignChainsEndpoints = [
         paraId: 2035,
       },
       {
+        name: "Polkadex",
+        paraId: 2040,
+      },
+      {
+        name: "OriginTrail",
+        paraId: 2043,
+      },
+      {
         name: "Darwinia",
         paraId: 2046,
+      },
+      {
+        name: "Zeitgeist",
+        paraId: 2092,
+      },
+      {
+        name: "Pendulum",
+        paraId: 2094,
+      },
+      {
+        name: "Subsocial",
+        paraId: 2101,
       },
       {
         name: "Manta",
