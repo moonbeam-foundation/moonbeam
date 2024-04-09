@@ -149,7 +149,7 @@ pub mod pallet {
 		// The origin that is allowed to manipulate (open, close, accept, cancel) an Hrmp channel
 		type HrmpManipulatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
-		// The origin that is allowed to open an Hrmp channel
+		// The origin that is allowed to open and accept an Hrmp channel
 		type HrmpOpenOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Convert `T::AccountId` to `Location`.
