@@ -69,7 +69,7 @@ describeSuite({
         const rawSigned = await createEthersTransaction(context, {
           to: PRECOMPILE_BATCH_ADDRESS,
           data: callData,
-          gasLimit: 45_000_000,
+          gasLimit: 52_000_000,
         });
 
         const { result, block } = await context.createBlock(rawSigned);

@@ -43,6 +43,7 @@ describeSuite({
           functionName: "transfer",
           args: [PRECOMPILES.NativeErc20[0], amountTransferred, destination, weight],
           rawTxOnly: true,
+          gas: 500_000n,
         });
 
         const { result } = await context.createBlock(rawTxn);
@@ -88,6 +89,7 @@ describeSuite({
           functionName: "transferWithFee",
           args: [PRECOMPILES.NativeErc20[0], amountTransferred, fee, destination, weight],
           rawTxOnly: true,
+          gas: 500_000n,
         });
 
         const { result } = await context.createBlock(rawTxn);
@@ -324,7 +326,7 @@ describeSuite({
           functionName: "transferMultiAssets",
           args: [multiassets, fee_item, destination, weight],
           rawTxOnly: true,
-          web3Library: "ethers",
+          gas: 500_000n,
         });
 
         const { result } = await context.createBlock(rawTxn);
