@@ -56,7 +56,7 @@ describeSuite({
         const rawSigned = await createEthersTransaction(context, {
           to: proxyAddress,
           data: callData,
-          gasLimit: 55_000_000,
+          gasLimit: 52_000_000,
           txnType: "eip1559",
         });
 
