@@ -102,7 +102,7 @@ describeSuite({
 
         const { result } = await referenda
           .reset()
-          .withGas(1_000_000n)
+          .withGas(2_000_000n)
           .placeDecisionDeposit(proposalIndex)
           .block();
 

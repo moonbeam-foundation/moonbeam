@@ -65,7 +65,7 @@ export const GAS_PER_WEIGHT = WEIGHT_PER_SECOND / GAS_PER_SECOND;
 export const GAS_PER_POV_BYTES = 16n;
 // Our weight limit is 2s.
 export const BLOCK_WEIGHT_LIMIT = WEIGHT_PER_SECOND * 2n;
-export const BLOCK_GAS_LIMIT = ((BLOCK_WEIGHT_LIMIT / GAS_PER_WEIGHT) * 3n) / 4n;
+export const BLOCK_GAS_LIMIT = BLOCK_WEIGHT_LIMIT / GAS_PER_WEIGHT;
 
 // Maximum extrinsic weight is taken from the max allowed transaction weight per block (75%),
 // minus the block initialization (10%) and minus the extrinsic base cost.

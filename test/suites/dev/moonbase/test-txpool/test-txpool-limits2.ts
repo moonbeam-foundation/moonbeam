@@ -19,7 +19,7 @@ describeSuite({
         });
 
         const txs = await Promise.all(
-          new Array(120).fill(0).map((_, i) =>
+          new Array(300).fill(0).map((_, i) =>
             createEthersTransaction(context, {
               data: deployData,
               nonce: i,
@@ -32,7 +32,7 @@ describeSuite({
         }
 
         await context.createBlock();
-        expect((await context.viem().getBlock()).transactions.length).toBe(70);
+        expect((await context.viem().getBlock()).transactions.length).toBe(284);
       },
     });
   },

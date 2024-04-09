@@ -110,7 +110,7 @@ describeSuite({
       title: "should fail to vote for the wrong proposal",
       test: async function () {
         const block = await convictionVoting
-          .withGas(1_000_000n)
+          .withGas(2_000_000n)
           .voteNo(999999, 1n * 10n ** 18n, 1n)
           .block();
 
