@@ -14,7 +14,7 @@ import {
 // export const TARGET_FILL_AMOUNT =
 //   ((MAX_BLOCK_WEIGHT * 0.75 * 0.25 - EXTRINSIC_BASE_WEIGHT) / MAX_BLOCK_WEIGHT) * 1_000_000_000;
 // In 0.9.43 rootTesting::fillBlock() now uses more weight so we need to account for that
-const TARGET_FILL_AMOUNT = 374_427_918;
+const TARGET_FILL_AMOUNT = 374_713_000;
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -97,7 +97,15 @@ describeSuite({
             .polkadotJs()
             .tx.sudo.sudo(context.polkadotJs().tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
         );
+
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
+
+        // this is useful to manually find out what is the
+        // TARGET_FILL_AMOUNT that will result in a static fee multiplier
+        // console.log(`pre  ${initialValue.toHuman()}`);
+        // console.log(`post ${postValue.toHuman()}`);
+        // console.log(`diff ${initialValue.sub(postValue)}`);
+
         expect(initialValue.eq(postValue), "Fee multiplier not static on ideal fill ratio").to.be
           .true;
       },
