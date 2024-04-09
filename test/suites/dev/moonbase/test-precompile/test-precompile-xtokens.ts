@@ -1,11 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, PRECOMPILES } from "@moonwall/util";
+import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { ALITH_ADDRESS, GLMR, PRECOMPILES, createViemTransaction } from "@moonwall/util";
 import {
   verifyLatestBlockFees,
   expectEVMResult,
   DEFAULT_TXN_MAX_BASE_FEE,
 } from "../../../../helpers";
+import { encodeFunctionData } from "viem";
 
 describeSuite({
   id: "D012802",
@@ -321,12 +322,20 @@ describeSuite({
         const weight = 100;
 
         const balBefore = await context.viem().getBalance({ address: ALITH_ADDRESS });
-        const rawTxn = await context.writePrecompile!({
-          precompileName: "Xtokens",
+        const { abi } = fetchCompiledContract("Xtokens");
+        const data = encodeFunctionData({
+          abi,
           functionName: "transferMultiAssets",
           args: [multiassets, fee_item, destination, weight],
-          rawTxOnly: true,
+        });
+
+        const rawTxn = await createViemTransaction(context, {
+          to: PRECOMPILES.Xtokens,
+          value: 0n,
+          data,
+          txnType: "legacy",
           gas: 500_000n,
+          gasPrice: BigInt(DEFAULT_TXN_MAX_BASE_FEE),
         });
 
         const { result } = await context.createBlock(rawTxn);
