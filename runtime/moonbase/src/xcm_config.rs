@@ -515,6 +515,12 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	}
 }
 
+// 1 - Converter de asset Id to location
+// 2 - CurrencyId debe ser genérico sobre assetId
+// 3 - account_to_asset_id generico sobre el size de assetId
+
+// pasar primero address 2050 (selfreserveadress), tipo AssetId para saber los bytes, conversor de assetId a location
+
 // How to convert from CurrencyId to Location
 pub struct CurrencyIdToLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<Location>>

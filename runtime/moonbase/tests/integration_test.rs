@@ -19,6 +19,7 @@
 mod common;
 use common::*;
 
+use pallet_evm_precompile_xcm::PalletXcmPrecompileCall;
 use precompile_utils::{
 	precompile_set::{is_precompile_or_fail, IsActivePrecompile},
 	prelude::*,
@@ -66,7 +67,7 @@ use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, H256, U256};
 use sp_runtime::{DispatchError, ModuleError};
-use xcm::latest::prelude::*;
+use xcm::{latest::prelude::*, VersionedLocation};
 
 type AuthorMappingPCall =
 	pallet_evm_precompile_author_mapping::AuthorMappingPrecompileCall<Runtime>;
@@ -86,6 +87,7 @@ type XcmTransactorV1PCall =
 	pallet_evm_precompile_xcm_transactor::v1::XcmTransactorPrecompileV1Call<Runtime>;
 type XcmTransactorV2PCall =
 	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
+type PalletXcmPCall = pallet_evm_precompile_xcm::PalletXcmPrecompileCall<Runtime>;
 
 // TODO: can we construct a const U256...?
 const BASE_FEE_GENISIS: u128 = 10 * GIGAWEI;
@@ -1522,6 +1524,73 @@ fn xtokens_precompiles_transfer() {
 					},
 				)
 				.expect_cost(57639)
+				.expect_no_logs()
+				.execute_returns(())
+		})
+}
+
+#[test]
+fn pallet_xcm_precompile_transfer_assets() {
+	ExtBuilder::default()
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
+			metadata: AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			let xcm_pallet_precompile_address = H160::from_low_u64_be(2074);
+
+			println!("ADDRESS: {:?}", xcm_pallet_precompile_address);
+
+			// We have the assetId that corresponds to the relay chain registered
+			let relay_asset_id: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
+
+			// Its address is
+			let asset_precompile_address = Runtime::asset_id_to_account(
+				FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+				relay_asset_id,
+			);
+
+			// Alice has 1000 tokens. She should be able to send through precompile
+			let beneficiary = Location::new(
+				0,
+				[Junction::AccountId32 {
+					network: None,
+					id: [1u8; 32],
+				}],
+			);
+
+			let assets = Asset {
+				id: AssetId(Location::parent()),
+				fun: Fungible(100u128),
+			};
+
+			// We use the address of the asset as an identifier of the asset we want to transfer
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_pallet_precompile_address,
+					PalletXcmPCall::transfer_assets {
+						dest: Location::parent(),
+						beneficiary,
+						assets: vec![(Location::parent(), 500_000_000_000_000u128.into())].into(),
+						fee_asset_item: 0u32,
+						weight: Weight::from_parts(4000000000, 80000),
+					},
+				)
+				.expect_cost(737869762949382)
 				.expect_no_logs()
 				.execute_returns(())
 		})

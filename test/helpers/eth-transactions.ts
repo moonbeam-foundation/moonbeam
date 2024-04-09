@@ -24,6 +24,7 @@ export async function extractRevertReason(context: DevModeContext, responseHash:
     return null;
   } catch (e: any) {
     const errorMessage = e.info.error.message;
+    return errorMessage
     return errorMessage.split("VM Exception while processing transaction: revert ")[1];
   }
 }
