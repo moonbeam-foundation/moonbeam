@@ -1788,11 +1788,6 @@
 <a href="#1788" id="1788">1788</a>
 <a href="#1789" id="1789">1789</a>
 <a href="#1790" id="1790">1790</a>
-<a href="#1791" id="1791">1791</a>
-<a href="#1792" id="1792">1792</a>
-<a href="#1793" id="1793">1793</a>
-<a href="#1794" id="1794">1794</a>
-<a href="#1795" id="1795">1795</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3207,11 +3202,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
-</span><span class="kw">use </span>{
-	moonbeam_runtime_common::benchmarking::BenchmarkHelper,
-	moonbeam_xcm_benchmarks::generic::benchmarking <span class="kw">as </span>MoonbeamXcmBenchmarks,
-	MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench,
-};
+</span><span class="kw">use </span>moonbeam_runtime_common::benchmarking::BenchmarkHelper;
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
 </span><span class="kw">mod </span>benches {
 	<span class="macro">frame_support::parameter_types! </span>{
@@ -3244,7 +3235,6 @@
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
-		[moonbeam_xcm_benchmarks::weights::generic, MoonbeamXcmGenericBench::&lt;Runtime&gt;]
 		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
 	);
