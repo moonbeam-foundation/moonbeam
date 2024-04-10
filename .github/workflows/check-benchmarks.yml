@@ -53,7 +53,7 @@ jobs:
       - name: Run benchmarks
         shell: bash
         run: |
-          ./scripts/run-benches-for-runtime.sh moonbeam release
+          ./scripts/run-benches-for-runtime.sh moonbase release
           if test -f "benchmarking_errors.txt"; then
             cat benchmarking_errors.txt
             false
