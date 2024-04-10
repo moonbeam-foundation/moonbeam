@@ -15,11 +15,11 @@ describeSuite({
         args: [
           alith.address, // refund address
           1n * GLMR, // fee
-          100_000n, // gas limit
+          120_000n, // gas limit
           SIMPLE_SALT,
           1, // number of random words
         ],
-        gas: 100_000n,
+        gas: 120_000n,
       });
 
       await context.createBlock([], { signer: alith, allowFailures: false });
@@ -89,7 +89,7 @@ describeSuite({
         const request = (
           await context.polkadotJs().query.randomness.requests.entries()
         )[0][1].unwrap().request;
-        expect(request.gasLimit.toBigInt()).to.equal(100_000n);
+        expect(request.gasLimit.toBigInt()).to.equal(120_000n);
       },
     });
 

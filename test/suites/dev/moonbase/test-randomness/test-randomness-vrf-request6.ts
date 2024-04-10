@@ -13,14 +13,14 @@ describeSuite({
         precompileName: "Randomness",
         functionName: "requestLocalVRFRandomWords",
         args: [alith.address, 1n * GLMR, 100_000n, SIMPLE_SALT, 1, 3],
-        gas: 100_000n,
+        gas: 120_000n,
       });
       await context.createBlock();
       await context.writePrecompile!({
         precompileName: "Randomness",
         functionName: "requestLocalVRFRandomWords",
         args: [alith.address, 1n * GLMR, 100_000n, SIMPLE_SALT, 1, 2],
-        gas: 100_000n,
+        gas: 120_000n,
       });
       await context.createBlock();
       await context.createBlock();

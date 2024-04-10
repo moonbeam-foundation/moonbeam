@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { EXTRINSIC_GAS_LIMIT, createViemTransaction } from "@moonwall/util";
+import { createViemTransaction } from "@moonwall/util";
+import { EXTRINSIC_GAS_LIMIT, GAS_LIMIT_POV_RATIO } from "../../../../helpers/constants";
 
 describeSuite({
   id: "D011607",
@@ -49,9 +50,9 @@ describeSuite({
         // * 31_794_757_632 / WEIGHT_PER_GAS = 1_271_790
         //
         // conclusion: the LengthToFee modifier is NOT involved
-
-        const expected = 37708n;
-        expect(receipt.gasUsed, "gasUsed does not match manual calculation").toBe(expected);
+        expect(receipt.gasUsed, "gasUsed does not match manual calculation").toBeLessThan(
+          1_271_790n
+        );
 
         // furthermore, we can account for the entire fee:
         const non_zero_byte_fee = 3n * 16n;
@@ -59,7 +60,9 @@ describeSuite({
         const base_ethereum_fee = 21000n;
         const modexp_min_cost = 200n * 20n; // see MIN_GAS_COST in frontier's modexp precompile
         const entire_fee = non_zero_byte_fee + zero_byte_fee + base_ethereum_fee + modexp_min_cost;
-        expect(entire_fee, "entire fee doesn't match manual calculation").to.equal(expected);
+        // the gas used should be the maximum of the legacy gas and the pov gas
+        const expected = BigInt(Math.max(Number(entire_fee), 3797 * GAS_LIMIT_POV_RATIO));
+        expect(receipt.gasUsed, "gasUsed does not match manual calculation").toBe(expected);
       },
     });
   },

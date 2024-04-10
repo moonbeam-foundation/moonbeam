@@ -5,7 +5,7 @@ import { encodeDeployData } from "viem";
 
 describeSuite({
   id: "D013501",
-  title: "Storage Block (40Kb) - Storage Growth Limit",
+  title: "Storage Block (160Kb) - Storage Growth Limit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     it({
@@ -18,7 +18,7 @@ describeSuite({
           bytecode,
         });
 
-        for (let i = 0; i < 120; i++) {
+        for (let i = 0; i < 300; i++) {
           const rawTxn = await createEthersTransaction(context, {
             data: deployData,
             nonce: i,
@@ -28,7 +28,7 @@ describeSuite({
         }
 
         await context.createBlock();
-        expect((await context.viem().getBlock()).transactions.length).toBe(61);
+        expect((await context.viem().getBlock()).transactions.length).toBe(246);
       },
     });
   },
