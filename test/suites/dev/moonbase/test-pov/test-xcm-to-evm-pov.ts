@@ -66,7 +66,7 @@ describeSuite({
       id: "T01",
       title: "should fail to execute evm tx with insufficient gas to cover PoV",
       test: async function () {
-        const GAS_LIMIT = 500_000 * 4;
+        const GAS_LIMIT = 2_000_000;
         const xcmTransactions = [
           {
             V1: {
@@ -163,13 +163,13 @@ describeSuite({
       id: "T02",
       title: "should execute evm tx with enough gas to cover PoV",
       test: async function () {
-        // Note: we can't use more than 1.6M gas through an XCM message, because it makes the entire
+        // Note: we can't use more than 6.4M gas through an XCM message, because it makes the entire
         // message weight to go over the allowed weight to execute an XCM message. This is called
         // "overweight".
         //
-        // If we use more than 1.6M gas, we receive the "WeightLimitReached" error and
+        // If we use more than 6.4M gas, we receive the "WeightLimitReached" error and
         // "OverweightEnqueued" event from the xcmpQueue pallet.
-        const GAS_LIMIT = 1_600_000 * 4;
+        const GAS_LIMIT = 6_400_000;
         const xcmTransactions = [
           {
             V1: {
