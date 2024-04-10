@@ -396,6 +396,7 @@ impl Config for Test {
 	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = EnsureRoot<u64>;
+	type HrmpOpenOrigin = EnsureRoot<u64>;
 	type MaxHrmpFee = MaxHrmpRelayFee;
 }
 
