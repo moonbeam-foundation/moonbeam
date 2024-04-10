@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["AlarmInterval","SubmissionDeposit","UndecidingTimeout","VoteLockingPeriod"],"type":["GeneralAdminOrRoot"]};
+window.SIDEBAR_ITEMS = {"struct":["AlarmInterval","SubmissionDeposit","UndecidingTimeout","VoteLockingPeriod"],"type":["FastGeneralAdminOrRoot","GeneralAdminOrRoot"]};

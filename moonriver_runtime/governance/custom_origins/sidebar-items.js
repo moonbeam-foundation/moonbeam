@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Call","Origin"],"mod":["dispatchables","storage_types"],"struct":["GeneralAdmin","Pallet","ReferendumCanceller","ReferendumKiller","WhitelistedCaller"],"trait":["Config"],"type":["Module"]};
+window.SIDEBAR_ITEMS = {"enum":["Call","Origin"],"mod":["dispatchables","storage_types"],"struct":["FastGeneralAdmin","GeneralAdmin","Pallet","ReferendumCanceller","ReferendumKiller","WhitelistedCaller"],"trait":["Config"],"type":["Module"]};

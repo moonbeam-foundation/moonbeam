@@ -177,6 +177,20 @@
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -207,7 +221,7 @@
 }
 
 <span class="kw">use </span>pallet_referenda::Curve;
-<span class="kw">const </span>TRACKS_DATA: [(u16, pallet_referenda::TrackInfo&lt;Balance, BlockNumber&gt;); <span class="number">5</span>] = [
+<span class="kw">const </span>TRACKS_DATA: [(u16, pallet_referenda::TrackInfo&lt;Balance, BlockNumber&gt;); <span class="number">6</span>] = [
 	(
 		<span class="number">0</span>,
 		pallet_referenda::TrackInfo {
@@ -288,6 +302,20 @@
 			min_enactment_period: <span class="number">10 </span>* MINUTES,
 			min_approval: Curve::make_reciprocal(<span class="number">1</span>, <span class="number">14</span>, percent(<span class="number">96</span>), percent(<span class="number">50</span>), percent(<span class="number">100</span>)),
 			min_support: Curve::make_reciprocal(<span class="number">1</span>, <span class="number">14</span>, percent(<span class="number">1</span>), percent(<span class="number">0</span>), percent(<span class="number">10</span>)),
+		},
+	),
+	(
+		<span class="number">5</span>,
+		pallet_referenda::TrackInfo {
+			name: <span class="string">&quot;fast_general_admin&quot;</span>,
+			max_deciding: <span class="number">10</span>,
+			decision_deposit: <span class="number">100 </span>* GLMR * SUPPLY_FACTOR,
+			prepare_period: <span class="number">1 </span>* HOURS,
+			decision_period: <span class="number">14 </span>* DAYS,
+			confirm_period: <span class="number">3 </span>* HOURS,
+			min_enactment_period: <span class="number">10 </span>* MINUTES,
+			min_approval: Curve::make_reciprocal(<span class="number">4</span>, <span class="number">14</span>, percent(<span class="number">80</span>), percent(<span class="number">50</span>), percent(<span class="number">100</span>)),
+			min_support: Curve::make_reciprocal(<span class="number">5</span>, <span class="number">14</span>, percent(<span class="number">1</span>), percent(<span class="number">0</span>), percent(<span class="number">50</span>)),
 		},
 	),
 ];

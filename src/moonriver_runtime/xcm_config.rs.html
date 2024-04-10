@@ -719,6 +719,7 @@
 <a href="#719" id="719">719</a>
 <a href="#720" id="720">720</a>
 <a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -793,7 +794,7 @@
 
 <span class="kw">use </span>orml_traits::parameter_type_with_key;
 
-<span class="kw">use </span><span class="kw">crate</span>::governance::referenda::GeneralAdminOrRoot;
+<span class="kw">use </span><span class="kw">crate</span>::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 
 <span class="macro">parameter_types! </span>{
 	<span class="comment">// The network Id of the relay
@@ -1385,6 +1386,7 @@
 	<span class="kw">type </span>ReserveProvider = AbsoluteAndRelativeReserve&lt;SelfLocationAbsolute&gt;;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_xcm_transactor::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>HrmpManipulatorOrigin = GeneralAdminOrRoot;
+	<span class="kw">type </span>HrmpOpenOrigin = FastGeneralAdminOrRoot;
 	<span class="kw">type </span>MaxHrmpFee = xcm_builder::Case&lt;MaxHrmpRelayFee&gt;;
 }
 
