@@ -1412,11 +1412,7 @@ construct_runtime! {
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-use {
-	moonbeam_runtime_common::benchmarking::BenchmarkHelper,
-	moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks,
-	MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench,
-};
+use moonbeam_runtime_common::benchmarking::BenchmarkHelper;
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	frame_support::parameter_types! {
@@ -1449,7 +1445,6 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
-		[moonbeam_xcm_benchmarks::weights::generic, MoonbeamXcmGenericBench::<Runtime>]
 		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
 	);
