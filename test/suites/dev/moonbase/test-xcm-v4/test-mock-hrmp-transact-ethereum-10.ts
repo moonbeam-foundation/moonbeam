@@ -54,11 +54,12 @@ describeSuite({
 
         // Matches the BoundedVec limit in the runtime.
         const CALL_INPUT_SIZE_LIMIT = Math.pow(2, 16);
+        const GAS_LIMIT = 1_100_000;
 
         const xcmTransactions = [
           {
             V1: {
-              gas_limit: 1000000,
+              gas_limit: GAS_LIMIT,
               fee_payment: {
                 Auto: {
                   Low: null,
@@ -83,7 +84,7 @@ describeSuite({
           },
           {
             V2: {
-              gas_limit: 1000000,
+              gas_limit: GAS_LIMIT,
               action: {
                 Call: contractDeployed,
               },

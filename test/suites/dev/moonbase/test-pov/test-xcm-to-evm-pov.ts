@@ -9,7 +9,7 @@ import {
   descendOriginFromAddress20,
   injectHrmpMessage,
 } from "../../../../helpers/xcm.js";
-import { GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+import { GAS_LIMIT_POV_RATIO } from "../../../../helpers/constants";
 
 describeSuite({
   id: "D012706",
@@ -66,7 +66,7 @@ describeSuite({
       id: "T01",
       title: "should fail to execute evm tx with insufficient gas to cover PoV",
       test: async function () {
-        const GAS_LIMIT = 500_000;
+        const GAS_LIMIT = 2_000_000;
         const xcmTransactions = [
           {
             V1: {
@@ -90,7 +90,7 @@ describeSuite({
           },
         ];
 
-        const targetXcmWeight = 500_000n * 25000n + 25_000_000n + 800000000n;
+        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 800000000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
         const transferCall = context
           .polkadotJs()
@@ -123,7 +123,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                refTime: 12_525_000_000,
+                refTime: 50_025_000_000,
                 proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
               },
               call: {
@@ -163,13 +163,13 @@ describeSuite({
       id: "T02",
       title: "should execute evm tx with enough gas to cover PoV",
       test: async function () {
-        // Note: we can't use more than 1.6M gas through an XCM message, because it makes the entire
+        // Note: we can't use more than 6.4M gas through an XCM message, because it makes the entire
         // message weight to go over the allowed weight to execute an XCM message. This is called
         // "overweight".
         //
-        // If we use more than 1.6M gas, we receive the "WeightLimitReached" error and
+        // If we use more than 6.4M gas, we receive the "WeightLimitReached" error and
         // "OverweightEnqueued" event from the xcmpQueue pallet.
-        const GAS_LIMIT = 1_600_000;
+        const GAS_LIMIT = 6_400_000;
         const xcmTransactions = [
           {
             V1: {
@@ -193,13 +193,12 @@ describeSuite({
           },
         ];
 
-        const targetXcmWeight = 1_600_000n * 25000n + 25_000_000n + 800000000n;
+        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 800000000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
         const transferCall = context
           .polkadotJs()
           .tx.ethereumXcm.transact(xcmTransactions[0] as any);
         const transferCallEncoded = transferCall?.method.toHex();
-
         const xcmMessage = new XcmFragment({
           assets: [
             {
@@ -215,7 +214,7 @@ describeSuite({
           weight_limit: {
             refTime: targetXcmWeight,
             proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 2,
-          } as any,
+          },
           descend_origin: sendingAddress,
         })
           .descend_origin()
@@ -225,7 +224,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                refTime: 40_025_000_000,
+                refTime: 160_025_000_000,
                 proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
               },
               call: {

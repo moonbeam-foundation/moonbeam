@@ -26,7 +26,7 @@ describeSuite({
           precompileName: "Randomness",
           functionName: "requestLocalVRFRandomWords",
           args: [alith.address, 1n * GLMR, 100_000n, SIMPLE_SALT, 1, delayBlocks],
-          gas: 100_000n,
+          gas: 120_000n,
           privateKey: ALITH_PRIVATE_KEY,
         });
 
@@ -35,7 +35,7 @@ describeSuite({
           functionName: "requestLocalVRFRandomWords",
           args: [BALTATHAR_ADDRESS, 1n * GLMR, 100_000n, SIMPLE_SALT, 1, delayBlocks],
 
-          gas: 100_000n,
+          gas: 120_000n,
           privateKey: BALTATHAR_PRIVATE_KEY,
         });
 

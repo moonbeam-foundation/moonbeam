@@ -19,8 +19,9 @@ describeSuite({
     const newAccount = "0x1ced798a66b803d0dbb665680283980a939a6432";
     // The tx can create an account, so record 148 bytes of storage growth
     // Storage growth ratio is 366
-    // expected_gas = 148 * 366 = 54168
-    const expectedGas = 54168n;
+    // storage_gas = 148 * 366 = 54168
+    // pov_gas = 5693 * 16 = 91088
+    const expectedGas = 91_088n;
 
     it({
       id: "T01",
