@@ -12,8 +12,8 @@ describeSuite({
       await context.writePrecompile!({
         precompileName: "Randomness",
         functionName: "requestLocalVRFRandomWords",
-        args: [alith.address, 1n * GLMR, 100_000n, SIMPLE_SALT, 1, 2],
-        gas: 100_000n,
+        args: [alith.address, 1n * GLMR, 120_000n, SIMPLE_SALT, 1, 2],
+        gas: 120_000n,
       });
       await context.createBlock();
     });
@@ -84,7 +84,7 @@ describeSuite({
         const request = (
           await context.polkadotJs().query.randomness.requests.entries()
         )[0][1].unwrap().request;
-        expect(request.gasLimit.toBigInt()).to.equal(100_000n);
+        expect(request.gasLimit.toBigInt()).to.equal(120_000n);
       },
     });
 

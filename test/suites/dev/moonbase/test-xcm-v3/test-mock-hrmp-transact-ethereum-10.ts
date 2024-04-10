@@ -56,7 +56,7 @@ describeSuite({
         // Matches the BoundedVec limit in the runtime.
         const CALL_INPUT_SIZE_LIMIT = Math.pow(2, 16);
 
-        const GAS_LIMIT = 1000000;
+        const GAS_LIMIT = 1_100_000;
 
         const xcmTransactions = [
           {

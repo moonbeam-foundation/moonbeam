@@ -5,7 +5,7 @@ import {
   expect,
   deployCreateCompiledContract,
 } from "@moonwall/cli";
-import { EXTRINSIC_GAS_LIMIT } from "@moonwall/util";
+import { EXTRINSIC_GAS_LIMIT } from "../../../../helpers/constants";
 
 describeSuite({
   id: "D010403",
@@ -55,7 +55,7 @@ describeSuite({
             args: [],
             functionName: "getGasLimit",
           })
-        ).to.equal(15000000n);
+        ).to.equal(60000000n);
       },
     });
   },

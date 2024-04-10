@@ -91,6 +91,7 @@ describeSuite({
               contractName: "RelayDataVerifier",
               functionName: "verifyEntry",
               args: [1000, readProof.toJSON(), keys[0]],
+              gas: 100_000n,
             })
           ).toBe("0xc0e413b88d010000"); // 1_708_190_328_000 scale encoded
         },
@@ -107,6 +108,7 @@ describeSuite({
             contractName: "RelayDataVerifier",
             functionName: "verifyEntries",
             args: [1000, readProof.toJSON(), keys],
+            gas: 100_000n,
           })
         ).toStrictEqual([
           "0xc0e413b88d010000",
