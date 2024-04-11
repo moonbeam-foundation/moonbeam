@@ -81,7 +81,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "should be under the limit of 3_500_000",
+      title: "should be under the limit of 3_750_000",
       test: async () => {
         // Moves to the next payout block
         await jumpRounds(context, 2);
@@ -93,15 +93,16 @@ describeSuite({
           "proofSize is too low, probably missing payout in the block"
         ).to.be.at.least(100_000);
 
-        // block could support ~5_000_000 proofSize but we consider it safer to error when reaching
-        // 2_500_000 which is already high for a payout
+        // block could support ~5_000_000 bytes proofSize in total
+        // but we consider it safer to error when reaching 55% of the capacity
+        // of the block (~2_750_000) which is already high for a payout
         expect(
           weights.mandatory.proofSize.toNumber(),
           "proofSize is too high, this might lead to empty block"
-        ).to.be.at.most(2_600_000);
+        ).to.be.at.most(2_612_362);
 
         // block could support ~500ms refTime but we consider it safer to error when reaching
-        // over 200ms for the payout
+        // over 200ms for the payout. After Async Backing a block could support 2000ms.
         expect(
           weights.mandatory.refTime.toNumber(),
           "refTime over 200ms, very high for a payout"
