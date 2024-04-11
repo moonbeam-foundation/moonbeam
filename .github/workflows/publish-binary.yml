@@ -39,7 +39,7 @@ jobs:
           # Build moonbeam
           # (we don't use volumes because of ownership/permissions issues)
           docker build \
-            --tag prod \
+            --tag prod --no-cache \
             --build-arg="COMMIT=${{ github.event.inputs.to }}" \
             --build-arg="RUSTFLAGS=-C target-cpu=${{ matrix.cpu }}" \
             - < docker/moonbeam-production.Dockerfile
