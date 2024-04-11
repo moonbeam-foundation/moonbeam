@@ -20,7 +20,7 @@
     "@moonbeam-network/api-augment": "0.2801.0",
     "@moonwall/cli": "^5.1.4",
     "@moonwall/util": "^5.1.4",
-    "@openzeppelin/contracts": "4.9.3",
+    "@openzeppelin/contracts": "4.9.6",
     "@polkadot/api": "10.12.6",
     "@polkadot/api-augment": "10.12.6",
     "@polkadot/api-derive": "10.12.6",
