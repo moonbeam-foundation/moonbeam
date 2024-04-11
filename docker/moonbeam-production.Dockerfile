@@ -30,6 +30,7 @@ RUN git clone --depth=1 --branch $COMMIT https://github.com/purestake/moonbeam.g
 WORKDIR /moonbeam/moonbeam
 
 RUN echo "*** Building Moonbeam ***"
+RUN rustup show
 RUN cargo build --profile=production --all
 
 FROM debian:bookworm-slim
