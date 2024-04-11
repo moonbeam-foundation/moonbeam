@@ -423,6 +423,7 @@
               "--alice",
               "--chain=tmp/moonbase-dev-raw.json",
               "--sealing=manual",
+              "--block-authoring-duration=2000",
               "--tmp"
             ]
           }
