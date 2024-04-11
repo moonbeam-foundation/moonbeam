@@ -31,6 +31,7 @@ WORKDIR /moonbeam/moonbeam
 
 RUN echo "*** Building Moonbeam ***"
 RUN rustup show
+RUN rustup component add rust-src
 RUN cargo build --profile=production --all
 
 FROM debian:bookworm-slim
