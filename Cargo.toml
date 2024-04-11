@@ -369,7 +369,6 @@ strum_macros = "0.24"
 
 # Other (client)
 
-ansi_term = "0.12.1"
 assert_cmd = "2.0.10"
 async-io = "1.3"
 bip32 = { version = "0.5.1", default-features = false, features = ["bip39"] }

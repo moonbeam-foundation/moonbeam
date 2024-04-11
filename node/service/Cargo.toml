@@ -7,7 +7,6 @@ license = "GPL-3.0-only"
 version = "0.37.0"
 
 [dependencies]
-ansi_term = { workspace = true }
 async-io = { workspace = true }
 async-trait = { workspace = true }
 bip32 = { workspace = true }
