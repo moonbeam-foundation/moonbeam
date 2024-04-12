@@ -1,0 +1,197 @@
+Pallets:
+    ~ AssetManager
+        Calls:
+            ~ change_existing_asset_type
+            - destroy_local_asset
+            ~ register_foreign_asset
+            - register_local_asset
+            ~ remove_supported_asset
+            ~ set_asset_units_per_second
+        Constants:
+            - LocalAssetDeposit
+        Storage Entries:
+            ~ AssetIdType (Changed: value type)
+            ~ AssetTypeId (Changed: key type)
+            ~ AssetTypeUnitsPerSecond (Changed: key type)
+            - LocalAssetCounter
+            - LocalAssetDeposit
+            ~ SupportedFeePaymentAssets (Changed: value type)
+    ~ AsyncBacking
+        Constants:
+            + ExpectedBlockTime
+    ~ Balances
+        Calls:
+            + force_adjust_total_issuance
+        Constants:
+            - MaxHolds
+    ~ CumulusXcm
+    - Democracy
+    ~ DmpQueue
+        Calls:
+            - service_overweight
+        Storage Entries:
+            - Configuration
+            - CounterForOverweight
+            + MigrationStatus
+            - Overweight
+            - PageIndex
+            - Pages
+    + EmergencyParaXcm
+    ~ Identity
+        Calls:
+            + accept_username
+            + add_username_authority
+            + remove_dangling_username
+            + remove_expired_approval
+            + remove_username_authority
+            ~ set_fields
+            + set_primary_username
+            + set_username_for
+        Constants:
+            + ByteDeposit
+            - FieldDeposit
+            - MaxAdditionalFields
+            + MaxSuffixLength
+            + MaxUsernameLength
+            + PendingUsernameExpiration
+        Storage Entries:
+            + AccountOfUsername
+            ~ IdentityOf (Changed: value type)
+            + PendingUsernames
+            ~ Registrars (Changed: value type)
+            + UsernameAuthorities
+    + MessageQueue
+    ~ MoonbeamLazyMigrations
+        Calls:
+            ~ clear_local_assets_storage
+            - unlock_democracy_funds
+        Storage Entries:
+            - DemocracyLocksMigrationCompleted
+    ~ Multisig
+        Calls:
+            ~ as_multi
+            ~ as_multi_threshold_1
+    ~ OpenTechCommitteeCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: value type)
+    ~ ParachainSystem
+        Storage Entries:
+            - AuthorizedUpgrade
+    ~ PolkadotXcm
+        Calls:
+            ~ execute
+            ~ force_subscribe_version_notify
+            ~ force_unsubscribe_version_notify
+            ~ force_xcm_version
+            ~ limited_reserve_transfer_assets
+            ~ limited_teleport_assets
+            ~ reserve_transfer_assets
+            ~ send
+            ~ teleport_assets
+            + transfer_assets
+        Storage Entries:
+            ~ LockedFungibles (Changed: value type)
+            ~ Queries (Changed: value type)
+            ~ RemoteLockedFungibles (Changed: key type, value type)
+            ~ SupportedVersion (Changed: key type)
+            ~ VersionDiscoveryQueue (Changed: value type)
+            ~ VersionNotifiers (Changed: key type)
+            ~ VersionNotifyTargets (Changed: key type, value type)
+    ~ Proxy
+        Calls:
+            ~ proxy
+            ~ proxy_announced
+    ~ Referenda
+        Calls:
+            ~ submit
+        Storage Entries:
+            ~ ReferendumInfoFor (Changed: value type)
+    ~ RootTesting
+        Calls:
+            + trigger_defensive
+    ~ Scheduler
+        Calls:
+            ~ schedule
+            ~ schedule_after
+            ~ schedule_named
+            ~ schedule_named_after
+        Storage Entries:
+            ~ Agenda (Changed: value type)
+    ~ Sudo
+        Calls:
+            + remove_key
+            ~ sudo
+            ~ sudo_as
+            ~ sudo_unchecked_weight
+    ~ System
+        Calls:
+            + apply_authorized_upgrade
+            + authorize_upgrade
+            + authorize_upgrade_without_checks
+        Storage Entries:
+            + AuthorizedUpgrade
+            ~ Events (Changed: )
+    ~ TreasuryCouncilCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: value type)
+    ~ Utility
+        Calls:
+            ~ as_derivative
+            ~ batch
+            ~ batch_all
+            ~ dispatch_as
+            ~ force_batch
+            ~ with_weight
+    ~ Whitelist
+        Calls:
+            ~ dispatch_whitelisted_call_with_preimage
+    ~ XTokens
+        Calls:
+            ~ transfer
+            ~ transfer_multiasset
+            ~ transfer_multiasset_with_fee
+            ~ transfer_multiassets
+            ~ transfer_multicurrencies
+            ~ transfer_with_fee
+        Constants:
+            ~ SelfLocation
+    ~ XcmTransactor
+        Calls:
+            ~ hrmp_manage
+            ~ remove_fee_per_second
+            ~ remove_transact_info
+            ~ set_fee_per_second
+            ~ set_transact_info
+            ~ transact_through_derivative
+            ~ transact_through_signed
+            ~ transact_through_sovereign
+        Constants:
+            ~ SelfLocation
+        Storage Entries:
+            ~ DestinationAssetFeePerSecond (Changed: key type)
+            ~ TransactInfoWithWeightLimit (Changed: key type, value type)
+    ~ XcmpQueue
+        Calls:
+            - service_overweight
+            - update_threshold_weight
+            - update_weight_restrict_decay
+            - update_xcmp_max_individual_weight
+        Constants:
+            + MaxInboundSuspended
+        Storage Entries:
+            - CounterForOverweight
+            - InboundXcmpMessages
+            - InboundXcmpStatus
+            + InboundXcmpSuspended
+            - Overweight
+            - OverweightCount
+            ~ QueueConfig (Changed: value type, default value)
+Runtime APIs:
+    ~ DebugRuntimeApi
+    + GenesisBuilder
