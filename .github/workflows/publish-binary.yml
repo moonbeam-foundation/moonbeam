@@ -28,7 +28,7 @@ jobs:
     runs-on: bare-metal
     strategy:
       matrix:
-        cpu: ["", "skylake", "znver3"]
+        cpu: ["x86_64", "skylake", "znver3"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -54,21 +54,14 @@ jobs:
           docker rmi prod
 
       - name: Save parachain binary
-        if: ${{ matrix.cpu == '' }}
-        run: |
-          mkdir -p build
-          cp moonbeam build/moonbeam
-      - name: Save parachain custom binary
-        if: ${{ matrix.cpu != '' }}
         run: |
           mkdir -p build
           cp moonbeam build/moonbeam-${{matrix.cpu}}
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: binaries
-          path: build
-          overwrite: true
+          name: binaries-${{matrix.cpu}}
+          path: build/moonbeam-${{matrix.cpu}}
 
   ####### Prepare the release draft #######
 
@@ -123,26 +116,27 @@ jobs:
     needs: ["build-binary", "publish-draft-release"]
     strategy:
       matrix:
-        cpu: ["", "skylake", "znver3"]
+        cpu: ["x86_64", "skylake", "znver3"]
         node: ["moonbeam"]
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: binaries
+          pattern: binaries-*
+          merge-multiple: true
           path: build
       - name: Upload moonbeam
         uses: actions/upload-release-asset@v1
-        if: ${{ matrix.cpu == '' }}
+        if: ${{ matrix.cpu == 'x86_64' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.publish-draft-release.outputs.asset_upload_url }}
-          asset_path: build/${{matrix.node}}
+          asset_path: build/${{matrix.node}}-${{matrix.cpu}}
           asset_name: ${{matrix.node}}
           asset_content_type: application/octet-stream
       - name: Upload moonbeam custom binary
         uses: actions/upload-release-asset@v1
-        if: ${{ matrix.cpu != '' }}
+        if: ${{ matrix.cpu != 'x86_64' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -163,7 +157,8 @@ jobs:
           ref: ${{ github.event.inputs.to }}
       - uses: actions/download-artifact@v4
         with:
-          name: binaries
+          pattern: binaries-*
+          merge-multiple: true
           path: build
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -171,6 +166,8 @@ jobs:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
       - run: |
+          mv build/moonbeam-x86_64 build/moonbeam
+
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
           COMMIT=`git rev-list -n 1 '${{ github.event.inputs.to }}'`
           SHA=sha-${COMMIT::8}
