@@ -383,7 +383,7 @@ nix = "0.23"
 parking_lot = "0.12.0"
 primitive-types = "0.12.0"
 prometheus = { version = "0.13.0", default-features = false }
-rand = "0.7.3"
+rand = "0.8.5"
 serde_json = { version = "1.0" }
 similar-asserts = "1.1.0"
 tempfile = "3.2.0"
