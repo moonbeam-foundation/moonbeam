@@ -107,6 +107,8 @@ declare module "@polkadot/api-base/types/errors" {
     balances: {
       /** Beneficiary account must pre-exist. */
       DeadAccount: AugmentedError<ApiType>;
+      /** The delta cannot be zero. */
+      DeltaZero: AugmentedError<ApiType>;
       /** Value too low to create account due to existential deposit. */
       ExistentialDeposit: AugmentedError<ApiType>;
       /** A vesting schedule already exists for this account. */
@@ -115,11 +117,13 @@ declare module "@polkadot/api-base/types/errors" {
       Expendability: AugmentedError<ApiType>;
       /** Balance too low to send value. */
       InsufficientBalance: AugmentedError<ApiType>;
+      /** The issuance cannot be modified since it is already deactivated. */
+      IssuanceDeactivated: AugmentedError<ApiType>;
       /** Account liquidity restrictions prevent withdrawal. */
       LiquidityRestrictions: AugmentedError<ApiType>;
       /** Number of freezes exceed `MaxFreezes`. */
       TooManyFreezes: AugmentedError<ApiType>;
-      /** Number of holds exceed `MaxHolds`. */
+      /** Number of holds exceed `VariantCountOf<T::RuntimeHoldReason>`. */
       TooManyHolds: AugmentedError<ApiType>;
       /** Number of named reserves exceed `MaxReserves`. */
       TooManyReserves: AugmentedError<ApiType>;
@@ -206,73 +210,6 @@ declare module "@polkadot/api-base/types/errors" {
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
-    cumulusXcm: {
-      /** Generic error */
-      [key: string]: AugmentedError<ApiType>;
-    };
-    democracy: {
-      /** Cannot cancel the same proposal twice */
-      AlreadyCanceled: AugmentedError<ApiType>;
-      /** The account is already delegating. */
-      AlreadyDelegating: AugmentedError<ApiType>;
-      /** Identity may not veto a proposal twice */
-      AlreadyVetoed: AugmentedError<ApiType>;
-      /** Proposal already made */
-      DuplicateProposal: AugmentedError<ApiType>;
-      /** The instant referendum origin is currently disallowed. */
-      InstantNotAllowed: AugmentedError<ApiType>;
-      /** Too high a balance was provided that the account cannot afford. */
-      InsufficientFunds: AugmentedError<ApiType>;
-      /** Invalid hash */
-      InvalidHash: AugmentedError<ApiType>;
-      /** Maximum number of votes reached. */
-      MaxVotesReached: AugmentedError<ApiType>;
-      /** No proposals waiting */
-      NoneWaiting: AugmentedError<ApiType>;
-      /** Delegation to oneself makes no sense. */
-      Nonsense: AugmentedError<ApiType>;
-      /** The actor has no permission to conduct the action. */
-      NoPermission: AugmentedError<ApiType>;
-      /** No external proposal */
-      NoProposal: AugmentedError<ApiType>;
-      /** The account is not currently delegating. */
-      NotDelegating: AugmentedError<ApiType>;
-      /** Next external proposal not simple majority */
-      NotSimpleMajority: AugmentedError<ApiType>;
-      /** The given account did not vote on the referendum. */
-      NotVoter: AugmentedError<ApiType>;
-      /** The preimage does not exist. */
-      PreimageNotExist: AugmentedError<ApiType>;
-      /** Proposal still blacklisted */
-      ProposalBlacklisted: AugmentedError<ApiType>;
-      /** Proposal does not exist */
-      ProposalMissing: AugmentedError<ApiType>;
-      /** Vote given for invalid referendum */
-      ReferendumInvalid: AugmentedError<ApiType>;
-      /** Maximum number of items reached. */
-      TooMany: AugmentedError<ApiType>;
-      /** Value too low */
-      ValueLow: AugmentedError<ApiType>;
-      /**
-       * The account currently has votes attached to it and the operation cannot succeed until these
-       * are removed, either through `unvote` or `reap_vote`.
-       */
-      VotesExist: AugmentedError<ApiType>;
-      /** Voting period too low */
-      VotingPeriodLow: AugmentedError<ApiType>;
-      /** Invalid upper bound. */
-      WrongUpperBound: AugmentedError<ApiType>;
-      /** Generic error */
-      [key: string]: AugmentedError<ApiType>;
-    };
-    dmpQueue: {
-      /** The amount of weight given is possibly not enough for executing the message. */
-      OverLimit: AugmentedError<ApiType>;
-      /** The message index given is unknown. */
-      Unknown: AugmentedError<ApiType>;
-      /** Generic error */
-      [key: string]: AugmentedError<ApiType>;
-    };
     ethereum: {
       /** Signature is invalid. */
       InvalidSignature: AugmentedError<ApiType>;
@@ -330,16 +267,26 @@ declare module "@polkadot/api-base/types/errors" {
       InvalidIndex: AugmentedError<ApiType>;
       /** Invalid judgement. */
       InvalidJudgement: AugmentedError<ApiType>;
+      /** The signature on a username was not valid. */
+      InvalidSignature: AugmentedError<ApiType>;
+      /** The provided suffix is too long. */
+      InvalidSuffix: AugmentedError<ApiType>;
       /** The target is invalid. */
       InvalidTarget: AugmentedError<ApiType>;
+      /** The username does not meet the requirements. */
+      InvalidUsername: AugmentedError<ApiType>;
       /** The provided judgement was for a different identity. */
       JudgementForDifferentIdentity: AugmentedError<ApiType>;
       /** Judgement given. */
       JudgementGiven: AugmentedError<ApiType>;
       /** Error that occurs when there is an issue paying for judgement. */
       JudgementPaymentFailed: AugmentedError<ApiType>;
+      /** The authority cannot allocate any more usernames. */
+      NoAllocation: AugmentedError<ApiType>;
       /** No identity found. */
       NoIdentity: AugmentedError<ApiType>;
+      /** The username cannot be forcefully removed because it can still be accepted. */
+      NotExpired: AugmentedError<ApiType>;
       /** Account isn't found. */
       NotFound: AugmentedError<ApiType>;
       /** Account isn't named. */
@@ -348,14 +295,20 @@ declare module "@polkadot/api-base/types/errors" {
       NotOwned: AugmentedError<ApiType>;
       /** Sender is not a sub-account. */
       NotSub: AugmentedError<ApiType>;
+      /** The sender does not have permission to issue a username. */
+      NotUsernameAuthority: AugmentedError<ApiType>;
+      /** The requested username does not exist. */
+      NoUsername: AugmentedError<ApiType>;
+      /** Setting this username requires a signature, but none was provided. */
+      RequiresSignature: AugmentedError<ApiType>;
       /** Sticky judgement. */
       StickyJudgement: AugmentedError<ApiType>;
-      /** Too many additional fields. */
-      TooManyFields: AugmentedError<ApiType>;
       /** Maximum amount of registrars reached. Cannot add any more. */
       TooManyRegistrars: AugmentedError<ApiType>;
       /** Too many subs-accounts. */
       TooManySubAccounts: AugmentedError<ApiType>;
+      /** The username is already taken. */
+      UsernameTaken: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -364,6 +317,36 @@ declare module "@polkadot/api-base/types/errors" {
       AlreadyInMaintenanceMode: AugmentedError<ApiType>;
       /** The chain cannot resume normal operation because it is not in maintenance mode */
       NotInMaintenanceMode: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    messageQueue: {
+      /** The message was already processed and cannot be processed again. */
+      AlreadyProcessed: AugmentedError<ApiType>;
+      /** There is temporarily not enough weight to continue servicing messages. */
+      InsufficientWeight: AugmentedError<ApiType>;
+      /** The referenced message could not be found. */
+      NoMessage: AugmentedError<ApiType>;
+      /** Page to be reaped does not exist. */
+      NoPage: AugmentedError<ApiType>;
+      /** Page is not reapable because it has items remaining to be processed and is not old enough. */
+      NotReapable: AugmentedError<ApiType>;
+      /** The message is queued for future execution. */
+      Queued: AugmentedError<ApiType>;
+      /**
+       * The queue is paused and no message can be executed from it.
+       *
+       * This can change at any time and may resolve in the future by re-trying.
+       */
+      QueuePaused: AugmentedError<ApiType>;
+      /** Another call is in progress and needs to finish before this call can happen. */
+      RecursiveDisallowed: AugmentedError<ApiType>;
+      /**
+       * This message is temporarily unprocessable.
+       *
+       * Such errors are expected, but not guaranteed, to resolve themselves eventually through retrying.
+       */
+      TemporarilyUnprocessable: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -390,6 +373,8 @@ declare module "@polkadot/api-base/types/errors" {
       ContractNotCorrupted: AugmentedError<ApiType>;
       /** The limit cannot be zero */
       LimitCannotBeZero: AugmentedError<ApiType>;
+      /** The maximum number of assets cannot be zero */
+      MaxAssetsCannotBeZero: AugmentedError<ApiType>;
       /** The limit for unlocking funds is too high */
       UnlockLimitTooHigh: AugmentedError<ApiType>;
       /** Generic error */
@@ -569,9 +554,11 @@ declare module "@polkadot/api-base/types/errors" {
       BadLocation: AugmentedError<ApiType>;
       /** The version of the `Versioned` value used is not able to be interpreted. */
       BadVersion: AugmentedError<ApiType>;
+      /** Could not check-out the assets for teleportation to the destination chain. */
+      CannotCheckOutTeleport: AugmentedError<ApiType>;
       /** Could not re-anchor the assets to declare the fees for the destination chain. */
       CannotReanchor: AugmentedError<ApiType>;
-      /** The destination `MultiLocation` provided cannot be inverted. */
+      /** The destination `Location` provided cannot be inverted. */
       DestinationNotInvertible: AugmentedError<ApiType>;
       /** The assets to be sent are empty. */
       Empty: AugmentedError<ApiType>;
@@ -581,10 +568,16 @@ declare module "@polkadot/api-base/types/errors" {
       Filtered: AugmentedError<ApiType>;
       /** The unlock operation cannot succeed because there are still consumers of the lock. */
       InUse: AugmentedError<ApiType>;
-      /** Invalid asset for the operation. */
-      InvalidAsset: AugmentedError<ApiType>;
+      /** Invalid non-concrete asset. */
+      InvalidAssetNotConcrete: AugmentedError<ApiType>;
+      /** Invalid asset, reserve chain could not be determined for it. */
+      InvalidAssetUnknownReserve: AugmentedError<ApiType>;
+      /** Invalid asset, do not support remote asset reserves with different fees reserves. */
+      InvalidAssetUnsupportedReserve: AugmentedError<ApiType>;
       /** Origin is invalid for sending. */
       InvalidOrigin: AugmentedError<ApiType>;
+      /** Local XCM execution incomplete. */
+      LocalExecutionIncomplete: AugmentedError<ApiType>;
       /** A remote lock with the corresponding data could not be found. */
       LockNotFound: AugmentedError<ApiType>;
       /** The owner does not own (all) of the asset that they wish to do the operation on. */
@@ -600,10 +593,17 @@ declare module "@polkadot/api-base/types/errors" {
       TooManyAssets: AugmentedError<ApiType>;
       /** The asset owner has too many locks on the asset. */
       TooManyLocks: AugmentedError<ApiType>;
+      /** Too many assets with different reserve locations have been attempted for transfer. */
+      TooManyReserves: AugmentedError<ApiType>;
       /** The desired destination was unreachable, generally because there is a no way of routing to it. */
       Unreachable: AugmentedError<ApiType>;
       /** The message's weight could not be determined. */
       UnweighableMessage: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    precompileBenchmarks: {
+      BenchmarkError: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -722,8 +722,12 @@ declare module "@polkadot/api-base/types/errors" {
       NonDefaultComposite: AugmentedError<ApiType>;
       /** There is a non-zero reference count preventing the account from being purged. */
       NonZeroRefCount: AugmentedError<ApiType>;
+      /** No upgrade authorized. */
+      NothingAuthorized: AugmentedError<ApiType>;
       /** The specification version is not allowed to decrease between the current runtime and the new runtime. */
       SpecVersionNeedsToIncrease: AugmentedError<ApiType>;
+      /** The submitted code is not authorized. */
+      Unauthorized: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -802,16 +806,12 @@ declare module "@polkadot/api-base/types/errors" {
       [key: string]: AugmentedError<ApiType>;
     };
     xcmpQueue: {
-      /** Bad overweight index. */
-      BadOverweightIndex: AugmentedError<ApiType>;
-      /** Bad XCM data. */
-      BadXcm: AugmentedError<ApiType>;
-      /** Bad XCM origin. */
-      BadXcmOrigin: AugmentedError<ApiType>;
-      /** Failed to send XCM message. */
-      FailedToSend: AugmentedError<ApiType>;
-      /** Provided weight is possibly not enough to execute the message. */
-      WeightOverLimit: AugmentedError<ApiType>;
+      /** The execution is already resumed. */
+      AlreadyResumed: AugmentedError<ApiType>;
+      /** The execution is already suspended. */
+      AlreadySuspended: AugmentedError<ApiType>;
+      /** Setting the queue config failed since one of its values was invalid. */
+      BadQueueConfig: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -849,13 +849,13 @@ declare module "@polkadot/api-base/types/errors" {
     xTokens: {
       /** Asset has no reserve location. */
       AssetHasNoReserve: AugmentedError<ApiType>;
-      /** The specified index does not exist in a MultiAssets struct. */
+      /** The specified index does not exist in a Assets struct. */
       AssetIndexNonExistent: AugmentedError<ApiType>;
       /** The version of the `Versioned` value used is not able to be interpreted. */
       BadVersion: AugmentedError<ApiType>;
       /** Could not re-anchor the assets to declare the fees for the destination chain. */
       CannotReanchor: AugmentedError<ApiType>;
-      /** The destination `MultiLocation` provided cannot be inverted. */
+      /** The destination `Location` provided cannot be inverted. */
       DestinationNotInvertible: AugmentedError<ApiType>;
       /** We tried sending distinct asset and fee but they have different reserve chains. */
       DistinctReserveForAssetAndFee: AugmentedError<ApiType>;
@@ -863,7 +863,7 @@ declare module "@polkadot/api-base/types/errors" {
       FeeNotEnough: AugmentedError<ApiType>;
       /** Could not get ancestry of asset reserve location. */
       InvalidAncestry: AugmentedError<ApiType>;
-      /** The MultiAsset is invalid. */
+      /** The Asset is invalid. */
       InvalidAsset: AugmentedError<ApiType>;
       /** Invalid transfer destination. */
       InvalidDest: AugmentedError<ApiType>;
@@ -873,8 +873,8 @@ declare module "@polkadot/api-base/types/errors" {
       NotCrossChainTransfer: AugmentedError<ApiType>;
       /** Currency is not cross-chain transferable. */
       NotCrossChainTransferableCurrency: AugmentedError<ApiType>;
-      /** Not supported MultiLocation */
-      NotSupportedMultiLocation: AugmentedError<ApiType>;
+      /** Not supported Location */
+      NotSupportedLocation: AugmentedError<ApiType>;
       /** The number of assets to be sent is over the maximum. */
       TooManyAssetsBeingSent: AugmentedError<ApiType>;
       /** The message's weight could not be determined. */
