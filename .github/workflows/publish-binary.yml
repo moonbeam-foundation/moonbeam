@@ -28,7 +28,7 @@ jobs:
     runs-on: bare-metal
     strategy:
       matrix:
-        cpu: ["x86_64", "skylake", "znver3"]
+        cpu: ["x86-64", "skylake", "znver3"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -116,7 +116,7 @@ jobs:
     needs: ["build-binary", "publish-draft-release"]
     strategy:
       matrix:
-        cpu: ["x86_64", "skylake", "znver3"]
+        cpu: ["x86-64", "skylake", "znver3"]
         node: ["moonbeam"]
     steps:
       - uses: actions/download-artifact@v4
@@ -126,7 +126,7 @@ jobs:
           path: build
       - name: Upload moonbeam
         uses: actions/upload-release-asset@v1
-        if: ${{ matrix.cpu == 'x86_64' }}
+        if: ${{ matrix.cpu == 'x86-64' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -136,7 +136,7 @@ jobs:
           asset_content_type: application/octet-stream
       - name: Upload moonbeam custom binary
         uses: actions/upload-release-asset@v1
-        if: ${{ matrix.cpu != 'x86_64' }}
+        if: ${{ matrix.cpu != 'x86-64' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -166,7 +166,7 @@ jobs:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
       - run: |
-          mv build/moonbeam-x86_64 build/moonbeam
+          mv build/moonbeam-x86-64 build/moonbeam
 
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
           COMMIT=`git rev-list -n 1 '${{ github.event.inputs.to }}'`
