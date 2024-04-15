@@ -57,6 +57,35 @@ where
 	}
 }
 
+/// Moonbeam has 134 keys to be migrated
+/// Moonriver has 117 keys to be migrated
+/// Moonbase has 172 keys to be migrated
+pub const PALLET_IDENTITY_MIGRATION_KEY_LIMIT: u64 = 3000;
+
+pub struct PalletIdentityMigrateV0ToV1<Runtime, const KL: u64>(PhantomData<Runtime>);
+impl<Runtime, const KL: u64> Migration for PalletIdentityMigrateV0ToV1<Runtime, KL>
+where
+	Runtime: pallet_identity::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_PalletIdentityMigrateV0ToV1"
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		pallet_identity::migration::versioned::V0ToV1::<Runtime, KL>::pre_upgrade()
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_identity::migration::versioned::V0ToV1::<Runtime, KL>::on_runtime_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		pallet_identity::migration::versioned::V0ToV1::<Runtime, KL>::post_upgrade(state)
+	}
+}
+
 parameter_types! {
 	pub const DemocracyPalletName: &'static str = "Democracy";
 }
@@ -222,6 +251,7 @@ where
 	Runtime: pallet_xcm::Config,
 	Runtime::AccountId: Default,
 	BlockNumberFor<Runtime>: Into<u64>,
+	Runtime: pallet_identity::Config,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
@@ -300,6 +330,11 @@ where
 		let remove_pallet_democracy = RemovePalletDemocracy::<Runtime>(Default::default());
 		let remove_collectives_addresses =
 			RemoveCollectivesAddresses::<Runtime>(Default::default());
+		// This migration can be removed in RT3000
+		let migrate_pallet_identity = PalletIdentityMigrateV0ToV1::<
+			Runtime,
+			{ PALLET_IDENTITY_MIGRATION_KEY_LIMIT },
+		>(Default::default());
 
 		vec![
 			// completed in runtime 800
@@ -362,6 +397,7 @@ where
 			// completed in runtime 2900
 			Box::new(remove_pallet_democracy),
 			Box::new(remove_collectives_addresses),
+			Box::new(migrate_pallet_identity),
 			// permanent migrations
 			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
 		]
