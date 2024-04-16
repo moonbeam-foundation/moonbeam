@@ -60,7 +60,7 @@ where
 /// Moonbeam has 134 keys to be migrated
 /// Moonriver has 117 keys to be migrated
 /// Moonbase has 172 keys to be migrated
-pub const PALLET_IDENTITY_MIGRATION_KEY_LIMIT: u64 = 3000;
+pub const PALLET_IDENTITY_MIGRATION_KEY_LIMIT: u64 = 500;
 
 pub struct PalletIdentityMigrateV0ToV1<Runtime, const KL: u64>(PhantomData<Runtime>);
 impl<Runtime, const KL: u64> Migration for PalletIdentityMigrateV0ToV1<Runtime, KL>
