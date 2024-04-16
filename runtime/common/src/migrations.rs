@@ -73,16 +73,19 @@ where
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		pallet_identity::migration::versioned::V0ToV1::<Runtime, KL>::pre_upgrade()
+		pallet_identity::migration::v1::VersionUncheckedMigrateV0ToV1::<Runtime, KL>::pre_upgrade()
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		pallet_identity::migration::versioned::V0ToV1::<Runtime, KL>::on_runtime_upgrade()
+		pallet_identity::migration::v1::VersionUncheckedMigrateV0ToV1::<Runtime, KL>::on_runtime_upgrade(
+		)
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		pallet_identity::migration::versioned::V0ToV1::<Runtime, KL>::post_upgrade(state)
+		pallet_identity::migration::v1::VersionUncheckedMigrateV0ToV1::<Runtime, KL>::post_upgrade(
+			state,
+		)
 	}
 }
 
