@@ -175,7 +175,7 @@ describeSuite({
           })
         ).equals(amountTransferred);
 
-        const feeAssetAmount = 1_000_000_000_000_000n;
+        const feeAssetAmount = 1_100_000_000_000_000n;
 
         // Create xcm message to send ERC20 tokens to Charleth
         const config: XcmFragmentConfig = {
