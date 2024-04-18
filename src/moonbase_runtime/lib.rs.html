@@ -1801,6 +1801,7 @@
 <a href="#1801" id="1801">1801</a>
 <a href="#1802" id="1802">1802</a>
 <a href="#1803" id="1803">1803</a>
+<a href="#1804" id="1804">1804</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2229,6 +2230,7 @@
 	/// ceil(
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
+	/// We should re-check `xcm_config::Erc20XcmBridgeTransferGasLimit` when changing this value
 	</span><span class="kw">pub const </span>GasLimitPovSizeRatio: u64 = <span class="number">16</span>;
 	<span class="doccomment">/// The amount of gas per storage (in bytes): BLOCK_GAS_LIMIT / BLOCK_STORAGE_LIMIT
 	/// (60_000_000 / 160 kb)
