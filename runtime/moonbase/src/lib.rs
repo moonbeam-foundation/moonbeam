@@ -426,6 +426,7 @@ parameter_types! {
 	/// ceil(
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
+	/// We should re-check `xcm_config::Erc20XcmBridgeTransferGasLimit` when changing this value
 	pub const GasLimitPovSizeRatio: u64 = 16;
 	/// The amount of gas per storage (in bytes): BLOCK_GAS_LIMIT / BLOCK_STORAGE_LIMIT
 	/// (60_000_000 / 160 kb)

@@ -74,7 +74,7 @@ describeSuite({
                 X1: { PalletInstance: Number(balancesPalletIndex) },
               },
             },
-            fungible: 1_000_000_000_000_000n,
+            fungible: 1_700_000_000_000_000n,
           },
           {
             multilocation: {

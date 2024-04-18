@@ -61,9 +61,9 @@ describeSuite({
             // Destination as multilocation
             destination,
             // weight
-            500_000n,
+            900_000n,
           ],
-          gas: 500_000n,
+          gas: 900_000n,
           rawTxOnly: true,
         });
 
