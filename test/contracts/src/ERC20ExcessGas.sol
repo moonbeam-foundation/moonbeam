@@ -18,7 +18,7 @@ contract ERC20ExcessGas is ERC20WithInitialSupply {
         uint256 amount
     ) public override returns (bool) {
         // Consume gas to over Erc20XcmBridgeTransferGasLimit
-        for (uint i = 0; i < 500; i++) {
+        for (uint i = 0; i < 2000; i++) {
             _gasHog += i;
         }
 
