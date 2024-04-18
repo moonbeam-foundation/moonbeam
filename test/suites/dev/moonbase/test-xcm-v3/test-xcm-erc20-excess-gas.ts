@@ -235,7 +235,7 @@ describeSuite({
                       },
                     },
                     // Override default gas limit with optional GeneralKey.
-                    // b'gas_limit:' + 300000(little endian) + zeros padding
+                    // b'gas_limit:' + 900000(little endian) + zeros padding
                     {
                       GeneralKey: {
                         data: [
