@@ -25,12 +25,12 @@ import type { CollationInfo } from "@polkadot/types/interfaces/cumulus";
 import type {
   BlockV2,
   EthReceiptV3,
-  EthTransaction,
   EthTransactionStatus,
   TransactionV2,
 } from "@polkadot/types/interfaces/eth";
 import type { EvmAccount, EvmCallInfoV2, EvmCreateInfoV2 } from "@polkadot/types/interfaces/evm";
 import type { Extrinsic } from "@polkadot/types/interfaces/extrinsics";
+import type { GenesisBuildErr } from "@polkadot/types/interfaces/genesisBuilder";
 import type { OpaqueMetadata } from "@polkadot/types/interfaces/metadata";
 import type { FeeDetails, RuntimeDispatchInfo } from "@polkadot/types/interfaces/payment";
 import type {
@@ -165,55 +165,6 @@ declare module "@polkadot/api-base/types/calls" {
       /** Generic call */
       [key: string]: DecoratedCallBase<ApiType>;
     };
-    /** 0xbd78255d4feeea1f/4 */
-    debugRuntimeApi: {
-      /** Trace all block extrinsics */
-      traceBlock: AugmentedCall<
-        ApiType,
-        (
-          extrinsics: Vec<Extrinsic> | (Extrinsic | IExtrinsic | string | Uint8Array)[],
-          knownTransactions: Vec<H256> | (H256 | string | Uint8Array)[]
-        ) => Observable<Result<ITuple<[]>, DispatchError>>
-      >;
-      /** Trace transaction extrinsics */
-      traceTransaction: AugmentedCall<
-        ApiType,
-        (
-          extrinsics: Vec<Extrinsic> | (Extrinsic | IExtrinsic | string | Uint8Array)[],
-          transaction:
-            | EthTransaction
-            | {
-                hash?: any;
-                nonce?: any;
-                blockHash?: any;
-                blockNumber?: any;
-                transactionIndex?: any;
-                from?: any;
-                to?: any;
-                value?: any;
-                gasPrice?: any;
-                maxFeePerGas?: any;
-                maxPriorityFeePerGas?: any;
-                gas?: any;
-                input?: any;
-                creates?: any;
-                raw?: any;
-                publicKey?: any;
-                chainId?: any;
-                standardV?: any;
-                v?: any;
-                r?: any;
-                s?: any;
-                accessList?: any;
-                transactionType?: any;
-              }
-            | string
-            | Uint8Array
-        ) => Observable<Result<ITuple<[]>, DispatchError>>
-      >;
-      /** Generic call */
-      [key: string]: DecoratedCallBase<ApiType>;
-    };
     /** 0x582211f65bb14b89/5 */
     ethereumRuntimeRPCApi: {
       /** Returns pallet_evm::Accounts by address. */
@@ -306,6 +257,18 @@ declare module "@polkadot/api-base/types/calls" {
           index: u256 | AnyNumber | Uint8Array
         ) => Observable<H256>
       >;
+      /** Generic call */
+      [key: string]: DecoratedCallBase<ApiType>;
+    };
+    /** 0xfbc577b9d747efd6/1 */
+    genesisBuilder: {
+      /** Build `RuntimeGenesisConfig` from a JSON blob not using any defaults and store it in the storage. */
+      buildConfig: AugmentedCall<
+        ApiType,
+        (json: Bytes | string | Uint8Array) => Observable<Result<ITuple<[]>, GenesisBuildErr>>
+      >;
+      /** Creates the default `RuntimeGenesisConfig` and returns it as a JSON blob. */
+      createDefaultConfig: AugmentedCall<ApiType, () => Observable<Bytes>>;
       /** Generic call */
       [key: string]: DecoratedCallBase<ApiType>;
     };

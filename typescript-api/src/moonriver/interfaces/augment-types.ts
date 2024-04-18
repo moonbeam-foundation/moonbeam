@@ -428,6 +428,7 @@ import type {
   PermissionVersions,
   PermissionsV1,
 } from "@polkadot/types/interfaces/genericAsset";
+import type { GenesisBuildErr } from "@polkadot/types/interfaces/genesisBuilder";
 import type {
   ActiveGilt,
   ActiveGiltsTotal,
@@ -604,6 +605,12 @@ import type {
   StorageMetadataV9,
 } from "@polkadot/types/interfaces/metadata";
 import type {
+  Mixnode,
+  MixnodesErr,
+  SessionPhase,
+  SessionStatus,
+} from "@polkadot/types/interfaces/mixnet";
+import type {
   MmrBatchProof,
   MmrEncodableOpaqueLeaf,
   MmrError,
@@ -630,14 +637,17 @@ import type {
   AbridgedCandidateReceipt,
   AbridgedHostConfiguration,
   AbridgedHrmpChannel,
+  ApprovalVotingParams,
   AssignmentId,
   AssignmentKind,
+  AsyncBackingParams,
   AttestedCandidate,
   AuctionIndex,
   AuthorityDiscoveryId,
   AvailabilityBitfield,
   AvailabilityBitfieldRecord,
   BackedCandidate,
+  BackingState,
   Bidder,
   BufferedSessionChange,
   CandidateCommitments,
@@ -650,6 +660,7 @@ import type {
   CollatorId,
   CollatorSignature,
   CommittedCandidateReceipt,
+  Constraints,
   CoreAssignment,
   CoreIndex,
   CoreOccupied,
@@ -677,6 +688,7 @@ import type {
   HrmpChannelId,
   HrmpOpenChannelRequest,
   InboundDownwardMessage,
+  InboundHrmpLimitations,
   InboundHrmpMessage,
   InboundHrmpMessages,
   IncomingParachain,
@@ -692,9 +704,11 @@ import type {
   MessagingStateSnapshotEgressEntry,
   MultiDisputeStatementSet,
   NewBidder,
+  NodeFeatures,
   OccupiedCore,
   OccupiedCoreAssumption,
   OldV1SessionInfo,
+  OutboundHrmpChannelLimitations,
   OutboundHrmpMessage,
   ParaGenesisArgs,
   ParaId,
@@ -803,6 +817,7 @@ import type {
   Digest,
   DigestItem,
   EncodedJustification,
+  ExtrinsicInclusionMode,
   ExtrinsicsWeight,
   Fixed128,
   Fixed64,
@@ -1056,6 +1071,11 @@ import type {
   TraceBlockResponse,
   TraceError,
 } from "@polkadot/types/interfaces/state";
+import type {
+  StatementStoreInvalidStatement,
+  StatementStoreStatementSource,
+  StatementStoreValidStatement,
+} from "@polkadot/types/interfaces/statement";
 import type { WeightToFeeCoefficient } from "@polkadot/types/interfaces/support";
 import type {
   AccountInfo,
@@ -1276,6 +1296,7 @@ declare module "@polkadot/types/types/registry" {
     ApplyExtrinsicResultPre6: ApplyExtrinsicResultPre6;
     ApprovalFlag: ApprovalFlag;
     Approvals: Approvals;
+    ApprovalVotingParams: ApprovalVotingParams;
     ArithmeticError: ArithmeticError;
     AssetApproval: AssetApproval;
     AssetApprovalKey: AssetApprovalKey;
@@ -1291,6 +1312,7 @@ declare module "@polkadot/types/types/registry" {
     AssetOptions: AssetOptions;
     AssignmentId: AssignmentId;
     AssignmentKind: AssignmentKind;
+    AsyncBackingParams: AsyncBackingParams;
     AttestedCandidate: AttestedCandidate;
     AuctionIndex: AuctionIndex;
     AuthIndex: AuthIndex;
@@ -1313,6 +1335,7 @@ declare module "@polkadot/types/types/registry" {
     BabeGenesisConfigurationV1: BabeGenesisConfigurationV1;
     BabeWeight: BabeWeight;
     BackedCandidate: BackedCandidate;
+    BackingState: BackingState;
     Balance: Balance;
     BalanceLock: BalanceLock;
     BalanceLockTo212: BalanceLockTo212;
@@ -1415,6 +1438,7 @@ declare module "@polkadot/types/types/registry" {
     ConfigData: ConfigData;
     Consensus: Consensus;
     ConsensusEngineId: ConsensusEngineId;
+    Constraints: Constraints;
     ConsumedWeight: ConsumedWeight;
     ContractCallFlags: ContractCallFlags;
     ContractCallRequest: ContractCallRequest;
@@ -1638,6 +1662,7 @@ declare module "@polkadot/types/types/registry" {
     ExtendedBalance: ExtendedBalance;
     Extrinsic: Extrinsic;
     ExtrinsicEra: ExtrinsicEra;
+    ExtrinsicInclusionMode: ExtrinsicInclusionMode;
     ExtrinsicMetadataLatest: ExtrinsicMetadataLatest;
     ExtrinsicMetadataV11: ExtrinsicMetadataV11;
     ExtrinsicMetadataV12: ExtrinsicMetadataV12;
@@ -1691,6 +1716,7 @@ declare module "@polkadot/types/types/registry" {
     FungibilityV2: FungibilityV2;
     FungiblesAccessError: FungiblesAccessError;
     Gas: Gas;
+    GenesisBuildErr: GenesisBuildErr;
     GiltBid: GiltBid;
     GlobalValidationData: GlobalValidationData;
     GlobalValidationSchedule: GlobalValidationSchedule;
@@ -1747,6 +1773,7 @@ declare module "@polkadot/types/types/registry" {
     ImmortalEra: ImmortalEra;
     ImportedAux: ImportedAux;
     InboundDownwardMessage: InboundDownwardMessage;
+    InboundHrmpLimitations: InboundHrmpLimitations;
     InboundHrmpMessage: InboundHrmpMessage;
     InboundHrmpMessages: InboundHrmpMessages;
     InboundLaneData: InboundLaneData;
@@ -1835,6 +1862,8 @@ declare module "@polkadot/types/types/registry" {
     MetadataV15: MetadataV15;
     MetadataV9: MetadataV9;
     MigrationStatusResult: MigrationStatusResult;
+    Mixnode: Mixnode;
+    MixnodesErr: MixnodesErr;
     MmrBatchProof: MmrBatchProof;
     MmrEncodableOpaqueLeaf: MmrEncodableOpaqueLeaf;
     MmrError: MmrError;
@@ -1890,6 +1919,7 @@ declare module "@polkadot/types/types/registry" {
     NextConfigDescriptorV1: NextConfigDescriptorV1;
     NftCollectionId: NftCollectionId;
     NftItemId: NftItemId;
+    NodeFeatures: NodeFeatures;
     NodeRole: NodeRole;
     Nominations: Nominations;
     NominatorIndex: NominatorIndex;
@@ -1923,6 +1953,7 @@ declare module "@polkadot/types/types/registry" {
     OriginKindV0: OriginKindV0;
     OriginKindV1: OriginKindV1;
     OriginKindV2: OriginKindV2;
+    OutboundHrmpChannelLimitations: OutboundHrmpChannelLimitations;
     OutboundHrmpMessage: OutboundHrmpMessage;
     OutboundLaneData: OutboundLaneData;
     OutboundMessageFee: OutboundMessageFee;
@@ -2128,6 +2159,8 @@ declare module "@polkadot/types/types/registry" {
     SessionKeys8B: SessionKeys8B;
     SessionKeys9: SessionKeys9;
     SessionKeys9B: SessionKeys9B;
+    SessionPhase: SessionPhase;
+    SessionStatus: SessionStatus;
     SetId: SetId;
     SetIndex: SetIndex;
     Si0Field: Si0Field;
@@ -2212,6 +2245,9 @@ declare module "@polkadot/types/types/registry" {
     StakingLedgerTo240: StakingLedgerTo240;
     Statement: Statement;
     StatementKind: StatementKind;
+    StatementStoreInvalidStatement: StatementStoreInvalidStatement;
+    StatementStoreStatementSource: StatementStoreStatementSource;
+    StatementStoreValidStatement: StatementStoreValidStatement;
     StorageChangeSet: StorageChangeSet;
     StorageData: StorageData;
     StorageDeposit: StorageDeposit;
