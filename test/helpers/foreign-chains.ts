@@ -105,6 +105,10 @@ export const ForeignChainsEndpoints = [
         paraId: 2085,
       },
       {
+        name: "Picasso",
+        paraId: 2087,
+      },
+      {
         name: "Kintsugi",
         paraId: 2092,
       },
@@ -123,6 +127,10 @@ export const ForeignChainsEndpoints = [
       {
         name: "Turing",
         paraId: 2114,
+      },
+      {
+        name: "InvArch",
+        paraId: 2125,
       },
     ],
   },
@@ -181,6 +189,10 @@ export const ForeignChainsEndpoints = [
         paraId: 2035,
       },
       {
+        name: "Unique",
+        paraId: 2037,
+      },
+      {
         name: "Polkadex",
         paraId: 2040,
       },
@@ -207,6 +219,10 @@ export const ForeignChainsEndpoints = [
       {
         name: "Manta",
         paraId: 2104,
+      },
+      {
+        name: "peaq",
+        paraId: 3338,
       },
     ],
   },

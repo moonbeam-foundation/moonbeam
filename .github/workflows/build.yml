@@ -615,17 +615,6 @@ jobs:
           docker create --name moonbeam_container $DOCKER_TAG bash
           docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
           docker rm -f moonbeam_container
-      - name: "TEMPORARY: Download forked polkadot-bins"
-        run: |
-          # When we remove this step, re-add "runScripts": ["download-polkadot.sh"]," to moonwall config
-          cd test/tmp
-          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot
-          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot-execute-worker
-          wget https://opslayer-dev-artifacts.s3.us-east-2.amazonaws.com/bins/moonbeam/polkadot/1.3.0/polkadot-prepare-worker
-
-          chmod +x polkadot
-          chmod +x polkadot-execute-worker
-          chmod +x polkadot-prepare-worker
       - name: Prepare Chainspecs
         run: |
           cd test

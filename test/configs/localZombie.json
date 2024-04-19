@@ -29,11 +29,12 @@
     "nodes": [
       {
         "name": "alice",
-        "ws_port": 33356,
+        "ws_port": 33346,
         "validator": true
       },
       {
         "name": "bob",
+        "ws_port": 33347,
         "validator": true
       }
     ]
@@ -42,32 +43,17 @@
     {
       "id": 1000,
       "chain": "moonbase-local",
-      "chain_spec_path": "tmp/moonbase-modified-raw-spec.json",
-      "collators": [
-        {
-          "name": "alith",
-          "ws_port": 33345,
-          "command": "../target/release/moonbeam",
-          "args": [
-            "--no-hardware-benchmarks",
-            "--force-authoring",
-            "-lparachain=debug",
-            "--database=paritydb"
-          ]
-        },
-        {
-          "name": "RPC1",
-          "validator": false,
-          "ws_port": 33048,
-          "p2p_port": 33049,
-          "command": "../target/release/moonbeam",
-          "args": [
-            "--no-hardware-benchmarks",
-            "-lparachain=debug",
-            "--database=paritydb"
-          ]
-        }
-      ]
+      "collator": {
+        "name": "alith",
+        "ws_port": 33345,
+        "command": "../target/release/moonbeam",
+        "args": [
+          "--no-hardware-benchmarks",
+          "--force-authoring",
+          "-lparachain=debug",
+          "--database=paritydb"
+        ]
+      }
     }
   ],
   "types": {

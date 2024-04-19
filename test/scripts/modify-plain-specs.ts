@@ -38,10 +38,20 @@ yargs(hideBin(process.argv))
       process.stdout.write("Done ✅\n");
 
       plainSpec.bootNodes = [];
-      plainSpec.genesis.runtime.authorMapping.mappings = [
-        ["5HEL3iLyDyaqmfibHXAXVzyQq4fBqLCHGMEYxZXgRAuhEKXX", ALITH_ADDRESS],
-      ];
-      plainSpec.genesis.runtime.openTechCommitteeCollective.members = [ALITH_ADDRESS];
+      if ("runtimeGenesis" in plainSpec.genesis) {
+        plainSpec.genesis.runtimeGenesis.config.authorMapping.mappings = [
+          ["5HEL3iLyDyaqmfibHXAXVzyQq4fBqLCHGMEYxZXgRAuhEKXX", ALITH_ADDRESS],
+        ];
+
+        plainSpec.genesis.runtimeGenesis.config.openTechCommitteeCollective.members = [
+          ALITH_ADDRESS,
+        ];
+      } else {
+        plainSpec.genesis.runtime.authorMapping.mappings = [
+          ["5HEL3iLyDyaqmfibHXAXVzyQq4fBqLCHGMEYxZXgRAuhEKXX", ALITH_ADDRESS],
+        ];
+        plainSpec.genesis.runtime.openTechCommitteeCollective.members = [ALITH_ADDRESS];
+      }
 
       process.stdout.write(`Writing to: ${argv.outputPath} ...`);
       await fs.writeFile(

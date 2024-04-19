@@ -63,7 +63,7 @@ describeSuite({
             // weight
             4_000_000n,
           ],
-          gas: 300_000n,
+          gas: 900_000n,
           rawTxOnly: true,
         });
 
@@ -235,12 +235,12 @@ describeSuite({
                       },
                     },
                     // Override default gas limit with optional GeneralKey.
-                    // b'gas_limit:' + 300000(little endian) + zeros padding
+                    // b'gas_limit:' + 900000(little endian) + zeros padding
                     {
                       GeneralKey: {
                         data: [
-                          103, 97, 115, 95, 108, 105, 109, 105, 116, 58, 224, 147, 4, 0, 0, 0, 0, 0,
-                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                          103, 97, 115, 95, 108, 105, 109, 105, 116, 58, 160, 187, 13, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         ],
                         length: 32,
                       },
