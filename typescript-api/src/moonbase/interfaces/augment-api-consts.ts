@@ -6,7 +6,7 @@
 import "@polkadot/api-base/types/consts";
 
 import type { ApiTypes, AugmentedConst } from "@polkadot/api-base/types";
-import type { Bytes, Option, Vec, bool, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
+import type { Bytes, Option, Vec, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
 import type { Codec, ITuple } from "@polkadot/types-codec/types";
 import type { Perbill, Permill } from "@polkadot/types/interfaces/runtime";
 import type {
@@ -17,19 +17,13 @@ import type {
   SpVersionRuntimeVersion,
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
-  StagingXcmV3MultiLocation,
+  StagingXcmV4Location,
 } from "@polkadot/types/lookup";
 
 export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
 
 declare module "@polkadot/api-base/types/consts" {
   interface AugmentedConsts<ApiType extends ApiTypes> {
-    assetManager: {
-      /** The basic amount of funds that must be reserved for a local asset. */
-      localAssetDeposit: u128 & AugmentedConst<ApiType>;
-      /** Generic const */
-      [key: string]: Codec;
-    };
     assets: {
       /** The amount of funds that must be reserved when creating a new approval. */
       approvalDeposit: u128 & AugmentedConst<ApiType>;
@@ -52,6 +46,12 @@ declare module "@polkadot/api-base/types/consts" {
       /** Generic const */
       [key: string]: Codec;
     };
+    asyncBacking: {
+      /** Purely informative, but used by mocking tools like chospticks to allow knowing how to mock blocks */
+      expectedBlockTime: u64 & AugmentedConst<ApiType>;
+      /** Generic const */
+      [key: string]: Codec;
+    };
     balances: {
       /**
        * The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!
@@ -66,8 +66,6 @@ declare module "@polkadot/api-base/types/consts" {
       existentialDeposit: u128 & AugmentedConst<ApiType>;
       /** The maximum number of individual freeze locks that can exist on an account at any time. */
       maxFreezes: u32 & AugmentedConst<ApiType>;
-      /** The maximum number of holds that can exist on an account at any time. */
-      maxHolds: u32 & AugmentedConst<ApiType>;
       /**
        * The maximum number of locks that should exist on an account. Not strictly enforced, but
        * used for weight estimation.
@@ -113,64 +111,11 @@ declare module "@polkadot/api-base/types/consts" {
       /** Generic const */
       [key: string]: Codec;
     };
-    democracy: {
-      /** Period in blocks where an external proposal may not be re-submitted after being vetoed. */
-      cooloffPeriod: u32 & AugmentedConst<ApiType>;
-      /**
-       * The period between a proposal being approved and enacted.
-       *
-       * It should generally be a little more than the unstake period to ensure that voting stakers
-       * have an opportunity to remove themselves from the system in the case where they are on the
-       * losing side of a vote.
-       */
-      enactmentPeriod: u32 & AugmentedConst<ApiType>;
-      /** Minimum voting period allowed for a fast-track referendum. */
-      fastTrackVotingPeriod: u32 & AugmentedConst<ApiType>;
-      /**
-       * Indicator for whether an emergency origin is even allowed to happen. Some chains may want
-       * to set this permanently to `false`, others may want to condition it on things such as an
-       * upgrade having happened recently.
-       */
-      instantAllowed: bool & AugmentedConst<ApiType>;
-      /** How often (in blocks) new public referenda are launched. */
-      launchPeriod: u32 & AugmentedConst<ApiType>;
-      /** The maximum number of items which can be blacklisted. */
-      maxBlacklisted: u32 & AugmentedConst<ApiType>;
-      /** The maximum number of deposits a public proposal may have at any time. */
-      maxDeposits: u32 & AugmentedConst<ApiType>;
-      /** The maximum number of public proposals that can exist at any time. */
-      maxProposals: u32 & AugmentedConst<ApiType>;
-      /**
-       * The maximum number of votes for an account.
-       *
-       * Also used to compute weight, an overly big value can lead to extrinsic with very big
-       * weight: see `delegate` for instance.
-       */
-      maxVotes: u32 & AugmentedConst<ApiType>;
-      /** The minimum amount to be used as a deposit for a public referendum proposal. */
-      minimumDeposit: u128 & AugmentedConst<ApiType>;
-      /**
-       * The minimum period of vote locking.
-       *
-       * It should be no shorter than enactment period to ensure that in the case of an approval,
-       * those successful voters are locked into the consequences that their votes entail.
-       */
-      voteLockingPeriod: u32 & AugmentedConst<ApiType>;
-      /** How often (in blocks) to check for new votes. */
-      votingPeriod: u32 & AugmentedConst<ApiType>;
-      /** Generic const */
-      [key: string]: Codec;
-    };
     identity: {
-      /** The amount held on deposit for a registered identity */
+      /** The amount held on deposit for a registered identity. */
       basicDeposit: u128 & AugmentedConst<ApiType>;
-      /** The amount held on deposit per additional field for a registered identity. */
-      fieldDeposit: u128 & AugmentedConst<ApiType>;
-      /**
-       * Maximum number of additional fields that may be stored in an ID. Needed to bound the I/O
-       * required to access an identity, but can be pretty high.
-       */
-      maxAdditionalFields: u32 & AugmentedConst<ApiType>;
+      /** The amount held on deposit per encoded byte for a registered identity. */
+      byteDeposit: u128 & AugmentedConst<ApiType>;
       /**
        * Maxmimum number of registrars allowed in the system. Needed to bound the complexity of,
        * e.g., updating judgements.
@@ -178,12 +123,44 @@ declare module "@polkadot/api-base/types/consts" {
       maxRegistrars: u32 & AugmentedConst<ApiType>;
       /** The maximum number of sub-accounts allowed per identified account. */
       maxSubAccounts: u32 & AugmentedConst<ApiType>;
+      /** The maximum length of a suffix. */
+      maxSuffixLength: u32 & AugmentedConst<ApiType>;
+      /** The maximum length of a username, including its suffix and any system-added delimiters. */
+      maxUsernameLength: u32 & AugmentedConst<ApiType>;
+      /** The number of blocks within which a username grant must be accepted. */
+      pendingUsernameExpiration: u32 & AugmentedConst<ApiType>;
       /**
        * The amount held on deposit for a registered subaccount. This should account for the fact
        * that one storage item's value will increase by the size of an account ID, and there will be
        * another trie item whose value is the size of an account ID plus 32 bytes.
        */
       subAccountDeposit: u128 & AugmentedConst<ApiType>;
+      /** Generic const */
+      [key: string]: Codec;
+    };
+    messageQueue: {
+      /**
+       * The size of the page; this implies the maximum message size which can be sent.
+       *
+       * A good value depends on the expected message sizes, their weights, the weight that is
+       * available for processing them and the maximal needed message size. The maximal message size
+       * is slightly lower than this as defined by [`MaxMessageLenOf`].
+       */
+      heapSize: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of stale pages (i.e. of overweight messages) allowed before culling can
+       * happen. Once there are more stale pages than this, then historical pages may be dropped,
+       * even if they contain unprocessed overweight messages.
+       */
+      maxStale: u32 & AugmentedConst<ApiType>;
+      /**
+       * The amount of weight (if any) which should be provided to the message queue for servicing
+       * enqueued items.
+       *
+       * This may be legitimately `None` in the case that you will call
+       * `ServiceQueues::service_queues` manually.
+       */
+      serviceWeight: Option<SpWeightsWeightV2Weight> & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };
@@ -298,8 +275,7 @@ declare module "@polkadot/api-base/types/consts" {
        *
        * This is held for adding 32 bytes plus an instance of `ProxyType` more into a pre-existing
        * storage value. Thus, when configuring `ProxyDepositFactor` one should take into account `32
-       *
-       * - Proxy_type.encode().len()` bytes of data.
+       * + proxy_type.encode().len()` bytes of data.
        */
       proxyDepositFactor: u128 & AugmentedConst<ApiType>;
       /** Generic const */
@@ -409,10 +385,10 @@ declare module "@polkadot/api-base/types/consts" {
     };
     transactionPayment: {
       /**
-       * A fee mulitplier for `Operational` extrinsics to compute "virtual tip" to boost their `priority`
+       * A fee multiplier for `Operational` extrinsics to compute "virtual tip" to boost their `priority`
        *
-       * This value is multipled by the `final_fee` to obtain a "virtual tip" that is later added to
-       * a tip component in regular `priority` calculations. It means that a `Normal` transaction
+       * This value is multiplied by the `final_fee` to obtain a "virtual tip" that is later added
+       * to a tip component in regular `priority` calculations. It means that a `Normal` transaction
        * can front-run a similarly-sized `Operational` extrinsic (with no tip), by including a tip
        * value greater than the virtual tip.
        *
@@ -472,11 +448,23 @@ declare module "@polkadot/api-base/types/consts" {
       /** Generic const */
       [key: string]: Codec;
     };
+    xcmpQueue: {
+      /**
+       * The maximum number of inbound XCMP channels that can be suspended simultaneously.
+       *
+       * Any further channel suspensions will fail and messages may get dropped without further
+       * notice. Choosing a high value (1000) is okay; the trade-off that is described in
+       * [`InboundXcmpSuspended`] still applies at that scale.
+       */
+      maxInboundSuspended: u32 & AugmentedConst<ApiType>;
+      /** Generic const */
+      [key: string]: Codec;
+    };
     xcmTransactor: {
       /** The actual weight for an XCM message is `T::BaseXcmWeight + T::Weigher::weight(&msg)`. */
       baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /** Self chain location. */
-      selfLocation: StagingXcmV3MultiLocation & AugmentedConst<ApiType>;
+      selfLocation: StagingXcmV4Location & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };
@@ -488,7 +476,7 @@ declare module "@polkadot/api-base/types/consts" {
        */
       baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /** Self chain location. */
-      selfLocation: StagingXcmV3MultiLocation & AugmentedConst<ApiType>;
+      selfLocation: StagingXcmV4Location & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };

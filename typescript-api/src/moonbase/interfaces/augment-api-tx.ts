@@ -38,6 +38,8 @@ import type {
   Percent,
 } from "@polkadot/types/interfaces/runtime";
 import type {
+  AccountEthereumSignature,
+  CumulusPrimitivesCoreAggregateMessageOrigin,
   CumulusPrimitivesParachainInherentParachainInherentData,
   EthereumTransactionTransactionV2,
   FrameSupportPreimagesBounded,
@@ -49,27 +51,24 @@ import type {
   MoonbaseRuntimeXcmConfigCurrencyId,
   MoonbaseRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
+  PalletBalancesAdjustmentDirection,
   PalletConvictionVotingConviction,
   PalletConvictionVotingVoteAccountVote,
-  PalletDemocracyConviction,
-  PalletDemocracyMetadataOwner,
-  PalletDemocracyVoteAccountVote,
-  PalletIdentityBitFlags,
   PalletIdentityJudgement,
-  PalletIdentitySimpleIdentityInfo,
+  PalletIdentityLegacyIdentityInfo,
   PalletMultisigTimepoint,
   PalletXcmTransactorCurrencyPayment,
   PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorTransactWeights,
   SpRuntimeMultiSignature,
   SpWeightsWeightV2Weight,
-  StagingXcmV3MultiLocation,
+  StagingXcmV4Location,
   XcmPrimitivesEthereumXcmEthereumXcmTransaction,
   XcmV2OriginKind,
   XcmV3WeightLimit,
-  XcmVersionedMultiAsset,
-  XcmVersionedMultiAssets,
-  XcmVersionedMultiLocation,
+  XcmVersionedAsset,
+  XcmVersionedAssets,
+  XcmVersionedLocation,
   XcmVersionedXcm,
 } from "@polkadot/types/lookup";
 
@@ -98,11 +97,6 @@ declare module "@polkadot/api-base/types/submittable" {
         ) => SubmittableExtrinsic<ApiType>,
         [u128, u32]
       >;
-      /** See [`Pallet::destroy_local_asset`]. */
-      destroyLocalAsset: AugmentedSubmittable<
-        (assetId: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u128]
-      >;
       /** See [`Pallet::register_foreign_asset`]. */
       registerForeignAsset: AugmentedSubmittable<
         (
@@ -121,16 +115,6 @@ declare module "@polkadot/api-base/types/submittable" {
           u128,
           bool
         ]
-      >;
-      /** See [`Pallet::register_local_asset`]. */
-      registerLocalAsset: AugmentedSubmittable<
-        (
-          creator: AccountId20 | string | Uint8Array,
-          owner: AccountId20 | string | Uint8Array,
-          isSufficient: bool | boolean | Uint8Array,
-          minBalance: u128 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, AccountId20, bool, u128]
       >;
       /** See [`Pallet::remove_existing_asset_type`]. */
       removeExistingAssetType: AugmentedSubmittable<
@@ -477,6 +461,19 @@ declare module "@polkadot/api-base/types/submittable" {
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
     balances: {
+      /** See [`Pallet::force_adjust_total_issuance`]. */
+      forceAdjustTotalIssuance: AugmentedSubmittable<
+        (
+          direction:
+            | PalletBalancesAdjustmentDirection
+            | "Increase"
+            | "Decrease"
+            | number
+            | Uint8Array,
+          delta: Compact<u128> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [PalletBalancesAdjustmentDirection, Compact<u128>]
+      >;
       /** See [`Pallet::force_set_balance`]. */
       forceSetBalance: AugmentedSubmittable<
         (
@@ -669,186 +666,18 @@ declare module "@polkadot/api-base/types/submittable" {
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
-    democracy: {
-      /** See [`Pallet::blacklist`]. */
-      blacklist: AugmentedSubmittable<
-        (
-          proposalHash: H256 | string | Uint8Array,
-          maybeRefIndex: Option<u32> | null | Uint8Array | u32 | AnyNumber
-        ) => SubmittableExtrinsic<ApiType>,
-        [H256, Option<u32>]
-      >;
-      /** See [`Pallet::cancel_proposal`]. */
-      cancelProposal: AugmentedSubmittable<
-        (propIndex: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Compact<u32>]
-      >;
-      /** See [`Pallet::cancel_referendum`]. */
-      cancelReferendum: AugmentedSubmittable<
-        (refIndex: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Compact<u32>]
-      >;
-      /** See [`Pallet::clear_public_proposals`]. */
-      clearPublicProposals: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
-      /** See [`Pallet::delegate`]. */
-      delegate: AugmentedSubmittable<
-        (
-          to: AccountId20 | string | Uint8Array,
-          conviction:
-            | PalletDemocracyConviction
-            | "None"
-            | "Locked1x"
-            | "Locked2x"
-            | "Locked3x"
-            | "Locked4x"
-            | "Locked5x"
-            | "Locked6x"
-            | number
-            | Uint8Array,
-          balance: u128 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, PalletDemocracyConviction, u128]
-      >;
-      /** See [`Pallet::emergency_cancel`]. */
-      emergencyCancel: AugmentedSubmittable<
-        (refIndex: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u32]
-      >;
-      /** See [`Pallet::external_propose`]. */
-      externalPropose: AugmentedSubmittable<
-        (
-          proposal:
-            | FrameSupportPreimagesBounded
-            | { Legacy: any }
-            | { Inline: any }
-            | { Lookup: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [FrameSupportPreimagesBounded]
-      >;
-      /** See [`Pallet::external_propose_default`]. */
-      externalProposeDefault: AugmentedSubmittable<
-        (
-          proposal:
-            | FrameSupportPreimagesBounded
-            | { Legacy: any }
-            | { Inline: any }
-            | { Lookup: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [FrameSupportPreimagesBounded]
-      >;
-      /** See [`Pallet::external_propose_majority`]. */
-      externalProposeMajority: AugmentedSubmittable<
-        (
-          proposal:
-            | FrameSupportPreimagesBounded
-            | { Legacy: any }
-            | { Inline: any }
-            | { Lookup: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [FrameSupportPreimagesBounded]
-      >;
-      /** See [`Pallet::fast_track`]. */
-      fastTrack: AugmentedSubmittable<
-        (
-          proposalHash: H256 | string | Uint8Array,
-          votingPeriod: u32 | AnyNumber | Uint8Array,
-          delay: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [H256, u32, u32]
-      >;
-      /** See [`Pallet::propose`]. */
-      propose: AugmentedSubmittable<
-        (
-          proposal:
-            | FrameSupportPreimagesBounded
-            | { Legacy: any }
-            | { Inline: any }
-            | { Lookup: any }
-            | string
-            | Uint8Array,
-          value: Compact<u128> | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [FrameSupportPreimagesBounded, Compact<u128>]
-      >;
-      /** See [`Pallet::remove_other_vote`]. */
-      removeOtherVote: AugmentedSubmittable<
-        (
-          target: AccountId20 | string | Uint8Array,
-          index: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, u32]
-      >;
-      /** See [`Pallet::remove_vote`]. */
-      removeVote: AugmentedSubmittable<
-        (index: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u32]
-      >;
-      /** See [`Pallet::second`]. */
-      second: AugmentedSubmittable<
-        (proposal: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Compact<u32>]
-      >;
-      /** See [`Pallet::set_metadata`]. */
-      setMetadata: AugmentedSubmittable<
-        (
-          owner:
-            | PalletDemocracyMetadataOwner
-            | { External: any }
-            | { Proposal: any }
-            | { Referendum: any }
-            | string
-            | Uint8Array,
-          maybeHash: Option<H256> | null | Uint8Array | H256 | string
-        ) => SubmittableExtrinsic<ApiType>,
-        [PalletDemocracyMetadataOwner, Option<H256>]
-      >;
-      /** See [`Pallet::undelegate`]. */
-      undelegate: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
-      /** See [`Pallet::unlock`]. */
-      unlock: AugmentedSubmittable<
-        (target: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [AccountId20]
-      >;
-      /** See [`Pallet::veto_external`]. */
-      vetoExternal: AugmentedSubmittable<
-        (proposalHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [H256]
-      >;
-      /** See [`Pallet::vote`]. */
-      vote: AugmentedSubmittable<
-        (
-          refIndex: Compact<u32> | AnyNumber | Uint8Array,
-          vote:
-            | PalletDemocracyVoteAccountVote
-            | { Standard: any }
-            | { Split: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u32>, PalletDemocracyVoteAccountVote]
-      >;
+    dmpQueue: {
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
-    dmpQueue: {
-      /** See [`Pallet::service_overweight`]. */
-      serviceOverweight: AugmentedSubmittable<
-        (
-          index: u64 | AnyNumber | Uint8Array,
-          weightLimit:
-            | SpWeightsWeightV2Weight
-            | { refTime?: any; proofSize?: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [u64, SpWeightsWeightV2Weight]
+    emergencyParaXcm: {
+      /** See [`Pallet::fast_authorize_upgrade`]. */
+      fastAuthorizeUpgrade: AugmentedSubmittable<
+        (codeHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [H256]
       >;
+      /** See [`Pallet::paused_to_normal`]. */
+      pausedToNormal: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
@@ -985,6 +814,11 @@ declare module "@polkadot/api-base/types/submittable" {
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
     identity: {
+      /** See [`Pallet::accept_username`]. */
+      acceptUsername: AugmentedSubmittable<
+        (username: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Bytes]
+      >;
       /** See [`Pallet::add_registrar`]. */
       addRegistrar: AugmentedSubmittable<
         (account: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
@@ -1006,6 +840,15 @@ declare module "@polkadot/api-base/types/submittable" {
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, Data]
+      >;
+      /** See [`Pallet::add_username_authority`]. */
+      addUsernameAuthority: AugmentedSubmittable<
+        (
+          authority: AccountId20 | string | Uint8Array,
+          suffix: Bytes | string | Uint8Array,
+          allocation: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [AccountId20, Bytes, u32]
       >;
       /** See [`Pallet::cancel_request`]. */
       cancelRequest: AugmentedSubmittable<
@@ -1041,9 +884,24 @@ declare module "@polkadot/api-base/types/submittable" {
       >;
       /** See [`Pallet::quit_sub`]. */
       quitSub: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /** See [`Pallet::remove_dangling_username`]. */
+      removeDanglingUsername: AugmentedSubmittable<
+        (username: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Bytes]
+      >;
+      /** See [`Pallet::remove_expired_approval`]. */
+      removeExpiredApproval: AugmentedSubmittable<
+        (username: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Bytes]
+      >;
       /** See [`Pallet::remove_sub`]. */
       removeSub: AugmentedSubmittable<
         (sub: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [AccountId20]
+      >;
+      /** See [`Pallet::remove_username_authority`]. */
+      removeUsernameAuthority: AugmentedSubmittable<
+        (authority: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [AccountId20]
       >;
       /** See [`Pallet::rename_sub`]. */
@@ -1091,15 +949,15 @@ declare module "@polkadot/api-base/types/submittable" {
       setFields: AugmentedSubmittable<
         (
           index: Compact<u32> | AnyNumber | Uint8Array,
-          fields: PalletIdentityBitFlags
+          fields: u64 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u32>, PalletIdentityBitFlags]
+        [Compact<u32>, u64]
       >;
       /** See [`Pallet::set_identity`]. */
       setIdentity: AugmentedSubmittable<
         (
           info:
-            | PalletIdentitySimpleIdentityInfo
+            | PalletIdentityLegacyIdentityInfo
             | {
                 additional?: any;
                 display?: any;
@@ -1114,7 +972,12 @@ declare module "@polkadot/api-base/types/submittable" {
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [PalletIdentitySimpleIdentityInfo]
+        [PalletIdentityLegacyIdentityInfo]
+      >;
+      /** See [`Pallet::set_primary_username`]. */
+      setPrimaryUsername: AugmentedSubmittable<
+        (username: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Bytes]
       >;
       /** See [`Pallet::set_subs`]. */
       setSubs: AugmentedSubmittable<
@@ -1138,6 +1001,20 @@ declare module "@polkadot/api-base/types/submittable" {
         ) => SubmittableExtrinsic<ApiType>,
         [Vec<ITuple<[AccountId20, Data]>>]
       >;
+      /** See [`Pallet::set_username_for`]. */
+      setUsernameFor: AugmentedSubmittable<
+        (
+          who: AccountId20 | string | Uint8Array,
+          username: Bytes | string | Uint8Array,
+          signature:
+            | Option<AccountEthereumSignature>
+            | null
+            | Uint8Array
+            | AccountEthereumSignature
+            | string
+        ) => SubmittableExtrinsic<ApiType>,
+        [AccountId20, Bytes, Option<AccountEthereumSignature>]
+      >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
@@ -1149,11 +1026,52 @@ declare module "@polkadot/api-base/types/submittable" {
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
+    messageQueue: {
+      /** See [`Pallet::execute_overweight`]. */
+      executeOverweight: AugmentedSubmittable<
+        (
+          messageOrigin:
+            | CumulusPrimitivesCoreAggregateMessageOrigin
+            | { Here: any }
+            | { Parent: any }
+            | { Sibling: any }
+            | string
+            | Uint8Array,
+          page: u32 | AnyNumber | Uint8Array,
+          index: u32 | AnyNumber | Uint8Array,
+          weightLimit:
+            | SpWeightsWeightV2Weight
+            | { refTime?: any; proofSize?: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [CumulusPrimitivesCoreAggregateMessageOrigin, u32, u32, SpWeightsWeightV2Weight]
+      >;
+      /** See [`Pallet::reap_page`]. */
+      reapPage: AugmentedSubmittable<
+        (
+          messageOrigin:
+            | CumulusPrimitivesCoreAggregateMessageOrigin
+            | { Here: any }
+            | { Parent: any }
+            | { Sibling: any }
+            | string
+            | Uint8Array,
+          pageIndex: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [CumulusPrimitivesCoreAggregateMessageOrigin, u32]
+      >;
+      /** Generic tx */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
     moonbeamLazyMigrations: {
       /** See [`Pallet::clear_local_assets_storage`]. */
       clearLocalAssetsStorage: AugmentedSubmittable<
-        (limit: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u32]
+        (
+          maxAssets: u32 | AnyNumber | Uint8Array,
+          limit: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [u32, u32]
       >;
       /** See [`Pallet::clear_suicided_storage`]. */
       clearSuicidedStorage: AugmentedSubmittable<
@@ -1162,11 +1080,6 @@ declare module "@polkadot/api-base/types/submittable" {
           limit: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Vec<H160>, u32]
-      >;
-      /** See [`Pallet::unlock_democracy_funds`]. */
-      unlockDemocracyFunds: AugmentedSubmittable<
-        (limit: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u32]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -1587,7 +1500,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /** See [`Pallet::execute`]. */
       execute: AugmentedSubmittable<
         (
-          message: XcmVersionedXcm | { V2: any } | { V3: any } | string | Uint8Array,
+          message: XcmVersionedXcm | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array,
           maxWeight:
             | SpWeightsWeightV2Weight
             | { refTime?: any; proofSize?: any }
@@ -1606,9 +1519,15 @@ declare module "@polkadot/api-base/types/submittable" {
       /** See [`Pallet::force_subscribe_version_notify`]. */
       forceSubscribeVersionNotify: AugmentedSubmittable<
         (
-          location: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
+          location:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiLocation]
+        [XcmVersionedLocation]
       >;
       /** See [`Pallet::force_suspension`]. */
       forceSuspension: AugmentedSubmittable<
@@ -1618,28 +1537,48 @@ declare module "@polkadot/api-base/types/submittable" {
       /** See [`Pallet::force_unsubscribe_version_notify`]. */
       forceUnsubscribeVersionNotify: AugmentedSubmittable<
         (
-          location: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
+          location:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiLocation]
+        [XcmVersionedLocation]
       >;
       /** See [`Pallet::force_xcm_version`]. */
       forceXcmVersion: AugmentedSubmittable<
         (
-          location:
-            | StagingXcmV3MultiLocation
-            | { parents?: any; interior?: any }
-            | string
-            | Uint8Array,
+          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array,
           version: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [StagingXcmV3MultiLocation, u32]
+        [StagingXcmV4Location, u32]
       >;
       /** See [`Pallet::limited_reserve_transfer_assets`]. */
       limitedReserveTransferAssets: AugmentedSubmittable<
         (
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
-          beneficiary: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
-          assets: XcmVersionedMultiAssets | { V2: any } | { V3: any } | string | Uint8Array,
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          beneficiary:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          assets:
+            | XcmVersionedAssets
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           feeAssetItem: u32 | AnyNumber | Uint8Array,
           weightLimit:
             | XcmV3WeightLimit
@@ -1648,20 +1587,32 @@ declare module "@polkadot/api-base/types/submittable" {
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [
-          XcmVersionedMultiLocation,
-          XcmVersionedMultiLocation,
-          XcmVersionedMultiAssets,
-          u32,
-          XcmV3WeightLimit
-        ]
+        [XcmVersionedLocation, XcmVersionedLocation, XcmVersionedAssets, u32, XcmV3WeightLimit]
       >;
       /** See [`Pallet::limited_teleport_assets`]. */
       limitedTeleportAssets: AugmentedSubmittable<
         (
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
-          beneficiary: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
-          assets: XcmVersionedMultiAssets | { V2: any } | { V3: any } | string | Uint8Array,
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          beneficiary:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          assets:
+            | XcmVersionedAssets
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           feeAssetItem: u32 | AnyNumber | Uint8Array,
           weightLimit:
             | XcmV3WeightLimit
@@ -1670,41 +1621,111 @@ declare module "@polkadot/api-base/types/submittable" {
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [
-          XcmVersionedMultiLocation,
-          XcmVersionedMultiLocation,
-          XcmVersionedMultiAssets,
-          u32,
-          XcmV3WeightLimit
-        ]
+        [XcmVersionedLocation, XcmVersionedLocation, XcmVersionedAssets, u32, XcmV3WeightLimit]
       >;
       /** See [`Pallet::reserve_transfer_assets`]. */
       reserveTransferAssets: AugmentedSubmittable<
         (
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
-          beneficiary: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
-          assets: XcmVersionedMultiAssets | { V2: any } | { V3: any } | string | Uint8Array,
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          beneficiary:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          assets:
+            | XcmVersionedAssets
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           feeAssetItem: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiLocation, XcmVersionedMultiLocation, XcmVersionedMultiAssets, u32]
+        [XcmVersionedLocation, XcmVersionedLocation, XcmVersionedAssets, u32]
       >;
       /** See [`Pallet::send`]. */
       send: AugmentedSubmittable<
         (
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
-          message: XcmVersionedXcm | { V2: any } | { V3: any } | string | Uint8Array
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          message: XcmVersionedXcm | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiLocation, XcmVersionedXcm]
+        [XcmVersionedLocation, XcmVersionedXcm]
       >;
       /** See [`Pallet::teleport_assets`]. */
       teleportAssets: AugmentedSubmittable<
         (
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
-          beneficiary: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
-          assets: XcmVersionedMultiAssets | { V2: any } | { V3: any } | string | Uint8Array,
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          beneficiary:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          assets:
+            | XcmVersionedAssets
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           feeAssetItem: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiLocation, XcmVersionedMultiLocation, XcmVersionedMultiAssets, u32]
+        [XcmVersionedLocation, XcmVersionedLocation, XcmVersionedAssets, u32]
+      >;
+      /** See [`Pallet::transfer_assets`]. */
+      transferAssets: AugmentedSubmittable<
+        (
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          beneficiary:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          assets:
+            | XcmVersionedAssets
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          feeAssetItem: u32 | AnyNumber | Uint8Array,
+          weightLimit:
+            | XcmV3WeightLimit
+            | { Unlimited: any }
+            | { Limited: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [XcmVersionedLocation, XcmVersionedLocation, XcmVersionedAssets, u32, XcmV3WeightLimit]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -1990,6 +2011,8 @@ declare module "@polkadot/api-base/types/submittable" {
         (ratio: Perbill | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Perbill]
       >;
+      /** See `Pallet::trigger_defensive`. */
+      triggerDefensive: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
@@ -2073,6 +2096,8 @@ declare module "@polkadot/api-base/types/submittable" {
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
     sudo: {
+      /** See [`Pallet::remove_key`]. */
+      removeKey: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /** See [`Pallet::set_key`]. */
       setKey: AugmentedSubmittable<
         (updated: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
@@ -2103,6 +2128,21 @@ declare module "@polkadot/api-base/types/submittable" {
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
     system: {
+      /** See [`Pallet::apply_authorized_upgrade`]. */
+      applyAuthorizedUpgrade: AugmentedSubmittable<
+        (code: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Bytes]
+      >;
+      /** See [`Pallet::authorize_upgrade`]. */
+      authorizeUpgrade: AugmentedSubmittable<
+        (codeHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [H256]
+      >;
+      /** See [`Pallet::authorize_upgrade_without_checks`]. */
+      authorizeUpgradeWithoutChecks: AugmentedSubmittable<
+        (codeHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [H256]
+      >;
       /** See [`Pallet::kill_prefix`]. */
       killPrefix: AugmentedSubmittable<
         (
@@ -2376,18 +2416,6 @@ declare module "@polkadot/api-base/types/submittable" {
     xcmpQueue: {
       /** See [`Pallet::resume_xcm_execution`]. */
       resumeXcmExecution: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
-      /** See [`Pallet::service_overweight`]. */
-      serviceOverweight: AugmentedSubmittable<
-        (
-          index: u64 | AnyNumber | Uint8Array,
-          weightLimit:
-            | SpWeightsWeightV2Weight
-            | { refTime?: any; proofSize?: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [u64, SpWeightsWeightV2Weight]
-      >;
       /** See [`Pallet::suspend_xcm_execution`]. */
       suspendXcmExecution: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /** See [`Pallet::update_drop_threshold`]. */
@@ -2404,39 +2432,6 @@ declare module "@polkadot/api-base/types/submittable" {
       updateSuspendThreshold: AugmentedSubmittable<
         (updated: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [u32]
-      >;
-      /** See [`Pallet::update_threshold_weight`]. */
-      updateThresholdWeight: AugmentedSubmittable<
-        (
-          updated:
-            | SpWeightsWeightV2Weight
-            | { refTime?: any; proofSize?: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [SpWeightsWeightV2Weight]
-      >;
-      /** See [`Pallet::update_weight_restrict_decay`]. */
-      updateWeightRestrictDecay: AugmentedSubmittable<
-        (
-          updated:
-            | SpWeightsWeightV2Weight
-            | { refTime?: any; proofSize?: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [SpWeightsWeightV2Weight]
-      >;
-      /** See [`Pallet::update_xcmp_max_individual_weight`]. */
-      updateXcmpMaxIndividualWeight: AugmentedSubmittable<
-        (
-          updated:
-            | SpWeightsWeightV2Weight
-            | { refTime?: any; proofSize?: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [SpWeightsWeightV2Weight]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -2486,34 +2481,53 @@ declare module "@polkadot/api-base/types/submittable" {
       /** See [`Pallet::remove_fee_per_second`]. */
       removeFeePerSecond: AugmentedSubmittable<
         (
-          assetLocation: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
+          assetLocation:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiLocation]
+        [XcmVersionedLocation]
       >;
       /** See [`Pallet::remove_transact_info`]. */
       removeTransactInfo: AugmentedSubmittable<
         (
-          location: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array
+          location:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiLocation]
+        [XcmVersionedLocation]
       >;
       /** See [`Pallet::set_fee_per_second`]. */
       setFeePerSecond: AugmentedSubmittable<
         (
           assetLocation:
-            | XcmVersionedMultiLocation
+            | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
+            | { V4: any }
             | string
             | Uint8Array,
           feePerSecond: u128 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiLocation, u128]
+        [XcmVersionedLocation, u128]
       >;
       /** See [`Pallet::set_transact_info`]. */
       setTransactInfo: AugmentedSubmittable<
         (
-          location: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
+          location:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           transactExtraWeight:
             | SpWeightsWeightV2Weight
             | { refTime?: any; proofSize?: any }
@@ -2533,7 +2547,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | string
         ) => SubmittableExtrinsic<ApiType>,
         [
-          XcmVersionedMultiLocation,
+          XcmVersionedLocation,
           SpWeightsWeightV2Weight,
           SpWeightsWeightV2Weight,
           Option<SpWeightsWeightV2Weight>
@@ -2569,7 +2583,13 @@ declare module "@polkadot/api-base/types/submittable" {
       /** See [`Pallet::transact_through_signed`]. */
       transactThroughSigned: AugmentedSubmittable<
         (
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           fee:
             | PalletXcmTransactorCurrencyPayment
             | { currency?: any; feeAmount?: any }
@@ -2584,7 +2604,7 @@ declare module "@polkadot/api-base/types/submittable" {
           refund: bool | boolean | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
-          XcmVersionedMultiLocation,
+          XcmVersionedLocation,
           PalletXcmTransactorCurrencyPayment,
           Bytes,
           PalletXcmTransactorTransactWeights,
@@ -2594,8 +2614,14 @@ declare module "@polkadot/api-base/types/submittable" {
       /** See [`Pallet::transact_through_sovereign`]. */
       transactThroughSovereign: AugmentedSubmittable<
         (
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
-          feePayer: AccountId20 | string | Uint8Array,
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
+          feePayer: Option<AccountId20> | null | Uint8Array | AccountId20 | string,
           fee:
             | PalletXcmTransactorCurrencyPayment
             | { currency?: any; feeAmount?: any }
@@ -2618,8 +2644,8 @@ declare module "@polkadot/api-base/types/submittable" {
           refund: bool | boolean | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
-          XcmVersionedMultiLocation,
-          AccountId20,
+          XcmVersionedLocation,
+          Option<AccountId20>,
           PalletXcmTransactorCurrencyPayment,
           Bytes,
           XcmV2OriginKind,
@@ -2638,12 +2664,17 @@ declare module "@polkadot/api-base/types/submittable" {
             | MoonbaseRuntimeXcmConfigCurrencyId
             | { SelfReserve: any }
             | { ForeignAsset: any }
-            | { DeprecatedLocalAssetReserve: any }
             | { Erc20: any }
             | string
             | Uint8Array,
           amount: u128 | AnyNumber | Uint8Array,
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           destWeightLimit:
             | XcmV3WeightLimit
             | { Unlimited: any }
@@ -2651,13 +2682,19 @@ declare module "@polkadot/api-base/types/submittable" {
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonbaseRuntimeXcmConfigCurrencyId, u128, XcmVersionedMultiLocation, XcmV3WeightLimit]
+        [MoonbaseRuntimeXcmConfigCurrencyId, u128, XcmVersionedLocation, XcmV3WeightLimit]
       >;
       /** See [`Pallet::transfer_multiasset`]. */
       transferMultiasset: AugmentedSubmittable<
         (
-          asset: XcmVersionedMultiAsset | { V2: any } | { V3: any } | string | Uint8Array,
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
+          asset: XcmVersionedAsset | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array,
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           destWeightLimit:
             | XcmV3WeightLimit
             | { Unlimited: any }
@@ -2665,14 +2702,26 @@ declare module "@polkadot/api-base/types/submittable" {
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiAsset, XcmVersionedMultiLocation, XcmV3WeightLimit]
+        [XcmVersionedAsset, XcmVersionedLocation, XcmV3WeightLimit]
       >;
       /** See [`Pallet::transfer_multiassets`]. */
       transferMultiassets: AugmentedSubmittable<
         (
-          assets: XcmVersionedMultiAssets | { V2: any } | { V3: any } | string | Uint8Array,
+          assets:
+            | XcmVersionedAssets
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           feeItem: u32 | AnyNumber | Uint8Array,
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           destWeightLimit:
             | XcmV3WeightLimit
             | { Unlimited: any }
@@ -2680,14 +2729,20 @@ declare module "@polkadot/api-base/types/submittable" {
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiAssets, u32, XcmVersionedMultiLocation, XcmV3WeightLimit]
+        [XcmVersionedAssets, u32, XcmVersionedLocation, XcmV3WeightLimit]
       >;
       /** See [`Pallet::transfer_multiasset_with_fee`]. */
       transferMultiassetWithFee: AugmentedSubmittable<
         (
-          asset: XcmVersionedMultiAsset | { V2: any } | { V3: any } | string | Uint8Array,
-          fee: XcmVersionedMultiAsset | { V2: any } | { V3: any } | string | Uint8Array,
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
+          asset: XcmVersionedAsset | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array,
+          fee: XcmVersionedAsset | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array,
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           destWeightLimit:
             | XcmV3WeightLimit
             | { Unlimited: any }
@@ -2695,12 +2750,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [
-          XcmVersionedMultiAsset,
-          XcmVersionedMultiAsset,
-          XcmVersionedMultiLocation,
-          XcmV3WeightLimit
-        ]
+        [XcmVersionedAsset, XcmVersionedAsset, XcmVersionedLocation, XcmV3WeightLimit]
       >;
       /** See [`Pallet::transfer_multicurrencies`]. */
       transferMulticurrencies: AugmentedSubmittable<
@@ -2712,7 +2762,6 @@ declare module "@polkadot/api-base/types/submittable" {
                   | MoonbaseRuntimeXcmConfigCurrencyId
                   | { SelfReserve: any }
                   | { ForeignAsset: any }
-                  | { DeprecatedLocalAssetReserve: any }
                   | { Erc20: any }
                   | string
                   | Uint8Array
@@ -2720,7 +2769,13 @@ declare module "@polkadot/api-base/types/submittable" {
                 u128 | AnyNumber | Uint8Array
               ][],
           feeItem: u32 | AnyNumber | Uint8Array,
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           destWeightLimit:
             | XcmV3WeightLimit
             | { Unlimited: any }
@@ -2731,7 +2786,7 @@ declare module "@polkadot/api-base/types/submittable" {
         [
           Vec<ITuple<[MoonbaseRuntimeXcmConfigCurrencyId, u128]>>,
           u32,
-          XcmVersionedMultiLocation,
+          XcmVersionedLocation,
           XcmV3WeightLimit
         ]
       >;
@@ -2742,13 +2797,18 @@ declare module "@polkadot/api-base/types/submittable" {
             | MoonbaseRuntimeXcmConfigCurrencyId
             | { SelfReserve: any }
             | { ForeignAsset: any }
-            | { DeprecatedLocalAssetReserve: any }
             | { Erc20: any }
             | string
             | Uint8Array,
           amount: u128 | AnyNumber | Uint8Array,
           fee: u128 | AnyNumber | Uint8Array,
-          dest: XcmVersionedMultiLocation | { V2: any } | { V3: any } | string | Uint8Array,
+          dest:
+            | XcmVersionedLocation
+            | { V2: any }
+            | { V3: any }
+            | { V4: any }
+            | string
+            | Uint8Array,
           destWeightLimit:
             | XcmV3WeightLimit
             | { Unlimited: any }
@@ -2756,13 +2816,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [
-          MoonbaseRuntimeXcmConfigCurrencyId,
-          u128,
-          u128,
-          XcmVersionedMultiLocation,
-          XcmV3WeightLimit
-        ]
+        [MoonbaseRuntimeXcmConfigCurrencyId, u128, u128, XcmVersionedLocation, XcmV3WeightLimit]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
