@@ -22,7 +22,7 @@
                 "allowed_ancestry_len": 2
               },
               "neededApprovals": 0,
-              "relayVrfModuloSamples":0
+              "relayVrfModuloSamples": 0
             }
           }
         }
