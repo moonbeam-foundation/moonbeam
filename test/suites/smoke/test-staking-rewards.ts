@@ -1001,13 +1001,12 @@ describeSuite({
             }
             const autoCompoundReward = autoCompoundPercent.ofCeil(rewards[accountId].amount);
             if (autoCompounds[accountId]) {
-              assertEqualWithAccount(
-                autoCompounds[accountId].amount,
-                autoCompoundReward,
+              expect(
+                withinTolerance(autoCompounds[accountId].amount, autoCompoundReward),
                 `${accountId} (DEL) - AutoCompound ${autoCompoundPercent.toString()}% of ${rewards[
                   accountId
-                ].amount.toString()}, `
-              );
+                ].amount.toString()}`
+              ).to.be.true;
               autoCompounded.add(accountId);
             }
           }
