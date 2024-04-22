@@ -297,7 +297,6 @@ describeSuite({
                 });
               }
             });
-
             resolve("candidate info scraped");
           })
           .catch((error) => {
@@ -311,17 +310,17 @@ describeSuite({
           .entries()
           .then((identities) => {
             identities.forEach((identity) => {
+              const storageValue =
+                specVersion >= 2900 ? identity[1].unwrap()[0] : identity[1].unwrap();
               updateReserveMap(identity[0].toHex().slice(-40), {
-                [ReserveType.Identity]: identity[1].unwrap().deposit.toBigInt(),
+                [ReserveType.Identity]: storageValue.deposit.toBigInt(),
               });
               updateReserveMap(identity[0].toHex().slice(-40), {
-                [ReserveType.RequestJudgements]: identity[1]
-                  .unwrap()
-                  .judgements.reduce(
-                    (acc, value) =>
-                      acc + ((value[1].isFeePaid && value[1].asFeePaid.toBigInt()) || 0n),
-                    0n
-                  ),
+                [ReserveType.RequestJudgements]: storageValue.judgements.reduce(
+                  (acc, value) =>
+                    acc + ((value[1].isFeePaid && value[1].asFeePaid.toBigInt()) || 0n),
+                  0n
+                ),
               });
             });
             resolve("identities scraped");
@@ -350,17 +349,56 @@ describeSuite({
       });
 
       await new Promise((resolve, reject) => {
-        apiAt.query.democracy.depositOf
-          .entries()
-          .then((democracyDeposits) => {
-            democracyDeposits
-              .map((depositOf) =>
-                depositOf[1]
-                  .unwrap()[0]
-                  .map((deposit) => ({
-                    accountId: deposit.toHex(),
-                    reserved: depositOf[1].unwrap()[1].toBigInt(),
-                  }))
+        if (specVersion < 2900) {
+          apiAt.query.democracy.depositOf
+            .entries()
+            .then((democracyDeposits) => {
+              democracyDeposits
+                .map((depositOf) =>
+                  depositOf[1]
+                    .unwrap()[0]
+                    .map((deposit) => ({
+                      accountId: deposit.toHex(),
+                      reserved: depositOf[1].unwrap()[1].toBigInt(),
+                    }))
+                    .flat()
+                    .reduce(
+                      (p, deposit) => {
+                        // We merge multiple reserves together for same account
+                        if (!p[deposit.accountId]) {
+                          p[deposit.accountId] = {
+                            accountId: deposit.accountId,
+                            reserved: {
+                              [ReserveType.DemocracyDeposit]: 0n,
+                            },
+                          };
+                        }
+                        p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] +=
+                          deposit.reserved;
+                        return p;
+                      },
+                      {} as {
+                        [account: string]: {
+                          accountId: `0x${string}`;
+                          reserved: {
+                            [ReserveType.DemocracyDeposit]: bigint;
+                          };
+                        };
+                      }
+                    )
+                )
+                .forEach((deposit: any) => {
+                  updateReserveMap(deposit.accountId, deposit.reserved);
+                });
+
+              Object.values(
+                democracyDeposits
+                  .map((depositOf) =>
+                    depositOf[1].unwrap()[0].map((deposit) => ({
+                      accountId: deposit.toHex(),
+                      reserved: depositOf[1].unwrap()[1].toBigInt(),
+                    }))
+                  )
                   .flat()
                   .reduce(
                     (p, deposit) => {
@@ -378,56 +416,22 @@ describeSuite({
                       return p;
                     },
                     {} as {
-                      [account: string]: {
-                        accountId: `0x${string}`;
-                        reserved: {
-                          [ReserveType.DemocracyDeposit]: bigint;
-                        };
+                      [accountId: string]: {
+                        accountId: string;
+                        reserved: { [key: string]: bigint };
                       };
                     }
                   )
-              )
-              .forEach((deposit: any) => {
+              ).forEach((deposit: any) => {
                 updateReserveMap(deposit.accountId, deposit.reserved);
               });
-
-            Object.values(
-              democracyDeposits
-                .map((depositOf) =>
-                  depositOf[1].unwrap()[0].map((deposit) => ({
-                    accountId: deposit.toHex(),
-                    reserved: depositOf[1].unwrap()[1].toBigInt(),
-                  }))
-                )
-                .flat()
-                .reduce(
-                  (p, deposit) => {
-                    // We merge multiple reserves together for same account
-                    if (!p[deposit.accountId]) {
-                      p[deposit.accountId] = {
-                        accountId: deposit.accountId,
-                        reserved: {
-                          [ReserveType.DemocracyDeposit]: 0n,
-                        },
-                      };
-                    }
-                    p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] += deposit.reserved;
-                    return p;
-                  },
-                  {} as {
-                    [accountId: string]: { accountId: string; reserved: { [key: string]: bigint } };
-                  }
-                )
-            ).forEach((deposit: any) => {
-              updateReserveMap(deposit.accountId, deposit.reserved);
+            })
+            .catch((error) => {
+              console.error("Error fetching democracy deposits:", error);
+              reject(error);
             });
-
-            resolve("democracy deposits scraped");
-          })
-          .catch((error) => {
-            console.error("Error fetching democracy deposits:", error);
-            reject(error);
-          });
+        }
+        resolve("democracy deposits scraped");
       });
 
       await new Promise((resolve, reject) => {
@@ -812,27 +816,33 @@ describeSuite({
         }
       });
 
-      democracyVotes.forEach((votes) => {
-        if (votes[1].isDirect) {
-          const accountId = votes[0].toHex().slice(-40);
-
-          const democracy = votes[1].asDirect.votes.reduce((acc, curr) => {
-            const subTotal = curr[1].isStandard
-              ? curr[1].asStandard.balance.toBigInt()
-              : curr[1].isSplit
-              ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
-              : 0n;
-            return acc > subTotal ? acc : subTotal;
-          }, 0n);
-          updateExpectedLocksMap(accountId, { democracy });
+      if (specVersion < 2900) {
+        if (!democracyVotes) {
+          throw new Error("Democracy votes not found");
         }
 
-        if (votes[1].isDelegating) {
-          const accountId = votes[0].toHex().slice(-40);
-          const delegatedDemocracy = votes[1].asDelegating.prior[1].toBigInt();
-          updateExpectedLocksMap(accountId, { delegatedDemocracy });
-        }
-      });
+        democracyVotes.forEach((votes) => {
+          if (votes[1].isDirect) {
+            const accountId = votes[0].toHex().slice(-40);
+
+            const democracy = votes[1].asDirect.votes.reduce((acc, curr) => {
+              const subTotal = curr[1].isStandard
+                ? curr[1].asStandard.balance.toBigInt()
+                : curr[1].isSplit
+                ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
+                : 0n;
+              return acc > subTotal ? acc : subTotal;
+            }, 0n);
+            updateExpectedLocksMap(accountId, { democracy });
+          }
+
+          if (votes[1].isDelegating) {
+            const accountId = votes[0].toHex().slice(-40);
+            const delegatedDemocracy = votes[1].asDelegating.prior[1].toBigInt();
+            updateExpectedLocksMap(accountId, { delegatedDemocracy });
+          }
+        });
+      }
 
       log(`Retrieved ${expectedLocksMap.size} accounts with locks`);
 
