@@ -180,7 +180,7 @@ describeSuite({
         delegatorStakingMigrations,
         collatorStakingMigrations,
       ] = await Promise.all([
-        apiAt.query.democracy.votingOf.entries(),
+        specVersion < 2900 ? apiAt.query.democracy.votingOf.entries() : undefined,
         apiAt.query.parachainStaking.delegatorState.entries(),
         specVersion >= 1700 && specVersion < 1800
           ? apiAt.query.parachainStaking.delegatorReserveToLockMigrations.entries()
