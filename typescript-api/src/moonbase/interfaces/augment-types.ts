@@ -637,14 +637,17 @@ import type {
   AbridgedCandidateReceipt,
   AbridgedHostConfiguration,
   AbridgedHrmpChannel,
+  ApprovalVotingParams,
   AssignmentId,
   AssignmentKind,
+  AsyncBackingParams,
   AttestedCandidate,
   AuctionIndex,
   AuthorityDiscoveryId,
   AvailabilityBitfield,
   AvailabilityBitfieldRecord,
   BackedCandidate,
+  BackingState,
   Bidder,
   BufferedSessionChange,
   CandidateCommitments,
@@ -657,6 +660,7 @@ import type {
   CollatorId,
   CollatorSignature,
   CommittedCandidateReceipt,
+  Constraints,
   CoreAssignment,
   CoreIndex,
   CoreOccupied,
@@ -684,6 +688,7 @@ import type {
   HrmpChannelId,
   HrmpOpenChannelRequest,
   InboundDownwardMessage,
+  InboundHrmpLimitations,
   InboundHrmpMessage,
   InboundHrmpMessages,
   IncomingParachain,
@@ -699,9 +704,11 @@ import type {
   MessagingStateSnapshotEgressEntry,
   MultiDisputeStatementSet,
   NewBidder,
+  NodeFeatures,
   OccupiedCore,
   OccupiedCoreAssumption,
   OldV1SessionInfo,
+  OutboundHrmpChannelLimitations,
   OutboundHrmpMessage,
   ParaGenesisArgs,
   ParaId,
@@ -1289,6 +1296,7 @@ declare module "@polkadot/types/types/registry" {
     ApplyExtrinsicResultPre6: ApplyExtrinsicResultPre6;
     ApprovalFlag: ApprovalFlag;
     Approvals: Approvals;
+    ApprovalVotingParams: ApprovalVotingParams;
     ArithmeticError: ArithmeticError;
     AssetApproval: AssetApproval;
     AssetApprovalKey: AssetApprovalKey;
@@ -1304,6 +1312,7 @@ declare module "@polkadot/types/types/registry" {
     AssetOptions: AssetOptions;
     AssignmentId: AssignmentId;
     AssignmentKind: AssignmentKind;
+    AsyncBackingParams: AsyncBackingParams;
     AttestedCandidate: AttestedCandidate;
     AuctionIndex: AuctionIndex;
     AuthIndex: AuthIndex;
@@ -1326,6 +1335,7 @@ declare module "@polkadot/types/types/registry" {
     BabeGenesisConfigurationV1: BabeGenesisConfigurationV1;
     BabeWeight: BabeWeight;
     BackedCandidate: BackedCandidate;
+    BackingState: BackingState;
     Balance: Balance;
     BalanceLock: BalanceLock;
     BalanceLockTo212: BalanceLockTo212;
@@ -1428,6 +1438,7 @@ declare module "@polkadot/types/types/registry" {
     ConfigData: ConfigData;
     Consensus: Consensus;
     ConsensusEngineId: ConsensusEngineId;
+    Constraints: Constraints;
     ConsumedWeight: ConsumedWeight;
     ContractCallFlags: ContractCallFlags;
     ContractCallRequest: ContractCallRequest;
@@ -1762,6 +1773,7 @@ declare module "@polkadot/types/types/registry" {
     ImmortalEra: ImmortalEra;
     ImportedAux: ImportedAux;
     InboundDownwardMessage: InboundDownwardMessage;
+    InboundHrmpLimitations: InboundHrmpLimitations;
     InboundHrmpMessage: InboundHrmpMessage;
     InboundHrmpMessages: InboundHrmpMessages;
     InboundLaneData: InboundLaneData;
@@ -1907,6 +1919,7 @@ declare module "@polkadot/types/types/registry" {
     NextConfigDescriptorV1: NextConfigDescriptorV1;
     NftCollectionId: NftCollectionId;
     NftItemId: NftItemId;
+    NodeFeatures: NodeFeatures;
     NodeRole: NodeRole;
     Nominations: Nominations;
     NominatorIndex: NominatorIndex;
@@ -1940,6 +1953,7 @@ declare module "@polkadot/types/types/registry" {
     OriginKindV0: OriginKindV0;
     OriginKindV1: OriginKindV1;
     OriginKindV2: OriginKindV2;
+    OutboundHrmpChannelLimitations: OutboundHrmpChannelLimitations;
     OutboundHrmpMessage: OutboundHrmpMessage;
     OutboundLaneData: OutboundLaneData;
     OutboundMessageFee: OutboundMessageFee;

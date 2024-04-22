@@ -1,6 +1,6 @@
 {
   "name": "@moonbeam-network/api-augment",
-  "version": "0.2901.0",
+  "version": "0.2902.0",
   "type": "module",
   "private": true,
   "description": "Moonbeam types augment for @polkadot/api",
@@ -84,8 +84,8 @@
     "api"
   ],
   "devDependencies": {
-    "@polkadot/api": "^10.12.6",
-    "@polkadot/typegen": "^10.12.6",
+    "@polkadot/api": "^10.13.1",
+    "@polkadot/typegen": "^10.13.1",
     "prettier": "^2.7.1",
     "prettier-plugin-jsdoc": "^0.3.38",
     "rimraf": "^3.0.2",
