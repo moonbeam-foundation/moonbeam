@@ -99,4 +99,20 @@ export const AccountShortfalls = {
       locks: 0n,
     },
   },
+  Moonsama: {
+    "0xa6b72eb60722aeac3ff8e7c40abb82650ee5edd2": {
+      comment: "localAssetDeposit to be manually returned",
+      brokenIn: 2801,
+      reserved: 100000000000000000000n,
+      locks: 0n,
+    },
+  },
+  Moonlama: {
+    "0x87d06d575b1d8c6ca529703bfca1d01868ea3ea3": {
+      comment: "localAssetDeposit to be manually returned",
+      brokenIn: 2801,
+      // reserved: 100000000000000000000n,
+      locks: 0n,
+    },
+  },
 } as const;
