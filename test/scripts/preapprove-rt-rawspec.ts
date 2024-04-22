@@ -55,7 +55,7 @@ yargs(hideBin(process.argv))
       process.stdout.write("Done ✅\n");
 
       const storageKey = u8aToHex(
-        u8aConcat(xxhashAsU8a("ParachainSystem", 128), xxhashAsU8a("AuthorizedUpgrade", 128))
+        u8aConcat(xxhashAsU8a("System", 128), xxhashAsU8a("AuthorizedUpgrade", 128))
       );
 
       localRaw.genesis.raw.top = {
