@@ -1042,15 +1042,6 @@ describeSuite({
       return { rewarded, autoCompounded };
     };
 
-    // function assertEqualWithAccount(a: BN, b: BN, account: string) {
-    //   const diff = a.sub(b);
-
-    //   expect(
-    //     diff.abs().isZero(),
-    //     `${account} ${a.toString()} != ${b.toString()}, difference of ${diff.abs().toString()}`
-    //   ).to.be.true;
-    // }
-
     type Rewarded = {
       // Collator account id
       collator?: HexString;
