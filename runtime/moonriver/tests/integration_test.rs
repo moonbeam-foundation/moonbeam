@@ -620,7 +620,7 @@ fn reward_block_authors() {
 
 			// Just before round 3
 			run_to_block(2399, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
-			
+
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -628,7 +628,7 @@ fn reward_block_authors() {
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 9500 * MOVR,);
 			run_to_block(2401, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
-	
+
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),

@@ -26,10 +26,10 @@ pub use moonriver_runtime::{
 	asset_config::AssetRegistrarMetadata,
 	currency::{GIGAWEI, MOVR, SUPPLY_FACTOR, WEI},
 	xcm_config::AssetType,
-	AccountId, AssetId, AssetManager, AsyncBacking, AuthorInherent, Balance, Balances, CrowdloanRewards,
-	Ethereum, Executive, Header, InflationInfo, ParachainStaking, Range, Runtime, RuntimeCall,
-	RuntimeEvent, System, TransactionConverter, TransactionPaymentAsGasPrice, UncheckedExtrinsic,
-	HOURS, WEEKS,
+	AccountId, AssetId, AssetManager, AsyncBacking, AuthorInherent, Balance, Balances,
+	CrowdloanRewards, Ethereum, Executive, Header, InflationInfo, ParachainStaking, Range, Runtime,
+	RuntimeCall, RuntimeEvent, System, TransactionConverter, TransactionPaymentAsGasPrice,
+	UncheckedExtrinsic, HOURS, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_consensus_slots::Slot;
