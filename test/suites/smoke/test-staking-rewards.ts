@@ -946,11 +946,10 @@ describeSuite({
           bondReward = collatorReward.sub(collatorCommissionReward);
 
           if (!stakedValue[accountId].delegators) {
-            assertEqualWithAccount(
-              rewards[accountId].amount,
-              collatorReward,
+            expect(
+              withinTolerance(rewards[accountId].amount, collatorReward),
               `${accountId} (COL) - Reward`
-            );
+            ).to.be.true;
           } else {
             const bondShare = new Perbill(collatorInfo.bond, collatorInfo.total);
             totalBondRewardShare = totalBondRewardShare.add(bondShare.value());
@@ -958,11 +957,10 @@ describeSuite({
             rewarded.amount.bondReward = rewarded.amount.bondReward.add(collatorBondReward);
             const collatorTotalReward = collatorBondReward.add(collatorCommissionReward);
 
-            assertEqualWithAccount(
-              rewards[accountId].amount,
-              collatorTotalReward,
+            expect(
+              withinTolerance(rewards[accountId].amount, collatorTotalReward),
               `${accountId} (COL) - Reward`
-            );
+            ).to.be.true;
           }
           rewarded.collator = accountId;
         } else if (delegators.has(accountId)) {
@@ -984,11 +982,11 @@ describeSuite({
           const delegatorReward = bondShare.of(bondReward);
           rewarded.amount.bondReward = rewarded.amount.bondReward.add(delegatorReward);
           rewarded.delegators.add(accountId);
-          assertEqualWithAccount(
-            rewards[accountId].amount,
-            delegatorReward,
+
+          expect(
+            withinTolerance(rewards[accountId].amount, delegatorReward),
             `${accountId} (DEL) - Reward`
-          );
+          ).to.be.true;
 
           const canAutoCompound =
             !outstandingRevokes[rewarded.collator!] ||
@@ -1001,13 +999,12 @@ describeSuite({
             }
             const autoCompoundReward = autoCompoundPercent.ofCeil(rewards[accountId].amount);
             if (autoCompounds[accountId]) {
-              assertEqualWithAccount(
-                autoCompounds[accountId].amount,
-                autoCompoundReward,
+              expect(
+                withinTolerance(autoCompounds[accountId].amount, autoCompoundReward),
                 `${accountId} (DEL) - AutoCompound ${autoCompoundPercent.toString()}% of ${rewards[
                   accountId
-                ].amount.toString()}, `
-              );
+                ].amount.toString()}`
+              ).to.be.true;
               autoCompounded.add(accountId);
             }
           }
@@ -1044,15 +1041,6 @@ describeSuite({
 
       return { rewarded, autoCompounded };
     };
-
-    function assertEqualWithAccount(a: BN, b: BN, account: string) {
-      const diff = a.sub(b);
-
-      expect(
-        diff.abs().isZero(),
-        `${account} ${a.toString()} != ${b.toString()}, difference of ${diff.abs().toString()}`
-      ).to.be.true;
-    }
 
     type Rewarded = {
       // Collator account id
