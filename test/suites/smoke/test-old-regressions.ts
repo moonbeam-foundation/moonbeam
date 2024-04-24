@@ -6,7 +6,7 @@ import { encodeFunctionData } from "viem";
 
 describeSuite({
   id: "S15",
-  title: "Verify regressions which happend in the past",
+  title: "Verify regressions which happened in the past",
   foundationMethods: "read_only",
   testCases: async ({ context, it, log }) => {
     let paraApi: ApiPromise;
