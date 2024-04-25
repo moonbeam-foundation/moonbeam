@@ -6408,10 +6408,10 @@ dependencies = [
 name = "moonbeam-finality-rpc"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "fc-api",
  "fc-db",
  "fc-rpc",
- "futures 0.3.30",
  "jsonrpsee",
  "parity-scale-codec",
  "sp-api",
