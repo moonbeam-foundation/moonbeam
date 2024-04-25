@@ -11,7 +11,7 @@ describeSuite({
       id: "T01",
       title: "should be able to fill a block with 2650 tx",
       test: async function () {
-        for (let i = 0; i < 2650; i++) {
+        for (let i = 0; i < 3000; i++) {
           const rawTxn = await createRawTransfer(context, BALTATHAR_ADDRESS, 1n, {
             nonce: i,
           });

@@ -1,4 +1,11 @@
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeEach, describeSuite, expect } from "@moonwall/cli";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  CHARLETH_ADDRESS,
+  CHARLETH_PRIVATE_KEY,
+  GLMR,
+} from "@moonwall/util";
 
 describeSuite({
   id: "D010611",
@@ -7,7 +14,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let contract: `0x${string}`;
 
-    beforeAll(async function () {
+    beforeEach(async function () {
       const { contractAddress } = await context.deployContract!("ERC20Sample");
       contract = contractAddress;
     });
@@ -26,15 +33,150 @@ describeSuite({
       },
     });
 
-    // TODO add test for minting
+    it({
+      id: "T02",
+      title: "Should mint as expected",
+      test: async function () {
+        const tx = await context.writeContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "mint",
+          args: [BALTATHAR_ADDRESS, 10n * GLMR],
+          rawTxOnly: true,
+        });
 
-    // TODO add test for burning
+        const { result } = await context.createBlock(tx);
 
-    // TODO add test for approval
+        const bal = await context.readContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "balanceOf",
+          args: [BALTATHAR_ADDRESS],
+        });
 
-    // TODO add test for transfer
+        expect(result?.successful).toBe(true);
+        expect(bal).toEqual(10n * GLMR);
+      },
+    });
 
-    // TODO add test for transferFrom
+    it({
+      id: "T03",
+      title: "Should burn as expected",
+      test: async function () {
+        const amount = 10n * GLMR;
+
+        const balBefore = (await context.readContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "balanceOf",
+          args: [ALITH_ADDRESS],
+        })) as bigint;
+
+        const tx = await context.writeContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "burn",
+          args: [amount],
+          rawTxOnly: true,
+        });
+
+        const { result } = await context.createBlock(tx);
+
+        const balAfter = (await context.readContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "balanceOf",
+          args: [ALITH_ADDRESS],
+        })) as bigint;
+
+        expect(result?.successful).toBe(true);
+        expect(balBefore - balAfter).toEqual(amount);
+      },
+    });
+
+    it({
+      id: "T04",
+      title: "Should approve as expected",
+      test: async function () {
+        const tx = await context.writeContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "approve",
+          args: [BALTATHAR_ADDRESS, 7n * GLMR],
+          rawTxOnly: true,
+        });
+
+        const { result } = await context.createBlock(tx);
+
+        const approval = (await context.readContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "allowance",
+          args: [ALITH_ADDRESS, BALTATHAR_ADDRESS],
+        })) as bigint;
+
+        expect(result?.successful).toBe(true);
+        expect(approval).toEqual(7n * GLMR);
+      },
+    });
+
+    it({
+      id: "T05",
+      title: "Should transfer as expected",
+      test: async function () {
+        const tx = await context.writeContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "transfer",
+          args: [BALTATHAR_ADDRESS, 10n * GLMR],
+          rawTxOnly: true,
+        });
+
+        const { result } = await context.createBlock(tx);
+
+        const bal = await context.readContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "balanceOf",
+          args: [BALTATHAR_ADDRESS],
+        });
+
+        expect(result?.successful).toBe(true);
+        expect(bal).toEqual(10n * GLMR);
+      },
+    });
+
+    it({
+      id: "T06",
+      title: "Should transferFrom as expected",
+      test: async function () {
+        await context.writeContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "approve",
+          args: [CHARLETH_ADDRESS, 3n * GLMR],
+        });
+        await context.createBlock();
+
+        await context.writeContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "transferFrom",
+          args: [ALITH_ADDRESS, BALTATHAR_ADDRESS, 3n * GLMR],
+          privateKey: CHARLETH_PRIVATE_KEY,
+        });
+        await context.createBlock();
+
+        const bal = await context.readContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "balanceOf",
+          args: [BALTATHAR_ADDRESS],
+        });
+
+        expect(bal).toEqual(3n * GLMR);
+      },
+    });
 
     // TODO mint via XCM
 
