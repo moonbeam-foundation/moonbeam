@@ -99,8 +99,8 @@ dependencies:
     specifier: 7.6.0
     version: 7.6.0
   solc:
-    specifier: 0.8.24
-    version: 0.8.24(debug@4.3.4)
+    specifier: 0.8.21
+    version: 0.8.21(debug@4.3.4)
   tsx:
     specifier: 4.7.2
     version: 4.7.2
@@ -9495,8 +9495,8 @@ packages:
     dev: false
     optional: true
 
-  /solc@0.8.24(debug@4.3.4):
-    resolution: {integrity: sha512-G5yUqjTUPc8Np74sCFwfsevhBPlUifUOfhYrgyu6CmYlC6feSw0YS6eZW47XDT23k3JYdKx5nJ+Q7whCEmNcoA==}
+  /solc@0.8.21(debug@4.3.4):
+    resolution: {integrity: sha512-N55ogy2dkTRwiONbj4e6wMZqUNaLZkiRcjGyeafjLYzo/tf/IvhHY5P5wpe+H3Fubh9idu071i8eOGO31s1ylg==}
     engines: {node: '>=10.0.0'}
     hasBin: true
     dependencies:

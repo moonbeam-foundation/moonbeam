@@ -16,12 +16,13 @@ describeSuite({
       id: "T01",
       title: "Should get the greeter message from the contract",
       test: async function () {
-        const timbo = await context.readContract!({
+        const response = await context.readContract!({
           contractName: "ERC20Sample",
           contractAddress: contract,
           functionName: "greeter",
         });
-        console.log(timbo);
+
+        expect(response).toEqual("Hello, ERC20!");
       },
     });
 
