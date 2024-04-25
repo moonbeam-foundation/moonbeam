@@ -127,12 +127,10 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 </span><span class="kw">use </span>fc_rpc::frontier_backend_client::{<span class="self">self</span>, is_canon};
 <span class="kw">use </span>jsonrpsee::{core::RpcResult, proc_macros::rpc};
+<span class="kw">use </span>sp_blockchain::HeaderBackend;
 <span class="kw">use </span>sp_core::H256;
-<span class="kw">use </span>std::{marker::PhantomData, sync::Arc};
-<span class="comment">//TODO ideally we wouldn&#39;t depend on BlockId here. Can we change frontier
-// so it&#39;s load_hash helper returns an H256 instead of wrapping it in a BlockId?
-</span><span class="kw">use </span>sp_blockchain::HeaderBackend;
 <span class="kw">use </span>sp_runtime::traits::Block;
+<span class="kw">use </span>std::{marker::PhantomData, sync::Arc};
 
 <span class="doccomment">/// An RPC endpoint to check for finality of blocks and transactions in Moonbeam
 </span><span class="attr">#[rpc(server)]
@@ -141,12 +139,12 @@
 	<span class="doccomment">/// Reports whether a Substrate or Ethereum block is finalized.
 	/// Returns false if the block is not found.
 	</span><span class="attr">#[method(name = <span class="string">&quot;moon_isBlockFinalized&quot;</span>)]
-	</span><span class="kw">fn </span>is_block_finalized(<span class="kw-2">&amp;</span><span class="self">self</span>, block_hash: H256) -&gt; RpcResult&lt;bool&gt;;
+	</span><span class="kw">async fn </span>is_block_finalized(<span class="kw-2">&amp;</span><span class="self">self</span>, block_hash: H256) -&gt; RpcResult&lt;bool&gt;;
 
 	<span class="doccomment">/// Reports whether an Ethereum transaction is finalized.
 	/// Returns false if the transaction is not found
 	</span><span class="attr">#[method(name = <span class="string">&quot;moon_isTxFinalized&quot;</span>)]
-	</span><span class="kw">fn </span>is_tx_finalized(<span class="kw-2">&amp;</span><span class="self">self</span>, tx_hash: H256) -&gt; RpcResult&lt;bool&gt;;
+	</span><span class="kw">async fn </span>is_tx_finalized(<span class="kw-2">&amp;</span><span class="self">self</span>, tx_hash: H256) -&gt; RpcResult&lt;bool&gt;;
 }
 
 <span class="kw">pub struct </span>MoonbeamFinality&lt;B: Block, C&gt; {
@@ -165,42 +163,44 @@
 	}
 }
 
-<span class="kw">impl</span>&lt;B, C&gt; MoonbeamFinalityApiServer <span class="kw">for </span>MoonbeamFinality&lt;B, C&gt;
+<span class="attr">#[async_trait::async_trait]
+</span><span class="kw">impl</span>&lt;B, C&gt; MoonbeamFinalityApiServer <span class="kw">for </span>MoonbeamFinality&lt;B, C&gt;
 <span class="kw">where
 	</span>B: Block&lt;Hash = H256&gt;,
 	C: HeaderBackend&lt;B&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
-	<span class="kw">fn </span>is_block_finalized(<span class="kw-2">&amp;</span><span class="self">self</span>, raw_hash: H256) -&gt; RpcResult&lt;bool&gt; {
+	<span class="kw">async fn </span>is_block_finalized(<span class="kw-2">&amp;</span><span class="self">self</span>, raw_hash: H256) -&gt; RpcResult&lt;bool&gt; {
 		<span class="kw">let </span>client = <span class="self">self</span>.client.clone();
-		is_block_finalized_inner::&lt;B, C&gt;(<span class="self">self</span>.backend.as_ref(), <span class="kw-2">&amp;</span>client, raw_hash)
-	}
+		is_block_finalized_inner::&lt;B, C&gt;(<span class="self">self</span>.backend.as_ref(), <span class="kw-2">&amp;</span>client, raw_hash).<span class="kw">await
+	</span>}
 
-	<span class="kw">fn </span>is_tx_finalized(<span class="kw-2">&amp;</span><span class="self">self</span>, tx_hash: H256) -&gt; RpcResult&lt;bool&gt; {
+	<span class="kw">async fn </span>is_tx_finalized(<span class="kw-2">&amp;</span><span class="self">self</span>, tx_hash: H256) -&gt; RpcResult&lt;bool&gt; {
 		<span class="kw">let </span>client = <span class="self">self</span>.client.clone();
 
 		<span class="kw">if let </span><span class="prelude-val">Some</span>((ethereum_block_hash, _ethereum_index)) =
-			futures::executor::block_on(frontier_backend_client::load_transactions::&lt;B, C&gt;(
+			frontier_backend_client::load_transactions::&lt;B, C&gt;(
 				<span class="kw-2">&amp;</span>client,
 				<span class="self">self</span>.backend.as_ref(),
 				tx_hash,
 				<span class="bool-val">true</span>,
-			))<span class="question-mark">? </span>{
+			)
+			.<span class="kw">await</span><span class="question-mark">?
+		</span>{
 			is_block_finalized_inner::&lt;B, C&gt;(<span class="self">self</span>.backend.as_ref(), <span class="kw-2">&amp;</span>client, ethereum_block_hash)
-		} <span class="kw">else </span>{
+				.<span class="kw">await
+		</span>} <span class="kw">else </span>{
 			<span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
 		}
 	}
 }
 
-<span class="kw">fn </span>is_block_finalized_inner&lt;B: Block&lt;Hash = H256&gt;, C: HeaderBackend&lt;B&gt; + <span class="lifetime">&#39;static</span>&gt;(
+<span class="kw">async fn </span>is_block_finalized_inner&lt;B: Block&lt;Hash = H256&gt;, C: HeaderBackend&lt;B&gt; + <span class="lifetime">&#39;static</span>&gt;(
 	backend: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>fc_api::Backend&lt;B&gt;),
 	client: <span class="kw-2">&amp;</span>C,
 	raw_hash: H256,
 ) -&gt; RpcResult&lt;bool&gt; {
 	<span class="kw">let </span>substrate_hash =
-		<span class="kw">match </span>futures::executor::block_on(frontier_backend_client::load_hash::&lt;B, C&gt;(
-			client, backend, raw_hash,
-		))<span class="question-mark">? </span>{
+		<span class="kw">match </span>frontier_backend_client::load_hash::&lt;B, C&gt;(client, backend, raw_hash).<span class="kw">await</span><span class="question-mark">? </span>{
 			<span class="comment">// If we find this hash in the frontier data base, we know it is an eth hash
 			</span><span class="prelude-val">Some</span>(hash) =&gt; hash,
 			<span class="comment">// Otherwise, we assume this is a Substrate hash.
