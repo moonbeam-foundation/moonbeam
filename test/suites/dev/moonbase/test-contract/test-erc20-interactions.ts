@@ -9,11 +9,11 @@ import {
 } from "@moonwall/util";
 import { encodeFunctionData, parseEther } from "viem";
 import {
+  descendOriginFromAddress20,
   expectEVMResult,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
   XcmFragment,
-  XcmFragmentConfig,
 } from "../../../../helpers";
 
 describeSuite({
@@ -187,129 +187,126 @@ describeSuite({
       },
     });
 
-    // TODO mint via XCM
     it({
       id: "T07",
       title: "Should mint as expected",
       test: async function () {
-        const { abi } = fetchCompiledContract("ERC20Sample");
         const paraId = 888;
-        const paraSovereign = sovereignAccountOfSibling(context, paraId);
-        const amountTransferred = 1_000n;
 
-        const metadata = await context.pjsApi.rpc.state.getMetadata();
+        const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
+          context,
+          ALITH_ADDRESS,
+          paraId
+        );
+        const sendingAddress = originAddress;
+        log(`Sending Address: ${sendingAddress}`);
+        log(`Descend Origin Address: ${descendOriginAddress}`);
+
+        // Get Pallet balances index
+        const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
           .find(({ name }) => name.toString() == "Balances")!
           .index.toNumber();
-        const erc20XcmPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Erc20XcmBridge")!
-          .index.toNumber();
 
-        // Send some native tokens to the sovereign account of paraId (to pay fees)
-        await context.pjsApi.tx.balances
-          .transferAllowDeath(paraSovereign, parseEther("1"))
-          .signAndSend(alith);
-        await context.createBlock();
-
-        // Send some erc20 tokens to the sovereign account of paraId
-        const rawTx = await context.writeContract!({
+        const { abi } = fetchCompiledContract("ERC20Sample");
+        const mintAmount = 36n * GLMR;
+        const originalOwner = await context.readContract!({
           contractName: "ERC20Sample",
           contractAddress: contract,
-          functionName: "transfer",
-          args: [paraSovereign, amountTransferred],
+          functionName: "owner",
+        });
+        log(`Contract Address: ${contract}`);
+        log(`Original Owner: ${originalOwner}`);
+
+        const changeOwnerTx = await context.writeContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "transferOwnership",
+          args: [descendOriginAddress],
           rawTxOnly: true,
         });
 
-        const { result } = await context.createBlock(rawTx);
-        expectEVMResult(result!.events, "Succeed");
+        const { result: changeOwnerRes } = await context.createBlock(changeOwnerTx);
+        expectEVMResult(changeOwnerRes!.events, "Succeed");
 
-        expect(
-          await context.readContract!({
-            contractName: "ERC20Sample",
-            contractAddress: contract,
-            functionName: "balanceOf",
-            args: [paraSovereign],
-          })
-        ).equals(amountTransferred);
+        const owner = await context.readContract!({
+          contractName: "ERC20Sample",
+          contractAddress: contract,
+          functionName: "owner",
+        });
+        log(`Contract owner is now: ${owner}`);
 
-        // Generate call data
+        await context.createBlock(
+          context.polkadotJs().tx.balances.transferAllowDeath(descendOriginAddress, GLMR),
+          { allowFailures: false }
+        );
+
+        // The payload which will get executed by the EVM
         const callData = encodeFunctionData({
           abi,
           functionName: "mint",
-          args: [BALTATHAR_ADDRESS, 30n * GLMR],
+          args: [BALTATHAR_ADDRESS, mintAmount],
         });
 
         const gasLimit = await context.viem().estimateGas({
-          account: ALITH_ADDRESS,
+          account: descendOriginAddress,
           to: contract,
           data: callData,
         });
 
         const subTx = context.pjsApi.tx.ethereumXcm.transact({
           V2: {
-            gasLimit: gasLimit + 10000n,
+            gasLimit,
             action: { Call: contract },
             input: callData,
+            access_list: null,
+            value: 0n,
           },
         });
 
         const encodedCall = subTx.method.toHex();
 
-        // Create the incoming xcm message
-        const amountToWithdraw = BigInt(20 * 10 ** 16); // 0.01 DEV
-        const weightTransact = 40000000000n; // 25000 * Gas limit of EVM call
-        const devMultiLocation = { parents: 0, interior: { X1: { PalletInstance: 3 } } };
-        // 3. XCM Instruction 1
-        const instr1 = {
-          WithdrawAsset: [
+        //  0.005 GLMR worth of fees (i've chosen this value arbitrarily)
+        const amountToWithdraw = 3_000_000_000_000_000n;
+
+        // ( EVM Call gas + overhead ) * gas-to-weight multiplier
+        const weightTransact = (gasLimit + 5000n) * 25000n;
+
+        const xcmMessage2 = new XcmFragment({
+          assets: [
             {
-              id: { Concrete: devMultiLocation },
-              fun: { Fungible: amountToWithdraw },
+              multilocation: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
+              },
+              fungible: amountToWithdraw,
             },
           ],
-        };
-
-        // 4. XCM Instruction 2
-        const instr2 = {
-          BuyExecution: {
-            fees: {
-              id: { Concrete: devMultiLocation },
-              fun: { Fungible: amountToWithdraw },
+          descend_origin: sendingAddress,
+        })
+          .descend_origin()
+          .withdraw_asset()
+          .buy_execution()
+          .push_any({
+            Transact: {
+              originKind: "SovereignAccount",
+              requireWeightAtMost: {
+                refTime: weightTransact,
+                proofSize: 700000n,
+              },
+              call: {
+                encoded: encodedCall,
+              },
             },
-            weightLimit: { Unlimited: null },
-          },
-        };
-
-        // 5. XCM Instruction 3
-        const instr3 = {
-          Transact: {
-            // TODO CHANGE BELOW TO ALITH SIGNER
-            originKind: "SovereignAccount",
-            requireWeightAtMost: { refTime: weightTransact, proofSize: 700000n },
-            call: {
-              encoded: encodedCall,
-            },
-          },
-        };
-
-        // 6. XCM Instruction 4
-        const instr4 = {
-          DepositAsset: {
-            assets: { Wild: "All" },
-            beneficiary: {
-              parents: 0,
-              interior: { X1: { AccountKey20: { key: BALTATHAR_ADDRESS } } },
-            },
-          },
-        };
-
-        // 7. Build XCM Message
-        const xcmMessage = { V3: [instr1, instr2, instr3, instr4] };
+          })
+          .as_v3();
 
         // Mock the reception of the xcm message
         await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
-          payload: xcmMessage,
+          payload: xcmMessage2,
         });
 
         expect(
@@ -319,7 +316,7 @@ describeSuite({
             functionName: "balanceOf",
             args: [BALTATHAR_ADDRESS],
           })
-        ).equals(amountTransferred);
+        ).equals(mintAmount);
       },
     });
 
