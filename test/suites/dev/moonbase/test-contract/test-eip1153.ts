@@ -1,5 +1,4 @@
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import exp from "constants";
 
 describeSuite({
   id: "D010611",
@@ -24,7 +23,7 @@ describeSuite({
             contractName: "ReentrancyProtected",
             contractAddress: contract,
             functionName: "test",
-          })
+          });
         } catch (error) {
           return expect(error.details).to.be.eq(
             "VM Exception while processing transaction: revert Reentrant call detected."
@@ -33,5 +32,5 @@ describeSuite({
         expect.fail("Expected the contract call to fail");
       },
     });
-  }
+  },
 });
