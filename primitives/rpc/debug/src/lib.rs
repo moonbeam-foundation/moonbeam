@@ -17,7 +17,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use ethereum::{TransactionV0 as LegacyTransaction, TransactionV2 as Transaction};
-use ethereum_types::H256;
+use ethereum_types::{H160, H256, U256};
 use parity_scale_codec::{Decode, Encode};
 use sp_std::vec::Vec;
 
@@ -60,6 +60,18 @@ sp_api::decl_runtime_apis! {
 			extrinsics: Vec<Block::Extrinsic>,
 			known_transactions: Vec<H256>,
 			header: &Block::Header,
+		) -> Result<(), sp_runtime::DispatchError>;
+
+		fn trace_call(
+			from: H160,
+			to: H160,
+			data: Vec<u8>,
+			value: U256,
+			gas_limit: U256,
+			max_fee_per_gas: Option<U256>,
+			max_priority_fee_per_gas: Option<U256>,
+			nonce: Option<U256>,
+			access_list: Option<Vec<(H160, Vec<H256>)>>,
 		) -> Result<(), sp_runtime::DispatchError>;
 	}
 }
