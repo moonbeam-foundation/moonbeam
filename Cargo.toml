@@ -64,7 +64,7 @@ evm-tracing-events = { path = "primitives/rpc/evm-tracing-events", default-featu
 moonbeam-core-primitives = { path = "core-primitives", default-features = false }
 moonbeam-primitives-ext = { path = "primitives/ext", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "primitives/rpc/debug", default-features = false, features = [
-	"runtime-2900",
+	"runtime-3000",
 ] }
 moonbeam-rpc-primitives-txpool = { path = "primitives/rpc/txpool", default-features = false }
 storage-proof-primitives = { path = "primitives/storage-proof", default-features = false }
