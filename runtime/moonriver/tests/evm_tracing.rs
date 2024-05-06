@@ -107,7 +107,7 @@ mod tests {
 				.is_ok());
 			});
 	}
-	
+
 	#[test]
 	fn debug_runtime_api_trace_call() {
 		let alith = H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")

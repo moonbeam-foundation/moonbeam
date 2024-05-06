@@ -123,7 +123,7 @@ impl DebugServer for Debug {
 				_ => unreachable!(),
 			})
 	}
-	
+
 	/// Handler for `debug_traceCall` request. Communicates with the service-defined task
 	/// using channels.
 	async fn trace_call(
@@ -744,7 +744,7 @@ where
 		let api = client.runtime_api();
 		// Get the header I want to work with.
 		let Ok(hash) = client.expect_block_hash_from_id(&reference_id) else {
-			return Err(internal_err("Block header not found"))
+			return Err(internal_err("Block header not found"));
 		};
 		let header = match client.header(hash) {
 			Ok(Some(h)) => h,

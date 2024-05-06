@@ -289,7 +289,7 @@ macro_rules! impl_runtime_apis_plus_common {
 							let is_transactional = false;
 							let validate = true;
 							let without_base_extrinsic_weight = true;
-							
+
 
 							// Estimated encoded transaction size must be based on the heaviest transaction
 							// type (EIP1559Transaction) to be compatible with all transaction types.
@@ -311,9 +311,9 @@ macro_rules! impl_runtime_apis_plus_common {
 							if access_list.is_some() {
 								estimated_transaction_len += access_list.encoded_size();
 							}
-							
+
 							let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
-	
+
 							let (weight_limit, proof_size_base_cost) =
 								match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
 									gas_limit,
