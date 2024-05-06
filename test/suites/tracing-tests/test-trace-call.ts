@@ -1,7 +1,6 @@
 import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_PRIVATE_KEY, alith, createEthersTransaction } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
-import { createContracts, nestedSingle } from "../../helpers";
+import { createContracts } from "../../helpers";
 
 describeSuite({
   id: "T16",
@@ -19,7 +18,7 @@ describeSuite({
             abi: contracts.abiCaller,
             functionName: "someAction",
             args: [contracts.calleeAddr, 6],
-          })
+          }),
         };
         const traceTx = await customDevRpcRequest("debug_traceCall", [callParams, "latest"]);
         const logs: any[] = [];
