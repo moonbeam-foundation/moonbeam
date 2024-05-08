@@ -174,30 +174,6 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	}
 }
 
-impl pallet_assets::Config<LocalAssetInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type AssetAccountDeposit = AssetAccountDeposit;
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-	type RemoveItemsLimit = ConstU32<656>;
-	type AssetIdParameter = AssetId;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
-	type CallbackHandle = ();
-	pallet_assets::runtime_benchmarks_enabled! {
-		type BenchmarkHelper = BenchmarkHelper;
-	}
-}
-
 /// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
@@ -1092,7 +1068,6 @@ construct_runtime!(
 		AssetManager: pallet_asset_manager,
 		XcmTransactor: pallet_xcm_transactor,
 		Treasury: pallet_treasury,
-		LocalAssets: pallet_assets::<Instance1>,
 		Proxy: pallet_proxy,
 
 		Timestamp: pallet_timestamp,
