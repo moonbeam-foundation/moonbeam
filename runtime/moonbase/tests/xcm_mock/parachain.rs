@@ -126,7 +126,6 @@ impl pallet_balances::Config for Runtime {
 }
 
 pub type ForeignAssetInstance = ();
-pub type LocalAssetInstance = pallet_assets::Instance1;
 
 // Required for runtime benchmarks
 pallet_assets::runtime_benchmarks_enabled! {
