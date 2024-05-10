@@ -307,7 +307,7 @@ impl pallet_balances::Config for Runtime {
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type ExistentialDeposit = ConstU128<0>;
 	#[cfg(feature = "runtime-benchmarks")]
-	type ExistentialDeposit = ConstU128<100>;
+	type ExistentialDeposit = ConstU128<1>;
 	type AccountStore = System;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ConstU32<0>;

@@ -33,13 +33,17 @@ pub use moonbase_runtime::{
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use polkadot_parachain::primitives::HeadData;
 use sp_consensus_slots::Slot;
-use sp_core::{Encode, H160};
+use sp_core::{Encode, Get, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
 use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
 use pallet_transaction_payment::Multiplier;
+
+pub fn existential_deposit() -> u128 {
+	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
+}
 
 // A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =

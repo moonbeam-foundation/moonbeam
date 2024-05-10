@@ -694,7 +694,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Config as PalletAssetManagerConfig;
 
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
-					type ExistentialDeposit = ConstU128<100>;
 					parameter_types! {
 						pub const RandomParaId: ParaId = ParaId::new(43211234);
 					}
@@ -717,7 +716,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 							Some((
 								Asset {
-									fun: Fungible(ExistentialDeposit::get()),
+									fun: Fungible(<Runtime as pallet_balances::Config>::ExistentialDeposit::get()),
 									id: AssetId(SelfReserve::get().into())
 								},
 								// AH can reserve transfer native token to some random parachain.
@@ -731,7 +730,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 							let destination: xcm::v4::Location = Parent.into();
 
-							let fee_amount: u128 = ExistentialDeposit::get();
+							let fee_amount: u128 = <Runtime as pallet_balances::Config>::ExistentialDeposit::get();
 							let fee_asset: Asset = (SelfReserve::get(), fee_amount).into();
 
 							// Give some multiple of transferred amount
