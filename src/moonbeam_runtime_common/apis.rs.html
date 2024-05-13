@@ -937,6 +937,44 @@
 <a href="#937" id="937">937</a>
 <a href="#938" id="938">938</a>
 <a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1601,7 +1639,7 @@
 					<span class="kw">use </span>frame_support::traits::StorageInfoTrait;
 					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
 
-					<span class="kw">use </span>pallet_xcm::benchmarking::Pallet <span class="kw">as </span>PalletXcmExtrinsiscsBenchmark;
+					<span class="kw">use </span>pallet_xcm::benchmarking::Pallet <span class="kw">as </span>PalletXcmExtrinsicsBenchmark;
 
 					<span class="kw">let </span><span class="kw-2">mut </span>list = Vec::&lt;BenchmarkList&gt;::new();
 					<span class="macro">list_benchmarks!</span>(list, extra);
@@ -1632,8 +1670,7 @@
 
 					<span class="kw">use </span>pallet_asset_manager::Config <span class="kw">as </span>PalletAssetManagerConfig;
 
-					<span class="kw">use </span>pallet_xcm::benchmarking::Pallet <span class="kw">as </span>PalletXcmExtrinsiscsBenchmark;
-					<span class="kw">type </span>ExistentialDeposit = ConstU128&lt;<span class="number">0</span>&gt;;
+					<span class="kw">use </span>pallet_xcm::benchmarking::Pallet <span class="kw">as </span>PalletXcmExtrinsicsBenchmark;
 					<span class="macro">parameter_types! </span>{
 						<span class="kw">pub const </span>RandomParaId: ParaId = ParaId::new(<span class="number">43211234</span>);
 					}
@@ -1644,25 +1681,64 @@
 						}
 
 						<span class="kw">fn </span>teleportable_asset_and_dest() -&gt; <span class="prelude-ty">Option</span>&lt;(Asset, Location)&gt; {
-							<span class="comment">// Relay/native token can be teleported between AH and Relay.
-							</span><span class="prelude-val">Some</span>((
-								Asset {
-									fun: Fungible(ExistentialDeposit::get()),
-									id: AssetId(Parent.into())
-								},
-								Parent.into(),
-							))
-						}
+							<span class="prelude-val">None
+						</span>}
 
 						<span class="kw">fn </span>reserve_transferable_asset_and_dest() -&gt; <span class="prelude-ty">Option</span>&lt;(Asset, Location)&gt; {
+							<span class="kw">use </span>xcm_config::SelfReserve;
+
+							ParachainSystem::open_outbound_hrmp_channel_for_benchmarks_or_tests(
+								RandomParaId::get().into()
+							);
+
 							<span class="prelude-val">Some</span>((
 								Asset {
-									fun: Fungible(ExistentialDeposit::get()),
-									id: AssetId(Parent.into())
+									fun: Fungible(&lt;Runtime <span class="kw">as </span>pallet_balances::Config&gt;::ExistentialDeposit::get()),
+									id: AssetId(SelfReserve::get().into())
 								},
 								<span class="comment">// AH can reserve transfer native token to some random parachain.
 								</span>ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
 							))
+						}
+
+						<span class="kw">fn </span>set_up_complex_asset_transfer(
+						) -&gt; <span class="prelude-ty">Option</span>&lt;(XcmAssets, u32, Location, Box&lt;<span class="kw">dyn </span>FnOnce()&gt;)&gt; {
+							<span class="kw">use </span>xcm_config::SelfReserve;
+
+							<span class="kw">let </span>destination: xcm::v4::Location = Parent.into();
+
+							<span class="kw">let </span>fee_amount: u128 = &lt;Runtime <span class="kw">as </span>pallet_balances::Config&gt;::ExistentialDeposit::get();
+							<span class="kw">let </span>fee_asset: Asset = (SelfReserve::get(), fee_amount).into();
+
+							<span class="comment">// Give some multiple of transferred amount
+							</span><span class="kw">let </span>balance = fee_amount * <span class="number">1000</span>;
+							<span class="kw">let </span>who = frame_benchmarking::whitelisted_caller();
+							<span class="kw">let _ </span>=
+								&lt;Balances <span class="kw">as </span>frame_support::traits::Currency&lt;<span class="kw">_</span>&gt;&gt;::make_free_balance_be(<span class="kw-2">&amp;</span>who, balance);
+
+							<span class="comment">// verify initial balance
+							</span><span class="macro">assert_eq!</span>(Balances::free_balance(<span class="kw-2">&amp;</span>who), balance);
+
+							<span class="comment">// set up local asset
+							</span><span class="kw">let </span>asset_amount: u128 = <span class="number">10u128</span>;
+							<span class="kw">let </span>initial_asset_amount: u128 = asset_amount * <span class="number">10</span>;
+
+							<span class="kw">let </span>(asset_id, <span class="kw">_</span>, <span class="kw">_</span>) = pallet_assets::benchmarking::create_default_minted_asset::&lt;
+								Runtime,
+								()
+							&gt;(<span class="bool-val">true</span>, initial_asset_amount);
+							<span class="kw">let </span>transfer_asset: Asset = (SelfReserve::get(), asset_amount).into();
+
+							<span class="kw">let </span>assets: XcmAssets = <span class="macro">vec!</span>[fee_asset.clone(), transfer_asset].into();
+							<span class="kw">let </span>fee_index: u32 = <span class="number">0</span>;
+
+							<span class="kw">let </span>verify: Box&lt;<span class="kw">dyn </span>FnOnce()&gt; = Box::new(<span class="kw">move </span>|| {
+								<span class="comment">// verify balance after transfer, decreased by
+								// transferred amount (and delivery fees)
+								</span><span class="macro">assert!</span>(Balances::free_balance(<span class="kw-2">&amp;</span>who) &lt;= balance - fee_amount);
+							});
+
+							<span class="prelude-val">Some</span>((assets, fee_index, destination, verify))
 						}
 					}
 
