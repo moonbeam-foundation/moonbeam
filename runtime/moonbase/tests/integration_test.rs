@@ -1714,7 +1714,7 @@ fn transfer_ed_0_substrate() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), (1 * UNIT) + (1 * WEI)),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1755,7 +1755,7 @@ fn transfer_ed_0_evm() {
 				AccountId::from(ALICE),
 				((1 * UNIT) + (21_000 * BASE_FEE_GENISIS)) + (1 * WEI),
 			),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1783,9 +1783,9 @@ fn refund_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * UNIT) + (21_777 * BASE_FEE_GENISIS)),
+				((1 * UNIT) + (21_777 * BASE_FEE_GENISIS) + existential_deposit()),
 			),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1805,7 +1805,7 @@ fn refund_ed_0_evm() {
 			// ALICE is refunded
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				777 * BASE_FEE_GENISIS,
+				777 * BASE_FEE_GENISIS + existential_deposit(),
 			);
 		});
 }
@@ -1847,10 +1847,17 @@ fn author_does_not_receive_priority_fee() {
 #[test]
 fn total_issuance_after_evm_transaction_with_priority_fee() {
 	ExtBuilder::default()
-		.with_balances(vec![(
-			AccountId::from(BOB),
-			(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
-		)])
+		.with_balances(vec![
+			(
+				AccountId::from(BOB),
+				(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS) + existential_deposit()),
+			),
+			(AccountId::from(ALICE), existential_deposit()),
+			(
+				<pallet_treasury::TreasuryAccountId<Runtime> as sp_core::TypedGet>::get(),
+				existential_deposit(),
+			),
+		])
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
@@ -1884,10 +1891,17 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 fn total_issuance_after_evm_transaction_without_priority_fee() {
 	use fp_evm::FeeCalculator;
 	ExtBuilder::default()
-		.with_balances(vec![(
-			AccountId::from(BOB),
-			(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
-		)])
+		.with_balances(vec![
+			(
+				AccountId::from(BOB),
+				(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
+			),
+			(AccountId::from(ALICE), existential_deposit()),
+			(
+				<pallet_treasury::TreasuryAccountId<Runtime> as sp_core::TypedGet>::get(),
+				existential_deposit(),
+			),
+		])
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();

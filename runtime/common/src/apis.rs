@@ -662,7 +662,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use frame_support::traits::StorageInfoTrait;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
-					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsiscsBenchmark;
+					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
 
 					let mut list = Vec::<BenchmarkList>::new();
 					list_benchmarks!(list, extra);
@@ -693,8 +693,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					use pallet_asset_manager::Config as PalletAssetManagerConfig;
 
-					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsiscsBenchmark;
-					type ExistentialDeposit = ConstU128<0>;
+					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
 					parameter_types! {
 						pub const RandomParaId: ParaId = ParaId::new(43211234);
 					}
@@ -705,25 +704,64 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 
 						fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {
-							// Relay/native token can be teleported between AH and Relay.
-							Some((
-								Asset {
-									fun: Fungible(ExistentialDeposit::get()),
-									id: AssetId(Parent.into())
-								},
-								Parent.into(),
-							))
+							None
 						}
 
 						fn reserve_transferable_asset_and_dest() -> Option<(Asset, Location)> {
+							use xcm_config::SelfReserve;
+
+							ParachainSystem::open_outbound_hrmp_channel_for_benchmarks_or_tests(
+								RandomParaId::get().into()
+							);
+
 							Some((
 								Asset {
-									fun: Fungible(ExistentialDeposit::get()),
-									id: AssetId(Parent.into())
+									fun: Fungible(<Runtime as pallet_balances::Config>::ExistentialDeposit::get()),
+									id: AssetId(SelfReserve::get().into())
 								},
 								// AH can reserve transfer native token to some random parachain.
 								ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
 							))
+						}
+
+						fn set_up_complex_asset_transfer(
+						) -> Option<(XcmAssets, u32, Location, Box<dyn FnOnce()>)> {
+							use xcm_config::SelfReserve;
+
+							let destination: xcm::v4::Location = Parent.into();
+
+							let fee_amount: u128 = <Runtime as pallet_balances::Config>::ExistentialDeposit::get();
+							let fee_asset: Asset = (SelfReserve::get(), fee_amount).into();
+
+							// Give some multiple of transferred amount
+							let balance = fee_amount * 1000;
+							let who = frame_benchmarking::whitelisted_caller();
+							let _ =
+								<Balances as frame_support::traits::Currency<_>>::make_free_balance_be(&who, balance);
+
+							// verify initial balance
+							assert_eq!(Balances::free_balance(&who), balance);
+
+							// set up local asset
+							let asset_amount: u128 = 10u128;
+							let initial_asset_amount: u128 = asset_amount * 10;
+
+							let (asset_id, _, _) = pallet_assets::benchmarking::create_default_minted_asset::<
+								Runtime,
+								()
+							>(true, initial_asset_amount);
+							let transfer_asset: Asset = (SelfReserve::get(), asset_amount).into();
+
+							let assets: XcmAssets = vec![fee_asset.clone(), transfer_asset].into();
+							let fee_index: u32 = 0;
+
+							let verify: Box<dyn FnOnce()> = Box::new(move || {
+								// verify balance after transfer, decreased by
+								// transferred amount (and delivery fees)
+								assert!(Balances::free_balance(&who) <= balance - fee_amount);
+							});
+
+							Some((assets, fee_index, destination, verify))
 						}
 					}
 
