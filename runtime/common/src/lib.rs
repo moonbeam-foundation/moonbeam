@@ -16,14 +16,17 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(feature = "runtime-benchmarks")]
+pub mod benchmarking;
+pub mod migrations;
+pub mod weights;
+
 mod apis;
+mod forbid_unsigned;
 mod impl_moonbeam_xcm_call;
 mod impl_moonbeam_xcm_call_tracing;
 mod impl_on_charge_evm_transaction;
 mod impl_self_contained_call;
 mod impl_xcm_evm_runner;
-pub mod migrations;
-pub mod weights;
 
-#[cfg(feature = "runtime-benchmarks")]
-pub mod benchmarking;
+pub use forbid_unsigned::ForbidUnsigned;

@@ -6826,6 +6826,7 @@ dependencies = [
  "pallet-xcm-transactor",
  "parity-scale-codec",
  "precompile-utils 0.1.1",
+ "scale-info",
  "sp-api",
  "sp-consensus-slots",
  "sp-core",

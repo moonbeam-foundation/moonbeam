@@ -76,6 +76,7 @@ xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 
 # Parity
+scale-info = { workspace = true }
 parity-scale-codec = { workspace = true }
 
 account = { workspace = true }
