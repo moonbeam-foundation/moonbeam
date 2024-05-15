@@ -896,52 +896,48 @@ where
 			Ok(moonbeam_rpc_primitives_debug::Response::Block)
 		};
 
-		let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
-		proxy.using(f)?;
-		let mut traces: Vec<_> =
-			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy)
-				.ok_or("Fail to format proxy")?;
-
 		let eth_transactions_by_index: BTreeMap<u32, H256> = eth_transactions
 			.iter()
 			.map(|t| (t.transaction_index, t.transaction_hash))
 			.collect();
 
-		// Fill missing data.
-		for trace in traces.iter_mut().filter(|t| {
-			let contains_key = eth_transactions_by_index.contains_key(&t.transaction_position);
-			if !contains_key {
-				log::warn!(
-					"A trace in block {} does not map to any known ethereum transaction. Trace: {:?}",
-					height,
-					t,
-				)
-			}
-			return eth_transactions_by_index.contains_key(&t.transaction_position);
-		}) {
-			trace.block_hash = eth_block_hash;
-			trace.block_number = height;
-			trace.transaction_hash =
-				match eth_transactions_by_index.get(&trace.transaction_position) {
-					Some(transaction_hash) => transaction_hash.clone(),
-					None => {
-						let err_msg = format!(
-							"Bug: A transaction has been replayed while it shouldn't (in block {}).",
-							height
-						);
-						tracing::warn!(err_msg);
+		let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+		proxy.using(f)?;
 
-						return Err(err_msg);
+		let traces: Vec<TransactionTrace> =
+			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy)
+				.ok_or("Fail to format proxy")?
+				.iter_mut()
+				.filter_map(|trace| {
+					match eth_transactions_by_index.get(&trace.transaction_position) {
+						Some(transaction_hash) => {
+							trace.block_hash = eth_block_hash;
+							trace.block_number = height;
+							trace.transaction_hash = *transaction_hash;
+
+							// Reformat error messages.
+							if let block::TransactionTraceOutput::Error(ref mut error) =
+								trace.output
+							{
+								if error.as_slice() == b"execution reverted" {
+									*error = b"Reverted".to_vec();
+								}
+							}
+
+							Some(trace.clone())
+						}
+						None => {
+							log::warn!(
+								"A trace in block {} does not map to any known ethereum transaction. Trace: {:?}",
+								height,
+								trace,
+							);
+							None
+						}
 					}
-				};
+				})
+				.collect();
 
-			// Reformat error messages.
-			if let block::TransactionTraceOutput::Error(ref mut error) = trace.output {
-				if error.as_slice() == b"execution reverted" {
-					*error = b"Reverted".to_vec();
-				}
-			}
-		}
 		Ok(traces)
 	}
 }
