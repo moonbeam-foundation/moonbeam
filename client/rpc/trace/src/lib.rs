@@ -902,10 +902,10 @@ where
 			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy)
 				.ok_or("Fail to format proxy")?;
 
-		let mut eth_transactions_by_index = BTreeMap::<u32, H256>::new();
-		eth_transactions.iter().for_each(|t| {
-			eth_transactions_by_index.insert(t.transaction_index, t.transaction_hash);
-		});
+		let eth_transactions_by_index: BTreeMap<u32, H256> = eth_transactions
+			.iter()
+			.map(|t| (t.transaction_index, t.transaction_hash))
+			.collect();
 
 		// Fill missing data.
 		for trace in traces
@@ -914,20 +914,19 @@ where
 		{
 			trace.block_hash = eth_block_hash;
 			trace.block_number = height;
-			trace.transaction_hash = eth_transactions_by_index
-				.get(&trace.transaction_position)
-				.ok_or_else(|| {
-					tracing::warn!(
-						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
-						height
-					);
+			trace.transaction_hash =
+				match eth_transactions_by_index.get(&trace.transaction_position) {
+					Some(transaction_hash) => transaction_hash.clone(),
+					None => {
+						let err_msg = format!(
+							"Bug: A transaction has been replayed while it shouldn't (in block {}).",
+							height
+						);
+						tracing::warn!(err_msg);
 
-					format!(
-						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
-						height
-					)
-				})?
-				.clone();
+						return Err(err_msg);
+					}
+				};
 
 			// Reformat error messages.
 			if let block::TransactionTraceOutput::Error(ref mut error) = trace.output {
