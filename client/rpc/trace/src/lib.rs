@@ -908,10 +908,17 @@ where
 			.collect();
 
 		// Fill missing data.
-		for trace in traces
-			.iter_mut()
-			.filter(|t| eth_transactions_by_index.contains_key(&t.transaction_position))
-		{
+		for trace in traces.iter_mut().filter(|t| {
+			let contains_key = eth_transactions_by_index.contains_key(&t.transaction_position);
+			if !contains_key {
+				log::warn!(
+					"A trace in block {} does not map to any known ethereum transaction. Trace: {:?}",
+					height,
+					t,
+				)
+			}
+			return eth_transactions_by_index.contains_key(&t.transaction_position);
+		}) {
 			trace.block_hash = eth_block_hash;
 			trace.block_number = height;
 			trace.transaction_hash =
