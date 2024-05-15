@@ -25,7 +25,7 @@ use super::{
 };
 use crate::OpenTechCommitteeInstance;
 use moonbeam_runtime_common::weights as moonbeam_weights;
-use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
+use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
 	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
 	DispatchErrorWithPostInfo,

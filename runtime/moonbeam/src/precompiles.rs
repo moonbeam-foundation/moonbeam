@@ -20,6 +20,7 @@ use crate::{
 };
 use crate::{AssetId, H160};
 use frame_support::parameter_types;
+use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
@@ -47,7 +48,7 @@ use pallet_evm_precompile_xcm_transactor::{
 };
 use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::{AccountIdAssetIdConversion, Erc20AssetsPrecompileSet};
+use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;
 

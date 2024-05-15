@@ -28,6 +28,7 @@ use frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
 };
+use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_runtime::traits::{Bounded, Dispatchable};
@@ -58,16 +59,6 @@ pub type BalanceOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<I
 
 /// Alias for the Asset Id type for the provided Runtime and Instance.
 pub type AssetIdOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::AssetId;
-
-/// This trait ensure we can convert AccountIds to AssetIds
-/// We will require Runtime to have this trait implemented
-pub trait AccountIdAssetIdConversion<Account, AssetId> {
-	// Get assetId and prefix from account
-	fn account_to_asset_id(account: Account) -> Option<(Vec<u8>, AssetId)>;
-
-	// Get AccountId from AssetId and prefix
-	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> Account;
-}
 
 /// The following distribution has been decided for the precompiles
 /// 0-1023: Ethereum Mainnet Precompiles

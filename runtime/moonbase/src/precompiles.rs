@@ -15,11 +15,16 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
-	TreasuryCouncilInstance,
+	asset_config::ForeignAssetInstance,
+	xcm_config::{AssetType, XcmExecutorConfig},
+	OpenTechCommitteeInstance, TreasuryCouncilInstance,
 };
-use crate::{AssetId, H160};
+use crate::{AccountId, AssetId, AssetManager, Balances, Runtime, H160};
 use frame_support::parameter_types;
+use moonkit_xcm_primitives::{
+	location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher},
+	AccountIdAssetIdConversion,
+};
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
@@ -43,14 +48,16 @@ use pallet_evm_precompile_relay_verifier::RelayDataVerifierPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use pallet_evm_precompile_storage_cleaner::StorageCleanerPrecompile;
+use pallet_evm_precompile_xcm::PalletXcmPrecompile;
 use pallet_evm_precompile_xcm_transactor::{
 	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2, v3::XcmTransactorPrecompileV3,
 };
 use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::{AccountIdAssetIdConversion, Erc20AssetsPrecompileSet};
+use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;
+use xcm_primitives::AsAssetType;
 
 /// ERC20 metadata for the native token.
 pub struct NativeErc20Metadata;
@@ -91,6 +98,11 @@ parameter_types! {
 }
 
 type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, CallableByPrecompile);
+
+type AssetIdToLocationManager = AsAssetType<AssetId, AssetType, AssetManager>;
+type SingleAddressMatch = SingleAddressMatcher<AccountId, 2050, Balances>;
+type ForeignAssetMatch = ForeignAssetMatcher<AccountId, AssetId, Runtime, AssetIdToLocationManager>;
+type Erc20Match = Erc20PalletMatcher<AccountId, 48>;
 
 #[precompile_utils::precompile_name_from_address]
 type MoonbasePrecompilesAt<R> = (
@@ -238,6 +250,11 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2073>,
 		RelayDataVerifierPrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2074>,
+		PalletXcmPrecompile<R, (SingleAddressMatch, ForeignAssetMatch, Erc20Match)>,
 		(CallableByContract, CallableByPrecompile),
 	>,
 );
