@@ -901,12 +901,21 @@ where
 		let mut traces: Vec<_> =
 			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy)
 				.ok_or("Fail to format proxy")?;
+
+		let mut eth_transactions_by_index = BTreeMap::<u32, H256>::new();
+		eth_transactions.iter().for_each(|t| {
+			eth_transactions_by_index.insert(t.transaction_index, t.transaction_hash);
+		});
+
 		// Fill missing data.
-		for trace in traces.iter_mut() {
+		for trace in traces
+			.iter_mut()
+			.filter(|t| eth_transactions_by_index.contains_key(&t.transaction_position))
+		{
 			trace.block_hash = eth_block_hash;
 			trace.block_number = height;
-			trace.transaction_hash = eth_transactions
-				.get(trace.transaction_position as usize)
+			trace.transaction_hash = eth_transactions_by_index
+				.get(&trace.transaction_position)
 				.ok_or_else(|| {
 					tracing::warn!(
 						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
@@ -918,7 +927,7 @@ where
 						height
 					)
 				})?
-				.transaction_hash;
+				.clone();
 
 			// Reformat error messages.
 			if let block::TransactionTraceOutput::Error(ref mut error) = trace.output {
