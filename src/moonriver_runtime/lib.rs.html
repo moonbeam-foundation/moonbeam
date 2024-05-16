@@ -1789,6 +1789,27 @@
 <a href="#1789" id="1789">1789</a>
 <a href="#1790" id="1790">1790</a>
 <a href="#1791" id="1791">1791</a>
+<a href="#1792" id="1792">1792</a>
+<a href="#1793" id="1793">1793</a>
+<a href="#1794" id="1794">1794</a>
+<a href="#1795" id="1795">1795</a>
+<a href="#1796" id="1796">1796</a>
+<a href="#1797" id="1797">1797</a>
+<a href="#1798" id="1798">1798</a>
+<a href="#1799" id="1799">1799</a>
+<a href="#1800" id="1800">1800</a>
+<a href="#1801" id="1801">1801</a>
+<a href="#1802" id="1802">1802</a>
+<a href="#1803" id="1803">1803</a>
+<a href="#1804" id="1804">1804</a>
+<a href="#1805" id="1805">1805</a>
+<a href="#1806" id="1806">1806</a>
+<a href="#1807" id="1807">1807</a>
+<a href="#1808" id="1808">1808</a>
+<a href="#1809" id="1809">1809</a>
+<a href="#1810" id="1810">1810</a>
+<a href="#1811" id="1811">1811</a>
+<a href="#1812" id="1812">1812</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1893,7 +1914,6 @@
 
 <span class="kw">use </span>nimbus_primitives::CanAuthor;
 
-<span class="kw">mod </span>precompiles;
 <span class="kw">pub use </span>precompiles::{
 	MoonriverPrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
@@ -1906,6 +1926,9 @@
 <span class="kw">pub mod </span>asset_config;
 <span class="kw">pub mod </span>governance;
 <span class="kw">pub mod </span>xcm_config;
+
+<span class="kw">mod </span>migrations;
+<span class="kw">mod </span>precompiles;
 
 <span class="kw">pub use </span>governance::councils::<span class="kw-2">*</span>;
 
@@ -1939,7 +1962,7 @@
 	.saturating_div(<span class="number">2</span>)
 	.set_proof_size(relay_chain::MAX_POV_SIZE <span class="kw">as </span>u64);
 
-<span class="kw">pub const </span>MILLISECS_PER_BLOCK: u64 = <span class="number">12000</span>;
+<span class="kw">pub const </span>MILLISECS_PER_BLOCK: u64 = <span class="number">6_000</span>;
 <span class="kw">pub const </span>MINUTES: BlockNumber = <span class="number">60_000 </span>/ (MILLISECS_PER_BLOCK <span class="kw">as </span>BlockNumber);
 <span class="kw">pub const </span>HOURS: BlockNumber = MINUTES * <span class="number">60</span>;
 <span class="kw">pub const </span>DAYS: BlockNumber = HOURS * <span class="number">24</span>;
@@ -2492,6 +2515,19 @@
 	<span class="kw">pub const </span>RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
+<span class="doccomment">/// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
+/// into the relay chain.
+</span><span class="kw">const </span>UNINCLUDED_SEGMENT_CAPACITY: u32 = <span class="number">3</span>;
+<span class="doccomment">/// How many parachain blocks are processed by the relay chain per parent. Limits the
+/// number of blocks authored per slot.
+</span><span class="kw">const </span>BLOCK_PROCESSING_VELOCITY: u32 = <span class="number">1</span>;
+
+<span class="kw">type </span>ConsensusHook = pallet_async_backing::consensus_hook::FixedVelocityConsensusHook&lt;
+	Runtime,
+	BLOCK_PROCESSING_VELOCITY,
+	UNINCLUDED_SEGMENT_CAPACITY,
+&gt;;
+
 <span class="kw">impl </span>cumulus_pallet_parachain_system::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>OnSystemEvent = ();
@@ -2561,14 +2597,12 @@
 <span class="kw">type </span>MonetaryGovernanceOrigin =
 	EitherOfDiverse&lt;EnsureRoot&lt;AccountId&gt;, governance::custom_origins::GeneralAdmin&gt;;
 
-<span class="doccomment">/// TODO:
-/// Temporary type that we should replace by RelayChainSlotProvider once async backing is enabled.
-</span><span class="kw">pub struct </span>StakingRoundSlotProvider;
-<span class="kw">impl </span>Get&lt;Slot&gt; <span class="kw">for </span>StakingRoundSlotProvider {
+<span class="kw">pub struct </span>RelayChainSlotProvider;
+<span class="kw">impl </span>Get&lt;Slot&gt; <span class="kw">for </span>RelayChainSlotProvider {
 	<span class="kw">fn </span>get() -&gt; Slot {
-		<span class="kw">let </span>block_number: u64 = frame_system::pallet::Pallet::&lt;Runtime&gt;::block_number().into();
-		Slot::from(block_number)
-	}
+		<span class="kw">let </span>slot_info = pallet_async_backing::pallet::Pallet::&lt;Runtime&gt;::slot_info();
+		slot_info.unwrap_or_default().<span class="number">0
+	</span>}
 }
 
 <span class="kw">impl </span>pallet_parachain_staking::Config <span class="kw">for </span>Runtime {
@@ -2608,7 +2642,7 @@
 	<span class="kw">type </span>PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
 	<span class="kw">type </span>OnInactiveCollator = OnInactiveCollator;
 	<span class="kw">type </span>OnNewRound = OnNewRound;
-	<span class="kw">type </span>SlotProvider = StakingRoundSlotProvider;
+	<span class="kw">type </span>SlotProvider = RelayChainSlotProvider;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>MaxCandidates = ConstU32&lt;<span class="number">200</span>&gt;;
 	<span class="kw">type </span>SlotDuration = ConstU64&lt;<span class="number">12_000</span>&gt;;
@@ -2628,6 +2662,12 @@
 	<span class="kw">type </span>RandomnessSource = Randomness;
 	<span class="kw">type </span>PotentialAuthors = ParachainStaking;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_author_slot_filter::WeightInfo&lt;Runtime&gt;;
+}
+
+<span class="kw">impl </span>pallet_async_backing::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>AllowMultipleBlocksPerSlot = ConstBool&lt;<span class="bool-val">true</span>&gt;;
+	<span class="kw">type </span>GetAndVerifySlot = pallet_async_backing::RelaySlot;
+	<span class="kw">type </span>ExpectedBlockTime = ConstU64&lt;<span class="number">6000</span>&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2897,7 +2937,10 @@
 
 <span class="kw">impl </span>pallet_migrations::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>MigrationsList = (moonbeam_runtime_common::migrations::CommonMigrations&lt;Runtime&gt;,);
+	<span class="kw">type </span>MigrationsList = (
+		moonbeam_runtime_common::migrations::CommonMigrations&lt;Runtime&gt;,
+		migrations::MoonriverMigrations,
+	);
 	<span class="kw">type </span>XcmExecutionManager = XcmExecutionManager;
 }
 
@@ -3141,6 +3184,7 @@
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config&lt;T&gt;} = <span class="number">22</span>,
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config&lt;T&gt;, Storage, Event&lt;T&gt;} = <span class="number">23</span>,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">24</span>,
+		AsyncBacking: pallet_async_backing::{Pallet, Storage} = <span class="number">25</span>,
 
 		<span class="comment">// Handy utilities.
 		</span>Utility: pallet_utility::{Pallet, Call, Event} = <span class="number">30</span>,
@@ -3365,13 +3409,11 @@
 
 	<span class="kw">impl </span>async_backing_primitives::UnincludedSegmentApi&lt;Block&gt; <span class="kw">for </span>Runtime {
 		<span class="kw">fn </span>can_build_upon(
-			_included_hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
-			_slot: async_backing_primitives::Slot,
+			included_hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
+			slot: async_backing_primitives::Slot,
 		) -&gt; bool {
-			<span class="comment">// This runtime API can be called only when asynchronous backing is enabled client-side
-			// We return false here to force the client to not use async backing in moonriver.
-			</span><span class="bool-val">false
-		</span>}
+			ConsensusHook::can_build_upon(included_hash, slot)
+		}
 	}
 }
 
