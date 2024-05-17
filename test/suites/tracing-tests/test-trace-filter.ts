@@ -1,5 +1,5 @@
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES, alith } from "@moonwall/util";
+import { ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES, GLMR, alith } from "@moonwall/util";
 
 describeSuite({
   id: "T14",
@@ -251,6 +251,53 @@ describeSuite({
             expect(error.message).to.eq("count (501) can't be greater than maximum (500)");
           }
         );
+      },
+    });
+
+    it({
+      id: "T10",
+      title: "should only trace transactions included in a block",
+      test: async function () {
+        context
+          .polkadotJs()
+          .tx.xTokens.transfer(
+            {
+              Erc20: {
+                contractAddress: "0x931715fee2d06333043d11f658c8ce934ac61d0c",
+              },
+            }, //enum
+            100n * GLMR,
+            {
+              V2: {
+                parents: 1n,
+                interior: {
+                  X2: [
+                    { Parachain: 2104n },
+                    {
+                      AccountId32: {
+                        network: "Any",
+                        id: "0x608a07e4dfc71e7d99a3d3759ce12ccbb1e4d9f917cc67779c13aaeaea52794d",
+                      },
+                    },
+                  ],
+                },
+              },
+            } as any,
+            {
+              Limited: { refTime: 4000000000, proofSize: 0 },
+            }
+          )
+          .signAsync(alith);
+
+        const response = await customDevRpcRequest("trace_filter", [
+          {
+            fromBlock: "0x03",
+            toBlock: "0x05",
+            fromAddress: [alith.address],
+          },
+        ]);
+
+        expect(response.length).to.equal(3);
       },
     });
   },
