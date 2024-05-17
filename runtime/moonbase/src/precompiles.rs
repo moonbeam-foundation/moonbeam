@@ -99,9 +99,17 @@ parameter_types! {
 
 type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, CallableByPrecompile);
 
+// Pallet-xcm precompile types.
+// Type that converts AssetId into Location
 type AssetIdToLocationManager = AsAssetType<AssetId, AssetType, AssetManager>;
+
+// The pallet-balances address is identified by 2050
 type SingleAddressMatch = SingleAddressMatcher<AccountId, 2050, Balances>;
+
+// Type that matches an AccountId with a foreign asset address (if any)
 type ForeignAssetMatch = ForeignAssetMatcher<AccountId, AssetId, Runtime, AssetIdToLocationManager>;
+
+// Erc20XcmBridge pallet index = 48
 type Erc20Match = Erc20PalletMatcher<AccountId, 48>;
 
 #[precompile_utils::precompile_name_from_address]
