@@ -85,7 +85,7 @@ async function main(args: any) {
     const contracts = (await getFiles(contractPath.filepath)).filter((filename) =>
       filename.endsWith(".sol")
     );
-    for (let filepath of contracts) {
+    for (const filepath of contracts) {
       const ref = filepath
         .replace(contractPath.filepath, contractPath.importPath)
         .replace(/^\//, "");
@@ -185,6 +185,7 @@ function compileSolidity(
           },
         },
         settings: {
+          evmVersion: "shanghai",
           optimizer: { enabled: true, runs: 200 },
           outputSelection: {
             "*": {
