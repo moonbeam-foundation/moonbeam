@@ -92,6 +92,9 @@ pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
 /// to Erc20AssetsPrecompileSet being marked as local
 pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
 
+/// Const to identify ERC20_BALANCES_PRECOMPILE address
+pub const ERC20_BALANCES_PRECOMPILE: u64 = 2050;
+
 parameter_types! {
 	pub ForeignAssetPrefix: &'static [u8] = FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX;
 	pub LocalAssetPrefix: &'static [u8] = LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX;
@@ -103,8 +106,8 @@ type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, Callab
 // Type that converts AssetId into Location
 type AssetIdToLocationManager = AsAssetType<AssetId, AssetType, AssetManager>;
 
-// The pallet-balances address is identified by 2050
-type SingleAddressMatch = SingleAddressMatcher<AccountId, 2050, Balances>;
+// The pallet-balances address is identified by ERC20_BALANCES_PRECOMPILE const
+type SingleAddressMatch = SingleAddressMatcher<AccountId, ERC20_BALANCES_PRECOMPILE, Balances>;
 
 // Type that matches an AccountId with a foreign asset address (if any)
 type ForeignAssetMatch = ForeignAssetMatcher<AccountId, AssetId, Runtime, AssetIdToLocationManager>;
@@ -142,7 +145,7 @@ type MoonbasePrecompilesAt<R> = (
 		(CallableByContract, CallableByPrecompile),
 	>,
 	PrecompileAt<
-		AddressU64<2050>,
+		AddressU64<ERC20_BALANCES_PRECOMPILE>,
 		Erc20BalancesPrecompile<R, NativeErc20Metadata>,
 		(CallableByContract, CallableByPrecompile),
 	>,
