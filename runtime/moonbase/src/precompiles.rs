@@ -19,7 +19,7 @@ use crate::{
 	xcm_config::{AssetType, XcmExecutorConfig},
 	OpenTechCommitteeInstance, TreasuryCouncilInstance,
 };
-use crate::{AccountId, AssetId, AssetManager, Balances, Runtime, H160};
+use crate::{AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, Runtime, H160};
 use frame_support::parameter_types;
 use moonkit_xcm_primitives::{
 	location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher},
@@ -112,8 +112,8 @@ type SingleAddressMatch = SingleAddressMatcher<AccountId, ERC20_BALANCES_PRECOMP
 // Type that matches an AccountId with a foreign asset address (if any)
 type ForeignAssetMatch = ForeignAssetMatcher<AccountId, AssetId, Runtime, AssetIdToLocationManager>;
 
-// Erc20XcmBridge pallet index = 48
-type Erc20Match = Erc20PalletMatcher<AccountId, 48>;
+// Erc20XcmBridge pallet is used to match ERC20s
+type Erc20Match = Erc20PalletMatcher<AccountId, Erc20XcmBridge>;
 
 #[precompile_utils::precompile_name_from_address]
 type MoonbasePrecompilesAt<R> = (
