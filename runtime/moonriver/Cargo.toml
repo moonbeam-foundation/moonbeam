@@ -162,6 +162,7 @@ parachains-common = { workspace = true }
 async-backing-primitives = { workspace = true }
 moonkit-xcm-primitives = { workspace = true }
 nimbus-primitives = { workspace = true }
+pallet-async-backing = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
 pallet-relay-storage-roots = { workspace = true }
@@ -221,6 +222,7 @@ std = [
 	"orml-xtokens/std",
 	"pallet-asset-manager/std",
 	"pallet-assets/std",
+	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
 	"pallet-author-slot-filter/std",
@@ -409,6 +411,7 @@ try-runtime = [
 	"pallet-identity/try-runtime",
 	"orml-xtokens/try-runtime",
 	"pallet-assets/try-runtime",
+	"pallet-async-backing/try-runtime",
 	"pallet-xcm-transactor/try-runtime",
 	"pallet-proxy-genesis-companion/try-runtime",
 	"pallet-moonbeam-orbiters/try-runtime",

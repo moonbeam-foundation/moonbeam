@@ -7067,6 +7067,7 @@ dependencies = [
  "orml-xtokens",
  "pallet-asset-manager",
  "pallet-assets",
+ "pallet-async-backing",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
