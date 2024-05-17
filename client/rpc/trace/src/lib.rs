@@ -907,8 +907,8 @@ where
 		let traces: Vec<TransactionTrace> =
 			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy)
 				.ok_or("Fail to format proxy")?
-				.iter_mut()
-				.filter_map(|trace| {
+				.into_iter()
+				.filter_map(|mut trace| {
 					match eth_transactions_by_index.get(&trace.transaction_position) {
 						Some(transaction_hash) => {
 							trace.block_hash = eth_block_hash;
@@ -924,7 +924,7 @@ where
 								}
 							}
 
-							Some(trace.clone())
+							Some(trace)
 						}
 						None => {
 							log::warn!(
