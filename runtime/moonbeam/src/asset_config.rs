@@ -177,9 +177,6 @@ pub type ForeignAssetModifierOrigin = EitherOfDiverse<
 	>,
 >;
 
-pub type LocalAssetModifierOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
-
 impl pallet_asset_manager::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;

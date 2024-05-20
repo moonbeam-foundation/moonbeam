@@ -91,7 +91,7 @@ describeSuite({
         expect(
           failedAssetReserveMappings.length,
           `Failed foreign asset entries: ${failedAssetReserveMappings
-            .map(({ assetId }) => `expected: ${assetId} to be present in localAssets `)
+            .map(({ assetId }) => `expected: ${assetId} to be present in foreignAssets `)
             .join(`, `)}`
         ).to.equal(0);
         log(
@@ -117,7 +117,7 @@ describeSuite({
         expect(
           failedXcmPaymentAssets.length,
           `Failed xcm fee assets: ${failedXcmPaymentAssets
-            .map(({ assetType }) => `expected: ${assetType} to be present in localAssets `)
+            .map(({ assetType }) => `expected: ${assetType} to be present in foreignAssets `)
             .join(`\n`)}`
         ).to.equal(0);
         log(
