@@ -840,6 +840,7 @@ where
 			let _result = api
 				.trace_call(
 					parent_block_hash,
+					&header,
 					from.unwrap_or_default(),
 					to,
 					data,
