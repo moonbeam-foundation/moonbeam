@@ -25,7 +25,7 @@ use super::{
 };
 
 use moonbeam_runtime_common::weights as moonbeam_weights;
-use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
+use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 
 use frame_support::{
 	dispatch::GetDispatchInfo,
@@ -178,9 +178,6 @@ pub type ForeignAssetModifierOrigin = EitherOfDiverse<
 		governance::custom_origins::GeneralAdmin,
 	>,
 >;
-
-pub type LocalAssetModifierOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_asset_manager::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;

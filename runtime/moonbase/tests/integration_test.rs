@@ -55,11 +55,10 @@ use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
 
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
+use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use pallet_evm_precompileset_assets_erc20::{
-	AccountIdAssetIdConversion, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
-};
+use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
@@ -1358,7 +1357,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(24377)
+				.expect_cost(24383)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1443,7 +1442,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(29748)
+				.expect_cost(29739)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1714,7 +1713,7 @@ fn transfer_ed_0_substrate() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), (1 * UNIT) + (1 * WEI)),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1755,7 +1754,7 @@ fn transfer_ed_0_evm() {
 				AccountId::from(ALICE),
 				((1 * UNIT) + (21_000 * BASE_FEE_GENISIS)) + (1 * WEI),
 			),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1783,9 +1782,9 @@ fn refund_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * UNIT) + (21_777 * BASE_FEE_GENISIS)),
+				((1 * UNIT) + (21_777 * BASE_FEE_GENISIS) + existential_deposit()),
 			),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1805,7 +1804,7 @@ fn refund_ed_0_evm() {
 			// ALICE is refunded
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				777 * BASE_FEE_GENISIS,
+				777 * BASE_FEE_GENISIS + existential_deposit(),
 			);
 		});
 }
@@ -1847,10 +1846,17 @@ fn author_does_not_receive_priority_fee() {
 #[test]
 fn total_issuance_after_evm_transaction_with_priority_fee() {
 	ExtBuilder::default()
-		.with_balances(vec![(
-			AccountId::from(BOB),
-			(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
-		)])
+		.with_balances(vec![
+			(
+				AccountId::from(BOB),
+				(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS) + existential_deposit()),
+			),
+			(AccountId::from(ALICE), existential_deposit()),
+			(
+				<pallet_treasury::TreasuryAccountId<Runtime> as sp_core::TypedGet>::get(),
+				existential_deposit(),
+			),
+		])
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
@@ -1884,10 +1890,17 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 fn total_issuance_after_evm_transaction_without_priority_fee() {
 	use fp_evm::FeeCalculator;
 	ExtBuilder::default()
-		.with_balances(vec![(
-			AccountId::from(BOB),
-			(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
-		)])
+		.with_balances(vec![
+			(
+				AccountId::from(BOB),
+				(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
+			),
+			(AccountId::from(ALICE), existential_deposit()),
+			(
+				<pallet_treasury::TreasuryAccountId<Runtime> as sp_core::TypedGet>::get(),
+				existential_deposit(),
+			),
+		])
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
@@ -2148,7 +2161,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(17559)
+				.expect_cost(17567)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2188,7 +2201,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(17559)
+				.expect_cost(17567)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2270,7 +2283,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(15144)
+				.expect_cost(15137)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2292,7 +2305,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14725)
+				.expect_cost(14718)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2313,7 +2326,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15172)
+				.expect_cost(15180)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2356,7 +2369,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16273)
+				.expect_cost(16266)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2381,7 +2394,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16273)
+				.expect_cost(16266)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2515,7 +2528,7 @@ fn precompile_existence() {
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 1027, 2048, 2049, 2050, 2051, 2052, 2053,
 			2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067,
-			2068, 2069, 2070, 2071, 2072, 2073,
+			2068, 2069, 2070, 2071, 2072, 2073, 2074,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

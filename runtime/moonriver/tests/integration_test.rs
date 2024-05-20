@@ -33,6 +33,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
+use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use moonriver_runtime::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve},
@@ -42,9 +43,7 @@ use moonriver_runtime::{
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use pallet_evm_precompileset_assets_erc20::{
-	AccountIdAssetIdConversion, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
-};
+use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
@@ -616,25 +615,27 @@ fn reward_block_authors() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
-			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
-			}
+			increase_last_relay_slot_number(1);
+
+			// Just before round 3
+			run_to_block(2399, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
 				10_100 * MOVR,
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 9500 * MOVR,);
-			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(2401, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				11547666666208000000000,
+				10101206388888506666666,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				9557333332588000000000,
+				9500047777777156666667,
 			);
 		});
 }
@@ -660,12 +661,13 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
+			increase_last_relay_slot_number(1);
 			assert_ok!(ParachainStaking::set_parachain_bond_account(
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
 
+			// Stop just before round 2
 			run_to_block(1199, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 
 			// no collator rewards doled out yet
@@ -675,26 +677,31 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 9500 * MOVR,);
 
+			// Go to round 2
+			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+
 			// 30% reserved for parachain bond
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				452515000000000000000,
+				1376262500000000000,
 			);
 
-			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			// Go to round 3
+			run_to_block(2401, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				11117700475903800000000,
+				10100848083729919833333,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				9535834523343675000000,
+				9500029862102786395833,
 			);
 			// 30% reserved for parachain bond again
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				910802725000000000000,
+				1376262500000000000,
 			);
 		});
 }
@@ -1747,7 +1754,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(24377)
+				.expect_cost(24383)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1832,7 +1839,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(29748)
+				.expect_cost(29739)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2134,7 +2141,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(17559)
+				.expect_cost(17567)
 				.expect_no_logs()
 				.execute_returns(());
 		});
