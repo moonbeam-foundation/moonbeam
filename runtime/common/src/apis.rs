@@ -285,6 +285,10 @@ macro_rules! impl_runtime_apis_plus_common {
 					{
 						use moonbeam_evm_tracer::tracer::EvmTracer;
 
+						// Initialize block: calls the "on_initialize" hook on every pallet
+						// in AllPalletsWithSystem.
+						Executive::initialize_block(header);
+
 						EvmTracer::new().trace(|| {
 							let is_transactional = false;
 							let validate = true;

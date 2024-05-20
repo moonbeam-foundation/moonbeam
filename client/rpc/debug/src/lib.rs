@@ -753,15 +753,22 @@ where
 		// Get parent blockid.
 		let parent_block_hash = *header.parent_hash();
 
-		let api_version = if let Ok(Some(api_version)) =
-			api.api_version::<dyn EthereumRuntimeRPCApi<B>>(parent_block_hash)
+		// Get DebugRuntimeApi version
+		let trace_api_version = if let Ok(Some(api_version)) =
+			api.api_version::<dyn DebugRuntimeApi<B>>(parent_block_hash)
 		{
 			api_version
 		} else {
 			return Err(internal_err(
-				"failed to retrieve Runtime Api version".to_string(),
+				"Runtime api version call failed (trace)".to_string(),
 			));
 		};
+
+		if trace_api_version <= 5 {
+			return Err(internal_err(
+				"debug_traceCall not supported with old runtimes".to_string(),
+			));
+		}
 
 		let TraceCallParams {
 			from,
@@ -813,21 +820,10 @@ where
 		let gas_limit = match gas {
 			Some(amount) => amount,
 			None => {
-				let block = if api_version > 1 {
-					api.current_block(parent_block_hash)
-						.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-				} else {
-					#[allow(deprecated)]
-					let legacy_block = api.current_block_before_version_2(parent_block_hash)
-						.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?;
-					if let Some(block) = legacy_block {
-						Some(block.into())
-					} else {
-						None
-					}
-				};
-
-				if let Some(block) = block {
+				if let Some(block) = api
+					.current_block(parent_block_hash)
+					.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
+				{
 					block.header.gas_limit
 				} else {
 					return Err(internal_err(
@@ -841,9 +837,6 @@ where
 		let access_list = access_list.unwrap_or_default();
 
 		let f = || -> RpcResult<_> {
-			api.initialize_block(parent_block_hash, &header)
-				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
-
 			let _result = api
 				.trace_call(
 					parent_block_hash,
@@ -914,7 +907,7 @@ where
 				Ok(Response::Single(response))
 			}
 			not_supported => Err(internal_err(format!(
-				"Bug: `handle_transaction_request` does not support {:?}.",
+				"Bug: `handle_call_request` does not support {:?}.",
 				not_supported
 			))),
 		};

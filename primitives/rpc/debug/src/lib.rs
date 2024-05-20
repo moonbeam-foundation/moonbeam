@@ -30,7 +30,7 @@ sp_api::decl_runtime_apis! {
 	// In order to be able to use ApiExt as part of the RPC handler logic we need to be always
 	// above the version that exists on chain for this Api, even if this Api is only meant
 	// to be used overridden.
-	#[api_version(5)]
+	#[api_version(6)]
 	pub trait DebugRuntimeApi {
 		#[changed_in(5)]
 		fn trace_transaction(
