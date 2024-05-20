@@ -896,37 +896,48 @@ where
 			Ok(moonbeam_rpc_primitives_debug::Response::Block)
 		};
 
+		let eth_transactions_by_index: BTreeMap<u32, H256> = eth_transactions
+			.iter()
+			.map(|t| (t.transaction_index, t.transaction_hash))
+			.collect();
+
 		let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
 		proxy.using(f)?;
-		let mut traces: Vec<_> =
+
+		let traces: Vec<TransactionTrace> =
 			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy)
-				.ok_or("Fail to format proxy")?;
-		// Fill missing data.
-		for trace in traces.iter_mut() {
-			trace.block_hash = eth_block_hash;
-			trace.block_number = height;
-			trace.transaction_hash = eth_transactions
-				.get(trace.transaction_position as usize)
-				.ok_or_else(|| {
-					tracing::warn!(
-						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
-						height
-					);
+				.ok_or("Fail to format proxy")?
+				.into_iter()
+				.filter_map(|mut trace| {
+					match eth_transactions_by_index.get(&trace.transaction_position) {
+						Some(transaction_hash) => {
+							trace.block_hash = eth_block_hash;
+							trace.block_number = height;
+							trace.transaction_hash = *transaction_hash;
 
-					format!(
-						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
-						height
-					)
-				})?
-				.transaction_hash;
+							// Reformat error messages.
+							if let block::TransactionTraceOutput::Error(ref mut error) =
+								trace.output
+							{
+								if error.as_slice() == b"execution reverted" {
+									*error = b"Reverted".to_vec();
+								}
+							}
 
-			// Reformat error messages.
-			if let block::TransactionTraceOutput::Error(ref mut error) = trace.output {
-				if error.as_slice() == b"execution reverted" {
-					*error = b"Reverted".to_vec();
-				}
-			}
-		}
+							Some(trace)
+						}
+						None => {
+							log::warn!(
+								"A trace in block {} does not map to any known ethereum transaction. Trace: {:?}",
+								height,
+								trace,
+							);
+							None
+						}
+					}
+				})
+				.collect();
+
 		Ok(traces)
 	}
 }
