@@ -63,6 +63,7 @@ sp_api::decl_runtime_apis! {
 		) -> Result<(), sp_runtime::DispatchError>;
 
 		fn trace_call(
+			header: &Block::Header,
 			from: H160,
 			to: H160,
 			data: Vec<u8>,

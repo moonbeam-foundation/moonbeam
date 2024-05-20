@@ -271,6 +271,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn trace_call(
+					header: &<Block as BlockT>::Header,
 					from: H160,
 					to: H160,
 					data: Vec<u8>,
