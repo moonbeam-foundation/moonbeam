@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["LocalAssetsMigrationCompleted","SuicidedContractsRemoved"]};
+window.SIDEBAR_ITEMS = {"struct":["SuicidedContractsRemoved"]};
