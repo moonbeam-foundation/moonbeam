@@ -30,7 +30,7 @@ use frame_support::{
 	weights::Weight,
 };
 use moonbeam_runtime_common::weights as moonbeam_weights;
-use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
+use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 
 use frame_system::{EnsureNever, EnsureRoot};
 use sp_core::H160;
