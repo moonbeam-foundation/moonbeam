@@ -975,6 +975,91 @@
 <a href="#975" id="975">975</a>
 <a href="#976" id="976">976</a>
 <a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1239,6 +1324,91 @@
 						// Some XCM messages with eth-xcm transaction might be executed at on_idle
 						</span>replay_on_idle();
 
+						<span class="prelude-val">Ok</span>(())
+					}
+					<span class="attr">#[cfg(not(feature = <span class="string">&quot;evm-tracing&quot;</span>))]
+					</span><span class="prelude-val">Err</span>(sp_runtime::DispatchError::Other(
+						<span class="string">&quot;Missing `evm-tracing` compile time feature flag.&quot;</span>,
+					))
+				}
+
+				<span class="kw">fn </span>trace_call(
+					header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header,
+					from: H160,
+					to: H160,
+					data: Vec&lt;u8&gt;,
+					value: U256,
+					gas_limit: U256,
+					max_fee_per_gas: <span class="prelude-ty">Option</span>&lt;U256&gt;,
+					max_priority_fee_per_gas: <span class="prelude-ty">Option</span>&lt;U256&gt;,
+					nonce: <span class="prelude-ty">Option</span>&lt;U256&gt;,
+					access_list: <span class="prelude-ty">Option</span>&lt;Vec&lt;(H160, Vec&lt;H256&gt;)&gt;&gt;,
+				) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt; {
+					<span class="attr">#[cfg(feature = <span class="string">&quot;evm-tracing&quot;</span>)]
+					</span>{
+						<span class="kw">use </span>moonbeam_evm_tracer::tracer::EvmTracer;
+
+						<span class="comment">// Initialize block: calls the &quot;on_initialize&quot; hook on every pallet
+						// in AllPalletsWithSystem.
+						</span>Executive::initialize_block(header);
+
+						EvmTracer::new().trace(|| {
+							<span class="kw">let </span>is_transactional = <span class="bool-val">false</span>;
+							<span class="kw">let </span>validate = <span class="bool-val">true</span>;
+							<span class="kw">let </span>without_base_extrinsic_weight = <span class="bool-val">true</span>;
+
+
+							<span class="comment">// Estimated encoded transaction size must be based on the heaviest transaction
+							// type (EIP1559Transaction) to be compatible with all transaction types.
+							</span><span class="kw">let </span><span class="kw-2">mut </span>estimated_transaction_len = data.len() +
+							<span class="comment">// pallet ethereum index: 1
+							// transact call index: 1
+							// Transaction enum variant: 1
+							// chain_id 8 bytes
+							// nonce: 32
+							// max_priority_fee_per_gas: 32
+							// max_fee_per_gas: 32
+							// gas_limit: 32
+							// action: 21 (enum varianrt + call address)
+							// value: 32
+							// access_list: 1 (empty vec size)
+							// 65 bytes signature
+							</span><span class="number">258</span>;
+
+							<span class="kw">if </span>access_list.is_some() {
+								estimated_transaction_len += access_list.encoded_size();
+							}
+
+							<span class="kw">let </span>gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
+
+							<span class="kw">let </span>(weight_limit, proof_size_base_cost) =
+								<span class="kw">match </span>&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::gas_to_weight(
+									gas_limit,
+									without_base_extrinsic_weight
+								) {
+									weight_limit <span class="kw">if </span>weight_limit.proof_size() &gt; <span class="number">0 </span>=&gt; {
+										(<span class="prelude-val">Some</span>(weight_limit), <span class="prelude-val">Some</span>(estimated_transaction_len <span class="kw">as </span>u64))
+									}
+									<span class="kw">_ </span>=&gt; (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>),
+								};
+
+							<span class="kw">let _ </span>= &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::Runner::call(
+								from,
+								to,
+								data,
+								value,
+								gas_limit,
+								max_fee_per_gas,
+								max_priority_fee_per_gas,
+								nonce,
+								access_list.unwrap_or_default(),
+								is_transactional,
+								validate,
+								weight_limit,
+								proof_size_base_cost,
+								&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::config(),
+							);
+						});
 						<span class="prelude-val">Ok</span>(())
 					}
 					<span class="attr">#[cfg(not(feature = <span class="string">&quot;evm-tracing&quot;</span>))]

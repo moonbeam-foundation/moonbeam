@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["TraceParams"],"trait":["DebugServer"]};
+window.SIDEBAR_ITEMS = {"struct":["TraceCallParams","TraceParams"],"trait":["DebugServer"]};
