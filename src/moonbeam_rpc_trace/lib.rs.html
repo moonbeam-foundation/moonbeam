@@ -952,6 +952,17 @@
 <a href="#952" id="952">952</a>
 <a href="#953" id="953">953</a>
 <a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1850,37 +1861,48 @@
 			<span class="prelude-val">Ok</span>(moonbeam_rpc_primitives_debug::Response::Block)
 		};
 
+		<span class="kw">let </span>eth_transactions_by_index: BTreeMap&lt;u32, H256&gt; = eth_transactions
+			.iter()
+			.map(|t| (t.transaction_index, t.transaction_hash))
+			.collect();
+
 		<span class="kw">let </span><span class="kw-2">mut </span>proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
 		proxy.using(f)<span class="question-mark">?</span>;
-		<span class="kw">let </span><span class="kw-2">mut </span>traces: Vec&lt;<span class="kw">_</span>&gt; =
+
+		<span class="kw">let </span>traces: Vec&lt;TransactionTrace&gt; =
 			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy)
-				.ok_or(<span class="string">&quot;Fail to format proxy&quot;</span>)<span class="question-mark">?</span>;
-		<span class="comment">// Fill missing data.
-		</span><span class="kw">for </span>trace <span class="kw">in </span>traces.iter_mut() {
-			trace.block_hash = eth_block_hash;
-			trace.block_number = height;
-			trace.transaction_hash = eth_transactions
-				.get(trace.transaction_position <span class="kw">as </span>usize)
-				.ok_or_else(|| {
-					<span class="macro">tracing::warn!</span>(
-						<span class="string">&quot;Bug: A transaction has been replayed while it shouldn&#39;t (in block {}).&quot;</span>,
-						height
-					);
+				.ok_or(<span class="string">&quot;Fail to format proxy&quot;</span>)<span class="question-mark">?
+				</span>.into_iter()
+				.filter_map(|<span class="kw-2">mut </span>trace| {
+					<span class="kw">match </span>eth_transactions_by_index.get(<span class="kw-2">&amp;</span>trace.transaction_position) {
+						<span class="prelude-val">Some</span>(transaction_hash) =&gt; {
+							trace.block_hash = eth_block_hash;
+							trace.block_number = height;
+							trace.transaction_hash = <span class="kw-2">*</span>transaction_hash;
 
-					<span class="macro">format!</span>(
-						<span class="string">&quot;Bug: A transaction has been replayed while it shouldn&#39;t (in block {}).&quot;</span>,
-						height
-					)
-				})<span class="question-mark">?
-				</span>.transaction_hash;
+							<span class="comment">// Reformat error messages.
+							</span><span class="kw">if let </span>block::TransactionTraceOutput::Error(<span class="kw-2">ref mut </span>error) =
+								trace.output
+							{
+								<span class="kw">if </span>error.as_slice() == <span class="string">b&quot;execution reverted&quot; </span>{
+									<span class="kw-2">*</span>error = <span class="string">b&quot;Reverted&quot;</span>.to_vec();
+								}
+							}
 
-			<span class="comment">// Reformat error messages.
-			</span><span class="kw">if let </span>block::TransactionTraceOutput::Error(<span class="kw-2">ref mut </span>error) = trace.output {
-				<span class="kw">if </span>error.as_slice() == <span class="string">b&quot;execution reverted&quot; </span>{
-					<span class="kw-2">*</span>error = <span class="string">b&quot;Reverted&quot;</span>.to_vec();
-				}
-			}
-		}
+							<span class="prelude-val">Some</span>(trace)
+						}
+						<span class="prelude-val">None </span>=&gt; {
+							<span class="macro">log::warn!</span>(
+								<span class="string">&quot;A trace in block {} does not map to any known ethereum transaction. Trace: {:?}&quot;</span>,
+								height,
+								trace,
+							);
+							<span class="prelude-val">None
+						</span>}
+					}
+				})
+				.collect();
+
 		<span class="prelude-val">Ok</span>(traces)
 	}
 }
