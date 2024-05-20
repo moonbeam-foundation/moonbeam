@@ -283,6 +283,7 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -305,6 +306,7 @@
 };
 <span class="kw">use crate</span>::{AssetId, H160};
 <span class="kw">use </span>frame_support::parameter_types;
+<span class="kw">use </span>moonkit_xcm_primitives::AccountIdAssetIdConversion;
 <span class="kw">use </span>pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 <span class="kw">use </span>pallet_evm_precompile_batch::BatchPrecompile;
@@ -332,7 +334,7 @@
 };
 <span class="kw">use </span>pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_xtokens::XtokensPrecompile;
-<span class="kw">use </span>pallet_evm_precompileset_assets_erc20::{AccountIdAssetIdConversion, Erc20AssetsPrecompileSet};
+<span class="kw">use </span>pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 <span class="kw">use </span>precompile_utils::precompile_set::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
 

@@ -310,6 +310,34 @@
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
 <a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -327,11 +355,16 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="kw">use crate</span>::{
-	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
-	TreasuryCouncilInstance,
+	asset_config::ForeignAssetInstance,
+	xcm_config::{AssetType, XcmExecutorConfig},
+	OpenTechCommitteeInstance, TreasuryCouncilInstance,
 };
-<span class="kw">use crate</span>::{AssetId, H160};
+<span class="kw">use crate</span>::{AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, Runtime, H160};
 <span class="kw">use </span>frame_support::parameter_types;
+<span class="kw">use </span>moonkit_xcm_primitives::{
+	location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher},
+	AccountIdAssetIdConversion,
+};
 <span class="kw">use </span>pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 <span class="kw">use </span>pallet_evm_precompile_batch::BatchPrecompile;
@@ -355,14 +388,16 @@
 <span class="kw">use </span>pallet_evm_precompile_sha3fips::Sha3FIPS256;
 <span class="kw">use </span>pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 <span class="kw">use </span>pallet_evm_precompile_storage_cleaner::StorageCleanerPrecompile;
+<span class="kw">use </span>pallet_evm_precompile_xcm::PalletXcmPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_xcm_transactor::{
 	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2, v3::XcmTransactorPrecompileV3,
 };
 <span class="kw">use </span>pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 <span class="kw">use </span>pallet_evm_precompile_xtokens::XtokensPrecompile;
-<span class="kw">use </span>pallet_evm_precompileset_assets_erc20::{AccountIdAssetIdConversion, Erc20AssetsPrecompileSet};
+<span class="kw">use </span>pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 <span class="kw">use </span>precompile_utils::precompile_set::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>xcm_primitives::AsAssetType;
 
 <span class="doccomment">/// ERC20 metadata for the native token.
 </span><span class="kw">pub struct </span>NativeErc20Metadata;
@@ -397,12 +432,28 @@
 /// to Erc20AssetsPrecompileSet being marked as local
 </span><span class="kw">pub const </span>LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: <span class="kw-2">&amp;</span>[u8] = <span class="kw-2">&amp;</span>[<span class="number">255u8</span>, <span class="number">255u8</span>, <span class="number">255u8</span>, <span class="number">254u8</span>];
 
+<span class="doccomment">/// Const to identify ERC20_BALANCES_PRECOMPILE address
+</span><span class="kw">pub const </span>ERC20_BALANCES_PRECOMPILE: u64 = <span class="number">2050</span>;
+
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub </span>ForeignAssetPrefix: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX;
 	<span class="kw">pub </span>LocalAssetPrefix: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX;
 }
 
 <span class="kw">type </span>EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, CallableByPrecompile);
+
+<span class="comment">// Pallet-xcm precompile types.
+// Type that converts AssetId into Location
+</span><span class="kw">type </span>AssetIdToLocationManager = AsAssetType&lt;AssetId, AssetType, AssetManager&gt;;
+
+<span class="comment">// The pallet-balances address is identified by ERC20_BALANCES_PRECOMPILE const
+</span><span class="kw">type </span>SingleAddressMatch = SingleAddressMatcher&lt;AccountId, ERC20_BALANCES_PRECOMPILE, Balances&gt;;
+
+<span class="comment">// Type that matches an AccountId with a foreign asset address (if any)
+</span><span class="kw">type </span>ForeignAssetMatch = ForeignAssetMatcher&lt;AccountId, AssetId, Runtime, AssetIdToLocationManager&gt;;
+
+<span class="comment">// Erc20XcmBridge pallet is used to match ERC20s
+</span><span class="kw">type </span>Erc20Match = Erc20PalletMatcher&lt;AccountId, Erc20XcmBridge&gt;;
 
 <span class="attr">#[precompile_utils::precompile_name_from_address]
 </span><span class="kw">type </span>MoonbasePrecompilesAt&lt;R&gt; = (
@@ -434,7 +485,7 @@
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
 	PrecompileAt&lt;
-		AddressU64&lt;<span class="number">2050</span>&gt;,
+		AddressU64&lt;ERC20_BALANCES_PRECOMPILE&gt;,
 		Erc20BalancesPrecompile&lt;R, NativeErc20Metadata&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
@@ -550,6 +601,11 @@
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2073</span>&gt;,
 		RelayDataVerifierPrecompile&lt;R&gt;,
+		(CallableByContract, CallableByPrecompile),
+	&gt;,
+	PrecompileAt&lt;
+		AddressU64&lt;<span class="number">2074</span>&gt;,
+		PalletXcmPrecompile&lt;R, (SingleAddressMatch, ForeignAssetMatch, Erc20Match)&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
 );
