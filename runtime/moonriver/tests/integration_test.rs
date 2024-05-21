@@ -631,11 +631,11 @@ fn reward_block_authors() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				10101206388888506666666,
+				11547666666208000000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				9500047777777156666667,
+				9557333332588000000000,
 			);
 		});
 }
@@ -683,7 +683,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// 30% reserved for parachain bond
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				1376262500000000000,
+				452515000000000000000,
 			);
 
 			// Go to round 3
@@ -692,16 +692,16 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				10100848083729919833333,
+				11117700475903800000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				9500029862102786395833,
+				9535834523343675000000,
 			);
 			// 30% reserved for parachain bond again
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				1376262500000000000,
+				910802725000000000000,
 			);
 		});
 }

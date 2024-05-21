@@ -6783,6 +6783,7 @@ name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
  "account",
+ "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcmp-queue",
  "fp-ethereum",
  "fp-evm",
@@ -6793,6 +6794,7 @@ dependencies = [
  "hex-literal 0.3.4",
  "impl-trait-for-tuples",
  "log",
+ "moonbeam-core-primitives",
  "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
  "pallet-asset-manager",
@@ -7162,6 +7164,7 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-std",
+ "sp-timestamp",
  "sp-transaction-pool",
  "sp-version",
  "sp-weights",
