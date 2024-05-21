@@ -625,10 +625,9 @@ fn reward_block_authors() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
-			for x in 2..3599 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
-			}
+			increase_last_relay_slot_number(1);
+			// Just before round 3
+			run_to_block(7199, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -638,7 +637,7 @@ fn reward_block_authors() {
 				Balances::usable_balance(AccountId::from(BOB)),
 				9_950_000 * GLMR,
 			);
-			run_to_block(3601, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(7201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -672,14 +671,14 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
+			increase_last_relay_slot_number(1);
 			assert_ok!(ParachainStaking::set_parachain_bond_account(
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
 
 			// Stop just before round 3
-			run_to_block(3599, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(7199, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// no collators rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -696,7 +695,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			);
 
 			// Go to round 3
-			run_to_block(3601, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(7201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 
 			// collators rewards minted and distributed
 			assert_eq!(

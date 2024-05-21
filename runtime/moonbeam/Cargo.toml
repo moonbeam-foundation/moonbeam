@@ -161,6 +161,7 @@ parachains-common = { workspace = true }
 async-backing-primitives = { workspace = true }
 moonkit-xcm-primitives = { workspace = true }
 nimbus-primitives = { workspace = true }
+pallet-async-backing = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
 pallet-relay-storage-roots = { workspace = true }
@@ -179,6 +180,7 @@ sha3 = { workspace = true, features = ["std"] }
 cumulus-primitives-parachain-inherent = { workspace = true }
 cumulus-test-relay-sproof-builder = { workspace = true }
 
+sp-timestamp = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }
 
@@ -220,6 +222,7 @@ std = [
 	"orml-xtokens/std",
 	"pallet-asset-manager/std",
 	"pallet-assets/std",
+	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
 	"pallet-author-slot-filter/std",
@@ -370,6 +373,7 @@ try-runtime = [
 	"frame-try-runtime",
 	"moonbeam-runtime-common/try-runtime",
 	"pallet-asset-manager/try-runtime",
+	"pallet-async-backing/try-runtime",
 	"pallet-author-mapping/try-runtime",
 	"pallet-author-slot-filter/try-runtime",
 	"pallet-balances/try-runtime",
