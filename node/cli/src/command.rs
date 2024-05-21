@@ -811,7 +811,7 @@ pub fn run() -> Result<()> {
 						collator_options,
 						id,
 						rpc_config,
-						false,
+						true,
 						cli.run.block_authoring_duration,
 						hwbench,
 					)
