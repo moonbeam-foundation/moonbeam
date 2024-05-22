@@ -100,7 +100,7 @@ pub fn convert_memory(memory: Vec<u8>) -> Vec<H256> {
 			let mut msg = [0u8; 32];
 			let chunk = c.len();
 			if chunk < size {
-				let left = size - chunk;
+				let left = size.saturating_sub(chunk);
 				let remainder = vec![0; left];
 				msg[0..left].copy_from_slice(&remainder[..]);
 				msg[left..size].copy_from_slice(c);

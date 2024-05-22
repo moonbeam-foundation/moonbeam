@@ -158,7 +158,7 @@ impl<T: Config> Pallet<T> {
 				error: <Error<T>>::DelegatorBondBelowMin.into(),
 			},
 		);
-		let new_amount: BalanceOf<T> = (bonded_amount - decrease_amount).into();
+		let new_amount: BalanceOf<T> = (bonded_amount.saturating_sub(decrease_amount)).into();
 		ensure!(
 			new_amount >= T::MinDelegation::get(),
 			DispatchErrorWithPostInfo {

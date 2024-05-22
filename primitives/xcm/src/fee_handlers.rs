@@ -87,8 +87,9 @@ impl<
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
 				{
 					// TODO handle proof size payment
-					let amount = units_per_second.saturating_mul(weight.ref_time() as u128)
-						/ (WEIGHT_REF_TIME_PER_SECOND as u128);
+					let amount = units_per_second
+						.saturating_mul(weight.ref_time() as u128)
+						.saturating_div(WEIGHT_REF_TIME_PER_SECOND as u128);
 
 					// We dont need to proceed if the amount is 0
 					// For cases (specially tests) where the asset is very cheap with respect
@@ -121,9 +122,10 @@ impl<
 	fn refund_weight(&mut self, weight: Weight, _context: &XcmContext) -> Option<Asset> {
 		if let Some((location, prev_amount, units_per_second)) = self.1.clone() {
 			let weight = weight.min(self.0);
-			self.0 -= weight;
-			let amount = units_per_second * (weight.ref_time() as u128)
-				/ (WEIGHT_REF_TIME_PER_SECOND as u128);
+			self.0 = self.0.saturating_sub(weight);
+			let amount = units_per_second
+				.saturating_mul(weight.ref_time() as u128)
+				.saturating_div(WEIGHT_REF_TIME_PER_SECOND as u128);
 			let amount = amount.min(prev_amount);
 			self.1 = Some((
 				location.clone(),

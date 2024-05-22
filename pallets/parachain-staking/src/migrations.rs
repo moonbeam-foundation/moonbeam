@@ -39,7 +39,7 @@ where
 		let mut round = crate::Round::<T>::get();
 
 		// Multiply round length by 2
-		round.length = round.length * 2;
+		round.length = round.length.saturating_mul(2);
 
 		crate::Round::<T>::put(round);
 
@@ -184,7 +184,7 @@ fn compute_theoretical_first_slot<BlockNumber: Saturating + Into<u64>>(
 ) -> u64 {
 	let blocks_since_first: u64 = (current_block.saturating_sub(first_block)).into();
 	let slots_since_first = match block_time {
-		12_000 => blocks_since_first * 2,
+		12_000 => blocks_since_first.saturating_mul(2),
 		6_000 => blocks_since_first,
 		_ => panic!("Unsupported BlockTime"),
 	};
