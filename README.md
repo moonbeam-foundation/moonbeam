@@ -23,7 +23,7 @@ You can find more detailed instructions to [run a full node in our TestNet](http
 
 ## Run a Local Development Node with Docker
 
-Developers who are building dApps to run on moonbeam, may want a lightweight node to work with
+Developers who are building dApps to run on Moonbeam, may want a lightweight node to work with
 locally. You can quickly set up a single node without a relay chain backing it using the development service.
 
 ```bash
@@ -138,7 +138,7 @@ pnpm moonwall test dev_moonbase
 ## Chain IDs
 
 The Ethereum specification describes a numeric Chain Id. The Moonbeam mainnet will have a Chain Id 
-of 1284, symbolizing the 1284 milliseconds it takes for a moonbeam to reach Earth.
+of 1284, symbolizing the 1284 milliseconds it takes for a Moonbeam to reach Earth.
 
 Moonbeam nodes support a variety of public chains and testnets, each with their respective Chain Ids as follows:
 
