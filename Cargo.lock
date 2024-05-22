@@ -1007,8 +1007,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93f2635620bf0b9d4576eb7bb9a38a55df78bd1205d26fa994b25911a69f212f"
 dependencies = [
  "bitcoin_hashes",
- "rand 0.7.3",
- "rand_core 0.5.1",
+ "rand 0.8.5",
+ "rand_core 0.6.4",
  "serde",
  "unicode-normalization",
 ]
@@ -3143,7 +3143,7 @@ dependencies = [
 [[package]]
 name = "evm"
 version = "0.41.1"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=v0.4.1-cancun#cfcc81a1e13f8d6c96b6c0c10015ebf5c85b253a"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=v0.4.1-cancun#8ee491bde0378d154e95ab13b80b8b1b205c3f10"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -3163,7 +3163,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=v0.4.1-cancun#cfcc81a1e13f8d6c96b6c0c10015ebf5c85b253a"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=v0.4.1-cancun#8ee491bde0378d154e95ab13b80b8b1b205c3f10"
 dependencies = [
  "parity-scale-codec",
  "primitive-types",
@@ -3174,7 +3174,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=v0.4.1-cancun#cfcc81a1e13f8d6c96b6c0c10015ebf5c85b253a"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=v0.4.1-cancun#8ee491bde0378d154e95ab13b80b8b1b205c3f10"
 dependencies = [
  "environmental",
  "evm-core",
@@ -3185,7 +3185,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=v0.4.1-cancun#cfcc81a1e13f8d6c96b6c0c10015ebf5c85b253a"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=v0.4.1-cancun#8ee491bde0378d154e95ab13b80b8b1b205c3f10"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -3297,7 +3297,7 @@ dependencies = [
 [[package]]
 name = "fc-api"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "async-trait",
  "fp-storage",
@@ -3309,7 +3309,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "async-trait",
  "fp-consensus",
@@ -3325,7 +3325,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "async-trait",
  "ethereum",
@@ -3356,7 +3356,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "fc-db",
  "fc-storage",
@@ -3379,7 +3379,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3434,7 +3434,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3449,7 +3449,7 @@ dependencies = [
 [[package]]
 name = "fc-storage"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3644,7 +3644,7 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "hex",
  "impl-serde 0.4.0",
@@ -3663,7 +3663,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -3675,7 +3675,7 @@ dependencies = [
 [[package]]
 name = "fp-ethereum"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3688,7 +3688,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "evm",
  "frame-support",
@@ -3704,7 +3704,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3721,7 +3721,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -3733,7 +3733,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "parity-scale-codec",
  "serde",
@@ -8483,7 +8483,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "environmental",
  "ethereum",
@@ -8539,7 +8539,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "environmental",
  "evm",
@@ -8565,7 +8565,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-chain-id"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8659,7 +8659,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "fp-evm",
 ]
@@ -8667,7 +8667,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "fp-evm",
  "sp-core",
@@ -8797,7 +8797,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -8873,7 +8873,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "fp-evm",
  "num",
@@ -9107,7 +9107,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "fp-evm",
  "tiny-keccak",
@@ -9116,7 +9116,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "fp-evm",
  "ripemd",
@@ -9126,7 +9126,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-storage-cleaner"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -11677,7 +11677,7 @@ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 [[package]]
 name = "precompile-utils"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "environmental",
  "evm",
@@ -11734,7 +11734,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils-macro"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#7dfd999d9e084c6e7b153bb0dd9bc567c8849d70"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=cancun#982dab02b0e70e04567f91cb41a7bda8830dc24a"
 dependencies = [
  "case",
  "num_enum 0.7.2",
@@ -12051,7 +12051,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "19de2de2a00075bf566bee3bd4db014b11587e84184d3f7a791bc17f1a8e9e48"
 dependencies = [
  "anyhow",
- "itertools 0.11.0",
+ "itertools 0.12.1",
  "proc-macro2",
  "quote",
  "syn 2.0.58",
@@ -16788,7 +16788,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.7.3",
+ "rand 0.8.5",
  "static_assertions",
 ]
 
