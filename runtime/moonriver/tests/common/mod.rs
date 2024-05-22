@@ -32,6 +32,7 @@ pub use moonriver_runtime::{
 	UncheckedExtrinsic, HOURS, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
+use polkadot_parachain::primitives::HeadData;
 use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
@@ -84,6 +85,8 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 				System::set_block_number(System::block_number() + 1);
 			}
 		}
+
+		increase_last_relay_slot_number(1);
 
 		// Initialize the new block
 		AuthorInherent::on_initialize(System::block_number());
@@ -347,8 +350,20 @@ pub fn root_origin() -> <Runtime as frame_system::Config>::RuntimeOrigin {
 pub fn set_parachain_inherent_data() {
 	use cumulus_primitives_core::PersistedValidationData;
 	use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-	let (relay_parent_storage_root, relay_chain_state) =
-		RelayStateSproofBuilder::default().into_state_root_and_proof();
+
+	let mut relay_sproof = RelayStateSproofBuilder::default();
+	relay_sproof.para_id = 100u32.into();
+	relay_sproof.included_para_head = Some(HeadData(vec![1, 2, 3]));
+
+	let additional_key_values = vec![(
+		moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
+		sp_timestamp::Timestamp::default().encode(),
+	)];
+
+	relay_sproof.additional_key_values = additional_key_values;
+
+	let (relay_parent_storage_root, relay_chain_state) = relay_sproof.into_state_root_and_proof();
+
 	let vfp = PersistedValidationData {
 		relay_parent_number: 1u32,
 		relay_parent_storage_root,

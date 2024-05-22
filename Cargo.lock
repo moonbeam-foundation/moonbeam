@@ -6464,7 +6464,9 @@ dependencies = [
 name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
+ "ethereum",
  "ethereum-types",
+ "fc-rpc-core",
  "futures 0.3.30",
  "jsonrpsee",
  "moonbeam-client-evm-tracing",
@@ -6518,6 +6520,7 @@ dependencies = [
  "fc-consensus",
  "fc-db",
  "fc-rpc",
+ "fc-rpc-core",
  "fc-storage",
  "fp-rpc",
  "futures 0.3.30",
@@ -6782,6 +6785,7 @@ name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
  "account",
+ "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcmp-queue",
  "fp-ethereum",
  "fp-evm",
@@ -6792,6 +6796,7 @@ dependencies = [
  "hex-literal 0.3.4",
  "impl-trait-for-tuples",
  "log",
+ "moonbeam-core-primitives",
  "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
  "pallet-asset-manager",
@@ -7161,6 +7166,7 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-std",
+ "sp-timestamp",
  "sp-transaction-pool",
  "sp-version",
  "sp-weights",

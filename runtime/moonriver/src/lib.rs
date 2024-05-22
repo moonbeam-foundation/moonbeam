@@ -64,7 +64,10 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::weights as moonbeam_weights;
+use moonbeam_runtime_common::{
+	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
+	weights as moonbeam_weights,
+};
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
@@ -284,7 +287,7 @@ impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
-	type MinimumPeriod = ConstU64<6000>;
+	type MinimumPeriod = ConstU64<3000>;
 	type WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
@@ -507,7 +510,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	type Timestamp = Timestamp;
+	type Timestamp = RelayTimestamp;
 	type WeightInfo = moonbeam_weights::pallet_evm::WeightInfo<Runtime>;
 }
 
@@ -724,8 +727,9 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
-	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
-	type ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
+	type CheckAssociatedRelayNumber =
+		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+	type ConsensusHook = ConsensusHookWrapperForRelayTimestamp<Runtime, ConsensusHook>;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type WeightInfo = cumulus_pallet_parachain_system::weights::SubstrateWeight<Runtime>;
 }
@@ -833,8 +837,8 @@ impl pallet_parachain_staking::Config for Runtime {
 	type SlotProvider = RelayChainSlotProvider;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
-	type SlotDuration = ConstU64<12_000>;
-	type BlockTime = ConstU64<12_000>;
+	type SlotDuration = ConstU64<6_000>;
+	type BlockTime = ConstU64<6_000>;
 }
 
 impl pallet_author_inherent::Config for Runtime {

@@ -16,28 +16,13 @@
 
 //! # Moonbase specific Migrations
 
-use crate::Runtime;
-use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
 use pallet_migrations::{GetMigrations, Migration};
-use pallet_parachain_staking::migrations::MultiplyRoundLenBy2;
 use sp_std::{prelude::*, vec};
 
 pub struct MoonbaseMigrations;
 
 impl GetMigrations for MoonbaseMigrations {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		vec![Box::new(PalletStakingMultiplyRoundLenBy2)]
-	}
-}
-
-// This migration should only be applied to runtimes with async backing enabled
-pub struct PalletStakingMultiplyRoundLenBy2;
-impl Migration for PalletStakingMultiplyRoundLenBy2 {
-	fn friendly_name(&self) -> &str {
-		"MM_MultiplyRoundLenBy2"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		MultiplyRoundLenBy2::<Runtime>::on_runtime_upgrade()
+		vec![]
 	}
 }

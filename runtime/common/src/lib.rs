@@ -23,6 +23,7 @@ mod impl_on_charge_evm_transaction;
 mod impl_self_contained_call;
 mod impl_xcm_evm_runner;
 pub mod migrations;
+pub mod timestamp;
 pub mod weights;
 
 #[cfg(feature = "runtime-benchmarks")]
