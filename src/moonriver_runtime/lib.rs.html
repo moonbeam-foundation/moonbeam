@@ -1810,6 +1810,10 @@
 <a href="#1810" id="1810">1810</a>
 <a href="#1811" id="1811">1811</a>
 <a href="#1812" id="1812">1812</a>
+<a href="#1813" id="1813">1813</a>
+<a href="#1814" id="1814">1814</a>
+<a href="#1815" id="1815">1815</a>
+<a href="#1816" id="1816">1816</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1876,7 +1880,10 @@
 	Index, Signature,
 };
 <span class="kw">use </span>moonbeam_rpc_primitives_txpool::TxPoolResponse;
-<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbeam_weights;
+<span class="kw">use </span>moonbeam_runtime_common::{
+	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
+	weights <span class="kw">as </span>moonbeam_weights,
+};
 <span class="kw">use </span>pallet_ethereum::Call::transact;
 <span class="kw">use </span>pallet_ethereum::{PostLogContent, Transaction <span class="kw">as </span>EthereumTransaction};
 <span class="kw">use </span>pallet_evm::{
@@ -2096,7 +2103,7 @@
 	<span class="doccomment">/// A timestamp: milliseconds since the unix epoch.
 	</span><span class="kw">type </span>Moment = u64;
 	<span class="kw">type </span>OnTimestampSet = ();
-	<span class="kw">type </span>MinimumPeriod = ConstU64&lt;<span class="number">6000</span>&gt;;
+	<span class="kw">type </span>MinimumPeriod = ConstU64&lt;<span class="number">3000</span>&gt;;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -2319,7 +2326,7 @@
 	<span class="kw">type </span>GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	<span class="kw">type </span>SuicideQuickClearLimit = ConstU32&lt;<span class="number">0</span>&gt;;
 	<span class="kw">type </span>GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	<span class="kw">type </span>Timestamp = Timestamp;
+	<span class="kw">type </span>Timestamp = RelayTimestamp;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_evm::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -2536,8 +2543,9 @@
 	<span class="kw">type </span>OutboundXcmpMessageSource = XcmpQueue;
 	<span class="kw">type </span>XcmpMessageHandler = XcmpQueue;
 	<span class="kw">type </span>ReservedXcmpWeight = ReservedXcmpWeight;
-	<span class="kw">type </span>CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
-	<span class="kw">type </span>ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
+	<span class="kw">type </span>CheckAssociatedRelayNumber =
+		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+	<span class="kw">type </span>ConsensusHook = ConsensusHookWrapperForRelayTimestamp&lt;Runtime, ConsensusHook&gt;;
 	<span class="kw">type </span>DmpQueue = frame_support::traits::EnqueueWithOrigin&lt;MessageQueue, RelayOrigin&gt;;
 	<span class="kw">type </span>WeightInfo = cumulus_pallet_parachain_system::weights::SubstrateWeight&lt;Runtime&gt;;
 }
@@ -2645,8 +2653,8 @@
 	<span class="kw">type </span>SlotProvider = RelayChainSlotProvider;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>MaxCandidates = ConstU32&lt;<span class="number">200</span>&gt;;
-	<span class="kw">type </span>SlotDuration = ConstU64&lt;<span class="number">12_000</span>&gt;;
-	<span class="kw">type </span>BlockTime = ConstU64&lt;<span class="number">12_000</span>&gt;;
+	<span class="kw">type </span>SlotDuration = ConstU64&lt;<span class="number">6_000</span>&gt;;
+	<span class="kw">type </span>BlockTime = ConstU64&lt;<span class="number">6_000</span>&gt;;
 }
 
 <span class="kw">impl </span>pallet_author_inherent::Config <span class="kw">for </span>Runtime {

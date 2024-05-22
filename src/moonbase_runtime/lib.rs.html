@@ -1805,6 +1805,8 @@
 <a href="#1805" id="1805">1805</a>
 <a href="#1806" id="1806">1806</a>
 <a href="#1807" id="1807">1807</a>
+<a href="#1808" id="1808">1808</a>
+<a href="#1809" id="1809">1809</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1837,7 +1839,6 @@
 
 <span class="kw">pub mod </span>asset_config;
 <span class="kw">pub mod </span>governance;
-<span class="kw">pub mod </span>timestamp;
 <span class="kw">pub mod </span>xcm_config;
 
 <span class="kw">mod </span>migrations;
@@ -1886,7 +1887,10 @@
 <span class="kw">use </span>frame_system::{EnsureRoot, EnsureSigned};
 <span class="kw">use </span>governance::councils::<span class="kw-2">*</span>;
 <span class="kw">use </span>moonbeam_rpc_primitives_txpool::TxPoolResponse;
-<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbeam_weights;
+<span class="kw">use </span>moonbeam_runtime_common::{
+	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
+	weights <span class="kw">as </span>moonbeam_weights,
+};
 <span class="kw">use </span>nimbus_primitives::CanAuthor;
 <span class="kw">use </span>pallet_ethereum::Call::transact;
 <span class="kw">use </span>pallet_ethereum::{PostLogContent, Transaction <span class="kw">as </span>EthereumTransaction};
@@ -2327,7 +2331,7 @@
 	<span class="kw">type </span>GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	<span class="kw">type </span>SuicideQuickClearLimit = ConstU32&lt;<span class="number">0</span>&gt;;
 	<span class="kw">type </span>GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	<span class="kw">type </span>Timestamp = <span class="kw">crate</span>::timestamp::RelayTimestamp;
+	<span class="kw">type </span>Timestamp = RelayTimestamp;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_evm::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -2546,7 +2550,7 @@
 	<span class="kw">type </span>XcmpMessageHandler = EmergencyParaXcm;
 	<span class="kw">type </span>ReservedXcmpWeight = ReservedXcmpWeight;
 	<span class="kw">type </span>CheckAssociatedRelayNumber = EmergencyParaXcm;
-	<span class="kw">type </span>ConsensusHook = <span class="kw">crate</span>::timestamp::ConsensusHookWrapperForRelayTimestamp&lt;ConsensusHook&gt;;
+	<span class="kw">type </span>ConsensusHook = ConsensusHookWrapperForRelayTimestamp&lt;Runtime, ConsensusHook&gt;;
 	<span class="kw">type </span>DmpQueue = frame_support::traits::EnqueueWithOrigin&lt;MessageQueue, RelayOrigin&gt;;
 	<span class="kw">type </span>WeightInfo = cumulus_pallet_parachain_system::weights::SubstrateWeight&lt;Runtime&gt;;
 }

@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"moonbase_runtime":[["impl&lt;Inner: ConsensusHook&gt; ConsensusHook for <a class=\"struct\" href=\"moonbase_runtime/timestamp/struct.ConsensusHookWrapperForRelayTimestamp.html\" title=\"struct moonbase_runtime::timestamp::ConsensusHookWrapperForRelayTimestamp\">ConsensusHookWrapperForRelayTimestamp</a>&lt;Inner&gt;"]]
+"moonbeam_runtime_common":[["impl&lt;Runtime, Inner&gt; ConsensusHook for <a class=\"struct\" href=\"moonbeam_runtime_common/timestamp/struct.ConsensusHookWrapperForRelayTimestamp.html\" title=\"struct moonbeam_runtime_common::timestamp::ConsensusHookWrapperForRelayTimestamp\">ConsensusHookWrapperForRelayTimestamp</a>&lt;Runtime, Inner&gt;<span class=\"where fmt-newline\">where\n    Runtime: Config,\n    Inner: ConsensusHook,</span>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
