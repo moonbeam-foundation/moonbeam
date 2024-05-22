@@ -1,47 +1,39 @@
-# ![Moonbeam](media/moonbeam-cover.jpg)
-
-# ⚠️ Moonbeam new github organization ⚠️
-
-Moonbeam repository has been migrated from purestake to the Moonbeam Foundation organization:  
-https://github.com/moonbeam-foundation/moonbeam
-
-Github references/cloning as well as cargo build will keep working as expected. 
-However, it is recommended to update those references once the migration is complete.
+# ![Moonbeam](media/Banner.jpg)
 
 # Information
 
 ![Tests](https://github.com/moonbeam-foundation/moonbeam/workflows/Build/badge.svg)
 
-**An Ethereum compatible [Parachain](https://polkadot.network/technology/) built with [Substrate](https://substrate.dev).**
+**An Ethereum compatible [Parachain](https://polkadot.network/technology/) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
 
 👉 _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._<br>
 👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._<br>
 👉 _Reference our [crate-level docs (rustdocs)](https://moonbeam-foundation.github.io/moonbeam) to contribute._
 
-## Run an alphanet node with Docker
+## Run a Moonbase Alpha (Moonbeam TestNet) Node with Docker
 
 Docker images are published for every tagged release. Learn more with `moonbeam --help`.
 
 ```bash
 # Join the public testnet
-docker run --network="host" moonbeamfoundation/moonbeam:v0.36.0 --chain alphanet
+docker run --network="host" moonbeamfoundation/moonbeam:v0.37.3 --chain alphanet
 ```
 
 You can find more detailed instructions to [run a full node in our TestNet](https://docs.moonbeam.network/node-operators/networks/run-a-node/overview/)
 
-## Run a local development node with Docker
+## Run a Local Development Node with Docker
 
-Developers who are building dApps to run on moonbeam, may want a lightweight node to work with
+Developers who are building dApps to run on Moonbeam, may want a lightweight node to work with
 locally. You can quickly set up a single node without a relay chain backing it using the development service.
 
 ```bash
 # Run a dev service node
-docker run --network="host" moonbeamfoundation/moonbeam:v0.36.0 --dev
+docker run --network="host" moonbeamfoundation/moonbeam:v0.37.3 --dev
 ```
 
 For more information, see our detailed instructions to [run a development node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/)
 
-### Sealing options
+### Sealing Options
 
 The above command will start the node in instant seal mode. It creates a block when a transaction arrives, similar to Ganache's auto-mine. You can also choose to author blocks at a regular interval, or control authoring manually through the RPC.
 
@@ -125,7 +117,7 @@ cd moonbeam
 cargo build --release
 ```
 
-## Run tests
+## Run Tests
 
 Moonbeam incorporates Rust unit tests and TypeScript integration tests, which are executed in CI and can also be run locally.
 
@@ -146,7 +138,7 @@ pnpm moonwall test dev_moonbase
 ## Chain IDs
 
 The Ethereum specification describes a numeric Chain Id. The Moonbeam mainnet will have a Chain Id 
-of 1284, symbolizing the 1284 milliseconds it takes for a moonbeam to reach Earth.
+of 1284, symbolizing the 1284 milliseconds it takes for a Moonbeam to reach Earth.
 
 Moonbeam nodes support a variety of public chains and testnets, each with their respective Chain Ids as follows:
 
@@ -183,7 +175,6 @@ From Frontier:
 - _EVM Chain Id_: A place to store the chain id for each Moonbeam network
 - _EVM_: Encapsulates execution logic for an Ethereum Virtual Machine
 - _Ethereum_: Ethereum-style data encoding and access for the EVM.
-
 
 The following pallets are stored in `pallets/`. They are designed for Moonbeam's specific requirements:
 
