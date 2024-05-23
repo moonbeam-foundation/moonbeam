@@ -13,7 +13,7 @@ describeSuite({
       title: "should have low balance transfer fees",
       test: async () => {
         const fee = await testBalanceTransfer(context);
-        expect(fee).toBeLessThanOrEqual(86737801520875n);
+        expect(fee).toBeLessThanOrEqual(90215001520875n);
       },
     });
 

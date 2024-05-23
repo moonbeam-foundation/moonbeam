@@ -30,6 +30,9 @@ sp-std = { workspace = true }
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 
+# Moonkit
+moonkit-xcm-primitives = { workspace = true }
+
 [dev-dependencies]
 derive_more = { workspace = true }
 hex-literal = { workspace = true }
@@ -51,6 +54,7 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
+	"moonkit-xcm-primitives/std",
 	"pallet-assets/std",
 	"pallet-balances/std",
 	"pallet-evm/std",

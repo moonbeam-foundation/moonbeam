@@ -269,6 +269,91 @@ macro_rules! impl_runtime_apis_plus_common {
 						"Missing `evm-tracing` compile time feature flag.",
 					))
 				}
+
+				fn trace_call(
+					header: &<Block as BlockT>::Header,
+					from: H160,
+					to: H160,
+					data: Vec<u8>,
+					value: U256,
+					gas_limit: U256,
+					max_fee_per_gas: Option<U256>,
+					max_priority_fee_per_gas: Option<U256>,
+					nonce: Option<U256>,
+					access_list: Option<Vec<(H160, Vec<H256>)>>,
+				) -> Result<(), sp_runtime::DispatchError> {
+					#[cfg(feature = "evm-tracing")]
+					{
+						use moonbeam_evm_tracer::tracer::EvmTracer;
+
+						// Initialize block: calls the "on_initialize" hook on every pallet
+						// in AllPalletsWithSystem.
+						Executive::initialize_block(header);
+
+						EvmTracer::new().trace(|| {
+							let is_transactional = false;
+							let validate = true;
+							let without_base_extrinsic_weight = true;
+
+
+							// Estimated encoded transaction size must be based on the heaviest transaction
+							// type (EIP1559Transaction) to be compatible with all transaction types.
+							let mut estimated_transaction_len = data.len() +
+							// pallet ethereum index: 1
+							// transact call index: 1
+							// Transaction enum variant: 1
+							// chain_id 8 bytes
+							// nonce: 32
+							// max_priority_fee_per_gas: 32
+							// max_fee_per_gas: 32
+							// gas_limit: 32
+							// action: 21 (enum varianrt + call address)
+							// value: 32
+							// access_list: 1 (empty vec size)
+							// 65 bytes signature
+							258;
+
+							if access_list.is_some() {
+								estimated_transaction_len += access_list.encoded_size();
+							}
+
+							let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
+
+							let (weight_limit, proof_size_base_cost) =
+								match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
+									gas_limit,
+									without_base_extrinsic_weight
+								) {
+									weight_limit if weight_limit.proof_size() > 0 => {
+										(Some(weight_limit), Some(estimated_transaction_len as u64))
+									}
+									_ => (None, None),
+								};
+
+							let _ = <Runtime as pallet_evm::Config>::Runner::call(
+								from,
+								to,
+								data,
+								value,
+								gas_limit,
+								max_fee_per_gas,
+								max_priority_fee_per_gas,
+								nonce,
+								access_list.unwrap_or_default(),
+								is_transactional,
+								validate,
+								weight_limit,
+								proof_size_base_cost,
+								<Runtime as pallet_evm::Config>::config(),
+							);
+						});
+						Ok(())
+					}
+					#[cfg(not(feature = "evm-tracing"))]
+					Err(sp_runtime::DispatchError::Other(
+						"Missing `evm-tracing` compile time feature flag.",
+					))
+				}
 			}
 
 			impl moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block> for Runtime {
@@ -662,7 +747,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use frame_support::traits::StorageInfoTrait;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
-					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsiscsBenchmark;
+					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
 
 					let mut list = Vec::<BenchmarkList>::new();
 					list_benchmarks!(list, extra);
@@ -693,8 +778,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					use pallet_asset_manager::Config as PalletAssetManagerConfig;
 
-					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsiscsBenchmark;
-					type ExistentialDeposit = ConstU128<0>;
+					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
 					parameter_types! {
 						pub const RandomParaId: ParaId = ParaId::new(43211234);
 					}
@@ -705,25 +789,64 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 
 						fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {
-							// Relay/native token can be teleported between AH and Relay.
-							Some((
-								Asset {
-									fun: Fungible(ExistentialDeposit::get()),
-									id: AssetId(Parent.into())
-								},
-								Parent.into(),
-							))
+							None
 						}
 
 						fn reserve_transferable_asset_and_dest() -> Option<(Asset, Location)> {
+							use xcm_config::SelfReserve;
+
+							ParachainSystem::open_outbound_hrmp_channel_for_benchmarks_or_tests(
+								RandomParaId::get().into()
+							);
+
 							Some((
 								Asset {
-									fun: Fungible(ExistentialDeposit::get()),
-									id: AssetId(Parent.into())
+									fun: Fungible(<Runtime as pallet_balances::Config>::ExistentialDeposit::get()),
+									id: AssetId(SelfReserve::get().into())
 								},
 								// AH can reserve transfer native token to some random parachain.
 								ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
 							))
+						}
+
+						fn set_up_complex_asset_transfer(
+						) -> Option<(XcmAssets, u32, Location, Box<dyn FnOnce()>)> {
+							use xcm_config::SelfReserve;
+
+							let destination: xcm::v4::Location = Parent.into();
+
+							let fee_amount: u128 = <Runtime as pallet_balances::Config>::ExistentialDeposit::get();
+							let fee_asset: Asset = (SelfReserve::get(), fee_amount).into();
+
+							// Give some multiple of transferred amount
+							let balance = fee_amount * 1000;
+							let who = frame_benchmarking::whitelisted_caller();
+							let _ =
+								<Balances as frame_support::traits::Currency<_>>::make_free_balance_be(&who, balance);
+
+							// verify initial balance
+							assert_eq!(Balances::free_balance(&who), balance);
+
+							// set up local asset
+							let asset_amount: u128 = 10u128;
+							let initial_asset_amount: u128 = asset_amount * 10;
+
+							let (asset_id, _, _) = pallet_assets::benchmarking::create_default_minted_asset::<
+								Runtime,
+								()
+							>(true, initial_asset_amount);
+							let transfer_asset: Asset = (SelfReserve::get(), asset_amount).into();
+
+							let assets: XcmAssets = vec![fee_asset.clone(), transfer_asset].into();
+							let fee_index: u32 = 0;
+
+							let verify: Box<dyn FnOnce()> = Box::new(move || {
+								// verify balance after transfer, decreased by
+								// transferred amount (and delivery fees)
+								assert!(Balances::free_balance(&who) <= balance - fee_amount);
+							});
+
+							Some((assets, fee_index, destination, verify))
 						}
 					}
 

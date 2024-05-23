@@ -28,7 +28,7 @@ jobs:
       labels: bare-metal
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Variables

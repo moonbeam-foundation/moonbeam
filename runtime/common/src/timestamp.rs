@@ -16,7 +16,6 @@
 
 //! A way to get a relyable timestamp
 
-use crate::Runtime;
 use cumulus_pallet_parachain_system::{
 	consensus_hook::UnincludedSegmentCapacity,
 	relay_state_snapshot::{self, ReadEntryErr},
@@ -39,9 +38,15 @@ impl Time for RelayTimestamp {
 	}
 }
 
-/// A wrapper around the consensus hook to get the relay timlestmap from the relay storage proof
-pub struct ConsensusHookWrapperForRelayTimestamp<Inner>(core::marker::PhantomData<Inner>);
-impl<Inner: ConsensusHook> ConsensusHook for ConsensusHookWrapperForRelayTimestamp<Inner> {
+/// A wrapper around the consensus hook to get the relay timestamp from the relay storage proof
+pub struct ConsensusHookWrapperForRelayTimestamp<Runtime, Inner>(
+	core::marker::PhantomData<(Runtime, Inner)>,
+);
+impl<Runtime, Inner> ConsensusHook for ConsensusHookWrapperForRelayTimestamp<Runtime, Inner>
+where
+	Runtime: frame_system::Config,
+	Inner: ConsensusHook,
+{
 	fn on_state_proof(state_proof: &RelayChainStateProof) -> (Weight, UnincludedSegmentCapacity) {
 		let relay_timestamp: u64 =
 			match state_proof.read_entry(well_known_relay_keys::TIMESTAMP_NOW, None) {
