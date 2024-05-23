@@ -6379,12 +6379,6 @@ dependencies = [
 [[package]]
 name = "moonbeam-precompile-common"
 version = "0.1.0"
-dependencies = [
- "fp-evm",
- "pallet-evm",
- "precompile-utils",
- "sp-core",
-]
 
 [[package]]
 name = "moonbeam-primitives-ext"
