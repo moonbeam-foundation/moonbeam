@@ -20,6 +20,7 @@ use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Polling};
 use frame_system::pallet_prelude::BlockNumberFor;
+use moonbeam_precompile_common::SYSTEM_ACCOUNT_SIZE;
 use pallet_conviction_voting::Call as ConvictionVotingCall;
 use pallet_conviction_voting::{
 	AccountVote, Casting, ClassLocksFor, Conviction, Delegating, Tally, TallyOf, Vote, Voting,
@@ -27,7 +28,6 @@ use pallet_conviction_voting::{
 };
 use pallet_evm::{AddressMapping, Log};
 use precompile_utils::prelude::*;
-use precompile_utils_common::SYSTEM_ACCOUNT_SIZE;
 use sp_core::{Get, MaxEncodedLen, H160, H256, U256};
 use sp_runtime::traits::{Dispatchable, StaticLookup};
 use sp_std::marker::PhantomData;

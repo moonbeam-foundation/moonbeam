@@ -23,9 +23,9 @@ use frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
 };
+use moonbeam_precompile_common::SYSTEM_ACCOUNT_SIZE;
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
-use precompile_utils_common::SYSTEM_ACCOUNT_SIZE;
 use sp_core::{H160, U256};
 use sp_runtime::traits::Dispatchable;
 use sp_std::{

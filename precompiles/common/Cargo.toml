@@ -1,13 +1,15 @@
 [package]
-name = "precompile-utils-common"
+name = "moonbeam-precompile-common"
 authors = { workspace = true }
 description = "Precompile common logic"
 edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-precompile-utils = { workspace = true }
 sp-core = { workspace = true }
+
+# Frontier
+precompile-utils = { workspace = true }
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true }
 

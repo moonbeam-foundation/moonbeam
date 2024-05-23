@@ -25,10 +25,10 @@ use frame_support::{
 	sp_runtime::{traits::Zero, Saturating},
 	traits::ConstU32,
 };
+use moonbeam_precompile_common::SYSTEM_ACCOUNT_SIZE;
 use pallet_evm::AddressMapping;
 use parity_scale_codec::{Decode, DecodeLimit};
 use precompile_utils::{prelude::*, solidity::revert::revert_as_bytes};
-use precompile_utils_common::SYSTEM_ACCOUNT_SIZE;
 use sp_core::{H160, U256};
 use sp_runtime::traits::Dispatchable;
 use sp_std::boxed::Box;

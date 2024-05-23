@@ -9,7 +9,6 @@ version = "0.1.0"
 num_enum = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -24,6 +23,7 @@ sp-weights = { workspace = true }
 # Frontier
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+precompile-utils = { workspace = true }
 
 # Polkadot
 pallet-xcm = { workspace = true }

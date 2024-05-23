@@ -24,7 +24,6 @@ account = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-relay-encoder = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
-precompile-utils = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
 
@@ -131,6 +130,7 @@ pallet-evm-precompile-dispatch = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
+precompile-utils = { workspace = true }
 
 # Polkadot / XCM
 orml-traits = { workspace = true }

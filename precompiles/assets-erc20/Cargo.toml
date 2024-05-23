@@ -11,8 +11,7 @@ num_enum = { workspace = true }
 paste = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true }
-precompile-utils-common = { workspace = true }
+moonbeam-precompile-common = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -30,6 +29,7 @@ sp-std = { workspace = true }
 # Frontier
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+precompile-utils = { workspace = true }
 
 # Moonkit
 moonkit-xcm-primitives = { workspace = true }

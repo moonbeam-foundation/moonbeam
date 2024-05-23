@@ -12,7 +12,6 @@ rustc-hex = { workspace = true }
 
 # Moonbeam
 pallet-xcm-transactor = { workspace = true }
-precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -27,6 +26,7 @@ sp-weights = { workspace = true }
 evm = { workspace = true, features = ["with-codec"] }
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+precompile-utils = { workspace = true }
 
 # Polkadot
 xcm = { workspace = true }

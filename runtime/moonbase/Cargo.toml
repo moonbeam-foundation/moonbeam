@@ -24,7 +24,6 @@ account = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-relay-encoder = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
-precompile-utils = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
 
@@ -134,6 +133,7 @@ pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
 pallet-evm-precompile-storage-cleaner = { workspace = true }
+precompile-utils = { workspace = true }
 
 
 # Polkadot / XCM
@@ -257,7 +257,7 @@ std = [
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
 	"pallet-evm-precompileset-assets-erc20/std",
-  	"pallet-evm-precompile-storage-cleaner/std",
+	"pallet-evm-precompile-storage-cleaner/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",

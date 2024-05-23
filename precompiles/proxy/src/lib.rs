@@ -19,13 +19,13 @@
 use evm::ExitReason;
 use fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
+use moonbeam_precompile_common::SYSTEM_ACCOUNT_SIZE;
 use pallet_balances::Call as BalancesCall;
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
 use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::precompile_set::{self, AddressType, SelectorFilter};
 use precompile_utils::prelude::*;
-use precompile_utils_common::SYSTEM_ACCOUNT_SIZE;
 use sp_core::{Get, H160, U256};
 use sp_runtime::{
 	codec::Decode,

@@ -11,7 +11,6 @@ num_enum = { workspace = true }
 
 # Moonbeam
 pallet-author-mapping = { workspace = true }
-precompile-utils = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -24,7 +23,8 @@ sp-runtime = { workspace = true }
 
 # Frontier
 fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+precompile-utils = { workspace = true }
 
 # Nimbus
 nimbus-primitives = { workspace = true }
@@ -35,18 +35,18 @@ hex-literal = { workspace = true }
 serde = { workspace = true }
 
 # Moonbeam
-pallet-author-mapping = { workspace = true, features = [ "std" ] }
-precompile-utils = { workspace = true, features = [ "std", "testing" ] }
+pallet-author-mapping = { workspace = true, features = ["std"] }
+precompile-utils = { workspace = true, features = ["std", "testing"] }
 
 # Substrate
-pallet-balances = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = ["std"] }
 pallet-scheduler = { workspace = true }
 pallet-timestamp = { workspace = true }
-scale-info = { workspace = true, features = [ "derive" ] }
+scale-info = { workspace = true, features = ["derive"] }
 sp-runtime = { workspace = true }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"fp-evm/std",
 	"frame-support/std",
