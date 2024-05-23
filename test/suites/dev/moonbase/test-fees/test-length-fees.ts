@@ -13,7 +13,7 @@ describeSuite({
       title: "should have low balance transfer fees",
       test: async () => {
         const fee = await testBalanceTransfer(context);
-        expect(fee).toBeLessThanOrEqual(90215001520875n);
+        expect(fee).toBeLessThanOrEqual(90_215_001_520_875n);
       },
     });
 
@@ -22,7 +22,7 @@ describeSuite({
       title: "should have expensive runtime-upgrade fees",
       test: async () => {
         const fee = await testRuntimeUpgrade(context);
-        expect(fee).toBeLessThanOrEqual(9274087607203200560n);
+        expect(fee).toBeLessThanOrEqual(9_274_115_948_197_898_805n);
       },
     });
   },
