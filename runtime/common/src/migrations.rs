@@ -19,10 +19,7 @@
 //! This module acts as a registry where each migration is defined. Each migration should implement
 //! the "Migration" trait declared in the pallet-migrations crate.
 
-use frame_support::{
-	traits::OnRuntimeUpgrade,
-	weights::Weight,
-};
+use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_migrations::{GetMigrations, Migration};
 use sp_std::{marker::PhantomData, prelude::*, vec};
