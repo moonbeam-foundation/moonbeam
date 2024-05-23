@@ -24,7 +24,7 @@ describeSuite({
         "transaction that created the contract",
       test: async function () {
         // Get Code
-        const code = await context.polkadotJs().query.evm.accountCodes(contract);
+        const code = (await context.polkadotJs().query.evm.accountCodes(contract)).toHex();
 
         // transfer some tokens to the contract
         await context.createBlock(
@@ -47,8 +47,11 @@ describeSuite({
         expectEVMResult(result!.events, "Succeed", "Suicided");
 
         // Code should not be deleted
-        const postSuicideCode = await context.polkadotJs().query.evm.accountCodes(contract);
-        expect(postSuicideCode).toEqual(code);
+        const postSuicideCode = (
+          await context.polkadotJs().query.evm.accountCodes(contract)
+        ).toHex();
+
+        expect(postSuicideCode).to.eq(code);
 
         // Nonce should be one
         expect((await context.polkadotJs().query.system.account(contract)).nonce.toBigInt()).to.eq(
