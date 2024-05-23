@@ -20,7 +20,8 @@ describeSuite({
     it({
       id: "T01",
       title:
-        "Should not delete contract when self-destruct is not called in the same transaction that created the contract",
+        "Should not delete contract when self-destruct is not called in the same " + 
+        "transaction that created the contract",
       test: async function () {
         // Get Code
         const code = await context.polkadotJs().query.evm.accountCodes(contract);
@@ -71,7 +72,8 @@ describeSuite({
     it({
       id: "T02",
       title:
-        "Should not burn funds if contract is not deleted in the same create tx and funds are sent to deleted contract",
+        "Should not burn funds if contract is not deleted in the same create tx and" + 
+        "funds are sent to deleted contract",
       test: async function () {
         // transfer some tokens to the contract
         await context.createBlock(
@@ -98,7 +100,8 @@ describeSuite({
     it({
       id: "T03",
       title:
-        "Should delete contract when self-destruct is called in the same transaction that created the contract",
+        "Should delete contract when self-destruct is called in the same transaction" + 
+        "that created the contract",
       test: async function () {
         const { contractAddress } = await context.deployContract!("ProxyDeployer", {
           gas: 1000000n,

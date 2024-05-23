@@ -2600,7 +2600,7 @@ fn test_statemint_like() {
 
 	let dest_para = Location::new(1, [Parachain(1)]);
 
-let sov = xcm_builder::SiblingParachainConvertsVia::<
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
 		polkadot_parachain::primitives::Sibling,
 		statemint_like::AccountId,
 	>::convert_location(&dest_para)
