@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["CommonMigrations","DemocracyPalletName","MigrateToLatestXcmVersion","PalletStakingRoundMigration","RemoveCollectivesAddresses","RemovePalletDemocracy"]};
+window.SIDEBAR_ITEMS = {"struct":["CommonMigrations","MigrateToLatestXcmVersion"]};
