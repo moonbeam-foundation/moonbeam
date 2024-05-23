@@ -54,6 +54,7 @@ std = [
 	"precompile-utils/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"moonbeam-precompile-common/std",
 ]
 runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",

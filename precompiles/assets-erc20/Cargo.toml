@@ -66,4 +66,5 @@ std = [
 	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"moonbeam-precompile-common/std",
 ]
