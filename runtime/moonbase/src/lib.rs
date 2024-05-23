@@ -152,7 +152,7 @@ pub mod currency {
 
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
-	.saturating_mul(2)
+	.saturating_mul(1)
 	.set_proof_size(relay_chain::MAX_POV_SIZE as u64);
 
 pub const MILLISECS_PER_BLOCK: u64 = 6_000;
@@ -398,15 +398,15 @@ impl pallet_evm_chain_id::Config for Runtime {}
 
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
-/// Given the 2 sec Weight, from which 75% only are used for transactions,
-/// the total EVM execution gas limit is: GAS_PER_SECOND * 2 * 0.75 ~= 60_000_000.
+/// Given the 1000ms Weight, from which 75% only are used for transactions,
+/// the total EVM execution gas limit is: GAS_PER_SECOND * 1 * 0.75 ~= 30_000_000.
 pub const GAS_PER_SECOND: u64 = 40_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
 pub const WEIGHT_PER_GAS: u64 = WEIGHT_REF_TIME_PER_SECOND / GAS_PER_SECOND;
-/// The highest amount of new storage that can be created in a block (160KB).
-pub const BLOCK_STORAGE_LIMIT: u64 = 160 * 1024;
+/// The highest amount of new storage that can be created in a block (80KB).
+pub const BLOCK_STORAGE_LIMIT: u64 = 80 * 1024;
 parameter_types! {
 	pub BlockGasLimit: U256
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
@@ -426,15 +426,15 @@ parameter_types! {
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
 	pub PrecompilesValue: MoonbasePrecompiles<Runtime> = MoonbasePrecompiles::<_>::new();
 	pub WeightPerGas: Weight = Weight::from_parts(WEIGHT_PER_GAS, 0);
-	/// The amount of gas per pov. A ratio of 16 if we convert ref_time to gas and we compare
+	/// The amount of gas per pov. A ratio of 8 if we convert ref_time to gas and we compare
 	/// it with the pov_size for a block. E.g.
 	/// ceil(
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
 	/// We should re-check `xcm_config::Erc20XcmBridgeTransferGasLimit` when changing this value
-	pub const GasLimitPovSizeRatio: u64 = 16;
+	pub const GasLimitPovSizeRatio: u64 = 8;
 	/// The amount of gas per storage (in bytes): BLOCK_GAS_LIMIT / BLOCK_STORAGE_LIMIT
-	/// (60_000_000 / 160 kb)
+	/// (30_000_000 / 80 kb)
 	pub GasLimitStorageGrowthRatio: u64 = 366;
 }
 
