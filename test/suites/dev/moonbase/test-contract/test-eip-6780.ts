@@ -1,4 +1,4 @@
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { expectEVMResult, expectSubstrateEvent } from "../../../../helpers";
 import { GLMR, BALTATHAR_ADDRESS } from "@moonwall/util";
 import { decodeEventLog } from "viem";
@@ -10,10 +10,9 @@ describeSuite({
   testCases: ({ context, it }) => {
     let contract: `0x${string}`;
 
-    beforeAll(async function () {
+    beforeEach(async function () {
       const { contractAddress } = await context.deployContract!("Suicide", {
         gas: 45_000_000n,
-        args: [1000],
       });
       contract = contractAddress;
     });
@@ -114,8 +113,7 @@ describeSuite({
             contractAddress,
             functionName: "deployAndDestroy",
             rawTxOnly: true,
-            gas: "estimate",
-            args: [BALTATHAR_ADDRESS, 1000],
+            args: [BALTATHAR_ADDRESS],
           })
         );
 
