@@ -12,7 +12,8 @@ describeSuite({
 
     beforeAll(async function () {
       const { contractAddress } = await context.deployContract!("Suicide", {
-        gas: 1000000n,
+        gas: 45_000_000n,
+        args: [1000],
       });
       contract = contractAddress;
     });
@@ -113,7 +114,8 @@ describeSuite({
             contractAddress,
             functionName: "deployAndDestroy",
             rawTxOnly: true,
-            args: [BALTATHAR_ADDRESS],
+            gas: "estimate",
+            args: [BALTATHAR_ADDRESS, 1000],
           })
         );
 
