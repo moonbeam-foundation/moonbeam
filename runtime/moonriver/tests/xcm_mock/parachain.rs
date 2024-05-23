@@ -822,8 +822,8 @@ impl pallet_timestamp::Config for Runtime {
 use sp_core::U256;
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
-/// Block storage limit in bytes. Set to 160 KB.
-const BLOCK_STORAGE_LIMIT: u64 = 160 * 1024;
+/// Block storage limit in bytes. Set to 80 KB.
+const BLOCK_STORAGE_LIMIT: u64 = 80 * 1024;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
