@@ -1,5 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, customDevRpcRequest, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import {
+  beforeAll,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -7,7 +13,7 @@ import {
   createRawTransfer,
 } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
-  
+
 describeSuite({
   id: "D011303",
   title: "Ethereum Transaction - Nonce",
@@ -114,9 +120,8 @@ describeSuite({
   title: "Ethereum Transaction - Nonce #2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-
     let incrementorAddress: `0x${string}`;
-  
+
     beforeAll(async () => {
       // const {
       //   // contract: incContract,
@@ -128,7 +133,7 @@ describeSuite({
       // incrementorContract = incContract;
       incrementorAddress = contractAddress;
     });
-  
+
     it({
       id: "T01",
       title: "should be at 0 before using it",
@@ -155,10 +160,9 @@ describeSuite({
           })
         );
         const block = await context.viem().getBlock({ blockTag: "latest" });
-        expect(
-          block.transactions.length, 
-          "should include the transaction in the block"
-        ).to.be.eq(1);
+        expect(block.transactions.length, "should include the transaction in the block").to.be.eq(
+          1
+        );
         expect(
           await context.viem().getTransactionCount({ address: BALTATHAR_ADDRESS }),
           "should increase the sender nonce"
@@ -166,4 +170,4 @@ describeSuite({
       },
     });
   },
- });
+});
