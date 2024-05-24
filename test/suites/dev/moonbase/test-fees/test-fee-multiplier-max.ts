@@ -163,7 +163,7 @@ describeSuite({
           ({ event }) => event.method == "ExtrinsicSuccess"
         )[0];
         const weight = successEvent.event.data.dispatchInfo.weight.refTime.toBigInt();
-        expect(weight).to.equal(2_378_300_000n);
+        expect(weight).to.equal(1_734_300_000n);
 
         const withdrawEvents = interactionResult?.events.filter(
           ({ event }) => event.method == "Withdraw"

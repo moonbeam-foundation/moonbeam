@@ -28,7 +28,7 @@ describeSuite({
         }
 
         await context.createBlock();
-        expect((await context.viem().getBlock()).transactions.length).toBe(246);
+        expect((await context.viem().getBlock()).transactions.length).toBe(264);
       },
     });
   },

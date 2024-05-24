@@ -2310,19 +2310,11 @@ fn empty_account_should_not_be_reset() {
 		parachain::EVM::remove_account(&evm_account());
 		// Verify reference count.
 		let account = parachain::System::account(evm_account_id);
-		// TODO: since the suicided logic was introduced an smart contract account
-		// is not deleted completely until it's data is deleted. Data deletion
-		// will be implemented in a future release
-		// account.sufficients shall be 0
-		assert_eq!(account.sufficients, 1);
+		assert_eq!(account.sufficients, 0);
 		assert_eq!(account.consumers, 0);
 		assert_eq!(account.providers, 1);
 		// We expect the account to be alive in a Zero ED context.
-		// TODO: since the suicided logic was introduced an smart contract account
-		// is not deleted completely until it's data is deleted. Data deletion
-		// will be implemented in a future release
-		// this shall be changed to 1
-		assert_eq!(parachain::System::account_nonce(evm_account_id), 2);
+		assert_eq!(parachain::System::account_nonce(evm_account_id), 1);
 	});
 }
 
