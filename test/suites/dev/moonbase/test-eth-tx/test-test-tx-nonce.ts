@@ -1,12 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, customDevRpcRequest, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   CHARLETH_ADDRESS,
   createRawTransfer,
 } from "@moonwall/util";
-
+import { encodeFunctionData } from "viem";
+  
 describeSuite({
   id: "D011303",
   title: "Ethereum Transaction - Nonce",
@@ -107,3 +108,62 @@ describeSuite({
     });
   },
 });
+
+describeSuite({
+  id: "D011304",
+  title: "Ethereum Transaction - Nonce #2",
+  foundationMethods: "dev",
+  testCases: ({ context, it, log }) => {
+
+    let incrementorAddress: `0x${string}`;
+  
+    beforeAll(async () => {
+      // const {
+      //   // contract: incContract,
+      //   contractAddress: incAddress,
+      //   abi: incAbi,
+      // } = await deployCreateCompiledContract(context, "Incrementor");
+
+      const { contractAddress, abi } = await context.deployContract!("Incrementor");
+      // incrementorContract = incContract;
+      incrementorAddress = contractAddress;
+    });
+  
+    it({
+      id: "T01",
+      title: "should be at 0 before using it",
+      test: async function () {
+        expect(await context.viem().getTransactionCount({ address: BALTATHAR_ADDRESS })).toBe(0);
+      },
+    });
+
+    it({
+      id: "T01",
+      title: "should increment to 1",
+      test: async function () {
+        const data = encodeFunctionData({
+          abi: fetchCompiledContract("Incrementor").abi,
+          functionName: "incr",
+        });
+        await context.createBlock(
+          context.createTxn!({
+            data,
+            to: incrementorAddress,
+            value: 0n,
+            gasLimit: 21000,
+            txnType: "legacy",
+          })
+        );
+        const block = await context.viem().getBlock({ blockTag: "latest" });
+        expect(
+          block.transactions.length, 
+          "should include the transaction in the block"
+        ).to.be.eq(1);
+        expect(
+          await context.viem().getTransactionCount({ address: BALTATHAR_ADDRESS }),
+          "should increase the sender nonce"
+        ).toBe(1);
+      },
+    });
+  },
+ });
