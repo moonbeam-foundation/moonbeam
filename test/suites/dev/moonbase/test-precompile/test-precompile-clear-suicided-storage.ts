@@ -71,18 +71,12 @@ describeSuite({
       id: "T02",
       title: "Should clear storage entries of a suicided contract.",
       test: async function () {
-        // Delete the contract to make it a suicided contract
-        const rawTx = await createEthersTransaction(context, {
-          to: contractAddress,
-          data: encodeFunctionData({
-            abi,
-            functionName: "destroy",
-          }),
-          gasLimit: 2_000_000,
-        });
-
-        await expectOk(context.createBlock(rawTx));
-
+        // Add contract to the suicided list
+        await context.createBlock(
+          api.tx.sudo.sudo(
+            api.tx.system.setStorage([[api.query.evm.suicided.key(contractAddress), null]])
+          )
+        );
         const suicidedContracts = await context.polkadotJs().query.evm.suicided(contractAddress);
         expect(suicidedContracts.isSome).to.be.true;
         // Call the precompile to delete the storage entries

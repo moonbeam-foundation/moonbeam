@@ -2586,17 +2586,11 @@ fn empty_account_should_not_be_reset() {
 		parachain::EVM::remove_account(&evm_account());
 		// Verify reference count.
 		let account = parachain::System::account(evm_account_id);
-		// TODO: after introducing the suicided fix the value for account.sufficients will remain 1
-		// until the storage is not completely removed, it will have to be decreased to 0 once the
-		// storage can be fully removed
-		assert_eq!(account.sufficients, 1);
+		assert_eq!(account.sufficients, 0);
 		assert_eq!(account.consumers, 0);
 		assert_eq!(account.providers, 1);
 		// We expect the account to be alive in a Zero ED context.
-		// TODO: after introducing the suicided fix the nonce is increased by 1
-		// until the storage is not completely removed, it will have to be decreased to 1 once the
-		// storage can be fully removed
-		assert_eq!(parachain::System::account_nonce(evm_account_id), 2);
+		assert_eq!(parachain::System::account_nonce(evm_account_id), 1);
 	});
 }
 
