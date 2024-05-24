@@ -9,6 +9,7 @@ import {
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
+  BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
   createRawTransfer,
 } from "@moonwall/util";
@@ -152,8 +153,9 @@ describeSuite({
         });
         await context.createBlock(
           context.createTxn!({
-            data,
+            privateKey: BALTATHAR_PRIVATE_KEY,
             to: incrementorAddress,
+            data,
             value: 0n,
             gasLimit: 21000,
             txnType: "legacy",
