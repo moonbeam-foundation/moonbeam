@@ -412,7 +412,7 @@ parameter_types! {
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
 	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
 	/// than this will decrease the weight and more will increase.
-	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(50);
+	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(35);
 	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
 	/// change the fees more rapidly. This fast multiplier responds by doubling/halving in
 	/// approximately one hour at extreme block congestion levels.

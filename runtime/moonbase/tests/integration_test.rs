@@ -2962,54 +2962,54 @@ mod fee_tests {
 
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 1),
-				U256::from(998_002_000),
+				U256::from(998_600_980),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 1),
-				U256::from(999_000_500),
+				U256::from(999_600_080),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 1),
-				U256::from(1_000_000_000),
+				U256::from(1_000_600_180),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 1),
-				U256::from(1_002_002_000),
+				U256::from(1_002_603_380),
 			);
 
-			// 1 "real" hour (at 12-second blocks)
+			// 1 "real" hour (at 6-second blocks)
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(0), 300),
-				U256::from(548_811_855),
+				sim(1_000_000_000, Perbill::from_percent(0), 600),
+				U256::from(431_710_642),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(25), 300),
-				U256::from(740_818_257),
+				sim(1_000_000_000, Perbill::from_percent(25), 600),
+				U256::from(786_627_866),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(50), 300),
-				U256::from(1_000_000_000),
+				sim(1_000_000_000, Perbill::from_percent(50), 600),
+				U256::from(1_433_329_383u128),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(100), 300),
-				U256::from(1_822_118_072u128),
+				sim(1_000_000_000, Perbill::from_percent(100), 600),
+				U256::from(4_758_812_897u128),
 			);
 
-			// 1 "real" day (at 12-second blocks)
+			// 1 "real" day (at 6-second blocks)
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(0), 7200),
+				sim(1_000_000_000, Perbill::from_percent(0), 14400),
 				U256::from(125_000_000), // lower bound enforced
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(25), 7200),
+				sim(1_000_000_000, Perbill::from_percent(25), 14400),
 				U256::from(125_000_000),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(50), 7200),
-				U256::from(1_000_000_000u128),
+				sim(1_000_000_000, Perbill::from_percent(50), 14400),
+				U256::from(5_653_326_895_069u128),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(100), 7200),
+				sim(1_000_000_000, Perbill::from_percent(100), 14400),
 				U256::from(125_000_000_000_000u128), // upper bound enforced
 			);
 		});
