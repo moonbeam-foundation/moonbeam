@@ -164,7 +164,7 @@ describeSuite({
                 args: [],
               }),
             })
-        ).rejects.toThrowError("gas required exceeds allowance 6000000");
+        ).rejects.toThrowError("gas required exceeds allowance 3000000");
       },
     });
   },

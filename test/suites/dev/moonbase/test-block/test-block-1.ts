@@ -41,7 +41,7 @@ describeSuite({
           author: ALITH_ADDRESS.toLocaleLowerCase(),
           difficulty: 0n,
           extraData: "0x",
-          gasLimit: 60000000n,
+          gasLimit: 30000000n,
           gasUsed: 0n,
           logsBloom: `0x${"0".repeat(512)}`,
           miner: ALITH_ADDRESS.toLocaleLowerCase(),

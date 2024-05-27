@@ -12,7 +12,7 @@ describeSuite({
 
     beforeEach(async function () {
       const { contractAddress } = await context.deployContract!("Suicide", {
-        gas: 45_000_000n,
+        gas: 20_000_000n,
       });
       contract = contractAddress;
     });

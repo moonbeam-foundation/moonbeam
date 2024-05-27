@@ -10,7 +10,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     it({
       id: "T01",
-      title: "should be able to fill a block with 70 contract creations tx",
+      title: "should be able to fill a block with 141 contract creations tx",
       test: async function () {
         const { abi, bytecode } = fetchCompiledContract("MultiplyBy7");
         const deployData = encodeDeployData({
@@ -32,7 +32,7 @@ describeSuite({
         }
 
         await context.createBlock();
-        expect((await context.viem().getBlock()).transactions.length).toBe(284);
+        expect((await context.viem().getBlock()).transactions.length).toBe(141);
       },
     });
   },

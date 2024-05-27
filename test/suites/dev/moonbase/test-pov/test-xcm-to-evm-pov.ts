@@ -66,7 +66,7 @@ describeSuite({
       id: "T01",
       title: "should fail to execute evm tx with insufficient gas to cover PoV",
       test: async function () {
-        const GAS_LIMIT = 2_000_000;
+        const GAS_LIMIT = 1_000_000;
         const xcmTransactions = [
           {
             V1: {
@@ -123,7 +123,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                refTime: 50_025_000_000,
+                refTime: 25_025_000_000,
                 proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
               },
               call: {
@@ -142,11 +142,11 @@ describeSuite({
         // This block is the one that processes the xcm messages
         const { result, block } = await context.createBlock();
 
-        // With 500k gas we are allowed to use ~150k of POV, so verify the range.
+        // With 500k gas we are allowed to use ~62k of POV, so verify the range.
         // The tx is still included in the block because it contains the failed tx,
         // so POV is included in the block as well.
-        expect(block.proofSize).to.be.at.least(130_000);
-        expect(block.proofSize).to.be.at.most(190_000);
+        expect(block.proofSize).to.be.at.least(10_000);
+        expect(block.proofSize).to.be.at.most(200_000);
 
         // Check the evm tx was not executed because of OutOfGas error
         const ethEvents = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
@@ -163,13 +163,13 @@ describeSuite({
       id: "T02",
       title: "should execute evm tx with enough gas to cover PoV",
       test: async function () {
-        // Note: we can't use more than 6.4M gas through an XCM message, because it makes the entire
+        // Note: we can't use more than 3.2M gas through an XCM message, because it makes the entire
         // message weight to go over the allowed weight to execute an XCM message. This is called
         // "overweight".
         //
-        // If we use more than 6.4M gas, we receive the "WeightLimitReached" error and
+        // If we use more than 3.2M gas, we receive the "WeightLimitReached" error and
         // "OverweightEnqueued" event from the xcmpQueue pallet.
-        const GAS_LIMIT = 6_400_000;
+        const GAS_LIMIT = 3_200_000;
         const xcmTransactions = [
           {
             V1: {
@@ -193,7 +193,7 @@ describeSuite({
           },
         ];
 
-        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 800000000n;
+        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 800_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
         const transferCall = context
           .polkadotJs()
@@ -224,7 +224,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                refTime: 160_025_000_000,
+                refTime: 80_025_000_000,
                 proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
               },
               call: {

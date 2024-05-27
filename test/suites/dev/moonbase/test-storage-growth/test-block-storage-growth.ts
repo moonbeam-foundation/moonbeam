@@ -10,7 +10,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     it({
       id: "T01",
-      title: "should fill a block with 61 tx at most",
+      title: "should fill a block with 131 tx at most",
       test: async function () {
         const { abi, bytecode } = fetchCompiledContract("Fibonacci");
         const deployData = encodeDeployData({
@@ -28,7 +28,7 @@ describeSuite({
         }
 
         await context.createBlock();
-        expect((await context.viem().getBlock()).transactions.length).toBe(264);
+        expect((await context.viem().getBlock()).transactions.length).toBe(131);
       },
     });
   },

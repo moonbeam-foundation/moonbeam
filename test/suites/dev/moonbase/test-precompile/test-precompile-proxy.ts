@@ -503,9 +503,9 @@ describeSuite({
         const randomAccount = "0x1ced798a66b803d0dbb665680283980a939a6432";
         // The tx can create an account, so record 148 bytes of storage growth
         // Storage growth ratio is 366
-        // storage_gas = 148 * 366 = 54168
-        // pov_gas = 5693 * 16 = 91088
-        const expectedGas = 91_088n;
+        // storage_gas = 148 * 366 = 54168 // this is the highest
+        // pov_gas = 5693 * 8 = 45544
+        const expectedGas = 54_168n;
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
           functionName: "addProxy",
