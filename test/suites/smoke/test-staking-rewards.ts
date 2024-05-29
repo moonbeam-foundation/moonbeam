@@ -536,11 +536,9 @@ describeSuite({
           lastBlockOfRoundApi.consts.parachainStaking.blockTime
         );
 
-        const idealIssuance = (
-          await lastBlockOfRoundApi.query.parachainStaking.inflationConfig()
-        ).round.ideal
-          .mul(await lastBlockOfRoundApi.query.balances.totalIssuance())
-          .div(new BN("1000000000"));
+        const idealIssuance = new Perbill(
+          (await lastBlockOfRoundApi.query.parachainStaking.inflationConfig()).round.ideal
+        ).of(await lastBlockOfRoundApi.query.balances.totalIssuance());
 
         totalRoundIssuance = roundDuration.mul(idealIssuance).div(idealDuration);
       } else {
@@ -589,7 +587,7 @@ describeSuite({
         await apiAtRewarded.query.parachainStaking.delayedPayouts(originalRoundNumber)
       ).unwrap();
       expect(
-        withinTolerance(delayedPayout.totalStakingReward, totalStakingReward),
+        delayedPayout.totalStakingReward.eq(totalStakingReward),
         `reward amounts do not match \
           ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()} \
           for round ${originalRoundNumber.toString()}`
@@ -946,10 +944,8 @@ describeSuite({
           bondReward = collatorReward.sub(collatorCommissionReward);
 
           if (!stakedValue[accountId].delegators) {
-            expect(
-              withinTolerance(rewards[accountId].amount, collatorReward),
-              `${accountId} (COL) - Reward`
-            ).to.be.true;
+            expect(rewards[accountId].amount.eq(collatorReward), `${accountId} (COL) - Reward`).to
+              .be.true;
           } else {
             const bondShare = new Perbill(collatorInfo.bond, collatorInfo.total);
             totalBondRewardShare = totalBondRewardShare.add(bondShare.value());
@@ -957,10 +953,8 @@ describeSuite({
             rewarded.amount.bondReward = rewarded.amount.bondReward.add(collatorBondReward);
             const collatorTotalReward = collatorBondReward.add(collatorCommissionReward);
 
-            expect(
-              withinTolerance(rewards[accountId].amount, collatorTotalReward),
-              `${accountId} (COL) - Reward`
-            ).to.be.true;
+            expect(rewards[accountId].amount.eq(collatorTotalReward), `${accountId} (COL) - Reward`)
+              .to.be.true;
           }
           rewarded.collator = accountId;
         } else if (delegators.has(accountId)) {
@@ -983,10 +977,8 @@ describeSuite({
           rewarded.amount.bondReward = rewarded.amount.bondReward.add(delegatorReward);
           rewarded.delegators.add(accountId);
 
-          expect(
-            withinTolerance(rewards[accountId].amount, delegatorReward),
-            `${accountId} (DEL) - Reward`
-          ).to.be.true;
+          expect(rewards[accountId].amount.eq(delegatorReward), `${accountId} (DEL) - Reward`).to.be
+            .true;
 
           const canAutoCompound =
             !outstandingRevokes[rewarded.collator!] ||
@@ -1000,7 +992,7 @@ describeSuite({
             const autoCompoundReward = autoCompoundPercent.ofCeil(rewards[accountId].amount);
             if (autoCompounds[accountId]) {
               expect(
-                withinTolerance(autoCompounds[accountId].amount, autoCompoundReward),
+                autoCompounds[accountId].amount.eq(autoCompoundReward),
                 `${accountId} (DEL) - AutoCompound ${autoCompoundPercent.toString()}% of ${rewards[
                   accountId
                 ].amount.toString()}`
@@ -1075,7 +1067,3 @@ describeSuite({
     };
   },
 });
-
-// Checks if A == B, within a given tolerance (default 1)
-const withinTolerance = (a: BN, b: BN, tolerance: BN = new BN(1)): boolean =>
-  a.sub(b).abs().lte(tolerance);
