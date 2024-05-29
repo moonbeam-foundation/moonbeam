@@ -365,7 +365,7 @@ describeSuite({
         await api.at(latestBlock.block.hash)
       ).query.parachainStaking.round();
 
-      // Expect first round block number;
+      // Loads information and APIs for a given round
       const loadRoundData = async (blockNumber: BN): Promise<RoundData> => {
         console.log(`Loading round data for block number ${blockNumber}`);
         let firstBlockNumber: BN;
