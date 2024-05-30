@@ -95,7 +95,7 @@ describeSuite({
   lastUnpaidRound ${lastUnpaidRound.toString()}`);
 
         const awardedPtsInvalidRounds = await getKeysBeforeRound(
-          new BN(1000000),
+          lastUnpaidRound,
           apiAtBlock.query.parachainStaking.awardedPts
         );
 
