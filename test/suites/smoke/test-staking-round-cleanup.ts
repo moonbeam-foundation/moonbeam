@@ -117,13 +117,11 @@ describeSuite({
           delete awardedPtsInvalidRounds[12440];
           delete pointsInvalidRounds[12440];
           delete atStakeInvalidRounds[12440];
-          3107;
         } else if (specName == "moonbeam") {
           // Only used for Moonlama
           delete awardedPtsInvalidRounds[3107];
           delete pointsInvalidRounds[3107];
           delete atStakeInvalidRounds[3107];
-          3107;
         } else if (specName == "moonbase") {
           // alphanet
           delete awardedPtsInvalidRounds[10349];
