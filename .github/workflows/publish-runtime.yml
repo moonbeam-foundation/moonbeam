@@ -38,7 +38,7 @@ jobs:
         srtool_image:
           - moonbeamfoundation/srtool
         srtool_image_tag:
-          - 1.74.0
+          - 1.77.0
     steps:
       - uses: actions/checkout@v4
         with:
