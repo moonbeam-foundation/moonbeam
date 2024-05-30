@@ -16,7 +16,7 @@ Docker images are published for every tagged release. Learn more with `moonbeam 
 
 ```bash
 # Join the public testnet
-docker run --network="host" moonbeamfoundation/moonbeam:v0.37.3 --chain alphanet
+docker run --network="host" moonbeamfoundation/moonbeam:v0.38.0 --chain alphanet
 ```
 
 You can find more detailed instructions to [run a full node in our TestNet](https://docs.moonbeam.network/node-operators/networks/run-a-node/overview/)
@@ -28,7 +28,7 @@ locally. You can quickly set up a single node without a relay chain backing it u
 
 ```bash
 # Run a dev service node
-docker run --network="host" moonbeamfoundation/moonbeam:v0.37.3 --dev
+docker run --network="host" moonbeamfoundation/moonbeam:v0.38.0 --dev
 ```
 
 For more information, see our detailed instructions to [run a development node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/)
@@ -39,10 +39,10 @@ The above command will start the node in instant seal mode. It creates a block w
 
 ```bash
 # Author a block every 6 seconds.
-docker run --network="host" moonbeamfoundation/moonbeam:v0.36.0 --dev --sealing 6000
+docker run --network="host" moonbeamfoundation/moonbeam:v0.38.0 --dev --sealing 6000
 
 # Manually control the block authorship and finality
-docker run --network="host" moonbeamfoundation/moonbeam:v0.36.0 --dev --sealing manual
+docker run --network="host" moonbeamfoundation/moonbeam:v0.38.0 --dev --sealing manual
 ```
 
 ### Prefunded Development Addresses
