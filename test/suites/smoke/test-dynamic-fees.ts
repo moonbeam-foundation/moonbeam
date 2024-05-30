@@ -385,7 +385,10 @@ describeSuite({
 
             const gasUsed = filteredTxnEvents
               .map((txnEvent) => {
-                if (isEthereumTxn(blockNum, txnEvent.phase.asApplyExtrinsic.toNumber())) {
+                if (
+                  txnEvent.phase.isApplyExtrinsic && // Exclude XCM => EVM calls
+                  isEthereumTxn(blockNum, txnEvent.phase.asApplyExtrinsic.toNumber())
+                ) {
                   const txnHash = (txnEvent.event.data as any).transactionHash;
                   const index = transactionStatuses.findIndex((status) =>
                     status.transactionHash.eq(txnHash)
