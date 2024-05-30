@@ -61,6 +61,7 @@ describeSuite({
       timeout: TEN_MINS,
       test: async function () {
         const specVersion = paraApi.consts.system.version.specVersion.toNumber();
+        const specName = paraApi.consts.system.version.specName.toString();
         if (specVersion < 2000) {
           log(`ChainSpec ${specVersion} does not include the storage cleanup, skipping test`);
           return;
@@ -102,6 +103,18 @@ describeSuite({
           lastUnpaidRound,
           apiAtBlock.query.parachainStaking.atStake
         );
+
+        // TODO: remove this once the storage has been cleaned (root vote or upgrade)
+        if (specName == "moonriver") {
+          delete awardedPtsInvalidRounds[12440];
+          delete pointsInvalidRounds[12440];
+          delete atStakeInvalidRounds[12440];
+        } else if (specName == "moonbase") {
+          // alphanet
+          delete awardedPtsInvalidRounds[10349];
+          delete pointsInvalidRounds[10349];
+          delete atStakeInvalidRounds[10349];
+        }
 
         const awardedPtsInvalidRoundsCount = Object.keys(awardedPtsInvalidRounds).length;
         expect(
