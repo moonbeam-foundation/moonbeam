@@ -5,8 +5,9 @@ import { BN, BN_ONE, BN_ZERO } from "@polkadot/util";
 
 /*
  * Get any block of a given round.
- * You can accelerate by given a block number close (but higher) than the expected round
- * It is expected to always be consecutive rounds in a blockchain
+ * You can accelerate by given a block number close to the expected round
+ * (use latest block otherwise)
+ * It is expected the blockchain always have consecutive rounds
  */
 export const getRoundAt = async (api: ApiPromise, targettedRoundNumber: BN, proposedBlock?: BN) => {
   const latestRound = await (
