@@ -74,7 +74,6 @@ describeSuite({
         }
 
         // TODO: Remove once moonsama first 129667 blocks are cleaned
-        console.log(chainName);
         if (chainName == "Moonsama") {
           log(`Moonsama is broken, skipping it`);
           return;
