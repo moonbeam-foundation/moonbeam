@@ -40,6 +40,7 @@ jobs:
           path: build
       - name: Install Subxt-cli
         run: |
+          rustup show
           cargo install subxt-cli --locked
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - name: Run last_release node via Docker
