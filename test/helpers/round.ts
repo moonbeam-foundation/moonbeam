@@ -43,21 +43,21 @@ export const getPreviousRound = async (
   originRound: PalletParachainStakingRoundInfo,
   decrement: BN = BN_ONE
 ) => {
-  const targettedRoundNumber = originRound.current.sub(decrement);
+  const targetedRoundNumber = originRound.current.sub(decrement);
   let round = originRound;
 
   if (decrement.lt(BN_ZERO)) {
     throw new Error("Decrement must be positive");
   }
 
-  if (targettedRoundNumber.lt(BN_ONE)) {
+  if (targetedRoundNumber.lt(BN_ONE)) {
     throw new Error("Targeted round number must be at least one");
   }
 
   let blockNumber = originRound.first.toBn();
   let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
 
-  while (!round.current.eq(targettedRoundNumber) && round.first.gt(BN_ZERO)) {
+  while (!round.current.eq(targetedRoundNumber) && round.first.gt(BN_ZERO)) {
     // Go to previous round
     blockNumber = round.first.sub(BN_ONE);
     blockHash = await api.rpc.chain.getBlockHash(blockNumber);

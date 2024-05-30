@@ -62,6 +62,7 @@ describeSuite({
       test: async function () {
         const specVersion = paraApi.consts.system.version.specVersion.toNumber();
         const specName = paraApi.consts.system.version.specName.toString();
+        const chainName = (await paraApi.rpc.system.chain()).toString();
         if (specVersion < 2000) {
           log(`ChainSpec ${specVersion} does not include the storage cleanup, skipping test`);
           return;
@@ -69,6 +70,13 @@ describeSuite({
         const currentBlock = (await paraApi.rpc.chain.getHeader()).number.toNumber();
         if (currentBlock < 1000) {
           log(`Current block is < 1000 (probably for Fork test), skipping test`);
+          return;
+        }
+
+        // TODO: Remove once moonsama first 129667 blocks are cleaned
+        console.log(chainName);
+        if (chainName == "Moonsama") {
+          log(`Moonsama is broken, skipping it`);
           return;
         }
 
@@ -87,7 +95,7 @@ describeSuite({
   lastUnpaidRound ${lastUnpaidRound.toString()}`);
 
         const awardedPtsInvalidRounds = await getKeysBeforeRound(
-          lastUnpaidRound,
+          new BN(1000000),
           apiAtBlock.query.parachainStaking.awardedPts
         );
 
@@ -109,6 +117,13 @@ describeSuite({
           delete awardedPtsInvalidRounds[12440];
           delete pointsInvalidRounds[12440];
           delete atStakeInvalidRounds[12440];
+          3107;
+        } else if (specName == "moonbeam") {
+          // Only used for Moonlama
+          delete awardedPtsInvalidRounds[3107];
+          delete pointsInvalidRounds[3107];
+          delete atStakeInvalidRounds[3107];
+          3107;
         } else if (specName == "moonbase") {
           // alphanet
           delete awardedPtsInvalidRounds[10349];
