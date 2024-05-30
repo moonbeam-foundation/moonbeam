@@ -212,6 +212,17 @@ declare module "@polkadot/api-base/types/storage" {
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
+    asyncBacking: {
+      /**
+       * First tuple element is the highest slot that has been seen in the history of this chain.
+       * Second tuple element is the number of authored blocks so far. This is a strictly-increasing
+       * value if T::AllowMultipleBlocksPerSlot = false.
+       */
+      slotInfo: AugmentedQuery<ApiType, () => Observable<Option<ITuple<[u64, u32]>>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
     authorFilter: {
       /** The number of active authors that will be eligible at each height. */
       eligibleCount: AugmentedQuery<ApiType, () => Observable<u32>, []> &
@@ -662,9 +673,6 @@ declare module "@polkadot/api-base/types/storage" {
       [key: string]: QueryableStorageEntry<ApiType>;
     };
     moonbeamLazyMigrations: {
-      /** If true, it means that LocalAssets storage has been removed. */
-      localAssetsMigrationCompleted: AugmentedQuery<ApiType, () => Observable<bool>, []> &
-        QueryableStorageEntry<ApiType, []>;
       /** The total number of suicided contracts that were removed */
       suicidedContractsRemoved: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;

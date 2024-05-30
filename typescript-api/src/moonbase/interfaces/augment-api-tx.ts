@@ -1065,14 +1065,6 @@ declare module "@polkadot/api-base/types/submittable" {
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
     moonbeamLazyMigrations: {
-      /** See [`Pallet::clear_local_assets_storage`]. */
-      clearLocalAssetsStorage: AugmentedSubmittable<
-        (
-          maxAssets: u32 | AnyNumber | Uint8Array,
-          limit: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [u32, u32]
-      >;
       /** See [`Pallet::clear_suicided_storage`]. */
       clearSuicidedStorage: AugmentedSubmittable<
         (
