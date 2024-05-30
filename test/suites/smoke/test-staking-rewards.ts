@@ -14,7 +14,7 @@ import {
 import { ApiDecoration } from "@polkadot/api/types";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { FIVE_MINS, ONE_HOURS, Perbill, Percent, TEN_MINS } from "@moonwall/util";
-import { rateLimiter, getAnyBlockOfRound } from "../../helpers";
+import { rateLimiter, getRoundAt, getPreviousRound, getNextRound } from "../../helpers";
 import { AccountId20, Block, SignedBlock } from "@polkadot/types/interfaces";
 
 const limiter = rateLimiter();
@@ -403,18 +403,10 @@ describeSuite({
         const rewardDelay = rewardRound.firstBlockApi.consts.parachainStaking.rewardPaymentDelay;
 
         const roundToPay = await loadRoundData(
-          await getAnyBlockOfRound(
-            api,
-            rewardRound.data.current.sub(rewardDelay),
-            rewardRound.priorBlock.header.number.toBn()
-          )
+          (await getPreviousRound(api, rewardRound.data, rewardDelay)).first.toBn()
         );
         const delayedPayoutRound = await loadRoundData(
-          await getAnyBlockOfRound(
-            api,
-            roundToPay.data.current.add(new BN(1)),
-            rewardRound.priorBlock.header.number.toBn()
-          )
+          (await getNextRound(api, roundToPay.data)).first.toBn()
         );
 
         // Payment of collators have been moved 1 block later at runtime 2100

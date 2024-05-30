@@ -1,27 +1,97 @@
 import "@moonbeam-network/api-augment";
 import { ApiPromise } from "@polkadot/api";
-import { BN } from "@polkadot/util";
+import { PalletParachainStakingRoundInfo } from "@polkadot/types/lookup";
+import { BN, BN_ONE, BN_ZERO } from "@polkadot/util";
 
 /*
  * Get any block of a given round.
  * You can accelerate by given a block number close (but higher) than the expected round
+ * It is expected to always be consecutive rounds in a blockchain
  */
-export const getAnyBlockOfRound = async (api: ApiPromise, roundNumber: BN, currentBlock?: BN) => {
-  let iterOriginalRoundBlock = currentBlock || (await api.rpc.chain.getHeader()).number.toBn();
-  for (;;) {
-    const blockHash = await api.rpc.chain.getBlockHash(iterOriginalRoundBlock);
-    const round = await (await api.at(blockHash)).query.parachainStaking.round();
-    if (round.current.lt(roundNumber)) {
-      throw new Error("Couldn't find the block for the given round");
-    } else if (
-      round.current.eq(roundNumber) ||
-      iterOriginalRoundBlock.sub(round.length).toNumber() < 0
-    ) {
-      break;
-    }
-
-    // Go to previous round
-    iterOriginalRoundBlock = iterOriginalRoundBlock.sub(round.length);
+export const getRoundAt = async (api: ApiPromise, targettedRoundNumber: BN, proposedBlock?: BN) => {
+  const latestRound = await (
+    await api.at(await api.rpc.chain.getBlockHash())
+  ).query.parachainStaking.round();
+  if (targettedRoundNumber.gt(latestRound.current)) {
+    throw new Error("Round number is greater than latest round");
   }
-  return iterOriginalRoundBlock;
+
+  let blockNumber = proposedBlock || (await api.rpc.chain.getHeader()).number.toBn();
+  let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+  let round = await (await api.at(blockHash)).query.parachainStaking.round();
+
+  while (
+    !round.current.eq(targettedRoundNumber) &&
+    round.first.gt(BN_ZERO) &&
+    round.first.lt(latestRound.current)
+  ) {
+    if (round.current.lt(targettedRoundNumber)) {
+      blockNumber = round.first.add(round.length);
+    } else {
+      blockNumber = round.first.sub(BN_ONE);
+    }
+    // Go to previous round
+    blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+    round = await (await api.at(blockHash)).query.parachainStaking.round();
+  }
+  return round;
+};
+
+export const getPreviousRound = async (
+  api: ApiPromise,
+  originRound: PalletParachainStakingRoundInfo,
+  decrement: BN = BN_ONE
+) => {
+  let targettedRoundNumber = originRound.current.sub(decrement);
+  let round = originRound;
+
+  if (decrement.lt(BN_ZERO)) {
+    throw new Error("Decrement must be positive");
+  }
+
+  if (targettedRoundNumber.lt(BN_ONE)) {
+    throw new Error("Targetted round number must be positive");
+  }
+
+  let blockNumber = originRound.first.toBn();
+  let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+
+  while (!round.current.eq(targettedRoundNumber) && round.first.gt(BN_ZERO)) {
+    // Go to previous round
+    blockNumber = round.first.sub(BN_ONE);
+    blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+    round = await (await api.at(blockHash)).query.parachainStaking.round();
+  }
+  return round;
+};
+
+export const getNextRound = async (
+  api: ApiPromise,
+  originRound: PalletParachainStakingRoundInfo,
+  increment: BN = BN_ONE
+) => {
+  let targettedRoundNumber = originRound.current.add(increment);
+  let round = originRound;
+
+  if (increment.lt(BN_ZERO)) {
+    throw new Error("Increment must be positive");
+  }
+
+  const latestRound = await (
+    await api.at(await api.rpc.chain.getBlockHash())
+  ).query.parachainStaking.round();
+  if (targettedRoundNumber.gt(latestRound.current)) {
+    throw new Error("Round number is greater than latest round");
+  }
+
+  let blockNumber = originRound.first.toBn();
+  let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+
+  while (!round.current.eq(targettedRoundNumber) && round.current.lt(latestRound.current)) {
+    // Go to next round
+    blockNumber = round.first.add(round.length);
+    blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+    round = await (await api.at(blockHash)).query.parachainStaking.round();
+  }
+  return round;
 };
