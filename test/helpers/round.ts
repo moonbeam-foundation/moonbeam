@@ -51,7 +51,7 @@ export const getPreviousRound = async (
   }
 
   if (targettedRoundNumber.lt(BN_ONE)) {
-    throw new Error("Targetted round number must be positive");
+    throw new Error("Targeted round number must be at least one");
   }
 
   let blockNumber = originRound.first.toBn();
