@@ -14,8 +14,8 @@ import {
 import { ApiDecoration } from "@polkadot/api/types";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { FIVE_MINS, ONE_HOURS, Perbill, Percent, TEN_MINS } from "@moonwall/util";
-import { rateLimiter, getRoundAt, getPreviousRound, getNextRound } from "../../helpers";
-import { AccountId20, Block, SignedBlock } from "@polkadot/types/interfaces";
+import { rateLimiter, getPreviousRound, getNextRound } from "../../helpers";
+import { AccountId20, Block } from "@polkadot/types/interfaces";
 
 const limiter = rateLimiter();
 
@@ -382,7 +382,7 @@ describeSuite({
         }
 
         const priorBlockHash = await api.rpc.chain.getBlockHash(firstBlockNumber.subn(1));
-        let priorApiAt = await api.at(priorBlockHash);
+        const priorApiAt = await api.at(priorBlockHash);
 
         return {
           data,
@@ -616,12 +616,9 @@ describeSuite({
         if (!phase.isInitialization) {
           continue;
         }
+        const eventTypes = payment.delayedPayoutRound.firstBlockApi.events;
         // only deduct parachainBondReward if it was transferred (event must exist)
-        if (
-          payment.delayedPayoutRound.firstBlockApi.events.parachainStaking.ReservedForParachainBond.is(
-            event
-          )
-        ) {
+        if (eventTypes.parachainStaking.ReservedForParachainBond.is(event)) {
           reservedForParachainBond = event.data[1] as any;
           break;
         }
