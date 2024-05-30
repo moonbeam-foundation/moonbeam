@@ -43,7 +43,7 @@ export const getPreviousRound = async (
   originRound: PalletParachainStakingRoundInfo,
   decrement: BN = BN_ONE
 ) => {
-  let targettedRoundNumber = originRound.current.sub(decrement);
+  const targettedRoundNumber = originRound.current.sub(decrement);
   let round = originRound;
 
   if (decrement.lt(BN_ZERO)) {
@@ -71,7 +71,7 @@ export const getNextRound = async (
   originRound: PalletParachainStakingRoundInfo,
   increment: BN = BN_ONE
 ) => {
-  let targettedRoundNumber = originRound.current.add(increment);
+  const targettedRoundNumber = originRound.current.add(increment);
   let round = originRound;
 
   if (increment.lt(BN_ZERO)) {

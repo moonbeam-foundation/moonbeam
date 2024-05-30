@@ -410,7 +410,7 @@ describeSuite({
         );
 
         // Payment of collators have been moved 1 block later at runtime 2100
-        const delayBlockReward = rewardRound.firstBlockSpecVersion >= 2100 ? new BN(1) : new BN(1);
+        const delayBlockReward = rewardRound.firstBlockSpecVersion >= 2100 ? new BN(1) : new BN(0);
 
         const firstRewardHash = await api.rpc.chain.getBlockHash(
           rewardRound.firstBlock.header.number.toBn().add(delayBlockReward)
