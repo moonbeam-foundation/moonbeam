@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/relay-data-verifier/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_relay_verifier" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_evm_precompile_relay_verifier/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/relay-data-verifier/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_relay_verifier" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_evm_precompile_relay_verifier/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -181,7 +183,7 @@
 
 </span><span class="doccomment">//! Precompile for verifying relay entries against a relay block number.
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
 </span><span class="kw">use </span>core::marker::PhantomData;
 <span class="kw">use </span>cumulus_primitives_core::relay_chain::BlockNumber <span class="kw">as </span>RelayBlockNumber;
@@ -222,8 +224,8 @@
 {
 	<span class="doccomment">/// Verify the storage entry using the provided relay block number and proof. Return the value
 	/// of the storage entry if the proof is valid and the entry exists.
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;verifyEntry(uint32,(bytes32,bytes[]),bytes)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;verify_entry(uint32,(bytes32,bytes[]),bytes)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"verifyEntry(uint32,(bytes32,bytes[]),bytes)"</span>)]
+	#[precompile::public(<span class="string">"verify_entry(uint32,(bytes32,bytes[]),bytes)"</span>)]
 	</span><span class="kw">fn </span>verify_entry(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		relay_block_number: RelayBlockNumber,
@@ -249,15 +251,15 @@
 	<span class="doccomment">/// Verify the storage entries using the provided relay block number and proof. Return the
 	/// values of the storage entries in the same order of keys, if the proof is valid and the
 	/// entries exist.
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;verifyEntries(uint32,(bytes32,bytes[]),bytes[])&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;verify_entries(uint32,(bytes32,bytes[]),bytes[])&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"verifyEntries(uint32,(bytes32,bytes[]),bytes[])"</span>)]
+	#[precompile::public(<span class="string">"verify_entries(uint32,(bytes32,bytes[]),bytes[])"</span>)]
 	</span><span class="kw">fn </span>verify_entries(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		relay_block_number: RelayBlockNumber,
 		proof: ReadProof,
 		keys: BoundedVec&lt;RawKey, GetArrayLimit&gt;,
 	) -&gt; EvmResult&lt;BoundedVec&lt;UnboundedBytes, GetArrayLimit&gt;&gt; {
-		<span class="macro">ensure!</span>(keys.len() &gt; <span class="number">0</span>, revert(<span class="string">&quot;Keys must not be empty&quot;</span>));
+		<span class="macro">ensure!</span>(keys.len() &gt; <span class="number">0</span>, revert(<span class="string">"Keys must not be empty"</span>));
 
 		<span class="comment">//  Charge gas for storage proof verification
 		</span><span class="kw">let </span>weight = WeightInfo::&lt;Runtime&gt;::verify_entry(proof.proof.len() <span class="kw">as </span>u32);
@@ -280,8 +282,8 @@
 			.map(|x| BoundedVec::from(x))
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;latestRelayBlockNumber()&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;latest_relay_block_number()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"latestRelayBlockNumber()"</span>)]
+	#[precompile::public(<span class="string">"latest_relay_block_number()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>latest_relay_block(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;RelayBlockNumber&gt; {
 		<span class="kw">let </span>weight = WeightInfo::&lt;Runtime&gt;::latest_relay_block();
@@ -290,7 +292,7 @@
 		pallet_relay_storage_roots::RelayStorageRootKeys::&lt;Runtime&gt;::get()
 			.last()
 			.cloned()
-			.ok_or(revert(<span class="string">&quot;No relay block found&quot;</span>))
+			.ok_or(revert(<span class="string">"No relay block found"</span>))
 	}
 
 	<span class="kw">fn </span>get_storage_root(
@@ -299,16 +301,16 @@
 	) -&gt; EvmResult&lt;H256&gt; {
 		handle.record_db_read::&lt;Runtime&gt;(<span class="number">84</span>)<span class="question-mark">?</span>;
 		pallet_relay_storage_roots::RelayStorageRoot::&lt;Runtime&gt;::get(relay_block_number)
-			.ok_or(revert(<span class="string">&quot;Block number not present&quot;</span>))
+			.ok_or(revert(<span class="string">"Block number not present"</span>))
 	}
 }
 
 <span class="kw">fn </span>map_err(err: ProofError) -&gt; PrecompileFailure {
 	<span class="kw">match </span>err {
-		ProofError::RootMismatch =&gt; revert(<span class="string">&quot;Root Mismatch&quot;</span>),
-		ProofError::Proof =&gt; revert(<span class="string">&quot;Invalid Proof&quot;</span>),
-		ProofError::Absent =&gt; revert(<span class="string">&quot;Value is not present&quot;</span>),
-		ProofError::BlockNumberNotPresent =&gt; revert(<span class="string">&quot;Block number not present&quot;</span>),
+		ProofError::RootMismatch =&gt; revert(<span class="string">"Root Mismatch"</span>),
+		ProofError::Proof =&gt; revert(<span class="string">"Invalid Proof"</span>),
+		ProofError::Absent =&gt; revert(<span class="string">"Value is not present"</span>),
+		ProofError::BlockNumberNotPresent =&gt; revert(<span class="string">"Block number not present"</span>),
 	}
 }
 

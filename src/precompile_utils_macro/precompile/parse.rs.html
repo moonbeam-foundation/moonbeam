@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/macro/src/precompile/parse.rs`."><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="precompile_utils_macro" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../precompile_utils_macro/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/macro/src/precompile/parse.rs`."><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="precompile_utils_macro" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../precompile_utils_macro/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -640,7 +642,7 @@
 	</span><span class="kw">pub fn </span>try_from(impl_: <span class="kw-2">&amp;mut </span>syn::ItemImpl) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
 		<span class="comment">// Extract the name of the type used in the `impl` block.
 		</span><span class="kw">let </span>impl_ident = <span class="self">Self</span>::extract_impl_ident(impl_)<span class="question-mark">?</span>;
-		<span class="kw">let </span>enum_ident = <span class="macro">format_ident!</span>(<span class="string">&quot;{}Call&quot;</span>, impl_ident);
+		<span class="kw">let </span>enum_ident = <span class="macro">format_ident!</span>(<span class="string">"{}Call"</span>, impl_ident);
 
 		<span class="comment">// We setup the data collection struct.
 		</span><span class="kw">let </span><span class="kw-2">mut </span>precompile = Precompile {
@@ -670,8 +672,8 @@
 		</span><span class="kw">if </span>precompile.tagged_as_precompile_set
 			&amp;&amp; precompile.precompile_set_discriminant_fn.is_none()
 		{
-			<span class="kw">let </span>msg = <span class="string">&quot;A PrecompileSet must have exactly one function tagged with \
-			`#[precompile::discriminant]`&quot;</span>;
+			<span class="kw">let </span>msg = <span class="string">"A PrecompileSet must have exactly one function tagged with \
+			`#[precompile::discriminant]`"</span>;
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(Span::call_site(), msg));
 		}
 
@@ -690,13 +692,13 @@
 				}
 				attr::ImplAttr::TestConcreteTypes(span, types) =&gt; {
 					<span class="kw">if </span>types.len() != <span class="self">self</span>.generics.params.len() {
-						<span class="kw">let </span>msg = <span class="string">&quot;The amount of types should match the amount of type parameters \
-						of the impl block&quot;</span>;
+						<span class="kw">let </span>msg = <span class="string">"The amount of types should match the amount of type parameters \
+						of the impl block"</span>;
 						<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 					}
 
 					<span class="kw">if </span><span class="self">self</span>.test_concrete_types.is_some() {
-						<span class="kw">let </span>msg = <span class="string">&quot;Only one set of types can be provided to generate tests&quot;</span>;
+						<span class="kw">let </span>msg = <span class="string">"Only one set of types can be provided to generate tests"</span>;
 						<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 					}
 
@@ -715,14 +717,14 @@
 		<span class="kw">let </span>type_path = <span class="kw">match </span>impl_.self_ty.as_ref() {
 			syn::Type::Path(p) =&gt; p,
 			<span class="kw">_ </span>=&gt; {
-				<span class="kw">let </span>msg = <span class="string">&quot;The type in the impl block must be a path, like `Precompile` or
-				`example::Precompile`&quot;</span>;
+				<span class="kw">let </span>msg = <span class="string">"The type in the impl block must be a path, like `Precompile` or
+				`example::Precompile`"</span>;
 				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(impl_.self_ty.span(), msg));
 			}
 		};
 
 		<span class="kw">let </span>final_path = type_path.path.segments.last().ok_or_else(|| {
-			<span class="kw">let </span>msg = <span class="string">&quot;The type path must be non empty.&quot;</span>;
+			<span class="kw">let </span>msg = <span class="string">"The type path must be non empty."</span>;
 			syn::Error::new(impl_.self_ty.span(), msg)
 		})<span class="question-mark">?</span>;
 
@@ -739,7 +741,7 @@
 			<span class="kw">return </span><span class="prelude-val">Ok</span>(());
 		}
 
-		<span class="comment">// A method cannot have modifiers if it isn&#39;t a fallback and/or doesn&#39;t have a selector.
+		<span class="comment">// A method cannot have modifiers if it isn't a fallback and/or doesn't have a selector.
 		</span><span class="kw">let </span><span class="kw-2">mut </span>used = <span class="bool-val">false</span>;
 
 		<span class="kw">let </span>method_name = method.sig.ident.clone();
@@ -755,8 +757,8 @@
 			<span class="kw">let </span>span = <span class="kw-2">*</span>span;
 
 			<span class="kw">if </span>attrs.len() != <span class="number">1 </span>{
-				<span class="kw">let </span>msg = <span class="string">&quot;The discriminant attribute must be the only precompile attribute of \
-				a function&quot;</span>;
+				<span class="kw">let </span>msg = <span class="string">"The discriminant attribute must be the only precompile attribute of \
+				a function"</span>;
 				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 			}
 
@@ -767,8 +769,8 @@
 			<span class="kw">let </span>span = <span class="kw-2">*</span>span;
 
 			<span class="kw">if </span>attrs.len() != <span class="number">1 </span>{
-				<span class="kw">let </span>msg = <span class="string">&quot;The pre_check attribute must be the only precompile attribute of \
-				a function&quot;</span>;
+				<span class="kw">let </span>msg = <span class="string">"The pre_check attribute must be the only precompile attribute of \
+				a function"</span>;
 				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 			}
 
@@ -779,18 +781,18 @@
 		</span><span class="kw">for </span>attr <span class="kw">in </span>attrs {
 			<span class="kw">match </span>attr {
 				attr::MethodAttr::Discriminant(span) =&gt; {
-					<span class="kw">let </span>msg = <span class="string">&quot;The discriminant attribute must be the only precompile \
-					attribute of the function&quot;</span>;
+					<span class="kw">let </span>msg = <span class="string">"The discriminant attribute must be the only precompile \
+					attribute of the function"</span>;
 					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 				}
 				attr::MethodAttr::PreCheck(span) =&gt; {
-					<span class="kw">let </span>msg = <span class="string">&quot;The pre_check attribute must be the only precompile \
-					attribute of the function&quot;</span>;
+					<span class="kw">let </span>msg = <span class="string">"The pre_check attribute must be the only precompile \
+					attribute of the function"</span>;
 					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 				}
 				attr::MethodAttr::Fallback(span) =&gt; {
 					<span class="kw">if </span><span class="self">self</span>.fallback_to_variant.is_some() {
-						<span class="kw">let </span>msg = <span class="string">&quot;A precompile can only have 1 fallback function&quot;</span>;
+						<span class="kw">let </span>msg = <span class="string">"A precompile can only have 1 fallback function"</span>;
 						<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 					}
 
@@ -801,7 +803,7 @@
 				attr::MethodAttr::Payable(span) =&gt; {
 					<span class="kw">if </span>modifier != Modifier::NonPayable {
 						<span class="kw">let </span>msg =
-							<span class="string">&quot;A precompile method can have at most one modifier (payable, view)&quot;</span>;
+							<span class="string">"A precompile method can have at most one modifier (payable, view)"</span>;
 						<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 					}
 
@@ -810,7 +812,7 @@
 				attr::MethodAttr::View(span) =&gt; {
 					<span class="kw">if </span>modifier != Modifier::NonPayable {
 						<span class="kw">let </span>msg =
-							<span class="string">&quot;A precompile method can have at most one modifier (payable, view)&quot;</span>;
+							<span class="string">"A precompile method can have at most one modifier (payable, view)"</span>;
 						<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 					}
 
@@ -832,14 +834,14 @@
 		<span class="comment">// A method cannot have attributes without being public or fallback.
 		</span><span class="kw">if </span>!used {
 			<span class="kw">let </span>msg =
-				<span class="string">&quot;A precompile method cannot have modifiers without being a fallback or having\
-			a `public` attribute&quot;</span>;
+				<span class="string">"A precompile method cannot have modifiers without being a fallback or having\
+			a `public` attribute"</span>;
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(method.span(), msg));
 		}
 
 		<span class="comment">// We forbid type parameters.
 		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(param) = method.sig.generics.params.first() {
-			<span class="kw">let </span>msg = <span class="string">&quot;Exposed precompile methods cannot have type parameters&quot;</span>;
+			<span class="kw">let </span>msg = <span class="string">"Exposed precompile methods cannot have type parameters"</span>;
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(param.span(), msg));
 		}
 
@@ -847,10 +849,10 @@
 		</span><span class="kw">if </span>is_fallback {
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(input) = method.sig.inputs.iter().skip(initial_arguments).next() {
 				<span class="kw">let </span>msg = <span class="kw">if </span><span class="self">self</span>.tagged_as_precompile_set {
-					<span class="string">&quot;Fallback methods cannot take any parameter outside of the discriminant and \
-					PrecompileHandle&quot;
+					<span class="string">"Fallback methods cannot take any parameter outside of the discriminant and \
+					PrecompileHandle"
 				</span>} <span class="kw">else </span>{
-					<span class="string">&quot;Fallback methods cannot take any parameter outside of the PrecompileHandle&quot;
+					<span class="string">"Fallback methods cannot take any parameter outside of the PrecompileHandle"
 				</span>};
 
 				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(input.span(), msg));
@@ -872,15 +874,15 @@
 			<span class="kw">let </span>input = <span class="kw">match </span>input {
 				syn::FnArg::Typed(t) =&gt; t,
 				<span class="kw">_ </span>=&gt; {
-					<span class="comment">// I don&#39;t think it is possible to encounter this error since a self receiver
+					<span class="comment">// I don't think it is possible to encounter this error since a self receiver
 					// seems to only be possible in the first position which is checked in
 					// `check_initial_parameters`.
-					</span><span class="kw">let </span>msg = <span class="string">&quot;Exposed precompile methods cannot have a `self` parameter&quot;</span>;
+					</span><span class="kw">let </span>msg = <span class="string">"Exposed precompile methods cannot have a `self` parameter"</span>;
 					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(input.span(), msg));
 				}
 			};
 
-			<span class="kw">let </span>msg = <span class="string">&quot;Parameter must be of the form `name: Type`, optionally prefixed by `mut`&quot;</span>;
+			<span class="kw">let </span>msg = <span class="string">"Parameter must be of the form `name: Type`, optionally prefixed by `mut`"</span>;
 			<span class="kw">let </span>ident = <span class="kw">match </span>input.pat.as_ref() {
 				syn::Pat::Ident(pat) =&gt; {
 					<span class="kw">if </span>pat.by_ref.is_some() || pat.subpat.is_some() {
@@ -903,8 +905,8 @@
 		</span><span class="kw">let </span>output_type = <span class="kw">match </span><span class="kw-2">&amp;</span>method.sig.output {
 			syn::ReturnType::Type(<span class="kw">_</span>, t) =&gt; t,
 			<span class="kw">_ </span>=&gt; {
-				<span class="kw">let </span>msg = <span class="string">&quot;A precompile method must have a return type of `EvmResult&lt;_&gt;` (exposed \
-				by `precompile_utils`)&quot;</span>;
+				<span class="kw">let </span>msg = <span class="string">"A precompile method must have a return type of `EvmResult&lt;_&gt;` (exposed \
+				by `precompile_utils`)"</span>;
 				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(method.sig.span(), msg));
 			}
 		};
@@ -914,13 +916,13 @@
 			method_name.clone(),
 			Variant {
 				arguments,
-				solidity_arguments_type: solidity_arguments_type.unwrap_or(String::from(<span class="string">&quot;()&quot;</span>)),
+				solidity_arguments_type: solidity_arguments_type.unwrap_or(String::from(<span class="string">"()"</span>)),
 				modifier,
 				selectors,
 				fn_output: output_type.as_ref().clone(),
 			},
 		) {
-			<span class="kw">let </span>msg = <span class="string">&quot;Duplicate method name&quot;</span>;
+			<span class="kw">let </span>msg = <span class="string">"Duplicate method name"</span>;
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(method_name.span(), msg));
 		}
 
@@ -928,9 +930,9 @@
 	}
 
 	<span class="doccomment">/// Check the initial parameters of most methods of a Precompile(Set).
-	</span><span class="kw">fn </span>check_initial_parameters&lt;<span class="lifetime">&#39;a</span>&gt;(
+	</span><span class="kw">fn </span>check_initial_parameters&lt;<span class="lifetime">'a</span>&gt;(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		method_inputs: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::FnArg&gt;,
+		method_inputs: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>syn::FnArg&gt;,
 		method_span: Span,
 	) -&gt; syn::Result&lt;()&gt; {
 		<span class="comment">// Discriminant input
@@ -938,8 +940,8 @@
 			<span class="kw">let </span>input = <span class="kw">match </span>method_inputs.next() {
 				<span class="prelude-val">Some</span>(a) =&gt; a,
 				<span class="prelude-val">None </span>=&gt; {
-					<span class="kw">let </span>msg = <span class="string">&quot;PrecompileSet methods must have at least 2 parameters (the \
-					precompile instance discriminant and the PrecompileHandle)&quot;</span>;
+					<span class="kw">let </span>msg = <span class="string">"PrecompileSet methods must have at least 2 parameters (the \
+					precompile instance discriminant and the PrecompileHandle)"</span>;
 					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(method_span, msg));
 				}
 			};
@@ -947,7 +949,7 @@
 			<span class="kw">let </span>input = <span class="kw">match </span>input {
 				syn::FnArg::Typed(a) =&gt; a,
 				<span class="kw">_ </span>=&gt; {
-					<span class="kw">let </span>msg = <span class="string">&quot;self is not allowed in precompile methods&quot;</span>;
+					<span class="kw">let </span>msg = <span class="string">"self is not allowed in precompile methods"</span>;
 					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(input.span(), msg));
 				}
 			};
@@ -963,10 +965,10 @@
 				<span class="prelude-val">Some</span>(a) =&gt; a,
 				<span class="prelude-val">None </span>=&gt; {
 					<span class="kw">let </span>msg = <span class="kw">if </span><span class="self">self</span>.tagged_as_precompile_set {
-						<span class="string">&quot;PrecompileSet methods must have at least 2 parameters (the precompile \
-						instance discriminant and the PrecompileHandle)&quot;
+						<span class="string">"PrecompileSet methods must have at least 2 parameters (the precompile \
+						instance discriminant and the PrecompileHandle)"
 					</span>} <span class="kw">else </span>{
-						<span class="string">&quot;Precompile methods must have at least 1 parameter (the PrecompileHandle)&quot;
+						<span class="string">"Precompile methods must have at least 1 parameter (the PrecompileHandle)"
 					</span>};
 
 					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(method_span, msg));
@@ -976,7 +978,7 @@
 			<span class="kw">let </span>input = <span class="kw">match </span>input {
 				syn::FnArg::Typed(a) =&gt; a,
 				<span class="kw">_ </span>=&gt; {
-					<span class="kw">let </span>msg = <span class="string">&quot;self is not allowed in precompile methods&quot;</span>;
+					<span class="kw">let </span>msg = <span class="string">"self is not allowed in precompile methods"</span>;
 					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(input.span(), msg));
 				}
 			};
@@ -984,7 +986,7 @@
 			<span class="kw">let </span>input_type = input.ty.as_ref();
 
 			<span class="kw">if </span>!is_same_type(<span class="kw-2">&amp;</span>input_type, <span class="kw-2">&amp;</span><span class="macro">syn::parse_quote! </span>{<span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle}) {
-				<span class="kw">let </span>msg = <span class="string">&quot;This parameter must have type `&amp;mut impl PrecompileHandle`&quot;</span>;
+				<span class="kw">let </span>msg = <span class="string">"This parameter must have type `&amp;mut impl PrecompileHandle`"</span>;
 				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(input_type.span(), msg));
 			}
 		}
@@ -997,7 +999,7 @@
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(known_type) = <span class="kw-2">&amp;</span><span class="self">self</span>.precompile_set_discriminant_type {
 			<span class="kw">if </span>!is_same_type(<span class="kw-2">&amp;</span>known_type, <span class="kw-2">&amp;</span>ty) {
 				<span class="kw">let </span>msg = <span class="macro">format!</span>(
-					<span class="string">&quot;All discriminants must have the same type (found {} before)&quot;</span>,
+					<span class="string">"All discriminants must have the same type (found {} before)"</span>,
 					known_type.to_token_stream()
 				);
 				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(ty.span(), msg));
@@ -1016,25 +1018,25 @@
 		method: <span class="kw-2">&amp;</span>syn::ImplItemMethod,
 	) -&gt; syn::Result&lt;()&gt; {
 		<span class="kw">if </span>!<span class="self">self</span>.tagged_as_precompile_set {
-			<span class="kw">let </span>msg = <span class="string">&quot;The impl block must be tagged with `#[precompile::precompile_set]` for
-			the discriminant attribute to be used&quot;</span>;
+			<span class="kw">let </span>msg = <span class="string">"The impl block must be tagged with `#[precompile::precompile_set]` for
+			the discriminant attribute to be used"</span>;
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 		}
 
 		<span class="kw">if </span><span class="self">self</span>.precompile_set_discriminant_fn.is_some() {
-			<span class="kw">let </span>msg = <span class="string">&quot;A PrecompileSet can only have 1 discriminant function&quot;</span>;
+			<span class="kw">let </span>msg = <span class="string">"A PrecompileSet can only have 1 discriminant function"</span>;
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 		}
 
 		<span class="kw">let </span>span = method.sig.span();
 
 		<span class="kw">if </span>method.sig.inputs.len() != <span class="number">2 </span>{
-			<span class="kw">let </span>msg = <span class="string">&quot;The discriminant function must only take code address (H160) and \
-			remaining gas (u64) as parameters.&quot;</span>;
+			<span class="kw">let </span>msg = <span class="string">"The discriminant function must only take code address (H160) and \
+			remaining gas (u64) as parameters."</span>;
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 		}
 
-		<span class="kw">let </span>msg = <span class="string">&quot;The discriminant function must return an DiscriminantResult&lt;_&gt; (no type alias)&quot;</span>;
+		<span class="kw">let </span>msg = <span class="string">"The discriminant function must return an DiscriminantResult&lt;_&gt; (no type alias)"</span>;
 
 		<span class="kw">let </span>return_type = <span class="kw">match </span><span class="kw-2">&amp;</span>method.sig.output {
 			syn::ReturnType::Type(<span class="kw">_</span>, t) =&gt; t.as_ref(),
@@ -1058,7 +1060,7 @@
 
 		<span class="kw">let </span>return_segment = <span class="kw-2">&amp;</span>return_path.segments[<span class="number">0</span>];
 
-		<span class="kw">if </span>return_segment.ident.to_string() != <span class="string">&quot;DiscriminantResult&quot; </span>{
+		<span class="kw">if </span>return_segment.ident.to_string() != <span class="string">"DiscriminantResult" </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(return_segment.ident.span(), msg));
 		}
 
@@ -1068,7 +1070,7 @@
 		};
 
 		<span class="kw">if </span>result_arguments.args.len() != <span class="number">1 </span>{
-			<span class="kw">let </span>msg = <span class="string">&quot;DiscriminantResult type should only have 1 type argument&quot;</span>;
+			<span class="kw">let </span>msg = <span class="string">"DiscriminantResult type should only have 1 type argument"</span>;
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(result_arguments.args.span(), msg));
 		}
 
@@ -1087,7 +1089,7 @@
 	<span class="doccomment">/// Process the pre_check function.
 	</span><span class="kw">fn </span>parse_pre_check_fn(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: Span, method: <span class="kw-2">&amp;</span>syn::ImplItemMethod) -&gt; syn::Result&lt;()&gt; {
 		<span class="kw">if </span><span class="self">self</span>.pre_check.is_some() {
-			<span class="kw">let </span>msg = <span class="string">&quot;A Precompile can only have 1 pre_check function&quot;</span>;
+			<span class="kw">let </span>msg = <span class="string">"A Precompile can only have 1 pre_check function"</span>;
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 		}
 
@@ -1099,11 +1101,11 @@
 
 		<span class="kw">if </span>method_inputs.next().is_some() {
 			<span class="kw">let </span>msg = <span class="kw">if </span><span class="self">self</span>.tagged_as_precompile_set {
-				<span class="string">&quot;PrecompileSet pre_check method must have exactly 2 parameters (the precompile \
-				instance discriminant and the PrecompileHandle)&quot;
+				<span class="string">"PrecompileSet pre_check method must have exactly 2 parameters (the precompile \
+				instance discriminant and the PrecompileHandle)"
 			</span>} <span class="kw">else </span>{
-				<span class="string">&quot;Precompile pre_check method must have exactly 1 parameter (the \
-				PrecompileHandle)&quot;
+				<span class="string">"Precompile pre_check method must have exactly 1 parameter (the \
+				PrecompileHandle)"
 			</span>};
 
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
@@ -1123,19 +1125,19 @@
 	) -&gt; syn::Result&lt;u32&gt; {
 		<span class="kw">let </span>signature = signature_lit.value();
 		<span class="comment">// Split signature to get arguments type.
-		</span><span class="kw">let </span>split: Vec&lt;<span class="kw">_</span>&gt; = signature.splitn(<span class="number">2</span>, <span class="string">&quot;(&quot;</span>).collect();
+		</span><span class="kw">let </span>split: Vec&lt;<span class="kw">_</span>&gt; = signature.splitn(<span class="number">2</span>, <span class="string">"("</span>).collect();
 		<span class="kw">if </span>split.len() != <span class="number">2 </span>{
-			<span class="kw">let </span>msg = <span class="string">&quot;Selector must have form \&quot;foo(arg1,arg2,...)\&quot;&quot;</span>;
+			<span class="kw">let </span>msg = <span class="string">"Selector must have form \"foo(arg1,arg2,...)\""</span>;
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(signature_lit.span(), msg));
 		}
 
-		<span class="kw">let </span>local_args_type = <span class="macro">format!</span>(<span class="string">&quot;({}&quot;</span>, split[<span class="number">1</span>]); <span class="comment">// add back initial parenthesis
+		<span class="kw">let </span>local_args_type = <span class="macro">format!</span>(<span class="string">"({}"</span>, split[<span class="number">1</span>]); <span class="comment">// add back initial parenthesis
 
 		// If there are multiple public attributes we check that they all have
 		// the same type.
 		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>args_type) = solidity_arguments_type {
 			<span class="kw">if </span>args_type != <span class="kw-2">&amp;</span>local_args_type {
-				<span class="kw">let </span>msg = <span class="string">&quot;Method cannot have selectors with different types.&quot;</span>;
+				<span class="kw">let </span>msg = <span class="string">"Method cannot have selectors with different types."</span>;
 				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(signature_lit.span(), msg));
 			}
 		} <span class="kw">else </span>{
@@ -1150,28 +1152,28 @@
 			</span>.selector_to_variant
 			.insert(selector, method_name.clone())
 		{
-			<span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;Selector collision with method {}&quot;</span>, previous.to_string());
+			<span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">"Selector collision with method {}"</span>, previous.to_string());
 			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(signature_lit.span(), msg));
 		}
 
 		<span class="prelude-val">Ok</span>(selector)
 	}
 
-	<span class="doccomment">/// Check that the provided type doesn&#39;t depend on one of the type parameters of the
+	<span class="doccomment">/// Check that the provided type doesn't depend on one of the type parameters of the
 	/// precompile. Check is skipped if `test_concrete_types` attribute is used.
 	</span><span class="kw">fn </span>check_type_parameter_usage(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; syn::Result&lt;()&gt; {
 		<span class="kw">if </span><span class="self">self</span>.test_concrete_types.is_some() {
 			<span class="kw">return </span><span class="prelude-val">Ok</span>(());
 		}
 
-		<span class="kw">const </span>ERR_MESSAGE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str =
-			<span class="string">&quot;impl type parameter is used in functions arguments. Arguments should not have a type
+		<span class="kw">const </span>ERR_MESSAGE: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str =
+			<span class="string">"impl type parameter is used in functions arguments. Arguments should not have a type
 depending on a type parameter, unless it is a length bound for BoundedBytes,
-BoundedString or alike, which doesn&#39;t affect the Solidity type.
+BoundedString or alike, which doesn't affect the Solidity type.
 
 In that case, you must add a #[precompile::test_concrete_types(...)] attribute on the impl
 block to provide concrete types that will be used to run the automatically generated tests
-ensuring the Solidity function signatures are correct.&quot;</span>;
+ensuring the Solidity function signatures are correct."</span>;
 
 		<span class="kw">match </span>ty {
 			syn::Type::Array(syn::TypeArray { elem, .. })
@@ -1223,7 +1225,7 @@ ensuring the Solidity function signatures are correct.&quot;</span>;
 			// TypeInfer =&gt; it must be explicit concrete types since it ends up in enum fields
 			// Macro =&gt; Cannot check easily
 			// Never =&gt; Function will not be callable.
-			</span>ty =&gt; <span class="macro">println!</span>(<span class="string">&quot;Skipping type parameter check for non supported kind of type: {ty:?}&quot;</span>),
+			</span>ty =&gt; <span class="macro">println!</span>(<span class="string">"Skipping type parameter check for non supported kind of type: {ty:?}"</span>),
 		}
 
 		<span class="prelude-val">Ok</span>(())

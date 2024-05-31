@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/referenda/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_referenda" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_evm_precompile_referenda/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/referenda/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_referenda" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_evm_precompile_referenda/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -686,7 +688,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
 </span><span class="kw">use </span>fp_evm::PrecompileHandle;
 <span class="kw">use </span>frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
@@ -728,19 +730,19 @@
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeOrigin <span class="kw">as </span>OriginTrait&gt;::PalletsOrigin;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUBMITTED_AT: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;SubmittedAt(uint16,uint32,bytes32)&quot;</span>);
+	<span class="macro">keccak256!</span>(<span class="string">"SubmittedAt(uint16,uint32,bytes32)"</span>);
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUBMITTED_AFTER: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;SubmittedAfter(uint16,uint32,bytes32)&quot;</span>);
+	<span class="macro">keccak256!</span>(<span class="string">"SubmittedAfter(uint16,uint32,bytes32)"</span>);
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_DECISION_DEPOSIT_PLACED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;DecisionDepositPlaced(uint32,address,uint256)&quot;</span>);
+	<span class="macro">keccak256!</span>(<span class="string">"DecisionDepositPlaced(uint32,address,uint256)"</span>);
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_DECISION_DEPOSIT_REFUNDED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;DecisionDepositRefunded(uint32,address,uint256)&quot;</span>);
+	<span class="macro">keccak256!</span>(<span class="string">"DecisionDepositRefunded(uint32,address,uint256)"</span>);
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUBMISSION_DEPOSIT_REFUNDED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;SubmissionDepositRefunded(uint32,address,uint256)&quot;</span>);
+	<span class="macro">keccak256!</span>(<span class="string">"SubmissionDepositRefunded(uint32,address,uint256)"</span>);
 
 <span class="attr">#[derive(solidity::Codec)]
 </span><span class="kw">pub struct </span>TrackInfo {
@@ -774,11 +776,11 @@
 	submission_deposit: U256,
 	decision_depositor: Address,
 	decision_deposit: U256,
-	<span class="doccomment">/// When this referendum began being &quot;decided&quot;. If confirming, then the
+	<span class="doccomment">/// When this referendum began being "decided". If confirming, then the
 	/// end will actually be delayed until the end of the confirmation period.
 	</span>deciding_since: U256,
 	<span class="doccomment">/// If nonzero, then the referendum has entered confirmation stage and will end at
-	/// the block number as long as it doesn&#39;t lose its approval in the meantime.
+	/// the block number as long as it doesn't lose its approval in the meantime.
 	</span>deciding_confirming_end: U256,
 	<span class="doccomment">/// The number of aye votes, expressed in terms of post-conviction lock-vote.
 	</span>ayes: U256,
@@ -828,27 +830,27 @@
 		+ Into&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;,
 {
 	<span class="comment">// The accessors are first. They directly return their result.
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;referendumCount()&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"referendumCount()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>referendum_count(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;u32&gt; {
 		<span class="comment">// ReferendumCount
 		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">4</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>ref_count = ReferendumCount::&lt;Runtime&gt;::get();
-		<span class="macro">log::trace!</span>(target: <span class="string">&quot;referendum-precompile&quot;</span>, <span class="string">&quot;Referendum count is {:?}&quot;</span>, ref_count);
+		<span class="macro">log::trace!</span>(target: <span class="string">"referendum-precompile"</span>, <span class="string">"Referendum count is {:?}"</span>, ref_count);
 
 		<span class="prelude-val">Ok</span>(ref_count)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;submissionDeposit()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"submissionDeposit()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>submission_deposit(_handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;U256&gt; {
 		<span class="kw">let </span>submission_deposit = Runtime::SubmissionDeposit::get();
-		<span class="macro">log::trace!</span>(target: <span class="string">&quot;referendum-precompile&quot;</span>, <span class="string">&quot;Submission deposit is {:?}&quot;</span>, submission_deposit);
+		<span class="macro">log::trace!</span>(target: <span class="string">"referendum-precompile"</span>, <span class="string">"Submission deposit is {:?}"</span>, submission_deposit);
 
 		<span class="prelude-val">Ok</span>(submission_deposit.into())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;decidingCount(uint16)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"decidingCount(uint16)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>deciding_count(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, track_id: u16) -&gt; EvmResult&lt;U256&gt; {
 		<span class="comment">// DecidingCount:
@@ -856,11 +858,11 @@
 		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">14</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>track_id: TrackIdOf&lt;Runtime&gt; = track_id
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;Track id type&quot;</span>).into())
-			.in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"Track id type"</span>).into())
+			.in_field(<span class="string">"trackId"</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>deciding_count = DecidingCount::&lt;Runtime&gt;::get(track_id);
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">&quot;referendum-precompile&quot;</span>, <span class="string">&quot;Track {:?} deciding count is {:?}&quot;</span>,
+			target: <span class="string">"referendum-precompile"</span>, <span class="string">"Track {:?} deciding count is {:?}"</span>,
 			track_id,
 			deciding_count
 		);
@@ -868,7 +870,7 @@
 		<span class="prelude-val">Ok</span>(deciding_count.into())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;trackIds()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"trackIds()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>track_ids(_handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Vec&lt;u16&gt;&gt; {
 		<span class="kw">let </span>track_ids: Vec&lt;u16&gt; = Runtime::Tracks::tracks()
@@ -885,17 +887,17 @@
 		<span class="prelude-val">Ok</span>(track_ids)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;trackInfo(uint16)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"trackInfo(uint16)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>track_info(_handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, track_id: u16) -&gt; EvmResult&lt;TrackInfo&gt; {
 		<span class="kw">let </span>track_id: TrackIdOf&lt;Runtime&gt; = track_id
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;Track id type&quot;</span>).into())
-			.in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"Track id type"</span>).into())
+			.in_field(<span class="string">"trackId"</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>track = Runtime::Tracks::tracks()
 			.iter()
 			.find(|(id, <span class="kw">_</span>)| <span class="kw-2">*</span>id == track_id)
-			.ok_or(RevertReason::custom(<span class="string">&quot;No such track&quot;</span>).in_field(<span class="string">&quot;trackId&quot;</span>))<span class="question-mark">?</span>;
+			.ok_or(RevertReason::custom(<span class="string">"No such track"</span>).in_field(<span class="string">"trackId"</span>))<span class="question-mark">?</span>;
 		<span class="kw">let </span>track_info = <span class="kw-2">&amp;</span>track.<span class="number">1</span>;
 
 		<span class="prelude-val">Ok</span>(TrackInfo {
@@ -916,15 +918,15 @@
 		<span class="kw">let </span>track = Runtime::Tracks::tracks()
 			.iter()
 			.find(|(id, <span class="kw">_</span>)| <span class="kw-2">*</span>id == track_id)
-			.ok_or(RevertReason::custom(<span class="string">&quot;No such track&quot;</span>).in_field(<span class="string">&quot;trackId&quot;</span>))<span class="question-mark">?</span>;
+			.ok_or(RevertReason::custom(<span class="string">"No such track"</span>).in_field(<span class="string">"trackId"</span>))<span class="question-mark">?</span>;
 		<span class="kw">let </span>track_info = <span class="kw-2">&amp;</span>track.<span class="number">1</span>;
-		<span class="kw">let </span>origin = <span class="kw">if </span>track_info.name == <span class="string">&quot;root&quot; </span>{
+		<span class="kw">let </span>origin = <span class="kw">if </span>track_info.name == <span class="string">"root" </span>{
 			frame_system::RawOrigin::Root.into()
 		} <span class="kw">else </span>{
 			GovOrigin::from_str(track_info.name)
 				.map_err(|<span class="kw">_</span>| {
-					RevertReason::custom(<span class="string">&quot;Custom origin does not exist for {track_info.name}&quot;</span>)
-						.in_field(<span class="string">&quot;trackId&quot;</span>)
+					RevertReason::custom(<span class="string">"Custom origin does not exist for {track_info.name}"</span>)
+						.in_field(<span class="string">"trackId"</span>)
 				})<span class="question-mark">?
 				</span>.into()
 		};
@@ -939,8 +941,8 @@
 		enactment_moment: DispatchTime&lt;BlockNumberFor&lt;Runtime&gt;&gt;,
 	) -&gt; EvmResult&lt;u32&gt; {
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">&quot;referendum-precompile&quot;</span>,
-			<span class="string">&quot;Submitting proposal {:?} [len: {:?}] to track {}&quot;</span>,
+			target: <span class="string">"referendum-precompile"</span>,
+			<span class="string">"Submitting proposal {:?} [len: {:?}] to track {}"</span>,
 			proposal.hash(),
 			proposal.len(),
 			track_id
@@ -952,8 +954,8 @@
 		<span class="kw">let </span>proposal_origin = <span class="self">Self</span>::track_id_to_origin(
 			track_id
 				.try_into()
-				.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;Track id type&quot;</span>).into())
-				.in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>,
+				.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"Track id type"</span>).into())
+				.in_field(<span class="string">"trackId"</span>)<span class="question-mark">?</span>,
 		)<span class="question-mark">?</span>;
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -969,7 +971,7 @@
 		<span class="prelude-val">Ok</span>(referendum_index)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;referendumStatus(uint32)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"referendumStatus(uint32)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>referendum_status(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -981,8 +983,8 @@
 		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>status = <span class="kw">match </span>ReferendumInfoFor::&lt;Runtime&gt;::get(referendum_index).ok_or(
-			RevertReason::custom(<span class="string">&quot;Referendum does not exist for index&quot;</span>)
-				.in_field(<span class="string">&quot;referendum_index&quot;</span>),
+			RevertReason::custom(<span class="string">"Referendum does not exist for index"</span>)
+				.in_field(<span class="string">"referendum_index"</span>),
 		)<span class="question-mark">? </span>{
 			ReferendumInfo::Ongoing(..) =&gt; <span class="number">0</span>,
 			ReferendumInfo::Approved(..) =&gt; <span class="number">1</span>,
@@ -995,7 +997,7 @@
 		<span class="prelude-val">Ok</span>(status)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;ongoingReferendumInfo(uint32)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"ongoingReferendumInfo(uint32)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>ongoing_referendum_info(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1007,14 +1009,14 @@
 		)<span class="question-mark">?</span>;
 
 		<span class="kw">match </span>ReferendumInfoFor::&lt;Runtime&gt;::get(referendum_index).ok_or(
-			RevertReason::custom(<span class="string">&quot;Referendum does not exist for index&quot;</span>)
-				.in_field(<span class="string">&quot;referendum_index&quot;</span>),
+			RevertReason::custom(<span class="string">"Referendum does not exist for index"</span>)
+				.in_field(<span class="string">"referendum_index"</span>),
 		)<span class="question-mark">? </span>{
 			ReferendumInfo::Ongoing(info) =&gt; {
 				<span class="kw">let </span>track_id = info
 					.track
 					.try_into()
-					.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;Track id type not u16&quot;</span>))<span class="question-mark">?</span>;
+					.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"Track id type not u16"</span>))<span class="question-mark">?</span>;
 				<span class="kw">let </span>(enactment_type, enactment_time) = <span class="kw">match </span>info.enactment {
 					DispatchTime::At(x) =&gt; (<span class="bool-val">true</span>, x.into()),
 					DispatchTime::After(x) =&gt; (<span class="bool-val">false</span>, x.into()),
@@ -1062,11 +1064,11 @@
 					alarm_task_address,
 				})
 			}
-			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">&quot;Referendum not ongoing&quot;</span>).into()),
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">"Referendum not ongoing"</span>).into()),
 		}
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;closedReferendumInfo(uint32)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"closedReferendumInfo(uint32)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>closed_referendum_info(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1106,8 +1108,8 @@
 			};
 
 		<span class="kw">match </span>ReferendumInfoFor::&lt;Runtime&gt;::get(referendum_index).ok_or(
-			RevertReason::custom(<span class="string">&quot;Referendum does not exist for index&quot;</span>)
-				.in_field(<span class="string">&quot;referendum_index&quot;</span>),
+			RevertReason::custom(<span class="string">"Referendum does not exist for index"</span>)
+				.in_field(<span class="string">"referendum_index"</span>),
 		)<span class="question-mark">? </span>{
 			ReferendumInfo::Approved(moment, submission_deposit, decision_deposit) =&gt; <span class="prelude-val">Ok</span>(
 				get_closed_ref_info(<span class="number">1</span>, moment, submission_deposit, decision_deposit),
@@ -1121,11 +1123,11 @@
 			ReferendumInfo::TimedOut(moment, submission_deposit, decision_deposit) =&gt; <span class="prelude-val">Ok</span>(
 				get_closed_ref_info(<span class="number">4</span>, moment, submission_deposit, decision_deposit),
 			),
-			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">&quot;Referendum not closed&quot;</span>).into()),
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">"Referendum not closed"</span>).into()),
 		}
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;killedReferendumBlock(uint32)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"killedReferendumBlock(uint32)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>killed_referendum_block(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1137,11 +1139,11 @@
 		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>block = <span class="kw">match </span>ReferendumInfoFor::&lt;Runtime&gt;::get(referendum_index).ok_or(
-			RevertReason::custom(<span class="string">&quot;Referendum does not exist for index&quot;</span>)
-				.in_field(<span class="string">&quot;referendum_index&quot;</span>),
+			RevertReason::custom(<span class="string">"Referendum does not exist for index"</span>)
+				.in_field(<span class="string">"referendum_index"</span>),
 		)<span class="question-mark">? </span>{
 			ReferendumInfo::Killed(b) =&gt; b,
-			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">&quot;Referendum not killed&quot;</span>).into()),
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">"Referendum not killed"</span>).into()),
 		};
 
 		<span class="prelude-val">Ok</span>(block.into())
@@ -1154,7 +1156,7 @@
 	/// * proposal_hash: The proposed runtime call hash stored in the preimage pallet.
 	/// * proposal_len: The proposed runtime call length.
 	/// * block_number: Block number at which proposal is dispatched.
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;submitAt(uint16,bytes32,uint32,uint32)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"submitAt(uint16,bytes32,uint32,uint32)"</span>)]
 	</span><span class="kw">fn </span>submit_at(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		track_id: u16,
@@ -1192,7 +1194,7 @@
 	/// * proposal_hash: The proposed runtime call hash stored in the preimage pallet.
 	/// * proposal_len: The proposed runtime call length.
 	/// * block_number: Block number after which proposal is dispatched.
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;submitAfter(uint16,bytes32,uint32,uint32)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"submitAfter(uint16,bytes32,uint32,uint32)"</span>)]
 	</span><span class="kw">fn </span>submit_after(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		track_id: u16,
@@ -1228,7 +1230,7 @@
 	///
 	/// Parameters:
 	/// * index: The index of the submitted referendum whose Decision Deposit is yet to be posted.
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;placeDecisionDeposit(uint32)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"placeDecisionDeposit(uint32)"</span>)]
 	</span><span class="kw">fn </span>place_decision_deposit(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, index: u32) -&gt; EvmResult {
 		<span class="comment">// ReferendumInfoFor: Blake2128(16) + 4 + ReferendumInfoOf::max_encoded_len
 		</span>handle.record_db_read::&lt;Runtime&gt;(
@@ -1244,7 +1246,7 @@
 
 		<span class="comment">// Once the deposit has been succesfully placed, it is available in the ReferendumStatus.
 		</span><span class="kw">let </span>ongoing_referendum = Referenda::&lt;Runtime&gt;::ensure_ongoing(index).map_err(|<span class="kw">_</span>| {
-			RevertReason::custom(<span class="string">&quot;Provided index is not an ongoing referendum&quot;</span>).in_field(<span class="string">&quot;index&quot;</span>)
+			RevertReason::custom(<span class="string">"Provided index is not an ongoing referendum"</span>).in_field(<span class="string">"index"</span>)
 		})<span class="question-mark">?</span>;
 		<span class="kw">let </span>decision_deposit: U256 =
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(decision_deposit) = ongoing_referendum.decision_deposit {
@@ -1270,7 +1272,7 @@
 	///
 	/// Parameters:
 	/// * index: The index of a closed referendum whose Decision Deposit has not yet been refunded.
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;refundDecisionDeposit(uint32)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"refundDecisionDeposit(uint32)"</span>)]
 	</span><span class="kw">fn </span>refund_decision_deposit(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, index: u32) -&gt; EvmResult {
 		handle.record_log_costs_manual(<span class="number">1</span>, <span class="number">32 </span>* <span class="number">3</span>)<span class="question-mark">?</span>;
 		<span class="comment">// ReferendumInfoFor: Blake2128(16) + 4 + ReferendumInfoOf::max_encoded_len
@@ -1279,7 +1281,7 @@
 		)<span class="question-mark">?</span>;
 		<span class="kw">let </span>(who, refunded_deposit): (H160, U256) = <span class="kw">match </span>ReferendumInfoFor::&lt;Runtime&gt;::get(index)
 			.ok_or(
-			RevertReason::custom(<span class="string">&quot;Referendum index does not exist&quot;</span>).in_field(<span class="string">&quot;index&quot;</span>),
+			RevertReason::custom(<span class="string">"Referendum index does not exist"</span>).in_field(<span class="string">"index"</span>),
 		)<span class="question-mark">? </span>{
 			ReferendumInfo::Approved(<span class="kw">_</span>, <span class="kw">_</span>, <span class="prelude-val">Some</span>(d))
 			| ReferendumInfo::Rejected(<span class="kw">_</span>, <span class="kw">_</span>, <span class="prelude-val">Some</span>(d))
@@ -1308,7 +1310,7 @@
 	///
 	/// Parameters:
 	/// * index: The index of a closed referendum whose Submission Deposit has not yet been refunded.
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;refundSubmissionDeposit(uint32)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"refundSubmissionDeposit(uint32)"</span>)]
 	</span><span class="kw">fn </span>refund_submission_deposit(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, index: u32) -&gt; EvmResult {
 		handle.record_log_costs_manual(<span class="number">1</span>, <span class="number">32 </span>* <span class="number">3</span>)<span class="question-mark">?</span>;
 		<span class="comment">// ReferendumInfoFor: Blake2128(16) + 4 + ReferendumInfoOf::max_encoded_len
@@ -1317,7 +1319,7 @@
 		)<span class="question-mark">?</span>;
 		<span class="kw">let </span>(who, refunded_deposit): (H160, U256) =
 			<span class="kw">match </span>ReferendumInfoFor::&lt;Runtime&gt;::get(index)
-				.ok_or(RevertReason::custom(<span class="string">&quot;Referendum index does not exist&quot;</span>).in_field(<span class="string">&quot;index&quot;</span>))<span class="question-mark">?
+				.ok_or(RevertReason::custom(<span class="string">"Referendum index does not exist"</span>).in_field(<span class="string">"index"</span>))<span class="question-mark">?
 			</span>{
 				ReferendumInfo::Approved(<span class="kw">_</span>, <span class="prelude-val">Some</span>(s), <span class="kw">_</span>)
 				| ReferendumInfo::Cancelled(<span class="kw">_</span>, <span class="prelude-val">Some</span>(s), <span class="kw">_</span>) =&gt; (s.who.into(), s.amount.into()),

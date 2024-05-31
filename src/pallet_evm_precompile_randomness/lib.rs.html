@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/randomness/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_randomness" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_evm_precompile_randomness/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/randomness/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_randomness" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_evm_precompile_randomness/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -588,7 +590,7 @@
 
 </span><span class="doccomment">//! Precompile to interact with randomness through an evm precompile.
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
 </span><span class="kw">extern crate </span>alloc;
 
@@ -624,14 +626,14 @@
 }
 
 <span class="kw">pub fn </span>subcall_overhead_gas_costs&lt;T: pallet_evm::Config&gt;() -&gt; EvmResult&lt;u64&gt; {
-	<span class="comment">// cost of log don&#39;t depend on specific address.
+	<span class="comment">// cost of log don't depend on specific address.
 	</span><span class="kw">let </span>log_cost = log_fulfillment_failed(H160::zero())
 		.compute_cost()
-		.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;failed to compute log cost&quot;</span>))<span class="question-mark">?</span>;
+		.map_err(|<span class="kw">_</span>| revert(<span class="string">"failed to compute log cost"</span>))<span class="question-mark">?</span>;
 	<span class="kw">let </span>call_cost = call_cost(U256::zero(), &lt;T <span class="kw">as </span>pallet_evm::Config&gt;::config());
 	log_cost
 		.checked_add(call_cost)
-		.ok_or(revert(<span class="string">&quot;overflow when computing overhead gas&quot;</span>))
+		.ok_or(revert(<span class="string">"overflow when computing overhead gas"</span>))
 }
 
 <span class="kw">pub fn </span>transaction_gas_refund&lt;T: pallet_evm::Config&gt;() -&gt; u64 {
@@ -643,8 +645,8 @@
 		+ <span class="number">24 </span>* T::config().gas_transaction_zero_data
 }
 
-<span class="kw">pub const </span>LOG_FULFILLMENT_SUCCEEDED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;FulFillmentSucceeded()&quot;</span>);
-<span class="kw">pub const </span>LOG_FULFILLMENT_FAILED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;FulFillmentFailed()&quot;</span>);
+<span class="kw">pub const </span>LOG_FULFILLMENT_SUCCEEDED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"FulFillmentSucceeded()"</span>);
+<span class="kw">pub const </span>LOG_FULFILLMENT_FAILED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"FulFillmentFailed()"</span>);
 
 <span class="kw">pub fn </span>log_fulfillment_succeeded(address: <span class="kw">impl </span>Into&lt;H160&gt;) -&gt; Log {
 	log1(address, LOG_FULFILLMENT_SUCCEEDED, <span class="macro">vec!</span>[])
@@ -669,29 +671,29 @@
 	<span class="kw">let </span>request_gas_limit_with_overhead = request_gas_limit
 		.checked_add(subcall_overhead_gas_costs)
 		.ok_or(revert(
-			<span class="string">&quot;overflow when computing request gas limit + overhead&quot;</span>,
+			<span class="string">"overflow when computing request gas limit + overhead"</span>,
 		))<span class="question-mark">?</span>;
 
 	<span class="comment">// Ensure precompile have enough gas to perform subcall with the overhead.
 	</span><span class="kw">if </span>remaining_gas &lt; request_gas_limit_with_overhead {
-		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;not enough gas to perform the call&quot;</span>));
+		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">"not enough gas to perform the call"</span>));
 	}
 
 	<span class="comment">// Ensure request fee is enough to refund the fulfiller.
 	</span><span class="kw">let </span>total_refunded_gas = prepare_and_finish_fulfillment_gas_cost
 		.checked_add(request_gas_limit_with_overhead)
-		.ok_or(revert(<span class="string">&quot;overflow when computed max amount of refunded gas&quot;</span>))<span class="question-mark">?
+		.ok_or(revert(<span class="string">"overflow when computed max amount of refunded gas"</span>))<span class="question-mark">?
 		</span>.checked_add(transaction_gas_refund::&lt;Runtime&gt;())
-		.ok_or(revert(<span class="string">&quot;overflow when computed max amount of refunded gas&quot;</span>))<span class="question-mark">?</span>;
+		.ok_or(revert(<span class="string">"overflow when computed max amount of refunded gas"</span>))<span class="question-mark">?</span>;
 
 	<span class="kw">let </span>total_refunded_gas: U256 = total_refunded_gas.into();
 	<span class="kw">let </span>(base_fee, <span class="kw">_</span>) = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::FeeCalculator::min_gas_price();
 	<span class="kw">let </span>execution_max_fee = total_refunded_gas.checked_mul(base_fee).ok_or(revert(
-		<span class="string">&quot;gas limit (with overhead) * base fee overflowed U256&quot;</span>,
+		<span class="string">"gas limit (with overhead) * base fee overflowed U256"</span>,
 	))<span class="question-mark">?</span>;
 
 	<span class="kw">if </span>execution_max_fee &gt; request_fee.into() {
-		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;request fee cannot pay for execution cost&quot;</span>));
+		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">"request fee cannot pay for execution cost"</span>));
 	}
 
 	<span class="prelude-val">Ok</span>(())
@@ -709,7 +711,7 @@
 	<span class="kw">let </span>(reason, <span class="kw">_</span>) = handle.call(
 		contract,
 		<span class="prelude-val">None</span>,
-		<span class="comment">// callback function selector: keccak256(&quot;rawFulfillRandomWords(uint256,uint256[])&quot;)
+		<span class="comment">// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
 		</span>solidity::encode_with_selector(<span class="number">0x1fe543e3_u32</span>, (request_id, randomness)),
 		<span class="prelude-val">Some</span>(gas_limit),
 		<span class="bool-val">false</span>,
@@ -749,7 +751,7 @@
 	BlockNumberFor&lt;Runtime&gt;: TryInto&lt;u32&gt; + TryFrom&lt;u32&gt;,
 	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt;,
 {
-	<span class="attr">#[precompile::public(<span class="string">&quot;relayEpochIndex()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"relayEpochIndex()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>relay_epoch_index(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;u64&gt; {
 		<span class="comment">// No DB access but lot of logical stuff
@@ -760,14 +762,14 @@
 		<span class="prelude-val">Ok</span>(relay_epoch_index)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;requiredDeposit()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"requiredDeposit()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>required_deposit(_handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;U256&gt; {
 		<span class="kw">let </span>required_deposit: U256 = &lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::Deposit::get().into();
 		<span class="prelude-val">Ok</span>(required_deposit)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;getRequestStatus(uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"getRequestStatus(uint256)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>get_request_status(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -800,7 +802,7 @@
 		<span class="prelude-val">Ok</span>(status)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;getRequest(uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"getRequest(uint256)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>get_request(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -830,7 +832,7 @@
 		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">146</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>RequestState { request, .. } =
-			Pallet::&lt;Runtime&gt;::requests(request_id).ok_or(revert(<span class="string">&quot;Request Does Not Exist&quot;</span>))<span class="question-mark">?</span>;
+			Pallet::&lt;Runtime&gt;::requests(request_id).ok_or(revert(<span class="string">"Request Does Not Exist"</span>))<span class="question-mark">?</span>;
 
 		<span class="comment">// Storage item read: pallet_randomness::RelayEpoch
 		// Max encoded len: u64(8)
@@ -863,11 +865,11 @@
 				RandomnessSource::LocalVRF,
 				block_due
 					.try_into()
-					.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;block number overflowed u32&quot;</span>))<span class="question-mark">?</span>,
+					.map_err(|<span class="kw">_</span>| revert(<span class="string">"block number overflowed u32"</span>))<span class="question-mark">?</span>,
 				<span class="number">0u64</span>,
 				block_expired
 					.try_into()
-					.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;block number overflowed u32&quot;</span>))<span class="question-mark">?</span>,
+					.map_err(|<span class="kw">_</span>| revert(<span class="string">"block number overflowed u32"</span>))<span class="question-mark">?</span>,
 				<span class="number">0u64</span>,
 				status,
 			),
@@ -897,7 +899,7 @@
 	}
 
 	<span class="doccomment">/// Make request for babe randomness one epoch ago
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)"</span>)]
 	</span><span class="kw">fn </span>request_babe_randomness(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		refund_address: Address,
@@ -912,14 +914,14 @@
 		<span class="kw">let </span>refund_address: H160 = refund_address.into();
 		<span class="kw">let </span>fee: BalanceOf&lt;Runtime&gt; = fee
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;balance type&quot;</span>).in_field(<span class="string">&quot;fee&quot;</span>))<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"balance type"</span>).in_field(<span class="string">"fee"</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>contract_address = handle.context().caller;
 
 		<span class="kw">let </span>two_epochs_later =
 			&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::BabeDataGetter::get_epoch_index()
 				.checked_add(<span class="number">2u64</span>)
-				.ok_or(revert(<span class="string">&quot;Epoch Index (u64) overflowed&quot;</span>))<span class="question-mark">?</span>;
+				.ok_or(revert(<span class="string">"Epoch Index (u64) overflowed"</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>request = Request {
 			refund_address,
@@ -935,13 +937,13 @@
 			&lt;&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::WeightInfo&gt;::request_randomness();
 		RuntimeHelper::&lt;Runtime&gt;::record_external_cost(handle, request_randomness_weight, <span class="number">0</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>request_id = Pallet::&lt;Runtime&gt;::request_randomness(request)
-			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;Error in pallet_randomness: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">"Error in pallet_randomness: {:?}"</span>, e)))<span class="question-mark">?</span>;
 		RuntimeHelper::&lt;Runtime&gt;::refund_weight_v2_cost(handle, request_randomness_weight, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(request_id.into())
 	}
 	<span class="doccomment">/// Make request for local VRF randomness
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)"</span>)]
 	</span><span class="kw">fn </span>request_local_randomness(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		refund_address: Address,
@@ -957,20 +959,20 @@
 		<span class="kw">let </span>refund_address: H160 = refund_address.into();
 		<span class="kw">let </span>fee: BalanceOf&lt;Runtime&gt; = fee
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;balance type&quot;</span>).in_field(<span class="string">&quot;fee&quot;</span>))<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"balance type"</span>).in_field(<span class="string">"fee"</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>contract_address = handle.context().caller;
 
 		<span class="kw">let </span>current_block_number: u32 = &lt;frame_system::Pallet&lt;Runtime&gt;&gt;::block_number()
 			.try_into()
-			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;block number overflowed u32&quot;</span>))<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| revert(<span class="string">"block number overflowed u32"</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>requested_block_number = delay
 			.converted()
 			.checked_add(current_block_number)
-			.ok_or(revert(<span class="string">&quot;addition result overflowed u64&quot;</span>))<span class="question-mark">?
+			.ok_or(revert(<span class="string">"addition result overflowed u64"</span>))<span class="question-mark">?
 			</span>.try_into()
-			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;u64 addition result overflowed block number type&quot;</span>))<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| revert(<span class="string">"u64 addition result overflowed block number type"</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>request = Request {
 			refund_address,
@@ -986,14 +988,14 @@
 			&lt;&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::WeightInfo&gt;::request_randomness();
 		RuntimeHelper::&lt;Runtime&gt;::record_external_cost(handle, request_randomness_weight, <span class="number">0</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>request_id = Pallet::&lt;Runtime&gt;::request_randomness(request)
-			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;Error in pallet_randomness: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">"Error in pallet_randomness: {:?}"</span>, e)))<span class="question-mark">?</span>;
 		RuntimeHelper::&lt;Runtime&gt;::refund_weight_v2_cost(handle, request_randomness_weight, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(request_id.into())
 	}
 
 	<span class="doccomment">/// Fulfill a randomness request due to be fulfilled
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;fulfillRequest(uint256)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"fulfillRequest(uint256)"</span>)]
 	</span><span class="kw">fn </span>fulfill_request(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		request_id: Convert&lt;U256, u64&gt;,
@@ -1011,7 +1013,7 @@
 			deposit,
 			randomness,
 		} = Pallet::&lt;Runtime&gt;::prepare_fulfillment(request_id)
-			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">"{:?}"</span>, e)))<span class="question-mark">?</span>;
 		<span class="kw">let </span>prepare_fulfillment_actual_weight =
 			&lt;&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::WeightInfo&gt;::prepare_fulfillment(
 				request.num_words <span class="kw">as </span>u32,
@@ -1047,7 +1049,7 @@
 
 		<span class="comment">// We meter this section to know how much gas was actually used.
 		// It contains the gas used by the subcall and the overhead actually
-		// performing a call. It doesn&#39;t contain `prepare_and_finish_fulfillment_used_gas`.
+		// performing a call. It doesn't contain `prepare_and_finish_fulfillment_used_gas`.
 		</span><span class="kw">let </span>remaining_gas_before = handle.remaining_gas();
 		provide_randomness(
 			handle,
@@ -1062,18 +1064,18 @@
 		// It is the metered gas + `prepare_and_finish_fulfillment_used_gas`.
 		</span><span class="kw">let </span>gas_used: U256 = remaining_gas_before
 			.checked_sub(remaining_gas_after)
-			.ok_or(revert(<span class="string">&quot;Before remaining gas &lt; After remaining gas&quot;</span>))<span class="question-mark">?
+			.ok_or(revert(<span class="string">"Before remaining gas &lt; After remaining gas"</span>))<span class="question-mark">?
 			</span>.checked_add(prepare_and_finish_fulfillment_used_gas)
-			.ok_or(revert(<span class="string">&quot;overflow when adding real call cost + overhead&quot;</span>))<span class="question-mark">?
+			.ok_or(revert(<span class="string">"overflow when adding real call cost + overhead"</span>))<span class="question-mark">?
 			</span>.checked_add(transaction_gas_refund::&lt;Runtime&gt;())
-			.ok_or(revert(<span class="string">&quot;overflow when adding real call cost + overhead&quot;</span>))<span class="question-mark">?
+			.ok_or(revert(<span class="string">"overflow when adding real call cost + overhead"</span>))<span class="question-mark">?
 			</span>.into();
 		<span class="kw">let </span>(base_fee, <span class="kw">_</span>) = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::FeeCalculator::min_gas_price();
 		<span class="kw">let </span>cost_of_execution: BalanceOf&lt;Runtime&gt; = gas_used
 			.checked_mul(base_fee)
-			.ok_or(revert(<span class="string">&quot;Multiply gas used by base fee overflowed&quot;</span>))<span class="question-mark">?
+			.ok_or(revert(<span class="string">"Multiply gas used by base fee overflowed"</span>))<span class="question-mark">?
 			</span>.try_into()
-			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| revert(<span class="string">"amount is too large for provided balance type"</span>))<span class="question-mark">?</span>;
 
 		<span class="comment">// Finish fulfillment to
 		// refund cost of execution to caller
@@ -1091,7 +1093,7 @@
 	}
 
 	<span class="doccomment">/// Increase the fee used to refund fulfillment of the request
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;increaseRequestFee(uint256,uint256)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"increaseRequestFee(uint256,uint256)"</span>)]
 	</span><span class="kw">fn </span>increase_request_fee(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		request_id: Convert&lt;U256, u64&gt;,
@@ -1104,11 +1106,11 @@
 		<span class="kw">let </span>request_id = request_id.converted();
 
 		<span class="kw">let </span>fee_increase: BalanceOf&lt;Runtime&gt; = fee_increase.try_into().map_err(|<span class="kw">_</span>| {
-			RevertReason::value_is_too_large(<span class="string">&quot;balance type&quot;</span>).in_field(<span class="string">&quot;feeIncrease&quot;</span>)
+			RevertReason::value_is_too_large(<span class="string">"balance type"</span>).in_field(<span class="string">"feeIncrease"</span>)
 		})<span class="question-mark">?</span>;
 
 		Pallet::&lt;Runtime&gt;::increase_request_fee(<span class="kw-2">&amp;</span>handle.context().caller, request_id, fee_increase)
-			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">"{:?}"</span>, e)))<span class="question-mark">?</span>;
 
 		RuntimeHelper::&lt;Runtime&gt;::refund_weight_v2_cost(handle, increase_fee_weight, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
@@ -1116,7 +1118,7 @@
 	}
 	<span class="doccomment">/// Execute request expiration to remove the request from storage
 	/// Transfers `fee` to caller and `deposit` back to `contract_address`
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;purgeExpiredRequest(uint256)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"purgeExpiredRequest(uint256)"</span>)]
 	</span><span class="kw">fn </span>purge_expired_request(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		request_id: Convert&lt;U256, u64&gt;,
@@ -1132,7 +1134,7 @@
 		<span class="kw">let </span>request_id = request_id.converted();
 
 		Pallet::&lt;Runtime&gt;::execute_request_expiration(<span class="kw-2">&amp;</span>handle.context().caller, request_id)
-			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">"{:?}"</span>, e)))<span class="question-mark">?</span>;
 		RuntimeHelper::&lt;Runtime&gt;::refund_weight_v2_cost(
 			handle,
 			execute_request_expiration_weight,

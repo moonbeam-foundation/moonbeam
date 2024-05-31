@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/service/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_service" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../moonbeam_service/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/service/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_service" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../moonbeam_service/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1868,13 +1870,13 @@
 <span class="kw">use </span>fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 <span class="kw">use </span>futures::{FutureExt, StreamExt};
 <span class="kw">use </span>maplit::hashmap;
-<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 </span><span class="kw">pub use </span>moonbase_runtime;
 <span class="kw">use </span>moonbeam_cli_opt::{EthApi <span class="kw">as </span>EthApiCmd, FrontierBackendConfig, RpcConfig};
-<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 </span><span class="kw">pub use </span>moonbeam_runtime;
 <span class="kw">use </span>moonbeam_vrf::VrfDigestsProvider;
-<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 </span><span class="kw">pub use </span>moonriver_runtime;
 <span class="kw">use </span>nimbus_consensus::NimbusManualSealConsensusDataProvider;
 <span class="kw">use </span>nimbus_primitives::{DigestsProvider, NimbusId};
@@ -1933,13 +1935,13 @@
 	ServiceError,
 &gt;;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
 </span><span class="kw">pub type </span>HostFunctions = (
 	frame_benchmarking::benchmarking::HostFunctions,
 	sp_io::SubstrateHostFunctions,
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
 </span><span class="kw">pub type </span>HostFunctions = (
 	sp_io::SubstrateHostFunctions,
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
@@ -1971,27 +1973,27 @@
 	</span>}
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 </span><span class="kw">pub struct </span>MoonbeamCustomizations;
-<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 </span><span class="kw">impl </span>ClientCustomizations <span class="kw">for </span>MoonbeamCustomizations {
 	<span class="kw">fn </span>first_block_number_compatible_with_ed25519_zebra() -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
 		<span class="prelude-val">Some</span>(<span class="number">2_000_000</span>)
 	}
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 </span><span class="kw">pub struct </span>MoonriverCustomizations;
-<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 </span><span class="kw">impl </span>ClientCustomizations <span class="kw">for </span>MoonriverCustomizations {
 	<span class="kw">fn </span>first_block_number_compatible_with_ed25519_zebra() -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
 		<span class="prelude-val">Some</span>(<span class="number">3_000_000</span>)
 	}
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 </span><span class="kw">pub struct </span>MoonbaseCustomizations;
-<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 </span><span class="kw">impl </span>ClientCustomizations <span class="kw">for </span>MoonbaseCustomizations {
 	<span class="kw">fn </span>first_block_number_compatible_with_ed25519_zebra() -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
 		<span class="prelude-val">Some</span>(<span class="number">3_000_000</span>)
@@ -2001,11 +2003,11 @@
 <span class="doccomment">/// Trivial enum representing runtime variant
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">pub enum </span>RuntimeVariant {
-	<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+	<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 	</span>Moonbeam,
-	<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+	<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 	</span>Moonriver,
-	<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+	<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 	</span>Moonbase,
 	Unrecognized,
 }
@@ -2013,11 +2015,11 @@
 <span class="kw">impl </span>RuntimeVariant {
 	<span class="kw">pub fn </span>from_chain_spec(chain_spec: <span class="kw-2">&amp;</span>Box&lt;<span class="kw">dyn </span>ChainSpec&gt;) -&gt; <span class="self">Self </span>{
 		<span class="kw">match </span>chain_spec {
-			<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+			<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 			</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; <span class="self">Self</span>::Moonbeam,
-			<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+			<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 			</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; <span class="self">Self</span>::Moonriver,
-			<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+			<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 			</span>spec <span class="kw">if </span>spec.is_moonbase() =&gt; <span class="self">Self</span>::Moonbase,
 			<span class="kw">_ </span>=&gt; <span class="self">Self</span>::Unrecognized,
 		}
@@ -2042,15 +2044,15 @@
 
 <span class="kw">impl </span>IdentifyVariant <span class="kw">for </span>Box&lt;<span class="kw">dyn </span>ChainSpec&gt; {
 	<span class="kw">fn </span>is_moonbase(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-		<span class="self">self</span>.id().starts_with(<span class="string">&quot;moonbase&quot;</span>)
+		<span class="self">self</span>.id().starts_with(<span class="string">"moonbase"</span>)
 	}
 
 	<span class="kw">fn </span>is_moonbeam(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-		<span class="self">self</span>.id().starts_with(<span class="string">&quot;moonbeam&quot;</span>)
+		<span class="self">self</span>.id().starts_with(<span class="string">"moonbeam"</span>)
 	}
 
 	<span class="kw">fn </span>is_moonriver(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-		<span class="self">self</span>.id().starts_with(<span class="string">&quot;moonriver&quot;</span>)
+		<span class="self">self</span>.id().starts_with(<span class="string">"moonriver"</span>)
 	}
 
 	<span class="kw">fn </span>is_dev(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -2062,7 +2064,7 @@
 	config
 		.base_path
 		.config_dir(config.chain_spec.id())
-		.join(<span class="string">&quot;frontier&quot;</span>)
+		.join(<span class="string">"frontier"</span>)
 		.join(path)
 }
 
@@ -2076,9 +2078,9 @@
 <span class="kw">where
 	</span>C: ProvideRuntimeApi&lt;Block&gt; + StorageProvider&lt;Block, BE&gt; + AuxStore,
 	C: HeaderBackend&lt;Block&gt; + HeaderMetadata&lt;Block, Error = BlockChainError&gt;,
-	C: Send + Sync + <span class="lifetime">&#39;static</span>,
+	C: Send + Sync + <span class="lifetime">'static</span>,
 	C::Api: fp_rpc::EthereumRuntimeRPCApi&lt;Block&gt;,
-	BE: Backend&lt;Block&gt; + <span class="lifetime">&#39;static</span>,
+	BE: Backend&lt;Block&gt; + <span class="lifetime">'static</span>,
 	BE::State: StateBackend&lt;BlakeTwo256&gt;,
 {
 	<span class="kw">let </span>frontier_backend = <span class="kw">match </span>rpc_config.frontier_backend_config {
@@ -2088,20 +2090,20 @@
 				<span class="kw-2">&amp;</span>fc_db::kv::DatabaseSettings {
 					source: <span class="kw">match </span>config.database {
 						DatabaseSource::RocksDb { .. } =&gt; DatabaseSource::RocksDb {
-							path: frontier_database_dir(config, <span class="string">&quot;db&quot;</span>),
+							path: frontier_database_dir(config, <span class="string">"db"</span>),
 							cache_size: <span class="number">0</span>,
 						},
 						DatabaseSource::ParityDb { .. } =&gt; DatabaseSource::ParityDb {
-							path: frontier_database_dir(config, <span class="string">&quot;paritydb&quot;</span>),
+							path: frontier_database_dir(config, <span class="string">"paritydb"</span>),
 						},
 						DatabaseSource::Auto { .. } =&gt; DatabaseSource::Auto {
-							rocksdb_path: frontier_database_dir(config, <span class="string">&quot;db&quot;</span>),
-							paritydb_path: frontier_database_dir(config, <span class="string">&quot;paritydb&quot;</span>),
+							rocksdb_path: frontier_database_dir(config, <span class="string">"db"</span>),
+							paritydb_path: frontier_database_dir(config, <span class="string">"paritydb"</span>),
 							cache_size: <span class="number">0</span>,
 						},
 						<span class="kw">_ </span>=&gt; {
 							<span class="kw">return </span><span class="prelude-val">Err</span>(
-								<span class="string">&quot;Supported db sources: `rocksdb` | `paritydb` | `auto`&quot;</span>.to_string()
+								<span class="string">"Supported db sources: `rocksdb` | `paritydb` | `auto`"</span>.to_string()
 							)
 						}
 					},
@@ -2115,15 +2117,15 @@
 			cache_size,
 		} =&gt; {
 			<span class="kw">let </span>overrides = <span class="kw">crate</span>::rpc::overrides_handle(client.clone());
-			<span class="kw">let </span>sqlite_db_path = frontier_database_dir(config, <span class="string">&quot;sql&quot;</span>);
-			std::fs::create_dir_all(<span class="kw-2">&amp;</span>sqlite_db_path).expect(<span class="string">&quot;failed creating sql db directory&quot;</span>);
+			<span class="kw">let </span>sqlite_db_path = frontier_database_dir(config, <span class="string">"sql"</span>);
+			std::fs::create_dir_all(<span class="kw-2">&amp;</span>sqlite_db_path).expect(<span class="string">"failed creating sql db directory"</span>);
 			<span class="kw">let </span>backend = futures::executor::block_on(fc_db::sql::Backend::new(
 				fc_db::sql::BackendConfig::Sqlite(fc_db::sql::SqliteBackendConfig {
-					path: Path::new(<span class="string">&quot;sqlite:///&quot;</span>)
+					path: Path::new(<span class="string">"sqlite:///"</span>)
 						.join(sqlite_db_path)
-						.join(<span class="string">&quot;frontier.db3&quot;</span>)
+						.join(<span class="string">"frontier.db3"</span>)
 						.to_str()
-						.expect(<span class="string">&quot;frontier sql path error&quot;</span>),
+						.expect(<span class="string">"frontier sql path error"</span>),
 					create_if_missing: <span class="bool-val">true</span>,
 					thread_count: thread_count,
 					cache_size: cache_size,
@@ -2132,7 +2134,7 @@
 				std::num::NonZeroU32::new(num_ops_timeout),
 				overrides.clone(),
 			))
-			.unwrap_or_else(|err| <span class="macro">panic!</span>(<span class="string">&quot;failed creating sql backend: {:?}&quot;</span>, err));
+			.unwrap_or_else(|err| <span class="macro">panic!</span>(<span class="string">"failed creating sql backend: {:?}"</span>, err));
 			fc_db::Backend::Sql(backend)
 		}
 	};
@@ -2159,22 +2161,22 @@
 	ServiceError,
 &gt; {
 	<span class="kw">match </span><span class="kw-2">&amp;</span>config.chain_spec {
-		<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+		<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 		</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; new_chain_ops_inner::&lt;
 			moonriver_runtime::RuntimeApi,
 			MoonriverCustomizations,
 		&gt;(config, rpc_config),
-		<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+		<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 		</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; new_chain_ops_inner::&lt;
 			moonbeam_runtime::RuntimeApi,
 			MoonbeamCustomizations,
 		&gt;(config, rpc_config),
-		<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+		<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 		</span><span class="kw">_ </span>=&gt; new_chain_ops_inner::&lt;moonbase_runtime::RuntimeApi, MoonbaseCustomizations&gt;(
 			config, rpc_config,
 		),
-		<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
-		</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
+		<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
+		</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
 	}
 }
 
@@ -2193,9 +2195,9 @@
 &gt;
 <span class="kw">where
 	</span>Client: From&lt;Arc&lt;<span class="kw">crate</span>::FullClient&lt;RuntimeApi&gt;&gt;&gt;,
-	RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Customizations: ClientCustomizations + <span class="lifetime">&#39;static</span>,
+	Customizations: ClientCustomizations + <span class="lifetime">'static</span>,
 {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
 	<span class="kw">let </span>PartialComponents {
@@ -2213,19 +2215,19 @@
 	))
 }
 
-<span class="comment">// If we&#39;re using prometheus, use a registry with a prefix of `moonbeam`.
+<span class="comment">// If we're using prometheus, use a registry with a prefix of `moonbeam`.
 </span><span class="kw">fn </span>set_prometheus_registry(
 	config: <span class="kw-2">&amp;mut </span>Configuration,
 	skip_prefix: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ServiceError&gt; {
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(PrometheusConfig { registry, .. }) = config.prometheus_config.as_mut() {
 		<span class="kw">let </span>labels = <span class="macro">hashmap! </span>{
-			<span class="string">&quot;chain&quot;</span>.into() =&gt; config.chain_spec.id().into(),
+			<span class="string">"chain"</span>.into() =&gt; config.chain_spec.id().into(),
 		};
 		<span class="kw">let </span>prefix = <span class="kw">if </span>skip_prefix {
 			<span class="prelude-val">None
 		</span>} <span class="kw">else </span>{
-			<span class="prelude-val">Some</span>(<span class="string">&quot;moonbeam&quot;</span>.into())
+			<span class="prelude-val">Some</span>(<span class="string">"moonbeam"</span>.into())
 		};
 
 		<span class="kw-2">*</span>registry = Registry::new_custom(prefix, <span class="prelude-val">Some</span>(labels))<span class="question-mark">?</span>;
@@ -2236,7 +2238,7 @@
 
 <span class="doccomment">/// Builds the PartialComponents for a parachain or development service
 ///
-/// Use this function if you don&#39;t actually need the full service, but just the partial in order to
+/// Use this function if you don't actually need the full service, but just the partial in order to
 /// be able to perform chain operations.
 </span><span class="attr">#[allow(clippy::type_complexity)]
 </span><span class="kw">pub fn </span>new_partial&lt;RuntimeApi, Customizations&gt;(
@@ -2245,9 +2247,9 @@
 	dev_service: bool,
 ) -&gt; PartialComponentsResult&lt;RuntimeApi&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Customizations: ClientCustomizations + <span class="lifetime">&#39;static</span>,
+	Customizations: ClientCustomizations + <span class="lifetime">'static</span>,
 {
 	set_prometheus_registry(config, rpc_config.no_prometheus_prefix)<span class="question-mark">?</span>;
 
@@ -2307,7 +2309,7 @@
 	<span class="kw">let </span>telemetry = telemetry.map(|(worker, telemetry)| {
 		task_manager
 			.spawn_handle()
-			.spawn(<span class="string">&quot;telemetry&quot;</span>, <span class="prelude-val">None</span>, worker.run());
+			.spawn(<span class="string">"telemetry"</span>, <span class="prelude-val">None</span>, worker.run());
 		telemetry
 	});
 
@@ -2393,7 +2395,7 @@
 	collator_options: CollatorOptions,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
 ) -&gt; RelayChainResult&lt;(
-	Arc&lt;(<span class="kw">dyn </span>RelayChainInterface + <span class="lifetime">&#39;static</span>)&gt;,
+	Arc&lt;(<span class="kw">dyn </span>RelayChainInterface + <span class="lifetime">'static</span>)&gt;,
 	<span class="prelude-ty">Option</span>&lt;CollatorPair&gt;,
 )&gt; {
 	<span class="kw">if let </span>cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) =
@@ -2415,7 +2417,7 @@
 <span class="doccomment">/// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-</span><span class="attr">#[sc_tracing::logging::prefix_logs_with(<span class="string">&quot;🌗&quot;</span>)]
+</span><span class="attr">#[sc_tracing::logging::prefix_logs_with(<span class="string">"🌗"</span>)]
 </span><span class="kw">async fn </span>start_node_impl&lt;RuntimeApi, Customizations&gt;(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
@@ -2427,9 +2429,9 @@
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
 ) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;)&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Customizations: ClientCustomizations + <span class="lifetime">&#39;static</span>,
+	Customizations: ClientCustomizations + <span class="lifetime">'static</span>,
 {
 	<span class="kw">let </span><span class="kw-2">mut </span>parachain_config = prepare_node_config(parachain_config);
 
@@ -2558,24 +2560,24 @@
 
 		<span class="kw">let </span>keystore = params.keystore_container.keystore();
 		<span class="kw">move </span>|deny_unsafe, subscription_task_executor| {
-			<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+			<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 			</span><span class="kw">let </span>forced_parent_hashes = {
 				<span class="kw">let </span><span class="kw-2">mut </span>forced_parent_hashes = BTreeMap::new();
 				<span class="comment">// Fixes for https://github.com/paritytech/frontier/pull/570
 				// #1648995
 				</span>forced_parent_hashes.insert(
 					H256::from_str(
-						<span class="string">&quot;0xa352fee3eef9c554a31ec0612af887796a920613358abf3353727760ea14207b&quot;</span>,
+						<span class="string">"0xa352fee3eef9c554a31ec0612af887796a920613358abf3353727760ea14207b"</span>,
 					)
-					.expect(<span class="string">&quot;must be valid hash&quot;</span>),
+					.expect(<span class="string">"must be valid hash"</span>),
 					H256::from_str(
-						<span class="string">&quot;0x0d0fd88778aec08b3a83ce36387dbf130f6f304fc91e9a44c9605eaf8a80ce5d&quot;</span>,
+						<span class="string">"0x0d0fd88778aec08b3a83ce36387dbf130f6f304fc91e9a44c9605eaf8a80ce5d"</span>,
 					)
-					.expect(<span class="string">&quot;must be valid hash&quot;</span>),
+					.expect(<span class="string">"must be valid hash"</span>),
 				);
 				<span class="prelude-val">Some</span>(forced_parent_hashes)
 			};
-			<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
+			<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
 			</span><span class="kw">let </span>forced_parent_hashes = <span class="prelude-val">None</span>;
 
 			<span class="kw">let </span>deps = rpc::FullDeps {
@@ -2652,7 +2654,7 @@
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>telemetry) = telemetry {
 			<span class="kw">let </span>telemetry_handle = telemetry.handle();
 			task_manager.spawn_handle().spawn(
-				<span class="string">&quot;telemetry_hwbench&quot;</span>,
+				<span class="string">"telemetry_hwbench"</span>,
 				<span class="prelude-val">None</span>,
 				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
 			);
@@ -2688,7 +2690,7 @@
 
 	<span class="kw">let </span>BlockImportPipeline::Parachain(block_import) = block_import <span class="kw">else </span>{
 		<span class="kw">return </span><span class="prelude-val">Err</span>(sc_service::Error::Other(
-			<span class="string">&quot;Block import pipeline is not for parachain&quot;</span>.into(),
+			<span class="string">"Block import pipeline is not for parachain"</span>.into(),
 		));
 	};
 
@@ -2705,7 +2707,7 @@
 			transaction_pool,
 			params.keystore_container.keystore(),
 			para_id,
-			collator_key.expect(<span class="string">&quot;Command line arguments do not allow this. qed&quot;</span>),
+			collator_key.expect(<span class="string">"Command line arguments do not allow this. qed"</span>),
 			overseer_handle,
 			announce_block,
 			force_authoring,
@@ -2741,7 +2743,7 @@
 			import_queue: import_queue_service,
 			recovery_handle: Box::new(overseer_handle),
 			collator_key: collator_key.ok_or(sc_service::error::Error::Other(
-				&quot;Collator Key is None&quot;.to_string(),
+				"Collator Key is None".to_string(),
 			))?,
 			relay_chain_slot_duration,
 			sync_service,
@@ -2777,11 +2779,11 @@
 	sync_oracle: SO,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), sc_service::Error&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	sc_client_api::StateBackendFor&lt;TFullBackend&lt;Block&gt;, Block&gt;:
 		sc_client_api::StateBackend&lt;BlakeTwo256&gt;,
-	SO: SyncOracle + Send + Sync + Clone + <span class="lifetime">&#39;static</span>,
+	SO: SyncOracle + Send + Sync + Clone + <span class="lifetime">'static</span>,
 {
 	<span class="kw">let </span>proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 		task_manager.spawn_handle(),
@@ -2823,7 +2825,7 @@
 		};
 
 	<span class="kw">if </span>async_backing {
-		<span class="macro">log::info!</span>(<span class="string">&quot;Collator started with asynchronous backing.&quot;</span>);
+		<span class="macro">log::info!</span>(<span class="string">"Collator started with asynchronous backing."</span>);
 		<span class="kw">let </span>client_clone = client.clone();
 		<span class="kw">let </span>code_hash_provider = <span class="kw">move </span>|block_hash| {
 			client_clone
@@ -2833,7 +2835,7 @@
 				.map(|c| c.hash())
 		};
 		task_manager.spawn_essential_handle().spawn(
-			<span class="string">&quot;nimbus&quot;</span>,
+			<span class="string">"nimbus"</span>,
 			<span class="prelude-val">None</span>,
 			nimbus_consensus::collators::lookahead::run::&lt;
 				Block,
@@ -2873,9 +2875,9 @@
 			}),
 		);
 	} <span class="kw">else </span>{
-		<span class="macro">log::info!</span>(<span class="string">&quot;Collator started without asynchronous backing.&quot;</span>);
+		<span class="macro">log::info!</span>(<span class="string">"Collator started without asynchronous backing."</span>);
 		task_manager.spawn_essential_handle().spawn(
-			<span class="string">&quot;nimbus&quot;</span>,
+			<span class="string">"nimbus"</span>,
 			<span class="prelude-val">None</span>,
 			nimbus_consensus::collators::basic::run::&lt;Block, <span class="kw">_</span>, <span class="kw">_</span>, FullBackend, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;(
 				nimbus_consensus::collators::basic::Params {
@@ -2918,10 +2920,10 @@
 ) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;)&gt;
 <span class="kw">where
 	</span>RuntimeApi:
-		ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+		ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection,
-	Customizations: ClientCustomizations + <span class="lifetime">&#39;static</span>,
+	Customizations: ClientCustomizations + <span class="lifetime">'static</span>,
 {
 	start_node_impl::&lt;RuntimeApi, Customizations&gt;(
 		parachain_config,
@@ -2946,9 +2948,9 @@
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TaskManager, ServiceError&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	Customizations: ClientCustomizations + <span class="lifetime">&#39;static</span>,
+	Customizations: ClientCustomizations + <span class="lifetime">'static</span>,
 {
 	<span class="kw">use </span>async_io::Timer;
 	<span class="kw">use </span>futures::Stream;
@@ -2977,7 +2979,7 @@
 		block_import
 	} <span class="kw">else </span>{
 		<span class="kw">return </span><span class="prelude-val">Err</span>(ServiceError::Other(
-			<span class="string">&quot;Block import pipeline is not dev&quot;</span>.to_string(),
+			<span class="string">"Block import pipeline is not dev"</span>.to_string(),
 		));
 	};
 
@@ -2998,8 +3000,8 @@
 
 	<span class="kw">if </span>config.offchain_worker.enabled {
 		task_manager.spawn_handle().spawn(
-			<span class="string">&quot;offchain-workers-runner&quot;</span>,
-			<span class="string">&quot;offchain-work&quot;</span>,
+			<span class="string">"offchain-workers-runner"</span>,
+			<span class="string">"offchain-work"</span>,
 			sc_offchain::OffchainWorkers::new(sc_offchain::OffchainWorkerOptions {
 				runtime_api_provider: client.clone(),
 				keystore: <span class="prelude-val">Some</span>(keystore_container.keystore()),
@@ -3076,9 +3078,9 @@
 			};
 
 		<span class="kw">let </span>select_chain = maybe_select_chain.expect(
-			<span class="string">&quot;`new_partial` builds a `LongestChainRule` when building dev service.\
+			<span class="string">"`new_partial` builds a `LongestChainRule` when building dev service.\
 				We specified the dev service when calling `new_partial`.\
-				Therefore, a `LongestChainRule` is present. qed.&quot;</span>,
+				Therefore, a `LongestChainRule` is present. qed."</span>,
 		);
 
 		<span class="kw">let </span>client_set_aside_for_cidp = client.clone();
@@ -3101,8 +3103,8 @@
 			};
 
 		task_manager.spawn_essential_handle().spawn_blocking(
-			<span class="string">&quot;authorship_task&quot;</span>,
-			<span class="prelude-val">Some</span>(<span class="string">&quot;block-authoring&quot;</span>),
+			<span class="string">"authorship_task"</span>,
+			<span class="prelude-val">Some</span>(<span class="string">"block-authoring"</span>),
 			run_manual_seal(ManualSealParams {
 				block_import,
 				env,
@@ -3313,14 +3315,14 @@
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>telemetry) = telemetry {
 			<span class="kw">let </span>telemetry_handle = telemetry.handle();
 			task_manager.spawn_handle().spawn(
-				<span class="string">&quot;telemetry_hwbench&quot;</span>,
+				<span class="string">"telemetry_hwbench"</span>,
 				<span class="prelude-val">None</span>,
 				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
 			);
 		}
 	}
 
-	<span class="macro">log::info!</span>(<span class="string">&quot;Development Service Ready&quot;</span>);
+	<span class="macro">log::info!</span>(<span class="string">"Development Service Ready"</span>);
 
 	network_starter.start_network();
 	<span class="prelude-val">Ok</span>(task_manager)
@@ -3346,15 +3348,15 @@
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_set_prometheus_registry_uses_moonbeam_prefix() {
-		<span class="kw">let </span>counter_name = <span class="string">&quot;my_counter&quot;</span>;
-		<span class="kw">let </span>expected_metric_name = <span class="string">&quot;moonbeam_my_counter&quot;</span>;
-		<span class="kw">let </span>counter = Box::new(Counter::new(counter_name, <span class="string">&quot;foobar&quot;</span>).unwrap());
+		<span class="kw">let </span>counter_name = <span class="string">"my_counter"</span>;
+		<span class="kw">let </span>expected_metric_name = <span class="string">"moonbeam_my_counter"</span>;
+		<span class="kw">let </span>counter = Box::new(Counter::new(counter_name, <span class="string">"foobar"</span>).unwrap());
 		<span class="kw">let </span><span class="kw-2">mut </span>config = Configuration {
 			prometheus_config: <span class="prelude-val">Some</span>(PrometheusConfig::new_with_default_registry(
-				<span class="string">&quot;0.0.0.0:8080&quot;</span>.parse().unwrap(),
-				<span class="string">&quot;&quot;</span>.into(),
+				<span class="string">"0.0.0.0:8080"</span>.parse().unwrap(),
+				<span class="string">""</span>.into(),
 			)),
-			..test_config(<span class="string">&quot;test&quot;</span>)
+			..test_config(<span class="string">"test"</span>)
 		};
 
 		set_prometheus_registry(<span class="kw-2">&amp;mut </span>config, <span class="bool-val">false</span>).unwrap();
@@ -3369,14 +3371,14 @@
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_set_prometheus_registry_skips_moonbeam_prefix() {
-		<span class="kw">let </span>counter_name = <span class="string">&quot;my_counter&quot;</span>;
-		<span class="kw">let </span>counter = Box::new(Counter::new(counter_name, <span class="string">&quot;foobar&quot;</span>).unwrap());
+		<span class="kw">let </span>counter_name = <span class="string">"my_counter"</span>;
+		<span class="kw">let </span>counter = Box::new(Counter::new(counter_name, <span class="string">"foobar"</span>).unwrap());
 		<span class="kw">let </span><span class="kw-2">mut </span>config = Configuration {
 			prometheus_config: <span class="prelude-val">Some</span>(PrometheusConfig::new_with_default_registry(
-				<span class="string">&quot;0.0.0.0:8080&quot;</span>.parse().unwrap(),
-				<span class="string">&quot;&quot;</span>.into(),
+				<span class="string">"0.0.0.0:8080"</span>.parse().unwrap(),
+				<span class="string">""</span>.into(),
 			)),
-			..test_config(<span class="string">&quot;test&quot;</span>)
+			..test_config(<span class="string">"test"</span>)
 		};
 
 		set_prometheus_registry(<span class="kw-2">&amp;mut </span>config, <span class="bool-val">true</span>).unwrap();
@@ -3391,18 +3393,18 @@
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_set_prometheus_registry_adds_chain_id_as_label() {
-		<span class="kw">let </span>input_chain_id = <span class="string">&quot;moonriver&quot;</span>;
+		<span class="kw">let </span>input_chain_id = <span class="string">"moonriver"</span>;
 
 		<span class="kw">let </span><span class="kw-2">mut </span>expected_label = LabelPair::default();
-		expected_label.set_name(<span class="string">&quot;chain&quot;</span>.to_owned());
-		expected_label.set_value(<span class="string">&quot;moonriver&quot;</span>.to_owned());
+		expected_label.set_name(<span class="string">"chain"</span>.to_owned());
+		expected_label.set_value(<span class="string">"moonriver"</span>.to_owned());
 		<span class="kw">let </span>expected_chain_label = <span class="prelude-val">Some</span>(expected_label);
 
-		<span class="kw">let </span>counter = Box::new(Counter::new(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;foobar&quot;</span>).unwrap());
+		<span class="kw">let </span>counter = Box::new(Counter::new(<span class="string">"foo"</span>, <span class="string">"foobar"</span>).unwrap());
 		<span class="kw">let </span><span class="kw-2">mut </span>config = Configuration {
 			prometheus_config: <span class="prelude-val">Some</span>(PrometheusConfig::new_with_default_registry(
-				<span class="string">&quot;0.0.0.0:8080&quot;</span>.parse().unwrap(),
-				<span class="string">&quot;&quot;</span>.into(),
+				<span class="string">"0.0.0.0:8080"</span>.parse().unwrap(),
+				<span class="string">""</span>.into(),
 			)),
 			..test_config(input_chain_id)
 		};
@@ -3422,7 +3424,7 @@
 			.unwrap()
 			.get_label()
 			.into_iter()
-			.find(|x| x.get_name() == <span class="string">&quot;chain&quot;</span>)
+			.find(|x| x.get_name() == <span class="string">"chain"</span>)
 			.cloned();
 
 		<span class="macro">assert_eq!</span>(actual_chain_label, expected_chain_label);
@@ -3450,8 +3452,8 @@
 		// This test ensures we should never panic
 		</span><span class="kw">fn </span>invalid_sig() -&gt; sp_core::ed25519::Signature {
 			<span class="kw">let </span>signature = <span class="macro">hex_literal::hex!</span>(
-				<span class="string">&quot;a25b94f9c64270fdfffa673f11cfe961633e3e4972e6940a3cf
-		7351dd90b71447041a83583a52cee1cf21b36ba7fd1d0211dca58b48d997fc78d9bc82ab7a38e&quot;
+				<span class="string">"a25b94f9c64270fdfffa673f11cfe961633e3e4972e6940a3cf
+		7351dd90b71447041a83583a52cee1cf21b36ba7fd1d0211dca58b48d997fc78d9bc82ab7a38e"
 			</span>);
 			sp_core::ed25519::Signature::from_raw(signature[<span class="number">0</span>..<span class="number">64</span>].try_into().unwrap())
 		}
@@ -3508,14 +3510,14 @@
 	}
 
 	<span class="kw">fn </span>test_config(chain_id: <span class="kw-2">&amp;</span>str) -&gt; Configuration {
-		<span class="kw">let </span>network_config = NetworkConfiguration::new(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>, Default::default(), <span class="prelude-val">None</span>);
-		<span class="kw">let </span>runtime = tokio::runtime::Runtime::new().expect(<span class="string">&quot;failed creating tokio runtime&quot;</span>);
+		<span class="kw">let </span>network_config = NetworkConfiguration::new(<span class="string">""</span>, <span class="string">""</span>, Default::default(), <span class="prelude-val">None</span>);
+		<span class="kw">let </span>runtime = tokio::runtime::Runtime::new().expect(<span class="string">"failed creating tokio runtime"</span>);
 		<span class="kw">let </span>spec = ChainSpec::builder(<span class="kw-2">&amp;</span>[<span class="number">0u8</span>], Extensions::default())
-			.with_name(<span class="string">&quot;test&quot;</span>)
+			.with_name(<span class="string">"test"</span>)
 			.with_id(chain_id)
 			.with_chain_type(ChainType::Local)
 			.with_genesis_config(testnet_genesis(
-				AccountId::from_str(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>).unwrap(),
+				AccountId::from_str(<span class="string">"6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b"</span>).unwrap(),
 				<span class="macro">vec!</span>[],
 				<span class="macro">vec!</span>[],
 				<span class="macro">vec!</span>[],
@@ -3528,18 +3530,18 @@
 			.build();
 
 		Configuration {
-			impl_name: String::from(<span class="string">&quot;test-impl&quot;</span>),
-			impl_version: String::from(<span class="string">&quot;0.1&quot;</span>),
+			impl_name: String::from(<span class="string">"test-impl"</span>),
+			impl_version: String::from(<span class="string">"0.1"</span>),
 			role: Role::Full,
 			tokio_handle: runtime.handle().clone(),
 			transaction_pool: Default::default(),
 			network: network_config,
 			keystore: KeystoreConfig::Path {
-				path: <span class="string">&quot;key&quot;</span>.into(),
+				path: <span class="string">"key"</span>.into(),
 				password: <span class="prelude-val">None</span>,
 			},
 			database: DatabaseSource::RocksDb {
-				path: <span class="string">&quot;db&quot;</span>.into(),
+				path: <span class="string">"db"</span>.into(),
 				cache_size: <span class="number">128</span>,
 			},
 			trie_cache_maximum_size: <span class="prelude-val">Some</span>(<span class="number">16777216</span>),
@@ -3570,7 +3572,7 @@
 			tracing_receiver: Default::default(),
 			max_runtime_instances: <span class="number">8</span>,
 			announce_block: <span class="bool-val">true</span>,
-			base_path: BasePath::new(Path::new(<span class="string">&quot;&quot;</span>)),
+			base_path: BasePath::new(Path::new(<span class="string">""</span>)),
 			informant_output_format: Default::default(),
 			wasmtime_precompiled: <span class="prelude-val">None</span>,
 			runtime_cache_size: <span class="number">2</span>,
@@ -3588,7 +3590,7 @@
 
 <span class="kw">impl</span>&lt;RuntimeApi&gt; PendingConsensusDataProvider&lt;RuntimeApi&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 {
 	<span class="kw">pub fn </span>new(client: Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;, keystore: Arc&lt;<span class="kw">dyn </span>Keystore&gt;) -&gt; <span class="self">Self </span>{
@@ -3599,7 +3601,7 @@
 <span class="kw">impl</span>&lt;RuntimeApi&gt; fc_rpc::pending::ConsensusDataProvider&lt;Block&gt;
 	<span class="kw">for </span>PendingConsensusDataProvider&lt;RuntimeApi&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 {
 	<span class="kw">fn </span>create_digest(
@@ -3613,7 +3615,7 @@
 			</span>.client
 			.header(hash)
 			.map_err(|e| sp_inherents::Error::Application(Box::new(e)))<span class="question-mark">?
-			</span>.expect(<span class="string">&quot;Best block header should be present&quot;</span>)
+			</span>.expect(<span class="string">"Best block header should be present"</span>)
 			.digest;
 		<span class="comment">// Get the nimbus id from the digest.
 		</span><span class="kw">let </span>nimbus_id = digest
@@ -3623,13 +3625,13 @@
 				<span class="kw">if let </span>DigestItem::PreRuntime(nimbus_primitives::NIMBUS_ENGINE_ID, nimbus_id) = x {
 					<span class="prelude-val">Some</span>(
 						NimbusId::from_slice(nimbus_id.as_slice())
-							.expect(<span class="string">&quot;Nimbus pre-runtime digest should be valid&quot;</span>),
+							.expect(<span class="string">"Nimbus pre-runtime digest should be valid"</span>),
 					)
 				} <span class="kw">else </span>{
 					<span class="prelude-val">None
 				</span>}
 			})
-			.expect(<span class="string">&quot;Nimbus pre-runtime digest should be present&quot;</span>);
+			.expect(<span class="string">"Nimbus pre-runtime digest should be present"</span>);
 		<span class="comment">// Remove the old VRF digest.
 		</span><span class="kw">let </span>pos = digest.logs.iter().position(|x| {
 			<span class="macro">matches!</span>(

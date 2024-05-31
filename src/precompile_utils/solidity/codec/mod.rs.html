@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/solidity/codec/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="precompile_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../precompile_utils/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/solidity/codec/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="precompile_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../../precompile_utils/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -389,7 +391,7 @@
 </span><span class="kw">pub mod </span>bytes;
 <span class="kw">pub mod </span>native;
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;codec-xcm&quot;</span>, test))]
+<span class="attr">#[cfg(any(feature = <span class="string">"codec-xcm"</span>, test))]
 </span><span class="kw">pub mod </span>xcm;
 
 <span class="kw">use </span><span class="kw">crate</span>::solidity::revert::{MayRevert, RevertReason};
@@ -479,21 +481,21 @@
 
 <span class="doccomment">/// Wrapper around an EVM input slice.
 </span><span class="attr">#[derive(Clone, Copy, Debug)]
-</span><span class="kw">pub struct </span>Reader&lt;<span class="lifetime">&#39;inner</span>&gt; {
-	input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;inner </span>[u8],
+</span><span class="kw">pub struct </span>Reader&lt;<span class="lifetime">'inner</span>&gt; {
+	input: <span class="kw-2">&amp;</span><span class="lifetime">'inner </span>[u8],
 	cursor: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;inner</span>&gt; Reader&lt;<span class="lifetime">&#39;inner</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'inner</span>&gt; Reader&lt;<span class="lifetime">'inner</span>&gt; {
 	<span class="doccomment">/// Create a Reader.
-	</span><span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;inner </span>[u8]) -&gt; <span class="self">Self </span>{
+	</span><span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">'inner </span>[u8]) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{ input, cursor: <span class="number">0 </span>}
 	}
 
 	<span class="doccomment">/// Create a Reader while skipping an initial selector.
-	</span><span class="kw">pub fn </span>new_skip_selector(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;inner </span>[u8]) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
+	</span><span class="kw">pub fn </span>new_skip_selector(input: <span class="kw-2">&amp;</span><span class="lifetime">'inner </span>[u8]) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
 		<span class="kw">if </span>input.len() &lt; <span class="number">4 </span>{
-			<span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::read_out_of_bounds(<span class="string">&quot;selector&quot;</span>).into());
+			<span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::read_out_of_bounds(<span class="string">"selector"</span>).into());
 		}
 
 		<span class="prelude-val">Ok</span>(<span class="self">Self</span>::new(<span class="kw-2">&amp;</span>input[<span class="number">4</span>..]))
@@ -514,7 +516,7 @@
 	}
 
 	<span class="doccomment">/// Read raw bytes from the input.
-	/// Doesn&#39;t handle any alignment checks, prefer using `read` instead of possible.
+	/// Doesn't handle any alignment checks, prefer using `read` instead of possible.
 	/// Returns an error if trying to parse out of bounds.
 	</span><span class="kw">pub fn </span>read_raw_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) -&gt; MayRevert&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
 		<span class="kw">let </span>range = <span class="self">self</span>.move_cursor(len)<span class="question-mark">?</span>;
@@ -522,7 +524,7 @@
 		<span class="kw">let </span>data = <span class="self">self
 			</span>.input
 			.get(range)
-			.ok_or_else(|| RevertReason::read_out_of_bounds(<span class="string">&quot;raw bytes&quot;</span>))<span class="question-mark">?</span>;
+			.ok_or_else(|| RevertReason::read_out_of_bounds(<span class="string">"raw bytes"</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(data)
 	}
@@ -531,9 +533,9 @@
 	</span><span class="kw">pub fn </span>read_pointer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
 		<span class="kw">let </span>offset: usize = <span class="self">self
 			</span>.read::&lt;U256&gt;()
-			.map_err(|<span class="kw">_</span>| RevertReason::read_out_of_bounds(<span class="string">&quot;pointer&quot;</span>))<span class="question-mark">?
+			.map_err(|<span class="kw">_</span>| RevertReason::read_out_of_bounds(<span class="string">"pointer"</span>))<span class="question-mark">?
 			</span>.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;pointer&quot;</span>))<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"pointer"</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">if </span>offset &gt;= <span class="self">self</span>.input.len() {
 			<span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::PointerToOutofBound.into());
@@ -552,7 +554,7 @@
 		<span class="kw">let </span>data = <span class="self">self
 			</span>.input
 			.get(range)
-			.ok_or_else(|| RevertReason::read_out_of_bounds(<span class="string">&quot;raw bytes&quot;</span>))<span class="question-mark">?</span>;
+			.ok_or_else(|| RevertReason::read_out_of_bounds(<span class="string">"raw bytes"</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(data)
 	}
@@ -578,7 +580,7 @@
 /// Functions takes `self` to allow chaining all calls like
 /// `Writer::new().write(...).write(...).build()`.
 /// While it could be more ergonomic to take &amp;mut self, this would
-/// prevent to have a `build` function that don&#39;t clone the output.
+/// prevent to have a `build` function that don't clone the output.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>Writer {
 	<span class="kw">pub</span>(<span class="kw">crate</span>) data: Vec&lt;u8&gt;,
@@ -631,7 +633,7 @@
 		}
 	}
 
-	<span class="doccomment">/// Add offseted data at the end of this writer&#39;s data, updating the offsets.
+	<span class="doccomment">/// Add offseted data at the end of this writer's data, updating the offsets.
 	</span><span class="kw">fn </span>bake_offsets(output: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;, offsets: Vec&lt;OffsetChunk&gt;) {
 		<span class="kw">for </span><span class="kw-2">mut </span>offset_chunk <span class="kw">in </span>offsets {
 			<span class="kw">let </span>offset_position = offset_chunk.offset_position;
@@ -639,8 +641,8 @@
 
 			<span class="comment">// The offset is the distance between the start of the data and the
 			// start of the pointed data (start of a struct, length of an array).
-			// Offsets in inner data are relative to the start of their respective &quot;container&quot;.
-			// However in arrays the &quot;container&quot; is actually the item itself instead of the whole
+			// Offsets in inner data are relative to the start of their respective "container".
+			// However in arrays the "container" is actually the item itself instead of the whole
 			// array, which is corrected by `offset_shift`.
 			</span><span class="kw">let </span>free_space_offset = output.len() - offset_chunk.offset_shift;
 
@@ -654,7 +656,7 @@
 	}
 
 	<span class="doccomment">/// Write arbitrary bytes.
-	/// Doesn&#39;t handle any alignement checks, prefer using `write` instead if possible.
+	/// Doesn't handle any alignement checks, prefer using `write` instead if possible.
 	</span><span class="kw">fn </span>write_raw_bytes(<span class="kw-2">mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self </span>{
 		<span class="self">self</span>.data.extend_from_slice(value);
 		<span class="self">self
@@ -668,7 +670,7 @@
 
 	<span class="doccomment">/// Writes a pointer to given data.
 	/// The data will be appended when calling `build`.
-	/// Initially write a dummy value as offset in this writer&#39;s data, which will be replaced by
+	/// Initially write a dummy value as offset in this writer's data, which will be replaced by
 	/// the correct offset once the pointed data is appended.
 	///
 	/// Takes `&amp;mut self` since its goal is to be used inside `solidity::Codec` impl and not in chains.

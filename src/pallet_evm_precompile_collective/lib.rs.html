@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/collective/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_collective" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_evm_precompile_collective/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/collective/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_collective" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_evm_precompile_collective/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -373,7 +375,7 @@
 
 </span><span class="doccomment">//! Precompile to interact with pallet_collective instances.
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
 </span><span class="kw">use </span>core::marker::PhantomData;
 <span class="kw">use </span>fp_evm::Log;
@@ -396,16 +398,16 @@
 </span><span class="kw">mod </span>tests;
 
 <span class="doccomment">/// Solidity selector of the Executed log.
-</span><span class="kw">pub const </span>SELECTOR_LOG_EXECUTED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Executed(bytes32)&quot;</span>);
+</span><span class="kw">pub const </span>SELECTOR_LOG_EXECUTED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"Executed(bytes32)"</span>);
 
 <span class="doccomment">/// Solidity selector of the Proposed log.
-</span><span class="kw">pub const </span>SELECTOR_LOG_PROPOSED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Proposed(address,uint32,bytes32,uint32)&quot;</span>);
+</span><span class="kw">pub const </span>SELECTOR_LOG_PROPOSED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"Proposed(address,uint32,bytes32,uint32)"</span>);
 
 <span class="doccomment">/// Solidity selector of the Voted log.
-</span><span class="kw">pub const </span>SELECTOR_LOG_VOTED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Voted(address,bytes32,bool)&quot;</span>);
+</span><span class="kw">pub const </span>SELECTOR_LOG_VOTED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"Voted(address,bytes32,bool)"</span>);
 
 <span class="doccomment">/// Solidity selector of the Closed log.
-</span><span class="kw">pub const </span>SELECTOR_LOG_CLOSED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Closed(bytes32)&quot;</span>);
+</span><span class="kw">pub const </span>SELECTOR_LOG_CLOSED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"Closed(bytes32)"</span>);
 
 <span class="kw">pub fn </span>log_executed(address: <span class="kw">impl </span>Into&lt;H160&gt;, hash: H256) -&gt; Log {
 	log2(address.into(), SELECTOR_LOG_EXECUTED, hash, Vec::new())
@@ -445,12 +447,12 @@
 <span class="kw">type </span>GetProposalLimit = ConstU32&lt;{ <span class="number">2u32</span>.pow(<span class="number">16</span>) }&gt;;
 <span class="kw">type </span>DecodeLimit = ConstU32&lt;<span class="number">8</span>&gt;;
 
-<span class="kw">pub struct </span>CollectivePrecompile&lt;Runtime, Instance: <span class="lifetime">&#39;static</span>&gt;(PhantomData&lt;(Runtime, Instance)&gt;);
+<span class="kw">pub struct </span>CollectivePrecompile&lt;Runtime, Instance: <span class="lifetime">'static</span>&gt;(PhantomData&lt;(Runtime, Instance)&gt;);
 
 <span class="attr">#[precompile_utils::precompile]
 </span><span class="kw">impl</span>&lt;Runtime, Instance&gt; CollectivePrecompile&lt;Runtime, Instance&gt;
 <span class="kw">where
-	</span>Instance: <span class="lifetime">&#39;static</span>,
+	</span>Instance: <span class="lifetime">'static</span>,
 	Runtime: pallet_collective::Config&lt;Instance&gt; + pallet_evm::Config,
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo + Decode,
 	Runtime::RuntimeCall: From&lt;pallet_collective::Call&lt;Runtime, Instance&gt;&gt;,
@@ -460,7 +462,7 @@
 	H256: From&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;
 		+ Into&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;,
 {
-	<span class="attr">#[precompile::public(<span class="string">&quot;execute(bytes)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"execute(bytes)"</span>)]
 	</span><span class="kw">fn </span>execute(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		proposal: BoundedBytes&lt;GetProposalLimit&gt;,
@@ -472,15 +474,15 @@
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>proposal_length: u32 = proposal.len().try_into().map_err(|<span class="kw">_</span>| {
-			RevertReason::value_is_too_large(<span class="string">&quot;uint32&quot;</span>)
-				.in_field(<span class="string">&quot;length&quot;</span>)
-				.in_field(<span class="string">&quot;proposal&quot;</span>)
+			RevertReason::value_is_too_large(<span class="string">"uint32"</span>)
+				.in_field(<span class="string">"length"</span>)
+				.in_field(<span class="string">"proposal"</span>)
 		})<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>proposal =
 			Runtime::RuntimeCall::decode_with_depth_limit(DecodeLimit::get(), <span class="kw-2">&amp;mut &amp;*</span>proposal)
 				.map_err(|<span class="kw">_</span>| {
-					RevertReason::custom(<span class="string">&quot;Failed to decode proposal&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>)
+					RevertReason::custom(<span class="string">"Failed to decode proposal"</span>).in_field(<span class="string">"proposal"</span>)
 				})<span class="question-mark">?
 				</span>.into();
 		<span class="kw">let </span>proposal = Box::new(proposal);
@@ -501,7 +503,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;propose(uint32,bytes)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"propose(uint32,bytes)"</span>)]
 	</span><span class="kw">fn </span>propose(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		threshold: u32,
@@ -512,9 +514,9 @@
 
 		<span class="kw">let </span>proposal: Vec&lt;<span class="kw">_</span>&gt; = proposal.into();
 		<span class="kw">let </span>proposal_length: u32 = proposal.len().try_into().map_err(|<span class="kw">_</span>| {
-			RevertReason::value_is_too_large(<span class="string">&quot;uint32&quot;</span>)
-				.in_field(<span class="string">&quot;length&quot;</span>)
-				.in_field(<span class="string">&quot;proposal&quot;</span>)
+			RevertReason::value_is_too_large(<span class="string">"uint32"</span>)
+				.in_field(<span class="string">"length"</span>)
+				.in_field(<span class="string">"proposal"</span>)
 		})<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>proposal_index = pallet_collective::Pallet::&lt;Runtime, Instance&gt;::proposal_count();
@@ -539,7 +541,7 @@
 		<span class="kw">let </span>proposal =
 			Runtime::RuntimeCall::decode_with_depth_limit(DecodeLimit::get(), <span class="kw-2">&amp;mut &amp;*</span>proposal)
 				.map_err(|<span class="kw">_</span>| {
-					RevertReason::custom(<span class="string">&quot;Failed to decode proposal&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>)
+					RevertReason::custom(<span class="string">"Failed to decode proposal"</span>).in_field(<span class="string">"proposal"</span>)
 				})<span class="question-mark">?
 				</span>.into();
 		<span class="kw">let </span>proposal = Box::new(proposal);
@@ -563,7 +565,7 @@
 		<span class="prelude-val">Ok</span>(proposal_index)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;vote(bytes32,uint32,bool)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"vote(bytes32,uint32,bool)"</span>)]
 	</span><span class="kw">fn </span>vote(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		proposal_hash: H256,
@@ -597,7 +599,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;close(bytes32,uint32,uint64,uint32)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"close(bytes32,uint32,uint64,uint32)"</span>)]
 	</span><span class="kw">fn </span>close(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		proposal_hash: H256,
@@ -636,7 +638,7 @@
 		<span class="prelude-val">Ok</span>(executed)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;proposalHash(bytes)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"proposalHash(bytes)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>proposal_hash(
 		_handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -648,7 +650,7 @@
 		<span class="prelude-val">Ok</span>(hash)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;proposals()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"proposals()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>proposals(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Vec&lt;H256&gt;&gt; {
 		<span class="comment">// Proposals: BoundedVec(32 * MaxProposals)
@@ -662,7 +664,7 @@
 		<span class="prelude-val">Ok</span>(proposals)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;members()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"members()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>members(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Vec&lt;Address&gt;&gt; {
 		<span class="comment">// Members: Vec(20 * MaxMembers)
@@ -676,7 +678,7 @@
 		<span class="prelude-val">Ok</span>(members)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;isMember(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"isMember(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>is_member(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, account: Address) -&gt; EvmResult&lt;bool&gt; {
 		<span class="comment">// Members: Vec(20 * MaxMembers)
@@ -691,7 +693,7 @@
 		<span class="prelude-val">Ok</span>(is_member)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;prime()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"prime()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>prime(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Address&gt; {
 		<span class="comment">// Prime
