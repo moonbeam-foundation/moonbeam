@@ -15,11 +15,11 @@ class RuntimeConstant<T> {
   /*
    * Get the expected value for a given runtime version. Lookup for the closest smaller runtime
    */
-  get(targetVersion: number): T {
+  get(runtimeVersion: number): T {
     const versions = Object.keys(this.values).map(Number); // slow but easier to maintain
     let value;
     for (let i = 0; i < versions.length; i++) {
-      if (versions[i] > targetVersion) {
+      if (versions[i] > runtimeVersion) {
         break;
       }
       value = this.values[versions[i]];
