@@ -24,7 +24,9 @@ jobs:
         with:
           ref: ${{ github.event.inputs.sha }}
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
       - name: Build Node
         run: cargo build --profile=production --all
       - name: Save parachain binary
