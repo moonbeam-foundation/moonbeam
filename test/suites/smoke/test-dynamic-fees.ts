@@ -51,7 +51,8 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     let blockData: BlockFilteredRecord[];
-    let allBlocks: BlockFilteredRecord[]; // includes previous block & blocks from blockData
+    // includes blockData and also the previous block, needed for fee change computation.
+    let allBlocks: BlockFilteredRecord[];
     let runtime: "MOONRIVER" | "MOONBEAM" | "MOONBASE";
     let paraApi: ApiPromise;
     let skipAll = false;
