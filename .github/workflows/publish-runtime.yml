@@ -29,8 +29,19 @@ jobs:
           name: original-tools
           path: tools
 
+  read-rust-version:
+    runs-on: bare-metal
+    outputs:
+      rust_version: ${{ steps.get-version.outputs.rust_version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: get-version
+        run: |
+          RUST_VERSION=$(cat rust-toolchain | grep channel | grep --only-matching --perl-regexp "(\d+\.){2}\d+")
+          echo "::set-output name=rust_version::$RUST_VERSION"
+
   build-srtool-runtimes:
-    needs: ["setup-scripts"]
+    needs: ["setup-scripts", "read-rust-version"]
     runs-on: bare-metal
     strategy:
       matrix:
@@ -38,7 +49,7 @@ jobs:
         srtool_image:
           - moonbeamfoundation/srtool
         srtool_image_tag:
-          - 1.77.0
+          - ${{ needs.read-rust-version.outputs.rust_version }}
     steps:
       - uses: actions/checkout@v4
         with:
