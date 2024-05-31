@@ -102,6 +102,8 @@ describeSuite({
       paraApi = context.polkadotJs("para");
 
       const blockNumArray = atBlock > 0 ? [atBlock] : await getBlockArray(paraApi, timePeriod);
+      // Retrieves the block before the first block of the data. This is used later to compute
+      // the fee changes of the first block of the data.
       const previousBlockNumber = Math.max(blockNumArray[0] - 1, 0);
 
       // Retrieves version of the last block to check.
