@@ -217,7 +217,7 @@ describeSuite({
         }
         const enriched = blockData.map(({ blockNum, fillPermill, nextFeeMultiplier }) => {
           const change = checkMultiplier(
-            blockData.find((blockDatum) => blockDatum.blockNum == blockNum - 1)!,
+            allBlocks.find((blockDatum) => blockDatum.blockNum == blockNum - 1)!,
             nextFeeMultiplier
           );
 
