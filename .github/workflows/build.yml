@@ -226,7 +226,9 @@ jobs:
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
       - name: Check Cargo.toml files format with toml_sort
         run: ./scripts/check-cargo-toml-files-format.sh
 
