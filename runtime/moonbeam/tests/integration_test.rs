@@ -32,14 +32,16 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
+use moonbeam_runtime::currency::{GIGAWEI, WEI};
 use moonbeam_runtime::{
 	asset_config::ForeignAssetInstance,
 	currency::GLMR,
 	xcm_config::{CurrencyId, SelfReserve},
-	AccountId, Balances, CrowdloanRewards, OpenTechCommitteeCollective, ParachainStaking,
-	PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
-	TransactionPayment, TreasuryCouncilCollective, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	AccountId, Balances, CrowdloanRewards, Executive, OpenTechCommitteeCollective,
+	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
+	RuntimeEvent, System, TransactionPayment, TransactionPaymentAsGasPrice,
+	TreasuryCouncilCollective, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	WEEKS,
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
@@ -2674,7 +2676,7 @@ mod fee_tests {
 	};
 	use moonbeam_runtime::{
 		currency, LengthToFee, MinimumMultiplier, RuntimeBlockWeights, SlowAdjustingFeeUpdate,
-		TargetBlockFullness, NORMAL_WEIGHT, WEIGHT_PER_GAS,
+		TargetBlockFullness, TransactionPaymentAsGasPrice, NORMAL_WEIGHT, WEIGHT_PER_GAS,
 	};
 	use sp_core::Get;
 	use sp_runtime::{BuildStorage, FixedPointNumber, Perbill};

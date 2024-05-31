@@ -22,24 +22,24 @@ mod common;
 use common::*;
 
 use fp_evm::{Context, IsPrecompileResult};
+use frame_support::traits::fungible::Inspect;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
-	traits::{
-		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, PalletInfo, StorageInfo,
-		StorageInfoTrait,
-	},
+	traits::{Currency as CurrencyT, EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
+use moonriver_runtime::currency::{GIGAWEI, WEI};
 use moonriver_runtime::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve},
-	AssetId, OpenTechCommitteeCollective, PolkadotXcm, Precompiles, RuntimeBlockWeights,
-	TransactionPayment, TreasuryCouncilCollective, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	AssetId, Balances, CrowdloanRewards, Executive, OpenTechCommitteeCollective, PolkadotXcm,
+	Precompiles, RuntimeBlockWeights, TransactionPayment, TransactionPaymentAsGasPrice,
+	TreasuryCouncilCollective, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -2587,7 +2587,7 @@ mod fee_tests {
 	};
 	use moonriver_runtime::{
 		currency, LengthToFee, MinimumMultiplier, RuntimeBlockWeights, SlowAdjustingFeeUpdate,
-		TargetBlockFullness, NORMAL_WEIGHT, WEIGHT_PER_GAS,
+		TargetBlockFullness, TransactionPaymentAsGasPrice, NORMAL_WEIGHT, WEIGHT_PER_GAS,
 	};
 	use sp_core::Get;
 	use sp_runtime::{BuildStorage, FixedPointNumber, Perbill};
