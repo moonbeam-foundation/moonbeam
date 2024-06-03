@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/precompile_set.rs`."><title>precompile_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="precompile_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../precompile_utils/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/precompile_set.rs`."><title>precompile_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="precompile_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../precompile_utils/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1292,7 +1290,7 @@
 }
 
 <span class="attr">#[derive(Debug, Clone)]
-#[cfg_attr(feature = <span class="string">"testing"</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;testing&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
 </span><span class="kw">pub enum </span>PrecompileKind {
 	Single(H160),
 	Multiple(Vec&lt;H160&gt;),
@@ -1300,7 +1298,7 @@
 }
 
 <span class="attr">#[derive(Debug, Clone)]
-#[cfg_attr(feature = <span class="string">"testing"</span>, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = <span class="string">&quot;testing&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
 </span><span class="kw">pub struct </span>PrecompileCheckSummary {
 	<span class="kw">pub </span>name: <span class="prelude-ty">Option</span>&lt;String&gt;,
 	<span class="kw">pub </span>precompile_kind: PrecompileKind,
@@ -1425,7 +1423,7 @@
 	</span>}
 
 	<span class="kw">fn </span>description() -&gt; String {
-		<span class="string">"Allowed for all selectors and callers"</span>.into()
+		<span class="string">&quot;Allowed for all selectors and callers&quot;</span>.into()
 	}
 }
 
@@ -1436,7 +1434,7 @@
 	}
 
 	<span class="kw">fn </span>description() -&gt; String {
-		<span class="macro">alloc::format!</span>(<span class="string">"Allowed for all selectors only if called from {}"</span>, T::get())
+		<span class="macro">alloc::format!</span>(<span class="string">&quot;Allowed for all selectors only if called from {}&quot;</span>, T::get())
 	}
 }
 
@@ -1469,7 +1467,7 @@
 
 <span class="doccomment">/// The type of EVM address.
 </span><span class="attr">#[derive(PartialEq)]
-#[cfg_attr(feature = <span class="string">"std"</span>, derive(Debug))]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Debug))]
 </span><span class="kw">pub enum </span>AddressType {
 	<span class="doccomment">/// The code stored at the address is less than 5 bytes, but not well known.
 	</span>Unknown,
@@ -1522,7 +1520,7 @@
 }
 
 <span class="doccomment">/// Common checks for precompile and precompile sets.
-/// Don't contain recursion check as precompile sets have recursion check for each member.
+/// Don&#39;t contain recursion check as precompile sets have recursion check for each member.
 </span><span class="kw">fn </span>common_checks&lt;R: pallet_evm::Config, C: PrecompileChecks&gt;(
 	handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 ) -&gt; EvmResult&lt;()&gt; {
@@ -1532,7 +1530,7 @@
 	<span class="comment">// Check DELEGATECALL config.
 	</span><span class="kw">let </span>accept_delegate_call = C::accept_delegate_call().unwrap_or(<span class="bool-val">false</span>);
 	<span class="kw">if </span>!accept_delegate_call &amp;&amp; code_address != handle.context().address {
-		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">"Cannot be called with DELEGATECALL or CALLCODE"</span>));
+		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Cannot be called with DELEGATECALL or CALLCODE&quot;</span>));
 	}
 
 	<span class="comment">// Extract which selector is called.
@@ -1547,14 +1545,14 @@
 		C::callable_by_smart_contract(caller, selector).unwrap_or(<span class="bool-val">false</span>);
 	<span class="kw">if </span>!callable_by_smart_contract {
 		<span class="kw">if </span>!is_address_eoa_or_precompile::&lt;R&gt;(handle, caller)<span class="question-mark">? </span>{
-			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">"Function not callable by smart contracts"</span>));
+			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Function not callable by smart contracts&quot;</span>));
 		}
 	}
 
 	<span class="comment">// Is this selector callable from a precompile?
 	</span><span class="kw">let </span>callable_by_precompile = C::callable_by_precompile(caller, selector).unwrap_or(<span class="bool-val">false</span>);
 	<span class="kw">if </span>!callable_by_precompile &amp;&amp; is_precompile_or_fail::&lt;R&gt;(caller, handle.remaining_gas())<span class="question-mark">? </span>{
-		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">"Function not callable by precompiles"</span>));
+		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Function not callable by precompiles&quot;</span>));
 	}
 
 	<span class="prelude-val">Ok</span>(())
@@ -1577,12 +1575,12 @@
 	}
 }
 
-<span class="kw">pub struct </span>RestrictiveHandle&lt;<span class="lifetime">'a</span>, H&gt; {
-	handle: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>H,
+<span class="kw">pub struct </span>RestrictiveHandle&lt;<span class="lifetime">&#39;a</span>, H&gt; {
+	handle: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>H,
 	allow_subcalls: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, H: PrecompileHandle&gt; PrecompileHandle <span class="kw">for </span>RestrictiveHandle&lt;<span class="lifetime">'a</span>, H&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, H: PrecompileHandle&gt; PrecompileHandle <span class="kw">for </span>RestrictiveHandle&lt;<span class="lifetime">&#39;a</span>, H&gt; {
 	<span class="kw">fn </span>call(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		address: H160,
@@ -1595,7 +1593,7 @@
 		<span class="kw">if </span>!<span class="self">self</span>.allow_subcalls {
 			<span class="kw">return </span>(
 				evm::ExitReason::Revert(evm::ExitRevert::Reverted),
-				<span class="kw">crate</span>::solidity::revert::revert_as_bytes(<span class="string">"subcalls disabled for this precompile"</span>),
+				<span class="kw">crate</span>::solidity::revert::revert_as_bytes(<span class="string">&quot;subcalls disabled for this precompile&quot;</span>),
 			);
 		}
 
@@ -1738,15 +1736,15 @@
 				<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>recursion_level) =&gt; {
 					<span class="kw">if </span><span class="kw-2">*</span>recursion_level &gt; max_recursion_level {
 						<span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(
-							revert(<span class="string">"Precompile is called with too high nesting"</span>).into()
+							revert(<span class="string">&quot;Precompile is called with too high nesting&quot;</span>).into()
 						));
 					}
 
 					<span class="kw-2">*</span>recursion_level += <span class="number">1</span>;
 				}
-				<span class="comment">// We don't hold the borrow and are in single-threaded code, thus we should
+				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
-				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">"Couldn't check precompile nesting"</span>).into())),
+				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>).into())),
 			}
 		}
 
@@ -1765,9 +1763,9 @@
 				<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>recursion_level) =&gt; {
 					<span class="kw-2">*</span>recursion_level -= <span class="number">1</span>;
 				}
-				<span class="comment">// We don't hold the borrow and are in single-threaded code, thus we should
+				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
-				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">"Couldn't check precompile nesting"</span>).into())),
+				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>).into())),
 			}
 		}
 
@@ -1794,9 +1792,9 @@
 			recursion_limit: C::recursion_limit().unwrap_or(<span class="prelude-val">Some</span>(<span class="number">0</span>)),
 			accept_delegate_call: C::accept_delegate_call().unwrap_or(<span class="bool-val">false</span>),
 			callable_by_smart_contract: C::callable_by_smart_contract_summary()
-				.unwrap_or_else(|| <span class="string">"Not callable"</span>.into()),
+				.unwrap_or_else(|| <span class="string">&quot;Not callable&quot;</span>.into()),
 			callable_by_precompile: C::callable_by_precompile_summary()
-				.unwrap_or_else(|| <span class="string">"Not callable"</span>.into()),
+				.unwrap_or_else(|| <span class="string">&quot;Not callable&quot;</span>.into()),
 		}]
 	}
 }
@@ -1827,7 +1825,7 @@
 
 <span class="kw">impl</span>&lt;A, P, C&gt; PrecompileSetFragment <span class="kw">for </span>PrecompileSetStartingWith&lt;A, P, C&gt;
 <span class="kw">where
-	</span>A: Get&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8]&gt;,
+	</span>A: Get&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]&gt;,
 	P: PrecompileSet + Default,
 	C: PrecompileChecks,
 {
@@ -1862,14 +1860,14 @@
 					<span class="kw">let </span>recursion_level = recursion_level_map.entry(code_address).or_insert(<span class="number">0</span>);
 
 					<span class="kw">if </span><span class="kw-2">*</span>recursion_level &gt; max_recursion_level {
-						<span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">"Precompile is called with too high nesting"</span>)));
+						<span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Precompile is called with too high nesting&quot;</span>)));
 					}
 
 					<span class="kw-2">*</span>recursion_level += <span class="number">1</span>;
 				}
-				<span class="comment">// We don't hold the borrow and are in single-threaded code, thus we should
+				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
-				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">"Couldn't check precompile nesting"</span>))),
+				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>))),
 			}
 		}
 
@@ -1888,14 +1886,14 @@
 				<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>recursion_level_map) =&gt; {
 					<span class="kw">let </span>recursion_level = <span class="kw">match </span>recursion_level_map.get_mut(<span class="kw-2">&amp;</span>code_address) {
 						<span class="prelude-val">Some</span>(recursion_level) =&gt; recursion_level,
-						<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">"Couldn't retreive precompile nesting"</span>))),
+						<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Couldn&#39;t retreive precompile nesting&quot;</span>))),
 					};
 
 					<span class="kw-2">*</span>recursion_level -= <span class="number">1</span>;
 				}
-				<span class="comment">// We don't hold the borrow and are in single-threaded code, thus we should
+				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
-				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">"Couldn't check precompile nesting"</span>))),
+				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>))),
 			}
 		}
 
@@ -1915,7 +1913,7 @@
 
 	<span class="attr">#[inline(always)]
 	</span><span class="kw">fn </span>used_addresses(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;H160&gt; {
-		<span class="comment">// TODO: We currently can't get the list of used addresses.
+		<span class="comment">// TODO: We currently can&#39;t get the list of used addresses.
 		</span><span class="macro">vec!</span>[]
 	}
 
@@ -1928,9 +1926,9 @@
 			recursion_limit: C::recursion_limit().unwrap_or(<span class="prelude-val">Some</span>(<span class="number">0</span>)),
 			accept_delegate_call: C::accept_delegate_call().unwrap_or(<span class="bool-val">false</span>),
 			callable_by_smart_contract: C::callable_by_smart_contract_summary()
-				.unwrap_or_else(|| <span class="string">"Not callable"</span>.into()),
+				.unwrap_or_else(|| <span class="string">&quot;Not callable&quot;</span>.into()),
 			callable_by_precompile: C::callable_by_precompile_summary()
-				.unwrap_or_else(|| <span class="string">"Not callable"</span>.into()),
+				.unwrap_or_else(|| <span class="string">&quot;Not callable&quot;</span>.into()),
 		}]
 	}
 }
@@ -1964,7 +1962,7 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;PrecompileResult&gt; {
 		<span class="kw">if </span>A::get() == handle.code_address() {
-			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">"revert"</span>)))
+			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;revert&quot;</span>)))
 		} <span class="kw">else </span>{
 			<span class="prelude-val">None
 		</span>}
@@ -1989,8 +1987,8 @@
 			precompile_kind: PrecompileKind::Single(A::get()),
 			recursion_limit: <span class="prelude-val">Some</span>(<span class="number">0</span>),
 			accept_delegate_call: <span class="bool-val">true</span>,
-			callable_by_smart_contract: <span class="string">"Reverts in all cases"</span>.into(),
-			callable_by_precompile: <span class="string">"Reverts in all cases"</span>.into(),
+			callable_by_smart_contract: <span class="string">&quot;Reverts in all cases&quot;</span>.into(),
+			callable_by_precompile: <span class="string">&quot;Reverts in all cases&quot;</span>.into(),
 		}]
 	}
 }
@@ -2023,7 +2021,7 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;PrecompileResult&gt; {
 		<span class="kw">if </span>A::get().contains(<span class="kw-2">&amp;</span>handle.code_address()) {
-			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">"Removed precompile"</span>)))
+			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Removed precompile&quot;</span>)))
 		} <span class="kw">else </span>{
 			<span class="prelude-val">None
 		</span>}
@@ -2048,8 +2046,8 @@
 			precompile_kind: PrecompileKind::Multiple(A::get()),
 			recursion_limit: <span class="prelude-val">Some</span>(<span class="number">0</span>),
 			accept_delegate_call: <span class="bool-val">true</span>,
-			callable_by_smart_contract: <span class="string">"Reverts in all cases"</span>.into(),
-			callable_by_precompile: <span class="string">"Reverts in all cases"</span>.into(),
+			callable_by_smart_contract: <span class="string">&quot;Reverts in all cases&quot;</span>.into(),
+			callable_by_precompile: <span class="string">&quot;Reverts in all cases&quot;</span>.into(),
 		}]
 	}
 }
@@ -2085,7 +2083,7 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;PrecompileResult&gt; {
 		<span class="kw">if </span>A::get() == handle.code_address() {
-			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">"Removed precompile"</span>)))
+			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Removed precompile&quot;</span>)))
 		} <span class="kw">else </span>{
 			<span class="prelude-val">None
 		</span>}
@@ -2110,8 +2108,8 @@
 			precompile_kind: PrecompileKind::Single(A::get()),
 			recursion_limit: <span class="prelude-val">Some</span>(<span class="number">0</span>),
 			accept_delegate_call: <span class="bool-val">true</span>,
-			callable_by_smart_contract: <span class="string">"Reverts in all cases"</span>.into(),
-			callable_by_precompile: <span class="string">"Reverts in all cases"</span>.into(),
+			callable_by_smart_contract: <span class="string">&quot;Reverts in all cases&quot;</span>.into(),
+			callable_by_precompile: <span class="string">&quot;Reverts in all cases&quot;</span>.into(),
 		}]
 	}
 }

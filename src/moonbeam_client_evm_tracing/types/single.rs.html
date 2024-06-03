@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/evm-tracing/src/types/single.rs`."><title>single.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_client_evm_tracing" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../moonbeam_client_evm_tracing/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/evm-tracing/src/types/single.rs`."><title>single.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_client_evm_tracing" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../moonbeam_client_evm_tracing/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -119,8 +117,8 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="doccomment">//! Types for the tracing of a single Ethereum transaction.
-//! Structure from "raw" debug_trace and a "call list" matching
-//! Blockscout formatter. This "call list" is also used to build
+//! Structure from &quot;raw&quot; debug_trace and a &quot;call list&quot; matching
+//! Blockscout formatter. This &quot;call list&quot; is also used to build
 //! the whole block tracing output.
 
 </span><span class="kw">use </span><span class="kw">super</span>::serialization::<span class="kw-2">*</span>;
@@ -131,7 +129,7 @@
 <span class="kw">use </span>sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 
 <span class="attr">#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
-#[serde(rename_all = <span class="string">"camelCase"</span>, untagged)]
+#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>, untagged)]
 </span><span class="kw">pub enum </span>Call {
 	Blockscout(<span class="kw">crate</span>::formatters::blockscout::BlockscoutCall),
 	CallTracer(<span class="kw">crate</span>::formatters::call_tracer::CallTracerCall),
@@ -153,55 +151,55 @@
 
 <span class="doccomment">/// Single transaction trace.
 </span><span class="attr">#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
-#[serde(rename_all = <span class="string">"camelCase"</span>, untagged)]
+#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>, untagged)]
 </span><span class="kw">pub enum </span>TransactionTrace {
 	<span class="doccomment">/// Classical output of `debug_trace`.
-	</span><span class="attr">#[serde(rename_all = <span class="string">"camelCase"</span>)]
+	</span><span class="attr">#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>)]
 	</span>Raw {
 		gas: U256,
-		<span class="attr">#[serde(with = <span class="string">"hex"</span>)]
+		<span class="attr">#[serde(with = <span class="string">&quot;hex&quot;</span>)]
 		</span>return_value: Vec&lt;u8&gt;,
 		struct_logs: Vec&lt;RawStepLog&gt;,
 	},
 	<span class="doccomment">/// Matches the formatter used by Blockscout.
-	/// Is also used to built output of OpenEthereum's `trace_filter`.
+	/// Is also used to built output of OpenEthereum&#39;s `trace_filter`.
 	</span>CallList(Vec&lt;Call&gt;),
-	<span class="doccomment">/// Used by Geth's callTracer.
+	<span class="doccomment">/// Used by Geth&#39;s callTracer.
 	</span>CallListNested(Call),
 }
 
 <span class="attr">#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
-#[serde(rename_all = <span class="string">"camelCase"</span>)]
+#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>)]
 </span><span class="kw">pub struct </span>RawStepLog {
-	<span class="attr">#[serde(serialize_with = <span class="string">"u256_serialize"</span>)]
+	<span class="attr">#[serde(serialize_with = <span class="string">&quot;u256_serialize&quot;</span>)]
 	</span><span class="kw">pub </span>depth: U256,
 
 	<span class="comment">//error: TODO
-	</span><span class="attr">#[serde(serialize_with = <span class="string">"u256_serialize"</span>)]
+	</span><span class="attr">#[serde(serialize_with = <span class="string">&quot;u256_serialize&quot;</span>)]
 	</span><span class="kw">pub </span>gas: U256,
 
-	<span class="attr">#[serde(serialize_with = <span class="string">"u256_serialize"</span>)]
+	<span class="attr">#[serde(serialize_with = <span class="string">&quot;u256_serialize&quot;</span>)]
 	</span><span class="kw">pub </span>gas_cost: U256,
 
 	<span class="attr">#[serde(
-		serialize_with = <span class="string">"seq_h256_serialize"</span>,
-		skip_serializing_if = <span class="string">"Option::is_none"
+		serialize_with = <span class="string">&quot;seq_h256_serialize&quot;</span>,
+		skip_serializing_if = <span class="string">&quot;Option::is_none&quot;
 	</span>)]
 	</span><span class="kw">pub </span>memory: <span class="prelude-ty">Option</span>&lt;Vec&lt;H256&gt;&gt;,
 
-	<span class="attr">#[serde(serialize_with = <span class="string">"opcode_serialize"</span>)]
+	<span class="attr">#[serde(serialize_with = <span class="string">&quot;opcode_serialize&quot;</span>)]
 	</span><span class="kw">pub </span>op: Vec&lt;u8&gt;,
 
-	<span class="attr">#[serde(serialize_with = <span class="string">"u256_serialize"</span>)]
+	<span class="attr">#[serde(serialize_with = <span class="string">&quot;u256_serialize&quot;</span>)]
 	</span><span class="kw">pub </span>pc: U256,
 
 	<span class="attr">#[serde(
-		serialize_with = <span class="string">"seq_h256_serialize"</span>,
-		skip_serializing_if = <span class="string">"Option::is_none"
+		serialize_with = <span class="string">&quot;seq_h256_serialize&quot;</span>,
+		skip_serializing_if = <span class="string">&quot;Option::is_none&quot;
 	</span>)]
 	</span><span class="kw">pub </span>stack: <span class="prelude-ty">Option</span>&lt;Vec&lt;H256&gt;&gt;,
 
-	<span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
+	<span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
 	</span><span class="kw">pub </span>storage: <span class="prelude-ty">Option</span>&lt;BTreeMap&lt;H256, H256&gt;&gt;,
 }
 </code></pre></div></section></main></body></html>

@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/author-mapping/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_author_mapping" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_evm_precompile_author_mapping/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/author-mapping/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_author_mapping" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_evm_precompile_author_mapping/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -226,7 +224,7 @@
 
 </span><span class="doccomment">//! Precompile to interact with pallet author mapping through an evm precompile.
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">use </span>fp_evm::PrecompileHandle;
 <span class="kw">use </span>frame_support::{
@@ -260,7 +258,7 @@
 	<span class="kw">fn </span>get() -&gt; u32 {
 		pallet_author_mapping::pallet::keys_size::&lt;R&gt;()
 			.try_into()
-			.expect(<span class="string">"keys size to fit in u32"</span>)
+			.expect(<span class="string">&quot;keys size to fit in u32&quot;</span>)
 	}
 }
 
@@ -276,14 +274,14 @@
 	Runtime::AccountId: Into&lt;H160&gt;,
 {
 	<span class="comment">// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
-	</span><span class="attr">#[precompile::public(<span class="string">"addAssociation(bytes32)"</span>)]
-	#[precompile::public(<span class="string">"add_association(bytes32)"</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">&quot;addAssociation(bytes32)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;add_association(bytes32)&quot;</span>)]
 	</span><span class="kw">fn </span>add_association(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, nimbus_id: H256) -&gt; EvmResult {
 		<span class="kw">let </span>nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id).into();
 
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">"author-mapping-precompile"</span>,
-			<span class="string">"Associating author id {:?}"</span>, nimbus_id
+			target: <span class="string">&quot;author-mapping-precompile&quot;</span>,
+			<span class="string">&quot;Associating author id {:?}&quot;</span>, nimbus_id
 		);
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -294,8 +292,8 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"updateAssociation(bytes32,bytes32)"</span>)]
-	#[precompile::public(<span class="string">"update_association(bytes32,bytes32)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;updateAssociation(bytes32,bytes32)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;update_association(bytes32,bytes32)&quot;</span>)]
 	</span><span class="kw">fn </span>update_association(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		old_nimbus_id: H256,
@@ -305,8 +303,8 @@
 		<span class="kw">let </span>new_nimbus_id = sp_core::sr25519::Public::unchecked_from(new_nimbus_id).into();
 
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">"author-mapping-precompile"</span>,
-			<span class="string">"Updating author id {:?} for {:?}"</span>, old_nimbus_id, new_nimbus_id
+			target: <span class="string">&quot;author-mapping-precompile&quot;</span>,
+			<span class="string">&quot;Updating author id {:?} for {:?}&quot;</span>, old_nimbus_id, new_nimbus_id
 		);
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -320,14 +318,14 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"clearAssociation(bytes32)"</span>)]
-	#[precompile::public(<span class="string">"clear_association(bytes32)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;clearAssociation(bytes32)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;clear_association(bytes32)&quot;</span>)]
 	</span><span class="kw">fn </span>clear_association(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, nimbus_id: H256) -&gt; EvmResult {
 		<span class="kw">let </span>nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id).into();
 
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">"author-mapping-precompile"</span>,
-			<span class="string">"Clearing author id {:?}"</span>, nimbus_id
+			target: <span class="string">&quot;author-mapping-precompile&quot;</span>,
+			<span class="string">&quot;Clearing author id {:?}&quot;</span>, nimbus_id
 		);
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -338,12 +336,12 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"removeKeys()"</span>)]
-	#[precompile::public(<span class="string">"remove_keys()"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;removeKeys()&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;remove_keys()&quot;</span>)]
 	</span><span class="kw">fn </span>remove_keys(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">"author-mapping-precompile"</span>,
-			<span class="string">"Removing keys"
+			target: <span class="string">&quot;author-mapping-precompile&quot;</span>,
+			<span class="string">&quot;Removing keys&quot;
 		</span>);
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -354,8 +352,8 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"setKeys(bytes)"</span>)]
-	#[precompile::public(<span class="string">"set_keys(bytes)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;setKeys(bytes)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;set_keys(bytes)&quot;</span>)]
 	</span><span class="kw">fn </span>set_keys(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		keys: BoundedBytes&lt;GetKeysSize&lt;Runtime&gt;&gt;,
@@ -368,7 +366,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"nimbusIdOf(address)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;nimbusIdOf(address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>nimbus_id_of(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, address: Address) -&gt; EvmResult&lt;H256&gt; {
 		<span class="comment">// Storage item: NimbusLookup:
@@ -382,7 +380,7 @@
 		<span class="prelude-val">Ok</span>(nimbus_id)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"addressOf(bytes32)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;addressOf(bytes32)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>address_of(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, nimbus_id: H256) -&gt; EvmResult&lt;Address&gt; {
 		<span class="comment">// Storage item: MappingWithDeposit:
@@ -399,7 +397,7 @@
 		<span class="prelude-val">Ok</span>(Address(address))
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"keysOf(bytes32)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;keysOf(bytes32)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>keys_of(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, nimbus_id: H256) -&gt; EvmResult&lt;UnboundedBytes&gt; {
 		<span class="comment">// Storage item: MappingWithDeposit:

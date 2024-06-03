@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/call-permit/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_call_permit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_evm_precompile_call_permit/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/call-permit/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_call_permit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_evm_precompile_call_permit/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -281,7 +279,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">use </span>core::marker::PhantomData;
 <span class="kw">use </span>evm::ExitReason;
@@ -307,10 +305,10 @@
 </span><span class="kw">pub struct </span>Nonces;
 
 <span class="kw">impl </span>StorageInstance <span class="kw">for </span>Nonces {
-	<span class="kw">const </span>STORAGE_PREFIX: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"Nonces"</span>;
+	<span class="kw">const </span>STORAGE_PREFIX: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Nonces&quot;</span>;
 
-	<span class="kw">fn </span>pallet_prefix() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
-		<span class="string">"PrecompileCallPermit"
+	<span class="kw">fn </span>pallet_prefix() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+		<span class="string">&quot;PrecompileCallPermit&quot;
 	</span>}
 }
 
@@ -327,13 +325,13 @@
 
 <span class="doccomment">/// EIP712 permit typehash.
 </span><span class="kw">pub const </span>PERMIT_TYPEHASH: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(
-	<span class="string">"CallPermit(address from,address to,uint256 value,bytes data,uint64 gaslimit\
-,uint256 nonce,uint256 deadline)"
+	<span class="string">&quot;CallPermit(address from,address to,uint256 value,bytes data,uint64 gaslimit\
+,uint256 nonce,uint256 deadline)&quot;
 </span>);
 
 <span class="doccomment">/// EIP712 permit domain used to compute an individualized domain separator.
 </span><span class="kw">const </span>PERMIT_DOMAIN: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(
-	<span class="string">"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+	<span class="string">&quot;EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)&quot;
 </span>);
 
 <span class="kw">pub const </span>CALL_DATA_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
@@ -349,8 +347,8 @@
 	</span>Runtime: pallet_evm::Config,
 {
 	<span class="kw">fn </span>compute_domain_separator(address: H160) -&gt; [u8; <span class="number">32</span>] {
-		<span class="kw">let </span>name: H256 = keccak_256(<span class="string">b"Call Permit Precompile"</span>).into();
-		<span class="kw">let </span>version: H256 = <span class="macro">keccak256!</span>(<span class="string">"1"</span>).into();
+		<span class="kw">let </span>name: H256 = keccak_256(<span class="string">b&quot;Call Permit Precompile&quot;</span>).into();
+		<span class="kw">let </span>version: H256 = <span class="macro">keccak256!</span>(<span class="string">&quot;1&quot;</span>).into();
 		<span class="kw">let </span>chain_id: U256 = Runtime::ChainId::get().into();
 
 		<span class="kw">let </span>domain_separator_inner = solidity::encode_arguments((
@@ -389,7 +387,7 @@
 		));
 		<span class="kw">let </span>permit_content = keccak_256(<span class="kw-2">&amp;</span>permit_content);
 		<span class="kw">let </span><span class="kw-2">mut </span>pre_digest = Vec::with_capacity(<span class="number">2 </span>+ <span class="number">32 </span>+ <span class="number">32</span>);
-		pre_digest.extend_from_slice(<span class="string">b"\x19\x01"</span>);
+		pre_digest.extend_from_slice(<span class="string">b&quot;\x19\x01&quot;</span>);
 		pre_digest.extend_from_slice(<span class="kw-2">&amp;</span>domain_separator);
 		pre_digest.extend_from_slice(<span class="kw-2">&amp;</span>permit_content);
 		keccak_256(<span class="kw-2">&amp;</span>pre_digest)
@@ -401,7 +399,7 @@
 	</span>}
 
 	<span class="attr">#[precompile::public(
-		<span class="string">"dispatch(address,address,uint256,bytes,uint64,uint256,uint8,bytes32,bytes32)"
+		<span class="string">&quot;dispatch(address,address,uint256,bytes,uint64,uint256,uint8,bytes32,bytes32)&quot;
 	</span>)]
 	</span><span class="kw">fn </span>dispatch(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -431,10 +429,10 @@
 
 		<span class="kw">let </span>total_cost = gas_limit
 			.checked_add(call_cost)
-			.ok_or_else(|| revert(<span class="string">"Call require too much gas (uint64 overflow)"</span>))<span class="question-mark">?</span>;
+			.ok_or_else(|| revert(<span class="string">&quot;Call require too much gas (uint64 overflow)&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">if </span>total_cost &gt; handle.remaining_gas() {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">"Gaslimit is too low to dispatch provided call"</span>));
+			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Gaslimit is too low to dispatch provided call&quot;</span>));
 		}
 
 		<span class="comment">// VERIFY PERMIT
@@ -444,7 +442,7 @@
 			&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::Timestamp::now().unique_saturated_into();
 		<span class="kw">let </span>timestamp: U256 = U256::from(timestamp / <span class="number">1000</span>);
 
-		<span class="macro">ensure!</span>(deadline &gt;= timestamp, revert(<span class="string">"Permit expired"</span>));
+		<span class="macro">ensure!</span>(deadline &gt;= timestamp, revert(<span class="string">&quot;Permit expired&quot;</span>));
 
 		<span class="kw">let </span>nonce = NoncesStorage::get(from);
 
@@ -465,12 +463,12 @@
 		sig[<span class="number">64</span>] = v;
 
 		<span class="kw">let </span>signer = sp_io::crypto::secp256k1_ecdsa_recover(<span class="kw-2">&amp;</span>sig, <span class="kw-2">&amp;</span>permit)
-			.map_err(|<span class="kw">_</span>| revert(<span class="string">"Invalid permit"</span>))<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;Invalid permit&quot;</span>))<span class="question-mark">?</span>;
 		<span class="kw">let </span>signer = H160::from(H256::from_slice(keccak_256(<span class="kw-2">&amp;</span>signer).as_slice()));
 
 		<span class="macro">ensure!</span>(
 			signer != H160::zero() &amp;&amp; signer == from,
-			revert(<span class="string">"Invalid permit"</span>)
+			revert(<span class="string">&quot;Invalid permit&quot;</span>)
 		);
 
 		NoncesStorage::insert(from, nonce + U256::one());
@@ -505,7 +503,7 @@
 		}
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"nonces(address)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;nonces(address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>nonces(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, owner: Address) -&gt; EvmResult&lt;U256&gt; {
 		<span class="comment">// NoncesStorage: Blake2_128(16) + contract(20) + Blake2_128(16) + owner(20) + nonce(32)
@@ -518,7 +516,7 @@
 		<span class="prelude-val">Ok</span>(nonce)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"DOMAIN_SEPARATOR()"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;DOMAIN_SEPARATOR()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>domain_separator(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;H256&gt; {
 		<span class="comment">// ChainId

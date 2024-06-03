@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/testing/solidity.rs`."><title>solidity.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="precompile_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../precompile_utils/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/testing/solidity.rs`."><title>solidity.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="precompile_utils" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../precompile_utils/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -398,7 +396,7 @@
 };
 
 <span class="kw">pub fn </span>check_precompile_implements_solidity_interfaces&lt;F&gt;(
-	files: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
+	files: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
 	supports_selector: F,
 ) <span class="kw">where
 	</span>F: Fn(u32) -&gt; bool,
@@ -408,7 +406,7 @@
 			<span class="macro">assert_eq!</span>(
 				solidity_fn.compute_selector_hex(),
 				solidity_fn.docs_selector,
-				<span class="string">"documented selector for '{}' did not match in file '{}'"</span>,
+				<span class="string">&quot;documented selector for &#39;{}&#39; did not match in file &#39;{}&#39;&quot;</span>,
 				solidity_fn.signature(),
 				file,
 			);
@@ -416,8 +414,8 @@
 			<span class="kw">let </span>selector = solidity_fn.compute_selector();
 			<span class="kw">if </span>!supports_selector(selector) {
 				<span class="macro">panic!</span>(
-					<span class="string">"precompile don't support selector {selector:x} for function '{}' listed in file\
-					{file}"</span>,
+					<span class="string">&quot;precompile don&#39;t support selector {selector:x} for function &#39;{}&#39; listed in file\
+					{file}&quot;</span>,
 					solidity_fn.signature(),
 				)
 			}
@@ -440,9 +438,9 @@
 	<span class="doccomment">/// Returns the representative signature for the solidity struct
 	</span><span class="kw">pub fn </span>signature(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
 		<span class="kw">if </span><span class="self">self</span>.is_enum {
-			<span class="string">"uint8"</span>.to_string()
+			<span class="string">&quot;uint8&quot;</span>.to_string()
 		} <span class="kw">else </span>{
-			<span class="macro">format!</span>(<span class="string">"({})"</span>, <span class="self">self</span>.params.join(<span class="string">","</span>))
+			<span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="self">self</span>.params.join(<span class="string">&quot;,&quot;</span>))
 		}
 	}
 }
@@ -461,7 +459,7 @@
 <span class="kw">impl </span>SolidityFunction {
 	<span class="doccomment">/// Returns the representative signature for the solidity function
 	</span><span class="kw">pub fn </span>signature(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-		<span class="macro">format!</span>(<span class="string">"{}({})"</span>, <span class="self">self</span>.name, <span class="self">self</span>.args.join(<span class="string">","</span>))
+		<span class="macro">format!</span>(<span class="string">&quot;{}({})&quot;</span>, <span class="self">self</span>.name, <span class="self">self</span>.args.join(<span class="string">&quot;,&quot;</span>))
 	}
 
 	<span class="doccomment">/// Computes the selector code for the solidity function
@@ -471,7 +469,7 @@
 
 	<span class="doccomment">/// Computes the selector code as a hex string for the solidity function
 	</span><span class="kw">pub fn </span>compute_selector_hex(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-		<span class="macro">format!</span>(<span class="string">"{:0&gt;8x}"</span>, <span class="self">self</span>.compute_selector())
+		<span class="macro">format!</span>(<span class="string">&quot;{:0&gt;8x}&quot;</span>, <span class="self">self</span>.compute_selector())
 	}
 }
 
@@ -486,16 +484,16 @@
 <span class="doccomment">/// Returns a list of [SolidityFunction] defined in a solidity file
 </span><span class="kw">pub fn </span>get_selectors(filename: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;SolidityFunction&gt; {
 	<span class="kw">let </span>file = File::open(filename)
-		.unwrap_or_else(|e| <span class="macro">panic!</span>(<span class="string">"failed opening file '{}': {}"</span>, filename, e));
+		.unwrap_or_else(|e| <span class="macro">panic!</span>(<span class="string">&quot;failed opening file &#39;{}&#39;: {}&quot;</span>, filename, e));
 	get_selectors_from_reader(file)
 }
 
 <span class="doccomment">/// Attempts to lookup a custom struct and returns its primitive signature
 </span><span class="kw">fn </span>try_lookup_custom_type(word: <span class="kw-2">&amp;</span>str, custom_types: <span class="kw-2">&amp;</span>HashMap&lt;String, SolidityStruct&gt;) -&gt; String {
-	<span class="kw">match </span>word.strip_suffix(<span class="string">"[]"</span>) {
+	<span class="kw">match </span>word.strip_suffix(<span class="string">&quot;[]&quot;</span>) {
 		<span class="prelude-val">Some</span>(word) =&gt; {
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(t) = custom_types.get(word) {
-				<span class="kw">return </span><span class="macro">format!</span>(<span class="string">"{}[]"</span>, t.signature());
+				<span class="kw">return </span><span class="macro">format!</span>(<span class="string">&quot;{}[]&quot;</span>, t.signature());
 			}
 		}
 		<span class="prelude-val">None </span>=&gt; {
@@ -541,25 +539,25 @@
 	<span class="kw">let </span><span class="kw-2">mut </span>pair = Pair::First;
 	<span class="kw">let </span><span class="kw-2">mut </span>solidity_fn = SolidityFunction::default();
 	<span class="kw">for </span>line <span class="kw">in </span>reader.lines() {
-		<span class="kw">let </span>line = line.expect(<span class="string">"failed unwrapping line"</span>).trim().to_string();
+		<span class="kw">let </span>line = line.expect(<span class="string">&quot;failed unwrapping line&quot;</span>).trim().to_string();
 		<span class="comment">// identify declared selector
-		</span><span class="kw">if </span>line.starts_with(<span class="string">"/// @custom:selector "</span>) &amp;&amp; <span class="macro">matches!</span>(stage, Stage::Start) {
-			solidity_fn.docs_selector = line.replace(<span class="string">"/// @custom:selector "</span>, <span class="string">""</span>).to_string();
+		</span><span class="kw">if </span>line.starts_with(<span class="string">&quot;/// @custom:selector &quot;</span>) &amp;&amp; <span class="macro">matches!</span>(stage, Stage::Start) {
+			solidity_fn.docs_selector = line.replace(<span class="string">&quot;/// @custom:selector &quot;</span>, <span class="string">&quot;&quot;</span>).to_string();
 		}
 
 		<span class="comment">// skip comments
-		</span><span class="kw">if </span>line.starts_with(<span class="string">"//"</span>) {
+		</span><span class="kw">if </span>line.starts_with(<span class="string">&quot;//&quot;</span>) {
 			<span class="kw">continue</span>;
 		}
 
-		<span class="kw">for </span>word <span class="kw">in </span>line.split(<span class="kw-2">&amp;</span>[<span class="string">';'</span>, <span class="string">','</span>, <span class="string">'('</span>, <span class="string">')'</span>, <span class="string">' '</span>]) {
+		<span class="kw">for </span>word <span class="kw">in </span>line.split(<span class="kw-2">&amp;</span>[<span class="string">&#39;;&#39;</span>, <span class="string">&#39;,&#39;</span>, <span class="string">&#39;(&#39;</span>, <span class="string">&#39;)&#39;</span>, <span class="string">&#39; &#39;</span>]) {
 			<span class="comment">// skip whitespace
 			</span><span class="kw">if </span>word.trim().is_empty() {
 				<span class="kw">continue</span>;
 			}
 			<span class="kw">match </span>(stage, pair, word) {
 				<span class="comment">// parse custom type enums
-				</span>(Stage::Start, Pair::First, <span class="string">"enum"</span>) =&gt; {
+				</span>(Stage::Start, Pair::First, <span class="string">&quot;enum&quot;</span>) =&gt; {
 					stage = Stage::Enum;
 					pair.next();
 				}
@@ -577,7 +575,7 @@
 				}
 
 				<span class="comment">// parse custom type structs
-				</span>(Stage::Start, Pair::First, <span class="string">"struct"</span>) =&gt; {
+				</span>(Stage::Start, Pair::First, <span class="string">&quot;struct&quot;</span>) =&gt; {
 					stage = Stage::Struct;
 					pair.next();
 				}
@@ -586,8 +584,8 @@
 					stage = Stage::StructParams;
 					pair.next();
 				}
-				(Stage::StructParams, Pair::First, <span class="string">"{"</span>) =&gt; (),
-				(Stage::StructParams, Pair::First, <span class="string">"}"</span>) =&gt; {
+				(Stage::StructParams, Pair::First, <span class="string">&quot;{&quot;</span>) =&gt; (),
+				(Stage::StructParams, Pair::First, <span class="string">&quot;}&quot;</span>) =&gt; {
 					custom_types.insert(solidity_struct.name.clone(), solidity_struct);
 					stage = Stage::Start;
 					solidity_struct = SolidityStruct::default();
@@ -602,7 +600,7 @@
 				}
 
 				<span class="comment">// parse function
-				</span>(Stage::Start, Pair::First, <span class="string">"function"</span>) =&gt; {
+				</span>(Stage::Start, Pair::First, <span class="string">&quot;function&quot;</span>) =&gt; {
 					stage = Stage::FnName;
 					pair.next();
 				}
@@ -611,7 +609,7 @@
 					stage = Stage::Args;
 					pair.next();
 				}
-				(Stage::Args, Pair::First, <span class="string">"external"</span>) =&gt; {
+				(Stage::Args, Pair::First, <span class="string">&quot;external&quot;</span>) =&gt; {
 					functions.push(solidity_fn);
 					stage = Stage::Start;
 					pair = Pair::First;
@@ -624,7 +622,7 @@
 					solidity_fn.args.push(arg);
 					pair.next();
 				}
-				(Stage::Args, Pair::Second, <span class="string">"memory" </span>| <span class="string">"calldata" </span>| <span class="string">"storage"</span>) =&gt; (),
+				(Stage::Args, Pair::Second, <span class="string">&quot;memory&quot; </span>| <span class="string">&quot;calldata&quot; </span>| <span class="string">&quot;storage&quot;</span>) =&gt; (),
 				(Stage::Args, Pair::Second, <span class="kw">_</span>) =&gt; pair.next(),
 				<span class="kw">_ </span>=&gt; {
 					stage = Stage::Start;
@@ -644,7 +642,7 @@
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_selectors_are_parsed() {
-		<span class="kw">let </span>actual = get_selectors(<span class="string">"tests/solidity_test.sol"</span>)
+		<span class="kw">let </span>actual = get_selectors(<span class="string">&quot;tests/solidity_test.sol&quot;</span>)
 			.into_iter()
 			.map(|sol_fn| {
 				(
@@ -656,87 +654,87 @@
 			.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 		<span class="kw">let </span>expected = <span class="macro">vec!</span>[
 			(
-				String::from(<span class="string">"f7af8d91"</span>),
-				String::from(<span class="string">""</span>),
-				String::from(<span class="string">"fnNoArgs()"</span>),
+				String::from(<span class="string">&quot;f7af8d91&quot;</span>),
+				String::from(<span class="string">&quot;&quot;</span>),
+				String::from(<span class="string">&quot;fnNoArgs()&quot;</span>),
 			),
 			(
-				String::from(<span class="string">"d43a9a43"</span>),
-				String::from(<span class="string">"c4921133"</span>),
-				String::from(<span class="string">"fnOneArg(address)"</span>),
+				String::from(<span class="string">&quot;d43a9a43&quot;</span>),
+				String::from(<span class="string">&quot;c4921133&quot;</span>),
+				String::from(<span class="string">&quot;fnOneArg(address)&quot;</span>),
 			),
 			(
-				String::from(<span class="string">"40d6a43d"</span>),
-				String::from(<span class="string">"67ea837e"</span>),
-				String::from(<span class="string">"fnTwoArgs(address,uint256)"</span>),
+				String::from(<span class="string">&quot;40d6a43d&quot;</span>),
+				String::from(<span class="string">&quot;67ea837e&quot;</span>),
+				String::from(<span class="string">&quot;fnTwoArgs(address,uint256)&quot;</span>),
 			),
 			(
-				String::from(<span class="string">"cee150c8"</span>),
-				String::from(<span class="string">"d6b423d9"</span>),
-				String::from(<span class="string">"fnSameArgs(uint64,uint64)"</span>),
+				String::from(<span class="string">&quot;cee150c8&quot;</span>),
+				String::from(<span class="string">&quot;d6b423d9&quot;</span>),
+				String::from(<span class="string">&quot;fnSameArgs(uint64,uint64)&quot;</span>),
 			),
 			(
-				String::from(<span class="string">"c6024207"</span>),
-				String::from(<span class="string">"b9904a86"</span>),
-				String::from(<span class="string">"fnOneArgSameLine(uint64)"</span>),
+				String::from(<span class="string">&quot;c6024207&quot;</span>),
+				String::from(<span class="string">&quot;b9904a86&quot;</span>),
+				String::from(<span class="string">&quot;fnOneArgSameLine(uint64)&quot;</span>),
 			),
 			(
-				String::from(<span class="string">"fcbc04c3"</span>),
-				String::from(<span class="string">"28f0c44e"</span>),
-				String::from(<span class="string">"fnTwoArgsSameLine(uint64,bytes32)"</span>),
+				String::from(<span class="string">&quot;fcbc04c3&quot;</span>),
+				String::from(<span class="string">&quot;28f0c44e&quot;</span>),
+				String::from(<span class="string">&quot;fnTwoArgsSameLine(uint64,bytes32)&quot;</span>),
 			),
 			(
-				String::from(<span class="string">"c590304c"</span>),
-				String::from(<span class="string">"06f0c1ce"</span>),
-				String::from(<span class="string">"fnTwoArgsSameLineExternalSplit(uint64,bytes32)"</span>),
+				String::from(<span class="string">&quot;c590304c&quot;</span>),
+				String::from(<span class="string">&quot;06f0c1ce&quot;</span>),
+				String::from(<span class="string">&quot;fnTwoArgsSameLineExternalSplit(uint64,bytes32)&quot;</span>),
 			),
 			(
-				String::from(<span class="string">"a19a07e1"</span>),
-				String::from(<span class="string">"18001a4e"</span>),
-				String::from(<span class="string">"fnMemoryArrayArgs(address[],uint256[],bytes[])"</span>),
+				String::from(<span class="string">&quot;a19a07e1&quot;</span>),
+				String::from(<span class="string">&quot;18001a4e&quot;</span>),
+				String::from(<span class="string">&quot;fnMemoryArrayArgs(address[],uint256[],bytes[])&quot;</span>),
 			),
 			(
-				String::from(<span class="string">"ec26cf1c"</span>),
-				String::from(<span class="string">"1ea61a4e"</span>),
-				String::from(<span class="string">"fnCalldataArgs(string,bytes[])"</span>),
+				String::from(<span class="string">&quot;ec26cf1c&quot;</span>),
+				String::from(<span class="string">&quot;1ea61a4e&quot;</span>),
+				String::from(<span class="string">&quot;fnCalldataArgs(string,bytes[])&quot;</span>),
 			),
 			(
-				String::from(<span class="string">"f29f96de"</span>),
-				String::from(<span class="string">"d8af1a4e"</span>),
-				String::from(<span class="string">"fnCustomArgs((uint8,bytes[]),bytes[],uint64)"</span>),
+				String::from(<span class="string">&quot;f29f96de&quot;</span>),
+				String::from(<span class="string">&quot;d8af1a4e&quot;</span>),
+				String::from(<span class="string">&quot;fnCustomArgs((uint8,bytes[]),bytes[],uint64)&quot;</span>),
 			),
 			(
-				String::from(<span class="string">"d751d651"</span>),
-				String::from(<span class="string">"e8af1642"</span>),
-				String::from(<span class="string">"fnEnumArgs(uint8,uint64)"</span>),
+				String::from(<span class="string">&quot;d751d651&quot;</span>),
+				String::from(<span class="string">&quot;e8af1642&quot;</span>),
+				String::from(<span class="string">&quot;fnEnumArgs(uint8,uint64)&quot;</span>),
 			),
 			(
-				String::from(<span class="string">"b2c9f1a3"</span>),
-				String::from(<span class="string">"550c1a4e"</span>),
+				String::from(<span class="string">&quot;b2c9f1a3&quot;</span>),
+				String::from(<span class="string">&quot;550c1a4e&quot;</span>),
 				String::from(
-					<span class="string">"fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[]),bytes[],\
-					uint64)"</span>,
+					<span class="string">&quot;fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[]),bytes[],\
+					uint64)&quot;</span>,
 				),
 			),
 			(
-				String::from(<span class="string">"d5363eee"</span>),
-				String::from(<span class="string">"77af1a40"</span>),
-				String::from(<span class="string">"fnCustomArrayArgs((uint8,bytes[])[],bytes[])"</span>),
+				String::from(<span class="string">&quot;d5363eee&quot;</span>),
+				String::from(<span class="string">&quot;77af1a40&quot;</span>),
+				String::from(<span class="string">&quot;fnCustomArrayArgs((uint8,bytes[])[],bytes[])&quot;</span>),
 			),
 			(
-				String::from(<span class="string">"b82da727"</span>),
-				String::from(<span class="string">"80af0a40"</span>),
+				String::from(<span class="string">&quot;b82da727&quot;</span>),
+				String::from(<span class="string">&quot;80af0a40&quot;</span>),
 				String::from(
-					<span class="string">"fnCustomComposedArg(((uint8,bytes[]),\
-				(address[],uint256[],bytes[])[]),uint64)"</span>,
+					<span class="string">&quot;fnCustomComposedArg(((uint8,bytes[]),\
+				(address[],uint256[],bytes[])[]),uint64)&quot;</span>,
 				),
 			),
 			(
-				String::from(<span class="string">"586a2193"</span>),
-				String::from(<span class="string">"97baa040"</span>),
+				String::from(<span class="string">&quot;586a2193&quot;</span>),
+				String::from(<span class="string">&quot;97baa040&quot;</span>),
 				String::from(
-					<span class="string">"fnCustomComposedArrayArg(((uint8,bytes[]),\
-				(address[],uint256[],bytes[])[])[],uint64)"</span>,
+					<span class="string">&quot;fnCustomComposedArrayArg(((uint8,bytes[]),\
+				(address[],uint256[],bytes[])[])[],uint64)&quot;</span>,
 				),
 			),
 		];

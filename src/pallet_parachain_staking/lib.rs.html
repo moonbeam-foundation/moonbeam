@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/parachain-staking/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_parachain_staking" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_parachain_staking/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/parachain-staking/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_parachain_staking" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_parachain_staking/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2370,10 +2368,10 @@
 //! already a collator candidate and `bond &gt;= MinDelegation`. Each delegator can delegate up to
 //! `T::MaxDelegationsPerDelegator` collator candidates by calling `delegate`.
 //!
-//! To revoke a delegation, call `revoke_delegation` with the collator candidate's account.
+//! To revoke a delegation, call `revoke_delegation` with the collator candidate&#39;s account.
 //! To leave the set of delegators and revoke all delegations, call `leave_delegators`.
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">mod </span>auto_compound;
 <span class="kw">mod </span>delegation_requests;
@@ -2383,7 +2381,7 @@
 <span class="kw">pub mod </span>types;
 <span class="kw">pub mod </span>weights;
 
-<span class="attr">#[cfg(any(test, feature = <span class="string">"runtime-benchmarks"</span>))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
 </span><span class="kw">mod </span>benchmarks;
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>mock;
@@ -2433,8 +2431,8 @@
 	<span class="kw">pub type </span>BalanceOf&lt;T&gt; =
 		&lt;&lt;T <span class="kw">as </span>Config&gt;::Currency <span class="kw">as </span>Currency&lt;&lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId&gt;&gt;::Balance;
 
-	<span class="kw">pub const </span>COLLATOR_LOCK_ID: LockIdentifier = <span class="kw-2">*</span><span class="string">b"stkngcol"</span>;
-	<span class="kw">pub const </span>DELEGATOR_LOCK_ID: LockIdentifier = <span class="kw-2">*</span><span class="string">b"stkngdel"</span>;
+	<span class="kw">pub const </span>COLLATOR_LOCK_ID: LockIdentifier = <span class="kw-2">*</span><span class="string">b&quot;stkngcol&quot;</span>;
+	<span class="kw">pub const </span>DELEGATOR_LOCK_ID: LockIdentifier = <span class="kw-2">*</span><span class="string">b&quot;stkngdel&quot;</span>;
 
 	<span class="doccomment">/// A hard limit for weight computation purposes for the max candidates that _could_
 	/// theoretically exist.
@@ -2454,7 +2452,7 @@
 		<span class="doccomment">/// Minimum number of blocks per round
 		</span><span class="attr">#[pallet::constant]
 		</span><span class="kw">type </span>MinBlocksPerRound: Get&lt;u32&gt;;
-		<span class="doccomment">/// If a collator doesn't produce any block on this number of rounds, it is notified as inactive.
+		<span class="doccomment">/// If a collator doesn&#39;t produce any block on this number of rounds, it is notified as inactive.
 		/// This value must be less than or equal to RewardPaymentDelay.
 		</span><span class="attr">#[pallet::constant]
 		</span><span class="kw">type </span>MaxOfflineRounds: Get&lt;u32&gt;;
@@ -2497,9 +2495,9 @@
 		<span class="doccomment">/// Get the current block author
 		</span><span class="kw">type </span>BlockAuthor: Get&lt;<span class="self">Self</span>::AccountId&gt;;
 		<span class="doccomment">/// Handler to notify the runtime when a collator is paid.
-		/// If you don't need it, you can specify the type `()`.
+		/// If you don&#39;t need it, you can specify the type `()`.
 		</span><span class="kw">type </span>OnCollatorPayout: OnCollatorPayout&lt;<span class="self">Self</span>::AccountId, BalanceOf&lt;<span class="self">Self</span>&gt;&gt;;
-		<span class="doccomment">/// Handler to distribute a collator's reward.
+		<span class="doccomment">/// Handler to distribute a collator&#39;s reward.
 		/// To use the default implementation of minting rewards, specify the type `()`.
 		</span><span class="kw">type </span>PayoutCollatorReward: PayoutCollatorReward&lt;<span class="self">Self</span>&gt;;
 		<span class="doccomment">/// Handler to notify the runtime when a collator is inactive.
@@ -2507,7 +2505,7 @@
 		/// If you need to use the default implementation, specify the type `()`.
 		</span><span class="kw">type </span>OnInactiveCollator: OnInactiveCollator&lt;<span class="self">Self</span>&gt;;
 		<span class="doccomment">/// Handler to notify the runtime when a new round begin.
-		/// If you don't need it, you can specify the type `()`.
+		/// If you don&#39;t need it, you can specify the type `()`.
 		</span><span class="kw">type </span>OnNewRound: OnNewRound;
 		<span class="doccomment">/// Get the current slot number
 		</span><span class="kw">type </span>SlotProvider: Get&lt;Slot&gt;;
@@ -2635,7 +2633,7 @@
 		},
 		<span class="doccomment">/// Cancelled request to leave the set of candidates.
 		</span>CancelledCandidateExit { candidate: T::AccountId },
-		<span class="doccomment">/// Cancelled request to decrease candidate's bond.
+		<span class="doccomment">/// Cancelled request to decrease candidate&#39;s bond.
 		</span>CancelledCandidateBondLess {
 			candidate: T::AccountId,
 			amount: BalanceOf&lt;T&gt;,
@@ -3038,21 +3036,21 @@
 	<span class="attr">#[pallet::genesis_build]
 	</span><span class="kw">impl</span>&lt;T: Config&gt; BuildGenesisConfig <span class="kw">for </span>GenesisConfig&lt;T&gt; {
 		<span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-			<span class="macro">assert!</span>(<span class="self">self</span>.blocks_per_round &gt; <span class="number">0</span>, <span class="string">"Blocks per round must be &gt; 0"</span>);
+			<span class="macro">assert!</span>(<span class="self">self</span>.blocks_per_round &gt; <span class="number">0</span>, <span class="string">&quot;Blocks per round must be &gt; 0&quot;</span>);
 			&lt;InflationConfig&lt;T&gt;&gt;::put(<span class="self">self</span>.inflation_config.clone());
 			<span class="kw">let </span><span class="kw-2">mut </span>candidate_count = <span class="number">0u32</span>;
 			<span class="comment">// Initialize the candidates
 			</span><span class="kw">for </span><span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>candidate, balance) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.candidates {
 				<span class="macro">assert!</span>(
 					&lt;Pallet&lt;T&gt;&gt;::get_collator_stakable_free_balance(candidate) &gt;= balance,
-					<span class="string">"Account does not have enough balance to bond as a candidate."
+					<span class="string">&quot;Account does not have enough balance to bond as a candidate.&quot;
 				</span>);
 				<span class="kw">if let </span><span class="prelude-val">Err</span>(error) = &lt;Pallet&lt;T&gt;&gt;::join_candidates(
 					T::RuntimeOrigin::from(<span class="prelude-val">Some</span>(candidate.clone()).into()),
 					balance,
 					candidate_count,
 				) {
-					<span class="macro">log::warn!</span>(<span class="string">"Join candidates failed in genesis with error {:?}"</span>, error);
+					<span class="macro">log::warn!</span>(<span class="string">&quot;Join candidates failed in genesis with error {:?}&quot;</span>, error);
 				} <span class="kw">else </span>{
 					candidate_count = candidate_count.saturating_add(<span class="number">1u32</span>);
 				}
@@ -3066,7 +3064,7 @@
 			</span><span class="kw">for </span><span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>delegator, <span class="kw-2">ref </span>target, balance, auto_compound) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.delegations {
 				<span class="macro">assert!</span>(
 					&lt;Pallet&lt;T&gt;&gt;::get_delegator_stakable_free_balance(delegator) &gt;= balance,
-					<span class="string">"Account does not have enough balance to place delegation."
+					<span class="string">&quot;Account does not have enough balance to place delegation.&quot;
 				</span>);
 				<span class="kw">let </span>cd_count = <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = col_delegator_count.get(target) {
 					<span class="kw-2">*</span>x
@@ -3091,7 +3089,7 @@
 					cd_auto_compound_count,
 					dd_count,
 				) {
-					<span class="macro">log::warn!</span>(<span class="string">"Delegate failed in genesis with error {:?}"</span>, error);
+					<span class="macro">log::warn!</span>(<span class="string">&quot;Delegate failed in genesis with error {:?}&quot;</span>, error);
 				} <span class="kw">else </span>{
 					<span class="kw">if let </span><span class="prelude-val">Some</span>(x) = col_delegator_count.get_mut(target) {
 						<span class="kw-2">*</span>x = x.saturating_add(<span class="number">1u32</span>);
@@ -3117,18 +3115,18 @@
 			</span>&lt;ParachainBondInfo&lt;T&gt;&gt;::put(ParachainBondConfig {
 				<span class="comment">// must be set soon; if not =&gt; due inflation will be sent to collators/delegators
 				</span>account: T::AccountId::decode(<span class="kw-2">&amp;mut </span>sp_runtime::traits::TrailingZeroInput::zeroes())
-					.expect(<span class="string">"infinite length input; no invalid inputs for type; qed"</span>),
+					.expect(<span class="string">&quot;infinite length input; no invalid inputs for type; qed&quot;</span>),
 				percent: <span class="self">self</span>.parachain_bond_reserve_percent,
 			});
 			<span class="comment">// Set total selected candidates to value from config
 			</span><span class="macro">assert!</span>(
 				<span class="self">self</span>.num_selected_candidates &gt;= T::MinSelectedCandidates::get(),
-				<span class="string">"{:?}"</span>,
+				<span class="string">&quot;{:?}&quot;</span>,
 				Error::&lt;T&gt;::CannotSetBelowMin
 			);
 			<span class="macro">assert!</span>(
 				<span class="self">self</span>.num_selected_candidates &lt;= T::MaxCandidates::get(),
-				<span class="string">"{:?}"</span>,
+				<span class="string">&quot;{:?}&quot;</span>,
 				Error::&lt;T&gt;::CannotSetAboveMaxCandidates
 			);
 			&lt;TotalSelected&lt;T&gt;&gt;::put(<span class="self">self</span>.num_selected_candidates);
@@ -3603,7 +3601,7 @@
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(weight).into())
 		}
 
-		<span class="doccomment">/// Request bond less for delegators wrt a specific collator candidate. The delegation's
+		<span class="doccomment">/// Request bond less for delegators wrt a specific collator candidate. The delegation&#39;s
 		/// rewards for rounds while the request is pending use the reduced bonded amount.
 		/// A bond less may not be performed if any other scheduled request is pending.
 		</span><span class="attr">#[pallet::call_index(<span class="number">24</span>)]
@@ -3798,7 +3796,7 @@
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>RewardPayment {
 		<span class="doccomment">/// A collator was paid
 		</span>Paid,
-		<span class="doccomment">/// A collator was skipped for payment. This can happen if they haven't been awarded any
+		<span class="doccomment">/// A collator was skipped for payment. This can happen if they haven&#39;t been awarded any
 		/// points, that is, they did not produce any blocks.
 		</span>Skipped,
 		<span class="doccomment">/// All collator payments have been processed.
@@ -4001,9 +3999,9 @@
 			<span class="kw">let </span>return_stake = |bond: Bond&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;| {
 				<span class="comment">// remove delegation from delegator state
 				</span><span class="kw">let </span><span class="kw-2">mut </span>delegator = DelegatorState::&lt;T&gt;::get(<span class="kw-2">&amp;</span>bond.owner).expect(
-					<span class="string">"Collator state and delegator state are consistent. 
+					<span class="string">&quot;Collator state and delegator state are consistent. 
 						Collator state has a record of this delegation. Therefore, 
-						Delegator state also has a record. qed."</span>,
+						Delegator state also has a record. qed.&quot;</span>,
 				);
 
 				<span class="kw">if let </span><span class="prelude-val">Some</span>(remaining) = delegator.rm_delegation::&lt;T&gt;(<span class="kw-2">&amp;</span>candidate) {
@@ -4033,14 +4031,14 @@
 			</span><span class="kw">let </span><span class="kw-2">mut </span>total_backing = state.bond;
 			<span class="comment">// return all top delegations
 			</span><span class="kw">let </span>top_delegations =
-				&lt;TopDelegations&lt;T&gt;&gt;::take(<span class="kw-2">&amp;</span>candidate).expect(<span class="string">"CandidateInfo existence checked"</span>);
+				&lt;TopDelegations&lt;T&gt;&gt;::take(<span class="kw-2">&amp;</span>candidate).expect(<span class="string">&quot;CandidateInfo existence checked&quot;</span>);
 			<span class="kw">for </span>bond <span class="kw">in </span>top_delegations.delegations {
 				return_stake(bond);
 			}
 			total_backing = total_backing.saturating_add(top_delegations.total);
 			<span class="comment">// return all bottom delegations
 			</span><span class="kw">let </span>bottom_delegations =
-				&lt;BottomDelegations&lt;T&gt;&gt;::take(<span class="kw-2">&amp;</span>candidate).expect(<span class="string">"CandidateInfo existence checked"</span>);
+				&lt;BottomDelegations&lt;T&gt;&gt;::take(<span class="kw-2">&amp;</span>candidate).expect(<span class="string">&quot;CandidateInfo existence checked&quot;</span>);
 			<span class="kw">for </span>bond <span class="kw">in </span>bottom_delegations.delegations {
 				return_stake(bond);
 			}
@@ -4062,7 +4060,7 @@
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
 		}
 
-		<span class="doccomment">/// Returns an account's free balance which is not locked in delegation staking
+		<span class="doccomment">/// Returns an account&#39;s free balance which is not locked in delegation staking
 		</span><span class="kw">pub fn </span>get_delegator_stakable_free_balance(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; BalanceOf&lt;T&gt; {
 			<span class="kw">let </span><span class="kw-2">mut </span>balance = T::Currency::free_balance(acc);
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = &lt;DelegatorState&lt;T&gt;&gt;::get(acc) {
@@ -4071,7 +4069,7 @@
 			balance
 		}
 
-		<span class="doccomment">/// Returns an account's free balance which is not locked in collator staking
+		<span class="doccomment">/// Returns an account&#39;s free balance which is not locked in collator staking
 		</span><span class="kw">pub fn </span>get_collator_stakable_free_balance(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; BalanceOf&lt;T&gt; {
 			<span class="kw">let </span><span class="kw-2">mut </span>balance = T::Currency::free_balance(acc);
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(info) = &lt;CandidateInfo&lt;T&gt;&gt;::get(acc) {
@@ -4098,7 +4096,7 @@
 					amount: total,
 				})
 				.expect(
-					<span class="string">"the candidate is removed in previous step so the length cannot increase; qed"</span>,
+					<span class="string">&quot;the candidate is removed in previous step so the length cannot increase; qed&quot;</span>,
 				);
 			&lt;CandidatePool&lt;T&gt;&gt;::put(candidates);
 		}
@@ -4151,7 +4149,7 @@
 
 			<span class="comment">// This function is called right after the round index increment,
 			// and the goal is to compute the payout informations for the round that just ended.
-			// We don't need to saturate here because the genesis round is 1.
+			// We don&#39;t need to saturate here because the genesis round is 1.
 			</span><span class="kw">let </span>prepare_payout_for_round = now - <span class="number">1</span>;
 
 			<span class="comment">// Return early if there is no blocks for this round
@@ -4195,7 +4193,7 @@
 		</span><span class="kw">fn </span>handle_delayed_payouts(now: RoundIndex) -&gt; Weight {
 			<span class="kw">let </span>delay = T::RewardPaymentDelay::get();
 
-			<span class="comment">// don't underflow uint
+			<span class="comment">// don&#39;t underflow uint
 			</span><span class="kw">if </span>now &lt; delay {
 				<span class="kw">return </span>Weight::from_parts(<span class="number">0u64</span>, <span class="number">0</span>);
 			}
@@ -4218,13 +4216,13 @@
 
 		<span class="doccomment">/// Payout a single collator from the given round.
 		///
-		/// Returns an optional tuple of (Collator's AccountId, total paid)
+		/// Returns an optional tuple of (Collator&#39;s AccountId, total paid)
 		/// or None if there were no more payouts to be made for the round.
 		</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pay_one_collator_reward(
 			paid_for_round: RoundIndex,
 			payout_info: DelayedPayout&lt;BalanceOf&lt;T&gt;&gt;,
 		) -&gt; (RewardPayment, Weight) {
-			<span class="comment">// 'early_weight' tracks weight used for reads/writes done early in this fn before its
+			<span class="comment">// &#39;early_weight&#39; tracks weight used for reads/writes done early in this fn before its
 			// early-exit codepaths.
 			</span><span class="kw">let </span><span class="kw-2">mut </span>early_weight = Weight::zero();
 
@@ -4234,12 +4232,12 @@
 			early_weight = early_weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">0</span>));
 
 			<span class="kw">if </span>total_points.is_zero() {
-				<span class="comment">// TODO: this case is obnoxious... it's a value query, so it could mean one of two
+				<span class="comment">// TODO: this case is obnoxious... it&#39;s a value query, so it could mean one of two
 				// different logic errors:
 				// 1. we removed it before we should have
 				// 2. we called pay_one_collator_reward when we were actually done with deferred
 				//    payouts
-				</span><span class="macro">log::warn!</span>(<span class="string">"pay_one_collator_reward called with no &lt;Points&lt;T&gt;&gt; for the round!"</span>);
+				</span><span class="macro">log::warn!</span>(<span class="string">&quot;pay_one_collator_reward called with no &lt;Points&lt;T&gt;&gt; for the round!&quot;</span>);
 				<span class="kw">return </span>(RewardPayment::Finished, early_weight);
 			}
 
@@ -4259,7 +4257,7 @@
 					<span class="kw">return </span>(RewardPayment::Skipped, early_weight);
 				}
 
-				<span class="comment">// 'extra_weight' tracks weight returned from fns that we delegate to which can't be
+				<span class="comment">// &#39;extra_weight&#39; tracks weight returned from fns that we delegate to which can&#39;t be
 				// known ahead of time.
 				</span><span class="kw">let </span><span class="kw-2">mut </span>extra_weight = Weight::zero();
 				<span class="kw">let </span>pct_due = Perbill::from_rational(pts, total_points);
@@ -4338,7 +4336,7 @@
 						.saturating_add(extra_weight),
 				)
 			} <span class="kw">else </span>{
-				<span class="comment">// Note that we don't clean up storage here; it is cleaned up in
+				<span class="comment">// Note that we don&#39;t clean up storage here; it is cleaned up in
 				// handle_delayed_payouts()
 				</span>(RewardPayment::Finished, Weight::from_parts(<span class="number">0u64</span>, <span class="number">0</span>))
 			}
@@ -4372,7 +4370,7 @@
 								.reverse()
 						});
 					})
-					.expect(<span class="string">"sort cannot increase item count; qed"</span>);
+					.expect(<span class="string">&quot;sort cannot increase item count; qed&quot;</span>);
 
 				<span class="kw">let </span><span class="kw-2">mut </span>collators = sorted_candidates
 					.into_iter()
@@ -4415,7 +4413,7 @@
 				</span><span class="kw">for </span>candidate <span class="kw">in </span>&lt;SelectedCandidates&lt;T&gt;&gt;::get() {
 					<span class="kw">let </span>snapshot_total = total_per_candidate
 						.get(<span class="kw-2">&amp;</span>candidate)
-						.expect(<span class="string">"all selected candidates have snapshots"</span>);
+						.expect(<span class="string">&quot;all selected candidates have snapshots&quot;</span>);
 					<span class="self">Self</span>::deposit_event(Event::CollatorChosen {
 						round: now,
 						collator_account: candidate,
@@ -4429,7 +4427,7 @@
 			<span class="comment">// snapshot exposure for round for weighting reward distribution
 			</span><span class="kw">for </span>account <span class="kw">in </span>collators.iter() {
 				<span class="kw">let </span>state = &lt;CandidateInfo&lt;T&gt;&gt;::get(account)
-					.expect(<span class="string">"all members of CandidateQ must be candidates"</span>);
+					.expect(<span class="string">&quot;all members of CandidateQ must be candidates&quot;</span>);
 
 				collator_count = collator_count.saturating_add(<span class="number">1u32</span>);
 				delegation_count = delegation_count.saturating_add(state.delegation_count);
@@ -4471,7 +4469,7 @@
 			<span class="comment">// insert canonical collator set
 			</span>&lt;SelectedCandidates&lt;T&gt;&gt;::put(
 				BoundedVec::try_from(collators)
-					.expect(<span class="string">"subset of collators is always less than or equal to max candidates"</span>),
+					.expect(<span class="string">&quot;subset of collators is always less than or equal to max candidates&quot;</span>),
 			);
 
 			<span class="kw">let </span>avg_delegator_count = delegation_count.checked_div(collator_count).unwrap_or(<span class="number">0</span>);
@@ -4498,7 +4496,7 @@
 				.collect::&lt;BTreeMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;();
 			<span class="kw">let </span><span class="kw-2">mut </span>uncounted_stake = BalanceOf::&lt;T&gt;::zero();
 			<span class="kw">let </span>rewardable_delegations = &lt;TopDelegations&lt;T&gt;&gt;::get(collator)
-				.expect(<span class="string">"all members of CandidateQ must be candidates"</span>)
+				.expect(<span class="string">&quot;all members of CandidateQ must be candidates&quot;</span>)
 				.delegations
 				.into_iter()
 				.map(|<span class="kw-2">mut </span>bond| {
@@ -4565,7 +4563,7 @@
 			}
 		}
 
-		<span class="doccomment">/// Mint a specified reward amount to the collator's account. Emits the [Rewarded] event.
+		<span class="doccomment">/// Mint a specified reward amount to the collator&#39;s account. Emits the [Rewarded] event.
 		</span><span class="kw">pub fn </span>mint_collator_reward(
 			_paid_for_round: RoundIndex,
 			collator_id: T::AccountId,
@@ -4609,7 +4607,7 @@
 					compound_amount.clone(),
 				) {
 					<span class="macro">log::debug!</span>(
-						<span class="string">"skipped compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}"</span>,
+						<span class="string">&quot;skipped compounding staking reward towards candidate &#39;{:?}&#39; for delegator &#39;{:?}&#39;: {:?}&quot;</span>,
 						candidate,
 						delegator,
 						err

@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/balances-erc20/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_balances_erc20" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_evm_precompile_balances_erc20/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/balances-erc20/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_balances_erc20" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_evm_precompile_balances_erc20/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -513,7 +511,7 @@
 
 </span><span class="doccomment">//! Precompile to interact with pallet_balances instances using the ERC20 interface standard.
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">use </span>fp_evm::PrecompileHandle;
 <span class="kw">use </span>frame_support::{
@@ -544,16 +542,16 @@
 </span><span class="kw">mod </span>tests;
 
 <span class="doccomment">/// Solidity selector of the Transfer log, which is the Keccak of the Log signature.
-</span><span class="kw">pub const </span>SELECTOR_LOG_TRANSFER: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"Transfer(address,address,uint256)"</span>);
+</span><span class="kw">pub const </span>SELECTOR_LOG_TRANSFER: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Transfer(address,address,uint256)&quot;</span>);
 
 <span class="doccomment">/// Solidity selector of the Approval log, which is the Keccak of the Log signature.
-</span><span class="kw">pub const </span>SELECTOR_LOG_APPROVAL: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"Approval(address,address,uint256)"</span>);
+</span><span class="kw">pub const </span>SELECTOR_LOG_APPROVAL: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Approval(address,address,uint256)&quot;</span>);
 
 <span class="doccomment">/// Solidity selector of the Deposit log, which is the Keccak of the Log signature.
-</span><span class="kw">pub const </span>SELECTOR_LOG_DEPOSIT: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"Deposit(address,uint256)"</span>);
+</span><span class="kw">pub const </span>SELECTOR_LOG_DEPOSIT: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Deposit(address,uint256)&quot;</span>);
 
 <span class="doccomment">/// Solidity selector of the Withdraw log, which is the Keccak of the Log signature.
-</span><span class="kw">pub const </span>SELECTOR_LOG_WITHDRAWAL: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"Withdrawal(address,uint256)"</span>);
+</span><span class="kw">pub const </span>SELECTOR_LOG_WITHDRAWAL: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Withdrawal(address,uint256)&quot;</span>);
 
 <span class="doccomment">/// Associates pallet Instance to a prefix used for the Approves storage.
 /// This trait is implemented for () and the 16 substrate Instance.
@@ -577,9 +575,9 @@
 				<span class="kw">pub struct </span>Approves;
 
 				<span class="kw">impl </span>StorageInstance <span class="kw">for </span>Approves {
-					<span class="kw">const </span>STORAGE_PREFIX: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"Approves"</span>;
+					<span class="kw">const </span>STORAGE_PREFIX: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Approves&quot;</span>;
 
-					<span class="kw">fn </span>pallet_prefix() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+					<span class="kw">fn </span>pallet_prefix() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
 						<span class="macro-nonterminal">$name
 					</span>}
 				}
@@ -587,9 +585,9 @@
 				<span class="kw">pub struct </span>Nonces;
 
 				<span class="kw">impl </span>StorageInstance <span class="kw">for </span>Nonces {
-					<span class="kw">const </span>STORAGE_PREFIX: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"Nonces"</span>;
+					<span class="kw">const </span>STORAGE_PREFIX: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Nonces&quot;</span>;
 
-					<span class="kw">fn </span>pallet_prefix() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+					<span class="kw">fn </span>pallet_prefix() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
 						<span class="macro-nonterminal">$name
 					</span>}
 				}
@@ -606,29 +604,29 @@
 <span class="comment">// Since the macro expect a `ident` to be used with `paste!` we cannot provide `()` directly.
 </span><span class="kw">type </span>Instance0 = ();
 
-<span class="macro">impl_prefix!</span>(Instance0, <span class="string">"Erc20Instance0Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance1, <span class="string">"Erc20Instance1Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance2, <span class="string">"Erc20Instance2Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance3, <span class="string">"Erc20Instance3Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance4, <span class="string">"Erc20Instance4Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance5, <span class="string">"Erc20Instance5Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance6, <span class="string">"Erc20Instance6Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance7, <span class="string">"Erc20Instance7Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance8, <span class="string">"Erc20Instance8Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance9, <span class="string">"Erc20Instance9Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance10, <span class="string">"Erc20Instance10Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance11, <span class="string">"Erc20Instance11Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance12, <span class="string">"Erc20Instance12Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance13, <span class="string">"Erc20Instance13Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance14, <span class="string">"Erc20Instance14Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance15, <span class="string">"Erc20Instance15Balances"</span>);
-<span class="macro">impl_prefix!</span>(Instance16, <span class="string">"Erc20Instance16Balances"</span>);
+<span class="macro">impl_prefix!</span>(Instance0, <span class="string">&quot;Erc20Instance0Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance1, <span class="string">&quot;Erc20Instance1Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance2, <span class="string">&quot;Erc20Instance2Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance3, <span class="string">&quot;Erc20Instance3Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance4, <span class="string">&quot;Erc20Instance4Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance5, <span class="string">&quot;Erc20Instance5Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance6, <span class="string">&quot;Erc20Instance6Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance7, <span class="string">&quot;Erc20Instance7Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance8, <span class="string">&quot;Erc20Instance8Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance9, <span class="string">&quot;Erc20Instance9Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance10, <span class="string">&quot;Erc20Instance10Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance11, <span class="string">&quot;Erc20Instance11Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance12, <span class="string">&quot;Erc20Instance12Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance13, <span class="string">&quot;Erc20Instance13Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance14, <span class="string">&quot;Erc20Instance14Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance15, <span class="string">&quot;Erc20Instance15Balances&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance16, <span class="string">&quot;Erc20Instance16Balances&quot;</span>);
 
 <span class="doccomment">/// Alias for the Balance type for the provided Runtime and Instance.
 </span><span class="kw">pub type </span>BalanceOf&lt;Runtime, Instance = ()&gt; =
 	&lt;Runtime <span class="kw">as </span>pallet_balances::Config&lt;Instance&gt;&gt;::Balance;
 
-<span class="doccomment">/// Storage type used to store approvals, since `pallet_balances` doesn't
+<span class="doccomment">/// Storage type used to store approvals, since `pallet_balances` doesn&#39;t
 /// handle this behavior.
 /// (Owner =&gt; Allowed =&gt; Amount)
 </span><span class="kw">pub type </span>ApprovesStorage&lt;Runtime, Instance&gt; = StorageDoubleMap&lt;
@@ -654,10 +652,10 @@
 <span class="doccomment">/// Metadata of an ERC20 token.
 </span><span class="kw">pub trait </span>Erc20Metadata {
 	<span class="doccomment">/// Returns the name of the token.
-	</span><span class="kw">fn </span>name() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str;
+	</span><span class="kw">fn </span>name() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
 
 	<span class="doccomment">/// Returns the symbol of the token.
-	</span><span class="kw">fn </span>symbol() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str;
+	</span><span class="kw">fn </span>symbol() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
 
 	<span class="doccomment">/// Returns the decimals places of the token.
 	</span><span class="kw">fn </span>decimals() -&gt; u8;
@@ -670,7 +668,7 @@
 <span class="doccomment">/// Precompile exposing a pallet_balance as an ERC20.
 /// Multiple precompiles can support instances of pallet_balance.
 /// The precompile uses an additional storage to store approvals.
-</span><span class="kw">pub struct </span>Erc20BalancesPrecompile&lt;Runtime, Metadata: Erc20Metadata, Instance: <span class="lifetime">'static </span>= ()&gt;(
+</span><span class="kw">pub struct </span>Erc20BalancesPrecompile&lt;Runtime, Metadata: Erc20Metadata, Instance: <span class="lifetime">&#39;static </span>= ()&gt;(
 	PhantomData&lt;(Runtime, Metadata, Instance)&gt;,
 );
 
@@ -683,9 +681,9 @@
 	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	BalanceOf&lt;Runtime, Instance&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt;,
 	Metadata: Erc20Metadata,
-	Instance: InstanceToPrefix + <span class="lifetime">'static</span>,
+	Instance: InstanceToPrefix + <span class="lifetime">&#39;static</span>,
 {
-	<span class="attr">#[precompile::public(<span class="string">"totalSupply()"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;totalSupply()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>total_supply(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;U256&gt; {
 		<span class="comment">// TotalIssuance: Balance(16)
@@ -694,7 +692,7 @@
 		<span class="prelude-val">Ok</span>(pallet_balances::Pallet::&lt;Runtime, Instance&gt;::total_issuance().into())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"balanceOf(address)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;balanceOf(address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>balance_of(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, owner: Address) -&gt; EvmResult&lt;U256&gt; {
 		<span class="comment">// frame_system::Account:
@@ -707,7 +705,7 @@
 		<span class="prelude-val">Ok</span>(pallet_balances::Pallet::&lt;Runtime, Instance&gt;::usable_balance(<span class="kw-2">&amp;</span>owner).into())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"allowance(address,address)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;allowance(address,address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>allowance(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -729,7 +727,7 @@
 			.into())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"approve(address,uint256)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;approve(address,uint256)&quot;</span>)]
 	</span><span class="kw">fn </span>approve(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		spender: Address,
@@ -764,7 +762,7 @@
 		</span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"transfer(address,uint256)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;transfer(address,uint256)&quot;</span>)]
 	</span><span class="kw">fn </span>transfer(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, to: Address, value: U256) -&gt; EvmResult&lt;bool&gt; {
 		handle.record_log_costs_manual(<span class="number">3</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 
@@ -774,7 +772,7 @@
 		</span>{
 			<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 			<span class="kw">let </span>to = Runtime::AddressMapping::into_account_id(to);
-			<span class="kw">let </span>value = <span class="self">Self</span>::u256_to_amount(value).in_field(<span class="string">"value"</span>)<span class="question-mark">?</span>;
+			<span class="kw">let </span>value = <span class="self">Self</span>::u256_to_amount(value).in_field(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>;
 
 			<span class="comment">// Dispatch call (if enough gas).
 			</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
@@ -800,7 +798,7 @@
 		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"transferFrom(address,address,uint256)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;transferFrom(address,address,uint256)&quot;</span>)]
 	</span><span class="kw">fn </span>transfer_from(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		from: Address,
@@ -821,18 +819,18 @@
 				Runtime::AddressMapping::into_account_id(handle.context().caller);
 			<span class="kw">let </span>from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from);
 			<span class="kw">let </span>to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
-			<span class="kw">let </span>value = <span class="self">Self</span>::u256_to_amount(value).in_field(<span class="string">"value"</span>)<span class="question-mark">?</span>;
+			<span class="kw">let </span>value = <span class="self">Self</span>::u256_to_amount(value).in_field(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>;
 
-			<span class="comment">// If caller is "from", it can spend as much as it wants.
+			<span class="comment">// If caller is &quot;from&quot;, it can spend as much as it wants.
 			</span><span class="kw">if </span>caller != from {
 				ApprovesStorage::&lt;Runtime, Instance&gt;::mutate(from.clone(), caller, |entry| {
 					<span class="comment">// Get current allowed value, exit if None.
-					</span><span class="kw">let </span>allowed = entry.ok_or(revert(<span class="string">"spender not allowed"</span>))<span class="question-mark">?</span>;
+					</span><span class="kw">let </span>allowed = entry.ok_or(revert(<span class="string">&quot;spender not allowed&quot;</span>))<span class="question-mark">?</span>;
 
-					<span class="comment">// Remove "value" from allowed, exit if underflow.
+					<span class="comment">// Remove &quot;value&quot; from allowed, exit if underflow.
 					</span><span class="kw">let </span>allowed = allowed
 						.checked_sub(<span class="kw-2">&amp;</span>value)
-						.ok_or_else(|| revert(<span class="string">"trying to spend more than allowed"</span>))<span class="question-mark">?</span>;
+						.ok_or_else(|| revert(<span class="string">&quot;trying to spend more than allowed&quot;</span>))<span class="question-mark">?</span>;
 
 					<span class="comment">// Update allowed value.
 					</span><span class="kw-2">*</span>entry = <span class="prelude-val">Some</span>(allowed);
@@ -841,7 +839,7 @@
 				})<span class="question-mark">?</span>;
 			}
 
-			<span class="comment">// Build call with origin. Here origin is the "from"/owner field.
+			<span class="comment">// Build call with origin. Here origin is the &quot;from&quot;/owner field.
 			// Dispatch call (if enough gas).
 			</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
 				handle,
@@ -866,25 +864,25 @@
 		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"name()"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;name()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>name(_handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;UnboundedBytes&gt; {
 		<span class="prelude-val">Ok</span>(Metadata::name().into())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"symbol()"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;symbol()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>symbol(_handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;UnboundedBytes&gt; {
 		<span class="prelude-val">Ok</span>(Metadata::symbol().into())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"decimals()"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;decimals()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>decimals(_handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;u8&gt; {
 		<span class="prelude-val">Ok</span>(Metadata::decimals())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"deposit()"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;deposit()&quot;</span>)]
 	#[precompile::fallback]
 	#[precompile::payable]
 	</span><span class="kw">fn </span>deposit(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
@@ -899,7 +897,7 @@
 		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(handle.context().apparent_value)<span class="question-mark">?</span>;
 
 		<span class="kw">if </span>amount.into() == U256::from(<span class="number">0u32</span>) {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">"deposited amount must be non-zero"</span>));
+			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;deposited amount must be non-zero&quot;</span>));
 		}
 
 		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
@@ -926,7 +924,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"withdraw(uint256)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;withdraw(uint256)&quot;</span>)]
 	</span><span class="kw">fn </span>withdraw(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, value: U256) -&gt; EvmResult {
 		<span class="comment">// Withdraw only makes sense for the native currency.
 		</span><span class="kw">if </span>!Metadata::is_native_currency() {
@@ -942,7 +940,7 @@
 		};
 
 		<span class="kw">if </span>value &gt; account_amount {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">"Trying to withdraw more than owned"</span>));
+			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Trying to withdraw more than owned&quot;</span>));
 		}
 
 		log2(
@@ -956,7 +954,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"permit(address,address,uint256,uint256,uint8,bytes32,bytes32)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;permit(address,address,uint256,uint256,uint8,bytes32,bytes32)&quot;</span>)]
 	</span><span class="kw">fn </span>eip2612_permit(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		owner: Address,
@@ -972,13 +970,13 @@
 		)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"nonces(address)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;nonces(address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>eip2612_nonces(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, owner: Address) -&gt; EvmResult&lt;U256&gt; {
 		&lt;Eip2612&lt;Runtime, Metadata, Instance&gt;&gt;::nonces(handle, owner)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"DOMAIN_SEPARATOR()"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;DOMAIN_SEPARATOR()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>eip2612_domain_separator(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;H256&gt; {
 		&lt;Eip2612&lt;Runtime, Metadata, Instance&gt;&gt;::domain_separator(handle)
@@ -987,7 +985,7 @@
 	<span class="kw">fn </span>u256_to_amount(value: U256) -&gt; MayRevert&lt;BalanceOf&lt;Runtime, Instance&gt;&gt; {
 		value
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"balance type"</span>).into())
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;balance type&quot;</span>).into())
 	}
 }
 </code></pre></div></section></main></body></html>

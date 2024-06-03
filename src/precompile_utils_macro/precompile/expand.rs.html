@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/macro/src/precompile/expand.rs`."><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="precompile_utils_macro" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../precompile_utils_macro/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/macro/src/precompile/expand.rs`."><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="precompile_utils_macro" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../precompile_utils_macro/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -608,9 +606,9 @@
 
 		<span class="kw">let </span>modifier_check = <span class="self">self</span>.variants_content.values().map(|variant| {
 			<span class="kw">let </span>modifier = <span class="kw">match </span>variant.modifier {
-				Modifier::NonPayable =&gt; <span class="string">"NonPayable"</span>,
-				Modifier::Payable =&gt; <span class="string">"Payable"</span>,
-				Modifier::View =&gt; <span class="string">"View"</span>,
+				Modifier::NonPayable =&gt; <span class="string">&quot;NonPayable&quot;</span>,
+				Modifier::Payable =&gt; <span class="string">&quot;Payable&quot;</span>,
+				Modifier::View =&gt; <span class="string">&quot;View&quot;</span>,
 			};
 
 			<span class="kw">let </span>modifier = syn::Ident::new(modifier, span);
@@ -689,7 +687,7 @@
 		<span class="kw">let </span>variants_selectors_fn: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
 			</span>.variants_content
 			.keys()
-			.map(|name| <span class="macro">format_ident!</span>(<span class="string">"{}_selectors"</span>, name))
+			.map(|name| <span class="macro">format_ident!</span>(<span class="string">&quot;{}_selectors&quot;</span>, name))
 			.collect();
 		<span class="kw">let </span>variants_selectors: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
 			</span>.variants_content
@@ -729,14 +727,14 @@
 					}
 				}
 
-				<span class="kw">pub fn </span>selectors() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u32] {
+				<span class="kw">pub fn </span>selectors() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u32] {
 					<span class="kw-2">&amp;</span>[#(
 						#match_selectors2
 					),<span class="kw-2">*</span>]
 				}
 
 				#(
-					<span class="kw">pub fn </span>#variants_selectors_fn() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u32] {
+					<span class="kw">pub fn </span>#variants_selectors_fn() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u32] {
 						<span class="kw-2">&amp;</span>[#(
 							#variants_selectors
 						),<span class="kw-2">*</span>]
@@ -751,7 +749,7 @@
 								#variants_encode
 							},
 						)*
-						<span class="self">Self</span>::__phantom(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">"__phantom variant should not be used"</span>),
+						<span class="self">Self</span>::__phantom(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;__phantom variant should not be used&quot;</span>),
 					}
 				}
 			}
@@ -825,7 +823,7 @@
 							#variants_call
 						},
 					)*
-					<span class="self">Self</span>::__phantom(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">"__phantom variant should not be used"</span>),
+					<span class="self">Self</span>::__phantom(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;__phantom variant should not be used&quot;</span>),
 				};
 
 				<span class="prelude-val">Ok</span>(PrecompileOutput {
@@ -873,7 +871,7 @@
 			}
 			<span class="prelude-val">None </span>=&gt; <span class="macro">quote!</span>(
 				<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(RevertReason::UnknownSelector.into()),
-				<span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(RevertReason::read_out_of_bounds(<span class="string">"selector"</span>).into()),
+				<span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(RevertReason::read_out_of_bounds(<span class="string">&quot;selector&quot;</span>).into()),
 			)
 			.to_token_stream(),
 		};
@@ -903,7 +901,7 @@
 	}
 
 	<span class="kw">fn </span>variant_ident_to_parse_fn(ident: <span class="kw-2">&amp;</span>syn::Ident) -&gt; syn::Ident {
-		<span class="macro">format_ident!</span>(<span class="string">"_parse_{}"</span>, ident)
+		<span class="macro">format_ident!</span>(<span class="string">&quot;_parse_{}&quot;</span>, ident)
 	}
 
 	<span class="doccomment">/// Expands the impl of the Precomile(Set) trait.
@@ -983,7 +981,7 @@
 	}
 
 	<span class="doccomment">/// Expands the Solidity signature test.
-	/// The macro expands an "inner" function in all build profiles, which is
+	/// The macro expands an &quot;inner&quot; function in all build profiles, which is
 	/// then called by a test in test profile. This allows to display errors that occurs in
 	/// the expansion of the test without having to build in test profile, which is usually
 	/// related to the use of a type parameter in one of the parsed parameters of a method.
@@ -1002,16 +1000,16 @@
 					<span class="macro">assert_eq!</span>(
 						#solidity,
 						&lt;(#(#types,)<span class="kw-2">*</span>) <span class="kw">as </span>Codec&gt;::signature(),
-						<span class="string">"{} function signature doesn't match (left: attribute, right: computed \
-						from Rust types)"</span>,
+						<span class="string">&quot;{} function signature doesn&#39;t match (left: attribute, right: computed \
+						from Rust types)&quot;</span>,
 						#name
 					);
 				)
 			})
 			.collect();
 
-		<span class="kw">let </span>test_name = <span class="macro">format_ident!</span>(<span class="string">"__{}_test_solidity_signatures"</span>, <span class="self">self</span>.impl_ident);
-		<span class="kw">let </span>inner_name = <span class="macro">format_ident!</span>(<span class="string">"__{}_test_solidity_signatures_inner"</span>, <span class="self">self</span>.impl_ident);
+		<span class="kw">let </span>test_name = <span class="macro">format_ident!</span>(<span class="string">&quot;__{}_test_solidity_signatures&quot;</span>, <span class="self">self</span>.impl_ident);
+		<span class="kw">let </span>inner_name = <span class="macro">format_ident!</span>(<span class="string">&quot;__{}_test_solidity_signatures_inner&quot;</span>, <span class="self">self</span>.impl_ident);
 
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(test_types) = <span class="kw-2">&amp;</span><span class="self">self</span>.test_concrete_types {
 			<span class="kw">let </span>(impl_generics, _ty_generics, where_clause) = <span class="self">self</span>.generics.split_for_impl();

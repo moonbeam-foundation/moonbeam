@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"moonbeam_runtime_common":[["impl&lt;Runtime&gt; Migration for <a class=\"struct\" href=\"moonbeam_runtime_common/migrations/struct.MigrateToLatestXcmVersion.html\" title=\"struct moonbeam_runtime_common::migrations::MigrateToLatestXcmVersion\">MigrateToLatestXcmVersion</a>&lt;Runtime&gt;<div class=\"where\">where\n    MigrateToLatestXcmVersion&lt;Runtime&gt;: OnRuntimeUpgrade,</div>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

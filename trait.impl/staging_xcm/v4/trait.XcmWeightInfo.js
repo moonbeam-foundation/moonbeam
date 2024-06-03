@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"moonbeam_xcm_benchmarks":[["impl&lt;Runtime, Call&gt; XcmWeightInfo&lt;Call&gt; for <a class=\"struct\" href=\"moonbeam_xcm_benchmarks/weights/struct.XcmWeight.html\" title=\"struct moonbeam_xcm_benchmarks::weights::XcmWeight\">XcmWeight</a>&lt;Runtime, Call&gt;<div class=\"where\">where\n    Runtime: Config + <a class=\"trait\" href=\"pallet_erc20_xcm_bridge/pallet/trait.Config.html\" title=\"trait pallet_erc20_xcm_bridge::pallet::Config\">Config</a>,</div>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

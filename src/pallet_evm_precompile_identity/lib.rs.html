@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/identity/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_identity" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_evm_precompile_identity/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/identity/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_identity" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_evm_precompile_identity/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -891,7 +889,7 @@
 
 </span><span class="doccomment">//! Precompile to receive GMP callbacks and forward to XCM
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">extern crate </span>alloc;
 
@@ -922,20 +920,20 @@
 	<span class="kw">as </span>pallet_identity::IdentityInformationProvider&gt;::FieldsIdentifier;
 
 <span class="doccomment">/// Solidity selector of the Vote log, which is the Keccak of the Log signature.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_IDENTITY_SET: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"IdentitySet(address)"</span>);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_IDENTITY_CLEARED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"IdentityCleared(address)"</span>);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_IDENTITY_SET: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;IdentitySet(address)&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_IDENTITY_CLEARED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;IdentityCleared(address)&quot;</span>);
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_JUDGEMENT_REQUESTED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">"JudgementRequested(address,uint32)"</span>);
+	<span class="macro">keccak256!</span>(<span class="string">&quot;JudgementRequested(address,uint32)&quot;</span>);
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_JUDGEMENT_UNREQUESTED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">"JudgementUnrequested(address,uint32)"</span>);
+	<span class="macro">keccak256!</span>(<span class="string">&quot;JudgementUnrequested(address,uint32)&quot;</span>);
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_JUDGEMENT_GIVEN: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">"JudgementGiven(address,uint32)"</span>);
+	<span class="macro">keccak256!</span>(<span class="string">&quot;JudgementGiven(address,uint32)&quot;</span>);
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUB_IDENTITY_ADDED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">"SubIdentityAdded(address,address)"</span>);
+	<span class="macro">keccak256!</span>(<span class="string">&quot;SubIdentityAdded(address,address)&quot;</span>);
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUB_IDENTITY_REMOVED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">"SubIdentityRemoved(address,address)"</span>);
+	<span class="macro">keccak256!</span>(<span class="string">&quot;SubIdentityRemoved(address,address)&quot;</span>);
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_SUB_IDENTITY_REVOKED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">"SubIdentityRevoked(address)"</span>);
+	<span class="macro">keccak256!</span>(<span class="string">&quot;SubIdentityRevoked(address)&quot;</span>);
 
 <span class="doccomment">/// A precompile to wrap the functionality from pallet-identity
 </span><span class="kw">pub struct </span>IdentityPrecompile&lt;Runtime, MaxAdditionalFields&gt;(
@@ -946,7 +944,7 @@
 #[precompile::test_concrete_types(mock::Runtime, mock::MaxAdditionalFields)]
 </span><span class="kw">impl</span>&lt;Runtime, MaxAdditionalFields&gt; IdentityPrecompile&lt;Runtime, MaxAdditionalFields&gt;
 <span class="kw">where
-	</span>MaxAdditionalFields: Get&lt;u32&gt; + <span class="lifetime">'static</span>,
+	</span>MaxAdditionalFields: Get&lt;u32&gt; + <span class="lifetime">&#39;static</span>,
 	Runtime: pallet_evm::Config
 		+ pallet_identity::Config&lt;
 			IdentityInformation = pallet_identity::legacy::IdentityInfo&lt;MaxAdditionalFields&gt;,
@@ -962,7 +960,7 @@
 	// force origin.
 
 	// editorconfig-checker-disable
-	</span><span class="attr">#[precompile::public(<span class="string">"setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))"</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">&quot;setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))&quot;</span>)]
 	</span><span class="kw">fn </span>set_identity(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		info: IdentityInfo&lt;MaxAdditionalFields&gt;,
@@ -989,7 +987,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"setSubs((address,(bool,bytes))[])"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;setSubs((address,(bool,bytes))[])&quot;</span>)]
 	</span><span class="kw">fn </span>set_subs(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		subs: BoundedVec&lt;(Address, Data), Runtime::MaxSubAccounts&gt;,
@@ -1000,7 +998,7 @@
 			<span class="kw">let </span>addr = Runtime::AddressMapping::into_account_id(addr.into());
 			<span class="kw">let </span>data: pallet_identity::Data = data
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(<span class="macro">alloc::format!</span>(<span class="string">"index {i}"</span>)))<span class="question-mark">?</span>;
+				.map_err(|e| RevertReason::custom(e).in_field(<span class="macro">alloc::format!</span>(<span class="string">&quot;index {i}&quot;</span>)))<span class="question-mark">?</span>;
 			call_subs.push((addr, data));
 		}
 		<span class="kw">let </span>call = pallet_identity::Call::&lt;Runtime&gt;::set_subs { subs: call_subs };
@@ -1011,7 +1009,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"clearIdentity()"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;clearIdentity()&quot;</span>)]
 	</span><span class="kw">fn </span>clear_identity(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
 		<span class="kw">let </span>caller = handle.context().caller;
 
@@ -1032,7 +1030,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"requestJudgement(uint32,uint256)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;requestJudgement(uint32,uint256)&quot;</span>)]
 	</span><span class="kw">fn </span>request_judgement(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		reg_index: u32,
@@ -1049,7 +1047,7 @@
 
 		<span class="kw">let </span>max_fee = max_fee
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"max_fee"</span>))<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;max_fee&quot;</span>))<span class="question-mark">?</span>;
 		<span class="kw">let </span>call = pallet_identity::Call::&lt;Runtime&gt;::request_judgement { reg_index, max_fee };
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(caller);
@@ -1060,7 +1058,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"cancelRequest(uint32)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;cancelRequest(uint32)&quot;</span>)]
 	</span><span class="kw">fn </span>cancel_request(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, reg_index: u32) -&gt; EvmResult {
 		<span class="kw">let </span>caller = handle.context().caller;
 
@@ -1081,11 +1079,11 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"setFee(uint32,uint256)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;setFee(uint32,uint256)&quot;</span>)]
 	</span><span class="kw">fn </span>set_fee(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, index: u32, fee: U256) -&gt; EvmResult {
 		<span class="kw">let </span>fee = fee
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"fee"</span>))<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;fee&quot;</span>))<span class="question-mark">?</span>;
 		<span class="kw">let </span>call = pallet_identity::Call::&lt;Runtime&gt;::set_fee { index, fee };
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1094,7 +1092,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"setAccountId(uint32,address)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;setAccountId(uint32,address)&quot;</span>)]
 	</span><span class="kw">fn </span>set_account_id(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, index: u32, new: Address) -&gt; EvmResult {
 		<span class="kw">let </span>new = Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(new.<span class="number">0</span>));
 		<span class="kw">let </span>call = pallet_identity::Call::&lt;Runtime&gt;::set_account_id { index, new };
@@ -1105,7 +1103,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"setFields(uint32,(bool,bool,bool,bool,bool,bool,bool,bool))"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;setFields(uint32,(bool,bool,bool,bool,bool,bool,bool,bool))&quot;</span>)]
 	</span><span class="kw">fn </span>set_fields(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		index: u32,
@@ -1121,7 +1119,7 @@
 	}
 
 	<span class="attr">#[precompile::public(
-		<span class="string">"provideJudgement(uint32,address,(bool,bool,uint256,bool,bool,bool,bool,bool),bytes32)"
+		<span class="string">&quot;provideJudgement(uint32,address,(bool,bool,uint256,bool,bool,bool,bool,bool),bytes32)&quot;
 	</span>)]
 	</span><span class="kw">fn </span>provide_judgement(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1157,7 +1155,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"addSub(address,(bool,bytes))"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;addSub(address,(bool,bytes))&quot;</span>)]
 	</span><span class="kw">fn </span>add_sub(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, sub: Address, data: Data) -&gt; EvmResult {
 		<span class="kw">let </span>caller = handle.context().caller;
 
@@ -1171,7 +1169,7 @@
 		<span class="kw">let </span>sub = Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(sub.<span class="number">0</span>));
 		<span class="kw">let </span>data: pallet_identity::Data = data
 			.try_into()
-			.map_err(|e| RevertReason::custom(e).in_field(<span class="string">"data"</span>))<span class="question-mark">?</span>;
+			.map_err(|e| RevertReason::custom(e).in_field(<span class="string">&quot;data&quot;</span>))<span class="question-mark">?</span>;
 		<span class="kw">let </span>call = pallet_identity::Call::&lt;Runtime&gt;::add_sub { sub, data };
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(caller);
@@ -1182,12 +1180,12 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"renameSub(address,(bool,bytes))"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;renameSub(address,(bool,bytes))&quot;</span>)]
 	</span><span class="kw">fn </span>rename_sub(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, sub: Address, data: Data) -&gt; EvmResult {
 		<span class="kw">let </span>sub = Runtime::Lookup::unlookup(Runtime::AddressMapping::into_account_id(sub.<span class="number">0</span>));
 		<span class="kw">let </span>data: pallet_identity::Data = data
 			.try_into()
-			.map_err(|e| RevertReason::custom(e).in_field(<span class="string">"data"</span>))<span class="question-mark">?</span>;
+			.map_err(|e| RevertReason::custom(e).in_field(<span class="string">&quot;data&quot;</span>))<span class="question-mark">?</span>;
 		<span class="kw">let </span>call = pallet_identity::Call::&lt;Runtime&gt;::rename_sub { sub, data };
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1196,7 +1194,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"removeSub(address)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;removeSub(address)&quot;</span>)]
 	</span><span class="kw">fn </span>remove_sub(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, sub: Address) -&gt; EvmResult {
 		<span class="kw">let </span>caller = handle.context().caller;
 
@@ -1218,7 +1216,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"quitSub()"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;quitSub()&quot;</span>)]
 	</span><span class="kw">fn </span>quit_sub(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
 		<span class="kw">let </span>caller = handle.context().caller;
 
@@ -1239,7 +1237,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"identity(address)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;identity(address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>identity(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1260,7 +1258,7 @@
 		<span class="prelude-val">Ok</span>(<span class="self">Self</span>::identity_to_output(identity)<span class="question-mark">?</span>)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"superOf(address)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;superOf(address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>super_of(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, who: Address) -&gt; EvmResult&lt;SuperOf&gt; {
 		<span class="comment">// Storage item: SuperOf -&gt; (T::AccountId, Data)
@@ -1282,7 +1280,7 @@
 		}
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"subsOf(address)"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;subsOf(address)&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>subs_of(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, who: Address) -&gt; EvmResult&lt;SubsOf&gt; {
 		<span class="comment">// Storage item: SubsOf -&gt; (BalanceOf&lt;T&gt;, BoundedVec&lt;T::AccountId, T::MaxSubAccounts&gt;)
@@ -1308,7 +1306,7 @@
 		})
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"registrars()"</span>)]
+	<span class="attr">#[precompile::public(<span class="string">&quot;registrars()&quot;</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>registrars(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Vec&lt;Registrar&gt;&gt; {
 		<span class="comment">// Storage item: Registrars -&gt;
@@ -1406,21 +1404,21 @@
 		<span class="kw">let </span>iter: Vec&lt;<span class="kw">_</span>&gt; = info.additional.into();
 		<span class="kw">for </span>(i, (k, v)) <span class="kw">in </span>iter.into_iter().enumerate() {
 			<span class="kw">let </span>k: pallet_identity::Data = k.try_into().map_err(|e| {
-				RevertReason::custom(e).in_field(<span class="macro">alloc::format!</span>(<span class="string">"additional.{i}.key"</span>))
+				RevertReason::custom(e).in_field(<span class="macro">alloc::format!</span>(<span class="string">&quot;additional.{i}.key&quot;</span>))
 			})<span class="question-mark">?</span>;
 			<span class="kw">let </span>v: pallet_identity::Data = v.try_into().map_err(|e| {
-				RevertReason::custom(e).in_field(<span class="macro">alloc::format!</span>(<span class="string">"additional.{i}.value"</span>))
+				RevertReason::custom(e).in_field(<span class="macro">alloc::format!</span>(<span class="string">&quot;additional.{i}.value&quot;</span>))
 			})<span class="question-mark">?</span>;
 			additional
 				.try_push((k, v))
-				.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">"out of bounds"</span>).in_field(<span class="string">"additional"</span>))<span class="question-mark">?</span>;
+				.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;out of bounds&quot;</span>).in_field(<span class="string">&quot;additional&quot;</span>))<span class="question-mark">?</span>;
 		}
 
 		<span class="kw">let </span>pgp_fingerprint: <span class="prelude-ty">Option</span>&lt;[u8; <span class="number">20</span>]&gt; = <span class="kw">if </span>info.has_pgp_fingerprint {
 			<span class="kw">let </span>fingerprint: Vec&lt;<span class="kw">_</span>&gt; = info.pgp_fingerprint.into();
 			<span class="kw">let </span>fingerprint = fingerprint
 				.try_into()
-				.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">"pgp_fingerprint must be 20 bytes long"</span>))<span class="question-mark">?</span>;
+				.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;pgp_fingerprint must be 20 bytes long&quot;</span>))<span class="question-mark">?</span>;
 			<span class="prelude-val">Some</span>(fingerprint)
 		} <span class="kw">else </span>{
 			<span class="prelude-val">None
@@ -1430,32 +1428,32 @@
 			display: info
 				.display
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">"display"</span>))<span class="question-mark">?</span>,
+				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">&quot;display&quot;</span>))<span class="question-mark">?</span>,
 			legal: info
 				.legal
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">"legal"</span>))<span class="question-mark">?</span>,
+				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">&quot;legal&quot;</span>))<span class="question-mark">?</span>,
 			web: info
 				.web
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">"web"</span>))<span class="question-mark">?</span>,
+				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">&quot;web&quot;</span>))<span class="question-mark">?</span>,
 			riot: info
 				.riot
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">"riot"</span>))<span class="question-mark">?</span>,
+				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">&quot;riot&quot;</span>))<span class="question-mark">?</span>,
 			email: info
 				.email
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">"email"</span>))<span class="question-mark">?</span>,
+				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">&quot;email&quot;</span>))<span class="question-mark">?</span>,
 			pgp_fingerprint,
 			image: info
 				.image
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">"image"</span>))<span class="question-mark">?</span>,
+				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">&quot;image&quot;</span>))<span class="question-mark">?</span>,
 			twitter: info
 				.twitter
 				.try_into()
-				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">"twitter"</span>))<span class="question-mark">?</span>,
+				.map_err(|e| RevertReason::custom(e).in_field(<span class="string">&quot;twitter&quot;</span>))<span class="question-mark">?</span>,
 		};
 
 		<span class="prelude-val">Ok</span>(Box::new(identity_info))
@@ -1480,7 +1478,7 @@
 			<span class="kw">return </span><span class="prelude-val">Ok</span>(Registration::&lt;MaxAdditionalFields&gt;::default());
 		}
 
-		<span class="kw">let </span>registration = registration.expect(<span class="string">"none case checked above; qed"</span>).<span class="number">0</span>;
+		<span class="kw">let </span>registration = registration.expect(<span class="string">&quot;none case checked above; qed&quot;</span>).<span class="number">0</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>identity_info = IdentityInfo::&lt;MaxAdditionalFields&gt; {
 			additional: Default::default(),
 			display: <span class="self">Self</span>::data_to_output(registration.info.display),
@@ -1565,7 +1563,7 @@
 			<span class="kw">let </span>amount: BalanceOf&lt;Runtime&gt; = value
 				.fee_paid_deposit
 				.try_into()
-				.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"fee_paid_deposit"</span>).into())<span class="question-mark">?</span>;
+				.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;fee_paid_deposit&quot;</span>).into())<span class="question-mark">?</span>;
 
 			<span class="kw">return </span><span class="prelude-val">Ok</span>(pallet_identity::Judgement::FeePaid(amount));
 		}
@@ -1590,7 +1588,7 @@
 			<span class="kw">return </span><span class="prelude-val">Ok</span>(pallet_identity::Judgement::Erroneous);
 		}
 
-		<span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">"invalid"</span>));
+		<span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">&quot;invalid&quot;</span>));
 	}
 
 	<span class="kw">fn </span>data_to_output(data: pallet_identity::Data) -&gt; Data {
@@ -1631,7 +1629,7 @@
 }
 
 <span class="kw">impl </span>TryFrom&lt;Data&gt; <span class="kw">for </span>pallet_identity::Data {
-	<span class="kw">type </span>Error = <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str;
+	<span class="kw">type </span>Error = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
 
 	<span class="kw">fn </span>try_from(value: Data) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
 		<span class="kw">if </span>!value.has_data {
@@ -1640,7 +1638,7 @@
 
 		<span class="kw">let </span>value: Vec&lt;<span class="kw">_</span>&gt; = value.value.into();
 		<span class="kw">let </span>value: sp_runtime::BoundedVec&lt;<span class="kw">_</span>, ConstU32&lt;<span class="number">32</span>&gt;&gt; =
-			value.try_into().map_err(|<span class="kw">_</span>| <span class="string">"exceeded bounds"</span>)<span class="question-mark">?</span>;
+			value.try_into().map_err(|<span class="kw">_</span>| <span class="string">&quot;exceeded bounds&quot;</span>)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(pallet_identity::Data::Raw(value))
 	}
 }

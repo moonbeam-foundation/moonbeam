@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/xcm-transactor/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_xcm_transactor" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_xcm_transactor/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/xcm-transactor/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_xcm_transactor" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_xcm_transactor/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1385,13 +1383,13 @@
 //! 	destination chain. Additionally, a ML-based derivation mechanism needs to be implemented
 //! 	in the destination chain.
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
 </span><span class="kw">use </span>frame_support::pallet;
 
 <span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 
-<span class="attr">#[cfg(any(test, feature = <span class="string">"runtime-benchmarks"</span>))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
 </span><span class="kw">mod </span>benchmarks;
 
 <span class="attr">#[cfg(test)]
@@ -1478,7 +1476,7 @@
 		<span class="doccomment">/// Means of measuring the weight consumed by an XCM message locally.
 		</span><span class="kw">type </span>Weigher: WeightBounds&lt;<span class="self">Self</span>::RuntimeCall&gt;;
 
-		<span class="doccomment">/// This chain's Universal Location.
+		<span class="doccomment">/// This chain&#39;s Universal Location.
 		</span><span class="kw">type </span>UniversalLocation: Get&lt;InteriorLocation&gt;;
 
 		<span class="doccomment">/// Self chain location.
@@ -1617,8 +1615,8 @@
 	}
 
 	<span class="doccomment">/// The amount of ref_time and proof_size to use for fee calculation if
-	/// we are dealing with an Unlimited variant inside 'overall_weight' field
-	/// of 'TransactWeights' struct.
+	/// we are dealing with an Unlimited variant inside &#39;overall_weight&#39; field
+	/// of &#39;TransactWeights&#39; struct.
 	</span><span class="kw">pub const </span>MAX_WEIGHT: Weight = Weight::from_parts(<span class="number">100_000_000_000</span>, <span class="number">100_000</span>);
 
 	<span class="doccomment">/// Since we are using pallet-utility for account derivation (through AsDerivative),
@@ -1647,7 +1645,7 @@
 	#[pallet::getter(<span class="kw">fn </span>relay_indices)]
 	</span><span class="kw">pub type </span>RelayIndices&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, RelayChainIndices, ValueQuery&gt;;
 
-	<span class="doccomment">/// An error that can occur while executing the mapping pallet's logic.
+	<span class="doccomment">/// An error that can occur while executing the mapping pallet&#39;s logic.
 	</span><span class="attr">#[pallet::error]
 	</span><span class="kw">pub enum </span>Error&lt;T&gt; {
 		IndexAlreadyClaimed,
@@ -1807,7 +1805,7 @@
 		}
 
 		<span class="doccomment">/// Transact the inner call through a derivative account in a destination chain,
-		/// using 'fee_location' to pay for the fees. This fee_location is given as a multilocation
+		/// using &#39;fee_location&#39; to pay for the fees. This fee_location is given as a multilocation
 		///
 		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
 		/// to be a reserve asset for the destination transactor::multilocation.
@@ -1911,7 +1909,7 @@
 		}
 
 		<span class="doccomment">/// Transact the call through the sovereign account in a destination chain,
-		/// 'fee_payer' pays for the fee
+		/// &#39;fee_payer&#39; pays for the fee
 		///
 		/// SovereignAccountDispatcherOrigin callable only
 		</span><span class="attr">#[pallet::call_index(<span class="number">3</span>)]
@@ -2301,16 +2299,16 @@
 				</span><span class="kw">let </span>origin_as_mult = T::AccountIdToLocation::convert(fee_payer);
 
 				<span class="comment">// Construct the local withdraw message with the previous calculated amount
-				// This message deducts and burns "amount" from the caller when executed
+				// This message deducts and burns &quot;amount&quot; from the caller when executed
 				</span>T::AssetTransactor::withdraw_asset(<span class="kw-2">&amp;</span>fee.clone().into(), <span class="kw-2">&amp;</span>origin_as_mult, <span class="prelude-val">None</span>)
 					.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::UnableToWithdrawAsset)<span class="question-mark">?</span>;
 			}
 
 			<span class="comment">// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
 			// Transact.
-			// WithdrawAsset: Withdraws "amount" from the sovereign account. These tokens will be
+			// WithdrawAsset: Withdraws &quot;amount&quot; from the sovereign account. These tokens will be
 			// used to pay fees
-			// BuyExecution: Buys "execution power" in the destination chain
+			// BuyExecution: Buys &quot;execution power&quot; in the destination chain
 			// Transact: Issues the transaction
 			</span><span class="kw">let </span>transact_message: Xcm&lt;()&gt; = <span class="self">Self</span>::transact_message(
 				dest.clone(),
@@ -2346,9 +2344,9 @@
 
 			<span class="comment">// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
 			// Transact.
-			// WithdrawAsset: Withdraws "amount" from the sovereign account. These tokens will be
+			// WithdrawAsset: Withdraws &quot;amount&quot; from the sovereign account. These tokens will be
 			// used to pay fees
-			// BuyExecution: Buys "execution power" in the destination chain
+			// BuyExecution: Buys &quot;execution power&quot; in the destination chain
 			// Transact: Issues the transaction
 			</span><span class="kw">let </span><span class="kw-2">mut </span>transact_message: Xcm&lt;()&gt; = <span class="self">Self</span>::transact_message(
 				dest.clone(),
@@ -2561,7 +2559,7 @@
 			refund: bool,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, DispatchError&gt; {
 			<span class="comment">// this is due to TransactInfo only has info of cases where RefundSurplus is not used
-			// so we have to ensure 'refund' is false
+			// so we have to ensure &#39;refund&#39; is false
 			</span><span class="macro">ensure!</span>(!refund, Error::&lt;T&gt;::RefundNotSupportedWithTransactInfo);
 			<span class="comment">// Grab transact info for the destination provided
 			</span><span class="kw">let </span>transactor_info = TransactInfoWithWeightLimit::&lt;T&gt;::get(<span class="kw-2">&amp;</span>dest)
@@ -2586,7 +2584,7 @@
 			refund: bool,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, DispatchError&gt; {
 			<span class="comment">// this is due to TransactInfo only has info of cases where RefundSurplus is not used
-			// so we have to ensure 'refund' is false
+			// so we have to ensure &#39;refund&#39; is false
 			</span><span class="macro">ensure!</span>(!refund, Error::&lt;T&gt;::RefundNotSupportedWithTransactInfo);
 			<span class="comment">// Grab transact info for the destination provided
 			</span><span class="kw">let </span>transactor_info = TransactInfoWithWeightLimit::&lt;T&gt;::get(<span class="kw-2">&amp;</span>dest)

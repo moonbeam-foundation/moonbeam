@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/evm-tracing/src/listeners/call_list.rs`."><title>call_list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_client_evm_tracing" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../moonbeam_client_evm_tracing/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/evm-tracing/src/listeners/call_list.rs`."><title>call_list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_client_evm_tracing" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../moonbeam_client_evm_tracing/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1156,13 +1154,13 @@
 };
 <span class="kw">use </span>std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
-<span class="doccomment">/// Enum of the different "modes" of tracer for multiple runtime versions and
+<span class="doccomment">/// Enum of the different &quot;modes&quot; of tracer for multiple runtime versions and
 /// the kind of EVM events that are emitted.
 </span><span class="kw">enum </span>TracingVersion {
 	<span class="doccomment">/// The first event of the transaction is `EvmEvent::TransactX`. It goes along other events
 	/// such as `EvmEvent::Exit`. All contexts should have clear start/end boundaries.
 	</span>EarlyTransact,
-	<span class="doccomment">/// Older version in which the events above didn't existed.
+	<span class="doccomment">/// Older version in which the events above didn&#39;t existed.
 	/// It means that we cannot rely on those events to perform any task, and must rely only
 	/// on other events.
 	</span>Legacy,
@@ -1276,7 +1274,7 @@
 			<span class="kw">let </span>entry = <span class="kw">match </span>context.context_type {
 				ContextType::Call(call_type) =&gt; {
 					<span class="kw">let </span>res = CallResult::Error(
-						<span class="string">b"early exit (out of gas, stack overflow, direct call to precompile, ...)"
+						<span class="string">b&quot;early exit (out of gas, stack overflow, direct call to precompile, ...)&quot;
 							</span>.to_vec(),
 					);
 					Call {
@@ -1296,7 +1294,7 @@
 				}
 				ContextType::Create =&gt; {
 					<span class="kw">let </span>res = CreateResult::Error {
-							error: <span class="string">b"early exit (out of gas, stack overflow, direct call to precompile, ...)"</span>.to_vec(),
+							error: <span class="string">b&quot;early exit (out of gas, stack overflow, direct call to precompile, ...)&quot;</span>.to_vec(),
 						};
 
 					Call {
@@ -1323,7 +1321,7 @@
 		// context (and exited **early in the transaction**).
 		</span><span class="kw">else if </span><span class="self">self</span>.record_transaction_event_only {
 			<span class="kw">let </span>res = CallResult::Error(
-				<span class="string">b"transaction could not pay its own data cost (impossible to gather more info)"
+				<span class="string">b&quot;transaction could not pay its own data cost (impossible to gather more info)&quot;
 					</span>.to_vec(),
 			);
 
@@ -1523,7 +1521,7 @@
 						<span class="macro">vec!</span>[]
 					};
 
-					<span class="comment">// For subcalls we want to have "from" always be the parent context address
+					<span class="comment">// For subcalls we want to have &quot;from&quot; always be the parent context address
 					// instead of `context.caller`, since the latter will not have the correct
 					// value inside a DelegateCall.
 					</span><span class="kw">let </span>from = <span class="kw">if let </span><span class="prelude-val">Some</span>(parent_context) = <span class="self">self</span>.context_stack.last() {
@@ -1632,7 +1630,7 @@
 				reason,
 				return_value,
 			} =&gt; {
-				<span class="comment">// We know we're in `TracingVersion::EarlyTransact` mode.
+				<span class="comment">// We know we&#39;re in `TracingVersion::EarlyTransact` mode.
 
 				</span><span class="self">self</span>.record_transaction_event_only = <span class="bool-val">false</span>;
 
@@ -1691,7 +1689,7 @@
 							ExitReason::Error(error) =&gt; CallResult::Error(error_message(error)),
 
 							ExitReason::Revert(<span class="kw">_</span>) =&gt; {
-								CallResult::Error(<span class="string">b"execution reverted"</span>.to_vec())
+								CallResult::Error(<span class="string">b&quot;execution reverted&quot;</span>.to_vec())
 							}
 							ExitReason::Fatal(<span class="kw">_</span>) =&gt; CallResult::Error(<span class="macro">vec!</span>[]),
 						};
@@ -1721,7 +1719,7 @@
 								error: error_message(error),
 							},
 							ExitReason::Revert(<span class="kw">_</span>) =&gt; CreateResult::Error {
-								error: <span class="string">b"execution reverted"</span>.to_vec(),
+								error: <span class="string">b&quot;execution reverted&quot;</span>.to_vec(),
 							},
 							ExitReason::Fatal(<span class="kw">_</span>) =&gt; CreateResult::Error { error: <span class="macro">vec!</span>[] },
 						};
@@ -1749,19 +1747,19 @@
 
 <span class="kw">fn </span>error_message(error: <span class="kw-2">&amp;</span>ExitError) -&gt; Vec&lt;u8&gt; {
 	<span class="kw">match </span>error {
-		ExitError::StackUnderflow =&gt; <span class="string">"stack underflow"</span>,
-		ExitError::StackOverflow =&gt; <span class="string">"stack overflow"</span>,
-		ExitError::InvalidJump =&gt; <span class="string">"invalid jump"</span>,
-		ExitError::InvalidRange =&gt; <span class="string">"invalid range"</span>,
-		ExitError::DesignatedInvalid =&gt; <span class="string">"designated invalid"</span>,
-		ExitError::CallTooDeep =&gt; <span class="string">"call too deep"</span>,
-		ExitError::CreateCollision =&gt; <span class="string">"create collision"</span>,
-		ExitError::CreateContractLimit =&gt; <span class="string">"create contract limit"</span>,
-		ExitError::OutOfOffset =&gt; <span class="string">"out of offset"</span>,
-		ExitError::OutOfGas =&gt; <span class="string">"out of gas"</span>,
-		ExitError::OutOfFund =&gt; <span class="string">"out of funds"</span>,
+		ExitError::StackUnderflow =&gt; <span class="string">&quot;stack underflow&quot;</span>,
+		ExitError::StackOverflow =&gt; <span class="string">&quot;stack overflow&quot;</span>,
+		ExitError::InvalidJump =&gt; <span class="string">&quot;invalid jump&quot;</span>,
+		ExitError::InvalidRange =&gt; <span class="string">&quot;invalid range&quot;</span>,
+		ExitError::DesignatedInvalid =&gt; <span class="string">&quot;designated invalid&quot;</span>,
+		ExitError::CallTooDeep =&gt; <span class="string">&quot;call too deep&quot;</span>,
+		ExitError::CreateCollision =&gt; <span class="string">&quot;create collision&quot;</span>,
+		ExitError::CreateContractLimit =&gt; <span class="string">&quot;create contract limit&quot;</span>,
+		ExitError::OutOfOffset =&gt; <span class="string">&quot;out of offset&quot;</span>,
+		ExitError::OutOfGas =&gt; <span class="string">&quot;out of gas&quot;</span>,
+		ExitError::OutOfFund =&gt; <span class="string">&quot;out of funds&quot;</span>,
 		ExitError::Other(err) =&gt; err,
-		<span class="kw">_ </span>=&gt; <span class="string">"unexpected error"</span>,
+		<span class="kw">_ </span>=&gt; <span class="string">&quot;unexpected error&quot;</span>,
 	}
 	.as_bytes()
 	.to_vec()

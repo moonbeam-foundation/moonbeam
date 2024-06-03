@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/balances-erc20/src/eip2612.rs`."><title>eip2612.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_balances_erc20" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_evm_precompile_balances_erc20/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/balances-erc20/src/eip2612.rs`."><title>eip2612.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_balances_erc20" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_evm_precompile_balances_erc20/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -209,12 +207,12 @@
 
 <span class="doccomment">/// EIP2612 permit typehash.
 </span><span class="kw">pub const </span>PERMIT_TYPEHASH: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(
-	<span class="string">"Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+	<span class="string">&quot;Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)&quot;
 </span>);
 
 <span class="doccomment">/// EIP2612 permit domain used to compute an individualized domain separator.
 </span><span class="kw">const </span>PERMIT_DOMAIN: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(
-	<span class="string">"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+	<span class="string">&quot;EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)&quot;
 </span>);
 
 <span class="kw">pub struct </span>Eip2612&lt;Runtime, Metadata, Instance = ()&gt;(PhantomData&lt;(Runtime, Metadata, Instance)&gt;);
@@ -227,11 +225,11 @@
 	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	BalanceOf&lt;Runtime, Instance&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt;,
 	Metadata: Erc20Metadata,
-	Instance: InstanceToPrefix + <span class="lifetime">'static</span>,
+	Instance: InstanceToPrefix + <span class="lifetime">&#39;static</span>,
 {
 	<span class="kw">pub fn </span>compute_domain_separator(address: H160) -&gt; [u8; <span class="number">32</span>] {
 		<span class="kw">let </span>name: H256 = keccak_256(Metadata::name().as_bytes()).into();
-		<span class="kw">let </span>version: H256 = <span class="macro">keccak256!</span>(<span class="string">"1"</span>).into();
+		<span class="kw">let </span>version: H256 = <span class="macro">keccak256!</span>(<span class="string">&quot;1&quot;</span>).into();
 		<span class="kw">let </span>chain_id: U256 = Runtime::ChainId::get().into();
 
 		<span class="kw">let </span>domain_separator_inner = solidity::encode_arguments((
@@ -266,7 +264,7 @@
 		<span class="kw">let </span>permit_content = keccak_256(<span class="kw-2">&amp;</span>permit_content);
 
 		<span class="kw">let </span><span class="kw-2">mut </span>pre_digest = Vec::with_capacity(<span class="number">2 </span>+ <span class="number">32 </span>+ <span class="number">32</span>);
-		pre_digest.extend_from_slice(<span class="string">b"\x19\x01"</span>);
+		pre_digest.extend_from_slice(<span class="string">b&quot;\x19\x01&quot;</span>);
 		pre_digest.extend_from_slice(<span class="kw-2">&amp;</span>domain_separator);
 		pre_digest.extend_from_slice(<span class="kw-2">&amp;</span>permit_content);
 		keccak_256(<span class="kw-2">&amp;</span>pre_digest)
@@ -295,7 +293,7 @@
 			&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::Timestamp::now().unique_saturated_into();
 		<span class="kw">let </span>timestamp: U256 = U256::from(timestamp / <span class="number">1000</span>);
 
-		<span class="macro">ensure!</span>(deadline &gt;= timestamp, revert(<span class="string">"Permit expired"</span>));
+		<span class="macro">ensure!</span>(deadline &gt;= timestamp, revert(<span class="string">&quot;Permit expired&quot;</span>));
 
 		<span class="kw">let </span>nonce = NoncesStorage::&lt;Instance&gt;::get(owner);
 
@@ -314,12 +312,12 @@
 		sig[<span class="number">64</span>] = v;
 
 		<span class="kw">let </span>signer = sp_io::crypto::secp256k1_ecdsa_recover(<span class="kw-2">&amp;</span>sig, <span class="kw-2">&amp;</span>permit)
-			.map_err(|<span class="kw">_</span>| revert(<span class="string">"Invalid permit"</span>))<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;Invalid permit&quot;</span>))<span class="question-mark">?</span>;
 		<span class="kw">let </span>signer = H160::from(H256::from_slice(keccak_256(<span class="kw-2">&amp;</span>signer).as_slice()));
 
 		<span class="macro">ensure!</span>(
 			signer != H160::zero() &amp;&amp; signer == owner,
-			revert(<span class="string">"Invalid permit"</span>)
+			revert(<span class="string">&quot;Invalid permit&quot;</span>)
 		);
 
 		NoncesStorage::&lt;Instance&gt;::insert(owner, nonce + U256::one());
