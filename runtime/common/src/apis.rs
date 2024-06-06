@@ -116,12 +116,16 @@ macro_rules! impl_runtime_apis_plus_common {
 			}
 
 			impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-				fn create_default_config() -> Vec<u8> {
-					frame_support::genesis_builder_helper::create_default_config::<RuntimeGenesisConfig>()
+				fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+					frame_support::genesis_builder_helper::build_state::<RuntimeGenesisConfig>(config)
 				}
 
-				fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-					frame_support::genesis_builder_helper::build_config::<RuntimeGenesisConfig>(config)
+				fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+					frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, |_| None)
+				}
+
+				fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+					vec![]
 				}
 			}
 
