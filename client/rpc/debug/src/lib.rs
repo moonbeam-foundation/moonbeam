@@ -23,7 +23,8 @@ use tokio::{
 };
 
 use ethereum_types::H256;
-use fc_rpc::{frontier_backend_client, internal_err, OverrideHandle};
+use fc_rpc::{frontier_backend_client, internal_err, StorageOverrideHandler};
+use fc_storage::StorageOverride;
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
 use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
@@ -178,7 +179,7 @@ where
 		backend: Arc<BE>,
 		frontier_backend: Arc<dyn fc_api::Backend<B> + Send + Sync>,
 		permit_pool: Arc<Semaphore>,
-		overrides: Arc<OverrideHandle<B>>,
+		overrides: Arc<StorageOverrideHandler<B, C, BE>>,
 		raw_max_memory_usage: usize,
 	) -> (impl Future<Output = ()>, DebugRequester) {
 		let (tx, mut rx): (DebugRequester, _) =
@@ -353,7 +354,7 @@ where
 		frontier_backend: Arc<dyn fc_api::Backend<B> + Send + Sync>,
 		request_block_id: RequestBlockId,
 		params: Option<TraceParams>,
-		overrides: Arc<OverrideHandle<B>>,
+		overrides: Arc<StorageOverrideHandler<B, C, BE>>,
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
 
@@ -397,21 +398,9 @@ where
 		// Get parent blockid.
 		let parent_block_hash = *header.parent_hash();
 
-		let schema = fc_storage::onchain_storage_schema::<B, C, BE>(client.as_ref(), hash);
-
-		// Using storage overrides we align with `:ethereum_schema` which will result in proper
-		// SCALE decoding in case of migration.
-		let statuses = match overrides.schemas.get(&schema) {
-			Some(schema) => schema
-				.current_transaction_statuses(hash)
-				.unwrap_or_default(),
-			_ => {
-				return Err(internal_err(format!(
-					"No storage override at {:?}",
-					reference_id
-				)))
-			}
-		};
+		let statuses = overrides
+			.current_transaction_statuses(hash)
+			.unwrap_or_default();
 
 		// Known ethereum transaction hashes.
 		let eth_tx_hashes: Vec<_> = statuses.iter().map(|t| t.transaction_hash).collect();
@@ -514,7 +503,7 @@ where
 		frontier_backend: Arc<dyn fc_api::Backend<B> + Send + Sync>,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-		overrides: Arc<OverrideHandle<B>>,
+		overrides: Arc<StorageOverrideHandler<B, C, BE>>,
 		raw_max_memory_usage: usize,
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
@@ -573,20 +562,7 @@ where
 			));
 		};
 
-		let schema =
-			fc_storage::onchain_storage_schema::<B, C, BE>(client.as_ref(), reference_hash);
-
-		// Get the block that contains the requested transaction. Using storage overrides we align
-		// with `:ethereum_schema` which will result in proper SCALE decoding in case of migration.
-		let reference_block = match overrides.schemas.get(&schema) {
-			Some(schema) => schema.current_block(reference_hash),
-			_ => {
-				return Err(internal_err(format!(
-					"No storage override at {:?}",
-					reference_hash
-				)))
-			}
-		};
+		let reference_block = overrides.current_block(hash);
 
 		// Get the actual ethereum transaction.
 		if let Some(block) = reference_block {
