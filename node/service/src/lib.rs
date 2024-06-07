@@ -62,8 +62,8 @@ use sc_executor::{HeapAllocStrategy, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 use sc_network::{config::FullNetworkConfiguration, NetworkBlock};
 use sc_service::config::PrometheusConfig;
 use sc_service::{
-	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, TFullBackend,
-	TFullClient, TaskManager,
+	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, TForkBackend,
+	TForkClient, TaskManager,
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
@@ -81,8 +81,8 @@ pub use client::*;
 pub mod chain_spec;
 mod client;
 
-type FullClient<RuntimeApi> = TFullClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
-type FullBackend = TFullBackend<Block>;
+type FullClient<RuntimeApi> = TForkClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
+type FullBackend = TForkBackend<Block>;
 
 type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
 type FrontierBlockImport<RuntimeApi> =
@@ -460,7 +460,7 @@ where
 	let executor = wasm_builder.build();
 
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, RuntimeApi, _>(
+		sc_service::new_fork_parts::<Block, RuntimeApi, _>(
 			config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
@@ -954,7 +954,7 @@ fn start_consensus<RuntimeApi, SO>(
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>:
+	sc_client_api::StateBackendFor<FullBackend, Block>:
 		sc_client_api::StateBackend<BlakeTwo256>,
 	SO: SyncOracle + Send + Sync + Clone + 'static,
 {
