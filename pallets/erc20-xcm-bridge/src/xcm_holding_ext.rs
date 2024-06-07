@@ -66,7 +66,11 @@ impl XcmHoldingErc20sOrigins {
 			for (from, subamount) in erc20_origins {
 				if &amount > subamount {
 					tokens_to_transfer.push((*from, *subamount));
-					amount -= *subamount;
+					#[allow(clippy::arithmetic_side_effects)]
+					{
+						// Safe substraction because we check "amount > subamount" 2 lines above
+						amount -= *subamount;
+					}
 				} else if &amount == subamount {
 					tokens_to_transfer.push((*from, *subamount));
 					return Ok(tokens_to_transfer);

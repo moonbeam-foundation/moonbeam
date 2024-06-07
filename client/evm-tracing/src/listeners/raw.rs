@@ -219,7 +219,8 @@ impl Listener {
 						} else {
 							self.remaining_memory_usage =
 								self.remaining_memory_usage.and_then(|inner| {
-									inner.checked_sub(context.storage_cache.len() * 64)
+									inner
+										.checked_sub(context.storage_cache.len().saturating_mul(64))
 								});
 
 							if self.remaining_memory_usage.is_none() {

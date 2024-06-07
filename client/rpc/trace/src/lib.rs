@@ -455,7 +455,7 @@ where
 			// part of Self without introducing borrowing issues.
 			let mut batch_expirations = FuturesUnordered::new();
 			let (blocking_tx, mut blocking_rx) =
-				mpsc::channel(blocking_permits.available_permits() * 2);
+				mpsc::channel(blocking_permits.available_permits().saturating_mul(2));
 			let metrics = if let Some(registry) = prometheus {
 				match Metrics::register(&registry) {
 					Ok(metrics) => Some(metrics),
@@ -543,7 +543,7 @@ where
 		for block in blocks {
 			// The block is already in the cache, awesome !
 			if let Some(block_cache) = self.cached_blocks.get_mut(&block) {
-				block_cache.active_batch_count += 1;
+				block_cache.active_batch_count = block_cache.active_batch_count.saturating_add(1);
 				tracing::trace!(
 					"Cache hit for block {}, now used by {} batches.",
 					block,
@@ -771,7 +771,8 @@ where
 				// last batch containing it.
 				let mut remove = false;
 				if let Some(block_cache) = self.cached_blocks.get_mut(&block) {
-					block_cache.active_batch_count -= 1;
+					block_cache.active_batch_count =
+						block_cache.active_batch_count.saturating_sub(1);
 
 					if block_cache.active_batch_count == 0 {
 						remove = true;

@@ -278,9 +278,9 @@ impl<AccountId, Balance: Copy + Ord + sp_std::ops::AddAssign + Zero + Saturating
 	pub fn insert_sorted_greatest_to_least(&mut self, delegation: Bond<AccountId, Balance>) {
 		self.total = self.total.saturating_add(delegation.amount);
 		// if delegations nonempty && last_element == delegation.amount => push input and return
-		if !self.delegations.is_empty() {
+		if let Some(last_delegation_index) = self.delegations.len().checked_sub(1) {
 			// if last_element == delegation.amount => push the delegation and return early
-			if self.delegations[self.delegations.len() - 1].amount == delegation.amount {
+			if self.delegations[last_delegation_index].amount == delegation.amount {
 				self.delegations.push(delegation);
 				// early return
 				return;

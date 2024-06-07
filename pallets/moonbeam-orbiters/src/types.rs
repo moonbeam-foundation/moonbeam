@@ -70,7 +70,7 @@ impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
 			self.next_orbiter = 0;
 		}
 		self.orbiters.insert(self.next_orbiter as usize, orbiter);
-		self.next_orbiter += 1;
+		self.next_orbiter = self.next_orbiter.saturating_add(1);
 	}
 	pub(super) fn contains_orbiter(&self, orbiter: &AccountId) -> bool {
 		if let Some(CurrentOrbiter { ref account_id, .. }) = self.maybe_current_orbiter {
@@ -125,7 +125,7 @@ impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
 					account_id: next_orbiter.clone(),
 					removed: false,
 				});
-				self.next_orbiter += 1;
+				self.next_orbiter = self.next_orbiter.saturating_add(1);
 				Some(next_orbiter.clone())
 			} else {
 				None
@@ -162,7 +162,7 @@ impl<AccountId: Ord> RoundAuthors<AccountId> {
 			Ok(index) => self.data[index].1 = self.data[index].1.saturating_add(1),
 			Err(index) => self.data.insert(index, (author, 1)),
 		};
-		self.blocks_count += 1;
+		self.blocks_count = self.blocks_count.saturating_add(1);
 	}
 	pub fn into_data(self) -> (Vec<(AccountId, u32)>, u32) {
 		let Self { data, blocks_count } = self;

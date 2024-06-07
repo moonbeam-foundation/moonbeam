@@ -136,9 +136,9 @@ impl Listener {
 		// if there is a left over there have been an early exit.
 		// we generate an entry from it and discord any inner context.
 		if let Some(context) = context_stack.into_iter().next() {
-			let mut gas_used = context.start_gas.unwrap_or(0) - context.gas;
+			let mut gas_used = context.start_gas.unwrap_or(0).saturating_sub(context.gas);
 			if context.entries_index == 0 {
-				gas_used += self.transaction_cost;
+				gas_used = gas_used.saturating_add(self.transaction_cost);
 			}
 
 			let entry = match context.context_type {
@@ -184,7 +184,7 @@ impl Listener {
 
 			self.insert_entry(context.entries_index, entry);
 			// Since only this context/entry is kept, we need update entries_next_index too.
-			self.entries_next_index = context.entries_index + 1;
+			self.entries_next_index = context.entries_index.saturating_add(1);
 		}
 		// However if the transaction had a too low gas limit to pay for the data cost itself,
 		// and `EvmEvent::Exit` is not emitted in **Legacy mode**, then it has never produced any
@@ -211,7 +211,7 @@ impl Listener {
 			};
 
 			self.insert_entry(self.entries_next_index, entry);
-			self.entries_next_index += 1;
+			self.entries_next_index = self.entries_next_index.saturating_add(1);
 		}
 	}
 
@@ -302,7 +302,7 @@ impl Listener {
 					to: address,
 				});
 
-				self.entries_next_index += 1;
+				self.entries_next_index = self.entries_next_index.saturating_add(1);
 				self.skip_next_context = true;
 			}
 
@@ -332,7 +332,7 @@ impl Listener {
 					to: address,
 				});
 
-				self.entries_next_index += 1;
+				self.entries_next_index = self.entries_next_index.saturating_add(1);
 				self.skip_next_context = true;
 			}
 
@@ -362,7 +362,7 @@ impl Listener {
 					to: address,
 				});
 
-				self.entries_next_index += 1;
+				self.entries_next_index = self.entries_next_index.saturating_add(1);
 				self.skip_next_context = true;
 			}
 
@@ -385,7 +385,7 @@ impl Listener {
 					let trace_address = if let Some(context) = self.context_stack.last_mut() {
 						let mut trace_address = context.trace_address.clone();
 						trace_address.push(context.subtraces);
-						context.subtraces += 1;
+						context.subtraces = context.subtraces.saturating_add(1);
 						trace_address
 					} else {
 						vec![]
@@ -417,7 +417,7 @@ impl Listener {
 						to: code_address,
 					});
 
-					self.entries_next_index += 1;
+					self.entries_next_index = self.entries_next_index.saturating_add(1);
 				} else {
 					self.skip_next_context = false;
 				}
@@ -437,7 +437,7 @@ impl Listener {
 					let trace_address = if let Some(context) = self.context_stack.last_mut() {
 						let mut trace_address = context.trace_address.clone();
 						trace_address.push(context.subtraces);
-						context.subtraces += 1;
+						context.subtraces = context.subtraces.saturating_add(1);
 						trace_address
 					} else {
 						vec![]
@@ -460,7 +460,7 @@ impl Listener {
 						to: address,
 					});
 
-					self.entries_next_index += 1;
+					self.entries_next_index = self.entries_next_index.saturating_add(1);
 				} else {
 					self.skip_next_context = false;
 				}
@@ -473,7 +473,7 @@ impl Listener {
 				let trace_address = if let Some(context) = self.context_stack.last_mut() {
 					let mut trace_address = context.trace_address.clone();
 					trace_address.push(context.subtraces);
-					context.subtraces += 1;
+					context.subtraces = context.subtraces.saturating_add(1);
 					trace_address
 				} else {
 					vec![]
@@ -494,7 +494,7 @@ impl Listener {
 						},
 					},
 				);
-				self.entries_next_index += 1;
+				self.entries_next_index = self.entries_next_index.saturating_add(1);
 			}
 			EvmEvent::Exit {
 				reason,
@@ -542,9 +542,9 @@ impl Listener {
 		return_value: Vec<u8>,
 	) -> Option<(u32, Call)> {
 		if let Some(context) = self.context_stack.pop() {
-			let mut gas_used = context.start_gas.unwrap_or(0) - context.gas;
+			let mut gas_used = context.start_gas.unwrap_or(0).saturating_sub(context.gas);
 			if context.entries_index == 0 {
-				gas_used += self.transaction_cost;
+				gas_used = gas_used.saturating_add(self.transaction_cost);
 			}
 
 			Some((

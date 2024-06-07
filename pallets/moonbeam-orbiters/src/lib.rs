@@ -51,6 +51,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, NamedReservableCurrency};
 	use frame_system::pallet_prelude::*;
+	use sp_arithmetic::traits::CheckedRem;
 	use sp_runtime::traits::{CheckedSub, One, Saturating, StaticLookup, Zero};
 
 	#[pallet::pallet]
@@ -471,7 +472,7 @@ pub mod pallet {
 							});
 						}
 						AccountLookupOverride::<T>::remove(current_orbiter.clone());
-						writes += 1;
+						writes = writes.saturating_add(1);
 					}
 					if let Some(next_orbiter) = maybe_next_orbiter {
 						// Forbidding the collator to write blocks, it is now up to its orbiters to do it.
@@ -479,14 +480,14 @@ pub mod pallet {
 							collator.clone(),
 							Option::<T::AccountId>::None,
 						);
-						writes += 1;
+						writes = writes.saturating_add(1);
 
 						// Insert new current orbiter
 						AccountLookupOverride::<T>::insert(
 							next_orbiter.clone(),
 							Some(collator.clone()),
 						);
-						writes += 1;
+						writes = writes.saturating_add(1);
 
 						let mut i = Zero::zero();
 						while i < T::RotatePeriod::get() {
@@ -495,8 +496,8 @@ pub mod pallet {
 								collator.clone(),
 								next_orbiter.clone(),
 							);
-							i += One::one();
-							writes += 1;
+							i = i.saturating_add(One::one());
+							writes = writes.saturating_add(1);
 						}
 
 						Self::deposit_event(Event::OrbiterRotation {
@@ -507,14 +508,14 @@ pub mod pallet {
 					} else {
 						// If there is no more active orbiter, you have to remove the collator override.
 						AccountLookupOverride::<T>::remove(collator.clone());
-						writes += 1;
+						writes = writes.saturating_add(1);
 						Self::deposit_event(Event::OrbiterRotation {
 							collator,
 							old_orbiter: maybe_old_orbiter.map(|orbiter| orbiter.account_id),
 							new_orbiter: None,
 						});
 					}
-					writes += 1;
+					writes = writes.saturating_add(1);
 					Some(pool)
 				},
 			);
@@ -528,7 +529,7 @@ pub mod pallet {
 				ForceRotation::<T>::put(false);
 				let _ = Self::on_rotate(round_index);
 				T::WeightInfo::on_new_round()
-			} else if round_index % T::RotatePeriod::get() == Zero::zero() {
+			} else if round_index.checked_rem(&T::RotatePeriod::get()) == Some(Zero::zero()) {
 				let _ = Self::on_rotate(round_index);
 				T::WeightInfo::on_new_round()
 			} else {

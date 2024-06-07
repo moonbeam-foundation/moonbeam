@@ -30,8 +30,10 @@ const MS_PER_YEAR: u64 = 31_557_600_000;
 
 fn rounds_per_year<T: Config>() -> u32 {
 	let blocks_per_round = <Pallet<T>>::round().length as u64;
-	let blocks_per_year = MS_PER_YEAR / T::BlockTime::get();
-	(blocks_per_year / blocks_per_round) as u32
+	let blocks_per_year = MS_PER_YEAR
+		.checked_div(T::BlockTime::get())
+		.unwrap_or(MS_PER_YEAR / 6_000);
+	(blocks_per_year.checked_div(blocks_per_round).unwrap_or(1)) as u32
 }
 
 #[derive(
