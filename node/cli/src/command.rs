@@ -21,7 +21,7 @@ use cumulus_client_cli::extract_genesis_wasm;
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::{info, warn};
-use moonbeam_cli_opt::EthApi;
+use moonbeam_cli_opt::{EthApi, LazyLoadingConfig};
 use moonbeam_service::{chain_spec, frontier_database_dir, IdentifyVariant};
 use parity_scale_codec::Encode;
 #[cfg(feature = "westend-native")]
@@ -743,6 +743,67 @@ pub fn run() -> Result<()> {
 							moonbeam_service::moonbase_runtime::RuntimeApi,
 							moonbeam_service::MoonbaseCustomizations,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						.await
+						.map_err(Into::into),
+						#[cfg(not(feature = "moonbase-native"))]
+						_ => panic!("invalid chain spec"),
+					};
+				}
+
+				if cli.run.fork_chain_from_rpc.is_some() {
+					// When running the dev service, just use Alice's author inherent
+					//TODO maybe make the --alice etc flags work here, and consider bringing back
+					// the author-id flag. For now, this will work.
+					let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
+						"Alice",
+					));
+
+					let lazy_loading_config = LazyLoadingConfig {
+						state_rpc: cli.run.fork_chain_from_rpc.expect("Expected a valid RPC"),
+						from_block: cli.run.block.expect("Expected a valid block hash"),
+					};
+
+					return match &config.chain_spec {
+						#[cfg(feature = "moonriver-native")]
+						spec if spec.is_moonriver() => moonbeam_service::new_forked_network::<
+							moonbeam_service::moonriver_runtime::RuntimeApi,
+							moonbeam_service::MoonriverCustomizations,
+						>(
+							config,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							lazy_loading_config,
+							hwbench,
+						)
+						.await
+						.map_err(Into::into),
+						#[cfg(feature = "moonbeam-native")]
+						spec if spec.is_moonbeam() => moonbeam_service::new_forked_network::<
+							moonbeam_service::moonbeam_runtime::RuntimeApi,
+							moonbeam_service::MoonbeamCustomizations,
+						>(
+							config,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							lazy_loading_config,
+							hwbench,
+						)
+						.await
+						.map_err(Into::into),
+						#[cfg(feature = "moonbase-native")]
+						_ => moonbeam_service::new_forked_network::<
+							moonbeam_service::moonbase_runtime::RuntimeApi,
+							moonbeam_service::MoonbaseCustomizations,
+						>(
+							config,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							lazy_loading_config,
+							hwbench,
+						)
 						.await
 						.map_err(Into::into),
 						#[cfg(not(feature = "moonbase-native"))]

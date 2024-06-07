@@ -45,7 +45,7 @@ use futures::{FutureExt, StreamExt};
 use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
-use moonbeam_cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, RpcConfig};
+use moonbeam_cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, LazyLoadingConfig, RpcConfig};
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
 use moonbeam_vrf::VrfDigestsProvider;
@@ -67,6 +67,7 @@ use sc_service::{
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
+use session_keys_primitives::VrfApi;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_consensus::SyncOracle;
@@ -81,23 +82,27 @@ pub use client::*;
 pub mod chain_spec;
 mod client;
 
+mod builder;
+
 type FullClient<RuntimeApi> = TFullClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
 type FullBackend = TFullBackend<Block>;
 
-type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
-type FrontierBlockImport<RuntimeApi> =
-	TFrontierBlockImport<Block, Arc<FullClient<RuntimeApi>>, FullClient<RuntimeApi>>;
-type ParachainBlockImport<RuntimeApi> =
-	TParachainBlockImport<Block, FrontierBlockImport<RuntimeApi>, FullBackend>;
-type PartialComponentsResult<RuntimeApi> = Result<
+type ForkClient<RuntimeApi> = builder::TForkClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
+type ForkBackend = builder::TForkBackend<Block>;
+
+type MaybeSelectChain<Backend> = Option<sc_consensus::LongestChain<Backend, Block>>;
+type FrontierBlockImport<Client> = TFrontierBlockImport<Block, Arc<Client>, Client>;
+type ParachainBlockImport<Client, Backend> =
+	TParachainBlockImport<Block, FrontierBlockImport<Client>, Backend>;
+type PartialComponentsResult<Client, Backend> = Result<
 	PartialComponents<
-		FullClient<RuntimeApi>,
-		FullBackend,
-		MaybeSelectChain,
+		Client,
+		Backend,
+		MaybeSelectChain<Backend>,
 		sc_consensus::DefaultImportQueue<Block>,
-		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi>>,
+		sc_transaction_pool::FullPool<Block, Client>,
 		(
-			BlockImportPipeline<FrontierBlockImport<RuntimeApi>, ParachainBlockImport<RuntimeApi>>,
+			BlockImportPipeline<FrontierBlockImport<Client>, ParachainBlockImport<Client, Backend>>,
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
@@ -418,7 +423,7 @@ pub fn new_partial<RuntimeApi, Customizations>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
-) -> PartialComponentsResult<RuntimeApi>
+) -> PartialComponentsResult<FullClient<RuntimeApi>, FullBackend>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
@@ -540,6 +545,134 @@ where
 			BlockImportPipeline::Parachain(parachain_block_import),
 		)
 	};
+
+	Ok(PartialComponents {
+		backend,
+		client,
+		import_queue,
+		keystore_container,
+		task_manager,
+		transaction_pool,
+		select_chain: maybe_select_chain,
+		other: (
+			block_import,
+			filter_pool,
+			telemetry,
+			telemetry_worker_handle,
+			frontier_backend,
+			fee_history_cache,
+		),
+	})
+}
+
+/// Builds the PartialComponents for a forked parachain
+///
+/// Use this function if you don't actually need the full service, but just the partial in order to
+/// be able to perform chain operations.
+#[allow(clippy::type_complexity)]
+pub fn new_forked_chain_partial<RuntimeApi, Customizations>(
+	config: &mut Configuration,
+	rpc_config: &RpcConfig,
+	lazy_loading_config: &LazyLoadingConfig,
+) -> PartialComponentsResult<ForkClient<RuntimeApi>, ForkBackend>
+where
+	RuntimeApi: ConstructRuntimeApi<Block, ForkClient<RuntimeApi>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Customizations: ClientCustomizations + 'static,
+{
+	set_prometheus_registry(config, rpc_config.no_prometheus_prefix)?;
+
+	// Use ethereum style for subscription ids
+	config.rpc_id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
+
+	let telemetry = config
+		.telemetry_endpoints
+		.clone()
+		.filter(|x| !x.is_empty())
+		.map(|endpoints| -> Result<_, sc_telemetry::Error> {
+			let worker = TelemetryWorker::new(16)?;
+			let telemetry = worker.handle().new_telemetry(endpoints);
+			Ok((worker, telemetry))
+		})
+		.transpose()?;
+
+	let heap_pages = config
+		.default_heap_pages
+		.map_or(DEFAULT_HEAP_ALLOC_STRATEGY, |h| HeapAllocStrategy::Static {
+			extra_pages: h as _,
+		});
+	let mut wasm_builder = WasmExecutor::builder()
+		.with_execution_method(config.wasm_method)
+		.with_onchain_heap_alloc_strategy(heap_pages)
+		.with_offchain_heap_alloc_strategy(heap_pages)
+		.with_ignore_onchain_heap_pages(true)
+		.with_max_runtime_instances(config.max_runtime_instances)
+		.with_runtime_cache_size(config.runtime_cache_size);
+
+	if let Some(ref wasmtime_precompiled_path) = config.wasmtime_precompiled {
+		wasm_builder = wasm_builder.with_wasmtime_precompiled_path(wasmtime_precompiled_path);
+	}
+
+	let executor = wasm_builder.build();
+
+	let (client, backend, keystore_container, task_manager) =
+		builder::new_fork_parts::<Block, RuntimeApi, _>(
+			config,
+			lazy_loading_config,
+			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+			executor,
+		)?;
+
+	if let Some(block_number) = Customizations::first_block_number_compatible_with_ed25519_zebra() {
+		client
+			.execution_extensions()
+			.set_extensions_factory(sc_client_api::execution_extensions::ExtensionBeforeBlock::<
+			Block,
+			sp_io::UseDalekExt,
+		>::new(block_number));
+	}
+
+	let client = Arc::new(client);
+
+	let telemetry_worker_handle = telemetry.as_ref().map(|(worker, _)| worker.handle());
+
+	let telemetry = telemetry.map(|(worker, telemetry)| {
+		task_manager
+			.spawn_handle()
+			.spawn("telemetry", None, worker.run());
+		telemetry
+	});
+
+	let maybe_select_chain = Some(sc_consensus::LongestChain::new(backend.clone()));
+
+	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
+		config.transaction_pool.clone(),
+		config.role.is_authority().into(),
+		config.prometheus_registry(),
+		task_manager.spawn_essential_handle(),
+		client.clone(),
+	);
+
+	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
+	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
+
+	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
+	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
+
+	let create_inherent_data_providers = move |_, _| async move {
+		let time = sp_timestamp::InherentDataProvider::from_system_time();
+		Ok((time,))
+	};
+
+	let import_queue = nimbus_consensus::import_queue(
+		client.clone(),
+		frontier_block_import.clone(),
+		create_inherent_data_providers,
+		&task_manager.spawn_essential_handle(),
+		config.prometheus_registry(),
+		false,
+	)?;
+	let block_import = BlockImportPipeline::Dev(frontier_block_import);
 
 	Ok(PartialComponents {
 		backend,
@@ -935,7 +1068,7 @@ fn start_consensus<RuntimeApi, SO>(
 	async_backing: bool,
 	backend: Arc<FullBackend>,
 	client: Arc<FullClient<RuntimeApi>>,
-	block_import: ParachainBlockImport<RuntimeApi>,
+	block_import: ParachainBlockImport<FullClient<RuntimeApi>, FullBackend>,
 	prometheus_registry: Option<&Registry>,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
@@ -954,8 +1087,7 @@ fn start_consensus<RuntimeApi, SO>(
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>:
-		sc_client_api::StateBackend<BlakeTwo256>,
+	sc_client_api::StateBackendFor<FullBackend, Block>: sc_client_api::StateBackend<BlakeTwo256>,
 	SO: SyncOracle + Send + Sync + Clone + 'static,
 {
 	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
@@ -1501,6 +1633,402 @@ where
 	Ok(task_manager)
 }
 
+/// Builds a new development service. This service uses manual seal, and mocks
+/// the parachain inherent.
+#[sc_tracing::logging::prefix_logs_with("Forked 🌗")]
+pub async fn new_forked_network<RuntimeApi, Customizations>(
+	mut config: Configuration,
+	_author_id: Option<NimbusId>,
+	sealing: moonbeam_cli_opt::Sealing,
+	rpc_config: RpcConfig,
+	lazy_loading_config: LazyLoadingConfig,
+	hwbench: Option<sc_sysinfo::HwBench>,
+) -> Result<TaskManager, ServiceError>
+where
+	RuntimeApi: ConstructRuntimeApi<Block, ForkClient<RuntimeApi>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Customizations: ClientCustomizations + 'static,
+{
+	use async_io::Timer;
+	use futures::Stream;
+	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
+
+	let sc_service::PartialComponents {
+		client,
+		backend,
+		mut task_manager,
+		import_queue,
+		keystore_container,
+		select_chain: maybe_select_chain,
+		transaction_pool,
+		other:
+			(
+				block_import_pipeline,
+				filter_pool,
+				mut telemetry,
+				_telemetry_worker_handle,
+				frontier_backend,
+				fee_history_cache,
+			),
+	} = new_forked_chain_partial::<RuntimeApi, Customizations>(
+		&mut config,
+		&rpc_config,
+		&lazy_loading_config,
+	)?;
+
+	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
+		block_import
+	} else {
+		return Err(ServiceError::Other(
+			"Block import pipeline is not dev".to_string(),
+		));
+	};
+
+	let net_config = FullNetworkConfiguration::new(&config.network);
+
+	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
+		sc_service::build_network(sc_service::BuildNetworkParams {
+			config: &config,
+			client: client.clone(),
+			transaction_pool: transaction_pool.clone(),
+			spawn_handle: task_manager.spawn_handle(),
+			import_queue,
+			block_announce_validator_builder: None,
+			warp_sync_params: None,
+			net_config,
+			block_relay: None,
+		})?;
+
+	if config.offchain_worker.enabled {
+		task_manager.spawn_handle().spawn(
+			"offchain-workers-runner",
+			"offchain-work",
+			sc_offchain::OffchainWorkers::new(sc_offchain::OffchainWorkerOptions {
+				runtime_api_provider: client.clone(),
+				keystore: Some(keystore_container.keystore()),
+				offchain_db: backend.offchain_storage(),
+				transaction_pool: Some(OffchainTransactionPoolFactory::new(
+					transaction_pool.clone(),
+				)),
+				network_provider: network.clone(),
+				is_validator: config.role.is_authority(),
+				enable_http_requests: true,
+				custom_extensions: move |_| vec![],
+			})
+			.run(client.clone(), task_manager.spawn_handle())
+			.boxed(),
+		);
+	}
+
+	let prometheus_registry = config.prometheus_registry().cloned();
+	let overrides = crate::rpc::overrides_handle(client.clone());
+	let fee_history_limit = rpc_config.fee_history_limit;
+	let mut command_sink = None;
+	let mut xcm_senders = None;
+	let collator = config.role.is_authority();
+
+	if collator {
+		let mut env = sc_basic_authorship::ProposerFactory::with_proof_recording(
+			task_manager.spawn_handle(),
+			client.clone(),
+			transaction_pool.clone(),
+			prometheus_registry.as_ref(),
+			telemetry.as_ref().map(|x| x.handle()),
+		);
+		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
+		// TODO: Need to cherry-pick
+		//
+		// https://github.com/moonbeam-foundation/substrate/commit/
+		// d59476b362e38071d44d32c98c32fb35fd280930#diff-a1c022c97c7f9200cab161864c
+		// 06d204f0c8b689955e42177731e232115e9a6f
+		//
+		// env.enable_ensure_proof_size_limit_after_each_extrinsic();
+
+		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
+			match sealing {
+				moonbeam_cli_opt::Sealing::Instant => {
+					Box::new(
+						// This bit cribbed from the implementation of instant seal.
+						transaction_pool
+							.pool()
+							.validated_pool()
+							.import_notification_stream()
+							.map(|_| EngineCommand::SealNewBlock {
+								create_empty: false,
+								finalize: false,
+								parent_hash: None,
+								sender: None,
+							}),
+					)
+				}
+				moonbeam_cli_opt::Sealing::Manual => {
+					let (sink, stream) = futures::channel::mpsc::channel(1000);
+					// Keep a reference to the other end of the channel. It goes to the RPC.
+					command_sink = Some(sink);
+					Box::new(stream)
+				}
+				moonbeam_cli_opt::Sealing::Interval(millis) => Box::new(StreamExt::map(
+					Timer::interval(Duration::from_millis(millis)),
+					|_| EngineCommand::SealNewBlock {
+						create_empty: true,
+						finalize: false,
+						parent_hash: None,
+						sender: None,
+					},
+				)),
+			};
+
+		let select_chain = maybe_select_chain.expect(
+			"`new_partial` builds a `LongestChainRule` when building dev service.\
+				We specified the dev service when calling `new_partial`.\
+				Therefore, a `LongestChainRule` is present. qed.",
+		);
+
+		let client_set_aside_for_cidp = client.clone();
+
+		// Create channels for mocked XCM messages.
+		let (downward_xcm_sender, downward_xcm_receiver) = flume::bounded::<Vec<u8>>(100);
+		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<(ParaId, Vec<u8>)>(100);
+		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
+
+		let client_clone = client.clone();
+		let keystore_clone = keystore_container.keystore().clone();
+		let maybe_provide_vrf_digest =
+			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
+				moonbeam_vrf::vrf_pre_digest::<Block, ForkClient<RuntimeApi>>(
+					&client_clone,
+					&keystore_clone,
+					nimbus_id,
+					parent,
+				)
+			};
+
+		task_manager.spawn_essential_handle().spawn_blocking(
+			"authorship_task",
+			Some("block-authoring"),
+			run_manual_seal(ManualSealParams {
+				block_import,
+				env,
+				client: client.clone(),
+				pool: transaction_pool.clone(),
+				commands_stream,
+				select_chain,
+				consensus_data_provider: Some(Box::new(NimbusManualSealConsensusDataProvider {
+					keystore: keystore_container.keystore(),
+					client: client.clone(),
+					additional_digests_provider: maybe_provide_vrf_digest,
+					_phantom: Default::default(),
+				})),
+				create_inherent_data_providers: move |block: H256, ()| {
+					let maybe_current_para_block = client_set_aside_for_cidp.number(block);
+					let maybe_current_para_head = client_set_aside_for_cidp.expect_header(block);
+					let downward_xcm_receiver = downward_xcm_receiver.clone();
+					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
+
+					let client_for_xcm = client_set_aside_for_cidp.clone();
+					async move {
+						let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+						let current_para_block = maybe_current_para_block?
+							.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))?;
+
+						let current_para_block_head = Some(polkadot_primitives::HeadData(
+							maybe_current_para_head?.encode(),
+						));
+
+						let additional_key_values = Some(vec![(
+							moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
+							sp_timestamp::Timestamp::current().encode(),
+						)]);
+
+						let mocked_parachain = MockValidationDataInherentDataProvider {
+							current_para_block,
+							current_para_block_head,
+							relay_offset: 1000,
+							relay_blocks_per_para_block: 2,
+							// TODO: Recheck
+							para_blocks_per_relay_epoch: 10,
+							relay_randomness_config: (),
+							xcm_config: MockXcmConfig::new(
+								&*client_for_xcm,
+								block,
+								Default::default(),
+								Default::default(),
+							),
+							raw_downward_messages: downward_xcm_receiver.drain().collect(),
+							raw_horizontal_messages: hrmp_xcm_receiver.drain().collect(),
+							additional_key_values,
+						};
+
+						let randomness = session_keys_primitives::InherentDataProvider;
+
+						Ok((time, mocked_parachain, randomness))
+					}
+				},
+			}),
+		);
+	}
+
+	// Sinks for pubsub notifications.
+	// Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
+	// The MappingSyncWorker sends through the channel on block import and the subscription emits a
+	// notification to the subscriber on receiving a message through this channel.
+	// This way we avoid race conditions when using native substrate block import notification
+	// stream.
+	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
+		fc_mapping_sync::EthereumBlockNotification<Block>,
+	> = Default::default();
+	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
+
+	rpc::spawn_essential_tasks(
+		rpc::SpawnTasksParams {
+			task_manager: &task_manager,
+			client: client.clone(),
+			substrate_backend: backend.clone(),
+			frontier_backend: frontier_backend.clone(),
+			filter_pool: filter_pool.clone(),
+			overrides: overrides.clone(),
+			fee_history_limit,
+			fee_history_cache: fee_history_cache.clone(),
+		},
+		sync_service.clone(),
+		pubsub_notification_sinks.clone(),
+	);
+	let ethapi_cmd = rpc_config.ethapi.clone();
+	let tracing_requesters =
+		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
+			rpc::tracing::spawn_tracing_tasks(
+				&rpc_config,
+				prometheus_registry.clone(),
+				rpc::SpawnTasksParams {
+					task_manager: &task_manager,
+					client: client.clone(),
+					substrate_backend: backend.clone(),
+					frontier_backend: frontier_backend.clone(),
+					filter_pool: filter_pool.clone(),
+					overrides: overrides.clone(),
+					fee_history_limit,
+					fee_history_cache: fee_history_cache.clone(),
+				},
+			)
+		} else {
+			rpc::tracing::RpcRequesters {
+				debug: None,
+				trace: None,
+			}
+		};
+
+	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
+		task_manager.spawn_handle(),
+		overrides.clone(),
+		rpc_config.eth_log_block_cache,
+		rpc_config.eth_statuses_cache,
+		prometheus_registry,
+	));
+
+	let rpc_builder = {
+		let client = client.clone();
+		let pool = transaction_pool.clone();
+		let backend = backend.clone();
+		let network = network.clone();
+		let sync = sync_service.clone();
+		let ethapi_cmd = ethapi_cmd.clone();
+		let max_past_logs = rpc_config.max_past_logs;
+		let overrides = overrides.clone();
+		let fee_history_cache = fee_history_cache.clone();
+		let block_data_cache = block_data_cache.clone();
+		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
+
+		let keystore = keystore_container.keystore();
+		move |deny_unsafe, subscription_task_executor| {
+			let deps = rpc::FullDeps {
+				backend: backend.clone(),
+				client: client.clone(),
+				command_sink: command_sink.clone(),
+				deny_unsafe,
+				ethapi_cmd: ethapi_cmd.clone(),
+				filter_pool: filter_pool.clone(),
+				frontier_backend: match frontier_backend.clone() {
+					fc_db::Backend::KeyValue(b) => Arc::new(b),
+					fc_db::Backend::Sql(b) => Arc::new(b),
+				},
+				graph: pool.pool().clone(),
+				pool: pool.clone(),
+				is_authority: collator,
+				max_past_logs,
+				fee_history_limit,
+				fee_history_cache: fee_history_cache.clone(),
+				network: network.clone(),
+				sync: sync.clone(),
+				xcm_senders: xcm_senders.clone(),
+				overrides: overrides.clone(),
+				block_data_cache: block_data_cache.clone(),
+				forced_parent_hashes: None,
+			};
+
+			let pending_consensus_data_provider = Box::new(PendingConsensusDataProvider::new(
+				client.clone(),
+				keystore.clone(),
+			));
+			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
+				rpc::create_full(
+					deps,
+					subscription_task_executor,
+					Some(crate::rpc::TracingConfig {
+						tracing_requesters: tracing_requesters.clone(),
+						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
+					}),
+					pubsub_notification_sinks.clone(),
+					pending_consensus_data_provider,
+				)
+				.map_err(Into::into)
+			} else {
+				rpc::create_full(
+					deps,
+					subscription_task_executor,
+					None,
+					pubsub_notification_sinks.clone(),
+					pending_consensus_data_provider,
+				)
+				.map_err(Into::into)
+			}
+		}
+	};
+
+	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+		network,
+		client,
+		keystore: keystore_container.keystore(),
+		task_manager: &mut task_manager,
+		transaction_pool,
+		rpc_builder: Box::new(rpc_builder),
+		backend,
+		system_rpc_tx,
+		sync_service: sync_service.clone(),
+		config,
+		tx_handler_controller,
+		telemetry: None,
+	})?;
+
+	if let Some(hwbench) = hwbench {
+		sc_sysinfo::print_hwbench(&hwbench);
+
+		if let Some(ref mut telemetry) = telemetry {
+			let telemetry_handle = telemetry.handle();
+			task_manager.spawn_handle().spawn(
+				"telemetry_hwbench",
+				None,
+				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
+			);
+		}
+	}
+
+	log::info!("Development Service Ready");
+
+	network_starter.start_network();
+	Ok(task_manager)
+}
+
 #[cfg(test)]
 mod tests {
 	use moonbase_runtime::{currency::UNIT, AccountId};
@@ -1753,29 +2281,29 @@ mod tests {
 	}
 }
 
-struct PendingConsensusDataProvider<RuntimeApi>
+struct PendingConsensusDataProvider<Client>
 where
-	RuntimeApi: Send + Sync,
+	Client: HeaderBackend<Block> + sp_api::ProvideRuntimeApi<Block> + Send + Sync,
+	Client::Api: VrfApi<Block>,
 {
-	client: Arc<FullClient<RuntimeApi>>,
+	client: Arc<Client>,
 	keystore: Arc<dyn Keystore>,
 }
 
-impl<RuntimeApi> PendingConsensusDataProvider<RuntimeApi>
+impl<Client> PendingConsensusDataProvider<Client>
 where
-	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Client: HeaderBackend<Block> + sp_api::ProvideRuntimeApi<Block> + Send + Sync,
+	Client::Api: VrfApi<Block>,
 {
-	pub fn new(client: Arc<FullClient<RuntimeApi>>, keystore: Arc<dyn Keystore>) -> Self {
+	pub fn new(client: Arc<Client>, keystore: Arc<dyn Keystore>) -> Self {
 		Self { client, keystore }
 	}
 }
 
-impl<RuntimeApi> fc_rpc::pending::ConsensusDataProvider<Block>
-	for PendingConsensusDataProvider<RuntimeApi>
+impl<Client> fc_rpc::pending::ConsensusDataProvider<Block> for PendingConsensusDataProvider<Client>
 where
-	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Client: HeaderBackend<Block> + sp_api::ProvideRuntimeApi<Block> + Send + Sync,
+	Client::Api: VrfApi<Block>,
 {
 	fn create_digest(
 		&self,
