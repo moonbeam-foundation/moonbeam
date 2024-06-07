@@ -21,7 +21,7 @@ use cumulus_client_cli::extract_genesis_wasm;
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::{info, warn};
-use moonbeam_cli_opt::EthApi;
+use moonbeam_cli_opt::{EthApi, LazyLoadingConfig};
 use moonbeam_service::{
 	chain_spec, frontier_database_dir, moonbase_runtime, moonbeam_runtime, moonriver_runtime,
 	HostFunctions, IdentifyVariant,
@@ -704,8 +704,6 @@ pub fn run() -> Result<()> {
 				};
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
-				let para_id = extension.map(|e| e.para_id);
-				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
 
 				let rpc_config = cli.run.new_rpc_config();
 
@@ -720,7 +718,35 @@ pub fn run() -> Result<()> {
 					|| config.chain_spec.is_dev()
 					|| relay_chain_id == Some("dev-service");
 
-				if dev_service {
+				if cli.run.fork_chain_from_rpc.is_some() {
+					// When running the dev service, just use Alice's author inherent
+					//TODO maybe make the --alice etc flags work here, and consider bringing back
+					// the author-id flag. For now, this will work.
+					let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
+						"Alice",
+					));
+
+					let lazy_loading_config = LazyLoadingConfig {
+						state_rpc: cli.run.fork_chain_from_rpc.expect("Expected a valid RPC"),
+						from_block: cli.run.block.expect("Expected a valid block hash"),
+						state_overrides_path: cli.run.fork_state_overrides,
+					};
+
+					return moonbeam_service::lazy_loading::new_lazy_loading_service::<
+						moonbeam_runtime::RuntimeApi,
+						moonbeam_service::MoonbeamCustomizations,
+						sc_network::NetworkWorker<_, _>,
+					>(
+						config,
+						author_id,
+						cli.run.sealing,
+						rpc_config,
+						lazy_loading_config,
+						hwbench,
+					)
+					.await
+					.map_err(Into::into);
+				} else if dev_service {
 					// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
 					// the author-id flag. For now, this will work.
@@ -764,6 +790,9 @@ pub fn run() -> Result<()> {
 						.iter()
 						.chain(cli.relaychain_args.iter()),
 				);
+
+				let para_id = extension.map(|e| e.para_id);
+				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
 
 				let parachain_account =
 					AccountIdConversion::<polkadot_primitives::v7::AccountId>::into_account_truncating(&id);

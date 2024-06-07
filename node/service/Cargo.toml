@@ -15,7 +15,7 @@ exit-future = { workspace = true }
 flume = { workspace = true }
 futures = { workspace = true, features = ["compat"] }
 hex-literal = { workspace = true }
-jsonrpsee = { workspace = true, features = ["macros", "server"] }
+jsonrpsee = { workspace = true, features = ["macros", "server", "http-client"] }
 libsecp256k1 = { workspace = true, features = ["hmac"] }
 log = { workspace = true }
 maplit = { workspace = true }
@@ -26,6 +26,9 @@ sha3 = { workspace = true }
 tiny-bip39 = { workspace = true }
 tokio = { workspace = true, features = ["macros", "sync"] }
 trie-root = { workspace = true }
+async-std = { workspace = true }
+substrate-rpc-client = { workspace = true }
+hex = { workspace = true, features = ["std"] }
 
 # Moonbeam
 manual-xcm-rpc = { workspace = true }
@@ -95,6 +98,10 @@ sp-storage = { workspace = true, features = ["std"] }
 sp-timestamp = { workspace = true, features = ["std"] }
 sp-transaction-pool = { workspace = true, features = ["std"] }
 sp-trie = { workspace = true, features = ["std"] }
+sp-state-machine = { workspace = true }
+sp-rpc = { workspace = true }
+sp-externalities = { workspace = true }
+sp-version = { workspace = true }
 substrate-frame-rpc-system = { workspace = true }
 substrate-prometheus-endpoint = { workspace = true }
 
@@ -148,6 +155,7 @@ xcm = { workspace = true }
 # Benchmarking
 frame-benchmarking = { workspace = true, features = ["std"] }
 frame-benchmarking-cli = { workspace = true }
+backtrace = "0.3.71"
 
 [dev-dependencies]
 nix = { workspace = true }
