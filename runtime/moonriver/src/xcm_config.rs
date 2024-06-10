@@ -83,7 +83,7 @@ parameter_types! {
 	pub UniversalLocation: InteriorLocation =
 		[GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into())].into();
 
-	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// Self Reserve location, defines the multilocation identifying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
 	// a Location: (Self Balances pallet index)
 	// We use the RELATIVE multilocation
@@ -312,6 +312,9 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
 	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
+	type HrmpNewChannelOpenRequestHandler = ();
+	type HrmpChannelAcceptedHandler = ();
+	type HrmpChannelClosingHandler = ();
 }
 
 type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<

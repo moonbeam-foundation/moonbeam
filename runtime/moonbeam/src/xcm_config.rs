@@ -304,6 +304,9 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
 	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
+	type HrmpNewChannelOpenRequestHandler = ();
+	type HrmpChannelAcceptedHandler = ();
+	type HrmpChannelClosingHandler = ();
 }
 
 type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
