@@ -55,7 +55,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					Executive::execute_block(block)
 				}
 
-				fn initialize_block(header: &<Block as BlockT>::Header) {
+				fn initialize_block(header: &<Block as BlockT>::Header) -> sp_runtime::ExtrinsicInclusionMode {
 					Executive::initialize_block(header)
 				}
 			}
