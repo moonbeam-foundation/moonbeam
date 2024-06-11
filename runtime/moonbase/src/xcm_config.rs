@@ -265,8 +265,23 @@ impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 }
 
 parameter_types! {
+    /// Location of Asset Hub
+    pub AssetHubLocation: MultiLocation = (Parent, Parachain(1000)).into();
+    pub RelayChainNativeAssetFromAssetHub: (MultiAssetFilter, MultiLocation) = (
+        (MultiAsset { id: Concrete(RelayLocation::get()), fun: Fungible(1)}).into(),
+        AssetHubLocation::get()
+    );
 	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
+
+type Reserves = (
+    // Assets bridged from different consensus systems held in reserve on Asset Hub.
+    IsForeignConcreteAssetFrom<AssetHubLocation>,
+    // Relaychain (DOT) from Asset Hub
+    Case<RelayChainNativeAssetFromAssetHub>,
+    // Assets which the reserve is the same as the origin.
+    MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>;
+);
 
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {

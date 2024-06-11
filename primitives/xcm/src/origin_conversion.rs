@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use frame_support::traits::{Get, OriginTrait};
+use frame_support::traits::{ContainsPair, Get, OriginTrait};
 use orml_traits::location::{RelativeReserveProvider, Reserve};
 use sp_runtime::traits::TryConvert;
 use sp_std::{convert::TryInto, marker::PhantomData};
-use xcm::latest::{Asset, Junction::AccountKey20, Location, NetworkId};
+use xcm::latest::{Asset, AssetId, Fungibility, Junction::AccountKey20, Location, NetworkId};
 
 /// Instructs how to convert a 20 byte accountId into a Location
 pub struct AccountIdToLocation<AccountId>(sp_std::marker::PhantomData<AccountId>);
@@ -80,5 +80,25 @@ where
 				relative_reserve
 			}
 		})
+	}
+}
+
+/// Matches foreign assets from a given origin.
+/// Foreign assets are assets bridged from other consensus systems. i.e parents > 1.
+pub struct IsForeignConcreteAssetFrom<Origin>(PhantomData<Origin>);
+impl<Origin> ContainsPair<Asset, Location> for IsForeignConcreteAssetFrom<Origin>
+where
+	Origin: Get<Location>,
+{
+	fn contains(asset: &Asset, origin: &Location) -> bool {
+		let loc = Origin::get();
+		&loc == origin
+			&& matches!(
+				asset,
+				Asset {
+					id: AssetId(Location { parents: 2, .. }),
+					fun: Fungibility::Fungible(_)
+				},
+			)
 	}
 }
