@@ -304,23 +304,23 @@ jobs:
           rustup target add x86_64-unknown-linux-gnu
           echo "OPENSSL_DIR=$(openssl version -d | awk '{print $2}')"
 
-          cargo zigbuild --release --target x86_64-unknown-linux-gnu
+          cargo zigbuild --release --target x86_64-unknown-linux-gnu --verbose
 
-  build-with-cranelift:
-    runs-on: ubuntu-latest
-    needs: ["set-tags"]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Install Rust Cranelift
-        run: |
-          rustup install nightly
-          rustup component add rustc-codegen-cranelift-preview --toolchain nightly
-      - name: Build with Cranelift
-        run: |
-          CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift cargo +nightly build -Zcodegen-backend
+  # build-with-cranelift:
+  #   runs-on: ubuntu-latest
+  #   needs: ["set-tags"]
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ needs.set-tags.outputs.git_ref }}
+  #     - name: Install Rust Cranelift
+  #       run: |
+  #         rustup install nightly
+  #         rustup component add rustc-codegen-cranelift-preview --toolchain nightly
+  #     - name: Build with Cranelift
+  #       run: |
+  #         CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift cargo +nightly build -Zcodegen-backend
   build:
     runs-on:
       labels: bare-metal

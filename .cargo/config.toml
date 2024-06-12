@@ -43,8 +43,8 @@ rustflags = [
   "-Aclippy::explicit_counter_loop"      # irrelevant
 ]
 
-[unstable]
-codegen-backend = true
+# [unstable]
+# codegen-backend = true
 
-[profile.dev]
-codegen-backend = "cranelift"
+# [profile.dev]
+# codegen-backend = "cranelift"
