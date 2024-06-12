@@ -300,11 +300,10 @@ jobs:
           version: 0.13.0
       - name: Build with Zig
         run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config libssl-dev
           cargo install cargo-zigbuild --locked
           rustup target add x86_64-unknown-linux-gnu
-          cargo zigbuild --target x86_64-unknown-linux-gnu --release
+          echo "OPENSSL_DIR=$(openssl version -d | awk '{print $2}')"
+          cargo zigbuild --release
 
   build-with-cranelift:
     runs-on: ubuntu-latest
