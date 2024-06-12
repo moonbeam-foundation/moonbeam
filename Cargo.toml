@@ -1,5 +1,5 @@
 # This line needs to come before anything else in Cargo.toml
-cargo-features = ["codegen-backend"]
+# cargo-features = ["codegen-backend"]
 
 [workspace]
 exclude = ["bin/utils/moonkey"]
