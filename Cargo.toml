@@ -1,3 +1,6 @@
+# This line needs to come before anything else in Cargo.toml
+cargo-features = ["codegen-backend"]
+
 [workspace]
 exclude = ["bin/utils/moonkey"]
 members = [
@@ -483,3 +486,6 @@ overflow-checks = true
 
 [patch."https://github.com/paritytech/polkadot-sdk"]
 sp-crypto-ec-utils = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.7.2" }
+
+[profile.dev]
+codegen-backend = "cranelift"
