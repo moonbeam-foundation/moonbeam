@@ -45,7 +45,6 @@ use substrate_prometheus_endpoint::{
 };
 
 use ethereum_types::H256;
-use fc_rpc::StorageOverrideHandler;
 use fc_storage::StorageOverride;
 use fp_rpc::EthereumRuntimeRPCApi;
 
@@ -443,7 +442,7 @@ where
 		backend: Arc<BE>,
 		cache_duration: Duration,
 		blocking_permits: Arc<Semaphore>,
-		overrides: Arc<StorageOverrideHandler<B, C, BE>>,
+		overrides: Arc<dyn StorageOverride<B>>,
 		prometheus: Option<PrometheusRegistry>,
 	) -> (impl Future<Output = ()>, CacheRequester) {
 		// Communication with the outside world :
@@ -536,7 +535,7 @@ where
 		blocking_tx: &mpsc::Sender<BlockingTaskMessage>,
 		sender: oneshot::Sender<CacheBatchId>,
 		blocks: Vec<H256>,
-		overrides: Arc<StorageOverrideHandler<B, C, BE>>,
+		overrides: Arc<dyn StorageOverride<B>>,
 	) {
 		tracing::trace!("Starting batch {}", self.next_batch_id);
 		self.batches.insert(self.next_batch_id, blocks.clone());
@@ -792,7 +791,7 @@ where
 		client: Arc<C>,
 		backend: Arc<BE>,
 		substrate_hash: H256,
-		overrides: Arc<StorageOverrideHandler<B, C, BE>>,
+		overrides: Arc<dyn StorageOverride<B>>,
 	) -> TxsTraceRes {
 		// Get Subtrate block data.
 		let api = client.runtime_api();

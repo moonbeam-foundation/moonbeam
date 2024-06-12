@@ -40,6 +40,7 @@ use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface, RelayCh
 use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node_with_rpc;
 use fc_consensus::FrontierBlockImport as TFrontierBlockImport;
 use fc_db::DatabaseSource;
+use fc_rpc::StorageOverrideHandler;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::{FutureExt, StreamExt};
 use maplit::hashmap;
@@ -289,7 +290,7 @@ where
 			thread_count,
 			cache_size,
 		} => {
-			let overrides = crate::rpc::overrides_handle(client.clone());
+			let overrides = Arc::new(StorageOverrideHandler::new(client.clone()));
 			let sqlite_db_path = frontier_database_dir(config, "sql");
 			std::fs::create_dir_all(&sqlite_db_path).expect("failed creating sql db directory");
 			let backend = futures::executor::block_on(fc_db::sql::Backend::new(
@@ -655,7 +656,7 @@ where
 		})
 		.await?;
 
-	let overrides = crate::rpc::overrides_handle(client.clone());
+	let overrides = Arc::new(StorageOverrideHandler::new(client.clone()));
 	let fee_history_limit = rpc_config.fee_history_limit;
 
 	// Sinks for pubsub notifications.
@@ -1193,7 +1194,7 @@ where
 	}
 
 	let prometheus_registry = config.prometheus_registry().cloned();
-	let overrides = crate::rpc::overrides_handle(client.clone());
+	let overrides = Arc::new(StorageOverrideHandler::new(client.clone()));
 	let fee_history_limit = rpc_config.fee_history_limit;
 	let mut command_sink = None;
 	let mut xcm_senders = None;

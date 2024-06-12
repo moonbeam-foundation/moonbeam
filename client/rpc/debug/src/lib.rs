@@ -23,7 +23,7 @@ use tokio::{
 };
 
 use ethereum_types::H256;
-use fc_rpc::{frontier_backend_client, internal_err, StorageOverrideHandler};
+use fc_rpc::{frontier_backend_client, internal_err};
 use fc_storage::StorageOverride;
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
@@ -179,7 +179,7 @@ where
 		backend: Arc<BE>,
 		frontier_backend: Arc<dyn fc_api::Backend<B> + Send + Sync>,
 		permit_pool: Arc<Semaphore>,
-		overrides: Arc<StorageOverrideHandler<B, C, BE>>,
+		overrides: Arc<dyn StorageOverride<B>>,
 		raw_max_memory_usage: usize,
 	) -> (impl Future<Output = ()>, DebugRequester) {
 		let (tx, mut rx): (DebugRequester, _) =
@@ -354,7 +354,7 @@ where
 		frontier_backend: Arc<dyn fc_api::Backend<B> + Send + Sync>,
 		request_block_id: RequestBlockId,
 		params: Option<TraceParams>,
-		overrides: Arc<StorageOverrideHandler<B, C, BE>>,
+		overrides: Arc<dyn StorageOverride<B>>,
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
 
@@ -503,7 +503,7 @@ where
 		frontier_backend: Arc<dyn fc_api::Backend<B> + Send + Sync>,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-		overrides: Arc<StorageOverrideHandler<B, C, BE>>,
+		overrides: Arc<dyn StorageOverride<B>>,
 		raw_max_memory_usage: usize,
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;

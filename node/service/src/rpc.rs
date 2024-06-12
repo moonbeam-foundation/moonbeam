@@ -28,13 +28,8 @@ use cumulus_primitives_core::{ParaId, PersistedValidationData};
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use fc_mapping_sync::{kv::MappingSyncWorker, SyncStrategy};
-use fc_rpc::{
-	pending::ConsensusDataProvider, EthBlockDataCacheTask, EthTask, OverrideHandle,
-	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, SchemaV3Override,
-	StorageOverride,
-};
+use fc_rpc::{pending::ConsensusDataProvider, EthBlockDataCacheTask, EthTask, StorageOverride};
 use fc_rpc_core::types::{CallRequest, FeeHistoryCache, FilterPool};
-use fp_storage::EthereumStorageSchema;
 use futures::StreamExt;
 use jsonrpsee::RpcModule;
 use moonbeam_cli_opt::EthApi as EthApiCmd;
@@ -129,7 +124,7 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// Channels for manual xcm messages (downward, hrmp)
 	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
 	/// Ethereum data access overrides.
-	pub overrides: Arc<OverrideHandle<Block>>,
+	pub overrides: Arc<dyn StorageOverride<Block>>,
 	/// Cache for Ethereum block data.
 	pub block_data_cache: Arc<EthBlockDataCacheTask<Block>>,
 	/// Mandated parent hashes for a given block hash.
@@ -139,34 +134,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 pub struct TracingConfig {
 	pub tracing_requesters: crate::rpc::tracing::RpcRequesters,
 	pub trace_filter_max_count: u32,
-}
-
-pub fn overrides_handle<B, C, BE>(client: Arc<C>) -> Arc<OverrideHandle<B>>
-where
-	B: BlockT,
-	C: ProvideRuntimeApi<B>,
-	C::Api: EthereumRuntimeRPCApi<B>,
-	C: HeaderBackend<B> + StorageProvider<B, BE> + 'static,
-	BE: Backend<B> + 'static,
-{
-	let mut overrides_map = BTreeMap::new();
-	overrides_map.insert(
-		EthereumStorageSchema::V1,
-		Box::new(SchemaV1Override::new(client.clone())) as Box<dyn StorageOverride<_>>,
-	);
-	overrides_map.insert(
-		EthereumStorageSchema::V2,
-		Box::new(SchemaV2Override::new(client.clone())) as Box<dyn StorageOverride<_>>,
-	);
-	overrides_map.insert(
-		EthereumStorageSchema::V3,
-		Box::new(SchemaV3Override::new(client.clone())) as Box<dyn StorageOverride<_>>,
-	);
-
-	Arc::new(OverrideHandle {
-		schemas: overrides_map,
-		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
-	})
 }
 
 /// Instantiate all Full RPC extensions.
@@ -379,7 +346,7 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 	pub substrate_backend: Arc<BE>,
 	pub frontier_backend: fc_db::Backend<B>,
 	pub filter_pool: Option<FilterPool>,
-	pub overrides: Arc<OverrideHandle<B>>,
+	pub overrides: Arc<dyn StorageOverride<B>>,
 	pub fee_history_limit: u64,
 	pub fee_history_cache: FeeHistoryCache,
 }
