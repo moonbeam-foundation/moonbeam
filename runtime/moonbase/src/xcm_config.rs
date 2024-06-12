@@ -607,6 +607,8 @@ impl orml_xtokens::Config for Runtime {
 	type MinXcmFee = ParachainMinFee;
 	type LocationsFilter = Everything;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
+	type RateLimiter = ();
+	type RateLimiterId = ();
 }
 
 // 1 WND/ROC should be enough
