@@ -310,20 +310,28 @@ jobs:
           ./config --prefix="${OPENSSL_DIR}" --openssldir="${OPENSSL_DIR}" no-shared
           make
           make install
-          echo "OPENSSL_LIB_DIR=${OPENSSL_DIR}/lib" >> $GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=${OPENSSL_DIR}/include" >> $GITHUB_ENV
-          echo "OPENSSL_DIR=${OPENSSL_DIR}" >> $GITHUB_ENV
+      - name: Set OpenSSL environment variables
+        run: |
+          echo "Scanning OpenSSL installation directories..."
+          if [ -d "${HOME}/openssl/lib" ]; then
+            echo "OPENSSL_LIB_DIR=${HOME}/openssl/lib" >> $GITHUB_ENV
+          else
+            echo "OpenSSL lib directory not found!"
+            exit 1
+          fi
+          if [ -d "${HOME}/openssl/include" ]; then
+            echo "OPENSSL_INCLUDE_DIR=${HOME}/openssl/include" >> $GITHUB_ENV
+          else
+            echo "OpenSSL include directory not found!"
+            exit 1
+          fi
+          echo "OPENSSL_DIR=${HOME}/openssl" >> $GITHUB_ENV
       - name: Verify OpenSSL installation
         run: |
           echo "Verifying OpenSSL installation..."
           ls -l ${HOME}/openssl
           ls -l ${HOME}/openssl/lib
           ls -l ${HOME}/openssl/include
-      - name: Set OpenSSL environment variables
-        run: |
-          echo "OPENSSL_LIB_DIR=${HOME}/openssl/lib" >> $GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=${HOME}/openssl/include" >> $GITHUB_ENV
-          echo "OPENSSL_DIR=${HOME}/openssl" >> $GITHUB_ENV
       - name: Install protoc
         run: |
           PROTOC_ZIP=protoc-3.15.6-linux-x86_64.zip
