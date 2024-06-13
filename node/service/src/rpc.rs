@@ -344,7 +344,7 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 	pub task_manager: &'a TaskManager,
 	pub client: Arc<C>,
 	pub substrate_backend: Arc<BE>,
-	pub frontier_backend: fc_db::Backend<B>,
+	pub frontier_backend: Arc<fc_db::Backend<B, C>>,
 	pub filter_pool: Option<FilterPool>,
 	pub overrides: Arc<dyn StorageOverride<B>>,
 	pub fee_history_limit: u64,
@@ -374,7 +374,7 @@ pub fn spawn_essential_tasks<B, C, BE>(
 {
 	// Frontier offchain DB task. Essential.
 	// Maps emulated ethereum data to substrate native data.
-	match params.frontier_backend {
+	match *params.frontier_backend {
 		fc_db::Backend::KeyValue(b) => {
 			params.task_manager.spawn_essential_handle().spawn(
 				"frontier-mapping-sync-worker",
@@ -385,7 +385,7 @@ pub fn spawn_essential_tasks<B, C, BE>(
 					params.client.clone(),
 					params.substrate_backend.clone(),
 					params.overrides.clone(),
-					Arc::new(b),
+					b,
 					3,
 					0,
 					SyncStrategy::Parachain,
@@ -402,7 +402,7 @@ pub fn spawn_essential_tasks<B, C, BE>(
 				fc_mapping_sync::sql::SyncWorker::run(
 					params.client.clone(),
 					params.substrate_backend.clone(),
-					Arc::new(b),
+					b,
 					params.client.import_notification_stream(),
 					fc_mapping_sync::sql::SyncWorkerConfig {
 						read_notification_timeout: Duration::from_secs(10),

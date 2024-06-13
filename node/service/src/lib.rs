@@ -102,7 +102,7 @@ type PartialComponentsResult<RuntimeApi> = Result<
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
-			fc_db::Backend<Block>,
+			Arc<fc_db::Backend<Block, FullClient<RuntimeApi>>>,
 			FeeHistoryCache,
 		),
 	>,
@@ -248,7 +248,7 @@ pub fn open_frontier_backend<C, BE>(
 	client: Arc<C>,
 	config: &Configuration,
 	rpc_config: &RpcConfig,
-) -> Result<fc_db::Backend<Block>, String>
+) -> Result<fc_db::Backend<Block, C>, String>
 where
 	C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE> + AuxStore,
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError>,
@@ -259,7 +259,7 @@ where
 {
 	let frontier_backend = match rpc_config.frontier_backend_config {
 		FrontierBackendConfig::KeyValue => {
-			fc_db::Backend::KeyValue(fc_db::kv::Backend::<Block>::new(
+			fc_db::Backend::KeyValue(Arc::new(fc_db::kv::Backend::<Block, C>::new(
 				client,
 				&fc_db::kv::DatabaseSettings {
 					source: match config.database {
@@ -282,7 +282,7 @@ where
 						}
 					},
 				},
-			)?)
+			)?))
 		}
 		FrontierBackendConfig::Sql {
 			pool_size,
@@ -309,7 +309,7 @@ where
 				overrides.clone(),
 			))
 			.unwrap_or_else(|err| panic!("failed creating sql backend: {:?}", err));
-			fc_db::Backend::Sql(backend)
+			fc_db::Backend::Sql(Arc::new(backend))
 		}
 	};
 
@@ -504,7 +504,7 @@ where
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
-	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
+	let frontier_backend = Arc::new(open_frontier_backend(client.clone(), config, rpc_config)?);
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 
 	let create_inherent_data_providers = move |_, _| async move {
@@ -761,9 +761,9 @@ where
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: match frontier_backend.clone() {
-					fc_db::Backend::KeyValue(b) => Arc::new(b),
-					fc_db::Backend::Sql(b) => Arc::new(b),
+				frontier_backend: match *frontier_backend {
+					fc_db::Backend::KeyValue(b) => b,
+					fc_db::Backend::Sql(b) => b,
 				},
 				graph: pool.pool().clone(),
 				pool: pool.clone(),
@@ -1421,9 +1421,9 @@ where
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: match frontier_backend.clone() {
-					fc_db::Backend::KeyValue(b) => Arc::new(b),
-					fc_db::Backend::Sql(b) => Arc::new(b),
+				frontier_backend: match *frontier_backend {
+					fc_db::Backend::KeyValue(b) => b,
+					fc_db::Backend::Sql(b) => b,
 				},
 				graph: pool.pool().clone(),
 				pool: pool.clone(),
