@@ -299,48 +299,10 @@ jobs:
           version: 0.13.0
       - name: Install build dependencies
         run: sudo apt-get update && sudo apt-get install -y build-essential libssl-dev
-      - name: Install OpenSSL
-        run: |
-          OPENSSL_VERSION="1.1.1k"
-          OPENSSL_DIR="${HOME}/openssl"
-          mkdir -p "${OPENSSL_DIR}"
-          curl -sSL "https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz" -o openssl.tar.gz
-          tar -zxf openssl.tar.gz
-          cd "openssl-${OPENSSL_VERSION}"
-          ./config --prefix="${OPENSSL_DIR}" --openssldir="${OPENSSL_DIR}" no-shared
-          make
-          make install
-          echo "OPENSSL_LIB_DIR=${OPENSSL_DIR}/lib" >> $GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=${OPENSSL_DIR}/include" >> $GITHUB_ENV
-          echo "OPENSSL_DIR=${OPENSSL_DIR}" >> $GITHUB_ENV
-      - name: Verify OpenSSL installation
-        run: |
-          echo "Verifying OpenSSL installation..."
-          ls -l ${HOME}/openssl
-          ls -l ${HOME}/openssl/lib
-          ls -l ${HOME}/openssl/include
-      - name: Set OpenSSL environment variables
-        run: |
-          echo "OPENSSL_LIB_DIR=${HOME}/openssl/lib" >> $GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=${HOME}/openssl/include" >> $GITHUB_ENV
-          echo "OPENSSL_DIR=${HOME}/openssl" >> $GITHUB_ENV
-      - name: Install protoc
-        run: |
-          PROTOC_ZIP=protoc-3.15.6-linux-x86_64.zip
-          curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.15.6/$PROTOC_ZIP
-          unzip -o $PROTOC_ZIP -d $HOME/.local bin/protoc
-          unzip -o $PROTOC_ZIP -d $HOME/.local 'include/*'
-          rm -f $PROTOC_ZIP
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Build with Zig
-        env:
-          OPENSSL_LIB_DIR: ${{ env.OPENSSL_LIB_DIR }}
-          OPENSSL_INCLUDE_DIR: ${{ env.OPENSSL_INCLUDE_DIR }}
-          OPENSSL_DIR: ${{ env.OPENSSL_DIR }}
         run: |
           cargo install cargo-zigbuild --locked
           rustup target add x86_64-unknown-linux-gnu
-          echo "OPENSSL_DIR=$(openssl version -d | awk '{print $2}')"
 
           cargo zigbuild --release --target x86_64-unknown-linux-gnu
 
