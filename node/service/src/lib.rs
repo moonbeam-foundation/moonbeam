@@ -1159,6 +1159,10 @@ where
 
 	let net_config = FullNetworkConfiguration::new(&config.network);
 
+	let metrics = Network::register_notification_metrics(
+		config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
+	);
+
 	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
@@ -1170,6 +1174,7 @@ where
 			warp_sync_params: None,
 			net_config,
 			block_relay: None,
+			metrics,
 		})?;
 
 	if config.offchain_worker.enabled {
