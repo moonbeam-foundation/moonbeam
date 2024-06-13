@@ -313,9 +313,11 @@ jobs:
           ./config --prefix="${OPENSSL_DIR}" --openssldir="${OPENSSL_DIR}" no-shared
           make
           make install
-          echo "OPENSSL_LIB_DIR=${OPENSSL_DIR}/lib" >> $GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=${OPENSSL_DIR}/include" >> $GITHUB_ENV
-          echo "OPENSSL_DIR=${OPENSSL_DIR}" >> $GITHUB_ENV
+      - name: Set OpenSSL environment variables
+        run: |
+          echo "OPENSSL_LIB_DIR=${HOME}/openssl/lib" >> $GITHUB_ENV
+          echo "OPENSSL_INCLUDE_DIR=${HOME}/openssl/include" >> $GITHUB_ENV
+          echo "OPENSSL_DIR=${HOME}/openssl" >> $GITHUB_ENV
       - name: Build with Zig
         run: |
           cargo install cargo-zigbuild --locked
