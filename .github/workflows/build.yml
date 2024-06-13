@@ -298,21 +298,35 @@ jobs:
         uses: goto-bus-stop/setup-zig@v2
         with:
           version: 0.13.0
-      - name: Build Preparation
+      # - name: Install OpenSSL
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y libssl-dev
+      - name: Install OpenSSL
+        run: |
+          OPENSSL_VERSION="3.3.1"
+          OPENSSL_DIR="${HOME}/openssl"
+          mkdir -p "${OPENSSL_DIR}"
+          curl -sSL "https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz" -o openssl.tar.gz
+          tar -zxf openssl.tar.gz
+          cd "openssl-${OPENSSL_VERSION}"
+          ./config --prefix="${OPENSSL_DIR}" --openssldir="${OPENSSL_DIR}" no-shared
+          make
+          make install
+          echo "OPENSSL_LIB_DIR=${OPENSSL_DIR}/lib" >> $GITHUB_ENV
+          echo "OPENSSL_INCLUDE_DIR=${OPENSSL_DIR}/include" >> $GITHUB_ENV
+          echo "OPENSSL_DIR=${OPENSSL_DIR}" >> $GITHUB_ENV
+      - name: Build with Zig
         run: |
           cargo install cargo-zigbuild --locked
           rustup target add x86_64-unknown-linux-gnu
-          echo "OPENSSL_DIR=$(openssl version -d | awk '{print $2}')" >> $GITHUB_ENV
-          echo "OPENSSL_LIB_DIR=$(pkg-config --variable=libdir openssl)"
-          echo "OPENSSL_INCLUDE_DIR=$(pkg-config --variable=includedir openssl)"
-          echo "OPENSSL_LIB_DIR=$(pkg-config --variable=libdir openssl)" >> $GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=$(pkg-config --variable=includedir openssl)" >> $GITHUB_ENV
-      - name: Build with Zig
+          echo "OPENSSL_DIR=$(openssl version -d | awk '{print $2}')"
+          
+          cargo zigbuild --release --target x86_64-unknown-linux-gnu --verbose
         env:
           OPENSSL_LIB_DIR: ${{ env.OPENSSL_LIB_DIR }}
           OPENSSL_INCLUDE_DIR: ${{ env.OPENSSL_INCLUDE_DIR }}
-        run: |
-          cargo zigbuild --release --target x86_64-unknown-linux-gnu --verbose
+          OPENSSL_DIR: ${{ env.OPENSSL_DIR }}
 
   # build-with-cranelift:
   #   runs-on: ubuntu-latest
