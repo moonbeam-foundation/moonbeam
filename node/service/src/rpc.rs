@@ -29,7 +29,7 @@ use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use fc_mapping_sync::{kv::MappingSyncWorker, SyncStrategy};
 use fc_rpc::{pending::ConsensusDataProvider, EthBlockDataCacheTask, EthTask, StorageOverride};
-use fc_rpc_core::types::{CallRequest, FeeHistoryCache, FilterPool};
+use fc_rpc_core::types::{FeeHistoryCache, FilterPool, TransactionRequest};
 use futures::StreamExt;
 use jsonrpsee::RpcModule;
 use moonbeam_cli_opt::EthApi as EthApiCmd;
@@ -58,7 +58,7 @@ use std::collections::BTreeMap;
 pub struct MoonbeamEGA;
 
 impl fc_rpc::EstimateGasAdapter for MoonbeamEGA {
-	fn adapt_request(mut request: CallRequest) -> CallRequest {
+	fn adapt_request(mut request: TransactionRequest) -> TransactionRequest {
 		// Redirect any call to batch precompile:
 		// force usage of batchAll method for estimation
 		use sp_core::H160;
