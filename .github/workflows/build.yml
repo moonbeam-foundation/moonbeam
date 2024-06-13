@@ -286,8 +286,7 @@ jobs:
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks -- -Dclippy::todo
 
   build-with-zig:
-    runs-on:
-      labels: bare-metal
+    runs-on: ubuntu-latest
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -298,13 +297,9 @@ jobs:
         uses: goto-bus-stop/setup-zig@v2
         with:
           version: 0.13.0
-      # - name: Install OpenSSL
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y libssl-dev
       - name: Install OpenSSL
         run: |
-          OPENSSL_VERSION="3.3.1"
+          OPENSSL_VERSION="1.1.1k"
           OPENSSL_DIR="${HOME}/openssl"
           mkdir -p "${OPENSSL_DIR}"
           curl -sSL "https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz" -o openssl.tar.gz
@@ -313,22 +308,31 @@ jobs:
           ./config --prefix="${OPENSSL_DIR}" --openssldir="${OPENSSL_DIR}" no-shared
           make
           make install
+          echo "OPENSSL_LIB_DIR=${OPENSSL_DIR}/lib" >> $GITHUB_ENV
+          echo "OPENSSL_INCLUDE_DIR=${OPENSSL_DIR}/include" >> $GITHUB_ENV
+          echo "OPENSSL_DIR=${OPENSSL_DIR}" >> $GITHUB_ENV
+      - name: Verify OpenSSL installation
+        run: |
+          echo "Verifying OpenSSL installation..."
+          ls -l ${HOME}/openssl
+          ls -l ${HOME}/openssl/lib
+          ls -l ${HOME}/openssl/include
       - name: Set OpenSSL environment variables
         run: |
           echo "OPENSSL_LIB_DIR=${HOME}/openssl/lib" >> $GITHUB_ENV
           echo "OPENSSL_INCLUDE_DIR=${HOME}/openssl/include" >> $GITHUB_ENV
           echo "OPENSSL_DIR=${HOME}/openssl" >> $GITHUB_ENV
       - name: Build with Zig
-        run: |
-          cargo install cargo-zigbuild --locked
-          rustup target add x86_64-unknown-linux-gnu
-          echo "OPENSSL_DIR=$(openssl version -d | awk '{print $2}')"
-          
-          cargo zigbuild --release --target x86_64-unknown-linux-gnu --verbose
         env:
           OPENSSL_LIB_DIR: ${{ env.OPENSSL_LIB_DIR }}
           OPENSSL_INCLUDE_DIR: ${{ env.OPENSSL_INCLUDE_DIR }}
           OPENSSL_DIR: ${{ env.OPENSSL_DIR }}
+        run: |
+          cargo install cargo-zigbuild --locked
+          rustup target add x86_64-unknown-linux-gnu
+          echo "OPENSSL_DIR=$(openssl version -d | awk '{print $2}')"
+
+          cargo zigbuild --release --target x86_64-unknown-linux-gnu --verbose
 
   # build-with-cranelift:
   #   runs-on: ubuntu-latest
