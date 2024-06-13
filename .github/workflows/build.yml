@@ -299,6 +299,11 @@ jobs:
           version: 0.13.0
       - name: Install build dependencies
         run: sudo apt-get update && sudo apt-get install -y build-essential libssl-dev protobuf-compiler
+      - name: Set OpenSSL Environment Variables
+        run: |
+          echo "OPENSSL_DIR=$(openssl version -d | cut -d'"' -f2)" >> $GITHUB_ENV
+          echo "OPENSSL_LIB_DIR=$(openssl version -d | cut -d'"' -f2)/lib" >> $GITHUB_ENV
+          echo "OPENSSL_INCLUDE_DIR=$(openssl version -d | cut -d'"' -f2)/include" >> $GITHUB_ENV
       - name: Build with Zig
         run: |
           cargo install cargo-zigbuild --locked
