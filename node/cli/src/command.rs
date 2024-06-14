@@ -36,7 +36,9 @@ use sc_service::{
 };
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::{
-	traits::{AccountIdConversion, Block as BlockT, Hash as HashT, Header as HeaderT, Zero},
+	traits::{
+		AccountIdConversion, Block as BlockT, Hash as HashT, HashingFor, Header as HeaderT, Zero,
+	},
 	StateVersion,
 };
 use std::{io::Write, net::SocketAddr};
@@ -487,24 +489,24 @@ pub fn run() -> Result<()> {
 							#[cfg(feature = "moonriver-native")]
 							spec if spec.is_moonriver() => {
 								return runner.sync_run(|config| {
-									cmd.run::<moonbeam_service::moonriver_runtime::Block, moonbeam_service::HostFunctions>(
-										config,
+									cmd.run_with_spec::<HashingFor<moonbeam_service::moonriver_runtime::Block>, moonbeam_service::HostFunctions>(
+										Some(config.chain_spec),
 									)
 								})
 							}
 							#[cfg(feature = "moonbeam-native")]
 							spec if spec.is_moonbeam() => {
 								return runner.sync_run(|config| {
-									cmd.run::<moonbeam_service::moonbeam_runtime::Block, moonbeam_service::HostFunctions>(
-										config,
+									cmd.run_with_spec::<HashingFor<moonbeam_service::moonbeam_runtime::Block>, moonbeam_service::HostFunctions>(
+										Some(config.chain_spec),
 									)
 								})
 							}
 							#[cfg(feature = "moonbase-native")]
 							_ => {
 								return runner.sync_run(|config| {
-									cmd.run::<moonbeam_service::moonbase_runtime::Block, moonbeam_service::HostFunctions>(
-										config,
+									cmd.run_with_spec::<HashingFor<moonbeam_service::moonbase_runtime::Block>, moonbeam_service::HostFunctions>(
+										Some(config.chain_spec),
 									)
 								})
 							}
@@ -513,8 +515,8 @@ pub fn run() -> Result<()> {
 						}
 					} else if cfg!(feature = "moonbase-runtime-benchmarks") {
 						return runner.sync_run(|config| {
-							cmd.run::<moonbeam_service::moonbase_runtime::Block, moonbeam_service::HostFunctions>(
-								config,
+							cmd.run_with_spec::<HashingFor<moonbeam_service::moonbase_runtime::Block>, moonbeam_service::HostFunctions>(
+								Some(config.chain_spec),
 							)
 						});
 					} else {
