@@ -730,6 +730,7 @@ pub fn run() -> Result<()> {
 						spec if spec.is_moonriver() => moonbeam_service::new_dev::<
 							moonbeam_service::moonriver_runtime::RuntimeApi,
 							moonbeam_service::MoonriverCustomizations,
+							sc_network::NetworkWorker<_, _>,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.await
 						.map_err(Into::into),
@@ -737,6 +738,7 @@ pub fn run() -> Result<()> {
 						spec if spec.is_moonbeam() => moonbeam_service::new_dev::<
 							moonbeam_service::moonbeam_runtime::RuntimeApi,
 							moonbeam_service::MoonbeamCustomizations,
+							sc_network::NetworkWorker<_, _>,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.await
 						.map_err(Into::into),
@@ -744,6 +746,7 @@ pub fn run() -> Result<()> {
 						_ => moonbeam_service::new_dev::<
 							moonbeam_service::moonbase_runtime::RuntimeApi,
 							moonbeam_service::MoonbaseCustomizations,
+							sc_network::NetworkWorker<_, _>,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.await
 						.map_err(Into::into),

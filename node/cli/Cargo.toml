@@ -20,6 +20,7 @@ sc-chain-spec = { workspace = true }
 sc-cli = { workspace = true }
 sc-client-api = { workspace = true }
 sc-consensus-grandpa = { workspace = true }
+sc-network = { workspace = true }
 sc-service = { workspace = true }
 sc-sysinfo = { workspace = true }
 sc-telemetry = { workspace = true }
@@ -47,10 +48,10 @@ substrate-build-script-utils = { workspace = true }
 
 [features]
 default = [
-	"moonbase-native",
-	"moonbeam-native",
-	"moonriver-native",
-	"westend-native",
+    "moonbase-native",
+    "moonbeam-native",
+    "moonriver-native",
+    "westend-native",
 ]
 
 westend-native = ["polkadot-service/westend-native"]
@@ -60,8 +61,8 @@ moonbeam-native = ["moonbeam-service/moonbeam-native"]
 moonriver-native = ["moonbeam-service/moonriver-native"]
 
 runtime-benchmarks = [
-	"moonbeam-service/runtime-benchmarks",
-	"polkadot-service/runtime-benchmarks",
+    "moonbeam-service/runtime-benchmarks",
+    "polkadot-service/runtime-benchmarks",
 ]
 
 moonbase-runtime-benchmarks = ["moonbeam-service/moonbase-runtime-benchmarks"]
