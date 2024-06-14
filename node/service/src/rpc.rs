@@ -237,7 +237,7 @@ where
 		};
 		let parachain_inherent_data = ParachainInherentData {
 			validation_data: vfp,
-			relay_chain_state: relay_chain_state,
+			relay_chain_state,
 			downward_messages: Default::default(),
 			horizontal_messages: Default::default(),
 		};
@@ -383,7 +383,7 @@ pub fn spawn_essential_tasks<B, C, BE>(
 	// Frontier offchain DB task. Essential.
 	// Maps emulated ethereum data to substrate native data.
 	match *params.frontier_backend {
-		fc_db::Backend::KeyValue(b) => {
+		fc_db::Backend::KeyValue(ref b) => {
 			params.task_manager.spawn_essential_handle().spawn(
 				"frontier-mapping-sync-worker",
 				Some("frontier"),
@@ -393,7 +393,7 @@ pub fn spawn_essential_tasks<B, C, BE>(
 					params.client.clone(),
 					params.substrate_backend.clone(),
 					params.overrides.clone(),
-					b,
+					b.clone(),
 					3,
 					0,
 					SyncStrategy::Parachain,
@@ -403,14 +403,14 @@ pub fn spawn_essential_tasks<B, C, BE>(
 				.for_each(|()| futures::future::ready(())),
 			);
 		}
-		fc_db::Backend::Sql(b) => {
+		fc_db::Backend::Sql(ref b) => {
 			params.task_manager.spawn_essential_handle().spawn_blocking(
 				"frontier-mapping-sync-worker",
 				Some("frontier"),
 				fc_mapping_sync::sql::SyncWorker::run(
 					params.client.clone(),
 					params.substrate_backend.clone(),
-					b,
+					b.clone(),
 					params.client.import_notification_stream(),
 					fc_mapping_sync::sql::SyncWorkerConfig {
 						read_notification_timeout: Duration::from_secs(10),
