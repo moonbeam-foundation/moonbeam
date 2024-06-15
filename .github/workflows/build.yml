@@ -348,9 +348,7 @@ jobs:
         run: |
           cargo install cargo-zigbuild --locked
           rustup target add x86_64-unknown-linux-gnu
-          echo "OPENSSL_DIR=$(openssl version -d | awk '{print $2}')"
-  
-          cargo zigbuild --release --target x86_64-unknown-linux-gnu
+          cargo zigbuild --target x86_64-unknown-linux-gnu
   # build-with-cranelift:
   #   runs-on: ubuntu-latest
   #   needs: ["set-tags"]
