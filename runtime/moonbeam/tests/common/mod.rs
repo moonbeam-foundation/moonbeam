@@ -23,13 +23,10 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 };
 pub use moonbeam_runtime::{
-	asset_config::AssetRegistrarMetadata,
-	currency::{GIGAWEI, GLMR, SUPPLY_FACTOR, WEI},
-	xcm_config::AssetType,
-	AccountId, AssetId, AssetManager, AsyncBacking, AuthorInherent, Balance, Balances,
-	CrowdloanRewards, Ethereum, Executive, Header, InflationInfo, ParachainStaking, Range, Runtime,
-	RuntimeCall, RuntimeEvent, System, TransactionConverter, TransactionPaymentAsGasPrice,
-	UncheckedExtrinsic, HOURS, WEEKS,
+	asset_config::AssetRegistrarMetadata, currency::GLMR, xcm_config::AssetType, AccountId,
+	AssetId, AssetManager, AsyncBacking, AuthorInherent, Balance, Ethereum, InflationInfo,
+	ParachainStaking, Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
+	UncheckedExtrinsic, HOURS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use polkadot_parachain::primitives::HeadData;

@@ -50,8 +50,8 @@ fn create_funded_user<T: Config>(
 	let user = account(string, n, SEED);
 	let min_candidate_stk = min_candidate_stk::<T>();
 	let total = min_candidate_stk + extra;
-	T::Currency::make_free_balance_be(&user, total);
-	T::Currency::issue(total);
+	let _ = T::Currency::make_free_balance_be(&user, total);
+	let _ = T::Currency::issue(total);
 	(user, total)
 }
 
@@ -123,8 +123,8 @@ fn create_account<T: Config>(
 		AccountBalance::Value(v) => v,
 	};
 
-	T::Currency::make_free_balance_be(&acc, initial_balance);
-	T::Currency::issue(initial_balance);
+	let _ = T::Currency::make_free_balance_be(&acc, initial_balance);
+	let _ = T::Currency::issue(initial_balance);
 
 	match action {
 		AccountAction::None => (),

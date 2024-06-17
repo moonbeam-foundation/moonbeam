@@ -6,6 +6,37 @@ import {
   ALITH_GENESIS_RESERVE_BALANCE,
 } from "@moonwall/util";
 
+/**
+ * Class allowing to store multiple value for a runtime constant based on the runtime version
+ */
+class RuntimeConstant<T> {
+  private values: { [version: number]: T };
+
+  /*
+   * Get the expected value for a given runtime version. Lookup for the closest smaller runtime
+   */
+  get(runtimeVersion: number): T {
+    const versions = Object.keys(this.values).map(Number); // slow but easier to maintain
+    let value;
+    for (let i = 0; i < versions.length; i++) {
+      if (versions[i] > runtimeVersion) {
+        break;
+      }
+      value = this.values[versions[i]];
+    }
+    return value;
+  }
+
+  // Builds RuntimeConstant with single or multiple values
+  constructor(values: { [version: number]: T } | T) {
+    if (values instanceof Object) {
+      this.values = values;
+    } else {
+      this.values = { 0: values };
+    }
+  }
+}
+
 // Crowdloan Constants
 
 export const VESTING_PERIOD = 201600n;
@@ -33,24 +64,21 @@ export const RUNTIME_CONSTANTS = {
     MAX_FEE_MULTIPLIER: 100_000_000_000_000_000_000_000n,
     MIN_BASE_FEE_IN_WEI: "125000000",
     MAX_BASE_FEE_IN_WEI: "125000000000000",
-    TARGET_FILL_PERMILL: 350_000n,
-    OLD_TARGET_FILL_PERMILL: 250_000n,
+    TARGET_FILL_PERMILL: new RuntimeConstant({ 3000: 350_000n, 2801: 500_000n, 0: 250_000n }),
   },
   MOONRIVER: {
     MIN_FEE_MULTIPLIER: 1_000_000_000_000_000_000n,
     MAX_FEE_MULTIPLIER: 100_000_000_000_000_000_000_000n,
     MIN_BASE_FEE_IN_WEI: "1250000000",
     MAX_BASE_FEE_IN_WEI: "125000000000000",
-    TARGET_FILL_PERMILL: 350_000n,
-    OLD_TARGET_FILL_PERMILL: 250_000n,
+    TARGET_FILL_PERMILL: new RuntimeConstant({ 3000: 350_000n, 2801: 500_000n, 0: 250_000n }),
   },
   MOONBEAM: {
     MIN_FEE_MULTIPLIER: 1_000_000_000_000_000_000n,
     MAX_FEE_MULTIPLIER: 100_000_000_000_000_000_000_000n,
     MIN_BASE_FEE_IN_WEI: "125000000000",
     MAX_BASE_FEE_IN_WEI: "12500000000000000",
-    TARGET_FILL_PERMILL: 350_000n,
-    OLD_TARGET_FILL_PERMILL: 250_000n,
+    TARGET_FILL_PERMILL: new RuntimeConstant({ 3000: 350_000n, 2801: 500_000n, 0: 250_000n }),
   },
 } as const;
 
