@@ -22,24 +22,24 @@ mod common;
 use common::*;
 
 use fp_evm::{Context, IsPrecompileResult};
+use frame_support::traits::fungible::Inspect;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
-	traits::{
-		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, PalletInfo, StorageInfo,
-		StorageInfoTrait,
-	},
+	traits::{Currency as CurrencyT, EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
+use moonriver_runtime::currency::{GIGAWEI, WEI};
 use moonriver_runtime::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve},
-	AssetId, OpenTechCommitteeCollective, PolkadotXcm, Precompiles, RuntimeBlockWeights,
-	TransactionPayment, TreasuryCouncilCollective, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	AssetId, Balances, CrowdloanRewards, Executive, OpenTechCommitteeCollective, PolkadotXcm,
+	Precompiles, RuntimeBlockWeights, TransactionPayment, TransactionPaymentAsGasPrice,
+	TreasuryCouncilCollective, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -631,11 +631,11 @@ fn reward_block_authors() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				10101206388888506666666,
+				11547666666208000000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				9500047777777156666667,
+				9557333332588000000000,
 			);
 		});
 }
@@ -683,7 +683,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// 30% reserved for parachain bond
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				1376262500000000000,
+				452515000000000000000,
 			);
 
 			// Go to round 3
@@ -692,16 +692,16 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
-				10100848083729919833333,
+				11117700475903800000000,
 			);
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(BOB)),
-				9500029862102786395833,
+				9535834523343675000000,
 			);
 			// 30% reserved for parachain bond again
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(CHARLIE)),
-				1376262500000000000,
+				910802725000000000000,
 			);
 		});
 }
@@ -1754,7 +1754,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(24383)
+				.expect_cost(24342)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1818,7 +1818,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(14429)
+				.expect_cost(14424)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1839,7 +1839,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(29739)
+				.expect_cost(29686)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2141,7 +2141,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(17567)
+				.expect_cost(17555)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2580,16 +2580,17 @@ fn evm_success_keeps_substrate_events() {
 #[cfg(test)]
 mod fee_tests {
 	use super::*;
+	use fp_evm::FeeCalculator;
 	use frame_support::{
-		traits::ConstU128,
+		traits::{ConstU128, OnFinalize},
 		weights::{ConstantMultiplier, WeightToFee},
 	};
 	use moonriver_runtime::{
 		currency, LengthToFee, MinimumMultiplier, RuntimeBlockWeights, SlowAdjustingFeeUpdate,
-		TargetBlockFullness, TransactionPayment,
+		TargetBlockFullness, TransactionPaymentAsGasPrice, NORMAL_WEIGHT, WEIGHT_PER_GAS,
 	};
 	use sp_core::Get;
-	use sp_runtime::FixedPointNumber;
+	use sp_runtime::{BuildStorage, FixedPointNumber, Perbill};
 
 	fn run_with_system_weight<F>(w: Weight, mut assertions: F)
 	where
@@ -2665,6 +2666,132 @@ mod fee_tests {
 				actual_fee,
 				"The actual fee did not match the expected fee, diff {}",
 				actual_fee - expected_fee
+			);
+		});
+	}
+
+	#[test]
+	fn test_min_gas_price_is_deterministic() {
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			let multiplier = sp_runtime::FixedU128::from_u32(1);
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
+			let actual = TransactionPaymentAsGasPrice::min_gas_price().0;
+			let expected: U256 = multiplier
+				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
+				.into();
+
+			assert_eq!(expected, actual);
+		});
+	}
+
+	#[test]
+	fn test_min_gas_price_has_no_precision_loss_from_saturating_mul_int() {
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			let multiplier_1 = sp_runtime::FixedU128::from_float(0.999593900000000000);
+			let multiplier_2 = sp_runtime::FixedU128::from_float(0.999593200000000000);
+
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier_1);
+			let a = TransactionPaymentAsGasPrice::min_gas_price();
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier_2);
+			let b = TransactionPaymentAsGasPrice::min_gas_price();
+
+			assert_ne!(
+				a, b,
+				"both gas prices were equal, unexpected precision loss incurred"
+			);
+		});
+	}
+
+	#[test]
+	fn test_fee_scenarios() {
+		use sp_runtime::FixedU128;
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			let weight_fee_per_gas = currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128);
+			let sim = |start_gas_price: u128, fullness: Perbill, num_blocks: u64| -> U256 {
+				let start_multiplier =
+					FixedU128::from_rational(start_gas_price, weight_fee_per_gas);
+				pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(start_multiplier);
+
+				let block_weight = NORMAL_WEIGHT * fullness;
+
+				for i in 0..num_blocks {
+					System::set_block_number(i as u32);
+					System::set_block_consumed_resources(block_weight, 0);
+					TransactionPayment::on_finalize(i as u32);
+				}
+
+				TransactionPaymentAsGasPrice::min_gas_price().0
+			};
+
+			// The expected values are the ones observed during test execution,
+			// they are expected to change when parameters that influence
+			// the fee calculation are changed, and should be updated accordingly.
+			// If a test fails when nothing specific to fees has changed,
+			// it may indicate an unexpected collateral effect and should be investigated
+
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(0), 1),
+				U256::from(1_250_000_000u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(25), 1),
+				U256::from(1_250_000_000u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(50), 1),
+				U256::from(1_250_750_225u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(100), 1),
+				U256::from(1_253_254_225u128),
+			);
+
+			// 1 "real" hour (at 6-second blocks)
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(0), 600),
+				U256::from(1_250_000_000u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(25), 600),
+				U256::from(1_250_000_000u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(50), 600),
+				U256::from(1_791_661_729u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(100), 600),
+				U256::from(5_948_516_121u128),
+			);
+
+			// 1 "real" day (at 6-second blocks)
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(0), 14400),
+				U256::from(1_250_000_000u128), // lower bound enforced
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(25), 14400),
+				U256::from(1_250_000_000u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(50), 14400),
+				U256::from(7_066_658_618_836u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(100), 14400),
+				U256::from(125_000_000_000_000u128), // upper bound enforced
 			);
 		});
 	}

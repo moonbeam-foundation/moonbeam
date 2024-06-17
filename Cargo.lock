@@ -6265,7 +6265,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.38.0"
+version = "0.39.0"
 dependencies = [
  "clap",
  "clap-num",
@@ -6301,7 +6301,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.38.0"
+version = "0.39.0"
 dependencies = [
  "account",
  "bip32",
@@ -6631,6 +6631,7 @@ dependencies = [
  "orml-xtokens",
  "pallet-asset-manager",
  "pallet-assets",
+ "pallet-async-backing",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
@@ -6721,6 +6722,7 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-std",
+ "sp-timestamp",
  "sp-transaction-pool",
  "sp-version",
  "sp-weights",
@@ -6741,6 +6743,7 @@ name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
  "account",
+ "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcmp-queue",
  "fp-ethereum",
  "fp-evm",
@@ -6751,6 +6754,7 @@ dependencies = [
  "hex-literal 0.3.4",
  "impl-trait-for-tuples",
  "log",
+ "moonbeam-core-primitives",
  "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
  "pallet-asset-manager",
@@ -6802,7 +6806,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.38.0"
+version = "0.39.0"
 dependencies = [
  "async-backing-primitives",
  "async-io 1.13.0",
@@ -7120,6 +7124,7 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-std",
+ "sp-timestamp",
  "sp-transaction-pool",
  "sp-version",
  "sp-weights",
@@ -8430,6 +8435,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "log",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",

@@ -39,10 +39,11 @@ use frame_support::{
 use moonbase_runtime::{
 	asset_config::{AssetRegistrarMetadata, ForeignAssetInstance},
 	xcm_config::{AssetType, SelfReserve},
-	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards,
+	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards, Executive,
 	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
 	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
-	TreasuryCouncilCollective, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	TransactionPaymentAsGasPrice, TreasuryCouncilCollective, XTokens, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -54,6 +55,7 @@ use std::str::from_utf8;
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
 
+use moonbase_runtime::currency::{GIGAWEI, WEI};
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
@@ -1357,7 +1359,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(24383)
+				.expect_cost(24342)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1421,7 +1423,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(14429)
+				.expect_cost(14424)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1442,7 +1444,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(29739)
+				.expect_cost(29686)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2161,7 +2163,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(17567)
+				.expect_cost(17555)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2201,7 +2203,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(17567)
+				.expect_cost(17555)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2283,7 +2285,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(15137)
+				.expect_cost(15126)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2305,7 +2307,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14718)
+				.expect_cost(14728)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2326,7 +2328,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15180)
+				.expect_cost(15189)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2369,7 +2371,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16266)
+				.expect_cost(16262)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2394,7 +2396,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16266)
+				.expect_cost(16262)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2804,7 +2806,7 @@ mod fee_tests {
 	};
 	use moonbase_runtime::{
 		currency, BlockWeights, FastAdjustingFeeUpdate, LengthToFee, MinimumMultiplier,
-		TargetBlockFullness, NORMAL_WEIGHT, WEIGHT_PER_GAS,
+		TargetBlockFullness, TransactionPaymentAsGasPrice, NORMAL_WEIGHT, WEIGHT_PER_GAS,
 	};
 	use sp_runtime::{BuildStorage, FixedPointNumber, Perbill};
 
@@ -2962,54 +2964,54 @@ mod fee_tests {
 
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 1),
-				U256::from(998_002_000),
+				U256::from(998_600_980),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 1),
-				U256::from(999_000_500),
+				U256::from(999_600_080),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 1),
-				U256::from(1_000_000_000),
+				U256::from(1_000_600_180),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 1),
-				U256::from(1_002_002_000),
+				U256::from(1_002_603_380),
 			);
 
-			// 1 "real" hour (at 12-second blocks)
+			// 1 "real" hour (at 6-second blocks)
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(0), 300),
-				U256::from(548_811_855),
+				sim(1_000_000_000, Perbill::from_percent(0), 600),
+				U256::from(431_710_642),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(25), 300),
-				U256::from(740_818_257),
+				sim(1_000_000_000, Perbill::from_percent(25), 600),
+				U256::from(786_627_866),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(50), 300),
-				U256::from(1_000_000_000),
+				sim(1_000_000_000, Perbill::from_percent(50), 600),
+				U256::from(1_433_329_383u128),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(100), 300),
-				U256::from(1_822_118_072u128),
+				sim(1_000_000_000, Perbill::from_percent(100), 600),
+				U256::from(4_758_812_897u128),
 			);
 
-			// 1 "real" day (at 12-second blocks)
+			// 1 "real" day (at 6-second blocks)
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(0), 7200),
+				sim(1_000_000_000, Perbill::from_percent(0), 14400),
 				U256::from(125_000_000), // lower bound enforced
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(25), 7200),
+				sim(1_000_000_000, Perbill::from_percent(25), 14400),
 				U256::from(125_000_000),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(50), 7200),
-				U256::from(1_000_000_000u128),
+				sim(1_000_000_000, Perbill::from_percent(50), 14400),
+				U256::from(5_653_326_895_069u128),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(100), 7200),
+				sim(1_000_000_000, Perbill::from_percent(100), 14400),
 				U256::from(125_000_000_000_000u128), // upper bound enforced
 			);
 		});
