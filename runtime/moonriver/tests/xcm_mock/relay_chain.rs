@@ -79,6 +79,11 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = ();
 	type OnSetCode = ();
 	type MaxConsumers = ConstU32<16>;
+	type SingleBlockMigrations = ();
+	type MultiBlockMigrator = ();
+	type PreInherents = ();
+	type PostInherents = ();
+	type PostTransactions = ();
 }
 
 parameter_types! {
@@ -205,6 +210,9 @@ impl Config for XcmConfig {
 	type SafeCallFilter = Everything;
 	type Aliasers = Nothing;
 	type TransactionalProcessor = ();
+	type HrmpNewChannelOpenRequestHandler = ();
+	type HrmpChannelAcceptedHandler = ();
+	type HrmpChannelClosingHandler = ();
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, KusamaNetwork>;
@@ -333,6 +341,7 @@ impl pallet_message_queue::Config for Runtime {
 	type QueueChangeHandler = ();
 	type WeightInfo = ();
 	type QueuePausedQuery = ();
+	type IdleMaxServiceWeight = MessageQueueServiceWeight;
 }
 
 construct_runtime!(

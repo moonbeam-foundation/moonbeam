@@ -297,7 +297,7 @@ fn send_para_a_asset_to_para_b() {
 	// This represents the asset in paraA
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
 	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -370,7 +370,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	// Represents para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
 	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -484,7 +484,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	// para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
 	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -645,7 +645,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
 	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -722,7 +722,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
 	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -2339,7 +2339,7 @@ fn test_statemint_like() {
 		],
 	);
 	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&statemint_asset_a_balances)
+		xcm_builder::WithLatestLocationConverter::convert(&statemint_asset_a_balances)
 			.expect("convert to v3"),
 	);
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -2446,7 +2446,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 		[Parachain(4u32), PalletInstance(5u8), GeneralIndex(10u128)],
 	);
 	let statemint_location_asset = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&statemint_asset).expect("convert to v3"),
+		xcm_builder::WithLatestLocationConverter::convert(&statemint_asset).expect("convert to v3"),
 	);
 	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
 

@@ -96,6 +96,11 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type SingleBlockMigrations = ();
+	type MultiBlockMigrator = ();
+	type PreInherents = ();
+	type PostInherents = ();
+	type PostTransactions = ();
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -188,8 +193,10 @@ impl xcm_executor::Config for XcmConfig {
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
 	type Aliasers = Nothing;
-
 	type TransactionalProcessor = ();
+	type HrmpNewChannelOpenRequestHandler = ();
+	type HrmpChannelAcceptedHandler = ();
+	type HrmpChannelClosingHandler = ();
 }
 
 pub type Precompiles<R> = PrecompileSetBuilder<
@@ -401,6 +408,8 @@ impl orml_xtokens::Config for Runtime {
 	type LocationsFilter = Everything;
 	type ReserveProvider = AbsoluteReserveProvider;
 	type UniversalLocation = UniversalLocation;
+	type RateLimiter = ();
+	type RateLimiterId = ();
 }
 
 pub(crate) struct ExtBuilder {
