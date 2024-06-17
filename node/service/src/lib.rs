@@ -1511,6 +1511,7 @@ where
 
 #[cfg(test)]
 mod tests {
+	use jsonrpsee::server::BatchRequestConfig;
 	use moonbase_runtime::{currency::UNIT, AccountId};
 	use prometheus::{proto::LabelPair, Counter};
 	use sc_network::config::NetworkConfiguration;
@@ -1625,7 +1626,7 @@ mod tests {
 		};
 
 		fn zero_ed_pub() -> sp_core::ed25519::Public {
-			sp_core::ed25519::Public([0u8; 32])
+			sp_core::ed25519::Public::default()
 		}
 
 		// This is an invalid signature
@@ -1757,6 +1758,8 @@ mod tests {
 			informant_output_format: Default::default(),
 			wasmtime_precompiled: None,
 			runtime_cache_size: 2,
+			rpc_rate_limit: Default::default(),
+			rpc_batch_config: BatchRequestConfig::Unlimited,
 		}
 	}
 }

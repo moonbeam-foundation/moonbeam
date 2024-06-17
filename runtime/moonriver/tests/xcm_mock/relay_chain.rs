@@ -282,12 +282,17 @@ impl paras::Config for Runtime {
 
 impl dmp::Config for Runtime {}
 
+parameter_types! {
+	pub const DefaultChannelSizeAndCapacityWithSystem: (u32, u32) = (4, 1);
+}
+
 impl hrmp::Config for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type WeightInfo = TestHrmpWeightInfo;
 	type ChannelManager = frame_system::EnsureRoot<AccountId>;
+	type DefaultChannelSizeAndCapacityWithSystem = DefaultChannelSizeAndCapacityWithSystem;
 }
 
 impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
@@ -416,6 +421,10 @@ impl hrmp::WeightInfo for TestHrmpWeightInfo {
 	}
 
 	fn poke_channel_deposits() -> Weight {
+		Weight::from_parts(1, 0)
+	}
+
+	fn establish_channel_with_system() -> Weight {
 		Weight::from_parts(1, 0)
 	}
 }
