@@ -31,7 +31,7 @@ pub use moonbase_runtime::{
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use polkadot_parachain::primitives::HeadData;
 use sp_consensus_slots::Slot;
-use sp_core::{Encode, Get, H160};
+use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
 use std::collections::BTreeMap;
