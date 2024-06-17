@@ -296,6 +296,10 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
+parameter_types! {
+	pub const ExistentialDeposit: Balance = 0;
+}
+
 impl pallet_balances::Config for Runtime {
 	type MaxReserves = ConstU32<50>;
 	type ReserveIdentifier = [u8; 4];
@@ -305,7 +309,7 @@ impl pallet_balances::Config for Runtime {
 	/// The ubiquitous event type.
 	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
-	type ExistentialDeposit = ConstU128<0>;
+	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ConstU32<0>;

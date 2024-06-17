@@ -790,6 +790,15 @@ macro_rules! impl_runtime_apis_plus_common {
 					}
 
 					impl pallet_xcm::benchmarking::Config for Runtime {
+				        type DeliveryHelper = ();
+
+						fn get_asset() -> Asset {
+							Asset {
+								id: AssetId(Location::parent()),
+								fun: Fungible(ExistentialDeposit::get()),
+							}
+						}
+
 						fn reachable_dest() -> Option<Location> {
 							Some(Parent.into())
 						}
