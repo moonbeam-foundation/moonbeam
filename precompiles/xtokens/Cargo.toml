@@ -25,7 +25,7 @@ sp-weights = { workspace = true }
 fp-evm = { workspace = true }
 frame-system = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
-precompile-utils = { workspace = true }
+precompile-utils = { workspace = true, features = ["codec-xcm"] }
 
 # Polkadot / XCM
 orml-xtokens = { workspace = true }
