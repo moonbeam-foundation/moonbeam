@@ -6498,7 +6498,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.38.0"
+version = "0.39.0"
 dependencies = [
  "clap",
  "clap-num",
@@ -6534,7 +6534,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.38.0"
+version = "0.39.0"
 dependencies = [
  "account",
  "bip32",
@@ -7035,7 +7035,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.38.0"
+version = "0.39.0"
 dependencies = [
  "async-backing-primitives",
  "async-io 1.13.0",
@@ -8714,6 +8714,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "log",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
