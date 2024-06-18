@@ -112,7 +112,7 @@ type PartialComponentsResult<RuntimeApi> = Result<
 #[cfg(feature = "runtime-benchmarks")]
 pub type HostFunctions = (
 	frame_benchmarking::benchmarking::HostFunctions,
-	sp_io::SubstrateHostFunctions,
+	ParachainHostFunctions,
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
 #[cfg(not(feature = "runtime-benchmarks"))]
