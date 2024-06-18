@@ -31,7 +31,7 @@ use cumulus_client_consensus_proposer::Proposer;
 use cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
 use cumulus_client_service::{
 	prepare_node_config, start_relay_chain_tasks, CollatorSybilResistance, DARecoveryProfile,
-	StartRelayChainTasksParams,
+	ParachainHostFunctions, StartRelayChainTasksParams,
 };
 use cumulus_primitives_core::relay_chain::CollatorPair;
 use cumulus_primitives_core::ParaId;
@@ -117,7 +117,7 @@ pub type HostFunctions = (
 );
 #[cfg(not(feature = "runtime-benchmarks"))]
 pub type HostFunctions = (
-	sp_io::SubstrateHostFunctions,
+	ParachainHostFunctions,
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
 
