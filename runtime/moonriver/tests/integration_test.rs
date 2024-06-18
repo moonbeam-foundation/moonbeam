@@ -445,22 +445,29 @@ fn verify_pallet_indices() {
 
 #[test]
 fn verify_reserved_indices() {
-	use frame_metadata::*;
-	let metadata = moonriver_runtime::Runtime::metadata();
-	let metadata = match metadata.1 {
-		RuntimeMetadata::V14(metadata) => metadata,
-		_ => panic!("metadata has been bumped, test needs to be updated"),
-	};
-	// 40: Sudo
-	// 53: BaseFee
-	// 108: pallet_assets::<Instance1>
-	let reserved = vec![40, 53, 108];
-	let existing = metadata
-		.pallets
-		.iter()
-		.map(|p| p.index)
-		.collect::<Vec<u8>>();
-	assert!(reserved.iter().all(|index| !existing.contains(index)));
+	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
+		.unwrap()
+		.into();
+
+	t.execute_with(|| {
+		use frame_metadata::*;
+		let metadata = moonriver_runtime::Runtime::metadata();
+		let metadata = match metadata.1 {
+			RuntimeMetadata::V14(metadata) => metadata,
+			_ => panic!("metadata has been bumped, test needs to be updated"),
+		};
+		// 40: Sudo
+		// 53: BaseFee
+		// 108: pallet_assets::<Instance1>
+		let reserved = vec![40, 53, 108];
+		let existing = metadata
+			.pallets
+			.iter()
+			.map(|p| p.index)
+			.collect::<Vec<u8>>();
+		assert!(reserved.iter().all(|index| !existing.contains(index)));
+	});
 }
 
 #[test]
