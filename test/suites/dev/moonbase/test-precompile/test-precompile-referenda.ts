@@ -123,7 +123,12 @@ describeSuite({
         const block = await referenda
           .withSigner(alith)
           .withExpectEvents([context.polkadotJs().events.referenda.Submitted])
-          .submitAt(trackId, call.hash.toHex(), call.method.encodedLength, blockNumber.toNumber() + 1)
+          .submitAt(
+            trackId,
+            call.hash.toHex(),
+            call.method.encodedLength,
+            blockNumber.toNumber() + 1
+          )
           .block();
 
         expectEVMResult(block!.result!.events, "Succeed");
@@ -151,7 +156,12 @@ describeSuite({
         const block = await referenda
           .withSigner(alith)
           .withExpectEvents([context.polkadotJs().events.referenda.Submitted])
-          .submitAfter(trackId, call.hash.toHex(), call.method.encodedLength, blockNumber.toNumber() + 1)
+          .submitAfter(
+            trackId,
+            call.hash.toHex(),
+            call.method.encodedLength,
+            blockNumber.toNumber() + 1
+          )
           .block();
 
         expectEVMResult(block!.result!.events, "Succeed");
