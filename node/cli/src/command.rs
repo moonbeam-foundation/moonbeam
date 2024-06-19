@@ -22,7 +22,10 @@ use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::{info, warn};
 use moonbeam_cli_opt::EthApi;
-use moonbeam_service::{chain_spec, frontier_database_dir, IdentifyVariant};
+use moonbeam_service::{
+	chain_spec, frontier_database_dir, moonbase_runtime, moonbeam_runtime, moonriver_runtime,
+	HostFunctions, IdentifyVariant,
+};
 use parity_scale_codec::Encode;
 #[cfg(feature = "westend-native")]
 use polkadot_service::WestendChainSpec;
@@ -489,7 +492,7 @@ pub fn run() -> Result<()> {
 							#[cfg(feature = "moonriver-native")]
 							spec if spec.is_moonriver() => {
 								return runner.sync_run(|config| {
-									cmd.run_with_spec::<HashingFor<moonbeam_service::moonriver_runtime::Block>, moonbeam_service::HostFunctions>(
+									cmd.run_with_spec::<HashingFor<moonriver_runtime::Block>, HostFunctions>(
 										Some(config.chain_spec),
 									)
 								})
@@ -497,7 +500,7 @@ pub fn run() -> Result<()> {
 							#[cfg(feature = "moonbeam-native")]
 							spec if spec.is_moonbeam() => {
 								return runner.sync_run(|config| {
-									cmd.run_with_spec::<HashingFor<moonbeam_service::moonbeam_runtime::Block>, moonbeam_service::HostFunctions>(
+									cmd.run_with_spec::<HashingFor<moonbeam_runtime::Block>, HostFunctions>(
 										Some(config.chain_spec),
 									)
 								})
@@ -505,7 +508,7 @@ pub fn run() -> Result<()> {
 							#[cfg(feature = "moonbase-native")]
 							_ => {
 								return runner.sync_run(|config| {
-									cmd.run_with_spec::<HashingFor<moonbeam_service::moonbase_runtime::Block>, moonbeam_service::HostFunctions>(
+									cmd.run_with_spec::<HashingFor<moonbase_runtime::Block>, HostFunctions>(
 										Some(config.chain_spec),
 									)
 								})
@@ -515,7 +518,7 @@ pub fn run() -> Result<()> {
 						}
 					} else if cfg!(feature = "moonbase-runtime-benchmarks") {
 						return runner.sync_run(|config| {
-							cmd.run_with_spec::<HashingFor<moonbeam_service::moonbase_runtime::Block>, moonbeam_service::HostFunctions>(
+							cmd.run_with_spec::<HashingFor<moonbeam_service::moonbase_runtime::Block>, HostFunctions>(
 								Some(config.chain_spec),
 							)
 						});
