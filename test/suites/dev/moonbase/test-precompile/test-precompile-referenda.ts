@@ -27,13 +27,13 @@ describeSuite({
       const block = await context.createBlock([
         context
           .polkadotJs()
-          .tx.preimage.notePreimage(call.toHex())
+          .tx.preimage.notePreimage(call.method.toHex())
           .signAsync(alith, { nonce: nonce++ }),
         context
           .polkadotJs()
           .tx.referenda.submit(
             { system: "root" },
-            { Lookup: { Hash: call.hash.toHex(), len: call.length } },
+            { Lookup: { Hash: call.hash.toHex(), len: call.method.encodedLength } },
             { After: 1 }
           )
           .signAsync(alith, { nonce: nonce++ }),
@@ -123,7 +123,7 @@ describeSuite({
         const block = await referenda
           .withSigner(alith)
           .withExpectEvents([context.polkadotJs().events.referenda.Submitted])
-          .submitAt(trackId, call.hash.toHex(), call.length, blockNumber.toNumber() + 1)
+          .submitAt(trackId, call.hash.toHex(), call.method.encodedLength, blockNumber.toNumber() + 1)
           .block();
 
         expectEVMResult(block!.result!.events, "Succeed");
@@ -151,7 +151,7 @@ describeSuite({
         const block = await referenda
           .withSigner(alith)
           .withExpectEvents([context.polkadotJs().events.referenda.Submitted])
-          .submitAfter(trackId, call.hash.toHex(), call.length, blockNumber.toNumber() + 1)
+          .submitAfter(trackId, call.hash.toHex(), call.method.encodedLength, blockNumber.toNumber() + 1)
           .block();
 
         expectEVMResult(block!.result!.events, "Succeed");
