@@ -214,9 +214,12 @@ export async function injectHrmpMessageAndSeal(
   message?: RawXcmMessage
 ) {
   await injectHrmpMessage(context, paraId, message);
-  // Create a block in which the XCM will be enqueued
-  await context.createBlock();
-  // The next block will process the hrmp message in the message queue
+  // Create a block in which the XCM will be enqueued.
+  //
+  // The message will be processed inside on_idle hook of this block
+  // using the remaining weight. 
+  //
+  // See https://github.com/paritytech/polkadot-sdk/pull/3844 for more context.
   await context.createBlock();
 }
 
