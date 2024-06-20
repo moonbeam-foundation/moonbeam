@@ -562,7 +562,7 @@ where
 			));
 		};
 
-		let reference_block = overrides.current_block(hash);
+		let reference_block = overrides.current_block(reference_hash);
 
 		// Get the actual ethereum transaction.
 		if let Some(block) = reference_block {
