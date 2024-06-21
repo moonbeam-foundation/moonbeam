@@ -59,7 +59,7 @@ use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
-	FirstAssetTrader, IsForeginConcreteAAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
+	FirstAssetTrader, IsForeignConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
   UtilityEncodeCall, XcmTransact,
 };
 
