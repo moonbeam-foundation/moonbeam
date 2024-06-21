@@ -268,7 +268,7 @@ impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 
 parameter_types! {
 	/// Location of Asset Hub
-	pub AssetHubLocation: Location = Location::new(1, [Parachain(1000)]);
+	pub AssetHubLocation: Location = Location::new(1, [Parachain(1001)]);
 	pub const RelayLocation: Location = Location::parent();
 	pub RelayLocationFilter: AssetFilter = Wild(AllOf { fun: WildFungible, id: xcm::prelude::AssetId(RelayLocation::get()) });
 	pub RelayChainNativeAssetFromAssetHub: (AssetFilter, Location) = (
