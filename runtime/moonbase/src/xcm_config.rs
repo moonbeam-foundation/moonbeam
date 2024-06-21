@@ -41,7 +41,7 @@ use sp_core::{ConstU32, H160, H256};
 use sp_weights::Weight;
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
+	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
 	EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
 	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
@@ -51,16 +51,18 @@ use xcm_builder::{
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 
 use xcm::latest::prelude::{
-	Asset, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId, PalletInstance,
-	Parachain,
+	AllOf, Asset, AssetFilter, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId,
+	PalletInstance, Parachain, Wild, WildFungible,
 };
+
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
-	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	FirstAssetTrader, IsForeignConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
+	UtilityEncodeCall, XcmTransact,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -265,22 +267,24 @@ impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 }
 
 parameter_types! {
-    /// Location of Asset Hub
-    pub AssetHubLocation: MultiLocation = (Parent, Parachain(1000)).into();
-    pub RelayChainNativeAssetFromAssetHub: (MultiAssetFilter, MultiLocation) = (
-        (MultiAsset { id: Concrete(RelayLocation::get()), fun: Fungible(1)}).into(),
-        AssetHubLocation::get()
-    );
+	/// Location of Asset Hub
+	pub AssetHubLocation: Location = Location::new(1, [Parachain(1000)]);
+	pub const RelayLocation: Location = Location::parent();
+	pub RelayLocationFilter: AssetFilter = Wild(AllOf { fun: WildFungible, id: xcm::prelude::AssetId(RelayLocation::get()) });
+	pub RelayChainNativeAssetFromAssetHub: (AssetFilter, Location) = (
+		RelayLocationFilter::get(),
+		AssetHubLocation::get()
+	);
 	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
 
 type Reserves = (
-    // Assets bridged from different consensus systems held in reserve on Asset Hub.
-    IsForeignConcreteAssetFrom<AssetHubLocation>,
-    // Relaychain (DOT) from Asset Hub
-    Case<RelayChainNativeAssetFromAssetHub>,
-    // Assets which the reserve is the same as the origin.
-    MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>;
+	// Assets bridged from different consensus systems held in reserve on Asset Hub.
+	IsForeignConcreteAssetFrom<AssetHubLocation>,
+	// Relaychain (DOT) from Asset Hub
+	Case<RelayChainNativeAssetFromAssetHub>,
+	// Assets which the reserve is the same as the origin.
+	MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>,
 );
 
 pub struct XcmExecutorConfig;
@@ -293,7 +297,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// Filter to the reserve withdraw operations
 	// Whenever the reserve matches the relative or absolute value
 	// of our chain, we always return the relative reserve
-	type IsReserve = MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>;
+	type IsReserve = Reserves;
 	type IsTeleporter = (); // No teleport
 	type UniversalLocation = UniversalLocation;
 	type Barrier = XcmBarrier;
