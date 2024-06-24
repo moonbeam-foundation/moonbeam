@@ -67,15 +67,15 @@ impl fc_rpc::EstimateGasAdapter for MoonbeamEGA {
 		));
 		const BATCH_PRECOMPILE_BATCH_ALL_SELECTOR: [u8; 4] = hex_literal::hex!("96e292b8");
 		if request.to == Some(BATCH_PRECOMPILE_ADDRESS) {
-			match (&mut request.data.data, &mut request.data.input) {
-				(Some(ref mut input), _) => {
-					if input.0.len() >= 4 {
-						input.0[..4].copy_from_slice(&BATCH_PRECOMPILE_BATCH_ALL_SELECTOR);
-					}
-				}
+			match (&mut request.data.input, &mut request.data.data) {
 				(None, Some(ref mut data)) => {
 					if data.0.len() >= 4 {
 						data.0[..4].copy_from_slice(&BATCH_PRECOMPILE_BATCH_ALL_SELECTOR);
+					}
+				}
+				(Some(ref mut input), _) => {
+					if input.0.len() >= 4 {
+						input.0[..4].copy_from_slice(&BATCH_PRECOMPILE_BATCH_ALL_SELECTOR);
 					}
 				}
 				(_, _) => {}
