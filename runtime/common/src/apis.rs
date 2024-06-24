@@ -774,6 +774,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
 						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent
 					};
+					use xcm_config::SelfReserve;
 					use frame_benchmarking::BenchmarkError;
 
 					use frame_system_benchmarking::Pallet as SystemBench;
@@ -789,13 +790,31 @@ macro_rules! impl_runtime_apis_plus_common {
 						pub const RandomParaId: ParaId = ParaId::new(43211234);
 					}
 
+					pub struct TestDeliveryHelper;
+					impl xcm_builder::EnsureDelivery for TestDeliveryHelper {
+						fn ensure_successful_delivery(
+							origin_ref: &Location,
+							_dest: &Location,
+							_fee_reason: xcm_executor::traits::FeeReason,
+						) -> (Option<xcm_executor::FeesMode>, Option<XcmAssets>) {
+							use xcm_executor::traits::ConvertLocation;
+							let account = xcm_config::LocationToH160::convert_location(origin_ref).expect("Valid location");
+							// Give the existential deposit at least
+							let balance = ExistentialDeposit::get();
+							let _ = <Balances as frame_support::traits::Currency<_>>::make_free_balance_be(
+								&account.into(), balance,
+							);
+							(None, None)
+						}
+					}
+
 					impl pallet_xcm::benchmarking::Config for Runtime {
-				        type DeliveryHelper = ();
+				        type DeliveryHelper = TestDeliveryHelper;
 
 						fn get_asset() -> Asset {
 							Asset {
-								id: AssetId(Location::parent()),
-								fun: Fungible(ExistentialDeposit::get()),
+								id: AssetId(SelfReserve::get()),
+								fun: Fungible(<Runtime as pallet_balances::Config>::ExistentialDeposit::get()),
 							}
 						}
 
@@ -816,10 +835,10 @@ macro_rules! impl_runtime_apis_plus_common {
 
 							Some((
 								Asset {
-									fun: Fungible(<Runtime as pallet_balances::Config>::ExistentialDeposit::get()),
+									fun: Fungible(ExistentialDeposit::get()),
 									id: AssetId(SelfReserve::get().into())
 								},
-								// AH can reserve transfer native token to some random parachain.
+								// Moonbeam can reserve transfer native token to some random parachain.
 								ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
 							))
 						}
