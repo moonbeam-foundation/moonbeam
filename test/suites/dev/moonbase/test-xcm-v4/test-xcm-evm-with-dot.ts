@@ -44,7 +44,7 @@ describeSuite({
         context,
         RELAY_SOURCE_LOCATION,
         relayAssetMetadata as any,
-        1
+        1,
       );
 
       // Descend address from origin address
@@ -63,7 +63,7 @@ describeSuite({
         supply: balance,
       });
 
-      // Fund descend address with enough xcDOTs to pay XCM message and EVM execution transaction fees
+      // Fund descend address with enough xcDOTs to pay XCM message and EVM execution fees
       await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, descendAddress);
 
       // Deploy example contract to be called through XCM
