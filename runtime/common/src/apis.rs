@@ -814,7 +814,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						fn get_asset() -> Asset {
 							Asset {
 								id: AssetId(SelfReserve::get()),
-								fun: Fungible(<Runtime as pallet_balances::Config>::ExistentialDeposit::get()),
+								fun: Fungible(ExistentialDeposit::get()),
 							}
 						}
 
@@ -838,7 +838,8 @@ macro_rules! impl_runtime_apis_plus_common {
 									fun: Fungible(ExistentialDeposit::get()),
 									id: AssetId(SelfReserve::get().into())
 								},
-								// Moonbeam can reserve transfer native token to some random parachain.
+								// Moonbeam can reserve transfer native token to
+								// some random parachain.
 								ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
 							))
 						}
