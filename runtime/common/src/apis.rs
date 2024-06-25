@@ -798,12 +798,13 @@ macro_rules! impl_runtime_apis_plus_common {
 							_fee_reason: xcm_executor::traits::FeeReason,
 						) -> (Option<xcm_executor::FeesMode>, Option<XcmAssets>) {
 							use xcm_executor::traits::ConvertLocation;
-							let account = xcm_config::LocationToH160::convert_location(origin_ref).expect("Valid location");
+							let account = xcm_config::LocationToH160::convert_location(origin_ref)
+								.expect("Invalid location");
 							// Give the existential deposit at least
 							let balance = ExistentialDeposit::get();
-							let _ = <Balances as frame_support::traits::Currency<_>>::make_free_balance_be(
-								&account.into(), balance,
-							);
+							let _ = <Balances as frame_support::traits::Currency<_>>::
+								make_free_balance_be(&account.into(), balance);
+
 							(None, None)
 						}
 					}
