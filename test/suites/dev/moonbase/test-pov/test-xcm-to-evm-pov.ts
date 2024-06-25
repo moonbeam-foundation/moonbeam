@@ -138,7 +138,6 @@ describeSuite({
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
         // This block is the one that processes the xcm messages
         const { result, block } = await context.createBlock();
 
@@ -239,7 +238,7 @@ describeSuite({
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        context.createBlock();
+
         // This block is the one that processes the xcm messages
         const { result, block } = await context.createBlock();
 

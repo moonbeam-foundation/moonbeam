@@ -84,7 +84,7 @@ describeSuite({
 
         // note that this is not really affected by the high multiplier because most of its fee is
         // derived from the length_fee, which is not scaled by the multiplier
-        expect(initialBalance - afterBalance).to.equal(601_486_761_265_723_667_008n);
+        expect(initialBalance - afterBalance).to.equal(449_284_776_265_723_667_008n);
       },
     });
 

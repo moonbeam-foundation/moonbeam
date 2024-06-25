@@ -46,7 +46,7 @@ macro_rules! impl_on_charge_evm_transaction {
 				corrected_fee: U256,
 				base_fee: U256,
 				already_withdrawn: Self::LiquidityInfo,
-			) -> Result<Self::LiquidityInfo, pallet_evm::Error<T>> {
+			) -> Self::LiquidityInfo {
 				<EVMFungibleAdapter<<T as pallet_evm::Config>::Currency, OU> as OnChargeEVMTransactionT<
 					T,
 				>>::correct_and_deposit_fee(who, corrected_fee, base_fee, already_withdrawn)
