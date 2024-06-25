@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonbase/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbase_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../moonbase_runtime/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonbase/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbase_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../moonbase_runtime/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1807,6 +1809,26 @@
 <a href="#1807" id="1807">1807</a>
 <a href="#1808" id="1808">1808</a>
 <a href="#1809" id="1809">1809</a>
+<a href="#1810" id="1810">1810</a>
+<a href="#1811" id="1811">1811</a>
+<a href="#1812" id="1812">1812</a>
+<a href="#1813" id="1813">1813</a>
+<a href="#1814" id="1814">1814</a>
+<a href="#1815" id="1815">1815</a>
+<a href="#1816" id="1816">1816</a>
+<a href="#1817" id="1817">1817</a>
+<a href="#1818" id="1818">1818</a>
+<a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1829,13 +1851,13 @@
 //! * Ethereum compatibility
 //! * Moonbase tokenomics
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 </span><span class="comment">// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
-</span><span class="attr">#![recursion_limit = <span class="string">&quot;512&quot;</span>]
+</span><span class="attr">#![recursion_limit = <span class="string">"512"</span>]
 
 </span><span class="comment">// Make the WASM binary available.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">&quot;OUT_DIR&quot;</span>), <span class="string">&quot;/wasm_binary.rs&quot;</span>));
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+</span><span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">"OUT_DIR"</span>), <span class="string">"/wasm_binary.rs"</span>));
 
 <span class="kw">pub mod </span>asset_config;
 <span class="kw">pub mod </span>governance;
@@ -1845,7 +1867,7 @@
 <span class="kw">mod </span>precompiles;
 
 <span class="comment">// Re-export required by get! macro.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">pub use </span>fp_evm::GenesisAccount;
 <span class="kw">pub use </span>frame_support::traits::Get;
 <span class="kw">pub use </span>moonbeam_core_primitives::{
@@ -1859,7 +1881,9 @@
 };
 
 <span class="kw">use </span>account::AccountId20;
-<span class="kw">use </span>cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainDataProvider};
+<span class="kw">use </span>cumulus_pallet_parachain_system::{
+	RelayChainStateProof, RelayStateProof, RelaychainDataProvider, ValidationData,
+};
 <span class="kw">use </span>cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
 <span class="kw">use </span>fp_rpc::TransactionStatus;
 <span class="kw">use </span>frame_support::{
@@ -1922,14 +1946,14 @@
 	convert::{From, Into},
 	prelude::<span class="kw-2">*</span>,
 };
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span>sp_version::NativeVersion;
 <span class="kw">use </span>sp_version::RuntimeVersion;
 
 <span class="kw">use </span>smallvec::smallvec;
 <span class="kw">use </span>sp_runtime::serde::{Deserialize, Serialize};
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
+<span class="attr">#[cfg(any(feature = <span class="string">"std"</span>, test))]
 </span><span class="kw">pub use </span>sp_runtime::BuildStorage;
 
 <span class="kw">pub type </span>Precompiles = MoonbasePrecompiles&lt;Runtime&gt;;
@@ -1969,7 +1993,7 @@
 <span class="kw">pub const </span>HOURS: BlockNumber = MINUTES * <span class="number">60</span>;
 <span class="kw">pub const </span>DAYS: BlockNumber = HOURS * <span class="number">24</span>;
 <span class="kw">pub const </span>WEEKS: BlockNumber = DAYS * <span class="number">7</span>;
-<span class="doccomment">/// Opaque types. These are used by the CLI to instantiate machinery that don&#39;t need to know
+<span class="doccomment">/// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
 /// to even the core data structures.
@@ -1989,12 +2013,12 @@
 
 <span class="doccomment">/// This runtime version.
 /// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
-/// that can&#39;t be skipped, such as data migration upgrades. The last 2 digits represent minor
+/// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
 /// changes which can be skipped.
 </span><span class="attr">#[sp_version::runtime_version]
 </span><span class="kw">pub const </span>VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: <span class="macro">create_runtime_str!</span>(<span class="string">&quot;moonbase&quot;</span>),
-	impl_name: <span class="macro">create_runtime_str!</span>(<span class="string">&quot;moonbase&quot;</span>),
+	spec_name: <span class="macro">create_runtime_str!</span>(<span class="string">"moonbase"</span>),
+	impl_name: <span class="macro">create_runtime_str!</span>(<span class="string">"moonbase"</span>),
 	authoring_version: <span class="number">4</span>,
 	spec_version: <span class="number">3100</span>,
 	impl_version: <span class="number">0</span>,
@@ -2004,7 +2028,7 @@
 };
 
 <span class="doccomment">/// The version information used to identify this runtime when compiled natively.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">pub fn </span>native_version() -&gt; NativeVersion {
 	NativeVersion {
 		runtime_version: VERSION,
@@ -2014,10 +2038,10 @@
 
 <span class="kw">const </span>NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(<span class="number">75</span>);
 <span class="kw">pub const </span>NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(<span class="number">3</span>).saturating_div(<span class="number">4</span>);
-<span class="comment">// Here we assume Ethereum&#39;s base fee of 21000 gas and convert to weight, but we
+<span class="comment">// Here we assume Ethereum's base fee of 21000 gas and convert to weight, but we
 // subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
 // and some cost to account for per-byte-fee.
-// TODO: we should use benchmarking&#39;s overhead feature to measure this
+// TODO: we should use benchmarking's overhead feature to measure this
 </span><span class="kw">pub const </span>EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_parts(<span class="number">10000 </span>* WEIGHT_PER_GAS, <span class="number">0</span>);
 
 <span class="kw">pub struct </span>RuntimeBlockWeights;
@@ -2034,7 +2058,7 @@
 			})
 			.avg_block_initialization(Perbill::from_percent(<span class="number">10</span>))
 			.build()
-			.expect(<span class="string">&quot;Provided BlockWeight definitions are valid, qed&quot;</span>)
+			.expect(<span class="string">"Provided BlockWeight definitions are valid, qed"</span>)
 	}
 }
 
@@ -2089,6 +2113,11 @@
 	</span><span class="kw">type </span>SS58Prefix = ConstU16&lt;<span class="number">1287</span>&gt;;
 	<span class="kw">type </span>OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>MaxConsumers = frame_support::traits::ConstU32&lt;<span class="number">16</span>&gt;;
+	<span class="kw">type </span>SingleBlockMigrations = ();
+	<span class="kw">type </span>MultiBlockMigrator = ();
+	<span class="kw">type </span>PreInherents = ();
+	<span class="kw">type </span>PostInherents = ();
+	<span class="kw">type </span>PostTransactions = ();
 }
 
 <span class="kw">impl </span>pallet_utility::Config <span class="kw">for </span>Runtime {
@@ -2106,19 +2135,26 @@
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo&lt;Runtime&gt;;
 }
 
+<span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
+</span><span class="macro">parameter_types! </span>{
+	<span class="kw">pub const </span>ExistentialDeposit: Balance = <span class="number">0</span>;
+}
+
+<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
+</span><span class="macro">parameter_types! </span>{
+	<span class="kw">pub const </span>ExistentialDeposit: Balance = <span class="number">1</span>;
+}
+
 <span class="kw">impl </span>pallet_balances::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>MaxReserves = ConstU32&lt;<span class="number">50</span>&gt;;
 	<span class="kw">type </span>ReserveIdentifier = [u8; <span class="number">4</span>];
 	<span class="kw">type </span>MaxLocks = ConstU32&lt;<span class="number">50</span>&gt;;
-	<span class="doccomment">/// The type for recording an account&#39;s balance.
+	<span class="doccomment">/// The type for recording an account's balance.
 	</span><span class="kw">type </span>Balance = Balance;
 	<span class="doccomment">/// The ubiquitous event type.
 	</span><span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>DustRemoval = ();
-	<span class="attr">#[cfg(not(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
-	</span><span class="kw">type </span>ExistentialDeposit = ConstU128&lt;<span class="number">0</span>&gt;;
-	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
-	</span><span class="kw">type </span>ExistentialDeposit = ConstU128&lt;<span class="number">1</span>&gt;;
+	<span class="kw">type </span>ExistentialDeposit = ExistentialDeposit;
 	<span class="kw">type </span>AccountStore = System;
 	<span class="kw">type </span>FreezeIdentifier = ();
 	<span class="kw">type </span>MaxFreezes = ConstU32&lt;<span class="number">0</span>&gt;;
@@ -2254,15 +2290,15 @@
 		//       scaled by the multiplier, which means its multiplier will be overstated when
 		//       applied to an ethereum transaction
 		// note: transaction-payment uses both a congestion modifier (next_fee_multiplier, which is
-		//       updated once per block in on_finalize) and a &#39;WeightToFee&#39; implementation. Our
-		//       runtime implements this as a &#39;ConstantModifier&#39;, so we can get away with a simple
+		//       updated once per block in on_finalize) and a 'WeightToFee' implementation. Our
+		//       runtime implements this as a 'ConstantModifier', so we can get away with a simple
 		//       multiplication here.
 		// It is imperative that `saturating_mul_int` be performed as late as possible in the
 		// expression since it involves fixed point multiplication with a division by a fixed
 		// divisor. This leads to truncation and subsequent precision loss if performed too early.
 		// This can lead to min_gas_price being same across blocks even if the multiplier changes.
-		// There&#39;s still some precision loss when the final `gas_price` (used_gas * min_gas_price)
-		// is computed in frontier, but that&#39;s currently unavoidable.
+		// There's still some precision loss when the final `gas_price` (used_gas * min_gas_price)
+		// is computed in frontier, but that's currently unavoidable.
 		</span><span class="kw">let </span>min_gas_price = TransactionPayment::next_fee_multiplier()
 			.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS <span class="kw">as </span>u128));
 		(
@@ -2272,7 +2308,7 @@
 	}
 }
 
-<span class="doccomment">/// A &quot;Fast&quot; TargetedFeeAdjustment. Parameters chosen based on model described here:
+<span class="doccomment">/// A "Fast" TargetedFeeAdjustment. Parameters chosen based on model described here:
 /// https://research.web3.foundation/en/latest/polkadot/overview/2-token-economics.html#-1.-fast-adjusting-mechanism // editorconfig-checker-disable-line
 ///
 /// The adjustment algorithm boils down to:
@@ -2300,9 +2336,9 @@
 	</span>T: Into&lt;U&gt;,
 	Inner: FindAuthor&lt;T&gt;,
 {
-	<span class="kw">fn </span>find_author&lt;<span class="lifetime">&#39;a</span>, I&gt;(digests: I) -&gt; <span class="prelude-ty">Option</span>&lt;U&gt;
+	<span class="kw">fn </span>find_author&lt;<span class="lifetime">'a</span>, I&gt;(digests: I) -&gt; <span class="prelude-ty">Option</span>&lt;U&gt;
 	<span class="kw">where
-		</span>I: <span class="lifetime">&#39;a </span>+ IntoIterator&lt;Item = (sp_runtime::ConsensusEngineId, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8])&gt;,
+		</span>I: <span class="lifetime">'a </span>+ IntoIterator&lt;Item = (sp_runtime::ConsensusEngineId, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8])&gt;,
 	{
 		Inner::find_author(digests).map(Into::into)
 	}
@@ -2375,7 +2411,7 @@
 
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub const </span>ProposalBond: Permill = Permill::from_percent(<span class="number">5</span>);
-	<span class="kw">pub const </span>TreasuryId: PalletId = PalletId(<span class="kw-2">*</span><span class="string">b&quot;pc/trsry&quot;</span>);
+	<span class="kw">pub const </span>TreasuryId: PalletId = PalletId(<span class="kw-2">*</span><span class="string">b"pc/trsry"</span>);
 	<span class="kw">pub </span>TreasuryAccount: AccountId = Treasury::account_id();
 }
 
@@ -2408,9 +2444,9 @@
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_treasury::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>SpendFunds = ();
 	<span class="kw">type </span>ProposalBondMaximum = ();
-	<span class="attr">#[cfg(not(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
+	<span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
 	</span><span class="kw">type </span>SpendOrigin = frame_support::traits::NeverEnsureOrigin&lt;Balance&gt;; <span class="comment">// Disabled, no spending
-	</span><span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+	</span><span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
 	</span><span class="kw">type </span>SpendOrigin =
 		frame_system::EnsureWithSuccess&lt;EnsureRoot&lt;AccountId&gt;, AccountId, benches::MaxBalance&gt;;
 	<span class="kw">type </span>AssetKind = ();
@@ -2419,7 +2455,7 @@
 	<span class="kw">type </span>Paymaster = PayFromAccount&lt;Balances, TreasuryAccount&gt;;
 	<span class="kw">type </span>BalanceConverter = UnityAssetBalanceConversion;
 	<span class="kw">type </span>PayoutPeriod = ConstU32&lt;{ <span class="number">30 </span>* DAYS }&gt;;
-	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+	<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
 	</span><span class="kw">type </span>BenchmarkHelper = BenchmarkHelper;
 }
 
@@ -2481,7 +2517,7 @@
 		);
 		<span class="kw">let </span>encoded = extrinsic.encode();
 		opaque::UncheckedExtrinsic::decode(<span class="kw-2">&amp;mut &amp;</span>encoded[..])
-			.expect(<span class="string">&quot;Encoded extrinsic is always valid&quot;</span>)
+			.expect(<span class="string">"Encoded extrinsic is always valid"</span>)
 	}
 }
 
@@ -2498,17 +2534,17 @@
 
 <span class="kw">pub struct </span>EthereumXcmEnsureProxy;
 <span class="kw">impl </span>xcm_primitives::EnsureProxy&lt;AccountId&gt; <span class="kw">for </span>EthereumXcmEnsureProxy {
-	<span class="kw">fn </span>ensure_ok(delegator: AccountId, delegatee: AccountId) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="comment">// The EVM implicitely contains an Any proxy, so we only allow for &quot;Any&quot; proxies
+	<span class="kw">fn </span>ensure_ok(delegator: AccountId, delegatee: AccountId) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
+		<span class="comment">// The EVM implicitely contains an Any proxy, so we only allow for "Any" proxies
 		</span><span class="kw">let </span>def: pallet_proxy::ProxyDefinition&lt;AccountId, ProxyType, BlockNumber&gt; =
 			pallet_proxy::Pallet::&lt;Runtime&gt;::find_proxy(
 				<span class="kw-2">&amp;</span>delegator,
 				<span class="kw-2">&amp;</span>delegatee,
 				<span class="prelude-val">Some</span>(ProxyType::Any),
 			)
-			.map_err(|<span class="kw">_</span>| <span class="string">&quot;proxy error: expected `ProxyType::Any`&quot;</span>)<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| <span class="string">"proxy error: expected `ProxyType::Any`"</span>)<span class="question-mark">?</span>;
 		<span class="comment">// We only allow to use it for delay zero proxies, as the call will immediatly be executed
-		</span><span class="macro">ensure!</span>(def.delay.is_zero(), <span class="string">&quot;proxy delay is Non-zero`&quot;</span>);
+		</span><span class="macro">ensure!</span>(def.delay.is_zero(), <span class="string">"proxy delay is Non-zero`"</span>);
 		<span class="prelude-val">Ok</span>(())
 	}
 }
@@ -2624,7 +2660,7 @@
 	<span class="kw">type </span>MonetaryGovernanceOrigin = MonetaryGovernanceOrigin;
 	<span class="doccomment">/// Minimum round length is 2 minutes (10 * 12 second block times)
 	</span><span class="kw">type </span>MinBlocksPerRound = ConstU32&lt;<span class="number">10</span>&gt;;
-	<span class="doccomment">/// If a collator doesn&#39;t produce any block on this number of rounds, it is notified as inactive
+	<span class="doccomment">/// If a collator doesn't produce any block on this number of rounds, it is notified as inactive
 	</span><span class="kw">type </span>MaxOfflineRounds = ConstU32&lt;<span class="number">2</span>&gt;;
 	<span class="doccomment">/// Rounds before the collator leaving the candidates request can be executed
 	</span><span class="kw">type </span>LeaveCandidatesDelay = ConstU32&lt;<span class="number">2</span>&gt;;
@@ -2700,7 +2736,7 @@
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub const </span>InitializationPayment: Perbill = Perbill::from_percent(<span class="number">30</span>);
 	<span class="kw">pub const </span>RelaySignaturesThreshold: Perbill = Perbill::from_percent(<span class="number">100</span>);
-	<span class="kw">pub const </span>SignatureNetworkIdentifier:  <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = <span class="string">b&quot;moonbase-&quot;</span>;
+	<span class="kw">pub const </span>SignatureNetworkIdentifier:  <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8] = <span class="string">b"moonbase-"</span>;
 
 }
 
@@ -2827,7 +2863,7 @@
 			<span class="comment">// The proxy precompile does not contain method cancel_proxy
 			</span>ProxyType::CancelProxy =&gt; <span class="bool-val">false</span>,
 			ProxyType::Balances =&gt; {
-				<span class="comment">// Allow only &quot;simple&quot; accounts as recipient (no code nor precompile).
+				<span class="comment">// Allow only "simple" accounts as recipient (no code nor precompile).
 				// Note: Checking the presence of the code is not enough because some precompiles
 				// have no code.
 				</span>!recipient_has_code
@@ -2938,7 +2974,7 @@
 
 <span class="kw">impl </span>pallet_migrations::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="comment">// TODO wire up our correct list of migrations here. Maybe this shouldn&#39;t be in
+	<span class="comment">// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
 	// `moonbeam_runtime_common`.
 	</span><span class="kw">type </span>MigrationsList = (
 		moonbeam_runtime_common::migrations::CommonMigrations&lt;Runtime&gt;,
@@ -2994,7 +3030,7 @@
 				pallet_assets::Call::finish_destroy { .. } =&gt; <span class="bool-val">true</span>,
 				<span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
 			},
-			<span class="comment">// We filter anonymous proxy as they make &quot;reserve&quot; inconsistent
+			<span class="comment">// We filter anonymous proxy as they make "reserve" inconsistent
 			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
 			</span>RuntimeCall::Proxy(method) =&gt; <span class="kw">match </span>method {
 				pallet_proxy::Call::create_pure { .. } =&gt; <span class="bool-val">false</span>,
@@ -3045,7 +3081,7 @@
 }
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub </span>OrbiterReserveIdentifier: [u8; <span class="number">4</span>] = [<span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;r&#39;</span>, <span class="string">b&#39;b&#39;</span>, <span class="string">b&#39;i&#39;</span>];
+	<span class="kw">pub </span>OrbiterReserveIdentifier: [u8; <span class="number">4</span>] = [<span class="string">b'o'</span>, <span class="string">b'r'</span>, <span class="string">b'b'</span>, <span class="string">b'i'</span>];
 }
 
 <span class="kw">type </span>AddCollatorOrigin =
@@ -3071,42 +3107,48 @@
 }
 
 <span class="doccomment">/// Only callable after `set_validation_data` is called which forms this proof the same way
-</span><span class="kw">fn </span>relay_chain_state_proof() -&gt; RelayChainStateProof {
-	<span class="kw">let </span>relay_storage_root = ParachainSystem::validation_data()
-		.expect(<span class="string">&quot;set in `set_validation_data`&quot;</span>)
+</span><span class="kw">fn </span>relay_chain_state_proof&lt;Runtime&gt;() -&gt; RelayChainStateProof
+<span class="kw">where
+	</span>Runtime: cumulus_pallet_parachain_system::Config,
+{
+	<span class="kw">let </span>relay_storage_root = ValidationData::&lt;Runtime&gt;::get()
+		.expect(<span class="string">"set in `set_validation_data`"</span>)
 		.relay_parent_storage_root;
 	<span class="kw">let </span>relay_chain_state =
-		ParachainSystem::relay_state_proof().expect(<span class="string">&quot;set in `set_validation_data`&quot;</span>);
+		RelayStateProof::&lt;Runtime&gt;::get().expect(<span class="string">"set in `set_validation_data`"</span>);
 	RelayChainStateProof::new(ParachainInfo::get(), relay_storage_root, relay_chain_state)
-		.expect(<span class="string">&quot;Invalid relay chain state proof, already constructed in `set_validation_data`&quot;</span>)
+		.expect(<span class="string">"Invalid relay chain state proof, already constructed in `set_validation_data`"</span>)
 }
 
-<span class="kw">pub struct </span>BabeDataGetter;
-<span class="kw">impl </span>pallet_randomness::GetBabeData&lt;u64, <span class="prelude-ty">Option</span>&lt;Hash&gt;&gt; <span class="kw">for </span>BabeDataGetter {
+<span class="kw">pub struct </span>BabeDataGetter&lt;Runtime&gt;(sp_std::marker::PhantomData&lt;Runtime&gt;);
+<span class="kw">impl</span>&lt;Runtime&gt; pallet_randomness::GetBabeData&lt;u64, <span class="prelude-ty">Option</span>&lt;Hash&gt;&gt; <span class="kw">for </span>BabeDataGetter&lt;Runtime&gt;
+<span class="kw">where
+	</span>Runtime: cumulus_pallet_parachain_system::Config,
+{
 	<span class="comment">// Tolerate panic here because only ever called in inherent (so can be omitted)
 	</span><span class="kw">fn </span>get_epoch_index() -&gt; u64 {
-		<span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>) {
+		<span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"runtime-benchmarks"</span>) {
 			<span class="comment">// storage reads as per actual reads
-			</span><span class="kw">let </span>_relay_storage_root = ParachainSystem::validation_data();
-			<span class="kw">let </span>_relay_chain_state = ParachainSystem::relay_state_proof();
+			</span><span class="kw">let </span>_relay_storage_root = ValidationData::&lt;Runtime&gt;::get();
+			<span class="kw">let </span>_relay_chain_state = RelayStateProof::&lt;Runtime&gt;::get();
 			<span class="kw">const </span>BENCHMARKING_NEW_EPOCH: u64 = <span class="number">10u64</span>;
 			<span class="kw">return </span>BENCHMARKING_NEW_EPOCH;
 		}
-		relay_chain_state_proof()
+		relay_chain_state_proof::&lt;Runtime&gt;()
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
 			.ok()
 			.flatten()
-			.expect(<span class="string">&quot;expected to be able to read epoch index from relay chain state proof&quot;</span>)
+			.expect(<span class="string">"expected to be able to read epoch index from relay chain state proof"</span>)
 	}
 	<span class="kw">fn </span>get_epoch_randomness() -&gt; <span class="prelude-ty">Option</span>&lt;Hash&gt; {
-		<span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>) {
+		<span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"runtime-benchmarks"</span>) {
 			<span class="comment">// storage reads as per actual reads
-			</span><span class="kw">let </span>_relay_storage_root = ParachainSystem::validation_data();
-			<span class="kw">let </span>_relay_chain_state = ParachainSystem::relay_state_proof();
+			</span><span class="kw">let </span>_relay_storage_root = ValidationData::&lt;Runtime&gt;::get();
+			<span class="kw">let </span>_relay_chain_state = RelayStateProof::&lt;Runtime&gt;::get();
 			<span class="kw">let </span>benchmarking_babe_output = Hash::default();
 			<span class="kw">return </span><span class="prelude-val">Some</span>(benchmarking_babe_output);
 		}
-		relay_chain_state_proof()
+		relay_chain_state_proof::&lt;Runtime&gt;()
 			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
 			.ok()
 			.flatten()
@@ -3117,7 +3159,7 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>AddressMapping = sp_runtime::traits::ConvertInto;
 	<span class="kw">type </span>Currency = Balances;
-	<span class="kw">type </span>BabeDataGetter = BabeDataGetter;
+	<span class="kw">type </span>BabeDataGetter = BabeDataGetter&lt;Runtime&gt;;
 	<span class="kw">type </span>VrfKeyLookup = AuthorMapping;
 	<span class="kw">type </span>Deposit = ConstU128&lt;{ <span class="number">1 </span>* currency::UNIT * currency::SUPPLY_FACTOR }&gt;;
 	<span class="kw">type </span>MaxRandomWords = ConstU8&lt;<span class="number">100</span>&gt;;
@@ -3257,9 +3299,9 @@
 	AllPalletsWithSystem,
 &gt;;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
 </span><span class="kw">use </span>moonbeam_runtime_common::benchmarking::BenchmarkHelper;
-<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
 </span><span class="kw">mod </span>benches {
 	<span class="macro">frame_support::parameter_types! </span>{
 		<span class="kw">pub const </span>MaxBalance: <span class="kw">crate</span>::Balance = <span class="kw">crate</span>::Balance::max_value();
@@ -3315,13 +3357,13 @@
 			xt: &lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic,
 			block_hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
 		) -&gt; TransactionValidity {
-			<span class="comment">// Filtered calls should not enter the tx pool as they&#39;ll fail if inserted.
+			<span class="comment">// Filtered calls should not enter the tx pool as they'll fail if inserted.
 			// If this call is not allowed, we return early.
 			</span><span class="kw">if </span>!&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::BaseCallFilter::contains(<span class="kw-2">&amp;</span>xt.<span class="number">0</span>.function) {
 				<span class="kw">return </span>InvalidTransaction::Call.into();
 			}
 
-			<span class="comment">// This runtime uses Substrate&#39;s pallet transaction payment. This
+			<span class="comment">// This runtime uses Substrate's pallet transaction payment. This
 			// makes the chain feel like a standard Substrate chain when submitting
 			// frame transactions and using Substrate ecosystem tools. It has the downside that
 			// transaction are not prioritized by gas_price. The following code reprioritizes
@@ -3334,7 +3376,7 @@
 
 			// First we pass the transactions to the standard FRAME executive. This calculates all the
 			// necessary tags, longevity and other properties that we will leave unchanged.
-			// This also assigns some priority that we don&#39;t care about and will overwrite next.
+			// This also assigns some priority that we don't care about and will overwrite next.
 			</span><span class="kw">let </span><span class="kw-2">mut </span>intermediate_valid = Executive::validate_transaction(source, xt.clone(), block_hash)<span class="question-mark">?</span>;
 
 			<span class="kw">let </span>dispatch_info = xt.get_dispatch_info();
@@ -3342,7 +3384,7 @@
 			<span class="comment">// If this is a pallet ethereum transaction, then its priority is already set
 			// according to effective priority fee from pallet ethereum. If it is any other kind of
 			// transaction, we modify its priority. The goal is to arrive at a similar metric used
-			// by pallet ethereum, which means we derive a fee-per-gas from the txn&#39;s tip and
+			// by pallet ethereum, which means we derive a fee-per-gas from the txn's tip and
 			// weight.
 			</span><span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">&amp;</span>xt.<span class="number">0</span>.function {
 				RuntimeCall::Ethereum(transact { .. }) =&gt; intermediate_valid,
@@ -3397,19 +3439,19 @@
 	) -&gt; sp_inherents::CheckInherentsResult {
 		<span class="kw">let </span>relay_chain_slot = relay_state_proof
 			.read_slot()
-			.expect(<span class="string">&quot;Could not read the relay chain slot from the proof&quot;</span>);
+			.expect(<span class="string">"Could not read the relay chain slot from the proof"</span>);
 		<span class="kw">let </span>inherent_data =
 			cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
 				relay_chain_slot,
 				sp_std::time::Duration::from_secs(<span class="number">6</span>),
 			)
 			.create_inherent_data()
-			.expect(<span class="string">&quot;Could not create the timestamp inherent data&quot;</span>);
+			.expect(<span class="string">"Could not create the timestamp inherent data"</span>);
 		inherent_data.check_extrinsics(block)
 	}
 }
 
-<span class="comment">// Nimbus&#39;s Executive wrapper allows relay validators to verify the seal digest
+<span class="comment">// Nimbus's Executive wrapper allows relay validators to verify the seal digest
 </span><span class="macro">cumulus_pallet_parachain_system::register_validate_block!</span>(
 	Runtime = Runtime,
 	BlockExecutor = pallet_author_inherent::BlockExecutor::&lt;Runtime, Executive&gt;,
@@ -3588,7 +3630,7 @@
 			<span class="macro">assert_eq!</span>(
 				<span class="prelude-val">Ok</span>(expected),
 				actual,
-				<span class="string">&quot;failed decoding ProxyType for value &#39;{}&#39;&quot;</span>,
+				<span class="string">"failed decoding ProxyType for value '{}'"</span>,
 				input
 			);
 		}
@@ -3612,7 +3654,7 @@
 			&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::GasLimitStorageGrowthRatio::get();
 		<span class="macro">assert_eq!</span>(
 			expected_storage_growth_ratio, actual_storage_growth_ratio,
-			<span class="string">&quot;Storage growth ratio is not correct&quot;
+			<span class="string">"Storage growth ratio is not correct"
 		</span>);
 	}
 }

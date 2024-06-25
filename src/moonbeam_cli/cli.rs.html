@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/cli/src/cli.rs`."><title>cli.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_cli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../moonbeam_cli/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/cli/src/cli.rs`."><title>cli.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_cli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../moonbeam_cli/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -365,8 +367,8 @@
 
 </span><span class="doccomment">//! Moonbeam CLI Library. Built with clap
 //!
-//! This module defines the Moonbeam node&#39;s Command Line Interface (CLI)
-//! It is built using clap and inherits behavior from Substrate&#39;s sc_cli crate.
+//! This module defines the Moonbeam node's Command Line Interface (CLI)
+//! It is built using clap and inherits behavior from Substrate's sc_cli crate.
 
 </span><span class="kw">use </span>clap::Parser;
 <span class="kw">use </span>moonbeam_cli_opt::{account_key::GenerateAccountKey, EthApi, FrontierBackendType, Sealing};
@@ -379,11 +381,11 @@
 </span><span class="attr">#[derive(Debug, clap::Subcommand)]
 </span><span class="kw">pub enum </span>Subcommand {
 	<span class="doccomment">/// Export the genesis state of the parachain.
-	</span><span class="attr">#[clap(name = <span class="string">&quot;export-genesis-state&quot;</span>)]
+	</span><span class="attr">#[clap(name = <span class="string">"export-genesis-state"</span>)]
 	</span>ExportGenesisHead(ExportGenesisHeadCommand),
 
 	<span class="doccomment">/// Export the genesis wasm of the parachain.
-	</span><span class="attr">#[clap(name = <span class="string">&quot;export-genesis-wasm&quot;</span>)]
+	</span><span class="attr">#[clap(name = <span class="string">"export-genesis-wasm"</span>)]
 	</span>ExportGenesisWasm(ExportGenesisWasmCommand),
 
 	<span class="doccomment">/// Build a chain specification.
@@ -430,12 +432,12 @@
 
 	<span class="doccomment">/// Number of accounts to be funded in the genesis
 	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
-	</span><span class="attr">#[clap(long, conflicts_with = <span class="string">&quot;chain&quot;</span>)]
+	</span><span class="attr">#[clap(long, conflicts_with = <span class="string">"chain"</span>)]
 	</span><span class="kw">pub </span>accounts: <span class="prelude-ty">Option</span>&lt;u32&gt;,
 
 	<span class="doccomment">/// Mnemonic from which we can derive funded accounts in the genesis
 	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
-	</span><span class="attr">#[clap(long, conflicts_with = <span class="string">&quot;chain&quot;</span>)]
+	</span><span class="attr">#[clap(long, conflicts_with = <span class="string">"chain"</span>)]
 	</span><span class="kw">pub </span>mnemonic: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
@@ -487,8 +489,8 @@
 
 	<span class="doccomment">/// When blocks should be sealed in the dev service.
 	///
-	/// Options are &quot;instant&quot;, &quot;manual&quot;, or timer interval in milliseconds
-	</span><span class="attr">#[clap(long, default_value = <span class="string">&quot;instant&quot;</span>)]
+	/// Options are "instant", "manual", or timer interval in milliseconds
+	</span><span class="attr">#[clap(long, default_value = <span class="string">"instant"</span>)]
 	</span><span class="kw">pub </span>sealing: Sealing,
 
 	<span class="doccomment">/// Public authoring identity to be inserted in the author inherent
@@ -497,68 +499,68 @@
 	// pub author_id: Option&lt;NimbusId&gt;,
 
 	</span><span class="doccomment">/// Enable EVM tracing module on a non-authority node.
-	</span><span class="attr">#[clap(long, value_delimiter = <span class="string">&#39;,&#39;</span>)]
+	</span><span class="attr">#[clap(long, value_delimiter = <span class="string">','</span>)]
 	</span><span class="kw">pub </span>ethapi: Vec&lt;EthApi&gt;,
 
-	<span class="doccomment">/// Number of concurrent tracing tasks. Meant to be shared by both &quot;debug&quot; and &quot;trace&quot; modules.
-	</span><span class="attr">#[clap(long, default_value = <span class="string">&quot;10&quot;</span>)]
+	<span class="doccomment">/// Number of concurrent tracing tasks. Meant to be shared by both "debug" and "trace" modules.
+	</span><span class="attr">#[clap(long, default_value = <span class="string">"10"</span>)]
 	</span><span class="kw">pub </span>ethapi_max_permits: u32,
 
 	<span class="doccomment">/// Maximum number of trace entries a single request of `trace_filter` is allowed to return.
 	/// A request asking for more or an unbounded one going over this limit will both return an
 	/// error.
-	</span><span class="attr">#[clap(long, default_value = <span class="string">&quot;500&quot;</span>)]
+	</span><span class="attr">#[clap(long, default_value = <span class="string">"500"</span>)]
 	</span><span class="kw">pub </span>ethapi_trace_max_count: u32,
 
 	<span class="doccomment">/// Duration (in seconds) after which the cache of `trace_filter` for a given block will be
 	/// discarded.
-	</span><span class="attr">#[clap(long, default_value = <span class="string">&quot;300&quot;</span>)]
+	</span><span class="attr">#[clap(long, default_value = <span class="string">"300"</span>)]
 	</span><span class="kw">pub </span>ethapi_trace_cache_duration: u64,
 
 	<span class="doccomment">/// Size in bytes of the LRU cache for block data.
-	</span><span class="attr">#[clap(long, default_value = <span class="string">&quot;300000000&quot;</span>)]
+	</span><span class="attr">#[clap(long, default_value = <span class="string">"300000000"</span>)]
 	</span><span class="kw">pub </span>eth_log_block_cache: usize,
 
 	<span class="doccomment">/// Size in bytes of the LRU cache for transactions statuses data.
-	</span><span class="attr">#[clap(long, default_value = <span class="string">&quot;300000000&quot;</span>)]
+	</span><span class="attr">#[clap(long, default_value = <span class="string">"300000000"</span>)]
 	</span><span class="kw">pub </span>eth_statuses_cache: usize,
 
 	<span class="doccomment">/// Sets the frontier backend type (KeyValue or Sql)
 	</span><span class="attr">#[arg(long, value_enum, ignore_case = <span class="bool-val">true</span>, default_value_t = FrontierBackendType::default())]
 	</span><span class="kw">pub </span>frontier_backend_type: FrontierBackendType,
 
-	<span class="comment">// Sets the SQL backend&#39;s pool size.
-	</span><span class="attr">#[arg(long, default_value = <span class="string">&quot;100&quot;</span>)]
+	<span class="comment">// Sets the SQL backend's pool size.
+	</span><span class="attr">#[arg(long, default_value = <span class="string">"100"</span>)]
 	</span><span class="kw">pub </span>frontier_sql_backend_pool_size: u32,
 
-	<span class="doccomment">/// Sets the SQL backend&#39;s query timeout in number of VM ops.
-	</span><span class="attr">#[arg(long, default_value = <span class="string">&quot;10000000&quot;</span>)]
+	<span class="doccomment">/// Sets the SQL backend's query timeout in number of VM ops.
+	</span><span class="attr">#[arg(long, default_value = <span class="string">"10000000"</span>)]
 	</span><span class="kw">pub </span>frontier_sql_backend_num_ops_timeout: u32,
 
-	<span class="doccomment">/// Sets the SQL backend&#39;s auxiliary thread limit.
-	</span><span class="attr">#[arg(long, default_value = <span class="string">&quot;4&quot;</span>)]
+	<span class="doccomment">/// Sets the SQL backend's auxiliary thread limit.
+	</span><span class="attr">#[arg(long, default_value = <span class="string">"4"</span>)]
 	</span><span class="kw">pub </span>frontier_sql_backend_thread_count: u32,
 
-	<span class="doccomment">/// Sets the SQL backend&#39;s query timeout in number of VM ops.
+	<span class="doccomment">/// Sets the SQL backend's query timeout in number of VM ops.
 	/// Default value is 200MB.
-	</span><span class="attr">#[arg(long, default_value = <span class="string">&quot;209715200&quot;</span>)]
+	</span><span class="attr">#[arg(long, default_value = <span class="string">"209715200"</span>)]
 	</span><span class="kw">pub </span>frontier_sql_backend_cache_size: u64,
 
 	<span class="doccomment">/// Size in bytes of data a raw tracing request is allowed to use.
 	/// Bound the size of memory, stack and storage data.
-	</span><span class="attr">#[clap(long, default_value = <span class="string">&quot;20000000&quot;</span>)]
+	</span><span class="attr">#[clap(long, default_value = <span class="string">"20000000"</span>)]
 	</span><span class="kw">pub </span>tracing_raw_max_memory_usage: usize,
 
 	<span class="doccomment">/// Maximum number of logs in a query.
-	</span><span class="attr">#[clap(long, default_value = <span class="string">&quot;10000&quot;</span>)]
+	</span><span class="attr">#[clap(long, default_value = <span class="string">"10000"</span>)]
 	</span><span class="kw">pub </span>max_past_logs: u32,
 
 	<span class="doccomment">/// Force using Moonbase native runtime.
-	</span><span class="attr">#[clap(long = <span class="string">&quot;force-moonbase&quot;</span>)]
+	</span><span class="attr">#[clap(long = <span class="string">"force-moonbase"</span>)]
 	</span><span class="kw">pub </span>force_moonbase: bool,
 
 	<span class="doccomment">/// Force using Moonriver native runtime.
-	</span><span class="attr">#[clap(long = <span class="string">&quot;force-moonriver&quot;</span>)]
+	</span><span class="attr">#[clap(long = <span class="string">"force-moonriver"</span>)]
 	</span><span class="kw">pub </span>force_moonriver: bool,
 
 	<span class="doccomment">/// Id of the parachain this collator collates for.
@@ -566,7 +568,7 @@
 	</span><span class="kw">pub </span>parachain_id: <span class="prelude-ty">Option</span>&lt;u32&gt;,
 
 	<span class="doccomment">/// Maximum fee history cache size.
-	</span><span class="attr">#[clap(long, default_value = <span class="string">&quot;2048&quot;</span>)]
+	</span><span class="attr">#[clap(long, default_value = <span class="string">"2048"</span>)]
 	</span><span class="kw">pub </span>fee_history_limit: u64,
 
 	<span class="doccomment">/// Disable automatic hardware benchmarks.
@@ -584,7 +586,7 @@
 	</span><span class="kw">pub </span>no_prometheus_prefix: bool,
 
 	<span class="doccomment">/// Maximum duration in milliseconds to produce a block
-	</span><span class="attr">#[clap(long, default_value = <span class="string">&quot;2000&quot;</span>, value_parser=block_authoring_duration_parser)]
+	</span><span class="attr">#[clap(long, default_value = <span class="string">"2000"</span>, value_parser=block_authoring_duration_parser)]
 	</span><span class="kw">pub </span>block_authoring_duration: Duration,
 }
 
@@ -682,13 +684,13 @@
 
 <span class="kw">impl </span>RelayChainCli {
 	<span class="doccomment">/// Parse the relay chain CLI parameters using the para chain `Configuration`.
-	</span><span class="kw">pub fn </span>new&lt;<span class="lifetime">&#39;a</span>&gt;(
+	</span><span class="kw">pub fn </span>new&lt;<span class="lifetime">'a</span>&gt;(
 		para_config: <span class="kw-2">&amp;</span>sc_service::Configuration,
-		relay_chain_args: <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>String&gt;,
+		relay_chain_args: <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>String&gt;,
 	) -&gt; <span class="self">Self </span>{
 		<span class="kw">let </span>extension = chain_spec::Extensions::try_get(<span class="kw-2">&amp;*</span>para_config.chain_spec);
 		<span class="kw">let </span>chain_id = extension.map(|e| e.relay_chain.clone());
-		<span class="kw">let </span>base_path = para_config.base_path.path().join(<span class="string">&quot;polkadot&quot;</span>);
+		<span class="kw">let </span>base_path = para_config.base_path.path().join(<span class="string">"polkadot"</span>);
 		<span class="self">Self </span>{
 			base_path,
 			chain_id,

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/rpc/trace/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_rpc_trace" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../moonbeam_rpc_trace/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/rpc/trace/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_rpc_trace" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../moonbeam_rpc_trace/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -957,12 +959,6 @@
 <a href="#957" id="957">957</a>
 <a href="#958" id="958">958</a>
 <a href="#959" id="959">959</a>
-<a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a>
-<a href="#962" id="962">962</a>
-<a href="#963" id="963">963</a>
-<a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1010,7 +1006,7 @@
 };
 
 <span class="kw">use </span>ethereum_types::H256;
-<span class="kw">use </span>fc_rpc::OverrideHandle;
+<span class="kw">use </span>fc_storage::StorageOverride;
 <span class="kw">use </span>fp_rpc::EthereumRuntimeRPCApi;
 
 <span class="kw">use </span>moonbeam_client_evm_tracing::{
@@ -1044,10 +1040,10 @@
 
 <span class="kw">impl</span>&lt;B, C&gt; Trace&lt;B, C&gt;
 <span class="kw">where
-	</span>B: BlockT&lt;Hash = H256&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>B: BlockT&lt;Hash = H256&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	B::Header: HeaderT&lt;Number = u32&gt;,
 	C: HeaderMetadata&lt;B, Error = BlockChainError&gt; + HeaderBackend&lt;B&gt;,
-	C: Send + Sync + <span class="lifetime">&#39;static</span>,
+	C: Send + Sync + <span class="lifetime">'static</span>,
 {
 	<span class="doccomment">/// Create a new RPC handler.
 	</span><span class="kw">pub fn </span>new(client: Arc&lt;C&gt;, requester: CacheRequester, max_count: u32) -&gt; <span class="self">Self </span>{
@@ -1060,7 +1056,7 @@
 	}
 
 	<span class="doccomment">/// Convert an optional block ID (number or tag) to a block height.
-	</span><span class="kw">fn </span>block_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="prelude-ty">Option</span>&lt;RequestBlockId&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;u32, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+	</span><span class="kw">fn </span>block_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="prelude-ty">Option</span>&lt;RequestBlockId&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;u32, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
 		<span class="kw">match </span>id {
 			<span class="prelude-val">Some</span>(RequestBlockId::Number(n)) =&gt; <span class="prelude-val">Ok</span>(n),
 			<span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(RequestBlockId::Tag(RequestBlockTag::Latest)) =&gt; {
@@ -1068,9 +1064,9 @@
 			}
 			<span class="prelude-val">Some</span>(RequestBlockId::Tag(RequestBlockTag::Earliest)) =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
 			<span class="prelude-val">Some</span>(RequestBlockId::Tag(RequestBlockTag::Pending)) =&gt; {
-				<span class="prelude-val">Err</span>(<span class="string">&quot;&#39;pending&#39; is not supported&quot;</span>)
+				<span class="prelude-val">Err</span>(<span class="string">"'pending' is not supported"</span>)
 			}
-			<span class="prelude-val">Some</span>(RequestBlockId::Hash(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;Block hash not supported&quot;</span>),
+			<span class="prelude-val">Some</span>(RequestBlockId::Hash(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Err</span>(<span class="string">"Block hash not supported"</span>),
 		}
 	}
 
@@ -1083,7 +1079,7 @@
 		<span class="kw">let </span>count = req.count.unwrap_or(<span class="self">self</span>.max_count);
 		<span class="kw">if </span>count &gt; <span class="self">self</span>.max_count {
 			<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
-				<span class="string">&quot;count ({}) can&#39;t be greater than maximum ({})&quot;</span>,
+				<span class="string">"count ({}) can't be greater than maximum ({})"</span>,
 				count, <span class="self">self</span>.max_count
 			));
 		}
@@ -1100,11 +1096,11 @@
 				.hash(block_height)
 				.map_err(|e| {
 					<span class="macro">format!</span>(
-						<span class="string">&quot;Error when fetching block {} header : {:?}&quot;</span>,
+						<span class="string">"Error when fetching block {} header : {:?}"</span>,
 						block_height, e
 					)
 				})<span class="question-mark">?
-				</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Block with height {} don&#39;t exist&quot;</span>, block_height))<span class="question-mark">?</span>;
+				</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">"Block with height {} don't exist"</span>, block_height))<span class="question-mark">?</span>;
 
 			block_hashes.push(block_hash);
 		}
@@ -1160,11 +1156,11 @@
 				.cloned()
 				.collect();
 
-			<span class="comment">// Don&#39;t insert anything if we&#39;re still before &quot;after&quot;
+			<span class="comment">// Don't insert anything if we're still before "after"
 			</span>traces_amount += block_traces.len() <span class="kw">as </span>i64;
 			<span class="kw">if </span>traces_amount &gt; <span class="number">0 </span>{
 				<span class="kw">let </span>traces_amount = traces_amount <span class="kw">as </span>usize;
-				<span class="comment">// If the current Vec of traces is across the &quot;after&quot; marker,
+				<span class="comment">// If the current Vec of traces is across the "after" marker,
 				// we skip some elements of it.
 				</span><span class="kw">if </span>traces_amount &lt; block_traces.len() {
 					<span class="kw">let </span>skip = block_traces.len() - traces_amount;
@@ -1173,13 +1169,13 @@
 
 				traces.append(<span class="kw-2">&amp;mut </span>block_traces);
 
-				<span class="comment">// If we go over &quot;count&quot; (the limit), we trim and exit the loop,
+				<span class="comment">// If we go over "count" (the limit), we trim and exit the loop,
 				// unless we used the default maximum, in which case we return an error.
 				</span><span class="kw">if </span>traces_amount &gt;= count {
 					<span class="kw">if </span>req.count.is_none() {
 						<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
-							<span class="string">&quot;the amount of traces goes over the maximum ({}), please use &#39;after&#39; \
-							and &#39;count&#39; in your request&quot;</span>,
+							<span class="string">"the amount of traces goes over the maximum ({}), please use 'after' \
+							and 'count' in your request"</span>,
 							<span class="self">self</span>.max_count
 						));
 					}
@@ -1197,10 +1193,10 @@
 <span class="attr">#[jsonrpsee::core::async_trait]
 </span><span class="kw">impl</span>&lt;B, C&gt; TraceServer <span class="kw">for </span>Trace&lt;B, C&gt;
 <span class="kw">where
-	</span>B: BlockT&lt;Hash = H256&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	</span>B: BlockT&lt;Hash = H256&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	B::Header: HeaderT&lt;Number = u32&gt;,
 	C: HeaderMetadata&lt;B, Error = BlockChainError&gt; + HeaderBackend&lt;B&gt;,
-	C: Send + Sync + <span class="lifetime">&#39;static</span>,
+	C: Send + Sync + <span class="lifetime">'static</span>,
 {
 	<span class="kw">async fn </span>filter(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1259,14 +1255,14 @@
 			})
 			.map_err(|e| {
 				<span class="macro">format!</span>(
-					<span class="string">&quot;Failed to send request to the trace cache task. Error : {:?}&quot;</span>,
+					<span class="string">"Failed to send request to the trace cache task. Error : {:?}"</span>,
 					e
 				)
 			})<span class="question-mark">?</span>;
 
 		response_rx.<span class="kw">await</span>.map_err(|e| {
 			<span class="macro">format!</span>(
-				<span class="string">&quot;Trace cache task closed the response channel. Error : {:?}&quot;</span>,
+				<span class="string">"Trace cache task closed the response channel. Error : {:?}"</span>,
 				e
 			)
 		})
@@ -1288,7 +1284,7 @@
 			})
 			.map_err(|e| {
 				<span class="macro">format!</span>(
-					<span class="string">&quot;Failed to send request to the trace cache task. Error : {:?}&quot;</span>,
+					<span class="string">"Failed to send request to the trace cache task. Error : {:?}"</span>,
 					e
 				)
 			})<span class="question-mark">?</span>;
@@ -1297,11 +1293,11 @@
 			.<span class="kw">await
 			</span>.map_err(|e| {
 				<span class="macro">format!</span>(
-					<span class="string">&quot;Trace cache task closed the response channel. Error : {:?}&quot;</span>,
+					<span class="string">"Trace cache task closed the response channel. Error : {:?}"</span>,
 					e
 				)
 			})<span class="question-mark">?
-			</span>.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Failed to replay block. Error : {:?}&quot;</span>, e))
+			</span>.map_err(|e| <span class="macro">format!</span>(<span class="string">"Failed to replay block. Error : {:?}"</span>, e))
 	}
 
 	<span class="doccomment">/// Notify the cache that it can stop the batch with that ID. Any block contained only in
@@ -1310,13 +1306,13 @@
 	</span><span class="kw">pub async fn </span>stop_batch(<span class="kw-2">&amp;</span><span class="self">self</span>, batch_id: CacheBatchId) {
 		<span class="kw">let </span>sender = <span class="self">self</span>.<span class="number">0</span>.clone();
 
-		<span class="comment">// Here we don&#39;t care if the request has been accepted or refused, the caller can&#39;t
+		<span class="comment">// Here we don't care if the request has been accepted or refused, the caller can't
 		// do anything with it.
 		</span><span class="kw">let _ </span>= sender
 			.unbounded_send(CacheRequest::StopBatch { batch_id })
 			.map_err(|e| {
 				<span class="macro">format!</span>(
-					<span class="string">&quot;Failed to send request to the trace cache task. Error : {:?}&quot;</span>,
+					<span class="string">"Failed to send request to the trace cache task. Error : {:?}"</span>,
 					e
 				)
 			});
@@ -1385,13 +1381,13 @@
 
 <span class="kw">impl</span>&lt;B, C, BE&gt; CacheTask&lt;B, C, BE&gt;
 <span class="kw">where
-	</span>BE: Backend&lt;B&gt; + <span class="lifetime">&#39;static</span>,
+	</span>BE: Backend&lt;B&gt; + <span class="lifetime">'static</span>,
 	BE::State: StateBackend&lt;BlakeTwo256&gt;,
 	C: ProvideRuntimeApi&lt;B&gt;,
 	C: StorageProvider&lt;B, BE&gt;,
 	C: HeaderMetadata&lt;B, Error = BlockChainError&gt; + HeaderBackend&lt;B&gt;,
-	C: Send + Sync + <span class="lifetime">&#39;static</span>,
-	B: BlockT&lt;Hash = H256&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	C: Send + Sync + <span class="lifetime">'static</span>,
+	B: BlockT&lt;Hash = H256&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	B::Header: HeaderT&lt;Number = u32&gt;,
 	C::Api: BlockBuilder&lt;B&gt;,
 	C::Api: DebugRuntimeApi&lt;B&gt;,
@@ -1407,12 +1403,12 @@
 		backend: Arc&lt;BE&gt;,
 		cache_duration: Duration,
 		blocking_permits: Arc&lt;Semaphore&gt;,
-		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
+		overrides: Arc&lt;<span class="kw">dyn </span>StorageOverride&lt;B&gt;&gt;,
 		prometheus: <span class="prelude-ty">Option</span>&lt;PrometheusRegistry&gt;,
 	) -&gt; (<span class="kw">impl </span>Future&lt;Output = ()&gt;, CacheRequester) {
 		<span class="comment">// Communication with the outside world :
 		</span><span class="kw">let </span>(requester_tx, <span class="kw-2">mut </span>requester_rx) =
-			sc_utils::mpsc::tracing_unbounded(<span class="string">&quot;trace-filter-cache&quot;</span>, <span class="number">100_000</span>);
+			sc_utils::mpsc::tracing_unbounded(<span class="string">"trace-filter-cache"</span>, <span class="number">100_000</span>);
 
 		<span class="comment">// Task running in the service.
 		</span><span class="kw">let </span>task = <span class="kw">async move </span>{
@@ -1425,7 +1421,7 @@
 				<span class="kw">match </span>Metrics::register(<span class="kw-2">&amp;</span>registry) {
 					<span class="prelude-val">Ok</span>(metrics) =&gt; <span class="prelude-val">Some</span>(metrics),
 					<span class="prelude-val">Err</span>(err) =&gt; {
-						<span class="macro">log::error!</span>(target: <span class="string">&quot;tracing&quot;</span>, <span class="string">&quot;Failed to register metrics {err:?}&quot;</span>);
+						<span class="macro">log::error!</span>(target: <span class="string">"tracing"</span>, <span class="string">"Failed to register metrics {err:?}"</span>);
 						<span class="prelude-val">None
 					</span>}
 				}
@@ -1487,7 +1483,7 @@
 				}
 			}
 		}
-		.instrument(<span class="macro">tracing::debug_span!</span>(<span class="string">&quot;trace_filter_cache&quot;</span>));
+		.instrument(<span class="macro">tracing::debug_span!</span>(<span class="string">"trace_filter_cache"</span>));
 
 		(task, CacheRequester(requester_tx))
 	}
@@ -1500,9 +1496,9 @@
 		blocking_tx: <span class="kw-2">&amp;</span>mpsc::Sender&lt;BlockingTaskMessage&gt;,
 		sender: oneshot::Sender&lt;CacheBatchId&gt;,
 		blocks: Vec&lt;H256&gt;,
-		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
+		overrides: Arc&lt;<span class="kw">dyn </span>StorageOverride&lt;B&gt;&gt;,
 	) {
-		<span class="macro">tracing::trace!</span>(<span class="string">&quot;Starting batch {}&quot;</span>, <span class="self">self</span>.next_batch_id);
+		<span class="macro">tracing::trace!</span>(<span class="string">"Starting batch {}"</span>, <span class="self">self</span>.next_batch_id);
 		<span class="self">self</span>.batches.insert(<span class="self">self</span>.next_batch_id, blocks.clone());
 
 		<span class="kw">for </span>block <span class="kw">in </span>blocks {
@@ -1510,14 +1506,14 @@
 			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(block_cache) = <span class="self">self</span>.cached_blocks.get_mut(<span class="kw-2">&amp;</span>block) {
 				block_cache.active_batch_count += <span class="number">1</span>;
 				<span class="macro">tracing::trace!</span>(
-					<span class="string">&quot;Cache hit for block {}, now used by {} batches.&quot;</span>,
+					<span class="string">"Cache hit for block {}, now used by {} batches."</span>,
 					block,
 					block_cache.active_batch_count
 				);
 			}
 			<span class="comment">// Otherwise we need to queue this block for tracing.
 			</span><span class="kw">else </span>{
-				<span class="macro">tracing::trace!</span>(<span class="string">&quot;Cache miss for block {}, pooling it for tracing.&quot;</span>, block);
+				<span class="macro">tracing::trace!</span>(<span class="string">"Cache miss for block {}, pooling it for tracing."</span>, block);
 
 				<span class="kw">let </span>blocking_permits = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.blocking_permits);
 				<span class="kw">let </span>(unqueue_sender, unqueue_receiver) = oneshot::channel();
@@ -1532,10 +1528,10 @@
 				// thought a channel to the main task loop.
 				</span>tokio::spawn(
 					<span class="kw">async move </span>{
-						<span class="macro">tracing::trace!</span>(<span class="string">&quot;Waiting for blocking permit or task cancellation&quot;</span>);
+						<span class="macro">tracing::trace!</span>(<span class="string">"Waiting for blocking permit or task cancellation"</span>);
 						<span class="kw">let </span>_permit = <span class="macro">select!</span>(
 							<span class="kw">_ </span>= unqueue_receiver.fuse() =&gt; {
-							<span class="macro">tracing::trace!</span>(<span class="string">&quot;Tracing of the block has been cancelled.&quot;</span>);
+							<span class="macro">tracing::trace!</span>(<span class="string">"Tracing of the block has been cancelled."</span>);
 								<span class="kw">return</span>;
 							},
 							permit = blocking_permits.acquire().fuse() =&gt; permit,
@@ -1547,7 +1543,7 @@
 							.send(BlockingTaskMessage::Started { block_hash: block })
 							.<span class="kw">await</span>;
 
-						<span class="macro">tracing::trace!</span>(<span class="string">&quot;Start block tracing in a blocking task.&quot;</span>);
+						<span class="macro">tracing::trace!</span>(<span class="string">"Start block tracing in a blocking task."</span>);
 
 						<span class="comment">// Perform block tracing in a tokio blocking task.
 						</span><span class="kw">let </span>result = <span class="kw">async </span>{
@@ -1556,13 +1552,13 @@
 							})
 							.<span class="kw">await
 							</span>.map_err(|e| {
-								<span class="macro">format!</span>(<span class="string">&quot;Tracing Substrate block {} panicked : {:?}&quot;</span>, block, e)
+								<span class="macro">format!</span>(<span class="string">"Tracing Substrate block {} panicked : {:?}"</span>, block, e)
 							})<span class="question-mark">?
 						</span>}
 						.<span class="kw">await
 						</span>.map_err(|e| e.to_string());
 
-						<span class="macro">tracing::trace!</span>(<span class="string">&quot;Block tracing finished, sending result to main task.&quot;</span>);
+						<span class="macro">tracing::trace!</span>(<span class="string">"Block tracing finished, sending result to main task."</span>);
 
 						<span class="comment">// Send response to main task.
 						</span><span class="kw">let _ </span>= blocking_tx
@@ -1572,7 +1568,7 @@
 							})
 							.<span class="kw">await</span>;
 					}
-					.instrument(<span class="macro">tracing::trace_span!</span>(<span class="string">&quot;Block tracing&quot;</span>, block = %block)),
+					.instrument(<span class="macro">tracing::trace_span!</span>(<span class="string">"Block tracing"</span>, block = %block)),
 				);
 
 				<span class="comment">// Insert the block in the cache.
@@ -1613,8 +1609,8 @@
 					..
 				} =&gt; {
 					<span class="macro">tracing::warn!</span>(
-						<span class="string">&quot;A request asked a pooled block ({}), adding it to the list of \
-						waiting requests.&quot;</span>,
+						<span class="string">"A request asked a pooled block ({}), adding it to the list of \
+						waiting requests."</span>,
 						block
 					);
 					waiting_requests.push(sender);
@@ -1624,7 +1620,7 @@
 				}
 				CacheBlockState::Cached { traces, .. } =&gt; {
 					<span class="macro">tracing::warn!</span>(
-						<span class="string">&quot;A request asked a cached block ({}), sending the traces directly.&quot;</span>,
+						<span class="string">"A request asked a cached block ({}), sending the traces directly."</span>,
 						block
 					);
 					<span class="kw">let _ </span>= sender.send(traces.clone());
@@ -1635,11 +1631,11 @@
 			}
 		} <span class="kw">else </span>{
 			<span class="macro">tracing::warn!</span>(
-				<span class="string">&quot;An RPC request asked to get a block ({}) which was not batched.&quot;</span>,
+				<span class="string">"An RPC request asked to get a block ({}) which was not batched."</span>,
 				block
 			);
 			<span class="kw">let _ </span>= sender.send(<span class="prelude-val">Err</span>(<span class="macro">format!</span>(
-				<span class="string">&quot;RPC request asked a block ({}) that was not batched&quot;</span>,
+				<span class="string">"RPC request asked a block ({}) that was not batched"</span>,
 				block
 			)));
 		}
@@ -1653,7 +1649,7 @@
 	/// as it involved an unnamable type :C)
 	</span><span class="attr">#[instrument(skip(<span class="self">self</span>))]
 	</span><span class="kw">fn </span>request_stop_batch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, batch_id: CacheBatchId) {
-		<span class="macro">tracing::trace!</span>(<span class="string">&quot;Stopping batch {}&quot;</span>, batch_id.<span class="number">0</span>);
+		<span class="macro">tracing::trace!</span>(<span class="string">"Stopping batch {}"</span>, batch_id.<span class="number">0</span>);
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(blocks) = <span class="self">self</span>.batches.get(<span class="kw-2">&amp;</span>batch_id.<span class="number">0</span>) {
 			<span class="kw">for </span>block <span class="kw">in </span>blocks {
 				<span class="kw">let </span><span class="kw-2">mut </span>remove = <span class="bool-val">false</span>;
@@ -1671,7 +1667,7 @@
 				}
 
 				<span class="kw">if </span>remove {
-					<span class="macro">tracing::trace!</span>(<span class="string">&quot;Pooled block {} is no longer requested.&quot;</span>, block);
+					<span class="macro">tracing::trace!</span>(<span class="string">"Pooled block {} is no longer requested."</span>, block);
 					<span class="comment">// Remove block from the cache. Drops the value,
 					// closing all the channels contained in it.
 					</span><span class="kw">let _ </span>= <span class="self">self</span>.cached_blocks.remove(<span class="kw-2">&amp;</span>block);
@@ -1710,8 +1706,8 @@
 			} = block_cache.state
 			{
 				<span class="macro">tracing::trace!</span>(
-					<span class="string">&quot;A new block ({}) has been traced, adding it to the cache and responding to \
-					{} waiting requests.&quot;</span>,
+					<span class="string">"A new block ({}) has been traced, adding it to the cache and responding to \
+					{} waiting requests."</span>,
 					block_hash,
 					waiting_requests.len()
 				);
@@ -1756,7 +1752,7 @@
 		client: Arc&lt;C&gt;,
 		backend: Arc&lt;BE&gt;,
 		substrate_hash: H256,
-		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
+		overrides: Arc&lt;<span class="kw">dyn </span>StorageOverride&lt;B&gt;&gt;,
 	) -&gt; TxsTraceRes {
 		<span class="comment">// Get Subtrate block data.
 		</span><span class="kw">let </span>api = client.runtime_api();
@@ -1764,33 +1760,27 @@
 			.header(substrate_hash)
 			.map_err(|e| {
 				<span class="macro">format!</span>(
-					<span class="string">&quot;Error when fetching substrate block {} header : {:?}&quot;</span>,
+					<span class="string">"Error when fetching substrate block {} header : {:?}"</span>,
 					substrate_hash, e
 				)
 			})<span class="question-mark">?
-			</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Subtrate block {} don&#39;t exist&quot;</span>, substrate_hash))<span class="question-mark">?</span>;
+			</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">"Subtrate block {} don't exist"</span>, substrate_hash))<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>height = <span class="kw-2">*</span>block_header.number();
 		<span class="kw">let </span>substrate_parent_hash = <span class="kw-2">*</span>block_header.parent_hash();
 
-		<span class="kw">let </span>schema =
-			fc_storage::onchain_storage_schema::&lt;B, C, BE&gt;(client.as_ref(), substrate_hash);
-
 		<span class="comment">// Get Ethereum block data.
-		</span><span class="kw">let </span>(eth_block, eth_transactions) = <span class="kw">match </span>overrides.schemas.get(<span class="kw-2">&amp;</span>schema) {
-			<span class="prelude-val">Some</span>(schema) =&gt; <span class="kw">match </span>(
-				schema.current_block(substrate_hash),
-				schema.current_transaction_statuses(substrate_hash),
-			) {
-				(<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(b)) =&gt; (a, b),
-				<span class="kw">_ </span>=&gt; {
-					<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
-						<span class="string">&quot;Failed to get Ethereum block data for Substrate block {}&quot;</span>,
-						substrate_hash
-					))
-				}
-			},
-			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;No storage override at {:?}&quot;</span>, substrate_hash)),
+		</span><span class="kw">let </span>(eth_block, eth_transactions) = <span class="kw">match </span>(
+			overrides.current_block(substrate_hash),
+			overrides.current_transaction_statuses(substrate_hash),
+		) {
+			(<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(b)) =&gt; (a, b),
+			<span class="kw">_ </span>=&gt; {
+				<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+					<span class="string">"Failed to get Ethereum block data for Substrate block {}"</span>,
+					substrate_hash
+				))
+			}
 		};
 
 		<span class="kw">let </span>eth_block_hash = eth_block.header.hash();
@@ -1805,11 +1795,11 @@
 			.body(substrate_hash)
 			.map_err(|e| {
 				<span class="macro">format!</span>(
-					<span class="string">&quot;Blockchain error when fetching extrinsics of block {} : {:?}&quot;</span>,
+					<span class="string">"Blockchain error when fetching extrinsics of block {} : {:?}"</span>,
 					height, e
 				)
 			})<span class="question-mark">?
-			</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Could not find block {} when fetching extrinsics.&quot;</span>, height))<span class="question-mark">?</span>;
+			</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">"Could not find block {} when fetching extrinsics."</span>, height))<span class="question-mark">?</span>;
 
 		<span class="comment">// Get DebugRuntimeApi version
 		</span><span class="kw">let </span>trace_api_version = <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(api_version)) =
@@ -1817,7 +1807,7 @@
 		{
 			api_version
 		} <span class="kw">else </span>{
-			<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime api version call failed (trace)&quot;</span>));
+			<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"Runtime api version call failed (trace)"</span>));
 		};
 
 		<span class="comment">// Trace the block.
@@ -1832,28 +1822,28 @@
 			} <span class="kw">else </span>{
 				<span class="comment">// Pre pallet-message-queue
 
-				// Initialize block: calls the &quot;on_initialize&quot; hook on every pallet
+				// Initialize block: calls the "on_initialize" hook on every pallet
 				// in AllPalletsWithSystem
 				// This was fine before pallet-message-queue because the XCM messages
-				// were processed by the &quot;setValidationData&quot; inherent call and not on an
-				// &quot;on_initialize&quot; hook, which runs before enabling XCM tracing
+				// were processed by the "setValidationData" inherent call and not on an
+				// "on_initialize" hook, which runs before enabling XCM tracing
 				</span>api.initialize_block(substrate_parent_hash, <span class="kw-2">&amp;</span>block_header)
-					.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e))<span class="question-mark">?</span>;
+					.map_err(|e| <span class="macro">format!</span>(<span class="string">"Runtime api access error: {:?}"</span>, e))<span class="question-mark">?</span>;
 
 				<span class="attr">#[allow(deprecated)]
 				</span>api.trace_block_before_version_5(substrate_parent_hash, extrinsics, eth_tx_hashes)
 			};
 
 			result
-				.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Blockchain error when replaying block {} : {:?}&quot;</span>, height, e))<span class="question-mark">?
+				.map_err(|e| <span class="macro">format!</span>(<span class="string">"Blockchain error when replaying block {} : {:?}"</span>, height, e))<span class="question-mark">?
 				</span>.map_err(|e| {
 					<span class="macro">tracing::warn!</span>(
-						<span class="string">&quot;Internal runtime error when replaying block {} : {:?}&quot;</span>,
+						<span class="string">"Internal runtime error when replaying block {} : {:?}"</span>,
 						height,
 						e
 					);
 					<span class="macro">format!</span>(
-						<span class="string">&quot;Internal runtime error when replaying block {} : {:?}&quot;</span>,
+						<span class="string">"Internal runtime error when replaying block {} : {:?}"</span>,
 						height, e
 					)
 				})<span class="question-mark">?</span>;
@@ -1871,7 +1861,7 @@
 
 		<span class="kw">let </span>traces: Vec&lt;TransactionTrace&gt; =
 			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy)
-				.ok_or(<span class="string">&quot;Fail to format proxy&quot;</span>)<span class="question-mark">?
+				.ok_or(<span class="string">"Fail to format proxy"</span>)<span class="question-mark">?
 				</span>.into_iter()
 				.filter_map(|<span class="kw-2">mut </span>trace| {
 					<span class="kw">match </span>eth_transactions_by_index.get(<span class="kw-2">&amp;</span>trace.transaction_position) {
@@ -1884,8 +1874,8 @@
 							</span><span class="kw">if let </span>block::TransactionTraceOutput::Error(<span class="kw-2">ref mut </span>error) =
 								trace.output
 							{
-								<span class="kw">if </span>error.as_slice() == <span class="string">b&quot;execution reverted&quot; </span>{
-									<span class="kw-2">*</span>error = <span class="string">b&quot;Reverted&quot;</span>.to_vec();
+								<span class="kw">if </span>error.as_slice() == <span class="string">b"execution reverted" </span>{
+									<span class="kw-2">*</span>error = <span class="string">b"Reverted"</span>.to_vec();
 								}
 							}
 
@@ -1893,7 +1883,7 @@
 						}
 						<span class="prelude-val">None </span>=&gt; {
 							<span class="macro">log::warn!</span>(
-								<span class="string">&quot;A trace in block {} does not map to any known ethereum transaction. Trace: {:?}&quot;</span>,
+								<span class="string">"A trace in block {} does not map to any known ethereum transaction. Trace: {:?}"</span>,
 								height,
 								trace,
 							);
@@ -1918,11 +1908,11 @@
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register(registry: <span class="kw-2">&amp;</span>PrometheusRegistry) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, PrometheusError&gt; {
 		<span class="prelude-val">Ok</span>(<span class="self">Self </span>{
 			tracing_cache_hits: register(
-				Counter::new(<span class="string">&quot;tracing_cache_hits&quot;</span>, <span class="string">&quot;Number of tracing cache hits.&quot;</span>)<span class="question-mark">?</span>,
+				Counter::new(<span class="string">"tracing_cache_hits"</span>, <span class="string">"Number of tracing cache hits."</span>)<span class="question-mark">?</span>,
 				registry,
 			)<span class="question-mark">?</span>,
 			tracing_cache_misses: register(
-				Counter::new(<span class="string">&quot;tracing_cache_misses&quot;</span>, <span class="string">&quot;Number of tracing cache misses.&quot;</span>)<span class="question-mark">?</span>,
+				Counter::new(<span class="string">"tracing_cache_misses"</span>, <span class="string">"Number of tracing cache misses."</span>)<span class="question-mark">?</span>,
 				registry,
 			)<span class="question-mark">?</span>,
 		})

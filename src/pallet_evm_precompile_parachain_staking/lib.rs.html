@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/parachain-staking/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_parachain_staking" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_evm_precompile_parachain_staking/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/parachain-staking/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_parachain_staking" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_evm_precompile_parachain_staking/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -936,7 +938,7 @@
 
 </span><span class="doccomment">//! Precompile to call parachain-staking runtime methods via the EVM
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
 #[cfg(test)]
 </span><span class="kw">mod </span>mock;
@@ -977,8 +979,8 @@
 	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + solidity::Codec,
 {
 	<span class="comment">// Constants
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;minDelegation()&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;min_delegation()&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"minDelegation()"</span>)]
+	#[precompile::public(<span class="string">"min_delegation()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>min_delegation(_handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;u128&gt; {
 		<span class="kw">let </span>min_nomination: u128 =
@@ -986,13 +988,13 @@
 				BalanceOf&lt;Runtime&gt;,
 			&gt;&gt;::get()
 			.try_into()
-			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+			.map_err(|<span class="kw">_</span>| revert(<span class="string">"Amount is too large for provided balance type"</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(min_nomination)
 	}
 
 	<span class="comment">// Storage Getters
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;points(uint256)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"points(uint256)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>points(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, round: Convert&lt;U256, u32&gt;) -&gt; EvmResult&lt;u32&gt; {
 		<span class="kw">let </span>round = round.converted();
@@ -1003,7 +1005,7 @@
 		<span class="prelude-val">Ok</span>(points)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;awardedPoints(uint32,address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"awardedPoints(uint32,address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>awarded_points(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1021,8 +1023,8 @@
 		<span class="prelude-val">Ok</span>(points)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;candidateCount()&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;candidate_count()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"candidateCount()"</span>)]
+	#[precompile::public(<span class="string">"candidate_count()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>candidate_count(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;u32&gt; {
 		<span class="comment">// CandidatePool: UnBoundedVec(AccountId(20) + Balance(16))
@@ -1037,7 +1039,7 @@
 		</span><span class="prelude-val">Ok</span>(candidate_count)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;round()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"round()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>round(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;u32&gt; {
 		<span class="comment">// Round: RoundInfo(RoundIndex(4) + BlockNumber(4) + 4)
@@ -1047,8 +1049,8 @@
 		<span class="prelude-val">Ok</span>(round)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;candidateDelegationCount(address)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;candidate_delegation_count(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"candidateDelegationCount(address)"</span>)]
+	#[precompile::public(<span class="string">"candidate_delegation_count(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>candidate_delegation_count(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1063,15 +1065,15 @@
 			<span class="kw">let </span>candidate_delegation_count: u32 = state.delegation_count;
 
 			<span class="macro">log::trace!</span>(
-				target: <span class="string">&quot;staking-precompile&quot;</span>,
-				<span class="string">&quot;Result from pallet is {:?}&quot;</span>,
+				target: <span class="string">"staking-precompile"</span>,
+				<span class="string">"Result from pallet is {:?}"</span>,
 				candidate_delegation_count
 			);
 			candidate_delegation_count
 		} <span class="kw">else </span>{
 			<span class="macro">log::trace!</span>(
-				target: <span class="string">&quot;staking-precompile&quot;</span>,
-				<span class="string">&quot;Candidate {:?} not found, so delegation count is 0&quot;</span>,
+				target: <span class="string">"staking-precompile"</span>,
+				<span class="string">"Candidate {:?} not found, so delegation count is 0"</span>,
 				candidate
 			);
 			<span class="number">0u32
@@ -1080,7 +1082,7 @@
 		<span class="prelude-val">Ok</span>(result)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;candidateAutoCompoundingDelegationCount(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"candidateAutoCompoundingDelegationCount(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>candidate_auto_compounding_delegation_count(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1107,8 +1109,8 @@
 		<span class="prelude-val">Ok</span>(count)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;delegatorDelegationCount(address)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;delegator_delegation_count(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"delegatorDelegationCount(address)"</span>)]
+	#[precompile::public(<span class="string">"delegator_delegation_count(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>delegator_delegation_count(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1127,16 +1129,16 @@
 			<span class="kw">let </span>delegator_delegation_count: u32 = state.delegations.<span class="number">0</span>.len() <span class="kw">as </span>u32;
 
 			<span class="macro">log::trace!</span>(
-				target: <span class="string">&quot;staking-precompile&quot;</span>,
-				<span class="string">&quot;Result from pallet is {:?}&quot;</span>,
+				target: <span class="string">"staking-precompile"</span>,
+				<span class="string">"Result from pallet is {:?}"</span>,
 				delegator_delegation_count
 			);
 
 			delegator_delegation_count
 		} <span class="kw">else </span>{
 			<span class="macro">log::trace!</span>(
-				target: <span class="string">&quot;staking-precompile&quot;</span>,
-				<span class="string">&quot;Delegator {:?} not found, so delegation count is 0&quot;</span>,
+				target: <span class="string">"staking-precompile"</span>,
+				<span class="string">"Delegator {:?} not found, so delegation count is 0"</span>,
 				delegator
 			);
 			<span class="number">0u32
@@ -1145,8 +1147,8 @@
 		<span class="prelude-val">Ok</span>(result)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;selectedCandidates()&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;selected_candidates()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"selectedCandidates()"</span>)]
+	#[precompile::public(<span class="string">"selected_candidates()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>selected_candidates(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Vec&lt;Address&gt;&gt; {
 		<span class="comment">// TotalSelected
@@ -1163,7 +1165,7 @@
 		<span class="prelude-val">Ok</span>(selected_candidates)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;delegationAmount(address,address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"delegationAmount(address,address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>delegation_amount(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1197,7 +1199,7 @@
 	}
 
 	<span class="comment">// Role Verifiers
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;isInTopDelegations(address,address)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"isInTopDelegations(address,address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>is_in_top_delegations(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1229,8 +1231,8 @@
 		<span class="prelude-val">Ok</span>(is_in_top_delegations)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;isDelegator(address)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;is_delegator(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"isDelegator(address)"</span>)]
+	#[precompile::public(<span class="string">"is_delegator(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>is_delegator(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, delegator: Address) -&gt; EvmResult&lt;bool&gt; {
 		<span class="kw">let </span>delegator = Runtime::AddressMapping::into_account_id(delegator.<span class="number">0</span>);
@@ -1245,8 +1247,8 @@
 		<span class="prelude-val">Ok</span>(is_delegator)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;isCandidate(address)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;is_candidate(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"isCandidate(address)"</span>)]
+	#[precompile::public(<span class="string">"is_candidate(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>is_candidate(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, candidate: Address) -&gt; EvmResult&lt;bool&gt; {
 		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
@@ -1258,8 +1260,8 @@
 		<span class="prelude-val">Ok</span>(is_candidate)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;isSelectedCandidate(address)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;is_selected_candidate(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"isSelectedCandidate(address)"</span>)]
+	#[precompile::public(<span class="string">"is_selected_candidate(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>is_selected_candidate(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1278,8 +1280,8 @@
 		<span class="prelude-val">Ok</span>(is_selected)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;delegationRequestIsPending(address,address)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;delegation_request_is_pending(address,address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"delegationRequestIsPending(address,address)"</span>)]
+	#[precompile::public(<span class="string">"delegation_request_is_pending(address,address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>delegation_request_is_pending(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1311,8 +1313,8 @@
 		<span class="prelude-val">Ok</span>(pending)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;candidateExitIsPending(address)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;candidate_exit_is_pending(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"candidateExitIsPending(address)"</span>)]
+	#[precompile::public(<span class="string">"candidate_exit_is_pending(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>candidate_exit_is_pending(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1331,8 +1333,8 @@
 			state.is_leaving()
 		} <span class="kw">else </span>{
 			<span class="macro">log::trace!</span>(
-				target: <span class="string">&quot;staking-precompile&quot;</span>,
-				<span class="string">&quot;Candidate state for {:?} not found, so pending exit is false&quot;</span>,
+				target: <span class="string">"staking-precompile"</span>,
+				<span class="string">"Candidate state for {:?} not found, so pending exit is false"</span>,
 				candidate
 			);
 			<span class="bool-val">false
@@ -1341,8 +1343,8 @@
 		<span class="prelude-val">Ok</span>(pending)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;candidateRequestIsPending(address)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;candidate_request_is_pending(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"candidateRequestIsPending(address)"</span>)]
+	#[precompile::public(<span class="string">"candidate_request_is_pending(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>candidate_request_is_pending(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1361,8 +1363,8 @@
 			state.request.is_some()
 		} <span class="kw">else </span>{
 			<span class="macro">log::trace!</span>(
-				target: <span class="string">&quot;staking-precompile&quot;</span>,
-				<span class="string">&quot;Candidate metadata for {:?} not found, so pending request is false&quot;</span>,
+				target: <span class="string">"staking-precompile"</span>,
+				<span class="string">"Candidate metadata for {:?} not found, so pending request is false"</span>,
 				candidate
 			);
 			<span class="bool-val">false
@@ -1371,7 +1373,7 @@
 		<span class="prelude-val">Ok</span>(pending)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;delegationAutoCompound(address,address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"delegationAutoCompound(address,address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>delegation_auto_compound(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1402,14 +1404,14 @@
 
 	<span class="comment">// Runtime Methods (dispatchables)
 
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;joinCandidates(uint256,uint256)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;join_candidates(uint256,uint256)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"joinCandidates(uint256,uint256)"</span>)]
+	#[precompile::public(<span class="string">"join_candidates(uint256,uint256)"</span>)]
 	</span><span class="kw">fn </span>join_candidates(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		amount: U256,
 		candidate_count: Convert&lt;U256, u32&gt;,
 	) -&gt; EvmResult {
-		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">&quot;amount&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">"amount"</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>candidate_count = candidate_count.converted();
 
 		<span class="comment">// Build call with origin.
@@ -1425,8 +1427,8 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;scheduleLeaveCandidates(uint256)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;schedule_leave_candidates(uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"scheduleLeaveCandidates(uint256)"</span>)]
+	#[precompile::public(<span class="string">"schedule_leave_candidates(uint256)"</span>)]
 	</span><span class="kw">fn </span>schedule_leave_candidates(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate_count: Convert&lt;U256, u32&gt;,
@@ -1445,8 +1447,8 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;executeLeaveCandidates(address,uint256)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;execute_leave_candidates(address,uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"executeLeaveCandidates(address,uint256)"</span>)]
+	#[precompile::public(<span class="string">"execute_leave_candidates(address,uint256)"</span>)]
 	</span><span class="kw">fn </span>execute_leave_candidates(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate: Address,
@@ -1468,8 +1470,8 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;cancelLeaveCandidates(uint256)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;cancel_leave_candidates(uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"cancelLeaveCandidates(uint256)"</span>)]
+	#[precompile::public(<span class="string">"cancel_leave_candidates(uint256)"</span>)]
 	</span><span class="kw">fn </span>cancel_leave_candidates(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate_count: Convert&lt;U256, u32&gt;,
@@ -1487,8 +1489,8 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;goOffline()&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;go_offline()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"goOffline()"</span>)]
+	#[precompile::public(<span class="string">"go_offline()"</span>)]
 	</span><span class="kw">fn </span>go_offline(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
 		<span class="comment">// Build call with origin.
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1500,8 +1502,8 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;goOnline()&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;go_online()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"goOnline()"</span>)]
+	#[precompile::public(<span class="string">"go_online()"</span>)]
 	</span><span class="kw">fn </span>go_online(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
 		<span class="comment">// Build call with origin.
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1513,10 +1515,10 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;candidateBondMore(uint256)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;candidate_bond_more(uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"candidateBondMore(uint256)"</span>)]
+	#[precompile::public(<span class="string">"candidate_bond_more(uint256)"</span>)]
 	</span><span class="kw">fn </span>candidate_bond_more(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, more: U256) -&gt; EvmResult {
-		<span class="kw">let </span>more = <span class="self">Self</span>::u256_to_amount(more).in_field(<span class="string">&quot;more&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>more = <span class="self">Self</span>::u256_to_amount(more).in_field(<span class="string">"more"</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1528,10 +1530,10 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;scheduleCandidateBondLess(uint256)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;schedule_candidate_bond_less(uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"scheduleCandidateBondLess(uint256)"</span>)]
+	#[precompile::public(<span class="string">"schedule_candidate_bond_less(uint256)"</span>)]
 	</span><span class="kw">fn </span>schedule_candidate_bond_less(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, less: U256) -&gt; EvmResult {
-		<span class="kw">let </span>less = <span class="self">Self</span>::u256_to_amount(less).in_field(<span class="string">&quot;less&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>less = <span class="self">Self</span>::u256_to_amount(less).in_field(<span class="string">"less"</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1543,8 +1545,8 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;executeCandidateBondLess(address)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;execute_candidate_bond_less(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"executeCandidateBondLess(address)"</span>)]
+	#[precompile::public(<span class="string">"execute_candidate_bond_less(address)"</span>)]
 	</span><span class="kw">fn </span>execute_candidate_bond_less(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate: Address,
@@ -1562,8 +1564,8 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;cancelCandidateBondLess()&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;cancel_candidate_bond_less()&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"cancelCandidateBondLess()"</span>)]
+	#[precompile::public(<span class="string">"cancel_candidate_bond_less()"</span>)]
 	</span><span class="kw">fn </span>cancel_candidate_bond_less(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
 		<span class="comment">// Build call with origin.
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1575,7 +1577,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;delegate(address,uint256,uint256,uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"delegate(address,uint256,uint256,uint256)"</span>)]
 	</span><span class="kw">fn </span>delegate(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate: Address,
@@ -1583,7 +1585,7 @@
 		candidate_delegation_count: Convert&lt;U256, u32&gt;,
 		delegator_delegation_count: Convert&lt;U256, u32&gt;,
 	) -&gt; EvmResult {
-		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">&quot;amount&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">"amount"</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>candidate_delegation_count = candidate_delegation_count.converted();
 		<span class="kw">let </span>delegator_delegation_count = delegator_delegation_count.converted();
 
@@ -1604,7 +1606,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;delegateWithAutoCompound(address,uint256,uint8,uint256,uint256,uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"delegateWithAutoCompound(address,uint256,uint8,uint256,uint256,uint256)"</span>)]
 	</span><span class="kw">fn </span>delegate_with_auto_compound(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate: Address,
@@ -1616,13 +1618,13 @@
 	) -&gt; EvmResult {
 		<span class="kw">if </span>auto_compound &gt; <span class="number">100 </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(
-				RevertReason::custom(<span class="string">&quot;Must be an integer between 0 and 100 included&quot;</span>)
-					.in_field(<span class="string">&quot;auto_compound&quot;</span>)
+				RevertReason::custom(<span class="string">"Must be an integer between 0 and 100 included"</span>)
+					.in_field(<span class="string">"auto_compound"</span>)
 					.into(),
 			);
 		}
 
-		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">&quot;amount&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">"amount"</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>auto_compound = Percent::from_percent(auto_compound);
 		<span class="kw">let </span>candidate_delegation_count = candidate_delegation_count.converted();
 		<span class="kw">let </span>candidate_auto_compounding_delegation_count =
@@ -1648,8 +1650,8 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;scheduleRevokeDelegation(address)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;schedule_revoke_delegation(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"scheduleRevokeDelegation(address)"</span>)]
+	#[precompile::public(<span class="string">"schedule_revoke_delegation(address)"</span>)]
 	</span><span class="kw">fn </span>schedule_revoke_delegation(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate: Address,
@@ -1668,15 +1670,15 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;delegatorBondMore(address,uint256)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;delegator_bond_more(address,uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"delegatorBondMore(address,uint256)"</span>)]
+	#[precompile::public(<span class="string">"delegator_bond_more(address,uint256)"</span>)]
 	</span><span class="kw">fn </span>delegator_bond_more(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate: Address,
 		more: U256,
 	) -&gt; EvmResult {
 		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
-		<span class="kw">let </span>more = <span class="self">Self</span>::u256_to_amount(more).in_field(<span class="string">&quot;more&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>more = <span class="self">Self</span>::u256_to_amount(more).in_field(<span class="string">"more"</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1689,15 +1691,15 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;scheduleDelegatorBondLess(address,uint256)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;schedule_delegator_bond_less(address,uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"scheduleDelegatorBondLess(address,uint256)"</span>)]
+	#[precompile::public(<span class="string">"schedule_delegator_bond_less(address,uint256)"</span>)]
 	</span><span class="kw">fn </span>schedule_delegator_bond_less(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate: Address,
 		less: U256,
 	) -&gt; EvmResult {
 		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
-		<span class="kw">let </span>less = <span class="self">Self</span>::u256_to_amount(less).in_field(<span class="string">&quot;less&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>less = <span class="self">Self</span>::u256_to_amount(less).in_field(<span class="string">"less"</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.
 		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1712,8 +1714,8 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;executeDelegationRequest(address,address)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;execute_delegation_request(address,address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"executeDelegationRequest(address,address)"</span>)]
+	#[precompile::public(<span class="string">"execute_delegation_request(address,address)"</span>)]
 	</span><span class="kw">fn </span>execute_delegation_request(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		delegator: Address,
@@ -1735,8 +1737,8 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;cancelDelegationRequest(address)&quot;</span>)]
-	#[precompile::public(<span class="string">&quot;cancel_delegation_request(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"cancelDelegationRequest(address)"</span>)]
+	#[precompile::public(<span class="string">"cancel_delegation_request(address)"</span>)]
 	</span><span class="kw">fn </span>cancel_delegation_request(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate: Address,
@@ -1754,7 +1756,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;setAutoCompound(address,uint8,uint256,uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"setAutoCompound(address,uint8,uint256,uint256)"</span>)]
 	</span><span class="kw">fn </span>set_auto_compound(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		candidate: Address,
@@ -1764,8 +1766,8 @@
 	) -&gt; EvmResult {
 		<span class="kw">if </span>value &gt; <span class="number">100 </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(
-				RevertReason::custom(<span class="string">&quot;Must be an integer between 0 and 100 included&quot;</span>)
-					.in_field(<span class="string">&quot;value&quot;</span>)
+				RevertReason::custom(<span class="string">"Must be an integer between 0 and 100 included"</span>)
+					.in_field(<span class="string">"value"</span>)
 					.into(),
 			);
 		}
@@ -1792,7 +1794,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;getDelegatorTotalStaked(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"getDelegatorTotalStaked(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>get_delegator_total_staked(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1814,7 +1816,7 @@
 		<span class="prelude-val">Ok</span>(amount.into())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;getCandidateTotalCounted(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"getCandidateTotalCounted(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>get_candidate_total_counted(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1835,7 +1837,7 @@
 	<span class="kw">fn </span>u256_to_amount(value: U256) -&gt; MayRevert&lt;BalanceOf&lt;Runtime&gt;&gt; {
 		value
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;balance type&quot;</span>).into())
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"balance type"</span>).into())
 	}
 }
 </code></pre></div></section></main></body></html>

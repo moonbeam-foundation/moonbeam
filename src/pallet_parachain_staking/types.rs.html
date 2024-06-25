@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/parachain-staking/src/types.rs`."><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_parachain_staking" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_parachain_staking/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/parachain-staking/src/types.rs`."><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_parachain_staking" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_parachain_staking/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1819,7 +1821,7 @@
 	<span class="kw">fn </span>default() -&gt; Bond&lt;A, B&gt; {
 		Bond {
 			owner: A::decode(<span class="kw-2">&amp;mut </span>sp_runtime::traits::TrailingZeroInput::zeroes())
-				.expect(<span class="string">&quot;infinite length input; no invalid inputs for type; qed&quot;</span>),
+				.expect(<span class="string">"infinite length input; no invalid inputs for type; qed"</span>),
 			amount: B::default(),
 		}
 	}
@@ -1882,7 +1884,7 @@
 	<span class="kw">fn </span>default() -&gt; BondWithAutoCompound&lt;A, B&gt; {
 		BondWithAutoCompound {
 			owner: A::decode(<span class="kw-2">&amp;mut </span>sp_runtime::traits::TrailingZeroInput::zeroes())
-				.expect(<span class="string">&quot;infinite length input; no invalid inputs for type; qed&quot;</span>),
+				.expect(<span class="string">"infinite length input; no invalid inputs for type; qed"</span>),
 			amount: B::default(),
 			auto_compound: Percent::zero(),
 		}
@@ -1959,7 +1961,7 @@
 </span><span class="kw">pub struct </span>Collator2&lt;AccountId, Balance&gt; {
 	<span class="doccomment">/// The account of this collator
 	</span><span class="kw">pub </span>id: AccountId,
-	<span class="doccomment">/// This collator&#39;s self stake.
+	<span class="doccomment">/// This collator's self stake.
 	</span><span class="kw">pub </span>bond: Balance,
 	<span class="doccomment">/// Set of all nominator AccountIds (to prevent &gt;1 nomination per AccountId)
 	</span><span class="kw">pub </span>nominators: OrderedSet&lt;AccountId&gt;,
@@ -2004,7 +2006,7 @@
 </span><span class="kw">pub struct </span>CollatorCandidate&lt;AccountId, Balance&gt; {
 	<span class="doccomment">/// The account of this collator
 	</span><span class="kw">pub </span>id: AccountId,
-	<span class="doccomment">/// This collator&#39;s self stake.
+	<span class="doccomment">/// This collator's self stake.
 	</span><span class="kw">pub </span>bond: Balance,
 	<span class="doccomment">/// Set of all delegator AccountIds (to prevent &gt;1 delegation per AccountId)
 	</span><span class="kw">pub </span>delegators: OrderedSet&lt;AccountId&gt;,
@@ -2128,7 +2130,7 @@
 <span class="attr">#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 </span><span class="doccomment">/// All candidate info except the top and bottom delegations
 </span><span class="kw">pub struct </span>CandidateMetadata&lt;Balance&gt; {
-	<span class="doccomment">/// This candidate&#39;s self bond amount
+	<span class="doccomment">/// This candidate's self bond amount
 	</span><span class="kw">pub </span>bond: Balance,
 	<span class="doccomment">/// Total number of delegations to this candidate
 	</span><span class="kw">pub </span>delegation_count: u32,
@@ -2416,11 +2418,11 @@
 	{
 		<span class="kw">let </span><span class="kw-2">mut </span>less_total_staked = <span class="prelude-val">None</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>top_delegations = &lt;TopDelegations&lt;T&gt;&gt;::get(candidate)
-			.expect(<span class="string">&quot;CandidateInfo existence =&gt; TopDelegations existence&quot;</span>);
+			.expect(<span class="string">"CandidateInfo existence =&gt; TopDelegations existence"</span>);
 		<span class="kw">let </span>max_top_delegations_per_candidate = T::MaxTopDelegationsPerCandidate::get();
 		<span class="kw">if </span>top_delegations.delegations.len() <span class="kw">as </span>u32 == max_top_delegations_per_candidate {
 			<span class="comment">// pop lowest top delegation
-			</span><span class="kw">let </span>new_bottom_delegation = top_delegations.delegations.pop().expect(<span class="string">&quot;&quot;</span>);
+			</span><span class="kw">let </span>new_bottom_delegation = top_delegations.delegations.pop().expect(<span class="string">""</span>);
 			top_delegations.total = top_delegations
 				.total
 				.saturating_sub(new_bottom_delegation.amount);
@@ -2453,7 +2455,7 @@
 		</span>BalanceOf&lt;T&gt;: Into&lt;Balance&gt; + From&lt;Balance&gt;,
 	{
 		<span class="kw">let </span><span class="kw-2">mut </span>bottom_delegations = &lt;BottomDelegations&lt;T&gt;&gt;::get(candidate)
-			.expect(<span class="string">&quot;CandidateInfo existence =&gt; BottomDelegations existence&quot;</span>);
+			.expect(<span class="string">"CandidateInfo existence =&gt; BottomDelegations existence"</span>);
 		<span class="comment">// if bottom is full, kick the lowest bottom (which is expected to be lower than input
 		// as per check)
 		</span><span class="kw">let </span>increase_delegation_count = <span class="kw">if </span>bottom_delegations.delegations.len() <span class="kw">as </span>u32
@@ -2462,7 +2464,7 @@
 			<span class="kw">let </span>lowest_bottom_to_be_kicked = bottom_delegations
 				.delegations
 				.pop()
-				.expect(<span class="string">&quot;if at full capacity (&gt;0), then &gt;0 bottom delegations exist; qed&quot;</span>);
+				.expect(<span class="string">"if at full capacity (&gt;0), then &gt;0 bottom delegations exist; qed"</span>);
 			<span class="comment">// EXPECT lowest_bottom_to_be_kicked.amount &lt; delegation.amount enforced by caller
 			// if lowest_bottom_to_be_kicked.amount == delegation.amount, we will still kick
 			// the lowest bottom to enforce first come first served
@@ -2473,7 +2475,7 @@
 			// total staked is updated via propagation of lowest bottom delegation amount prior
 			// to call
 			</span><span class="kw">let </span><span class="kw-2">mut </span>delegator_state = &lt;DelegatorState&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>lowest_bottom_to_be_kicked.owner)
-				.expect(<span class="string">&quot;Delegation existence =&gt; DelegatorState existence&quot;</span>);
+				.expect(<span class="string">"Delegation existence =&gt; DelegatorState existence"</span>);
 			<span class="kw">let </span>leaving = delegator_state.delegations.<span class="number">0</span>.len() == <span class="number">1usize</span>;
 			delegator_state.rm_delegation::&lt;T&gt;(candidate);
 			&lt;Pallet&lt;T&gt;&gt;::delegation_remove_request_with_state(
@@ -2504,8 +2506,8 @@
 		</span>} <span class="kw">else </span>{
 			!bumped_from_top
 		};
-		<span class="comment">// only increase delegation count if new bottom delegation (1) doesn&#39;t come from top &amp;&amp;
-		// (2) doesn&#39;t pop the lowest delegation from the bottom
+		<span class="comment">// only increase delegation count if new bottom delegation (1) doesn't come from top &amp;&amp;
+		// (2) doesn't pop the lowest delegation from the bottom
 		</span><span class="kw">if </span>increase_delegation_count {
 			<span class="self">self</span>.delegation_count = <span class="self">self</span>.delegation_count.saturating_add(<span class="number">1u32</span>);
 		}
@@ -2556,7 +2558,7 @@
 		<span class="kw">let </span>old_total_counted = <span class="self">self</span>.total_counted;
 		<span class="comment">// remove top delegation
 		</span><span class="kw">let </span><span class="kw-2">mut </span>top_delegations = &lt;TopDelegations&lt;T&gt;&gt;::get(candidate)
-			.expect(<span class="string">&quot;CandidateInfo exists =&gt; TopDelegations exists&quot;</span>);
+			.expect(<span class="string">"CandidateInfo exists =&gt; TopDelegations exists"</span>);
 		<span class="kw">let </span><span class="kw-2">mut </span>actual_amount_option: <span class="prelude-ty">Option</span>&lt;BalanceOf&lt;T&gt;&gt; = <span class="prelude-val">None</span>;
 		top_delegations.delegations = top_delegations
 			.delegations
@@ -2576,7 +2578,7 @@
 		<span class="comment">// if bottom nonempty =&gt; bump top bottom to top
 		</span><span class="kw">if </span>!<span class="macro">matches!</span>(<span class="self">self</span>.bottom_capacity, CapacityStatus::Empty) {
 			<span class="kw">let </span><span class="kw-2">mut </span>bottom_delegations =
-				&lt;BottomDelegations&lt;T&gt;&gt;::get(candidate).expect(<span class="string">&quot;bottom is nonempty as just checked&quot;</span>);
+				&lt;BottomDelegations&lt;T&gt;&gt;::get(candidate).expect(<span class="string">"bottom is nonempty as just checked"</span>);
 			<span class="comment">// expect already stored greatest to least by bond amount
 			</span><span class="kw">let </span>highest_bottom_delegation = bottom_delegations.delegations.remove(<span class="number">0</span>);
 			bottom_delegations.total = bottom_delegations
@@ -2606,7 +2608,7 @@
 	{
 		<span class="comment">// remove bottom delegation
 		</span><span class="kw">let </span><span class="kw-2">mut </span>bottom_delegations = &lt;BottomDelegations&lt;T&gt;&gt;::get(candidate)
-			.expect(<span class="string">&quot;CandidateInfo exists =&gt; BottomDelegations exists&quot;</span>);
+			.expect(<span class="string">"CandidateInfo exists =&gt; BottomDelegations exists"</span>);
 		<span class="kw">let </span><span class="kw-2">mut </span>actual_amount_option: <span class="prelude-ty">Option</span>&lt;BalanceOf&lt;T&gt;&gt; = <span class="prelude-val">None</span>;
 		bottom_delegations.delegations = bottom_delegations
 			.delegations
@@ -2671,7 +2673,7 @@
 		</span>BalanceOf&lt;T&gt;: Into&lt;Balance&gt; + From&lt;Balance&gt;,
 	{
 		<span class="kw">let </span><span class="kw-2">mut </span>top_delegations = &lt;TopDelegations&lt;T&gt;&gt;::get(candidate)
-			.expect(<span class="string">&quot;CandidateInfo exists =&gt; TopDelegations exists&quot;</span>);
+			.expect(<span class="string">"CandidateInfo exists =&gt; TopDelegations exists"</span>);
 		<span class="kw">let </span><span class="kw-2">mut </span>in_top = <span class="bool-val">false</span>;
 		top_delegations.delegations = top_delegations
 			.delegations
@@ -2734,14 +2736,14 @@
 			bottom_delegations.total = bottom_delegations.total.saturating_sub(bond);
 			<span class="comment">// add it to top
 			</span><span class="kw">let </span><span class="kw-2">mut </span>top_delegations = &lt;TopDelegations&lt;T&gt;&gt;::get(candidate)
-				.expect(<span class="string">&quot;CandidateInfo existence =&gt; TopDelegations existence&quot;</span>);
+				.expect(<span class="string">"CandidateInfo existence =&gt; TopDelegations existence"</span>);
 			<span class="comment">// if top is full, pop lowest top
 			</span><span class="kw">if </span><span class="macro">matches!</span>(top_delegations.top_capacity::&lt;T&gt;(), CapacityStatus::Full) {
 				<span class="comment">// pop lowest top delegation
 				</span><span class="kw">let </span>new_bottom_delegation = top_delegations
 					.delegations
 					.pop()
-					.expect(<span class="string">&quot;Top capacity full =&gt; Exists at least 1 top delegation&quot;</span>);
+					.expect(<span class="string">"Top capacity full =&gt; Exists at least 1 top delegation"</span>);
 				top_delegations.total = top_delegations
 					.total
 					.saturating_sub(new_bottom_delegation.amount);
@@ -2855,7 +2857,7 @@
 			<span class="kw">let </span>delegation = delegation_option.ok_or(Error::&lt;T&gt;::DelegationDNE)<span class="question-mark">?</span>;
 			<span class="comment">// pop highest bottom by reverse and popping
 			</span><span class="kw">let </span><span class="kw-2">mut </span>bottom_delegations = &lt;BottomDelegations&lt;T&gt;&gt;::get(candidate)
-				.expect(<span class="string">&quot;CandidateInfo existence =&gt; BottomDelegations existence&quot;</span>);
+				.expect(<span class="string">"CandidateInfo existence =&gt; BottomDelegations existence"</span>);
 			<span class="kw">let </span>highest_bottom_delegation = bottom_delegations.delegations.remove(<span class="number">0</span>);
 			bottom_delegations.total = bottom_delegations
 				.total
@@ -2906,7 +2908,7 @@
 		</span>BalanceOf&lt;T&gt;: Into&lt;Balance&gt;,
 	{
 		<span class="kw">let </span><span class="kw-2">mut </span>bottom_delegations = &lt;BottomDelegations&lt;T&gt;&gt;::get(candidate)
-			.expect(<span class="string">&quot;CandidateInfo exists =&gt; BottomDelegations exists&quot;</span>);
+			.expect(<span class="string">"CandidateInfo exists =&gt; BottomDelegations exists"</span>);
 		<span class="kw">let </span><span class="kw-2">mut </span>in_bottom = <span class="bool-val">false</span>;
 		bottom_delegations.delegations = bottom_delegations
 			.delegations
@@ -3036,7 +3038,7 @@
 	<span class="doccomment">/// Active with no scheduled exit
 	</span>Active,
 	<span class="doccomment">/// Schedule exit to revoke all ongoing delegations
-	</span><span class="attr">#[deprecated(note = <span class="string">&quot;must only be used for backwards compatibility reasons&quot;</span>)]
+	</span><span class="attr">#[deprecated(note = <span class="string">"must only be used for backwards compatibility reasons"</span>)]
 	</span>Leaving(RoundIndex),
 }
 
@@ -3197,7 +3199,7 @@
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(balance) = amt {
 			<span class="self">self</span>.delegations = OrderedSet::from(delegations);
 			<span class="self">self</span>.total_sub::&lt;T&gt;(balance)
-				.expect(<span class="string">&quot;Decreasing lock cannot fail, qed&quot;</span>);
+				.expect(<span class="string">"Decreasing lock cannot fail, qed"</span>);
 			<span class="prelude-val">Some</span>(<span class="self">self</span>.total)
 		} <span class="kw">else </span>{
 			<span class="prelude-val">None
@@ -3276,10 +3278,10 @@
 					Error::&lt;T&gt;::InsufficientBalance,
 				);
 
-				<span class="comment">// additional sanity check: shouldn&#39;t ever want to lock more than total
+				<span class="comment">// additional sanity check: shouldn't ever want to lock more than total
 				</span><span class="kw">if </span>amount &gt; <span class="self">self</span>.total {
-					<span class="macro">log::warn!</span>(<span class="string">&quot;LOGIC ERROR: request to reserve more than bond total&quot;</span>);
-					<span class="kw">return </span><span class="prelude-val">Err</span>(DispatchError::Other(<span class="string">&quot;Invalid additional_required_balance&quot;</span>));
+					<span class="macro">log::warn!</span>(<span class="string">"LOGIC ERROR: request to reserve more than bond total"</span>);
+					<span class="kw">return </span><span class="prelude-val">Err</span>(DispatchError::Other(<span class="string">"Invalid additional_required_balance"</span>));
 				}
 			}
 			BondAdjust::Decrease =&gt; (), <span class="comment">// do nothing on decrease
@@ -3314,7 +3316,7 @@
 
 	</span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-	<span class="attr">#[deprecated(note = <span class="string">&quot;use DelegationAction&quot;</span>)]
+	<span class="attr">#[deprecated(note = <span class="string">"use DelegationAction"</span>)]
 	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	</span><span class="doccomment">/// Changes requested by the delegator
 	/// - limit of 1 ongoing change per delegation
@@ -3323,7 +3325,7 @@
 		Decrease,
 	}
 
-	<span class="attr">#[deprecated(note = <span class="string">&quot;use ScheduledRequest&quot;</span>)]
+	<span class="attr">#[deprecated(note = <span class="string">"use ScheduledRequest"</span>)]
 	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	</span><span class="kw">pub struct </span>DelegationRequest&lt;AccountId, Balance&gt; {
 		<span class="kw">pub </span>collator: AccountId,
@@ -3332,7 +3334,7 @@
 		<span class="kw">pub </span>action: DelegationChange,
 	}
 
-	<span class="attr">#[deprecated(note = <span class="string">&quot;use DelegationScheduledRequests storage item&quot;</span>)]
+	<span class="attr">#[deprecated(note = <span class="string">"use DelegationScheduledRequests storage item"</span>)]
 	#[derive(Clone, Encode, PartialEq, Decode, RuntimeDebug, TypeInfo)]
 	</span><span class="doccomment">/// Pending requests to mutate delegations for each delegator
 	</span><span class="kw">pub struct </span>PendingDelegationRequests&lt;AccountId, Balance&gt; {
@@ -3373,7 +3375,7 @@
 		}
 	}
 
-	<span class="attr">#[deprecated(note = <span class="string">&quot;use new crate::types::Delegator struct&quot;</span>)]
+	<span class="attr">#[deprecated(note = <span class="string">"use new crate::types::Delegator struct"</span>)]
 	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	</span><span class="doccomment">/// Delegator state
 	</span><span class="kw">pub struct </span>Delegator&lt;AccountId, Balance&gt; {
@@ -3391,7 +3393,7 @@
 
 	<span class="comment">// CollatorSnapshot
 
-	</span><span class="attr">#[deprecated(note = <span class="string">&quot;use CollatorSnapshot with BondWithAutoCompound delegations&quot;</span>)]
+	</span><span class="attr">#[deprecated(note = <span class="string">"use CollatorSnapshot with BondWithAutoCompound delegations"</span>)]
 	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 	</span><span class="doccomment">/// Snapshot of collator state at the start of the round for which they are selected
 	</span><span class="kw">pub struct </span>CollatorSnapshot&lt;AccountId, Balance&gt; {
@@ -3532,7 +3534,7 @@
 	<span class="kw">fn </span>default() -&gt; ParachainBondConfig&lt;A&gt; {
 		ParachainBondConfig {
 			account: A::decode(<span class="kw-2">&amp;mut </span>sp_runtime::traits::TrailingZeroInput::zeroes())
-				.expect(<span class="string">&quot;infinite length input; no invalid inputs for type; qed&quot;</span>),
+				.expect(<span class="string">"infinite length input; no invalid inputs for type; qed"</span>),
 			percent: Percent::zero(),
 		}
 	}

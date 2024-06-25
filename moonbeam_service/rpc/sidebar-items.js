@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["create_full","overrides_handle","spawn_essential_tasks"],"mod":["tracing"],"struct":["FullDeps","MoonbeamEGA","MoonbeamEthConfig","SpawnTasksParams","TracingConfig"]};
+window.SIDEBAR_ITEMS = {"fn":["create_full","spawn_essential_tasks"],"mod":["tracing"],"struct":["FullDeps","MoonbeamEGA","MoonbeamEthConfig","SpawnTasksParams","TracingConfig"]};

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/apis.rs`."><title>apis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/apis.rs`."><title>apis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../moonbeam_runtime_common/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1060,6 +1062,42 @@
 <a href="#1060" id="1060">1060</a>
 <a href="#1061" id="1061">1061</a>
 <a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1080,12 +1118,12 @@
 </span><span class="macro">macro_rules! </span>impl_runtime_apis_plus_common {
 	{$(<span class="macro-nonterminal">$custom</span>:tt)<span class="kw-2">*</span>} =&gt; {
 
-		<span class="attr">#[cfg(feature = <span class="string">&quot;evm-tracing&quot;</span>)]
-		</span><span class="comment">// Helper function to replay the &quot;on_idle&quot; hook for all pallets, we need this for
+		<span class="attr">#[cfg(feature = <span class="string">"evm-tracing"</span>)]
+		</span><span class="comment">// Helper function to replay the "on_idle" hook for all pallets, we need this for
 		// evm-tracing because some ethereum-xcm transactions might be executed at on_idle.
 		//
 		// We need to make sure that we replay on_idle exactly the same way as the
-		// original block execution, but unfortunatly frame executive diosn&#39;t provide a function
+		// original block execution, but unfortunatly frame executive diosn't provide a function
 		// to replay only on_idle, so we need to copy here some code inside frame executive.
 		</span><span class="kw">fn </span>replay_on_idle() {
 			<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
@@ -1117,7 +1155,7 @@
 					Executive::execute_block(block)
 				}
 
-				<span class="kw">fn </span>initialize_block(header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header) {
+				<span class="kw">fn </span>initialize_block(header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header) -&gt; sp_runtime::ExtrinsicInclusionMode {
 					Executive::initialize_block(header)
 				}
 			}
@@ -1178,12 +1216,16 @@
 			}
 
 			<span class="kw">impl </span>sp_genesis_builder::GenesisBuilder&lt;Block&gt; <span class="kw">for </span>Runtime {
-				<span class="kw">fn </span>create_default_config() -&gt; Vec&lt;u8&gt; {
-					frame_support::genesis_builder_helper::create_default_config::&lt;RuntimeGenesisConfig&gt;()
+				<span class="kw">fn </span>build_state(config: Vec&lt;u8&gt;) -&gt; sp_genesis_builder::Result {
+					frame_support::genesis_builder_helper::build_state::&lt;RuntimeGenesisConfig&gt;(config)
 				}
 
-				<span class="kw">fn </span>build_config(config: Vec&lt;u8&gt;) -&gt; sp_genesis_builder::Result {
-					frame_support::genesis_builder_helper::build_config::&lt;RuntimeGenesisConfig&gt;(config)
+				<span class="kw">fn </span>get_preset(id: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;sp_genesis_builder::PresetId&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt; {
+					frame_support::genesis_builder_helper::get_preset::&lt;RuntimeGenesisConfig&gt;(id, |<span class="kw">_</span>| <span class="prelude-val">None</span>)
+				}
+
+				<span class="kw">fn </span>preset_names() -&gt; Vec&lt;sp_genesis_builder::PresetId&gt; {
+					<span class="macro">vec!</span>[]
 				}
 			}
 
@@ -1202,7 +1244,7 @@
 					(),
 					sp_runtime::DispatchError,
 				&gt; {
-					<span class="attr">#[cfg(feature = <span class="string">&quot;evm-tracing&quot;</span>)]
+					<span class="attr">#[cfg(feature = <span class="string">"evm-tracing"</span>)]
 					</span>{
 						<span class="kw">use </span>moonbeam_evm_tracer::tracer::EvmTracer;
 						<span class="kw">use </span>xcm_primitives::{
@@ -1218,7 +1260,7 @@
 							<span class="kw-2">&amp;</span>EthereumXcmTracingStatus::Transaction(traced_transaction.hash()),
 						);
 
-						<span class="comment">// Initialize block: calls the &quot;on_initialize&quot; hook on every pallet
+						<span class="comment">// Initialize block: calls the "on_initialize" hook on every pallet
 						// in AllPalletsWithSystem.
 						// After pallet message queue was introduced, this must be done only after
 						// enabling XCM tracing by setting ETHEREUM_XCM_TRACING_STORAGE_KEY
@@ -1262,13 +1304,13 @@
 						} <span class="kw">else </span>{
 							<span class="comment">// The transaction was not-found
 							</span><span class="prelude-val">Err</span>(sp_runtime::DispatchError::Other(
-								<span class="string">&quot;Failed to find Ethereum transaction among the extrinsics.&quot;</span>,
+								<span class="string">"Failed to find Ethereum transaction among the extrinsics."</span>,
 							))
 						}
 					}
-					<span class="attr">#[cfg(not(feature = <span class="string">&quot;evm-tracing&quot;</span>))]
+					<span class="attr">#[cfg(not(feature = <span class="string">"evm-tracing"</span>))]
 					</span><span class="prelude-val">Err</span>(sp_runtime::DispatchError::Other(
-						<span class="string">&quot;Missing `evm-tracing` compile time feature flag.&quot;</span>,
+						<span class="string">"Missing `evm-tracing` compile time feature flag."</span>,
 					))
 				}
 
@@ -1280,7 +1322,7 @@
 					(),
 					sp_runtime::DispatchError,
 				&gt; {
-					<span class="attr">#[cfg(feature = <span class="string">&quot;evm-tracing&quot;</span>)]
+					<span class="attr">#[cfg(feature = <span class="string">"evm-tracing"</span>)]
 					</span>{
 						<span class="kw">use </span>moonbeam_evm_tracer::tracer::EvmTracer;
 						<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
@@ -1295,7 +1337,7 @@
 						<span class="kw">let </span><span class="kw-2">mut </span>config = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::config().clone();
 						config.estimate = <span class="bool-val">true</span>;
 
-						<span class="comment">// Initialize block: calls the &quot;on_initialize&quot; hook on every pallet
+						<span class="comment">// Initialize block: calls the "on_initialize" hook on every pallet
 						// in AllPalletsWithSystem.
 						// After pallet message queue was introduced, this must be done only after
 						// enabling XCM tracing by setting ETHEREUM_XCM_TRACING_STORAGE_KEY
@@ -1326,9 +1368,9 @@
 
 						<span class="prelude-val">Ok</span>(())
 					}
-					<span class="attr">#[cfg(not(feature = <span class="string">&quot;evm-tracing&quot;</span>))]
+					<span class="attr">#[cfg(not(feature = <span class="string">"evm-tracing"</span>))]
 					</span><span class="prelude-val">Err</span>(sp_runtime::DispatchError::Other(
-						<span class="string">&quot;Missing `evm-tracing` compile time feature flag.&quot;</span>,
+						<span class="string">"Missing `evm-tracing` compile time feature flag."</span>,
 					))
 				}
 
@@ -1344,11 +1386,11 @@
 					nonce: <span class="prelude-ty">Option</span>&lt;U256&gt;,
 					access_list: <span class="prelude-ty">Option</span>&lt;Vec&lt;(H160, Vec&lt;H256&gt;)&gt;&gt;,
 				) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt; {
-					<span class="attr">#[cfg(feature = <span class="string">&quot;evm-tracing&quot;</span>)]
+					<span class="attr">#[cfg(feature = <span class="string">"evm-tracing"</span>)]
 					</span>{
 						<span class="kw">use </span>moonbeam_evm_tracer::tracer::EvmTracer;
 
-						<span class="comment">// Initialize block: calls the &quot;on_initialize&quot; hook on every pallet
+						<span class="comment">// Initialize block: calls the "on_initialize" hook on every pallet
 						// in AllPalletsWithSystem.
 						</span>Executive::initialize_block(header);
 
@@ -1411,9 +1453,9 @@
 						});
 						<span class="prelude-val">Ok</span>(())
 					}
-					<span class="attr">#[cfg(not(feature = <span class="string">&quot;evm-tracing&quot;</span>))]
+					<span class="attr">#[cfg(not(feature = <span class="string">"evm-tracing"</span>))]
 					</span><span class="prelude-val">Err</span>(sp_runtime::DispatchError::Other(
-						<span class="string">&quot;Missing `evm-tracing` compile time feature flag.&quot;</span>,
+						<span class="string">"Missing `evm-tracing` compile time feature flag."</span>,
 					))
 				}
 			}
@@ -1679,8 +1721,10 @@
 					)
 				 }
 
-				 <span class="kw">fn </span>initialize_pending_block(header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header) {
-					pallet_randomness::vrf::using_fake_vrf(|| Executive::initialize_block(header))
+				<span class="kw">fn </span>initialize_pending_block(header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header) {
+					pallet_randomness::vrf::using_fake_vrf(|| {
+						<span class="kw">let _ </span>= Executive::initialize_block(header);
+					})
 				}
 			}
 
@@ -1797,7 +1841,7 @@
 				}
 			}
 
-			<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+			<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
 			</span><span class="kw">impl </span>frame_benchmarking::Benchmark&lt;Block&gt; <span class="kw">for </span>Runtime {
 
 				<span class="kw">fn </span>benchmark_metadata(extra: bool) -&gt; (
@@ -1830,6 +1874,7 @@
 						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
 						Assets <span class="kw">as </span>XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent
 					};
+					<span class="kw">use </span>xcm_config::SelfReserve;
 					<span class="kw">use </span>frame_benchmarking::BenchmarkError;
 
 					<span class="kw">use </span>frame_system_benchmarking::Pallet <span class="kw">as </span>SystemBench;
@@ -1845,7 +1890,35 @@
 						<span class="kw">pub const </span>RandomParaId: ParaId = ParaId::new(<span class="number">43211234</span>);
 					}
 
+					<span class="kw">pub struct </span>TestDeliveryHelper;
+					<span class="kw">impl </span>xcm_builder::EnsureDelivery <span class="kw">for </span>TestDeliveryHelper {
+						<span class="kw">fn </span>ensure_successful_delivery(
+							origin_ref: <span class="kw-2">&amp;</span>Location,
+							_dest: <span class="kw-2">&amp;</span>Location,
+							_fee_reason: xcm_executor::traits::FeeReason,
+						) -&gt; (<span class="prelude-ty">Option</span>&lt;xcm_executor::FeesMode&gt;, <span class="prelude-ty">Option</span>&lt;XcmAssets&gt;) {
+							<span class="kw">use </span>xcm_executor::traits::ConvertLocation;
+							<span class="kw">let </span>account = xcm_config::LocationToH160::convert_location(origin_ref)
+								.expect(<span class="string">"Invalid location"</span>);
+							<span class="comment">// Give the existential deposit at least
+							</span><span class="kw">let </span>balance = ExistentialDeposit::get();
+							<span class="kw">let _ </span>= &lt;Balances <span class="kw">as </span>frame_support::traits::Currency&lt;<span class="kw">_</span>&gt;&gt;::
+								make_free_balance_be(<span class="kw-2">&amp;</span>account.into(), balance);
+
+							(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
+						}
+					}
+
 					<span class="kw">impl </span>pallet_xcm::benchmarking::Config <span class="kw">for </span>Runtime {
+				        <span class="kw">type </span>DeliveryHelper = TestDeliveryHelper;
+
+						<span class="kw">fn </span>get_asset() -&gt; Asset {
+							Asset {
+								id: AssetId(SelfReserve::get()),
+								fun: Fungible(ExistentialDeposit::get()),
+							}
+						}
+
 						<span class="kw">fn </span>reachable_dest() -&gt; <span class="prelude-ty">Option</span>&lt;Location&gt; {
 							<span class="prelude-val">Some</span>(Parent.into())
 						}
@@ -1863,10 +1936,11 @@
 
 							<span class="prelude-val">Some</span>((
 								Asset {
-									fun: Fungible(&lt;Runtime <span class="kw">as </span>pallet_balances::Config&gt;::ExistentialDeposit::get()),
+									fun: Fungible(ExistentialDeposit::get()),
 									id: AssetId(SelfReserve::get().into())
 								},
-								<span class="comment">// AH can reserve transfer native token to some random parachain.
+								<span class="comment">// Moonbeam can reserve transfer native token to
+								// some random parachain.
 								</span>ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
 							))
 						}
@@ -1951,14 +2025,14 @@
 										&lt;Runtime <span class="kw">as </span>PalletAssetManagerConfig&gt;::AssetId,
 										&lt;Runtime <span class="kw">as </span>PalletAssetManagerConfig&gt;::ForeignAssetType&gt;
 									&gt;::set_asset_type_asset_id(
-										location.clone().try_into().expect(<span class="string">&quot;convert to v3&quot;</span>),
+										location.clone().try_into().expect(<span class="string">"convert to v3"</span>),
 										i <span class="kw">as </span>u128
 									);
 									<span class="comment">// set 1-1
 									</span>&lt;AssetManager <span class="kw">as </span>xcm_primitives::UnitsToWeightRatio&lt;
 										&lt;Runtime <span class="kw">as </span>PalletAssetManagerConfig&gt;::ForeignAssetType&gt;
 									&gt;::set_units_per_second(
-										location.clone().try_into().expect(<span class="string">&quot;convert to v3&quot;</span>),
+										location.clone().try_into().expect(<span class="string">"convert to v3"</span>),
 										<span class="number">1_000_000_000_000u128
 									</span>);
 								}
@@ -2025,50 +2099,50 @@
 
 					<span class="kw">let </span>whitelist: Vec&lt;TrackedStorageKey&gt; = <span class="macro">vec!</span>[
 						<span class="comment">// Block Number
-						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
-											&quot;02a5c1b19ab7a04f536c519aca4983ac&quot;</span>)
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">"26aa394eea5630e07c48ae0c9558cef7"
+											"02a5c1b19ab7a04f536c519aca4983ac"</span>)
 							.to_vec().into(),
 						<span class="comment">// Total Issuance
-						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;c2261276cc9d1f8598ea4b6a74b15c2f&quot;
-											&quot;57c875e4cff74148e4628f264b974c80&quot;</span>)
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">"c2261276cc9d1f8598ea4b6a74b15c2f"
+											"57c875e4cff74148e4628f264b974c80"</span>)
 							.to_vec().into(),
 						<span class="comment">// Execution Phase
-						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
-											&quot;ff553b5a9862a516939d82b3d3d8661a&quot;</span>)
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">"26aa394eea5630e07c48ae0c9558cef7"
+											"ff553b5a9862a516939d82b3d3d8661a"</span>)
 							.to_vec().into(),
 						<span class="comment">// Event Count
-						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
-											&quot;0a98fdbe9ce6c55837576c60c7af3850&quot;</span>)
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">"26aa394eea5630e07c48ae0c9558cef7"
+											"0a98fdbe9ce6c55837576c60c7af3850"</span>)
 							.to_vec().into(),
 						<span class="comment">// System Events
-						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
-											&quot;80d41e5e16056765bc8461851072c9d7&quot;</span>)
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">"26aa394eea5630e07c48ae0c9558cef7"
+											"80d41e5e16056765bc8461851072c9d7"</span>)
 							.to_vec().into(),
 						<span class="comment">// System BlockWeight
-						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
-											&quot;34abf5cb34d6244378cddbf18e849d96&quot;</span>)
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">"26aa394eea5630e07c48ae0c9558cef7"
+											"34abf5cb34d6244378cddbf18e849d96"</span>)
 							.to_vec().into(),
 						<span class="comment">// ParachainStaking Round
-						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;a686a3043d0adcf2fa655e57bc595a78&quot;
-											&quot;13792e785168f725b60e2969c7fc2552&quot;</span>)
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">"a686a3043d0adcf2fa655e57bc595a78"
+											"13792e785168f725b60e2969c7fc2552"</span>)
 							.to_vec().into(),
 						<span class="comment">// Treasury Account (py/trsry)
-						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
-											&quot;b99d880ec681799c0cf30e8886371da9&quot;
-											&quot;7be2919ac397ba499ea5e57132180ec6&quot;
-											&quot;6d6f646c70792f747273727900000000&quot;
-											&quot;00000000&quot;
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">"26aa394eea5630e07c48ae0c9558cef7"
+											"b99d880ec681799c0cf30e8886371da9"
+											"7be2919ac397ba499ea5e57132180ec6"
+											"6d6f646c70792f747273727900000000"
+											"00000000"
 						</span>).to_vec().into(),
 						<span class="comment">// Treasury Account (pc/trsry)
-						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
-											&quot;b99d880ec681799c0cf30e8886371da9&quot;
-											&quot;7be2919ac397ba499ea5e57132180ec6&quot;
-											&quot;6d6f646c70632f747273727900000000&quot;
-											&quot;00000000&quot;
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">"26aa394eea5630e07c48ae0c9558cef7"
+											"b99d880ec681799c0cf30e8886371da9"
+											"7be2919ac397ba499ea5e57132180ec6"
+											"6d6f646c70632f747273727900000000"
+											"00000000"
 						</span>).to_vec().into(),
 						<span class="comment">// ParachainInfo ParachainId
-						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;0d715f2646c8f85767b5d2764bb27826&quot;
-											&quot;04a74d81251e398fd8a0a4d55023bb3f&quot;</span>)
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">"0d715f2646c8f85767b5d2764bb27826"
+											"04a74d81251e398fd8a0a4d55023bb3f"</span>)
 							.to_vec().into(),
 
 					];
@@ -2079,21 +2153,21 @@
 					<span class="macro">add_benchmarks!</span>(params, batches);
 
 					<span class="kw">if </span>batches.is_empty() {
-						<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Benchmark not found for this pallet.&quot;</span>.into());
+						<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Benchmark not found for this pallet."</span>.into());
 					}
 					<span class="prelude-val">Ok</span>(batches)
 				}
 			}
 
-			<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+			<span class="attr">#[cfg(feature = <span class="string">"try-runtime"</span>)]
 			</span><span class="kw">impl </span>frame_try_runtime::TryRuntime&lt;Block&gt; <span class="kw">for </span>Runtime {
 				<span class="kw">fn </span>on_runtime_upgrade(checks: frame_try_runtime::UpgradeCheckSelect) -&gt; (Weight, Weight) {
-					<span class="macro">log::info!</span>(<span class="string">&quot;try-runtime::on_runtime_upgrade()&quot;</span>);
-					<span class="comment">// NOTE: intentional expect: we don&#39;t want to propagate the error backwards,
+					<span class="macro">log::info!</span>(<span class="string">"try-runtime::on_runtime_upgrade()"</span>);
+					<span class="comment">// NOTE: intentional expect: we don't want to propagate the error backwards,
 					// and want to have a backtrace here. If any of the pre/post migration checks
 					// fail, we shall stop right here and right now.
 					</span><span class="kw">let </span>weight = Executive::try_runtime_upgrade(checks)
-						.expect(<span class="string">&quot;runtime upgrade logic *must* be infallible&quot;</span>);
+						.expect(<span class="string">"runtime upgrade logic *must* be infallible"</span>);
 					(weight, RuntimeBlockWeights::get().max_block)
 				}
 
@@ -2104,19 +2178,19 @@
 					select: frame_try_runtime::TryStateSelect
 				) -&gt; Weight {
 					<span class="macro">log::info!</span>(
-						<span class="string">&quot;try-runtime: executing block {:?} / root checks: {:?} / try-state-select: {:?}&quot;</span>,
+						<span class="string">"try-runtime: executing block {:?} / root checks: {:?} / try-state-select: {:?}"</span>,
 						block.header.hash(),
 						state_root_check,
 						select,
 					);
-					<span class="comment">// NOTE: intentional unwrap: we don&#39;t want to propagate the error backwards,
+					<span class="comment">// NOTE: intentional unwrap: we don't want to propagate the error backwards,
 					// and want to have a backtrace here.
 					</span>Executive::try_execute_block(
 						block,
 						state_root_check,
 						signature_check,
 						select,
-					).expect(<span class="string">&quot;execute-block failed&quot;</span>)
+					).expect(<span class="string">"execute-block failed"</span>)
 				}
 			}
 		}

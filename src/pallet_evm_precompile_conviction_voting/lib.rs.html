@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/conviction-voting/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_conviction_voting" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../pallet_evm_precompile_conviction_voting/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/conviction-voting/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_conviction_voting" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../pallet_evm_precompile_conviction_voting/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -777,7 +779,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
 </span><span class="kw">use </span>fp_evm::PrecompileHandle;
 <span class="kw">use </span>frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
@@ -829,36 +831,36 @@
 
 <span class="doccomment">/// Solidity selector of the Vote log, which is the Keccak of the Log signature.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_VOTED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;Voted(uint32,address,bool,uint256,uint8)&quot;</span>);
+	<span class="macro">keccak256!</span>(<span class="string">"Voted(uint32,address,bool,uint256,uint8)"</span>);
 
 <span class="doccomment">/// Solidity selector of the Vote Split log, which is the Keccak of the Log signature.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_VOTE_SPLIT: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;VoteSplit(uint32,address,uint256,uint256)&quot;</span>);
+	<span class="macro">keccak256!</span>(<span class="string">"VoteSplit(uint32,address,uint256,uint256)"</span>);
 
 <span class="doccomment">/// Solidity selector of the Vote Split Abstained log, which is the Keccak of the Log signature.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_VOTE_SPLIT_ABSTAINED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;VoteSplitAbstained(uint32,address,uint256,uint256,uint256)&quot;</span>);
+	<span class="macro">keccak256!</span>(<span class="string">"VoteSplitAbstained(uint32,address,uint256,uint256,uint256)"</span>);
 
 <span class="doccomment">/// Solidity selector of the VoteRemove log, which is the Keccak of the Log signature.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_VOTE_REMOVED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;VoteRemoved(uint32,address)&quot;</span>);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_VOTE_REMOVED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"VoteRemoved(uint32,address)"</span>);
 
 <span class="doccomment">/// Solidity selector of the SomeVoteRemove log, which is the Keccak of the Log signature.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_VOTE_REMOVED_FOR_TRACK: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;VoteRemovedForTrack(uint32,uint16,address)&quot;</span>);
+	<span class="macro">keccak256!</span>(<span class="string">"VoteRemovedForTrack(uint32,uint16,address)"</span>);
 
 <span class="doccomment">/// Solidity selector of the VoteRemoveOther log, which is the Keccak of the Log signature.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_VOTE_REMOVED_OTHER: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;VoteRemovedOther(uint32,address,address,uint16)&quot;</span>);
+	<span class="macro">keccak256!</span>(<span class="string">"VoteRemovedOther(uint32,address,address,uint16)"</span>);
 
 <span class="doccomment">/// Solidity selector of the Delegate log, which is the Keccak of the Log signature.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_DELEGATED: [u8; <span class="number">32</span>] =
-	<span class="macro">keccak256!</span>(<span class="string">&quot;Delegated(uint16,address,address,uint256,uint8)&quot;</span>);
+	<span class="macro">keccak256!</span>(<span class="string">"Delegated(uint16,address,address,uint256,uint8)"</span>);
 
 <span class="doccomment">/// Solidity selector of the Undelegate log, which is the Keccak of the Log signature.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_UNDELEGATED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Undelegated(uint16,address)&quot;</span>);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_UNDELEGATED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"Undelegated(uint16,address)"</span>);
 
 <span class="doccomment">/// Solidity selector of the Unlock log, which is the Keccak of the Log signature.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_UNLOCKED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Unlocked(uint16,address)&quot;</span>);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SELECTOR_LOG_UNLOCKED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">"Unlocked(uint16,address)"</span>);
 
 <span class="doccomment">/// A precompile to wrap the functionality from pallet-conviction-voting.
 </span><span class="kw">pub struct </span>ConvictionVotingPrecompile&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
@@ -910,7 +912,7 @@
 	/// * poll_index: Index of poll
 	/// * vote_amount: Balance locked for vote
 	/// * conviction: Conviction multiplier for length of vote lock
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;voteYes(uint32,uint256,uint8)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"voteYes(uint32,uint256,uint8)"</span>)]
 	</span><span class="kw">fn </span>vote_yes(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		poll_index: u32,
@@ -923,7 +925,7 @@
 			AccountVote::Standard {
 				vote: Vote {
 					aye: <span class="bool-val">true</span>,
-					conviction: <span class="self">Self</span>::u8_to_conviction(conviction).in_field(<span class="string">&quot;conviction&quot;</span>)<span class="question-mark">?</span>,
+					conviction: <span class="self">Self</span>::u8_to_conviction(conviction).in_field(<span class="string">"conviction"</span>)<span class="question-mark">?</span>,
 				},
 				balance: vote_amount,
 			},
@@ -936,7 +938,7 @@
 	/// * poll_index: Index of poll
 	/// * vote_amount: Balance locked for vote
 	/// * conviction: Conviction multiplier for length of vote lock
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;voteNo(uint32,uint256,uint8)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"voteNo(uint32,uint256,uint8)"</span>)]
 	</span><span class="kw">fn </span>vote_no(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		poll_index: u32,
@@ -949,7 +951,7 @@
 			AccountVote::Standard {
 				vote: Vote {
 					aye: <span class="bool-val">false</span>,
-					conviction: <span class="self">Self</span>::u8_to_conviction(conviction).in_field(<span class="string">&quot;conviction&quot;</span>)<span class="question-mark">?</span>,
+					conviction: <span class="self">Self</span>::u8_to_conviction(conviction).in_field(<span class="string">"conviction"</span>)<span class="question-mark">?</span>,
 				},
 				balance: vote_amount,
 			},
@@ -962,7 +964,7 @@
 	/// * poll_index: Index of poll
 	/// * aye: Balance locked for aye vote
 	/// * nay: Balance locked for nay vote
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;voteSplit(uint32,uint256,uint256)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"voteSplit(uint32,uint256,uint256)"</span>)]
 	</span><span class="kw">fn </span>vote_split(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		poll_index: u32,
@@ -978,7 +980,7 @@
 	/// * poll_index: Index of poll
 	/// * aye: Balance locked for aye vote
 	/// * nay: Balance locked for nay vote
-	</span><span class="attr">#[precompile::public(<span class="string">&quot;voteSplitAbstain(uint32,uint256,uint256,uint256)&quot;</span>)]
+	</span><span class="attr">#[precompile::public(<span class="string">"voteSplitAbstain(uint32,uint256,uint256,uint256)"</span>)]
 	</span><span class="kw">fn </span>vote_split_abstain(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		poll_index: u32,
@@ -993,12 +995,12 @@
 		)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;removeVote(uint32)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"removeVote(uint32)"</span>)]
 	</span><span class="kw">fn </span>remove_vote(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, poll_index: u32) -&gt; EvmResult {
 		<span class="self">Self</span>::rm_vote(handle, poll_index, <span class="prelude-val">None</span>)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;removeVoteForTrack(uint32,uint16)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"removeVoteForTrack(uint32,uint16)"</span>)]
 	</span><span class="kw">fn </span>remove_vote_for_track(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		poll_index: u32,
@@ -1014,11 +1016,11 @@
 		maybe_track_id: <span class="prelude-ty">Option</span>&lt;u16&gt;,
 	) -&gt; EvmResult {
 		<span class="kw">let </span>caller = handle.context().caller;
-		<span class="kw">let </span>index = <span class="self">Self</span>::u32_to_index(poll_index).in_field(<span class="string">&quot;pollIndex&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>index = <span class="self">Self</span>::u32_to_index(poll_index).in_field(<span class="string">"pollIndex"</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>(event, class) = <span class="kw">if let </span><span class="prelude-val">Some</span>(track_id) = maybe_track_id {
 			<span class="macro">log::trace!</span>(
-				target: <span class="string">&quot;conviction-voting-precompile&quot;</span>,
-				<span class="string">&quot;Removing vote from poll {:?} for track {:?}&quot;</span>,
+				target: <span class="string">"conviction-voting-precompile"</span>,
+				<span class="string">"Removing vote from poll {:?} for track {:?}"</span>,
 				index,
 				track_id,
 			);
@@ -1029,12 +1031,12 @@
 					H256::from_low_u64_be(poll_index <span class="kw">as </span>u64),
 					solidity::encode_event_data((track_id, Address(caller))),
 				),
-				<span class="prelude-val">Some</span>(<span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>),
+				<span class="prelude-val">Some</span>(<span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">"trackId"</span>)<span class="question-mark">?</span>),
 			)
 		} <span class="kw">else </span>{
 			<span class="macro">log::trace!</span>(
-				target: <span class="string">&quot;conviction-voting-precompile&quot;</span>,
-				<span class="string">&quot;Removing vote from poll {:?}&quot;</span>,
+				target: <span class="string">"conviction-voting-precompile"</span>,
+				<span class="string">"Removing vote from poll {:?}"</span>,
 				index,
 			);
 			(
@@ -1058,7 +1060,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;removeOtherVote(address,uint16,uint32)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"removeOtherVote(address,uint16,uint32)"</span>)]
 	</span><span class="kw">fn </span>remove_other_vote(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		target: Address,
@@ -1075,16 +1077,16 @@
 		);
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>class = <span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>;
-		<span class="kw">let </span>index = <span class="self">Self</span>::u32_to_index(poll_index).in_field(<span class="string">&quot;pollIndex&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>class = <span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">"trackId"</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>index = <span class="self">Self</span>::u32_to_index(poll_index).in_field(<span class="string">"pollIndex"</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>target = Runtime::AddressMapping::into_account_id(target.into());
 		<span class="kw">let </span>target: &lt;Runtime::Lookup <span class="kw">as </span>StaticLookup&gt;::Source =
 			Runtime::Lookup::unlookup(target.clone());
 
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">&quot;conviction-voting-precompile&quot;</span>,
-			<span class="string">&quot;Removing other vote from poll {:?}&quot;</span>,
+			target: <span class="string">"conviction-voting-precompile"</span>,
+			<span class="string">"Removing other vote from poll {:?}"</span>,
 			index
 		);
 
@@ -1102,7 +1104,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;delegate(uint16,address,uint8,uint256)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"delegate(uint16,address,uint8,uint256)"</span>)]
 	</span><span class="kw">fn </span>delegate(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		track_id: u16,
@@ -1120,12 +1122,12 @@
 		);
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>class = <span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>;
-		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">&quot;amount&quot;</span>)<span class="question-mark">?</span>;
-		<span class="kw">let </span>conviction = <span class="self">Self</span>::u8_to_conviction(conviction).in_field(<span class="string">&quot;conviction&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>class = <span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">"trackId"</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">"amount"</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>conviction = <span class="self">Self</span>::u8_to_conviction(conviction).in_field(<span class="string">"conviction"</span>)<span class="question-mark">?</span>;
 
-		<span class="macro">log::trace!</span>(target: <span class="string">&quot;conviction-voting-precompile&quot;</span>,
-			<span class="string">&quot;Delegating vote to {:?} with balance {:?} and conviction {:?}&quot;</span>,
+		<span class="macro">log::trace!</span>(target: <span class="string">"conviction-voting-precompile"</span>,
+			<span class="string">"Delegating vote to {:?} with balance {:?} and conviction {:?}"</span>,
 			representative, amount, conviction
 		);
 
@@ -1152,7 +1154,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;undelegate(uint16)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"undelegate(uint16)"</span>)]
 	</span><span class="kw">fn </span>undelegate(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, track_id: u16) -&gt; EvmResult {
 		<span class="kw">let </span>caller = handle.context().caller;
 
@@ -1164,7 +1166,7 @@
 		);
 		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>event])<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>class = <span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>class = <span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">"trackId"</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(caller);
 		<span class="kw">let </span>call = ConvictionVotingCall::&lt;Runtime&gt;::undelegate { class };
 
@@ -1175,9 +1177,9 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;unlock(uint16,address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"unlock(uint16,address)"</span>)]
 	</span><span class="kw">fn </span>unlock(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, track_id: u16, target: Address) -&gt; EvmResult {
-		<span class="kw">let </span>class = <span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>class = <span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">"trackId"</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>event = log2(
 			handle.context().address,
@@ -1193,8 +1195,8 @@
 			Runtime::Lookup::unlookup(target.clone());
 
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">&quot;conviction-voting-precompile&quot;</span>,
-			<span class="string">&quot;Unlocking conviction-voting tokens for {:?}&quot;</span>, target
+			target: <span class="string">"conviction-voting-precompile"</span>,
+			<span class="string">"Unlocking conviction-voting tokens for {:?}"</span>, target
 		);
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -1207,7 +1209,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;votingFor(address,uint16)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"votingFor(address,uint16)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>voting_for(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1218,14 +1220,14 @@
 		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">38 </span>+ VotingOf::&lt;Runtime&gt;::max_encoded_len())<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>who = Runtime::AddressMapping::into_account_id(who.into());
-		<span class="kw">let </span>class = <span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">&quot;trackId&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>class = <span class="self">Self</span>::u16_to_track_id(track_id).in_field(<span class="string">"trackId"</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>voting = &lt;VotingFor&lt;Runtime&gt;&gt;::get(<span class="kw-2">&amp;</span>who, <span class="kw-2">&amp;</span>class);
 
 		<span class="prelude-val">Ok</span>(<span class="self">Self</span>::voting_to_output(voting)<span class="question-mark">?</span>)
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">&quot;classLocksFor(address)&quot;</span>)]
+	<span class="attr">#[precompile::public(<span class="string">"classLocksFor(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>class_locks_for(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1261,31 +1263,31 @@
 	<span class="kw">fn </span>u8_to_conviction(conviction: u8) -&gt; MayRevert&lt;Conviction&gt; {
 		conviction
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;Must be an integer between 0 and 6 included&quot;</span>).into())
+			.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">"Must be an integer between 0 and 6 included"</span>).into())
 	}
 
 	<span class="kw">fn </span>u32_to_index(index: u32) -&gt; MayRevert&lt;IndexOf&lt;Runtime&gt;&gt; {
 		index
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;index type&quot;</span>).into())
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"index type"</span>).into())
 	}
 
 	<span class="kw">fn </span>u16_to_track_id(class: u16) -&gt; MayRevert&lt;ClassOf&lt;Runtime&gt;&gt; {
 		class
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;trackId type&quot;</span>).into())
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"trackId type"</span>).into())
 	}
 
 	<span class="kw">fn </span>track_id_to_u16(class: ClassOf&lt;Runtime&gt;) -&gt; MayRevert&lt;u16&gt; {
 		class
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;trackId type&quot;</span>).into())
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"trackId type"</span>).into())
 	}
 
 	<span class="kw">fn </span>u256_to_amount(value: U256) -&gt; MayRevert&lt;BalanceOf&lt;Runtime&gt;&gt; {
 		value
 			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;balance type&quot;</span>).into())
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"balance type"</span>).into())
 	}
 
 	<span class="kw">fn </span>log_vote_event(
@@ -1310,7 +1312,7 @@
 				(
 					AccountVote::Standard {
 						vote,
-						balance: <span class="self">Self</span>::u256_to_amount(balance).in_field(<span class="string">&quot;voteAmount&quot;</span>)<span class="question-mark">?</span>,
+						balance: <span class="self">Self</span>::u256_to_amount(balance).in_field(<span class="string">"voteAmount"</span>)<span class="question-mark">?</span>,
 					},
 					event,
 				)
@@ -1324,8 +1326,8 @@
 				);
 				(
 					AccountVote::Split {
-						aye: <span class="self">Self</span>::u256_to_amount(aye).in_field(<span class="string">&quot;aye&quot;</span>)<span class="question-mark">?</span>,
-						nay: <span class="self">Self</span>::u256_to_amount(nay).in_field(<span class="string">&quot;nay&quot;</span>)<span class="question-mark">?</span>,
+						aye: <span class="self">Self</span>::u256_to_amount(aye).in_field(<span class="string">"aye"</span>)<span class="question-mark">?</span>,
+						nay: <span class="self">Self</span>::u256_to_amount(nay).in_field(<span class="string">"nay"</span>)<span class="question-mark">?</span>,
 					},
 					event,
 				)
@@ -1339,9 +1341,9 @@
 				);
 				(
 					AccountVote::SplitAbstain {
-						aye: <span class="self">Self</span>::u256_to_amount(aye).in_field(<span class="string">&quot;aye&quot;</span>)<span class="question-mark">?</span>,
-						nay: <span class="self">Self</span>::u256_to_amount(nay).in_field(<span class="string">&quot;nay&quot;</span>)<span class="question-mark">?</span>,
-						abstain: <span class="self">Self</span>::u256_to_amount(abstain).in_field(<span class="string">&quot;abstain&quot;</span>)<span class="question-mark">?</span>,
+						aye: <span class="self">Self</span>::u256_to_amount(aye).in_field(<span class="string">"aye"</span>)<span class="question-mark">?</span>,
+						nay: <span class="self">Self</span>::u256_to_amount(nay).in_field(<span class="string">"nay"</span>)<span class="question-mark">?</span>,
+						abstain: <span class="self">Self</span>::u256_to_amount(abstain).in_field(<span class="string">"abstain"</span>)<span class="question-mark">?</span>,
 					},
 					event,
 				)
@@ -1362,7 +1364,7 @@
 				<span class="kw">for </span>(poll_index, account_vote) <span class="kw">in </span>votes {
 					<span class="kw">let </span>poll_index: u32 = poll_index
 						.try_into()
-						.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;index type&quot;</span>))<span class="question-mark">?</span>;
+						.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"index type"</span>))<span class="question-mark">?</span>;
 					<span class="kw">let </span>account_vote = <span class="kw">match </span>account_vote {
 						AccountVote::Standard { vote, balance } =&gt; OutputAccountVote {
 							is_standard: <span class="bool-val">true</span>,

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/cli/src/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_cli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../moonbeam_cli/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/cli/src/command.rs`."><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_cli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../moonbeam_cli/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -998,6 +1000,14 @@
 <a href="#998" id="998">998</a>
 <a href="#999" id="999">999</a>
 <a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1022,9 +1032,12 @@
 <span class="kw">use </span>frame_benchmarking_cli::BenchmarkCmd;
 <span class="kw">use </span>log::{info, warn};
 <span class="kw">use </span>moonbeam_cli_opt::EthApi;
-<span class="kw">use </span>moonbeam_service::{chain_spec, frontier_database_dir, IdentifyVariant};
+<span class="kw">use </span>moonbeam_service::{
+	chain_spec, frontier_database_dir, moonbase_runtime, moonbeam_runtime, moonriver_runtime,
+	HostFunctions, IdentifyVariant,
+};
 <span class="kw">use </span>parity_scale_codec::Encode;
-<span class="attr">#[cfg(feature = <span class="string">&quot;westend-native&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"westend-native"</span>)]
 </span><span class="kw">use </span>polkadot_service::WestendChainSpec;
 <span class="kw">use </span>sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
@@ -1036,7 +1049,9 @@
 };
 <span class="kw">use </span>sp_core::hexdisplay::HexDisplay;
 <span class="kw">use </span>sp_runtime::{
-	traits::{AccountIdConversion, Block <span class="kw">as </span>BlockT, Hash <span class="kw">as </span>HashT, Header <span class="kw">as </span>HeaderT, Zero},
+	traits::{
+		AccountIdConversion, Block <span class="kw">as </span>BlockT, Hash <span class="kw">as </span>HashT, HashingFor, Header <span class="kw">as </span>HeaderT, Zero,
+	},
 	StateVersion,
 };
 <span class="kw">use </span>std::{io::Write, net::SocketAddr};
@@ -1048,34 +1063,34 @@
 ) -&gt; std::result::Result&lt;Box&lt;<span class="kw">dyn </span>sc_service::ChainSpec&gt;, String&gt; {
 	<span class="prelude-val">Ok</span>(<span class="kw">match </span>id {
 		<span class="comment">// Moonbase networks
-		</span><span class="string">&quot;moonbase-alpha&quot; </span>| <span class="string">&quot;alphanet&quot; </span>=&gt; Box::new(chain_spec::RawChainSpec::from_json_bytes(
-			<span class="kw-2">&amp;</span><span class="macro">include_bytes!</span>(<span class="string">&quot;../../../specs/alphanet/parachain-embedded-specs-v8.json&quot;</span>)[..],
+		</span><span class="string">"moonbase-alpha" </span>| <span class="string">"alphanet" </span>=&gt; Box::new(chain_spec::RawChainSpec::from_json_bytes(
+			<span class="kw-2">&amp;</span><span class="macro">include_bytes!</span>(<span class="string">"../../../specs/alphanet/parachain-embedded-specs-v8.json"</span>)[..],
 		)<span class="question-mark">?</span>),
-		<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
-		</span><span class="string">&quot;moonbase-local&quot; </span>=&gt; Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
-		<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
-		</span><span class="string">&quot;moonbase-dev&quot; </span>| <span class="string">&quot;dev&quot; </span>| <span class="string">&quot;development&quot; </span>=&gt; {
+		<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
+		</span><span class="string">"moonbase-local" </span>=&gt; Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
+		<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
+		</span><span class="string">"moonbase-dev" </span>| <span class="string">"dev" </span>| <span class="string">"development" </span>=&gt; {
 			Box::new(chain_spec::moonbase::development_chain_spec(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>))
 		}
-		<span class="attr">#[cfg(all(feature = <span class="string">&quot;test-spec&quot;</span>, feature = <span class="string">&quot;moonbeam-native&quot;</span>))]
-		</span><span class="string">&quot;staking&quot; </span>=&gt; Box::new(chain_spec::test_spec::staking_spec(para_id)),
+		<span class="attr">#[cfg(all(feature = <span class="string">"test-spec"</span>, feature = <span class="string">"moonbeam-native"</span>))]
+		</span><span class="string">"staking" </span>=&gt; Box::new(chain_spec::test_spec::staking_spec(para_id)),
 		<span class="comment">// Moonriver networks
-		</span><span class="string">&quot;moonriver&quot; </span>=&gt; Box::new(chain_spec::RawChainSpec::from_json_bytes(
-			<span class="kw-2">&amp;</span><span class="macro">include_bytes!</span>(<span class="string">&quot;../../../specs/moonriver/parachain-embedded-specs.json&quot;</span>)[..],
+		</span><span class="string">"moonriver" </span>=&gt; Box::new(chain_spec::RawChainSpec::from_json_bytes(
+			<span class="kw-2">&amp;</span><span class="macro">include_bytes!</span>(<span class="string">"../../../specs/moonriver/parachain-embedded-specs.json"</span>)[..],
 		)<span class="question-mark">?</span>),
-		<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
-		</span><span class="string">&quot;moonriver-dev&quot; </span>=&gt; Box::new(chain_spec::moonriver::development_chain_spec(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)),
-		<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
-		</span><span class="string">&quot;moonriver-local&quot; </span>=&gt; Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
+		<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
+		</span><span class="string">"moonriver-dev" </span>=&gt; Box::new(chain_spec::moonriver::development_chain_spec(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)),
+		<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
+		</span><span class="string">"moonriver-local" </span>=&gt; Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
 
 		<span class="comment">// Moonbeam networks
-		</span><span class="string">&quot;moonbeam&quot; </span>| <span class="string">&quot;&quot; </span>=&gt; Box::new(chain_spec::RawChainSpec::from_json_bytes(
-			<span class="kw-2">&amp;</span><span class="macro">include_bytes!</span>(<span class="string">&quot;../../../specs/moonbeam/parachain-embedded-specs.json&quot;</span>)[..],
+		</span><span class="string">"moonbeam" </span>| <span class="string">"" </span>=&gt; Box::new(chain_spec::RawChainSpec::from_json_bytes(
+			<span class="kw-2">&amp;</span><span class="macro">include_bytes!</span>(<span class="string">"../../../specs/moonbeam/parachain-embedded-specs.json"</span>)[..],
 		)<span class="question-mark">?</span>),
-		<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
-		</span><span class="string">&quot;moonbeam-dev&quot; </span>=&gt; Box::new(chain_spec::moonbeam::development_chain_spec(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)),
-		<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
-		</span><span class="string">&quot;moonbeam-local&quot; </span>=&gt; Box::new(chain_spec::moonbeam::get_chain_spec(para_id)),
+		<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
+		</span><span class="string">"moonbeam-dev" </span>=&gt; Box::new(chain_spec::moonbeam::development_chain_spec(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)),
+		<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
+		</span><span class="string">"moonbeam-local" </span>=&gt; Box::new(chain_spec::moonbeam::get_chain_spec(para_id)),
 
 		<span class="comment">// Specs provided as json specify which runtime to use in their file name. For example,
 		// `moonbeam-custom.json` uses the moonbeam runtime.
@@ -1091,9 +1106,9 @@
 					.unwrap_or(<span class="bool-val">false</span>)
 			};
 
-			<span class="kw">if </span>run_cmd.force_moonbase || starts_with(<span class="string">&quot;moonbase&quot;</span>) {
+			<span class="kw">if </span>run_cmd.force_moonbase || starts_with(<span class="string">"moonbase"</span>) {
 				Box::new(chain_spec::moonbase::ChainSpec::from_json_file(path)<span class="question-mark">?</span>)
-			} <span class="kw">else if </span>run_cmd.force_moonriver || starts_with(<span class="string">&quot;moonriver&quot;</span>) {
+			} <span class="kw">else if </span>run_cmd.force_moonriver || starts_with(<span class="string">"moonriver"</span>) {
 				Box::new(chain_spec::moonriver::ChainSpec::from_json_file(path)<span class="question-mark">?</span>)
 			} <span class="kw">else </span>{
 				Box::new(chain_spec::moonbeam::ChainSpec::from_json_file(path)<span class="question-mark">?</span>)
@@ -1104,29 +1119,29 @@
 
 <span class="kw">impl </span>SubstrateCli <span class="kw">for </span>Cli {
 	<span class="kw">fn </span>impl_name() -&gt; String {
-		<span class="string">&quot;Moonbeam Parachain Collator&quot;</span>.into()
+		<span class="string">"Moonbeam Parachain Collator"</span>.into()
 	}
 
 	<span class="kw">fn </span>impl_version() -&gt; String {
-		<span class="macro">env!</span>(<span class="string">&quot;SUBSTRATE_CLI_IMPL_VERSION&quot;</span>).into()
+		<span class="macro">env!</span>(<span class="string">"SUBSTRATE_CLI_IMPL_VERSION"</span>).into()
 	}
 
 	<span class="kw">fn </span>description() -&gt; String {
 		<span class="macro">format!</span>(
-			<span class="string">&quot;Moonbase Parachain Collator\n\nThe command-line arguments provided first will be \
+			<span class="string">"Moonbase Parachain Collator\n\nThe command-line arguments provided first will be \
 		passed to the parachain node, while the arguments provided after -- will be passed \
 		to the relaychain node.\n\n\
-		{} [parachain-args] -- [relaychain-args]&quot;</span>,
+		{} [parachain-args] -- [relaychain-args]"</span>,
 			<span class="self">Self</span>::executable_name()
 		)
 	}
 
 	<span class="kw">fn </span>author() -&gt; String {
-		<span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_AUTHORS&quot;</span>).into()
+		<span class="macro">env!</span>(<span class="string">"CARGO_PKG_AUTHORS"</span>).into()
 	}
 
 	<span class="kw">fn </span>support_url() -&gt; String {
-		<span class="string">&quot;https://github.com/PureStake/moonbeam/issues/new&quot;</span>.into()
+		<span class="string">"https://github.com/PureStake/moonbeam/issues/new"</span>.into()
 	}
 
 	<span class="kw">fn </span>copyright_start_year() -&gt; i32 {
@@ -1139,43 +1154,43 @@
 }
 
 <span class="kw">impl </span>Cli {
-	<span class="kw">fn </span>runtime_version(spec: <span class="kw-2">&amp;</span>Box&lt;<span class="kw">dyn </span>sc_service::ChainSpec&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>RuntimeVersion {
+	<span class="kw">fn </span>runtime_version(spec: <span class="kw-2">&amp;</span>Box&lt;<span class="kw">dyn </span>sc_service::ChainSpec&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>RuntimeVersion {
 		<span class="kw">match </span>spec {
-			<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+			<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 			</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; <span class="kw">return </span><span class="kw-2">&amp;</span>moonbeam_service::moonriver_runtime::VERSION,
-			<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+			<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 			</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; <span class="kw">return </span><span class="kw-2">&amp;</span>moonbeam_service::moonbeam_runtime::VERSION,
-			<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+			<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 			</span><span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="kw-2">&amp;</span>moonbeam_service::moonbase_runtime::VERSION,
-			<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
-			</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
+			<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
+			</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
 		}
 	}
 }
 
 <span class="kw">impl </span>SubstrateCli <span class="kw">for </span>RelayChainCli {
 	<span class="kw">fn </span>impl_name() -&gt; String {
-		<span class="string">&quot;Moonbeam Parachain Collator&quot;</span>.into()
+		<span class="string">"Moonbeam Parachain Collator"</span>.into()
 	}
 
 	<span class="kw">fn </span>impl_version() -&gt; String {
-		<span class="macro">env!</span>(<span class="string">&quot;SUBSTRATE_CLI_IMPL_VERSION&quot;</span>).into()
+		<span class="macro">env!</span>(<span class="string">"SUBSTRATE_CLI_IMPL_VERSION"</span>).into()
 	}
 
 	<span class="kw">fn </span>description() -&gt; String {
-		<span class="string">&quot;Moonbeam Parachain Collator\n\nThe command-line arguments provided first will be \
+		<span class="string">"Moonbeam Parachain Collator\n\nThe command-line arguments provided first will be \
 		passed to the parachain node, while the arguments provided after -- will be passed \
 		to the relaychain node.\n\n\
-		parachain-collator [parachain-args] -- [relaychain-args]&quot;
+		parachain-collator [parachain-args] -- [relaychain-args]"
 			</span>.into()
 	}
 
 	<span class="kw">fn </span>author() -&gt; String {
-		<span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_AUTHORS&quot;</span>).into()
+		<span class="macro">env!</span>(<span class="string">"CARGO_PKG_AUTHORS"</span>).into()
 	}
 
 	<span class="kw">fn </span>support_url() -&gt; String {
-		<span class="string">&quot;https://github.com/PureStake/moonbeam/issues/new&quot;</span>.into()
+		<span class="string">"https://github.com/PureStake/moonbeam/issues/new"</span>.into()
 	}
 
 	<span class="kw">fn </span>copyright_start_year() -&gt; i32 {
@@ -1184,9 +1199,9 @@
 
 	<span class="kw">fn </span>load_spec(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; std::result::Result&lt;Box&lt;<span class="kw">dyn </span>sc_service::ChainSpec&gt;, String&gt; {
 		<span class="kw">match </span>id {
-			<span class="attr">#[cfg(feature = <span class="string">&quot;westend-native&quot;</span>)]
-			</span><span class="string">&quot;westend_moonbase_relay_testnet&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Box::new(WestendChainSpec::from_json_bytes(
-				<span class="kw-2">&amp;</span><span class="macro">include_bytes!</span>(<span class="string">&quot;../../../specs/alphanet/westend-embedded-specs-v8.json&quot;</span>)[..],
+			<span class="attr">#[cfg(feature = <span class="string">"westend-native"</span>)]
+			</span><span class="string">"westend_moonbase_relay_testnet" </span>=&gt; <span class="prelude-val">Ok</span>(Box::new(WestendChainSpec::from_json_bytes(
+				<span class="kw-2">&amp;</span><span class="macro">include_bytes!</span>(<span class="string">"../../../specs/alphanet/westend-embedded-specs-v8.json"</span>)[..],
 			)<span class="question-mark">?</span>)),
 			<span class="comment">// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
@@ -1207,7 +1222,7 @@
 			.is_none()
 	{
 		<span class="kw">return </span><span class="prelude-val">Err</span>(
-			<span class="string">&quot;`debug` or `trace` namespaces requires `--wasm-runtime-overrides /path/to/overrides`.&quot;
+			<span class="string">"`debug` or `trace` namespaces requires `--wasm-runtime-overrides /path/to/overrides`."
 				</span>.into(),
 		);
 	}
@@ -1307,25 +1322,25 @@
 				// we need to extract it here to determine whether we are running the dev service.
 				</span><span class="kw">let </span>extension = chain_spec::Extensions::try_get(<span class="kw-2">&amp;*</span>config.chain_spec);
 				<span class="kw">let </span>relay_chain_id = extension.map(|e| e.relay_chain.as_str());
-				<span class="kw">let </span>dev_service = cli.run.dev_service || relay_chain_id == <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>);
+				<span class="kw">let </span>dev_service = cli.run.dev_service || relay_chain_id == <span class="prelude-val">Some</span>(<span class="string">"dev-service"</span>);
 
 				<span class="comment">// Remove Frontier offchain db
 				</span><span class="kw">let </span>frontier_database_config = <span class="kw">match </span>config.database {
 					DatabaseSource::RocksDb { .. } =&gt; DatabaseSource::RocksDb {
-						path: frontier_database_dir(<span class="kw-2">&amp;</span>config, <span class="string">&quot;db&quot;</span>),
+						path: frontier_database_dir(<span class="kw-2">&amp;</span>config, <span class="string">"db"</span>),
 						cache_size: <span class="number">0</span>,
 					},
 					DatabaseSource::ParityDb { .. } =&gt; DatabaseSource::ParityDb {
-						path: frontier_database_dir(<span class="kw-2">&amp;</span>config, <span class="string">&quot;paritydb&quot;</span>),
+						path: frontier_database_dir(<span class="kw-2">&amp;</span>config, <span class="string">"paritydb"</span>),
 					},
 					<span class="kw">_ </span>=&gt; {
-						<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot purge `{:?}` database&quot;</span>, config.database).into())
+						<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"Cannot purge `{:?}` database"</span>, config.database).into())
 					}
 				};
 				cmd.base.run(frontier_database_config)<span class="question-mark">?</span>;
 
 				<span class="kw">if </span>dev_service {
-					<span class="comment">// base refers to the encapsulated &quot;regular&quot; sc_cli::PurgeChain command
+					<span class="comment">// base refers to the encapsulated "regular" sc_cli::PurgeChain command
 					</span><span class="kw">return </span>cmd.base.run(config.database);
 				}
 
@@ -1341,7 +1356,7 @@
 					<span class="kw-2">&amp;</span>polkadot_cli,
 					config.tokio_handle.clone(),
 				)
-				.map_err(|err| <span class="macro">format!</span>(<span class="string">&quot;Relay chain argument error: {}&quot;</span>, err))<span class="question-mark">?</span>;
+				.map_err(|err| <span class="macro">format!</span>(<span class="string">"Relay chain argument error: {}"</span>, err))<span class="question-mark">?</span>;
 
 				cmd.run(config, polkadot_config)
 			})
@@ -1351,7 +1366,7 @@
 			<span class="kw">let </span>chain_spec = <span class="kw-2">&amp;</span>runner.config().chain_spec;
 			<span class="kw">let </span>rpc_config = cli.run.new_rpc_config();
 			<span class="kw">match </span>chain_spec {
-				<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+				<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 				</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; runner.async_run(|<span class="kw-2">mut </span>config| {
 					<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
 						moonbeam_service::moonriver_runtime::RuntimeApi,
@@ -1363,7 +1378,7 @@
 						params.task_manager,
 					))
 				}),
-				<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+				<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 				</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; runner.async_run(|<span class="kw-2">mut </span>config| {
 					<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
@@ -1375,7 +1390,7 @@
 						params.task_manager,
 					))
 				}),
-				<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+				<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 				</span><span class="kw">_ </span>=&gt; runner.async_run(|<span class="kw-2">mut </span>config| {
 					<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
 						moonbeam_service::moonbase_runtime::RuntimeApi,
@@ -1387,13 +1402,13 @@
 						params.task_manager,
 					))
 				}),
-				<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
-				</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
+				<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
+				</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
 			}
 		}
 		<span class="prelude-val">Some</span>(Subcommand::ExportGenesisHead(params)) =&gt; {
-			<span class="kw">let </span><span class="kw-2">mut </span>builder = sc_cli::LoggerBuilder::new(<span class="string">&quot;&quot;</span>);
-			builder.with_profiling(sc_tracing::TracingReceiver::Log, <span class="string">&quot;&quot;</span>);
+			<span class="kw">let </span><span class="kw-2">mut </span>builder = sc_cli::LoggerBuilder::new(<span class="string">""</span>);
+			builder.with_profiling(sc_tracing::TracingReceiver::Log, <span class="string">""</span>);
 			<span class="kw">let _ </span>= builder.init();
 
 			<span class="comment">// Cumulus approach here, we directly call the generic load_spec func
@@ -1405,7 +1420,7 @@
 			<span class="kw">let </span>state_version = Cli::runtime_version(<span class="kw-2">&amp;</span>chain_spec).state_version();
 
 			<span class="kw">let </span>output_buf = <span class="kw">match </span>chain_spec {
-				<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+				<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 				</span>chain_spec <span class="kw">if </span>chain_spec.is_moonriver() =&gt; {
 					<span class="kw">let </span>block: moonbeam_service::moonriver_runtime::Block =
 						generate_genesis_block(<span class="kw-2">&amp;*</span>chain_spec, state_version)<span class="question-mark">?</span>;
@@ -1413,11 +1428,11 @@
 					<span class="kw">let </span>output_buf = <span class="kw">if </span>params.raw {
 						raw_header
 					} <span class="kw">else </span>{
-						<span class="macro">format!</span>(<span class="string">&quot;0x{:?}&quot;</span>, HexDisplay::from(<span class="kw-2">&amp;</span>block.header().encode())).into_bytes()
+						<span class="macro">format!</span>(<span class="string">"0x{:?}"</span>, HexDisplay::from(<span class="kw-2">&amp;</span>block.header().encode())).into_bytes()
 					};
 					output_buf
 				}
-				<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+				<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 				</span>chain_spec <span class="kw">if </span>chain_spec.is_moonbeam() =&gt; {
 					<span class="kw">let </span>block: moonbeam_service::moonbeam_runtime::Block =
 						generate_genesis_block(<span class="kw-2">&amp;*</span>chain_spec, state_version)<span class="question-mark">?</span>;
@@ -1425,11 +1440,11 @@
 					<span class="kw">let </span>output_buf = <span class="kw">if </span>params.raw {
 						raw_header
 					} <span class="kw">else </span>{
-						<span class="macro">format!</span>(<span class="string">&quot;0x{:?}&quot;</span>, HexDisplay::from(<span class="kw-2">&amp;</span>block.header().encode())).into_bytes()
+						<span class="macro">format!</span>(<span class="string">"0x{:?}"</span>, HexDisplay::from(<span class="kw-2">&amp;</span>block.header().encode())).into_bytes()
 					};
 					output_buf
 				}
-				<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+				<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 				</span><span class="kw">_ </span>=&gt; {
 					<span class="kw">let </span>block: moonbeam_service::moonbase_runtime::Block =
 						generate_genesis_block(<span class="kw-2">&amp;*</span>chain_spec, state_version)<span class="question-mark">?</span>;
@@ -1437,12 +1452,12 @@
 					<span class="kw">let </span>output_buf = <span class="kw">if </span>params.raw {
 						raw_header
 					} <span class="kw">else </span>{
-						<span class="macro">format!</span>(<span class="string">&quot;0x{:?}&quot;</span>, HexDisplay::from(<span class="kw-2">&amp;</span>block.header().encode())).into_bytes()
+						<span class="macro">format!</span>(<span class="string">"0x{:?}"</span>, HexDisplay::from(<span class="kw-2">&amp;</span>block.header().encode())).into_bytes()
 					};
 					output_buf
 				}
-				<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
-				</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
+				<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
+				</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
 			};
 
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(output) = <span class="kw-2">&amp;</span>params.output {
@@ -1454,8 +1469,8 @@
 			<span class="prelude-val">Ok</span>(())
 		}
 		<span class="prelude-val">Some</span>(Subcommand::ExportGenesisWasm(params)) =&gt; {
-			<span class="kw">let </span><span class="kw-2">mut </span>builder = sc_cli::LoggerBuilder::new(<span class="string">&quot;&quot;</span>);
-			builder.with_profiling(sc_tracing::TracingReceiver::Log, <span class="string">&quot;&quot;</span>);
+			<span class="kw">let </span><span class="kw-2">mut </span>builder = sc_cli::LoggerBuilder::new(<span class="string">""</span>);
+			builder.with_profiling(sc_tracing::TracingReceiver::Log, <span class="string">""</span>);
 			<span class="kw">let _ </span>= builder.init();
 
 			<span class="kw">let </span>raw_wasm_blob = extract_genesis_wasm(
@@ -1464,7 +1479,7 @@
 			<span class="kw">let </span>output_buf = <span class="kw">if </span>params.raw {
 				raw_wasm_blob
 			} <span class="kw">else </span>{
-				<span class="macro">format!</span>(<span class="string">&quot;0x{:?}&quot;</span>, HexDisplay::from(<span class="kw-2">&amp;</span>raw_wasm_blob)).into_bytes()
+				<span class="macro">format!</span>(<span class="string">"0x{:?}"</span>, HexDisplay::from(<span class="kw-2">&amp;</span>raw_wasm_blob)).into_bytes()
 			};
 
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(output) = <span class="kw-2">&amp;</span>params.output {
@@ -1481,45 +1496,45 @@
 			<span class="comment">// Switch on the concrete benchmark sub-command
 			</span><span class="kw">match </span>cmd {
 				BenchmarkCmd::Pallet(cmd) =&gt; {
-					<span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>) {
+					<span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"runtime-benchmarks"</span>) {
 						<span class="kw">let </span>chain_spec = <span class="kw-2">&amp;</span>runner.config().chain_spec;
 						<span class="kw">match </span>chain_spec {
-							<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+							<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 							</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; {
 								<span class="kw">return </span>runner.sync_run(|config| {
-									cmd.run::&lt;moonbeam_service::moonriver_runtime::Block, moonbeam_service::HostFunctions&gt;(
-										config,
+									cmd.run_with_spec::&lt;HashingFor&lt;moonriver_runtime::Block&gt;, HostFunctions&gt;(
+										<span class="prelude-val">Some</span>(config.chain_spec),
 									)
 								})
 							}
-							<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+							<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 							</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; {
 								<span class="kw">return </span>runner.sync_run(|config| {
-									cmd.run::&lt;moonbeam_service::moonbeam_runtime::Block, moonbeam_service::HostFunctions&gt;(
-										config,
+									cmd.run_with_spec::&lt;HashingFor&lt;moonbeam_runtime::Block&gt;, HostFunctions&gt;(
+										<span class="prelude-val">Some</span>(config.chain_spec),
 									)
 								})
 							}
-							<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+							<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 							</span><span class="kw">_ </span>=&gt; {
 								<span class="kw">return </span>runner.sync_run(|config| {
-									cmd.run::&lt;moonbeam_service::moonbase_runtime::Block, moonbeam_service::HostFunctions&gt;(
-										config,
+									cmd.run_with_spec::&lt;HashingFor&lt;moonbase_runtime::Block&gt;, HostFunctions&gt;(
+										<span class="prelude-val">Some</span>(config.chain_spec),
 									)
 								})
 							}
-							<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
-							</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
+							<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
+							</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
 						}
-					} <span class="kw">else if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>) {
+					} <span class="kw">else if </span><span class="macro">cfg!</span>(feature = <span class="string">"moonbase-runtime-benchmarks"</span>) {
 						<span class="kw">return </span>runner.sync_run(|config| {
-							cmd.run::&lt;moonbeam_service::moonbase_runtime::Block, moonbeam_service::HostFunctions&gt;(
-								config,
+							cmd.run_with_spec::&lt;HashingFor&lt;moonbeam_service::moonbase_runtime::Block&gt;, HostFunctions&gt;(
+								<span class="prelude-val">Some</span>(config.chain_spec),
 							)
 						});
 					} <span class="kw">else </span>{
-						<span class="prelude-val">Err</span>(<span class="string">&quot;Benchmarking wasn&#39;t enabled when building the node. \
-					You can enable it with `--features runtime-benchmarks`.&quot;
+						<span class="prelude-val">Err</span>(<span class="string">"Benchmarking wasn't enabled when building the node. \
+					You can enable it with `--features runtime-benchmarks`."
 							</span>.into())
 					}
 				}
@@ -1527,7 +1542,7 @@
 					<span class="kw">let </span>chain_spec = <span class="kw-2">&amp;</span>runner.config().chain_spec;
 					<span class="kw">let </span>rpc_config = cli.run.new_rpc_config();
 					<span class="kw">match </span>chain_spec {
-						<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+						<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 						</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; {
 							<span class="kw">return </span>runner.sync_run(|<span class="kw-2">mut </span>config| {
 								<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
@@ -1538,7 +1553,7 @@
 								cmd.run(params.client)
 							})
 						}
-						<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+						<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 						</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; {
 							<span class="kw">return </span>runner.sync_run(|<span class="kw-2">mut </span>config| {
 								<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
@@ -1549,7 +1564,7 @@
 								cmd.run(params.client)
 							})
 						}
-						<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+						<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 						</span><span class="kw">_ </span>=&gt; {
 							<span class="kw">return </span>runner.sync_run(|<span class="kw-2">mut </span>config| {
 								<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
@@ -1560,21 +1575,21 @@
 								cmd.run(params.client)
 							})
 						}
-						<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
-						</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
+						<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
+						</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
 					}
 				}
-				<span class="attr">#[cfg(not(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
+				<span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
 				</span>BenchmarkCmd::Storage(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(
-					<span class="string">&quot;Storage benchmarking can be enabled with `--features runtime-benchmarks`.&quot;
+					<span class="string">"Storage benchmarking can be enabled with `--features runtime-benchmarks`."
 						</span>.into(),
 				),
-				<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+				<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
 				</span>BenchmarkCmd::Storage(cmd) =&gt; {
 					<span class="kw">let </span>chain_spec = <span class="kw-2">&amp;</span>runner.config().chain_spec;
 					<span class="kw">let </span>rpc_config = cli.run.new_rpc_config();
 					<span class="kw">match </span>chain_spec {
-						<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+						<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 						</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; {
 							<span class="kw">return </span>runner.sync_run(|<span class="kw-2">mut </span>config| {
 								<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
@@ -1588,7 +1603,7 @@
 								cmd.run(config, params.client, db, storage)
 							})
 						}
-						<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+						<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 						</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; {
 							<span class="kw">return </span>runner.sync_run(|<span class="kw-2">mut </span>config| {
 								<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
@@ -1602,7 +1617,7 @@
 								cmd.run(config, params.client, db, storage)
 							})
 						}
-						<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+						<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 						</span><span class="kw">_ </span>=&gt; {
 							<span class="kw">return </span>runner.sync_run(|<span class="kw-2">mut </span>config| {
 								<span class="kw">let </span>params = moonbeam_service::new_partial::&lt;
@@ -1616,12 +1631,12 @@
 								cmd.run(config, params.client, db, storage)
 							})
 						}
-						<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
-						</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
+						<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
+						</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
 					}
 				}
-				BenchmarkCmd::Overhead(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;Unsupported benchmarking command&quot;</span>.into()),
-				BenchmarkCmd::Extrinsic(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;Unsupported benchmarking command&quot;</span>.into()),
+				BenchmarkCmd::Overhead(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="string">"Unsupported benchmarking command"</span>.into()),
+				BenchmarkCmd::Extrinsic(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="string">"Unsupported benchmarking command"</span>.into()),
 				BenchmarkCmd::Machine(cmd) =&gt; {
 					<span class="kw">return </span>runner.sync_run(|config| {
 						cmd.run(
@@ -1632,17 +1647,17 @@
 				}
 			}
 		}
-		<span class="prelude-val">Some</span>(Subcommand::TryRuntime) =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;The `try-runtime` subcommand has been migrated to a \
+		<span class="prelude-val">Some</span>(Subcommand::TryRuntime) =&gt; <span class="prelude-val">Err</span>(<span class="string">"The `try-runtime` subcommand has been migrated to a \
 			standalone CLI (https://github.com/paritytech/try-runtime-cli). It is no longer \
 			being maintained here and will be removed entirely some time after January 2024. \
-			Please remove this subcommand from your runtime and use the standalone CLI.&quot;
+			Please remove this subcommand from your runtime and use the standalone CLI."
 			</span>.into()),
 		<span class="prelude-val">Some</span>(Subcommand::Key(cmd)) =&gt; <span class="prelude-val">Ok</span>(cmd.run(<span class="kw-2">&amp;</span>cli)<span class="question-mark">?</span>),
 		<span class="prelude-val">Some</span>(Subcommand::PrecompileWasm(cmd)) =&gt; {
 			<span class="kw">let </span>runner = cli.create_runner(cmd)<span class="question-mark">?</span>;
 			<span class="kw">let </span>rpc_config = cli.run.new_rpc_config();
 			runner.async_run(|<span class="kw-2">mut </span>config| <span class="kw">match </span><span class="kw-2">&amp;</span>config.chain_spec {
-				<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+				<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 				</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; {
 					<span class="kw">let </span>PartialComponents {
 						task_manager,
@@ -1655,7 +1670,7 @@
 
 					<span class="prelude-val">Ok</span>((cmd.run(backend, config.chain_spec), task_manager))
 				}
-				<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+				<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 				</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; {
 					<span class="kw">let </span>PartialComponents {
 						task_manager,
@@ -1668,7 +1683,7 @@
 
 					<span class="prelude-val">Ok</span>((cmd.run(backend, config.chain_spec), task_manager))
 				}
-				<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+				<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 				</span><span class="kw">_ </span>=&gt; {
 					<span class="kw">let </span>PartialComponents {
 						task_manager,
@@ -1681,8 +1696,8 @@
 
 					<span class="prelude-val">Ok</span>((cmd.run(backend, config.chain_spec), task_manager))
 				}
-				<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
-				</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
+				<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
+				</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
 			})
 		}
 		<span class="prelude-val">None </span>=&gt; {
@@ -1708,45 +1723,48 @@
 				// Otherwise continue with the normal parachain node.
 				// Dev service can be requested in two ways.
 				// 1. by providing the --dev-service flag to the CLI
-				// 2. by specifying &quot;dev-service&quot; in the chain spec&#39;s &quot;relay-chain&quot; field.
+				// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
 				// NOTE: the --dev flag triggers the dev service by way of number 2
 				</span><span class="kw">let </span>relay_chain_id = extension.map(|e| e.relay_chain.as_str());
 				<span class="kw">let </span>dev_service = cli.run.dev_service
 					|| config.chain_spec.is_dev()
-					|| relay_chain_id == <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>);
+					|| relay_chain_id == <span class="prelude-val">Some</span>(<span class="string">"dev-service"</span>);
 
 				<span class="kw">if </span>dev_service {
-					<span class="comment">// When running the dev service, just use Alice&#39;s author inherent
+					<span class="comment">// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
 					// the author-id flag. For now, this will work.
 					</span><span class="kw">let </span>author_id = <span class="prelude-val">Some</span>(chain_spec::get_from_seed::&lt;nimbus_primitives::NimbusId&gt;(
-						<span class="string">&quot;Alice&quot;</span>,
+						<span class="string">"Alice"</span>,
 					));
 
 					<span class="kw">return match </span><span class="kw-2">&amp;</span>config.chain_spec {
-						<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+						<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 						</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; moonbeam_service::new_dev::&lt;
 							moonbeam_service::moonriver_runtime::RuntimeApi,
 							moonbeam_service::MoonriverCustomizations,
+							sc_network::NetworkWorker&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;,
 						&gt;(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.<span class="kw">await
 						</span>.map_err(Into::into),
-						<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+						<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 						</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; moonbeam_service::new_dev::&lt;
 							moonbeam_service::moonbeam_runtime::RuntimeApi,
 							moonbeam_service::MoonbeamCustomizations,
+							sc_network::NetworkWorker&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;,
 						&gt;(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.<span class="kw">await
 						</span>.map_err(Into::into),
-						<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+						<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 						</span><span class="kw">_ </span>=&gt; moonbeam_service::new_dev::&lt;
 							moonbeam_service::moonbase_runtime::RuntimeApi,
 							moonbeam_service::MoonbaseCustomizations,
+							sc_network::NetworkWorker&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;,
 						&gt;(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.<span class="kw">await
 						</span>.map_err(Into::into),
-						<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
-						</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
+						<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
+						</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
 					};
 				}
 
@@ -1758,33 +1776,33 @@
 				);
 
 				<span class="kw">let </span>parachain_account =
-					AccountIdConversion::&lt;polkadot_primitives::v6::AccountId&gt;::into_account_truncating(<span class="kw-2">&amp;</span>id);
+					AccountIdConversion::&lt;polkadot_primitives::v7::AccountId&gt;::into_account_truncating(<span class="kw-2">&amp;</span>id);
 
 				<span class="kw">let </span>tokio_handle = config.tokio_handle.clone();
 				<span class="kw">let </span>polkadot_config =
 					SubstrateCli::create_configuration(<span class="kw-2">&amp;</span>polkadot_cli, <span class="kw-2">&amp;</span>polkadot_cli, tokio_handle)
-						.map_err(|err| <span class="macro">format!</span>(<span class="string">&quot;Relay chain argument error: {}&quot;</span>, err))<span class="question-mark">?</span>;
+						.map_err(|err| <span class="macro">format!</span>(<span class="string">"Relay chain argument error: {}"</span>, err))<span class="question-mark">?</span>;
 
-				<span class="macro">info!</span>(<span class="string">&quot;Parachain Account: {}&quot;</span>, parachain_account);
+				<span class="macro">info!</span>(<span class="string">"Parachain Account: {}"</span>, parachain_account);
 				<span class="macro">info!</span>(
-					<span class="string">&quot;Is collating: {}&quot;</span>,
+					<span class="string">"Is collating: {}"</span>,
 					<span class="kw">if </span>config.role.is_authority() {
-						<span class="string">&quot;yes&quot;
+						<span class="string">"yes"
 					</span>} <span class="kw">else </span>{
-						<span class="string">&quot;no&quot;
+						<span class="string">"no"
 					</span>}
 				);
 
 				<span class="kw">if </span>!rpc_config.relay_chain_rpc_urls.is_empty() &amp;&amp; cli.relaychain_args.len() &gt; <span class="number">0 </span>{
 					<span class="macro">warn!</span>(
-						<span class="string">&quot;Detected relay chain node arguments together with \
+						<span class="string">"Detected relay chain node arguments together with \
 					--relay-chain-rpc-url. This command starts a minimal Polkadot node that only \
-					uses a network-related subset of all relay chain CLI options.&quot;
+					uses a network-related subset of all relay chain CLI options."
 					</span>);
 				}
 
 				<span class="kw">match </span><span class="kw-2">&amp;</span>config.chain_spec {
-					<span class="attr">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+					<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
 					</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; moonbeam_service::start_node::&lt;
 						moonbeam_service::moonriver_runtime::RuntimeApi,
 						moonbeam_service::MoonriverCustomizations,
@@ -1801,7 +1819,7 @@
 					.<span class="kw">await
 					</span>.map(|r| r.<span class="number">0</span>)
 					.map_err(Into::into),
-					<span class="attr">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+					<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 					</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; moonbeam_service::start_node::&lt;
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
 						moonbeam_service::MoonbeamCustomizations,
@@ -1818,7 +1836,7 @@
 					.<span class="kw">await
 					</span>.map(|r| r.<span class="number">0</span>)
 					.map_err(Into::into),
-					<span class="attr">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+					<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 					</span><span class="kw">_ </span>=&gt; moonbeam_service::start_node::&lt;
 						moonbeam_service::moonbase_runtime::RuntimeApi,
 						moonbeam_service::MoonbaseCustomizations,
@@ -1835,8 +1853,8 @@
 					.<span class="kw">await
 					</span>.map(|r| r.<span class="number">0</span>)
 					.map_err(Into::into),
-					<span class="attr">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
-					</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
+					<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
+					</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
 				}
 			})
 		}
@@ -1905,7 +1923,7 @@
 	<span class="kw">where
 		</span>F: FnOnce(<span class="kw-2">&amp;mut </span>sc_cli::LoggerBuilder, <span class="kw-2">&amp;</span>sc_service::Configuration),
 	{
-		<span class="macro">unreachable!</span>(<span class="string">&quot;PolkadotCli is never initialized; qed&quot;</span>);
+		<span class="macro">unreachable!</span>(<span class="string">"PolkadotCli is never initialized; qed"</span>);
 	}
 
 	<span class="kw">fn </span>chain_id(<span class="kw-2">&amp;</span><span class="self">self</span>, is_dev: bool) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
