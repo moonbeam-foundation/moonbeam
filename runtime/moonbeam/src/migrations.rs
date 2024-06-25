@@ -19,14 +19,29 @@
 use crate::Runtime;
 use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
 use pallet_migrations::{GetMigrations, Migration};
-use pallet_parachain_staking::migrations::MultiplyRoundLenBy2;
+use pallet_parachain_staking::migrations::{ComputeTheoreticalFirstSlot, MultiplyRoundLenBy2};
 use sp_std::{prelude::*, vec};
 
 pub struct MoonbeamMigrations;
 
 impl GetMigrations for MoonbeamMigrations {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		vec![Box::new(PalletStakingMultiplyRoundLenBy2)]
+		vec![
+			Box::new(PalletStakingMultiplyRoundLenBy2),
+			Box::new(PalletStakingComputeTheoreticalFirstSlot),
+		]
+	}
+}
+
+// This migration should only be applied to runtimes with async backing enabled
+pub struct PalletStakingComputeTheoreticalFirstSlot;
+impl Migration for PalletStakingComputeTheoreticalFirstSlot {
+	fn friendly_name(&self) -> &str {
+		"MM_PalletStakingComputeTheoreticalFirstSlot"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		ComputeTheoreticalFirstSlot::<Runtime>::on_runtime_upgrade()
 	}
 }
 

@@ -47,6 +47,43 @@ where
 	}
 }
 
+/// Compute RoundInfo theoretical first_slot
+pub struct ComputeTheoreticalFirstSlot<T: Config>(core::marker::PhantomData<T>);
+
+impl<T> OnRuntimeUpgrade for ComputeTheoreticalFirstSlot<T>
+where
+	T: Config,
+	BlockNumberFor<T>: From<u32> + Into<u64>,
+{
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::TryRuntimeError> {
+		Ok(Vec::new())
+	}
+
+	fn on_runtime_upgrade() -> frame_support::pallet_prelude::Weight {
+		// Read round
+		let mut round = crate::Round::<T>::get();
+
+		// Compute theoretical `first_slot``
+		round.first_slot = compute_theoretical_first_slot(
+			<frame_system::Pallet<T>>::block_number(),
+			round.first,
+			u64::from(T::SlotProvider::get()),
+			T::BlockTime::get(),
+		);
+
+		// Apply the migration (write new Round value)
+		crate::Round::<T>::put(round);
+
+		Default::default()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(_state: Vec<u8>) -> Result<(), sp_runtime::TryRuntimeError> {
+		Ok(())
+	}
+}
+
 /// Migrates RoundInfo and add the field first_slot
 pub struct MigrateRoundWithFirstSlot<T: Config>(core::marker::PhantomData<T>);
 
