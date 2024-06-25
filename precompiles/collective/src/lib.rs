@@ -160,7 +160,7 @@ where
 				.in_field("proposal")
 		})?;
 
-		let proposal_index = pallet_collective::Pallet::<Runtime, Instance>::proposal_count();
+		let proposal_index = pallet_collective::ProposalCount::<Runtime, Instance>::get();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 
 		// In pallet_collective a threshold < 2 means the proposal has been
@@ -299,7 +299,7 @@ where
 			32 * (<Runtime as pallet_collective::Config<Instance>>::MaxProposals::get() as usize),
 		)?;
 
-		let proposals = pallet_collective::Pallet::<Runtime, Instance>::proposals();
+		let proposals = pallet_collective::Proposals::<Runtime, Instance>::get();
 		let proposals: Vec<_> = proposals.into_iter().map(|hash| hash.into()).collect();
 
 		Ok(proposals)
@@ -313,7 +313,7 @@ where
 			20 * (<Runtime as pallet_collective::Config<Instance>>::MaxProposals::get() as usize),
 		)?;
 
-		let members = pallet_collective::Pallet::<Runtime, Instance>::members();
+		let members = pallet_collective::Members::<Runtime, Instance>::get();
 		let members: Vec<_> = members.into_iter().map(|id| Address(id.into())).collect();
 
 		Ok(members)
@@ -340,7 +340,7 @@ where
 		// Prime
 		handle.record_db_read::<Runtime>(20)?;
 
-		let prime = pallet_collective::Pallet::<Runtime, Instance>::prime()
+		let prime = pallet_collective::Prime::<Runtime, Instance>::get()
 			.map(|prime| prime.into())
 			.unwrap_or(H160::zero());
 

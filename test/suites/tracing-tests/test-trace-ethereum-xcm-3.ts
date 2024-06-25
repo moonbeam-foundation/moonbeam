@@ -113,8 +113,6 @@ describeSuite({
         } as RawXcmMessage);
       }
 
-      // Block that includes the hrmp messages
-      await context.createBlock();
       // Block that processes the hrmp messasges in the message queue
       await context.createBlock();
 
