@@ -29,7 +29,9 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use account::AccountId20;
-use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainDataProvider};
+use cumulus_pallet_parachain_system::{
+	RelayChainStateProof, RelayStateProof, RelaychainDataProvider, ValidationData,
+};
 use fp_rpc::TransactionStatus;
 
 use cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
@@ -272,6 +274,11 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = ConstU16<1284>;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type SingleBlockMigrations = ();
+	type MultiBlockMigrator = ();
+	type PreInherents = ();
+	type PostInherents = ();
+	type PostTransactions = ();
 }
 
 impl pallet_utility::Config for Runtime {
@@ -289,6 +296,10 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
+parameter_types! {
+	pub const ExistentialDeposit: Balance = 0;
+}
+
 impl pallet_balances::Config for Runtime {
 	type MaxReserves = ConstU32<50>;
 	type ReserveIdentifier = [u8; 4];
@@ -298,7 +309,7 @@ impl pallet_balances::Config for Runtime {
 	/// The ubiquitous event type.
 	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
-	type ExistentialDeposit = ConstU128<0>;
+	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ConstU32<0>;
@@ -1262,28 +1273,34 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 }
 
 /// Only callable after `set_validation_data` is called which forms this proof the same way
-fn relay_chain_state_proof() -> RelayChainStateProof {
-	let relay_storage_root = ParachainSystem::validation_data()
+fn relay_chain_state_proof<Runtime>() -> RelayChainStateProof
+where
+	Runtime: cumulus_pallet_parachain_system::Config,
+{
+	let relay_storage_root = ValidationData::<Runtime>::get()
 		.expect("set in `set_validation_data`")
 		.relay_parent_storage_root;
 	let relay_chain_state =
-		ParachainSystem::relay_state_proof().expect("set in `set_validation_data`");
+		RelayStateProof::<Runtime>::get().expect("set in `set_validation_data`");
 	RelayChainStateProof::new(ParachainInfo::get(), relay_storage_root, relay_chain_state)
 		.expect("Invalid relay chain state proof, already constructed in `set_validation_data`")
 }
 
-pub struct BabeDataGetter;
-impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
+pub struct BabeDataGetter<Runtime>(sp_std::marker::PhantomData<Runtime>);
+impl<Runtime> pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter<Runtime>
+where
+	Runtime: cumulus_pallet_parachain_system::Config,
+{
 	// Tolerate panic here because only ever called in inherent (so can be omitted)
 	fn get_epoch_index() -> u64 {
 		if cfg!(feature = "runtime-benchmarks") {
 			// storage reads as per actual reads
-			let _relay_storage_root = ParachainSystem::validation_data();
-			let _relay_chain_state = ParachainSystem::relay_state_proof();
+			let _relay_storage_root = ValidationData::<Runtime>::get();
+			let _relay_chain_state = RelayStateProof::<Runtime>::get();
 			const BENCHMARKING_NEW_EPOCH: u64 = 10u64;
 			return BENCHMARKING_NEW_EPOCH;
 		}
-		relay_chain_state_proof()
+		relay_chain_state_proof::<Runtime>()
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
 			.ok()
 			.flatten()
@@ -1292,12 +1309,12 @@ impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
 	fn get_epoch_randomness() -> Option<Hash> {
 		if cfg!(feature = "runtime-benchmarks") {
 			// storage reads as per actual reads
-			let _relay_storage_root = ParachainSystem::validation_data();
-			let _relay_chain_state = ParachainSystem::relay_state_proof();
+			let _relay_storage_root = ValidationData::<Runtime>::get();
+			let _relay_chain_state = RelayStateProof::<Runtime>::get();
 			let benchmarking_babe_output = Hash::default();
 			return Some(benchmarking_babe_output);
 		}
-		relay_chain_state_proof()
+		relay_chain_state_proof::<Runtime>()
 			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
 			.ok()
 			.flatten()
@@ -1308,7 +1325,7 @@ impl pallet_randomness::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AddressMapping = sp_runtime::traits::ConvertInto;
 	type Currency = Balances;
-	type BabeDataGetter = BabeDataGetter;
+	type BabeDataGetter = BabeDataGetter<Runtime>;
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = ConstU128<{ 1 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	type MaxRandomWords = ConstU8<100>;

@@ -304,6 +304,9 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
 	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
+	type HrmpNewChannelOpenRequestHandler = ();
+	type HrmpChannelAcceptedHandler = ();
+	type HrmpChannelClosingHandler = ();
 }
 
 type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
@@ -420,6 +423,7 @@ impl pallet_message_queue::Config for Runtime {
 	// NarrowOriginToSibling calls XcmpQueue's is_paused if Origin is sibling. Allows all other origins
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
 	type WeightInfo = pallet_message_queue::weights::SubstrateWeight<Runtime>;
+	type IdleMaxServiceWeight = MessageQueueServiceWeight;
 }
 
 // Our AssetType. For now we only handle Xcm Assets
@@ -458,7 +462,9 @@ impl Into<Option<xcm::v3::Location>> for AssetType {
 impl Into<Option<Location>> for AssetType {
 	fn into(self) -> Option<Location> {
 		match self {
-			Self::Xcm(location) => xcm_builder::V4V3LocationConverter::convert_back(&location),
+			Self::Xcm(location) => {
+				xcm_builder::WithLatestLocationConverter::convert_back(&location)
+			}
 		}
 	}
 }
@@ -578,6 +584,8 @@ impl orml_xtokens::Config for Runtime {
 	type MinXcmFee = ParachainMinFee;
 	type LocationsFilter = Everything;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
+	type RateLimiter = ();
+	type RateLimiterId = ();
 }
 
 // 1 DOT should be enough
@@ -681,7 +689,7 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 #[cfg(feature = "runtime-benchmarks")]
 mod testing {
 	use super::*;
-	use xcm_builder::V4V3LocationConverter;
+	use xcm_builder::WithLatestLocationConverter;
 
 	/// This From exists for benchmarking purposes. It has the potential side-effect of calling
 	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
@@ -696,7 +704,7 @@ mod testing {
 				asset_id
 			} else {
 				let asset_type = AssetType::Xcm(
-					V4V3LocationConverter::convert(&location).expect("convert to v3"),
+					WithLatestLocationConverter::convert(&location).expect("convert to v3"),
 				);
 				let asset_id: AssetId = asset_type.clone().into();
 				AssetManager::set_asset_type_asset_id(asset_type, asset_id);

@@ -55,7 +55,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					Executive::execute_block(block)
 				}
 
-				fn initialize_block(header: &<Block as BlockT>::Header) {
+				fn initialize_block(header: &<Block as BlockT>::Header) -> sp_runtime::ExtrinsicInclusionMode {
 					Executive::initialize_block(header)
 				}
 			}
@@ -116,12 +116,16 @@ macro_rules! impl_runtime_apis_plus_common {
 			}
 
 			impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-				fn create_default_config() -> Vec<u8> {
-					frame_support::genesis_builder_helper::create_default_config::<RuntimeGenesisConfig>()
+				fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+					frame_support::genesis_builder_helper::build_state::<RuntimeGenesisConfig>(config)
 				}
 
-				fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-					frame_support::genesis_builder_helper::build_config::<RuntimeGenesisConfig>(config)
+				fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+					frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, |_| None)
+				}
+
+				fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+					vec![]
 				}
 			}
 
@@ -617,8 +621,10 @@ macro_rules! impl_runtime_apis_plus_common {
 					)
 				 }
 
-				 fn initialize_pending_block(header: &<Block as BlockT>::Header) {
-					pallet_randomness::vrf::using_fake_vrf(|| Executive::initialize_block(header))
+				fn initialize_pending_block(header: &<Block as BlockT>::Header) {
+					pallet_randomness::vrf::using_fake_vrf(|| {
+						let _ = Executive::initialize_block(header);
+					})
 				}
 			}
 
@@ -768,6 +774,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
 						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent
 					};
+					use xcm_config::SelfReserve;
 					use frame_benchmarking::BenchmarkError;
 
 					use frame_system_benchmarking::Pallet as SystemBench;
@@ -783,7 +790,35 @@ macro_rules! impl_runtime_apis_plus_common {
 						pub const RandomParaId: ParaId = ParaId::new(43211234);
 					}
 
+					pub struct TestDeliveryHelper;
+					impl xcm_builder::EnsureDelivery for TestDeliveryHelper {
+						fn ensure_successful_delivery(
+							origin_ref: &Location,
+							_dest: &Location,
+							_fee_reason: xcm_executor::traits::FeeReason,
+						) -> (Option<xcm_executor::FeesMode>, Option<XcmAssets>) {
+							use xcm_executor::traits::ConvertLocation;
+							let account = xcm_config::LocationToH160::convert_location(origin_ref)
+								.expect("Invalid location");
+							// Give the existential deposit at least
+							let balance = ExistentialDeposit::get();
+							let _ = <Balances as frame_support::traits::Currency<_>>::
+								make_free_balance_be(&account.into(), balance);
+
+							(None, None)
+						}
+					}
+
 					impl pallet_xcm::benchmarking::Config for Runtime {
+				        type DeliveryHelper = TestDeliveryHelper;
+
+						fn get_asset() -> Asset {
+							Asset {
+								id: AssetId(SelfReserve::get()),
+								fun: Fungible(ExistentialDeposit::get()),
+							}
+						}
+
 						fn reachable_dest() -> Option<Location> {
 							Some(Parent.into())
 						}
@@ -801,10 +836,11 @@ macro_rules! impl_runtime_apis_plus_common {
 
 							Some((
 								Asset {
-									fun: Fungible(<Runtime as pallet_balances::Config>::ExistentialDeposit::get()),
+									fun: Fungible(ExistentialDeposit::get()),
 									id: AssetId(SelfReserve::get().into())
 								},
-								// AH can reserve transfer native token to some random parachain.
+								// Moonbeam can reserve transfer native token to
+								// some random parachain.
 								ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
 							))
 						}
