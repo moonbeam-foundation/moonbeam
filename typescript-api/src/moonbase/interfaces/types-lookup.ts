@@ -5776,17 +5776,12 @@ declare module "@polkadot/types/lookup" {
 
   /** @name PalletMoonbeamLazyMigrationsCall (367) */
   interface PalletMoonbeamLazyMigrationsCall extends Enum {
-    readonly isClearLocalAssetsStorage: boolean;
-    readonly asClearLocalAssetsStorage: {
-      readonly maxAssets: u32;
-      readonly limit: u32;
-    } & Struct;
     readonly isClearSuicidedStorage: boolean;
     readonly asClearSuicidedStorage: {
       readonly addresses: Vec<H160>;
       readonly limit: u32;
     } & Struct;
-    readonly type: "ClearLocalAssetsStorage" | "ClearSuicidedStorage";
+    readonly type: "ClearSuicidedStorage";
   }
 
   /** @name PalletMessageQueueCall (370) */
@@ -7803,21 +7798,10 @@ declare module "@polkadot/types/lookup" {
 
   /** @name PalletMoonbeamLazyMigrationsError (657) */
   interface PalletMoonbeamLazyMigrationsError extends Enum {
-    readonly isAllStorageEntriesHaveBeenRemoved: boolean;
     readonly isLimitCannotBeZero: boolean;
-    readonly isMaxAssetsCannotBeZero: boolean;
-    readonly isUnlockLimitTooHigh: boolean;
-    readonly isAllDemocracyFundsUnlocked: boolean;
     readonly isAddressesLengthCannotBeZero: boolean;
     readonly isContractNotCorrupted: boolean;
-    readonly type:
-      | "AllStorageEntriesHaveBeenRemoved"
-      | "LimitCannotBeZero"
-      | "MaxAssetsCannotBeZero"
-      | "UnlockLimitTooHigh"
-      | "AllDemocracyFundsUnlocked"
-      | "AddressesLengthCannotBeZero"
-      | "ContractNotCorrupted";
+    readonly type: "LimitCannotBeZero" | "AddressesLengthCannotBeZero" | "ContractNotCorrupted";
   }
 
   /** @name PalletPrecompileBenchmarksError (659) */
