@@ -79,6 +79,11 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = ();
 	type OnSetCode = ();
 	type MaxConsumers = ConstU32<16>;
+	type SingleBlockMigrations = ();
+	type MultiBlockMigrator = ();
+	type PreInherents = ();
+	type PostInherents = ();
+	type PostTransactions = ();
 }
 
 parameter_types! {
@@ -205,6 +210,9 @@ impl Config for XcmConfig {
 	type SafeCallFilter = Everything;
 	type Aliasers = Nothing;
 	type TransactionalProcessor = ();
+	type HrmpNewChannelOpenRequestHandler = ();
+	type HrmpChannelAcceptedHandler = ();
+	type HrmpChannelClosingHandler = ();
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, KusamaNetwork>;
@@ -274,12 +282,17 @@ impl paras::Config for Runtime {
 
 impl dmp::Config for Runtime {}
 
+parameter_types! {
+	pub const DefaultChannelSizeAndCapacityWithSystem: (u32, u32) = (4, 1);
+}
+
 impl hrmp::Config for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type WeightInfo = TestHrmpWeightInfo;
 	type ChannelManager = frame_system::EnsureRoot<AccountId>;
+	type DefaultChannelSizeAndCapacityWithSystem = DefaultChannelSizeAndCapacityWithSystem;
 }
 
 impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
@@ -333,6 +346,7 @@ impl pallet_message_queue::Config for Runtime {
 	type QueueChangeHandler = ();
 	type WeightInfo = ();
 	type QueuePausedQuery = ();
+	type IdleMaxServiceWeight = MessageQueueServiceWeight;
 }
 
 construct_runtime!(
@@ -407,6 +421,10 @@ impl hrmp::WeightInfo for TestHrmpWeightInfo {
 	}
 
 	fn poke_channel_deposits() -> Weight {
+		Weight::from_parts(1, 0)
+	}
+
+	fn establish_channel_with_system() -> Weight {
 		Weight::from_parts(1, 0)
 	}
 }
