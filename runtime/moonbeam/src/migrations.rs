@@ -28,7 +28,7 @@ impl GetMigrations for MoonbeamMigrations {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		vec![
 			Box::new(PalletStakingMultiplyRoundLenBy2),
-			Box::new(PalletStakingComputeTheoreticalFirstSlot)
+			Box::new(PalletStakingComputeTheoreticalFirstSlot),
 		]
 	}
 }
