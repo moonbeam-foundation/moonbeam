@@ -78,7 +78,7 @@ describeSuite({
       id: "T01",
       title: "should execute EVM remote call through XCM paying fees in DOT",
       test: async function () {
-        // Since we cannot infere the actual weitght of the inner message,
+        // Since we cannot infer the actual weitght of the inner message,
         // we are using big enough gas limits to be able to execute the whole xcm transaction.
         const xcmTransaction = {
           V1: {
