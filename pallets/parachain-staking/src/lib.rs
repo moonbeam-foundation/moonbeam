@@ -468,8 +468,13 @@ pub mod pallet {
 				weight = weight.saturating_add(T::DbWeight::get().reads_writes(1, 0));
 
 				// Compute round duration in slots
-				let round_duration = (current_slot.saturating_sub(round.first_slot))
-					.saturating_mul(T::SlotDuration::get());
+				let round_duration = if round.first_slot == 0 {
+					// If the first slot is zero, we fallback to the ideal duration
+					(round.length as u64).saturating_mul(T::BlockTime::get())
+				} else {
+					(current_slot.saturating_sub(round.first_slot))
+						.saturating_mul(T::SlotDuration::get())
+				};
 
 				// mutate round
 				round.update(n, current_slot);

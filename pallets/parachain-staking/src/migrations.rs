@@ -64,13 +64,12 @@ where
 		// Read round
 		let mut round = crate::Round::<T>::get();
 
-		// Compute theoretical `first_slot``
-		round.first_slot = compute_theoretical_first_slot(
-			<frame_system::Pallet<T>>::block_number(),
-			round.first,
-			u64::from(T::SlotProvider::get()),
-			T::BlockTime::get(),
-		);
+		// Force the `first_slot` to zero
+		// We can't compute the theoretical first slot because we don't have access to the
+		// relay slot
+		// To handle that, we added a hack in pallet staking that fallback to the ideal round
+		// duration if `first_slot` is zero. 
+		round.first_slot = 0;
 
 		// Apply the migration (write new Round value)
 		crate::Round::<T>::put(round);
