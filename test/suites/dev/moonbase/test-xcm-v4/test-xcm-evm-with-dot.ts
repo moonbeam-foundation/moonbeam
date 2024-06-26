@@ -44,7 +44,7 @@ describeSuite({
         context,
         RELAY_SOURCE_LOCATION,
         relayAssetMetadata as any,
-        1,
+        1
       );
 
       // Descend address from origin address
