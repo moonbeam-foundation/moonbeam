@@ -738,7 +738,7 @@ pub mod pallet {
 			// Initialize the delegations
 			for &(ref delegator, ref target, balance, auto_compound) in &self.delegations {
 				assert!(
-					<Pallet<T>>::get_delegator_stakable_free_balance(delegator) >= balance,
+					<Pallet<T>>::get_delegator_stakable_balance(delegator) >= balance,
 					"Account does not have enough balance to place delegation."
 				);
 				let cd_count = if let Some(x) = col_delegator_count.get(target) {
@@ -1735,13 +1735,15 @@ pub mod pallet {
 			Ok(Some(actual_weight).into())
 		}
 
-		/// Returns an account's free balance which is not locked in delegation staking
-		pub fn get_delegator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
-			let mut balance = T::Currency::free_balance(acc);
+		/// Returns an account's stakable balance which is not locked in delegation staking
+		pub fn get_delegator_stakable_balance(acc: &T::AccountId) -> BalanceOf<T> {
+			let mut stakable_balance = T::Currency::free_balance(acc)
+				.saturating_add(T::Currency::reserved_balance(acc));
+
 			if let Some(state) = <DelegatorState<T>>::get(acc) {
-				balance = balance.saturating_sub(state.total());
+				stakable_balance = stakable_balance.saturating_sub(state.total());
 			}
-			balance
+			stakable_balance
 		}
 
 		/// Returns an account's free balance which is not locked in collator staking
