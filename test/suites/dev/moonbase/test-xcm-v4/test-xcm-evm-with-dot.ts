@@ -40,11 +40,11 @@ describeSuite({
       api = context.polkadotJs();
 
       // Register DOT as foreign asset, obtaining xcDOTs
-      const { registeredAssetId, registeredAsset } = await registerForeignAsset(
+      const { registeredAssetId } = await registerForeignAsset(
         context,
         RELAY_SOURCE_LOCATION,
         relayAssetMetadata as any,
-        1,
+        1
       );
 
       // Descend address from origin address
@@ -53,7 +53,7 @@ describeSuite({
       descendAddress = descendOriginAddress;
 
       // Create types for funding descend address
-      const balance = api.createType("Balance", initialAlithBalance);
+      const balance = api.createType("Balance", initialSenderBalance);
       assetId = api.createType("u128", hexToBigInt(registeredAssetId as `0x${string}`));
 
       const assetBalance: PalletAssetsAssetAccount = api.createType("PalletAssetsAssetAccount", {
@@ -144,22 +144,23 @@ describeSuite({
           })
           .as_v3();
 
-        const resultingSenderBalance = (await api.query.assets.account(assetId, descendAddress))
+        let senderBalance = (await api.query.assets.account(assetId, descendAddress))
           .unwrap()
           .balance.toBigInt();
-        expect(resultingSenderBalance).toBe(initialSenderBalance);
+
+        expect(senderBalance).toBe(initialSenderBalance);
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, 1, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 
-        const resultingSenderBalance = (await api.query.assets.account(assetId, descendAddress))
+        senderBalance = (await api.query.assets.account(assetId, descendAddress))
           .unwrap()
           .balance.toBigInt();
 
         // Check that xcDOT where debited from Alith to pay the fees of the XCM execution
-        expect(initialAlithBalance - resultingAlithBalance).toBe(XCDOT_FEE_AMOUNT);
+        expect(initialSenderBalance - senderBalance).toBe(XCDOT_FEE_AMOUNT);
       },
     });
   },
