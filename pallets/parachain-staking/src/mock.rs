@@ -594,10 +594,7 @@ fn geneses() {
 			}
 			// no delegator staking locks
 			assert_eq!(query_lock_amount(7, DELEGATOR_LOCK_ID), None);
-			assert_eq!(
-				ParachainStaking::get_delegator_stakable_balance(&7),
-				100
-			);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&7), 100);
 			assert_eq!(query_lock_amount(8, DELEGATOR_LOCK_ID), None);
 			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&8), 9);
 			assert_eq!(query_lock_amount(9, DELEGATOR_LOCK_ID), None);
@@ -647,10 +644,7 @@ fn geneses() {
 			for x in 6..11 {
 				assert!(ParachainStaking::is_delegator(&x));
 				assert_eq!(query_lock_amount(x, DELEGATOR_LOCK_ID), Some(10));
-				assert_eq!(
-					ParachainStaking::get_delegator_stakable_balance(&x),
-					90
-				);
+				assert_eq!(ParachainStaking::get_delegator_stakable_balance(&x), 90);
 			}
 		});
 }

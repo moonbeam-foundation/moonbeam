@@ -1737,8 +1737,8 @@ pub mod pallet {
 
 		/// Returns an account's stakable balance which is not locked in delegation staking
 		pub fn get_delegator_stakable_balance(acc: &T::AccountId) -> BalanceOf<T> {
-			let mut stakable_balance = T::Currency::free_balance(acc)
-				.saturating_add(T::Currency::reserved_balance(acc));
+			let mut stakable_balance =
+				T::Currency::free_balance(acc).saturating_add(T::Currency::reserved_balance(acc));
 
 			if let Some(state) = <DelegatorState<T>>::get(acc) {
 				stakable_balance = stakable_balance.saturating_sub(state.total());
