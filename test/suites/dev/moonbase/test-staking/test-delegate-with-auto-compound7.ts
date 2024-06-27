@@ -34,13 +34,7 @@ describeSuite({
         await context.createBlock(
           context.polkadotJs().tx.preimage.notePreimage(encodedPreimage).signAsync(baltathar)
         );
-        // Stake some tokens (less than the preimage deposit)
-        const freeBalance = (
-          await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS)
-        ).data.free.toBigInt();
-        console.log(freeBalance);
-
-        // Auto compound
+        // Stake some tokens (less than the preimage deposit) with auto-compound
         const { result } = await context.createBlock(
           context
             .polkadotJs()
