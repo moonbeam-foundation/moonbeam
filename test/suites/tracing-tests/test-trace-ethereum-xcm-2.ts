@@ -102,9 +102,6 @@ describeSuite({
         payload: xcmMessage,
       } as RawXcmMessage);
 
-      // Create a new block to include the xcm message
-      await context.createBlock();
-
       // By calling deployContract() a new block will be created,
       // including the ethereum xcm call + regular ethereum transaction
       const { contractAddress: eventEmitterAddress } = await context.deployContract!(
@@ -127,18 +124,18 @@ describeSuite({
         ]);
         // 2 ethereum transactions: ethereum xcm call + regular ethereum transaction
         expect(trace.length).to.eq(2);
-        // 1st transaction is xcm.
-        // - `From` is the descended origin.
-        // - `To` is the xcm contract address.
-        expect(trace[0].from).to.eq(ethereumXcmDescendedOrigin.toLowerCase());
-        expect(trace[0].to).to.eq(xcmContractAddress.toLowerCase());
-        expect(trace[0].type).to.eq("CALL");
-        // 2nd transaction is regular ethereum transaction.
+        // 1st transaction is regular ethereum transaction.
         // - `From` is Alith's adddress.
         // - `To` is the ethereum contract address.
-        expect(trace[1].from).to.eq(alith.address.toLowerCase());
-        expect(trace[1].to).to.eq(ethContractAddress.toLowerCase());
-        expect(trace[1].type).be.eq("CREATE");
+        expect(trace[0].from).to.eq(alith.address.toLowerCase());
+        expect(trace[0].to).to.eq(ethContractAddress.toLowerCase());
+        expect(trace[0].type).be.eq("CREATE");
+        // 2nd transaction is xcm.
+        // - `From` is the descended origin.
+        // - `To` is the xcm contract address.
+        expect(trace[1].from).to.eq(ethereumXcmDescendedOrigin.toLowerCase());
+        expect(trace[1].to).to.eq(xcmContractAddress.toLowerCase());
+        expect(trace[1].type).to.eq("CALL");
       },
     });
   },

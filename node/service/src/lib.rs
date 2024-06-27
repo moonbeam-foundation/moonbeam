@@ -31,7 +31,7 @@ use cumulus_client_consensus_proposer::Proposer;
 use cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
 use cumulus_client_service::{
 	prepare_node_config, start_relay_chain_tasks, CollatorSybilResistance, DARecoveryProfile,
-	StartRelayChainTasksParams,
+	ParachainHostFunctions, StartRelayChainTasksParams,
 };
 use cumulus_primitives_core::relay_chain::CollatorPair;
 use cumulus_primitives_core::ParaId;
@@ -40,6 +40,7 @@ use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface, RelayCh
 use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node_with_rpc;
 use fc_consensus::FrontierBlockImport as TFrontierBlockImport;
 use fc_db::DatabaseSource;
+use fc_rpc::StorageOverrideHandler;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::{FutureExt, StreamExt};
 use maplit::hashmap;
@@ -59,7 +60,7 @@ use sc_client_api::{
 };
 use sc_consensus::ImportQueue;
 use sc_executor::{HeapAllocStrategy, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
-use sc_network::{config::FullNetworkConfiguration, NetworkBlock};
+use sc_network::{config::FullNetworkConfiguration, NetworkBackend, NetworkBlock};
 use sc_service::config::PrometheusConfig;
 use sc_service::{
 	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, TFullBackend,
@@ -101,7 +102,7 @@ type PartialComponentsResult<RuntimeApi> = Result<
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
-			fc_db::Backend<Block>,
+			Arc<fc_db::Backend<Block, FullClient<RuntimeApi>>>,
 			FeeHistoryCache,
 		),
 	>,
@@ -111,12 +112,12 @@ type PartialComponentsResult<RuntimeApi> = Result<
 #[cfg(feature = "runtime-benchmarks")]
 pub type HostFunctions = (
 	frame_benchmarking::benchmarking::HostFunctions,
-	sp_io::SubstrateHostFunctions,
+	ParachainHostFunctions,
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
 #[cfg(not(feature = "runtime-benchmarks"))]
 pub type HostFunctions = (
-	sp_io::SubstrateHostFunctions,
+	ParachainHostFunctions,
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
 
@@ -247,7 +248,7 @@ pub fn open_frontier_backend<C, BE>(
 	client: Arc<C>,
 	config: &Configuration,
 	rpc_config: &RpcConfig,
-) -> Result<fc_db::Backend<Block>, String>
+) -> Result<fc_db::Backend<Block, C>, String>
 where
 	C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE> + AuxStore,
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError>,
@@ -258,7 +259,7 @@ where
 {
 	let frontier_backend = match rpc_config.frontier_backend_config {
 		FrontierBackendConfig::KeyValue => {
-			fc_db::Backend::KeyValue(fc_db::kv::Backend::<Block>::new(
+			fc_db::Backend::KeyValue(Arc::new(fc_db::kv::Backend::<Block, C>::new(
 				client,
 				&fc_db::kv::DatabaseSettings {
 					source: match config.database {
@@ -281,7 +282,7 @@ where
 						}
 					},
 				},
-			)?)
+			)?))
 		}
 		FrontierBackendConfig::Sql {
 			pool_size,
@@ -289,7 +290,7 @@ where
 			thread_count,
 			cache_size,
 		} => {
-			let overrides = crate::rpc::overrides_handle(client.clone());
+			let overrides = Arc::new(StorageOverrideHandler::new(client.clone()));
 			let sqlite_db_path = frontier_database_dir(config, "sql");
 			std::fs::create_dir_all(&sqlite_db_path).expect("failed creating sql db directory");
 			let backend = futures::executor::block_on(fc_db::sql::Backend::new(
@@ -308,7 +309,7 @@ where
 				overrides.clone(),
 			))
 			.unwrap_or_else(|err| panic!("failed creating sql backend: {:?}", err));
-			fc_db::Backend::Sql(backend)
+			fc_db::Backend::Sql(Arc::new(backend))
 		}
 	};
 
@@ -503,7 +504,7 @@ where
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
-	let frontier_backend = open_frontier_backend(client.clone(), config, rpc_config)?;
+	let frontier_backend = Arc::new(open_frontier_backend(client.clone(), config, rpc_config)?);
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 
 	let create_inherent_data_providers = move |_, _| async move {
@@ -591,7 +592,7 @@ async fn build_relay_chain_interface(
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
 #[sc_tracing::logging::prefix_logs_with("🌗")]
-async fn start_node_impl<RuntimeApi, Customizations>(
+async fn start_node_impl<RuntimeApi, Customizations, Net>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
 	collator_options: CollatorOptions,
@@ -605,6 +606,7 @@ where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	Customizations: ClientCustomizations + 'static,
+	Net: NetworkBackend<Block, Hash>,
 {
 	let mut parachain_config = prepare_node_config(parachain_config);
 
@@ -639,7 +641,7 @@ where
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
 	let import_queue_service = params.import_queue.service();
-	let net_config = FullNetworkConfiguration::new(&parachain_config.network);
+	let net_config = FullNetworkConfiguration::<_, _, Net>::new(&parachain_config.network);
 
 	let (network, system_rpc_tx, tx_handler_controller, start_network, sync_service) =
 		cumulus_client_service::build_network(cumulus_client_service::BuildNetworkParams {
@@ -655,7 +657,7 @@ where
 		})
 		.await?;
 
-	let overrides = crate::rpc::overrides_handle(client.clone());
+	let overrides = Arc::new(StorageOverrideHandler::new(client.clone()));
 	let fee_history_limit = rpc_config.fee_history_limit;
 
 	// Sinks for pubsub notifications.
@@ -760,9 +762,9 @@ where
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: match frontier_backend.clone() {
-					fc_db::Backend::KeyValue(b) => Arc::new(b),
-					fc_db::Backend::Sql(b) => Arc::new(b),
+				frontier_backend: match &*frontier_backend {
+					fc_db::Backend::KeyValue(b) => b.clone(),
+					fc_db::Backend::Sql(b) => b.clone(),
 				},
 				graph: pool.pool().clone(),
 				pool: pool.clone(),
@@ -1098,7 +1100,7 @@ where
 		RuntimeApiCollection,
 	Customizations: ClientCustomizations + 'static,
 {
-	start_node_impl::<RuntimeApi, Customizations>(
+	start_node_impl::<RuntimeApi, Customizations, sc_network::NetworkWorker<_, _>>(
 		parachain_config,
 		polkadot_config,
 		collator_options,
@@ -1113,7 +1115,7 @@ where
 
 /// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
-pub async fn new_dev<RuntimeApi, Customizations>(
+pub async fn new_dev<RuntimeApi, Customizations, Net>(
 	mut config: Configuration,
 	_author_id: Option<NimbusId>,
 	sealing: moonbeam_cli_opt::Sealing,
@@ -1124,6 +1126,7 @@ where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 	Customizations: ClientCustomizations + 'static,
+	Net: NetworkBackend<Block, Hash>,
 {
 	use async_io::Timer;
 	use futures::Stream;
@@ -1156,7 +1159,11 @@ where
 		));
 	};
 
-	let net_config = FullNetworkConfiguration::new(&config.network);
+	let net_config = FullNetworkConfiguration::<_, _, Net>::new(&config.network);
+
+	let metrics = Net::register_notification_metrics(
+		config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
+	);
 
 	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -1169,6 +1176,7 @@ where
 			warp_sync_params: None,
 			net_config,
 			block_relay: None,
+			metrics,
 		})?;
 
 	if config.offchain_worker.enabled {
@@ -1182,7 +1190,7 @@ where
 				transaction_pool: Some(OffchainTransactionPoolFactory::new(
 					transaction_pool.clone(),
 				)),
-				network_provider: network.clone(),
+				network_provider: Arc::new(network.clone()),
 				is_validator: config.role.is_authority(),
 				enable_http_requests: true,
 				custom_extensions: move |_| vec![],
@@ -1193,7 +1201,7 @@ where
 	}
 
 	let prometheus_registry = config.prometheus_registry().cloned();
-	let overrides = crate::rpc::overrides_handle(client.clone());
+	let overrides = Arc::new(StorageOverrideHandler::new(client.clone()));
 	let fee_history_limit = rpc_config.fee_history_limit;
 	let mut command_sink = None;
 	let mut xcm_senders = None;
@@ -1420,9 +1428,9 @@ where
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: match frontier_backend.clone() {
-					fc_db::Backend::KeyValue(b) => Arc::new(b),
-					fc_db::Backend::Sql(b) => Arc::new(b),
+				frontier_backend: match &*frontier_backend {
+					fc_db::Backend::KeyValue(b) => b.clone(),
+					fc_db::Backend::Sql(b) => b.clone(),
 				},
 				graph: pool.pool().clone(),
 				pool: pool.clone(),
@@ -1503,6 +1511,7 @@ where
 
 #[cfg(test)]
 mod tests {
+	use jsonrpsee::server::BatchRequestConfig;
 	use moonbase_runtime::{currency::UNIT, AccountId};
 	use prometheus::{proto::LabelPair, Counter};
 	use sc_network::config::NetworkConfiguration;
@@ -1617,7 +1626,7 @@ mod tests {
 		};
 
 		fn zero_ed_pub() -> sp_core::ed25519::Public {
-			sp_core::ed25519::Public([0u8; 32])
+			sp_core::ed25519::Public::default()
 		}
 
 		// This is an invalid signature
@@ -1749,6 +1758,8 @@ mod tests {
 			informant_output_format: Default::default(),
 			wasmtime_precompiled: None,
 			runtime_cache_size: 2,
+			rpc_rate_limit: Default::default(),
+			rpc_batch_config: BatchRequestConfig::Unlimited,
 		}
 	}
 }

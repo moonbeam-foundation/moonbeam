@@ -18,13 +18,13 @@ export async function createProposal({
   const block = await context.createBlock([
     await context
       .polkadotJs()
-      .tx.preimage.notePreimage(call.toHex())
+      .tx.preimage.notePreimage(call.method.toHex())
       .signAsync(from, { nonce: nonce++ }),
     await context
       .polkadotJs()
       .tx.referenda.submit(
         track == "root" ? { system: "root" } : { Origins: track },
-        { Lookup: { Hash: call.hash.toHex(), len: call.length } },
+        { Lookup: { Hash: call.hash.toHex(), len: call.method.encodedLength } },
         { After: 1 }
       )
       .signAsync(from, { nonce: nonce++ }),

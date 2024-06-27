@@ -607,14 +607,14 @@ where
 
 		let registration = registration.expect("none case checked above; qed").0;
 		let mut identity_info = IdentityInfo::<MaxAdditionalFields> {
-			additional: Vec::default().into(),
+			additional: Default::default(),
 			display: Self::data_to_output(registration.info.display),
 			legal: Self::data_to_output(registration.info.legal),
 			web: Self::data_to_output(registration.info.web),
 			riot: Self::data_to_output(registration.info.riot),
 			email: Self::data_to_output(registration.info.email),
 			has_pgp_fingerprint: false,
-			pgp_fingerprint: Vec::default().into(),
+			pgp_fingerprint: Default::default(),
 			image: Self::data_to_output(registration.info.image),
 			twitter: Self::data_to_output(registration.info.twitter),
 		};
@@ -793,14 +793,14 @@ pub struct IdentityInfo<FieldLimit> {
 impl<T> Default for IdentityInfo<T> {
 	fn default() -> Self {
 		Self {
-			additional: Vec::default().into(),
+			additional: Default::default(),
 			display: Default::default(),
 			legal: Default::default(),
 			web: Default::default(),
 			riot: Default::default(),
 			email: Default::default(),
 			has_pgp_fingerprint: Default::default(),
-			pgp_fingerprint: Vec::default().into(),
+			pgp_fingerprint: Default::default(),
 			image: Default::default(),
 			twitter: Default::default(),
 		}
