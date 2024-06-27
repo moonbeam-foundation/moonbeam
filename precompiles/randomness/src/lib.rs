@@ -37,7 +37,7 @@ use sp_runtime::traits::Dispatchable;
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 #[cfg(test)]
-mod mock;
+pub mod mock;
 mod solidity_types;
 #[cfg(test)]
 mod tests;

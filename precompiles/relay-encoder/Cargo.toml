@@ -12,7 +12,6 @@ rustc-hex = { workspace = true }
 
 # Moonbeam
 pallet-xcm-transactor = { workspace = true }
-precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -27,6 +26,7 @@ sp-std = { workspace = true }
 # Frontier
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+precompile-utils = { workspace = true }
 
 # Cumulus
 cumulus-primitives-core = { workspace = true }

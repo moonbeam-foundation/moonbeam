@@ -19,6 +19,7 @@
 use evm::ExitReason;
 use fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
+use moonbeam_precompile_common::SYSTEM_ACCOUNT_SIZE;
 use pallet_balances::Call as BalancesCall;
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
@@ -33,7 +34,7 @@ use sp_runtime::{
 use sp_std::marker::PhantomData;
 
 #[cfg(test)]
-mod mock;
+pub mod mock;
 #[cfg(test)]
 mod tests;
 

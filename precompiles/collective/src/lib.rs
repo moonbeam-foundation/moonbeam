@@ -26,6 +26,7 @@ use frame_support::{
 	traits::ConstU32,
 	weights::Weight,
 };
+use moonbeam_precompile_common::SYSTEM_ACCOUNT_SIZE;
 use pallet_evm::AddressMapping;
 use parity_scale_codec::DecodeLimit as _;
 use precompile_utils::prelude::*;

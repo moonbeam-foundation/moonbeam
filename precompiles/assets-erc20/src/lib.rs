@@ -28,6 +28,7 @@ use frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
 };
+use moonbeam_precompile_common::SYSTEM_ACCOUNT_SIZE;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;

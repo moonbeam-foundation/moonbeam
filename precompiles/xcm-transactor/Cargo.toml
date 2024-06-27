@@ -12,7 +12,6 @@ rustc-hex = { workspace = true }
 
 # Moonbeam
 pallet-xcm-transactor = { workspace = true }
-precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -24,9 +23,10 @@ sp-std = { workspace = true }
 sp-weights = { workspace = true }
 
 # Frontier
-evm = { workspace = true, features = [ "with-codec" ] }
+evm = { workspace = true, features = ["with-codec"] }
 fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+precompile-utils = { workspace = true }
 
 # Polkadot
 xcm = { workspace = true }
@@ -40,14 +40,14 @@ serde = { workspace = true }
 sha3 = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true, features = [ "testing", "codec-xcm" ] }
+precompile-utils = { workspace = true, features = ["testing", "codec-xcm"] }
 xcm-primitives = { workspace = true }
 
 # Substrate
-pallet-balances = { workspace = true, features = [ "std", "insecure_zero_ed" ] }
+pallet-balances = { workspace = true, features = ["std", "insecure_zero_ed"] }
 pallet-timestamp = { workspace = true }
-parity-scale-codec = { workspace = true, features = [ "max-encoded-len" ] }
-scale-info = { workspace = true, features = [ "derive" ] }
+parity-scale-codec = { workspace = true, features = ["max-encoded-len"] }
+scale-info = { workspace = true, features = ["derive"] }
 sp-io = { workspace = true }
 
 # Polkadot
@@ -59,7 +59,7 @@ xcm-executor = { workspace = true }
 orml-traits = { workspace = true }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"cumulus-primitives-core/std",
 	"frame-support/std",

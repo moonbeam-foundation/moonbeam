@@ -138,7 +138,7 @@ fn take_transact_info() {
 		.build()
 		.execute_with(|| {
 			let input: Vec<_> = PCallV1::transact_info {
-				location: Location::parent(),
+				location: Location::parent().into(),
 			}
 			.into();
 
@@ -177,7 +177,7 @@ fn take_transact_info_with_signed() {
 		.build()
 		.execute_with(|| {
 			let input: Vec<_> = PCallV1::transact_info_with_signed {
-				multilocation: Location::parent(),
+				location: Location::parent().into(),
 			}
 			.into();
 
@@ -217,7 +217,7 @@ fn take_fee_per_second() {
 		.build()
 		.execute_with(|| {
 			let input: Vec<_> = PCallV1::fee_per_second {
-				multilocation: Location::parent(),
+				location: Location::parent().into(),
 			}
 			.into();
 
@@ -254,7 +254,7 @@ fn test_transact_derivative_multilocation_v2() {
 			));
 
 			// we pay with our current self reserve.
-			let fee_payer_asset = Location::parent();
+			let fee_payer_asset = Location::parent().into();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -330,7 +330,7 @@ fn take_transact_info_with_signed_v3() {
 		.build()
 		.execute_with(|| {
 			let input: Vec<_> = PCallV3::transact_info_with_signed {
-				multilocation: Location::parent(),
+				location: Location::parent(),
 			}
 			.into();
 
@@ -401,7 +401,7 @@ fn test_transact_derivative_multilocation() {
 			));
 
 			// we pay with our current self reserve.
-			let fee_payer_asset = Location::parent();
+			let fee_payer_asset = Location::parent().into();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -576,7 +576,7 @@ fn test_transact_signed() {
 			));
 
 			// Destination
-			let dest = Location::parent();
+			let dest = Location::parent().into();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -605,7 +605,7 @@ fn test_transact_signed_v2() {
 		.build()
 		.execute_with(|| {
 			// Destination
-			let dest = Location::parent();
+			let dest = Location::parent().into();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -692,9 +692,9 @@ fn test_transact_signed_multilocation() {
 			));
 
 			// Destination
-			let dest = Location::parent();
+			let dest = Location::parent().into();
 
-			let fee_payer_asset = Location::parent();
+			let fee_payer_asset = Location::parent().into();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -723,9 +723,9 @@ fn test_transact_signed_multilocation_v2() {
 		.build()
 		.execute_with(|| {
 			// Destination
-			let dest = Location::parent();
+			let dest = Location::parent().into();
 
-			let fee_payer_asset = Location::parent();
+			let fee_payer_asset = Location::parent().into();
 
 			let bytes = vec![1u8, 2u8, 3u8];
 

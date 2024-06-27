@@ -1,5 +1,0 @@
-error: The discriminant function must only take the code address (H160) as parameter.
-  --> tests/compile-fail/precompile/discriminant/too-many-arguments.rs:25:2
-   |
-25 |     fn discriminant(address: H160, other: u32) -> Option<u32> {
-   |     ^^

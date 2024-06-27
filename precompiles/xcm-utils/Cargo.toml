@@ -9,7 +9,6 @@ version = "0.1.0"
 num_enum = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -23,7 +22,8 @@ sp-weights = { workspace = true }
 
 # Frontier
 fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+precompile-utils = { workspace = true }
 
 # Polkadot
 pallet-xcm = { workspace = true }
@@ -36,13 +36,13 @@ serde = { workspace = true }
 sha3 = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true, features = [ "testing" ] }
+precompile-utils = { workspace = true, features = ["testing"] }
 
 # Substrate
 pallet-balances = { workspace = true }
 pallet-timestamp = { workspace = true }
-parity-scale-codec = { workspace = true, features = [ "max-encoded-len" ] }
-scale-info = { workspace = true, features = [ "derive" ] }
+parity-scale-codec = { workspace = true, features = ["max-encoded-len"] }
+scale-info = { workspace = true, features = ["derive"] }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 
@@ -57,7 +57,7 @@ xcm-builder = { workspace = true }
 orml-traits = { workspace = true }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"frame-support/std",
 	"frame-system/std",

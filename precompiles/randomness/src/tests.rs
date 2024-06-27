@@ -15,10 +15,13 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Randomness precompile unit tests
-use crate::{mock::*, prepare_and_finish_fulfillment_gas_cost, subcall_overhead_gas_costs};
+use crate::{
+	assert_event_emitted, mock::*, prepare_and_finish_fulfillment_gas_cost,
+	subcall_overhead_gas_costs,
+};
 use fp_evm::FeeCalculator;
 use pallet_randomness::{Event as RandomnessEvent, RandomnessResults, RequestType};
-use precompile_utils::{assert_event_emitted, prelude::*, testing::*};
+use precompile_utils::{prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
 
 #[test]
