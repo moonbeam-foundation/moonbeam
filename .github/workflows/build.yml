@@ -226,7 +226,9 @@ jobs:
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
       - name: Check Cargo.toml files format with toml_sort
         run: ./scripts/check-cargo-toml-files-format.sh
 
@@ -240,7 +242,9 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
       - name: Verifies all 'pallet-evm/ethereum' use 'forbid-evm-reentrancy' feature
         run: ./scripts/check-forbid-evm-reentrancy.sh
 
@@ -256,7 +260,9 @@ jobs:
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
       - name: Format code with rustfmt
         run: cargo fmt -- --check
 
@@ -274,7 +280,9 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
       # Development branch clippy check
       - name: Clippy (dev)
         if: github.ref != 'refs/heads/master' && !startsWith(github.ref, 'perm-')
@@ -338,6 +346,7 @@ jobs:
           if ! which "rustup" > /dev/null; then
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           fi
+          rustup override unset
           rustup show
           rustup target add wasm32-unknown-unknown
       # Checks are run after uploading artifacts since they are modified by the tests
