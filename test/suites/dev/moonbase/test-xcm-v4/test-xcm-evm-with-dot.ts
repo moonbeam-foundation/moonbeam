@@ -44,7 +44,7 @@ describeSuite({
         context,
         RELAY_SOURCE_LOCATION,
         relayAssetMetadata as any,
-        1
+        1,
       );
 
       // Descend address from origin address
@@ -143,8 +143,8 @@ describeSuite({
             },
           })
           .as_v3();
-        
-       const resultingSenderBalance = (await api.query.assets.account(assetId, descendAddress))
+
+        const resultingSenderBalance = (await api.query.assets.account(assetId, descendAddress))
           .unwrap()
           .balance.toBigInt();
         expect(resultingSenderBalance).toBe(initialSenderBalance);
