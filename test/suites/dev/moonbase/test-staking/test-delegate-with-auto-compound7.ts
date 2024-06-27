@@ -8,7 +8,6 @@ import {
   baltathar,
   checkBalance,
 } from "@moonwall/util";
-import { blake2AsHex } from "@polkadot/util-crypto";
 import fs from "node:fs";
 import { jumpRounds, getRewardedAndCompoundedEvents } from "../../../../helpers";
 
@@ -27,18 +26,18 @@ describeSuite({
         ).toBe(DEFAULT_GENESIS_BALANCE);
 
         // Submit a preimage (to have a reserve that exceed min stake)
-        const wasm = fs.readFileSync("../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm");
+        const wasm = fs.readFileSync(
+          "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm"
+        );
         const encodedPreimage = `0x${wasm.toString("hex")}`;
-        const encodedHash = blake2AsHex(encodedPreimage);
+        //const encodedHash = blake2AsHex(encodedPreimage);
         await context.createBlock(
           context.polkadotJs().tx.preimage.notePreimage(encodedPreimage).signAsync(baltathar)
         );
-        const reservedBalance = (await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS))
-            .data.reserved.toBigInt();
-
         // Stake some tokens (less than the preimage deposit)
-        const freeBalance = (await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS))
-          .data.free.toBigInt();
+        const freeBalance = (
+          await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS)
+        ).data.free.toBigInt();
         console.log(freeBalance);
 
         // Auto compound
@@ -56,15 +55,10 @@ describeSuite({
             .signAsync(baltathar)
         );
         expect(result!.successful).to.be.true;
-        const frozenBalance = (await context.polkadotJs().query.system.account(BALTATHAR_ADDRESS))
-        .data.frozen.toBigInt();
 
         // Withdraw all Baltathar free founds
         await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.balances.transferAll(alith.address, false)
-            .signAsync(baltathar)
+          context.polkadotJs().tx.balances.transferAll(alith.address, false).signAsync(baltathar)
         );
 
         // Move forward to rewardDelay rounds
@@ -74,7 +68,9 @@ describeSuite({
         // The enxt block should reward baltathat and auto-compound his rewards
         const blockHash = (await context.createBlock()).block.hash.toString();
         const events = await getRewardedAndCompoundedEvents(context, blockHash);
-        const rewardedEvent = events.rewarded.find(({ account }: any) => account === baltathar.address);
+        const rewardedEvent = events.rewarded.find(
+          ({ account }: any) => account === baltathar.address
+        );
         const compoundedEvent = events.compounded.find(
           ({ delegator }: any) => delegator === baltathar.address
         );
