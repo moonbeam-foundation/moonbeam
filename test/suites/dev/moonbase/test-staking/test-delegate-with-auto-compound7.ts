@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { MoonwallContext, describeSuite, expect } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   DEFAULT_GENESIS_BALANCE,
@@ -10,6 +10,7 @@ import {
 } from "@moonwall/util";
 import fs from "node:fs";
 import { jumpRounds, getRewardedAndCompoundedEvents } from "../../../../helpers";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
   id: "D013490",
@@ -25,15 +26,25 @@ describeSuite({
           "Balance should be untouched from genesis amount"
         ).toBe(DEFAULT_GENESIS_BALANCE);
 
-        // Submit a preimage (to have a reserve that exceed min stake)
-        const wasm = fs.readFileSync(
-          "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm"
-        );
+        // Submit a preimage
+        const encodedProposal =
+          context
+            .polkadotJs()
+            .tx.parachainStaking.setParachainBondAccount(
+              privateKeyToAccount(generatePrivateKey()).address
+            )
+            .method.toHex() || "";
+        await context.createBlock(context.polkadotJs().tx.preimage.notePreimage(encodedProposal));
+        /*const runtimePath = (await MoonwallContext.getContext()).rtUpgradePath;
+        if (!runtimePath) {
+          throw new Error("Runtime upgrade path not set");
+        }
+        const wasm = fs.readFileSync(runtimePath);
         const encodedPreimage = `0x${wasm.toString("hex")}`;
         //const encodedHash = blake2AsHex(encodedPreimage);
         await context.createBlock(
           context.polkadotJs().tx.preimage.notePreimage(encodedPreimage).signAsync(baltathar)
-        );
+        );*/
         // Stake some tokens (less than the preimage deposit) with auto-compound
         const { result } = await context.createBlock(
           context
