@@ -34,7 +34,7 @@ describeSuite({
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
 
-    const initialAlithBalance: bigint = 10_000_000_000_000_000n;
+    const initialSenderBalance: bigint = 10_000_000_000_000_000n;
 
     beforeAll(async () => {
       api = context.polkadotJs();
@@ -150,7 +150,7 @@ describeSuite({
           payload: xcmMessage,
         } as RawXcmMessage);
 
-        const resultingAlithBalance = (await api.query.assets.account(assetId, descendAddress))
+        const resultingSenderBalance = (await api.query.assets.account(assetId, descendAddress))
           .unwrap()
           .balance.toBigInt();
 
