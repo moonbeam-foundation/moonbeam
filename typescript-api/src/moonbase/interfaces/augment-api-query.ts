@@ -681,9 +681,6 @@ declare module "@polkadot/api-base/types/storage" {
       [key: string]: QueryableStorageEntry<ApiType>;
     };
     moonbeamLazyMigrations: {
-      /** If true, it means that LocalAssets storage has been removed. */
-      localAssetsMigrationCompleted: AugmentedQuery<ApiType, () => Observable<bool>, []> &
-        QueryableStorageEntry<ApiType, []>;
       /** The total number of suicided contracts that were removed */
       suicidedContractsRemoved: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;

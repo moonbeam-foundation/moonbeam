@@ -46,6 +46,12 @@ declare module "@polkadot/api-base/types/consts" {
       /** Generic const */
       [key: string]: Codec;
     };
+    asyncBacking: {
+      /** Purely informative, but used by mocking tools like chospticks to allow knowing how to mock blocks */
+      expectedBlockTime: u64 & AugmentedConst<ApiType>;
+      /** Generic const */
+      [key: string]: Codec;
+    };
     balances: {
       /**
        * The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!
