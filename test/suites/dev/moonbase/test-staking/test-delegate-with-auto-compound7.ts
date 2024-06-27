@@ -26,25 +26,15 @@ describeSuite({
           "Balance should be untouched from genesis amount"
         ).toBe(DEFAULT_GENESIS_BALANCE);
 
-        // Submit a preimage
-        const encodedProposal =
-          context
-            .polkadotJs()
-            .tx.parachainStaking.setParachainBondAccount(
-              privateKeyToAccount(generatePrivateKey()).address
-            )
-            .method.toHex() || "";
-        await context.createBlock(context.polkadotJs().tx.preimage.notePreimage(encodedProposal));
-        /*const runtimePath = (await MoonwallContext.getContext()).rtUpgradePath;
-        if (!runtimePath) {
-          throw new Error("Runtime upgrade path not set");
-        }
-        const wasm = fs.readFileSync(runtimePath);
+        // Submit a huge preimage (to have a deposit greather than the satked amount)
+        const wasm = fs.readFileSync(
+          "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm"
+        );
         const encodedPreimage = `0x${wasm.toString("hex")}`;
-        //const encodedHash = blake2AsHex(encodedPreimage);
         await context.createBlock(
           context.polkadotJs().tx.preimage.notePreimage(encodedPreimage).signAsync(baltathar)
-        );*/
+        );
+
         // Stake some tokens (less than the preimage deposit) with auto-compound
         const { result } = await context.createBlock(
           context
