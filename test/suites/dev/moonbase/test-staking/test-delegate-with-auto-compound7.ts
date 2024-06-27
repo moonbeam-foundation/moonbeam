@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { MoonwallContext, describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   DEFAULT_GENESIS_BALANCE,
@@ -10,7 +10,6 @@ import {
 } from "@moonwall/util";
 import fs from "node:fs";
 import { jumpRounds, getRewardedAndCompoundedEvents } from "../../../../helpers";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
   id: "D013490",
