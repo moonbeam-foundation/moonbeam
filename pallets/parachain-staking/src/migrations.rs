@@ -68,7 +68,7 @@ where
 		// We can't compute the theoretical first slot because we don't have access to the
 		// relay slot
 		// To handle that, we added a hack in pallet staking that fallback to the ideal round
-		// duration if `first_slot` is zero. 
+		// duration if `first_slot` is zero.
 		round.first_slot = 0;
 
 		// Apply the migration (write new Round value)
