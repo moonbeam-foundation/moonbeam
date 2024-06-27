@@ -143,7 +143,11 @@ describeSuite({
             },
           })
           .as_v3();
-
+        
+       const resultingSenderBalance = (await api.query.assets.account(assetId, descendAddress))
+          .unwrap()
+          .balance.toBigInt();
+        expect(resultingSenderBalance).toBe(initialSenderBalance);
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, 1, {
           type: "XcmVersionedXcm",
