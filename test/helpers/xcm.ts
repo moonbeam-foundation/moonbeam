@@ -1,4 +1,4 @@
-import { DevModeContext, customDevRpcRequest } from "@moonwall/cli";
+import { DevModeContext, customDevRpcRequest, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { AssetMetadata, XcmpMessageFormat } from "@polkadot/types/interfaces";
 import {
@@ -918,3 +918,52 @@ export const expectXcmEventMessage = async (context: DevModeContext, message: st
 };
 
 type XcmCallback = (this: XcmFragment) => void;
+
+export const extractPaidDeliveryFees = async (context: DevModeContext) => {
+  const records = await context.polkadotJs().query.system.events();
+
+  const filteredEvents = records
+    .map(({ event }) =>
+      context.polkadotJs().events.polkadotXcm.FeesPaid.is(event) ? event : undefined
+    )
+    .filter((event) => event);
+
+  return filteredEvents[0]!.data[1][0].fun.asFungible.toBigInt();
+};
+
+export const getLastSentUmpMessageFee = async (
+  context: DevModeContext,
+  baseDelivery: bigint,
+  txByteFee: bigint
+) => {
+  const upwardMessages = await context.polkadotJs().query.parachainSystem.upwardMessages();
+  expect(upwardMessages.length > 0, "There is no upward message").to.be.true;
+  const sentXcm = upwardMessages[0];
+
+  // We need to slice once to get to the actual message (version)
+  const messageBytes = sentXcm.slice(1);
+
+  const txPrice = baseDelivery + txByteFee * BigInt(messageBytes.length);
+  const deliveryFeeFactor = await context
+    .polkadotJs()
+    .query.parachainSystem.upwardDeliveryFeeFactor();
+  const fee = (BigInt(deliveryFeeFactor.toString()) * txPrice) / BigInt(10 ** 18);
+  return fee;
+};
+
+export const getLastSentHrmpMessageFee = async (
+  context: DevModeContext,
+  paraId: number,
+  baseDelivery: bigint,
+  txByteFee: bigint
+) => {
+  const sentXcm = await context.polkadotJs().query.xcmpQueue.outboundXcmpMessages(paraId, 0);
+  expect(sentXcm.length > 0, `There is no hrmp message for para id ${paraId}`).to.be.true;
+  // We need to slice 2 first bytes to get to the actual message (version plus HRMP)
+  const messageBytes = sentXcm.slice(2);
+
+  const txPrice = baseDelivery + txByteFee * BigInt(messageBytes.length);
+  const deliveryFeeFactor = await context.polkadotJs().query.xcmpQueue.deliveryFeeFactor(paraId);
+  const fee = (BigInt(deliveryFeeFactor.toString()) * txPrice) / BigInt(10 ** 18);
+  return fee;
+};

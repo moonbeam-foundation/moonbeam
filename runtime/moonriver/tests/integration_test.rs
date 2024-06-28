@@ -2178,7 +2178,10 @@ fn test_xcm_delivery_fees_in_xcm_transactor() {
 				false
 			));
 
-			// Delivery fee (total): BaseDeliveryFee + (TransactionByteFee * XCM Msg Bytes)
+			// Delivery fee (total):
+			// 		DeliveryFeeFactor * [BaseDeliveryFee + (TransactionByteFee * XCM Msg Bytes)]
+			//
+			// 		DeliveryFeeFactor: 1
 			// 		BaseDeliveryFee: 100000000000000
 			// 		TransactionByteFee: 100
 			// 		XCM Msg Bytes: 60
@@ -2238,7 +2241,10 @@ fn test_xcm_delivery_fees_through_xtokens() {
 				WeightLimit::Limited(4000000000.into())
 			));
 
-			// Delivery fee (total): BaseDeliveryFee + (TransactionByteFee * XCM Msg Bytes)
+			// Delivery fee (total):
+			// 		DeliveryFeeFactor * [BaseDeliveryFee + (TransactionByteFee * XCM Msg Bytes)]
+			//
+			// 		DeliveryFeeFactor: 1
 			// 		BaseDeliveryFee: 100000000000000
 			// 		TransactionByteFee: 100
 			//		XCM Msg Bytes: 76
