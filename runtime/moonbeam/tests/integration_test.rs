@@ -2363,6 +2363,66 @@ fn test_xcm_delivery_fees_in_xcm_transactor() {
 }
 
 #[test]
+fn test_xcm_delivery_fees_through_xtokens() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
+			metadata: AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
+		.build()
+		.execute_with(|| {
+			let alice_initial_native_balance = 2_000 * GLMR;
+			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
+			let dest = Location {
+				parents: 1,
+				interior: [AccountId32 {
+					network: None,
+					id: [1u8; 32],
+				}]
+				.into(),
+			};
+			let source_id: moonbeam_runtime::AssetId = source_location.clone().into();
+
+			// Root sets the defaultXcm
+			assert_ok!(PolkadotXcm::force_default_xcm_version(
+				root_origin(),
+				Some(3)
+			));
+
+			// Execute transfer through xTokens
+			assert_ok!(XTokens::transfer(
+				origin_of(AccountId::from(ALICE)),
+				moonbeam_runtime::xcm_config::CurrencyId::ForeignAsset(source_id),
+				100_000_000_000_000,
+				Box::new(xcm::VersionedLocation::V4(dest)),
+				WeightLimit::Limited(4000000000.into())
+			));
+
+			// Delivery fee (total): BaseDeliveryFee + (TransactionByteFee * XCM Msg Bytes)
+			// 		BaseDeliveryFee: 100000000000000
+			// 		TransactionByteFee: 100
+			//		XCM Msg Bytes: 76
+
+			// Make sure delivery fees were deducted from the caller's account
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				alice_initial_native_balance - 100000000007600,
+			);
+		})
+}
+
+#[test]
 fn call_xtokens_with_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![
