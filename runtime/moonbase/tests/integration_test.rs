@@ -2156,8 +2156,8 @@ fn test_xcm_delivery_fees_in_xcm_transactor() {
 			));
 
 			// Delivery fee (total): BaseDeliveryFee + (TransactionByteFee * XCM Msg Bytes)
-			//      BaseDeliveryFee: 100000000000000
-			//      TransactionByteFee: 100
+			// 		BaseDeliveryFee: 100000000000000
+			// 		TransactionByteFee: 100
 			//		XCM Msg Bytes: 60
 
 			// Make sure delivery fees were deducted from the caller's account
