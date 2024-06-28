@@ -2129,10 +2129,7 @@ fn delegate_reserves_balance() {
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(
-				ParachainStaking::get_delegator_stakable_free_balance(&2),
-				10
-			);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 10);
 			assert_ok!(ParachainStaking::delegate(
 				RuntimeOrigin::signed(2),
 				1,
@@ -2140,7 +2137,7 @@ fn delegate_reserves_balance() {
 				0,
 				0
 			));
-			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 0);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 0);
 		});
 }
 
@@ -2598,13 +2595,13 @@ fn delegator_bond_more_reserves_balance() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 5);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 5);
 			assert_ok!(ParachainStaking::delegator_bond_more(
 				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
-			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 0);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 0);
 		});
 }
 
@@ -3071,7 +3068,7 @@ fn execute_revoke_delegation_unreserves_balance() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 0);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 0);
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				RuntimeOrigin::signed(2),
 				1
@@ -3082,10 +3079,7 @@ fn execute_revoke_delegation_unreserves_balance() {
 				2,
 				1
 			));
-			assert_eq!(
-				ParachainStaking::get_delegator_stakable_free_balance(&2),
-				10
-			);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 10);
 		});
 }
 
@@ -3319,10 +3313,7 @@ fn delegator_bond_more_after_revoke_delegation_does_not_effect_exit() {
 				1
 			));
 			assert!(ParachainStaking::is_delegator(&2));
-			assert_eq!(
-				ParachainStaking::get_delegator_stakable_free_balance(&2),
-				10
-			);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 10);
 		});
 }
 
@@ -3386,10 +3377,7 @@ fn delegator_bond_less_after_revoke_delegation_does_not_effect_exit() {
 				},
 			);
 			assert!(ParachainStaking::is_delegator(&2));
-			assert_eq!(
-				ParachainStaking::get_delegator_stakable_free_balance(&2),
-				22
-			);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 22);
 		});
 }
 
@@ -3403,7 +3391,7 @@ fn execute_delegator_bond_less_unreserves_balance() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 0);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 0);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
 				RuntimeOrigin::signed(2),
 				1,
@@ -3415,7 +3403,7 @@ fn execute_delegator_bond_less_unreserves_balance() {
 				2,
 				1
 			));
-			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 5);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 5);
 		});
 }
 
@@ -5281,14 +5269,8 @@ fn multiple_delegations() {
 			);
 			assert_eq!(Balances::locks(&6)[0].amount, 40);
 			assert_eq!(Balances::locks(&7)[0].amount, 90);
-			assert_eq!(
-				ParachainStaking::get_delegator_stakable_free_balance(&6),
-				60
-			);
-			assert_eq!(
-				ParachainStaking::get_delegator_stakable_free_balance(&7),
-				10
-			);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&6), 60);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&7), 10);
 			roll_to_round_begin(8);
 			roll_blocks(1);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
@@ -5319,14 +5301,8 @@ fn multiple_delegations() {
 					.len(),
 				3usize
 			);
-			assert_eq!(
-				ParachainStaking::get_delegator_stakable_free_balance(&6),
-				70
-			);
-			assert_eq!(
-				ParachainStaking::get_delegator_stakable_free_balance(&7),
-				90
-			);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&6), 70);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&7), 90);
 		});
 }
 
@@ -8308,10 +8284,7 @@ fn test_delegate_with_auto_compound_reserves_balance() {
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(
-				ParachainStaking::get_delegator_stakable_free_balance(&2),
-				10
-			);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 10);
 			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
@@ -8321,7 +8294,7 @@ fn test_delegate_with_auto_compound_reserves_balance() {
 				0,
 				0,
 			));
-			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 0);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 0);
 		});
 }
 

@@ -585,7 +585,7 @@ fn geneses() {
 			// delegators
 			for x in 3..7 {
 				assert!(ParachainStaking::is_delegator(&x));
-				assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&x), 0);
+				assert_eq!(ParachainStaking::get_delegator_stakable_balance(&x), 0);
 				assert_eq!(query_lock_amount(x, DELEGATOR_LOCK_ID), Some(100));
 			}
 			// uninvolved
@@ -594,14 +594,11 @@ fn geneses() {
 			}
 			// no delegator staking locks
 			assert_eq!(query_lock_amount(7, DELEGATOR_LOCK_ID), None);
-			assert_eq!(
-				ParachainStaking::get_delegator_stakable_free_balance(&7),
-				100
-			);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&7), 100);
 			assert_eq!(query_lock_amount(8, DELEGATOR_LOCK_ID), None);
-			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&8), 9);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&8), 9);
 			assert_eq!(query_lock_amount(9, DELEGATOR_LOCK_ID), None);
-			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&9), 4);
+			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&9), 4);
 			// no collator staking locks
 			assert_eq!(
 				ParachainStaking::get_collator_stakable_free_balance(&7),
@@ -647,10 +644,7 @@ fn geneses() {
 			for x in 6..11 {
 				assert!(ParachainStaking::is_delegator(&x));
 				assert_eq!(query_lock_amount(x, DELEGATOR_LOCK_ID), Some(10));
-				assert_eq!(
-					ParachainStaking::get_delegator_stakable_free_balance(&x),
-					90
-				);
+				assert_eq!(ParachainStaking::get_delegator_stakable_balance(&x), 90);
 			}
 		});
 }

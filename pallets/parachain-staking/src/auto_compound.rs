@@ -165,7 +165,7 @@ where
 	) -> DispatchResultWithPostInfo {
 		// check that caller can lock the amount before any changes to storage
 		ensure!(
-			<Pallet<T>>::get_delegator_stakable_free_balance(&delegator) >= amount,
+			<Pallet<T>>::get_delegator_stakable_balance(&delegator) >= amount,
 			Error::<T>::InsufficientBalance
 		);
 		ensure!(
