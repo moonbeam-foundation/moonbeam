@@ -1056,7 +1056,8 @@ pub mod pallet {
 
 			// Extract XCM Delivery fees from the origin account.
 			// Same way as the XCM executor does.
-			// See https://github.com/paritytech/polkadot-sdk/blob/release-crates-io-v1.11.0/polkadot/xcm/xcm-executor/src/lib.rs#L445-L447
+			// See https://github.com/paritytech/polkadot-sdk/blob/release-crates-io-v1.11.0
+			//     /polkadot/xcm/xcm-executor/src/lib.rs#L445-L447
 			for asset in price.inner() {
 				T::AssetTransactor::withdraw_asset(&asset, &origin_as_mult, None)
 					.map_err(|_| Error::<T>::UnableToWithdrawAsset)?;

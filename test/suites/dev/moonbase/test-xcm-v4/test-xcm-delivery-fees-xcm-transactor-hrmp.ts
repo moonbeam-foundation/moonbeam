@@ -56,7 +56,7 @@ describeSuite({
           feeAmount: 10000,
         });
 
-        let transactorTx = context
+        const transactorTx = context
           .polkadotJs()
           .tx.xcmTransactor.transactThroughSigned(
             dest,

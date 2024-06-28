@@ -27,7 +27,7 @@ describeSuite({
         const destination_address =
           "0101010101010101010101010101010101010101010101010101010101010101";
 
-        let xTokensTx = context.polkadotJs().tx.xTokens.transfer(
+        const xTokensTx = context.polkadotJs().tx.xTokens.transfer(
           "SelfReserve",
           100n * GLMR,
           {

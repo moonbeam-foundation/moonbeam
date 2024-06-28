@@ -1,7 +1,6 @@
 import { describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
 import {
-  MultiLocation,
   extractPaidDeliveryFees,
   getLastSentHrmpMessageFee,
   XcmFragment,
