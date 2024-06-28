@@ -3,10 +3,10 @@ on:
   workflow_dispatch:
     inputs:
       from:
-        description: "Previous client version"
+        description: "Previous client version (eg. v0.35.0)"
         required: true
       to:
-        description: "Next client version"
+        description: "Next client version (eg. v0.36.0)"
         required: true
 
 jobs:

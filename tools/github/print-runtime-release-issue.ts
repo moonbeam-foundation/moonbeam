@@ -7,12 +7,12 @@ async function main() {
     .options({
       from: {
         type: "string",
-        describe: "previous runtime version",
+        describe: "previous runtime spec version",
         required: true,
       },
       to: {
         type: "string",
-        describe: "next runtime version",
+        describe: "next runtime spec version",
         required: true,
       },
       client: {
@@ -56,6 +56,7 @@ with ${lastClientVersion} and master
       `
 ## Requirements
 - [ ] To be manually edited (add pending PRs)
+- [ ] Ready for release
 
 ## Pre-Release
 - [ ] Cleanup previous migrations (
@@ -78,6 +79,7 @@ ${commonTemplate}
     const template = `
 ## Requirements
 - [ ] To be manually edited (add pending PRs)
+- [ ] Ready for release
 
 ## Pre-Release
 - [ ] Bump spec version to ${newVersion}
