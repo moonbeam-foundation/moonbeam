@@ -2286,6 +2286,83 @@ fn transactor_cannot_use_more_than_max_weight() {
 }
 
 #[test]
+fn test_xcm_delivery_fees_in_xcm_transactor() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
+			metadata: AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
+		.build()
+		.execute_with(|| {
+			let alice_initial_native_balance = 2_000 * GLMR;
+
+			// Root sets the defaultXcm
+			assert_ok!(PolkadotXcm::force_default_xcm_version(
+				root_origin(),
+				Some(3)
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				root_origin(),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				// Relay charges 1000 for every instruction, and we have 3, so 3000
+				3000.into(),
+				20000000000.into(),
+				// 4 instructions in transact through signed
+				Some(4000.into())
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				root_origin(),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				1,
+			));
+
+			// Execute transact_through_signed call
+			assert_ok!(XcmTransactor::transact_through_signed(
+				origin_of(AccountId::from(ALICE)),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+						Location::parent()
+					))),
+					fee_amount: None
+				},
+				Vec::new(),
+				TransactWeights {
+					transact_required_weight_at_most: 4000000000.into(),
+					overall_weight: None
+				},
+				false
+			));
+
+			// Delivery fee (total): BaseDeliveryFee + (TransactionByteFee * XCM Msg Bytes)
+			//      BaseDeliveryFee: 100000000000000
+			//      TransactionByteFee: 100
+			//		XCM Msg Bytes: 60
+
+			// Make sure delivery fees were deducted from the caller's account
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				alice_initial_native_balance - 100000000006000,
+			);
+		})
+}
+
+#[test]
 fn call_xtokens_with_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![

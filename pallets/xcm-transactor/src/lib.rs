@@ -1050,9 +1050,18 @@ pub mod pallet {
 			transact_message.0.insert(0, DescendOrigin(interior));
 
 			// Send to destination chain
-			let (ticket, _price) =
+			let (ticket, price) =
 				T::XcmSender::validate(&mut Some(dest), &mut Some(transact_message))
 					.map_err(|_| Error::<T>::ErrorValidating)?;
+
+			// Extract XCM Delivery fees from the origin account.
+			// Same way as the XCM executor does.
+			// See https://github.com/paritytech/polkadot-sdk/blob/release-crates-io-v1.11.0/polkadot/xcm/xcm-executor/src/lib.rs#L445-L447
+			for asset in price.inner() {
+				T::AssetTransactor::withdraw_asset(&asset, &origin_as_mult, None)
+					.map_err(|_| Error::<T>::UnableToWithdrawAsset)?;
+			}
+
 			T::XcmSender::deliver(ticket).map_err(|_| Error::<T>::ErrorDelivering)?;
 
 			Ok(())
