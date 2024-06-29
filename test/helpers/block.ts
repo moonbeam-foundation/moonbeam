@@ -87,7 +87,8 @@ export const verifyBlockFees = async (
   context: DevModeContext,
   fromBlockNumber: number,
   toBlockNumber: number,
-  expectedBalanceDiff: bigint
+  expectedBalanceDiff: bigint,
+  deliveryFees: bigint
 ) => {
   const api = context.polkadotJs();
   debug(`========= Checking block ${fromBlockNumber}...${toBlockNumber}`);
@@ -262,7 +263,7 @@ export const verifyBlockFees = async (
                 await api.at(blockDetails.block.hash)
               ).query.system.account(origin)) as any;
 
-              expect(txFees.toString()).to.eq(
+              expect((BigInt(txFees) + BigInt(deliveryFees)).toString()).to.eq(
                 (
                   (((fromBalance.data.free.toBigInt() as any) -
                     toBalance.data.free.toBigInt()) as any) - expectedBalanceDiff
@@ -278,7 +279,7 @@ export const verifyBlockFees = async (
     }
   );
 
-  expect(fromPreSupply.toBigInt() - toSupply.toBigInt()).to.eq(sumBlockBurnt);
+  expect(BigInt(fromPreSupply) - BigInt(toSupply) - BigInt(deliveryFees)).to.eq(sumBlockBurnt);
 
   // Log difference in supply, we should be equal to the burnt fees
   // debug(
@@ -292,11 +293,12 @@ export const verifyBlockFees = async (
 
 export const verifyLatestBlockFees = async (
   context: DevModeContext,
-  expectedBalanceDiff: bigint = BigInt(0)
+  expectedBalanceDiff: bigint = BigInt(0),
+  deliveryFees: bigint = BigInt(0)
 ) => {
   const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
   const blockNumber = Number(signedBlock.block.header.number);
-  return verifyBlockFees(context, blockNumber, blockNumber, expectedBalanceDiff);
+  return verifyBlockFees(context, blockNumber, blockNumber, expectedBalanceDiff, deliveryFees);
 };
 
 export async function jumpToRound(context: DevModeContext, round: number): Promise<string | null> {

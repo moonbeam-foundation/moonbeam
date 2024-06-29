@@ -7,6 +7,7 @@ import {
   expectEVMResult,
   registerXcmTransactorAndContract,
   PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS,
+  getLastSentUmpMessageFee,
 } from "../../../../helpers";
 
 describeSuite({
@@ -14,6 +15,8 @@ describeSuite({
   title: "Precompiles - xcm transactor V3",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+    const baseDelivery: bigint = 100_000_000_000_000n;
+    const txByteFee = 100n;
     beforeAll(async () => {
       await registerXcmTransactorAndContract(context);
     });
@@ -43,8 +46,10 @@ describeSuite({
         const { result } = await context.createBlock(rawTx);
         expectEVMResult(result!.events, "Succeed");
 
+        const xcmDeliveryFees = await getLastSentUmpMessageFee(context, baseDelivery, txByteFee);
+
         // 1000 fee for the relay is paid with relay assets
-        await verifyLatestBlockFees(context);
+        await verifyLatestBlockFees(context, 0n, xcmDeliveryFees);
       },
     });
   },
