@@ -5,6 +5,7 @@ import {
   verifyLatestBlockFees,
   expectEVMResult,
   DEFAULT_TXN_MAX_BASE_FEE,
+  getLastSentUmpMessageFee,
 } from "../../../../helpers";
 import { encodeFunctionData } from "viem";
 
@@ -13,6 +14,8 @@ describeSuite({
   title: "Precompiles - xtokens",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+    const baseDelivery: bigint = 100_000_000_000_000n;
+    const txByteFee = 100n;
     beforeAll(async function () {
       await context.deployContract!("XTokensInstance");
     });
@@ -56,8 +59,10 @@ describeSuite({
         const gasPrice = receipt.effectiveGasPrice;
         const fees = receipt.gasUsed * gasPrice;
         expectEVMResult(result!.events, "Succeed");
-        await verifyLatestBlockFees(context, amountTransferred);
-        expect(balBefore - balAfter).to.equal(amountTransferred + fees);
+
+        const xcmDeliveryFees = await getLastSentUmpMessageFee(context, baseDelivery, txByteFee);
+        await verifyLatestBlockFees(context, amountTransferred, xcmDeliveryFees);
+        expect(balBefore - balAfter).to.equal(amountTransferred + fees + xcmDeliveryFees);
       },
     });
 
@@ -102,8 +107,9 @@ describeSuite({
         const gasPrice = receipt.effectiveGasPrice;
         const fees = receipt.gasUsed * gasPrice;
 
-        expect(balBefore - balAfter).to.equal(amountTransferred + fee + fees);
-        await verifyLatestBlockFees(context, amountTransferred + fee);
+        const xcmDeliveryFees = await getLastSentUmpMessageFee(context, baseDelivery, txByteFee);
+        expect(balBefore - balAfter).to.equal(amountTransferred + fee + fees + xcmDeliveryFees);
+        await verifyLatestBlockFees(context, amountTransferred + fee, xcmDeliveryFees);
       },
     });
 
@@ -162,8 +168,10 @@ describeSuite({
         const gasPrice = receipt.effectiveGasPrice;
         const fees = receipt.gasUsed * gasPrice;
 
-        expect(balBefore - balAfter).to.equal(amountTransferred + fees);
-        await verifyLatestBlockFees(context, amountTransferred);
+        const xcmDeliveryFees = await getLastSentUmpMessageFee(context, baseDelivery, txByteFee);
+
+        expect(balBefore - balAfter).to.equal(amountTransferred + fees + xcmDeliveryFees);
+        await verifyLatestBlockFees(context, amountTransferred, xcmDeliveryFees);
       },
     });
 
@@ -223,8 +231,10 @@ describeSuite({
         const gasPrice = receipt.effectiveGasPrice;
         const fees = receipt.gasUsed * gasPrice;
 
-        expect(balBefore - balAfter).to.equal(amountTransferred + fee + fees);
-        await verifyLatestBlockFees(context, amountTransferred + fee);
+        const xcmDeliveryFees = await getLastSentUmpMessageFee(context, baseDelivery, txByteFee);
+
+        expect(balBefore - balAfter).to.equal(amountTransferred + fee + fees + xcmDeliveryFees);
+        await verifyLatestBlockFees(context, amountTransferred + fee, xcmDeliveryFees);
       },
     });
 
@@ -273,8 +283,10 @@ describeSuite({
         const gasPrice = receipt.effectiveGasPrice;
         const fees = receipt.gasUsed * gasPrice;
 
-        expect(balBefore - balAfter).to.equal(amountTransferred + fees);
-        await verifyLatestBlockFees(context, amountTransferred);
+        const xcmDeliveryFees = await getLastSentUmpMessageFee(context, baseDelivery, txByteFee);
+
+        expect(balBefore - balAfter).to.equal(amountTransferred + fees + xcmDeliveryFees);
+        await verifyLatestBlockFees(context, amountTransferred, xcmDeliveryFees);
       },
     });
 
@@ -346,9 +358,11 @@ describeSuite({
 
         expectEVMResult(result!.events, "Succeed");
 
+        const xcmDeliveryFees = await getLastSentUmpMessageFee(context, baseDelivery, txByteFee);
+
         const fees = receipt.gasUsed * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
-        expect(balBefore - balAfter).to.equal(amountTransferred + fees);
-        await verifyLatestBlockFees(context, amountTransferred);
+        expect(balBefore - balAfter).to.equal(amountTransferred + fees + xcmDeliveryFees);
+        await verifyLatestBlockFees(context, amountTransferred, xcmDeliveryFees);
       },
     });
   },

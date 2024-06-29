@@ -18,9 +18,10 @@
 //!
 
 use super::{
-	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees, Erc20XcmBridge,
-	MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	currency::MICROMOVR, governance, AccountId, AssetId, AssetManager, Balance, Balances,
+	DealWithFees, Erc20XcmBridge, MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem,
+	Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin,
+	Treasury, XcmpQueue,
 };
 
 use frame_support::{
@@ -71,6 +72,7 @@ use sp_std::{
 };
 
 use orml_traits::parameter_type_with_key;
+use polkadot_runtime_common::xcm_sender::ExponentialPrice;
 
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 
@@ -93,6 +95,12 @@ parameter_types! {
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		].into()
 	};
+
+	// XCM BaseDeliveryFee
+	pub const BaseDeliveryFee: u128 = 100 * MICROMOVR;
+
+	// Cost of every XCM transaction byte
+	pub const TransactionByteFee: u128 = 100;
 }
 
 /// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
@@ -325,11 +333,19 @@ type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
 // Converts a Signed Local Origin into a Location
 pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;
 
+/// XCM Delivery fees for sibling chains.
+pub type PriceForSiblingParachainDelivery =
+	ExponentialPrice<SelfReserve, BaseDeliveryFee, TransactionByteFee, XcmpQueue>;
+
+/// XCM Delivery fees for the relay chain.
+pub type PriceForParentDelivery =
+	ExponentialPrice<SelfReserve, BaseDeliveryFee, TransactionByteFee, ParachainSystem>;
+
 /// The means for routing XCM messages which are not for local execution into the right message
 /// queues.
 pub type XcmRouter = (
 	// Two routers - use UMP to communicate with the relay chain:
-	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, PolkadotXcm, ()>,
+	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, PolkadotXcm, PriceForParentDelivery>,
 	// ..and XCMP to communicate with the sibling chains.
 	XcmpQueue,
 );
@@ -375,9 +391,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type WeightInfo = moonbeam_weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
-	type PriceForSiblingDelivery = polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery<
-		cumulus_primitives_core::ParaId,
-	>;
+	type PriceForSiblingDelivery = PriceForSiblingParachainDelivery;
 }
 
 parameter_types! {

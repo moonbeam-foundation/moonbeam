@@ -1945,7 +1945,7 @@ fn xtokens_precompile_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(57639)
+				.expect_cost(57847)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -1997,7 +1997,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(57639)
+				.expect_cost(57847)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2281,6 +2281,149 @@ fn transactor_cannot_use_more_than_max_weight() {
 					false
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+			);
+		})
+}
+
+#[test]
+fn test_xcm_delivery_fees_in_xcm_transactor() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
+			metadata: AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
+		.build()
+		.execute_with(|| {
+			let alice_initial_native_balance = 2_000 * GLMR;
+
+			// Root sets the defaultXcm
+			assert_ok!(PolkadotXcm::force_default_xcm_version(
+				root_origin(),
+				Some(3)
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				root_origin(),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				// Relay charges 1000 for every instruction, and we have 3, so 3000
+				3000.into(),
+				20000000000.into(),
+				// 4 instructions in transact through signed
+				Some(4000.into())
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				root_origin(),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				1,
+			));
+
+			// Execute transact_through_signed call
+			assert_ok!(XcmTransactor::transact_through_signed(
+				origin_of(AccountId::from(ALICE)),
+				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+						Location::parent()
+					))),
+					fee_amount: None
+				},
+				Vec::new(),
+				TransactWeights {
+					transact_required_weight_at_most: 4000000000.into(),
+					overall_weight: None
+				},
+				false
+			));
+
+			// Delivery fee (total):
+			// 		DeliveryFeeFactor * [BaseDeliveryFee + (TransactionByteFee * XCM Msg Bytes)]
+			//
+			// 		DeliveryFeeFactor: 1
+			// 		BaseDeliveryFee: 100000000000000
+			// 		TransactionByteFee: 100
+			// 		XCM Msg Bytes: 60
+
+			// Make sure delivery fees were deducted from the caller's account
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				alice_initial_native_balance - 100000000006000,
+			);
+		})
+}
+
+#[test]
+fn test_xcm_delivery_fees_through_xtokens() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
+			metadata: AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
+		.build()
+		.execute_with(|| {
+			let alice_initial_native_balance = 2_000 * GLMR;
+			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
+			let dest = Location {
+				parents: 1,
+				interior: [AccountId32 {
+					network: None,
+					id: [1u8; 32],
+				}]
+				.into(),
+			};
+			let source_id: moonbeam_runtime::AssetId = source_location.clone().into();
+
+			// Root sets the defaultXcm
+			assert_ok!(PolkadotXcm::force_default_xcm_version(
+				root_origin(),
+				Some(3)
+			));
+
+			// Execute transfer through xTokens
+			assert_ok!(XTokens::transfer(
+				origin_of(AccountId::from(ALICE)),
+				moonbeam_runtime::xcm_config::CurrencyId::ForeignAsset(source_id),
+				100_000_000_000_000,
+				Box::new(xcm::VersionedLocation::V4(dest)),
+				WeightLimit::Limited(4000000000.into())
+			));
+
+			// Delivery fee (total):
+			// 		DeliveryFeeFactor * [BaseDeliveryFee + (TransactionByteFee * XCM Msg Bytes)]
+			//
+			// 		DeliveryFeeFactor: 1
+			// 		BaseDeliveryFee: 100000000000000
+			// 		TransactionByteFee: 100
+			//		XCM Msg Bytes: 76
+
+			// Make sure delivery fees were deducted from the caller's account
+			assert_eq!(
+				Balances::free_balance(AccountId::from(ALICE)),
+				alice_initial_native_balance - 100000000007600,
 			);
 		})
 }

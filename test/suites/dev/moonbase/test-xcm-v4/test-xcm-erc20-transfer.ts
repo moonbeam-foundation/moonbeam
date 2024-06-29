@@ -9,6 +9,7 @@ import {
   XcmFragmentConfig,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
+  getLastSentUmpMessageFee,
 } from "../../../../helpers/xcm.js";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
@@ -18,6 +19,8 @@ describeSuite({
   title: "Mock XCM - Send local erc20",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
+    const baseDelivery: bigint = 100_000_000_000_000n;
+    const txByteFee = 100n;
     let erc20ContractAddress: string;
     let polkadotJs: ApiPromise;
 
@@ -75,9 +78,10 @@ describeSuite({
         ).data.free.toBigInt();
 
         const fees = await getTransactionFees(context, result!.hash);
+        const xcmDeliveryFee = await getLastSentUmpMessageFee(context, baseDelivery, txByteFee);
 
         // Fees should have been spent
-        expect(balanceAfter).to.equal(balanceBefore - fees);
+        expect(balanceAfter).to.equal(balanceBefore - fees - xcmDeliveryFee);
 
         expect(
           await context.readContract!({

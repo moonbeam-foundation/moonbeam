@@ -94,7 +94,7 @@ fn transfer_self_reserve_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(2000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -139,7 +139,7 @@ fn transfer_to_reserve_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(4000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -186,7 +186,7 @@ fn transfer_to_reserve_with_unlimited_weight_works() {
 						weight: u64::MAX,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(4000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -235,7 +235,7 @@ fn transfer_to_reserve_with_fee_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(4000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -290,7 +290,7 @@ fn transfer_non_reserve_to_non_reserve_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(4000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -339,7 +339,7 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(4000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -394,7 +394,7 @@ fn transfer_multi_asset_to_reserve_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(4000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -442,7 +442,7 @@ fn transfer_multi_asset_self_reserve_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(2000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -490,7 +490,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(2000)
+				.expect_cost(3000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -542,7 +542,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(4000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -591,7 +591,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(4000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -645,7 +645,7 @@ fn transfer_multi_currencies() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(4000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -718,7 +718,7 @@ fn transfer_multi_assets() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(4000)
 				.expect_no_logs()
 				.execute_returns(());
 
