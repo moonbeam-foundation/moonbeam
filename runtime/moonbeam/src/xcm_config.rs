@@ -59,7 +59,7 @@ use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
-	FirstAssetTrader, IsForeignConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
+	FirstAssetTrader, IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
   UtilityEncodeCall, XcmTransact,
 };
 
@@ -262,7 +262,7 @@ parameter_types! {
 
 type Reserves = (
 	// Assets bridged from different consensus systems held in reserve on Asset Hub.
-	IsForeignConcreteAssetFrom<AssetHubLocation>,
+	IsBridgedConcreteAssetFrom<AssetHubLocation>,
 	// Relaychain (DOT) from Asset Hub
 	Case<RelayChainNativeAssetFromAssetHub>,
 	// Assets which the reserve is the same as the origin.

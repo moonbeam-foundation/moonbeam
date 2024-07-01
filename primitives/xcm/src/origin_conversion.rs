@@ -85,8 +85,8 @@ where
 
 /// Matches foreign assets from a given origin.
 /// Foreign assets are assets bridged from other consensus systems. i.e parents > 1.
-pub struct IsForeignConcreteAssetFrom<Origin>(PhantomData<Origin>);
-impl<Origin> ContainsPair<Asset, Location> for IsForeignConcreteAssetFrom<Origin>
+pub struct IsBridgedConcreteAssetFrom<Origin>(PhantomData<Origin>);
+impl<Origin> ContainsPair<Asset, Location> for IsBridgedConcreteAssetFrom<Origin>
 where
 	Origin: Get<Location>,
 {
