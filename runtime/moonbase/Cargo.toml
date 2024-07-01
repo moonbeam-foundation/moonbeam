@@ -149,6 +149,7 @@ polkadot-runtime-common = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
+xcm-fee-payment-runtime-api = { workspace = true }
 
 # Cumulus
 cumulus-pallet-dmp-queue = { workspace = true }
@@ -307,6 +308,7 @@ std = [
 	"strum/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
+	"xcm-fee-payment-runtime-api/std",
 	"xcm-primitives/std",
 	"xcm/std",
 ]

@@ -55,7 +55,7 @@ use frame_support::{
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
-		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		ConstantMultiplier, Weight, WeightToFee, WeightToFeeCoefficient, WeightToFeeCoefficients,
 		WeightToFeePolynomial,
 	},
 	PalletId,
@@ -99,6 +99,13 @@ use sp_runtime::{
 	Perquintill, SaturatedConversion,
 };
 use sp_std::{convert::TryFrom, prelude::*};
+use xcm::{
+	v3::{AssetId as XcmAssetId, Location},
+	IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
+};
+use xcm_config::AssetType;
+use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
+use xcm_primitives::UnitsToWeightRatio;
 
 use smallvec::smallvec;
 #[cfg(feature = "std")]
