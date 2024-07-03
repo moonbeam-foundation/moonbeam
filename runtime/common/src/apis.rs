@@ -779,7 +779,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
 
 					if asset == local_asset {
-						Ok(LengthToFee::weight_to_fee(&weight))
+						Ok(TransactionPayment::weight_to_fee(weight))
 					}else {
 						let asset_v3: XcmAssetId = asset.try_into()
 							.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
@@ -802,7 +802,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 							return Ok(final_asset_fee)
 						}
-						return Err(XcmPaymentApiError::AssetNotFound)
+						Err(XcmPaymentApiError::AssetNotFound)
 					}
 				}
 
