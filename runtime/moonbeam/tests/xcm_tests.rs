@@ -81,12 +81,13 @@ fn receive_relay_asset_from_relay() {
 
 	// First send relay chain asset to Parachain
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -137,12 +138,13 @@ fn send_relay_asset_to_relay() {
 
 	// First send relay chain asset to Parachain like in previous test
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -242,12 +244,13 @@ fn send_relay_asset_to_para_b() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -297,7 +300,7 @@ fn send_para_a_asset_to_para_b() {
 	// This represents the asset in paraA
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
 	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -370,7 +373,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	// Represents para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
 	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -484,7 +487,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	// para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
 	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -622,12 +625,13 @@ fn receive_relay_asset_with_trader() {
 	// Therefore with no refund, we should receive 10 tokens less
 	// Native trader fails for this, and we use the asset trader
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 100).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -645,7 +649,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
 	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -722,7 +726,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&para_a_balances).expect("convert to v3"),
+		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
 	);
 	let source_id: parachain::AssetId = source_location.clone().into();
 
@@ -828,12 +832,13 @@ fn error_when_not_paying_enough() {
 	// If we set the dest weight to be 1e7, we know the buy_execution will spend 1e7*1e6/1e12 = 10
 	// Therefore with no refund, we should receive 10 tokens less
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 5).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -897,12 +902,13 @@ fn transact_through_derivative_multilocation() {
 	.into();
 	Relay::execute_with(|| {
 		// 4000000000 transact + 3000 correspond to 4000003000 tokens. 100 more for the transfer call
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 4000003100u128).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -1040,12 +1046,13 @@ fn transact_through_derivative_with_custom_fee_weight() {
 	.into();
 	Relay::execute_with(|| {
 		// 4000000000 transact + 3000 correspond to 4000003000 tokens. 100 more for the transfer call
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 4000003100u128).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -1195,12 +1202,13 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 	.into();
 	Relay::execute_with(|| {
 		// 4000000000 transact + 9000 correspond to 4000009000 tokens. 100 more for the transfer call
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 4000009100u128).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -1362,12 +1370,13 @@ fn transact_through_sovereign() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 4000003100u128).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -1618,12 +1627,13 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 4000003100u128).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -1771,12 +1781,13 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 4000009100u128).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -1954,12 +1965,13 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		));
 
 		// Transfer assets. Since it is an unknown destination, it will query for version
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 
 		// Let's advance the relay. This should trigger the subscription message
@@ -2056,12 +2068,13 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest.clone()).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -2082,12 +2095,13 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 
 	// Re-send tokens
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -2134,12 +2148,13 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest.clone()).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -2194,12 +2209,13 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest.clone()).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -2272,12 +2288,13 @@ fn empty_account_should_not_be_reset() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(VersionedLocation::V4(dest.clone()).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -2339,7 +2356,7 @@ fn test_statemint_like() {
 		],
 	);
 	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&statemint_asset_a_balances)
+		xcm_builder::WithLatestLocationConverter::convert(&statemint_asset_a_balances)
 			.expect("convert to v3"),
 	);
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -2401,7 +2418,7 @@ fn test_statemint_like() {
 		.into();
 
 		// Send with new prefix
-		assert_ok!(StatemintChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(VersionedLocation::V4(dest).clone().into()),
@@ -2418,6 +2435,7 @@ fn test_statemint_like() {
 					.into()
 			),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -2446,7 +2464,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 		[Parachain(4u32), PalletInstance(5u8), GeneralIndex(10u128)],
 	);
 	let statemint_location_asset = parachain::AssetType::Xcm(
-		xcm_builder::V4V3LocationConverter::convert(&statemint_asset).expect("convert to v3"),
+		xcm_builder::WithLatestLocationConverter::convert(&statemint_asset).expect("convert to v3"),
 	);
 	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
 
@@ -2502,7 +2520,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 
 	// Send relay chain asset to Alice in Parachain A
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(
@@ -2512,6 +2530,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			),
 			Box::new(([] /* Here */, 200).into()),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 
@@ -2551,7 +2570,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 		.into();
 
 		// Send with new prefix
-		assert_ok!(StatemintChainPalletXcm::reserve_transfer_assets(
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
@@ -2572,6 +2591,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 					.into()
 			),
 			0,
+			WeightLimit::Unlimited
 		));
 	});
 

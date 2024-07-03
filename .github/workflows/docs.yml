@@ -22,7 +22,9 @@ jobs:
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
 
       - uses: actions/cache@v4
         with:
@@ -46,7 +48,7 @@ jobs:
         run: echo "<meta http-equiv=refresh content=0;url=moonbeam_runtime/index.html>" > ./target/doc/index.html
 
       - name: Deploy documentation
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages

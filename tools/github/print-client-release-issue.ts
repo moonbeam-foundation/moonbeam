@@ -33,12 +33,12 @@ async function main() {
 \`\`\`
   "binaries": [
     {
-      "docker": "moonbeamfoundation/moonbeam:v${newVersion}-rc",
+      "docker": "moonbeamfoundation/moonbeam:${newVersion}-rc",
       "path": "/moonbeam/moonbeam",
       "name": "moonbeam"
     },
     {
-      "docker": "moonbeamfoundation/moonbeam:v${newVersion}-rc",
+      "docker": "moonbeamfoundation/moonbeam:${newVersion}-rc",
       "path": "/moonbeam/moonbeam-skylake",
       "name": "moonbeam-skylake"
     }
@@ -58,6 +58,7 @@ Publish Docker with ${newVersion} and master.
     const template = `
 ## Requirements
 - [ ] To be manually edited (add pending PRs)
+- [ ] Ready for release
 
 ## Pre-Release
 - [ ] Get that PR approved and merged.
@@ -77,6 +78,7 @@ ${commonTemplate}
     const template = `
 ## Requirements
 - [ ] To be manually edited (add pending PRs)
+- [ ] Ready for release
 
 ## Pre-Release
 - [ ] Create branch \`perm-${newVersion}\` against previous client git tag.

@@ -39,7 +39,8 @@ impl From<Erc20TransferError> for XcmError {
 			Erc20TransferError::ContractReturnInvalidValue => {
 				XcmError::FailedToTransactAsset("Erc20 contract return invalid value")
 			}
-			Erc20TransferError::DispatchError(_) => {
+			Erc20TransferError::DispatchError(err) => {
+				log::debug!("dispatch error: {:?}", err);
 				Self::FailedToTransactAsset("storage layer error")
 			}
 			Erc20TransferError::EvmCallFail => {

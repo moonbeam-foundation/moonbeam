@@ -198,7 +198,7 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Use pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8.6.12
       - name: Use Node.js
@@ -226,7 +226,9 @@ jobs:
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
       - name: Check Cargo.toml files format with toml_sort
         run: ./scripts/check-cargo-toml-files-format.sh
 
@@ -240,7 +242,9 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
       - name: Verifies all 'pallet-evm/ethereum' use 'forbid-evm-reentrancy' feature
         run: ./scripts/check-forbid-evm-reentrancy.sh
 
@@ -256,7 +260,9 @@ jobs:
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
       - name: Format code with rustfmt
         run: cargo fmt -- --check
 
@@ -274,7 +280,9 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
       # Development branch clippy check
       - name: Clippy (dev)
         if: github.ref != 'refs/heads/master' && !startsWith(github.ref, 'perm-')
@@ -338,6 +346,7 @@ jobs:
           if ! which "rustup" > /dev/null; then
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           fi
+          rustup override unset
           rustup show
           rustup target add wasm32-unknown-unknown
       # Checks are run after uploading artifacts since they are modified by the tests
@@ -416,7 +425,7 @@ jobs:
           name: moonbeam
           path: build
       - name: Use pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8.6.12
       - name: Use Node.js
@@ -483,7 +492,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.2.0
+        uses: docker/setup-buildx-action@v3.3.0
         with:
           version: latest
           driver-opts: |
@@ -495,7 +504,7 @@ jobs:
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
       - name: Build and push moonbeam
         id: docker_build
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./docker/moonbeam.Dockerfile
@@ -538,7 +547,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with:
           version: 8
       - uses: actions/setup-node@v4
@@ -586,7 +595,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with:
           version: 8
       - uses: actions/setup-node@v4

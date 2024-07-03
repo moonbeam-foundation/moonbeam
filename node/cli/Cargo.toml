@@ -2,7 +2,7 @@
 name = "moonbeam-cli"
 authors = { workspace = true }
 edition = "2021"
-version = "0.38.0"
+version = "0.39.0"
 
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
@@ -20,6 +20,7 @@ sc-chain-spec = { workspace = true }
 sc-cli = { workspace = true }
 sc-client-api = { workspace = true }
 sc-consensus-grandpa = { workspace = true }
+sc-network = { workspace = true }
 sc-service = { workspace = true }
 sc-sysinfo = { workspace = true }
 sc-telemetry = { workspace = true }
@@ -29,7 +30,6 @@ sp-io = { workspace = true }
 sp-runtime = { workspace = true, features = ["std"] }
 sp-wasm-interface = { workspace = true }
 substrate-prometheus-endpoint = { workspace = true }
-try-runtime-cli = { workspace = true, optional = true }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { workspace = true }
@@ -48,10 +48,10 @@ substrate-build-script-utils = { workspace = true }
 
 [features]
 default = [
-	"moonbase-native",
-	"moonbeam-native",
-	"moonriver-native",
-	"westend-native",
+    "moonbase-native",
+    "moonbeam-native",
+    "moonriver-native",
+    "westend-native",
 ]
 
 westend-native = ["polkadot-service/westend-native"]
@@ -61,13 +61,8 @@ moonbeam-native = ["moonbeam-service/moonbeam-native"]
 moonriver-native = ["moonbeam-service/moonriver-native"]
 
 runtime-benchmarks = [
-	"moonbeam-service/runtime-benchmarks",
-	"polkadot-service/runtime-benchmarks",
-]
-try-runtime = [
-	"moonbeam-service/try-runtime",
-	"try-runtime-cli/try-runtime",
-	"polkadot-service/try-runtime",
+    "moonbeam-service/runtime-benchmarks",
+    "polkadot-service/runtime-benchmarks",
 ]
 
 moonbase-runtime-benchmarks = ["moonbeam-service/moonbase-runtime-benchmarks"]

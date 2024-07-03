@@ -32,14 +32,16 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
+use moonbeam_runtime::currency::{GIGAWEI, WEI};
 use moonbeam_runtime::{
 	asset_config::ForeignAssetInstance,
 	currency::GLMR,
 	xcm_config::{CurrencyId, SelfReserve},
-	AccountId, Balances, CrowdloanRewards, OpenTechCommitteeCollective, ParachainStaking,
-	PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
-	TransactionPayment, TreasuryCouncilCollective, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	AccountId, Balances, CrowdloanRewards, Executive, OpenTechCommitteeCollective,
+	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
+	RuntimeEvent, System, TransactionPayment, TransactionPaymentAsGasPrice,
+	TreasuryCouncilCollective, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	WEEKS,
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
@@ -448,22 +450,29 @@ fn verify_pallet_indices() {
 
 #[test]
 fn verify_reserved_indices() {
-	use frame_metadata::*;
-	let metadata = moonbeam_runtime::Runtime::metadata();
-	let metadata = match metadata.1 {
-		RuntimeMetadata::V14(metadata) => metadata,
-		_ => panic!("metadata has been bumped, test needs to be updated"),
-	};
-	// 40: Sudo
-	// 53: BaseFee
-	// 108: pallet_assets::<Instance1>
-	let reserved = vec![40, 53, 108];
-	let existing = metadata
-		.pallets
-		.iter()
-		.map(|p| p.index)
-		.collect::<Vec<u8>>();
-	assert!(reserved.iter().all(|index| !existing.contains(index)));
+	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
+		.unwrap()
+		.into();
+
+	t.execute_with(|| {
+		use frame_metadata::*;
+		let metadata = moonbeam_runtime::Runtime::metadata();
+		let metadata = match metadata.1 {
+			RuntimeMetadata::V14(metadata) => metadata,
+			_ => panic!("metadata has been bumped, test needs to be updated"),
+		};
+		// 40: Sudo
+		// 53: BaseFee
+		// 108: pallet_assets::<Instance1>
+		let reserved = vec![40, 53, 108];
+		let existing = metadata
+			.pallets
+			.iter()
+			.map(|p| p.index)
+			.collect::<Vec<u8>>();
+		assert!(reserved.iter().all(|index| !existing.contains(index)));
+	});
 }
 
 #[test]
@@ -2674,7 +2683,7 @@ mod fee_tests {
 	};
 	use moonbeam_runtime::{
 		currency, LengthToFee, MinimumMultiplier, RuntimeBlockWeights, SlowAdjustingFeeUpdate,
-		TargetBlockFullness, NORMAL_WEIGHT, WEIGHT_PER_GAS,
+		TargetBlockFullness, TransactionPaymentAsGasPrice, NORMAL_WEIGHT, WEIGHT_PER_GAS,
 	};
 	use sp_core::Get;
 	use sp_runtime::{BuildStorage, FixedPointNumber, Perbill};

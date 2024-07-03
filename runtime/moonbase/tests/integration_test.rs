@@ -39,10 +39,11 @@ use frame_support::{
 use moonbase_runtime::{
 	asset_config::{AssetRegistrarMetadata, ForeignAssetInstance},
 	xcm_config::{AssetType, SelfReserve},
-	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards,
+	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards, Executive,
 	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
 	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
-	TreasuryCouncilCollective, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	TransactionPaymentAsGasPrice, TreasuryCouncilCollective, XTokens, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -54,6 +55,7 @@ use std::str::from_utf8;
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
 
+use moonbase_runtime::currency::{GIGAWEI, WEI};
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
@@ -437,20 +439,28 @@ fn verify_pallet_indices() {
 #[test]
 fn verify_reserved_indices() {
 	use frame_metadata::*;
-	let metadata = moonbase_runtime::Runtime::metadata();
-	let metadata = match metadata.1 {
-		RuntimeMetadata::V14(metadata) => metadata,
-		_ => panic!("metadata has been bumped, test needs to be updated"),
-	};
-	// 35: BaseFee
-	// 36: pallet_assets::<Instance1>
-	let reserved = vec![35, 36];
-	let existing = metadata
-		.pallets
-		.iter()
-		.map(|p| p.index)
-		.collect::<Vec<u8>>();
-	assert!(reserved.iter().all(|index| !existing.contains(index)));
+
+	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
+		.unwrap()
+		.into();
+
+	t.execute_with(|| {
+		let metadata = moonbase_runtime::Runtime::metadata();
+		let metadata = match metadata.1 {
+			RuntimeMetadata::V14(metadata) => metadata,
+			_ => panic!("metadata has been bumped, test needs to be updated"),
+		};
+		// 35: BaseFee
+		// 36: pallet_assets::<Instance1>
+		let reserved = vec![35, 36];
+		let existing = metadata
+			.pallets
+			.iter()
+			.map(|p| p.index)
+			.collect::<Vec<u8>>();
+		assert!(reserved.iter().all(|index| !existing.contains(index)));
+	});
 }
 
 #[test]
@@ -2804,7 +2814,7 @@ mod fee_tests {
 	};
 	use moonbase_runtime::{
 		currency, BlockWeights, FastAdjustingFeeUpdate, LengthToFee, MinimumMultiplier,
-		TargetBlockFullness, NORMAL_WEIGHT, WEIGHT_PER_GAS,
+		TargetBlockFullness, TransactionPaymentAsGasPrice, NORMAL_WEIGHT, WEIGHT_PER_GAS,
 	};
 	use sp_runtime::{BuildStorage, FixedPointNumber, Perbill};
 
