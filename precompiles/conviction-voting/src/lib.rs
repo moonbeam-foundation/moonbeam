@@ -16,11 +16,11 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use account::SYSTEM_ACCOUNT_SIZE;
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Polling};
 use frame_system::pallet_prelude::BlockNumberFor;
-use moonbeam_precompile_common::SYSTEM_ACCOUNT_SIZE;
 use pallet_conviction_voting::Call as ConvictionVotingCall;
 use pallet_conviction_voting::{
 	AccountVote, Casting, ClassLocksFor, Conviction, Delegating, Tally, TallyOf, Vote, Voting,

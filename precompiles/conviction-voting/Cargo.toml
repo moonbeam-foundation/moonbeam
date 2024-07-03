@@ -11,7 +11,7 @@ num_enum = { workspace = true }
 rustc-hex = { workspace = true }
 
 # Moonbeam
-moonbeam-precompile-common = { workspace = true }
+account = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -54,7 +54,7 @@ std = [
 	"precompile-utils/std",
 	"sp-runtime/std",
 	"sp-std/std",
-	"moonbeam-precompile-common/std",
+	"account/std",
 ]
 runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",

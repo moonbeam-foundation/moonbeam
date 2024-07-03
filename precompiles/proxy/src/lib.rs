@@ -16,10 +16,10 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use account::SYSTEM_ACCOUNT_SIZE;
 use evm::ExitReason;
 use fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
-use moonbeam_precompile_common::SYSTEM_ACCOUNT_SIZE;
 use pallet_balances::Call as BalancesCall;
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;

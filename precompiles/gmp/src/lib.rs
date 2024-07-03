@@ -18,6 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use account::SYSTEM_ACCOUNT_SIZE;
 use evm::ExitReason;
 use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 use frame_support::{
@@ -25,7 +26,6 @@ use frame_support::{
 	sp_runtime::{traits::Zero, Saturating},
 	traits::ConstU32,
 };
-use moonbeam_precompile_common::SYSTEM_ACCOUNT_SIZE;
 use pallet_evm::AddressMapping;
 use parity_scale_codec::{Decode, DecodeLimit};
 use precompile_utils::{prelude::*, solidity::revert::revert_as_bytes};

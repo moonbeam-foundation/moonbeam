@@ -18,6 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use account::SYSTEM_ACCOUNT_SIZE;
 use fp_evm::PrecompileHandle;
 use frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
@@ -26,7 +27,6 @@ use frame_support::{
 	traits::StorageInstance,
 	Blake2_128Concat,
 };
-use moonbeam_precompile_common::SYSTEM_ACCOUNT_SIZE;
 use pallet_balances::pallet::{
 	Instance1, Instance10, Instance11, Instance12, Instance13, Instance14, Instance15, Instance16,
 	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,

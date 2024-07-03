@@ -6564,10 +6564,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonbeam-precompile-common"
-version = "0.1.0"
-
-[[package]]
 name = "moonbeam-primitives-ext"
 version = "0.1.0"
 dependencies = [
@@ -8809,6 +8805,7 @@ dependencies = [
 name = "pallet-evm-precompile-balances-erc20"
 version = "0.1.0"
 dependencies = [
+ "account",
  "derive_more",
  "fp-evm",
  "frame-support",
@@ -8816,7 +8813,6 @@ dependencies = [
  "hex-literal 0.3.4",
  "libsecp256k1",
  "log",
- "moonbeam-precompile-common",
  "num_enum 0.5.11",
  "pallet-balances",
  "pallet-evm",
@@ -8913,6 +8909,7 @@ dependencies = [
 name = "pallet-evm-precompile-collective"
 version = "0.1.0"
 dependencies = [
+ "account",
  "derive_more",
  "evm",
  "fp-evm",
@@ -8920,7 +8917,6 @@ dependencies = [
  "frame-system",
  "hex-literal 0.3.4",
  "log",
- "moonbeam-precompile-common",
  "num_enum 0.5.11",
  "pallet-balances",
  "pallet-collective",
@@ -8946,13 +8942,13 @@ dependencies = [
 name = "pallet-evm-precompile-conviction-voting"
 version = "0.1.0"
 dependencies = [
+ "account",
  "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
  "log",
- "moonbeam-precompile-common",
  "num_enum 0.5.11",
  "pallet-balances",
  "pallet-conviction-voting",
@@ -9018,6 +9014,7 @@ dependencies = [
 name = "pallet-evm-precompile-gmp"
 version = "0.1.0"
 dependencies = [
+ "account",
  "cumulus-primitives-core",
  "derive_more",
  "evm",
@@ -9027,7 +9024,6 @@ dependencies = [
  "hex",
  "hex-literal 0.3.4",
  "log",
- "moonbeam-precompile-common",
  "num_enum 0.5.11",
  "orml-traits",
  "orml-xtokens",
@@ -9146,6 +9142,7 @@ dependencies = [
 name = "pallet-evm-precompile-proxy"
 version = "0.1.0"
 dependencies = [
+ "account",
  "derive_more",
  "evm",
  "fp-evm",
@@ -9153,7 +9150,6 @@ dependencies = [
  "frame-system",
  "hex-literal 0.3.4",
  "log",
- "moonbeam-precompile-common",
  "num_enum 0.5.11",
  "pallet-balances",
  "pallet-evm",
@@ -9442,13 +9438,13 @@ dependencies = [
 name = "pallet-evm-precompile-xtokens"
 version = "0.1.0"
 dependencies = [
+ "account",
  "cumulus-primitives-core",
  "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
  "log",
- "moonbeam-precompile-common",
  "num_enum 0.5.11",
  "orml-traits",
  "orml-xtokens",
@@ -9477,6 +9473,7 @@ dependencies = [
 name = "pallet-evm-precompileset-assets-erc20"
 version = "0.1.0"
 dependencies = [
+ "account",
  "derive_more",
  "fp-evm",
  "frame-support",
@@ -9484,7 +9481,6 @@ dependencies = [
  "hex-literal 0.3.4",
  "libsecp256k1",
  "log",
- "moonbeam-precompile-common",
  "num_enum 0.5.11",
  "pallet-assets",
  "pallet-balances",

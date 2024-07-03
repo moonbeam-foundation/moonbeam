@@ -12,7 +12,7 @@ paste = { workspace = true }
 slices = { workspace = true }
 
 # Moonbeam
-moonbeam-precompile-common = { workspace = true }
+account = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -60,6 +60,6 @@ std = [
 	"sp-io/std",
 	"sp-std/std",
 	"xcm-primitives/std",
-	"moonbeam-precompile-common/std",
+	"account/std",
 ]
 runtime-benchmarks = []

@@ -11,7 +11,7 @@ num_enum = { workspace = true }
 paste = { workspace = true }
 
 # Moonbeam
-moonbeam-precompile-common = { workspace = true }
+account = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -66,5 +66,5 @@ std = [
 	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",
-	"moonbeam-precompile-common/std",
+	"account/std",
 ]

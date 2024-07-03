@@ -16,6 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use account::SYSTEM_ACCOUNT_SIZE;
 use core::fmt::Display;
 use fp_evm::{ExitError, PrecompileHandle};
 use frame_support::traits::fungibles::Inspect;
@@ -28,7 +29,6 @@ use frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
 };
-use moonbeam_precompile_common::SYSTEM_ACCOUNT_SIZE;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
