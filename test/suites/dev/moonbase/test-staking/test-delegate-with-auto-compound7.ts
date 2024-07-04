@@ -25,7 +25,7 @@ describeSuite({
           "Balance should be untouched from genesis amount"
         ).toBe(DEFAULT_GENESIS_BALANCE);
 
-        // Submit a huge preimage (to have a deposit greather than the satked amount)
+        // Submit a huge preimage (to have a deposit greater than the staked amount)
         const wasm = fs.readFileSync(
           "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm"
         );
