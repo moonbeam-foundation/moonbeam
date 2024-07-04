@@ -742,7 +742,9 @@ macro_rules! impl_runtime_apis_plus_common {
 			}
 
 			impl xcm_fee_payment_runtime_api::XcmPaymentApi<Block> for Runtime {
-				fn query_acceptable_payment_assets(xcm_version: xcm::Version) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
+				fn query_acceptable_payment_assets(
+					xcm_version: xcm::Version
+				) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
 					if !matches!(xcm_version, 3) {
 						return Err(XcmPaymentApiError::UnhandledXcmVersion);
 					}
@@ -769,7 +771,9 @@ macro_rules! impl_runtime_apis_plus_common {
 						.collect())
 				}
 
-				fn query_weight_to_asset_fee(weight: Weight, asset: VersionedAssetId) -> Result<u128, XcmPaymentApiError> {
+				fn query_weight_to_asset_fee(
+					weight: Weight, asset: VersionedAssetId
+				) -> Result<u128, XcmPaymentApiError> {
 					let self_reserve_location: Location = Location::try_from(xcm_config::SelfReserve::get())
 						.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
 
@@ -810,7 +814,9 @@ macro_rules! impl_runtime_apis_plus_common {
 					PolkadotXcm::query_xcm_weight(message)
 				}
 
-				fn query_delivery_fees(destination: VersionedLocation, message: VersionedXcm<()>) -> Result<VersionedAssets, XcmPaymentApiError> {
+				fn query_delivery_fees(
+					destination: VersionedLocation, message: VersionedXcm<()>
+				) -> Result<VersionedAssets, XcmPaymentApiError> {
 					PolkadotXcm::query_delivery_fees(destination, message)
 				}
 			}
