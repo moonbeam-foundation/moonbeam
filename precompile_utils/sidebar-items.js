@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"attr":["precompile","precompile_name_from_address"],"macro":["assert_event_emitted","assert_event_not_emitted","keccak256","mock_account"],"mod":["evm","precompile_set","prelude","solidity","substrate","testing"],"trait":["Precompile"],"type":["EvmResult"]};

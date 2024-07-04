@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["MockHandle","Subcall","SubcallOutput"],"trait":["SubcallTrait"],"type":["SubcallHandle"]};

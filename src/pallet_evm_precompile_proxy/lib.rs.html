@@ -455,6 +455,7 @@
 <a href="#453" id="453">453</a>
 <a href="#454" id="454">454</a>
 <a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -473,7 +474,8 @@
 
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
-</span><span class="kw">use </span>evm::ExitReason;
+</span><span class="kw">use </span>account::SYSTEM_ACCOUNT_SIZE;
+<span class="kw">use </span>evm::ExitReason;
 <span class="kw">use </span>fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
 <span class="kw">use </span>frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 <span class="kw">use </span>pallet_balances::Call <span class="kw">as </span>BalancesCall;
@@ -490,7 +492,7 @@
 <span class="kw">use </span>sp_std::marker::PhantomData;
 
 <span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>mock;
+</span><span class="kw">pub mod </span>mock;
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 

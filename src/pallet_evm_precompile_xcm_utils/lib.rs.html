@@ -258,7 +258,6 @@
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -377,8 +376,7 @@
 		<span class="kw">let </span>origin =
 			XcmConfig::OriginConverter::convert_origin(location, OriginKind::SovereignAccount)
 				.map_err(|<span class="kw">_</span>| {
-					RevertReason::custom(<span class="string">"Failed multilocation conversion"</span>)
-						.in_field(<span class="string">"multilocation"</span>)
+					RevertReason::custom(<span class="string">"Failed multilocation conversion"</span>).in_field(<span class="string">"location"</span>)
 				})<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>account: H160 = origin

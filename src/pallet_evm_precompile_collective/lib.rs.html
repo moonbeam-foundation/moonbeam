@@ -357,6 +357,7 @@
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
 <a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -377,7 +378,8 @@
 
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
-</span><span class="kw">use </span>core::marker::PhantomData;
+</span><span class="kw">use </span>account::SYSTEM_ACCOUNT_SIZE;
+<span class="kw">use </span>core::marker::PhantomData;
 <span class="kw">use </span>fp_evm::Log;
 <span class="kw">use </span>frame_support::{
 	dispatch::{GetDispatchInfo, Pays, PostDispatchInfo},

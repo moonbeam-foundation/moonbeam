@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["SYSTEM_ACCOUNT_SIZE"],"enum":["TryDispatchError"],"struct":["RuntimeHelper"]};

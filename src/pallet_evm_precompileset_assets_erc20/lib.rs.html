@@ -548,6 +548,7 @@
 <a href="#546" id="546">546</a>
 <a href="#547" id="547">547</a>
 <a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -566,7 +567,8 @@
 
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
-</span><span class="kw">use </span>core::fmt::Display;
+</span><span class="kw">use </span>account::SYSTEM_ACCOUNT_SIZE;
+<span class="kw">use </span>core::fmt::Display;
 <span class="kw">use </span>fp_evm::{ExitError, PrecompileHandle};
 <span class="kw">use </span>frame_support::traits::fungibles::Inspect;
 <span class="kw">use </span>frame_support::traits::fungibles::{

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["using_precompile_handle","with_precompile_handle"],"trait":["PrecompileHandleExt"]};

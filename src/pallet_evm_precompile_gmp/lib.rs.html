@@ -389,6 +389,7 @@
 <a href="#387" id="387">387</a>
 <a href="#388" id="388">388</a>
 <a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2023 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -409,7 +410,8 @@
 
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
-</span><span class="kw">use </span>evm::ExitReason;
+</span><span class="kw">use </span>account::SYSTEM_ACCOUNT_SIZE;
+<span class="kw">use </span>evm::ExitReason;
 <span class="kw">use </span>fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 <span class="kw">use </span>frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},

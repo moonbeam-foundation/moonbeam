@@ -495,6 +495,7 @@
 <a href="#493" id="493">493</a>
 <a href="#494" id="494">494</a>
 <a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -515,7 +516,8 @@
 
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
-</span><span class="kw">use </span>fp_evm::PrecompileHandle;
+</span><span class="kw">use </span>account::SYSTEM_ACCOUNT_SIZE;
+<span class="kw">use </span>fp_evm::PrecompileHandle;
 <span class="kw">use </span>frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::{Bounded, CheckedSub, Dispatchable, StaticLookup},

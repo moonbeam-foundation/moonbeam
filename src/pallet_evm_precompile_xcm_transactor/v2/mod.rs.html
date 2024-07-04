@@ -192,9 +192,6 @@
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
 <a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -247,18 +244,15 @@
 	#[precompile::view]
 	</span><span class="kw">fn </span>transact_info_with_signed(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		multilocation: Location,
+		location: Location,
 	) -&gt; EvmResult&lt;(u64, u64, u64)&gt; {
-		XcmTransactorWrapper::&lt;Runtime&gt;::transact_info_with_signed(handle, multilocation)
+		XcmTransactorWrapper::&lt;Runtime&gt;::transact_info_with_signed(handle, location)
 	}
 
 	<span class="attr">#[precompile::public(<span class="string">"feePerSecond((uint8,bytes[]))"</span>)]
 	#[precompile::view]
-	</span><span class="kw">fn </span>fee_per_second(
-		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		multilocation: Location,
-	) -&gt; EvmResult&lt;U256&gt; {
-		XcmTransactorWrapper::&lt;Runtime&gt;::fee_per_second(handle, multilocation)
+	</span><span class="kw">fn </span>fee_per_second(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, location: Location) -&gt; EvmResult&lt;U256&gt; {
+		XcmTransactorWrapper::&lt;Runtime&gt;::fee_per_second(handle, location)
 	}
 
 	<span class="attr">#[precompile::public(
