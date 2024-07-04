@@ -2325,6 +2325,8 @@
 <a href="#2323" id="2323">2323</a>
 <a href="#2324" id="2324">2324</a>
 <a href="#2325" id="2325">2325</a>
+<a href="#2326" id="2326">2326</a>
+<a href="#2327" id="2327">2327</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3065,7 +3067,7 @@
 			<span class="comment">// Initialize the delegations
 			</span><span class="kw">for </span><span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>delegator, <span class="kw-2">ref </span>target, balance, auto_compound) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.delegations {
 				<span class="macro">assert!</span>(
-					&lt;Pallet&lt;T&gt;&gt;::get_delegator_stakable_free_balance(delegator) &gt;= balance,
+					&lt;Pallet&lt;T&gt;&gt;::get_delegator_stakable_balance(delegator) &gt;= balance,
 					<span class="string">"Account does not have enough balance to place delegation."
 				</span>);
 				<span class="kw">let </span>cd_count = <span class="kw">if let </span><span class="prelude-val">Some</span>(x) = col_delegator_count.get(target) {
@@ -4062,13 +4064,15 @@
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
 		}
 
-		<span class="doccomment">/// Returns an account's free balance which is not locked in delegation staking
-		</span><span class="kw">pub fn </span>get_delegator_stakable_free_balance(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; BalanceOf&lt;T&gt; {
-			<span class="kw">let </span><span class="kw-2">mut </span>balance = T::Currency::free_balance(acc);
+		<span class="doccomment">/// Returns an account's stakable balance which is not locked in delegation staking
+		</span><span class="kw">pub fn </span>get_delegator_stakable_balance(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; BalanceOf&lt;T&gt; {
+			<span class="kw">let </span><span class="kw-2">mut </span>stakable_balance =
+				T::Currency::free_balance(acc).saturating_add(T::Currency::reserved_balance(acc));
+
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = &lt;DelegatorState&lt;T&gt;&gt;::get(acc) {
-				balance = balance.saturating_sub(state.total());
+				stakable_balance = stakable_balance.saturating_sub(state.total());
 			}
-			balance
+			stakable_balance
 		}
 
 		<span class="doccomment">/// Returns an account's free balance which is not locked in collator staking

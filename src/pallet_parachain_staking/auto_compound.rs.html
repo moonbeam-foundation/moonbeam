@@ -583,7 +583,7 @@
 	) -&gt; DispatchResultWithPostInfo {
 		<span class="comment">// check that caller can lock the amount before any changes to storage
 		</span><span class="macro">ensure!</span>(
-			&lt;Pallet&lt;T&gt;&gt;::get_delegator_stakable_free_balance(<span class="kw-2">&amp;</span>delegator) &gt;= amount,
+			&lt;Pallet&lt;T&gt;&gt;::get_delegator_stakable_balance(<span class="kw-2">&amp;</span>delegator) &gt;= amount,
 			Error::&lt;T&gt;::InsufficientBalance
 		);
 		<span class="macro">ensure!</span>(
