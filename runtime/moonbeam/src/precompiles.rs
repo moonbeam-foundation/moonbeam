@@ -41,6 +41,7 @@ use pallet_evm_precompile_referenda::ReferendaPrecompile;
 use pallet_evm_precompile_registry::PrecompileRegistry;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_relay_verifier::RelayDataVerifierPrecompile;
+use pallet_evm_precompile_secp256r1::P256Verify;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use pallet_evm_precompile_xcm_transactor::{
@@ -105,6 +106,8 @@ type MoonbeamPrecompilesAt<R> = (
 	PrecompileAt<AddressU64<7>, Bn128Mul, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<8>, Bn128Pairing, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<9>, Blake2F, EthereumPrecompilesChecks>,
+	// (0x100 => 256) https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
+	PrecompileAt<AddressU64<256>, P256Verify, EthereumPrecompilesChecks>,
 	// Non-Moonbeam specific nor Ethereum precompiles :
 	PrecompileAt<AddressU64<1024>, Sha3FIPS256, (CallableByContract, CallableByPrecompile)>,
 	RemovedPrecompileAt<AddressU64<1025>>, // Dispatch<R>

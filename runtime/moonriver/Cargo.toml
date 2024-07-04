@@ -132,6 +132,7 @@ pallet-evm-precompile-dispatch = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
+pallet-evm-precompile-secp256r1 = { workspace = true }
 
 # Polkadot / XCM
 orml-traits = { workspace = true }
@@ -250,6 +251,7 @@ std = [
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
+	"pallet-evm-precompile-secp256r1/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
