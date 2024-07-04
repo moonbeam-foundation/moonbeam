@@ -59,7 +59,7 @@ describeSuite({
         const rewardDelay = context.polkadotJs().consts.parachainStaking.rewardPaymentDelay;
         await jumpRounds(context, rewardDelay.addn(1).toNumber());
 
-        // The enxt block should reward baltathat and auto-compound his rewards
+        // The next block should reward baltathar and auto-compound his rewards
         const blockHash = (await context.createBlock()).block.hash.toString();
         const events = await getRewardedAndCompoundedEvents(context, blockHash);
         const rewardedEvent = events.rewarded.find(
