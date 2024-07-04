@@ -88,6 +88,11 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
       params: [{ name: "txHash", type: "Hash" }],
       type: "bool",
     },
+    getLatestSyncedBlock: {
+      description: "Returns the latest synced block from frontier's backend",
+      params: [],
+      type: "u32",
+    },
   },
 };
 
