@@ -11,9 +11,6 @@ num_enum = { workspace = true }
 paste = { workspace = true }
 slices = { workspace = true }
 
-# Moonbeam
-precompile-utils = { workspace = true }
-
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
@@ -28,6 +25,7 @@ sp-std = { workspace = true }
 evm = { workspace = true, features = [ "with-codec" ] }
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+precompile-utils = { workspace = true }
 
 [dev-dependencies]
 derive_more = { workspace = true }

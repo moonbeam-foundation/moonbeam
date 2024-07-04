@@ -11,22 +11,23 @@ num_enum = { workspace = true }
 rustc-hex = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true }
+account = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-proxy = { workspace = true }
-parity-scale-codec = { workspace = true, features = [ "derive" ] }
+parity-scale-codec = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 
 # Frontier
-evm = { workspace = true, features = [ "with-codec" ] }
+evm = { workspace = true, features = ["with-codec"] }
 fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+precompile-utils = { workspace = true }
 
 [dev-dependencies]
 derive_more = { workspace = true }
@@ -35,16 +36,16 @@ serde = { workspace = true }
 sha3 = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true, features = [ "std", "testing" ] }
+precompile-utils = { workspace = true, features = ["std", "testing"] }
 
 # Substrate
-pallet-balances = { workspace = true, features = [ "std" ] }
-pallet-timestamp = { workspace = true, features = [ "std" ] }
-scale-info = { workspace = true, features = [ "derive", "std" ] }
-sp-io = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = ["std"] }
+pallet-timestamp = { workspace = true, features = ["std"] }
+scale-info = { workspace = true, features = ["derive", "std"] }
+sp-io = { workspace = true, features = ["std"] }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"fp-evm/std",
 	"frame-support/std",
@@ -57,4 +58,5 @@ std = [
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"account/std",
 ]

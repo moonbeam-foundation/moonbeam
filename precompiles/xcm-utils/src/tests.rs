@@ -70,7 +70,8 @@ fn test_get_account_sibling() {
 			location: Location {
 				parents: 1,
 				interior: [Junction::Parachain(2000u32)].into(),
-			},
+			}
+			.into(),
 		};
 
 		let expected_address: H160 = SiblingParachainAccount(2000u32).into();

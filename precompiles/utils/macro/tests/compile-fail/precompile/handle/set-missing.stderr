@@ -1,5 +1,0 @@
-error: PrecompileSet methods must have at least 2 parameters (the precompile instance discriminant and the PrecompileHandle)
-  --> tests/compile-fail/precompile/handle/set-missing.rs:25:2
-   |
-25 |     fn foo(_: u32) {
-   |     ^^
