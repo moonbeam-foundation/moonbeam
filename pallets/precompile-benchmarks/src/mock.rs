@@ -40,35 +40,6 @@ pub struct SubcallOutput {
 	pub logs: Vec<Log>,
 }
 
-impl SubcallOutput {
-	pub fn revert() -> Self {
-		Self {
-			reason: ExitReason::Revert(ExitRevert::Reverted),
-			output: Vec::new(),
-			cost: 0,
-			logs: Vec::new(),
-		}
-	}
-
-	pub fn succeed() -> Self {
-		Self {
-			reason: ExitReason::Succeed(ExitSucceed::Returned),
-			output: Vec::new(),
-			cost: 0,
-			logs: Vec::new(),
-		}
-	}
-
-	pub fn out_of_gas() -> Self {
-		Self {
-			reason: ExitReason::Error(ExitError::OutOfGas),
-			output: Vec::new(),
-			cost: 0,
-			logs: Vec::new(),
-		}
-	}
-}
-
 pub trait SubcallTrait: FnMut(Subcall) -> SubcallOutput + 'static {}
 
 impl<T: FnMut(Subcall) -> SubcallOutput + 'static> SubcallTrait for T {}
