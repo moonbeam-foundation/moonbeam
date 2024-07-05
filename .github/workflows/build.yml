@@ -365,6 +365,7 @@ jobs:
       fail-fast: false
       matrix:
         chain: ["moonbase", "moonbeam"]
+        shard: [1, 2, 3, 4]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
@@ -390,6 +391,8 @@ jobs:
         uses: ./.github/workflow-templates/dev-tests
         with:
           moonwall_environment: dev_${{ matrix.chain }}
+          shard: ${{ matrix.shard }}
+          shard-count: 4
       - name: Upload HTML report to s3
         if: ${{ !github.event.pull_request.head.repo.fork}}
         uses: opslayertech/upload-s3-action@v1.0.0

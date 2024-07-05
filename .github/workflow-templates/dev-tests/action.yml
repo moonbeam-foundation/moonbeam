@@ -9,6 +9,12 @@ inputs:
   force-pass:
     description: "Indicate whether the workflow should mark the test step as successful, even if actual test failures occur."
     default: "false"
+  shard:
+    description: "Current shard number"
+    default: "1"
+  shard-count:
+    description: "Total number of shards"
+    default: "1"
 
 runs:
   using: "composite"
@@ -47,7 +53,7 @@ runs:
         cd test
         pnpm install
         pnpm compile-solidity
-        pnpm moonwall test ${{ inputs.moonwall_environment }} || [[ '${{ inputs.force-pass }}' == 'true' ]]
+        pnpm moonwall test ${{ inputs.moonwall_environment }} --ts ${{ inputs.shard }}/${{inputs.shard-count}} || [[ '${{ inputs.force-pass }}' == 'true' ]]
     - name: Upload HTML report
       if: always()
       uses: actions/upload-artifact@v4
