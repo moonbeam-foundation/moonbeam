@@ -70,7 +70,7 @@ impl<W: Get<Weight>> P256Verify<W> {
 		// - 32 bytes of the s component of the signature
 		// - 32 bytes of the x coordinate of the public key
 		// - 32 bytes of the y coordinate of the public key
-		if input.len() == Self::INPUT_LENGTH {
+		if input.len() != Self::INPUT_LENGTH {
 			return None;
 		}
 
