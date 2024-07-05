@@ -24,8 +24,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 use fp_evm::{
-	ExitError, ExitSucceed, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput,
-	PrecompileResult,
+	ExitError, ExitSucceed, Precompile, PrecompileHandle, PrecompileOutput, PrecompileResult,
 };
 use frame_support::{traits::Get, weights::Weight};
 use p256::ecdsa::{signature::hazmat::PrehashVerifier, Signature, VerifyingKey};
