@@ -29,7 +29,7 @@ jobs:
         with:
           node-version: 20.10.0
       - name: Use pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8
       - name: Upgrade polkadotjs for moonbeam-types-bundle
@@ -53,6 +53,6 @@ jobs:
           branch: "typescript-api-${{ github.event.inputs.spec_version }}"
           commit-message: typescript API v0.${{ github.event.inputs.spec_version }}.0
           draft: true
-          title: "Upgrade typescript API for runtime  ${{ github.event.inputs.spec_version }}"
+          title: "Upgrade typescript API for runtime-${{ github.event.inputs.spec_version }}"
           reviewers: "librelois,noandrea,timbrinded"
           labels: "B0-silent,D2-notlive"

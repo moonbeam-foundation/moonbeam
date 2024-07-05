@@ -24,7 +24,9 @@ jobs:
         with:
           ref: ${{ github.event.inputs.sha }}
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
       - name: Build Node
         run: cargo build --profile=production --all
       - name: Save parachain binary
@@ -67,7 +69,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.2.0
+        uses: docker/setup-buildx-action@v3.3.0
         with:
           version: latest
           driver-opts: |
@@ -79,7 +81,7 @@ jobs:
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
       - name: Build and push moonbeam
         id: docker_build
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./docker/moonbeam.Dockerfile

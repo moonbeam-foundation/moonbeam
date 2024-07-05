@@ -16,6 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use account::SYSTEM_ACCOUNT_SIZE;
 use core::fmt::Display;
 use fp_evm::{ExitError, PrecompileHandle};
 use frame_support::traits::fungibles::Inspect;
