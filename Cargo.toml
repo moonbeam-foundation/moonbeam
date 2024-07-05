@@ -35,7 +35,7 @@ members = [
 	"precompiles/relay-data-verifier",
 	"precompiles/xcm-transactor",
 	"precompiles/xtokens",
-    "precompiles/p256verify",
+	"precompiles/p256verify",
 	"primitives/storage-proof",
 	"runtime/moonbase",
 	"runtime/moonbeam",
@@ -488,8 +488,3 @@ overflow-checks = true
 
 [patch."https://github.com/paritytech/polkadot-sdk"]
 sp-crypto-ec-utils = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
-
-#[patch."https://github.com/moonbeam-foundation/frontier"]
-#fp-evm = { path = "../frontier/primitives/evm" }
-#allet-evm = { path = "../frontier/frame/evm" }
-#precompile-utils = { path = "../frontier/precompiles" }
