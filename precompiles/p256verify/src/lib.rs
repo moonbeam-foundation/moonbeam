@@ -64,6 +64,16 @@ impl<W: Get<Weight>> P256Verify<W> {
 
 	/// Extract and validate signature from input
 	fn verify_from_input(input: &[u8]) -> Option<()> {
+		// Input data: 160 bytes of data including:
+		// - 32 bytes of the signed data hash
+		// - 32 bytes of the r component of the signature
+		// - 32 bytes of the s component of the signature
+		// - 32 bytes of the x coordinate of the public key
+		// - 32 bytes of the y coordinate of the public key
+		if input.len() == Self::INPUT_LENGTH {
+			return None;
+		}
+
 		let message_hash = Self::message_hash(input);
 		let signature = Self::signature(input);
 		let public_key = Self::public_key(input);
@@ -88,22 +98,7 @@ impl<W: Get<Weight>> Precompile for P256Verify<W> {
 	fn execute(handle: &mut impl PrecompileHandle) -> PrecompileResult {
 		Self::handle_cost(handle)?;
 
-		let input = handle.input();
-		// Input data: 160 bytes of data including:
-		// - 32 bytes of the signed data hash
-		// - 32 bytes of the r component of the signature
-		// - 32 bytes of the s component of the signature
-		// - 32 bytes of the x coordinate of the public key
-		// - 32 bytes of the y coordinate of the public key
-		if input.len() != Self::INPUT_LENGTH {
-			return Err(PrecompileFailure::Error {
-				exit_status: ExitError::Other(
-					"input length for P256VERIFY precompile should be exactly 160 bytes".into(),
-				),
-			});
-		}
-
-		let result = if Self::verify_from_input(input).is_some() {
+		let result = if Self::verify_from_input(handle.input()).is_some() {
 			// If the signature verification process succeeds, it returns 1 in 32 bytes format.
 			let mut result = [0u8; 32];
 			result[31] = 1;
@@ -160,7 +155,6 @@ mod tests {
 					"36b5462166e8ce77f2d831a52ef2135b2af188110beaefb1"
 				)
 				.to_vec(),
-				None,
 			),
 			(
 				true,
@@ -172,7 +166,6 @@ mod tests {
 					"ca6ca971a7a1adc826d0f7c00181a5fb2ddf79ae00b4e10e"
 				)
 				.to_vec(),
-				None,
 			),
 			(
 				false,
@@ -184,7 +177,6 @@ mod tests {
 					"28d3b940258c75fe2a413cb70baa21dc2e352fc5"
 				)
 				.to_vec(),
-				None,
 			),
 			(
 				false,
@@ -196,17 +188,8 @@ mod tests {
 					"a7a1adc826d0f7c00181a5fb2ddf79ae00b4e10e"
 				)
 				.to_vec(),
-				None,
 			),
-			(
-				false,
-				hex!("4cee90eb86eaa050036147a12d49004b6a").to_vec(),
-				Some(PrecompileFailure::Error {
-					exit_status: ExitError::Other(
-						"input length for P256VERIFY precompile should be exactly 160 bytes".into(),
-					),
-				}),
-			),
+			(false, hex!("4cee90eb86eaa050036147a12d49004b6a").to_vec()),
 		];
 		for input in inputs {
 			let cost = 3450;
@@ -220,13 +203,7 @@ mod tests {
 			match (input.0, P256Verify::<DummyWeight>::execute(&mut handle)) {
 				(true, Ok(result)) => assert_eq!(result.output, success_result.to_vec()),
 				(false, Ok(result)) => assert_eq!(result.output, unsuccessful_result),
-				(_, Err(e)) => {
-					if let Some(err) = input.2 {
-						assert_eq!(e, err)
-					} else {
-						panic!("Test not expected to fail for input: {:?}", input)
-					}
-				}
+				(_, Err(e)) => panic!("Test not expected to fail for input: {:?}", input),
 			}
 		}
 	}
