@@ -408,7 +408,7 @@
       ],
       "multiThreads": {
         "threads": {
-          "maxThreads": 4,
+          "maxThreads": 6,
           "minThreads": 1,
           "useAtomics": true,
           "singleThread": false,
