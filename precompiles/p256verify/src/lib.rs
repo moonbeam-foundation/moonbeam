@@ -202,7 +202,7 @@ mod tests {
 			match (input.0, P256Verify::<DummyWeight>::execute(&mut handle)) {
 				(true, Ok(result)) => assert_eq!(result.output, success_result.to_vec()),
 				(false, Ok(result)) => assert_eq!(result.output, unsuccessful_result),
-				(_, Err(e)) => panic!("Test not expected to fail for input: {:?}", input),
+				(_, Err(_)) => panic!("Test not expected to fail for input: {:?}", input),
 			}
 		}
 	}
