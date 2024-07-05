@@ -36,9 +36,11 @@ impl<W: Get<Weight>> P256Verify<W> {
 	/// Expected input length (160 bytes)
 	const INPUT_LENGTH: usize = 160;
 
+	/// Handle gas costs
+	#[inline]
 	fn handle_cost(handle: &mut impl PrecompileHandle) -> Result<(), ExitError> {
 		let weight = W::get();
-		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), None)
+		handle.record_external_cost(Some(weight.ref_time()), None, None)
 	}
 
 	/// (Signed payload) Hash of the original message
