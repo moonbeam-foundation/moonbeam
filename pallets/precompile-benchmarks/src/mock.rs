@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+#![cfg(feature = "runtime-benchmarks")]
+
 use evm::{ExitRevert, ExitSucceed};
 use fp_evm::{Context, ExitError, ExitReason, Log, Transfer};
 use precompile_utils::prelude::PrecompileHandle;
