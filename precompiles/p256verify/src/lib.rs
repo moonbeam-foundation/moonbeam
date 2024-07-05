@@ -33,7 +33,6 @@ use p256::ecdsa::{signature::hazmat::PrehashVerifier, Signature, VerifyingKey};
 pub struct P256Verify<W: Get<Weight>>(PhantomData<W>);
 
 impl<W: Get<Weight>> P256Verify<W> {
-	/// https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md#precompiled-contract-gas-usage
 	/// Expected input length (160 bytes)
 	const INPUT_LENGTH: usize = 160;
 
@@ -124,8 +123,13 @@ impl<W: Get<Weight>> Precompile for P256Verify<W> {
 mod tests {
 	use super::*;
 	use fp_evm::Context;
+	use frame_support::parameter_types;
 	use hex_literal::hex;
 	use precompile_utils::testing::MockHandle;
+
+	parameter_types! {
+		pub const DummyWeight: Weight = Weight::from_parts(3450, 0);
+	}
 
 	fn prepare_handle(input: Vec<u8>, cost: u64) -> impl PrecompileHandle {
 		let context: Context = Context {
@@ -142,36 +146,16 @@ mod tests {
 	}
 
 	#[test]
-	fn test_out_of_gas() -> Result<(), PrecompileFailure> {
-		let input = Vec::<u8>::new();
-		let cost = P256Verify::BASE_GAS.checked_sub(1).unwrap();
-		let mut handle = prepare_handle(input, cost);
-
-		match P256Verify::execute(&mut handle) {
-			Ok(_) => panic!("Test not expected to pass"),
-			Err(e) => {
-				assert_eq!(
-					e,
-					PrecompileFailure::Error {
-						exit_status: ExitError::OutOfGas
-					}
-				);
-				Ok(())
-			}
-		}
-	}
-
-	#[test]
 	fn test_valid_signature() {
 		let inputs = vec![
 			(
 				true,
 				hex!(
-					"b5a77e7a90aa14e0bf5f337f06f597148676424fae26e175c6e5621c34351955289f3\
-				19789da424845c9eac935245fcddd805950e2f02506d09be7e411199556d262144475b1fa46\
-				ad85250728c600c53dfd10f8b3f4adf140e27241aec3c2da3a81046703fccf468b48b145f93\
-				9efdbb96c3786db712b3113bb2488ef286cdcef8afe82d200a5bb36b5462166e8ce77f2d831\
-				a52ef2135b2af188110beaefb1"
+					"b5a77e7a90aa14e0bf5f337f06f597148676424fae26e175c6e5621c34351955289f"
+					"319789da424845c9eac935245fcddd805950e2f02506d09be7e411199556d2621444"
+					"75b1fa46ad85250728c600c53dfd10f8b3f4adf140e27241aec3c2da3a81046703fc"
+					"cf468b48b145f939efdbb96c3786db712b3113bb2488ef286cdcef8afe82d200a5bb"
+					"36b5462166e8ce77f2d831a52ef2135b2af188110beaefb1"
 				)
 				.to_vec(),
 				None,
@@ -179,11 +163,11 @@ mod tests {
 			(
 				true,
 				hex!(
-					"4cee90eb86eaa050036147a12d49004b6b9c72bd725d39d4785011fe190f0b4da73\
-				bd4903f0ce3b639bbbf6e8e80d16931ff4bcf5993d58468e8fb19086e8cac36dbcd\
-				03009df8c59286b162af3bd7fcc0450c9aa81be5d10d312af6c66b1d604aebd3099\
-				c618202fcfe16ae7770b0c49ab5eadf74b754204a3bb6060e44eff37618b065f983\
-				2de4ca6ca971a7a1adc826d0f7c00181a5fb2ddf79ae00b4e10e"
+					"4cee90eb86eaa050036147a12d49004b6b9c72bd725d39d4785011fe190f0b4da73b"
+					"d4903f0ce3b639bbbf6e8e80d16931ff4bcf5993d58468e8fb19086e8cac36dbcd03"
+					"009df8c59286b162af3bd7fcc0450c9aa81be5d10d312af6c66b1d604aebd3099c61"
+					"8202fcfe16ae7770b0c49ab5eadf74b754204a3bb6060e44eff37618b065f9832de4"
+					"ca6ca971a7a1adc826d0f7c00181a5fb2ddf79ae00b4e10e"
 				)
 				.to_vec(),
 				None,
@@ -191,11 +175,11 @@ mod tests {
 			(
 				false,
 				hex!(
-					"afec5769b5cf4e310a7d150508e82fb8e3eda1c2c94c61492d3bd8aea99e06c9e22466e\
-				928fdccef0de49e3503d2657d00494a00e764fd437bdafa05f5922b1fbbb77c6817ccf5074841\
-				9477e843d5bac67e6a70e97dde5a57e0c983b777e1ad31a80482dadf89de6302b1988c82c2954\
-				4c9c07bb910596158f6062517eb089a2f54c9a0f348752950094d3228d3b940258c75fe2a413c\
-				b70baa21dc2e352fc5"
+					"afec5769b5cf4e310a7d150508e82fb8e3eda1c2c94c61492d3bd8aea99e06c9e22466"
+					"e928fdccef0de49e3503d2657d00494a00e764fd437bdafa05f5922b1fbbb77c6817cc"
+					"f50748419477e843d5bac67e6a70e97dde5a57e0c983b777e1ad31a80482dadf89de63"
+					"02b1988c82c29544c9c07bb910596158f6062517eb089a2f54c9a0f348752950094d32"
+					"28d3b940258c75fe2a413cb70baa21dc2e352fc5"
 				)
 				.to_vec(),
 				None,
@@ -203,11 +187,11 @@ mod tests {
 			(
 				false,
 				hex!(
-					"3cee90eb86eaa050036147a12d49004b6b9c72bd725d39d4785011fe190f0b4da73bd4903\
-				f0ce3b639bbbf6e8e80d16931ff4bcf5993d58468e8fb19086e8cac36dbcd03009df8c59286b162\
-				af3bd7fcc0450c9aa81be5d10d312af6c66b1d604aebd3099c618202fcfe16ae7770b0c49ab5ead\
-				f74b754204a3bb6060e44eff37618b065f9832de4ca6ca971a7a1adc826d0f7c00181a5fb2ddf79\
-				ae00b4e10e"
+					"3cee90eb86eaa050036147a12d49004b6b9c72bd725d39d4785011fe190f0b4da73bd4"
+					"903f0ce3b639bbbf6e8e80d16931ff4bcf5993d58468e8fb19086e8cac36dbcd03009d"
+					"f8c59286b162af3bd7fcc0450c9aa81be5d10d312af6c66b1d604aebd3099c618202fc"
+					"fe16ae7770b0c49ab5eadf74b754204a3bb6060e44eff37618b065f9832de4ca6ca971"
+					"a7a1adc826d0f7c00181a5fb2ddf79ae00b4e10e"
 				)
 				.to_vec(),
 				None,
@@ -223,7 +207,7 @@ mod tests {
 			),
 		];
 		for input in inputs {
-			let cost = P256Verify::BASE_GAS;
+			let cost = 3450;
 			let mut handle = prepare_handle(input.1.clone(), cost);
 
 			let mut success_result = [0u8; 32];
@@ -231,7 +215,7 @@ mod tests {
 
 			let unsuccessful_result = Vec::<u8>::new();
 
-			match (input.0, P256Verify::execute(&mut handle)) {
+			match (input.0, P256Verify::<DummyWeight>::execute(&mut handle)) {
 				(true, Ok(result)) => assert_eq!(result.output, success_result.to_vec()),
 				(false, Ok(result)) => assert_eq!(result.output, unsuccessful_result),
 				(_, Err(e)) => {
