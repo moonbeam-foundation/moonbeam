@@ -33,9 +33,6 @@ members = [
 	"precompiles/referenda",
 	"precompiles/relay-encoder",
 	"precompiles/relay-data-verifier",
-	"precompiles/utils",
-	"precompiles/utils/macro",
-	"precompiles/utils/tests-external",
 	"precompiles/xcm-transactor",
 	"precompiles/xtokens",
     "precompiles/p256verify",
@@ -79,6 +76,8 @@ pallet-asset-manager = { path = "pallets/asset-manager", default-features = fals
 pallet-erc20-xcm-bridge = { path = "pallets/erc20-xcm-bridge", default-features = false }
 pallet-ethereum-xcm = { path = "pallets/ethereum-xcm", default-features = false }
 
+
+pallet-moonbeam-lazy-migrations = { path = "pallets/moonbeam-lazy-migrations", default-features = false }
 pallet-evm-precompile-author-mapping = { path = "precompiles/author-mapping", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "precompiles/balances-erc20", default-features = false }
 pallet-evm-precompile-batch = { path = "precompiles/batch", default-features = false }
@@ -106,8 +105,6 @@ pallet-parachain-staking = { path = "pallets/parachain-staking", default-feature
 pallet-precompile-benchmarks = { path = "pallets/precompile-benchmarks", default-features = false }
 pallet-proxy-genesis-companion = { path = "pallets/proxy-genesis-companion", default-features = false }
 pallet-xcm-transactor = { path = "pallets/xcm-transactor", default-features = false }
-pallet-moonbeam-lazy-migrations = { path = "pallets/moonbeam-lazy-migrations", default-features = false }
-precompile-utils = { path = "precompiles/utils", default-features = false }
 xcm-primitives = { path = "primitives/xcm", default-features = false }
 
 pallet-crowdloan-rewards = { git = "https://github.com/moonbeam-foundation/crowdloan-rewards", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
@@ -232,6 +229,7 @@ substrate-test-runtime-client = { git = "https://github.com/moonbeam-foundation/
 substrate-wasm-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 
 # Frontier (wasm)
+
 ethereum = { version = "0.15.0", default-features = false, features = [
 	"with-codec",
 ] }
@@ -258,7 +256,10 @@ pallet-evm-precompile-sha3fips = { git = "https://github.com/moonbeam-foundation
 pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 pallet-evm-precompile-storage-cleaner = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 
+precompile-utils = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
+
 # Frontier (client)
+
 fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
 fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
 fc-api = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
@@ -272,6 +273,7 @@ fp-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch
 fp-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
 
 # Cumulus (wasm)
+
 cumulus-pallet-dmp-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 cumulus-pallet-parachain-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false, features = [
 	"parameterized-consensus-hook",
@@ -344,7 +346,6 @@ session-keys-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", br
 nimbus-consensus = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0" }
 
 # Other (wasm)
-affix = "0.1.2"
 async-trait = { version = "0.1.42" }
 blake2-rfc = { version = "0.2.18", default-features = false }
 derive_more = "0.99"

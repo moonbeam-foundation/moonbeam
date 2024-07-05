@@ -12,7 +12,6 @@ rustc-hex = { workspace = true }
 
 # Moonbeam
 pallet-parachain-staking = { workspace = true }
-precompile-utils = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -27,13 +26,14 @@ sp-runtime = { workspace = true }
 # Frontier
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+precompile-utils = { workspace = true }
 
 [dev-dependencies]
 derive_more = { workspace = true }
 serde = { workspace = true }
 sha3 = { workspace = true }
 
-# Moonbeam
+# Frontier
 precompile-utils = { workspace = true, features = [ "std", "testing" ] }
 
 # Substrate
