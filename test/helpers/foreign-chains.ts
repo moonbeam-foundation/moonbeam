@@ -161,10 +161,6 @@ export const ForeignChainsEndpoints = [
         paraId: 2012,
       },
       {
-        name: "Composable",
-        paraId: 2019,
-      },
-      {
         name: "Nodle",
         paraId: 2026,
       },
