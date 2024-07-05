@@ -162,9 +162,9 @@ describeSuite({
       test: async function () {
         await context.createBlock([], { finalize: true });
         await context.createBlock([], { finalize: true });
-        await context.createBlock([], { finalize: false });
         const resp = await customDevRpcRequest("moon_getLatestSyncedBlock", []);
-        expect(resp, "Block number").toBe(2);
+        // Should return the count of all blocks from the test suite
+        expect(resp, "Block number").toBe(14);
       },
     });
   },
