@@ -29,6 +29,11 @@ describeSuite({
         });
         const { result } = await context.createBlock(rawTx);
 
+        const receipt = await (context.viem() as any).getTransactionReceipt({ hash: result.hash });
+
+        // https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
+        expect(receipt.gasUsed >= 3450);
+
         expect(result.successful, "Succeed");
         expectEVMResult(result!.events, "Succeed");
       },
