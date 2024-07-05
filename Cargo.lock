@@ -6393,6 +6393,7 @@ dependencies = [
  "pallet-evm-precompile-gmp",
  "pallet-evm-precompile-identity",
  "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-p256verify",
  "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-preimage",
  "pallet-evm-precompile-proxy",
@@ -6401,7 +6402,6 @@ dependencies = [
  "pallet-evm-precompile-registry",
  "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-relay-verifier",
- "pallet-evm-precompile-secp256r1",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-storage-cleaner",
@@ -6887,6 +6887,7 @@ dependencies = [
  "pallet-evm-precompile-gmp",
  "pallet-evm-precompile-identity",
  "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-p256verify",
  "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-preimage",
  "pallet-evm-precompile-proxy",
@@ -6895,7 +6896,6 @@ dependencies = [
  "pallet-evm-precompile-registry",
  "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-relay-verifier",
- "pallet-evm-precompile-secp256r1",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-xcm-transactor",
@@ -7289,6 +7289,7 @@ dependencies = [
  "pallet-evm-precompile-gmp",
  "pallet-evm-precompile-identity",
  "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-p256verify",
  "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-preimage",
  "pallet-evm-precompile-proxy",
@@ -7297,7 +7298,6 @@ dependencies = [
  "pallet-evm-precompile-registry",
  "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-relay-verifier",
- "pallet-evm-precompile-secp256r1",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-xcm-transactor",
@@ -9142,6 +9142,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-evm-precompile-p256verify"
+version = "0.1.0"
+dependencies = [
+ "fp-evm",
+ "frame-support",
+ "hex-literal 0.3.4",
+ "p256",
+ "precompile-utils 0.1.1",
+]
+
+[[package]]
 name = "pallet-evm-precompile-parachain-staking"
 version = "1.0.0"
 dependencies = [
@@ -9364,16 +9375,6 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "storage-proof-primitives",
-]
-
-[[package]]
-name = "pallet-evm-precompile-secp256r1"
-version = "0.1.0"
-dependencies = [
- "fp-evm",
- "hex-literal 0.3.4",
- "p256",
- "precompile-utils 0.1.1",
 ]
 
 [[package]]
@@ -9958,11 +9959,15 @@ name = "pallet-precompile-benchmarks"
 version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
+ "evm",
+ "fp-evm",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "pallet-evm-precompile-p256verify",
  "pallet-relay-storage-roots",
  "parity-scale-codec",
+ "precompile-utils 0.1.1",
  "scale-info",
  "sp-core",
  "sp-std",

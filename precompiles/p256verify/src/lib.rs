@@ -1,4 +1,4 @@
-// Copyright (c) Moonsong Labs.
+// Copyright 2024 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -21,19 +21,25 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
+use core::marker::PhantomData;
 use fp_evm::{
 	ExitError, ExitSucceed, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput,
 	PrecompileResult,
 };
+use frame_support::{traits::Get, weights::Weight};
 use p256::ecdsa::{signature::hazmat::PrehashVerifier, Signature, VerifyingKey};
 
-pub struct P256Verify;
+pub struct P256Verify<W: Get<Weight>>(PhantomData<W>);
 
-impl P256Verify {
+impl<W: Get<Weight>> P256Verify<W> {
 	/// https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md#precompiled-contract-gas-usage
-	const BASE_GAS: u64 = 3_450;
 	/// Expected input length (160 bytes)
 	const INPUT_LENGTH: usize = 160;
+
+	fn handle_cost(handle: &mut impl PrecompileHandle) -> Result<(), ExitError> {
+		let weight = W::get();
+		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), None)
+	}
 
 	/// (Signed payload) Hash of the original message
 	/// 32 bytes of the signed data hash
@@ -76,9 +82,9 @@ impl P256Verify {
 
 /// Implements RIP-7212 P256VERIFY precompile.
 /// https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
-impl Precompile for P256Verify {
+impl<W: Get<Weight>> Precompile for P256Verify<W> {
 	fn execute(handle: &mut impl PrecompileHandle) -> PrecompileResult {
-		handle.record_cost(Self::BASE_GAS)?;
+		Self::handle_cost(handle)?;
 
 		let input = handle.input();
 		// Input data: 160 bytes of data including:

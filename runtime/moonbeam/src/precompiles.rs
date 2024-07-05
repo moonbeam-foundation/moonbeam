@@ -16,10 +16,11 @@
 
 use crate::{
 	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
-	TreasuryCouncilInstance,
+	Runtime, TreasuryCouncilInstance,
 };
 use crate::{AssetId, H160};
 use frame_support::parameter_types;
+use moonbeam_runtime_common::weights as moonbeam_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
@@ -33,6 +34,7 @@ use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 use pallet_evm_precompile_gmp::GmpPrecompile;
 use pallet_evm_precompile_identity::IdentityPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
+use pallet_evm_precompile_p256verify::P256Verify;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
 use pallet_evm_precompile_proxy::{OnlyIsProxyAndProxy, ProxyPrecompile};
@@ -41,7 +43,6 @@ use pallet_evm_precompile_referenda::ReferendaPrecompile;
 use pallet_evm_precompile_registry::PrecompileRegistry;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_relay_verifier::RelayDataVerifierPrecompile;
-use pallet_evm_precompile_secp256r1::P256Verify;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use pallet_evm_precompile_xcm_transactor::{
@@ -50,8 +51,14 @@ use pallet_evm_precompile_xcm_transactor::{
 use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
 use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
+use pallet_precompile_benchmarks::WeightInfo;
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;
+
+parameter_types! {
+	pub P256VerifyWeight: frame_support::weights::Weight =
+		moonbeam_weights::pallet_precompile_benchmarks::WeightInfo::<Runtime>::p256_verify();
+}
 
 pub struct NativeErc20Metadata;
 
@@ -107,7 +114,7 @@ type MoonbeamPrecompilesAt<R> = (
 	PrecompileAt<AddressU64<8>, Bn128Pairing, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<9>, Blake2F, EthereumPrecompilesChecks>,
 	// (0x100 => 256) https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
-	PrecompileAt<AddressU64<256>, P256Verify, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<256>, P256Verify<P256VerifyWeight>, EthereumPrecompilesChecks>,
 	// Non-Moonbeam specific nor Ethereum precompiles :
 	PrecompileAt<AddressU64<1024>, Sha3FIPS256, (CallableByContract, CallableByPrecompile)>,
 	RemovedPrecompileAt<AddressU64<1025>>, // Dispatch<R>
