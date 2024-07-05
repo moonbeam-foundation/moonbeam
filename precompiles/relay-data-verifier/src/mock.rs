@@ -195,7 +195,7 @@ impl pallet_evm::Config for Runtime {
 }
 
 impl pallet_precompile_benchmarks::Config for Runtime {
-	type WeightInfo = ();
+	type WeightInfo = WeightInfo<Runtime>;
 }
 
 pub(crate) struct ExtBuilder {

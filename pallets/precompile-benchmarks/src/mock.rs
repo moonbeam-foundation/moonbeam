@@ -16,7 +16,6 @@
 
 #![cfg(feature = "runtime-benchmarks")]
 
-use evm::{ExitRevert, ExitSucceed};
 use fp_evm::{Context, ExitError, ExitReason, Log, Transfer};
 use precompile_utils::prelude::PrecompileHandle;
 use sp_core::{H160, H256};
