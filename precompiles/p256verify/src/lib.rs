@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-// “secp256r1” is a specific elliptic curve, also known as “P-256” and “prime256v1” curves.
+// “secp256r1” is a specific elliptic curve, also known as “P-256”
+// and “prime256v1” curves.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -165,48 +166,60 @@ mod tests {
 		let inputs = vec![
 			(
 				true,
-			 	hex!("b5a77e7a90aa14e0bf5f337f06f597148676424fae26e175c6e5621c34351955289f3\
-			 	19789da424845c9eac935245fcddd805950e2f02506d09be7e411199556d262144475b1fa46\
-			 	ad85250728c600c53dfd10f8b3f4adf140e27241aec3c2da3a81046703fccf468b48b145f93\
-			 	9efdbb96c3786db712b3113bb2488ef286cdcef8afe82d200a5bb36b5462166e8ce77f2d831\
-			 	a52ef2135b2af188110beaefb1").to_vec(),
-			 	None
+				hex!(
+					"b5a77e7a90aa14e0bf5f337f06f597148676424fae26e175c6e5621c34351955289f3\
+				19789da424845c9eac935245fcddd805950e2f02506d09be7e411199556d262144475b1fa46\
+				ad85250728c600c53dfd10f8b3f4adf140e27241aec3c2da3a81046703fccf468b48b145f93\
+				9efdbb96c3786db712b3113bb2488ef286cdcef8afe82d200a5bb36b5462166e8ce77f2d831\
+				a52ef2135b2af188110beaefb1"
+				)
+				.to_vec(),
+				None,
 			),
 			(
 				true,
-				hex!("4cee90eb86eaa050036147a12d49004b6b9c72bd725d39d4785011fe190f0b4da73\
+				hex!(
+					"4cee90eb86eaa050036147a12d49004b6b9c72bd725d39d4785011fe190f0b4da73\
 				bd4903f0ce3b639bbbf6e8e80d16931ff4bcf5993d58468e8fb19086e8cac36dbcd\
 				03009df8c59286b162af3bd7fcc0450c9aa81be5d10d312af6c66b1d604aebd3099\
 				c618202fcfe16ae7770b0c49ab5eadf74b754204a3bb6060e44eff37618b065f983\
-				2de4ca6ca971a7a1adc826d0f7c00181a5fb2ddf79ae00b4e10e").to_vec(),
-				None),
-			(
-				false,
-				hex!("afec5769b5cf4e310a7d150508e82fb8e3eda1c2c94c61492d3bd8aea99e06c9e22466e\
-				928fdccef0de49e3503d2657d00494a00e764fd437bdafa05f5922b1fbbb77c6817ccf5074841\
-				9477e843d5bac67e6a70e97dde5a57e0c983b777e1ad31a80482dadf89de6302b1988c82c2954\
-				4c9c07bb910596158f6062517eb089a2f54c9a0f348752950094d3228d3b940258c75fe2a413c\
-				b70baa21dc2e352fc5").to_vec(),
-				None
+				2de4ca6ca971a7a1adc826d0f7c00181a5fb2ddf79ae00b4e10e"
+				)
+				.to_vec(),
+				None,
 			),
 			(
 				false,
-				hex!("3cee90eb86eaa050036147a12d49004b6b9c72bd725d39d4785011fe190f0b4da73bd4903\
+				hex!(
+					"afec5769b5cf4e310a7d150508e82fb8e3eda1c2c94c61492d3bd8aea99e06c9e22466e\
+				928fdccef0de49e3503d2657d00494a00e764fd437bdafa05f5922b1fbbb77c6817ccf5074841\
+				9477e843d5bac67e6a70e97dde5a57e0c983b777e1ad31a80482dadf89de6302b1988c82c2954\
+				4c9c07bb910596158f6062517eb089a2f54c9a0f348752950094d3228d3b940258c75fe2a413c\
+				b70baa21dc2e352fc5"
+				)
+				.to_vec(),
+				None,
+			),
+			(
+				false,
+				hex!(
+					"3cee90eb86eaa050036147a12d49004b6b9c72bd725d39d4785011fe190f0b4da73bd4903\
 				f0ce3b639bbbf6e8e80d16931ff4bcf5993d58468e8fb19086e8cac36dbcd03009df8c59286b162\
 				af3bd7fcc0450c9aa81be5d10d312af6c66b1d604aebd3099c618202fcfe16ae7770b0c49ab5ead\
 				f74b754204a3bb6060e44eff37618b065f9832de4ca6ca971a7a1adc826d0f7c00181a5fb2ddf79\
-				ae00b4e10e").to_vec(),
-				None
+				ae00b4e10e"
+				)
+				.to_vec(),
+				None,
 			),
 			(
 				false,
 				hex!("4cee90eb86eaa050036147a12d49004b6a").to_vec(),
 				Some(PrecompileFailure::Error {
 					exit_status: ExitError::Other(
-					"input length for P256VERIFY precompile should be exactly 160 bytes"
-						.into()
-					)
-				})
+						"input length for P256VERIFY precompile should be exactly 160 bytes".into(),
+					),
+				}),
 			),
 		];
 		for input in inputs {
