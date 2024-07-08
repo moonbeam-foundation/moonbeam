@@ -355,7 +355,7 @@
         "compile-contracts.ts compile",
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbeam-dev"
       ],
-      "multiThreads": 8,
+      "multiThreads": 4,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["basic", "html", "json"],
       "reportFile": {
@@ -398,7 +398,7 @@
         "compile-contracts.ts compile",
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
       ],
-      "multiThreads": 8,
+      "multiThreads": 4,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["basic", "html", "json"],
       "reportFile": {
