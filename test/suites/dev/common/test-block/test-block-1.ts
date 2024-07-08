@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { DevModeContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
+import { gasLimit } from "../config";
 
 describeSuite({
   id: "D010401",
@@ -41,7 +42,7 @@ describeSuite({
           author: ALITH_ADDRESS.toLocaleLowerCase(),
           difficulty: 0n,
           extraData: "0x",
-          gasLimit: 60000000n,
+          gasLimit: gasLimit(context),
           gasUsed: 0n,
           logsBloom: `0x${"0".repeat(512)}`,
           miner: ALITH_ADDRESS.toLocaleLowerCase(),
