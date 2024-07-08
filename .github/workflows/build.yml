@@ -18,7 +18,7 @@ on:
         required: false
 
 env:
-  NODE_OPTIONS: "--max-old-space-size=12288"
+  NODE_OPTIONS: "--max-old-space-size=12288 --no-deprecation"
   CARGO_TERM_COLOR: always
 
 jobs:
@@ -599,6 +599,7 @@ jobs:
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

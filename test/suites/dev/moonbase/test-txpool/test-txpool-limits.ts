@@ -20,7 +20,7 @@ describeSuite({
 
         await context.createBlock();
         const maxTxnLen = (await context.viem().getBlock()).transactions.length;
-        log(`Max transactions in block: ${maxTxnLen}`);
+        log(`out ${maxTxnLen}`);
         expect(maxTxnLen).toBeGreaterThan(2300);
       },
     });
