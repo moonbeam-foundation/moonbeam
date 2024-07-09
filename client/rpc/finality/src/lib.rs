@@ -92,10 +92,12 @@ where
 	async fn get_latest_block_hash(&self) -> RpcResult<H256> {
 		let res = self.backend.deref().latest_block_hash().await;
 		match res {
-			Ok(val) => Ok(val.into()),
-			Err(e) => {
-				Err(ErrorObject::owned(1, "No synced block", Some(format!("{:?}", e))).into())
-			}
+			Ok(val) => Ok(val),
+			Err(e) => Err(ErrorObject::owned(
+				jsonrpsee::types::error::UNKNOWN_ERROR_CODE,
+				"No synced block",
+				Some(e),
+			)),
 		}
 	}
 }
