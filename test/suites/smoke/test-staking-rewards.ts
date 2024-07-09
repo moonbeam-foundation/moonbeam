@@ -29,6 +29,7 @@ interface RoundData {
 }
 
 interface PaymentRounds {
+  asyncBackingEnabled: boolean;
   firstRewardBlock: Block;
   rewardRound: RoundData; // Stores the last finished round (X)
   roundToPay: RoundData; // Stores the round to pay (X-delay)
@@ -417,7 +418,12 @@ describeSuite({
         );
         const firstRewardBlock = (await api.rpc.chain.getBlock(firstRewardHash)).block;
 
+        const asyncBackingEnabled = !!api.runtimeMetadata.asLatest.pallets.find(
+          ({ name }) => name.toHuman() === "AsyncBacking"
+        );
+
         const payment: PaymentRounds = {
+          asyncBackingEnabled,
           firstRewardBlock,
           rewardRound,
           roundToPay,
@@ -551,11 +557,7 @@ describeSuite({
 
       // calculate reward amounts
       let totalRoundIssuance: BN;
-      // TODO: Update this as moonbeam enable async backing
-      const isAsync = ["moonbase", "moonriver"].includes(
-        payment.rewardRound.firstBlockApi.consts.system.version.specName.toString()
-      );
-      if (isAsync) {
+      if (payment.asyncBackingEnabled) {
         // Formula:
         //   totalRoundIssuance = (roundDuration / idealDuration) * idealIssuance
 
