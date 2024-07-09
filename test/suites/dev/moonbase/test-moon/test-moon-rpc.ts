@@ -160,11 +160,9 @@ describeSuite({
       id: "T11",
       title: "should return latest synced block",
       test: async function () {
-        await context.createBlock([], { finalize: true });
-        await context.createBlock([], { finalize: true });
-        const resp = await customDevRpcRequest("moon_getLatestSyncedBlock", []);
-        // Should return the count of all blocks from the test suite
-        expect(resp, "Block number").toBe(14);
+        const expected = await context.createBlock([], { finalize: true });
+        const resp = await customDevRpcRequest("moon_getLatestBlockHash", []);
+        expect(resp, "Latest block hash").toBe(expected.block.hash);
       },
     });
   },

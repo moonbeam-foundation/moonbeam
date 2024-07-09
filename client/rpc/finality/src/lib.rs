@@ -21,7 +21,6 @@ use jsonrpsee::{core::RpcResult, proc_macros::rpc};
 use sp_blockchain::HeaderBackend;
 use sp_core::H256;
 use sp_runtime::traits::Block;
-use sp_runtime::SaturatedConversion;
 use std::ops::Deref;
 use std::{marker::PhantomData, sync::Arc};
 
@@ -39,9 +38,9 @@ pub trait MoonbeamFinalityApi {
 	#[method(name = "moon_isTxFinalized")]
 	async fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool>;
 
-	/// Gets the latest block that is synced in frontier's backend.
-	#[method(name = "moon_getLatestSyncedBlock")]
-	async fn get_latest_synced_block(&self) -> RpcResult<u32>;
+	/// Gets the latest block hash that is fully indexed in frontier's backend.
+	#[method(name = "moon_getLatestBlockHash")]
+	async fn get_latest_block_hash(&self) -> RpcResult<H256>;
 }
 
 pub struct MoonbeamFinality<B: Block, C> {
@@ -90,10 +89,10 @@ where
 		}
 	}
 
-	async fn get_latest_synced_block(&self) -> RpcResult<u32> {
-		let res = self.backend.deref().latest_synced_block().await;
+	async fn get_latest_block_hash(&self) -> RpcResult<H256> {
+		let res = self.backend.deref().latest_block_hash().await;
 		match res {
-			Ok(val) => Ok(val.saturated_into()),
+			Ok(val) => Ok(val.into()),
 			Err(e) => {
 				Err(ErrorObject::owned(1, "No synced block", Some(format!("{:?}", e))).into())
 			}
