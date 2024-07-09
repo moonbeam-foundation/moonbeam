@@ -551,11 +551,10 @@ describeSuite({
 
       // calculate reward amounts
       let totalRoundIssuance: BN;
-
-      // TODO: Update this as moonriver & moonbeam enable async backing
-      const isAsync =
-        payment.rewardRound.firstBlockSpecVersion >= 2801 &&
-        payment.rewardRound.firstBlockApi.consts.system.version.specName.toString() === "moonbase";
+      // TODO: Update this as moonbeam enable async backing
+      const isAsync = ["moonbase", "moonriver"].includes(
+        payment.rewardRound.firstBlockApi.consts.system.version.specName.toString()
+      );
       if (isAsync) {
         // Formula:
         //   totalRoundIssuance = (roundDuration / idealDuration) * idealIssuance
@@ -584,7 +583,7 @@ describeSuite({
         totalRoundIssuance = roundDuration.mul(idealIssuance).div(idealDuration);
       } else {
         // Always apply max inflation
-        // It work because the total staked amound is already 1000 times more than the max on
+        // It works because the total staked amount is already 1000 times more than the max on
         // production, so it's very unlikely to change before RT2801 deployment on moonbeam
 
         const totalIssuance =
