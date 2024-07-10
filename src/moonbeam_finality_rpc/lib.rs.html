@@ -112,6 +112,25 @@
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -128,10 +147,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 </span><span class="kw">use </span>fc_rpc::frontier_backend_client::{<span class="self">self</span>, is_canon};
+
+<span class="kw">use </span>jsonrpsee::types::error::ErrorObject;
 <span class="kw">use </span>jsonrpsee::{core::RpcResult, proc_macros::rpc};
 <span class="kw">use </span>sp_blockchain::HeaderBackend;
 <span class="kw">use </span>sp_core::H256;
 <span class="kw">use </span>sp_runtime::traits::Block;
+<span class="kw">use </span>std::ops::Deref;
 <span class="kw">use </span>std::{marker::PhantomData, sync::Arc};
 
 <span class="doccomment">/// An RPC endpoint to check for finality of blocks and transactions in Moonbeam
@@ -147,6 +169,10 @@
 	/// Returns false if the transaction is not found
 	</span><span class="attr">#[method(name = <span class="string">"moon_isTxFinalized"</span>)]
 	</span><span class="kw">async fn </span>is_tx_finalized(<span class="kw-2">&amp;</span><span class="self">self</span>, tx_hash: H256) -&gt; RpcResult&lt;bool&gt;;
+
+	<span class="doccomment">/// Gets the latest block hash that is fully indexed in frontier's backend.
+	</span><span class="attr">#[method(name = <span class="string">"moon_getLatestBlockHash"</span>)]
+	</span><span class="kw">async fn </span>get_latest_block_hash(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RpcResult&lt;H256&gt;;
 }
 
 <span class="kw">pub struct </span>MoonbeamFinality&lt;B: Block, C&gt; {
@@ -192,6 +218,18 @@
 				.<span class="kw">await
 		</span>} <span class="kw">else </span>{
 			<span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
+		}
+	}
+
+	<span class="kw">async fn </span>get_latest_block_hash(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RpcResult&lt;H256&gt; {
+		<span class="kw">let </span>res = <span class="self">self</span>.backend.deref().latest_block_hash().<span class="kw">await</span>;
+		<span class="kw">match </span>res {
+			<span class="prelude-val">Ok</span>(val) =&gt; <span class="prelude-val">Ok</span>(val),
+			<span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(ErrorObject::owned(
+				jsonrpsee::types::error::UNKNOWN_ERROR_CODE,
+				<span class="string">"No synced block"</span>,
+				<span class="prelude-val">Some</span>(e),
+			)),
 		}
 	}
 }
