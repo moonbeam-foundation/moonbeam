@@ -13,7 +13,6 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-pub use fc_db::sql::{self};
 use fc_rpc::frontier_backend_client::{self, is_canon};
 
 use jsonrpsee::types::error::ErrorObject;
