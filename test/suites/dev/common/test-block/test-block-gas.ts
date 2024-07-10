@@ -5,8 +5,7 @@ import {
   expect,
   deployCreateCompiledContract,
 } from "@moonwall/cli";
-import { EXTRINSIC_GAS_LIMIT } from "../../../../helpers/constants";
-import { gasLimit } from "../config";
+import { gasLimit, extrinsicGasLimit } from "../config";
 
 describeSuite({
   id: "D010403",
@@ -19,7 +18,8 @@ describeSuite({
         title: `${txnType} should be allowed to the max block gas`,
         test: async function () {
           const { hash, status } = await deployCreateCompiledContract(context, "MultiplyBy7", {
-            gas: EXTRINSIC_GAS_LIMIT,
+            type: txnType,
+            gas: extrinsicGasLimit(context),
           });
           expect(status).toBe("success");
           const receipt = await context.viem().getTransactionReceipt({ hash });
@@ -34,7 +34,8 @@ describeSuite({
           expect(
             async () =>
               await deployCreateCompiledContract(context, "MultiplyBy7", {
-                gas: EXTRINSIC_GAS_LIMIT + 1n,
+                type: txnType,
+                gas: extrinsicGasLimit(context) + 1n,
               }),
             "Transaction should be reverted but instead contract deployed"
           ).rejects.toThrowError("exceeds block gas limit");
