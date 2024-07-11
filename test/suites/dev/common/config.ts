@@ -14,10 +14,12 @@ export function valueFromRuntime(context: DevModeContext, multiRuntimeValue: Mul
     return multiRuntimeValue[runtime];
 }
 
-export const gasLimit = (context: DevModeContext) => valueFromRuntime(context, {
-    moonbeam: 15000000n,
-    moonriver: 30000000n,
-    moonbase: 60000000n,
+export const gasLimit = (context: DevModeContext) => gasPerSecond(context) * 3n / 4n;
+
+export const gasPerSecond = (context: DevModeContext) => valueFromRuntime(context, {
+    moonbeam: 20_000_000n,
+    moonriver: 40_000_000n,
+    moonbase: 80_000_000n,
 });
 
 export const weightPerSecond = (context: DevModeContext) => valueFromRuntime(context, {
@@ -36,12 +38,6 @@ export const gasLimitPovRatio = (context: DevModeContext) => valueFromRuntime(co
     moonbeam: 4n,
     moonriver: 8n,
     moonbase: 16n,
-});
-
-export const gasPerSecond = (context: DevModeContext) => valueFromRuntime(context, {
-    moonbeam: 20_000_000n,
-    moonriver: 40_000_000n,
-    moonbase: 80_000_000n,
 });
 
 export const deadlineSeconds = (context: DevModeContext) => valueFromRuntime(context, {
