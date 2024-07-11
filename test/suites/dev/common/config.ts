@@ -24,8 +24,8 @@ export const gasPerSecond = (context: DevModeContext) => valueFromRuntime(contex
 
 export const weightPerSecond = (context: DevModeContext) => valueFromRuntime(context, {
     moonbeam: 500_000_000_000n,
-    moonriver: 2_000_000_000_000n,
-    moonbase: 1_000_000_000_000n,
+    moonriver: 1_000_000_000_000n,
+    moonbase: 2_000_000_000_000n,
 });
 
 export const gasPerPovBytes = (context: DevModeContext) => valueFromRuntime(context, {
@@ -40,20 +40,20 @@ export const gasLimitPovRatio = (context: DevModeContext) => valueFromRuntime(co
     moonbase: 16n,
 });
 
-export const deadlineSeconds = (context: DevModeContext) => valueFromRuntime(context, {
-    moonbeam: 1n,
-    moonriver: 1n,
-    moonbase: 2n,
+export const deadlineMiliSeconds = (context: DevModeContext) => valueFromRuntime(context, {
+    moonbeam: 1000n,
+    moonriver: 1000n,
+    moonbase: 1000n,
 });
 
 export const gasPerWeight = (context: DevModeContext) => weightPerSecond(context) / gasPerSecond(context);
   
 export const extrinsicGasLimit = (context: DevModeContext) => 
-  innerExtrinsicGasLimit(weightPerSecond(context), gasPerSecond(context), deadlineSeconds(context));
+  innerExtrinsicGasLimit(weightPerSecond(context), gasPerSecond(context), deadlineMiliSeconds(context));
 
-const innerExtrinsicGasLimit = (weightPerSecond: bigint, gasPerSecond: bigint, deadlineSeconds: bigint) => {
+const innerExtrinsicGasLimit = (weightPerSecond: bigint, gasPerSecond: bigint, deadlineMiliSeconds: bigint) => {
     const gasPerWeight = weightPerSecond / gasPerSecond;
-    const blockWeightLimit = weightPerSecond * deadlineSeconds;
+    const blockWeightLimit = weightPerSecond * deadlineMiliSeconds / 1000n;
     const blockGasLimit = blockWeightLimit / gasPerWeight;
     return (blockGasLimit * 3n) / 4n - blockGasLimit / 10n;
 }
