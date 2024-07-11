@@ -17,9 +17,10 @@ describeSuite({
       test: async function () {
         const blockResult = await context.createBlock();
         const blockData = await context.polkadotJs().rpc.chain.getBlock(blockResult.block.hash);
+        const index = blockData.block.extrinsics.findIndex(e => e.method.method === "setValidationData");
         expect(
           (
-            blockData.block.extrinsics[1].method
+            blockData.block.extrinsics[index].method
               .args[0] as CumulusPrimitivesParachainInherentParachainInherentData
           ).validationData.relayParentNumber.toString()
         ).to.eq("1000");
@@ -27,7 +28,7 @@ describeSuite({
         const blockData2 = await context.polkadotJs().rpc.chain.getBlock(blockResult2.block.hash);
         expect(
           (
-            blockData2.block.extrinsics[1].method
+            blockData2.block.extrinsics[index].method
               .args[0] as CumulusPrimitivesParachainInherentParachainInherentData
           ).validationData.relayParentNumber.toString()
         ).to.eq("1002");
