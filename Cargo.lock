@@ -9692,6 +9692,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-moonbeam-foreign-assets"
+version = "0.1.0"
+dependencies = [
+ "environmental",
+ "ethereum-types",
+ "fp-evm",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-assets",
+ "pallet-balances",
+ "pallet-evm",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "staging-xcm",
+ "staging-xcm-executor",
+]
+
+[[package]]
 name = "pallet-moonbeam-lazy-migrations"
 version = "0.1.0"
 dependencies = [

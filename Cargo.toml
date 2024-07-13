@@ -11,6 +11,7 @@ members = [
 	"pallets/asset-manager",
 	"pallets/erc20-xcm-bridge",
 	"pallets/ethereum-xcm",
+	"pallets/moonbeam-foreign-assets",
 	"pallets/moonbeam-lazy-migrations",
 	"pallets/moonbeam-orbiters",
 	"pallets/moonbeam-xcm-benchmarks",
@@ -74,9 +75,9 @@ moonbeam-xcm-benchmarks = { path = "pallets/moonbeam-xcm-benchmarks", default-fe
 pallet-asset-manager = { path = "pallets/asset-manager", default-features = false }
 pallet-erc20-xcm-bridge = { path = "pallets/erc20-xcm-bridge", default-features = false }
 pallet-ethereum-xcm = { path = "pallets/ethereum-xcm", default-features = false }
-
-
+pallet-moonbeam-foreign-assets = { path = "pallets/moonbeam-foreign-assets", default-features = false }
 pallet-moonbeam-lazy-migrations = { path = "pallets/moonbeam-lazy-migrations", default-features = false }
+
 pallet-evm-precompile-author-mapping = { path = "precompiles/author-mapping", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "precompiles/balances-erc20", default-features = false }
 pallet-evm-precompile-batch = { path = "precompiles/batch", default-features = false }
