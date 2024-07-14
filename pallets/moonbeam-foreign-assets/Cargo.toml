@@ -30,6 +30,9 @@ xcm-executor = { workspace = true, optional = true }
 # Benchmarks
 frame-benchmarking = { workspace = true, optional = true }
 
+[build-dependencies]
+hex = { workspace = true }
+
 [dev-dependencies]
 pallet-balances = { workspace = true, features = [ "std" ] }
 pallet-assets = { workspace = true, features = [ "std" ] }

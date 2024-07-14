@@ -65,17 +65,14 @@ pub mod pallet {
 	use fp_evm::{ExitReason, ExitSucceed};
 	use frame_support::{
 		pallet_prelude::*,
-		traits::{
-			fungibles::Destroy,
-			tokens::fungibles,
-		},
+		traits::{fungibles::Destroy, tokens::fungibles},
 	};
 	use frame_system::pallet_prelude::*;
 	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_runtime::traits::{Dispatchable, MaybeEquivalence};
 
-	const ERC20_CREATE_INIT_CODE_MAX_SIZE: usize = 8192;
-	const FOREIGN_ASSETS_PREFIX: [u8; 4] = [0x00, 0x00, 0x00, 0x00];
+	const ERC20_CREATE_INIT_CODE_MAX_SIZE: usize = 16 * 1024;
+	const FOREIGN_ASSETS_PREFIX: [u8; 4] = [0xff, 0xff, 0xff, 0xff];
 	const FOREIGN_ASSET_ERC20_CREATE_GAS_LIMIT: u64 = 500_000;
 
 	#[pallet::pallet]
@@ -179,8 +176,13 @@ pub mod pallet {
 			admin: H160,
 			min_balance: AssetBalance,
 		) -> Result<(), Error<T>> {
-			// TODO generate init code
+			// Get init code
 			let mut init = Vec::with_capacity(ERC20_CREATE_INIT_CODE_MAX_SIZE);
+			init.extend_from_slice(include_bytes!("../resources/foreign_erc20_initcode.bin"));
+
+			// Add constructor parameters
+			// (0x6D6f646c617373746d6E67720000000000000000, 18, MTT, MyBigToken)
+			//0x0000000000000000000000006d6f646c617373746d6e677200000000000000000000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000034d54540000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a4d79426967546f6b656e00000000000000000000000000000000000000000000
 
 			// Compute contract address
 			let mut buffer = [0u8; 20];
