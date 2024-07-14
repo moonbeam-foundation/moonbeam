@@ -9707,6 +9707,7 @@ dependencies = [
  "pallet-balances",
  "pallet-evm",
  "parity-scale-codec",
+ "precompile-utils",
  "precompile-utils-macro",
  "scale-info",
  "serde",

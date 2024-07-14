@@ -176,6 +176,8 @@ pub mod pallet {
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
 		EvmInternalError,
+		InvalidTicker,
+		InvalidTokenName,
 		TooManyForeignAssets,
 	}
 
@@ -261,6 +263,8 @@ pub mod pallet {
 			foreign_asset: T::ForeignAsset,
 			asset_id: AssetId,
 			decimals: u8,
+			ticker: BoundedVec<u8, ConstU32<256>>,
+			name: BoundedVec<u8, ConstU32<256>>,
 		) -> DispatchResult {
 			T::ForeignAssetCreatorOrigin::ensure_origin(origin)?;
 
@@ -275,8 +279,11 @@ pub mod pallet {
 				Error::<T>::TooManyForeignAssets
 			);
 
+			let ticker = core::str::from_utf8(&ticker).map_err(|_| Error::<T>::InvalidTicker)?;
+			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
+
 			// TODO submit create eth-xcm call
-			EvmCaller::<T>::erc20_create(asset_id, decimals)?;
+			EvmCaller::<T>::erc20_create(asset_id, decimals, ticker, name)?;
 
 			// Insert the association assetId->foreigAsset
 			// Insert the association foreigAsset->assetId
