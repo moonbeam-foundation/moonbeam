@@ -14,6 +14,7 @@ serde = { workspace = true, optional = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 parity-scale-codec = { workspace = true, features = [ "derive" ] }
+precompile-utils-macro = { workspace = true }
 scale-info = { workspace = true, features = [ "derive" ] }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }

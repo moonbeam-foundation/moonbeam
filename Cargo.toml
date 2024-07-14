@@ -256,6 +256,8 @@ pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/f
 pallet-evm-precompile-storage-cleaner = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-native-foreign-assets", default-features = false }
 
 precompile-utils = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-native-foreign-assets", default-features = false }
+precompile-utils-macro = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-native-foreign-assets", default-features = false }
+
 
 # Frontier (client)
 fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-native-foreign-assets" }

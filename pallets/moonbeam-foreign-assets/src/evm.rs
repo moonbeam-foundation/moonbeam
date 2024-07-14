@@ -15,28 +15,33 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{AssetId, Error, Pallet};
-use ethereum_types::{H160, U256};
+use ethereum_types::{BigEndianHash, H160, H256, U256};
 use fp_evm::{ExitReason, ExitSucceed};
 use frame_support::ensure;
-use pallet_evm::Runner;
+use frame_support::pallet_prelude::Weight;
+use pallet_evm::{GasWeightMapping, Runner};
+use precompile_utils_macro::keccak256;
 use sp_runtime::DispatchError;
 use xcm::latest::Error as XcmError;
 
-const ERC20_CREATE_INIT_CODE_MAX_SIZE: usize = 16 * 1024;
-const FOREIGN_ASSETS_PREFIX: [u8; 4] = [0xff, 0xff, 0xff, 0xff];
-const FOREIGN_ASSET_ERC20_CREATE_GAS_LIMIT: u64 = 500_000;
-const FOREIGN_ASSET_ERC20_TRANSFER_GAS_LIMIT: u64 = 500_000;
-const FOREIGN_ASSET_ERC20_MINT_INTO_GAS_LIMIT: u64 = 500_000;
-const FOREIGN_ASSET_ERC20_BURN_FROM_GAS_LIMIT: u64 = 500_000;
-const FOREIGN_ASSET_ERC20_PAUSE_GAS_LIMIT: u64 = 500_000;
-const FOREIGN_ASSET_ERC20_UNPAUSE_GAS_LIMIT: u64 = 500_000;
+const ERC20_CALL_MAX_CALLDATA_SIZE: usize = 4 + 32 + 32; // selector + address + uint256
+const ERC20_CREATE_MAX_CALLDATA_SIZE: usize = 16 * 1024; // 16Ko
+
+// hardcoded gas limits
+const ERC20_CREATE_GAS_LIMIT: u64 = 500_000;
+const ERC20_BURN_FROM_GAS_LIMIT: u64 = 500_000;
+const ERC20_MINT_INTO_GAS_LIMIT: u64 = 50_000;
+const ERC20_PAUSE_GAS_LIMIT: u64 = 500_000;
+const ERC20_TRANSFER_GAS_LIMIT: u64 = 50_000;
+const ERC20_UNPAUSE_GAS_LIMIT: u64 = 500_000;
 
 pub(crate) enum EvmError {
-	ContractCreationFail,
-	ContractTransferFail,
+	BurnFromFail,
 	ContractReturnInvalidValue,
 	DispatchError(DispatchError),
 	EvmCallFail,
+	MintIntoFail,
+	TransferFail,
 }
 
 impl From<DispatchError> for EvmError {
@@ -48,11 +53,8 @@ impl From<DispatchError> for EvmError {
 impl From<EvmError> for XcmError {
 	fn from(error: EvmError) -> XcmError {
 		match error {
-			EvmError::ContractCreationFail => {
-				XcmError::FailedToTransactAsset("Erc20 contract transfer fail")
-			}
-			EvmError::ContractTransferFail => {
-				XcmError::FailedToTransactAsset("Erc20 contract transfer fail")
+			EvmError::BurnFromFail => {
+				XcmError::FailedToTransactAsset("Erc20 contract call burnFrom fail")
 			}
 			EvmError::ContractReturnInvalidValue => {
 				XcmError::FailedToTransactAsset("Erc20 contract return invalid value")
@@ -62,6 +64,12 @@ impl From<EvmError> for XcmError {
 				Self::FailedToTransactAsset("storage layer error")
 			}
 			EvmError::EvmCallFail => XcmError::FailedToTransactAsset("Fail to call erc20 contract"),
+			EvmError::MintIntoFail => {
+				XcmError::FailedToTransactAsset("Erc20 contract call mintInto fail")
+			}
+			EvmError::TransferFail => {
+				XcmError::FailedToTransactAsset("Erc20 contract call transfer fail")
+			}
 		}
 	}
 }
@@ -72,24 +80,18 @@ impl<T: crate::Config> EvmCaller<T> {
 	/// Deploy foreign asset erc20 contract
 	pub(crate) fn erc20_create(asset_id: AssetId, decimals: u8) -> Result<(), Error<T>> {
 		// Get init code
-		let mut init = Vec::with_capacity(ERC20_CREATE_INIT_CODE_MAX_SIZE);
+		let mut init = Vec::with_capacity(ERC20_CREATE_MAX_CALLDATA_SIZE);
 		init.extend_from_slice(include_bytes!("../resources/foreign_erc20_initcode.bin"));
 
 		// Add constructor parameters
 		// (0x6D6f646c617373746d6E67720000000000000000, 18, MTT, MyBigToken)
 		//0x0000000000000000000000006d6f646c617373746d6e677200000000000000000000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000034d54540000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a4d79426967546f6b656e00000000000000000000000000000000000000000000
 
-		// Compute contract address
-		let mut buffer = [0u8; 20];
-		buffer[..4].copy_from_slice(&FOREIGN_ASSETS_PREFIX);
-		buffer[4..].copy_from_slice(&asset_id.to_be_bytes());
-		let contract_address = H160(buffer);
-
 		let exec_info = T::EvmRunner::create_force_address(
 			Pallet::<T>::account_id(),
 			init,
 			U256::default(),
-			FOREIGN_ASSET_ERC20_CREATE_GAS_LIMIT,
+			ERC20_CREATE_GAS_LIMIT,
 			None,
 			None,
 			None,
@@ -99,7 +101,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			None,
 			None,
 			&<T as pallet_evm::Config>::config(),
-			contract_address,
+			Pallet::<T>::contract_address_from_asset_id(asset_id),
 		)
 		.map_err(|_| Error::Erc20ContractCreationFail)?;
 
@@ -119,7 +121,44 @@ impl<T: crate::Config> EvmCaller<T> {
 		beneficiary: H160,
 		amount: U256,
 	) -> Result<(), EvmError> {
-		todo!()
+		let mut input = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
+		// Selector
+		input.extend_from_slice(&keccak256!("mintInto(address, uint256)")[..4]);
+		// append beneficiary address
+		input.extend_from_slice(H256::from(beneficiary).as_bytes());
+		// append amount to be minted
+		input.extend_from_slice(H256::from_uint(&amount).as_bytes());
+
+		let weight_limit: Weight =
+			T::GasWeightMapping::gas_to_weight(ERC20_MINT_INTO_GAS_LIMIT, true);
+
+		let exec_info = T::EvmRunner::call(
+			Pallet::<T>::account_id(),
+			erc20_contract_address,
+			input,
+			U256::default(),
+			ERC20_MINT_INTO_GAS_LIMIT,
+			None,
+			None,
+			None,
+			Default::default(),
+			false,
+			false,
+			Some(weight_limit),
+			Some(0),
+			&<T as pallet_evm::Config>::config(),
+		)
+		.map_err(|_| EvmError::EvmCallFail)?;
+
+		ensure!(
+			matches!(
+				exec_info.exit_reason,
+				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
+			),
+			EvmError::MintIntoFail
+		);
+
+		Ok(())
 	}
 
 	pub(crate) fn erc20_transfer(
@@ -128,7 +167,54 @@ impl<T: crate::Config> EvmCaller<T> {
 		to: H160,
 		amount: U256,
 	) -> Result<(), EvmError> {
-		todo!()
+		let mut input = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
+		// Selector
+		input.extend_from_slice(&keccak256!("transfer(address, uint256)")[..4]);
+		// append receiver address
+		input.extend_from_slice(H256::from(to).as_bytes());
+		// append amount to be transferred
+		input.extend_from_slice(H256::from_uint(&amount).as_bytes());
+
+		let weight_limit: Weight =
+			T::GasWeightMapping::gas_to_weight(ERC20_TRANSFER_GAS_LIMIT, true);
+
+		let exec_info = T::EvmRunner::call(
+			from,
+			erc20_contract_address,
+			input,
+			U256::default(),
+			ERC20_TRANSFER_GAS_LIMIT,
+			None,
+			None,
+			None,
+			Default::default(),
+			false,
+			false,
+			Some(weight_limit),
+			Some(0),
+			&<T as pallet_evm::Config>::config(),
+		)
+		.map_err(|_| EvmError::EvmCallFail)?;
+
+		ensure!(
+			matches!(
+				exec_info.exit_reason,
+				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
+			),
+			EvmError::TransferFail
+		);
+
+		// return value is true.
+		let mut bytes = [0u8; 32];
+		U256::from(1).to_big_endian(&mut bytes);
+
+		// Check return value to make sure not calling on empty contracts.
+		ensure!(
+			!exec_info.value.is_empty() && exec_info.value == bytes,
+			EvmError::ContractReturnInvalidValue
+		);
+
+		Ok(())
 	}
 
 	pub(crate) fn erc20_burn_from(
@@ -136,16 +222,118 @@ impl<T: crate::Config> EvmCaller<T> {
 		who: H160,
 		amount: U256,
 	) -> Result<(), EvmError> {
-		todo!()
+		let mut input = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
+		// Selector
+		input.extend_from_slice(&keccak256!("burnFrom(address, uint256)")[..4]);
+		// append who address
+		input.extend_from_slice(H256::from(who).as_bytes());
+		// append amount to be burn
+		input.extend_from_slice(H256::from_uint(&amount).as_bytes());
+
+		let weight_limit: Weight =
+			T::GasWeightMapping::gas_to_weight(ERC20_BURN_FROM_GAS_LIMIT, true);
+
+		let exec_info = T::EvmRunner::call(
+			Pallet::<T>::account_id(),
+			erc20_contract_address,
+			input,
+			U256::default(),
+			ERC20_BURN_FROM_GAS_LIMIT,
+			None,
+			None,
+			None,
+			Default::default(),
+			false,
+			false,
+			Some(weight_limit),
+			Some(0),
+			&<T as pallet_evm::Config>::config(),
+		)
+		.map_err(|_| EvmError::EvmCallFail)?;
+
+		ensure!(
+			matches!(
+				exec_info.exit_reason,
+				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
+			),
+			EvmError::BurnFromFail
+		);
+
+		Ok(())
 	}
 
 	// Call contract selector "pause"
 	pub(crate) fn erc20_pause(asset_id: AssetId) -> Result<(), Error<T>> {
-		todo!()
+		let mut input = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
+		// Selector
+		input.extend_from_slice(&keccak256!("pause()")[..4]);
+
+		let weight_limit: Weight = T::GasWeightMapping::gas_to_weight(ERC20_PAUSE_GAS_LIMIT, true);
+
+		let exec_info = T::EvmRunner::call(
+			Pallet::<T>::account_id(),
+			Pallet::<T>::contract_address_from_asset_id(asset_id),
+			input,
+			U256::default(),
+			ERC20_PAUSE_GAS_LIMIT,
+			None,
+			None,
+			None,
+			Default::default(),
+			false,
+			false,
+			Some(weight_limit),
+			Some(0),
+			&<T as pallet_evm::Config>::config(),
+		)
+		.map_err(|_| Error::<T>::EvmInternalError)?;
+
+		ensure!(
+			matches!(
+				exec_info.exit_reason,
+				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
+			),
+			Error::<T>::EvmCallPauseFail
+		);
+
+		Ok(())
 	}
 
 	// Call contract selector "unpause"
 	pub(crate) fn erc20_unpause(asset_id: AssetId) -> Result<(), Error<T>> {
-		todo!()
+		let mut input = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
+		// Selector
+		input.extend_from_slice(&keccak256!("unpause()")[..4]);
+
+		let weight_limit: Weight =
+			T::GasWeightMapping::gas_to_weight(ERC20_UNPAUSE_GAS_LIMIT, true);
+
+		let exec_info = T::EvmRunner::call(
+			Pallet::<T>::account_id(),
+			Pallet::<T>::contract_address_from_asset_id(asset_id),
+			input,
+			U256::default(),
+			ERC20_UNPAUSE_GAS_LIMIT,
+			None,
+			None,
+			None,
+			Default::default(),
+			false,
+			false,
+			Some(weight_limit),
+			Some(0),
+			&<T as pallet_evm::Config>::config(),
+		)
+		.map_err(|_| Error::<T>::EvmInternalError)?;
+
+		ensure!(
+			matches!(
+				exec_info.exit_reason,
+				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
+			),
+			Error::<T>::EvmCallUnpauseFail
+		);
+
+		Ok(())
 	}
 }

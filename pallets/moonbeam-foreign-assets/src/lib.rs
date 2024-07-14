@@ -34,8 +34,13 @@ use ethereum_types::{H160, U256};
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_system::pallet_prelude::*;
-use xcm::latest::{Asset, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext};
+use xcm::latest::{
+	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Junction, Location,
+	Result as XcmResult, XcmContext,
+};
 use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
+
+const FOREIGN_ASSETS_PREFIX: [u8; 4] = [0xff, 0xff, 0xff, 0xff];
 
 /// Trait for the OnForeignAssetRegistered hook
 pub trait ForeignAssetCreatedHook<ForeignAsset, AssetId, AssetBalance> {
@@ -57,22 +62,41 @@ impl<ForeignAsset, AssetId> ForeignAssetDestroyedHook<ForeignAsset, AssetId> for
 	fn on_asset_destroyed(_foreign_asset: &ForeignAsset, _asset_id: &AssetId) {}
 }
 
-pub(crate) struct ForeignAssetsMatcher<XcmLocationPrefix>(
-	core::marker::PhantomData<XcmLocationPrefix>,
-);
+pub(crate) struct ForeignAssetsMatcher<T>(core::marker::PhantomData<T>);
 
-impl<Erc20MultilocationPrefix: Get<Location>> MatchesFungibles<H160, U256>
-	for ForeignAssetsMatcher<Erc20MultilocationPrefix>
-{
+impl<T: crate::Config> MatchesFungibles<H160, U256> for ForeignAssetsMatcher<T> {
 	fn matches_fungibles(asset: &Asset) -> Result<(H160, U256), MatchError> {
-		todo!()
+		let (amount, location) = match (&asset.fun, &asset.id) {
+			(Fungibility::Fungible(ref amount), XcmAssetId(ref location)) => (amount, location),
+			_ => return Err(MatchError::AssetNotHandled),
+		};
+
+		let prefix = T::ForeignAssetXcmLocationPrefix::get();
+
+		if prefix.parent_count() != location.parent_count()
+			|| prefix
+				.interior()
+				.iter()
+				.enumerate()
+				.any(|(index, junction)| location.interior().at(index) != Some(junction))
+		{
+			return Err(MatchError::AssetIdConversionFailed);
+		}
+
+		match location.interior().at(prefix.interior().len()) {
+			Some(Junction::GeneralIndex(asset_id)) => Ok((
+				Pallet::<T>::contract_address_from_asset_id(*asset_id),
+				U256::from(*amount),
+			)),
+			_ => Err(MatchError::AssetIdConversionFailed),
+		}
 	}
 }
 
 #[pallet]
 pub mod pallet {
 	use super::*;
-	use pallet_evm::{GasWeightMapping, Runner};
+	use pallet_evm::Runner;
 	use sp_runtime::traits::{AccountIdConversion, MaybeEquivalence};
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
@@ -149,6 +173,9 @@ pub mod pallet {
 		AssetAlreadyFrozen,
 		AssetNotFrozen,
 		Erc20ContractCreationFail,
+		EvmCallPauseFail,
+		EvmCallUnpauseFail,
+		EvmInternalError,
 		TooManyForeignAssets,
 	}
 
@@ -215,11 +242,12 @@ pub mod pallet {
 			account_id.into()
 		}
 
-		fn start_destroy(asset_id: AssetId) -> Result<(), Error<T>> {
-			// Freeze asset
-			EvmCaller::<T>::erc20_pause(asset_id)?;
-
-			todo!()
+		#[inline]
+		pub(crate) fn contract_address_from_asset_id(asset_id: AssetId) -> H160 {
+			let mut buffer = [0u8; 20];
+			buffer[..4].copy_from_slice(&FOREIGN_ASSETS_PREFIX);
+			buffer[4..].copy_from_slice(&asset_id.to_be_bytes());
+			H160(buffer)
 		}
 	}
 
@@ -376,34 +404,6 @@ pub mod pallet {
 			});
 			Ok(())
 		}
-
-		/// Destroy a given foreign assetId
-		#[pallet::call_index(5)]
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
-		pub fn destroy_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
-			T::ForeignAssetDestroyerOrigin::ensure_origin(origin)?;
-
-			let foreign_asset =
-				AssetIdToForeignAsset::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
-
-			// Important: this starts the destruction process,
-			// making sure the assets are non-transferable anymore
-			// make sure the destruction process is completable by other means
-			Self::start_destroy(asset_id.clone())?;
-
-			// Remove from AssetIdToForeignAsset
-			AssetIdToForeignAsset::<T>::remove(&asset_id);
-			// Remove from ForeignAssetToAssetId
-			ForeignAssetToAssetId::<T>::remove(&foreign_asset);
-
-			T::OnForeignAssetDestroyed::on_asset_destroyed(&foreign_asset, &asset_id);
-
-			Self::deposit_event(Event::ForeignAssetDestroyed {
-				asset_id,
-				foreign_asset,
-			});
-			Ok(())
-		}
 	}
 
 	impl<T: Config> MaybeEquivalence<T::ForeignAsset, AssetId> for Pallet<T> {
@@ -420,8 +420,7 @@ pub mod pallet {
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
 		fn deposit_asset(what: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
-			let (contract_address, amount) =
-				ForeignAssetsMatcher::<T::ForeignAssetXcmLocationPrefix>::matches_fungibles(what)?;
+			let (contract_address, amount) = ForeignAssetsMatcher::<T>::matches_fungibles(what)?;
 
 			let beneficiary = T::AccountIdConverter::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
@@ -441,8 +440,7 @@ pub mod pallet {
 			to: &Location,
 			_context: &XcmContext,
 		) -> Result<AssetsInHolding, XcmError> {
-			let (contract_address, amount) =
-				ForeignAssetsMatcher::<T::ForeignAssetXcmLocationPrefix>::matches_fungibles(asset)?;
+			let (contract_address, amount) = ForeignAssetsMatcher::<T>::matches_fungibles(asset)?;
 
 			let from = T::AccountIdConverter::convert_location(from)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
@@ -471,8 +469,7 @@ pub mod pallet {
 			who: &Location,
 			_context: Option<&XcmContext>,
 		) -> Result<AssetsInHolding, XcmError> {
-			let (contract_address, amount) =
-				ForeignAssetsMatcher::<T::ForeignAssetXcmLocationPrefix>::matches_fungibles(what)?;
+			let (contract_address, amount) = ForeignAssetsMatcher::<T>::matches_fungibles(what)?;
 			let who = T::AccountIdConverter::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
