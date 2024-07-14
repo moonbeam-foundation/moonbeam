@@ -31,22 +31,13 @@ pub mod weights;
 
 /// Trait for the OnForeignAssetRegistered hook
 pub trait ForeignAssetCreatedHook<ForeignAsset, AssetId, AssetBalance> {
-	fn on_asset_created(
-		foreign_asset: &ForeignAsset,
-		asset_id: &AssetId,
-		min_balance: &AssetBalance,
-	);
+	fn on_asset_created(foreign_asset: &ForeignAsset, asset_id: &AssetId);
 }
 
 impl<ForeignAsset, AssetId, AssetBalance>
 	ForeignAssetCreatedHook<ForeignAsset, AssetId, AssetBalance> for ()
 {
-	fn on_asset_created(
-		_foreign_asset: &ForeignAsset,
-		_asset_id: &AssetId,
-		_min_balance: &AssetBalance,
-	) {
-	}
+	fn on_asset_created(_foreign_asset: &ForeignAsset, _asset_id: &AssetId) {}
 }
 
 /// Trait for the OnForeignAssetDeregistered hook
@@ -63,13 +54,10 @@ pub mod pallet {
 	use super::*;
 	use ethereum_types::{H160, U256};
 	use fp_evm::{ExitReason, ExitSucceed};
-	use frame_support::{
-		pallet_prelude::*,
-		traits::{fungibles::Destroy, tokens::fungibles},
-	};
+	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 	use pallet_evm::{GasWeightMapping, Runner};
-	use sp_runtime::traits::{Dispatchable, MaybeEquivalence};
+	use sp_runtime::traits::{AccountIdConversion, MaybeEquivalence};
 
 	const ERC20_CREATE_INIT_CODE_MAX_SIZE: usize = 16 * 1024;
 	const FOREIGN_ASSETS_PREFIX: [u8; 4] = [0xff, 0xff, 0xff, 0xff];
@@ -79,32 +67,34 @@ pub mod pallet {
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
+	/// The moonbeam foreign assets's pallet id
+	pub const PALLET_ID: frame_support::PalletId = frame_support::PalletId(*b"forgasst");
+
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_evm::Config {
+		type AccountId: Parameter + Into<H160> + IsType<<Self as frame_system::Config>::AccountId>;
+
 		/// EVM runner
 		type EvmRunner: Runner<Self>;
 
-		/// The overarching event type.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
 		/// The Foreign Asset Kind.
-		type ForeignAsset: Parameter + Member + Ord + PartialOrd + Default;
+		type ForeignAsset: Parameter + Member + Ord + PartialOrd;
 
-		/// Origin that is allowed to create and modify asset information for foreign assets
+		/// Origin that is allowed to create a new foreign assets
 		type ForeignAssetCreatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
-		/// Origin that is allowed to create and modify asset information for foreign assets
+		/// Origin that is allowed to modify asset information for foreign assets
 		type ForeignAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+
+		/// Origin that is allowed to freeze all tokens of a foreign asset
+		type ForeignAssetFreezerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+
+		/// Origin that is allowed to unfreeze all tokens of a foreign asset that was previously
+		/// frozen
+		type ForeignAssetUnfreezerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Origin that is allowed to create and modify asset information for foreign assets
 		type ForeignAssetDestroyerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
-
-		type Fungibles: fungibles::Create<Self::AccountId>
-			+ fungibles::Destroy<Self::AccountId>
-			+ fungibles::Inspect<Self::AccountId>;
-
-		/// Weight information for extrinsics in this pallet.
-		type WeightInfo: WeightInfo;
 
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<
@@ -115,6 +105,15 @@ pub mod pallet {
 
 		/// Hook to be called when foreign asset is de-registered.
 		type OnForeignAssetDestroyed: ForeignAssetDestroyedHook<Self::ForeignAsset, AssetId>;
+
+		/// Maximum nulmbers of differnt foreign assets
+		type MaxForeignAssets: Get<u32>;
+
+		/// The overarching event type.
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+
+		/// Weight information for extrinsics in this pallet.
+		type WeightInfo: WeightInfo;
 	}
 
 	pub type AssetBalance = U256;
@@ -125,7 +124,10 @@ pub mod pallet {
 	pub enum Error<T> {
 		AssetAlreadyExists,
 		AssetDoesNotExist,
+		AssetAlreadyFrozen,
+		AssetNotFrozen,
 		Erc20ContractCreationFail,
+		TooManyForeignAssets,
 	}
 
 	#[pallet::event]
@@ -146,6 +148,16 @@ pub mod pallet {
 			asset_id: AssetId,
 			foreign_asset: T::ForeignAsset,
 		},
+		// Freezes all tokens of a given asset id
+		ForeignAssetFrozen {
+			asset_id: AssetId,
+			foreign_asset: T::ForeignAsset,
+		},
+		// Thawing a previously frozen asset
+		ForeignAssetUnfrozen {
+			asset_id: AssetId,
+			foreign_asset: T::ForeignAsset,
+		},
 		/// Removed all information related to an assetId and destroyed asset
 		ForeignAssetDestroyed {
 			asset_id: AssetId,
@@ -159,7 +171,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn foreign_asset_for_id)]
 	pub type AssetIdToForeignAsset<T: Config> =
-		StorageMap<_, Blake2_128Concat, AssetId, T::ForeignAsset>;
+		CountedStorageMap<_, Blake2_128Concat, AssetId, T::ForeignAsset, OptionQuery>;
 
 	/// Reverse mapping of AssetIdToForeignAsset. Mapping from a foreign asset to an asset id.
 	/// This is mostly used when receiving a multilocation XCM message to retrieve
@@ -169,13 +181,20 @@ pub mod pallet {
 	pub type ForeignAssetToAssetId<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::ForeignAsset, AssetId>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn frozen_assets)]
+	pub type FrozenAssets<T: Config> =
+		StorageValue<_, BoundedVec<AssetId, T::MaxForeignAssets>, ValueQuery>;
+
 	impl<T: Config> Pallet<T> {
+		/// The account ID of this pallet
+		pub fn account_id() -> H160 {
+			let account_id: <T as Config>::AccountId = PALLET_ID.into_account_truncating();
+			account_id.into()
+		}
+
 		/// Deploy foreign asset erc20 contract
-		fn create_erc20_contract(
-			asset_id: AssetId,
-			admin: H160,
-			min_balance: AssetBalance,
-		) -> Result<(), Error<T>> {
+		fn create_erc20_contract(asset_id: AssetId, decimals: u8) -> Result<(), Error<T>> {
 			// Get init code
 			let mut init = Vec::with_capacity(ERC20_CREATE_INIT_CODE_MAX_SIZE);
 			init.extend_from_slice(include_bytes!("../resources/foreign_erc20_initcode.bin"));
@@ -191,7 +210,7 @@ pub mod pallet {
 			let contract_address = H160(buffer);
 
 			let exec_info = T::EvmRunner::create_force_address(
-				admin,
+				Self::account_id(),
 				init,
 				U256::default(),
 				FOREIGN_ASSET_ERC20_CREATE_GAS_LIMIT,
@@ -219,7 +238,20 @@ pub mod pallet {
 			Ok(())
 		}
 
+		// Call contract selector "pause"
+		fn pause(asset_id: AssetId) -> Result<(), Error<T>> {
+			todo!()
+		}
+
+		// Call contract selector "unpause"
+		fn unpause(asset_id: AssetId) -> Result<(), Error<T>> {
+			todo!()
+		}
+
 		fn start_destroy(asset_id: AssetId) -> Result<(), Error<T>> {
+			// Freeze asset
+			Self::pause(asset_id)?;
+
 			todo!()
 		}
 	}
@@ -233,8 +265,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			foreign_asset: T::ForeignAsset,
 			asset_id: AssetId,
-			admin: H160,
-			min_balance: AssetBalance,
+			decimals: u8,
 		) -> DispatchResult {
 			T::ForeignAssetCreatorOrigin::ensure_origin(origin)?;
 
@@ -244,15 +275,20 @@ pub mod pallet {
 				Error::<T>::AssetAlreadyExists
 			);
 
+			ensure!(
+				AssetIdToForeignAsset::<T>::count() < T::MaxForeignAssets::get(),
+				Error::<T>::TooManyForeignAssets
+			);
+
 			// TODO submit create eth-xcm call
-			Self::create_erc20_contract(asset_id, admin, min_balance)?;
+			Self::create_erc20_contract(asset_id, decimals)?;
 
 			// Insert the association assetId->foreigAsset
 			// Insert the association foreigAsset->assetId
 			AssetIdToForeignAsset::<T>::insert(&asset_id, &foreign_asset);
 			ForeignAssetToAssetId::<T>::insert(&foreign_asset, &asset_id);
 
-			T::OnForeignAssetCreated::on_asset_created(&foreign_asset, &asset_id, &min_balance);
+			T::OnForeignAssetCreated::on_asset_created(&foreign_asset, &asset_id);
 
 			Self::deposit_event(Event::ForeignAssetCreated {
 				asset_id,
@@ -314,11 +350,68 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Destroy a given foreign assetId
-		/// The weight in this case is the one returned by the trait
-		/// plus the db writes and reads from removing all the associated
-		/// data
+		/// Freeze a given foreign assetId
 		#[pallet::call_index(3)]
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
+		pub fn freeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
+			T::ForeignAssetFreezerOrigin::ensure_origin(origin)?;
+
+			let foreign_asset =
+				AssetIdToForeignAsset::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			let mut frozen_assets: Vec<_> = FrozenAssets::<T>::get().into();
+			let index = match frozen_assets.binary_search_by(|i| i.cmp(&asset_id)) {
+				Ok(_) => return Err(Error::<T>::AssetAlreadyFrozen.into()),
+				Err(index) => index,
+			};
+
+			Self::pause(asset_id.clone())?;
+
+			frozen_assets.insert(index, asset_id);
+			let frozen_assets_bounded: BoundedVec<_, T::MaxForeignAssets> = frozen_assets
+				.try_into()
+				.map_err(|_| Error::<T>::TooManyForeignAssets)?;
+			FrozenAssets::<T>::put(frozen_assets_bounded);
+
+			Self::deposit_event(Event::ForeignAssetFrozen {
+				asset_id,
+				foreign_asset,
+			});
+			Ok(())
+		}
+
+		/// Freeze a given foreign assetId
+		#[pallet::call_index(4)]
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
+		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
+			T::ForeignAssetUnfreezerOrigin::ensure_origin(origin)?;
+
+			let foreign_asset =
+				AssetIdToForeignAsset::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			let mut frozen_assets: Vec<_> = FrozenAssets::<T>::get().into();
+			let index = match frozen_assets.binary_search_by(|i| i.cmp(&asset_id)) {
+				Ok(index) => index,
+				Err(_) => return Err(Error::<T>::AssetNotFrozen.into()),
+			};
+
+			Self::unpause(asset_id.clone())?;
+
+			frozen_assets.remove(index);
+			let frozen_assets_bounded: BoundedVec<_, T::MaxForeignAssets> = frozen_assets
+				.try_into()
+				.map_err(|_| Error::<T>::TooManyForeignAssets)?;
+			FrozenAssets::<T>::put(frozen_assets_bounded);
+
+			Self::deposit_event(Event::ForeignAssetUnfrozen {
+				asset_id,
+				foreign_asset,
+			});
+			Ok(())
+		}
+
+		/// Destroy a given foreign assetId
+		#[pallet::call_index(5)]
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
 		pub fn destroy_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
 			T::ForeignAssetDestroyerOrigin::ensure_origin(origin)?;
