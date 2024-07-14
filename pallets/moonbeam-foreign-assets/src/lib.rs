@@ -16,11 +16,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use pallet::*;
-pub use weights::WeightInfo;
-
-use frame_support::pallet;
-
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 pub mod benchmarks;
 #[cfg(test)]
@@ -28,6 +23,19 @@ pub mod mock;
 #[cfg(test)]
 pub mod tests;
 pub mod weights;
+
+mod evm;
+
+pub use pallet::*;
+pub use weights::WeightInfo;
+
+use self::evm::EvmCaller;
+use ethereum_types::{H160, U256};
+use frame_support::pallet;
+use frame_support::pallet_prelude::*;
+use frame_system::pallet_prelude::*;
+use xcm::latest::{Asset, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext};
+use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
 
 /// Trait for the OnForeignAssetRegistered hook
 pub trait ForeignAssetCreatedHook<ForeignAsset, AssetId, AssetBalance> {
@@ -49,19 +57,26 @@ impl<ForeignAsset, AssetId> ForeignAssetDestroyedHook<ForeignAsset, AssetId> for
 	fn on_asset_destroyed(_foreign_asset: &ForeignAsset, _asset_id: &AssetId) {}
 }
 
+pub(crate) struct ForeignAssetsMatcher<XcmLocationPrefix>(
+	core::marker::PhantomData<XcmLocationPrefix>,
+);
+
+impl<Erc20MultilocationPrefix: Get<Location>> MatchesFungibles<H160, U256>
+	for ForeignAssetsMatcher<Erc20MultilocationPrefix>
+{
+	fn matches_fungibles(asset: &Asset) -> Result<(H160, U256), MatchError> {
+		todo!()
+	}
+}
+
 #[pallet]
 pub mod pallet {
 	use super::*;
-	use ethereum_types::{H160, U256};
-	use fp_evm::{ExitReason, ExitSucceed};
-	use frame_support::pallet_prelude::*;
-	use frame_system::pallet_prelude::*;
 	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_runtime::traits::{AccountIdConversion, MaybeEquivalence};
-
-	const ERC20_CREATE_INIT_CODE_MAX_SIZE: usize = 16 * 1024;
-	const FOREIGN_ASSETS_PREFIX: [u8; 4] = [0xff, 0xff, 0xff, 0xff];
-	const FOREIGN_ASSET_ERC20_CREATE_GAS_LIMIT: u64 = 500_000;
+	use xcm_executor::traits::ConvertLocation;
+	use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
+	use xcm_executor::AssetsInHolding;
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -72,13 +87,20 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_evm::Config {
+		/// the overarching AccountId type
 		type AccountId: Parameter + Into<H160> + IsType<<Self as frame_system::Config>::AccountId>;
+
+		// Convert XCM Location to H160
+		type AccountIdConverter: ConvertLocation<H160>;
 
 		/// EVM runner
 		type EvmRunner: Runner<Self>;
 
 		/// The Foreign Asset Kind.
 		type ForeignAsset: Parameter + Member + Ord + PartialOrd;
+
+		/// Prefix of XCM location that indentify foreign assets
+		type ForeignAssetXcmLocationPrefix: Get<Location>;
 
 		/// Origin that is allowed to create a new foreign assets
 		type ForeignAssetCreatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
@@ -193,64 +215,9 @@ pub mod pallet {
 			account_id.into()
 		}
 
-		/// Deploy foreign asset erc20 contract
-		fn create_erc20_contract(asset_id: AssetId, decimals: u8) -> Result<(), Error<T>> {
-			// Get init code
-			let mut init = Vec::with_capacity(ERC20_CREATE_INIT_CODE_MAX_SIZE);
-			init.extend_from_slice(include_bytes!("../resources/foreign_erc20_initcode.bin"));
-
-			// Add constructor parameters
-			// (0x6D6f646c617373746d6E67720000000000000000, 18, MTT, MyBigToken)
-			//0x0000000000000000000000006d6f646c617373746d6e677200000000000000000000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000034d54540000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a4d79426967546f6b656e00000000000000000000000000000000000000000000
-
-			// Compute contract address
-			let mut buffer = [0u8; 20];
-			buffer[..4].copy_from_slice(&FOREIGN_ASSETS_PREFIX);
-			buffer[4..].copy_from_slice(&asset_id.to_be_bytes());
-			let contract_address = H160(buffer);
-
-			let exec_info = T::EvmRunner::create_force_address(
-				Self::account_id(),
-				init,
-				U256::default(),
-				FOREIGN_ASSET_ERC20_CREATE_GAS_LIMIT,
-				None,
-				None,
-				None,
-				Default::default(),
-				true,
-				false,
-				None,
-				None,
-				&<T as pallet_evm::Config>::config(),
-				contract_address,
-			)
-			.map_err(|_| Error::Erc20ContractCreationFail)?;
-
-			ensure!(
-				matches!(
-					exec_info.exit_reason,
-					ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
-				),
-				Error::Erc20ContractCreationFail
-			);
-
-			Ok(())
-		}
-
-		// Call contract selector "pause"
-		fn pause(asset_id: AssetId) -> Result<(), Error<T>> {
-			todo!()
-		}
-
-		// Call contract selector "unpause"
-		fn unpause(asset_id: AssetId) -> Result<(), Error<T>> {
-			todo!()
-		}
-
 		fn start_destroy(asset_id: AssetId) -> Result<(), Error<T>> {
 			// Freeze asset
-			Self::pause(asset_id)?;
+			EvmCaller::<T>::erc20_pause(asset_id)?;
 
 			todo!()
 		}
@@ -281,7 +248,7 @@ pub mod pallet {
 			);
 
 			// TODO submit create eth-xcm call
-			Self::create_erc20_contract(asset_id, decimals)?;
+			EvmCaller::<T>::erc20_create(asset_id, decimals)?;
 
 			// Insert the association assetId->foreigAsset
 			// Insert the association foreigAsset->assetId
@@ -365,7 +332,7 @@ pub mod pallet {
 				Err(index) => index,
 			};
 
-			Self::pause(asset_id.clone())?;
+			EvmCaller::<T>::erc20_pause(asset_id.clone())?;
 
 			frozen_assets.insert(index, asset_id);
 			let frozen_assets_bounded: BoundedVec<_, T::MaxForeignAssets> = frozen_assets
@@ -395,7 +362,7 @@ pub mod pallet {
 				Err(_) => return Err(Error::<T>::AssetNotFrozen.into()),
 			};
 
-			Self::unpause(asset_id.clone())?;
+			EvmCaller::<T>::erc20_unpause(asset_id.clone())?;
 
 			frozen_assets.remove(index);
 			let frozen_assets_bounded: BoundedVec<_, T::MaxForeignAssets> = frozen_assets
@@ -445,6 +412,77 @@ pub mod pallet {
 		}
 		fn convert_back(id: &AssetId) -> Option<T::ForeignAsset> {
 			Pallet::<T>::foreign_asset_for_id(id.clone())
+		}
+	}
+
+	impl<T: Config> xcm_executor::traits::TransactAsset for Pallet<T> {
+		// For optimization reasons, the asset we want to deposit has not really been withdrawn,
+		// we have just traced from which account it should have been withdrawn.
+		// So we will retrieve these information and make the transfer from the origin account.
+		fn deposit_asset(what: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
+			let (contract_address, amount) =
+				ForeignAssetsMatcher::<T::ForeignAssetXcmLocationPrefix>::matches_fungibles(what)?;
+
+			let beneficiary = T::AccountIdConverter::convert_location(who)
+				.ok_or(MatchError::AccountIdConversionFailed)?;
+
+			// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)
+			})?;
+
+			Ok(())
+		}
+
+		fn internal_transfer_asset(
+			asset: &Asset,
+			from: &Location,
+			to: &Location,
+			_context: &XcmContext,
+		) -> Result<AssetsInHolding, XcmError> {
+			let (contract_address, amount) =
+				ForeignAssetsMatcher::<T::ForeignAssetXcmLocationPrefix>::matches_fungibles(asset)?;
+
+			let from = T::AccountIdConverter::convert_location(from)
+				.ok_or(MatchError::AccountIdConversionFailed)?;
+
+			let to = T::AccountIdConverter::convert_location(to)
+				.ok_or(MatchError::AccountIdConversionFailed)?;
+
+			// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_transfer(contract_address, from, to, amount)
+			})?;
+
+			Ok(asset.clone().into())
+		}
+
+		// Since we don't control the erc20 contract that manages the asset we want to withdraw,
+		// we can't really withdraw this asset, we can only transfer it to another account.
+		// It would be possible to transfer the asset to a dedicated account that would reflect
+		// the content of the xcm holding, but this would imply to perform two evm calls instead of
+		// one (1 to withdraw the asset and a second one to deposit it).
+		// In order to perform only one evm call, we just trace the origin of the asset,
+		// and then the transfer will only really be performed in the deposit instruction.
+		fn withdraw_asset(
+			what: &Asset,
+			who: &Location,
+			_context: Option<&XcmContext>,
+		) -> Result<AssetsInHolding, XcmError> {
+			let (contract_address, amount) =
+				ForeignAssetsMatcher::<T::ForeignAssetXcmLocationPrefix>::matches_fungibles(what)?;
+			let who = T::AccountIdConverter::convert_location(who)
+				.ok_or(MatchError::AccountIdConversionFailed)?;
+
+			// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_burn_from(contract_address, who, amount)
+			})?;
+
+			Ok(what.clone().into())
 		}
 	}
 }
