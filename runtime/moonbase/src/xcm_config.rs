@@ -19,9 +19,9 @@
 
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees,
-	EmergencyParaXcm, Erc20XcmBridge, MaintenanceMode, MessageQueue, ParachainInfo,
-	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin, Treasury, XcmpQueue,
+	EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue,
+	ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 use crate::OpenTechCommitteeInstance;
 use moonbeam_runtime_common::weights as moonbeam_weights;
@@ -169,8 +169,9 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 // we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
 pub type AssetTransactors = (
 	LocalAssetTransactor,
-	ForeignFungiblesTransactor,
 	Erc20XcmBridge,
+	EvmForeignAssets,
+	ForeignFungiblesTransactor,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -707,6 +708,25 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
 	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+}
+
+impl pallet_moonbeam_foreign_assets::Config for Runtime {
+	type AccountId = AccountId;
+	type AccountIdConverter = LocationToH160;
+	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type ForeignAsset = Location;
+	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetDestroyerOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetXcmLocationPrefix = ();
+	type OnForeignAssetCreated = ();
+	type OnForeignAssetDestroyed = ();
+	type MaxForeignAssets = ConstU32<256>;
+	type RuntimeEvent = RuntimeEvent;
+	// TODO generate weights
+	type WeightInfo = ();
 }
 
 #[cfg(feature = "runtime-benchmarks")]

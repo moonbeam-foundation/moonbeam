@@ -1454,6 +1454,8 @@ construct_runtime! {
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 111,
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 112,
+
+		// TODO should not be included in production
 		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 113,
 
 		// Randomness

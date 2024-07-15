@@ -6367,6 +6367,7 @@ dependencies = [
  "pallet-maintenance-mode",
  "pallet-message-queue",
  "pallet-migrations",
+ "pallet-moonbeam-foreign-assets",
  "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",

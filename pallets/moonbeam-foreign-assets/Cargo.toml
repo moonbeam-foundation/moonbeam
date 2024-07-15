@@ -26,14 +26,14 @@ fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 
 # Polkadot
-xcm = { workspace = true, optional = true }
-xcm-executor = { workspace = true, optional = true }
+xcm = { workspace = true }
+xcm-executor = { workspace = true }
 
 # Benchmarks
 frame-benchmarking = { workspace = true, optional = true }
 
 [build-dependencies]
-hex = { workspace = true }
+hex = { workspace = true, features = [ "std" ] }
 
 [dev-dependencies]
 hex = { workspace = true }
@@ -58,5 +58,5 @@ std = [
 	"xcm-executor/std"
 ]
 
-runtime-benchmarks = [ "frame-benchmarking", "xcm"]
+runtime-benchmarks = [ "frame-benchmarking"]
 try-runtime = [ "frame-support/try-runtime" ]

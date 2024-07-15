@@ -20,11 +20,13 @@ use fp_evm::{ExitReason, ExitSucceed};
 use frame_support::ensure;
 use frame_support::pallet_prelude::Weight;
 use pallet_evm::{GasWeightMapping, Runner};
+use precompile_utils::prelude::*;
 use precompile_utils::solidity::codec::{Address, BoundedString};
 use precompile_utils::solidity::Codec;
 use precompile_utils_macro::keccak256;
 use sp_runtime::traits::ConstU32;
 use sp_runtime::DispatchError;
+use sp_std::vec::Vec;
 use xcm::latest::Error as XcmError;
 
 const ERC20_CALL_MAX_CALLDATA_SIZE: usize = 4 + 32 + 32; // selector + address + uint256

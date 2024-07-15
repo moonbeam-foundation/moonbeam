@@ -166,8 +166,8 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 // we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
 pub type AssetTransactors = (
 	LocalAssetTransactor,
-	ForeignFungiblesTransactor,
 	Erc20XcmBridge,
+	ForeignFungiblesTransactor,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,

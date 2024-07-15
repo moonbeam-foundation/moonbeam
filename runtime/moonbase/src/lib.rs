@@ -1440,6 +1440,7 @@ construct_runtime! {
 		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 53,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 54,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 55,
+		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 56,
 	}
 }
 
