@@ -43,7 +43,7 @@ describeSuite({
             const keys = Object.keys(module[fn]);
             try {
               if (keys.includes("keysPaged")) {
-                let startKey = "";
+                const startKey = "";
                 // Trying to decode all storage entries may cause the node to timeout, decoding
                 // the first storage entries should be enough to verify if a storage migration
                 // was missed.
@@ -58,7 +58,7 @@ describeSuite({
 
               log(`     - ${fn}:  ${chalk.green(`✔`)}`);
             } catch (e) {
-              let msg = chalk.red(`Failed to fetch storage at (${moduleName}::${fn})`);
+              const msg = chalk.red(`Failed to fetch storage at (${moduleName}::${fn})`);
               log(msg, e);
               fail(msg);
             }
