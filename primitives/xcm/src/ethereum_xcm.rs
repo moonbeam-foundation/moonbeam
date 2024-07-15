@@ -293,7 +293,10 @@ mod tests {
 			s: H256::from_low_u64_be(1u64),
 		}));
 
-		assert_eq!(xcm_transaction.into_transaction_v2(nonce, 111), expected_tx);
+		assert_eq!(
+			xcm_transaction.into_transaction_v2(nonce, 111, false),
+			expected_tx
+		);
 	}
 
 	#[test]
@@ -321,7 +324,10 @@ mod tests {
 			signature: TransactionSignature::new(42, rs_id(), rs_id()).unwrap(),
 		}));
 
-		assert_eq!(xcm_transaction.into_transaction_v2(nonce, 111), expected_tx);
+		assert_eq!(
+			xcm_transaction.into_transaction_v2(nonce, 111, false),
+			expected_tx
+		);
 	}
 	#[test]
 	fn test_eip_2930_v1() {
@@ -363,7 +369,10 @@ mod tests {
 			s: H256::from_low_u64_be(1u64),
 		}));
 
-		assert_eq!(xcm_transaction.into_transaction_v2(nonce, 111), expected_tx);
+		assert_eq!(
+			xcm_transaction.into_transaction_v2(nonce, 111, false),
+			expected_tx
+		);
 	}
 
 	#[test]
@@ -392,6 +401,9 @@ mod tests {
 			s: H256::from_low_u64_be(1u64),
 		}));
 
-		assert_eq!(xcm_transaction.into_transaction_v2(nonce, 111), expected_tx);
+		assert_eq!(
+			xcm_transaction.into_transaction_v2(nonce, 111, false),
+			expected_tx
+		);
 	}
 }

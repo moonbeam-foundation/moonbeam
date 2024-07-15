@@ -284,6 +284,7 @@ impl crate::Config for Test {
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type EnsureProxy = EthereumXcmEnsureProxy;
 	type ControllerOrigin = EnsureRoot<AccountId32>;
+	type ForceOrigin = EnsureRoot<AccountId32>;
 }
 
 impl fp_self_contained::SelfContainedCall for RuntimeCall {
