@@ -206,13 +206,11 @@ impl crate::Config for Test {
 	type AccountId = AccountId;
 	type AccountIdConverter = ();
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
-	type ForeignAsset = Location;
 	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetDestroyerOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetXcmLocationPrefix = ();
 	type OnForeignAssetCreated = NoteDownHook<Location>;
 	type OnForeignAssetDestroyed = NoteDownHook<Location>;
 	type MaxForeignAssets = ConstU32<3>;

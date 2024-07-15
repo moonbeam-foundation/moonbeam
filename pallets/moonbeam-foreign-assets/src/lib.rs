@@ -14,6 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonkit.  If not, see <http://www.gnu.org/licenses/>.
 
+//! # Moonbeam Foreign Assets pallet
+//!
+//! This pallets allow to create and manage XCM derivative assets (aka. foreign assets).
+//!
+//! Each asset is implemented by an evm smart contract that is deployed by this pallet
+//! The evm smart contract for each asset is trusted by the runtime, and should
+//! be deployed only by the runtime itself.
+//!
+//! This pallet made several assumptions on theses evm smarts contracts:
+//! - Only this pallet should be able to mint and burn tokens
+//! - The following selectors should be exposed and callable only by this pallet account:
+//!   - burnFrom(address, uint256)
+//!   - mintInto(address, uint256)
+//!   - pause(address, uint256)
+//!   - unpause(address, uint256)
+//! - The smart contract should expose as weel the ERC20.transfer selector
+//!
+//! Each asset has a unique identifier that can never change.
+//! This identifier is named "AssetId", it's an integer (u128).
+//! This pallet maintain a two-way mapping beetween each AssetId the XCM Location of the asset.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
@@ -36,8 +57,8 @@ use frame_support::pallet_prelude::*;
 use frame_system::pallet_prelude::*;
 use sp_std::vec::Vec;
 use xcm::latest::{
-	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Junction, Location,
-	Result as XcmResult, XcmContext,
+	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
+	XcmContext,
 };
 use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
 
@@ -70,26 +91,9 @@ impl<T: crate::Config> MatchesFungibles<H160, U256> for ForeignAssetsMatcher<T> 
 			_ => return Err(MatchError::AssetNotHandled),
 		};
 
-		let prefix = T::ForeignAssetXcmLocationPrefix::get();
-
-		if prefix.parent_count() != location.parent_count()
-			|| prefix
-				.interior()
-				.iter()
-				.enumerate()
-				.any(|(index, junction)| location.interior().at(index) != Some(junction))
-		{
-			return Err(MatchError::AssetNotHandled);
-		}
-
-		let asset_id = match location.interior().at(prefix.interior().len()) {
-			Some(Junction::GeneralIndex(asset_id)) => asset_id,
-			_ => return Err(MatchError::AssetNotHandled),
-		};
-
-		if AssetIdToForeignAsset::<T>::contains_key(&asset_id) {
+		if let Some(asset_id) = ForeignAssetToAssetId::<T>::get(&location) {
 			Ok((
-				Pallet::<T>::contract_address_from_asset_id(*asset_id),
+				Pallet::<T>::contract_address_from_asset_id(asset_id),
 				U256::from(*amount),
 			))
 		} else {
@@ -125,12 +129,6 @@ pub mod pallet {
 		/// EVM runner
 		type EvmRunner: Runner<Self>;
 
-		/// The Foreign Asset Kind.
-		type ForeignAsset: Parameter + Member + Ord + PartialOrd;
-
-		/// Prefix of XCM location that indentify foreign assets
-		type ForeignAssetXcmLocationPrefix: Get<Location>;
-
 		/// Origin that is allowed to create a new foreign assets
 		type ForeignAssetCreatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
@@ -148,10 +146,10 @@ pub mod pallet {
 		type ForeignAssetDestroyerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Hook to be called when new foreign asset is registered.
-		type OnForeignAssetCreated: ForeignAssetCreatedHook<Self::ForeignAsset>;
+		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
 
 		/// Hook to be called when foreign asset is de-registered.
-		type OnForeignAssetDestroyed: ForeignAssetDestroyedHook<Self::ForeignAsset>;
+		type OnForeignAssetDestroyed: ForeignAssetDestroyedHook<Location>;
 
 		/// Maximum nulmbers of differnt foreign assets
 		type MaxForeignAssets: Get<u32>;
@@ -188,32 +186,32 @@ pub mod pallet {
 		/// New asset with the asset manager is registered
 		ForeignAssetCreated {
 			asset_id: AssetId,
-			foreign_asset: T::ForeignAsset,
+			foreign_asset: Location,
 		},
 		/// Changed the xcm type mapping for a given asset id
 		ForeignAssetTypeChanged {
 			asset_id: AssetId,
-			new_foreign_asset: T::ForeignAsset,
+			new_foreign_asset: Location,
 		},
 		/// Removed all information related to an assetId
 		ForeignAssetRemoved {
 			asset_id: AssetId,
-			foreign_asset: T::ForeignAsset,
+			foreign_asset: Location,
 		},
 		// Freezes all tokens of a given asset id
 		ForeignAssetFrozen {
 			asset_id: AssetId,
-			foreign_asset: T::ForeignAsset,
+			foreign_asset: Location,
 		},
 		// Thawing a previously frozen asset
 		ForeignAssetUnfrozen {
 			asset_id: AssetId,
-			foreign_asset: T::ForeignAsset,
+			foreign_asset: Location,
 		},
 		/// Removed all information related to an assetId and destroyed asset
 		ForeignAssetDestroyed {
 			asset_id: AssetId,
-			foreign_asset: T::ForeignAsset,
+			foreign_asset: Location,
 		},
 	}
 
@@ -223,15 +221,14 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn foreign_asset_for_id)]
 	pub type AssetIdToForeignAsset<T: Config> =
-		CountedStorageMap<_, Blake2_128Concat, AssetId, T::ForeignAsset, OptionQuery>;
+		CountedStorageMap<_, Blake2_128Concat, AssetId, Location, OptionQuery>;
 
 	/// Reverse mapping of AssetIdToForeignAsset. Mapping from a foreign asset to an asset id.
 	/// This is mostly used when receiving a multilocation XCM message to retrieve
 	/// the corresponding asset in which tokens should me minted.
 	#[pallet::storage]
 	#[pallet::getter(fn asset_id_for_foreign)]
-	pub type ForeignAssetToAssetId<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::ForeignAsset, AssetId>;
+	pub type ForeignAssetToAssetId<T: Config> = StorageMap<_, Blake2_128Concat, Location, AssetId>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn frozen_assets)]
@@ -261,7 +258,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::create_foreign_asset())]
 		pub fn create_foreign_asset(
 			origin: OriginFor<T>,
-			foreign_asset: T::ForeignAsset,
+			foreign_asset: Location,
 			asset_id: AssetId,
 			decimals: u8,
 			ticker: BoundedVec<u8, ConstU32<256>>,
@@ -308,7 +305,7 @@ pub mod pallet {
 		pub fn change_existing_asset_type(
 			origin: OriginFor<T>,
 			asset_id: AssetId,
-			new_foreign_asset: T::ForeignAsset,
+			new_foreign_asset: Location,
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
@@ -414,11 +411,11 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> MaybeEquivalence<T::ForeignAsset, AssetId> for Pallet<T> {
-		fn convert(foreign_asset: &T::ForeignAsset) -> Option<AssetId> {
+	impl<T: Config> MaybeEquivalence<Location, AssetId> for Pallet<T> {
+		fn convert(foreign_asset: &Location) -> Option<AssetId> {
 			Pallet::<T>::asset_id_for_foreign(foreign_asset.clone())
 		}
-		fn convert_back(id: &AssetId) -> Option<T::ForeignAsset> {
+		fn convert_back(id: &AssetId) -> Option<Location> {
 			Pallet::<T>::foreign_asset_for_id(id.clone())
 		}
 	}
