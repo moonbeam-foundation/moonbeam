@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { gasLimit } from "../../config";
 
