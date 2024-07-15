@@ -76,6 +76,7 @@ pallet-author-slot-filter = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
+xcm-fee-payment-runtime-api = { workspace = true }
 
 # Parity
 parity-scale-codec = { workspace = true }
@@ -111,6 +112,7 @@ std = [
 	"sp-std/std",
 	"sp-genesis-builder/std",
 	"xcm-executor/std",
+	"xcm-fee-payment-runtime-api/std",
 	"xcm/std",
 	"account/std",
 ]

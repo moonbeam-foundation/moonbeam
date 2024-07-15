@@ -118,6 +118,13 @@ use sp_std::{
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
+use xcm::{
+	v3::{AssetId as XcmAssetId, Location},
+	IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
+};
+use xcm_config::AssetType;
+use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
+use xcm_primitives::UnitsToWeightRatio;
 
 use smallvec::smallvec;
 use sp_runtime::serde::{Deserialize, Serialize};
