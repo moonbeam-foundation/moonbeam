@@ -3,6 +3,7 @@ import chalk from "chalk";
 import { describeSuite, beforeAll } from "@moonwall/cli";
 import { ONE_HOURS } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
+import { fail } from "assert";
 
 const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
 
@@ -40,20 +41,27 @@ describeSuite({
           for (const fn of fns) {
             log(`🔎 checking ${moduleName}::${fn}`);
             const keys = Object.keys(module[fn]);
-            if (keys.includes("keysPaged")) {
-              let startKey = "";
-              // Trying to decode all storage entries may cause the node to timeout, decoding
-              // the first storage entries should be enough to verify if a storage migration
-              // was missed.
-              await module[fn].entriesPaged({
-                args: [],
-                pageSize,
-                startKey,
-              });
-            } else {
-              await module[fn]();
+            try {
+              if (keys.includes("keysPaged")) {
+                let startKey = "";
+                // Trying to decode all storage entries may cause the node to timeout, decoding
+                // the first storage entries should be enough to verify if a storage migration
+                // was missed.
+                await module[fn].entriesPaged({
+                  args: [],
+                  pageSize,
+                  startKey,
+                });
+              } else {
+                await module[fn]();
+              }
+
+              log(`     - ${fn}:  ${chalk.green(`✔`)}`);
+            } catch (e) {
+              let msg = `Failed to fetch storage at (${moduleName}::${fn})`;
+              console.error(msg, e);
+              fail(msg);
             }
-            log(`     - ${fn}:  ${chalk.green(`✔`)}`);
           }
         }
       },
