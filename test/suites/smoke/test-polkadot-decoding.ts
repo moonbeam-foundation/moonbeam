@@ -58,8 +58,8 @@ describeSuite({
 
               log(`     - ${fn}:  ${chalk.green(`✔`)}`);
             } catch (e) {
-              let msg = `Failed to fetch storage at (${moduleName}::${fn})`;
-              console.error(msg, e);
+              let msg = chalk.red(`Failed to fetch storage at (${moduleName}::${fn})`);
+              log(msg, e);
               fail(msg);
             }
           }
