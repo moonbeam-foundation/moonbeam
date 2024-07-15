@@ -15,63 +15,63 @@
 // along with Moonkit.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
-use crate as pallet_foreign_asset_creator;
-use std::marker::PhantomData;
+use crate as pallet_moonbeam_foreign_assets;
 
-use frame_support::{
-	construct_runtime, parameter_types, storage,
-	traits::{ConstU32, Everything},
-};
+use frame_support::traits::Everything;
+use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
 use frame_system::EnsureRoot;
-use parity_scale_codec::{Decode, Encode};
-use sp_core::H256;
+use pallet_evm::SubstrateBlockHashMapping;
+use precompile_utils::testing::{Bob, Charlie, MockAccount};
+use sp_core::{H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
-use xcm::latest::prelude::*;
+use xcm::latest::Location;
 
+pub type Balance = u128;
+
+type AccountId = MockAccount;
 type Block = frame_system::mocking::MockBlock<Test>;
-
-pub type AccountId = u64;
-pub type Balance = u64;
 
 construct_runtime!(
 	pub enum Test
 	{
 		System: frame_system,
 		Balances: pallet_balances,
-		ForeignAssetCreator: pallet_foreign_asset_creator,
-		Assets: pallet_assets,
+		Timestamp: pallet_timestamp,
+		EVM: pallet_evm,
+		EvmForeignAssets: pallet_moonbeam_foreign_assets,
 	}
 );
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
 }
+
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
-	type BlockWeights = ();
-	type BlockLength = ();
+	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeCall = RuntimeCall;
+	type RuntimeTask = RuntimeTask;
 	type Nonce = u64;
 	type Block = Block;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
-	type DbWeight = ();
 	type Version = ();
 	type PalletInfo = PalletInfo;
-	type AccountData = pallet_balances::AccountData<u64>;
+	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
+	type BlockWeights = ();
+	type BlockLength = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
-	type RuntimeTask = ();
 	type SingleBlockMigrations = ();
 	type MultiBlockMigrator = ();
 	type PreInherents = ();
@@ -80,94 +80,104 @@ impl frame_system::Config for Test {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: u64 = 1;
+	pub const ExistentialDeposit: u128 = 0;
 }
-
 impl pallet_balances::Config for Test {
+	type MaxReserves = ();
+	type ReserveIdentifier = [u8; 4];
+	type MaxLocks = ();
 	type Balance = Balance;
-	type DustRemoval = ();
 	type RuntimeEvent = RuntimeEvent;
+	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
-	type MaxLocks = ();
-	type MaxReserves = ();
-	type ReserveIdentifier = [u8; 8];
 	type RuntimeHoldReason = ();
-	type RuntimeFreezeReason = ();
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
+	type RuntimeFreezeReason = ();
 }
 
 parameter_types! {
-	pub const AssetDeposit: u64 = 0;
-	pub const ApprovalDeposit: u64 = 0;
-	pub const StringLimit: u32 = 50;
-	pub const MetadataDepositBase: u64 = 0;
-	pub const MetadataDepositPerByte: u64 = 0;
+	pub const MinimumPeriod: u64 = 6000 / 2;
 }
 
-type AssetId = u32;
-
-impl pallet_assets::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type AssetIdParameter = parity_scale_codec::Compact<AssetId>;
-	type Currency = Balances;
-	type CreateOrigin = frame_support::traits::NeverEnsureOrigin<AccountId>;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type AssetDeposit = AssetDeposit;
-	type AssetAccountDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = StringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type CallbackHandle = ();
+impl pallet_timestamp::Config for Test {
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
-	type RemoveItemsLimit = ConstU32<1000>;
-	pallet_assets::runtime_benchmarks_enabled! {
-		type BenchmarkHelper = ();
-	}
+}
+
+const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
+/// Block storage limit in bytes. Set to 40 KB.
+const BLOCK_STORAGE_LIMIT: u64 = 40 * 1024;
+
+parameter_types! {
+	pub BlockGasLimit: U256 = U256::from(u64::MAX);
+	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
+	pub GasLimitPovSizeRatio: u64 = {
+		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
+		block_gas_limit.saturating_div(MAX_POV_SIZE)
+	};
+	pub GasLimitStorageGrowthRatio: u64 = {
+		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
+		block_gas_limit.saturating_div(BLOCK_STORAGE_LIMIT)
+	};
+}
+
+impl pallet_evm::Config for Test {
+	type FeeCalculator = ();
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
+	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
+	type AddressMapping = AccountId;
+	type Currency = Balances;
+	type RuntimeEvent = RuntimeEvent;
+	type PrecompilesType = ();
+	type PrecompilesValue = ();
+	type Runner = pallet_evm::runner::stack::Runner<Self>;
+	type ChainId = ();
+	type BlockGasLimit = BlockGasLimit;
+	type OnChargeTransaction = ();
+	type FindAuthor = ();
+	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
+	type OnCreate = ();
+	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
+	type SuicideQuickClearLimit = ConstU32<0>;
+	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
+	type Timestamp = Timestamp;
+	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
 }
 
 /// Gets parameters of last `ForeignAssetCreatedHook::on_asset_created` hook invocation
-pub fn get_asset_created_hook_invocation<
-	ForeignAsset: Decode,
-	AssetId: Decode,
-	AssetBalance: Decode,
->() -> Option<(ForeignAsset, AssetId, AssetBalance)> {
+pub fn get_asset_created_hook_invocation<ForeignAsset: Decode>() -> Option<(ForeignAsset, AssetId)>
+{
 	storage::unhashed::get_raw(b"____on_foreign_asset_created")
 		.map(|output| Decode::decode(&mut output.as_slice()).expect("Decoding should work"))
 }
 
 /// Notes down parameters of current `ForeignAssetCreatedHook::on_asset_created` hook invocation
-fn note_on_asset_created_hook_invocation<
-	ForeignAsset: Encode,
-	AssetId: Encode,
-	AssetBalance: Encode,
->(
+fn note_on_asset_created_hook_invocation<ForeignAsset: Encode>(
 	foreign_asset: &ForeignAsset,
 	asset_id: &AssetId,
-	min_balance: &AssetBalance,
 ) {
 	storage::unhashed::put_raw(
 		b"____on_foreign_asset_created",
-		(foreign_asset, asset_id, min_balance).encode().as_slice(),
+		(foreign_asset, asset_id).encode().as_slice(),
 	);
 }
 
 /// Gets parameters of last `ForeignAssetDestroyedHook::on_asset_destroyed` hook invocation
-pub fn get_asset_destroyed_hook_invocation<ForeignAsset: Decode, AssetId: Decode>(
-) -> Option<(ForeignAsset, AssetId)> {
+pub fn get_asset_destroyed_hook_invocation<ForeignAsset: Decode>() -> Option<(ForeignAsset, AssetId)>
+{
 	storage::unhashed::get_raw(b"____on_foreign_asset_destroyed")
 		.map(|output| Decode::decode(&mut output.as_slice()).expect("Decoding should work"))
 }
 
 /// Notes down parameters of current `ForeignAssetDestroyedHook::on_asset_destroyed` hook invocation
-fn note_on_asset_destroyed_hook_invocation<ForeignAsset: Encode, AssetId: Encode>(
+fn note_on_asset_destroyed_hook_invocation<ForeignAsset: Encode>(
 	foreign_asset: &ForeignAsset,
 	asset_id: &AssetId,
 ) {
@@ -178,42 +188,36 @@ fn note_on_asset_destroyed_hook_invocation<ForeignAsset: Encode, AssetId: Encode
 }
 
 /// Test hook that records the hook invocation with exact params
-pub struct NoteDownHook<ForeignAsset, AssetId, AssetBalance>(
-	PhantomData<(ForeignAsset, AssetId, AssetBalance)>,
-);
+pub struct NoteDownHook<ForeignAsset>(PhantomData<ForeignAsset>);
 
-impl<ForeignAsset: Encode, AssetId: Encode, AssetBalance: Encode>
-	ForeignAssetCreatedHook<ForeignAsset, AssetId, AssetBalance>
-	for NoteDownHook<ForeignAsset, AssetId, AssetBalance>
-{
-	fn on_asset_created(
-		foreign_asset: &ForeignAsset,
-		asset_id: &AssetId,
-		min_balance: &AssetBalance,
-	) {
-		note_on_asset_created_hook_invocation(foreign_asset, asset_id, min_balance);
+impl<ForeignAsset: Encode> ForeignAssetCreatedHook<ForeignAsset> for NoteDownHook<ForeignAsset> {
+	fn on_asset_created(foreign_asset: &ForeignAsset, asset_id: &AssetId) {
+		note_on_asset_created_hook_invocation(foreign_asset, asset_id);
 	}
 }
 
-impl<ForeignAsset: Encode, AssetId: Encode, AssetBalance>
-	ForeignAssetDestroyedHook<ForeignAsset, AssetId>
-	for NoteDownHook<ForeignAsset, AssetId, AssetBalance>
-{
+impl<ForeignAsset: Encode> ForeignAssetDestroyedHook<ForeignAsset> for NoteDownHook<ForeignAsset> {
 	fn on_asset_destroyed(foreign_asset: &ForeignAsset, asset_id: &AssetId) {
 		note_on_asset_destroyed_hook_invocation(foreign_asset, asset_id);
 	}
 }
 
-impl Config for Test {
-	type RuntimeEvent = RuntimeEvent;
+impl crate::Config for Test {
+	type AccountId = AccountId;
+	type AccountIdConverter = ();
+	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
 	type ForeignAsset = Location;
 	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetDestroyerOrigin = EnsureRoot<AccountId>;
-	type Fungibles = Assets;
+	type ForeignAssetXcmLocationPrefix = ();
+	type OnForeignAssetCreated = NoteDownHook<Location>;
+	type OnForeignAssetDestroyed = NoteDownHook<Location>;
+	type MaxForeignAssets = ConstU32<3>;
+	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
-	type OnForeignAssetCreated = NoteDownHook<Location, AssetId, Balance>;
-	type OnForeignAssetDestroyed = NoteDownHook<Location, AssetId, Balance>;
 }
 
 pub(crate) struct ExtBuilder {
@@ -249,7 +253,7 @@ pub(crate) fn events() -> Vec<super::Event<Test>> {
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let RuntimeEvent::ForeignAssetCreator(inner) = e {
+			if let RuntimeEvent::EvmForeignAssets(inner) = e {
 				Some(inner)
 			} else {
 				None

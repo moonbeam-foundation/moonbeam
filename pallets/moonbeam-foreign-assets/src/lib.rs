@@ -43,22 +43,20 @@ use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
 const FOREIGN_ASSETS_PREFIX: [u8; 4] = [0xff, 0xff, 0xff, 0xff];
 
 /// Trait for the OnForeignAssetRegistered hook
-pub trait ForeignAssetCreatedHook<ForeignAsset, AssetId, AssetBalance> {
+pub trait ForeignAssetCreatedHook<ForeignAsset> {
 	fn on_asset_created(foreign_asset: &ForeignAsset, asset_id: &AssetId);
 }
 
-impl<ForeignAsset, AssetId, AssetBalance>
-	ForeignAssetCreatedHook<ForeignAsset, AssetId, AssetBalance> for ()
-{
+impl<ForeignAsset> ForeignAssetCreatedHook<ForeignAsset> for () {
 	fn on_asset_created(_foreign_asset: &ForeignAsset, _asset_id: &AssetId) {}
 }
 
 /// Trait for the OnForeignAssetDeregistered hook
-pub trait ForeignAssetDestroyedHook<ForeignAsset, AssetId> {
+pub trait ForeignAssetDestroyedHook<ForeignAsset> {
 	fn on_asset_destroyed(foreign_asset: &ForeignAsset, asset_id: &AssetId);
 }
 
-impl<ForeignAsset, AssetId> ForeignAssetDestroyedHook<ForeignAsset, AssetId> for () {
+impl<ForeignAsset> ForeignAssetDestroyedHook<ForeignAsset> for () {
 	fn on_asset_destroyed(_foreign_asset: &ForeignAsset, _asset_id: &AssetId) {}
 }
 
@@ -80,15 +78,21 @@ impl<T: crate::Config> MatchesFungibles<H160, U256> for ForeignAssetsMatcher<T> 
 				.enumerate()
 				.any(|(index, junction)| location.interior().at(index) != Some(junction))
 		{
-			return Err(MatchError::AssetIdConversionFailed);
+			return Err(MatchError::AssetNotHandled);
 		}
 
-		match location.interior().at(prefix.interior().len()) {
-			Some(Junction::GeneralIndex(asset_id)) => Ok((
+		let asset_id = match location.interior().at(prefix.interior().len()) {
+			Some(Junction::GeneralIndex(asset_id)) => asset_id,
+			_ => return Err(MatchError::AssetNotHandled),
+		};
+
+		if AssetIdToForeignAsset::<T>::contains_key(&asset_id) {
+			Ok((
 				Pallet::<T>::contract_address_from_asset_id(*asset_id),
 				U256::from(*amount),
-			)),
-			_ => Err(MatchError::AssetIdConversionFailed),
+			))
+		} else {
+			Err(MatchError::AssetNotHandled)
 		}
 	}
 }
@@ -143,14 +147,10 @@ pub mod pallet {
 		type ForeignAssetDestroyerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Hook to be called when new foreign asset is registered.
-		type OnForeignAssetCreated: ForeignAssetCreatedHook<
-			Self::ForeignAsset,
-			AssetId,
-			AssetBalance,
-		>;
+		type OnForeignAssetCreated: ForeignAssetCreatedHook<Self::ForeignAsset>;
 
 		/// Hook to be called when foreign asset is de-registered.
-		type OnForeignAssetDestroyed: ForeignAssetDestroyedHook<Self::ForeignAsset, AssetId>;
+		type OnForeignAssetDestroyed: ForeignAssetDestroyedHook<Self::ForeignAsset>;
 
 		/// Maximum nulmbers of differnt foreign assets
 		type MaxForeignAssets: Get<u32>;
