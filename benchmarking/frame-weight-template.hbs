@@ -63,6 +63,12 @@ impl<T: frame_system::Config> {{pallet}}::WeightInfo for WeightInfo<T> {
 			// 1 DB read that happen when filtering the proxy call transaction
 			.saturating_add(T::DbWeight::get().reads(1))
 			{{/if}}
+			{{#if (and (eq ../pallet "pallet_precompile_benchmarks") (eq benchmark.name "p256_verify"))}}
+			// TODO: Remove this multiplication once we are comfortable with the weight estimation
+			// Double the weight just to mitigate the possibility of having a signature that
+			// takes longer to verify
+			.saturating_mul(1u64)
+			{{/if}}
 	}
 	{{/each}}
 }
