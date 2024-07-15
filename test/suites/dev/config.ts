@@ -14,6 +14,7 @@ export function valueFromRuntime(context: DevModeContext, multiRuntimeValue: Mul
     return multiRuntimeValue[runtime];
 }
 
+/// Gas limit per block per user, defined as the 75% of gas limit per block (per second)
 export const gasLimit = (context: DevModeContext) => gasPerSecond(context) * 3n / 4n;
 
 export const gasPerSecond = (context: DevModeContext) => valueFromRuntime(context, {
@@ -35,9 +36,9 @@ export const gasPerPovBytes = (context: DevModeContext) => valueFromRuntime(cont
 });
 
 export const gasLimitPovRatio = (context: DevModeContext) => valueFromRuntime(context, {
-    moonbeam: 4n,
-    moonriver: 8n,
-    moonbase: 16n,
+    moonbeam: 4,
+    moonriver: 8,
+    moonbase: 16,
 });
 
 export const deadlineMiliSeconds = (context: DevModeContext) => valueFromRuntime(context, {
@@ -51,9 +52,17 @@ export const gasPerWeight = (context: DevModeContext) => weightPerSecond(context
 export const extrinsicGasLimit = (context: DevModeContext) => 
   innerExtrinsicGasLimit(weightPerSecond(context), gasPerSecond(context), deadlineMiliSeconds(context));
 
+/**
+ * Maximum extrinsic weight is taken from the max allowed transaction weight per block (75%),
+ * minus the block initialization (10%) and minus the extrinsic base cost.
+ * Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
+*/ 
+export const maxEthPovPerTx = (context: DevModeContext) => extrinsicGasLimit(context) / gasPerPovBytes(context);
+  
 const innerExtrinsicGasLimit = (weightPerSecond: bigint, gasPerSecond: bigint, deadlineMiliSeconds: bigint) => {
     const gasPerWeight = weightPerSecond / gasPerSecond;
     const blockWeightLimit = weightPerSecond * deadlineMiliSeconds / 1000n;
     const blockGasLimit = blockWeightLimit / gasPerWeight;
     return (blockGasLimit * 3n) / 4n - blockGasLimit / 10n;
 }
+

@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { DevModeContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import { gasLimit } from "../config";
+import { gasLimit } from "../../config";
 
 describeSuite({
   id: "D010401",

@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { gasLimit } from "../config";
+import { gasLimit } from "../../config";
 
 describeSuite({
   id: "D010404",

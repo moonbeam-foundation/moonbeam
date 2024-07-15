@@ -17,7 +17,9 @@ describeSuite({
       test: async function () {
         const blockResult = await context.createBlock();
         const blockData = await context.polkadotJs().rpc.chain.getBlock(blockResult.block.hash);
-        const index = blockData.block.extrinsics.findIndex(e => e.method.method === "setValidationData");
+        const index = blockData.block.extrinsics.findIndex(
+          (e) => e.method.method === "setValidationData"
+        );
         expect(
           (
             blockData.block.extrinsics[index].method

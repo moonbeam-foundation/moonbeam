@@ -5,7 +5,7 @@ import {
   expect,
   deployCreateCompiledContract,
 } from "@moonwall/cli";
-import { gasLimit, extrinsicGasLimit } from "../config";
+import { gasLimit, extrinsicGasLimit } from "../../config";
 
 describeSuite({
   id: "D010403",
