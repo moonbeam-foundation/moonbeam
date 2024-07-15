@@ -20,8 +20,10 @@ use fp_evm::{ExitReason, ExitSucceed};
 use frame_support::ensure;
 use frame_support::pallet_prelude::Weight;
 use pallet_evm::{GasWeightMapping, Runner};
+use precompile_utils::solidity::codec::{Address, BoundedString};
 use precompile_utils::solidity::Codec;
 use precompile_utils_macro::keccak256;
+use sp_runtime::traits::ConstU32;
 use sp_runtime::DispatchError;
 use xcm::latest::Error as XcmError;
 
@@ -75,9 +77,6 @@ impl From<EvmError> for XcmError {
 	}
 }
 
-use precompile_utils::solidity::codec::{Address, BoundedString};
-use sp_runtime::traits::ConstU32;
-
 #[derive(Codec)]
 struct ForeignErc20ConstructorArgs {
 	owner: Address,
@@ -107,7 +106,9 @@ impl<T: crate::Config> EvmCaller<T> {
 			ticker: ticker.into(),
 			token_name: token_name.into(),
 		};
-		let encoded_args = precompile_utils::solidity::codec::Writer::new().write(args).build();
+		let encoded_args = precompile_utils::solidity::codec::Writer::new()
+			.write(args)
+			.build();
 		init.extend(encoded_args);
 
 		let exec_info = T::EvmRunner::create_force_address(
