@@ -5,7 +5,7 @@ import {
   expect,
   deployCreateCompiledContract,
 } from "@moonwall/cli";
-import { gasLimit, extrinsicGasLimit } from "../../config";
+import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D010403",
@@ -19,7 +19,7 @@ describeSuite({
         test: async function () {
           const { hash, status } = await deployCreateCompiledContract(context, "MultiplyBy7", {
             type: txnType,
-            gas: extrinsicGasLimit(context),
+            gas: ConstantStore(context).EXTRINSIC_GAS_LIMIT,
           });
           expect(status).toBe("success");
           const receipt = await context.viem().getTransactionReceipt({ hash });
@@ -35,7 +35,7 @@ describeSuite({
             async () =>
               await deployCreateCompiledContract(context, "MultiplyBy7", {
                 type: txnType,
-                gas: extrinsicGasLimit(context) + 1n,
+                gas: ConstantStore(context).EXTRINSIC_GAS_LIMIT + 1n,
               }),
             "Transaction should be reverted but instead contract deployed"
           ).rejects.toThrowError("exceeds block gas limit");
@@ -57,7 +57,7 @@ describeSuite({
             args: [],
             functionName: "getGasLimit",
           })
-        ).to.equal(gasLimit(context));
+        ).to.equal(ConstantStore(context).GAS_LIMIT);
       },
     });
   },
