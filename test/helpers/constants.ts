@@ -124,8 +124,8 @@ export const MAX_ETH_POV_PER_TX = 3_250_000n;
 type ConstantStoreType = (typeof RUNTIME_CONSTANTS)["MOONBASE"];
 
 export function ConstantStore(context: DevModeContext): ConstantStoreType {
-  let runtimeChain = context.pjsApi.runtimeChain.toUpperCase();
-  let runtime = runtimeChain
+  const runtimeChain = context.pjsApi.runtimeChain.toUpperCase();
+  const runtime = runtimeChain
     .split(" ")
     .filter((v) => Object.keys(RUNTIME_CONSTANTS).includes(v))
     .join();
