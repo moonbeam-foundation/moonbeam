@@ -6427,6 +6427,7 @@ dependencies = [
  "strum 0.24.1",
  "strum_macros 0.24.3",
  "substrate-wasm-builder",
+ "xcm-fee-payment-runtime-api",
  "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-simulator",
@@ -6916,6 +6917,7 @@ dependencies = [
  "strum 0.24.1",
  "strum_macros 0.24.3",
  "substrate-wasm-builder",
+ "xcm-fee-payment-runtime-api",
  "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-simulator",
@@ -6984,6 +6986,7 @@ dependencies = [
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
+ "xcm-fee-payment-runtime-api",
  "xcm-primitives 0.1.1",
 ]
 
@@ -7120,6 +7123,7 @@ dependencies = [
  "tiny-bip39",
  "tokio",
  "trie-root 0.15.2",
+ "xcm-fee-payment-runtime-api",
 ]
 
 [[package]]
@@ -7318,6 +7322,7 @@ dependencies = [
  "strum 0.24.1",
  "strum_macros 0.24.3",
  "substrate-wasm-builder",
+ "xcm-fee-payment-runtime-api",
  "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-simulator",

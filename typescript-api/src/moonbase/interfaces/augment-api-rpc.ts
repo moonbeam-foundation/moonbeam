@@ -618,6 +618,8 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
       isBlockFinalized: AugmentedRpc<(blockHash: Hash | string | Uint8Array) => Observable<bool>>;
       /** Returns whether an Ethereum transaction is finalized */
       isTxFinalized: AugmentedRpc<(txHash: Hash | string | Uint8Array) => Observable<bool>>;
+      /** Returns the latest synced block from Frontier's backend */
+      getLatestSyncedBlock: AugmentedRpc<() => Observable<u32>>;
     };
     net: {
       /** Returns true if client is actively listening for network connections. Otherwise false. */

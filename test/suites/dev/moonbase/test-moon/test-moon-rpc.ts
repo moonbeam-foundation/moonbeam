@@ -155,5 +155,15 @@ describeSuite({
         expect(resp, "Transaction finalization status mismatch").toBe(true);
       },
     });
+
+    it({
+      id: "T11",
+      title: "should return latest synced block",
+      test: async function () {
+        const expected = await context.createBlock([], { finalize: true });
+        const resp = await customDevRpcRequest("moon_getLatestBlockHash", []);
+        expect(resp, "Latest block hash").toBe(expected.block.hash);
+      },
+    });
   },
 });
