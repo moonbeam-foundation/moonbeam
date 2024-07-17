@@ -55,12 +55,11 @@ use ethereum_types::{H160, U256};
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_system::pallet_prelude::*;
-use sp_std::vec::Vec;
 use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
 	XcmContext,
 };
-use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
+use xcm_executor::traits::Error as MatchError;
 
 const FOREIGN_ASSETS_PREFIX: [u8; 4] = [0xff, 0xff, 0xff, 0xff];
 
@@ -84,17 +83,18 @@ impl<ForeignAsset> ForeignAssetDestroyedHook<ForeignAsset> for () {
 
 pub(crate) struct ForeignAssetsMatcher<T>(core::marker::PhantomData<T>);
 
-impl<T: crate::Config> MatchesFungibles<H160, U256> for ForeignAssetsMatcher<T> {
-	fn matches_fungibles(asset: &Asset) -> Result<(H160, U256), MatchError> {
+impl<T: crate::Config> ForeignAssetsMatcher<T> {
+	fn match_asset(asset: &Asset) -> Result<(H160, U256, AssetStatus), MatchError> {
 		let (amount, location) = match (&asset.fun, &asset.id) {
 			(Fungibility::Fungible(ref amount), XcmAssetId(ref location)) => (amount, location),
 			_ => return Err(MatchError::AssetNotHandled),
 		};
 
-		if let Some(asset_id) = ForeignAssetToAssetId::<T>::get(&location) {
+		if let Some((asset_id, asset_status)) = AssetsByLocation::<T>::get(&location) {
 			Ok((
 				Pallet::<T>::contract_address_from_asset_id(asset_id),
 				U256::from(*amount),
+				asset_status,
 			))
 		} else {
 			Err(MatchError::AssetNotHandled)
@@ -102,13 +102,24 @@ impl<T: crate::Config> MatchesFungibles<H160, U256> for ForeignAssetsMatcher<T> 
 	}
 }
 
+#[derive(Decode, Encode, PartialEq, TypeInfo)]
+#[cfg_attr(test, derive(Debug))]
+pub enum AssetStatus {
+	/// All operations are enabled
+	Active,
+	/// The asset is frozen, but deposit from XCM are still enabled
+	Frozen,
+	/// The asset is fully disabled, deposit from XCM will fail
+	Disabled,
+}
+
 #[pallet]
 pub mod pallet {
 	use super::*;
 	use pallet_evm::Runner;
-	use sp_runtime::traits::{AccountIdConversion, MaybeEquivalence};
+	use sp_runtime::traits::AccountIdConversion;
 	use xcm_executor::traits::ConvertLocation;
-	use xcm_executor::traits::{Error as MatchError, MatchesFungibles};
+	use xcm_executor::traits::Error as MatchError;
 	use xcm_executor::AssetsInHolding;
 
 	#[pallet::pallet]
@@ -171,6 +182,7 @@ pub mod pallet {
 		AssetDoesNotExist,
 		AssetAlreadyFrozen,
 		AssetNotFrozen,
+		CorruptedStorageOrphanLocation,
 		Erc20ContractCreationFail,
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
@@ -186,32 +198,32 @@ pub mod pallet {
 		/// New asset with the asset manager is registered
 		ForeignAssetCreated {
 			asset_id: AssetId,
-			foreign_asset: Location,
+			xcm_location: Location,
 		},
 		/// Changed the xcm type mapping for a given asset id
 		ForeignAssetTypeChanged {
 			asset_id: AssetId,
-			new_foreign_asset: Location,
+			new_xcm_location: Location,
 		},
 		/// Removed all information related to an assetId
 		ForeignAssetRemoved {
 			asset_id: AssetId,
-			foreign_asset: Location,
+			xcm_location: Location,
 		},
 		// Freezes all tokens of a given asset id
 		ForeignAssetFrozen {
 			asset_id: AssetId,
-			foreign_asset: Location,
+			xcm_location: Location,
 		},
 		// Thawing a previously frozen asset
 		ForeignAssetUnfrozen {
 			asset_id: AssetId,
-			foreign_asset: Location,
+			xcm_location: Location,
 		},
 		/// Removed all information related to an assetId and destroyed asset
 		ForeignAssetDestroyed {
 			asset_id: AssetId,
-			foreign_asset: Location,
+			xcm_location: Location,
 		},
 	}
 
@@ -219,21 +231,17 @@ pub mod pallet {
 	/// This is mostly used when receiving transaction specifying an asset directly,
 	/// like transferring an asset from this chain to another.
 	#[pallet::storage]
-	#[pallet::getter(fn foreign_asset_for_id)]
-	pub type AssetIdToForeignAsset<T: Config> =
+	#[pallet::getter(fn assets_by_id)]
+	pub type AssetsById<T: Config> =
 		CountedStorageMap<_, Blake2_128Concat, AssetId, Location, OptionQuery>;
 
-	/// Reverse mapping of AssetIdToForeignAsset. Mapping from a foreign asset to an asset id.
+	/// Reverse mapping of AssetsById. Mapping from a foreign asset to an asset id.
 	/// This is mostly used when receiving a multilocation XCM message to retrieve
 	/// the corresponding asset in which tokens should me minted.
 	#[pallet::storage]
-	#[pallet::getter(fn asset_id_for_foreign)]
-	pub type ForeignAssetToAssetId<T: Config> = StorageMap<_, Blake2_128Concat, Location, AssetId>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn frozen_assets)]
-	pub type FrozenAssets<T: Config> =
-		StorageValue<_, BoundedVec<AssetId, T::MaxForeignAssets>, ValueQuery>;
+	#[pallet::getter(fn assets_by_location)]
+	pub type AssetsByLocation<T: Config> =
+		StorageMap<_, Blake2_128Concat, Location, (AssetId, AssetStatus)>;
 
 	impl<T: Config> Pallet<T> {
 		/// The account ID of this pallet
@@ -258,7 +266,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::create_foreign_asset())]
 		pub fn create_foreign_asset(
 			origin: OriginFor<T>,
-			foreign_asset: Location,
+			xcm_location: Location,
 			asset_id: AssetId,
 			decimals: u8,
 			ticker: BoundedVec<u8, ConstU32<256>>,
@@ -268,31 +276,30 @@ pub mod pallet {
 
 			// Ensure such an assetId does not exist
 			ensure!(
-				AssetIdToForeignAsset::<T>::get(&asset_id).is_none(),
+				AssetsById::<T>::get(&asset_id).is_none(),
 				Error::<T>::AssetAlreadyExists
 			);
 
 			ensure!(
-				AssetIdToForeignAsset::<T>::count() < T::MaxForeignAssets::get(),
+				AssetsById::<T>::count() < T::MaxForeignAssets::get(),
 				Error::<T>::TooManyForeignAssets
 			);
 
 			let ticker = core::str::from_utf8(&ticker).map_err(|_| Error::<T>::InvalidTicker)?;
 			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
 
-			// TODO submit create eth-xcm call
 			EvmCaller::<T>::erc20_create(asset_id, decimals, ticker, name)?;
 
 			// Insert the association assetId->foreigAsset
 			// Insert the association foreigAsset->assetId
-			AssetIdToForeignAsset::<T>::insert(&asset_id, &foreign_asset);
-			ForeignAssetToAssetId::<T>::insert(&foreign_asset, &asset_id);
+			AssetsById::<T>::insert(&asset_id, &xcm_location);
+			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, AssetStatus::Active));
 
-			T::OnForeignAssetCreated::on_asset_created(&foreign_asset, &asset_id);
+			T::OnForeignAssetCreated::on_asset_created(&xcm_location, &asset_id);
 
 			Self::deposit_event(Event::ForeignAssetCreated {
 				asset_id,
-				foreign_asset,
+				xcm_location,
 			});
 			Ok(())
 		}
@@ -305,23 +312,24 @@ pub mod pallet {
 		pub fn change_existing_asset_type(
 			origin: OriginFor<T>,
 			asset_id: AssetId,
-			new_foreign_asset: Location,
+			new_xcm_location: Location,
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
-			let previous_foreign_asset =
-				AssetIdToForeignAsset::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
-
-			// Insert new foreign asset info
-			AssetIdToForeignAsset::<T>::insert(&asset_id, &new_foreign_asset);
-			ForeignAssetToAssetId::<T>::insert(&new_foreign_asset, &asset_id);
+			let previous_location =
+				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
 			// Remove previous foreign asset info
-			ForeignAssetToAssetId::<T>::remove(&previous_foreign_asset);
+			let (_asset_id, asset_status) = AssetsByLocation::<T>::take(&previous_location)
+				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
+
+			// Insert new foreign asset info
+			AssetsById::<T>::insert(&asset_id, &new_xcm_location);
+			AssetsByLocation::<T>::insert(&new_xcm_location, (asset_id, asset_status));
 
 			Self::deposit_event(Event::ForeignAssetTypeChanged {
 				asset_id,
-				new_foreign_asset,
+				new_xcm_location,
 			});
 			Ok(())
 		}
@@ -335,17 +343,17 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::ForeignAssetDestroyerOrigin::ensure_origin(origin)?;
 
-			let foreign_asset =
-				AssetIdToForeignAsset::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+			let xcm_location =
+				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
-			// Remove from AssetIdToForeignAsset
-			AssetIdToForeignAsset::<T>::remove(&asset_id);
-			// Remove from ForeignAssetToAssetId
-			ForeignAssetToAssetId::<T>::remove(&foreign_asset);
+			// Remove from AssetsById
+			AssetsById::<T>::remove(&asset_id);
+			// Remove from AssetsByLocation
+			AssetsByLocation::<T>::remove(&xcm_location);
 
 			Self::deposit_event(Event::ForeignAssetRemoved {
 				asset_id,
-				foreign_asset,
+				xcm_location,
 			});
 			Ok(())
 		}
@@ -356,26 +364,22 @@ pub mod pallet {
 		pub fn freeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
 			T::ForeignAssetFreezerOrigin::ensure_origin(origin)?;
 
-			let foreign_asset =
-				AssetIdToForeignAsset::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+			let xcm_location =
+				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
-			let mut frozen_assets: Vec<_> = FrozenAssets::<T>::get().into();
-			let index = match frozen_assets.binary_search_by(|i| i.cmp(&asset_id)) {
-				Ok(_) => return Err(Error::<T>::AssetAlreadyFrozen.into()),
-				Err(index) => index,
-			};
+			let (_asset_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
+				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
+
+			ensure!(
+				asset_status == AssetStatus::Active,
+				Error::<T>::AssetAlreadyFrozen
+			);
 
 			EvmCaller::<T>::erc20_pause(asset_id.clone())?;
 
-			frozen_assets.insert(index, asset_id);
-			let frozen_assets_bounded: BoundedVec<_, T::MaxForeignAssets> = frozen_assets
-				.try_into()
-				.map_err(|_| Error::<T>::TooManyForeignAssets)?;
-			FrozenAssets::<T>::put(frozen_assets_bounded);
-
 			Self::deposit_event(Event::ForeignAssetFrozen {
 				asset_id,
-				foreign_asset,
+				xcm_location,
 			});
 			Ok(())
 		}
@@ -386,46 +390,47 @@ pub mod pallet {
 		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
 			T::ForeignAssetUnfreezerOrigin::ensure_origin(origin)?;
 
-			let foreign_asset =
-				AssetIdToForeignAsset::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+			let xcm_location =
+				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
-			let mut frozen_assets: Vec<_> = FrozenAssets::<T>::get().into();
-			let index = match frozen_assets.binary_search_by(|i| i.cmp(&asset_id)) {
-				Ok(index) => index,
-				Err(_) => return Err(Error::<T>::AssetNotFrozen.into()),
-			};
+			let (_asset_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
+				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
+
+			ensure!(
+				asset_status == AssetStatus::Frozen,
+				Error::<T>::AssetNotFrozen
+			);
 
 			EvmCaller::<T>::erc20_unpause(asset_id.clone())?;
 
-			frozen_assets.remove(index);
-			let frozen_assets_bounded: BoundedVec<_, T::MaxForeignAssets> = frozen_assets
-				.try_into()
-				.map_err(|_| Error::<T>::TooManyForeignAssets)?;
-			FrozenAssets::<T>::put(frozen_assets_bounded);
-
 			Self::deposit_event(Event::ForeignAssetUnfrozen {
 				asset_id,
-				foreign_asset,
+				xcm_location,
 			});
 			Ok(())
 		}
 	}
 
-	impl<T: Config> MaybeEquivalence<Location, AssetId> for Pallet<T> {
-		fn convert(foreign_asset: &Location) -> Option<AssetId> {
-			Pallet::<T>::asset_id_for_foreign(foreign_asset.clone())
+	/*impl<T: Config> MaybeEquivalence<Location, AssetId> for Pallet<T> {
+		fn convert(xcm_location: &Location) -> Option<AssetId> {
+			Pallet::<T>::assets_by_location(xcm_location.clone())
 		}
 		fn convert_back(id: &AssetId) -> Option<Location> {
-			Pallet::<T>::foreign_asset_for_id(id.clone())
+			Pallet::<T>::assets_by_id(id.clone())
 		}
-	}
+	}*/
 
 	impl<T: Config> xcm_executor::traits::TransactAsset for Pallet<T> {
 		// For optimization reasons, the asset we want to deposit has not really been withdrawn,
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
 		fn deposit_asset(what: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
-			let (contract_address, amount) = ForeignAssetsMatcher::<T>::matches_fungibles(what)?;
+			let (contract_address, amount, asset_status) =
+				ForeignAssetsMatcher::<T>::match_asset(what)?;
+
+			if let AssetStatus::Disabled = asset_status {
+				return Err(MatchError::AssetNotHandled.into());
+			}
 
 			let beneficiary = T::AccountIdConverter::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
@@ -445,7 +450,12 @@ pub mod pallet {
 			to: &Location,
 			_context: &XcmContext,
 		) -> Result<AssetsInHolding, XcmError> {
-			let (contract_address, amount) = ForeignAssetsMatcher::<T>::matches_fungibles(asset)?;
+			let (contract_address, amount, asset_status) =
+				ForeignAssetsMatcher::<T>::match_asset(asset)?;
+
+			if let AssetStatus::Disabled | AssetStatus::Frozen = asset_status {
+				return Err(MatchError::AssetNotHandled.into());
+			}
 
 			let from = T::AccountIdConverter::convert_location(from)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
@@ -474,9 +484,14 @@ pub mod pallet {
 			who: &Location,
 			_context: Option<&XcmContext>,
 		) -> Result<AssetsInHolding, XcmError> {
-			let (contract_address, amount) = ForeignAssetsMatcher::<T>::matches_fungibles(what)?;
+			let (contract_address, amount, asset_status) =
+				ForeignAssetsMatcher::<T>::match_asset(what)?;
 			let who = T::AccountIdConverter::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
+
+			if let AssetStatus::Disabled | AssetStatus::Frozen = asset_status {
+				return Err(MatchError::AssetNotHandled.into());
+			}
 
 			// We perform the evm transfers in a storage transaction to ensure that if it fail
 			// any contract storage changes are rolled back.

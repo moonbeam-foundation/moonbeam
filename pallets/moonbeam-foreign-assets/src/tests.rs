@@ -41,21 +41,21 @@ fn creating_foreign_works() {
 		));
 
 		assert_eq!(
-			EvmForeignAssets::foreign_asset_for_id(1).unwrap(),
+			EvmForeignAssets::assets_by_id(1).unwrap(),
 			Location::parent()
 		);
 		assert_eq!(
-			EvmForeignAssets::asset_id_for_foreign(Location::parent()).unwrap(),
-			1
+			EvmForeignAssets::assets_by_location(Location::parent()).unwrap(),
+			(1, AssetStatus::Active),
 		);
 		expect_events(vec![crate::Event::ForeignAssetCreated {
 			asset_id: 1,
-			foreign_asset: Location::parent(),
+			xcm_location: Location::parent(),
 		}]);
 
-		let (foreign_asset, asset_id): (Location, u128) = get_asset_created_hook_invocation()
+		let (xcm_location, asset_id): (Location, u128) = get_asset_created_hook_invocation()
 			.expect("Decoding of invocation data should not fail");
-		assert_eq!(foreign_asset, Location::parent());
+		assert_eq!(xcm_location, Location::parent());
 		assert_eq!(asset_id, 1u128);
 	});
 }
@@ -72,7 +72,7 @@ fn test_asset_exists_error() {
 			encode_token_name("Mytoken"),
 		));
 		assert_eq!(
-			EvmForeignAssets::foreign_asset_for_id(1).unwrap(),
+			EvmForeignAssets::assets_by_id(1).unwrap(),
 			Location::parent()
 		);
 		assert_noop!(
@@ -134,26 +134,23 @@ fn test_root_can_change_foreign_asset_for_asset_id() {
 		));
 
 		// New associations are stablished
+		assert_eq!(EvmForeignAssets::assets_by_id(1).unwrap(), Location::here());
 		assert_eq!(
-			EvmForeignAssets::foreign_asset_for_id(1).unwrap(),
-			Location::here()
-		);
-		assert_eq!(
-			EvmForeignAssets::asset_id_for_foreign(Location::here()).unwrap(),
-			1
+			EvmForeignAssets::assets_by_location(Location::here()).unwrap(),
+			(1, AssetStatus::Active),
 		);
 
 		// Old ones are deleted
-		assert!(EvmForeignAssets::asset_id_for_foreign(Location::parent()).is_none());
+		assert!(EvmForeignAssets::assets_by_location(Location::parent()).is_none());
 
 		expect_events(vec![
 			crate::Event::ForeignAssetCreated {
 				asset_id: 1,
-				foreign_asset: Location::parent(),
+				xcm_location: Location::parent(),
 			},
 			crate::Event::ForeignAssetTypeChanged {
 				asset_id: 1,
-				new_foreign_asset: Location::here(),
+				new_xcm_location: Location::here(),
 			},
 		])
 	});
@@ -191,17 +188,17 @@ fn test_root_can_remove_asset_association() {
 		));
 
 		// Mappings are deleted
-		assert!(EvmForeignAssets::foreign_asset_for_id(1).is_none());
-		assert!(EvmForeignAssets::asset_id_for_foreign(Location::parent()).is_none());
+		assert!(EvmForeignAssets::assets_by_id(1).is_none());
+		assert!(EvmForeignAssets::assets_by_location(Location::parent()).is_none());
 
 		expect_events(vec![
 			crate::Event::ForeignAssetCreated {
 				asset_id: 1,
-				foreign_asset: Location::parent(),
+				xcm_location: Location::parent(),
 			},
 			crate::Event::ForeignAssetRemoved {
 				asset_id: 1,
-				foreign_asset: Location::parent(),
+				xcm_location: Location::parent(),
 			},
 		])
 	});
