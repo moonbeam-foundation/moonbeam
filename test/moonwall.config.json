@@ -347,7 +347,7 @@
     },
     {
       "name": "dev_moonbeam",
-      "testFileDir": ["suites/dev/moonbeam"],
+      "testFileDir": ["suites/dev/moonbeam", "suites/dev/common"],
       "include": ["**/*test*"],
       "timeout": 180000,
       "contracts": "contracts/",
@@ -389,8 +389,51 @@
       }
     },
     {
+      "name": "dev_moonriver",
+      "testFileDir": ["suites/dev/common"],
+      "include": ["**/*test*"],
+      "timeout": 180000,
+      "contracts": "contracts/",
+      "runScripts": [
+        "compile-contracts.ts compile",
+        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonriver-dev"
+      ],
+      "multiThreads": 8,
+      "envVars": ["DEBUG_COLORS=1"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": {
+        "json": "./tmp/testResultsMoonriver.json"
+      },
+      "foundation": {
+        "type": "dev",
+        "launchSpec": [
+          {
+            "name": "moonbeam",
+            "binPath": "../target/release/moonbeam",
+            "newRpcBehaviour": true,
+            "options": [
+              "--ethapi=txpool",
+              "--no-hardware-benchmarks",
+              "--no-telemetry",
+              "--wasmtime-precompiled=wasm",
+              "--unsafe-force-node-key-generation",
+              "--reserved-only",
+              "--no-grandpa",
+              "--no-prometheus",
+              "--force-authoring",
+              "--rpc-cors=all",
+              "--alice",
+              "--chain=tmp/moonriver-dev-raw.json",
+              "--sealing=manual",
+              "--tmp"
+            ]
+          }
+        ]
+      }
+    },
+    {
       "name": "dev_moonbase",
-      "testFileDir": ["suites/dev/moonbase"],
+      "testFileDir": ["suites/dev/moonbase", "suites/dev/common"],
       "include": ["**/*test*"],
       "timeout": 180000,
       "contracts": "contracts/",

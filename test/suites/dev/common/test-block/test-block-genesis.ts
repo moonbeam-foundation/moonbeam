@@ -1,5 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D010404",
@@ -20,7 +21,7 @@ describeSuite({
           author: "0x0000000000000000000000000000000000000000",
           difficulty: 0n,
           extraData: "0x",
-          gasLimit: 60000000n,
+          gasLimit: ConstantStore(context).GAS_LIMIT,
           gasUsed: 0n,
           logsBloom: `0x${"0".repeat(512)}`,
           number: 0n,
@@ -49,7 +50,7 @@ describeSuite({
           author: "0x0000000000000000000000000000000000000000",
           difficulty: 0n,
           extraData: "0x",
-          gasLimit: 60000000n,
+          gasLimit: ConstantStore(context).GAS_LIMIT,
           gasUsed: 0n,
           logsBloom: `0x${"0".repeat(512)}`,
           number: 0n,
