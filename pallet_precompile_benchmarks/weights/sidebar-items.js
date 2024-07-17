@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["SubstrateWeight"],"trait":["WeightInfo"]};
+window.SIDEBAR_ITEMS = {"trait":["WeightInfo"]};

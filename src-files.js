@@ -40,6 +40,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["pallet_evm_precompile_crowdloan_rewards",["",[],["lib.rs"]]],\
 ["pallet_evm_precompile_gmp",["",[],["lib.rs","types.rs"]]],\
 ["pallet_evm_precompile_identity",["",[],["lib.rs"]]],\
+["pallet_evm_precompile_p256verify",["",[],["lib.rs"]]],\
 ["pallet_evm_precompile_parachain_staking",["",[],["lib.rs"]]],\
 ["pallet_evm_precompile_preimage",["",[],["lib.rs"]]],\
 ["pallet_evm_precompile_proxy",["",[],["lib.rs"]]],\

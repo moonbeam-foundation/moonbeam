@@ -286,6 +286,16 @@
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -304,10 +314,11 @@
 
 </span><span class="kw">use crate</span>::{
 	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
-	TreasuryCouncilInstance,
+	Runtime, TreasuryCouncilInstance,
 };
 <span class="kw">use crate</span>::{AssetId, H160};
 <span class="kw">use </span>frame_support::parameter_types;
+<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbeam_weights;
 <span class="kw">use </span>moonkit_xcm_primitives::AccountIdAssetIdConversion;
 <span class="kw">use </span>pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
@@ -321,6 +332,7 @@
 <span class="kw">use </span>pallet_evm_precompile_gmp::GmpPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_identity::IdentityPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_modexp::Modexp;
+<span class="kw">use </span>pallet_evm_precompile_p256verify::P256Verify;
 <span class="kw">use </span>pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_preimage::PreimagePrecompile;
 <span class="kw">use </span>pallet_evm_precompile_proxy::{OnlyIsProxyAndProxy, ProxyPrecompile};
@@ -337,8 +349,14 @@
 <span class="kw">use </span>pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_xtokens::XtokensPrecompile;
 <span class="kw">use </span>pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
+<span class="kw">use </span>pallet_precompile_benchmarks::WeightInfo;
 <span class="kw">use </span>precompile_utils::precompile_set::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
+
+<span class="macro">parameter_types! </span>{
+	<span class="kw">pub </span>P256VerifyWeight: frame_support::weights::Weight =
+		moonbeam_weights::pallet_precompile_benchmarks::WeightInfo::&lt;Runtime&gt;::p256_verify();
+}
 
 <span class="kw">pub struct </span>NativeErc20Metadata;
 
@@ -393,6 +411,8 @@
 	PrecompileAt&lt;AddressU64&lt;<span class="number">7</span>&gt;, Bn128Mul, EthereumPrecompilesChecks&gt;,
 	PrecompileAt&lt;AddressU64&lt;<span class="number">8</span>&gt;, Bn128Pairing, EthereumPrecompilesChecks&gt;,
 	PrecompileAt&lt;AddressU64&lt;<span class="number">9</span>&gt;, Blake2F, EthereumPrecompilesChecks&gt;,
+	<span class="comment">// (0x100 =&gt; 256) https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
+	</span>PrecompileAt&lt;AddressU64&lt;<span class="number">256</span>&gt;, P256Verify&lt;P256VerifyWeight&gt;, EthereumPrecompilesChecks&gt;,
 	<span class="comment">// Non-Moonbeam specific nor Ethereum precompiles :
 	</span>PrecompileAt&lt;AddressU64&lt;<span class="number">1024</span>&gt;, Sha3FIPS256, (CallableByContract, CallableByPrecompile)&gt;,
 	RemovedPrecompileAt&lt;AddressU64&lt;<span class="number">1025</span>&gt;&gt;, <span class="comment">// Dispatch&lt;R&gt;
