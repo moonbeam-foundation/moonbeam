@@ -54,6 +54,7 @@ use self::evm::EvmCaller;
 use ethereum_types::{H160, U256};
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
+use frame_support::traits::Contains;
 use frame_system::pallet_prelude::*;
 use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
@@ -107,10 +108,10 @@ impl<T: crate::Config> ForeignAssetsMatcher<T> {
 pub enum AssetStatus {
 	/// All operations are enabled
 	Active,
-	/// The asset is frozen, but deposit from XCM are still enabled
-	Frozen,
-	/// The asset is fully disabled, deposit from XCM will fail
-	Disabled,
+	/// The asset is frozen, but deposit from XCM still work
+	FrozenXcmDepositAllowed,
+	/// The asset is frozen, and deposit from XCM will fail
+	FrozenXcmDepositForbidden,
 }
 
 #[pallet]
@@ -136,6 +137,9 @@ pub mod pallet {
 
 		// Convert XCM Location to H160
 		type AccountIdConverter: ConvertLocation<H160>;
+
+		/// A filter to forbid some AssetId values, if you don't use it, put "Everything"
+		type AssetIdFilter: Contains<AssetId>;
 
 		/// EVM runner
 		type EvmRunner: Runner<Self>;
@@ -179,8 +183,9 @@ pub mod pallet {
 	#[pallet::error]
 	pub enum Error<T> {
 		AssetAlreadyExists,
-		AssetDoesNotExist,
 		AssetAlreadyFrozen,
+		AssetDoesNotExist,
+		AssetIdFiltered,
 		AssetNotFrozen,
 		CorruptedStorageOrphanLocation,
 		Erc20ContractCreationFail,
@@ -285,6 +290,11 @@ pub mod pallet {
 				Error::<T>::TooManyForeignAssets
 			);
 
+			ensure!(
+				T::AssetIdFilter::contains(&asset_id),
+				Error::<T>::AssetIdFiltered
+			);
+
 			let ticker = core::str::from_utf8(&ticker).map_err(|_| Error::<T>::InvalidTicker)?;
 			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
 
@@ -361,7 +371,11 @@ pub mod pallet {
 		/// Freeze a given foreign assetId
 		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
-		pub fn freeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
+		pub fn freeze_foreign_asset(
+			origin: OriginFor<T>,
+			asset_id: AssetId,
+			allow_xcm_deposit: bool,
+		) -> DispatchResult {
 			T::ForeignAssetFreezerOrigin::ensure_origin(origin)?;
 
 			let xcm_location =
@@ -375,7 +389,15 @@ pub mod pallet {
 				Error::<T>::AssetAlreadyFrozen
 			);
 
-			EvmCaller::<T>::erc20_pause(asset_id.clone())?;
+			EvmCaller::<T>::erc20_pause(asset_id)?;
+
+			let new_asset_status = if allow_xcm_deposit {
+				AssetStatus::FrozenXcmDepositAllowed
+			} else {
+				AssetStatus::FrozenXcmDepositForbidden
+			};
+
+			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, new_asset_status));
 
 			Self::deposit_event(Event::ForeignAssetFrozen {
 				asset_id,
@@ -397,11 +419,14 @@ pub mod pallet {
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
 
 			ensure!(
-				asset_status == AssetStatus::Frozen,
+				asset_status == AssetStatus::FrozenXcmDepositAllowed
+					|| asset_status == AssetStatus::FrozenXcmDepositForbidden,
 				Error::<T>::AssetNotFrozen
 			);
 
-			EvmCaller::<T>::erc20_unpause(asset_id.clone())?;
+			EvmCaller::<T>::erc20_unpause(asset_id)?;
+
+			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, AssetStatus::Active));
 
 			Self::deposit_event(Event::ForeignAssetUnfrozen {
 				asset_id,
@@ -411,15 +436,6 @@ pub mod pallet {
 		}
 	}
 
-	/*impl<T: Config> MaybeEquivalence<Location, AssetId> for Pallet<T> {
-		fn convert(xcm_location: &Location) -> Option<AssetId> {
-			Pallet::<T>::assets_by_location(xcm_location.clone())
-		}
-		fn convert_back(id: &AssetId) -> Option<Location> {
-			Pallet::<T>::assets_by_id(id.clone())
-		}
-	}*/
-
 	impl<T: Config> xcm_executor::traits::TransactAsset for Pallet<T> {
 		// For optimization reasons, the asset we want to deposit has not really been withdrawn,
 		// we have just traced from which account it should have been withdrawn.
@@ -428,7 +444,7 @@ pub mod pallet {
 			let (contract_address, amount, asset_status) =
 				ForeignAssetsMatcher::<T>::match_asset(what)?;
 
-			if let AssetStatus::Disabled = asset_status {
+			if let AssetStatus::FrozenXcmDepositForbidden = asset_status {
 				return Err(MatchError::AssetNotHandled.into());
 			}
 
@@ -453,7 +469,9 @@ pub mod pallet {
 			let (contract_address, amount, asset_status) =
 				ForeignAssetsMatcher::<T>::match_asset(asset)?;
 
-			if let AssetStatus::Disabled | AssetStatus::Frozen = asset_status {
+			if let AssetStatus::FrozenXcmDepositForbidden | AssetStatus::FrozenXcmDepositAllowed =
+				asset_status
+			{
 				return Err(MatchError::AssetNotHandled.into());
 			}
 
@@ -489,7 +507,9 @@ pub mod pallet {
 			let who = T::AccountIdConverter::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
-			if let AssetStatus::Disabled | AssetStatus::Frozen = asset_status {
+			if let AssetStatus::FrozenXcmDepositForbidden | AssetStatus::FrozenXcmDepositAllowed =
+				asset_status
+			{
 				return Err(MatchError::AssetNotHandled.into());
 			}
 

@@ -205,6 +205,7 @@ impl<ForeignAsset: Encode> ForeignAssetDestroyedHook<ForeignAsset> for NoteDownH
 impl crate::Config for Test {
 	type AccountId = AccountId;
 	type AccountIdConverter = ();
+	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
 	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;

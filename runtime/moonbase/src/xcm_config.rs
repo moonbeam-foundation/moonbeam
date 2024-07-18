@@ -710,9 +710,19 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 }
 
+pub struct EvmForeignAssetIdFilter;
+impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
+	fn contains(asset_id: &AssetId) -> bool {
+		use xcm_primitives::AssetTypeGetter as _;
+		// We should return true only if the AssetId doesn't exist in AssetManager
+		AssetManager::get_asset_type(*asset_id).is_none()
+	}
+}
+
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountId = AccountId;
 	type AccountIdConverter = LocationToH160;
+	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
