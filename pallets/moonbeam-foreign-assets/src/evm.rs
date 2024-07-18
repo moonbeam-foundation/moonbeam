@@ -89,6 +89,10 @@ struct ForeignErc20ConstructorArgs {
 
 pub(crate) struct EvmCaller<T: crate::Config>(core::marker::PhantomData<T>);
 
+
+// Length of encoded constructor parameters
+const PARAMS_LEN: usize = 256;
+
 impl<T: crate::Config> EvmCaller<T> {
 	/// Deploy foreign asset erc20 contract
 	pub(crate) fn erc20_create(
@@ -97,9 +101,20 @@ impl<T: crate::Config> EvmCaller<T> {
 		ticker: &str,
 		token_name: &str,
 	) -> Result<(), Error<T>> {
+		// Get contract initializer code
+		let init_code_str = include_str!("../resources/foreign_erc20_initcode.hex");
+
+		// The encoded parameters at the end of the initializer bytecode should be removed,
+		// (the runtime will append the constructor parameters dynamically).
+		let init_code_end = if init_code_str.len() > PARAMS_LEN {
+			init_code_str.len() - PARAMS_LEN
+		} else {
+			0
+		};
+
 		// Get init code
 		let mut init = Vec::with_capacity(ERC20_CREATE_MAX_CALLDATA_SIZE);
-		init.extend_from_slice(include_bytes!("../resources/foreign_erc20_initcode.bin"));
+		init.extend_from_slice(init_code_str[..init_code_end].as_bytes());
 
 		// Add constructor parameters
 		let args = ForeignErc20ConstructorArgs {
@@ -122,7 +137,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			None,
 			None,
 			Default::default(),
-			true,
+			false,
 			false,
 			None,
 			None,
