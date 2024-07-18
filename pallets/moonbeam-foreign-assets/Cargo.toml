@@ -5,10 +5,8 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-environmental = { workspace = true }
 ethereum-types = { workspace = true }
 log = { workspace = true }
-serde = { workspace = true, optional = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -44,13 +42,15 @@ sp-core = { workspace = true, features = [ "std" ] }
 [features]
 default = [ "std" ]
 std = [
+	"ethereum-types/std",
 	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
+	"precompile-utils/std",
+	"precompile-utils/testing",
 	"pallet-evm/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
-	"serde",
 	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",

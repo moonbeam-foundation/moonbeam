@@ -9696,7 +9696,6 @@ dependencies = [
 name = "pallet-moonbeam-foreign-assets"
 version = "0.1.0"
 dependencies = [
- "environmental",
  "ethereum-types",
  "fp-evm",
  "frame-benchmarking",
@@ -9711,7 +9710,6 @@ dependencies = [
  "precompile-utils",
  "precompile-utils-macro",
  "scale-info",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
