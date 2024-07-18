@@ -202,6 +202,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// New asset with the asset manager is registered
 		ForeignAssetCreated {
+			contract_address: H160,
 			asset_id: AssetId,
 			xcm_location: Location,
 		},
@@ -271,8 +272,8 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::create_foreign_asset())]
 		pub fn create_foreign_asset(
 			origin: OriginFor<T>,
-			xcm_location: Location,
 			asset_id: AssetId,
+			xcm_location: Location,
 			decimals: u8,
 			ticker: BoundedVec<u8, ConstU32<256>>,
 			name: BoundedVec<u8, ConstU32<256>>,
@@ -298,7 +299,7 @@ pub mod pallet {
 			let ticker = core::str::from_utf8(&ticker).map_err(|_| Error::<T>::InvalidTicker)?;
 			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
 
-			EvmCaller::<T>::erc20_create(asset_id, decimals, ticker, name)?;
+			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, ticker, name)?;
 
 			// Insert the association assetId->foreigAsset
 			// Insert the association foreigAsset->assetId
@@ -308,6 +309,7 @@ pub mod pallet {
 			T::OnForeignAssetCreated::on_asset_created(&xcm_location, &asset_id);
 
 			Self::deposit_event(Event::ForeignAssetCreated {
+				contract_address,
 				asset_id,
 				xcm_location,
 			});

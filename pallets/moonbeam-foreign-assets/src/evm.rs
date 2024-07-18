@@ -89,7 +89,6 @@ struct ForeignErc20ConstructorArgs {
 
 pub(crate) struct EvmCaller<T: crate::Config>(core::marker::PhantomData<T>);
 
-
 // Length of encoded constructor parameters
 const PARAMS_LEN: usize = 256;
 
@@ -100,7 +99,7 @@ impl<T: crate::Config> EvmCaller<T> {
 		decimals: u8,
 		ticker: &str,
 		token_name: &str,
-	) -> Result<(), Error<T>> {
+	) -> Result<H160, Error<T>> {
 		// Get contract initializer code
 		let init_code_str = include_str!("../resources/foreign_erc20_initcode.hex");
 
@@ -128,6 +127,8 @@ impl<T: crate::Config> EvmCaller<T> {
 			.build();
 		init.extend(encoded_args);
 
+		let contract_adress = Pallet::<T>::contract_address_from_asset_id(asset_id);
+
 		let exec_info = T::EvmRunner::create_force_address(
 			Pallet::<T>::account_id(),
 			init,
@@ -142,9 +143,11 @@ impl<T: crate::Config> EvmCaller<T> {
 			None,
 			None,
 			&<T as pallet_evm::Config>::config(),
-			Pallet::<T>::contract_address_from_asset_id(asset_id),
+			contract_adress,
 		)
 		.map_err(|_| Error::Erc20ContractCreationFail)?;
+
+		//println!("exec_info: {:?}", &exec_info);
 
 		ensure!(
 			matches!(
@@ -154,7 +157,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			Error::Erc20ContractCreationFail
 		);
 
-		Ok(())
+		Ok(contract_adress)
 	}
 
 	pub(crate) fn erc20_mint_into(
