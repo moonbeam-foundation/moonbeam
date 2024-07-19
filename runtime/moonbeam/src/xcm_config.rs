@@ -50,7 +50,7 @@ use xcm_builder::{
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use xcm::latest::prelude::{
 	AllOf, Asset, AssetFilter, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId,
-  PalletInstance, Parachain, Wild, WildFungible
+	PalletInstance, Parachain, Wild, WildFungible,
 };
 
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
@@ -60,7 +60,7 @@ use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
 	FirstAssetTrader, IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
-  UtilityEncodeCall, XcmTransact,
+	UtilityEncodeCall, XcmTransact,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -249,7 +249,7 @@ impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 }
 
 parameter_types! {
- 	/// Location of Asset Hub
+	 /// Location of Asset Hub
 	pub AssetHubLocation: Location = Location::new(1, [Parachain(1000)]);
 	pub const RelayLocation: Location = Location::parent();
 	pub RelayLocationFilter: AssetFilter = Wild(AllOf { fun: WildFungible, id: xcm::prelude::AssetId(RelayLocation::get()) });
@@ -268,7 +268,6 @@ type Reserves = (
 	// Assets which the reserve is the same as the origin.
 	MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>,
 );
-
 
 // Our implementation of the Moonbeam Call
 // Attachs the right origin in case the call is made to pallet-ethereum-xcm
@@ -289,7 +288,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// Filter to the reserve withdraw operations
 	// Whenever the reserve matches the relative or absolute value
 	// of our chain, we always return the relative reserve
-	type IsReserve =  Reserves;
+	type IsReserve = Reserves;
 	type IsTeleporter = (); // No teleport
 	type UniversalLocation = UniversalLocation;
 	type Barrier = XcmBarrier;
