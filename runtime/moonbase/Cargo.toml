@@ -68,6 +68,7 @@ pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
 pallet-evm-precompileset-assets-erc20 = { workspace = true }
 pallet-evm-precompile-p256verify = { workspace = true }
+pallet-evm-precompile-zkauth-verifier = { workspace = true }
 
 # Moonbeam tracing
 evm-tracing-events = { workspace = true, optional = true }
@@ -261,6 +262,7 @@ std = [
 	"pallet-evm-precompileset-assets-erc20/std",
   	"pallet-evm-precompile-storage-cleaner/std",
 	"pallet-evm-precompile-p256verify/std",
+	"pallet-evm-precompile-zkauth-verifier/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",

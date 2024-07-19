@@ -13,3 +13,28 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+use crate::encoded_receipt::encoded_example_receipt;
+use crate::mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime};
+use crate::*;
+use precompile_utils::testing::*;
+use sp_runtime::Perbill;
+
+fn precompiles() -> Precompiles<Runtime> {
+	PrecompilesValue::get()
+}
+
+#[test]
+fn test_mocked_verification() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			let receipt = encoded_example_receipt();
+
+			precompiles()
+				.prepare_test(Alice, Precompile1, PCall::verify_proof { receipt })
+				.expect_cost(1000)
+				.expect_no_logs()
+				.execute_returns(());
+		});
+}

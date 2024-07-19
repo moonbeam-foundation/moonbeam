@@ -21,6 +21,8 @@ use fp_evm::{PrecompileFailure, PrecompileHandle};
 use precompile_utils::prelude::*;
 use sp_std::vec::Vec;
 
+pub mod encoded_receipt;
+
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -38,8 +40,11 @@ where
 	Runtime: frame_system::Config,
 {
 	#[precompile::public("verify(uint8[])")]
-	fn verify_proof(_handle: &mut impl PrecompileHandle, receipt: Vec<u8>) -> EvmResult {
-		let receipt: risc0_zkvm::Receipt = serde_json::from_slice(&receipt)
+	fn verify_proof(handle: &mut impl PrecompileHandle, receipt: Vec<u8>) -> EvmResult {
+		//TODO: record cost
+		handle.record_cost(1000)?;
+
+		let receipt: risc0_zkvm::Receipt = postcard::from_bytes(&receipt)
 			.map_err(|_| RevertReason::Custom("Receipt decoding failed".into()))?;
 
 		receipt
