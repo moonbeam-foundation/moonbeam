@@ -50,7 +50,9 @@ fn create_foreign_and_freeze_unfreeze() {
 			(1, AssetStatus::Active),
 		);
 		expect_events(vec![crate::Event::ForeignAssetCreated {
-			contract_address: H160([255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
+			contract_address: H160([
+				255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			]),
 			asset_id: 1,
 			xcm_location: Location::parent(),
 		}]);
@@ -61,10 +63,7 @@ fn create_foreign_and_freeze_unfreeze() {
 		assert_eq!(asset_id, 1u128);
 
 		// Check storage
-		assert_eq!(
-			EvmForeignAssets::assets_by_id(&1),
-			Some(Location::parent())
-		);
+		assert_eq!(EvmForeignAssets::assets_by_id(&1), Some(Location::parent()));
 		assert_eq!(
 			EvmForeignAssets::assets_by_location(&Location::parent()),
 			Some((1, AssetStatus::Active))
@@ -72,21 +71,16 @@ fn create_foreign_and_freeze_unfreeze() {
 
 		// Unfreeze should return AssetNotFrozen error
 		assert_noop!(
-			EvmForeignAssets::unfreeze_foreign_asset(
-				RuntimeOrigin::root(),
-				1
-			),
+			EvmForeignAssets::unfreeze_foreign_asset(RuntimeOrigin::root(), 1),
 			Error::<Test>::AssetNotFrozen
 		);
 
 		// Freeze should work
-		assert_ok!(
-			EvmForeignAssets::freeze_foreign_asset(
-				RuntimeOrigin::root(),
-				1,
-				true
-			),
-		);
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			true
+		),);
 		assert_eq!(
 			EvmForeignAssets::assets_by_location(&Location::parent()),
 			Some((1, AssetStatus::FrozenXcmDepositAllowed))
@@ -94,21 +88,15 @@ fn create_foreign_and_freeze_unfreeze() {
 
 		// Should not be able to freeze an asset already frozen
 		assert_noop!(
-			EvmForeignAssets::freeze_foreign_asset(
-				RuntimeOrigin::root(),
-				1,
-				true
-			),
+			EvmForeignAssets::freeze_foreign_asset(RuntimeOrigin::root(), 1, true),
 			Error::<Test>::AssetAlreadyFrozen
 		);
 
 		// Unfreeze should work
-		assert_ok!(
-			EvmForeignAssets::unfreeze_foreign_asset(
-				RuntimeOrigin::root(),
-				1
-			),
-		);
+		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
+			RuntimeOrigin::root(),
+			1
+		),);
 		assert_eq!(
 			EvmForeignAssets::assets_by_location(&Location::parent()),
 			Some((1, AssetStatus::Active))
@@ -201,7 +189,9 @@ fn test_root_can_change_foreign_asset_for_asset_id() {
 
 		expect_events(vec![
 			crate::Event::ForeignAssetCreated {
-				contract_address: H160([255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
+				contract_address: H160([
+					255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+				]),
 				asset_id: 1,
 				xcm_location: Location::parent(),
 			},
@@ -250,7 +240,9 @@ fn test_root_can_remove_asset_association() {
 
 		expect_events(vec![
 			crate::Event::ForeignAssetCreated {
-				contract_address: H160([255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
+				contract_address: H160([
+					255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+				]),
 				asset_id: 1,
 				xcm_location: Location::parent(),
 			},

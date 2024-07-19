@@ -725,10 +725,11 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetForceBurnOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetForceMintOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetDestroyerOrigin = EnsureRoot<AccountId>;
 	type OnForeignAssetCreated = ();
 	type OnForeignAssetDestroyed = ();
 	type MaxForeignAssets = ConstU32<256>;

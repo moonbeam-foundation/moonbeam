@@ -198,10 +198,11 @@ impl crate::Config for Test {
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
 	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetForceBurnOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetForceMintOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetDestroyerOrigin = EnsureRoot<AccountId>;
 	type OnForeignAssetCreated = NoteDownHook<Location>;
 	type OnForeignAssetDestroyed = NoteDownHook<Location>;
 	type MaxForeignAssets = ConstU32<3>;

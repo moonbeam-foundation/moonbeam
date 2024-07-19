@@ -146,18 +146,21 @@ pub mod pallet {
 		/// Origin that is allowed to create a new foreign assets
 		type ForeignAssetCreatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
-		/// Origin that is allowed to modify asset information for foreign assets
-		type ForeignAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+		/// Origin that is allowed to burn foreign assets from any account
+		type ForeignAssetForceBurnOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+
+		/// Origin that is allowed to mint foreign assets from any account
+		type ForeignAssetForceMintOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Origin that is allowed to freeze all tokens of a foreign asset
 		type ForeignAssetFreezerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
+		/// Origin that is allowed to modify asset information for foreign assets
+		type ForeignAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+
 		/// Origin that is allowed to unfreeze all tokens of a foreign asset that was previously
 		/// frozen
 		type ForeignAssetUnfreezerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
-
-		/// Origin that is allowed to create and modify asset information for foreign assets
-		type ForeignAssetDestroyerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
@@ -187,6 +190,7 @@ pub mod pallet {
 		AssetIdFiltered,
 		AssetNotFrozen,
 		CorruptedStorageOrphanLocation,
+		Erc20ContractCallFail,
 		Erc20ContractCreationFail,
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
@@ -345,32 +349,8 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Remove a given assetId -> foreignAsset association
-		#[pallet::call_index(2)]
-		#[pallet::weight(<T as Config>::WeightInfo::remove_existing_asset_type())]
-		pub fn remove_existing_asset_type(
-			origin: OriginFor<T>,
-			asset_id: AssetId,
-		) -> DispatchResult {
-			T::ForeignAssetDestroyerOrigin::ensure_origin(origin)?;
-
-			let xcm_location =
-				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
-
-			// Remove from AssetsById
-			AssetsById::<T>::remove(&asset_id);
-			// Remove from AssetsByLocation
-			AssetsByLocation::<T>::remove(&xcm_location);
-
-			Self::deposit_event(Event::ForeignAssetRemoved {
-				asset_id,
-				xcm_location,
-			});
-			Ok(())
-		}
-
 		/// Freeze a given foreign assetId
-		#[pallet::call_index(3)]
+		#[pallet::call_index(2)]
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
 		pub fn freeze_foreign_asset(
 			origin: OriginFor<T>,
@@ -408,7 +388,7 @@ pub mod pallet {
 		}
 
 		/// Freeze a given foreign assetId
-		#[pallet::call_index(4)]
+		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
 		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
 			T::ForeignAssetUnfreezerOrigin::ensure_origin(origin)?;
@@ -433,6 +413,66 @@ pub mod pallet {
 				asset_id,
 				xcm_location,
 			});
+			Ok(())
+		}
+
+		/// Freeze a given foreign assetId
+		#[pallet::call_index(4)]
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
+		pub fn force_burn_from(
+			origin: OriginFor<T>,
+			asset_id: AssetId,
+			from: <T as Config>::AccountId,
+			amount: U256,
+		) -> DispatchResult {
+			T::ForeignAssetForceBurnOrigin::ensure_origin(origin)?;
+
+			ensure!(
+				AssetsById::<T>::contains_key(&asset_id),
+				Error::<T>::AssetDoesNotExist
+			);
+
+			// We perform the evm call in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_burn_from(
+					Self::contract_address_from_asset_id(asset_id),
+					from.into(),
+					amount,
+				)
+			})
+			.map_err(|_| Error::<T>::Erc20ContractCallFail)?;
+
+			Ok(())
+		}
+
+		/// Freeze a given foreign assetId
+		#[pallet::call_index(5)]
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
+		pub fn force_mint_into(
+			origin: OriginFor<T>,
+			asset_id: AssetId,
+			beneficiary: <T as Config>::AccountId,
+			amount: U256,
+		) -> DispatchResult {
+			T::ForeignAssetForceMintOrigin::ensure_origin(origin)?;
+
+			ensure!(
+				AssetsById::<T>::contains_key(&asset_id),
+				Error::<T>::AssetDoesNotExist
+			);
+
+			// We perform the evm call in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_mint_into(
+					Self::contract_address_from_asset_id(asset_id),
+					beneficiary.into(),
+					amount,
+				)
+			})
+			.map_err(|_| Error::<T>::Erc20ContractCallFail)?;
+
 			Ok(())
 		}
 	}

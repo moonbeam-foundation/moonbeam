@@ -1250,9 +1250,11 @@ fn update_reward_address_via_precompile() {
 }
 
 #[test]
-fn asset_can_be_registered_then_freeze_and_unfreeze() {
+fn create_and_manipulate_foreign_asset() {
 	ExtBuilder::default().build().execute_with(|| {
 		let source_location = xcm::v4::Location::parent();
+
+		// Create foreign asset
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			moonbase_runtime::RuntimeOrigin::root(),
 			1,
@@ -1270,6 +1272,7 @@ fn asset_can_be_registered_then_freeze_and_unfreeze() {
 			Some((1, AssetStatus::Active))
 		);
 
+		// Freeze foreign asset
 		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
 			moonbase_runtime::RuntimeOrigin::root(),
 			1,
@@ -1280,6 +1283,7 @@ fn asset_can_be_registered_then_freeze_and_unfreeze() {
 			Some((1, AssetStatus::FrozenXcmDepositAllowed))
 		);
 
+		// Unfreeze foreign asset
 		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
 			moonbase_runtime::RuntimeOrigin::root(),
 			1,
@@ -1288,6 +1292,22 @@ fn asset_can_be_registered_then_freeze_and_unfreeze() {
 			EvmForeignAssets::assets_by_location(&source_location),
 			Some((1, AssetStatus::Active))
 		);
+
+		// Force mint some tokens
+		assert_ok!(EvmForeignAssets::force_mint_into(
+			moonbase_runtime::RuntimeOrigin::root(),
+			1,
+			AccountId::from(ALICE),
+			U256([1_000_000, 0, 0, 0]),
+		));
+
+		// Force burn some tokens (not all the balance for worst case gas cost)
+		assert_ok!(EvmForeignAssets::force_burn_from(
+			moonbase_runtime::RuntimeOrigin::root(),
+			1,
+			AccountId::from(ALICE),
+			U256([500_000, 0, 0, 0]),
+		));
 	});
 }
 

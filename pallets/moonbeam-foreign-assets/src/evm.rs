@@ -34,8 +34,8 @@ const ERC20_CREATE_MAX_CALLDATA_SIZE: usize = 16 * 1024; // 16Ko
 
 // Hardcoded gas limits (from manueal binary search)
 const ERC20_CREATE_GAS_LIMIT: u64 = 3_367_000; // highest failure: 3_366_000
-const ERC20_BURN_FROM_GAS_LIMIT: u64 = 500_000;
-const ERC20_MINT_INTO_GAS_LIMIT: u64 = 50_000;
+const ERC20_BURN_FROM_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
+const ERC20_MINT_INTO_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
 const ERC20_PAUSE_GAS_LIMIT: u64 = 150_000; // highest failure: 149_500
 const ERC20_TRANSFER_GAS_LIMIT: u64 = 50_000;
 const ERC20_UNPAUSE_GAS_LIMIT: u64 = 150_000; // highest failure: 149_500
@@ -155,7 +155,7 @@ impl<T: crate::Config> EvmCaller<T> {
 	) -> Result<(), EvmError> {
 		let mut input = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
 		// Selector
-		input.extend_from_slice(&keccak256!("mintInto(address, uint256)")[..4]);
+		input.extend_from_slice(&keccak256!("mintInto(address,uint256)")[..4]);
 		// append beneficiary address
 		input.extend_from_slice(H256::from(beneficiary).as_bytes());
 		// append amount to be minted
@@ -201,7 +201,7 @@ impl<T: crate::Config> EvmCaller<T> {
 	) -> Result<(), EvmError> {
 		let mut input = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
 		// Selector
-		input.extend_from_slice(&keccak256!("transfer(address, uint256)")[..4]);
+		input.extend_from_slice(&keccak256!("transfer(address,uint256)")[..4]);
 		// append receiver address
 		input.extend_from_slice(H256::from(to).as_bytes());
 		// append amount to be transferred
@@ -256,7 +256,7 @@ impl<T: crate::Config> EvmCaller<T> {
 	) -> Result<(), EvmError> {
 		let mut input = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
 		// Selector
-		input.extend_from_slice(&keccak256!("burnFrom(address, uint256)")[..4]);
+		input.extend_from_slice(&keccak256!("burnFrom(address,uint256)")[..4]);
 		// append who address
 		input.extend_from_slice(H256::from(who).as_bytes());
 		// append amount to be burn
