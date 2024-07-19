@@ -32,8 +32,8 @@ use xcm::latest::Error as XcmError;
 const ERC20_CALL_MAX_CALLDATA_SIZE: usize = 4 + 32 + 32; // selector + address + uint256
 const ERC20_CREATE_MAX_CALLDATA_SIZE: usize = 16 * 1024; // 16Ko
 
-// hardcoded gas limits
-const ERC20_CREATE_GAS_LIMIT: u64 = 2_050_000;
+// Hardcoded gas limits (from manueal binary search)
+const ERC20_CREATE_GAS_LIMIT: u64 = 3_367_000; // highest failure: 3_366_000
 const ERC20_BURN_FROM_GAS_LIMIT: u64 = 500_000;
 const ERC20_MINT_INTO_GAS_LIMIT: u64 = 50_000;
 const ERC20_PAUSE_GAS_LIMIT: u64 = 500_000;
