@@ -33,7 +33,7 @@ const ERC20_CALL_MAX_CALLDATA_SIZE: usize = 4 + 32 + 32; // selector + address +
 const ERC20_CREATE_MAX_CALLDATA_SIZE: usize = 16 * 1024; // 16Ko
 
 // hardcoded gas limits
-const ERC20_CREATE_GAS_LIMIT: u64 = 500_000;
+const ERC20_CREATE_GAS_LIMIT: u64 = 2_050_000;
 const ERC20_BURN_FROM_GAS_LIMIT: u64 = 500_000;
 const ERC20_MINT_INTO_GAS_LIMIT: u64 = 50_000;
 const ERC20_PAUSE_GAS_LIMIT: u64 = 500_000;
@@ -80,6 +80,7 @@ impl From<EvmError> for XcmError {
 }
 
 #[derive(Codec)]
+#[cfg_attr(test, derive(Debug))]
 struct ForeignErc20ConstructorArgs {
 	owner: Address,
 	decimals: u8,
@@ -111,7 +112,8 @@ impl<T: crate::Config> EvmCaller<T> {
 		let encoded_args = precompile_utils::solidity::codec::Writer::new()
 			.write(args)
 			.build();
-		init.extend(encoded_args);
+		// Skip size of constructor args (32 bytes)
+		init.extend_from_slice(&encoded_args[32..]);
 
 		let contract_adress = Pallet::<T>::contract_address_from_asset_id(asset_id);
 
