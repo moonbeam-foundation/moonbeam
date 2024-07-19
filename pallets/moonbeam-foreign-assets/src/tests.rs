@@ -33,8 +33,8 @@ fn creating_foreign_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			RuntimeOrigin::root(),
-			Location::parent(),
 			1,
+			Location::parent(),
 			18,
 			encode_ticker("MTT"),
 			encode_token_name("Mytoken"),
@@ -49,6 +49,7 @@ fn creating_foreign_works() {
 			(1, AssetStatus::Active),
 		);
 		expect_events(vec![crate::Event::ForeignAssetCreated {
+			contract_address: H160([255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
 			asset_id: 1,
 			xcm_location: Location::parent(),
 		}]);
@@ -65,8 +66,8 @@ fn test_asset_exists_error() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			RuntimeOrigin::root(),
-			Location::parent(),
 			1,
+			Location::parent(),
 			18,
 			encode_ticker("MTT"),
 			encode_token_name("Mytoken"),
@@ -78,8 +79,8 @@ fn test_asset_exists_error() {
 		assert_noop!(
 			EvmForeignAssets::create_foreign_asset(
 				RuntimeOrigin::root(),
-				Location::parent(),
 				1,
+				Location::parent(),
 				18,
 				encode_ticker("MTT"),
 				encode_token_name("Mytoken"),
@@ -95,8 +96,8 @@ fn test_regular_user_cannot_call_extrinsics() {
 		assert_noop!(
 			EvmForeignAssets::create_foreign_asset(
 				RuntimeOrigin::signed(Bob.into()),
-				Location::parent(),
 				1,
+				Location::parent(),
 				18,
 				encode_ticker("MTT"),
 				encode_token_name("Mytoken"),
@@ -120,8 +121,8 @@ fn test_root_can_change_foreign_asset_for_asset_id() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			RuntimeOrigin::root(),
-			Location::parent(),
 			1,
+			Location::parent(),
 			18,
 			encode_ticker("MTT"),
 			encode_token_name("Mytoken"),
@@ -145,6 +146,7 @@ fn test_root_can_change_foreign_asset_for_asset_id() {
 
 		expect_events(vec![
 			crate::Event::ForeignAssetCreated {
+				contract_address: H160([255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
 				asset_id: 1,
 				xcm_location: Location::parent(),
 			},
@@ -175,8 +177,8 @@ fn test_root_can_remove_asset_association() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			RuntimeOrigin::root(),
-			Location::parent(),
 			1,
+			Location::parent(),
 			18,
 			encode_ticker("MTT"),
 			encode_token_name("Mytoken"),
@@ -193,6 +195,7 @@ fn test_root_can_remove_asset_association() {
 
 		expect_events(vec![
 			crate::Event::ForeignAssetCreated {
+				contract_address: H160([255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
 				asset_id: 1,
 				xcm_location: Location::parent(),
 			},
