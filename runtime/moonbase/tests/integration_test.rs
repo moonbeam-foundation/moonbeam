@@ -39,7 +39,7 @@ use frame_support::{
 use moonbase_runtime::{
 	asset_config::{AssetRegistrarMetadata, ForeignAssetInstance},
 	xcm_config::{AssetType, SelfReserve},
-	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards, Executive,
+	AccountId, AssetId, Assets, Balances, CrowdloanRewards, EvmForeignAssets, Executive,
 	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
 	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
 	TransactionPaymentAsGasPrice, TreasuryCouncilCollective, XTokens, XcmTransactor,
@@ -66,7 +66,7 @@ use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWe
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, H256, U256};
-use sp_runtime::{DispatchError, ModuleError};
+use sp_runtime::{bounded_vec, DispatchError, ModuleError};
 use xcm::latest::prelude::*;
 
 type AuthorMappingPCall =
@@ -1251,22 +1251,16 @@ fn update_reward_address_via_precompile() {
 #[test]
 fn asset_can_be_registered() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = AssetType::Xcm(xcm::v3::Location::parent());
-		let source_id: moonbase_runtime::AssetId = source_location.clone().into();
-		let asset_metadata = AssetRegistrarMetadata {
-			name: b"RelayToken".to_vec(),
-			symbol: b"Relay".to_vec(),
-			decimals: 12,
-			is_frozen: false,
-		};
-		assert_ok!(AssetManager::register_foreign_asset(
+		let source_location = xcm::v4::Location::parent();
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			moonbase_runtime::RuntimeOrigin::root(),
+			1,
 			source_location,
-			asset_metadata,
-			1u128,
-			true,
+			12,
+			bounded_vec![b'M', b'T'],
+			bounded_vec![b'M', b'y', b'T', b'o', b'k'],
 		));
-		assert!(AssetManager::asset_id_type(source_id).is_some());
+		assert!(EvmForeignAssets::assets_by_id(1).is_some());
 	});
 }
 
