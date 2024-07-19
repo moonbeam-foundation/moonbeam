@@ -29,8 +29,9 @@ fn encode_token_name(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
 }
 
 #[test]
-fn creating_foreign_works() {
+fn create_foreign_and_freeze_unfreeze() {
 	ExtBuilder::default().build().execute_with(|| {
+		// create foreign asset
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			RuntimeOrigin::root(),
 			1,
@@ -58,6 +59,60 @@ fn creating_foreign_works() {
 			.expect("Decoding of invocation data should not fail");
 		assert_eq!(xcm_location, Location::parent());
 		assert_eq!(asset_id, 1u128);
+
+		// Check storage
+		assert_eq!(
+			EvmForeignAssets::assets_by_id(&1),
+			Some(Location::parent())
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&Location::parent()),
+			Some((1, AssetStatus::Active))
+		);
+
+		// Unfreeze should return AssetNotFrozen error
+		assert_noop!(
+			EvmForeignAssets::unfreeze_foreign_asset(
+				RuntimeOrigin::root(),
+				1
+			),
+			Error::<Test>::AssetNotFrozen
+		);
+
+		// Freeze should work
+		assert_ok!(
+			EvmForeignAssets::freeze_foreign_asset(
+				RuntimeOrigin::root(),
+				1,
+				true
+			),
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&Location::parent()),
+			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+		);
+
+		// Should not be able to freeze an asset already frozen
+		assert_noop!(
+			EvmForeignAssets::freeze_foreign_asset(
+				RuntimeOrigin::root(),
+				1,
+				true
+			),
+			Error::<Test>::AssetAlreadyFrozen
+		);
+
+		// Unfreeze should work
+		assert_ok!(
+			EvmForeignAssets::unfreeze_foreign_asset(
+				RuntimeOrigin::root(),
+				1
+			),
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&Location::parent()),
+			Some((1, AssetStatus::Active))
+		);
 	});
 }
 
