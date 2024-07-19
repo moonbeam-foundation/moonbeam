@@ -61,6 +61,7 @@ use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
+use pallet_moonbeam_foreign_assets::AssetStatus;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
@@ -1249,18 +1250,44 @@ fn update_reward_address_via_precompile() {
 }
 
 #[test]
-fn asset_can_be_registered() {
+fn asset_can_be_registered_then_freeze_and_unfreeze() {
 	ExtBuilder::default().build().execute_with(|| {
 		let source_location = xcm::v4::Location::parent();
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			moonbase_runtime::RuntimeOrigin::root(),
 			1,
-			source_location,
+			source_location.clone(),
 			12,
 			bounded_vec![b'M', b'T'],
 			bounded_vec![b'M', b'y', b'T', b'o', b'k'],
 		));
-		assert!(EvmForeignAssets::assets_by_id(1).is_some());
+		assert_eq!(
+			EvmForeignAssets::assets_by_id(1),
+			Some(source_location.clone())
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&source_location),
+			Some((1, AssetStatus::Active))
+		);
+
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			moonbase_runtime::RuntimeOrigin::root(),
+			1,
+			true
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&source_location),
+			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+		);
+
+		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
+			moonbase_runtime::RuntimeOrigin::root(),
+			1,
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&source_location),
+			Some((1, AssetStatus::Active))
+		);
 	});
 }
 

@@ -103,8 +103,7 @@ impl<T: crate::Config> ForeignAssetsMatcher<T> {
 	}
 }
 
-#[derive(Decode, Encode, PartialEq, TypeInfo)]
-#[cfg_attr(test, derive(Debug))]
+#[derive(Decode, Debug, Encode, PartialEq, TypeInfo)]
 pub enum AssetStatus {
 	/// All operations are enabled
 	Active,
