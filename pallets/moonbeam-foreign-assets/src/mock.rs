@@ -192,9 +192,15 @@ impl<ForeignAsset: Encode> ForeignAssetDestroyedHook<ForeignAsset> for NoteDownH
 	}
 }
 
+pub struct AccountIdToH160;
+impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
+	fn convert(account_id: AccountId) -> H160 {
+		account_id.into()
+	}
+}
+
 impl crate::Config for Test {
-	type AccountId = AccountId;
-	type AccountIdConverter = ();
+	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
 	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
@@ -208,6 +214,7 @@ impl crate::Config for Test {
 	type MaxForeignAssets = ConstU32<3>;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
+	type XcmLocationToH160 = ();
 }
 
 pub(crate) struct ExtBuilder {

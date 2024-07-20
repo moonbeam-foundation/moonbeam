@@ -710,6 +710,13 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 }
 
+pub struct AccountIdToH160;
+impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
+	fn convert(account_id: AccountId) -> H160 {
+		account_id.into()
+	}
+}
+
 pub struct EvmForeignAssetIdFilter;
 impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 	fn contains(asset_id: &AssetId) -> bool {
@@ -720,8 +727,7 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 }
 
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
-	type AccountId = AccountId;
-	type AccountIdConverter = LocationToH160;
+	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
@@ -736,6 +742,7 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	// TODO generate weights
 	type WeightInfo = ();
+	type XcmLocationToH160 = LocationToH160;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

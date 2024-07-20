@@ -117,7 +117,7 @@ pub enum AssetStatus {
 pub mod pallet {
 	use super::*;
 	use pallet_evm::Runner;
-	use sp_runtime::traits::AccountIdConversion;
+	use sp_runtime::traits::{AccountIdConversion, Convert};
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::Error as MatchError;
 	use xcm_executor::AssetsInHolding;
@@ -131,11 +131,8 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_evm::Config {
-		/// the overarching AccountId type
-		type AccountId: Parameter + Into<H160> + IsType<<Self as frame_system::Config>::AccountId>;
-
-		// Convert XCM Location to H160
-		type AccountIdConverter: ConvertLocation<H160>;
+		// Convert AccountId to H160
+		type AccountIdToH160: Convert<Self::AccountId, H160>;
 
 		/// A filter to forbid some AssetId values, if you don't use it, put "Everything"
 		type AssetIdFilter: Contains<AssetId>;
@@ -176,6 +173,9 @@ pub mod pallet {
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
+
+		// Convert XCM Location to H160
+		type XcmLocationToH160: ConvertLocation<H160>;
 	}
 
 	pub type AssetBalance = U256;
@@ -255,8 +255,8 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// The account ID of this pallet
 		pub fn account_id() -> H160 {
-			let account_id: <T as Config>::AccountId = PALLET_ID.into_account_truncating();
-			account_id.into()
+			let account_id: T::AccountId = PALLET_ID.into_account_truncating();
+			T::AccountIdToH160::convert(account_id)
 		}
 
 		#[inline]
@@ -351,7 +351,7 @@ pub mod pallet {
 
 		/// Freeze a given foreign assetId
 		#[pallet::call_index(2)]
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
+		#[pallet::weight(<T as Config>::WeightInfo::change_existing_asset_type())]
 		pub fn freeze_foreign_asset(
 			origin: OriginFor<T>,
 			asset_id: AssetId,
@@ -389,7 +389,7 @@ pub mod pallet {
 
 		/// Unfreeze a given foreign assetId
 		#[pallet::call_index(3)]
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
+		#[pallet::weight(<T as Config>::WeightInfo::change_existing_asset_type())]
 		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
 			T::ForeignAssetUnfreezerOrigin::ensure_origin(origin)?;
 
@@ -418,11 +418,11 @@ pub mod pallet {
 
 		/// Force to burn a given foreign assetId from any account
 		#[pallet::call_index(4)]
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
+		#[pallet::weight(<T as Config>::WeightInfo::change_existing_asset_type())]
 		pub fn force_burn_from(
 			origin: OriginFor<T>,
 			asset_id: AssetId,
-			from: <T as Config>::AccountId,
+			from: T::AccountId,
 			amount: U256,
 		) -> DispatchResult {
 			T::ForeignAssetForceBurnOrigin::ensure_origin(origin)?;
@@ -437,7 +437,7 @@ pub mod pallet {
 			frame_support::storage::with_storage_layer(|| {
 				EvmCaller::<T>::erc20_burn_from(
 					Self::contract_address_from_asset_id(asset_id),
-					from.into(),
+					T::AccountIdToH160::convert(from),
 					amount,
 				)
 			})
@@ -448,11 +448,11 @@ pub mod pallet {
 
 		/// Force to mint a given foreign assetId into any account
 		#[pallet::call_index(5)]
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
+		#[pallet::weight(<T as Config>::WeightInfo::change_existing_asset_type())]
 		pub fn force_mint_into(
 			origin: OriginFor<T>,
 			asset_id: AssetId,
-			beneficiary: <T as Config>::AccountId,
+			beneficiary: T::AccountId,
 			amount: U256,
 		) -> DispatchResult {
 			T::ForeignAssetForceMintOrigin::ensure_origin(origin)?;
@@ -467,7 +467,7 @@ pub mod pallet {
 			frame_support::storage::with_storage_layer(|| {
 				EvmCaller::<T>::erc20_mint_into(
 					Self::contract_address_from_asset_id(asset_id),
-					beneficiary.into(),
+					T::AccountIdToH160::convert(beneficiary),
 					amount,
 				)
 			})
@@ -478,14 +478,14 @@ pub mod pallet {
 
 		/// Transfer a given foreign asset from an account to another
 		#[pallet::call_index(6)]
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
+		#[pallet::weight(<T as Config>::WeightInfo::change_existing_asset_type())]
 		pub fn transfer(
 			origin: OriginFor<T>,
 			asset_id: AssetId,
-			beneficiary: <T as Config>::AccountId,
+			beneficiary: T::AccountId,
 			amount: U256,
 		) -> DispatchResult {
-			let who: <T as Config>::AccountId = ensure_signed(origin)?.into();
+			let who = ensure_signed(origin)?;
 
 			ensure!(
 				AssetsById::<T>::contains_key(&asset_id),
@@ -497,8 +497,8 @@ pub mod pallet {
 			frame_support::storage::with_storage_layer(|| {
 				EvmCaller::<T>::erc20_transfer(
 					Self::contract_address_from_asset_id(asset_id),
-					who.into(),
-					beneficiary.into(),
+					T::AccountIdToH160::convert(who),
+					T::AccountIdToH160::convert(beneficiary),
 					amount,
 				)
 			})
@@ -520,7 +520,7 @@ pub mod pallet {
 				return Err(MatchError::AssetNotHandled.into());
 			}
 
-			let beneficiary = T::AccountIdConverter::convert_location(who)
+			let beneficiary = T::XcmLocationToH160::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
 			// We perform the evm transfers in a storage transaction to ensure that if it fail
@@ -547,10 +547,10 @@ pub mod pallet {
 				return Err(MatchError::AssetNotHandled.into());
 			}
 
-			let from = T::AccountIdConverter::convert_location(from)
+			let from = T::XcmLocationToH160::convert_location(from)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
-			let to = T::AccountIdConverter::convert_location(to)
+			let to = T::XcmLocationToH160::convert_location(to)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
 			// We perform the evm transfers in a storage transaction to ensure that if it fail
@@ -576,7 +576,7 @@ pub mod pallet {
 		) -> Result<AssetsInHolding, XcmError> {
 			let (contract_address, amount, asset_status) =
 				ForeignAssetsMatcher::<T>::match_asset(what)?;
-			let who = T::AccountIdConverter::convert_location(who)
+			let who = T::XcmLocationToH160::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
 			if let AssetStatus::FrozenXcmDepositForbidden | AssetStatus::FrozenXcmDepositAllowed =

@@ -16,139 +16,47 @@
 
 #![cfg(feature = "runtime-benchmarks")]
 
-use crate::{AssetBalance, AssetId, Call, Config, Pallet};
-use frame_benchmarking::{
-	account, benchmarks, impl_benchmark_test_suite, whitelisted_caller, BenchmarkError,
-};
-use frame_support::traits::{fungibles, fungibles::Mutate, EnsureOrigin};
+use crate::{Call, Config, Pallet};
+use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
-use sp_arithmetic::traits::AtLeast16BitUnsigned;
+use sp_runtime::traits::ConstU32;
+use sp_runtime::BoundedVec;
 use xcm::latest::prelude::*;
 
-#[allow(dead_code)]
-pub fn create_default_minted_asset<T: Config>(
-	amount: AssetBalance<T>,
-	receiver: T::AccountId,
-) -> (AssetId<T>, T::ForeignAsset)
-where
-	T::ForeignAsset: From<Location>,
-	T::Fungibles: fungibles::Mutate<T::AccountId>,
-	AssetId<T>: AtLeast16BitUnsigned,
-{
-	let (asset_id, foreign_asset) = create_default_asset::<T>(true);
-
-	assert!(T::Fungibles::mint_into(asset_id.clone(), &receiver, amount).is_ok());
-	(asset_id, foreign_asset)
-}
-
-#[allow(dead_code)]
-fn create_default_asset<T: Config>(is_sufficient: bool) -> (AssetId<T>, T::ForeignAsset)
-where
-	T::ForeignAsset: From<Location>,
-	AssetId<T>: AtLeast16BitUnsigned,
-{
-	let asset_id: AssetId<T> = 1u16.into();
-	let foreign_asset: T::ForeignAsset = Location::parent().into();
-	let admin: T::AccountId = whitelisted_caller();
-	let origin = T::ForeignAssetCreatorOrigin::try_successful_origin()
-		.map_err(|_| BenchmarkError::Weightless)
-		.expect("Not able to generate an appropriate origin to disptach the call");
-	assert!(Pallet::<T>::create_foreign_asset(
-		origin,
-		foreign_asset.clone(),
-		asset_id.clone(),
-		admin,
-		is_sufficient,
-		1u32.into(),
-	)
-	.is_ok());
-	(asset_id, foreign_asset)
+fn str_to_bv(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
+	str_.as_bytes().to_vec().try_into().expect("too long")
 }
 
 benchmarks! {
-	// This where clause allows us to create ForeignAssetTypes
-	where_clause { where T::ForeignAsset: From<Location>, AssetId<T>: AtLeast16BitUnsigned }
 	create_foreign_asset {
-		const USER_SEED: u32 = 1;
-		let manager = account("manager",  0, USER_SEED);
-		let foreign_asset = T::ForeignAsset::default();
-		let amount = 1u32.into();
-		let asset_id: AssetId<T> = 1u16.into();
-
-	}: _(RawOrigin::Root, foreign_asset.clone(), asset_id.clone(), manager, true, amount)
+	}: _(RawOrigin::Root, 1, Location::parent(), 18, str_to_bv("MT"), str_to_bv("Mytoken"))
 	verify {
-		assert_eq!(Pallet::<T>::foreign_asset_for_id(asset_id), Some(foreign_asset));
+		assert_eq!(
+			Pallet::<T>::assets_by_id(1),
+			Some(Location::parent())
+		);
 	}
 
 	change_existing_asset_type {
-		const USER_SEED: u32 = 1;
-		let manager: T::AccountId = account("manager",  0, USER_SEED);
-
-		let foreign_asset:  T::ForeignAsset = Location::new(0, [GeneralIndex(0u128)]).into();
-		let asset_id: AssetId<T> = (0u16).into();
-		let amount = 1u32.into();
 		Pallet::<T>::create_foreign_asset(
 			RawOrigin::Root.into(),
-			foreign_asset.clone(),
-			asset_id.clone(),
-			manager.clone(),
-			true,
-			amount,
+			1,
+			Location::parent(),
+			18,
+			str_to_bv("MT"),
+			str_to_bv("Mytoken")
 		)?;
 
-		let new_foreign_asset = T::ForeignAsset::default();
-		let asset_type_to_be_changed: T::ForeignAsset = Location::new(
-			0,
-			[GeneralIndex((0) as u128)]
-		).into();
-		let asset_id_to_be_changed: AssetId<T> = (0u16).into();
-	}: _(RawOrigin::Root, asset_id_to_be_changed.clone(), new_foreign_asset.clone())
+		assert_eq!(
+			Pallet::<T>::assets_by_id(1),
+			Some(Location::parent())
+		);
+	}: _(RawOrigin::Root, 1, Location::here())
 	verify {
-		assert_eq!(Pallet::<T>::foreign_asset_for_id(asset_id_to_be_changed), Some(new_foreign_asset.clone()));
-	}
-
-	remove_existing_asset_type {
-		const USER_SEED: u32 = 1;
-		let manager: T::AccountId = account("manager",  0, USER_SEED);
-
-			let foreign_asset:  T::ForeignAsset = Location::new(0, [GeneralIndex(0u128)]).into();
-			let asset_id: AssetId<T> = 0u16.into();
-			let amount = 1u32.into();
-			Pallet::<T>::create_foreign_asset(
-				RawOrigin::Root.into(),
-				foreign_asset.clone(),
-				asset_id.clone(),
-				manager.clone(),
-				true,
-				amount,
-			)?;
-
-		let asset_id_to_be_removed: AssetId<T> = 0u16.into();
-	}: _(RawOrigin::Root, asset_id_to_be_removed.clone())
-	verify {
-		assert!(Pallet::<T>::foreign_asset_for_id(asset_id_to_be_removed).is_none());
-	}
-
-	destroy_foreign_asset {
-		const USER_SEED: u32 = 1;
-		let manager: T::AccountId = account("manager",  0, USER_SEED);
-
-			let foreign_asset:  T::ForeignAsset = Location::new(0, [GeneralIndex(0u128)]).into();
-			let asset_id: AssetId<T> = 0u16.into();
-			let amount = 1u32.into();
-			Pallet::<T>::create_foreign_asset(
-				RawOrigin::Root.into(),
-				foreign_asset.clone(),
-				asset_id.clone(),
-				manager.clone(),
-				true,
-				amount,
-			)?;
-
-		let asset_id_to_be_destroyed: AssetId<T> = 0u16.into();
-	}: _(RawOrigin::Root, asset_id_to_be_destroyed.clone())
-	verify {
-		assert!(Pallet::<T>::foreign_asset_for_id(asset_id_to_be_destroyed).is_none());
+		assert_eq!(
+			Pallet::<T>::assets_by_id(1),
+			Some(Location::here())
+		);
 	}
 }
 

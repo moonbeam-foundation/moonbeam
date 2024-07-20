@@ -41,13 +41,10 @@ fn create_foreign_and_freeze_unfreeze() {
 			encode_token_name("Mytoken"),
 		));
 
+		assert_eq!(EvmForeignAssets::assets_by_id(1), Some(Location::parent()));
 		assert_eq!(
-			EvmForeignAssets::assets_by_id(1).unwrap(),
-			Location::parent()
-		);
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(Location::parent()).unwrap(),
-			(1, AssetStatus::Active),
+			EvmForeignAssets::assets_by_location(Location::parent()),
+			Some((1, AssetStatus::Active)),
 		);
 		expect_events(vec![crate::Event::ForeignAssetCreated {
 			contract_address: H160([
@@ -214,42 +211,5 @@ fn test_asset_id_non_existent_error() {
 			),
 			Error::<Test>::AssetDoesNotExist
 		);
-	});
-}
-
-#[test]
-fn test_root_can_remove_asset_association() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			RuntimeOrigin::root(),
-			1,
-			Location::parent(),
-			18,
-			encode_ticker("MTT"),
-			encode_token_name("Mytoken"),
-		));
-
-		assert_ok!(EvmForeignAssets::remove_existing_asset_type(
-			RuntimeOrigin::root(),
-			1
-		));
-
-		// Mappings are deleted
-		assert!(EvmForeignAssets::assets_by_id(1).is_none());
-		assert!(EvmForeignAssets::assets_by_location(Location::parent()).is_none());
-
-		expect_events(vec![
-			crate::Event::ForeignAssetCreated {
-				contract_address: H160([
-					255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-				]),
-				asset_id: 1,
-				xcm_location: Location::parent(),
-			},
-			crate::Event::ForeignAssetRemoved {
-				asset_id: 1,
-				xcm_location: Location::parent(),
-			},
-		])
 	});
 }
