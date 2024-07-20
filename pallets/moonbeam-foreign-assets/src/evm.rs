@@ -37,7 +37,7 @@ const ERC20_CREATE_GAS_LIMIT: u64 = 3_367_000; // highest failure: 3_366_000
 const ERC20_BURN_FROM_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
 const ERC20_MINT_INTO_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
 const ERC20_PAUSE_GAS_LIMIT: u64 = 150_000; // highest failure: 149_500
-const ERC20_TRANSFER_GAS_LIMIT: u64 = 50_000;
+const ERC20_TRANSFER_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
 const ERC20_UNPAUSE_GAS_LIMIT: u64 = 150_000; // highest failure: 149_500
 
 pub(crate) enum EvmError {

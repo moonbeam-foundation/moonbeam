@@ -387,7 +387,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Freeze a given foreign assetId
+		/// Unfreeze a given foreign assetId
 		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
 		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
@@ -416,7 +416,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Freeze a given foreign assetId
+		/// Force to burn a given foreign assetId from any account
 		#[pallet::call_index(4)]
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
 		pub fn force_burn_from(
@@ -446,7 +446,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Freeze a given foreign assetId
+		/// Force to mint a given foreign assetId into any account
 		#[pallet::call_index(5)]
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
 		pub fn force_mint_into(
@@ -467,6 +467,37 @@ pub mod pallet {
 			frame_support::storage::with_storage_layer(|| {
 				EvmCaller::<T>::erc20_mint_into(
 					Self::contract_address_from_asset_id(asset_id),
+					beneficiary.into(),
+					amount,
+				)
+			})
+			.map_err(|_| Error::<T>::Erc20ContractCallFail)?;
+
+			Ok(())
+		}
+
+		/// Transfer a given foreign asset from an account to another
+		#[pallet::call_index(6)]
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_foreign_asset())]
+		pub fn transfer(
+			origin: OriginFor<T>,
+			asset_id: AssetId,
+			beneficiary: <T as Config>::AccountId,
+			amount: U256,
+		) -> DispatchResult {
+			let who: <T as Config>::AccountId = ensure_signed(origin)?.into();
+
+			ensure!(
+				AssetsById::<T>::contains_key(&asset_id),
+				Error::<T>::AssetDoesNotExist
+			);
+
+			// We perform the evm call in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_transfer(
+					Self::contract_address_from_asset_id(asset_id),
+					who.into(),
 					beneficiary.into(),
 					amount,
 				)

@@ -1308,6 +1308,14 @@ fn create_and_manipulate_foreign_asset() {
 			AccountId::from(ALICE),
 			U256([500_000, 0, 0, 0]),
 		));
+
+		// transfer some tokens from Alice to Bob
+		assert_ok!(EvmForeignAssets::transfer(
+			moonbase_runtime::RuntimeOrigin::signed(AccountId::from(ALICE)),
+			1,
+			AccountId::from(BOB),
+			U256([100_000, 0, 0, 0]),
+		));
 	});
 }
 
