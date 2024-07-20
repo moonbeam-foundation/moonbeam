@@ -35,7 +35,7 @@ hex = { workspace = true, features = [ "std" ] }
 
 [dev-dependencies]
 hex = { workspace = true }
-pallet-balances = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
 pallet-timestamp = { workspace = true, features = [ "std" ] }
 sp-core = { workspace = true, features = [ "std" ] }
 
