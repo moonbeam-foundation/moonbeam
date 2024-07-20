@@ -24,16 +24,15 @@
 //! EXECUTION: , WASM-EXECUTION: Compiled, CHAIN: Some("dev"), DB CACHE: 1024
 
 // Executed Command:
-// ./target/release/tanssi-node
+// ./target/release/moonbeam
 // benchmark
 // pallet
 // --execution=wasm
 // --wasm-execution=compiled
 // --pallet
-// pallet_foreign_asset_creator
+// pallet_moonbeam_foreign_assets
 // --extrinsic
 // *
-// --chain=dev
 // --steps
 // 50
 // --repeat
@@ -42,7 +41,7 @@
 // --json-file
 // raw.json
 // --output
-// tmp/pallet_foreign_asset_creator.rs
+// weights/
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
@@ -55,8 +54,8 @@ use sp_std::marker::PhantomData;
 pub trait WeightInfo {
 	fn create_foreign_asset() -> Weight;
 	fn change_existing_asset_type() -> Weight;
-	fn remove_existing_asset_type() -> Weight;
-	fn destroy_foreign_asset() -> Weight;
+	fn freeze_foreign_asset() -> Weight;
+	fn unfreeze_foreign_asset() -> Weight;
 }
 
 /// Weights for pallet_foreign_asset_creator using the Substrate node and recommended hardware.
@@ -94,7 +93,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Proof: `ForeignAssetsCreator::AssetIdToForeignAsset` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ForeignAssetsCreator::ForeignAssetToAssetId` (r:0 w:1)
 	/// Proof: `ForeignAssetsCreator::ForeignAssetToAssetId` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	fn remove_existing_asset_type() -> Weight {
+	fn freeze_foreign_asset() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `189`
 		//  Estimated: `3654`
@@ -109,7 +108,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Proof: `ForeignAssets::Asset` (`max_values`: None, `max_size`: Some(208), added: 2683, mode: `MaxEncodedLen`)
 	/// Storage: `ForeignAssetsCreator::ForeignAssetToAssetId` (r:0 w:1)
 	/// Proof: `ForeignAssetsCreator::ForeignAssetToAssetId` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	fn destroy_foreign_asset() -> Weight {
+	fn unfreeze_foreign_asset() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `429`
 		//  Estimated: `3894`
@@ -154,7 +153,7 @@ impl WeightInfo for () {
 	/// Proof: `ForeignAssetsCreator::AssetIdToForeignAsset` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ForeignAssetsCreator::ForeignAssetToAssetId` (r:0 w:1)
 	/// Proof: `ForeignAssetsCreator::ForeignAssetToAssetId` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	fn remove_existing_asset_type() -> Weight {
+	fn freeze_foreign_asset() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `189`
 		//  Estimated: `3654`
@@ -169,7 +168,7 @@ impl WeightInfo for () {
 	/// Proof: `ForeignAssets::Asset` (`max_values`: None, `max_size`: Some(208), added: 2683, mode: `MaxEncodedLen`)
 	/// Storage: `ForeignAssetsCreator::ForeignAssetToAssetId` (r:0 w:1)
 	/// Proof: `ForeignAssetsCreator::ForeignAssetToAssetId` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	fn destroy_foreign_asset() -> Weight {
+	fn unfreeze_foreign_asset() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `429`
 		//  Estimated: `3894`

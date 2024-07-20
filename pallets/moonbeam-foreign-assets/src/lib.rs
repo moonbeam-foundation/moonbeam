@@ -351,7 +351,7 @@ pub mod pallet {
 
 		/// Freeze a given foreign assetId
 		#[pallet::call_index(2)]
-		#[pallet::weight(<T as Config>::WeightInfo::change_existing_asset_type())]
+		#[pallet::weight(<T as Config>::WeightInfo::freeze_foreign_asset())]
 		pub fn freeze_foreign_asset(
 			origin: OriginFor<T>,
 			asset_id: AssetId,
@@ -389,7 +389,7 @@ pub mod pallet {
 
 		/// Unfreeze a given foreign assetId
 		#[pallet::call_index(3)]
-		#[pallet::weight(<T as Config>::WeightInfo::change_existing_asset_type())]
+		#[pallet::weight(<T as Config>::WeightInfo::unfreeze_foreign_asset())]
 		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
 			T::ForeignAssetUnfreezerOrigin::ensure_origin(origin)?;
 
