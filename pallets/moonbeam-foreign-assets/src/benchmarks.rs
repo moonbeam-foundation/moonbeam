@@ -16,46 +16,92 @@
 
 #![cfg(feature = "runtime-benchmarks")]
 
-use crate::{Call, Config, Pallet};
+use crate::{AssetStatus, Call, Config, Pallet};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
+use frame_support::pallet_prelude::*;
 use frame_system::RawOrigin;
 use sp_runtime::traits::ConstU32;
 use sp_runtime::BoundedVec;
 use xcm::latest::prelude::*;
+
+fn create_n_foreign_asset<T: Config>(n: u32) -> DispatchResult {
+	for i in 1..=n {
+		Pallet::<T>::create_foreign_asset(
+			RawOrigin::Root.into(),
+			i as u128,
+			location_of(i),
+			18,
+			str_to_bv(&format!("MT{}", i)),
+			str_to_bv(&format!("Mytoken{}", i)),
+		)?;
+		assert_eq!(Pallet::<T>::assets_by_id(i as u128), Some(location_of(i)));
+	}
+
+	Ok(())
+}
+
+fn location_of(n: u32) -> Location {
+	Location::new(0, [Junction::GeneralIndex(n as u128)])
+}
 
 fn str_to_bv(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
 	str_.as_bytes().to_vec().try_into().expect("too long")
 }
 
 benchmarks! {
+	// Worst case scenario: MaxForeignAssets minus one already exists
 	create_foreign_asset {
-	}: _(RawOrigin::Root, 1, Location::parent(), 18, str_to_bv("MT"), str_to_bv("Mytoken"))
+		create_n_foreign_asset::<T>(T::MaxForeignAssets::get().saturating_sub(1))?;
+		let asset_id = T::MaxForeignAssets::get() as u128;
+	}: _(RawOrigin::Root, asset_id, Location::parent(), 18, str_to_bv("MT"), str_to_bv("Mytoken"))
 	verify {
 		assert_eq!(
-			Pallet::<T>::assets_by_id(1),
+			Pallet::<T>::assets_by_id(asset_id),
 			Some(Location::parent())
 		);
 	}
 
+	// Worst case scenario: MaxForeignAssets already exists
 	change_existing_asset_type {
-		Pallet::<T>::create_foreign_asset(
-			RawOrigin::Root.into(),
-			1,
-			Location::parent(),
-			18,
-			str_to_bv("MT"),
-			str_to_bv("Mytoken")
-		)?;
-
-		assert_eq!(
-			Pallet::<T>::assets_by_id(1),
-			Some(Location::parent())
-		);
+		create_n_foreign_asset::<T>(T::MaxForeignAssets::get())?;
 	}: _(RawOrigin::Root, 1, Location::here())
 	verify {
 		assert_eq!(
 			Pallet::<T>::assets_by_id(1),
 			Some(Location::here())
+		);
+	}
+
+	// Worst case scenario: MaxForeignAssets already exists
+	freeze_foreign_asset {
+		create_n_foreign_asset::<T>(T::MaxForeignAssets::get())?;
+	}: _(RawOrigin::Root, 1, true)
+	verify {
+		assert_eq!(
+			Pallet::<T>::assets_by_location(location_of(1)),
+			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+		);
+	}
+
+	// Worst case scenario:
+	// - MaxForeignAssets already exists
+	// - The asset to unfreeze is already frozen (to avoid early error)
+	unfreeze_foreign_asset {
+		create_n_foreign_asset::<T>(T::MaxForeignAssets::get())?;
+		Pallet::<T>::freeze_foreign_asset(
+			RawOrigin::Root.into(),
+			1,
+			true
+		)?;
+		assert_eq!(
+			Pallet::<T>::assets_by_location(location_of(1)),
+			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+		);
+	}: _(RawOrigin::Root, 1)
+	verify {
+		assert_eq!(
+			Pallet::<T>::assets_by_location(location_of(1)),
+			Some((1, AssetStatus::Active))
 		);
 	}
 }
