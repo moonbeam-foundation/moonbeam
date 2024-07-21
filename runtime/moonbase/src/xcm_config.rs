@@ -598,7 +598,10 @@ impl orml_xtokens::Config for Runtime {
 	type Balance = Balance;
 	type CurrencyId = CurrencyId;
 	type AccountIdToLocation = AccountIdToLocation<AccountId>;
-	type CurrencyIdConvert = CurrencyIdToLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
+	type CurrencyIdConvert = CurrencyIdToLocation<(
+		EvmForeignAssets,
+		AsAssetType<AssetId, AssetType, AssetManager>,
+	)>;
 	type XcmExecutor = XcmExecutor;
 	type SelfLocation = SelfLocation;
 	type Weigher = XcmWeigher;
@@ -673,7 +676,10 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToLocation = AccountIdToLocation<AccountId>;
-	type CurrencyIdToLocation = CurrencyIdToLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
+	type CurrencyIdToLocation = CurrencyIdToLocation<(
+		EvmForeignAssets,
+		AsAssetType<AssetId, AssetType, AssetManager>,
+	)>;
 	type XcmSender = XcmRouter;
 	type SelfLocation = SelfLocation;
 	type Weigher = XcmWeigher;
@@ -731,13 +737,10 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetForceBurnOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetForceMintOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
 	type OnForeignAssetCreated = ();
-	type OnForeignAssetDestroyed = ();
 	type MaxForeignAssets = ConstU32<256>;
 	type RuntimeEvent = RuntimeEvent;
 	// TODO generate weights
