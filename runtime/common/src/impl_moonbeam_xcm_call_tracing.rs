@@ -78,7 +78,8 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 									EthereumXcmTracingStatus::Transaction(traced_transaction_hash) => {
 										let transaction_hash = xcm_transaction.into_transaction_v2(
 											EthereumXcm::nonce(),
-											<Runtime as pallet_evm::Config>::ChainId::get()
+											<Runtime as pallet_evm::Config>::ChainId::get(),
+											false
 										)
 										.expect("Invalid transaction conversion")
 										.hash();
