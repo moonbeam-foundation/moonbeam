@@ -21,7 +21,7 @@ use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
 use frame_system::EnsureRoot;
 use pallet_evm::SubstrateBlockHashMapping;
-use precompile_utils::testing::{Bob, Charlie, MockAccount};
+use precompile_utils::testing::MockAccount;
 use sp_core::{H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
@@ -159,36 +159,12 @@ fn note_on_asset_created_hook_invocation<ForeignAsset: Encode>(
 	);
 }
 
-/// Gets parameters of last `ForeignAssetDestroyedHook::on_asset_destroyed` hook invocation
-pub fn get_asset_destroyed_hook_invocation<ForeignAsset: Decode>() -> Option<(ForeignAsset, AssetId)>
-{
-	storage::unhashed::get_raw(b"____on_foreign_asset_destroyed")
-		.map(|output| Decode::decode(&mut output.as_slice()).expect("Decoding should work"))
-}
-
-/// Notes down parameters of current `ForeignAssetDestroyedHook::on_asset_destroyed` hook invocation
-fn note_on_asset_destroyed_hook_invocation<ForeignAsset: Encode>(
-	foreign_asset: &ForeignAsset,
-	asset_id: &AssetId,
-) {
-	storage::unhashed::put_raw(
-		b"____on_foreign_asset_destroyed",
-		(foreign_asset, asset_id).encode().as_slice(),
-	);
-}
-
 /// Test hook that records the hook invocation with exact params
 pub struct NoteDownHook<ForeignAsset>(PhantomData<ForeignAsset>);
 
 impl<ForeignAsset: Encode> ForeignAssetCreatedHook<ForeignAsset> for NoteDownHook<ForeignAsset> {
 	fn on_asset_created(foreign_asset: &ForeignAsset, asset_id: &AssetId) {
 		note_on_asset_created_hook_invocation(foreign_asset, asset_id);
-	}
-}
-
-impl<ForeignAsset: Encode> ForeignAssetDestroyedHook<ForeignAsset> for NoteDownHook<ForeignAsset> {
-	fn on_asset_destroyed(foreign_asset: &ForeignAsset, asset_id: &AssetId) {
-		note_on_asset_destroyed_hook_invocation(foreign_asset, asset_id);
 	}
 }
 
@@ -204,13 +180,10 @@ impl crate::Config for Test {
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
 	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetForceBurnOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetForceMintOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
 	type OnForeignAssetCreated = NoteDownHook<Location>;
-	type OnForeignAssetDestroyed = NoteDownHook<Location>;
 	type MaxForeignAssets = ConstU32<3>;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();

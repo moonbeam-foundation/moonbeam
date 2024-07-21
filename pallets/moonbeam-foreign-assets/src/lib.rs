@@ -143,12 +143,6 @@ pub mod pallet {
 		/// Origin that is allowed to create a new foreign assets
 		type ForeignAssetCreatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
-		/// Origin that is allowed to burn foreign assets from any account
-		type ForeignAssetForceBurnOrigin: EnsureOrigin<Self::RuntimeOrigin>;
-
-		/// Origin that is allowed to mint foreign assets from any account
-		type ForeignAssetForceMintOrigin: EnsureOrigin<Self::RuntimeOrigin>;
-
 		/// Origin that is allowed to freeze all tokens of a foreign asset
 		type ForeignAssetFreezerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
@@ -161,9 +155,6 @@ pub mod pallet {
 
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
-
-		/// Hook to be called when foreign asset is de-registered.
-		type OnForeignAssetDestroyed: ForeignAssetDestroyedHook<Location>;
 
 		/// Maximum nulmbers of differnt foreign assets
 		type MaxForeignAssets: Get<u32>;
@@ -197,6 +188,7 @@ pub mod pallet {
 		EvmInternalError,
 		InvalidTicker,
 		InvalidTokenName,
+		LocationAlreadyExists,
 		TooManyForeignAssets,
 	}
 
@@ -254,17 +246,37 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		/// The account ID of this pallet
+		#[inline]
 		pub fn account_id() -> H160 {
 			let account_id: T::AccountId = PALLET_ID.into_account_truncating();
 			T::AccountIdToH160::convert(account_id)
 		}
 
+		/// Compute asset contract address from asset id
 		#[inline]
 		pub(crate) fn contract_address_from_asset_id(asset_id: AssetId) -> H160 {
 			let mut buffer = [0u8; 20];
 			buffer[..4].copy_from_slice(&FOREIGN_ASSETS_PREFIX);
 			buffer[4..].copy_from_slice(&asset_id.to_be_bytes());
 			H160(buffer)
+		}
+
+		/// Mint an asset into a specific account
+		pub fn mint_into(
+			asset_id: AssetId,
+			beneficiary: T::AccountId,
+			amount: U256,
+		) -> Result<(), evm::EvmError> {
+			// We perform the evm call in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_mint_into(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(beneficiary),
+					amount,
+				)
+			})
+			.map_err(Into::into)
 		}
 	}
 
@@ -285,8 +297,13 @@ pub mod pallet {
 
 			// Ensure such an assetId does not exist
 			ensure!(
-				AssetsById::<T>::get(&asset_id).is_none(),
+				!AssetsById::<T>::contains_key(&asset_id),
 				Error::<T>::AssetAlreadyExists
+			);
+
+			ensure!(
+				!AssetsByLocation::<T>::contains_key(&xcm_location),
+				Error::<T>::LocationAlreadyExists
 			);
 
 			ensure!(
@@ -415,97 +432,6 @@ pub mod pallet {
 			});
 			Ok(())
 		}
-
-		/// Force to burn a given foreign assetId from any account
-		#[pallet::call_index(4)]
-		#[pallet::weight(<T as Config>::WeightInfo::change_existing_asset_type())]
-		pub fn force_burn_from(
-			origin: OriginFor<T>,
-			asset_id: AssetId,
-			from: T::AccountId,
-			amount: U256,
-		) -> DispatchResult {
-			T::ForeignAssetForceBurnOrigin::ensure_origin(origin)?;
-
-			ensure!(
-				AssetsById::<T>::contains_key(&asset_id),
-				Error::<T>::AssetDoesNotExist
-			);
-
-			// We perform the evm call in a storage transaction to ensure that if it fail
-			// any contract storage changes are rolled back.
-			frame_support::storage::with_storage_layer(|| {
-				EvmCaller::<T>::erc20_burn_from(
-					Self::contract_address_from_asset_id(asset_id),
-					T::AccountIdToH160::convert(from),
-					amount,
-				)
-			})
-			.map_err(|_| Error::<T>::Erc20ContractCallFail)?;
-
-			Ok(())
-		}
-
-		/// Force to mint a given foreign assetId into any account
-		#[pallet::call_index(5)]
-		#[pallet::weight(<T as Config>::WeightInfo::change_existing_asset_type())]
-		pub fn force_mint_into(
-			origin: OriginFor<T>,
-			asset_id: AssetId,
-			beneficiary: T::AccountId,
-			amount: U256,
-		) -> DispatchResult {
-			T::ForeignAssetForceMintOrigin::ensure_origin(origin)?;
-
-			ensure!(
-				AssetsById::<T>::contains_key(&asset_id),
-				Error::<T>::AssetDoesNotExist
-			);
-
-			// We perform the evm call in a storage transaction to ensure that if it fail
-			// any contract storage changes are rolled back.
-			frame_support::storage::with_storage_layer(|| {
-				EvmCaller::<T>::erc20_mint_into(
-					Self::contract_address_from_asset_id(asset_id),
-					T::AccountIdToH160::convert(beneficiary),
-					amount,
-				)
-			})
-			.map_err(|_| Error::<T>::Erc20ContractCallFail)?;
-
-			Ok(())
-		}
-
-		/// Transfer a given foreign asset from an account to another
-		#[pallet::call_index(6)]
-		#[pallet::weight(<T as Config>::WeightInfo::change_existing_asset_type())]
-		pub fn transfer(
-			origin: OriginFor<T>,
-			asset_id: AssetId,
-			beneficiary: T::AccountId,
-			amount: U256,
-		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-
-			ensure!(
-				AssetsById::<T>::contains_key(&asset_id),
-				Error::<T>::AssetDoesNotExist
-			);
-
-			// We perform the evm call in a storage transaction to ensure that if it fail
-			// any contract storage changes are rolled back.
-			frame_support::storage::with_storage_layer(|| {
-				EvmCaller::<T>::erc20_transfer(
-					Self::contract_address_from_asset_id(asset_id),
-					T::AccountIdToH160::convert(who),
-					T::AccountIdToH160::convert(beneficiary),
-					amount,
-				)
-			})
-			.map_err(|_| Error::<T>::Erc20ContractCallFail)?;
-
-			Ok(())
-		}
 	}
 
 	impl<T: Config> xcm_executor::traits::TransactAsset for Pallet<T> {
@@ -592,6 +518,15 @@ pub mod pallet {
 			})?;
 
 			Ok(what.clone().into())
+		}
+	}
+
+	impl<T: Config> sp_runtime::traits::MaybeEquivalence<Location, AssetId> for Pallet<T> {
+		fn convert(location: &Location) -> Option<AssetId> {
+			AssetsByLocation::<T>::get(location).map(|(asset_id, _)| asset_id)
+		}
+		fn convert_back(asset_id: &AssetId) -> Option<Location> {
+			AssetsById::<T>::get(asset_id)
 		}
 	}
 }

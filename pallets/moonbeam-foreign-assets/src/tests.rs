@@ -17,7 +17,7 @@ use crate::*;
 use mock::*;
 
 use frame_support::{assert_noop, assert_ok};
-use precompile_utils::testing::{Bob, Charlie, MockAccount};
+use precompile_utils::testing::Bob;
 use xcm::latest::prelude::*;
 
 fn encode_ticker(str_: &str) -> BoundedVec<u8, ConstU32<256>> {

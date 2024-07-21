@@ -25,6 +25,7 @@ members = [
 	"precompiles/collective",
 	"precompiles/conviction-voting",
 	"precompiles/crowdloan-rewards",
+	"precompiles/foreign-asset-migrator",
 	"precompiles/gmp",
 	"precompiles/identity",
 	"precompiles/parachain-staking",
@@ -104,6 +105,7 @@ pallet-parachain-staking = { path = "pallets/parachain-staking", default-feature
 pallet-precompile-benchmarks = { path = "pallets/precompile-benchmarks", default-features = false }
 pallet-proxy-genesis-companion = { path = "pallets/proxy-genesis-companion", default-features = false }
 pallet-xcm-transactor = { path = "pallets/xcm-transactor", default-features = false }
+precompile-foreign-asset-migrator = { path = "precompiles/foreign-asset-migrator", default-features = false }
 xcm-primitives = { path = "primitives/xcm", default-features = false }
 
 pallet-crowdloan-rewards = { git = "https://github.com/moonbeam-foundation/crowdloan-rewards", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
