@@ -68,6 +68,7 @@ pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
 pallet-evm-precompileset-assets-erc20 = { workspace = true }
+precompile-foreign-asset-migrator = { workspace = true }
 
 # Moonbeam tracing
 evm-tracing-events = { workspace = true, optional = true }
