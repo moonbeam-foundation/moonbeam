@@ -1,6 +1,7 @@
-import { DevModeContext, customDevRpcRequest } from "@moonwall/cli";
+import { DevModeContext, customDevRpcRequest, fetchCompiledContract } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import { AssetMetadata, XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { u128 } from "@polkadot/types";
+import { XcmpMessageFormat } from "@polkadot/types/interfaces";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   XcmV3JunctionNetworkId,
@@ -8,7 +9,8 @@ import {
 } from "@polkadot/types/lookup";
 import { BN, stringToU8a, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
-import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
+import { AssetMetadata, RELAY_V3_SOURCE_LOCATION } from "./assets.js";
+import { ethers } from "ethers";
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -75,46 +77,47 @@ export function mockHrmpChannelExistanceTx(
 export async function registerForeignAsset(
   context: DevModeContext,
   asset: any,
-  metadata: AssetMetadata,
-  unitsPerSecond?: number,
-  numAssetsWeightHint?: number
+  assetMetadata: AssetMetadata
 ) {
-  unitsPerSecond = unitsPerSecond != null ? unitsPerSecond : 0;
+  const { id, decimals, name, symbol } = assetMetadata;
   const { result } = await context.createBlock(
-    context
-      .polkadotJs()
-      .tx.sudo.sudo(
-        context.polkadotJs().tx.assetManager.registerForeignAsset(asset, metadata, new BN(1), true)
-      )
-  );
-  // Look for assetId in events
-  const registeredAssetId = result!.events
-    .find(({ event: { section } }) => section.toString() === "assetManager")!
-    .event.data[0].toHex()
-    .replace(/,/g, "");
-
-  // setAssetUnitsPerSecond
-  const { result: result2 } = await context.createBlock(
     context
       .polkadotJs()
       .tx.sudo.sudo(
         context
           .polkadotJs()
-          .tx.assetManager.setAssetUnitsPerSecond(asset, unitsPerSecond, numAssetsWeightHint!)
-      ),
-    {
-      expectEvents: [context.polkadotJs().events.assetManager.UnitsPerSecondChanged],
-      allowFailures: false,
-    }
+          .tx.evmForeignAssets.createForeignAsset(id, asset, decimals, symbol, name)
+      )
   );
-  // check asset in storage
-  const registeredAsset = (
-    (await context.polkadotJs().query.assets.asset(registeredAssetId)) as any
-  ).unwrap();
+
+  // Fetch asset id and contract address in the events
+  const event = (result as any).events.find(
+    ({ event: { method } }) => method.toString() === "ForeignAssetCreated"
+  )!.event;
+
+  const contractAddress: string = event.data[0];
+  const registeredAssetId: u128 = event.data[1].toString();
+
+  // New foreign assets design doesn't allow for new assets to pay fees.
+  // We can reenable this code when that is possible (probably with XCM v5).
+  // const { result: result2 } = await context.createBlock(
+  //   context
+  //     .polkadotJs()
+  //     .tx.sudo.sudo(
+  //       context
+  //         .polkadotJs()
+  //         .tx.assetManager.setAssetUnitsPerSecond(asset, unitsPerSecond, numAssetsWeightHint!)
+  //     ),
+  //   {
+  //     expectEvents: [context.polkadotJs().events.assetManager.UnitsPerSecondChanged],
+  //     allowFailures: false,
+  //   }
+  // );
+
   return {
     registeredAssetId,
-    events: result2!.events,
-    registeredAsset,
+    contractAddress,
+    events: (result as any).events || [],
   };
 }
 

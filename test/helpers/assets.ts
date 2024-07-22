@@ -6,6 +6,7 @@ import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { KeyringPair } from "@polkadot/keyring/types";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
+import { registerForeignAsset } from "./xcm";
 
 export const DUMMY_REVERT_BYTECODE = "0x60006000fd";
 export const RELAY_SOURCE_LOCATION = { Xcm: { parents: 1, interior: "Here" } };
@@ -22,6 +23,7 @@ export const PARA_1001_SOURCE_LOCATION = {
 };
 
 export interface AssetMetadata {
+  id: u128;
   name: string;
   symbol: string;
   decimals: bigint;
@@ -29,6 +31,7 @@ export interface AssetMetadata {
 }
 
 export const relayAssetMetadata: AssetMetadata = {
+  id: 1n,
   name: "DOT",
   symbol: "DOT",
   decimals: 12n,
@@ -41,23 +44,11 @@ export async function mockAssetBalance(
   assetDetails: PalletAssetsAssetDetails,
   sudoAccount: KeyringPair,
   assetId: u128,
-  account: string | AccountId20,
-  is_sufficient = false
+  account: string | AccountId20
 ) {
   const api = context.polkadotJs();
   // Register the asset
-  await context.createBlock(
-    api.tx.sudo
-      .sudo(
-        api.tx.assetManager.registerForeignAsset(
-          RELAY_SOURCE_LOCATION,
-          relayAssetMetadata,
-          new BN(1),
-          is_sufficient
-        )
-      )
-      .signAsync(sudoAccount)
-  );
+  registerForeignAsset(context, RELAY_SOURCE_LOCATION, relayAssetMetadata);
 
   const assets = await api.query.assetManager.assetIdType(assetId);
   // make sure we created it
@@ -91,8 +82,8 @@ export async function mockAssetBalance(
     api.tx.sudo
       .sudo(
         api.tx.system.setStorage([
-          [u8aToHex(overallAccountKey), u8aToHex(assetBalance.toU8a())],
-          [u8aToHex(overallAssetKey), u8aToHex(assetDetails.toU8a())],
+          [u8aToHex(overallAccountKey), u8aToHex((assetBalance as any).toU8a())],
+          [u8aToHex(overallAssetKey), u8aToHex((assetBalance as any).toU8a())],
           [
             evmCodeAssetKey,
             `0x${((DUMMY_REVERT_BYTECODE.length - 2) * 2)
