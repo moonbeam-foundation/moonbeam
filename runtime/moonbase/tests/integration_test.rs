@@ -1556,7 +1556,6 @@ fn xtokens_precompiles_transfer() {
 			let inside = Rc::new(Cell::new(false));
 			let inside2 = inside.clone();
 
-
 			// We use the address of the asset as an identifier of the asset we want to transfer
 			Precompiles::new()
 				.prepare_test(
