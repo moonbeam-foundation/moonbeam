@@ -1514,7 +1514,6 @@ fn xcm_asset_erc20_precompiles_approve() {
 }*/
 
 #[test]
-#[ignore]
 fn xtokens_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
@@ -1571,7 +1570,6 @@ fn xtokens_precompiles_transfer() {
 }
 
 #[test]
-#[ignore]
 fn xtokens_precompiles_transfer_multiasset() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
@@ -1975,7 +1973,6 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 }
 
 #[test]
-#[ignore]
 fn root_can_change_default_xcm_vers() {
 	ExtBuilder::default()
 		.with_balances(vec![

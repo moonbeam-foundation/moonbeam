@@ -158,8 +158,8 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 // We use all transactors
 pub type AssetTransactors = (
 	LocalAssetTransactor,
-	Erc20XcmBridge,
 	ForeignFungiblesTransactor,
+	Erc20XcmBridge,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
