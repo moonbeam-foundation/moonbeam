@@ -271,7 +271,7 @@ pub mod pallet {
 			asset_id: AssetId,
 			xcm_location: Location,
 			decimals: u8,
-			ticker: BoundedVec<u8, ConstU32<256>>,
+			symbol: BoundedVec<u8, ConstU32<256>>,
 			name: BoundedVec<u8, ConstU32<256>>,
 		) -> DispatchResult {
 			T::ForeignAssetCreatorOrigin::ensure_origin(origin)?;
@@ -297,10 +297,10 @@ pub mod pallet {
 				Error::<T>::AssetIdFiltered
 			);
 
-			let ticker = core::str::from_utf8(&ticker).map_err(|_| Error::<T>::InvalidTicker)?;
+			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidTicker)?;
 			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
 
-			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, ticker, name)?;
+			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
 
 			// Insert the association assetId->foreigAsset
 			// Insert the association foreigAsset->assetId

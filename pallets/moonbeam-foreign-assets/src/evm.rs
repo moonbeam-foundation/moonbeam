@@ -84,7 +84,7 @@ impl From<EvmError> for XcmError {
 struct ForeignErc20ConstructorArgs {
 	owner: Address,
 	decimals: u8,
-	ticker: BoundedString<ConstU32<64>>,
+	symbol: BoundedString<ConstU32<64>>,
 	token_name: BoundedString<ConstU32<256>>,
 }
 
@@ -95,7 +95,7 @@ impl<T: crate::Config> EvmCaller<T> {
 	pub(crate) fn erc20_create(
 		asset_id: AssetId,
 		decimals: u8,
-		ticker: &str,
+		symbol: &str,
 		token_name: &str,
 	) -> Result<H160, Error<T>> {
 		// Get init code
@@ -106,7 +106,7 @@ impl<T: crate::Config> EvmCaller<T> {
 		let args = ForeignErc20ConstructorArgs {
 			owner: Pallet::<T>::account_id().into(),
 			decimals,
-			ticker: ticker.into(),
+			symbol: symbol.into(),
 			token_name: token_name.into(),
 		};
 		let encoded_args = precompile_utils::solidity::codec::Writer::new()

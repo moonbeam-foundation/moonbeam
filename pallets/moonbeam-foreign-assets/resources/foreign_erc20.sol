@@ -12,9 +12,9 @@ contract MyToken is ERC20, ERC20Pausable, Ownable, ERC20Permit {
     constructor(
         address initialOwner,
         uint8 tokenDecimals,
-        string memory ticker,
+        string memory symbol,
         string memory tokenName
-    ) ERC20(tokenName, ticker) Ownable(initialOwner) ERC20Permit(tokenName) {
+    ) ERC20(tokenName, symbol) Ownable(initialOwner) ERC20Permit(tokenName) {
         _decimals = tokenDecimals;
     }
 
@@ -46,23 +46,19 @@ contract MyToken is ERC20, ERC20Pausable, Ownable, ERC20Permit {
 
     // override ERC20 methods that should be disabled when the asset is "paused"
 
-    function approve(address spender, uint256 value)
-        public
-        override(ERC20)
-        whenNotPaused
-        returns (bool)
-    {
+    function approve(
+        address spender,
+        uint256 value
+    ) public override(ERC20) whenNotPaused returns (bool) {
         address owner = _msgSender();
         _approve(owner, spender, value);
         return true;
     }
 
-    function transfer(address to, uint256 value)
-        public
-        override(ERC20)
-        whenNotPaused
-        returns (bool)
-    {
+    function transfer(
+        address to,
+        uint256 value
+    ) public override(ERC20) whenNotPaused returns (bool) {
         address owner = _msgSender();
         _transfer(owner, to, value);
         return true;
