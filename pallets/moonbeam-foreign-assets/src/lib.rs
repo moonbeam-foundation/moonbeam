@@ -73,15 +73,6 @@ impl<ForeignAsset> ForeignAssetCreatedHook<ForeignAsset> for () {
 	fn on_asset_created(_foreign_asset: &ForeignAsset, _asset_id: &AssetId) {}
 }
 
-/// Trait for the OnForeignAssetDeregistered hook
-pub trait ForeignAssetDestroyedHook<ForeignAsset> {
-	fn on_asset_destroyed(foreign_asset: &ForeignAsset, asset_id: &AssetId);
-}
-
-impl<ForeignAsset> ForeignAssetDestroyedHook<ForeignAsset> for () {
-	fn on_asset_destroyed(_foreign_asset: &ForeignAsset, _asset_id: &AssetId) {}
-}
-
 pub(crate) struct ForeignAssetsMatcher<T>(core::marker::PhantomData<T>);
 
 impl<T: crate::Config> ForeignAssetsMatcher<T> {
@@ -181,7 +172,7 @@ pub mod pallet {
 		AssetIdFiltered,
 		AssetNotFrozen,
 		CorruptedStorageOrphanLocation,
-		Erc20ContractCallFail,
+		//Erc20ContractCallFail,
 		Erc20ContractCreationFail,
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
@@ -202,14 +193,9 @@ pub mod pallet {
 			xcm_location: Location,
 		},
 		/// Changed the xcm type mapping for a given asset id
-		ForeignAssetTypeChanged {
+		ForeignAssetXcmLocationChanged {
 			asset_id: AssetId,
 			new_xcm_location: Location,
-		},
-		/// Removed all information related to an assetId
-		ForeignAssetRemoved {
-			asset_id: AssetId,
-			xcm_location: Location,
 		},
 		// Freezes all tokens of a given asset id
 		ForeignAssetFrozen {
@@ -218,11 +204,6 @@ pub mod pallet {
 		},
 		// Thawing a previously frozen asset
 		ForeignAssetUnfrozen {
-			asset_id: AssetId,
-			xcm_location: Location,
-		},
-		/// Removed all information related to an assetId and destroyed asset
-		ForeignAssetDestroyed {
 			asset_id: AssetId,
 			xcm_location: Location,
 		},
@@ -340,8 +321,8 @@ pub mod pallet {
 		/// We also change this if the previous units per second where pointing at the old
 		/// assetType
 		#[pallet::call_index(1)]
-		#[pallet::weight(<T as Config>::WeightInfo::change_existing_asset_type())]
-		pub fn change_existing_asset_type(
+		#[pallet::weight(<T as Config>::WeightInfo::change_xcm_location())]
+		pub fn change_xcm_location(
 			origin: OriginFor<T>,
 			asset_id: AssetId,
 			new_xcm_location: Location,
@@ -359,7 +340,7 @@ pub mod pallet {
 			AssetsById::<T>::insert(&asset_id, &new_xcm_location);
 			AssetsByLocation::<T>::insert(&new_xcm_location, (asset_id, asset_status));
 
-			Self::deposit_event(Event::ForeignAssetTypeChanged {
+			Self::deposit_event(Event::ForeignAssetXcmLocationChanged {
 				asset_id,
 				new_xcm_location,
 			});
