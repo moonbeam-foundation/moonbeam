@@ -175,6 +175,10 @@ const CORRUPTED_REFERENDA: &'static [(i32, &str, &str, &str)] = &[
 	),
 ];
 
+const INVALID_STORAGE_KEY: &[u8] = b"invalid_storage_key";
+const INVALID_VALUE_BEFORE: &[u8] = b"invalid_storage_before";
+const INVALID_VALUE_AFTER: &[u8] = b"invalid_value_after";
+
 pub struct PalletReferendaRestoreDeposits;
 impl Migration for PalletReferendaRestoreDeposits {
 	fn friendly_name(&self) -> &str {
@@ -188,6 +192,8 @@ impl Migration for PalletReferendaRestoreDeposits {
 		// track reads and writes
 		let mut num_reads = 0;
 		let mut num_writes = 0;
+		// track the data that will be used to update the storage
+		let mut migration_data: Vec<(i32, Vec<u8>, Vec<u8>)> = Vec::new();
 
 		// compute the complete hash of the expected state (the corrupted one)
 		// compute the complete hash of the current state
@@ -195,40 +201,40 @@ impl Migration for PalletReferendaRestoreDeposits {
 		// NOTE: the referenda in the corrupted state are long closed so they cannot be updated anymore,
 		// if the migration runs successfully once, the state will never match the corrupted state,
 		// this ensures idempotence of the changes
-		for (ref_index, ref_storage_key, wrong_storage_value, correct_storage_value) in
+		for (ref_index, ref_storage_key, storage_value_before, storage_value_after) in
 			CORRUPTED_REFERENDA
 		{
-			let k = from_hex(ref_storage_key);
-			if k.is_err() {
-				log::error!("cannot deserialize storage key {:?}", k.err());
-				return <Runtime as frame_system::Config>::DbWeight::get().reads(num_reads);
-			}
-			let v = from_hex(wrong_storage_value);
-			if v.is_err() {
-				log::error!("cannot deserialize storage value (1) {:?}", v.err());
-				return <Runtime as frame_system::Config>::DbWeight::get().reads(num_reads);
-			}
+			let key = from_hex(ref_storage_key).unwrap_or_else(|_| {
+				log::error!("cannot deserialize from_hex(ref_storage_key)");
+				INVALID_STORAGE_KEY.to_vec()
+			});
+
+			let value_before = from_hex(storage_value_before).unwrap_or_else(|_| {
+				log::error!("cannot deserialize from_hex(storage_value_before)");
+				INVALID_VALUE_BEFORE.to_vec()
+			});
+
 			// validate also the data that will be written later
-			let v1 = from_hex(correct_storage_value);
-			if v1.is_err() {
-				log::error!("cannot deserialize storage value (2) {:?}", v1.err());
+			let value_after = from_hex(storage_value_after).unwrap_or(INVALID_VALUE_AFTER.to_vec());
+			if value_after == INVALID_VALUE_AFTER {
+				log::error!("cannot deserialize from_hex(storage_value_after)");
 				return <Runtime as frame_system::Config>::DbWeight::get().reads(num_reads);
 			}
 
-			let key = k.unwrap();
-			let value = v.unwrap();
+			// record the migration data
+			migration_data.push((*ref_index, key.clone(), value_after));
 
-			let data = [expected_hash, key.clone(), value].concat();
+			let data = [expected_hash, key.clone(), value_before].concat();
 			expected_hash = frame_support::Blake2_256::hash(&data).to_vec();
 
-			let current_storage = get_raw(&key);
+			let value_current = get_raw(&key);
 			num_reads += 1;
-			if current_storage.is_none() {
+			if value_current.is_none() {
 				log::error!("storage for referenda {:?} not found", ref_index);
 				return <Runtime as frame_system::Config>::DbWeight::get().reads(num_reads);
 			}
 
-			let data = [actual_hash, key, current_storage.unwrap()].concat();
+			let data = [actual_hash, key, value_current.unwrap()].concat();
 			actual_hash = frame_support::Blake2_256::hash(&data).to_vec();
 		}
 
@@ -250,12 +256,9 @@ impl Migration for PalletReferendaRestoreDeposits {
 		);
 
 		// update the storage
-		for (ref_index, ref_storage_key, _, correct_storage_value) in CORRUPTED_REFERENDA {
-			// we can safely unwrap as we already check for correctness before
-			let k = from_hex(ref_storage_key).unwrap();
-			let v = from_hex(correct_storage_value).unwrap();
+		for (ref_index, ref_storage_key, storage_value_after) in migration_data {
 			log::info!("restoring deposits for referenda {}", ref_index);
-			put_raw(&k, &v);
+			put_raw(&ref_storage_key, &storage_value_after);
 			num_writes += 1;
 		}
 		<Runtime as frame_system::Config>::DbWeight::get().reads_writes(num_reads, num_writes)
