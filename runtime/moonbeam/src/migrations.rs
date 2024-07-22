@@ -235,7 +235,8 @@ impl Migration for PalletReferendaRestoreDeposits {
 		if expected_hash != actual_hash {
 			// the migration was already executed, track the reads
 			log::warn!(
-				"expected partial state hash {:?} doesn't match actual {:x?}, has the migration been already applied?",
+				"expected partial state hash {:?} doesn't match actual {:x?}, \
+				has the migration been already applied?",
 				sp_core::hexdisplay::HexDisplay::from(&expected_hash),
 				sp_core::hexdisplay::HexDisplay::from(&actual_hash),
 			);
