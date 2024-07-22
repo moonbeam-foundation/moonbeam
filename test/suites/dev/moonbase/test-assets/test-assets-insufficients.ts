@@ -35,15 +35,7 @@ describeSuite({
         minBalance: 1,
       });
 
-      await mockAssetBalance(
-        context,
-        assetBalance,
-        assetDetails,
-        alith,
-        assetId,
-        ALITH_ADDRESS,
-        false
-      );
+      await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, ALITH_ADDRESS);
 
       await context.createBlock();
       const alithBalance = await api.query.assets.account(assetId.toU8a(), ALITH_ADDRESS);
