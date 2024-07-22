@@ -1,0 +1,26 @@
+[package]
+name = "pallet-evm-precompile-p256verify"
+authors = { workspace = true }
+description = "secp256r1 elliptic curve precompile for EVM pallet."
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+p256 = { workspace = true }
+
+# Frontier
+fp-evm = { workspace = true }
+
+frame-support = { workspace = true }
+
+[dev-dependencies]
+precompile-utils = { workspace = true, features = ["std", "testing"] }
+hex-literal = { workspace = true }
+
+[features]
+default = ["std"]
+std = [
+	# Frontier
+	"fp-evm/std",
+	"frame-support/std",
+]

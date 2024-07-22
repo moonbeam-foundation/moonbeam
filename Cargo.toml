@@ -37,6 +37,7 @@ members = [
 	"precompiles/relay-data-verifier",
 	"precompiles/xcm-transactor",
 	"precompiles/xtokens",
+	"precompiles/p256verify",
 	"primitives/storage-proof",
 	"runtime/moonbase",
 	"runtime/moonbeam",
@@ -99,6 +100,7 @@ pallet-evm-precompile-relay-verifier = { path = "precompiles/relay-data-verifier
 pallet-evm-precompile-xcm-transactor = { path = "precompiles/xcm-transactor", default-features = false }
 pallet-evm-precompile-xcm-utils = { path = "precompiles/xcm-utils", default-features = false }
 pallet-evm-precompile-xtokens = { path = "precompiles/xtokens", default-features = false }
+pallet-evm-precompile-p256verify = { path = "precompiles/p256verify", default-features = false }
 pallet-evm-precompileset-assets-erc20 = { path = "precompiles/assets-erc20", default-features = false }
 pallet-moonbeam-orbiters = { path = "pallets/moonbeam-orbiters", default-features = false }
 pallet-parachain-staking = { path = "pallets/parachain-staking", default-features = false }
@@ -372,6 +374,9 @@ slices = "0.2.0"
 smallvec = "1.8.0"
 strum = { version = "0.24", default-features = false, features = ["derive"] }
 strum_macros = "0.24"
+p256 = { version = "0.13.2", default-features = false, features = [
+	"ecdsa",
+] }
 
 # Other (client)
 
