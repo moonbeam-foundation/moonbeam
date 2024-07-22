@@ -39,11 +39,28 @@ use frame_support::{
 use moonbase_runtime::{
 	//asset_config::ForeignAssetInstance,
 	xcm_config::{AssetType, SelfReserve},
-	AccountId, AssetId, Balances, CrowdloanRewards, EvmForeignAssets, Executive,
-	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
-	TransactionPaymentAsGasPrice, TreasuryCouncilCollective, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	AccountId,
+	AssetId,
+	Balances,
+	CrowdloanRewards,
+	EvmForeignAssets,
+	Executive,
+	OpenTechCommitteeCollective,
+	ParachainStaking,
+	PolkadotXcm,
+	Precompiles,
+	Runtime,
+	RuntimeBlockWeights,
+	RuntimeCall,
+	RuntimeEvent,
+	System,
+	TransactionPayment,
+	TransactionPaymentAsGasPrice,
+	TreasuryCouncilCollective,
+	XTokens,
+	XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	WEEKS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -2546,7 +2563,7 @@ fn precompile_existence() {
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 256, 1024, 1025, 1026, 1027, 2048, 2049, 2050, 2051, 2052,
 			2053, 2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066,
-			2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075
+			2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
