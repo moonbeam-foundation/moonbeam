@@ -17,7 +17,6 @@ use crate::encoded_receipt::encoded_example_receipt;
 use crate::mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime};
 use crate::*;
 use precompile_utils::testing::*;
-use sp_runtime::Perbill;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -29,6 +28,7 @@ fn test_mocked_verification() {
 		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
+			crate::storage::ImageId::set(Some(JWT_VALIDATOR_ID));
 			let receipt = encoded_example_receipt();
 
 			precompiles()

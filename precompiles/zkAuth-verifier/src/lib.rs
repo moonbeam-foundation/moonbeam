@@ -47,9 +47,40 @@ where
 		let receipt: risc0_zkvm::Receipt = postcard::from_bytes(&receipt)
 			.map_err(|_| RevertReason::Custom("Receipt decoding failed".into()))?;
 
+		let image_id = storage::ImageId::get().ok_or(RevertReason::custom("no ImageId stored"))?;
+
 		receipt
-			.verify(JWT_VALIDATOR_ID)
+			.verify(image_id)
 			.map_err(|_| RevertReason::Custom("Error verifying receipt".into()))?;
 		Ok(())
 	}
+}
+
+/// TODO: check if we really need this to be dynamic.
+///
+/// We need to store the ImageId so that we can dynamically change the guest program
+/// to verify.
+///
+/// We implement a StorageInstance for it.
+///
+/// Calculated with -> sp_io::hashing::twox_128(b"zkAuth");
+///
+/// twox_128("zkAuth") => 0x74d1fb05c68193c306242692e7d1ac45
+/// twox_128("ImageId") => 0x6312aac1f9ae01d96b2d8690d6a04689
+mod storage {
+	use frame_support::{
+		storage::types::{OptionQuery, StorageValue},
+		traits::StorageInstance,
+	};
+
+	pub struct ImageIdStorageInstance;
+	impl StorageInstance for ImageIdStorageInstance {
+		const STORAGE_PREFIX: &'static str = "ImageId";
+		fn pallet_prefix() -> &'static str {
+			"zkAuth"
+		}
+	}
+
+	// TODO: is it better to store a BoundedVec<u32, ConstU32<8>>?
+	pub type ImageId = StorageValue<ImageIdStorageInstance, [u32; 8], OptionQuery>;
 }
