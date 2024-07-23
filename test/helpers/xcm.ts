@@ -4,6 +4,7 @@ import { u128 } from "@polkadot/types";
 import { XcmpMessageFormat } from "@polkadot/types/interfaces";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
+  StagingXcmV4Location,
   XcmV3JunctionNetworkId,
   XcmVersionedXcm,
 } from "@polkadot/types/lookup";
@@ -76,17 +77,17 @@ export function mockHrmpChannelExistanceTx(
 
 export async function registerForeignAsset(
   context: DevModeContext,
-  asset: any,
-  assetMetadata: AssetMetadata
+  xcmLocation: any,
+  metadata: AssetMetadata
 ) {
-  const { id, decimals, name, symbol } = assetMetadata;
+  const { id, decimals, name, symbol } = metadata;
   const { result } = await context.createBlock(
     context
       .polkadotJs()
       .tx.sudo.sudo(
         context
           .polkadotJs()
-          .tx.evmForeignAssets.createForeignAsset(id, asset, decimals, symbol, name)
+          .tx.evmForeignAssets.createForeignAsset(id, xcmLocation, decimals, symbol, name)
       )
   );
 
@@ -95,8 +96,9 @@ export async function registerForeignAsset(
     ({ event: { method } }) => method.toString() === "ForeignAssetCreated"
   )!.event;
 
-  const contractAddress: string = event.data[0];
-  const registeredAssetId: u128 = event.data[1].toString();
+  const contractAddress = event.data[0].toHuman().toString();
+  const registeredAssetLocation = event.data[2].toString();
+  const registeredAssetId = event.data[1].toString();
 
   // New foreign assets design doesn't allow for new assets to pay fees.
   // We can reenable this code when that is possible (probably with XCM v5).
@@ -117,6 +119,7 @@ export async function registerForeignAsset(
   return {
     registeredAssetId,
     contractAddress,
+    registeredAssetLocation,
     events: (result as any).events || [],
   };
 }
