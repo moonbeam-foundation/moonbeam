@@ -177,7 +177,7 @@ pub mod pallet {
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
 		EvmInternalError,
-		InvalidTicker,
+		InvalidSymbol,
 		InvalidTokenName,
 		LocationAlreadyExists,
 		TooManyForeignAssets,
@@ -297,7 +297,7 @@ pub mod pallet {
 				Error::<T>::AssetIdFiltered
 			);
 
-			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidTicker)?;
+			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidSymbol)?;
 			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
 
 			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;

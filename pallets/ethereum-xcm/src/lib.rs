@@ -104,7 +104,7 @@ pub mod pallet {
 		type EnsureProxy: EnsureProxy<Self::AccountId>;
 		/// The origin that is allowed to resume or suspend the XCM to Ethereum executions.
 		type ControllerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
-		/// An origin that can submit a create tx typenb
+		/// An origin that can submit a create tx type
 		type ForceOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 	}
 
@@ -241,7 +241,7 @@ pub mod pallet {
 					EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
 					EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
 				}
-			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(2))
+			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(1))
 		})]
 		pub fn force_transact_as(
 			origin: OriginFor<T>,

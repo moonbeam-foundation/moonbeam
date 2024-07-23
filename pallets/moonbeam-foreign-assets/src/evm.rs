@@ -135,8 +135,6 @@ impl<T: crate::Config> EvmCaller<T> {
 		)
 		.map_err(|_| Error::Erc20ContractCreationFail)?;
 
-		//println!("exec_info: {:?}", &exec_info);
-
 		ensure!(
 			matches!(
 				exec_info.exit_reason,
