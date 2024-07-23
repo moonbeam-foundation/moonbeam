@@ -19,7 +19,6 @@
 use crate::Balances;
 use crate::Runtime;
 use frame_support::{
-	ensure,
 	storage::unhashed::{get_raw, put_raw},
 	traits::ReservableCurrency,
 	weights::Weight,
@@ -302,7 +301,7 @@ impl Migration for PalletReferendaRestoreDeposits {
 				sp_runtime::DispatchError::Other("pre_upgrade: cannot decode get_raw(&key)")
 			})?;
 
-			ensure!(
+			frame_support::ensure!(
 				val_expected == val_got,
 				"pre_upgrade: unexpected storage value"
 			);
@@ -335,7 +334,7 @@ impl Migration for PalletReferendaRestoreDeposits {
 				sp_runtime::DispatchError::Other("post_upgrade: cannot read get_raw(&key)")
 			})?;
 
-			ensure!(
+			frame_support::ensure!(
 				val_expected == val_got,
 				"post_upgrade: unexpected storage value"
 			);
@@ -359,7 +358,7 @@ impl Migration for PalletReferendaRestoreDeposits {
 			reserved_before - reserved_after,
 		);
 
-		ensure!(
+		frame_support::ensure!(
 			(reserved_after + LOCAL_ASSET_RESERVED_AMOUNT) - reserved_before == 0,
 			"Reserve not matching"
 		);
