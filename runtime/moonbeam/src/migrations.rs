@@ -17,14 +17,15 @@
 //! # Moonbeam specific Migrations
 
 use crate::Runtime;
-use frame_support::{
-	storage::unhashed::{get_raw, put_raw},
-	weights::Weight,
-	StorageHasher,
-};
+use frame_support::{storage::unhashed::{get_raw, put_raw}, weights::Weight, StorageHasher, ensure};
+use frame_system::AccountInfo;
+use pallet_balances::AccountData;
 use pallet_migrations::{GetMigrations, Migration};
 use sp_core::bytes::from_hex;
 use sp_std::{prelude::*, vec};
+use sp_core::hex2array;
+use moonbeam_core_primitives::{Balance, Index};
+use parity_scale_codec::{Decode, Encode};
 
 pub struct MoonbeamMigrations;
 
@@ -179,6 +180,10 @@ const INVALID_STORAGE_KEY: &[u8] = b"invalid_storage_key";
 const INVALID_VALUE_BEFORE: &[u8] = b"invalid_storage_before";
 const INVALID_VALUE_AFTER: &[u8] = b"invalid_value_after";
 
+// account and amount to unreserve
+const ACCOUNT_WITH_RESERVES: [u8; 20] = hex2array!("3fdb68f3a7f614f0f955343b63e2388fa19cd924");
+const RESERVES_AMOUNT: u128 = 10_010_850_000_000_000_000_000;
+
 pub struct PalletReferendaRestoreDeposits;
 impl Migration for PalletReferendaRestoreDeposits {
 	fn friendly_name(&self) -> &str {
@@ -261,6 +266,21 @@ impl Migration for PalletReferendaRestoreDeposits {
 			put_raw(&ref_storage_key, &storage_value_after);
 			num_writes += 1;
 		}
+
+
+		// unlock poopmaster reserves
+		// let mut account_with_reserves_bytes: &mut [u8] = &[..];
+		let account_with_reserves = <Runtime as frame_system::Config>::AccountId::from(ACCOUNT_WITH_RESERVES);
+		frame_system::Account::<Runtime>::mutate(account_with_reserves, |account| {
+			log::info!("mutate: Current reserve: {}", account.data.reserved);
+			account.data.reserved = account.data.reserved.saturating_sub(RESERVES_AMOUNT);
+			log::info!("mutate: New reserve: {}", account.data.reserved);
+		});
+
+		// track the read/write
+		num_reads += 1;
+		num_writes += 1;
+
 		<Runtime as frame_system::Config>::DbWeight::get().reads_writes(num_reads, num_writes)
 	}
 
@@ -289,11 +309,15 @@ impl Migration for PalletReferendaRestoreDeposits {
 				));
 			}
 		}
-		Ok(sp_std::vec::Vec::new())
+		let account_with_reserves = <Runtime as frame_system::Config>::AccountId::from(ACCOUNT_WITH_RESERVES);
+		let account_info_before = frame_system::Account::<Runtime>::get(account_with_reserves);
+
+		// Returning the account info before changing the reserve value
+		Ok(account_info_before.encode())
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, _state_before: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+	fn post_upgrade(&self, state_before: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
 		// check that the state is the one expected before runtime
 		for (ref_num, ref_storage_key, _, correct_storage_value) in CORRUPTED_REFERENDA {
 			let key = from_hex(ref_storage_key).map_err(|_| {
@@ -317,6 +341,23 @@ impl Migration for PalletReferendaRestoreDeposits {
 			}
 			log::info!("referenda {} updated correctly", ref_num);
 		}
+		let account_with_reserves = <Runtime as frame_system::Config>::AccountId::from(ACCOUNT_WITH_RESERVES);
+		let reserve_after = frame_system::Account::<Runtime>::get(account_with_reserves)
+			.data
+			.reserved;
+
+		let mut state_before = state_before;
+		let reserve_before = AccountInfo::<Index, pallet_balances::AccountData<Balance>>::decode(&mut state_before.as_slice())
+			.expect("Cannot decode AccountInfo from state_before")
+			.data
+			.reserved;
+
+		let reserve_differance = reserve_before - reserve_after;
+
+		log::info!("Account with reserve: {:?}", account_with_reserves);
+		log::info!("reserve before {} reserve after {}", reserve_before, reserve_after);
+		ensure!(reserve_differance == RESERVES_AMOUNT, "The reserve_differance doesn't match RESERVES_AMOUNT");
+
 		Ok(())
 	}
 }
