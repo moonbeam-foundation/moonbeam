@@ -193,7 +193,7 @@ fn test_root_can_change_foreign_asset_for_asset_id() {
 				asset_id: 1,
 				xcm_location: Location::parent(),
 			},
-			crate::Event::ForeignAssetTypeChanged {
+			crate::Event::ForeignAssetXcmLocationChanged {
 				asset_id: 1,
 				new_xcm_location: Location::here(),
 			},
