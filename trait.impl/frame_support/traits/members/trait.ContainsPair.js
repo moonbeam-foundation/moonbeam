@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"xcm_primitives":[["impl&lt;Origin&gt; ContainsPair&lt;Asset, Location&gt; for <a class=\"struct\" href=\"xcm_primitives/struct.IsBridgedConcreteAssetFrom.html\" title=\"struct xcm_primitives::IsBridgedConcreteAssetFrom\">IsBridgedConcreteAssetFrom</a>&lt;Origin&gt;<div class=\"where\">where\n    Origin: Get&lt;Location&gt;,</div>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

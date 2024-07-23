@@ -740,6 +740,28 @@
 <a href="#738" id="738">738</a>
 <a href="#739" id="739">739</a>
 <a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -783,7 +805,7 @@
 <span class="kw">use </span>sp_weights::Weight;
 <span class="kw">use </span>xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
+	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
 	EnsureXcmOrigin, FungibleAdapter <span class="kw">as </span>XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
 	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
@@ -793,16 +815,18 @@
 <span class="kw">use </span>parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 
 <span class="kw">use </span>xcm::latest::prelude::{
-	Asset, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId, PalletInstance,
-	Parachain,
+	AllOf, Asset, AssetFilter, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId,
+	PalletInstance, Parachain, Wild, WildFungible,
 };
+
 <span class="kw">use </span>xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 <span class="kw">use </span>cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 <span class="kw">use </span>orml_xcm_support::MultiNativeAsset;
 <span class="kw">use </span>xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
-	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	FirstAssetTrader, IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
+	UtilityEncodeCall, XcmTransact,
 };
 
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
@@ -1007,8 +1031,28 @@
 }
 
 <span class="macro">parameter_types! </span>{
+	<span class="doccomment">/// Location of Asset Hub
+	</span><span class="kw">pub </span>AssetHubLocation: Location = Location::new(<span class="number">1</span>, [Parachain(<span class="number">1001</span>)]);
+	<span class="kw">pub const </span>RelayLocation: Location = Location::parent();
+	<span class="kw">pub </span>RelayLocationFilter: AssetFilter = Wild(AllOf {
+		fun: WildFungible,
+		id: xcm::prelude::AssetId(RelayLocation::get()),
+	});
+	<span class="kw">pub </span>RelayChainNativeAssetFromAssetHub: (AssetFilter, Location) = (
+		RelayLocationFilter::get(),
+		AssetHubLocation::get()
+	);
 	<span class="kw">pub const </span>MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
+
+<span class="kw">type </span>Reserves = (
+	<span class="comment">// Assets bridged from different consensus systems held in reserve on Asset Hub.
+	</span>IsBridgedConcreteAssetFrom&lt;AssetHubLocation&gt;,
+	<span class="comment">// Relaychain (DOT) from Asset Hub
+	</span>Case&lt;RelayChainNativeAssetFromAssetHub&gt;,
+	<span class="comment">// Assets which the reserve is the same as the origin.
+	</span>MultiNativeAsset&lt;AbsoluteAndRelativeReserve&lt;SelfLocationAbsolute&gt;&gt;,
+);
 
 <span class="kw">pub struct </span>XcmExecutorConfig;
 <span class="kw">impl </span>xcm_executor::Config <span class="kw">for </span>XcmExecutorConfig {
@@ -1020,7 +1064,7 @@
 	<span class="comment">// Filter to the reserve withdraw operations
 	// Whenever the reserve matches the relative or absolute value
 	// of our chain, we always return the relative reserve
-	</span><span class="kw">type </span>IsReserve = MultiNativeAsset&lt;AbsoluteAndRelativeReserve&lt;SelfLocationAbsolute&gt;&gt;;
+	</span><span class="kw">type </span>IsReserve = Reserves;
 	<span class="kw">type </span>IsTeleporter = (); <span class="comment">// No teleport
 	</span><span class="kw">type </span>UniversalLocation = UniversalLocation;
 	<span class="kw">type </span>Barrier = XcmBarrier;
