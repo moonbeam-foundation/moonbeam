@@ -147,7 +147,7 @@ fn test_regular_user_cannot_call_extrinsics() {
 		);
 
 		assert_noop!(
-			EvmForeignAssets::change_existing_asset_type(
+			EvmForeignAssets::change_xcm_location(
 				RuntimeOrigin::signed(Bob.into()),
 				1,
 				Location::parent()
@@ -169,7 +169,7 @@ fn test_root_can_change_foreign_asset_for_asset_id() {
 			encode_token_name("Mytoken"),
 		));
 
-		assert_ok!(EvmForeignAssets::change_existing_asset_type(
+		assert_ok!(EvmForeignAssets::change_xcm_location(
 			RuntimeOrigin::root(),
 			1,
 			Location::here()
@@ -205,11 +205,7 @@ fn test_root_can_change_foreign_asset_for_asset_id() {
 fn test_asset_id_non_existent_error() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			EvmForeignAssets::change_existing_asset_type(
-				RuntimeOrigin::root(),
-				1,
-				Location::parent()
-			),
+			EvmForeignAssets::change_xcm_location(RuntimeOrigin::root(), 1, Location::parent()),
 			Error::<Test>::AssetDoesNotExist
 		);
 	});

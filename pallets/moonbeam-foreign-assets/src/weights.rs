@@ -52,7 +52,7 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for pallet_foreign_asset_creator.
 pub trait WeightInfo {
 	fn create_foreign_asset() -> Weight;
-	fn change_existing_asset_type() -> Weight;
+	fn change_xcm_location() -> Weight;
 	fn freeze_foreign_asset() -> Weight;
 	fn unfreeze_foreign_asset() -> Weight;
 }
@@ -79,7 +79,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Proof: `ForeignAssetsCreator::AssetIdToForeignAsset` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ForeignAssetsCreator::ForeignAssetToAssetId` (r:0 w:2)
 	/// Proof: `ForeignAssetsCreator::ForeignAssetToAssetId` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	fn change_existing_asset_type() -> Weight {
+	fn change_xcm_location() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `189`
 		//  Estimated: `3654`
@@ -139,7 +139,7 @@ impl WeightInfo for () {
 	/// Proof: `ForeignAssetsCreator::AssetIdToForeignAsset` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ForeignAssetsCreator::ForeignAssetToAssetId` (r:0 w:2)
 	/// Proof: `ForeignAssetsCreator::ForeignAssetToAssetId` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	fn change_existing_asset_type() -> Weight {
+	fn change_xcm_location() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `189`
 		//  Estimated: `3654`

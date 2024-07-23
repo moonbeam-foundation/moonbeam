@@ -62,7 +62,7 @@ benchmarks! {
 	}
 
 	// Worst case scenario: MaxForeignAssets already exists
-	change_existing_asset_type {
+	change_xcm_location {
 		create_n_foreign_asset::<T>(T::MaxForeignAssets::get())?;
 	}: _(RawOrigin::Root, 1, Location::here())
 	verify {

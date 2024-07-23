@@ -38,7 +38,7 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	//asset_config::ForeignAssetInstance,
-	xcm_config::{AssetType, SelfReserve},
+	xcm_config::SelfReserve,
 	AccountId,
 	AssetId,
 	Balances,
@@ -85,6 +85,8 @@ use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, H256, U256};
 use sp_runtime::{bounded_vec, DispatchError, ModuleError};
+use std::cell::Cell;
+use std::rc::Rc;
 use xcm::latest::prelude::*;
 
 type AuthorMappingPCall =
@@ -1514,7 +1516,6 @@ fn xcm_asset_erc20_precompiles_approve() {
 }*/
 
 #[test]
-#[ignore]
 fn xtokens_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
@@ -1535,7 +1536,7 @@ fn xtokens_precompiles_transfer() {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
 
 			// We have the assetId that corresponds to the relay chain registered
-			let relay_asset_id: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
+			let relay_asset_id: AssetId = 1;
 
 			// Its address is
 			let asset_precompile_address = Runtime::asset_id_to_account(
@@ -1552,6 +1553,9 @@ fn xtokens_precompiles_transfer() {
 				}],
 			);
 
+			let inside = Rc::new(Cell::new(false));
+			let inside2 = inside.clone();
+
 			// We use the address of the asset as an identifier of the asset we want to transfer
 			Precompiles::new()
 				.prepare_test(
@@ -1564,14 +1568,52 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(57639)
+				.expect_cost(209239)
 				.expect_no_logs()
+				// We expect an evm subcall ERC20.burnFrom
+				.with_subcall_handle(move |subcall| {
+					let Subcall {
+						address,
+						transfer,
+						input,
+						target_gas: _,
+						is_static,
+						context,
+					} = subcall;
+
+					assert_eq!(context.caller, EvmForeignAssets::account_id().into());
+					assert_eq!(
+						address,
+						[255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1].into()
+					);
+					assert_eq!(is_static, false);
+
+					assert!(transfer.is_none());
+
+					assert_eq!(
+						context.address,
+						[255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1].into()
+					);
+					assert_eq!(context.apparent_value, 0u8.into());
+
+					assert_eq!(&input[..4], &keccak256!("burnFrom(address,uint256)")[..4]);
+					assert_eq!(&input[4..16], &[0u8; 12]);
+					assert_eq!(&input[16..36], ALICE);
+
+					inside2.set(true);
+
+					SubcallOutput {
+						output: Default::default(),
+						cost: 149_000,
+						logs: vec![],
+						..SubcallOutput::succeed()
+					}
+				})
 				.execute_returns(())
 		})
 }
 
 #[test]
-#[ignore]
 fn xtokens_precompiles_transfer_multiasset() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
@@ -1600,6 +1642,9 @@ fn xtokens_precompiles_transfer_multiasset() {
 				}],
 			);
 
+			let inside = Rc::new(Cell::new(false));
+			let inside2 = inside.clone();
+
 			// This time we transfer it through TransferMultiAsset
 			// Instead of the address, we encode directly the multilocation referencing the asset
 			Precompiles::new()
@@ -1614,9 +1659,51 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(57639)
+				.expect_cost(209239)
 				.expect_no_logs()
+				// We expect an evm subcall ERC20.burnFrom
+				.with_subcall_handle(move |subcall| {
+					let Subcall {
+						address,
+						transfer,
+						input,
+						target_gas: _,
+						is_static,
+						context,
+					} = subcall;
+
+					assert_eq!(context.caller, EvmForeignAssets::account_id().into());
+					assert_eq!(
+						address,
+						[255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1].into()
+					);
+					assert_eq!(is_static, false);
+
+					assert!(transfer.is_none());
+
+					assert_eq!(
+						context.address,
+						[255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1].into()
+					);
+					assert_eq!(context.apparent_value, 0u8.into());
+
+					assert_eq!(&input[..4], &keccak256!("burnFrom(address,uint256)")[..4]);
+					assert_eq!(&input[4..16], &[0u8; 12]);
+					assert_eq!(&input[16..36], ALICE);
+
+					inside2.set(true);
+
+					SubcallOutput {
+						output: Default::default(),
+						cost: 149_000,
+						logs: vec![],
+						..SubcallOutput::succeed()
+					}
+				})
 				.execute_returns(());
+
+			// Ensure that the subcall was actually called.
+			assert!(inside.get(), "subcall not called");
 		})
 }
 
@@ -1975,7 +2062,6 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 }
 
 #[test]
-#[ignore]
 fn root_can_change_default_xcm_vers() {
 	ExtBuilder::default()
 		.with_balances(vec![
