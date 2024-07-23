@@ -13,7 +13,7 @@ export const RELAY_SOURCE_LOCATION = { Xcm: { parents: 1, interior: "Here" } };
 export const RELAY_SOURCE_LOCATION2 = { Xcm: { parents: 2, interior: "Here" } };
 export const RELAY_V3_SOURCE_LOCATION = { V3: { parents: 1, interior: "Here" } } as any;
 export const PARA_1000_SOURCE_LOCATION = {
-  Xcm: { parents: 1, interior: { X1: { Parachain: 1000 } } },
+  Xcm: { parents: 1, interior: { X1: [{ Parachain: 1000 }] } },
 };
 export const PARA_2000_SOURCE_LOCATION = {
   Xcm: { parents: 1, interior: { X1: { Parachain: 2000 } } },
@@ -22,8 +22,13 @@ export const PARA_1001_SOURCE_LOCATION = {
   Xcm: { parents: 1, interior: { X1: { Parachain: 1001 } } },
 };
 
+// XCM V4 Locations
+export const RELAY_SOURCE_LOCATION_V4 = { Xcm: { parents: 1, interior: { here: null } } };
+export const PARA_1000_SOURCE_LOCATION_V4 = {
+  Xcm: { parents: 1, interior: { X1: [{ Parachain: 1000 }] } },
+};
 export interface AssetMetadata {
-  id: u128;
+  id: bigint;
   name: string;
   symbol: string;
   decimals: bigint;
