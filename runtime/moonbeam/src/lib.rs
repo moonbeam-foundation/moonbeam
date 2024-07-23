@@ -29,7 +29,9 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use account::AccountId20;
-use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainDataProvider};
+use cumulus_pallet_parachain_system::{
+	RelayChainStateProof, RelayStateProof, RelaychainDataProvider, ValidationData,
+};
 use fp_rpc::TransactionStatus;
 
 use cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
@@ -62,7 +64,10 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::weights as moonbeam_weights;
+use moonbeam_runtime_common::{
+	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
+	weights as moonbeam_weights,
+};
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
@@ -93,6 +98,13 @@ use sp_runtime::{
 	Perquintill, SaturatedConversion,
 };
 use sp_std::{convert::TryFrom, prelude::*};
+use xcm::{
+	v3::{AssetId as XcmAssetId, Location},
+	IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
+};
+use xcm_config::AssetType;
+use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
+use xcm_primitives::UnitsToWeightRatio;
 
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -100,6 +112,7 @@ use sp_version::RuntimeVersion;
 
 use nimbus_primitives::CanAuthor;
 
+mod migrations;
 mod precompiles;
 pub use precompiles::{
 	MoonbeamPrecompiles, PrecompileName, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
@@ -142,10 +155,10 @@ pub mod currency {
 
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
-	.saturating_div(2)
+	.saturating_mul(1)
 	.set_proof_size(relay_chain::MAX_POV_SIZE as u64);
 
-pub const MILLISECS_PER_BLOCK: u64 = 12000;
+pub const MILLISECS_PER_BLOCK: u64 = 6_000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
@@ -178,7 +191,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 3000,
+	spec_version: 3100,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -195,7 +208,7 @@ pub fn native_version() -> NativeVersion {
 }
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(3).saturating_div(4);
+pub const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(3).saturating_div(4);
 // Here we assume Ethereum's base fee of 21000 gas and convert to weight, but we
 // subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
 // and some cost to account for per-byte-fee.
@@ -267,6 +280,11 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = ConstU16<1284>;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type SingleBlockMigrations = ();
+	type MultiBlockMigrator = ();
+	type PreInherents = ();
+	type PostInherents = ();
+	type PostTransactions = ();
 }
 
 impl pallet_utility::Config for Runtime {
@@ -280,8 +298,12 @@ impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
-	type MinimumPeriod = ConstU64<6000>;
+	type MinimumPeriod = ConstU64<3000>;
 	type WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo<Runtime>;
+}
+
+parameter_types! {
+	pub const ExistentialDeposit: Balance = 0;
 }
 
 impl pallet_balances::Config for Runtime {
@@ -293,7 +315,7 @@ impl pallet_balances::Config for Runtime {
 	/// The ubiquitous event type.
 	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
-	type ExistentialDeposit = ConstU128<0>;
+	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ConstU32<0>;
@@ -376,8 +398,8 @@ impl pallet_evm_chain_id::Config for Runtime {}
 
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
-/// Given the 500ms Weight, from which 75% only are used for transactions,
-/// the total EVM execution gas limit is: GAS_PER_SECOND * 0.500 * 0.75 ~= 15_000_000.
+/// Given the 1000ms Weight, from which 75% only are used for transactions,
+/// the total EVM execution gas limit is: GAS_PER_SECOND * 1 * 0.75 ~= 30_000_000.
 pub const GAS_PER_SECOND: u64 = 40_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
@@ -389,7 +411,7 @@ parameter_types! {
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
 	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
 	/// than this will decrease the weight and more will increase.
-	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(50);
+	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(35);
 	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
 	/// change the fees more rapidly. This low value causes changes to occur slowly over time.
 	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(4, 1_000);
@@ -410,9 +432,9 @@ parameter_types! {
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
 	/// We should re-check `xcm_config::Erc20XcmBridgeTransferGasLimit` when changing this value
-	pub const GasLimitPovSizeRatio: u64 = 4;
+	pub const GasLimitPovSizeRatio: u64 = 8;
 	/// The amount of gas per storage (in bytes): BLOCK_GAS_LIMIT / BLOCK_STORAGE_LIMIT
-	/// The current definition of BLOCK_STORAGE_LIMIT is 40 KB, resulting in a value of 366.
+	/// The current definition of BLOCK_STORAGE_LIMIT is 80 KB, resulting in a value of 366.
 	pub GasLimitStorageGrowthRatio: u64 = 366;
 }
 
@@ -503,7 +525,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	type Timestamp = Timestamp;
+	type Timestamp = RelayTimestamp;
 	type WeightInfo = moonbeam_weights::pallet_evm::WeightInfo<Runtime>;
 }
 
@@ -667,6 +689,19 @@ impl pallet_ethereum::Config for Runtime {
 	type ExtraDataLength = ConstU32<30>;
 }
 
+/// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
+/// into the relay chain.
+const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
+/// How many parachain blocks are processed by the relay chain per parent. Limits the
+/// number of blocks authored per slot.
+const BLOCK_PROCESSING_VELOCITY: u32 = 1;
+
+type ConsensusHook = pallet_async_backing::consensus_hook::FixedVelocityConsensusHook<
+	Runtime,
+	BLOCK_PROCESSING_VELOCITY,
+	UNINCLUDED_SEGMENT_CAPACITY,
+>;
+
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
@@ -675,8 +710,9 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
-	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
-	type ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
+	type CheckAssociatedRelayNumber =
+		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+	type ConsensusHook = ConsensusHookWrapperForRelayTimestamp<Runtime, ConsensusHook>;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type WeightInfo = cumulus_pallet_parachain_system::weights::SubstrateWeight<Runtime>;
 }
@@ -767,13 +803,11 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 type MonetaryGovernanceOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
-/// TODO:
-/// Temporary type that we should replace by RelayChainSlotProvider once async backing is enabled.
-pub struct StakingRoundSlotProvider;
-impl Get<Slot> for StakingRoundSlotProvider {
+pub struct RelayChainSlotProvider;
+impl Get<Slot> for RelayChainSlotProvider {
 	fn get() -> Slot {
-		let block_number: u64 = frame_system::pallet::Pallet::<Runtime>::block_number().into();
-		Slot::from(block_number)
+		let slot_info = pallet_async_backing::pallet::Pallet::<Runtime>::slot_info();
+		slot_info.unwrap_or_default().0
 	}
 }
 
@@ -814,11 +848,11 @@ impl pallet_parachain_staking::Config for Runtime {
 	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
 	type OnInactiveCollator = OnInactiveCollator;
 	type OnNewRound = OnNewRound;
-	type SlotProvider = StakingRoundSlotProvider;
+	type SlotProvider = RelayChainSlotProvider;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
-	type SlotDuration = ConstU64<12_000>;
-	type BlockTime = ConstU64<12_000>;
+	type SlotDuration = ConstU64<6_000>;
+	type BlockTime = ConstU64<6_000>;
 }
 
 impl pallet_author_inherent::Config for Runtime {
@@ -834,6 +868,12 @@ impl pallet_author_slot_filter::Config for Runtime {
 	type RandomnessSource = Randomness;
 	type PotentialAuthors = ParachainStaking;
 	type WeightInfo = moonbeam_weights::pallet_author_slot_filter::WeightInfo<Runtime>;
+}
+
+impl pallet_async_backing::Config for Runtime {
+	type AllowMultipleBlocksPerSlot = ConstBool<true>;
+	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
+	type ExpectedBlockTime = ConstU64<6000>;
 }
 
 parameter_types! {
@@ -1102,7 +1142,10 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type MigrationsList = (moonbeam_runtime_common::migrations::CommonMigrations<Runtime>,);
+	type MigrationsList = (
+		moonbeam_runtime_common::migrations::CommonMigrations<Runtime>,
+		migrations::MoonbeamMigrations,
+	);
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
@@ -1236,28 +1279,34 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 }
 
 /// Only callable after `set_validation_data` is called which forms this proof the same way
-fn relay_chain_state_proof() -> RelayChainStateProof {
-	let relay_storage_root = ParachainSystem::validation_data()
+fn relay_chain_state_proof<Runtime>() -> RelayChainStateProof
+where
+	Runtime: cumulus_pallet_parachain_system::Config,
+{
+	let relay_storage_root = ValidationData::<Runtime>::get()
 		.expect("set in `set_validation_data`")
 		.relay_parent_storage_root;
 	let relay_chain_state =
-		ParachainSystem::relay_state_proof().expect("set in `set_validation_data`");
+		RelayStateProof::<Runtime>::get().expect("set in `set_validation_data`");
 	RelayChainStateProof::new(ParachainInfo::get(), relay_storage_root, relay_chain_state)
 		.expect("Invalid relay chain state proof, already constructed in `set_validation_data`")
 }
 
-pub struct BabeDataGetter;
-impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
+pub struct BabeDataGetter<Runtime>(sp_std::marker::PhantomData<Runtime>);
+impl<Runtime> pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter<Runtime>
+where
+	Runtime: cumulus_pallet_parachain_system::Config,
+{
 	// Tolerate panic here because only ever called in inherent (so can be omitted)
 	fn get_epoch_index() -> u64 {
 		if cfg!(feature = "runtime-benchmarks") {
 			// storage reads as per actual reads
-			let _relay_storage_root = ParachainSystem::validation_data();
-			let _relay_chain_state = ParachainSystem::relay_state_proof();
+			let _relay_storage_root = ValidationData::<Runtime>::get();
+			let _relay_chain_state = RelayStateProof::<Runtime>::get();
 			const BENCHMARKING_NEW_EPOCH: u64 = 10u64;
 			return BENCHMARKING_NEW_EPOCH;
 		}
-		relay_chain_state_proof()
+		relay_chain_state_proof::<Runtime>()
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
 			.ok()
 			.flatten()
@@ -1266,12 +1315,12 @@ impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
 	fn get_epoch_randomness() -> Option<Hash> {
 		if cfg!(feature = "runtime-benchmarks") {
 			// storage reads as per actual reads
-			let _relay_storage_root = ParachainSystem::validation_data();
-			let _relay_chain_state = ParachainSystem::relay_state_proof();
+			let _relay_storage_root = ValidationData::<Runtime>::get();
+			let _relay_chain_state = RelayStateProof::<Runtime>::get();
 			let benchmarking_babe_output = Hash::default();
 			return Some(benchmarking_babe_output);
 		}
-		relay_chain_state_proof()
+		relay_chain_state_proof::<Runtime>()
 			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
 			.ok()
 			.flatten()
@@ -1282,7 +1331,7 @@ impl pallet_randomness::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AddressMapping = sp_runtime::traits::ConvertInto;
 	type Currency = Balances;
-	type BabeDataGetter = BabeDataGetter;
+	type BabeDataGetter = BabeDataGetter<Runtime>;
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = ConstU128<{ 1 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	type MaxRandomWords = ConstU8<100>;
@@ -1346,6 +1395,7 @@ construct_runtime! {
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config<T>} = 22,
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 23,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 24,
+		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 25,
 
 		// Handy utilities.
 		Utility: pallet_utility::{Pallet, Call, Event} = 30,
@@ -1433,7 +1483,7 @@ mod benches {
 		[pallet_proxy, Proxy]
 		[pallet_identity, Identity]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
-		[pallet_xcm, PalletXcmExtrinsiscsBenchmark::<Runtime>]
+		[pallet_xcm, PalletXcmExtrinsicsBenchmark::<Runtime>]
 		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
@@ -1571,12 +1621,10 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 
 	impl async_backing_primitives::UnincludedSegmentApi<Block> for Runtime {
 		fn can_build_upon(
-			_included_hash: <Block as BlockT>::Hash,
-			_slot: async_backing_primitives::Slot,
+			included_hash: <Block as BlockT>::Hash,
+			slot: async_backing_primitives::Slot,
 		) -> bool {
-			// This runtime API can be called only when asynchronous backing is enabled client-side
-			// We return false here to force the client to not use async backing in moonbeam.
-			false
+			ConsensusHook::can_build_upon(included_hash, slot)
 		}
 	}
 }
@@ -1774,7 +1822,7 @@ mod tests {
 	#[test]
 	fn test_storage_growth_ratio_is_correct() {
 		// This is the highest amount of new storage that can be created in a block 40 KB
-		let block_storage_limit = 40 * 1024;
+		let block_storage_limit = 80 * 1024;
 		let expected_storage_growth_ratio = BlockGasLimit::get()
 			.low_u64()
 			.saturating_div(block_storage_limit);

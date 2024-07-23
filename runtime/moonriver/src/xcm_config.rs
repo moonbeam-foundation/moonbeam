@@ -28,7 +28,7 @@ use frame_support::{
 	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
 use moonbeam_runtime_common::weights as moonriver_weights;
-use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
+use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
 	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
 	DispatchErrorWithPostInfo,
@@ -40,7 +40,7 @@ use sp_core::{ConstU32, H160, H256};
 
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
+	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
 	EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
 	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
@@ -49,16 +49,18 @@ use xcm_builder::{
 
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use xcm::latest::prelude::{
-	Asset, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId, PalletInstance,
-	Parachain,
+	AllOf, Asset, AssetFilter, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId,
+	PalletInstance, Parachain, Wild, WildFungible,
 };
+
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
-	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	FirstAssetTrader, IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
+	UtilityEncodeCall, XcmTransact,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -83,7 +85,7 @@ parameter_types! {
 	pub UniversalLocation: InteriorLocation =
 		[GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into())].into();
 
-	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// Self Reserve location, defines the multilocation identifying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
 	// a Location: (Self Balances pallet index)
 	// We use the RELATIVE multilocation
@@ -255,8 +257,28 @@ impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 }
 
 parameter_types! {
+	/// Location of Asset Hub
+	pub AssetHubLocation: Location = Location::new(1, [Parachain(1000)]);
+	pub const RelayLocation: Location = Location::parent();
+	pub RelayLocationFilter: AssetFilter = Wild(AllOf {
+		fun: WildFungible,
+		id: xcm::prelude::AssetId(RelayLocation::get()),
+	});
+	pub RelayChainNativeAssetFromAssetHub: (AssetFilter, Location) = (
+		RelayLocationFilter::get(),
+		AssetHubLocation::get()
+	);
 	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
+
+type Reserves = (
+	// Assets bridged from different consensus systems held in reserve on Asset Hub.
+	IsBridgedConcreteAssetFrom<AssetHubLocation>,
+	// Relaychain (DOT) from Asset Hub
+	Case<RelayChainNativeAssetFromAssetHub>,
+	// Assets which the reserve is the same as the origin.
+	MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>,
+);
 
 // Our implementation of the Moonbeam Call
 // Attachs the right origin in case the call is made to pallet-ethereum-xcm
@@ -277,7 +299,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// Filter to the reserve withdraw operations
 	// Whenever the reserve matches the relative or absolute value
 	// of our chain, we always return the relative reserve
-	type IsReserve = MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>;
+	type IsReserve = Reserves;
 	type IsTeleporter = (); // No teleport
 	type UniversalLocation = UniversalLocation;
 	type Barrier = XcmBarrier;
@@ -312,6 +334,9 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
 	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
+	type HrmpNewChannelOpenRequestHandler = ();
+	type HrmpChannelAcceptedHandler = ();
+	type HrmpChannelClosingHandler = ();
 }
 
 type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
@@ -428,6 +453,7 @@ impl pallet_message_queue::Config for Runtime {
 	// NarrowOriginToSibling calls XcmpQueue's is_paused if Origin is sibling. Allows all other origins
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
 	type WeightInfo = pallet_message_queue::weights::SubstrateWeight<Runtime>;
+	type IdleMaxServiceWeight = MessageQueueServiceWeight;
 }
 
 // Our AssetType. For now we only handle Xcm Assets
@@ -466,7 +492,9 @@ impl Into<Option<xcm::v3::Location>> for AssetType {
 impl Into<Option<Location>> for AssetType {
 	fn into(self) -> Option<Location> {
 		match self {
-			Self::Xcm(location) => xcm_builder::V4V3LocationConverter::convert_back(&location),
+			Self::Xcm(location) => {
+				xcm_builder::WithLatestLocationConverter::convert_back(&location)
+			}
 		}
 	}
 }
@@ -591,6 +619,8 @@ impl orml_xtokens::Config for Runtime {
 	type MinXcmFee = ParachainMinFee;
 	type LocationsFilter = Everything;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
+	type RateLimiter = ();
+	type RateLimiterId = ();
 }
 
 // 1 KSM should be enough
@@ -681,7 +711,7 @@ parameter_types! {
 
 	// To be able to support almost all erc20 implementations,
 	// we provide a sufficiently hight gas limit.
-	pub Erc20XcmBridgeTransferGasLimit: u64 = 200_000;
+	pub Erc20XcmBridgeTransferGasLimit: u64 = 800_000;
 }
 
 impl pallet_erc20_xcm_bridge::Config for Runtime {
@@ -694,7 +724,7 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 #[cfg(feature = "runtime-benchmarks")]
 mod testing {
 	use super::*;
-	use xcm_builder::V4V3LocationConverter;
+	use xcm_builder::WithLatestLocationConverter;
 
 	/// This From exists for benchmarking purposes. It has the potential side-effect of calling
 	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
@@ -709,7 +739,7 @@ mod testing {
 				asset_id
 			} else {
 				let asset_type = AssetType::Xcm(
-					V4V3LocationConverter::convert(&location).expect("convert to v3"),
+					WithLatestLocationConverter::convert(&location).expect("convert to v3"),
 				);
 				let asset_id: AssetId = asset_type.clone().into();
 				AssetManager::set_asset_type_asset_id(asset_type, asset_id);

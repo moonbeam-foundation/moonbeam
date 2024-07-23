@@ -11,7 +11,7 @@ num_enum = { workspace = true }
 paste = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true }
+account = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -19,8 +19,8 @@ frame-system = { workspace = true }
 pallet-assets = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-timestamp = { workspace = true }
-parity-scale-codec = { workspace = true, features = [ "max-encoded-len" ] }
-scale-info = { workspace = true, features = [ "derive" ] }
+parity-scale-codec = { workspace = true, features = ["max-encoded-len"] }
+scale-info = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
@@ -28,7 +28,11 @@ sp-std = { workspace = true }
 
 # Frontier
 fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+precompile-utils = { workspace = true }
+
+# Moonkit
+moonkit-xcm-primitives = { workspace = true }
 
 [dev-dependencies]
 derive_more = { workspace = true }
@@ -38,19 +42,20 @@ serde = { workspace = true }
 sha3 = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true, features = [ "std", "testing" ] }
+precompile-utils = { workspace = true, features = ["std", "testing"] }
 
-pallet-timestamp = { workspace = true, features = [ "std" ] }
-parity-scale-codec = { workspace = true, features = [ "max-encoded-len", "std" ] }
-scale-info = { workspace = true, features = [ "derive" ] }
-sp-runtime = { workspace = true, features = [ "std" ] }
+pallet-timestamp = { workspace = true, features = ["std"] }
+parity-scale-codec = { workspace = true, features = ["max-encoded-len", "std"] }
+scale-info = { workspace = true, features = ["derive"] }
+sp-runtime = { workspace = true, features = ["std"] }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
+	"moonkit-xcm-primitives/std",
 	"pallet-assets/std",
 	"pallet-balances/std",
 	"pallet-evm/std",
@@ -61,4 +66,5 @@ std = [
 	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"account/std",
 ]

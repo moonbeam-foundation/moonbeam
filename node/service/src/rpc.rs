@@ -28,13 +28,8 @@ use cumulus_primitives_core::{ParaId, PersistedValidationData};
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use fc_mapping_sync::{kv::MappingSyncWorker, SyncStrategy};
-use fc_rpc::{
-	pending::ConsensusDataProvider, EthBlockDataCacheTask, EthTask, OverrideHandle,
-	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, SchemaV3Override,
-	StorageOverride,
-};
-use fc_rpc_core::types::{CallRequest, FeeHistoryCache, FilterPool};
-use fp_storage::EthereumStorageSchema;
+use fc_rpc::{pending::ConsensusDataProvider, EthBlockDataCacheTask, EthTask, StorageOverride};
+use fc_rpc_core::types::{FeeHistoryCache, FilterPool, TransactionRequest};
 use futures::StreamExt;
 use jsonrpsee::RpcModule;
 use moonbeam_cli_opt::EthApi as EthApiCmd;
@@ -45,7 +40,7 @@ use sc_client_api::{
 	BlockOf,
 };
 use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApiServer};
-use sc_network::NetworkService;
+use sc_network::service::traits::NetworkService;
 use sc_network_sync::SyncingService;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
@@ -63,7 +58,7 @@ use std::collections::BTreeMap;
 pub struct MoonbeamEGA;
 
 impl fc_rpc::EstimateGasAdapter for MoonbeamEGA {
-	fn adapt_request(mut request: CallRequest) -> CallRequest {
+	fn adapt_request(mut request: TransactionRequest) -> TransactionRequest {
 		// Redirect any call to batch precompile:
 		// force usage of batchAll method for estimation
 		use sp_core::H160;
@@ -72,11 +67,19 @@ impl fc_rpc::EstimateGasAdapter for MoonbeamEGA {
 		));
 		const BATCH_PRECOMPILE_BATCH_ALL_SELECTOR: [u8; 4] = hex_literal::hex!("96e292b8");
 		if request.to == Some(BATCH_PRECOMPILE_ADDRESS) {
-			if let Some(ref mut data) = request.data {
-				if data.0.len() >= 4 {
-					data.0[..4].copy_from_slice(&BATCH_PRECOMPILE_BATCH_ALL_SELECTOR);
+			match (&mut request.data.input, &mut request.data.data) {
+				(Some(ref mut input), _) => {
+					if input.0.len() >= 4 {
+						input.0[..4].copy_from_slice(&BATCH_PRECOMPILE_BATCH_ALL_SELECTOR);
+					}
 				}
-			}
+				(None, Some(ref mut data)) => {
+					if data.0.len() >= 4 {
+						data.0[..4].copy_from_slice(&BATCH_PRECOMPILE_BATCH_ALL_SELECTOR);
+					}
+				}
+				(_, _) => {}
+			};
 		}
 		request
 	}
@@ -107,7 +110,7 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// The Node authority flag
 	pub is_authority: bool,
 	/// Network service
-	pub network: Arc<NetworkService<Block, Hash>>,
+	pub network: Arc<dyn NetworkService>,
 	/// Chain syncing service
 	pub sync: Arc<SyncingService<Block>>,
 	/// EthFilterApi pool.
@@ -129,7 +132,7 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// Channels for manual xcm messages (downward, hrmp)
 	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
 	/// Ethereum data access overrides.
-	pub overrides: Arc<OverrideHandle<Block>>,
+	pub overrides: Arc<dyn StorageOverride<Block>>,
 	/// Cache for Ethereum block data.
 	pub block_data_cache: Arc<EthBlockDataCacheTask<Block>>,
 	/// Mandated parent hashes for a given block hash.
@@ -139,34 +142,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 pub struct TracingConfig {
 	pub tracing_requesters: crate::rpc::tracing::RpcRequesters,
 	pub trace_filter_max_count: u32,
-}
-
-pub fn overrides_handle<B, C, BE>(client: Arc<C>) -> Arc<OverrideHandle<B>>
-where
-	B: BlockT,
-	C: ProvideRuntimeApi<B>,
-	C::Api: EthereumRuntimeRPCApi<B>,
-	C: HeaderBackend<B> + StorageProvider<B, BE> + 'static,
-	BE: Backend<B> + 'static,
-{
-	let mut overrides_map = BTreeMap::new();
-	overrides_map.insert(
-		EthereumStorageSchema::V1,
-		Box::new(SchemaV1Override::new(client.clone())) as Box<dyn StorageOverride<_>>,
-	);
-	overrides_map.insert(
-		EthereumStorageSchema::V2,
-		Box::new(SchemaV2Override::new(client.clone())) as Box<dyn StorageOverride<_>>,
-	);
-	overrides_map.insert(
-		EthereumStorageSchema::V3,
-		Box::new(SchemaV3Override::new(client.clone())) as Box<dyn StorageOverride<_>>,
-	);
-
-	Arc::new(OverrideHandle {
-		schemas: overrides_map,
-		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
-	})
 }
 
 /// Instantiate all Full RPC extensions.
@@ -262,7 +237,7 @@ where
 		};
 		let parachain_inherent_data = ParachainInherentData {
 			validation_data: vfp,
-			relay_chain_state: relay_chain_state,
+			relay_chain_state,
 			downward_messages: Default::default(),
 			horizontal_messages: Default::default(),
 		};
@@ -377,9 +352,9 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 	pub task_manager: &'a TaskManager,
 	pub client: Arc<C>,
 	pub substrate_backend: Arc<BE>,
-	pub frontier_backend: fc_db::Backend<B>,
+	pub frontier_backend: Arc<fc_db::Backend<B, C>>,
 	pub filter_pool: Option<FilterPool>,
-	pub overrides: Arc<OverrideHandle<B>>,
+	pub overrides: Arc<dyn StorageOverride<B>>,
 	pub fee_history_limit: u64,
 	pub fee_history_cache: FeeHistoryCache,
 }
@@ -407,8 +382,8 @@ pub fn spawn_essential_tasks<B, C, BE>(
 {
 	// Frontier offchain DB task. Essential.
 	// Maps emulated ethereum data to substrate native data.
-	match params.frontier_backend {
-		fc_db::Backend::KeyValue(b) => {
+	match *params.frontier_backend {
+		fc_db::Backend::KeyValue(ref b) => {
 			params.task_manager.spawn_essential_handle().spawn(
 				"frontier-mapping-sync-worker",
 				Some("frontier"),
@@ -418,7 +393,7 @@ pub fn spawn_essential_tasks<B, C, BE>(
 					params.client.clone(),
 					params.substrate_backend.clone(),
 					params.overrides.clone(),
-					Arc::new(b),
+					b.clone(),
 					3,
 					0,
 					SyncStrategy::Parachain,
@@ -428,14 +403,14 @@ pub fn spawn_essential_tasks<B, C, BE>(
 				.for_each(|()| futures::future::ready(())),
 			);
 		}
-		fc_db::Backend::Sql(b) => {
+		fc_db::Backend::Sql(ref b) => {
 			params.task_manager.spawn_essential_handle().spawn_blocking(
 				"frontier-mapping-sync-worker",
 				Some("frontier"),
 				fc_mapping_sync::sql::SyncWorker::run(
 					params.client.clone(),
 					params.substrate_backend.clone(),
-					Arc::new(b),
+					b.clone(),
 					params.client.import_notification_stream(),
 					fc_mapping_sync::sql::SyncWorkerConfig {
 						read_notification_timeout: Duration::from_secs(10),

@@ -39,10 +39,11 @@ use frame_support::{
 use moonbase_runtime::{
 	asset_config::{AssetRegistrarMetadata, ForeignAssetInstance},
 	xcm_config::{AssetType, SelfReserve},
-	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards,
+	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards, Executive,
 	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
 	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
-	TreasuryCouncilCollective, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	TransactionPaymentAsGasPrice, TreasuryCouncilCollective, XTokens, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -54,12 +55,12 @@ use std::str::from_utf8;
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
 
+use moonbase_runtime::currency::{GIGAWEI, WEI};
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
+use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use pallet_evm_precompileset_assets_erc20::{
-	AccountIdAssetIdConversion, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
-};
+use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
@@ -438,20 +439,28 @@ fn verify_pallet_indices() {
 #[test]
 fn verify_reserved_indices() {
 	use frame_metadata::*;
-	let metadata = moonbase_runtime::Runtime::metadata();
-	let metadata = match metadata.1 {
-		RuntimeMetadata::V14(metadata) => metadata,
-		_ => panic!("metadata has been bumped, test needs to be updated"),
-	};
-	// 35: BaseFee
-	// 36: pallet_assets::<Instance1>
-	let reserved = vec![35, 36];
-	let existing = metadata
-		.pallets
-		.iter()
-		.map(|p| p.index)
-		.collect::<Vec<u8>>();
-	assert!(reserved.iter().all(|index| !existing.contains(index)));
+
+	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
+		.unwrap()
+		.into();
+
+	t.execute_with(|| {
+		let metadata = moonbase_runtime::Runtime::metadata();
+		let metadata = match metadata.1 {
+			RuntimeMetadata::V14(metadata) => metadata,
+			_ => panic!("metadata has been bumped, test needs to be updated"),
+		};
+		// 35: BaseFee
+		// 36: pallet_assets::<Instance1>
+		let reserved = vec![35, 36];
+		let existing = metadata
+			.pallets
+			.iter()
+			.map(|p| p.index)
+			.collect::<Vec<u8>>();
+		assert!(reserved.iter().all(|index| !existing.contains(index)));
+	});
 }
 
 #[test]
@@ -1358,7 +1367,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(24377)
+				.expect_cost(24342)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1422,7 +1431,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(14429)
+				.expect_cost(14424)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1443,7 +1452,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(29748)
+				.expect_cost(29686)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1611,7 +1620,7 @@ fn xtokens_precompiles_transfer_native() {
 					XtokensPCall::transfer {
 						currency_address: Address(asset_precompile_address),
 						amount: { 500 * UNIT }.into(),
-						destination: destination.clone(),
+						destination,
 						weight: 4_000_000,
 					},
 				)
@@ -1714,7 +1723,7 @@ fn transfer_ed_0_substrate() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), (1 * UNIT) + (1 * WEI)),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1755,7 +1764,7 @@ fn transfer_ed_0_evm() {
 				AccountId::from(ALICE),
 				((1 * UNIT) + (21_000 * BASE_FEE_GENISIS)) + (1 * WEI),
 			),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1783,9 +1792,9 @@ fn refund_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * UNIT) + (21_777 * BASE_FEE_GENISIS)),
+				((1 * UNIT) + (21_777 * BASE_FEE_GENISIS) + existential_deposit()),
 			),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1805,7 +1814,7 @@ fn refund_ed_0_evm() {
 			// ALICE is refunded
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				777 * BASE_FEE_GENISIS,
+				777 * BASE_FEE_GENISIS + existential_deposit(),
 			);
 		});
 }
@@ -1847,10 +1856,17 @@ fn author_does_not_receive_priority_fee() {
 #[test]
 fn total_issuance_after_evm_transaction_with_priority_fee() {
 	ExtBuilder::default()
-		.with_balances(vec![(
-			AccountId::from(BOB),
-			(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
-		)])
+		.with_balances(vec![
+			(
+				AccountId::from(BOB),
+				(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS) + existential_deposit()),
+			),
+			(AccountId::from(ALICE), existential_deposit()),
+			(
+				<pallet_treasury::TreasuryAccountId<Runtime> as sp_core::TypedGet>::get(),
+				existential_deposit(),
+			),
+		])
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
@@ -1884,10 +1900,17 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 fn total_issuance_after_evm_transaction_without_priority_fee() {
 	use fp_evm::FeeCalculator;
 	ExtBuilder::default()
-		.with_balances(vec![(
-			AccountId::from(BOB),
-			(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
-		)])
+		.with_balances(vec![
+			(
+				AccountId::from(BOB),
+				(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
+			),
+			(AccountId::from(ALICE), existential_deposit()),
+			(
+				<pallet_treasury::TreasuryAccountId<Runtime> as sp_core::TypedGet>::get(),
+				existential_deposit(),
+			),
+		])
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
@@ -2148,7 +2171,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(17559)
+				.expect_cost(17555)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2188,7 +2211,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(17559)
+				.expect_cost(17555)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2270,7 +2293,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(15144)
+				.expect_cost(15126)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2292,7 +2315,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14725)
+				.expect_cost(14728)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2313,7 +2336,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15172)
+				.expect_cost(15189)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2356,7 +2379,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16273)
+				.expect_cost(16262)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2381,7 +2404,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16273)
+				.expect_cost(16262)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2513,9 +2536,9 @@ fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 1027, 2048, 2049, 2050, 2051, 2052, 2053,
-			2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067,
-			2068, 2069, 2070, 2071, 2072, 2073,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 256, 1024, 1025, 1026, 1027, 2048, 2049, 2050, 2051, 2052,
+			2053, 2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066,
+			2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2791,7 +2814,7 @@ mod fee_tests {
 	};
 	use moonbase_runtime::{
 		currency, BlockWeights, FastAdjustingFeeUpdate, LengthToFee, MinimumMultiplier,
-		TargetBlockFullness, NORMAL_WEIGHT, WEIGHT_PER_GAS,
+		TargetBlockFullness, TransactionPaymentAsGasPrice, NORMAL_WEIGHT, WEIGHT_PER_GAS,
 	};
 	use sp_runtime::{BuildStorage, FixedPointNumber, Perbill};
 
@@ -2949,54 +2972,54 @@ mod fee_tests {
 
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 1),
-				U256::from(998_002_000),
+				U256::from(998_600_980),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 1),
-				U256::from(999_000_500),
+				U256::from(999_600_080),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 1),
-				U256::from(1_000_000_000),
+				U256::from(1_000_600_180),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 1),
-				U256::from(1_002_002_000),
+				U256::from(1_002_603_380),
 			);
 
-			// 1 "real" hour (at 12-second blocks)
+			// 1 "real" hour (at 6-second blocks)
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(0), 300),
-				U256::from(548_811_855),
+				sim(1_000_000_000, Perbill::from_percent(0), 600),
+				U256::from(431_710_642),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(25), 300),
-				U256::from(740_818_257),
+				sim(1_000_000_000, Perbill::from_percent(25), 600),
+				U256::from(786_627_866),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(50), 300),
-				U256::from(1_000_000_000),
+				sim(1_000_000_000, Perbill::from_percent(50), 600),
+				U256::from(1_433_329_383u128),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(100), 300),
-				U256::from(1_822_118_072u128),
+				sim(1_000_000_000, Perbill::from_percent(100), 600),
+				U256::from(4_758_812_897u128),
 			);
 
-			// 1 "real" day (at 12-second blocks)
+			// 1 "real" day (at 6-second blocks)
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(0), 7200),
+				sim(1_000_000_000, Perbill::from_percent(0), 14400),
 				U256::from(125_000_000), // lower bound enforced
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(25), 7200),
+				sim(1_000_000_000, Perbill::from_percent(25), 14400),
 				U256::from(125_000_000),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(50), 7200),
-				U256::from(1_000_000_000u128),
+				sim(1_000_000_000, Perbill::from_percent(50), 14400),
+				U256::from(5_653_326_895_069u128),
 			);
 			assert_eq!(
-				sim(1_000_000_000, Perbill::from_percent(100), 7200),
+				sim(1_000_000_000, Perbill::from_percent(100), 14400),
 				U256::from(125_000_000_000_000u128), // upper bound enforced
 			);
 		});

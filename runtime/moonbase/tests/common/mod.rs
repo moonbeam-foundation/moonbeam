@@ -24,11 +24,9 @@ use frame_support::{
 };
 use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetType};
 pub use moonbase_runtime::{
-	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
-	AccountId, AssetId, AssetManager, Assets, AsyncBacking, AuthorInherent, Balance, Balances,
-	CrowdloanRewards, Ethereum, Executive, Header, InflationInfo, ParachainStaking,
-	ParachainSystem, Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
-	TransactionPaymentAsGasPrice, UncheckedExtrinsic, HOURS, WEEKS,
+	currency::UNIT, AccountId, AssetId, AssetManager, Assets, AsyncBacking, AuthorInherent,
+	Balance, Ethereum, InflationInfo, ParachainStaking, Range, Runtime, RuntimeCall, RuntimeEvent,
+	System, TransactionConverter, UncheckedExtrinsic, HOURS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use polkadot_parachain::primitives::HeadData;
@@ -40,6 +38,10 @@ use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
 use pallet_transaction_payment::Multiplier;
+
+pub fn existential_deposit() -> u128 {
+	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
+}
 
 // A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =

@@ -22,7 +22,10 @@ use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::{info, warn};
 use moonbeam_cli_opt::EthApi;
-use moonbeam_service::{chain_spec, frontier_database_dir, IdentifyVariant};
+use moonbeam_service::{
+	chain_spec, frontier_database_dir, moonbase_runtime, moonbeam_runtime, moonriver_runtime,
+	HostFunctions, IdentifyVariant,
+};
 use parity_scale_codec::Encode;
 #[cfg(feature = "westend-native")]
 use polkadot_service::WestendChainSpec;
@@ -36,7 +39,9 @@ use sc_service::{
 };
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::{
-	traits::{AccountIdConversion, Block as BlockT, Hash as HashT, Header as HeaderT, Zero},
+	traits::{
+		AccountIdConversion, Block as BlockT, Hash as HashT, HashingFor, Header as HeaderT, Zero,
+	},
 	StateVersion,
 };
 use std::{io::Write, net::SocketAddr};
@@ -126,7 +131,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn support_url() -> String {
-		"https://github.com/PureStake/moonbeam/issues/new".into()
+		"https://github.com/moonbeam-foundation/moonbeam/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
@@ -175,7 +180,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn support_url() -> String {
-		"https://github.com/PureStake/moonbeam/issues/new".into()
+		"https://github.com/moonbeam-foundation/moonbeam/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
@@ -487,24 +492,24 @@ pub fn run() -> Result<()> {
 							#[cfg(feature = "moonriver-native")]
 							spec if spec.is_moonriver() => {
 								return runner.sync_run(|config| {
-									cmd.run::<moonbeam_service::moonriver_runtime::Block, moonbeam_service::HostFunctions>(
-										config,
+									cmd.run_with_spec::<HashingFor<moonriver_runtime::Block>, HostFunctions>(
+										Some(config.chain_spec),
 									)
 								})
 							}
 							#[cfg(feature = "moonbeam-native")]
 							spec if spec.is_moonbeam() => {
 								return runner.sync_run(|config| {
-									cmd.run::<moonbeam_service::moonbeam_runtime::Block, moonbeam_service::HostFunctions>(
-										config,
+									cmd.run_with_spec::<HashingFor<moonbeam_runtime::Block>, HostFunctions>(
+										Some(config.chain_spec),
 									)
 								})
 							}
 							#[cfg(feature = "moonbase-native")]
 							_ => {
 								return runner.sync_run(|config| {
-									cmd.run::<moonbeam_service::moonbase_runtime::Block, moonbeam_service::HostFunctions>(
-										config,
+									cmd.run_with_spec::<HashingFor<moonbase_runtime::Block>, HostFunctions>(
+										Some(config.chain_spec),
 									)
 								})
 							}
@@ -513,8 +518,8 @@ pub fn run() -> Result<()> {
 						}
 					} else if cfg!(feature = "moonbase-runtime-benchmarks") {
 						return runner.sync_run(|config| {
-							cmd.run::<moonbeam_service::moonbase_runtime::Block, moonbeam_service::HostFunctions>(
-								config,
+							cmd.run_with_spec::<HashingFor<moonbeam_service::moonbase_runtime::Block>, HostFunctions>(
+								Some(config.chain_spec),
 							)
 						});
 					} else {
@@ -728,6 +733,7 @@ pub fn run() -> Result<()> {
 						spec if spec.is_moonriver() => moonbeam_service::new_dev::<
 							moonbeam_service::moonriver_runtime::RuntimeApi,
 							moonbeam_service::MoonriverCustomizations,
+							sc_network::NetworkWorker<_, _>,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.await
 						.map_err(Into::into),
@@ -735,6 +741,7 @@ pub fn run() -> Result<()> {
 						spec if spec.is_moonbeam() => moonbeam_service::new_dev::<
 							moonbeam_service::moonbeam_runtime::RuntimeApi,
 							moonbeam_service::MoonbeamCustomizations,
+							sc_network::NetworkWorker<_, _>,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.await
 						.map_err(Into::into),
@@ -742,6 +749,7 @@ pub fn run() -> Result<()> {
 						_ => moonbeam_service::new_dev::<
 							moonbeam_service::moonbase_runtime::RuntimeApi,
 							moonbeam_service::MoonbaseCustomizations,
+							sc_network::NetworkWorker<_, _>,
 						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.await
 						.map_err(Into::into),
@@ -758,7 +766,7 @@ pub fn run() -> Result<()> {
 				);
 
 				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::v6::AccountId>::into_account_truncating(&id);
+					AccountIdConversion::<polkadot_primitives::v7::AccountId>::into_account_truncating(&id);
 
 				let tokio_handle = config.tokio_handle.clone();
 				let polkadot_config =
@@ -794,7 +802,7 @@ pub fn run() -> Result<()> {
 						collator_options,
 						id,
 						rpc_config,
-						false,
+						true,
 						cli.run.block_authoring_duration,
 						hwbench,
 					)
@@ -811,7 +819,7 @@ pub fn run() -> Result<()> {
 						collator_options,
 						id,
 						rpc_config,
-						false,
+						true,
 						cli.run.block_authoring_duration,
 						hwbench,
 					)

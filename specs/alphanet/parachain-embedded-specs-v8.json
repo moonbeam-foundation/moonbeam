@@ -12,7 +12,8 @@
     "/dns/eu-01.unitedbloc.com/tcp/35060/p2p/12D3KooWAu26xXQy9Q8P9rXim3yAGkAZ38BS3xrF2J7uZUbz1A8n",
     "/dns/apac-01.unitedbloc.com/tcp/35060/p2p/12D3KooWH1zRsVBRtTNiEbKHSees6ESw7UPFJBws3StgXcqTUQDt",
     "/dns/sa-01.unitedbloc.com/tcp/35060/p2p/12D3KooWKbo2qnyNdea2uR55z7dfg1BVDJw15Xr9xkUHd1csQnG2",
-    "/dns/na-01a.unitedbloc.com/tcp/30333/p2p/12D3KooWEe1hn1YMxqzhacCDYrQVrNHyP8MXZSSjHkTwnGmKXRhh"
+    "/dns/na-01a.unitedbloc.com/tcp/30333/p2p/12D3KooWEe1hn1YMxqzhacCDYrQVrNHyP8MXZSSjHkTwnGmKXRhh",
+    "/dns4/moonbase-alpha-1.boot.onfinality.io/tcp/25962/ws/p2p/12D3KooWMe4sMVxmTYJ9HfzKc5w6daLtjjDK9Jts4dKN5mTj6YhD"
   ],
   "telemetryEndpoints": [
     ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]

@@ -24,7 +24,6 @@ account = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-relay-encoder = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
-precompile-utils = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
 
@@ -68,6 +67,7 @@ pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
 pallet-evm-precompileset-assets-erc20 = { workspace = true }
+pallet-evm-precompile-p256verify = { workspace = true }
 
 # Moonbeam tracing
 evm-tracing-events = { workspace = true, optional = true }
@@ -132,6 +132,7 @@ pallet-evm-precompile-dispatch = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
+precompile-utils = { workspace = true }
 
 # Polkadot / XCM
 orml-traits = { workspace = true }
@@ -145,6 +146,7 @@ polkadot-runtime-common = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
+xcm-fee-payment-runtime-api = { workspace = true }
 pallet-message-queue = { workspace = true }
 
 # Cumulus
@@ -162,6 +164,7 @@ parachains-common = { workspace = true }
 async-backing-primitives = { workspace = true }
 moonkit-xcm-primitives = { workspace = true }
 nimbus-primitives = { workspace = true }
+pallet-async-backing = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
 pallet-relay-storage-roots = { workspace = true }
@@ -180,6 +183,7 @@ sha3 = { workspace = true, features = ["std"] }
 cumulus-primitives-parachain-inherent = { workspace = true }
 cumulus-test-relay-sproof-builder = { workspace = true }
 
+sp-timestamp = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }
 
@@ -221,6 +225,7 @@ std = [
 	"orml-xtokens/std",
 	"pallet-asset-manager/std",
 	"pallet-assets/std",
+	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
 	"pallet-author-slot-filter/std",
@@ -247,6 +252,7 @@ std = [
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
+	"pallet-evm-precompile-p256verify/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
@@ -295,6 +301,7 @@ std = [
 	"strum/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
+	"xcm-fee-payment-runtime-api/std",
 	"xcm-primitives/std",
 	"xcm/std",
 ]
@@ -409,6 +416,7 @@ try-runtime = [
 	"pallet-identity/try-runtime",
 	"orml-xtokens/try-runtime",
 	"pallet-assets/try-runtime",
+	"pallet-async-backing/try-runtime",
 	"pallet-xcm-transactor/try-runtime",
 	"pallet-proxy-genesis-companion/try-runtime",
 	"pallet-moonbeam-orbiters/try-runtime",

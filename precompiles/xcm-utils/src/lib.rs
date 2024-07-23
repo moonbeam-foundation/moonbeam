@@ -116,8 +116,7 @@ where
 		let origin =
 			XcmConfig::OriginConverter::convert_origin(location, OriginKind::SovereignAccount)
 				.map_err(|_| {
-					RevertReason::custom("Failed multilocation conversion")
-						.in_field("multilocation")
+					RevertReason::custom("Failed multilocation conversion").in_field("location")
 				})?;
 
 		let account: H160 = origin

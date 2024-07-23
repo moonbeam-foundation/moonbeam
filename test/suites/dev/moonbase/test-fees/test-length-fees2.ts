@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { createViemTransaction } from "@moonwall/util";
-import { EXTRINSIC_GAS_LIMIT, GAS_LIMIT_POV_RATIO } from "../../../../helpers/constants";
+import { ConstantStore, GAS_LIMIT_POV_RATIO } from "../../../../helpers/constants";
 
 describeSuite({
   id: "D011607",
@@ -28,7 +28,7 @@ describeSuite({
 
         const tx = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
-          gas: BigInt(EXTRINSIC_GAS_LIMIT),
+          gas: BigInt(ConstantStore(context).EXTRINSIC_GAS_LIMIT),
           data: ("0x0000000000000000000000000000000000000000000000000000000000000004" + // base
             "0000000000000000000000000000000000000000000000000000000000000004" + // exp
             "0000000000000000000000000000000000000000000000000000000000000004" + // mod

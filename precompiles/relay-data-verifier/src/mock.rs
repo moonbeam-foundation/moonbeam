@@ -76,6 +76,11 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = ();
 	type OnSetCode = ();
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type SingleBlockMigrations = ();
+	type MultiBlockMigrator = ();
+	type PreInherents = ();
+	type PostInherents = ();
+	type PostTransactions = ();
 }
 
 parameter_types! {
@@ -190,7 +195,7 @@ impl pallet_evm::Config for Runtime {
 }
 
 impl pallet_precompile_benchmarks::Config for Runtime {
-	type WeightInfo = ();
+	type WeightInfo = WeightInfo<Runtime>;
 }
 
 pub(crate) struct ExtBuilder {
