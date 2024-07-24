@@ -115,9 +115,9 @@ describeSuite({
             .push_any({
               Transact: {
                 originKind: "SovereignAccount",
-                // 500_000 gas limit + db read
+                // 500_000 gas limit + db read (41_742_000)
                 requireWeightAtMost: {
-                  refTime: 12_525_000_000,
+                  refTime: 12_541_742_000,
                   proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
                 },
                 call: {
