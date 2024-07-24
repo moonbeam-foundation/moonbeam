@@ -5,7 +5,7 @@ import { ApiPromise } from "@polkadot/api";
 import { u128 } from "@polkadot/types";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { BN } from "@polkadot/util";
-import { mockAssetBalance } from "../../../../helpers";
+import { mockOldAssetBalance } from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const ARBITRARY_TRANSFER_AMOUNT = 10000000000000n;
@@ -35,7 +35,7 @@ describeSuite({
         minBalance: 1,
       });
 
-      await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, ALITH_ADDRESS);
+      await mockOldAssetBalance(context, assetBalance, assetDetails, alith, assetId, ALITH_ADDRESS);
 
       await context.createBlock();
       const alithBalance = await api.query.assets.account(assetId.toU8a(), ALITH_ADDRESS);

@@ -10,6 +10,7 @@ import { Abi, encodeFunctionData } from "viem";
 import {
   RELAY_SOURCE_LOCATION,
   mockOldAssetBalance,
+  registerOldForeignAsset,
   relayAssetMetadata,
   verifyLatestBlockFees,
 } from "../../../../helpers/index.js";
@@ -19,7 +20,6 @@ import {
   XcmFragmentConfig,
   descendOriginFromAddress20,
   injectHrmpMessageAndSeal,
-  registerForeignAsset,
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
@@ -40,7 +40,7 @@ describeSuite({
       api = context.polkadotJs();
 
       // Register DOT as foreign asset, obtaining xcDOTs
-      const { registeredAssetId } = await registerForeignAsset(
+      const { registeredAssetId } = await registerOldForeignAsset(
         context,
         RELAY_SOURCE_LOCATION,
         relayAssetMetadata as any,

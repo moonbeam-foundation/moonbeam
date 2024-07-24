@@ -4,7 +4,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
 
 import {
-  registerForeignAsset,
+  registerOldForeignAsset,
   XcmFragment,
   RawXcmMessage,
   injectHrmpMessageAndSeal,
@@ -56,13 +56,13 @@ describeSuite({
     let assetIdOne: string;
 
     beforeAll(async () => {
-      // registerForeignAsset 0
+      // registerOldForeignAsset 0
       const { registeredAssetId: registeredAssetIdZero, registeredAsset: registeredAssetZero } =
-        await registerForeignAsset(context, STATEMINT_LOCATION, assetMetadata);
+        await registerOldForeignAsset(context, STATEMINT_LOCATION, assetMetadata);
       assetIdZero = registeredAssetIdZero;
-      // registerForeignAsset 1
+      // registerOldForeignAsset 1
       const { registeredAssetId: registeredAssetIdOne, registeredAsset: registeredAssetOne } =
-        await registerForeignAsset(context, STATEMINT_ASSET_ONE_LOCATION, assetMetadata, 0, 1);
+        await registerOldForeignAsset(context, STATEMINT_ASSET_ONE_LOCATION, assetMetadata, 0, 1);
       assetIdOne = registeredAssetIdOne;
 
       expect(registeredAssetZero.owner.toHex()).to.eq(palletId.toLowerCase());

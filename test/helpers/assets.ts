@@ -158,14 +158,7 @@ export async function mockAssetBalance(
 ) {
   const api = context.polkadotJs();
   // Register the asset
-  registerForeignAsset(context, assetId, RELAY_SOURCE_LOCATION, relayAssetMetadata);
-
-  const { abi } = parseAbi(['function mintInto(address, uint256)']);
-  const encodedData = encodeFunctionData({
-    abi,
-    functionName: "mintInto",
-    args: [ALITH_ADDRESS, assetBalance],
-  });
+  await registerForeignAsset(context, assetId, RELAY_SOURCE_LOCATION, relayAssetMetadata);
 
   const xcmTransaction = {
     V2: {
@@ -175,7 +168,7 @@ export async function mockAssetBalance(
       },
       value: 0n,
       input: encodeFunctionData({
-        abi,
+        abi: parseAbi(['function mintInto(address, uint256)']),
         functionName: "mintInto",
         args: [account, assetBalance],
       }),

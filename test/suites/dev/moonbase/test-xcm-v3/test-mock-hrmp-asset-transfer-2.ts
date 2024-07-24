@@ -4,7 +4,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { BN } from "@polkadot/util";
 import { alith } from "@moonwall/util";
 import {
-  registerForeignAsset,
+  registerOldForeignAsset,
   XcmFragment,
   RawXcmMessage,
   injectHrmpMessageAndSeal,
@@ -41,8 +41,8 @@ describeSuite({
     let assetId: string;
 
     beforeAll(async () => {
-      // registerForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerForeignAsset(
+      // registerOldForeignAsset
+      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
         context,
         STATEMINT_LOCATION,
         assetMetadata
