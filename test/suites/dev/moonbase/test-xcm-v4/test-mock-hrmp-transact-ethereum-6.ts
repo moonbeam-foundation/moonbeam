@@ -72,6 +72,9 @@ describeSuite({
 
         const amountToTransfer = transferredBalance / 10n;
 
+        // TODO: move this to the constant file
+        const STORAGE_READ_COST = 41_742_000n;
+
         const xcmTransactions = [
           {
             V1: {
@@ -145,7 +148,7 @@ describeSuite({
                 originKind: "SovereignAccount",
                 // 100_000 gas + 2db reads
                 requireWeightAtMost: {
-                  refTime: 608_484_000n,
+                  refTime: 575_000_000n + STORAGE_READ_COST,
                   proofSize: 80000n,
                 },
                 call: {

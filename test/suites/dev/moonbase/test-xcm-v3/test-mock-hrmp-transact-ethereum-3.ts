@@ -172,6 +172,8 @@ describeSuite({
         ];
 
         let expectedCalls = 0n;
+        // TODO: move this to the constant file
+        const STORAGE_READ_COST = 41_742_000n;
 
         for (const xcmTransaction of xcmTransactions) {
           expectedCalls++;
@@ -203,7 +205,7 @@ describeSuite({
                 originKind: "SovereignAccount",
                 // 100_000 gas + 1 db read (41_742_000)
                 requireWeightAtMost: {
-                  refTime: 2_541_742_000,
+                  refTime: 2_525_000_000n + STORAGE_READ_COST,
                   proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
                 },
                 call: {
