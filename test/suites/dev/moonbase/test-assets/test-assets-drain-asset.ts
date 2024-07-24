@@ -30,7 +30,7 @@ describeSuite({
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = BigInt("100000000000000");
-      const assetLocation = RELAY_SOURCE_LOCATION_V4.Xcm;
+      const assetLocation = RELAY_SOURCE_LOCATION_V4;
       await mockAssetBalance(context, balance, assetId, assetLocation, alith, ALITH_ADDRESS);
 
       await context.createBlock();

@@ -22,7 +22,7 @@ describeSuite({
         await registerForeignAsset(
           context,
           ARBITRARY_ASSET_ID,
-          RELAY_SOURCE_LOCATION_V4.Xcm,
+          RELAY_SOURCE_LOCATION_V4,
           relayAssetMetadata as any
         );
 
@@ -31,7 +31,7 @@ describeSuite({
       expect(contractAddress).toBeDefined();
       expect(registeredAssetId).eq(ARBITRARY_ASSET_ID.toString());
       expect(registeredAssetLocation.toString()).to.eq(
-        JSON.stringify(RELAY_SOURCE_LOCATION_V4.Xcm).toLowerCase()
+        JSON.stringify(RELAY_SOURCE_LOCATION_V4).toLowerCase()
       );
     });
 

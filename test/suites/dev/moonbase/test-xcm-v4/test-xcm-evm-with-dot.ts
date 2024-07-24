@@ -9,7 +9,7 @@ import { hexToBigInt } from "@polkadot/util";
 import { Abi, encodeFunctionData } from "viem";
 import {
   RELAY_SOURCE_LOCATION,
-  mockAssetBalance,
+  mockOldAssetBalance,
   relayAssetMetadata,
   verifyLatestBlockFees,
 } from "../../../../helpers/index.js";
@@ -64,7 +64,7 @@ describeSuite({
       });
 
       // Fund descend address with enough xcDOTs to pay XCM message and EVM execution fees
-      await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, descendAddress);
+      await mockOldAssetBalance(context, assetBalance, assetDetails, alith, assetId, descendAddress);
 
       // Deploy example contract to be called through XCM
       const { contractAddress, abi } = await context.deployContract!("Incrementor");

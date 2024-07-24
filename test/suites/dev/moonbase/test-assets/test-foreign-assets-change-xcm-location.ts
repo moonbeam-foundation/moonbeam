@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import {
-  PARA_1000_SOURCE_LOCATION,
+  PARA_1000_SOURCE_LOCATION_V4,
   RELAY_SOURCE_LOCATION_V4,
   registerForeignAsset,
   relayAssetMetadata,
@@ -20,6 +20,7 @@ describeSuite({
       api = context.polkadotJs();
       const { registeredAssetId } = await registerForeignAsset(
         context,
+        BigInt(1),
         RELAY_SOURCE_LOCATION_V4,
         relayAssetMetadata as any
       );
@@ -34,7 +35,7 @@ describeSuite({
       test: async function () {
         const { result } = await context.createBlock(
           api.tx.sudo.sudo(
-            api.tx.evmForeignAssets.changeXcmLocation(assetId, PARA_1000_SOURCE_LOCATION.Xcm)
+            api.tx.evmForeignAssets.changeXcmLocation(assetId, PARA_1000_SOURCE_LOCATION_V4)
           )
         );
 
@@ -46,7 +47,7 @@ describeSuite({
         const id = locationChangeEvent.data[0];
 
         expect(JSON.stringify(newLocation).toLowerCase()).to.eq(
-          JSON.stringify(PARA_1000_SOURCE_LOCATION.Xcm).toLowerCase()
+          JSON.stringify(PARA_1000_SOURCE_LOCATION_V4).toLowerCase()
         );
         expect(BigInt(id)).to.eq(BigInt(assetId));
       },

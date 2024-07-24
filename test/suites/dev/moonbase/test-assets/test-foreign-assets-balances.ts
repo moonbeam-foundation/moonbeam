@@ -19,7 +19,7 @@ describeSuite({
       title: "should check balances consstency",
       test: async function () {
         const someBalance = 100_000_000_000_000n;
-        const assetLocation = RELAY_SOURCE_LOCATION_V4.Xcm;
+        const assetLocation = RELAY_SOURCE_LOCATION_V4;
         const assetId = ARBITRARY_ASSET_ID;
 
         await mockAssetBalance(context, someBalance, assetId, assetLocation, alith, ALITH_ADDRESS);

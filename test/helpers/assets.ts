@@ -27,10 +27,8 @@ export const PARA_1001_SOURCE_LOCATION = {
 };
 
 // XCM V4 Locations
-export const RELAY_SOURCE_LOCATION_V4 = { Xcm: { parents: 1, interior: { here: null } } };
-export const PARA_1000_SOURCE_LOCATION_V4 = {
-  Xcm: { parents: 1, interior: { X1: [{ Parachain: 1000 }] } },
-};
+export const RELAY_SOURCE_LOCATION_V4 = { parents: 1, interior: { here: null } };
+export const PARA_1000_SOURCE_LOCATION_V4 = { parents: 1, interior: { X1: [{ Parachain: 1000 }] } };
 export interface AssetMetadata {
   name: string;
   symbol: string;

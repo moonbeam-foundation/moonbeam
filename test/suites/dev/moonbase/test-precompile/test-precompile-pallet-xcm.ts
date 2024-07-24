@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, createEthersTransaction } from
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { encodeFunctionData } from "viem";
-import { expectEVMResult, mockAssetBalance } from "../../../../helpers";
+import { expectEVMResult, mockOldAssetBalance } from "../../../../helpers";
 
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
@@ -34,7 +34,7 @@ describeSuite({
           supply: balance,
         });
 
-      await mockAssetBalance(
+      await mockOldAssetBalance(
         context,
         assetBalance,
         assetDetails,
