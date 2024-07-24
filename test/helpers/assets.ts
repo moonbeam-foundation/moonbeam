@@ -1,9 +1,11 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { DevModeContext, fetchCompiledContract } from "@moonwall/cli";
-import { KeyringPair } from "@polkadot/keyring/types";
 import { u128 } from "@polkadot/types";
-import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
+import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
+import { expect, DevModeContext } from "@moonwall/cli";
+import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
+import { KeyringPair } from "@polkadot/keyring/types";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
 import { encodeFunctionData, parseAbi } from "viem";
 
 export const EVM_FOREIGN_ASSETS_PALLET_ACCOUNT = "0x6d6f646c666f7267617373740000000000000000";
