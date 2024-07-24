@@ -13,8 +13,8 @@ import {
   descendOriginFromAddress20,
   relayAssetMetadata,
   RELAY_SOURCE_LOCATION,
-  registerForeignAsset,
-  mockAssetBalance,
+  registerOldForeignAsset,
+  mockOldAssetBalance,
 } from "../../../../helpers";
 
 // TODO: remove once we upgrade @polkadot/api to v12.1.1
@@ -115,7 +115,7 @@ describeSuite({
         ...runtimeApi,
       });
 
-      const { registeredAssetId } = await registerForeignAsset(
+      const { registeredAssetId } = await registerOldForeignAsset(
         context,
         RELAY_SOURCE_LOCATION,
         relayAssetMetadata as any,
@@ -161,7 +161,7 @@ describeSuite({
       );
 
       // Fund descendAddress with enough xcDOTs to pay XCM execution fees
-      await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, descendAddress);
+      await mockOldAssetBalance(context, assetBalance, assetDetails, alith, assetId, descendAddress);
 
       // We need to fund the descendAddress with both amounts.
       // This account takes care of paying the foreign fees and also transfering the

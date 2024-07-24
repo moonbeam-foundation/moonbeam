@@ -2,7 +2,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import {
   XcmFragment,
-  registerForeignAsset,
+  registerOldForeignAsset,
   relayAssetMetadata,
   RELAY_SOURCE_LOCATION,
 } from "../../../../helpers";
@@ -93,7 +93,7 @@ describeSuite({
         ...runtimeApi,
       });
 
-      await registerForeignAsset(
+      await registerOldForeignAsset(
         context,
         RELAY_SOURCE_LOCATION,
         relayAssetMetadata as any,
