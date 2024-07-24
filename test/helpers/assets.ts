@@ -2,7 +2,6 @@ import "@moonbeam-network/api-augment/moonbase";
 import { u128 } from "@polkadot/types";
 import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
 import { expect, DevModeContext } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { KeyringPair } from "@polkadot/keyring/types";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";

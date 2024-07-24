@@ -1,16 +1,14 @@
-import { DevModeContext, customDevRpcRequest, fetchCompiledContract } from "@moonwall/cli";
+import { DevModeContext, customDevRpcRequest } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { XcmpMessageFormat } from "@polkadot/types/interfaces";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
-  StagingXcmV4Location,
   XcmV3JunctionNetworkId,
   XcmVersionedXcm,
 } from "@polkadot/types/lookup";
 import { BN, stringToU8a, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
-import { AssetMetadata, RELAY_V3_SOURCE_LOCATION } from "./assets.js";
-import { ethers } from "ethers";
+import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
