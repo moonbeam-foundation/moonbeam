@@ -161,7 +161,14 @@ describeSuite({
       );
 
       // Fund descendAddress with enough xcDOTs to pay XCM execution fees
-      await mockOldAssetBalance(context, assetBalance, assetDetails, alith, assetId, descendAddress);
+      await mockOldAssetBalance(
+        context,
+        assetBalance,
+        assetDetails,
+        alith,
+        assetId,
+        descendAddress
+      );
 
       // We need to fund the descendAddress with both amounts.
       // This account takes care of paying the foreign fees and also transfering the

@@ -64,7 +64,14 @@ describeSuite({
       });
 
       // Fund descend address with enough xcDOTs to pay XCM message and EVM execution fees
-      await mockOldAssetBalance(context, assetBalance, assetDetails, alith, assetId, descendAddress);
+      await mockOldAssetBalance(
+        context,
+        assetBalance,
+        assetDetails,
+        alith,
+        assetId,
+        descendAddress
+      );
 
       // Deploy example contract to be called through XCM
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
