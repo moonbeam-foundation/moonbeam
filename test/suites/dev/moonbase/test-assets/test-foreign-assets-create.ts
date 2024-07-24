@@ -4,11 +4,10 @@ import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import {
   ARBITRARY_ASSET_ID,
   RELAY_SOURCE_LOCATION_V4,
-  foreignAssetBalance,
-  mockAssetBalance,
   registerForeignAsset,
   relayAssetMetadata,
 } from "../../../../helpers";
+import { parseAbi } from "viem";
 
 describeSuite({
   id: "D010108",
@@ -41,38 +40,29 @@ describeSuite({
       title: "should deploy the asset's contract",
       test: async function () {
         expect(
-          await context.readContract!({
-            contractName: "MyToken",
-            contractAddress: address as `0x${string}`,
-            functionName: "symbol",
+          await context.viem().readContract({
+            address: address as `0x${string}`,
+            functionName: "name",
             args: [],
+            abi: parseAbi(["function name() view returns (string)"]),
           })
         ).toBe("DOT");
 
         expect(
-          await context.readContract!({
-            contractName: "MyToken",
-            contractAddress: address as `0x${string}`,
+          await context.viem().readContract({
+            address: address as `0x${string}`,
             functionName: "symbol",
             args: [],
+            abi: parseAbi(["function symbol() view returns (string)"]),
           })
         ).toBe("DOT");
 
         expect(
-          await context.readContract!({
-            contractName: "MyToken",
-            contractAddress: address as `0x${string}`,
-            functionName: "symbol",
-            args: [],
-          })
-        ).toBe("DOT");
-
-        expect(
-          await context.readContract!({
-            contractName: "MyToken",
-            contractAddress: address as `0x${string}`,
+          await context.viem().readContract({
+            address: address as `0x${string}`,
             functionName: "decimals",
             args: [],
+            abi: parseAbi(["function decimals() view returns (uint8)"]),
           })
         ).toBe(12);
       },

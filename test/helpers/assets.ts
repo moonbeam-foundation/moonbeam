@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment/moonbase";
 import { u128 } from "@polkadot/types";
 import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
 import { expect, DevModeContext } from "@moonwall/cli";
+import { ALITH_ADDRESS } from "@moonwall/util";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { KeyringPair } from "@polkadot/keyring/types";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
@@ -158,10 +159,15 @@ export async function mockAssetBalance(
   account: string | AccountId20
 ) {
   const api = context.polkadotJs();
-  const { abi } = fetchCompiledContract("MyToken");
+  // Register the asset
+  registerForeignAsset(context, assetId, RELAY_SOURCE_LOCATION, relayAssetMetadata);
 
-  // Register the asset first
-  await registerForeignAsset(context, assetId, assetLocation, relayAssetMetadata as any);
+  const { abi } = parseAbi(['function mintInto(address, uint256)']);
+  const encodedData = encodeFunctionData({
+    abi,
+    functionName: "mintInto",
+    args: [ALITH_ADDRESS, assetBalance],
+  });
 
   const xcmTransaction = {
     V2: {
