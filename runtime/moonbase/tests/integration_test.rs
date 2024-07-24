@@ -1072,7 +1072,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(BOB.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(1669)
 				.expect_no_logs()
 				.execute_returns(false);
 
@@ -1085,7 +1085,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(1669)
 				.expect_no_logs()
 				.execute_returns(true);
 		})
@@ -1156,7 +1156,7 @@ fn reward_info_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(1669)
 				.expect_no_logs()
 				.execute_returns((expected_total, expected_claimed));
 		})
@@ -1309,7 +1309,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 					asset_precompile_address,
 					ForeignAssetsPCall::total_supply {},
 				)
-				.expect_cost(2000)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * UNIT));
 
@@ -1322,7 +1322,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 						who: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(2000)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * UNIT));
 		});
@@ -1367,7 +1367,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(24342)
+				.expect_cost(24695)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1386,7 +1386,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						who: Address(BOB.into()),
 					},
 				)
-				.expect_cost(2000)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * UNIT));
 		});
@@ -1431,7 +1431,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(14424)
+				.expect_cost(15604)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1452,7 +1452,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(29686)
+				.expect_cost(29960)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1471,7 +1471,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						who: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(2000)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * UNIT));
 		});
@@ -1530,7 +1530,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(57639)
+				.expect_cost(59490)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -1582,7 +1582,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(57639)
+				.expect_cost(59490)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -1750,7 +1750,7 @@ fn initial_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				10_000_000_000u128.into(),
-				Weight::from_parts(25_000_000u64, 0)
+				Weight::from_parts(41_742_000u64, 0)
 			)
 		);
 	});
@@ -2171,7 +2171,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(17555)
+				.expect_cost(21415)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2211,7 +2211,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(17555)
+				.expect_cost(21415)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2293,7 +2293,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(15126)
+				.expect_cost(14219)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2315,7 +2315,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14728)
+				.expect_cost(13821)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2336,7 +2336,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15189)
+				.expect_cost(14282)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2379,7 +2379,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16262)
+				.expect_cost(16025)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2404,7 +2404,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16262)
+				.expect_cost(16025)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2435,7 +2435,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(1000)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2455,7 +2455,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(1000)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2485,7 +2485,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(1000)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
@@ -2525,7 +2525,7 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(1000)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});
