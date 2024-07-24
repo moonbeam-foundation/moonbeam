@@ -27,12 +27,12 @@ mod mock;
 #[cfg(all(feature = "std", test))]
 mod tests;
 
-use ethereum_types::{H160, U256};
+use ethereum_types::{H160, H256, U256};
 use fp_ethereum::{TransactionData, ValidatedTransaction};
 use fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, TransactionValidationError};
 use frame_support::{
 	dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo},
-	traits::{EnsureOrigin, Get},
+	traits::{EnsureOrigin, Get, ProcessMessage},
 	weights::Weight,
 };
 use frame_system::pallet_prelude::OriginFor;
@@ -83,6 +83,25 @@ impl<O: Into<Result<RawOrigin, O>> + From<RawOrigin>> EnsureOrigin<O>
 	}
 }
 
+environmental::environmental!(XCM_MESSAGE_HASH: H256);
+
+pub struct MessageProcessorWrapper<Inner>(core::marker::PhantomData<Inner>);
+impl<Inner: ProcessMessage> ProcessMessage for MessageProcessorWrapper<Inner> {
+	type Origin = <Inner as ProcessMessage>::Origin;
+
+	fn process_message(
+		message: &[u8],
+		origin: Self::Origin,
+		meter: &mut frame_support::weights::WeightMeter,
+		id: &mut [u8; 32],
+	) -> Result<bool, frame_support::traits::ProcessMessageError> {
+		let mut xcm_msg_hash = H256(sp_io::hashing::blake2_256(message));
+		XCM_MESSAGE_HASH::using(&mut xcm_msg_hash, || {
+			Inner::process_message(message, origin, meter, id)
+		})
+	}
+}
+
 pub use self::pallet::*;
 
 #[frame_support::pallet(dev_mode)]
@@ -92,6 +111,8 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_evm::Config {
+		/// The overarching event type.
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// Invalid transaction error
 		type InvalidEvmTransactionError: From<TransactionValidationError>;
 		/// Handler for applying an already validated transaction
@@ -127,6 +148,17 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// Xcm to Ethereum execution is suspended
 		EthereumXcmExecutionSuspended,
+	}
+
+	#[pallet::event]
+	#[pallet::generate_deposit(pub(super) fn deposit_event)]
+	pub enum Event<T> {
+		/// Ethereum transaction executed from XCM
+		ExecutedFromXcm {
+			xcm_msg_hash: H256,
+			eth_caller: H160,
+			eth_tx_hash: H256,
+		},
 	}
 
 	#[pallet::call]
@@ -255,6 +287,7 @@ impl<T: Config> Pallet<T> {
 		let transaction: Option<Transaction> =
 			xcm_transaction.into_transaction_v2(current_nonce, T::ChainId::get());
 		if let Some(transaction) = transaction {
+			let tx_hash = transaction.hash();
 			let transaction_data: TransactionData = (&transaction).into();
 
 			let (weight_limit, proof_size_base_cost) =
@@ -301,6 +334,15 @@ impl<T: Config> Pallet<T> {
 			<Nonce<T>>::put(current_nonce.saturating_add(U256::one()));
 
 			let (dispatch_info, _) = T::ValidatedTransaction::apply(source, transaction)?;
+
+			XCM_MESSAGE_HASH::with(|xcm_msg_hash| {
+				Self::deposit_event(Event::ExecutedFromXcm {
+					xcm_msg_hash: *xcm_msg_hash,
+					eth_caller: source,
+					eth_tx_hash: tx_hash,
+				});
+			});
+
 			Ok(dispatch_info)
 		} else {
 			Err(sp_runtime::DispatchErrorWithPostInfo {

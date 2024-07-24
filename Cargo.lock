@@ -8730,6 +8730,7 @@ dependencies = [
 name = "pallet-ethereum-xcm"
 version = "1.0.0-dev"
 dependencies = [
+ "environmental",
  "ethereum",
  "ethereum-types",
  "fp-ethereum",
