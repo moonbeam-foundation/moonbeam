@@ -126,11 +126,7 @@ describeSuite({
                 originKind: "SovereignAccount",
                 // 21_000 gas limit + db read
                 requireWeightAtMost: {
-<<<<<<< HEAD
-                  refTime: 608_484_000n,
-=======
                   refTime: 550_000_000n + STORAGE_READ_COST,
->>>>>>> b66f08d302 (fix test-xcm-v3/4 tests)
                   proofSize: 80000n,
                 },
                 call: {
