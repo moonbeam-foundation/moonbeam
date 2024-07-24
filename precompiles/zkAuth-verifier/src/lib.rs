@@ -19,6 +19,7 @@
 use core::marker::PhantomData;
 use fp_evm::{PrecompileFailure, PrecompileHandle};
 use precompile_utils::prelude::*;
+use sp_core::ConstU32;
 use sp_std::vec::Vec;
 
 pub mod encoded_receipt;
@@ -27,6 +28,9 @@ pub mod encoded_receipt;
 mod mock;
 #[cfg(test)]
 mod tests;
+
+pub const ARRAY_LIMIT: u32 = 1601;
+pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 
 pub const JWT_VALIDATOR_ID: [u32; 8] = [
 	1923256869, 654795233, 2887859926, 1709721587, 1196091263, 3916749566, 1248329059, 610202488,
@@ -39,10 +43,16 @@ impl<Runtime> ZkAuthVerifierPrecompile<Runtime>
 where
 	Runtime: frame_system::Config,
 {
-	#[precompile::public("verify(uint8[])")]
-	fn verify_proof(handle: &mut impl PrecompileHandle, receipt: Vec<u8>) -> EvmResult {
+	#[precompile::public("verifyAndExecute(uint8[])")]
+	fn verify_proof(
+		handle: &mut impl PrecompileHandle,
+		//receipt: BoundedVec<u8, GetArrayLimit>,
+		receipt: Vec<u8>,
+	) -> EvmResult {
 		//TODO: record cost
 		handle.record_cost(1000)?;
+
+		//let receipt: Vec<u8> = receipt.into();
 
 		let receipt: risc0_zkvm::Receipt = postcard::from_bytes(&receipt)
 			.map_err(|_| RevertReason::Custom("Receipt decoding failed".into()))?;
@@ -52,6 +62,8 @@ where
 		receipt
 			.verify(image_id)
 			.map_err(|_| RevertReason::Custom("Error verifying receipt".into()))?;
+
+		// Handle tx logic
 		Ok(())
 	}
 }
