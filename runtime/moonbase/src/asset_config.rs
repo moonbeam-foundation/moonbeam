@@ -116,14 +116,28 @@ use frame_support::{pallet_prelude::DispatchResult, transactional};
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	#[transactional]
 	fn create_foreign_asset(
-		_asset: AssetId,
-		_min_balance: Balance,
-		_metadata: AssetRegistrarMetadata,
-		_is_sufficient: bool,
+		asset: AssetId,
+		min_balance: Balance,
+		metadata: AssetRegistrarMetadata,
+		is_sufficient: bool,
 	) -> DispatchResult {
-		Err(sp_runtime::DispatchError::Other(
-			"AssetManager is deprecated, please use EvmForeignAssets instead",
-		))
+		Assets::force_create(
+			RuntimeOrigin::root(),
+			asset.into(),
+			crate::AssetManager::account_id(),
+			is_sufficient,
+			min_balance,
+		)?;
+
+		// Lastly, the metadata
+		Assets::force_set_metadata(
+			RuntimeOrigin::root(),
+			asset.into(),
+			metadata.name,
+			metadata.symbol,
+			metadata.decimals,
+			metadata.is_frozen,
+		)
 	}
 
 	#[transactional]
