@@ -3,11 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { alith } from "@moonwall/util";
 
-import {
-  XcmFragment,
-  RawXcmMessage,
-  injectHrmpMessageAndSeal,
-} from "../../../../helpers/xcm.js";
+import { XcmFragment, RawXcmMessage, injectHrmpMessageAndSeal } from "../../../../helpers/xcm.js";
 import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
