@@ -1,6 +1,5 @@
 import { DevModeContext, customDevRpcRequest, fetchCompiledContract } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import { u128 } from "@polkadot/types";
 import { XcmpMessageFormat } from "@polkadot/types/interfaces";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,

@@ -6,8 +6,8 @@ import {
   relayAssetMetadata,
   verifyLatestBlockFees,
   expectEVMResult,
-  registerOldForeignAsset,
   registerXcmTransactorAndContract,
+  registerOldForeignAsset,
 } from "../../../../helpers";
 
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";

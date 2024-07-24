@@ -4,11 +4,11 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { BN } from "@polkadot/util";
 import { alith } from "@moonwall/util";
 import {
-  registerOldForeignAsset,
   XcmFragment,
   RawXcmMessage,
   injectHrmpMessageAndSeal,
 } from "../../../../helpers/xcm.js";
+import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 const statemint_para_id = 1001;

@@ -11,9 +11,9 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
   MultiLocation,
-  registerOldForeignAsset,
   weightMessage,
 } from "../../../../helpers/xcm.js";
+import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 
 describeSuite({
   id: "D014025",
