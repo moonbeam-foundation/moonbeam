@@ -145,7 +145,7 @@ describeSuite({
                 originKind: "SovereignAccount",
                 // 100_000 gas + 2db reads
                 requireWeightAtMost: {
-                  refTime: 575_000_000n,
+                  refTime: 608_484_000n,
                   proofSize: 80000n,
                 },
                 call: {
