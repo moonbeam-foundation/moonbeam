@@ -75,55 +75,6 @@ export function mockHrmpChannelExistanceTx(
     .tx.system.setStorage([[u8aToHex(overallKey), u8aToHex(stateToInsert.toU8a())]]);
 }
 
-export async function registerForeignAsset(
-  context: DevModeContext,
-  xcmLocation: any,
-  metadata: AssetMetadata
-) {
-  const { id, decimals, name, symbol } = metadata;
-  const { result } = await context.createBlock(
-    context
-      .polkadotJs()
-      .tx.sudo.sudo(
-        context
-          .polkadotJs()
-          .tx.evmForeignAssets.createForeignAsset(id, xcmLocation, decimals, symbol, name)
-      )
-  );
-
-  // Fetch asset id and contract address in the events
-  const event = (result as any).events.find(
-    ({ event: { method } }) => method.toString() === "ForeignAssetCreated"
-  )!.event;
-
-  const contractAddress = event.data[0].toHuman().toString();
-  const registeredAssetLocation = event.data[2].toString();
-  const registeredAssetId = event.data[1].toString();
-
-  // New foreign assets design doesn't allow for new assets to pay fees.
-  // We can reenable this code when that is possible (probably with XCM v5).
-  // const { result: result2 } = await context.createBlock(
-  //   context
-  //     .polkadotJs()
-  //     .tx.sudo.sudo(
-  //       context
-  //         .polkadotJs()
-  //         .tx.assetManager.setAssetUnitsPerSecond(asset, unitsPerSecond, numAssetsWeightHint!)
-  //     ),
-  //   {
-  //     expectEvents: [context.polkadotJs().events.assetManager.UnitsPerSecondChanged],
-  //     allowFailures: false,
-  //   }
-  // );
-
-  return {
-    registeredAssetId,
-    contractAddress,
-    registeredAssetLocation,
-    events: (result as any).events || [],
-  };
-}
-
 export function descendOriginFromAddress20(
   context: DevModeContext,
   address: `0x${string}` = "0x0101010101010101010101010101010101010101",
