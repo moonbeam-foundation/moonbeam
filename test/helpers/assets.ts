@@ -167,7 +167,7 @@ export async function mockAssetBalance(
       },
       value: 0n,
       input: encodeFunctionData({
-        abi: parseAbi(['function mintInto(address, uint256)']),
+        abi: parseAbi(["function mintInto(address, uint256)"]),
         functionName: "mintInto",
         args: [account, assetBalance],
       }),
