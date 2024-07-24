@@ -1,9 +1,8 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { DevModeContext, deployCreateCompiledContract, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import { DevModeContext, fetchCompiledContract } from "@moonwall/cli";
 import { KeyringPair } from "@polkadot/keyring/types";
-import type { AccountId20, Balance } from "@polkadot/types/interfaces/runtime";
-import { u8aToHex } from "@polkadot/util";
+import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
+import { StagingXcmV4Location } from "@polkadot/types/lookup";
 import { encodeFunctionData, parseAbi } from "viem";
 
 export const EVM_FOREIGN_ASSETS_PALLET_ACCOUNT = "0x6d6f646c666f7267617373740000000000000000";
@@ -42,22 +41,8 @@ export const relayAssetMetadata: AssetMetadata = {
   isFrozen: false,
 };
 
-export function assetContractAddress(
-  context: DevModeContext,
-  assetId: bigint | string
-): `0x${string}` {
-  const address = `0xffffffff${BigInt(assetId).toString(16)}`;
-  console.log("ADDR", address);
-  return address as `0x${string}`;
-
-  // const address = u8aToHex(
-  //   new Uint8Array([
-  //     ...new Uint8Array([255, 255, 255, 255]),
-  //     ...context.polkadotJs().createType("u128", assetId).toU8a(),
-  //   ])
-  // );
-  // console.log("ADDR", address);
-  // return address;
+export function assetContractAddress(assetId: bigint | string): `0x${string}` {
+  return `0xffffffff${BigInt(assetId).toString(16)}`;
 }
 
 /**
@@ -107,7 +92,7 @@ export async function foreignAssetBalance(
 ) {
   return (await context.viem().readContract({
     functionName: "balanceOf",
-    address: assetContractAddress(context, assetId),
+    address: assetContractAddress(assetId),
     args: [account],
     abi: parseAbi(["function balanceOf(address account) view returns (uint256)"]),
   })) as bigint;
@@ -117,28 +102,28 @@ export async function mockAssetBalance(
   context: DevModeContext,
   assetBalance: bigint,
   assetId: bigint,
+  assetLocation: any,
   sudoAccount: KeyringPair,
   account: string | AccountId20
 ) {
   const api = context.polkadotJs();
-  // // Register the asset
-  // registerForeignAsset(context, assetId, RELAY_SOURCE_LOCATION, relayAssetMetadata);
-
   const { abi } = fetchCompiledContract("MyToken");
-  const encodedData = encodeFunctionData({
-    abi,
-    functionName: "mintInto",
-    args: [ALITH_ADDRESS, assetBalance],
-  });
-  console.log("encodedData", encodedData);
+
+  // Register the asset first
+  await registerForeignAsset(context, assetId, assetLocation, relayAssetMetadata as any);
+
   const xcmTransaction = {
     V2: {
       gas_limit: 160_000n,
       action: {
-        Call: "0xffffffff1fcacbd218edc0eba20fc2308c778080",
+        Call: assetContractAddress(assetId),
       },
       value: 0n,
-      input: encodedData,
+      input: encodeFunctionData({
+        abi,
+        functionName: "mintInto",
+        args: [account, assetBalance],
+      }),
       access_list: null,
     },
   };

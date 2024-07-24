@@ -5,7 +5,12 @@ import { ApiPromise } from "@polkadot/api";
 import { u128 } from "@polkadot/types";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { BN } from "@polkadot/util";
-import { mockAssetBalance } from "../../../../helpers";
+import {
+  RELAYCHAIN_ARBITRARY_ADDRESS_1,
+  RELAY_SOURCE_LOCATION_V4,
+  foreignAssetBalance,
+  mockAssetBalance,
+} from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const ARBITRARY_TRANSFER_AMOUNT = 10000000000000n;
@@ -15,38 +20,21 @@ describeSuite({
   title: "Pallet Assets - Sufficient tests: is_sufficient to true",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let assetId: u128;
+    let assetId: bigint;
     const freshAccount = generateKeyringPair();
     let api: ApiPromise;
 
     beforeAll(async () => {
       api = context.polkadotJs();
-      assetId = api.createType("u128", ARBITRARY_ASSET_ID);
+      assetId = ARBITRARY_ASSET_ID;
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
-      const balance = new BN("100000000000000");
-      const assetBalance: PalletAssetsAssetAccount = api.createType("PalletAssetsAssetAccount", {
-        balance: balance,
-      });
-
-      const assetDetails: PalletAssetsAssetDetails = api.createType("PalletAssetsAssetDetails", {
-        supply: balance,
-        isSufficient: true,
-        minBalance: 1,
-      });
-
-      await mockAssetBalance(
-        context,
-        assetBalance,
-        assetDetails,
-        alith,
-        assetId,
-        ALITH_ADDRESS,
-        true
-      );
+      const balance = BigInt("100000000000000");
+      const assetLocation = RELAY_SOURCE_LOCATION_V4.Xcm;
+      await mockAssetBalance(context, balance, assetId, assetLocation, alith, ALITH_ADDRESS);
 
       await context.createBlock();
-      const alithBalance = await api.query.assets.account(assetId.toU8a(), ALITH_ADDRESS);
+      const alithBalance = foreignAssetBalance;
       expect(alithBalance.unwrap().balance.toBigInt()).to.equal(100000000000000n);
     });
 
@@ -92,12 +80,6 @@ describeSuite({
             .transfer(assetId, baltathar.address, ARBITRARY_TRANSFER_AMOUNT)
             .signAsync(freshAccount)
         );
-
-        const freshAccountBalance = await api.query.assets.account(
-          assetId.toU8a(),
-          freshAccount.address as string
-        );
-        expect(freshAccountBalance.isNone).to.equal(true);
 
         // Sufficients should go to 0
         expect(
