@@ -353,6 +353,46 @@
 <a href="#351" id="351">351</a>
 <a href="#352" id="352">352</a>
 <a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -382,12 +422,12 @@
 <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, test))]
 </span><span class="kw">mod </span>tests;
 
-<span class="kw">use </span>ethereum_types::{H160, U256};
+<span class="kw">use </span>ethereum_types::{H160, H256, U256};
 <span class="kw">use </span>fp_ethereum::{TransactionData, ValidatedTransaction};
 <span class="kw">use </span>fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, TransactionValidationError};
 <span class="kw">use </span>frame_support::{
 	dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo},
-	traits::{EnsureOrigin, Get},
+	traits::{EnsureOrigin, Get, ProcessMessage},
 	weights::Weight,
 };
 <span class="kw">use </span>frame_system::pallet_prelude::OriginFor;
@@ -438,6 +478,25 @@
 	}
 }
 
+<span class="macro">environmental::environmental!</span>(XCM_MESSAGE_HASH: H256);
+
+<span class="kw">pub struct </span>MessageProcessorWrapper&lt;Inner&gt;(core::marker::PhantomData&lt;Inner&gt;);
+<span class="kw">impl</span>&lt;Inner: ProcessMessage&gt; ProcessMessage <span class="kw">for </span>MessageProcessorWrapper&lt;Inner&gt; {
+	<span class="kw">type </span>Origin = &lt;Inner <span class="kw">as </span>ProcessMessage&gt;::Origin;
+
+	<span class="kw">fn </span>process_message(
+		message: <span class="kw-2">&amp;</span>[u8],
+		origin: <span class="self">Self</span>::Origin,
+		meter: <span class="kw-2">&amp;mut </span>frame_support::weights::WeightMeter,
+		id: <span class="kw-2">&amp;mut </span>[u8; <span class="number">32</span>],
+	) -&gt; <span class="prelude-ty">Result</span>&lt;bool, frame_support::traits::ProcessMessageError&gt; {
+		<span class="kw">let </span><span class="kw-2">mut </span>xcm_msg_hash = H256(sp_io::hashing::blake2_256(message));
+		XCM_MESSAGE_HASH::using(<span class="kw-2">&amp;mut </span>xcm_msg_hash, || {
+			Inner::process_message(message, origin, meter, id)
+		})
+	}
+}
+
 <span class="kw">pub use </span><span class="self">self</span>::pallet::<span class="kw-2">*</span>;
 
 <span class="attr">#[frame_support::pallet(dev_mode)]
@@ -447,6 +506,8 @@
 
 	<span class="attr">#[pallet::config]
 	</span><span class="kw">pub trait </span>Config: frame_system::Config + pallet_evm::Config {
+		<span class="doccomment">/// The overarching event type.
+		</span><span class="kw">type </span>RuntimeEvent: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
 		<span class="doccomment">/// Invalid transaction error
 		</span><span class="kw">type </span>InvalidEvmTransactionError: From&lt;TransactionValidationError&gt;;
 		<span class="doccomment">/// Handler for applying an already validated transaction
@@ -484,6 +545,16 @@
 	</span><span class="kw">pub enum </span>Error&lt;T&gt; {
 		<span class="doccomment">/// Xcm to Ethereum execution is suspended
 		</span>EthereumXcmExecutionSuspended,
+	}
+
+	<span class="attr">#[pallet::event]
+	#[pallet::generate_deposit(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>deposit_event)]
+	</span><span class="kw">pub enum </span>Event&lt;T&gt; {
+		<span class="doccomment">/// Ethereum transaction executed from XCM
+		</span>ExecutedFromXcm {
+			xcm_msg_hash: H256,
+			eth_tx_hash: H256,
+		},
 	}
 
 	<span class="attr">#[pallet::call]
@@ -647,6 +718,7 @@
 		<span class="kw">let </span>transaction: <span class="prelude-ty">Option</span>&lt;Transaction&gt; =
 			xcm_transaction.into_transaction_v2(current_nonce, T::ChainId::get(), allow_create);
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(transaction) = transaction {
+			<span class="kw">let </span>tx_hash = transaction.hash();
 			<span class="kw">let </span>transaction_data: TransactionData = (<span class="kw-2">&amp;</span>transaction).into();
 
 			<span class="kw">let </span>(weight_limit, proof_size_base_cost) =
@@ -694,6 +766,14 @@
 
 			<span class="kw">let </span>(dispatch_info, <span class="kw">_</span>) =
 				T::ValidatedTransaction::apply(source, transaction, maybe_force_create_address)<span class="question-mark">?</span>;
+
+			XCM_MESSAGE_HASH::with(|xcm_msg_hash| {
+				<span class="self">Self</span>::deposit_event(Event::ExecutedFromXcm {
+					xcm_msg_hash: <span class="kw-2">*</span>xcm_msg_hash,
+					eth_tx_hash: tx_hash,
+				});
+			});
+
 			<span class="prelude-val">Ok</span>(dispatch_info)
 		} <span class="kw">else </span>{
 			<span class="prelude-val">Err</span>(sp_runtime::DispatchErrorWithPostInfo {

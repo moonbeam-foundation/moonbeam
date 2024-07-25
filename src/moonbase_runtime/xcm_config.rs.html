@@ -809,6 +809,7 @@
 <a href="#807" id="807">807</a>
 <a href="#808" id="808">808</a>
 <a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1255,8 +1256,9 @@
 		cumulus_primitives_core::AggregateMessageOrigin,
 	&gt;;
 	<span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
-	</span><span class="kw">type </span>MessageProcessor =
-		xcm_builder::ProcessXcmMessage&lt;AggregateMessageOrigin, XcmExecutor, RuntimeCall&gt;;
+	</span><span class="kw">type </span>MessageProcessor = pallet_ethereum_xcm::MessageProcessorWrapper&lt;
+		xcm_builder::ProcessXcmMessage&lt;AggregateMessageOrigin, XcmExecutor, RuntimeCall&gt;,
+	&gt;;
 	<span class="kw">type </span>Size = u32;
 	<span class="kw">type </span>HeapSize = MessageQueueHeapSize;
 	<span class="kw">type </span>MaxStale = MessageQueueMaxStale;
