@@ -27,8 +27,8 @@ describeSuite({
         const batchedCalls: SubmittableExtrinsic[] = [];
         batchedCalls.push(
           context.polkadotJs().tx.crowdloanRewards.initializeRewardVec([
-            [RELAYCHAIN_ARBITRARY_ADDRESS_1, GOLIATH_ADDRESS, 1_500_000n * GLMR],
-            [RELAYCHAIN_ARBITRARY_ADDRESS_2, null, 1_500_000n * GLMR],
+            [RELAYCHAIN_ARBITRARY_ADDRESS_1, GOLIATH_ADDRESS, 3_000_000n * GLMR],
+            [RELAYCHAIN_ARBITRARY_ADDRESS_2, null, 3_000_000n * GLMR],
           ])
         );
 
