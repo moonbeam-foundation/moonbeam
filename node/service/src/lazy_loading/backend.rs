@@ -428,10 +428,6 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> HeaderMetadata<Block> for Blo
 		self.header(hash)?
 			.map(|header| CachedHeaderMetadata::from(&header))
 			.ok_or_else(|| {
-				use backtrace::Backtrace;
-				let backtrace = Backtrace::new();
-				log::error!("3backtrace: {:?}", backtrace);
-
 				sp_blockchain::Error::UnknownBlock(format!("header not found: {}", hash))
 			})
 	}
@@ -915,11 +911,6 @@ pub struct Backend<Block: BlockT> {
 }
 
 impl<Block: BlockT + sp_runtime::DeserializeOwned> Backend<Block> {
-	/// Create a new instance of in-mem backend.
-	///
-	/// # Warning
-	///
-	/// For testing purposes only!
 	fn new(rpc_client: Arc<RPC>, fork_checkpoint: Option<Block::Header>) -> Self {
 		Backend {
 			rpc_client: rpc_client.clone(),
@@ -929,16 +920,6 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> Backend<Block> {
 			pinned_blocks: Default::default(),
 			fork_checkpoint,
 		}
-	}
-
-	/// Return the number of references active for a pinned block.
-	///
-	/// # Warning
-	///
-	/// For testing purposes only!
-	pub fn pin_refs(&self, hash: &<Block as BlockT>::Hash) -> Option<i64> {
-		let blocks = self.pinned_blocks.read();
-		blocks.get(hash).map(|value| *value)
 	}
 }
 
@@ -1018,8 +999,6 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 			};
 			self.states.write().insert(hash, new_state);
 
-			//let value = self.states.read().get(&hash).unwrap().db.storage(hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da99dfefc73f89d24437a9c2dce5572808af24ff3a9cf04c71dbc94d0b566f7a27b94566cac").as_slice());
-
 			self.blockchain
 				.insert(hash, header, justification, body, pending_block.state)?;
 		}
@@ -1076,8 +1055,6 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 		}
 
 		let backend = self.states.read().get(&hash).cloned().unwrap_or_else(|| {
-			// TODO: Validate that self.fork_checkpoint is greater or equal then block_number_at(hash)
-
 			let header: Block::Header = self
 				.rpc_client
 				.header::<Block>(Some(hash))
