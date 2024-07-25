@@ -358,6 +358,7 @@ runtime-benchmarks = [
 	"pallet-evm/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-migrations/runtime-benchmarks",
+	"pallet-moonbeam-foreign-assets/runtime-benchmarks",
 	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
