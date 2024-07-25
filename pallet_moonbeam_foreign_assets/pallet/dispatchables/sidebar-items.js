@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["change_xcm_location","create_foreign_asset","freeze_foreign_asset","unfreeze_foreign_asset"]};

@@ -315,6 +315,44 @@
 <a href="#313" id="313">313</a>
 <a href="#314" id="314">314</a>
 <a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -421,6 +459,8 @@
 		</span><span class="kw">type </span>EnsureProxy: EnsureProxy&lt;<span class="self">Self</span>::AccountId&gt;;
 		<span class="doccomment">/// The origin that is allowed to resume or suspend the XCM to Ethereum executions.
 		</span><span class="kw">type </span>ControllerOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin&gt;;
+		<span class="doccomment">/// An origin that can submit a create tx type
+		</span><span class="kw">type </span>ForceOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin&gt;;
 	}
 
 	<span class="attr">#[pallet::pallet]
@@ -477,7 +517,7 @@
 					}
 				}
 			);
-			<span class="self">Self</span>::validate_and_apply(source, xcm_transaction)
+			<span class="self">Self</span>::validate_and_apply(source, xcm_transaction, <span class="bool-val">false</span>, <span class="prelude-val">None</span>)
 		}
 
 		<span class="doccomment">/// Xcm Transact an Ethereum transaction through proxy.
@@ -519,7 +559,7 @@
 				error: sp_runtime::DispatchError::Other(e),
 			})<span class="question-mark">?</span>;
 
-			<span class="self">Self</span>::validate_and_apply(transact_as, xcm_transaction)
+			<span class="self">Self</span>::validate_and_apply(transact_as, xcm_transaction, <span class="bool-val">false</span>, <span class="prelude-val">None</span>)
 		}
 
 		<span class="doccomment">/// Suspends all Ethereum executions from XCM.
@@ -545,6 +585,39 @@
 
 			<span class="prelude-val">Ok</span>(())
 		}
+
+		<span class="doccomment">/// Xcm Transact an Ethereum transaction, but allow to force the caller and create address.
+		/// This call should be restricted (callable only by the runtime or governance).
+		/// Weight: Gas limit plus the db reads involving the suspension and proxy checks
+		</span><span class="attr">#[pallet::weight({
+			<span class="kw">let </span>without_base_extrinsic_weight = <span class="bool-val">false</span>;
+			&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::gas_to_weight({
+				<span class="kw">match </span>xcm_transaction {
+					EthereumXcmTransaction::V1(v1_tx) =&gt;  v1_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V2(v2_tx) =&gt;  v2_tx.gas_limit.unique_saturated_into()
+				}
+			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
+		})]
+		</span><span class="kw">pub fn </span>force_transact_as(
+			origin: OriginFor&lt;T&gt;,
+			transact_as: H160,
+			xcm_transaction: EthereumXcmTransaction,
+			force_create_address: <span class="prelude-ty">Option</span>&lt;H160&gt;,
+		) -&gt; DispatchResultWithPostInfo {
+			T::ForceOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
+			<span class="macro">ensure!</span>(
+				!EthereumXcmSuspended::&lt;T&gt;::get(),
+				DispatchErrorWithPostInfo {
+					error: Error::&lt;T&gt;::EthereumXcmExecutionSuspended.into(),
+					post_info: PostDispatchInfo {
+						actual_weight: <span class="prelude-val">Some</span>(T::DbWeight::get().reads(<span class="number">1</span>)),
+						pays_fee: Pays::Yes
+					}
+				}
+			);
+
+			<span class="self">Self</span>::validate_and_apply(transact_as, xcm_transaction, <span class="bool-val">true</span>, force_create_address)
+		}
 	}
 }
 
@@ -560,6 +633,8 @@
 	<span class="kw">fn </span>validate_and_apply(
 		source: H160,
 		xcm_transaction: EthereumXcmTransaction,
+		allow_create: bool,
+		maybe_force_create_address: <span class="prelude-ty">Option</span>&lt;H160&gt;,
 	) -&gt; DispatchResultWithPostInfo {
 		<span class="comment">// The lack of a real signature where different callers with the
 		// same nonce are providing identical transaction payloads results in a collision and
@@ -570,7 +645,7 @@
 		<span class="kw">let </span>error_weight = T::DbWeight::get().reads(<span class="number">1</span>);
 
 		<span class="kw">let </span>transaction: <span class="prelude-ty">Option</span>&lt;Transaction&gt; =
-			xcm_transaction.into_transaction_v2(current_nonce, T::ChainId::get());
+			xcm_transaction.into_transaction_v2(current_nonce, T::ChainId::get(), allow_create);
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(transaction) = transaction {
 			<span class="kw">let </span>transaction_data: TransactionData = (<span class="kw-2">&amp;</span>transaction).into();
 
@@ -617,7 +692,8 @@
 			// transaction on chain - we increase the global nonce.
 			</span>&lt;Nonce&lt;T&gt;&gt;::put(current_nonce.saturating_add(U256::one()));
 
-			<span class="kw">let </span>(dispatch_info, <span class="kw">_</span>) = T::ValidatedTransaction::apply(source, transaction)<span class="question-mark">?</span>;
+			<span class="kw">let </span>(dispatch_info, <span class="kw">_</span>) =
+				T::ValidatedTransaction::apply(source, transaction, maybe_force_create_address)<span class="question-mark">?</span>;
 			<span class="prelude-val">Ok</span>(dispatch_info)
 		} <span class="kw">else </span>{
 			<span class="prelude-val">Err</span>(sp_runtime::DispatchErrorWithPostInfo {

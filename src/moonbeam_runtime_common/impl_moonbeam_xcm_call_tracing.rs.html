@@ -118,6 +118,7 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -198,8 +199,9 @@
 									</span>EthereumXcmTracingStatus::Transaction(traced_transaction_hash) =&gt; {
 										<span class="kw">let </span>transaction_hash = xcm_transaction.into_transaction_v2(
 											EthereumXcm::nonce(),
-											&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::ChainId::get()
-										)
+											&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::ChainId::get(),
+											<span class="bool-val">false
+										</span>)
 										.expect(<span class="string">"Invalid transaction conversion"</span>)
 										.hash();
 										<span class="kw">if </span>transaction_hash == traced_transaction_hash {

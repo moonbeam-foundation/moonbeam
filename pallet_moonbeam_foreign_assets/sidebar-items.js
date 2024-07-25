@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["AssetStatus"],"mod":["pallet","weights"],"trait":["ForeignAssetCreatedHook"]};

@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"moonbase_runtime":[["impl <a class=\"trait\" href=\"pallet_moonbeam_foreign_assets/pallet/trait.Config.html\" title=\"trait pallet_moonbeam_foreign_assets::pallet::Config\">Config</a> for <a class=\"struct\" href=\"moonbase_runtime/struct.Runtime.html\" title=\"struct moonbase_runtime::Runtime\">Runtime</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -53,12 +53,14 @@ var srcIndex = new Map(JSON.parse('[\
 ["pallet_evm_precompile_xcm_utils",["",[],["lib.rs"]]],\
 ["pallet_evm_precompile_xtokens",["",[],["lib.rs"]]],\
 ["pallet_evm_precompileset_assets_erc20",["",[],["eip2612.rs","lib.rs"]]],\
+["pallet_moonbeam_foreign_assets",["",[],["evm.rs","lib.rs","weights.rs"]]],\
 ["pallet_moonbeam_lazy_migrations",["",[],["lib.rs","weights.rs"]]],\
 ["pallet_moonbeam_orbiters",["",[],["lib.rs","types.rs","weights.rs"]]],\
 ["pallet_parachain_staking",["",[],["auto_compound.rs","delegation_requests.rs","inflation.rs","lib.rs","migrations.rs","set.rs","traits.rs","types.rs","weights.rs"]]],\
 ["pallet_precompile_benchmarks",["",[],["lib.rs","weights.rs"]]],\
 ["pallet_proxy_genesis_companion",["",[],["lib.rs"]]],\
 ["pallet_xcm_transactor",["",[],["encode.rs","lib.rs","migrations.rs","relay_indices.rs","weights.rs"]]],\
+["precompile_foreign_asset_migrator",["",[],["lib.rs"]]],\
 ["storage_proof_primitives",["",[],["lib.rs"]]],\
 ["summarize_precompile_checks",["",[],["main.rs"]]],\
 ["xcm_primitives",["",[],["asset_id_conversions.rs","constants.rs","ethereum_xcm.rs","fee_handlers.rs","filter_asset_max_fee.rs","lib.rs","origin_conversion.rs","transactor_traits.rs"]]]\

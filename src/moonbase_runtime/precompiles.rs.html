@@ -350,6 +350,8 @@
 <a href="#348" id="348">348</a>
 <a href="#349" id="349">349</a>
 <a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -410,6 +412,7 @@
 <span class="kw">use </span>pallet_evm_precompile_xtokens::XtokensPrecompile;
 <span class="kw">use </span>pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 <span class="kw">use </span>pallet_precompile_benchmarks::WeightInfo;
+<span class="kw">use </span>precompile_foreign_asset_migrator::ForeignAssetMigratorPrecompile;
 <span class="kw">use </span>precompile_utils::precompile_set::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm_primitives::AsAssetType;
@@ -630,6 +633,7 @@
 		PalletXcmPrecompile&lt;R, (SingleAddressMatch, ForeignAssetMatch, Erc20Match)&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">2075</span>&gt;, ForeignAssetMigratorPrecompile&lt;R&gt;, ()&gt;,
 );
 
 <span class="kw">pub struct </span>DisabledLocalAssets&lt;Runtime&gt;(sp_std::marker::PhantomData&lt;Runtime&gt;);

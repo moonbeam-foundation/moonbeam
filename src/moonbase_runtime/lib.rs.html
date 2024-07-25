@@ -1836,6 +1836,8 @@
 <a href="#1834" id="1834">1834</a>
 <a href="#1835" id="1835">1835</a>
 <a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2570,6 +2572,7 @@
 	<span class="kw">type </span>ReservedXcmpWeight = ReservedXcmpWeight;
 	<span class="kw">type </span>EnsureProxy = EthereumXcmEnsureProxy;
 	<span class="kw">type </span>ControllerOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>ForceOrigin = EnsureRoot&lt;AccountId&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -3277,6 +3280,7 @@
 		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = <span class="number">53</span>,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">54</span>,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = <span class="number">55</span>,
+		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">56</span>,
 	}
 }
 

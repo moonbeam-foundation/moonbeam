@@ -378,6 +378,37 @@
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -459,7 +490,7 @@
 	</span><span class="kw">pub </span>gas_limit: U256,
 	<span class="doccomment">/// Fee configuration of choice.
 	</span><span class="kw">pub </span>fee_payment: EthereumXcmFee,
-	<span class="doccomment">/// Either a Call (the callee, account or contract address) or Create (currently unsupported).
+	<span class="doccomment">/// Either a Call (the callee, account or contract address) or Create (unsupported for v1).
 	</span><span class="kw">pub </span>action: TransactionAction,
 	<span class="doccomment">/// Value to be transfered.
 	</span><span class="kw">pub </span>value: U256,
@@ -473,7 +504,7 @@
 </span><span class="kw">pub struct </span>EthereumXcmTransactionV2 {
 	<span class="doccomment">/// Gas limit to be consumed by EVM execution.
 	</span><span class="kw">pub </span>gas_limit: U256,
-	<span class="doccomment">/// Either a Call (the callee, account or contract address) or Create (currently unsupported).
+	<span class="doccomment">/// Either a Call (the callee, account or contract address) or Create).
 	</span><span class="kw">pub </span>action: TransactionAction,
 	<span class="doccomment">/// Value to be transfered.
 	</span><span class="kw">pub </span>value: U256,
@@ -484,20 +515,34 @@
 }
 
 <span class="kw">pub trait </span>XcmToEthereum {
-	<span class="kw">fn </span>into_transaction_v2(<span class="kw-2">&amp;</span><span class="self">self</span>, nonce: U256, chain_id: u64) -&gt; <span class="prelude-ty">Option</span>&lt;TransactionV2&gt;;
+	<span class="kw">fn </span>into_transaction_v2(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		nonce: U256,
+		chain_id: u64,
+		allow_create: bool,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;TransactionV2&gt;;
 }
 
 <span class="kw">impl </span>XcmToEthereum <span class="kw">for </span>EthereumXcmTransaction {
-	<span class="kw">fn </span>into_transaction_v2(<span class="kw-2">&amp;</span><span class="self">self</span>, nonce: U256, chain_id: u64) -&gt; <span class="prelude-ty">Option</span>&lt;TransactionV2&gt; {
+	<span class="kw">fn </span>into_transaction_v2(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		nonce: U256,
+		chain_id: u64,
+		allow_create: bool,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;TransactionV2&gt; {
 		<span class="kw">match </span><span class="self">self </span>{
-			EthereumXcmTransaction::V1(v1_tx) =&gt; v1_tx.into_transaction_v2(nonce, chain_id),
-			EthereumXcmTransaction::V2(v2_tx) =&gt; v2_tx.into_transaction_v2(nonce, chain_id),
+			EthereumXcmTransaction::V1(v1_tx) =&gt; {
+				v1_tx.into_transaction_v2(nonce, chain_id, allow_create)
+			}
+			EthereumXcmTransaction::V2(v2_tx) =&gt; {
+				v2_tx.into_transaction_v2(nonce, chain_id, allow_create)
+			}
 		}
 	}
 }
 
 <span class="kw">impl </span>XcmToEthereum <span class="kw">for </span>EthereumXcmTransactionV1 {
-	<span class="kw">fn </span>into_transaction_v2(<span class="kw-2">&amp;</span><span class="self">self</span>, nonce: U256, chain_id: u64) -&gt; <span class="prelude-ty">Option</span>&lt;TransactionV2&gt; {
+	<span class="kw">fn </span>into_transaction_v2(<span class="kw-2">&amp;</span><span class="self">self</span>, nonce: U256, chain_id: u64, <span class="kw">_</span>: bool) -&gt; <span class="prelude-ty">Option</span>&lt;TransactionV2&gt; {
 		<span class="comment">// We dont support creates for now
 		</span><span class="kw">if </span><span class="self">self</span>.action == TransactionAction::Create {
 			<span class="kw">return </span><span class="prelude-val">None</span>;
@@ -575,10 +620,15 @@
 }
 
 <span class="kw">impl </span>XcmToEthereum <span class="kw">for </span>EthereumXcmTransactionV2 {
-	<span class="kw">fn </span>into_transaction_v2(<span class="kw-2">&amp;</span><span class="self">self</span>, nonce: U256, chain_id: u64) -&gt; <span class="prelude-ty">Option</span>&lt;TransactionV2&gt; {
-		<span class="comment">// We dont support creates for now
-		</span><span class="kw">if </span><span class="self">self</span>.action == TransactionAction::Create {
-			<span class="kw">return </span><span class="prelude-val">None</span>;
+	<span class="kw">fn </span>into_transaction_v2(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		nonce: U256,
+		chain_id: u64,
+		allow_create: bool,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;TransactionV2&gt; {
+		<span class="kw">if </span>!allow_create &amp;&amp; <span class="self">self</span>.action == TransactionAction::Create {
+			<span class="comment">// Create not allowed
+			</span><span class="kw">return </span><span class="prelude-val">None</span>;
 		}
 		<span class="kw">let </span>from_tuple_to_access_list = |t: <span class="kw-2">&amp;</span>Vec&lt;(H160, Vec&lt;H256&gt;)&gt;| -&gt; AccessList {
 			t.iter()
@@ -654,7 +704,10 @@
 			s: H256::from_low_u64_be(<span class="number">1u64</span>),
 		}));
 
-		<span class="macro">assert_eq!</span>(xcm_transaction.into_transaction_v2(nonce, <span class="number">111</span>), expected_tx);
+		<span class="macro">assert_eq!</span>(
+			xcm_transaction.into_transaction_v2(nonce, <span class="number">111</span>, <span class="bool-val">false</span>),
+			expected_tx
+		);
 	}
 
 	<span class="attr">#[test]
@@ -682,7 +735,10 @@
 			signature: TransactionSignature::new(<span class="number">42</span>, rs_id(), rs_id()).unwrap(),
 		}));
 
-		<span class="macro">assert_eq!</span>(xcm_transaction.into_transaction_v2(nonce, <span class="number">111</span>), expected_tx);
+		<span class="macro">assert_eq!</span>(
+			xcm_transaction.into_transaction_v2(nonce, <span class="number">111</span>, <span class="bool-val">false</span>),
+			expected_tx
+		);
 	}
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>test_eip_2930_v1() {
@@ -724,7 +780,10 @@
 			s: H256::from_low_u64_be(<span class="number">1u64</span>),
 		}));
 
-		<span class="macro">assert_eq!</span>(xcm_transaction.into_transaction_v2(nonce, <span class="number">111</span>), expected_tx);
+		<span class="macro">assert_eq!</span>(
+			xcm_transaction.into_transaction_v2(nonce, <span class="number">111</span>, <span class="bool-val">false</span>),
+			expected_tx
+		);
 	}
 
 	<span class="attr">#[test]
@@ -753,7 +812,10 @@
 			s: H256::from_low_u64_be(<span class="number">1u64</span>),
 		}));
 
-		<span class="macro">assert_eq!</span>(xcm_transaction.into_transaction_v2(nonce, <span class="number">111</span>), expected_tx);
+		<span class="macro">assert_eq!</span>(
+			xcm_transaction.into_transaction_v2(nonce, <span class="number">111</span>, <span class="bool-val">false</span>),
+			expected_tx
+		);
 	}
 }
 </code></pre></div></section></main></body></html>

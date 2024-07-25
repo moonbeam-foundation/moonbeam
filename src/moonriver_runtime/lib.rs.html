@@ -1840,6 +1840,7 @@
 <a href="#1838" id="1838">1838</a>
 <a href="#1839" id="1839">1839</a>
 <a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2558,6 +2559,7 @@
 	<span class="kw">type </span>ReservedXcmpWeight = ReservedXcmpWeight;
 	<span class="kw">type </span>EnsureProxy = EthereumXcmEnsureProxy;
 	<span class="kw">type </span>ControllerOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>ForceOrigin = EnsureRoot&lt;AccountId&gt;;
 }
 
 <span class="macro">parameter_types! </span>{

@@ -696,7 +696,7 @@
 			units_per_second: u128,
 		},
 		<span class="doccomment">/// Changed the xcm type mapping for a given asset id
-		</span>ForeignAssetTypeChanged {
+		</span>ForeignAssetXcmLocationChanged {
 			asset_id: T::AssetId,
 			new_asset_type: T::ForeignAssetType,
 		},
@@ -881,7 +881,7 @@
 				AssetTypeUnitsPerSecond::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>new_asset_type, units);
 			}
 
-			<span class="self">Self</span>::deposit_event(Event::ForeignAssetTypeChanged {
+			<span class="self">Self</span>::deposit_event(Event::ForeignAssetXcmLocationChanged {
 				asset_id,
 				new_asset_type,
 			});

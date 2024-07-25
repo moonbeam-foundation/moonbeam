@@ -240,8 +240,8 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::OpenTechCommitteeInstance;
 
 <span class="kw">use super</span>::{
-	currency, governance, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances,
-	Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	currency, governance, xcm_config, AccountId, AssetId, Assets, Balance, Balances, Runtime,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 <span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbeam_weights;
@@ -344,7 +344,7 @@
 		Assets::force_create(
 			RuntimeOrigin::root(),
 			asset.into(),
-			AssetManager::account_id(),
+			<span class="kw">crate</span>::AssetManager::account_id(),
 			is_sufficient,
 			min_balance,
 		)<span class="question-mark">?</span>;
