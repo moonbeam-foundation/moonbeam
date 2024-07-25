@@ -19,9 +19,9 @@
 
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees,
-	EmergencyParaXcm, Erc20XcmBridge, MaintenanceMode, MessageQueue, ParachainInfo,
-	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin, Treasury, XcmpQueue,
+	EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue,
+	ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 use crate::OpenTechCommitteeInstance;
 use moonbeam_runtime_common::weights as moonbeam_weights;
@@ -171,6 +171,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 // we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
 pub type AssetTransactors = (
 	LocalAssetTransactor,
+	EvmForeignAssets,
 	ForeignFungiblesTransactor,
 	Erc20XcmBridge,
 );
@@ -619,7 +620,10 @@ impl orml_xtokens::Config for Runtime {
 	type Balance = Balance;
 	type CurrencyId = CurrencyId;
 	type AccountIdToLocation = AccountIdToLocation<AccountId>;
-	type CurrencyIdConvert = CurrencyIdToLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
+	type CurrencyIdConvert = CurrencyIdToLocation<(
+		EvmForeignAssets,
+		AsAssetType<AssetId, AssetType, AssetManager>,
+	)>;
 	type XcmExecutor = XcmExecutor;
 	type SelfLocation = SelfLocation;
 	type Weigher = XcmWeigher;
@@ -694,7 +698,10 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToLocation = AccountIdToLocation<AccountId>;
-	type CurrencyIdToLocation = CurrencyIdToLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
+	type CurrencyIdToLocation = CurrencyIdToLocation<(
+		EvmForeignAssets,
+		AsAssetType<AssetId, AssetType, AssetManager>,
+	)>;
 	type XcmSender = XcmRouter;
 	type SelfLocation = SelfLocation;
 	type Weigher = XcmWeigher;
@@ -729,6 +736,46 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
 	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+}
+
+pub struct AccountIdToH160;
+impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
+	fn convert(account_id: AccountId) -> H160 {
+		account_id.into()
+	}
+}
+
+pub struct EvmForeignAssetIdFilter;
+impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
+	fn contains(asset_id: &AssetId) -> bool {
+		use xcm_primitives::AssetTypeGetter as _;
+		// We should return true only if the AssetId doesn't exist in AssetManager
+		AssetManager::get_asset_type(*asset_id).is_none()
+	}
+}
+
+pub type ForeignAssetManagerOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::FastGeneralAdmin,
+	>,
+>;
+
+impl pallet_moonbeam_foreign_assets::Config for Runtime {
+	type AccountIdToH160 = AccountIdToH160;
+	type AssetIdFilter = EvmForeignAssetIdFilter;
+	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
+	type OnForeignAssetCreated = ();
+	type MaxForeignAssets = ConstU32<256>;
+	type RuntimeEvent = RuntimeEvent;
+	// TODO generate weights
+	type WeightInfo = ();
+	type XcmLocationToH160 = LocationToH160;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
