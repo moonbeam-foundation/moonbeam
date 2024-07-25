@@ -51,10 +51,10 @@ impl<T: frame_system::Config> pallet_precompile_benchmarks::WeightInfo for Weigh
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 75_140_000 picoseconds.
-		Weight::from_parts(75_488_000, 0)
-			// Standard Error: 2_390
-			.saturating_add(Weight::from_parts(661_019, 0).saturating_mul(x.into()))
+		// Minimum execution time: 75_987_000 picoseconds.
+		Weight::from_parts(76_430_000, 0)
+			// Standard Error: 2_418
+			.saturating_add(Weight::from_parts(678_469, 0).saturating_mul(x.into()))
 	}
 	/// Storage: `RelayStorageRoots::RelayStorageRootKeys` (r:1 w:0)
 	/// Proof: `RelayStorageRoots::RelayStorageRootKeys` (`max_values`: Some(1), `max_size`: Some(121), added: 616, mode: `MaxEncodedLen`)
@@ -62,16 +62,16 @@ impl<T: frame_system::Config> pallet_precompile_benchmarks::WeightInfo for Weigh
 		// Proof Size summary in bytes:
 		//  Measured:  `227`
 		//  Estimated: `1606`
-		// Minimum execution time: 4_575_000 picoseconds.
-		Weight::from_parts(4_777_000, 1606)
+		// Minimum execution time: 4_434_000 picoseconds.
+		Weight::from_parts(4_641_000, 1606)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 	}
 	fn p256_verify() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 1_584_481_000 picoseconds.
-		Weight::from_parts(1_595_088_000, 0)
+		// Minimum execution time: 1_572_623_000 picoseconds.
+		Weight::from_parts(1_580_914_000, 0)
 			// TODO: Remove this multiplication once we are comfortable with the weight estimation
 			// Double the weight just to mitigate the possibility of having a signature that
 			// takes longer to verify

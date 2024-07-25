@@ -56,8 +56,8 @@ impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `46`
 		//  Estimated: `3544`
-		// Minimum execution time: 16_149_000 picoseconds.
-		Weight::from_parts(16_775_000, 3544)
+		// Minimum execution time: 16_105_000 picoseconds.
+		Weight::from_parts(16_696_000, 3544)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -71,8 +71,8 @@ impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `175`
 		//  Estimated: `3544`
-		// Minimum execution time: 15_989_000 picoseconds.
-		Weight::from_parts(16_463_000, 3544)
+		// Minimum execution time: 16_313_000 picoseconds.
+		Weight::from_parts(16_748_000, 3544)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -89,10 +89,10 @@ impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `251 + n * (1 ±0)`
 		//  Estimated: `3715 + n * (1 ±0)`
-		// Minimum execution time: 26_985_000 picoseconds.
-		Weight::from_parts(27_259_000, 3715)
+		// Minimum execution time: 26_740_000 picoseconds.
+		Weight::from_parts(27_172_000, 3715)
 			// Standard Error: 3
-			.saturating_add(Weight::from_parts(1_169, 0).saturating_mul(n.into()))
+			.saturating_add(Weight::from_parts(1_156, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 			.saturating_add(Weight::from_parts(0, 1).saturating_mul(n.into()))
@@ -108,10 +108,10 @@ impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `175`
 		//  Estimated: `3544`
-		// Minimum execution time: 19_732_000 picoseconds.
-		Weight::from_parts(20_420_255, 3544)
+		// Minimum execution time: 19_842_000 picoseconds.
+		Weight::from_parts(20_402_977, 3544)
 			// Standard Error: 2
-			.saturating_add(Weight::from_parts(1_422, 0).saturating_mul(n.into()))
+			.saturating_add(Weight::from_parts(1_385, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}

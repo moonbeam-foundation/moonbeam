@@ -59,12 +59,14 @@ impl<T: frame_system::Config> pallet_evm::WeightInfo for WeightInfo<T> {
 	/// Storage: `EVM::AccountStorages` (r:1 w:0)
 	/// Proof: `EVM::AccountStorages` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// The range of component `x` is `[1, 10000000]`.
-	fn runner_execute(_x: u32, ) -> Weight {
+	fn runner_execute(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `1574`
 		//  Estimated: `7514`
-		// Minimum execution time: 22_995_139_000 picoseconds.
-		Weight::from_parts(23_171_251_266, 7514)
+		// Minimum execution time: 23_399_294_000 picoseconds.
+		Weight::from_parts(23_731_883_576, 7514)
+			// Standard Error: 2
+			.saturating_add(Weight::from_parts(4, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(8_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -72,7 +74,7 @@ impl<T: frame_system::Config> pallet_evm::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 1_541_000 picoseconds.
-		Weight::from_parts(1_641_000, 0)
+		// Minimum execution time: 1_641_000 picoseconds.
+		Weight::from_parts(1_773_000, 0)
 	}
 }

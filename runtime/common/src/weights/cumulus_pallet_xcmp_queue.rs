@@ -52,8 +52,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `142`
 		//  Estimated: `1627`
-		// Minimum execution time: 4_247_000 picoseconds.
-		Weight::from_parts(4_508_000, 1627)
+		// Minimum execution time: 4_307_000 picoseconds.
+		Weight::from_parts(4_445_000, 1627)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -71,8 +71,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `148`
 		//  Estimated: `3517`
-		// Minimum execution time: 11_497_000 picoseconds.
-		Weight::from_parts(11_796_000, 3517)
+		// Minimum execution time: 11_285_000 picoseconds.
+		Weight::from_parts(11_795_000, 3517)
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -82,8 +82,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `142`
 		//  Estimated: `1627`
-		// Minimum execution time: 2_723_000 picoseconds.
-		Weight::from_parts(2_915_000, 1627)
+		// Minimum execution time: 2_760_000 picoseconds.
+		Weight::from_parts(2_884_000, 1627)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -93,8 +93,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `177`
 		//  Estimated: `1662`
-		// Minimum execution time: 3_659_000 picoseconds.
-		Weight::from_parts(3_786_000, 1662)
+		// Minimum execution time: 3_600_000 picoseconds.
+		Weight::from_parts(3_734_000, 1662)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -102,8 +102,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 8_115_000 picoseconds.
-		Weight::from_parts(8_301_000, 0)
+		// Minimum execution time: 7_631_000 picoseconds.
+		Weight::from_parts(8_118_000, 0)
 	}
 	/// Storage: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6b345d8e88afa015075c945637c07e8f20` (r:1 w:1)
 	/// Proof: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6b345d8e88afa015075c945637c07e8f20` (r:1 w:1)
@@ -123,8 +123,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `134385`
 		//  Estimated: `137850`
-		// Minimum execution time: 196_875_000 picoseconds.
-		Weight::from_parts(197_769_000, 137850)
+		// Minimum execution time: 190_123_000 picoseconds.
+		Weight::from_parts(194_387_000, 137850)
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
@@ -146,8 +146,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `65782`
 		//  Estimated: `69247`
-		// Minimum execution time: 105_346_000 picoseconds.
-		Weight::from_parts(107_313_000, 69247)
+		// Minimum execution time: 102_726_000 picoseconds.
+		Weight::from_parts(104_463_000, 69247)
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}

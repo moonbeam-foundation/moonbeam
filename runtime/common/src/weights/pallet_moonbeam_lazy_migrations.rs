@@ -60,12 +60,12 @@ impl<T: frame_system::Config> pallet_moonbeam_lazy_migrations::WeightInfo for We
 		// Proof Size summary in bytes:
 		//  Measured:  `4251 + a * (12 ±0) + l * (84 ±0)`
 		//  Estimated: `37759 + a * (2229 ±19) + l * (2536 ±1)`
-		// Minimum execution time: 46_002_000 picoseconds.
-		Weight::from_parts(46_640_000, 37759)
-			// Standard Error: 2_666_348
-			.saturating_add(Weight::from_parts(42_473_518, 0).saturating_mul(a.into()))
-			// Standard Error: 266_350
-			.saturating_add(Weight::from_parts(27_575_966, 0).saturating_mul(l.into()))
+		// Minimum execution time: 46_475_000 picoseconds.
+		Weight::from_parts(47_461_000, 37759)
+			// Standard Error: 2_615_231
+			.saturating_add(Weight::from_parts(42_043_431, 0).saturating_mul(a.into()))
+			// Standard Error: 261_244
+			.saturating_add(Weight::from_parts(27_225_099, 0).saturating_mul(l.into()))
 			.saturating_add(T::DbWeight::get().reads(5_u64))
 			.saturating_add(T::DbWeight::get().reads((2_u64).saturating_mul(a.into())))
 			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(l.into())))
