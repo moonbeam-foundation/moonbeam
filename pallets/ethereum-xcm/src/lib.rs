@@ -156,7 +156,6 @@ pub mod pallet {
 		/// Ethereum transaction executed from XCM
 		ExecutedFromXcm {
 			xcm_msg_hash: H256,
-			eth_caller: H160,
 			eth_tx_hash: H256,
 		},
 	}
@@ -338,7 +337,6 @@ impl<T: Config> Pallet<T> {
 			XCM_MESSAGE_HASH::with(|xcm_msg_hash| {
 				Self::deposit_event(Event::ExecutedFromXcm {
 					xcm_msg_hash: *xcm_msg_hash,
-					eth_caller: source,
 					eth_tx_hash: tx_hash,
 				});
 			});
