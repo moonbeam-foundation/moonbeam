@@ -31,8 +31,8 @@ fn create_n_foreign_asset<T: Config>(n: u32) -> DispatchResult {
 			i as u128,
 			location_of(i),
 			18,
-			str_to_bv(&format!("MT{}", i)),
-			str_to_bv(&format!("Mytoken{}", i)),
+			str_to_bv("MT"),
+			str_to_bv("Mytoken"),
 		)?;
 		assert_eq!(Pallet::<T>::assets_by_id(i as u128), Some(location_of(i)));
 	}
