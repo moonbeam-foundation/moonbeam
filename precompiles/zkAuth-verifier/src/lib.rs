@@ -17,9 +17,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use core::marker::PhantomData;
-use fp_evm::{PrecompileFailure, PrecompileHandle};
-use precompile_utils::prelude::*;
-use sp_core::ConstU32;
+use fp_evm::{Context, ExitReason, PrecompileFailure, PrecompileHandle, Transfer};
+use precompile_utils::{evm::costs::call_cost, prelude::*};
+use sp_core::{ConstU32, U256};
 use sp_std::vec::Vec;
 
 pub mod encoded_receipt;
@@ -29,7 +29,9 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 pub const ARRAY_LIMIT: u32 = 1601;
+pub type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 
 pub const JWT_VALIDATOR_ID: [u32; 8] = [
@@ -41,30 +43,78 @@ pub struct ZkAuthVerifierPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile_utils::precompile]
 impl<Runtime> ZkAuthVerifierPrecompile<Runtime>
 where
-	Runtime: frame_system::Config,
+	Runtime: frame_system::Config + pallet_evm::Config,
 {
-	#[precompile::public("verifyAndExecute(uint8[])")]
+	#[precompile::public("verifyAndExecute(bytes,address,uint256,bytes,uint64)")]
 	fn verify_proof(
 		handle: &mut impl PrecompileHandle,
-		//receipt: BoundedVec<u8, GetArrayLimit>,
-		receipt: Vec<u8>,
+		receipt: BoundedBytes<GetArrayLimit>,
+		to: Address,
+		value: U256,
+		call_data: BoundedBytes<GetCallDataLimit>,
+		gas_limit: u64,
 	) -> EvmResult {
 		//TODO: record cost
 		handle.record_cost(1000)?;
+		let receipt: Vec<u8> = receipt.into();
 
-		//let receipt: Vec<u8> = receipt.into();
-
+		// Verify the risc0 zk-proof receipt
 		let receipt: risc0_zkvm::Receipt = postcard::from_bytes(&receipt)
 			.map_err(|_| RevertReason::Custom("Receipt decoding failed".into()))?;
 
 		let image_id = storage::ImageId::get().ok_or(RevertReason::custom("no ImageId stored"))?;
-
 		receipt
 			.verify(image_id)
 			.map_err(|_| RevertReason::Custom("Error verifying receipt".into()))?;
 
 		// Handle tx logic
-		Ok(())
+		let address = to.0;
+		let call_data: Vec<u8> = call_data.into();
+		let sub_context = Context {
+			caller: handle.context().caller,
+			address: address.clone(),
+			apparent_value: value,
+		};
+
+		let transfer = if value.is_zero() {
+			None
+		} else {
+			Some(Transfer {
+				source: handle.context().caller,
+				target: address.clone(),
+				value,
+			})
+		};
+
+		// Manage gas costs
+		let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
+		let total_cost = gas_limit
+			.checked_add(call_cost)
+			.ok_or_else(|| revert("uint64 overflow: call requires too much gas"))?;
+
+		if total_cost > handle.remaining_gas() {
+			return Err(revert("Error dispatching call: Gaslimit too low"));
+		}
+
+		let (reason, output) = handle.call(
+			address,
+			transfer,
+			call_data,
+			Some(gas_limit),
+			false,
+			&sub_context,
+		);
+
+		// Return the result of the subcall
+		match reason {
+			ExitReason::Fatal(exit_status) => Err(PrecompileFailure::Fatal { exit_status }),
+			ExitReason::Revert(exit_status) => Err(PrecompileFailure::Revert {
+				exit_status,
+				output,
+			}),
+			ExitReason::Error(exit_status) => Err(PrecompileFailure::Error { exit_status }),
+			ExitReason::Succeed(_) => Ok(()),
+		}
 	}
 }
 

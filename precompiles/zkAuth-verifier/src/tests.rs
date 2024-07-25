@@ -22,6 +22,7 @@ fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
+// TODO: finish test
 #[test]
 fn test_mocked_verification() {
 	ExtBuilder::default()
@@ -32,8 +33,34 @@ fn test_mocked_verification() {
 			let receipt = encoded_example_receipt();
 
 			precompiles()
-				.prepare_test(Alice, Precompile1, PCall::verify_proof { receipt })
-				.expect_cost(1000)
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::verify_proof {
+						receipt: receipt.into(),
+						to: Address(Alice.into()),
+						value: U256::from(1u8),
+						call_data: b"call".into(),
+						gas_limit: 0u64,
+					},
+				)
+				.with_subcall_handle(move |subcall| {
+					let Subcall {
+						address,
+						transfer,
+						input,
+						target_gas,
+						is_static,
+						context,
+					} = subcall;
+
+					// Called from the precompile caller.
+					assert_eq!(context.caller, Alice.into());
+					assert_eq!(is_static, false);
+
+					SubcallOutput::succeed()
+				})
+				.expect_cost(37600)
 				.expect_no_logs()
 				.execute_returns(());
 		});

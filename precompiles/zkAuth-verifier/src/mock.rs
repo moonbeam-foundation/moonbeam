@@ -24,9 +24,7 @@ use frame_support::{
 	weights::Weight,
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
-use parity_scale_codec::{Decode, Encode};
-use precompile_utils::{precompile_set::*, testing::MockAccount};
-use scale_info::TypeInfo;
+use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use sp_core::{H160, H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
@@ -108,8 +106,23 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeFreezeReason = ();
 }
 
-pub type Precompiles<R> =
-	PrecompileSetBuilder<R, PrecompileAt<AddressU64<1>, ZkAuthVerifierPrecompile<R>>>;
+mock_account!(ZkAuth, |_| MockAccount::from_u64(1));
+mock_account!(Revert, |_| MockAccount::from_u64(2));
+
+pub type Precompiles<R> = PrecompileSetBuilder<
+	R,
+	(
+		PrecompileAt<
+			AddressU64<1>,
+			ZkAuthVerifierPrecompile<R>,
+			(
+				SubcallWithMaxNesting<1>,
+				CallableByPrecompile<OnlyFrom<AddressU64<1>>>,
+			),
+		>,
+		RevertPrecompile<AddressU64<2>>,
+	),
+>;
 
 pub type PCall = ZkAuthVerifierPrecompileCall<Runtime>;
 
@@ -142,7 +155,7 @@ impl pallet_evm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesValue = PrecompilesValue;
-	type PrecompilesType = Precompiles<Self>;
+	type PrecompilesType = Precompiles<Runtime>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
@@ -202,7 +215,13 @@ impl ExtBuilder {
 		.expect("Pallet balances storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
+		ext.execute_with(|| {
+			System::set_block_number(1);
+			pallet_evm::Pallet::<Runtime>::create_account(
+				Revert.into(),
+				hex_literal::hex!("1460006000fd").to_vec(),
+			);
+		});
 		ext
 	}
 }
