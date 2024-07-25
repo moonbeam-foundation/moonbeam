@@ -2282,7 +2282,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(17555)
+				.expect_cost(18748)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2322,7 +2322,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(17555)
+				.expect_cost(18748)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2404,7 +2404,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(15126)
+				.expect_cost(15119)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2490,7 +2490,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16262)
+				.expect_cost(16233)
 				.expect_no_logs()
 				.execute_returns(());
 
