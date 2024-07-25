@@ -1505,6 +1505,7 @@ mod benches {
 		[pallet_xcm, PalletXcmExtrinsicsBenchmark::<Runtime>]
 		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
+		[pallet_moonbeam_foreign_assets, EvmForeignAssets]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
 		[pallet_randomness, Randomness]
 		[pallet_conviction_voting, ConvictionVoting]
