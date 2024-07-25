@@ -6961,6 +6961,7 @@ dependencies = [
  "pallet-evm-chain-id",
  "pallet-identity",
  "pallet-migrations",
+ "pallet-moonbeam-foreign-assets",
  "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
