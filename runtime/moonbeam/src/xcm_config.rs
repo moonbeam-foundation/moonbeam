@@ -709,6 +709,29 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 }
 
+pub struct AccountIdToH160;
+impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
+	fn convert(account_id: AccountId) -> H160 {
+		account_id.into()
+	}
+}
+
+impl pallet_moonbeam_foreign_assets::Config for Runtime {
+	type AccountIdToH160 = AccountIdToH160;
+	type AssetIdFilter = Nothing;
+	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type ForeignAssetCreatorOrigin = frame_system::EnsureNever<AccountId>;
+	type ForeignAssetFreezerOrigin = frame_system::EnsureNever<AccountId>;
+	type ForeignAssetModifierOrigin = frame_system::EnsureNever<AccountId>;
+	type ForeignAssetUnfreezerOrigin = frame_system::EnsureNever<AccountId>;
+	type OnForeignAssetCreated = ();
+	type MaxForeignAssets = ConstU32<256>;
+	type RuntimeEvent = RuntimeEvent;
+	// TODO generate weights
+	type WeightInfo = ();
+	type XcmLocationToH160 = LocationToH160;
+}
+
 #[cfg(feature = "runtime-benchmarks")]
 mod testing {
 	use super::*;

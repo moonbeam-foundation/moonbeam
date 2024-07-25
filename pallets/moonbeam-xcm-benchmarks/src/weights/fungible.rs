@@ -18,31 +18,29 @@
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::Weight};
+use frame_support::{traits::Get, weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight}};
 use sp_std::marker::PhantomData;
 use xcm::latest::Asset;
 
 // Values copied from statemint benchmarks
-const ASSET_BURN_MAX_PROOF_SIZE: u64 = 7242;
 const ASSET_MINT_MAX_PROOF_SIZE: u64 = 7242;
 const ASSET_TRANSFER_MAX_PROOF_SIZE: u64 = 13412;
 
 /// Weights for `pallet_xcm_benchmarks::fungible`.
 pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config + pallet_erc20_xcm_bridge::Config> WeightInfo<T> {
+impl<T: frame_system::Config + pallet_erc20_xcm_bridge::Config + pallet_moonbeam_foreign_assets::Config> WeightInfo<T> {
 	pub(crate) fn withdraw_asset(asset: &Asset) -> Weight {
 		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer(&asset.id)
-			
 		} else {
-			Weight::from_parts(200_000_000 as u64, ASSET_BURN_MAX_PROOF_SIZE)
+			pallet_moonbeam_foreign_assets::Pallet::<T>::weight_of_erc20_burn()
 		}
 	}
 	pub(crate) fn transfer_asset(asset: &Asset) -> Weight {
 		if pallet_erc20_xcm_bridge::Pallet::<T>::is_erc20_asset(asset) {
 			pallet_erc20_xcm_bridge::Pallet::<T>::weight_of_erc20_transfer(&asset.id)
 		} else {
-			Weight::from_parts(200_000_000 as u64, ASSET_TRANSFER_MAX_PROOF_SIZE)
+			pallet_moonbeam_foreign_assets::Pallet::<T>::weight_of_erc20_transfer()
 		}
 	}
 	pub(crate) fn transfer_reserve_asset(asset: &Asset) -> Weight {
@@ -57,7 +55,7 @@ impl<T: frame_system::Config + pallet_erc20_xcm_bridge::Config> WeightInfo<T> {
 		Weight::MAX
 	}
 	pub(crate) fn deposit_asset() -> Weight {
-		Weight::from_parts(200_000_000 as u64, ASSET_MINT_MAX_PROOF_SIZE)
+		pallet_moonbeam_foreign_assets::Pallet::<T>::weight_of_erc20_mint()
 	}
 	pub(crate) fn deposit_reserve_asset() -> Weight {
 		Weight::from_parts(200_000_000 as u64, ASSET_MINT_MAX_PROOF_SIZE)
