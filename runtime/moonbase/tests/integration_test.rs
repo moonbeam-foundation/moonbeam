@@ -2426,7 +2426,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14728)
+				.expect_cost(14723)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2447,7 +2447,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15189)
+				.expect_cost(15158)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2515,7 +2515,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16262)
+				.expect_cost(16233)
 				.expect_no_logs()
 				.execute_returns(());
 
