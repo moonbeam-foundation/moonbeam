@@ -1,0 +1,62 @@
+[package]
+name = "pallet-moonbeam-foreign-assets"
+authors = { workspace = true }
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+ethereum-types = { workspace = true }
+log = { workspace = true }
+
+# Substrate
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+parity-scale-codec = { workspace = true, features = [ "derive" ] }
+precompile-utils = { workspace = true }
+precompile-utils-macro = { workspace = true }
+scale-info = { workspace = true, features = [ "derive" ] }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
+
+# Frontier
+fp-evm = { workspace = true }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+
+# Polkadot
+xcm = { workspace = true }
+xcm-executor = { workspace = true }
+
+# Benchmarks
+frame-benchmarking = { workspace = true, optional = true }
+
+[build-dependencies]
+hex = { workspace = true, features = [ "std" ] }
+
+[dev-dependencies]
+hex = { workspace = true }
+pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
+pallet-timestamp = { workspace = true, features = [ "std" ] }
+sp-core = { workspace = true, features = [ "std" ] }
+
+[features]
+default = [ "std" ]
+std = [
+	"ethereum-types/std",
+	"frame-benchmarking/std",
+	"frame-support/std",
+	"frame-system/std",
+	"precompile-utils/std",
+	"precompile-utils/testing",
+	"pallet-evm/std",
+	"parity-scale-codec/std",
+	"scale-info/std",
+	"sp-io/std",
+	"sp-runtime/std",
+	"sp-std/std",
+	"xcm/std",
+	"xcm-executor/std"
+]
+
+runtime-benchmarks = [ "frame-benchmarking"]
+try-runtime = [ "frame-support/try-runtime" ]

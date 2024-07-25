@@ -37,6 +37,7 @@ pallet-ethereum-xcm = { workspace = true }
 pallet-evm-chain-id = { workspace = true }
 pallet-maintenance-mode = { workspace = true, features = ["xcm-support"] }
 pallet-migrations = { workspace = true }
+pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-moonbeam-lazy-migrations = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
 pallet-parachain-staking = { workspace = true }
@@ -68,6 +69,7 @@ pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
 pallet-evm-precompileset-assets-erc20 = { workspace = true }
 pallet-evm-precompile-p256verify = { workspace = true }
+precompile-foreign-asset-migrator = { workspace = true }
 
 # Moonbeam tracing
 evm-tracing-events = { workspace = true, optional = true }
@@ -265,6 +267,7 @@ std = [
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
+	"pallet-moonbeam-foreign-assets/std",
 	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-moonbeam-orbiters/std",
 	"pallet-multisig/std",

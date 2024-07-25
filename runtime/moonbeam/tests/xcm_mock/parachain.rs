@@ -1044,6 +1044,7 @@ impl pallet_ethereum_xcm::Config for Runtime {
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type EnsureProxy = EthereumXcmEnsureProxy;
 	type ControllerOrigin = EnsureRoot<AccountId>;
+	type ForceOrigin = EnsureRoot<AccountId>;
 }
 
 type Block = frame_system::mocking::MockBlockU32<Runtime>;

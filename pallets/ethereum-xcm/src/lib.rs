@@ -125,6 +125,8 @@ pub mod pallet {
 		type EnsureProxy: EnsureProxy<Self::AccountId>;
 		/// The origin that is allowed to resume or suspend the XCM to Ethereum executions.
 		type ControllerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+		/// An origin that can submit a create tx type
+		type ForceOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 	}
 
 	#[pallet::pallet]
@@ -191,7 +193,7 @@ pub mod pallet {
 					}
 				}
 			);
-			Self::validate_and_apply(source, xcm_transaction)
+			Self::validate_and_apply(source, xcm_transaction, false, None)
 		}
 
 		/// Xcm Transact an Ethereum transaction through proxy.
@@ -233,7 +235,7 @@ pub mod pallet {
 				error: sp_runtime::DispatchError::Other(e),
 			})?;
 
-			Self::validate_and_apply(transact_as, xcm_transaction)
+			Self::validate_and_apply(transact_as, xcm_transaction, false, None)
 		}
 
 		/// Suspends all Ethereum executions from XCM.
@@ -259,6 +261,39 @@ pub mod pallet {
 
 			Ok(())
 		}
+
+		/// Xcm Transact an Ethereum transaction, but allow to force the caller and create address.
+		/// This call should be restricted (callable only by the runtime or governance).
+		/// Weight: Gas limit plus the db reads involving the suspension and proxy checks
+		#[pallet::weight({
+			let without_base_extrinsic_weight = false;
+			<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
+				match xcm_transaction {
+					EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
+				}
+			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(1))
+		})]
+		pub fn force_transact_as(
+			origin: OriginFor<T>,
+			transact_as: H160,
+			xcm_transaction: EthereumXcmTransaction,
+			force_create_address: Option<H160>,
+		) -> DispatchResultWithPostInfo {
+			T::ForceOrigin::ensure_origin(origin)?;
+			ensure!(
+				!EthereumXcmSuspended::<T>::get(),
+				DispatchErrorWithPostInfo {
+					error: Error::<T>::EthereumXcmExecutionSuspended.into(),
+					post_info: PostDispatchInfo {
+						actual_weight: Some(T::DbWeight::get().reads(1)),
+						pays_fee: Pays::Yes
+					}
+				}
+			);
+
+			Self::validate_and_apply(transact_as, xcm_transaction, true, force_create_address)
+		}
 	}
 }
 
@@ -274,6 +309,8 @@ impl<T: Config> Pallet<T> {
 	fn validate_and_apply(
 		source: H160,
 		xcm_transaction: EthereumXcmTransaction,
+		allow_create: bool,
+		maybe_force_create_address: Option<H160>,
 	) -> DispatchResultWithPostInfo {
 		// The lack of a real signature where different callers with the
 		// same nonce are providing identical transaction payloads results in a collision and
@@ -284,7 +321,7 @@ impl<T: Config> Pallet<T> {
 		let error_weight = T::DbWeight::get().reads(1);
 
 		let transaction: Option<Transaction> =
-			xcm_transaction.into_transaction_v2(current_nonce, T::ChainId::get());
+			xcm_transaction.into_transaction_v2(current_nonce, T::ChainId::get(), allow_create);
 		if let Some(transaction) = transaction {
 			let tx_hash = transaction.hash();
 			let transaction_data: TransactionData = (&transaction).into();
@@ -332,7 +369,8 @@ impl<T: Config> Pallet<T> {
 			// transaction on chain - we increase the global nonce.
 			<Nonce<T>>::put(current_nonce.saturating_add(U256::one()));
 
-			let (dispatch_info, _) = T::ValidatedTransaction::apply(source, transaction)?;
+			let (dispatch_info, _) =
+				T::ValidatedTransaction::apply(source, transaction, maybe_force_create_address)?;
 
 			XCM_MESSAGE_HASH::with(|xcm_msg_hash| {
 				Self::deposit_event(Event::ExecutedFromXcm {
