@@ -18,94 +18,12 @@
 
 use crate::{types::RoundInfo, Config, RoundIndex};
 use frame_support::pallet_prelude::*;
-use frame_support::storage::generator::StorageValue;
-use frame_support::storage::unhashed;
 use frame_support::traits::OnRuntimeUpgrade;
 use frame_system::pallet_prelude::*;
 use sp_runtime::Saturating;
 
 #[cfg(feature = "try-runtime")]
 use sp_std::vec::Vec;
-
-
-/// Migrates RoundInfo and add the field first_slot
-pub struct MigrateRoundWithFirstSlot<T: Config>(core::marker::PhantomData<T>);
-
-impl<T> OnRuntimeUpgrade for MigrateRoundWithFirstSlot<T>
-where
-	T: Config,
-	BlockNumberFor<T>: From<u32> + Into<u64>,
-{
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::TryRuntimeError> {
-		let raw_key = crate::Round::<T>::storage_value_final_key();
-		let maybe_raw_value = unhashed::get_raw(&raw_key);
-		let len = maybe_raw_value
-			.expect("ParachainStaking.Round should exist!")
-			.len();
-		ensure!(
-			len == 12 || len == 16,
-			"ParachainStaking.Round should have 12 or 16 bytes length!"
-		);
-
-		Ok(Vec::new())
-	}
-
-	fn on_runtime_upgrade() -> frame_support::pallet_prelude::Weight {
-		let raw_key = crate::Round::<T>::storage_value_final_key();
-
-		// Read old round info
-		let mut round: RoundInfo<BlockNumberFor<T>> = if let Some(bytes) =
-			unhashed::get_raw(&raw_key)
-		{
-			let len = bytes.len();
-			match len {
-				// Migration already done
-				20 => {
-					log::info!("MigrateRoundWithFirstSlot already applied.");
-					return Default::default();
-				},
-				// Storage corrupted
-				x => panic!(
-					"corrupted storage: parachainStaking.Round invalid length: {} bytes",
-					x
-				),
-			}
-		} else {
-			panic!("corrupted storage: parachainStaking.Round don't exist");
-		};
-
-		// Compute new field `first_slot``
-		round.first_slot = compute_theoretical_first_slot(
-			<frame_system::Pallet<T>>::block_number(),
-			round.first,
-			u64::from(T::SlotProvider::get()),
-			T::BlockTime::get(),
-		);
-
-		// Fill DelayedPayouts for rounds N and N-1
-		if let Some(delayed_payout) =
-			<crate::DelayedPayouts<T>>::get(round.current.saturating_sub(2))
-		{
-			<crate::DelayedPayouts<T>>::insert(
-				round.current.saturating_sub(1),
-				delayed_payout.clone(),
-			);
-			<crate::DelayedPayouts<T>>::insert(round.current, delayed_payout);
-		}
-
-		// Apply the migration (write new Round value)
-		crate::Round::<T>::put(round);
-
-		Default::default()
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(_state: Vec<u8>) -> Result<(), sp_runtime::TryRuntimeError> {
-		let _round = crate::Round::<T>::get(); // Should panic if SCALE decode fail
-		Ok(())
-	}
-}
 
 fn compute_theoretical_first_slot<BlockNumber: Saturating + Into<u64>>(
 	current_block: BlockNumber,
