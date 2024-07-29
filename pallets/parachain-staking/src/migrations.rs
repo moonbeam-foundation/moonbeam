@@ -20,7 +20,6 @@
 //use frame_support::pallet_prelude::*;
 //use frame_support::traits::OnRuntimeUpgrade;
 //use frame_system::pallet_prelude::*;
-use sp_runtime::Saturating;
 
 #[cfg(feature = "try-runtime")]
 use sp_std::vec::Vec;
@@ -28,7 +27,9 @@ use sp_std::vec::Vec;
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use sp_runtime::Saturating;
 
+	use frame_support::traits::Saturating;
 	fn compute_theoretical_first_slot<BlockNumber: Saturating + Into<u64>>(
 		current_block: BlockNumber,
 		first_block: BlockNumber,
