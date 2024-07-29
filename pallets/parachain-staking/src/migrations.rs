@@ -16,33 +16,33 @@
 
 //! # Migrations
 
-use crate::{types::RoundInfo, Config, RoundIndex};
-use frame_support::pallet_prelude::*;
-use frame_support::traits::OnRuntimeUpgrade;
-use frame_system::pallet_prelude::*;
+//use crate::{types::RoundInfo, Config, RoundIndex};
+//use frame_support::pallet_prelude::*;
+//use frame_support::traits::OnRuntimeUpgrade;
+//use frame_system::pallet_prelude::*;
 use sp_runtime::Saturating;
 
 #[cfg(feature = "try-runtime")]
 use sp_std::vec::Vec;
 
-fn compute_theoretical_first_slot<BlockNumber: Saturating + Into<u64>>(
-	current_block: BlockNumber,
-	first_block: BlockNumber,
-	current_slot: u64,
-	block_time: u64,
-) -> u64 {
-	let blocks_since_first: u64 = (current_block.saturating_sub(first_block)).into();
-	let slots_since_first = match block_time {
-		12_000 => blocks_since_first * 2,
-		6_000 => blocks_since_first,
-		_ => panic!("Unsupported BlockTime"),
-	};
-	current_slot.saturating_sub(slots_since_first)
-}
-
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	fn compute_theoretical_first_slot<BlockNumber: Saturating + Into<u64>>(
+		current_block: BlockNumber,
+		first_block: BlockNumber,
+		current_slot: u64,
+		block_time: u64,
+	) -> u64 {
+		let blocks_since_first: u64 = (current_block.saturating_sub(first_block)).into();
+		let slots_since_first = match block_time {
+			12_000 => blocks_since_first * 2,
+			6_000 => blocks_since_first,
+			_ => panic!("Unsupported BlockTime"),
+		};
+		current_slot.saturating_sub(slots_since_first)
+	}
 
 	#[test]
 	fn test_compute_theoretical_first_slot() {
