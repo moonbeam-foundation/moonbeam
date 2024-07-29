@@ -57,4 +57,3 @@ jobs:
             docker tag "${DOCKER_IMAGE}:${VERSION}" "${DOCKER_IMAGE}:latest"
             docker push "${DOCKER_IMAGE}:latest"
           fi
-
