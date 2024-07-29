@@ -27,25 +27,6 @@ use sp_runtime::Saturating;
 #[cfg(feature = "try-runtime")]
 use sp_std::vec::Vec;
 
-/// Multiply round length by 2
-pub struct MultiplyRoundLenBy2<T: Config>(core::marker::PhantomData<T>);
-
-impl<T> OnRuntimeUpgrade for MultiplyRoundLenBy2<T>
-where
-	T: Config,
-	BlockNumberFor<T>: From<u32> + Into<u64>,
-{
-	fn on_runtime_upgrade() -> frame_support::pallet_prelude::Weight {
-		let mut round = crate::Round::<T>::get();
-
-		// Multiply round length by 2
-		round.length = round.length * 2;
-
-		crate::Round::<T>::put(round);
-
-		Default::default()
-	}
-}
 
 /// Migrates RoundInfo and add the field first_slot
 pub struct MigrateRoundWithFirstSlot<T: Config>(core::marker::PhantomData<T>);
