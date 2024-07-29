@@ -17,11 +17,6 @@
 //! # Moonbeam specific Migrations
 
 use crate::Runtime;
-use frame_support::{
-	storage::unhashed::{get_raw, put_raw},
-	weights::Weight,
-	StorageHasher,
-};
 use pallet_migrations::{GetMigrations, Migration};
 use sp_std::{prelude::*, vec};
 
