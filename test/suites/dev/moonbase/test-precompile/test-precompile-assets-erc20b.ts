@@ -11,7 +11,7 @@ import {
 } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { mockAssetBalance } from "../../../../helpers";
+import { mockOldAssetBalance } from "../../../../helpers";
 
 import { Abi, encodeFunctionData } from "viem";
 
@@ -52,7 +52,7 @@ describeSuite({
         });
       assetId = context.polkadotJs().createType("u128", ASSET_ID);
 
-      await mockAssetBalance(
+      await mockOldAssetBalance(
         context,
         assetBalance,
         assetDetails,

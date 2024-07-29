@@ -3,7 +3,7 @@ import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall
 import { alith } from "@moonwall/util";
 import {
   RELAY_SOURCE_LOCATION,
-  registerForeignAsset,
+  registerOldForeignAsset,
   relayAssetMetadata,
 } from "../../../../helpers";
 
@@ -20,8 +20,8 @@ describeSuite({
     let assetId: string;
 
     beforeAll(async () => {
-      // registerForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerForeignAsset(
+      // registerOldForeignAsset
+      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
         context,
         RELAY_SOURCE_LOCATION,
         relayAssetMetadata

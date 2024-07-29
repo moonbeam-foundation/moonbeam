@@ -15,6 +15,7 @@ ethereum = { workspace = true, features = [ "with-codec" ] }
 serde = { workspace = true, optional = true }
 
 # Parity
+environmental = { workspace = true }
 ethereum-types = { workspace = true }
 parity-scale-codec = { workspace = true }
 rlp = { workspace = true }
@@ -70,6 +71,7 @@ std = [
 	"pallet-evm/std",
 	"pallet-timestamp/std",
 	# Parity
+	"environmental/std",
 	"parity-scale-codec/std",
 	"rlp/std",
 	"scale-info/std",

@@ -20,8 +20,8 @@
 use crate::OpenTechCommitteeInstance;
 
 use super::{
-	currency, governance, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances,
-	Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	currency, governance, xcm_config, AccountId, AssetId, Assets, Balance, Balances, Runtime,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use moonbeam_runtime_common::weights as moonbeam_weights;
@@ -124,7 +124,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		Assets::force_create(
 			RuntimeOrigin::root(),
 			asset.into(),
-			AssetManager::account_id(),
+			crate::AssetManager::account_id(),
 			is_sufficient,
 			min_balance,
 		)?;

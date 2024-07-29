@@ -365,18 +365,10 @@ declare module "@polkadot/api-base/types/errors" {
     moonbeamLazyMigrations: {
       /** There must be at least one address */
       AddressesLengthCannotBeZero: AugmentedError<ApiType>;
-      /** There are no more VotingOf entries to be removed and democracy funds to be unlocked */
-      AllDemocracyFundsUnlocked: AugmentedError<ApiType>;
-      /** There are no more storage entries to be removed */
-      AllStorageEntriesHaveBeenRemoved: AugmentedError<ApiType>;
       /** The contract is not corrupted (Still exist or properly suicided) */
       ContractNotCorrupted: AugmentedError<ApiType>;
       /** The limit cannot be zero */
       LimitCannotBeZero: AugmentedError<ApiType>;
-      /** The maximum number of assets cannot be zero */
-      MaxAssetsCannotBeZero: AugmentedError<ApiType>;
-      /** The limit for unlocking funds is too high */
-      UnlockLimitTooHigh: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };

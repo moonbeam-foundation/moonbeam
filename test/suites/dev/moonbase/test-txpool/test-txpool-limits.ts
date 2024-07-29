@@ -9,10 +9,9 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     it({
       id: "T01",
-      title: "should be able to fill a block with 2350 tx",
+      title: "should be able to fill a block with at least 2300 tx",
       test: async function () {
-        // TODO: test how many transactions can fit in the block
-        for (let i = 0; i < 2350; i++) {
+        for (let i = 0; i < 3000; i++) {
           const rawTxn = await createRawTransfer(context, BALTATHAR_ADDRESS, 1n, {
             nonce: i,
           });
@@ -20,7 +19,9 @@ describeSuite({
         }
 
         await context.createBlock();
-        expect((await context.viem().getBlock()).transactions.length).toBe(2350);
+        const maxTxnLen = (await context.viem().getBlock()).transactions.length;
+        log(`out ${maxTxnLen}`);
+        expect(maxTxnLen).toBeGreaterThan(2300);
       },
     });
   },

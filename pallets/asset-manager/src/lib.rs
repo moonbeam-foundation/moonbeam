@@ -182,7 +182,7 @@ pub mod pallet {
 			units_per_second: u128,
 		},
 		/// Changed the xcm type mapping for a given asset id
-		ForeignAssetTypeChanged {
+		ForeignAssetXcmLocationChanged {
 			asset_id: T::AssetId,
 			new_asset_type: T::ForeignAssetType,
 		},
@@ -367,7 +367,7 @@ pub mod pallet {
 				AssetTypeUnitsPerSecond::<T>::insert(&new_asset_type, units);
 			}
 
-			Self::deposit_event(Event::ForeignAssetTypeChanged {
+			Self::deposit_event(Event::ForeignAssetXcmLocationChanged {
 				asset_id,
 				new_asset_type,
 			});

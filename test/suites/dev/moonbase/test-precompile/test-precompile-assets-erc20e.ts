@@ -10,7 +10,7 @@ import {
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { Abi, encodeFunctionData } from "viem";
-import { mockAssetBalance } from "../../../../helpers";
+import { mockOldAssetBalance } from "../../../../helpers";
 
 describeSuite({
   id: "D012808",
@@ -55,7 +55,7 @@ describeSuite({
       erc20Abi = abi;
 
       // We fund Alith with this test
-      await mockAssetBalance(
+      await mockOldAssetBalance(
         context,
         assetBalance,
         assetDetails,

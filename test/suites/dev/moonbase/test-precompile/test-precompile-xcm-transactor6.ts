@@ -6,7 +6,7 @@ import {
   relayAssetMetadata,
   verifyLatestBlockFees,
   expectEVMResult,
-  registerForeignAsset,
+  registerOldForeignAsset,
   registerXcmTransactorAndContract,
 } from "../../../../helpers";
 
@@ -18,7 +18,7 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeAll(async () => {
-      await registerForeignAsset(context, RELAY_SOURCE_LOCATION, relayAssetMetadata as any);
+      await registerOldForeignAsset(context, RELAY_SOURCE_LOCATION, relayAssetMetadata as any);
       await registerXcmTransactorAndContract(context);
     });
 

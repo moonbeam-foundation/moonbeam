@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use fc_rpc::frontier_backend_client::{self, is_canon};
+
+use jsonrpsee::types::error::ErrorObject;
 use jsonrpsee::{core::RpcResult, proc_macros::rpc};
 use sp_blockchain::HeaderBackend;
 use sp_core::H256;
 use sp_runtime::traits::Block;
+use std::ops::Deref;
 use std::{marker::PhantomData, sync::Arc};
 
 /// An RPC endpoint to check for finality of blocks and transactions in Moonbeam
@@ -33,6 +36,10 @@ pub trait MoonbeamFinalityApi {
 	/// Returns false if the transaction is not found
 	#[method(name = "moon_isTxFinalized")]
 	async fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool>;
+
+	/// Gets the latest block hash that is fully indexed in frontier's backend.
+	#[method(name = "moon_getLatestBlockHash")]
+	async fn get_latest_block_hash(&self) -> RpcResult<H256>;
 }
 
 pub struct MoonbeamFinality<B: Block, C> {
@@ -78,6 +85,18 @@ where
 				.await
 		} else {
 			Ok(false)
+		}
+	}
+
+	async fn get_latest_block_hash(&self) -> RpcResult<H256> {
+		let res = self.backend.deref().latest_block_hash().await;
+		match res {
+			Ok(val) => Ok(val),
+			Err(e) => Err(ErrorObject::owned(
+				jsonrpsee::types::error::UNKNOWN_ERROR_CODE,
+				"No synced block",
+				Some(e),
+			)),
 		}
 	}
 }
