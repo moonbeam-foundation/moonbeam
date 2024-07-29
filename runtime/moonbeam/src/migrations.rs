@@ -21,5 +21,7 @@ use sp_std::{prelude::*, vec};
 pub struct MoonbeamMigrations;
 
 impl GetMigrations for MoonbeamMigrations {
-	fn get_migrations() -> Vec<Box<dyn Migration>> { vec![] }
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		vec![]
+	}
 }
