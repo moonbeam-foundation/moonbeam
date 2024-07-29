@@ -15,15 +15,11 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Moonbeam specific Migrations
-
-use crate::Runtime;
 use pallet_migrations::{GetMigrations, Migration};
 use sp_std::{prelude::*, vec};
 
 pub struct MoonbeamMigrations;
 
 impl GetMigrations for MoonbeamMigrations {
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		vec![]
-	}
+	fn get_migrations() -> Vec<Box<dyn Migration>> { vec![] }
 }
