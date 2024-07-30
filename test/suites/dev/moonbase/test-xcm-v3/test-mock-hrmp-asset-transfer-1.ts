@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
-import { PARA_2000_SOURCE_LOCATION, registerForeignAsset } from "../../../../helpers";
+import { PARA_2000_SOURCE_LOCATION, registerOldForeignAsset } from "../../../../helpers";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -23,8 +23,8 @@ describeSuite({
     let assetId: string;
 
     beforeAll(async () => {
-      // registerForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerForeignAsset(
+      // registerOldForeignAsset
+      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
         context,
         PARA_2000_SOURCE_LOCATION,
         assetMetadata

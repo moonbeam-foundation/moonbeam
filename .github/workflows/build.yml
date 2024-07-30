@@ -329,7 +329,7 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.4
+        uses: mozilla-actions/sccache-action@v0.0.5
       - name: Setup Variables
         shell: bash
         run: |
@@ -528,17 +528,6 @@ jobs:
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Tag it with purestake for 6 month
-        run: |
-          PURESTAKE_TAG=`echo "${{ steps.prep.outputs.tags }}" | sed 's/moonbeamfoundation/purestake/'`
-          docker pull ${{ steps.prep.outputs.tags }}
-          docker tag ${{ steps.prep.outputs.tags }} $PURESTAKE_TAG
-          docker push $PURESTAKE_TAG
 
   chopsticks-upgrade-test:
     runs-on:

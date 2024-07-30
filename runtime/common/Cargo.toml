@@ -20,6 +20,7 @@ pallet-author-mapping = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
 pallet-migrations = { workspace = true }
+pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-moonbeam-lazy-migrations = { workspace = true }
 pallet-parachain-staking = { workspace = true }
 pallet-precompile-benchmarks = { workspace = true }

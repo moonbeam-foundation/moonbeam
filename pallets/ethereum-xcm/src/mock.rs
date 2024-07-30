@@ -278,12 +278,14 @@ impl xcm_primitives::EnsureProxy<AccountId32> for EthereumXcmEnsureProxy {
 }
 
 impl crate::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = crate::EnsureXcmEthereumTransaction;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type EnsureProxy = EthereumXcmEnsureProxy;
 	type ControllerOrigin = EnsureRoot<AccountId32>;
+	type ForceOrigin = EnsureRoot<AccountId32>;
 }
 
 impl fp_self_contained::SelfContainedCall for RuntimeCall {

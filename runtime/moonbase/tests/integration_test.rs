@@ -37,13 +37,30 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	asset_config::{AssetRegistrarMetadata, ForeignAssetInstance},
-	xcm_config::{AssetType, SelfReserve},
-	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards, Executive,
-	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
-	TransactionPaymentAsGasPrice, TreasuryCouncilCollective, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	//asset_config::ForeignAssetInstance,
+	xcm_config::SelfReserve,
+	AccountId,
+	AssetId,
+	Balances,
+	CrowdloanRewards,
+	EvmForeignAssets,
+	Executive,
+	OpenTechCommitteeCollective,
+	ParachainStaking,
+	PolkadotXcm,
+	Precompiles,
+	Runtime,
+	RuntimeBlockWeights,
+	RuntimeCall,
+	RuntimeEvent,
+	System,
+	TransactionPayment,
+	TransactionPaymentAsGasPrice,
+	TreasuryCouncilCollective,
+	XTokens,
+	XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	WEEKS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -60,13 +77,16 @@ use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
+//use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
+use pallet_moonbeam_foreign_assets::AssetStatus;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, H256, U256};
-use sp_runtime::{DispatchError, ModuleError};
+use sp_runtime::{bounded_vec, DispatchError, ModuleError};
+use std::cell::Cell;
+use std::rc::Rc;
 use xcm::latest::prelude::*;
 
 type AuthorMappingPCall =
@@ -79,10 +99,10 @@ type XcmUtilsPCall = pallet_evm_precompile_xcm_utils::XcmUtilsPrecompileCall<
 	moonbase_runtime::xcm_config::XcmExecutorConfig,
 >;
 type XtokensPCall = pallet_evm_precompile_xtokens::XtokensPrecompileCall<Runtime>;
-type ForeignAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSetCall<
+/*type ForeignAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSetCall<
 	Runtime,
 	ForeignAssetInstance,
->;
+>;*/
 type XcmTransactorV1PCall =
 	pallet_evm_precompile_xcm_transactor::v1::XcmTransactorPrecompileV1Call<Runtime>;
 type XcmTransactorV2PCall =
@@ -1249,40 +1269,64 @@ fn update_reward_address_via_precompile() {
 }
 
 #[test]
-fn asset_can_be_registered() {
+fn create_and_manipulate_foreign_asset() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = AssetType::Xcm(xcm::v3::Location::parent());
-		let source_id: moonbase_runtime::AssetId = source_location.clone().into();
-		let asset_metadata = AssetRegistrarMetadata {
-			name: b"RelayToken".to_vec(),
-			symbol: b"Relay".to_vec(),
-			decimals: 12,
-			is_frozen: false,
-		};
-		assert_ok!(AssetManager::register_foreign_asset(
+		let source_location = xcm::v4::Location::parent();
+
+		// Create foreign asset
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			moonbase_runtime::RuntimeOrigin::root(),
-			source_location,
-			asset_metadata,
-			1u128,
-			true,
+			1,
+			source_location.clone(),
+			12,
+			bounded_vec![b'M', b'T'],
+			bounded_vec![b'M', b'y', b'T', b'o', b'k'],
 		));
-		assert!(AssetManager::asset_id_type(source_id).is_some());
+		assert_eq!(
+			EvmForeignAssets::assets_by_id(1),
+			Some(source_location.clone())
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&source_location),
+			Some((1, AssetStatus::Active))
+		);
+
+		// Freeze foreign asset
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			moonbase_runtime::RuntimeOrigin::root(),
+			1,
+			true
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&source_location),
+			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+		);
+
+		// Unfreeze foreign asset
+		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
+			moonbase_runtime::RuntimeOrigin::root(),
+			1,
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&source_location),
+			Some((1, AssetStatus::Active))
+		);
 	});
 }
 
+// The precoompile asset-erc20 is deprecated and not used anymore for new evm foreign assets
+// We don't have testing tools in rust test to call real evm smart contract, so we rely on ts tests.
+/*
 #[test]
 fn xcm_asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id: 1,
+			xcm_location: xcm::v4::Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000 * UNIT)],
-			is_sufficient: true,
 		}])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * UNIT),
@@ -1332,15 +1376,12 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 fn xcm_asset_erc20_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id: 1,
+			xcm_location: xcm::v4::Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000 * UNIT)],
-			is_sufficient: true,
 		}])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * UNIT),
@@ -1396,15 +1437,12 @@ fn xcm_asset_erc20_precompiles_transfer() {
 fn xcm_asset_erc20_precompiles_approve() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id: 1,
+			xcm_location: xcm::v4::Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000 * UNIT)],
-			is_sufficient: true,
 		}])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * UNIT),
@@ -1475,21 +1513,18 @@ fn xcm_asset_erc20_precompiles_approve() {
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * UNIT));
 		});
-}
+}*/
 
 #[test]
 fn xtokens_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
+			asset_id: 1,
+			xcm_location: xcm::v4::Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
+			balances: vec![(AccountId::from(ALICE), 1_000 * UNIT)],
 		}])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * UNIT),
@@ -1501,7 +1536,7 @@ fn xtokens_precompiles_transfer() {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
 
 			// We have the assetId that corresponds to the relay chain registered
-			let relay_asset_id: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
+			let relay_asset_id: AssetId = 1;
 
 			// Its address is
 			let asset_precompile_address = Runtime::asset_id_to_account(
@@ -1518,6 +1553,9 @@ fn xtokens_precompiles_transfer() {
 				}],
 			);
 
+			let inside = Rc::new(Cell::new(false));
+			let inside2 = inside.clone();
+
 			// We use the address of the asset as an identifier of the asset we want to transfer
 			Precompiles::new()
 				.prepare_test(
@@ -1530,8 +1568,47 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(57639)
+				.expect_cost(209239)
 				.expect_no_logs()
+				// We expect an evm subcall ERC20.burnFrom
+				.with_subcall_handle(move |subcall| {
+					let Subcall {
+						address,
+						transfer,
+						input,
+						target_gas: _,
+						is_static,
+						context,
+					} = subcall;
+
+					assert_eq!(context.caller, EvmForeignAssets::account_id().into());
+					assert_eq!(
+						address,
+						[255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1].into()
+					);
+					assert_eq!(is_static, false);
+
+					assert!(transfer.is_none());
+
+					assert_eq!(
+						context.address,
+						[255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1].into()
+					);
+					assert_eq!(context.apparent_value, 0u8.into());
+
+					assert_eq!(&input[..4], &keccak256!("burnFrom(address,uint256)")[..4]);
+					assert_eq!(&input[4..16], &[0u8; 12]);
+					assert_eq!(&input[16..36], ALICE);
+
+					inside2.set(true);
+
+					SubcallOutput {
+						output: Default::default(),
+						cost: 149_000,
+						logs: vec![],
+						..SubcallOutput::succeed()
+					}
+				})
 				.execute_returns(())
 		})
 }
@@ -1540,15 +1617,12 @@ fn xtokens_precompiles_transfer() {
 fn xtokens_precompiles_transfer_multiasset() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
+			asset_id: 1,
+			xcm_location: xcm::v4::Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
+			balances: vec![(AccountId::from(ALICE), 1_000 * UNIT)],
 		}])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * UNIT),
@@ -1568,6 +1642,9 @@ fn xtokens_precompiles_transfer_multiasset() {
 				}],
 			);
 
+			let inside = Rc::new(Cell::new(false));
+			let inside2 = inside.clone();
+
 			// This time we transfer it through TransferMultiAsset
 			// Instead of the address, we encode directly the multilocation referencing the asset
 			Precompiles::new()
@@ -1582,9 +1659,51 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(57639)
+				.expect_cost(209239)
 				.expect_no_logs()
+				// We expect an evm subcall ERC20.burnFrom
+				.with_subcall_handle(move |subcall| {
+					let Subcall {
+						address,
+						transfer,
+						input,
+						target_gas: _,
+						is_static,
+						context,
+					} = subcall;
+
+					assert_eq!(context.caller, EvmForeignAssets::account_id().into());
+					assert_eq!(
+						address,
+						[255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1].into()
+					);
+					assert_eq!(is_static, false);
+
+					assert!(transfer.is_none());
+
+					assert_eq!(
+						context.address,
+						[255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1].into()
+					);
+					assert_eq!(context.apparent_value, 0u8.into());
+
+					assert_eq!(&input[..4], &keccak256!("burnFrom(address,uint256)")[..4]);
+					assert_eq!(&input[4..16], &[0u8; 12]);
+					assert_eq!(&input[16..36], ALICE);
+
+					inside2.set(true);
+
+					SubcallOutput {
+						output: Default::default(),
+						cost: 149_000,
+						logs: vec![],
+						..SubcallOutput::succeed()
+					}
+				})
 				.execute_returns(());
+
+			// Ensure that the subcall was actually called.
+			assert!(inside.get(), "subcall not called");
 		})
 }
 
@@ -1950,19 +2069,15 @@ fn root_can_change_default_xcm_vers() {
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id: 1,
+			xcm_location: xcm::v4::Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 			let dest = Location {
 				parents: 1,
 				interior: [AccountId32 {
@@ -1971,7 +2086,7 @@ fn root_can_change_default_xcm_vers() {
 				}]
 				.into(),
 			};
-			let source_id: moonbase_runtime::AssetId = source_location.clone().into();
+			let source_id: moonbase_runtime::AssetId = 1;
 			// Default XCM version is not set yet, so xtokens should fail because it does not
 			// know with which version to send
 			assert_noop!(
@@ -1980,7 +2095,7 @@ fn root_can_change_default_xcm_vers() {
 					moonbase_runtime::xcm_config::CurrencyId::ForeignAsset(source_id),
 					100_000_000_000_000,
 					Box::new(xcm::VersionedLocation::V4(dest.clone())),
-					WeightLimit::Limited(4000000000.into())
+					WeightLimit::Unlimited
 				),
 				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
 			);
@@ -1988,7 +2103,7 @@ fn root_can_change_default_xcm_vers() {
 			// Root sets the defaultXcm
 			assert_ok!(PolkadotXcm::force_default_xcm_version(
 				root_origin(),
-				Some(2)
+				Some(4)
 			));
 
 			// Now transferring does not fail
@@ -1997,7 +2112,7 @@ fn root_can_change_default_xcm_vers() {
 				moonbase_runtime::xcm_config::CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
 				Box::new(xcm::VersionedLocation::V4(dest)),
-				WeightLimit::Limited(4000000000.into())
+				WeightLimit::Unlimited
 			));
 		})
 }
@@ -2010,20 +2125,16 @@ fn transactor_cannot_use_more_than_max_weight() {
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id: 1,
+			xcm_location: xcm::v4::Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
-			let source_id: moonbase_runtime::AssetId = source_location.clone().into();
+			let source_id: moonbase_runtime::AssetId = 1;
 			assert_ok!(XcmTransactor::register(
 				root_origin(),
 				AccountId::from(ALICE),
@@ -2171,7 +2282,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(17555)
+				.expect_cost(18748)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2211,7 +2322,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(17555)
+				.expect_cost(18748)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2293,7 +2404,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(15126)
+				.expect_cost(15119)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2315,7 +2426,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14728)
+				.expect_cost(14723)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2336,7 +2447,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15189)
+				.expect_cost(15158)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2379,7 +2490,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16262)
+				.expect_cost(16233)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2404,7 +2515,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16262)
+				.expect_cost(16233)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2538,7 +2649,7 @@ fn precompile_existence() {
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 256, 1024, 1025, 1026, 1027, 2048, 2049, 2050, 2051, 2052,
 			2053, 2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066,
-			2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074,
+			2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

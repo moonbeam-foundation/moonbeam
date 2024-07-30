@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, createViemTransaction } from "
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { Abi, encodeFunctionData } from "viem";
-import { mockAssetBalance } from "../../../../helpers";
+import { mockOldAssetBalance } from "../../../../helpers";
 
 describeSuite({
   id: "D012806",
@@ -33,7 +33,7 @@ describeSuite({
         });
       assetId = context.polkadotJs().createType("u128", ASSET_ID);
 
-      await mockAssetBalance(
+      await mockOldAssetBalance(
         context,
         assetBalance,
         assetDetails,

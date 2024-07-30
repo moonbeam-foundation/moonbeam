@@ -11,6 +11,7 @@ members = [
 	"pallets/asset-manager",
 	"pallets/erc20-xcm-bridge",
 	"pallets/ethereum-xcm",
+	"pallets/moonbeam-foreign-assets",
 	"pallets/moonbeam-lazy-migrations",
 	"pallets/moonbeam-orbiters",
 	"pallets/moonbeam-xcm-benchmarks",
@@ -24,6 +25,7 @@ members = [
 	"precompiles/collective",
 	"precompiles/conviction-voting",
 	"precompiles/crowdloan-rewards",
+	"precompiles/foreign-asset-migrator",
 	"precompiles/gmp",
 	"precompiles/identity",
 	"precompiles/parachain-staking",
@@ -76,9 +78,9 @@ moonbeam-xcm-benchmarks = { path = "pallets/moonbeam-xcm-benchmarks", default-fe
 pallet-asset-manager = { path = "pallets/asset-manager", default-features = false }
 pallet-erc20-xcm-bridge = { path = "pallets/erc20-xcm-bridge", default-features = false }
 pallet-ethereum-xcm = { path = "pallets/ethereum-xcm", default-features = false }
-
-
+pallet-moonbeam-foreign-assets = { path = "pallets/moonbeam-foreign-assets", default-features = false }
 pallet-moonbeam-lazy-migrations = { path = "pallets/moonbeam-lazy-migrations", default-features = false }
+
 pallet-evm-precompile-author-mapping = { path = "precompiles/author-mapping", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "precompiles/balances-erc20", default-features = false }
 pallet-evm-precompile-batch = { path = "precompiles/batch", default-features = false }
@@ -107,6 +109,7 @@ pallet-parachain-staking = { path = "pallets/parachain-staking", default-feature
 pallet-precompile-benchmarks = { path = "pallets/precompile-benchmarks", default-features = false }
 pallet-proxy-genesis-companion = { path = "pallets/proxy-genesis-companion", default-features = false }
 pallet-xcm-transactor = { path = "pallets/xcm-transactor", default-features = false }
+precompile-foreign-asset-migrator = { path = "precompiles/foreign-asset-migrator", default-features = false }
 xcm-primitives = { path = "primitives/xcm", default-features = false }
 
 pallet-crowdloan-rewards = { git = "https://github.com/moonbeam-foundation/crowdloan-rewards", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
@@ -259,9 +262,10 @@ pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/f
 pallet-evm-precompile-storage-cleaner = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 
 precompile-utils = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
+precompile-utils-macro = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
+
 
 # Frontier (client)
-
 fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
 fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
 fc-api = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }

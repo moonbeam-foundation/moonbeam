@@ -17,7 +17,7 @@ import { u128 } from "@polkadot/types";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { nToHex } from "@polkadot/util";
 import { Abi, encodeFunctionData } from "viem";
-import { mockAssetBalance } from "../../../../helpers";
+import { mockOldAssetBalance } from "../../../../helpers";
 
 describeSuite({
   id: "D012802",
@@ -52,7 +52,7 @@ describeSuite({
       contractInstanceAddress = contractAddress;
       contractAbi = abi;
 
-      await mockAssetBalance(
+      await mockOldAssetBalance(
         context,
         assetBalance,
         assetDetails,
@@ -62,7 +62,7 @@ describeSuite({
         true
       );
 
-      await mockAssetBalance(
+      await mockOldAssetBalance(
         context,
         assetBalance,
         assetDetails,
