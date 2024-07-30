@@ -11,9 +11,9 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
   MultiLocation,
-  registerForeignAsset,
   weightMessage,
 } from "../../../../helpers/xcm.js";
+import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 
 describeSuite({
   id: "D014025",
@@ -66,8 +66,8 @@ describeSuite({
       descendedAddress = descendOriginAddress;
       random = generateKeyringPair();
 
-      // registerForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerForeignAsset(
+      // registerOldForeignAsset
+      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
         context,
         STATEMINT_LOCATION,
         assetMetadata,

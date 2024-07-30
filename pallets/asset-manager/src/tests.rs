@@ -206,7 +206,7 @@ fn test_root_can_change_asset_id_type() {
 				asset_type: MockAssetType::MockAsset(1),
 				units_per_second: 200,
 			},
-			crate::Event::ForeignAssetTypeChanged {
+			crate::Event::ForeignAssetXcmLocationChanged {
 				asset_id: 1,
 				new_asset_type: MockAssetType::MockAsset(2),
 			},

@@ -195,7 +195,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 3100,
+	spec_version: 3200,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -725,12 +725,14 @@ impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 }
 
 impl pallet_ethereum_xcm::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type EnsureProxy = EthereumXcmEnsureProxy;
 	type ControllerOrigin = EnsureRoot<AccountId>;
+	type ForceOrigin = EnsureRoot<AccountId>;
 }
 
 parameter_types! {
@@ -1418,7 +1420,7 @@ construct_runtime! {
 		// Previously 35: BaseFee
 		// Previously 36: pallet_assets::<Instance1>
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>, Config<T>} = 37,
-		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 38,
+		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin, Event<T>} = 38,
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 39,
 		TreasuryCouncilCollective:
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 40,
@@ -1438,6 +1440,7 @@ construct_runtime! {
 		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 53,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 54,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 55,
+		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 56,
 	}
 }
 
@@ -1502,6 +1505,7 @@ mod benches {
 		[pallet_xcm, PalletXcmExtrinsicsBenchmark::<Runtime>]
 		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
+		[pallet_moonbeam_foreign_assets, EvmForeignAssets]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
 		[pallet_randomness, Randomness]
 		[pallet_conviction_voting, ConvictionVoting]

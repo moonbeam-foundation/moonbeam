@@ -79,7 +79,7 @@ pub struct EthereumXcmTransactionV1 {
 	pub gas_limit: U256,
 	/// Fee configuration of choice.
 	pub fee_payment: EthereumXcmFee,
-	/// Either a Call (the callee, account or contract address) or Create (currently unsupported).
+	/// Either a Call (the callee, account or contract address) or Create (unsupported for v1).
 	pub action: TransactionAction,
 	/// Value to be transfered.
 	pub value: U256,
@@ -93,7 +93,7 @@ pub struct EthereumXcmTransactionV1 {
 pub struct EthereumXcmTransactionV2 {
 	/// Gas limit to be consumed by EVM execution.
 	pub gas_limit: U256,
-	/// Either a Call (the callee, account or contract address) or Create (currently unsupported).
+	/// Either a Call (the callee, account or contract address) or Create).
 	pub action: TransactionAction,
 	/// Value to be transfered.
 	pub value: U256,
@@ -104,20 +104,34 @@ pub struct EthereumXcmTransactionV2 {
 }
 
 pub trait XcmToEthereum {
-	fn into_transaction_v2(&self, nonce: U256, chain_id: u64) -> Option<TransactionV2>;
+	fn into_transaction_v2(
+		&self,
+		nonce: U256,
+		chain_id: u64,
+		allow_create: bool,
+	) -> Option<TransactionV2>;
 }
 
 impl XcmToEthereum for EthereumXcmTransaction {
-	fn into_transaction_v2(&self, nonce: U256, chain_id: u64) -> Option<TransactionV2> {
+	fn into_transaction_v2(
+		&self,
+		nonce: U256,
+		chain_id: u64,
+		allow_create: bool,
+	) -> Option<TransactionV2> {
 		match self {
-			EthereumXcmTransaction::V1(v1_tx) => v1_tx.into_transaction_v2(nonce, chain_id),
-			EthereumXcmTransaction::V2(v2_tx) => v2_tx.into_transaction_v2(nonce, chain_id),
+			EthereumXcmTransaction::V1(v1_tx) => {
+				v1_tx.into_transaction_v2(nonce, chain_id, allow_create)
+			}
+			EthereumXcmTransaction::V2(v2_tx) => {
+				v2_tx.into_transaction_v2(nonce, chain_id, allow_create)
+			}
 		}
 	}
 }
 
 impl XcmToEthereum for EthereumXcmTransactionV1 {
-	fn into_transaction_v2(&self, nonce: U256, chain_id: u64) -> Option<TransactionV2> {
+	fn into_transaction_v2(&self, nonce: U256, chain_id: u64, _: bool) -> Option<TransactionV2> {
 		// We dont support creates for now
 		if self.action == TransactionAction::Create {
 			return None;
@@ -195,9 +209,14 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 }
 
 impl XcmToEthereum for EthereumXcmTransactionV2 {
-	fn into_transaction_v2(&self, nonce: U256, chain_id: u64) -> Option<TransactionV2> {
-		// We dont support creates for now
-		if self.action == TransactionAction::Create {
+	fn into_transaction_v2(
+		&self,
+		nonce: U256,
+		chain_id: u64,
+		allow_create: bool,
+	) -> Option<TransactionV2> {
+		if !allow_create && self.action == TransactionAction::Create {
+			// Create not allowed
 			return None;
 		}
 		let from_tuple_to_access_list = |t: &Vec<(H160, Vec<H256>)>| -> AccessList {
@@ -274,7 +293,10 @@ mod tests {
 			s: H256::from_low_u64_be(1u64),
 		}));
 
-		assert_eq!(xcm_transaction.into_transaction_v2(nonce, 111), expected_tx);
+		assert_eq!(
+			xcm_transaction.into_transaction_v2(nonce, 111, false),
+			expected_tx
+		);
 	}
 
 	#[test]
@@ -302,7 +324,10 @@ mod tests {
 			signature: TransactionSignature::new(42, rs_id(), rs_id()).unwrap(),
 		}));
 
-		assert_eq!(xcm_transaction.into_transaction_v2(nonce, 111), expected_tx);
+		assert_eq!(
+			xcm_transaction.into_transaction_v2(nonce, 111, false),
+			expected_tx
+		);
 	}
 	#[test]
 	fn test_eip_2930_v1() {
@@ -344,7 +369,10 @@ mod tests {
 			s: H256::from_low_u64_be(1u64),
 		}));
 
-		assert_eq!(xcm_transaction.into_transaction_v2(nonce, 111), expected_tx);
+		assert_eq!(
+			xcm_transaction.into_transaction_v2(nonce, 111, false),
+			expected_tx
+		);
 	}
 
 	#[test]
@@ -373,6 +401,9 @@ mod tests {
 			s: H256::from_low_u64_be(1u64),
 		}));
 
-		assert_eq!(xcm_transaction.into_transaction_v2(nonce, 111), expected_tx);
+		assert_eq!(
+			xcm_transaction.into_transaction_v2(nonce, 111, false),
+			expected_tx
+		);
 	}
 }
