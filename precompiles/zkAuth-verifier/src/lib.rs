@@ -45,16 +45,12 @@ impl<Runtime> ZkAuthVerifierPrecompile<Runtime>
 where
 	Runtime: frame_system::Config + pallet_evm::Config,
 {
-	#[precompile::public("verifyAndExecute(bytes,address,uint256,bytes,uint64)")]
+	#[precompile::public("verifyProof(bytes)")]
 	fn verify_proof(
 		handle: &mut impl PrecompileHandle,
 		receipt: BoundedBytes<GetArrayLimit>,
-		to: Address,
-		value: U256,
-		call_data: BoundedBytes<GetCallDataLimit>,
-		gas_limit: u64,
 	) -> EvmResult {
-		//TODO: record cost
+		//TODO: record proper cost
 		handle.record_cost(1000)?;
 		let receipt: Vec<u8> = receipt.into();
 
@@ -67,54 +63,8 @@ where
 			.verify(image_id)
 			.map_err(|_| RevertReason::Custom("Error verifying receipt".into()))?;
 
-		// Handle tx logic
-		let address = to.0;
-		let call_data: Vec<u8> = call_data.into();
-		let sub_context = Context {
-			caller: handle.context().caller,
-			address: address.clone(),
-			apparent_value: value,
-		};
-
-		let transfer = if value.is_zero() {
-			None
-		} else {
-			Some(Transfer {
-				source: handle.context().caller,
-				target: address.clone(),
-				value,
-			})
-		};
-
-		// Manage gas costs
-		let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
-		let total_cost = gas_limit
-			.checked_add(call_cost)
-			.ok_or_else(|| revert("uint64 overflow: call requires too much gas"))?;
-
-		if total_cost > handle.remaining_gas() {
-			return Err(revert("Error dispatching call: Gaslimit too low"));
-		}
-
-		let (reason, output) = handle.call(
-			address,
-			transfer,
-			call_data,
-			Some(gas_limit),
-			false,
-			&sub_context,
-		);
-
-		// Return the result of the subcall
-		match reason {
-			ExitReason::Fatal(exit_status) => Err(PrecompileFailure::Fatal { exit_status }),
-			ExitReason::Revert(exit_status) => Err(PrecompileFailure::Revert {
-				exit_status,
-				output,
-			}),
-			ExitReason::Error(exit_status) => Err(PrecompileFailure::Error { exit_status }),
-			ExitReason::Succeed(_) => Ok(()),
-		}
+		// TODO: return journal fields
+		Ok(())
 	}
 }
 

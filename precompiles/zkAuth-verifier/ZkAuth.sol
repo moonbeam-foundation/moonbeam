@@ -13,21 +13,9 @@ pragma solidity >=0.8.3;
 /// a risc0 zk-proof receipt.
 /// @custom:address 0x000000000000000000000000000000000000081B
 interface ZkAuth {
-    /// @dev Verifies a risc0 zk-proof receipt and executes an evm call if valid.
+    /// @dev Verifies a risc0 zk-proof receipt.
     ///
     /// @param receipt Risc0 zk-proof encoded receipt.
-    /// @param to Address to call.
-    /// @param value Value to use inside the call.
-    /// @param callData Call data for `to` address.
-    /// @param gasLimit Gas limit for the execution.
-    /// @custom:selector 242ee93b
-    function verifyAndExecute(
-        bytes memory receipt,
-        address to,
-        uint256 value,
-        bytes memory callData,
-        uint64 gasLimit
-    ) external;
-
-    // Needs to be compatible with account abstraction ERC-4337
+    /// @custom:selector 55c265fe
+    function verifyProof(bytes memory receipt) external;
 }
