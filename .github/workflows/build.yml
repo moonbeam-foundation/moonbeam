@@ -309,6 +309,11 @@ jobs:
         with:
           name: runtimes
           path: runtimes
+      - name: Upload uncompressed runtimes
+        uses: actions/upload-artifact@v4
+        with:
+          name: uncompressed-runtimes
+          path: uncompressed-runtimes
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
