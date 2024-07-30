@@ -67,6 +67,7 @@ runs:
       run: |
         mkdir -p runtimes
         cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
+        cp target/release/wbuild/moon*/moon*_runtime.wasm runtimes/;
     - name: Save moonbeam binary
       shell: bash
       run: |
