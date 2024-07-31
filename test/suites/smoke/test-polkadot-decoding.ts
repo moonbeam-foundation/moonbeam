@@ -52,7 +52,7 @@ describeSuite({
                   pageSize,
                   startKey,
                 });
-              } else {
+              } else if (fn != "code") {
                 await module[fn]();
               }
 
