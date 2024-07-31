@@ -320,6 +320,50 @@ jobs:
           name: moonbeam
           path: build
 
+  check-wasm-size:
+    name: "Check WASM runtimes with Twiggy"
+    runs-on: ubuntu-latest
+    needs: ["set-tags", "build"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: |
+          rustup override unset
+          rustup show
+      - name: Download Twiggy
+        run: cargo install twiggy
+      - name: Lookup for latest target branch build
+        run: |
+          LATEST_TARGET_BRANCH_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq '.[] | select(.headBranch == "master" and .event == "push" and .status == "completed" and .conclusion == "success") | .databaseId' | head -n 1)
+          echo "LATEST_TARGET_BRANCH_BUILD=$LATEST_TARGET_BRANCH_BUILD" >> $GITHUB_OUTPUT
+      - name: Download latest target branch build artifacts
+        run: |
+          gh run download $LATEST_TARGET_BRANCH_BUILD -n uncompressed-runtimes --dir uncompressed-runtimes-target-branch
+          gh run download $LATEST_TARGET_BRANCH_BUILD -n runtimes --dir runtimes-target-branch
+      - name: Check Runtimes size for target branch
+        run: |
+          echo $(ls -lh runtimes) >> $GITHUB_OUTPUT
+          echo $(ls -lh uncompressed-runtimes) >> $GITHUB_OUTPUT
+      - name: "Download branch built runtime"
+        uses: actions/download-artifact@v4
+        with:
+          name: runtimes
+          path: runtimes-current-branch
+      - name: "Download branch built uncompressed-runtimes"
+        uses: actions/download-artifact@v4
+        with:
+          name: uncompressed-runtimes
+          path: uncompressed-runtimes-current-branch
+      - name: Check Runtimes size for current branch
+        run: |
+          echo $(ls -lh runtimes-current-branch) >> $GITHUB_OUTPUT
+          echo $(ls -lh uncompressed-runtimes-current-branch) >> $GITHUB_OUTPUT
+
   rust-test:
     runs-on:
       labels: bare-metal
