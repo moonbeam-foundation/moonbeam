@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["MigrateRoundWithFirstSlot","MultiplyRoundLenBy2"]};
+window.SIDEBAR_ITEMS = {};
