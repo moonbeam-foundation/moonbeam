@@ -323,6 +323,7 @@ jobs:
   check-wasm-size:
     name: "Check WASM runtimes with Twiggy"
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     needs: ["set-tags", "build"]
     steps:
       - name: Checkout
