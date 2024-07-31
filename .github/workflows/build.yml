@@ -350,8 +350,8 @@ jobs:
           gh run download $LATEST_TARGET_BRANCH_BUILD -n runtimes --dir runtimes-target-branch
       - name: Check Runtimes size for target branch
         run: |
-          echo $(ls -lh runtimes) >> $GITHUB_OUTPUT
-          echo $(ls -lh uncompressed-runtimes) >> $GITHUB_OUTPUT
+          echo $(ls -lh runtimes-target-branch)
+          echo $(ls -lh uncompressed-runtimes-target-branch)
       - name: "Download branch built runtime"
         uses: actions/download-artifact@v4
         with:
@@ -364,8 +364,8 @@ jobs:
           path: uncompressed-runtimes-current-branch
       - name: Check Runtimes size for current branch
         run: |
-          echo $(ls -lh runtimes-current-branch) >> $GITHUB_OUTPUT
-          echo $(ls -lh uncompressed-runtimes-current-branch) >> $GITHUB_OUTPUT
+          echo $(ls -lh runtimes-current-branch)
+          echo $(ls -lh uncompressed-runtimes-current-branch)
 
   rust-test:
     runs-on:
