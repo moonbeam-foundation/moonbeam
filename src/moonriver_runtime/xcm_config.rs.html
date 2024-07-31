@@ -751,8 +751,6 @@
 <a href="#749" id="749">749</a>
 <a href="#750" id="750">750</a>
 <a href="#751" id="751">751</a>
-<a href="#752" id="752">752</a>
-<a href="#753" id="753">753</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -949,8 +947,6 @@
 );
 
 <span class="macro">parameter_types! </span>{
-	<span class="doccomment">/// The amount of weight an XCM operation takes. This is safe overestimate.
-	</span><span class="kw">pub </span>UnitWeightCost: Weight = Weight::from_parts(<span class="number">200_000_000u64</span>, <span class="number">0</span>);
 	<span class="doccomment">/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	</span><span class="kw">pub </span>MaxInstructions: u32 = <span class="number">100</span>;
