@@ -378,7 +378,8 @@ jobs:
       - name: Fetch latest release tag
         id: fetch_latest_release
         run: |
-          LATEST_RELEASE_TAG=$(git tag -l 'runtime-*' | sort -V | tail -n 1)
+          : # LATEST_RELEASE_TAG=$(git tag -l 'runtime-*' | sort -V | tail -n 1)
+          LATEST_RELEASE_TAG=runtime-2400
           echo "LATEST_RELEASE_TAG=$LATEST_RELEASE_TAG" >> $GITHUB_ENV
       - name: Checkout latest release
         uses: actions/checkout@v4
