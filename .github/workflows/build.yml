@@ -350,8 +350,12 @@ jobs:
           gh run download $LATEST_TARGET_BRANCH_BUILD -n runtimes --dir runtimes-target-branch
       - name: Check Runtimes size for target branch
         run: |
-          echo $(ls -lh runtimes-target-branch)
-          echo $(ls -lh uncompressed-runtimes-target-branch)
+          PREVIOUS_MOONBASE=$(du -k runtimes-target-branch/* | awk '/moonbase_runtime/ {print $1}')
+          PREVIOUS_MOONBEAM=$(du -k runtimes-target-branch/* | awk '/moonbeam_runtime/ {print $1}')
+          PREVIOUS_MOONRIVER=$(du -k runtimes-target-branch/* | awk '/moonriver_runtime/ {print $1}')
+          echo "PREVIOUS_MOONBASE=$PREVIOUS_MOONBASE" >> $GITHUB_ENV
+          echo "PREVIOUS_MOONBEAM=$PREVIOUS_MOONBEAM" >> $GITHUB_ENV
+          echo "PREVIOUS_MOONRIVER=$PREVIOUS_MOONRIVER" >> $GITHUB_ENV
       - name: "Download branch built runtime"
         uses: actions/download-artifact@v4
         with:
@@ -364,8 +368,39 @@ jobs:
           path: uncompressed-runtimes-current-branch
       - name: Check Runtimes size for current branch
         run: |
-          echo $(ls -lh runtimes-current-branch)
-          echo $(ls -lh uncompressed-runtimes-current-branch)
+          CURRENT_MOONBASE=$(du -k runtimes-current-branch/* | awk '/moonbase_runtime/ {print $1}')
+          CURRENT_MOONBEAM=$(du -k runtimes-current-branch/* | awk '/moonbeam_runtime/ {print $1}')
+          CURRENT_MOONRIVER=$(du -k runtimes-current-branch/* | awk '/moonriver_runtime/ {print $1}')
+          echo "CURRENT_MOONBASE=$CURRENT_MOONBASE" >> $GITHUB_ENV
+          echo "CURRENT_MOONBEAM=$CURRENT_MOONBEAM" >> $GITHUB_ENV
+          echo "CURRENT_MOONRIVER=$CURRENT_MOONRIVER" >> $GITHUB_ENV
+      - name: Compare Runtimes sizes
+        run: |
+          MOONBASE_DIFF=$((CURRENT_MOONBASE - PREVIOUS_MOONBASE))
+          MOONBEAM_DIFF=$((CURRENT_MOONBEAM - PREVIOUS_MOONBEAM))
+          MOONRIVER_DIFF=$((CURRENT_MOONRIVER - PREVIOUS_MOONRIVER))
+
+          if [ $MOONBASE_DIFF -eq 0 ]; then
+            MOONBASE_MSG="Moonbase runtime: ${CURRENT_MOONBASE} KB (no changes)"
+          else
+            MOONBASE_MSG="Moonbase runtime: ${CURRENT_MOONBASE} KB ($( [ $MOONBASE_DIFF -gt 0 ] && echo "+" )${MOONBASE_DIFF} KB)"
+          fi
+
+          if [ $MOONBEAM_DIFF -eq 0 ]; then
+            MOONBEAM_MSG="Moonbeam runtime: ${CURRENT_MOONBEAM} KB (no changes)"
+          else
+            MOONBEAM_MSG="Moonbeam runtime: ${CURRENT_MOONBEAM} KB ($( [ $MOONBEAM_DIFF -gt 0 ] && echo "+" )${MOONBEAM_DIFF} KB)"
+          fi
+
+          if [ $MOONRIVER_DIFF -eq 0 ]; then
+            MOONRIVER_MSG="Moonriver runtime: ${CURRENT_MOONRIVER} KB (no changes)"
+          else
+            MOONRIVER_MSG="Moonriver runtime: ${CURRENT_MOONRIVER} KB ($( [ $MOONRIVER_DIFF -gt 0 ] && echo "+" )${MOONRIVER_DIFF} KB)"
+          fi
+
+          echo $MOONBASE_MSG
+          echo $MOONBEAM_MSG
+          echo $MOONRIVER_MSG
 
   rust-test:
     runs-on:
