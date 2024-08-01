@@ -37,6 +37,7 @@ import type {
   AccountId,
   Balance,
   Block,
+  ExtrinsicInclusionMode,
   H160,
   H256,
   Header,
@@ -134,7 +135,7 @@ declare module "@polkadot/api-base/types/calls" {
       /** Generic call */
       [key: string]: DecoratedCallBase<ApiType>;
     };
-    /** 0xdf6acb689907609b/4 */
+    /** 0xdf6acb689907609b/5 */
     core: {
       /** Execute the given block. */
       executeBlock: AugmentedCall<
@@ -158,7 +159,7 @@ declare module "@polkadot/api-base/types/calls" {
               }
             | string
             | Uint8Array
-        ) => Observable<Null>
+        ) => Observable<ExtrinsicInclusionMode>
       >;
       /** Returns the version of the runtime. */
       version: AugmentedCall<ApiType, () => Observable<RuntimeVersion>>;
