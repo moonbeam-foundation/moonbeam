@@ -400,7 +400,7 @@ jobs:
           shard-count: 4
       - name: Upload HTML report to s3
         if: ${{ !github.event.pull_request.head.repo.fork}}
-        uses: opslayertech/upload-s3-action@v1.0.0
+        uses: opslayertech/upload-s3-action@v1.1.0
         id: S3
         with:
           aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
