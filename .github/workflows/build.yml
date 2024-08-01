@@ -378,17 +378,15 @@ jobs:
       - name: Fetch latest release tag
         id: fetch_latest_release
         run: |
-          : # LATEST_RELEASE_TAG=$(git tag -l 'runtime-*' | sort -V | tail -n 1)
-          LATEST_RELEASE_TAG=runtime-2400
+          LATEST_RELEASE_TAG=$(git tag -l 'runtime-*' | sort -V | tail -n 1)
           echo "LATEST_RELEASE_TAG=$LATEST_RELEASE_TAG" >> $GITHUB_ENV
-      - name: Checkout latest release
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.LATEST_RELEASE_TAG }}
-      - name: Download latest release artifacts
+      - name: Lookup for latest release build
         run: |
-          gh run download -n uncompressed-runtimes --dir uncompressed-runtimes-latest-release
-          gh run download -n runtimes --dir runtimes-latest-release
+          LATEST_RELEASE_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq ".[] | select(.headBranch == \"$LATEST_RELEASE_TAG\" and .event == \"push\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
+          echo "LATEST_RELEASE_BUILD=$LATEST_RELEASE_BUILD" >> $GITHUB_OUTPUT
+      - name: Download latest release build artifacts
+        run: |
+          gh release download $LATEST_RELEASE_TAG -R moonbeam-foundation/moonbeam -p "moonbeam-runtime-3100.wasm" -p "moonbase-runtime-3100.wasm" -p "moonriver-runtime-3100.wasm" --dir runtimes-latest-release
       - name: Check Runtimes size for latest release
         run: |
           LATEST_MOONBASE=$(du -k runtimes-latest-release/* | awk '/moonbase_runtime/ {print $1}')
