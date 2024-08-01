@@ -375,6 +375,27 @@ jobs:
           echo "CURRENT_MOONBASE=$CURRENT_MOONBASE" >> $GITHUB_ENV
           echo "CURRENT_MOONBEAM=$CURRENT_MOONBEAM" >> $GITHUB_ENV
           echo "CURRENT_MOONRIVER=$CURRENT_MOONRIVER" >> $GITHUB_ENV
+      - name: Fetch latest release tag
+        id: fetch_latest_release
+        run: |
+          LATEST_RELEASE_TAG=$(git tag -l 'runtime-*' | sort -V | tail -n 1)
+          echo "LATEST_RELEASE_TAG=$LATEST_RELEASE_TAG" >> $GITHUB_ENV
+      - name: Checkout latest release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.LATEST_RELEASE_TAG }}
+      - name: Download latest release artifacts
+        run: |
+          gh run download -n uncompressed-runtimes --dir uncompressed-runtimes-latest-release
+          gh run download -n runtimes --dir runtimes-latest-release
+      - name: Check Runtimes size for latest release
+        run: |
+          LATEST_MOONBASE=$(du -k runtimes-latest-release/* | awk '/moonbase_runtime/ {print $1}')
+          LATEST_MOONBEAM=$(du -k runtimes-latest-release/* | awk '/moonbeam_runtime/ {print $1}')
+          LATEST_MOONRIVER=$(du -k runtimes-latest-release/* | awk '/moonriver_runtime/ {print $1}')
+          echo "LATEST_MOONBASE=$LATEST_MOONBASE" >> $GITHUB_ENV
+          echo "LATEST_MOONBEAM=$LATEST_MOONBEAM" >> $GITHUB_ENV
+          echo "LATEST_MOONRIVER=$LATEST_MOONRIVER" >> $GITHUB_ENV
       - name: Compare Runtimes sizes
         run: |
           MOONBASE_DIFF=$((CURRENT_MOONBASE - PREVIOUS_MOONBASE))
@@ -402,6 +423,33 @@ jobs:
           echo $MOONBASE_MSG
           echo $MOONBEAM_MSG
           echo $MOONRIVER_MSG
+      - name: Compare with latest release
+        run: |
+          MOONBASE_RELEASE_DIFF=$((CURRENT_MOONBASE - LATEST_MOONBASE))
+          MOONBEAM_RELEASE_DIFF=$((CURRENT_MOONBEAM - LATEST_MOONBEAM))
+          MOONRIVER_RELEASE_DIFF=$((CURRENT_MOONRIVER - LATEST_MOONRIVER))
+
+          if [ $MOONBASE_RELEASE_DIFF -eq 0 ]; then
+            MOONBASE_RELEASE_MSG="Moonbase runtime: ${CURRENT_MOONBASE} KB (no changes compared to latest release)"
+          else
+            MOONBASE_RELEASE_MSG="Moonbase runtime: ${CURRENT_MOONBASE} KB ($( [ $MOONBASE_RELEASE_DIFF -gt 0 ] && echo "+" )${MOONBASE_RELEASE_DIFF} KB compared to latest release)"
+          fi
+
+          if [ $MOONBEAM_RELEASE_DIFF -eq 0 ]; then
+            MOONBEAM_RELEASE_MSG="Moonbeam runtime: ${CURRENT_MOONBEAM} KB (no changes compared to latest release)"
+          else
+            MOONBEAM_RELEASE_MSG="Moonbeam runtime: ${CURRENT_MOONBEAM} KB ($( [ $MOONBEAM_RELEASE_DIFF -gt 0 ] && echo "+" )${MOONBEAM_RELEASE_DIFF} KB compared to latest release)"
+          fi
+
+          if [ $MOONRIVER_RELEASE_DIFF -eq 0 ]; then
+            MOONRIVER_RELEASE_MSG="Moonriver runtime: ${CURRENT_MOONRIVER} KB (no changes compared to latest release)"
+          else
+            MOONRIVER_RELEASE_MSG="Moonriver runtime: ${CURRENT_MOONRIVER} KB ($( [ $MOONRIVER_RELEASE_DIFF -gt 0 ] && echo "+" )${MOONRIVER_RELEASE_DIFF} KB compared to latest release)"
+          fi
+
+          echo $MOONBASE_RELEASE_MSG
+          echo $MOONBEAM_RELEASE_MSG
+          echo $MOONRIVER_RELEASE_MSG
 
   rust-test:
     runs-on:
