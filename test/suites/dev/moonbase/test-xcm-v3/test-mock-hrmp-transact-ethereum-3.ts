@@ -11,9 +11,9 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
   MultiLocation,
-  registerForeignAsset,
   weightMessage,
 } from "../../../../helpers/xcm.js";
+import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 
 describeSuite({
   id: "D014025",
@@ -66,8 +66,8 @@ describeSuite({
       descendedAddress = descendOriginAddress;
       random = generateKeyringPair();
 
-      // registerForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerForeignAsset(
+      // registerOldForeignAsset
+      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
         context,
         STATEMINT_LOCATION,
         assetMetadata,
@@ -172,6 +172,8 @@ describeSuite({
         ];
 
         let expectedCalls = 0n;
+        // TODO: move this to the constant file
+        const STORAGE_READ_COST = 41_742_000n;
 
         for (const xcmTransaction of xcmTransactions) {
           expectedCalls++;
@@ -201,9 +203,9 @@ describeSuite({
             .push_any({
               Transact: {
                 originKind: "SovereignAccount",
-                // 100_000 gas + 1 db read
+                // 100_000 gas + 1 db read (41_742_000)
                 requireWeightAtMost: {
-                  refTime: 2_525_000_000,
+                  refTime: 2_525_000_000n + STORAGE_READ_COST,
                   proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
                 },
                 call: {

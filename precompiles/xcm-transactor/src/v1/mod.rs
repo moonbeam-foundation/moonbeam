@@ -63,19 +63,16 @@ where
 	#[precompile::view]
 	fn transact_info_with_signed(
 		handle: &mut impl PrecompileHandle,
-		multilocation: Location,
+		location: Location,
 	) -> EvmResult<(u64, u64, u64)> {
-		XcmTransactorWrapper::<Runtime>::transact_info_with_signed(handle, multilocation)
+		XcmTransactorWrapper::<Runtime>::transact_info_with_signed(handle, location)
 	}
 
 	#[precompile::public("feePerSecond((uint8,bytes[]))")]
 	#[precompile::public("fee_per_second((uint8,bytes[]))")]
 	#[precompile::view]
-	fn fee_per_second(
-		handle: &mut impl PrecompileHandle,
-		multilocation: Location,
-	) -> EvmResult<U256> {
-		XcmTransactorWrapper::<Runtime>::fee_per_second(handle, multilocation)
+	fn fee_per_second(handle: &mut impl PrecompileHandle, location: Location) -> EvmResult<U256> {
+		XcmTransactorWrapper::<Runtime>::fee_per_second(handle, location)
 	}
 
 	#[precompile::public(

@@ -24,7 +24,6 @@ account = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-relay-encoder = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
-precompile-utils = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
 
@@ -68,6 +67,7 @@ pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
 pallet-evm-precompileset-assets-erc20 = { workspace = true }
+pallet-evm-precompile-p256verify = { workspace = true }
 
 # Moonbeam tracing
 evm-tracing-events = { workspace = true, optional = true }
@@ -131,6 +131,7 @@ pallet-evm-precompile-dispatch = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
+precompile-utils = { workspace = true }
 
 # Polkadot / XCM
 orml-traits = { workspace = true }
@@ -145,6 +146,7 @@ polkadot-parachain = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
+xcm-fee-payment-runtime-api = { workspace = true }
 
 # Cumulus
 cumulus-pallet-dmp-queue = { workspace = true }
@@ -250,6 +252,7 @@ std = [
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
 	"pallet-evm-precompileset-assets-erc20/std",
+	"pallet-evm-precompile-p256verify/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
@@ -298,6 +301,7 @@ std = [
 	"strum/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
+	"xcm-fee-payment-runtime-api/std",
 	"xcm-primitives/std",
 	"xcm/std",
 ]

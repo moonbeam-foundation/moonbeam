@@ -7,6 +7,7 @@ version = "0.1.0"
 [dependencies]
 # Moonbeam
 storage-proof-primitives = { workspace = true }
+pallet-evm-precompile-p256verify = { workspace = true }
 
 # substrate
 cumulus-primitives-core = { workspace = true }
@@ -20,6 +21,11 @@ sp-std = { workspace = true }
 # Moonkit
 pallet-relay-storage-roots = { workspace = true }
 
+# Frontier
+precompile-utils = { workspace = true }
+fp-evm = { workspace = true }
+evm = { workspace = true }
+
 # Benchmarks
 frame-benchmarking = { workspace = true, optional = true }
 
@@ -31,10 +37,14 @@ std = [
     "frame-support/std",
     "frame-system/std",
     "pallet-relay-storage-roots/std",
+    "pallet-evm-precompile-p256verify/std",
+    "precompile-utils/std",
     "parity-scale-codec/std",
     "scale-info/std",
     "sp-core/std",
     "sp-std/std",
+    "fp-evm/std",
+    "evm/std",
 ]
 
 runtime-benchmarks = [

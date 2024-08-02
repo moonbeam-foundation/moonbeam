@@ -5,7 +5,7 @@ import "@polkadot/api-augment";
 import { u128 } from "@polkadot/types";
 import { ApiPromise } from "@polkadot/api";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { mockAssetBalance } from "../../../../helpers";
+import { mockOldAssetBalance } from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
@@ -30,7 +30,7 @@ describeSuite({
         supply: balance,
       });
 
-      await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, ALITH_ADDRESS);
+      await mockOldAssetBalance(context, assetBalance, assetDetails, alith, assetId, ALITH_ADDRESS);
     });
 
     it({

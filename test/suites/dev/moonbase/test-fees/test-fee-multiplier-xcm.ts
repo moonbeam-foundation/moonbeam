@@ -120,14 +120,18 @@ describeSuite({
         const initialValue = await context
           .polkadotJs()
           .query.transactionPayment.nextFeeMultiplier();
+
+        let nonce = (
+          await context.polkadotJs().query.system.account(alith.address)
+        ).nonce.toNumber();
         await context
           .polkadotJs()
           .tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
-          .signAndSend(alith, { nonce: -1 });
+          .signAndSend(alith, { nonce: nonce++ });
         await context
           .polkadotJs()
           .tx.sudo.sudo(context.polkadotJs().tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
-          .signAndSend(alith, { nonce: -1 });
+          .signAndSend(alith, { nonce: nonce++ });
         await context.createBlock();
 
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();

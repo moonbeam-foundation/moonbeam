@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::mock::{
-	AccountId, ExtBuilder, PCall, PrecompilesValue, ProxyType, Runtime, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin,
+use crate::{
+	assert_event_emitted, assert_event_not_emitted,
+	mock::{
+		AccountId, ExtBuilder, PCall, PrecompilesValue, ProxyType, Runtime, RuntimeCall,
+		RuntimeEvent, RuntimeOrigin,
+	},
 };
 use frame_support::assert_ok;
 use pallet_evm::Call as EvmCall;
 use pallet_proxy::{
 	Call as ProxyCall, Event as ProxyEvent, Pallet as ProxyPallet, ProxyDefinition,
 };
-use precompile_utils::precompile_set::AddressU64;
-use precompile_utils::{assert_event_emitted, assert_event_not_emitted, prelude::*, testing::*};
+use precompile_utils::{precompile_set::AddressU64, prelude::*, testing::*};
 use sp_core::{Get, H160, H256, U256};
 use sp_runtime::traits::Dispatchable;
 use std::cell::Cell;

@@ -18,6 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use account::SYSTEM_ACCOUNT_SIZE;
 use core::marker::PhantomData;
 use fp_evm::Log;
 use frame_support::{

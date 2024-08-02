@@ -40,7 +40,7 @@ use sp_core::{ConstU32, H160, H256};
 
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
+	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
 	EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
 	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
@@ -49,16 +49,18 @@ use xcm_builder::{
 
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use xcm::latest::prelude::{
-	Asset, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId, PalletInstance,
-	Parachain,
+	AllOf, Asset, AssetFilter, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId,
+	PalletInstance, Parachain, Wild, WildFungible,
 };
+
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
-	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	FirstAssetTrader, IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
+	UtilityEncodeCall, XcmTransact,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -184,8 +186,6 @@ pub type XcmOriginToTransactDispatchOrigin = (
 );
 
 parameter_types! {
-	/// The amount of weight an XCM operation takes. This is safe overestimate.
-	pub UnitWeightCost: Weight = Weight::from_parts(200_000_000u64, 0);
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
@@ -247,8 +247,28 @@ impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 }
 
 parameter_types! {
+	 /// Location of Asset Hub
+	pub AssetHubLocation: Location = Location::new(1, [Parachain(1000)]);
+	pub const RelayLocation: Location = Location::parent();
+	pub RelayLocationFilter: AssetFilter = Wild(AllOf {
+		fun: WildFungible,
+		id: xcm::prelude::AssetId(RelayLocation::get()),
+	});
+	pub RelayChainNativeAssetFromAssetHub: (AssetFilter, Location) = (
+		RelayLocationFilter::get(),
+		AssetHubLocation::get()
+	);
 	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
+
+type Reserves = (
+	// Assets bridged from different consensus systems held in reserve on Asset Hub.
+	IsBridgedConcreteAssetFrom<AssetHubLocation>,
+	// Relaychain (DOT) from Asset Hub
+	Case<RelayChainNativeAssetFromAssetHub>,
+	// Assets which the reserve is the same as the origin.
+	MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>,
+);
 
 // Our implementation of the Moonbeam Call
 // Attachs the right origin in case the call is made to pallet-ethereum-xcm
@@ -269,7 +289,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// Filter to the reserve withdraw operations
 	// Whenever the reserve matches the relative or absolute value
 	// of our chain, we always return the relative reserve
-	type IsReserve = MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>;
+	type IsReserve = Reserves;
 	type IsTeleporter = (); // No teleport
 	type UniversalLocation = UniversalLocation;
 	type Barrier = XcmBarrier;
@@ -412,8 +432,9 @@ impl pallet_message_queue::Config for Runtime {
 		cumulus_primitives_core::AggregateMessageOrigin,
 	>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type MessageProcessor =
-		xcm_builder::ProcessXcmMessage<AggregateMessageOrigin, XcmExecutor, RuntimeCall>;
+	type MessageProcessor = pallet_ethereum_xcm::MessageProcessorWrapper<
+		xcm_builder::ProcessXcmMessage<AggregateMessageOrigin, XcmExecutor, RuntimeCall>,
+	>;
 	type Size = u32;
 	type HeapSize = MessageQueueHeapSize;
 	type MaxStale = MessageQueueMaxStale;
@@ -676,7 +697,7 @@ parameter_types! {
 
 	// To be able to support almost all erc20 implementations,
 	// we provide a sufficiently hight gas limit.
-	pub Erc20XcmBridgeTransferGasLimit: u64 = 200_000;
+	pub Erc20XcmBridgeTransferGasLimit: u64 = 400_000;
 }
 
 impl pallet_erc20_xcm_bridge::Config for Runtime {

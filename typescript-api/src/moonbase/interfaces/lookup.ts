@@ -4122,10 +4122,7 @@ export default {
   /** Lookup367: pallet_moonbeam_lazy_migrations::pallet::Call<T> */
   PalletMoonbeamLazyMigrationsCall: {
     _enum: {
-      clear_local_assets_storage: {
-        maxAssets: "u32",
-        limit: "u32",
-      },
+      __Unused0: "Null",
       clear_suicided_storage: {
         addresses: "Vec<H160>",
         limit: "u32",
@@ -5676,15 +5673,7 @@ export default {
   },
   /** Lookup657: pallet_moonbeam_lazy_migrations::pallet::Error<T> */
   PalletMoonbeamLazyMigrationsError: {
-    _enum: [
-      "AllStorageEntriesHaveBeenRemoved",
-      "LimitCannotBeZero",
-      "MaxAssetsCannotBeZero",
-      "UnlockLimitTooHigh",
-      "AllDemocracyFundsUnlocked",
-      "AddressesLengthCannotBeZero",
-      "ContractNotCorrupted",
-    ],
+    _enum: ["LimitCannotBeZero", "AddressesLengthCannotBeZero", "ContractNotCorrupted"],
   },
   /** Lookup659: pallet_precompile_benchmarks::pallet::Error<T> */
   PalletPrecompileBenchmarksError: {

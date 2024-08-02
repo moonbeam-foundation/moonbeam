@@ -831,8 +831,8 @@ impl pallet_timestamp::Config for Runtime {
 use sp_core::U256;
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
-/// Block storage limit in bytes. Set to 80 KB.
-const BLOCK_STORAGE_LIMIT: u64 = 80 * 1024;
+/// Block storage limit in bytes. Set to 160 KB.
+const BLOCK_STORAGE_LIMIT: u64 = 160 * 1024;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
@@ -1043,12 +1043,14 @@ impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 }
 
 impl pallet_ethereum_xcm::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type EnsureProxy = EthereumXcmEnsureProxy;
 	type ControllerOrigin = EnsureRoot<AccountId>;
+	type ForceOrigin = EnsureRoot<AccountId>;
 }
 
 type Block = frame_system::mocking::MockBlockU32<Runtime>;

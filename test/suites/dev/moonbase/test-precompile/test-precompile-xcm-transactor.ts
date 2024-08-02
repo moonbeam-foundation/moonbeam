@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { fromBytes } from "viem";
 import {
-  mockAssetBalance,
+  mockOldAssetBalance,
   verifyLatestBlockFees,
   registerXcmTransactorAndContract,
 } from "../../../../helpers";
@@ -103,7 +103,7 @@ describeSuite({
             supply: balance,
           });
 
-        await mockAssetBalance(
+        await mockOldAssetBalance(
           context,
           assetBalance,
           assetDetails,

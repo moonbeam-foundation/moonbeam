@@ -20,11 +20,11 @@
 use crate::OpenTechCommitteeInstance;
 
 use super::{
-	currency, governance, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances,
-	Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	currency, governance, xcm_config, AccountId, AssetId, Assets, Balance, Balances, Runtime,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-use moonbeam_runtime_common::weights as moonbeam_weights;
+use moonbeam_runtime_common::weights as moonbase_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 
 use frame_support::{
@@ -98,7 +98,7 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type Freezer = ();
 	type Extra = ();
 	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
-	type WeightInfo = moonbeam_weights::pallet_assets::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_assets::WeightInfo<Runtime>;
 	type RemoveItemsLimit = ConstU32<{ REMOVE_ITEMS_LIMIT }>;
 	type AssetIdParameter = Compact<AssetId>;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
@@ -124,7 +124,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		Assets::force_create(
 			RuntimeOrigin::root(),
 			asset.into(),
-			AssetManager::account_id(),
+			crate::AssetManager::account_id(),
 			is_sufficient,
 			min_balance,
 		)?;
@@ -187,7 +187,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type ForeignAssetType = xcm_config::AssetType;
 	type AssetRegistrar = AssetRegistrar;
 	type ForeignAssetModifierOrigin = ForeignAssetModifierOrigin;
-	type WeightInfo = moonbeam_weights::pallet_asset_manager::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_asset_manager::WeightInfo<Runtime>;
 }
 
 // Instruct how to go from an H160 to an AssetID
