@@ -127,7 +127,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::currency::<span class="kw-2">*</span>;
 <span class="kw">use </span>frame_support::traits::{EitherOf, MapSuccess};
 <span class="kw">use </span>frame_system::EnsureRootWithSuccess;
-<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbeam_weights;
+<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbase_weights;
 <span class="kw">use </span>sp_runtime::traits::Replace;
 
 <span class="macro">parameter_types! </span>{
@@ -135,7 +135,7 @@
 }
 
 <span class="kw">impl </span>pallet_conviction_voting::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_conviction_voting::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_conviction_voting::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>Polls = Referenda;
@@ -162,7 +162,7 @@
 <span class="comment">// The purpose of this pallet is to queue calls to be dispatched as by root later =&gt; the Dispatch
 // origin corresponds to the Gov2 Whitelist track.
 </span><span class="kw">impl </span>pallet_whitelist::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_whitelist::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_whitelist::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>RuntimeCall = RuntimeCall;
 	<span class="kw">type </span>WhitelistOrigin = EitherOf&lt;
@@ -184,7 +184,7 @@
 <span class="macro">pallet_referenda::impl_tracksinfo_get!</span>(TracksInfo, Balance, BlockNumber);
 
 <span class="kw">impl </span>pallet_referenda::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_referenda::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_referenda::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>RuntimeCall = RuntimeCall;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Scheduler = Scheduler;

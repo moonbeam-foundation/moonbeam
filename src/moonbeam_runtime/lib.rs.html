@@ -1840,7 +1840,6 @@
 <a href="#1838" id="1838">1838</a>
 <a href="#1839" id="1839">1839</a>
 <a href="#1840" id="1840">1840</a>
-<a href="#1841" id="1841">1841</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1896,9 +1895,8 @@
 		OnUnbalanced,
 	},
 	weights::{
-		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
-		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
-		WeightToFeePolynomial,
+		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
+		WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
 };
@@ -2117,7 +2115,7 @@
 	<span class="kw">type </span>AccountData = pallet_balances::AccountData&lt;Balance&gt;;
 	<span class="kw">type </span>OnNewAccount = ();
 	<span class="kw">type </span>OnKilledAccount = ();
-	<span class="kw">type </span>DbWeight = RocksDbWeight;
+	<span class="kw">type </span>DbWeight = moonbeam_weights::db::rocksdb::constants::RocksDbWeight;
 	<span class="kw">type </span>BaseCallFilter = MaintenanceMode;
 	<span class="kw">type </span>SystemWeightInfo = ();
 	<span class="doccomment">/// This is used as an identifier of the chain. 42 is the generic substrate prefix.

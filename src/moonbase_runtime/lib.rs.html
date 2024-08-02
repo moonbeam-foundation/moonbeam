@@ -1839,7 +1839,6 @@
 <a href="#1837" id="1837">1837</a>
 <a href="#1838" id="1838">1838</a>
 <a href="#1839" id="1839">1839</a>
-<a href="#1840" id="1840">1840</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1912,9 +1911,8 @@
 		OnUnbalanced,
 	},
 	weights::{
-		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
-		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
-		WeightToFeePolynomial,
+		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
+		WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
 };
@@ -1924,7 +1922,7 @@
 <span class="kw">use </span>moonbeam_rpc_primitives_txpool::TxPoolResponse;
 <span class="kw">use </span>moonbeam_runtime_common::{
 	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
-	weights <span class="kw">as </span>moonbeam_weights,
+	weights <span class="kw">as </span>moonbase_weights,
 };
 <span class="kw">use </span>nimbus_primitives::CanAuthor;
 <span class="kw">use </span>pallet_ethereum::Call::transact;
@@ -2124,7 +2122,7 @@
 	<span class="kw">type </span>AccountData = pallet_balances::AccountData&lt;Balance&gt;;
 	<span class="kw">type </span>OnNewAccount = ();
 	<span class="kw">type </span>OnKilledAccount = ();
-	<span class="kw">type </span>DbWeight = RocksDbWeight;
+	<span class="kw">type </span>DbWeight = moonbase_weights::db::rocksdb::constants::RocksDbWeight;
 	<span class="kw">type </span>BaseCallFilter = MaintenanceMode;
 	<span class="kw">type </span>SystemWeightInfo = ();
 	<span class="doccomment">/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
@@ -2142,7 +2140,7 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>RuntimeCall = RuntimeCall;
 	<span class="kw">type </span>PalletsOrigin = OriginCaller;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_utility::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_utility::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_timestamp::Config <span class="kw">for </span>Runtime {
@@ -2150,7 +2148,7 @@
 	</span><span class="kw">type </span>Moment = u64;
 	<span class="kw">type </span>OnTimestampSet = ();
 	<span class="kw">type </span>MinimumPeriod = ConstU64&lt;<span class="number">3000</span>&gt;;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_timestamp::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
@@ -2178,7 +2176,7 @@
 	<span class="kw">type </span>MaxFreezes = ConstU32&lt;<span class="number">0</span>&gt;;
 	<span class="kw">type </span>RuntimeHoldReason = RuntimeHoldReason;
 	<span class="kw">type </span>RuntimeFreezeReason = RuntimeFreezeReason;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_balances::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_balances::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">pub struct </span>DealWithFees&lt;R&gt;(sp_std::marker::PhantomData&lt;R&gt;);
@@ -2254,7 +2252,7 @@
 <span class="kw">impl </span>pallet_sudo::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeCall = RuntimeCall;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_sudo::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_sudo::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_evm_chain_id::Config <span class="kw">for </span>Runtime {}
@@ -2386,7 +2384,7 @@
 	<span class="kw">type </span>SuicideQuickClearLimit = ConstU32&lt;<span class="number">0</span>&gt;;
 	<span class="kw">type </span>GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	<span class="kw">type </span>Timestamp = RelayTimestamp;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_evm::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_evm::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2402,7 +2400,7 @@
 	<span class="kw">type </span>MaximumWeight = MaximumSchedulerWeight;
 	<span class="kw">type </span>ScheduleOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>MaxScheduledPerBlock = ConstU32&lt;<span class="number">50</span>&gt;;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_scheduler::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_scheduler::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>OriginPrivilegeCmp = EqualPrivilegeOnly;
 	<span class="kw">type </span>Preimages = Preimage;
 }
@@ -2415,7 +2413,7 @@
 }
 
 <span class="kw">impl </span>pallet_preimage::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_preimage::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_preimage::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>ManagerOrigin = EnsureRoot&lt;AccountId&gt;;
@@ -2459,7 +2457,7 @@
 	<span class="kw">type </span>Burn = ();
 	<span class="kw">type </span>BurnDestination = ();
 	<span class="kw">type </span>MaxApprovals = ConstU32&lt;<span class="number">100</span>&gt;;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_treasury::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_treasury::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>SpendFunds = ();
 	<span class="kw">type </span>ProposalBondMaximum = ();
 	<span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
@@ -2512,7 +2510,7 @@
 	<span class="kw">type </span>PendingUsernameExpiration = PendingUsernameExpiration;
 	<span class="kw">type </span>MaxSuffixLength = MaxSuffixLength;
 	<span class="kw">type </span>MaxUsernameLength = MaxUsernameLength;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_identity::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_identity::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">pub struct </span>TransactionConverter;
@@ -2712,7 +2710,7 @@
 	<span class="kw">type </span>OnInactiveCollator = OnInactiveCollator;
 	<span class="kw">type </span>OnNewRound = OnNewRound;
 	<span class="kw">type </span>SlotProvider = RelayChainSlotProvider;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_parachain_staking::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>MaxCandidates = ConstU32&lt;<span class="number">200</span>&gt;;
 	<span class="kw">type </span>SlotDuration = ConstU64&lt;<span class="number">6_000</span>&gt;;
 	<span class="kw">type </span>BlockTime = ConstU64&lt;<span class="number">6_000</span>&gt;;
@@ -2723,7 +2721,7 @@
 	<span class="kw">type </span>AccountLookup = MoonbeamOrbiters;
 	<span class="kw">type </span>CanAuthor = AuthorFilter;
 	<span class="kw">type </span>AuthorId = AccountId;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_author_inherent::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_author_inherent::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="attr">#[cfg(test)]
@@ -2744,7 +2742,7 @@
 	<span class="attr">#[cfg(test)]
 	</span><span class="kw">type </span>RandomnessSource = mock::MockRandomness;
 	<span class="kw">type </span>PotentialAuthors = ParachainStaking;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_author_slot_filter::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_author_slot_filter::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_async_backing::Config <span class="kw">for </span>Runtime {
@@ -2775,7 +2773,7 @@
 	<span class="kw">type </span>SignatureNetworkIdentifier = SignatureNetworkIdentifier;
 	<span class="kw">type </span>VestingBlockNumber = relay_chain::BlockNumber;
 	<span class="kw">type </span>VestingBlockProvider = RelaychainDataProvider&lt;<span class="self">Self</span>&gt;;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_crowdloan_rewards::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_crowdloan_rewards::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="comment">// This is a simple session key manager. It should probably either work with, or be replaced
@@ -2785,7 +2783,7 @@
 	<span class="kw">type </span>DepositCurrency = Balances;
 	<span class="kw">type </span>DepositAmount = ConstU128&lt;{ <span class="number">100 </span>* currency::UNIT * currency::SUPPLY_FACTOR }&gt;;
 	<span class="kw">type </span>Keys = session_keys_primitives::VrfId;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_author_mapping::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_author_mapping::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="doccomment">/// The type used to represent the kinds of proxying allowed.
@@ -2981,7 +2979,7 @@
 	<span class="comment">// Additional storage item size of 21 bytes (20 bytes AccountId + 1 byte sizeof(ProxyType)).
 	</span><span class="kw">type </span>ProxyDepositFactor = ConstU128&lt;{ currency::deposit(<span class="number">0</span>, <span class="number">21</span>) }&gt;;
 	<span class="kw">type </span>MaxProxies = ConstU32&lt;<span class="number">32</span>&gt;;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_proxy::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_proxy::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>MaxPending = ConstU32&lt;<span class="number">32</span>&gt;;
 	<span class="kw">type </span>CallHasher = BlakeTwo256;
 	<span class="kw">type </span>AnnouncementDepositBase = ConstU128&lt;{ currency::deposit(<span class="number">1</span>, <span class="number">8</span>) }&gt;;
@@ -3004,7 +3002,7 @@
 }
 
 <span class="kw">impl </span>pallet_moonbeam_lazy_migrations::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_moonbeam_lazy_migrations::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_moonbeam_lazy_migrations::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="doccomment">/// Maintenance mode Call filter
@@ -3123,7 +3121,7 @@
 	<span class="kw">type </span>RotatePeriod = ConstU32&lt;<span class="number">3</span>&gt;;
 	<span class="doccomment">/// Round index type.
 	</span><span class="kw">type </span>RoundIndex = pallet_parachain_staking::RoundIndex;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_moonbeam_orbiters::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_moonbeam_orbiters::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="doccomment">/// Only callable after `set_validation_data` is called which forms this proof the same way
@@ -3187,7 +3185,7 @@
 	<span class="kw">type </span>MaxBlockDelay = ConstU32&lt;<span class="number">2_000</span>&gt;;
 	<span class="kw">type </span>BlockExpirationDelay = ConstU32&lt;<span class="number">10_000</span>&gt;;
 	<span class="kw">type </span>EpochExpirationDelay = ConstU64&lt;<span class="number">10_000</span>&gt;;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_randomness::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_randomness::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_root_testing::Config <span class="kw">for </span>Runtime {
@@ -3209,17 +3207,17 @@
 	<span class="kw">type </span>DepositBase = DepositBase;
 	<span class="kw">type </span>DepositFactor = DepositFactor;
 	<span class="kw">type </span>MaxSignatories = MaxSignatories;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_multisig::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_relay_storage_roots::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>MaxStorageRoots = ConstU32&lt;<span class="number">30</span>&gt;;
 	<span class="kw">type </span>RelaychainStateProvider = cumulus_pallet_parachain_system::RelaychainDataProvider&lt;<span class="self">Self</span>&gt;;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_relay_storage_roots::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_precompile_benchmarks::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_precompile_benchmarks::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_precompile_benchmarks::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="macro">construct_runtime! </span>{

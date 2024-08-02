@@ -780,7 +780,7 @@
 	parameter_types,
 	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
-<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbeam_weights;
+<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonriver_weights;
 <span class="kw">use </span>moonkit_xcm_primitives::AccountIdAssetIdConversion;
 <span class="kw">use </span>sp_runtime::{
 	traits::{Hash <span class="kw">as </span>THash, MaybeEquivalence, PostDispatchInfoOf},
@@ -1130,7 +1130,7 @@
 	<span class="kw">type </span>MaxRemoteLockConsumers = ConstU32&lt;<span class="number">0</span>&gt;;
 	<span class="kw">type </span>RemoteLockConsumerIdentifier = ();
 	<span class="comment">// TODO pallet-xcm weights
-	</span><span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_xcm::WeightInfo&lt;Runtime&gt;;
+	</span><span class="kw">type </span>WeightInfo = moonriver_weights::pallet_xcm::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>AdminOrigin = EnsureRoot&lt;AccountId&gt;;
 }
 
@@ -1147,7 +1147,7 @@
 	<span class="kw">type </span>MaxInboundSuspended = sp_core::ConstU32&lt;<span class="number">1_000</span>&gt;;
 	<span class="kw">type </span>ControllerOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::cumulus_pallet_xcmp_queue::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonriver_weights::cumulus_pallet_xcmp_queue::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>PriceForSiblingDelivery = polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery&lt;
 		cumulus_primitives_core::ParaId,
 	&gt;;
@@ -1444,7 +1444,7 @@
 	<span class="kw">type </span>BaseXcmWeight = BaseXcmWeight;
 	<span class="kw">type </span>AssetTransactor = AssetTransactors;
 	<span class="kw">type </span>ReserveProvider = AbsoluteAndRelativeReserve&lt;SelfLocationAbsolute&gt;;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_xcm_transactor::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonriver_weights::pallet_xcm_transactor::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	<span class="kw">type </span>HrmpOpenOrigin = FastGeneralAdminOrRoot;
 	<span class="kw">type </span>MaxHrmpFee = xcm_builder::Case&lt;MaxHrmpRelayFee&gt;;

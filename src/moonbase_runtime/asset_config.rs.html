@@ -244,7 +244,7 @@
 	RuntimeCall, RuntimeEvent, RuntimeOrigin, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbeam_weights;
+<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbase_weights;
 <span class="kw">use </span>moonkit_xcm_primitives::AccountIdAssetIdConversion;
 
 <span class="kw">use </span>frame_support::{
@@ -318,7 +318,7 @@
 	<span class="kw">type </span>Freezer = ();
 	<span class="kw">type </span>Extra = ();
 	<span class="kw">type </span>AssetAccountDeposit = ConstU128&lt;{ currency::deposit(<span class="number">1</span>, <span class="number">18</span>) }&gt;;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_assets::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_assets::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>RemoveItemsLimit = ConstU32&lt;{ REMOVE_ITEMS_LIMIT }&gt;;
 	<span class="kw">type </span>AssetIdParameter = Compact&lt;AssetId&gt;;
 	<span class="kw">type </span>CreateOrigin = AsEnsureOriginWithArg&lt;EnsureNever&lt;AccountId&gt;&gt;;
@@ -407,7 +407,7 @@
 	<span class="kw">type </span>ForeignAssetType = xcm_config::AssetType;
 	<span class="kw">type </span>AssetRegistrar = AssetRegistrar;
 	<span class="kw">type </span>ForeignAssetModifierOrigin = ForeignAssetModifierOrigin;
-	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_asset_manager::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_asset_manager::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="comment">// Instruct how to go from an H160 to an AssetID
