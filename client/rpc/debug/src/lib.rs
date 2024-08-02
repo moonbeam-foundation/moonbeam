@@ -335,6 +335,7 @@ where
 					disable_storage: params.disable_storage.unwrap_or(false),
 					disable_memory: params.disable_memory.unwrap_or(false),
 					disable_stack: params.disable_stack.unwrap_or(false),
+					with_log: params.disable_stack.unwrap_or(false),
 				},
 			)),
 			_ => Ok((
@@ -343,6 +344,7 @@ where
 					disable_storage: false,
 					disable_memory: false,
 					disable_stack: false,
+					with_log: false,
 				},
 			)),
 		}
@@ -630,6 +632,7 @@ where
 						disable_storage,
 						disable_memory,
 						disable_stack,
+						with_log,
 					} => {
 						let mut proxy = moonbeam_client_evm_tracing::listeners::Raw::new(
 							disable_storage,
@@ -843,6 +846,7 @@ where
 				disable_storage,
 				disable_memory,
 				disable_stack,
+				with_log,
 			} => {
 				let mut proxy = moonbeam_client_evm_tracing::listeners::Raw::new(
 					disable_storage,

@@ -40,6 +40,7 @@ pub enum TraceType {
 		disable_storage: bool,
 		disable_memory: bool,
 		disable_stack: bool,
+		with_log: bool,
 	},
 	/// List of calls and subcalls formatted with an input tracer (i.e. callTracer or Blockscout).
 	CallList,
