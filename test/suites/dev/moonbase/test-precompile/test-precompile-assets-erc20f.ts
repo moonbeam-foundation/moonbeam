@@ -4,7 +4,7 @@ import { BALTATHAR_ADDRESS, alith, createViemTransaction } from "@moonwall/util"
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { Abi, encodeFunctionData } from "viem";
-import { mockAssetBalance } from "../../../../helpers";
+import { mockOldAssetBalance } from "../../../../helpers";
 
 describeSuite({
   id: "D012809",
@@ -37,7 +37,7 @@ describeSuite({
       erc20Abi = abi;
       erc20InstanceAddress = contractAddress;
 
-      await mockAssetBalance(
+      await mockOldAssetBalance(
         context,
         assetBalance,
         assetDetails,

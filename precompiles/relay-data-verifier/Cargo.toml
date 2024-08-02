@@ -7,7 +7,6 @@ version = "0.1.0"
 
 [dependencies]
 # Moonbeam
-precompile-utils = { workspace = true }
 storage-proof-primitives = { workspace = true }
 pallet-precompile-benchmarks = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
@@ -24,6 +23,7 @@ scale-info = { workspace = true, features = [ "derive" ] }
 # Frontier
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+precompile-utils = { workspace = true }
 
 # Moonkit
 pallet-relay-storage-roots = { workspace = true }

@@ -11,5 +11,10 @@ export default {
       params: [{ name: "txHash", type: "Hash" }],
       type: "bool",
     },
+    getLatestSyncedBlock: {
+      description: "Returns the latest synced block from Frontier's backend",
+      params: [],
+      type: "u32",
+    },
   },
 };

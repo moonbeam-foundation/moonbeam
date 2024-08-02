@@ -3,6 +3,7 @@ import chalk from "chalk";
 import { describeSuite, beforeAll } from "@moonwall/cli";
 import { ONE_HOURS } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
+import { fail } from "assert";
 
 const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
 
@@ -37,53 +38,29 @@ describeSuite({
           log(`  - ${moduleName}`);
           const module = apiAt.query[moduleName];
           const fns = Object.keys(module);
-          if (moduleName == "system") {
-            // We skip system because too big and tested in other places too
-            continue;
-          }
           for (const fn of fns) {
             log(`🔎 checking ${moduleName}::${fn}`);
-            if (
-              moduleName == "evm" &&
-              ["accountStorages", "accountCodes", "accountCodesMetadata"].includes(fn)
-            ) {
-              // This is just H256 entries and quite big
-              continue;
-            }
-
-            if (
-              moduleName == "parachainStaking" &&
-              ["atStake"].includes(fn) &&
-              specVersion == 1901
-            ) {
-              // AtStake is broken in 1902 until a script is run
-              continue;
-            }
-
             const keys = Object.keys(module[fn]);
-            if (keys.includes("keysPaged")) {
-              // Map item
-              let startKey = "";
-              let count = 0;
-              for (;;) {
-                const query = await module[fn].entriesPaged({
+            try {
+              if (keys.includes("keysPaged")) {
+                const startKey = "";
+                // Trying to decode all storage entries may cause the node to timeout, decoding
+                // the first storage entries should be enough to verify if a storage migration
+                // was missed.
+                await module[fn].entriesPaged({
                   args: [],
                   pageSize,
                   startKey,
                 });
-
-                if (query.length == 0) {
-                  break;
-                }
-                count += query.length;
-                startKey = query[query.length - 1][0].toString();
+              } else if (fn != "code") {
+                await module[fn]();
               }
-              log(
-                `     - ${fn}: ${count != 0 ? `${chalk.green(`✔`)} [${count} entries]` : "N/A"} `
-              );
-            } else {
-              await module[fn]();
+
               log(`     - ${fn}:  ${chalk.green(`✔`)}`);
+            } catch (e) {
+              const msg = chalk.red(`Failed to fetch storage at (${moduleName}::${fn})`);
+              log(msg, e);
+              fail(msg);
             }
           }
         }
