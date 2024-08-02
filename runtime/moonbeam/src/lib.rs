@@ -53,9 +53,8 @@ use frame_support::{
 		OnUnbalanced,
 	},
 	weights::{
-		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
-		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
-		WeightToFeePolynomial,
+		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
+		WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
 };
@@ -192,7 +191,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 3100,
+	spec_version: 3200,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -274,7 +273,7 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type DbWeight = RocksDbWeight;
+	type DbWeight = moonbeam_weights::db::rocksdb::constants::RocksDbWeight;
 	type BaseCallFilter = MaintenanceMode;
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.

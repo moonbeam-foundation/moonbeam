@@ -172,7 +172,7 @@ describeSuite({
             {
               Transact: {
                 originType: "SovereignAccount",
-                requireWeightAtMost: 525_000_000n + 100_000_000n, // 21_000 gas limit
+                requireWeightAtMost: 566_742_000n, // 21_000 gas limit
                 call: {
                   encoded: transferCallEncoded,
                 },
@@ -233,7 +233,7 @@ describeSuite({
             {
               Transact: {
                 originType: "SovereignAccount",
-                requireWeightAtMost: 525_000_000n + 25_000_000n, // 21_000 gas limit
+                requireWeightAtMost: 566_742_000n, // 21_000 gas limit
                 call: {
                   encoded: transferCallEncoded,
                 },
