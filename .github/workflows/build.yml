@@ -380,6 +380,7 @@ jobs:
         run: |
           LATEST_RELEASE_TAG=$(git tag -l 'runtime-*' | sort -V | tail -n 1)
           echo "LATEST_RELEASE_TAG=$LATEST_RELEASE_TAG" >> $GITHUB_ENV
+          echo $LATEST_RELEASE_TAG
       - name: Lookup for latest release build
         run: |
           LATEST_RELEASE_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq ".[] | select(.headBranch == \"$LATEST_RELEASE_TAG\" and .event == \"push\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
