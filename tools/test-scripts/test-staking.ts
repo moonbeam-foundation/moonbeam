@@ -223,7 +223,7 @@ async function test() {
         nominations: { owner: string; amount: string }[];
       }
     ).nominations[0].owner === GERALD,
-    "nomination didnt go through"
+    "nomination didn't go through"
   );
 
   // Revoke Delegation
@@ -264,4 +264,4 @@ async function test() {
 test();
 
 // TODO: leave_candidates
-// TODO: ethan (added candidate) doesnt produce blocks => need to move blockPerRound to storage
+// TODO: ethan (added candidate) doesn't produce blocks => need to move blockPerRound to storage

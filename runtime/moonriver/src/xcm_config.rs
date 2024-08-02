@@ -27,7 +27,7 @@ use frame_support::{
 	parameter_types,
 	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
-use moonbeam_runtime_common::weights as moonbeam_weights;
+use moonbeam_runtime_common::weights as moonriver_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
 	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
@@ -194,8 +194,6 @@ pub type XcmOriginToTransactDispatchOrigin = (
 );
 
 parameter_types! {
-	/// The amount of weight an XCM operation takes. This is safe overestimate.
-	pub UnitWeightCost: Weight = Weight::from_parts(200_000_000u64, 0);
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
@@ -379,7 +377,7 @@ impl pallet_xcm::Config for Runtime {
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
 	// TODO pallet-xcm weights
-	type WeightInfo = moonbeam_weights::pallet_xcm::WeightInfo<Runtime>;
+	type WeightInfo = moonriver_weights::pallet_xcm::WeightInfo<Runtime>;
 	type AdminOrigin = EnsureRoot<AccountId>;
 }
 
@@ -396,7 +394,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type MaxInboundSuspended = sp_core::ConstU32<1_000>;
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
-	type WeightInfo = moonbeam_weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
+	type WeightInfo = moonriver_weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
 	type PriceForSiblingDelivery = polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery<
 		cumulus_primitives_core::ParaId,
 	>;
@@ -693,7 +691,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
-	type WeightInfo = moonbeam_weights::pallet_xcm_transactor::WeightInfo<Runtime>;
+	type WeightInfo = moonriver_weights::pallet_xcm_transactor::WeightInfo<Runtime>;
 	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type HrmpOpenOrigin = FastGeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
