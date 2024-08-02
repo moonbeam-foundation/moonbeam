@@ -378,6 +378,7 @@ jobs:
       - name: Fetch latest release tag
         id: fetch_latest_release
         run: |
+          git tag -l 'runtime-*' | sort -V | tail -n 1
           LATEST_RELEASE_TAG=$(git tag -l 'runtime-*' | sort -V | tail -n 1)
           echo "LATEST_RELEASE_TAG=$LATEST_RELEASE_TAG" >> $GITHUB_ENV
           echo $LATEST_RELEASE_TAG
