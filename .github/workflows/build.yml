@@ -378,7 +378,7 @@ jobs:
       - name: Fetch latest release tag
         id: fetch_latest_release
         run: |
-          LATEST_RELEASE_TAG=$(gh release list --repo moonbeam-foundation/moonbeam --limit 100 --json tagName -q '.[] | select(.tagName | test("^runtime-\\d+$")) | .tagName' | sort -V | tail -n 1)
+          LATEST_RELEASE_TAG=$(gh api repos/moonbeam-foundation/moonbeam/releases --paginate --jq '.[] | select(.tag_name | test("^runtime-\\d+$")) | .tag_name' | sort -V | tail -n 1)
           echo "LATEST_RELEASE_TAG=$LATEST_RELEASE_TAG" >> $GITHUB_ENV
           echo "::set-output name=LATEST_RELEASE_TAG::$LATEST_RELEASE_TAG"
           echo $LATEST_RELEASE_TAG
