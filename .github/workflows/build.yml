@@ -351,9 +351,9 @@ jobs:
           gh run download $LATEST_TARGET_BRANCH_BUILD -n runtimes --dir runtimes-target-branch
       - name: Check Runtimes size for target branch
         run: |
-          PREVIOUS_MOONBASE=$(du -k runtimes-target-branch/* | awk '/moonbase-runtime/ {print $1}')
-          PREVIOUS_MOONBEAM=$(du -k runtimes-target-branch/* | awk '/moonbeam-runtime/ {print $1}')
-          PREVIOUS_MOONRIVER=$(du -k runtimes-target-branch/* | awk '/moonriver-runtime/ {print $1}')
+          PREVIOUS_MOONBASE=$(du -k runtimes-target-branch/* | awk '/moonbase_runtime/ {print $1}')
+          PREVIOUS_MOONBEAM=$(du -k runtimes-target-branch/* | awk '/moonbeam_runtime/ {print $1}')
+          PREVIOUS_MOONRIVER=$(du -k runtimes-target-branch/* | awk '/moonriver_runtime/ {print $1}')
           echo "PREVIOUS_MOONBASE=$PREVIOUS_MOONBASE" >> $GITHUB_ENV
           echo "PREVIOUS_MOONBEAM=$PREVIOUS_MOONBEAM" >> $GITHUB_ENV
           echo "PREVIOUS_MOONRIVER=$PREVIOUS_MOONRIVER" >> $GITHUB_ENV
@@ -369,9 +369,9 @@ jobs:
           path: uncompressed-runtimes-current-branch
       - name: Check Runtimes size for current branch
         run: |
-          CURRENT_MOONBASE=$(du -k runtimes-current-branch/* | awk '/moonbase-runtime/ {print $1}')
-          CURRENT_MOONBEAM=$(du -k runtimes-current-branch/* | awk '/moonbeam-runtime/ {print $1}')
-          CURRENT_MOONRIVER=$(du -k runtimes-current-branch/* | awk '/moonriver-runtime/ {print $1}')
+          CURRENT_MOONBASE=$(du -k runtimes-current-branch/* | awk '/moonbase_runtime/ {print $1}')
+          CURRENT_MOONBEAM=$(du -k runtimes-current-branch/* | awk '/moonbeam_runtime/ {print $1}')
+          CURRENT_MOONRIVER=$(du -k runtimes-current-branch/* | awk '/moonriver_runtime/ {print $1}')
           echo "CURRENT_MOONBASE=$CURRENT_MOONBASE" >> $GITHUB_ENV
           echo "CURRENT_MOONBEAM=$CURRENT_MOONBEAM" >> $GITHUB_ENV
           echo "CURRENT_MOONRIVER=$CURRENT_MOONRIVER" >> $GITHUB_ENV
