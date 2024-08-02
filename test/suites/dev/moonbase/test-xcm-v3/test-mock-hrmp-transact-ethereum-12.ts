@@ -54,6 +54,8 @@ describeSuite({
         const amountToTransfer = transferredBalance / 10n;
 
         const GAS_LIMIT = 500_000;
+        // TODO: move this to the constant file
+        const STORAGE_READ_COST = 41_742_000n;
 
         // We will put a very high gas limit. However, the weight accounted
         // for the block should only
@@ -79,7 +81,7 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
-        const targetXcmWeight = 500_000n * 25000n + 25_000_000n + 800000000n;
+        const targetXcmWeight = 500_000n * 25000n + STORAGE_READ_COST + 800000000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {
@@ -115,9 +117,9 @@ describeSuite({
             .push_any({
               Transact: {
                 originKind: "SovereignAccount",
-                // 500_000 gas limit + db read
+                // 500_000 gas limit + db read (41_742_000)
                 requireWeightAtMost: {
-                  refTime: 12_525_000_000,
+                  refTime: 12_525_000_000n + STORAGE_READ_COST,
                   proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
                 },
                 call: {
