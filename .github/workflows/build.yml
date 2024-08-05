@@ -393,6 +393,26 @@ jobs:
           echo "LATEST_MOONBASE=$LATEST_MOONBASE" >> $GITHUB_ENV
           echo "LATEST_MOONBEAM=$LATEST_MOONBEAM" >> $GITHUB_ENV
           echo "LATEST_MOONRIVER=$LATEST_MOONRIVER" >> $GITHUB_ENV
+      - name: Create Twiggy diff reports
+        run: |
+          # Install Twiggy if not already installed
+          if ! command -v twiggy &> /dev/null; then
+            cargo install twiggy
+          fi
+
+          # Generate Twiggy diff reports in JSON format with top 100 entries
+          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonbase_runtime.wasm uncompressed-runtimes-current-branch/moonbase_runtime.wasm > twiggy_diff_moonbase.json
+          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonbeam_runtime.wasm uncompressed-runtimes-current-branch/moonbeam_runtime.wasm > twiggy_diff_moonbeam.json
+          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonriver_runtime.wasm uncompressed-runtimes-current-branch/moonriver_runtime.wasm > twiggy_diff_moonriver.json
+
+      - name: Upload Twiggy diff reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: twiggy-diff-reports
+          path: |
+            twiggy_diff_moonbase.json
+            twiggy_diff_moonbeam.json
+            twiggy_diff_moonriver.json
       - name: Compare Runtimes sizes
         run: |
           # Create or truncate the file
