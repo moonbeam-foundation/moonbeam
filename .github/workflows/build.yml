@@ -395,6 +395,9 @@ jobs:
           echo "LATEST_MOONRIVER=$LATEST_MOONRIVER" >> $GITHUB_ENV
       - name: Compare Runtimes sizes
         run: |
+          # Create or truncate the file
+          echo "" > runtime_size_report.md
+
           MOONBASE_DIFF=$((CURRENT_MOONBASE - PREVIOUS_MOONBASE))
           MOONBEAM_DIFF=$((CURRENT_MOONBEAM - PREVIOUS_MOONBEAM))
           MOONRIVER_DIFF=$((CURRENT_MOONRIVER - PREVIOUS_MOONRIVER))
@@ -419,17 +422,21 @@ jobs:
           MOONBEAM_STATUS=$(get_status_emoji $CURRENT_MOONBEAM $MOONBEAM_DIFF)
           MOONRIVER_STATUS=$(get_status_emoji $CURRENT_MOONRIVER $MOONRIVER_DIFF)
 
+          LATEST_MOONBASE_STATUS=$(get_status_emoji $CURRENT_MOONBASE $LATEST_MOONBASE_DIFF)
+          LATEST_MOONBEAM_STATUS=$(get_status_emoji $CURRENT_MOONBEAM $LATEST_MOONBEAM_DIFF)
+          LATEST_MOONRIVER_STATUS=$(get_status_emoji $CURRENT_MOONRIVER $LATEST_MOONRIVER_DIFF)
+
           MOONBASE_MSG="Moonbase runtime: ${CURRENT_MOONBASE} KB ($( [ $MOONBASE_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $MOONBASE_DIFF -gt 0 ] && echo "+" )${MOONBASE_DIFF} KB")) ${MOONBASE_STATUS}"
           MOONBEAM_MSG="Moonbeam runtime: ${CURRENT_MOONBEAM} KB ($( [ $MOONBEAM_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $MOONBEAM_DIFF -gt 0 ] && echo "+" )${MOONBEAM_DIFF} KB")) ${MOONBEAM_STATUS}"
           MOONRIVER_MSG="Moonriver runtime: ${CURRENT_MOONRIVER} KB ($( [ $MOONRIVER_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $MOONRIVER_DIFF -gt 0 ] && echo "+" )${MOONRIVER_DIFF} KB")) ${MOONRIVER_STATUS}"
 
-          LATEST_MOONBASE_MSG="Moonbase runtime: ${CURRENT_MOONBASE} KB ($( [ $LATEST_MOONBASE_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $LATEST_MOONBASE_DIFF -gt 0 ] && echo "+" )${LATEST_MOONBASE_DIFF} KB compared to latest release")) ${MOONBASE_STATUS}"
-          LATEST_MOONBEAM_MSG="Moonbeam runtime: ${CURRENT_MOONBEAM} KB ($( [ $LATEST_MOONBEAM_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $LATEST_MOONBEAM_DIFF -gt 0 ] && echo "+" )${LATEST_MOONBEAM_DIFF} KB compared to latest release")) ${MOONBEAM_STATUS}"
-          LATEST_MOONRIVER_MSG="Moonriver runtime: ${CURRENT_MOONRIVER} KB ($( [ $LATEST_MOONRIVER_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $LATEST_MOONRIVER_DIFF -gt 0 ] && echo "+" )${LATEST_MOONRIVER_DIFF} KB compared to latest release")) ${MOONRIVER_STATUS}"
+          LATEST_MOONBASE_MSG="Moonbase runtime: ${CURRENT_MOONBASE} KB ($( [ $LATEST_MOONBASE_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $LATEST_MOONBASE_DIFF -gt 0 ] && echo "+" )${LATEST_MOONBASE_DIFF} KB compared to latest release")) ${LATEST_MOONBASE_STATUS}"
+          LATEST_MOONBEAM_MSG="Moonbeam runtime: ${CURRENT_MOONBEAM} KB ($( [ $LATEST_MOONBEAM_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $LATEST_MOONBEAM_DIFF -gt 0 ] && echo "+" )${LATEST_MOONBEAM_DIFF} KB compared to latest release")) ${LATEST_MOONBEAM_STATUS}"
+          LATEST_MOONRIVER_MSG="Moonriver runtime: ${CURRENT_MOONRIVER} KB ($( [ $LATEST_MOONRIVER_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $LATEST_MOONRIVER_DIFF -gt 0 ] && echo "+" )${LATEST_MOONRIVER_DIFF} KB compared to latest release")) ${LATEST_MOONRIVER_STATUS}"
 
           echo "### WASM runtime size check:" > runtime_size_report.md
           echo "" >> runtime_size_report.md
-          echo "#### Compared to target branch ${MOONBASE_STATUS}" >> runtime_size_report.md
+          echo "#### Compared to target branch" >> runtime_size_report.md
           echo "" >> runtime_size_report.md
           echo "$MOONBASE_MSG" >> runtime_size_report.md
           echo "" >> runtime_size_report.md
@@ -437,13 +444,14 @@ jobs:
           echo "" >> runtime_size_report.md
           echo "$MOONRIVER_MSG" >> runtime_size_report.md
           echo "" >> runtime_size_report.md
-          echo "#### Compared to latest release (${LATEST_RELEASE_TAG}) ${MOONBASE_STATUS}" >> runtime_size_report.md
+          echo "#### Compared to latest release (${LATEST_RELEASE_TAG})" >> runtime_size_report.md
           echo "" >> runtime_size_report.md
           echo "$LATEST_MOONBASE_MSG" >> runtime_size_report.md
           echo "" >> runtime_size_report.md
           echo "$LATEST_MOONBEAM_MSG" >> runtime_size_report.md
           echo "" >> runtime_size_report.md
           echo "$LATEST_MOONRIVER_MSG" >> runtime_size_report.md
+          cat runtime_size_report.md
       - name: Find Comment
         uses: peter-evans/find-comment@v3
         id: fc
