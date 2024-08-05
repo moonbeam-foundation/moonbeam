@@ -632,7 +632,7 @@ where
 						disable_storage,
 						disable_memory,
 						disable_stack,
-						with_log,
+						with_log: _,
 					} => {
 						let mut proxy = moonbeam_client_evm_tracing::listeners::Raw::new(
 							disable_storage,
@@ -846,7 +846,7 @@ where
 				disable_storage,
 				disable_memory,
 				disable_stack,
-				with_log,
+				with_log: _,
 			} => {
 				let mut proxy = moonbeam_client_evm_tracing::listeners::Raw::new(
 					disable_storage,
