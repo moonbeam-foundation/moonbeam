@@ -25,7 +25,7 @@ describeSuite({
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
       random = generateKeyringPair();
-      transferredBalance = 10_000_000_000_000_000_000n;
+      transferredBalance = 100_000_000_000_000_000_000n;
 
       // We first fund parachain 2000 sovreign account
       await context.createBlock(
@@ -88,7 +88,7 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
-        const targetXcmWeight = 1_325_000_000n + STORAGE_READ_COST;
+        const targetXcmWeight = 5_000_000_000n + STORAGE_READ_COST;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {
@@ -114,7 +114,7 @@ describeSuite({
             ],
             weight_limit: {
               refTime: targetXcmWeight,
-              proofSize: 110000n,
+              proofSize: 120_000n,
             },
             descend_origin: sendingAddress,
           })
