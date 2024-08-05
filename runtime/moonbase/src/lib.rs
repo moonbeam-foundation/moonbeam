@@ -31,6 +31,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
+pub mod runtime_params;
 
 mod migrations;
 mod precompiles;
@@ -58,6 +59,7 @@ use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime,
 	dispatch::{DispatchClass, GetDispatchInfo, PostDispatchInfo},
+	dynamic_params::{dynamic_pallet_params, dynamic_params},
 	ensure,
 	pallet_prelude::DispatchResult,
 	parameter_types,
@@ -125,6 +127,8 @@ use xcm::{
 use xcm_config::AssetType;
 use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
 use xcm_primitives::UnitsToWeightRatio;
+
+use runtime_params::*;
 
 use smallvec::smallvec;
 use sp_runtime::serde::{Deserialize, Serialize};
@@ -1380,6 +1384,13 @@ impl pallet_precompile_benchmarks::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_precompile_benchmarks::WeightInfo<Runtime>;
 }
 
+impl pallet_parameters::Config for Runtime {
+    type AdminOrigin = EnsureRoot<AccountId>;
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeParameters = RuntimeParameters;
+    type WeightInfo = ();
+}
+
 construct_runtime! {
 	pub enum Runtime
 	{
@@ -1442,6 +1453,7 @@ construct_runtime! {
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 54,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 55,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 56,
+		Parameters: pallet_parameters = 57,
 	}
 }
 
@@ -1517,6 +1529,7 @@ mod benches {
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
+		[pallet_parameters, Parameters]
 	);
 }
 

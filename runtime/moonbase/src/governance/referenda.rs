@@ -45,7 +45,6 @@ impl pallet_conviction_voting::Config for Runtime {
 
 parameter_types! {
 	pub const AlarmInterval: BlockNumber = 1;
-	pub const SubmissionDeposit: Balance = 10 * UNIT * SUPPLY_FACTOR;
 	pub const UndecidingTimeout: BlockNumber = 21 * DAYS;
 }
 
@@ -92,7 +91,7 @@ impl pallet_referenda::Config for Runtime {
 	type Slash = Treasury;
 	type Votes = pallet_conviction_voting::VotesOf<Runtime>;
 	type Tally = pallet_conviction_voting::TallyOf<Runtime>;
-	type SubmissionDeposit = SubmissionDeposit;
+	type SubmissionDeposit = runtime_params::dynamic_params::pallet_referenda::SubmissionDeposit;
 	type MaxQueued = ConstU32<100>;
 	type UndecidingTimeout = UndecidingTimeout;
 	type AlarmInterval = AlarmInterval;
