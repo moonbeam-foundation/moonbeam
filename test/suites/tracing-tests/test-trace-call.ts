@@ -53,7 +53,7 @@ describeSuite({
         const traceTx = await customDevRpcRequest("debug_traceCall", [callParams, "latest"]);
         const logs: any[] = [];
         for (const log of traceTx.structLogs) {
-            logs.push(log);
+          logs.push(log);
         }
         expect(logs).to.be.lengthOf(2);
         expect(logs[0].depth).to.be.equal(2);
