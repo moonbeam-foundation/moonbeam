@@ -401,18 +401,16 @@ jobs:
           fi
 
           # Generate Twiggy diff reports in JSON format with top 100 entries
-          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonbase_runtime.wasm uncompressed-runtimes-current-branch/moonbase_runtime.wasm > twiggy_diff_moonbase.json
-          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonbeam_runtime.wasm uncompressed-runtimes-current-branch/moonbeam_runtime.wasm > twiggy_diff_moonbeam.json
-          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonriver_runtime.wasm uncompressed-runtimes-current-branch/moonriver_runtime.wasm > twiggy_diff_moonriver.json
+          mkdir -p twiggy-diff-reports
+          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonbase_runtime.wasm uncompressed-runtimes-current-branch/moonbase_runtime.wasm > twiggy-diff-reports/twiggy_diff_moonbase.json
+          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonbeam_runtime.wasm uncompressed-runtimes-current-branch/moonbeam_runtime.wasm > twiggy-diff-reports/twiggy_diff_moonbeam.json
+          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonriver_runtime.wasm uncompressed-runtimes-current-branch/moonriver_runtime.wasm > twiggy-diff-reports/twiggy_diff_moonriver.json
 
       - name: Upload Twiggy diff reports
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: twiggy-diff-reports
-          path: |
-            twiggy_diff_moonbase.json
-            twiggy_diff_moonbeam.json
-            twiggy_diff_moonriver.json
+          path: twiggy-diff-reports
       - name: Compare Runtimes sizes
         run: |
           # Create or truncate the file
