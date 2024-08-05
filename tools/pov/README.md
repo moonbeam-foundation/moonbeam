@@ -16,7 +16,7 @@ This serves as tool for answering the questions in the following category:
 - Why does the PoV size increase/decrease?
 - How does an alternate implementation compare on the same metrics?
 
-_Note:_ The numbers obtained via the script have a direct correlation with the specific benchmark that was crafted for this pupose and the provided input.
+_Note:_ The numbers obtained via the script have a direct correlation with the specific benchmark that was crafted for this purpose and the provided input.
 
 ## Usage
 
