@@ -22,7 +22,7 @@ type NetworkBlockEvents = {
 let skip = false;
 
 describeSuite({
-  id: "S13",
+  id: "S14",
   title:
     `Foreign XCM Failures in past ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours` +
     ` should not be serious`,

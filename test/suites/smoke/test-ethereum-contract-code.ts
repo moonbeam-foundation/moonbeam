@@ -7,7 +7,7 @@ import chalk from "chalk";
 import { processAllStorage } from "../../helpers/storageQueries.js";
 
 describeSuite({
-  id: "S08",
+  id: "S09",
   title: `Ethereum contract bytecode should not be large`,
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

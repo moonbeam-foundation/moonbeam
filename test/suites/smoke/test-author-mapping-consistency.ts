@@ -6,7 +6,7 @@ import { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
 
 describeSuite({
-  id: "S02",
+  id: "S03",
   title: `Verifying deposit for associated nimbus ids`,
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

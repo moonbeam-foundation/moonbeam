@@ -30,7 +30,7 @@ interface BlockLimits {
 }
 
 describeSuite({
-  id: "S05",
+  id: "S06",
   foundationMethods: "read_only",
   title:
     "Verifying weights of blocks in the past " +

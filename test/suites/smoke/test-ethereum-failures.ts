@@ -26,7 +26,7 @@ type BlockFilteredRecord = {
 };
 
 describeSuite({
-  id: "S11",
+  id: "S12",
   title: `ETH Failures in past ${hours} hours should be reported correctly`,
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

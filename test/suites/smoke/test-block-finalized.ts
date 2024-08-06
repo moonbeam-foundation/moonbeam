@@ -17,7 +17,7 @@ const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : T
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 
 describeSuite({
-  id: "S04",
+  id: "S05",
   title: "Parachain blocks should be finalized",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

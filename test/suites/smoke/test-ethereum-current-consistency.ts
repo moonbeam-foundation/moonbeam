@@ -31,7 +31,7 @@ function* range(from: number, to: number, step = 1) {
 }
 
 describeSuite({
-  id: "S09",
+  id: "S10",
   title: "Ethereum CurrentBlock and CurrentReceipts should never be 0x00",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
