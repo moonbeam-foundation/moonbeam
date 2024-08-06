@@ -26,7 +26,13 @@ npm install
 # Get runtimes metadata
 for CHAIN in ${CHAINS[@]}; do
   echo "Starting $CHAIN node"
-  ../build/moonbeam --no-hardware-benchmarks --no-telemetry --no-prometheus --alice --tmp --chain=$CHAIN-dev --wasm-execution=interpreted-i-know-what-i-do --rpc-port=9933 &> /tmp/node-$CHAIN-start.log &
+  ../build/moonbeam \
+    --no-hardware-benchmarks \
+    --unsafe-force-node-key-generation \
+    --no-telemetry --no-prometheus --alice \
+    --tmp --chain=$CHAIN-dev \
+    --wasm-execution=interpreted-i-know-what-i-do \
+    --rpc-port=9933 &> /tmp/node-$CHAIN-start.log &
   PID=$!
   echo "Waiting node..."
   ( tail -f -n0 /tmp/node-$CHAIN-start.log & ) | grep -q 'Running JSON-RPC server'
