@@ -380,7 +380,6 @@ jobs:
         run: |
           LATEST_RELEASE_TAG=$(gh api repos/moonbeam-foundation/moonbeam/releases --paginate --jq '.[] | select(.tag_name | test("^runtime-\\d+$")) | .tag_name' | sort -V | tail -n 1)
           echo "LATEST_RELEASE_TAG=$LATEST_RELEASE_TAG" >> $GITHUB_ENV
-          echo "::set-output name=LATEST_RELEASE_TAG::$LATEST_RELEASE_TAG"
           echo $LATEST_RELEASE_TAG
       - name: Download latest release runtimes
         run: |
