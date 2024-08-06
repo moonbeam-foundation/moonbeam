@@ -246,6 +246,7 @@ import type {
   PalletSchedulerCall,
   PalletSchedulerError,
   PalletSchedulerEvent,
+  PalletSchedulerRetryConfig,
   PalletSchedulerScheduled,
   PalletSudoCall,
   PalletSudoError,
@@ -287,18 +288,14 @@ import type {
   PolkadotCorePrimitivesInboundHrmpMessage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
   PolkadotParachainPrimitivesPrimitivesHrmpChannelId,
-  PolkadotPrimitivesV6AbridgedHostConfiguration,
-  PolkadotPrimitivesV6AbridgedHrmpChannel,
-  PolkadotPrimitivesV6AsyncBackingAsyncBackingParams,
-  PolkadotPrimitivesV6PersistedValidationData,
-  PolkadotPrimitivesV6UpgradeGoAhead,
-  PolkadotPrimitivesV6UpgradeRestriction,
+  PolkadotPrimitivesV7AbridgedHostConfiguration,
+  PolkadotPrimitivesV7AbridgedHrmpChannel,
+  PolkadotPrimitivesV7AsyncBackingAsyncBackingParams,
+  PolkadotPrimitivesV7PersistedValidationData,
+  PolkadotPrimitivesV7UpgradeGoAhead,
+  PolkadotPrimitivesV7UpgradeRestriction,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
   SpArithmeticArithmeticError,
-  SpCoreEcdsaSignature,
-  SpCoreEd25519Signature,
-  SpCoreSr25519Public,
-  SpCoreSr25519Signature,
   SpCoreVoid,
   SpRuntimeBlakeTwo256,
   SpRuntimeDigest,
@@ -313,6 +310,7 @@ import type {
   SpVersionRuntimeVersion,
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
+  StagingXcmExecutorAssetTransferTransferType,
   StagingXcmV3MultiLocation,
   StagingXcmV4Asset,
   StagingXcmV4AssetAssetFilter,
@@ -629,6 +627,7 @@ declare module "@polkadot/types/types/registry" {
     PalletSchedulerCall: PalletSchedulerCall;
     PalletSchedulerError: PalletSchedulerError;
     PalletSchedulerEvent: PalletSchedulerEvent;
+    PalletSchedulerRetryConfig: PalletSchedulerRetryConfig;
     PalletSchedulerScheduled: PalletSchedulerScheduled;
     PalletSudoCall: PalletSudoCall;
     PalletSudoError: PalletSudoError;
@@ -670,18 +669,14 @@ declare module "@polkadot/types/types/registry" {
     PolkadotCorePrimitivesInboundHrmpMessage: PolkadotCorePrimitivesInboundHrmpMessage;
     PolkadotCorePrimitivesOutboundHrmpMessage: PolkadotCorePrimitivesOutboundHrmpMessage;
     PolkadotParachainPrimitivesPrimitivesHrmpChannelId: PolkadotParachainPrimitivesPrimitivesHrmpChannelId;
-    PolkadotPrimitivesV6AbridgedHostConfiguration: PolkadotPrimitivesV6AbridgedHostConfiguration;
-    PolkadotPrimitivesV6AbridgedHrmpChannel: PolkadotPrimitivesV6AbridgedHrmpChannel;
-    PolkadotPrimitivesV6AsyncBackingAsyncBackingParams: PolkadotPrimitivesV6AsyncBackingAsyncBackingParams;
-    PolkadotPrimitivesV6PersistedValidationData: PolkadotPrimitivesV6PersistedValidationData;
-    PolkadotPrimitivesV6UpgradeGoAhead: PolkadotPrimitivesV6UpgradeGoAhead;
-    PolkadotPrimitivesV6UpgradeRestriction: PolkadotPrimitivesV6UpgradeRestriction;
+    PolkadotPrimitivesV7AbridgedHostConfiguration: PolkadotPrimitivesV7AbridgedHostConfiguration;
+    PolkadotPrimitivesV7AbridgedHrmpChannel: PolkadotPrimitivesV7AbridgedHrmpChannel;
+    PolkadotPrimitivesV7AsyncBackingAsyncBackingParams: PolkadotPrimitivesV7AsyncBackingAsyncBackingParams;
+    PolkadotPrimitivesV7PersistedValidationData: PolkadotPrimitivesV7PersistedValidationData;
+    PolkadotPrimitivesV7UpgradeGoAhead: PolkadotPrimitivesV7UpgradeGoAhead;
+    PolkadotPrimitivesV7UpgradeRestriction: PolkadotPrimitivesV7UpgradeRestriction;
     SessionKeysPrimitivesVrfVrfCryptoPublic: SessionKeysPrimitivesVrfVrfCryptoPublic;
     SpArithmeticArithmeticError: SpArithmeticArithmeticError;
-    SpCoreEcdsaSignature: SpCoreEcdsaSignature;
-    SpCoreEd25519Signature: SpCoreEd25519Signature;
-    SpCoreSr25519Public: SpCoreSr25519Public;
-    SpCoreSr25519Signature: SpCoreSr25519Signature;
     SpCoreVoid: SpCoreVoid;
     SpRuntimeBlakeTwo256: SpRuntimeBlakeTwo256;
     SpRuntimeDigest: SpRuntimeDigest;
@@ -696,6 +691,7 @@ declare module "@polkadot/types/types/registry" {
     SpVersionRuntimeVersion: SpVersionRuntimeVersion;
     SpWeightsRuntimeDbWeight: SpWeightsRuntimeDbWeight;
     SpWeightsWeightV2Weight: SpWeightsWeightV2Weight;
+    StagingXcmExecutorAssetTransferTransferType: StagingXcmExecutorAssetTransferTransferType;
     StagingXcmV3MultiLocation: StagingXcmV3MultiLocation;
     StagingXcmV4Asset: StagingXcmV4Asset;
     StagingXcmV4AssetAssetFilter: StagingXcmV4AssetAssetFilter;
