@@ -11,8 +11,10 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+use std::path::PathBuf;
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+use primitive_types::H256;
 use std::str::FromStr;
 
 pub mod account_key;
@@ -109,4 +111,11 @@ pub struct RpcConfig {
 	pub tracing_raw_max_memory_usage: usize,
 	pub frontier_backend_config: FrontierBackendConfig,
 	pub no_prometheus_prefix: bool,
+}
+
+#[derive(Clone)]
+pub struct LazyLoadingConfig {
+	pub state_rpc: String,
+	pub from_block: H256,
+	pub state_overrides_path: Option<PathBuf>,
 }
