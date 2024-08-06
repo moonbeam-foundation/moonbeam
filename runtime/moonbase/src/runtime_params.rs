@@ -1,6 +1,7 @@
 use frame_support::dynamic_params::{dynamic_pallet_params, dynamic_params};
 use crate::{Runtime, Balance};
 use crate::currency::{UNIT, SUPPLY_FACTOR};
+use account::AccountId20;
 
 #[dynamic_params(RuntimeParameters, pallet_parameters::Parameters::<Runtime>)]
 pub mod dynamic_params {
@@ -12,6 +13,15 @@ pub mod dynamic_params {
 
 		#[codec(index = 0)]
 		pub static SubmissionDeposit: Balance = 10 * UNIT * SUPPLY_FACTOR;
+	}
+
+	#[dynamic_pallet_params]
+	#[codec(index = 1)]
+	pub mod xcm_executor {
+
+		#[codec(index = 0)]
+		/// Xcm fees will go to the treasury account
+		pub static XcmFeesAccount: AccountId20 = crate::Treasury::account_id();
 	}
 
 }
