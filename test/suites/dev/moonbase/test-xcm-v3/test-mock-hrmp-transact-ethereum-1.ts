@@ -89,7 +89,7 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
-        const targetXcmWeight = 1_325_000_000n + STORAGE_READ_COST;
+        const targetXcmWeight = 5_000_000_000n + STORAGE_READ_COST;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {

@@ -96,7 +96,7 @@ describeSuite({
     let balancesPalletIndex: number;
     const weightLimit = {
       refTime: 40_000_000_000n,
-      proofSize: 110_000n,
+      proofSize: 150_000n,
     };
     let weightToNativeFee: any;
 

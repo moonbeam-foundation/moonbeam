@@ -117,7 +117,7 @@ describeSuite({
               },
             ],
             weight_limit: {
-              refTime: 4000000000,
+              refTime: 5_000_000_000,
               proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 3,
             } as any,
             descend_origin: sendingAddress,

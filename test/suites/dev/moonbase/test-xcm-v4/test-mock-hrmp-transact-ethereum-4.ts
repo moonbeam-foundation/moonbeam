@@ -86,7 +86,7 @@ describeSuite({
         let feeAmount = 0n;
 
         // Gas limit + 2 db reads
-        const targetXcmWeight = 1_325_000_000n + 100_000_000n;
+        const targetXcmWeight = 5_000_000_000n + 100_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {
@@ -113,7 +113,7 @@ describeSuite({
             ],
             weight_limit: {
               refTime: targetXcmWeight,
-              proofSize: 110000n,
+              proofSize: 150000n,
             },
             descend_origin: sendingAddress,
           })

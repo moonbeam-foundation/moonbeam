@@ -37,7 +37,7 @@ describeSuite({
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       random = generateKeyringPair();
-      transferredBalance = 10_000_000_000_000_000_000n;
+      transferredBalance = 100_000_000_000_000_000_000n;
 
       await expectOk(
         context.createBlock(
@@ -177,8 +177,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 110000n,
+            refTime: 9_000_000_000n,
+            proofSize: 150_000n,
           },
           descend_origin: sendingAddress,
         })
@@ -292,8 +292,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 110000n,
+            refTime: 9_000_000_000n,
+            proofSize: 150_000n,
           },
           descend_origin: sendingAddress,
         })
