@@ -59,7 +59,6 @@ use fp_rpc::TransactionStatus;
 use frame_support::{
 	construct_runtime,
 	dispatch::{DispatchClass, GetDispatchInfo, PostDispatchInfo},
-	dynamic_params::{dynamic_pallet_params, dynamic_params},
 	ensure,
 	pallet_prelude::DispatchResult,
 	parameter_types,

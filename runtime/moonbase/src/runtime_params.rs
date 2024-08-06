@@ -1,5 +1,5 @@
 use frame_support::dynamic_params::{dynamic_pallet_params, dynamic_params};
-use crate::{Treasury, Runtime, Balance};
+use crate::{Runtime, Balance};
 use crate::currency::{UNIT, SUPPLY_FACTOR};
 
 #[dynamic_params(RuntimeParameters, pallet_parameters::Parameters::<Runtime>)]
