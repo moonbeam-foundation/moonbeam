@@ -20,8 +20,8 @@ pub mod dynamic_params {
 impl Default for RuntimeParameters {
     fn default() -> Self {
         RuntimeParameters::PalletReferenda(
-			runtime_params::dynamic_params::pallet_referenda::Parameters::SubmissionDeposit(
-				runtime_params::dynamic_params::pallet_referenda::SubmissionDeposit,
+			dynamic_params::pallet_referenda::Parameters::SubmissionDeposit(
+				dynamic_params::pallet_referenda::SubmissionDeposit,
 				Some(10 * UNIT * SUPPLY_FACTOR),
 			)
 		)

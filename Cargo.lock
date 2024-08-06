@@ -6373,6 +6373,7 @@ dependencies = [
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
+ "pallet-parameters",
  "pallet-precompile-benchmarks",
  "pallet-preimage",
  "pallet-proxy",
