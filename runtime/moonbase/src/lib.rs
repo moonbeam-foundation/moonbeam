@@ -30,8 +30,8 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub mod asset_config;
 pub mod governance;
-pub mod xcm_config;
 pub mod runtime_params;
+pub mod xcm_config;
 
 mod migrations;
 mod precompiles;
@@ -1383,10 +1383,10 @@ impl pallet_precompile_benchmarks::Config for Runtime {
 }
 
 impl pallet_parameters::Config for Runtime {
-    type AdminOrigin = EnsureRoot<AccountId>;
-    type RuntimeEvent = RuntimeEvent;
-    type RuntimeParameters = RuntimeParameters;
-    type WeightInfo = moonbase_weights::pallet_parameters::WeightInfo<Runtime>;
+	type AdminOrigin = EnsureRoot<AccountId>;
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeParameters = RuntimeParameters;
+	type WeightInfo = moonbase_weights::pallet_parameters::WeightInfo<Runtime>;
 }
 
 construct_runtime! {
