@@ -21,7 +21,7 @@ use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees,
 	EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue,
 	ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights,
-	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, XcmpQueue,
 };
 use crate::{runtime_params, OpenTechCommitteeInstance};
 use moonbeam_runtime_common::weights as moonbase_weights;
