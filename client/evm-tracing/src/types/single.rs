@@ -30,7 +30,10 @@ use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 #[serde(rename_all = "camelCase", untagged)]
 pub enum Call {
 	Blockscout(crate::formatters::blockscout::BlockscoutCall),
-	CallTracer(crate::formatters::call_tracer::CallTracerCall),
+	CallTracer(
+		crate::formatters::call_tracer::CallTracerCall,
+		TraceCallConfig,
+	),
 }
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]
@@ -40,7 +43,6 @@ pub enum TraceType {
 		disable_storage: bool,
 		disable_memory: bool,
 		disable_stack: bool,
-		with_log: bool,
 	},
 	/// List of calls and subcalls formatted with an input tracer (i.e. callTracer or Blockscout).
 	CallList,
@@ -100,4 +102,10 @@ pub struct RawStepLog {
 
 	#[serde(skip_serializing_if = "Option::is_none")]
 	pub storage: Option<BTreeMap<H256, H256>>,
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TraceCallConfig {
+	pub with_log: bool,
 }
