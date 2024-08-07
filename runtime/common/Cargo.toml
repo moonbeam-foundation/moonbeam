@@ -43,6 +43,7 @@ pallet-identity = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-preimage = { workspace = true }
+pallet-parameters = { workspace = true }
 pallet-proxy = { workspace = true }
 pallet-referenda = { workspace = true }
 pallet-scheduler = { workspace = true }
@@ -99,6 +100,7 @@ std = [
 	"pallet-evm/std",
 	"pallet-migrations/std",
 	"pallet-parachain-staking/std",
+	"pallet-parameters/std",
 	"pallet-randomness/std",
 	"pallet-referenda/std",
 	"pallet-scheduler/std",
@@ -136,6 +138,7 @@ runtime-benchmarks = [
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
+	"pallet-parameters/runtime-benchmarks",
 	"pallet-proxy/runtime-benchmarks",
 	"pallet-randomness/runtime-benchmarks",
 	"pallet-referenda/runtime-benchmarks",
