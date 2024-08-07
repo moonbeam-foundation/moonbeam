@@ -36,6 +36,7 @@ pub mod pallet_multisig;
 pub mod pallet_parachain_staking;
 pub mod pallet_precompile_benchmarks;
 pub mod pallet_preimage;
+pub mod pallet_parameters;
 pub mod pallet_proxy;
 pub mod pallet_randomness;
 pub mod pallet_referenda;

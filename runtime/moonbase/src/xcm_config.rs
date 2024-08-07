@@ -24,7 +24,7 @@ use super::{
 	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 use crate::{runtime_params, OpenTechCommitteeInstance};
-use moonbeam_runtime_common::weights as moonbeam_weights;
+use moonbeam_runtime_common::weights as moonbase_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
 	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
