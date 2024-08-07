@@ -135,7 +135,7 @@ time by including only the native runtimes you need.
 For that you have to carefully check which runtimes you need, both on the moonbeam side and on the
 polkadot side.
 
-Here is the list of cargo aliases allowing you to compile only some native rutimes:
+Here is the list of cargo aliases allowing you to compile only some native runtimes:
 
 | command                  | native runtimes                       |
 | ------------------------ | ------------------------------------- |

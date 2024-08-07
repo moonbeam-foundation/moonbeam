@@ -17,7 +17,7 @@
 //! Councils for Gov1 and Gov2
 
 use super::*;
-use moonbeam_runtime_common::weights as moonbeam_weights;
+use moonbeam_runtime_common::weights as moonbase_weights;
 
 pub type TreasuryCouncilInstance = pallet_collective::Instance3;
 pub type OpenTechCommitteeInstance = pallet_collective::Instance4;
@@ -39,7 +39,7 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	/// The maximum number of treasury council members.
 	type MaxMembers = ConstU32<9>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = moonbeam_weights::pallet_collective::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_collective::WeightInfo<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	type MaxProposalWeight = MaxProposalWeight;
 }
@@ -56,7 +56,7 @@ impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
 	/// The maximum number of technical committee members.
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = moonbeam_weights::pallet_collective::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_collective::WeightInfo<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	type MaxProposalWeight = MaxProposalWeight;
 }

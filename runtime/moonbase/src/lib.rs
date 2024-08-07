@@ -71,9 +71,8 @@ use frame_support::{
 		OnUnbalanced,
 	},
 	weights::{
-		constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
-		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
-		WeightToFeePolynomial,
+		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
+		WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
 };
@@ -83,7 +82,7 @@ use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::{
 	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
-	weights as moonbeam_weights,
+	weights as moonbase_weights,
 };
 use nimbus_primitives::CanAuthor;
 use pallet_ethereum::Call::transact;
@@ -285,7 +284,7 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type DbWeight = RocksDbWeight;
+	type DbWeight = moonbase_weights::db::rocksdb::constants::RocksDbWeight;
 	type BaseCallFilter = MaintenanceMode;
 	type SystemWeightInfo = ();
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
@@ -303,7 +302,7 @@ impl pallet_utility::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type PalletsOrigin = OriginCaller;
-	type WeightInfo = moonbeam_weights::pallet_utility::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_utility::WeightInfo<Runtime>;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -311,7 +310,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = ConstU64<3000>;
-	type WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
 #[cfg(not(feature = "runtime-benchmarks"))]
@@ -339,7 +338,7 @@ impl pallet_balances::Config for Runtime {
 	type MaxFreezes = ConstU32<0>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
-	type WeightInfo = moonbeam_weights::pallet_balances::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_balances::WeightInfo<Runtime>;
 }
 
 pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
@@ -415,7 +414,7 @@ impl pallet_transaction_payment::Config for Runtime {
 impl pallet_sudo::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = moonbeam_weights::pallet_sudo::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_sudo::WeightInfo<Runtime>;
 }
 
 impl pallet_evm_chain_id::Config for Runtime {}
@@ -547,7 +546,7 @@ impl pallet_evm::Config for Runtime {
 	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = RelayTimestamp;
-	type WeightInfo = moonbeam_weights::pallet_evm::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_evm::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -563,7 +562,7 @@ impl pallet_scheduler::Config for Runtime {
 	type MaximumWeight = MaximumSchedulerWeight;
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = ConstU32<50>;
-	type WeightInfo = moonbeam_weights::pallet_scheduler::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_scheduler::WeightInfo<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type Preimages = Preimage;
 }
@@ -576,7 +575,7 @@ parameter_types! {
 }
 
 impl pallet_preimage::Config for Runtime {
-	type WeightInfo = moonbeam_weights::pallet_preimage::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_preimage::WeightInfo<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
@@ -620,7 +619,7 @@ impl pallet_treasury::Config for Runtime {
 	type Burn = ();
 	type BurnDestination = ();
 	type MaxApprovals = ConstU32<100>;
-	type WeightInfo = moonbeam_weights::pallet_treasury::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
 	#[cfg(not(feature = "runtime-benchmarks"))]
@@ -673,7 +672,7 @@ impl pallet_identity::Config for Runtime {
 	type PendingUsernameExpiration = PendingUsernameExpiration;
 	type MaxSuffixLength = MaxSuffixLength;
 	type MaxUsernameLength = MaxUsernameLength;
-	type WeightInfo = moonbeam_weights::pallet_identity::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_identity::WeightInfo<Runtime>;
 }
 
 pub struct TransactionConverter;
@@ -873,7 +872,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type OnInactiveCollator = OnInactiveCollator;
 	type OnNewRound = OnNewRound;
 	type SlotProvider = RelayChainSlotProvider;
-	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
 	type SlotDuration = ConstU64<6_000>;
 	type BlockTime = ConstU64<6_000>;
@@ -884,7 +883,7 @@ impl pallet_author_inherent::Config for Runtime {
 	type AccountLookup = MoonbeamOrbiters;
 	type CanAuthor = AuthorFilter;
 	type AuthorId = AccountId;
-	type WeightInfo = moonbeam_weights::pallet_author_inherent::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_author_inherent::WeightInfo<Runtime>;
 }
 
 #[cfg(test)]
@@ -905,7 +904,7 @@ impl pallet_author_slot_filter::Config for Runtime {
 	#[cfg(test)]
 	type RandomnessSource = mock::MockRandomness;
 	type PotentialAuthors = ParachainStaking;
-	type WeightInfo = moonbeam_weights::pallet_author_slot_filter::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_author_slot_filter::WeightInfo<Runtime>;
 }
 
 impl pallet_async_backing::Config for Runtime {
@@ -936,7 +935,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
 	type VestingBlockNumber = relay_chain::BlockNumber;
 	type VestingBlockProvider = RelaychainDataProvider<Self>;
-	type WeightInfo = moonbeam_weights::pallet_crowdloan_rewards::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_crowdloan_rewards::WeightInfo<Runtime>;
 }
 
 // This is a simple session key manager. It should probably either work with, or be replaced
@@ -946,7 +945,7 @@ impl pallet_author_mapping::Config for Runtime {
 	type DepositCurrency = Balances;
 	type DepositAmount = ConstU128<{ 100 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	type Keys = session_keys_primitives::VrfId;
-	type WeightInfo = moonbeam_weights::pallet_author_mapping::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_author_mapping::WeightInfo<Runtime>;
 }
 
 /// The type used to represent the kinds of proxying allowed.
@@ -1142,7 +1141,7 @@ impl pallet_proxy::Config for Runtime {
 	// Additional storage item size of 21 bytes (20 bytes AccountId + 1 byte sizeof(ProxyType)).
 	type ProxyDepositFactor = ConstU128<{ currency::deposit(0, 21) }>;
 	type MaxProxies = ConstU32<32>;
-	type WeightInfo = moonbeam_weights::pallet_proxy::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_proxy::WeightInfo<Runtime>;
 	type MaxPending = ConstU32<32>;
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = ConstU128<{ currency::deposit(1, 8) }>;
@@ -1165,7 +1164,7 @@ impl pallet_migrations::Config for Runtime {
 }
 
 impl pallet_moonbeam_lazy_migrations::Config for Runtime {
-	type WeightInfo = moonbeam_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
 }
 
 /// Maintenance mode Call filter
@@ -1284,7 +1283,7 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type RotatePeriod = ConstU32<3>;
 	/// Round index type.
 	type RoundIndex = pallet_parachain_staking::RoundIndex;
-	type WeightInfo = moonbeam_weights::pallet_moonbeam_orbiters::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_moonbeam_orbiters::WeightInfo<Runtime>;
 }
 
 /// Only callable after `set_validation_data` is called which forms this proof the same way
@@ -1348,7 +1347,7 @@ impl pallet_randomness::Config for Runtime {
 	type MaxBlockDelay = ConstU32<2_000>;
 	type BlockExpirationDelay = ConstU32<10_000>;
 	type EpochExpirationDelay = ConstU64<10_000>;
-	type WeightInfo = moonbeam_weights::pallet_randomness::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_randomness::WeightInfo<Runtime>;
 }
 
 impl pallet_root_testing::Config for Runtime {
@@ -1370,17 +1369,17 @@ impl pallet_multisig::Config for Runtime {
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
-	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_multisig::WeightInfo<Runtime>;
 }
 
 impl pallet_relay_storage_roots::Config for Runtime {
 	type MaxStorageRoots = ConstU32<30>;
 	type RelaychainStateProvider = cumulus_pallet_parachain_system::RelaychainDataProvider<Self>;
-	type WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
 }
 
 impl pallet_precompile_benchmarks::Config for Runtime {
-	type WeightInfo = moonbeam_weights::pallet_precompile_benchmarks::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_precompile_benchmarks::WeightInfo<Runtime>;
 }
 
 impl pallet_parameters::Config for Runtime {

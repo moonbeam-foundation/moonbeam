@@ -123,7 +123,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                refTime: 50_025_000_000,
+                refTime: 50_041_742_000,
                 proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
               },
               call: {
@@ -223,7 +223,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                refTime: 160_025_000_000,
+                refTime: 160_041_742_000,
                 proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
               },
               call: {

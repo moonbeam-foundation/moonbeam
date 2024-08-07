@@ -91,9 +91,9 @@ describeSuite({
           .viem("public")
           .getTransactionReceipt({ hash: batchSomeUntilFailureResult as `0x${string}` });
 
-        expect(batchAllReceipt["gasUsed"]).to.equal(44932n);
-        expect(batchSomeReceipt["gasUsed"]).to.equal(44932n);
-        expect(batchSomeUntilFailureReceipt["gasUsed"]).to.equal(44932n);
+        expect(batchAllReceipt["gasUsed"]).to.equal(45601n);
+        expect(batchSomeReceipt["gasUsed"]).to.equal(45601n);
+        expect(batchSomeUntilFailureReceipt["gasUsed"]).to.equal(45601n);
       },
     });
 
