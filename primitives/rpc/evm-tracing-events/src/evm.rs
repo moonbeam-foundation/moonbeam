@@ -136,6 +136,11 @@ pub enum EvmEvent {
 		is_static: bool,
 		context: super::Context,
 	},
+	Log {
+		address: H160,
+		topics: Vec<H256>,
+		data: Vec<u8>,
+	},
 }
 
 #[cfg(feature = "evm-tracing")]
@@ -252,6 +257,15 @@ impl<'a> From<evm::tracing::Event<'a>> for EvmEvent {
 				is_static,
 				context: context.clone().into(),
 			},
+			evm::tracing::Event::Log {
+				address,
+				topics,
+				data,
+			} => Self::Log {
+				address,
+				topics: topics.to_vec(),
+				data: data.to_vec(),
+			}
 		}
 	}
 }
