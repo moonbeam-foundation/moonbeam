@@ -151,6 +151,9 @@ pub struct RunCmd {
 	#[clap(long, value_name = "PATH", value_parser)]
 	pub fork_state_overrides: Option<PathBuf>,
 
+	#[clap(long, value_name = "PATH", value_parser)]
+	pub runtime_override: Option<PathBuf>,
+
 	/// When blocks should be sealed in the dev service.
 	///
 	/// Options are "instant", "manual", or timer interval in milliseconds

@@ -87,3 +87,66 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 	))
 	.build()
 }
+
+pub fn lazy_loading_spec(para_id: ParaId) -> ChainSpec {
+	ChainSpec::builder(
+		WASM_BINARY.expect("WASM binary was not build, please build it!"),
+		Default::default(),
+	)
+	.with_name("Lazy Loading")
+	.with_id("lazy_loading")
+	.with_chain_type(ChainType::Development)
+	.with_properties(
+		serde_json::from_str(
+			"{\"tokenDecimals\": 18, \"tokenSymbol\": \"GLMR\", \"SS58Prefix\": 1284}",
+		)
+		.expect("Provided valid json map"),
+	)
+	.with_genesis_config(testnet_genesis(
+		// Root
+		AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
+		// Treasury Council members: Baltathar, Charleth and Dorothy
+		vec![
+			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+		],
+		// Open Tech Committee members: Alith and Baltathar
+		vec![
+			AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
+			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+		],
+		// Collators
+		vec![
+			(
+				AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
+				get_from_seed::<NimbusId>("Alice"),
+				1_000 * UNIT,
+			),
+			(
+				AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")),
+				get_from_seed::<NimbusId>("Faith"),
+				1_000 * UNIT,
+			),
+		],
+		// Delegations
+		vec![],
+		// Endowed accounts (each minted 1 << 80 balance)
+		vec![
+			// Alith, Baltathar, Charleth, Dorothy and Faith
+			AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
+			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+			AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")),
+			// Additional accounts
+			AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")),
+			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+		],
+		3_000_000 * UNIT,
+		para_id,
+		// Chain ID
+		1280,
+	))
+	.build()
+}

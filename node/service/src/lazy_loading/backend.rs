@@ -29,7 +29,9 @@ use std::{
 	collections::{HashMap, HashSet},
 	ptr,
 	sync::Arc,
+	cell::RefCell
 };
+use std::collections::hash_map::Iter;
 
 use sc_client_api::{
 	backend::{self, NewBlockState},
@@ -45,7 +47,7 @@ use moonbeam_cli_opt::LazyLoadingConfig;
 use moonbeam_core_primitives::BlockNumber;
 use sc_client_api::StorageKey;
 use sp_core::offchain::storage::InMemOffchainStorage;
-use sp_storage::StorageData;
+use sp_storage::{ChildInfo, StorageData};
 use sp_trie::PrefixedMemoryDB;
 
 struct PendingBlock<B: BlockT> {
@@ -376,11 +378,7 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> HeaderBackend<Block> for Bloc
 			genesis_hash: storage.genesis_hash,
 			finalized_hash: storage.finalized_hash,
 			finalized_number: storage.finalized_number,
-			finalized_state: if storage.finalized_hash != Default::default() {
-				Some((storage.finalized_hash, storage.finalized_number))
-			} else {
-				None
-			},
+			finalized_state: Some((storage.finalized_hash, storage.finalized_number)),
 			number_leaves: storage.leaves.count(),
 			block_gap: None,
 		}
@@ -544,7 +542,6 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::AuxStore for Blockch
 	}
 }
 
-/// In-memory operation.
 pub struct BlockImportOperation<Block: BlockT> {
 	pending_block: Option<PendingBlock<Block>>,
 	old_state: ForkedLazyBackend<Block>,
@@ -661,10 +658,13 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::BlockImportOperation
 
 	fn update_storage(
 		&mut self,
-		_update: StorageCollection,
-		_child_update: ChildStorageCollection,
+		update: StorageCollection,
+		child_update: ChildStorageCollection,
 	) -> sp_blockchain::Result<()> {
 		log::error!("BlockImportOperation: update_storage");
+		log::error!("update size: {:?}", update.len());
+		log::error!("child update size: {:?}", child_update.len());
+
 		Ok(())
 	}
 
@@ -737,7 +737,7 @@ pub struct ForkedLazyBackend<Block: BlockT> {
 	block_hash: Option<Block::Hash>,
 	parent: Option<Arc<Self>>,
 	pub(crate) db: sp_state_machine::InMemoryBackend<HashingFor<Block>>,
-	db_overrides: sp_state_machine::InMemoryBackend<HashingFor<Block>>,
+	db2: Arc<RwLock<HashMap<Vec<u8>, Option<Vec<u8>>>>>,
 	before_fork: bool,
 }
 
@@ -749,7 +749,9 @@ impl<B: BlockT + sp_runtime::DeserializeOwned> sp_state_machine::Backend<Hashing
 	type RawIter = RawIter<B>;
 
 	fn storage(&self, key: &[u8]) -> Result<Option<sp_state_machine::StorageValue>, Self::Error> {
-		match self.db.storage(key) {
+		//let value = match self.db2.read().get(key) {
+		//	Some(Some(data)) => Ok(Some(data.to_vec())),
+		let value = match self.db.storage(key) {
 			Ok(Some(data)) => Ok(Some(data)),
 			_ if self.before_fork => {
 				let result = self
@@ -765,11 +767,22 @@ impl<B: BlockT + sp_runtime::DeserializeOwned> sp_state_machine::Backend<Hashing
 					}
 				}
 			}
-			_ => self
-				.parent
-				.clone()
-				.map_or(Ok(None), |backend| backend.storage(key)),
-		}
+			_ => {
+				self
+					.parent
+					.clone()
+					.map_or(Ok(None), |backend| backend.storage(key))
+			},
+		};
+
+		let mut entries: HashMap<Option<ChildInfo>, StorageCollection> = Default::default();
+		entries.insert(None, vec![
+			(key.to_vec(), value.clone().ok().flatten().map(|v| v.to_vec()))
+		]);
+		//self.db.insert(entries, Default::default());
+		self.db2.write().insert(key.to_vec(), value.clone().ok().flatten().map(|v| v.to_vec()));
+
+		value
 	}
 
 	fn storage_hash(
@@ -893,7 +906,7 @@ impl<B: BlockT> sp_state_machine::backend::AsTrieBackend<HashingFor<B>> for Fork
 	fn as_trie_backend(
 		&self,
 	) -> &sp_state_machine::TrieBackend<Self::TrieBackendStorage, HashingFor<B>> {
-		self.db.as_trie_backend()
+		unimplemented!("As trie backend is not supported in lazy loading mode.")
 	}
 }
 
@@ -984,9 +997,26 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 
 			let hash = header.hash();
 
-			let new_state = match operation.new_state {
+			let new_state = match operation.new_state.clone() {
 				Some(state) => old_state.db.update_backend(*header.state_root(), state),
 				None => old_state.db.clone(),
+			};
+
+			let new_db2 = match operation.new_state {
+				Some(mut state) => {
+					let new_db = old_state.db2.clone();
+					let mut s = old_state.db.clone();
+					let mut storage = core::mem::take(&mut s).into_storage();
+					for (key, value) in storage.drain() {
+						new_db.write().insert(key, Some(value.0.to_vec()));
+					}
+					for (key, value) in state.drain() {
+						new_db.write().insert(key, Some(value.0.to_vec()));
+					}
+
+					new_db
+				},
+				None => old_state.db2.clone(),
 			};
 
 			let new_state = ForkedLazyBackend {
@@ -994,7 +1024,7 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 				block_hash: Some(hash.clone()),
 				parent: Some(Arc::new(self.state_at(*header.parent_hash())?)),
 				db: new_state,
-				db_overrides: Default::default(),
+				db2: new_db2,
 				before_fork: operation.before_fork,
 			};
 			self.states.write().insert(hash, new_state);
@@ -1049,43 +1079,49 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 				block_hash: Some(hash),
 				parent: None,
 				db: Default::default(),
-				db_overrides: Default::default(),
+				db2: Default::default(),
 				before_fork: true,
 			});
 		}
 
-		let backend = self.states.read().get(&hash).cloned().unwrap_or_else(|| {
-			let header: Block::Header = self
-				.rpc_client
-				.header::<Block>(Some(hash))
-				.unwrap()
-				.unwrap();
+		let (backend, should_write) = self.states.read().get(&hash).cloned()
+			.map(|state| (state, false))
+			.unwrap_or_else(|| {
+				let header: Block::Header = self
+					.rpc_client
+					.header::<Block>(Some(hash))
+					.unwrap()
+					.unwrap();
 
-			let checkpoint = self.fork_checkpoint.clone().unwrap();
-			if header.number().gt(checkpoint.number()) {
-				let parent = self.state_at(*header.parent_hash()).ok();
+				let checkpoint = self.fork_checkpoint.clone().unwrap();
+				let state = if header.number().gt(checkpoint.number()) {
+					let parent = self.state_at(*header.parent_hash()).ok();
 
-				ForkedLazyBackend::<Block> {
-					rpc_client: self.rpc_client.clone(),
-					block_hash: Some(hash),
-					parent: parent.map(|p| Arc::new(p)),
-					db: Default::default(),
-					db_overrides: Default::default(),
-					before_fork: false,
-				}
-			} else {
-				ForkedLazyBackend::<Block> {
-					rpc_client: self.rpc_client.clone(),
-					block_hash: Some(hash),
-					parent: None,
-					db: Default::default(),
-					db_overrides: Default::default(),
-					before_fork: true,
-				}
-			}
-		});
+					ForkedLazyBackend::<Block> {
+						rpc_client: self.rpc_client.clone(),
+						block_hash: Some(hash),
+						parent: parent.map(|p| Arc::new(p)),
+						db: Default::default(),
+						db2: Default::default(),
+						before_fork: false,
+					}
+				} else {
+					ForkedLazyBackend::<Block> {
+						rpc_client: self.rpc_client.clone(),
+						block_hash: Some(hash),
+						parent: None,
+						db: Default::default(),
+						db2: Default::default(),
+						before_fork: true,
+					}
+				};
 
-		self.states.write().insert(hash, backend.clone());
+				(state, true)
+			});
+
+		if should_write {
+			self.states.write().insert(hash, backend.clone());
+		}
 
 		Ok(backend)
 	}
