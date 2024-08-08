@@ -166,9 +166,9 @@ describeSuite({
 
               log(`     - ${fn}:  ${chalk.green(`✔`)}`);
             } catch (e) {
-              const msg = chalk.red(
-                `Failed to fetch storage at (${moduleName}::${fn}) using seed "${PRNG.getSeed()}" and startKey "${currentStartKey}"`
-              );
+              const failMsg = `Failed to fetch storage at (${moduleName}::${fn}) `;
+              const PRNGDetails = `using seed "${currentSeed}" and startKey "${currentStartKey}"`;
+              const msg = chalk.red(`${failMsg} ${PRNGDetails}`);
               log(msg, e);
               fail(msg);
             }
