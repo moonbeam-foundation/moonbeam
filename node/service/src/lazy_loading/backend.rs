@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use jsonrpsee::core::client::Error;
 use parking_lot::RwLock;
 use sp_blockchain::{CachedHeaderMetadata, HeaderMetadata};
 use sp_core::storage::well_known_keys;
@@ -25,13 +26,16 @@ use sp_runtime::{
 use sp_state_machine::{
 	BackendTransaction, ChildStorageCollection, IndexOperation, StorageCollection, TrieBackend,
 };
-use std::{
-	collections::{HashMap, HashSet},
-	ptr,
-	sync::Arc,
-	cell::RefCell
-};
 use std::collections::hash_map::Iter;
+use std::future::Future;
+use std::ops::{AddAssign, Deref, SubAssign};
+use std::time::Duration;
+use std::{
+	cell::RefCell,
+	collections::{HashMap, HashSet},
+	future, io, ptr,
+	sync::Arc,
+};
 
 use sc_client_api::{
 	backend::{self, NewBlockState},
@@ -46,9 +50,16 @@ use sp_runtime::generic::SignedBlock;
 use moonbeam_cli_opt::LazyLoadingConfig;
 use moonbeam_core_primitives::BlockNumber;
 use sc_client_api::StorageKey;
+use sc_rpc_api::chain::ChainApiClient;
+use sc_rpc_api::state::StateApiClient;
 use sp_core::offchain::storage::InMemOffchainStorage;
-use sp_storage::{ChildInfo, StorageData};
+use sp_core::H256;
+use sp_rpc::list::ListOrValue;
+use sp_rpc::number::NumberOrHex;
+use sp_storage::{ChildInfo, StorageChangeSet, StorageData};
 use sp_trie::PrefixedMemoryDB;
+use tokio_retry::strategy::FixedInterval;
+use tokio_retry::Retry;
 
 struct PendingBlock<B: BlockT> {
 	block: StoredBlock<B>,
@@ -229,13 +240,9 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> Blockchain<Block> {
 
 	/// Set an existing block as head.
 	pub fn set_head(&self, hash: Block::Hash) -> sp_blockchain::Result<()> {
-		let header = self.header(hash)?.ok_or_else(|| {
-			use backtrace::Backtrace;
-			let backtrace = Backtrace::new();
-			log::error!("2backtrace: {:?}", backtrace);
-
-			sp_blockchain::Error::UnknownBlock(format!("{}", hash))
-		})?;
+		let header = self
+			.header(hash)?
+			.ok_or_else(|| sp_blockchain::Error::UnknownBlock(format!("{}", hash)))?;
 
 		self.apply_head(&header)
 	}
@@ -395,7 +402,7 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> HeaderBackend<Block> for Bloc
 		let number = match self.storage.read().blocks.get(&hash) {
 			Some(block) => *block.header().number(),
 			_ => match self.rpc_client.block::<Block, _>(Some(hash)) {
-				Ok(Some(block)) => *block.header().number(),
+				Ok(Some(block)) => *block.block.header().number(),
 				err => {
 					log::error!("Failed to fetch block number from RPC: {:?}", err);
 					return Err(sp_blockchain::Error::UnknownBlock(
@@ -460,7 +467,7 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> blockchain::Backend<Block>
 			.block::<Block, Block::Hash>(Some(hash))
 			.ok()
 			.flatten()
-			.map(|b| b.extrinsics().to_vec());
+			.map(|b| b.block.extrinsics().to_vec());
 
 		Ok(extrinsics)
 	}
@@ -697,8 +704,29 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::BlockImportOperation
 /// DB-backed patricia trie state, transaction type is an overlay of changes to commit.
 pub type DbState<B> = TrieBackend<Arc<dyn sp_state_machine::Storage<HashingFor<B>>>, HashingFor<B>>;
 
+/// A struct containing arguments for iterating over the storage.
+#[derive(Default)]
+pub struct RawIterArgs {
+	/// The prefix of the keys over which to iterate.
+	pub prefix: Option<Vec<u8>>,
+
+	/// The prefix from which to start the iteration from.
+	///
+	/// This is inclusive and the iteration will include the key which is specified here.
+	pub start_at: Option<Vec<u8>>,
+
+	/// If this is `true` then the iteration will *not* include
+	/// the key specified in `start_at`, if there is such a key.
+	pub start_at_exclusive: bool,
+
+	/// The info of the child trie over which to iterate over.
+	pub child_info: Option<ChildInfo>,
+}
+
 /// A raw iterator over the `BenchmarkingState`.
 pub struct RawIter<Block: BlockT> {
+	pub(crate) args: RawIterArgs,
+	complete: bool,
 	inner: sp_state_machine::RawIter<
 		sp_trie::PrefixedMemoryDB<HashingFor<Block>>,
 		HashingFor<Block>,
@@ -707,7 +735,9 @@ pub struct RawIter<Block: BlockT> {
 	>,
 }
 
-impl<Block: BlockT> sp_state_machine::StorageIterator<HashingFor<Block>> for RawIter<Block> {
+impl<Block: BlockT + sp_runtime::DeserializeOwned>
+	sp_state_machine::StorageIterator<HashingFor<Block>> for RawIter<Block>
+{
 	type Backend = ForkedLazyBackend<Block>;
 	type Error = String;
 
@@ -715,7 +745,24 @@ impl<Block: BlockT> sp_state_machine::StorageIterator<HashingFor<Block>> for Raw
 		&mut self,
 		backend: &Self::Backend,
 	) -> Option<Result<sp_state_machine::StorageKey, Self::Error>> {
-		self.inner.next_key(&backend.db)
+		use sp_state_machine::Backend;
+
+		let result = if let Some(start_at) = self.args.start_at.clone() {
+			let maybe_key = (*backend)
+				.next_storage_key(start_at.as_slice())
+				.ok()
+				.flatten();
+			self.args.start_at = maybe_key.clone();
+			maybe_key.map(|v| Ok::<sp_state_machine::StorageKey, Self::Error>(v))
+		} else {
+			None
+		};
+
+		if result.is_none() {
+			self.complete = true;
+		}
+
+		result
 	}
 
 	fn next_pair(
@@ -723,11 +770,38 @@ impl<Block: BlockT> sp_state_machine::StorageIterator<HashingFor<Block>> for Raw
 		backend: &Self::Backend,
 	) -> Option<Result<(sp_state_machine::StorageKey, sp_state_machine::StorageValue), Self::Error>>
 	{
-		self.inner.next_pair(&backend.db)
+		use sp_state_machine::Backend;
+
+		let result = if let Some(start_at) = self.args.start_at.clone() {
+			let maybe_key = (*backend)
+				.next_storage_key(start_at.as_slice())
+				.ok()
+				.flatten();
+			self.args.start_at = maybe_key.clone();
+
+			let maybe_value = maybe_key
+				.clone()
+				.map(|key| (*backend).storage(key.as_slice()).ok())
+				.flatten()
+				.flatten();
+
+			match (maybe_key, maybe_value) {
+				(Some(key), Some(value)) => Some(Ok((key, value))),
+				_ => None,
+			}
+		} else {
+			None
+		};
+
+		if result.is_none() {
+			self.complete = true;
+		}
+
+		result
 	}
 
 	fn was_complete(&self) -> bool {
-		self.inner.was_complete()
+		self.complete
 	}
 }
 
@@ -736,8 +810,9 @@ pub struct ForkedLazyBackend<Block: BlockT> {
 	rpc_client: Arc<RPC>,
 	block_hash: Option<Block::Hash>,
 	parent: Option<Arc<Self>>,
-	pub(crate) db: sp_state_machine::InMemoryBackend<HashingFor<Block>>,
-	db2: Arc<RwLock<HashMap<Vec<u8>, Option<Vec<u8>>>>>,
+	pub(crate) db: Arc<RwLock<sp_state_machine::InMemoryBackend<HashingFor<Block>>>>,
+	storage: Arc<RwLock<HashMap<Vec<u8>, Option<Vec<u8>>>>>,
+	storage_hash: Arc<RwLock<HashMap<Vec<u8>, Option<Block::Hash>>>>,
 	before_fork: bool,
 }
 
@@ -749,9 +824,8 @@ impl<B: BlockT + sp_runtime::DeserializeOwned> sp_state_machine::Backend<Hashing
 	type RawIter = RawIter<B>;
 
 	fn storage(&self, key: &[u8]) -> Result<Option<sp_state_machine::StorageValue>, Self::Error> {
-		//let value = match self.db2.read().get(key) {
-		//	Some(Some(data)) => Ok(Some(data.to_vec())),
-		let value = match self.db.storage(key) {
+		let maybe_storage = self.db.read().storage(key);
+		let value = match maybe_storage {
 			Ok(Some(data)) => Ok(Some(data)),
 			_ if self.before_fork => {
 				let result = self
@@ -759,28 +833,25 @@ impl<B: BlockT + sp_runtime::DeserializeOwned> sp_state_machine::Backend<Hashing
 					.storage(StorageKey(key.to_vec()), self.block_hash);
 
 				match result {
-					Ok(Some(data)) => Ok(Some(data.0)),
-					Ok(None) => Ok(None),
+					Ok(data) => Ok(data.map(|v| v.0)),
 					err => {
 						log::error!("Failed to fetch storage from RPC: {:?}", err);
 						Err("Failed to fetch storage from RPC".into())
 					}
 				}
 			}
-			_ => {
-				self
-					.parent
-					.clone()
-					.map_or(Ok(None), |backend| backend.storage(key))
-			},
+			_ => self
+				.parent
+				.clone()
+				.map_or(Ok(None), |backend| backend.storage(key)),
 		};
 
-		let mut entries: HashMap<Option<ChildInfo>, StorageCollection> = Default::default();
-		entries.insert(None, vec![
-			(key.to_vec(), value.clone().ok().flatten().map(|v| v.to_vec()))
-		]);
-		//self.db.insert(entries, Default::default());
-		self.db2.write().insert(key.to_vec(), value.clone().ok().flatten().map(|v| v.to_vec()));
+		if let Ok(Some(ref val)) = value {
+			let mut entries: HashMap<Option<ChildInfo>, StorageCollection> = Default::default();
+			entries.insert(None, vec![(key.to_vec(), Some(val.clone()))]);
+
+			self.db.write().insert(entries, StateVersion::V0);
+		}
 
 		value
 	}
@@ -789,7 +860,8 @@ impl<B: BlockT + sp_runtime::DeserializeOwned> sp_state_machine::Backend<Hashing
 		&self,
 		key: &[u8],
 	) -> Result<Option<<HashingFor<B> as sp_core::Hasher>::Out>, Self::Error> {
-		match self.db.storage_hash(key) {
+		let db = self.db.read();
+		let hash = match db.storage_hash(key) {
 			Ok(Some(hash)) => Ok(Some(hash)),
 			_ if self.before_fork => {
 				let result = self
@@ -805,55 +877,94 @@ impl<B: BlockT + sp_runtime::DeserializeOwned> sp_state_machine::Backend<Hashing
 				.parent
 				.clone()
 				.map_or(Ok(None), |backend| backend.storage_hash(key)),
-		}
+		};
+
+		hash
 	}
 
 	fn closest_merkle_value(
 		&self,
-		key: &[u8],
+		_key: &[u8],
 	) -> Result<Option<sp_trie::MerkleValue<<HashingFor<B> as sp_core::Hasher>::Out>>, Self::Error>
 	{
-		self.db.closest_merkle_value(key)
+		panic!("closest_merkle_value: unsupported feature for lazy loading")
 	}
 
 	fn child_closest_merkle_value(
 		&self,
-		child_info: &sp_storage::ChildInfo,
-		key: &[u8],
+		_child_info: &sp_storage::ChildInfo,
+		_key: &[u8],
 	) -> Result<Option<sp_trie::MerkleValue<<HashingFor<B> as sp_core::Hasher>::Out>>, Self::Error>
 	{
-		self.db.child_closest_merkle_value(child_info, key)
+		panic!("child_closest_merkle_value: unsupported feature for lazy loading")
 	}
 
 	fn child_storage(
 		&self,
-		child_info: &sp_storage::ChildInfo,
-		key: &[u8],
+		_child_info: &sp_storage::ChildInfo,
+		_key: &[u8],
 	) -> Result<Option<sp_state_machine::StorageValue>, Self::Error> {
-		self.db.child_storage(child_info, key)
+		panic!("child_storage: unsupported feature for lazy loading");
 	}
 
 	fn child_storage_hash(
 		&self,
-		child_info: &sp_storage::ChildInfo,
-		key: &[u8],
+		_child_info: &sp_storage::ChildInfo,
+		_key: &[u8],
 	) -> Result<Option<<HashingFor<B> as sp_core::Hasher>::Out>, Self::Error> {
-		self.db.child_storage_hash(child_info, key)
+		panic!("child_storage_hash: unsupported feature for lazy loading");
 	}
 
 	fn next_storage_key(
 		&self,
 		key: &[u8],
 	) -> Result<Option<sp_state_machine::StorageKey>, Self::Error> {
-		self.db.next_storage_key(key)
+		let maybe_next_key = self.db.read().next_storage_key(key);
+		match maybe_next_key {
+			Ok(Some(key)) => Ok(Some(key)),
+			_ if self.before_fork => {
+				let result = self
+					.rpc_client
+					.storage_keys_paged(StorageKey(key.to_vec()), self.block_hash);
+
+				match result {
+					Ok(keys) => {
+						let mut entries: HashMap<Option<ChildInfo>, StorageCollection> =
+							Default::default();
+						let _ = self
+							.rpc_client
+							.query_storage_at(
+								keys.iter().map(|item| StorageKey(item.clone())).collect(),
+								self.block_hash,
+							)
+							.map(|keys| {
+								for (key, value) in &keys {
+									entries.insert(
+										None,
+										vec![(key.0.to_vec(), value.clone().map(|v| v.0))],
+									);
+								}
+							});
+
+						self.db.write().insert(entries, StateVersion::V0);
+						Ok(keys.get(1).cloned())
+					}
+					_ => Err("Failed to fetch storage hash from RPC".into()),
+				}
+			}
+			_ => self
+				.parent
+				.clone()
+				.map_or(Ok(None), |backend| backend.next_storage_key(key)),
+		}
 	}
 
 	fn next_child_storage_key(
 		&self,
-		child_info: &sp_storage::ChildInfo,
-		key: &[u8],
+		_child_info: &sp_storage::ChildInfo,
+		_key: &[u8],
 	) -> Result<Option<sp_state_machine::StorageKey>, Self::Error> {
-		self.db.next_child_storage_key(child_info, key)
+		panic!("next_child_storage_key: unsupported feature for lazy loading");
 	}
 
 	fn storage_root<'a>(
@@ -867,7 +978,7 @@ impl<B: BlockT + sp_runtime::DeserializeOwned> sp_state_machine::Backend<Hashing
 	where
 		<HashingFor<B> as sp_core::Hasher>::Out: Ord,
 	{
-		self.db.storage_root(delta, state_version)
+		self.db.read().storage_root(delta, state_version)
 	}
 
 	fn child_storage_root<'a>(
@@ -883,20 +994,32 @@ impl<B: BlockT + sp_runtime::DeserializeOwned> sp_state_machine::Backend<Hashing
 	where
 		<HashingFor<B> as sp_core::Hasher>::Out: Ord,
 	{
-		self.db.child_storage_root(child_info, delta, state_version)
+		self.db
+			.read()
+			.child_storage_root(child_info, delta, state_version)
 	}
 
 	fn raw_iter(&self, args: sp_state_machine::IterArgs) -> Result<Self::RawIter, Self::Error> {
-		let iter = self.db.raw_iter(args)?;
-		Ok(RawIter::<B> { inner: iter })
+		let mut clone: RawIterArgs = Default::default();
+		clone.start_at_exclusive = args.start_at_exclusive.clone();
+		clone.child_info = args.child_info.clone();
+		clone.prefix = args.prefix.map(|v| v.to_vec());
+		clone.start_at = args.start_at.map(|v| v.to_vec());
+
+		let iter = self.db.read().raw_iter(args)?;
+		Ok(RawIter::<B> {
+			inner: iter,
+			args: clone,
+			complete: false,
+		})
 	}
 
 	fn register_overlay_stats(&self, stats: &sp_state_machine::StateMachineStats) {
-		self.db.register_overlay_stats(stats)
+		self.db.read().register_overlay_stats(stats)
 	}
 
 	fn usage_info(&self) -> sp_state_machine::UsageInfo {
-		self.db.usage_info()
+		self.db.read().usage_info()
 	}
 }
 
@@ -906,7 +1029,7 @@ impl<B: BlockT> sp_state_machine::backend::AsTrieBackend<HashingFor<B>> for Fork
 	fn as_trie_backend(
 		&self,
 	) -> &sp_state_machine::TrieBackend<Self::TrieBackendStorage, HashingFor<B>> {
-		unimplemented!("As trie backend is not supported in lazy loading mode.")
+		unimplemented!("`as_trie_backend` is not supported in lazy loading mode.")
 	}
 }
 
@@ -945,14 +1068,14 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::AuxStore for Backend
 		D: IntoIterator<Item = &'a &'b [u8]>,
 	>(
 		&self,
-		insert: I,
-		delete: D,
+		_insert: I,
+		_delete: D,
 	) -> sp_blockchain::Result<()> {
-		self.blockchain.insert_aux(insert, delete)
+		unimplemented!("`insert_aux` is not supported in lazy loading mode.")
 	}
 
-	fn get_aux(&self, key: &[u8]) -> sp_blockchain::Result<Option<Vec<u8>>> {
-		self.blockchain.get_aux(key)
+	fn get_aux(&self, _key: &[u8]) -> sp_blockchain::Result<Option<Vec<u8>>> {
+		unimplemented!("`get_aux` is not supported in lazy loading mode.")
 	}
 }
 
@@ -998,15 +1121,19 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 			let hash = header.hash();
 
 			let new_state = match operation.new_state.clone() {
-				Some(state) => old_state.db.update_backend(*header.state_root(), state),
+				Some(state) => Arc::new(RwLock::new(
+					old_state
+						.db
+						.read()
+						.update_backend(*header.state_root(), state),
+				)),
 				None => old_state.db.clone(),
 			};
 
 			let new_db2 = match operation.new_state {
 				Some(mut state) => {
-					let new_db = old_state.db2.clone();
-					let mut s = old_state.db.clone();
-					let mut storage = core::mem::take(&mut s).into_storage();
+					let new_db = old_state.storage.clone();
+					let mut storage = old_state.db.read().deref().backend_storage().clone();
 					for (key, value) in storage.drain() {
 						new_db.write().insert(key, Some(value.0.to_vec()));
 					}
@@ -1015,8 +1142,8 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 					}
 
 					new_db
-				},
-				None => old_state.db2.clone(),
+				}
+				None => old_state.storage.clone(),
 			};
 
 			let new_state = ForkedLazyBackend {
@@ -1024,7 +1151,8 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 				block_hash: Some(hash.clone()),
 				parent: Some(Arc::new(self.state_at(*header.parent_hash())?)),
 				db: new_state,
-				db2: new_db2,
+				storage: new_db2,
+				storage_hash: Default::default(),
 				before_fork: operation.before_fork,
 			};
 			self.states.write().insert(hash, new_state);
@@ -1079,19 +1207,24 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 				block_hash: Some(hash),
 				parent: None,
 				db: Default::default(),
-				db2: Default::default(),
+				storage: Default::default(),
+				storage_hash: Default::default(),
 				before_fork: true,
 			});
 		}
 
-		let (backend, should_write) = self.states.read().get(&hash).cloned()
+		let (backend, should_write) = self
+			.states
+			.read()
+			.get(&hash)
+			.cloned()
 			.map(|state| (state, false))
 			.unwrap_or_else(|| {
 				let header: Block::Header = self
 					.rpc_client
 					.header::<Block>(Some(hash))
 					.unwrap()
-					.unwrap();
+					.expect("block header");
 
 				let checkpoint = self.fork_checkpoint.clone().unwrap();
 				let state = if header.number().gt(checkpoint.number()) {
@@ -1102,7 +1235,8 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 						block_hash: Some(hash),
 						parent: parent.map(|p| Arc::new(p)),
 						db: Default::default(),
-						db2: Default::default(),
+						storage: Default::default(),
+						storage_hash: Default::default(),
 						before_fork: false,
 					}
 				} else {
@@ -1111,7 +1245,8 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 						block_hash: Some(hash),
 						parent: None,
 						db: Default::default(),
-						db2: Default::default(),
+						storage: Default::default(),
+						storage_hash: Default::default(),
 						before_fork: true,
 					}
 				};
@@ -1187,29 +1322,46 @@ pub fn check_genesis_storage(storage: &Storage) -> sp_blockchain::Result<()> {
 #[derive(Debug, Clone)]
 pub struct RPC {
 	http_client: HttpClient,
+	delay_between_requests_ms: u64,
+	request_timeout_ms: u64,
+	max_retries_per_request: usize,
+	counter: Arc<RwLock<u64>>,
 }
 
 impl RPC {
-	pub fn new(http_client: HttpClient) -> Self {
-		Self { http_client }
+	pub fn new(
+		http_client: HttpClient,
+		delay_between_requests_ms: u64,
+		request_timeout_ms: u64,
+		max_retries_per_request: usize,
+	) -> Self {
+		Self {
+			http_client,
+			delay_between_requests_ms,
+			request_timeout_ms,
+			max_retries_per_request,
+			counter: Default::default(),
+		}
 	}
 
-	pub fn block<Block, Hash>(
+	pub fn block<Block, Hash: Clone>(
 		&self,
 		hash: Option<Hash>,
-	) -> Result<Option<Block>, jsonrpsee::core::ClientError>
+	) -> Result<Option<SignedBlock<Block>>, jsonrpsee::core::ClientError>
 	where
 		Block: BlockT + sp_runtime::DeserializeOwned,
 		Hash: 'static + Send + Sync + sp_runtime::Serialize + sp_runtime::DeserializeOwned,
 	{
-		async_std::task::block_on(substrate_rpc_client::ChainApi::<
-			BlockNumber,
-			Hash,
-			Block::Header,
-			SignedBlock<Block>,
-		>::block(&self.http_client, hash))
-		.map(|ok| ok.map(|some| some.block))
-		.or(Ok(None))
+		let request = &|| {
+			substrate_rpc_client::ChainApi::<
+				BlockNumber,
+				Hash,
+				Block::Header,
+				SignedBlock<Block>,
+			>::block(&self.http_client, hash.clone())
+		};
+
+		Ok(self.block_on(request).expect("get storage"))
 	}
 
 	pub fn block_hash<Block: BlockT + sp_runtime::DeserializeOwned>(
@@ -1217,33 +1369,43 @@ impl RPC {
 		block_number: Option<BlockNumber>,
 	) -> Result<Option<Block::Hash>, jsonrpsee::core::ClientError> {
 		use sp_rpc::{list::ListOrValue, number::NumberOrHex};
-		async_std::task::block_on(substrate_rpc_client::ChainApi::<
-			BlockNumber,
-			Block::Hash,
-			Block::Header,
-			SignedBlock<Block>,
-		>::block_hash(
-			&self.http_client,
-			block_number.map(|n| ListOrValue::Value(NumberOrHex::Number(n.into()))),
-		))
-		.map(|ok| match ok {
-			ListOrValue::List(v) => v.get(0).map(|some| *some).flatten(),
-			ListOrValue::Value(v) => v,
-		})
-		.or(Ok(None))
+
+		let request = &|| {
+			substrate_rpc_client::ChainApi::<
+				BlockNumber,
+				Block::Hash,
+				Block::Header,
+				SignedBlock<Block>,
+			>::block_hash(
+				&self.http_client,
+				block_number.map(|n| ListOrValue::Value(NumberOrHex::Number(n.into()))),
+			)
+		};
+
+		Ok(self
+			.block_on(request)
+			.map(|ok| match ok {
+				ListOrValue::List(v) => v.get(0).map(|some| *some).flatten(),
+				ListOrValue::Value(v) => v,
+			})
+			.expect("get storage"))
 	}
 
 	pub fn header<Block: BlockT + sp_runtime::DeserializeOwned>(
 		&self,
 		hash: Option<Block::Hash>,
 	) -> Result<Option<Block::Header>, jsonrpsee::core::ClientError> {
-		async_std::task::block_on(substrate_rpc_client::ChainApi::<
-			BlockNumber,
-			Block::Hash,
-			Block::Header,
-			SignedBlock<Block>,
-		>::header(&self.http_client, hash))
-		.or(Ok(None))
+		let request = &|| {
+			substrate_rpc_client::ChainApi::<
+				BlockNumber,
+				Block::Hash,
+				Block::Header,
+				SignedBlock<Block>,
+			>::header(&self.http_client, hash)
+		};
+		Ok(self
+			.block_on(request)
+			.expect(format!("get header: {:?}", hash).as_str()))
 	}
 
 	pub fn storage_hash<
@@ -1253,27 +1415,128 @@ impl RPC {
 		key: StorageKey,
 		at: Option<Hash>,
 	) -> Result<Option<Hash>, jsonrpsee::core::ClientError> {
-		async_std::task::block_on(substrate_rpc_client::StateApi::<Hash>::storage_hash(
-			&self.http_client,
-			key.clone(),
-			at.clone(),
-		))
-		.or(Ok(None))
+		let request = &|| {
+			substrate_rpc_client::StateApi::<Hash>::storage_hash(
+				&self.http_client,
+				key.clone(),
+				at.clone(),
+			)
+		};
+		Ok(self.block_on(request).expect("get storage hash"))
 	}
 
 	pub fn storage<
-		Hash: 'static + Clone + Sync + Send + sp_runtime::DeserializeOwned + sp_runtime::Serialize,
+		Hash: 'static
+			+ Clone
+			+ Sync
+			+ Send
+			+ sp_runtime::DeserializeOwned
+			+ sp_runtime::Serialize
+			+ core::fmt::Debug,
 	>(
 		&self,
 		key: StorageKey,
 		at: Option<Hash>,
 	) -> Result<Option<StorageData>, jsonrpsee::core::ClientError> {
-		async_std::task::block_on(substrate_rpc_client::StateApi::<Hash>::storage(
-			&self.http_client,
-			key.clone(),
-			at.clone(),
-		))
-		.or(Ok(None))
+		let request = &|| {
+			substrate_rpc_client::StateApi::<Hash>::storage(
+				&self.http_client,
+				key.clone(),
+				at.clone(),
+			)
+		};
+		Ok(self
+			.block_on(request)
+			.expect(format!("get storage: {:?} at block {:?}", key, at).as_str()))
+	}
+
+	pub fn storage_keys_paged<
+		Hash: 'static + Clone + Sync + Send + sp_runtime::DeserializeOwned + sp_runtime::Serialize,
+	>(
+		&self,
+		key: StorageKey,
+		at: Option<Hash>,
+	) -> Result<Vec<sp_state_machine::StorageKey>, jsonrpsee::core::ClientError> {
+		let request = &|| {
+			substrate_rpc_client::StateApi::<Hash>::storage_keys_paged(
+				&self.http_client,
+				Some(key.clone()),
+				2,
+				None,
+				at.clone(),
+			)
+		};
+		let result = self.block_on(request);
+
+		let keys = match result {
+			Ok(result) => result.iter().map(|item| item.0.clone()).collect(),
+			Err(err) => panic!("failed in `storage_keys_paged`: {:?}", err),
+		};
+
+		Ok(keys)
+	}
+
+	pub fn query_storage_at<
+		Hash: 'static + Clone + Sync + Send + sp_runtime::DeserializeOwned + sp_runtime::Serialize,
+	>(
+		&self,
+		keys: Vec<StorageKey>,
+		from_block: Option<Hash>,
+	) -> Result<Vec<(StorageKey, Option<StorageData>)>, jsonrpsee::core::ClientError> {
+		let request = &|| {
+			substrate_rpc_client::StateApi::<Hash>::query_storage_at(
+				&self.http_client,
+				keys.clone(),
+				from_block.clone(),
+			)
+		};
+		let result = self.block_on(request);
+
+		let keys = match result {
+			Ok(result) => result
+				.iter()
+				.flat_map(|item| item.changes.clone())
+				.collect(),
+			Err(err) => panic!("failed in `query_storage_at`: {:?}", err),
+		};
+
+		Ok(keys)
+	}
+
+	fn block_on<F, T, E>(&self, f: &dyn Fn() -> F) -> Result<T, E>
+	where
+		F: Future<Output = Result<T, E>>,
+	{
+		use tokio::runtime::Handle;
+
+		tokio::task::block_in_place(move || {
+			Handle::current().block_on(async move {
+				let delay_between_requests = Duration::from_millis(self.delay_between_requests_ms);
+
+				// TODO: Remove debug information
+				let start = std::time::Instant::now();
+				self.counter.write().add_assign(1);
+				log::debug!("sending request: {}", self.counter.read());
+
+				// Explicit request delay, to avoid getting 429 errors
+				let _ = tokio::time::sleep(delay_between_requests).await;
+
+				// Retry request in case of failure
+				// The maximum number of retries is specified by `self.max_retries_per_request`
+				let retry_strategy =
+					FixedInterval::new(delay_between_requests).take(self.max_retries_per_request);
+				let result = Retry::spawn(retry_strategy, f).await;
+
+				log::debug!(
+					"Completed request (id: {}, successful: {}, elapsed_time: {:?})",
+					self.counter.read(),
+					result.is_ok(),
+					start.elapsed()
+				);
+
+				result
+			})
+		})
 	}
 }
 
@@ -1283,30 +1546,23 @@ pub fn new_lazy_loading_backend<Block>(
 ) -> Result<Arc<Backend<Block>>, sp_blockchain::Error>
 where
 	Block: BlockT + sp_runtime::DeserializeOwned,
+	Block::Hash: From<H256>,
 {
 	let uri: String = lazy_loading_config.state_rpc.clone().into();
 
 	let http_client = jsonrpsee::http_client::HttpClientBuilder::default()
 		.max_request_size(u32::MAX)
 		.max_response_size(u32::MAX)
-		.request_timeout(std::time::Duration::from_secs(60 * 5))
+		.request_timeout(std::time::Duration::from_secs(10))
 		.build(uri)
 		.map_err(|e| {
 			log::error!("error: {:?}", e);
 			sp_blockchain::Error::Backend("failed to build http client".to_string())
 		})?;
 
-	let checkpoint =
-		async_std::task::block_on(substrate_rpc_client::ChainApi::<
-			BlockNumber,
-			sp_core::H256,
-			Block::Header,
-			Block,
-		>::header(&http_client, Some(lazy_loading_config.from_block)))
-		.unwrap();
+	let rpc = RPC::new(http_client, 100, 5000, 10);
+	let block_hash: Block::Hash = lazy_loading_config.from_block.into();
+	let checkpoint = rpc.header::<Block>(Some(block_hash)).unwrap();
 
-	Ok(Arc::new(Backend::new(
-		Arc::new(RPC::new(http_client)),
-		checkpoint,
-	)))
+	Ok(Arc::new(Backend::new(Arc::new(rpc), checkpoint)))
 }

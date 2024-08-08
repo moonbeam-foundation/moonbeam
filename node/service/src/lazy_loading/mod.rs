@@ -102,7 +102,7 @@ where
 
 	let state_overrides: Vec<(Vec<u8>, Vec<u8>)> =
 		if let Some(path) = lazy_loading_config.state_overrides_path.clone() {
-			let state = state_overrides::read(path)?;
+			let state = state_overrides::read(path, lazy_loading_config.runtime_override.clone())?;
 			state
 				.iter()
 				.map(|entry| match entry {
@@ -132,7 +132,8 @@ where
 		.rpc_client
 		.block::<TBl, _>(Some(lazy_loading_config.from_block))
 		.unwrap()
-		.unwrap();
+		.unwrap()
+		.block;
 
 	let extrinsics: Vec<TBl::Extrinsic> = last_block.extrinsics().to_vec();
 
@@ -579,6 +580,9 @@ where
 				)
 			};
 
+		let parachain_id = helpers::get_parachain_id(backend.rpc_client.clone())
+			.unwrap_or_else(|| panic!("Could not get parachain identifier for lazy loading mode."));
+
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			Some("block-authoring"),
@@ -612,30 +616,23 @@ where
 							maybe_current_para_head?.encode(),
 						));
 
-						let additional_key_values =
-							Some(vec![
-								(
-									moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-									sp_timestamp::Timestamp::current().encode(),
-								),
-								(
-									cumulus_primitives_core::relay_chain::well_known_keys::para_head(ParaId::new(100)),
-									current_para_block_head.clone().unwrap().encode()
-								)
-							]);
+						let additional_key_values = Some(vec![(
+							moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
+							sp_timestamp::Timestamp::current().encode(),
+						)]);
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
 							current_para_block_head,
 							relay_offset: 1000,
-							relay_blocks_per_para_block: 10,
+							relay_blocks_per_para_block: 2,
 							// TODO: Recheck
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),
 							xcm_config: MockXcmConfig::new(
 								&*client_for_xcm,
 								block,
-								ParaId::new(2004),
+								ParaId::new(parachain_id),
 								Default::default(),
 							),
 							raw_downward_messages: downward_xcm_receiver.drain().collect(),

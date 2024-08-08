@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use moonbeam_cli_opt::LazyLoadingConfig;
 use serde::Deserialize;
+use std::io::Read;
 use std::path::PathBuf;
 
 #[derive(Deserialize, Debug, Clone)]
@@ -47,17 +49,29 @@ pub enum StateEntry {
 }
 
 /// Mandatory state overrides that most exist when starting a node in lazy loading mode.
-fn base_state_overrides() -> Vec<StateEntry> {
+fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
+	let runtime_code = if let Some(path) = runtime_code {
+		let mut reader = std::fs::File::open(path).expect("Can open file");
+		let mut data = vec![];
+		reader
+			.read_to_end(&mut data)
+			.expect("Runtime code override invalid.");
+
+		data.to_vec()
+	} else {
+		moonbeam_runtime::WASM_BINARY
+			.expect(
+				"Wasm binary is not available. This means the client is built with \
+							 `SKIP_WASM_BUILD` flag. Please rebuild with the flag disabled.",
+			)
+			.to_vec()
+	};
 	vec![
 		// Set runtime code
 		StateEntry::Raw(
 			StateEntryRaw {
 				key: sp_core::storage::well_known_keys::CODE.to_vec(),
-				value: moonbeam_runtime::WASM_BINARY.expect(
-					"Development wasm binary is not available. This means the client is built with \
-							 `SKIP_WASM_BUILD` flag and it is only usable for production chains. Please rebuild with \
-							 the flag disabled.",
-				).to_vec()
+				value: runtime_code
 			}
 		),
 		// Setup Alith account
@@ -115,11 +129,11 @@ fn base_state_overrides() -> Vec<StateEntry> {
 	]
 }
 
-pub fn read(path: PathBuf) -> Result<Vec<StateEntry>, String> {
+pub fn read(path: PathBuf, runtime_code_path: Option<PathBuf>) -> Result<Vec<StateEntry>, String> {
 	let reader = std::fs::File::open(path).expect("Can open file");
 	let state = serde_json::from_reader(reader).expect("Can parse state overrides JSON");
 
-	Ok([base_state_overrides(), state].concat())
+	Ok([base_state_overrides(runtime_code_path), state].concat())
 }
 
 mod serde_hex {

@@ -373,7 +373,6 @@ strum_macros = "0.24"
 
 assert_cmd = "2.0.10"
 async-io = "1.3"
-async-std = "1.12.0"
 bip32 = { version = "0.5.1", default-features = false, features = ["bip39"] }
 clap = { version = "4.0.9", features = ["derive"] }
 clap-num = "=1.1.1"
@@ -395,6 +394,7 @@ schnorrkel = { version = "0.11.4", default-features = false, features = [
 	"preaudit_deprecated",
 ] }
 tokio = { version = "1.36" }
+tokio-retry = { version = "0.3.0" }
 tracing = "0.1.34"
 tracing-core = "0.1.29"
 trie-root = "0.15.2"

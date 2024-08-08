@@ -26,7 +26,7 @@ sha3 = { workspace = true }
 tiny-bip39 = { workspace = true }
 tokio = { workspace = true, features = ["macros", "sync"] }
 trie-root = { workspace = true }
-async-std = { workspace = true }
+tokio-retry = { workspace = true }
 substrate-rpc-client = { workspace = true }
 hex = { workspace = true, features = ["std"] }
 
@@ -155,7 +155,6 @@ xcm = { workspace = true }
 # Benchmarking
 frame-benchmarking = { workspace = true, features = ["std"] }
 frame-benchmarking-cli = { workspace = true }
-backtrace = "0.3.71"
 
 [dev-dependencies]
 nix = { workspace = true }

@@ -15,11 +15,13 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::lazy_loading;
+use crate::lazy_loading::backend::RPC;
 use cumulus_primitives_core::BlockT;
 use sc_client_api::{Backend, BlockImportOperation, NewBlockState};
+use sp_core::{twox_128, H256};
 use sp_runtime::traits::{Header, One};
 use sp_runtime::Saturating;
-use sp_storage::{StateVersion, Storage};
+use sp_storage::{StateVersion, Storage, StorageKey};
 use std::sync::Arc;
 
 pub fn produce_genesis_block<TBl: BlockT + sp_runtime::DeserializeOwned>(
@@ -32,13 +34,14 @@ pub fn produce_genesis_block<TBl: BlockT + sp_runtime::DeserializeOwned>(
 		.rpc_client
 		.block_hash::<TBl>(Some(0))
 		.unwrap()
-		.unwrap();
+		.expect("Not able to obtain genesis block hash");
 
-	let genesis_block: TBl = backend
+	let genesis_block = backend
 		.rpc_client
 		.block::<TBl, _>(Some(genesis_block_hash))
 		.unwrap()
-		.unwrap();
+		.unwrap()
+		.block;
 
 	let _ = op.set_block_data(
 		genesis_block.header().clone(),
@@ -87,4 +90,18 @@ pub fn produce_first_block<TBl: BlockT + sp_runtime::DeserializeOwned>(
 	);
 
 	backend.commit_operation(op)
+}
+
+pub fn get_parachain_id(rpc_client: Arc<RPC>) -> Option<u32> {
+	let key = [twox_128(b"ParachainInfo"), twox_128(b"ParachainId")].concat();
+	let result = rpc_client.storage::<H256>(StorageKey(key), None);
+
+	result
+		.map(|o| {
+			o.and_then(|data| {
+				<u32 as parity_scale_codec::Decode>::decode(&mut data.0.as_slice()).ok()
+			})
+		})
+		.ok()
+		.flatten()
 }
