@@ -30,8 +30,8 @@ pub struct TraceParams {
 	pub disable_stack: Option<bool>,
 	/// Javascript tracer (we just check if it's Blockscout tracer string)
 	pub tracer: Option<String>,
+	pub tracer_config: Option<single::TraceCallConfig>,
 	pub timeout: Option<String>,
-	pub with_log: Option<bool>,
 }
 
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize)]

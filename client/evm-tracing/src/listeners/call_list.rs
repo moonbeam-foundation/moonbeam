@@ -79,6 +79,8 @@ pub struct Listener {
 	/// True if only the `GasometerEvent::RecordTransaction` event has been received.
 	/// Allow to correctly handle transactions that cannot pay for the tx data in Legacy mode.
 	record_transaction_event_only: bool,
+
+	pub with_log: bool,
 }
 
 struct Context {
@@ -116,6 +118,7 @@ impl Default for Listener {
 			skip_next_context: false,
 			call_list_first_transaction: true,
 			record_transaction_event_only: false,
+			with_log: false,
 		}
 	}
 }
@@ -519,6 +522,9 @@ impl Listener {
 				// behavior (like batch precompile does) thus we simply consider this a call.
 				self.call_type = Some(CallType::Call);
 			}
+			EvmEvent::Log { .. } => {
+				// TODO: add support for logs
+			}
 
 			// We ignore other kinds of message if any (new ones may be added in the future).
 			#[allow(unreachable_patterns)]
@@ -681,6 +687,7 @@ mod tests {
 		TransactCall,
 		TransactCreate,
 		TransactCreate2,
+		Log,
 	}
 
 	enum TestRuntimeEvent {
@@ -782,6 +789,11 @@ mod tests {
 				gas_limit: 0u64,
 				address: H160::default(),
 			},
+			TestEvmEvent::Log => EvmEvent::Log {
+				address: H160::default(),
+				topics: Vec::new(),
+				data: Vec::new(),
+			},
 		}
 	}
 
@@ -874,6 +886,10 @@ mod tests {
 
 	fn do_evm_suicide_event(listener: &mut Listener) {
 		listener.evm_event(test_emit_evm_event(TestEvmEvent::Suicide, false, None));
+	}
+
+	fn do_evm_log_event(listener: &mut Listener) {
+		listener.evm_event(test_emit_evm_event(TestEvmEvent::Log, false, None));
 	}
 
 	fn do_runtime_step_event(listener: &mut Listener) {

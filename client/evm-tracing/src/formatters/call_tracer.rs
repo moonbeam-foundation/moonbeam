@@ -16,7 +16,7 @@
 
 use super::blockscout::BlockscoutCallInner;
 use crate::types::{
-	single::{Call, TraceCallConfig, TransactionTrace},
+	single::{Call, Log, TraceCallConfig, TransactionTrace},
 	CallResult, CallType, CreateResult,
 };
 
@@ -76,6 +76,8 @@ impl super::ResponseFormatter for Formatter {
 									input,
 									res,
 									value: Some(value),
+									// To Do: Add log formatting flow here
+									logs: Vec::new(),
 								},
 								BlockscoutCallInner::Create { init, res } => {
 									CallTracerInner::Create {
@@ -113,6 +115,7 @@ impl super::ResponseFormatter for Formatter {
 								}
 							},
 							calls: Vec::new(),
+							logs: Vec::new(),
 						},
 						tracer_config,
 					)
@@ -294,6 +297,9 @@ pub struct CallTracerCall {
 
 	#[serde(skip_serializing_if = "Vec::is_empty")]
 	pub calls: Vec<Call>,
+
+	#[serde(skip_serializing_if = "Vec::is_empty")]
+	logs: Vec<Log>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
@@ -311,6 +317,9 @@ pub enum CallTracerInner {
 
 		#[serde(skip_serializing_if = "Option::is_none")]
 		value: Option<U256>,
+
+		#[serde(skip_serializing_if = "Vec::is_empty")]
+		logs: Vec<Log>,
 	},
 	Create {
 		#[serde(rename = "type", serialize_with = "opcode_serialize")]
