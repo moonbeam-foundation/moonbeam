@@ -265,7 +265,7 @@ impl<'a> From<evm::tracing::Event<'a>> for EvmEvent {
 				address,
 				topics: topics.to_vec(),
 				data: data.to_vec(),
-			}
+			},
 		}
 	}
 }
