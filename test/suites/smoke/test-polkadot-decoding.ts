@@ -7,6 +7,32 @@ import { fail } from "assert";
 
 const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
 
+const extractStorageKeyComponents = (storageKey: string) => {
+  // The full storage key is composed of
+  // - The 0x prefix (2 characters)
+  // - The module prefix (32 characters)
+  // - The method name (32 characters)
+  // - The parameters (variable length)
+  const regex = /(?<moduleKey>0x[a-f0-9]{32})(?<fnKey>[a-f0-9]{32})(?<paramsKey>[a-f0-9]*)/i;
+  const match = regex.exec(storageKey);
+
+  if (!match) {
+    throw new Error("Invalid storage key format");
+  }
+
+  const { moduleKey, fnKey, paramsKey } = match.groups!;
+  return {
+    moduleKey,
+    fnKey,
+    paramsKey,
+  };
+};
+
+const randomHex = (nBytes) =>
+  [...crypto.getRandomValues(new Uint8Array(nBytes))]
+    .map((m) => ("0" + m.toString(16)).slice(-2))
+    .join("");
+
 // TODO: This test case really spams the logs, we should find a way to make it less verbose
 describeSuite({
   id: "S16",
@@ -33,6 +59,7 @@ describeSuite({
       title: "should be decodable",
       timeout: ONE_HOURS,
       test: async function () {
+        let currentStartKey = "";
         const modules = Object.keys(paraApi.query);
         for (const moduleName of modules) {
           log(`  - ${moduleName}`);
@@ -43,22 +70,67 @@ describeSuite({
             const keys = Object.keys(module[fn]);
             try {
               if (keys.includes("keysPaged")) {
-                const startKey = "";
-                // Trying to decode all storage entries may cause the node to timeout, decoding
-                // the first storage entries should be enough to verify if a storage migration
-                // was missed.
-                await module[fn].entriesPaged({
+                // Generate a first query with an empty startKey
+                currentStartKey = "";
+                const emptyKeyEntries = await module[fn].entriesPaged({
                   args: [],
                   pageSize,
-                  startKey,
+                  startKey: currentStartKey,
                 });
+
+                // Skip if no entries are found
+                if (emptyKeyEntries.length === 0) {
+                  log(`     - ${fn}:  ${chalk.green(`✔ No entries found`)}`);
+                  continue;
+                }
+                // Skip if all entries are checked
+                if (emptyKeyEntries.length < pageSize) {
+                  log(
+                    `     - ${fn}:  ${chalk.green(
+                      `✔ All ${emptyKeyEntries.length} entries checked`
+                    )}`
+                  );
+                  continue;
+                }
+                // Log emptyKeyFirstEntry
+                const emptyKeyFirstEntryKey = emptyKeyEntries[0][0].toString();
+                log(`     - ${fn}:  ${chalk.green(`🔎`)} (first key : ${emptyKeyFirstEntryKey})`);
+
+                // If there are more entries, perform a random check
+                // 1. Get the first entry storage key
+                const firstEntry = emptyKeyEntries[0];
+                const storageKey = firstEntry[0].toString();
+
+                // 2. Extract the module, fn and params keys
+                const { moduleKey, fnKey, paramsKey } = extractStorageKeyComponents(storageKey);
+
+                // 3. Generate a random startKey
+                // Overwrite the PRNG seed to check particular cases by
+                // uncommenting the following line
+                // PRNG = new SeededPRNG(42);
+                currentStartKey = moduleKey + fnKey + randomHex(paramsKey.length);
+
+                // 4. Fetch the storage entries with the random startKey
+                // Trying to decode all storage entries may cause the node to timeout, decoding
+                // random storage entries should be enough to verify if a storage migration
+                // was missed.
+                const randomEntries = await module[fn].entriesPaged({
+                  args: [],
+                  pageSize,
+                  startKey: currentStartKey,
+                });
+                // Log first entry storage key
+                const firstRandomEntryKey = randomEntries[0][0].toString();
+                log(`     - ${fn}:  ${chalk.green(`🔎`)} (random key: ${firstRandomEntryKey})`);
               } else if (fn != "code") {
                 await module[fn]();
               }
 
               log(`     - ${fn}:  ${chalk.green(`✔`)}`);
             } catch (e) {
-              const msg = chalk.red(`Failed to fetch storage at (${moduleName}::${fn})`);
+              const failMsg = `Failed to fetch storage at (${moduleName}::${fn}) `;
+              const PRNGDetails = `using startKey "${currentStartKey} at block ${atBlockNumber}`;
+              const msg = chalk.red(`${failMsg} ${PRNGDetails}`);
               log(msg, e);
               fail(msg);
             }
