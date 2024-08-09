@@ -28,47 +28,10 @@ const extractStorageKeyComponents = (storageKey: string) => {
   };
 };
 
-// A PRNG used for generating random numbers in a deterministic way
-class SeededPRNG {
-  private seed: number;
-  private modulus: number;
-  private multiplier: number;
-  private increment: number;
-
-  constructor(seed: number) {
-    this.seed = seed;
-    this.modulus = 2 ** 31 - 1; // A large prime number
-    this.multiplier = 48271; // A commonly used multiplier
-    this.increment = 0; // Increment is often set to 0 in LCG
-  }
-
-  // Get the current seed
-  public getSeed(): number {
-    return this.seed;
-  }
-
-  // Generate the next random number
-  private next(): number {
-    this.seed = (this.multiplier * this.seed + this.increment) % this.modulus;
-    return this.seed;
-  }
-
-  // Get a random number within a range [min, max)
-  public randomInRange(min: number, max: number): number {
-    const randomValue = this.next() / this.modulus;
-    return Math.floor(randomValue * (max - min) + min);
-  }
-
-  // Get a random hex string of a given length
-  public randomHex(length: number): string {
-    const hexChars = "0123456789abcdef";
-    let result = "";
-    for (let i = 0; i < length; i++) {
-      result += hexChars[this.randomInRange(0, hexChars.length)];
-    }
-    return result;
-  }
-}
+const randomHex = (nBytes) =>
+  [...crypto.getRandomValues(new Uint8Array(nBytes))]
+    .map((m) => ("0" + m.toString(16)).slice(-2))
+    .join("");
 
 // TODO: This test case really spams the logs, we should find a way to make it less verbose
 describeSuite({
@@ -80,16 +43,12 @@ describeSuite({
     let apiAt: ApiDecoration<"promise">;
     let specVersion: number = 0;
     let paraApi: ApiPromise;
-    let PRNG = new SeededPRNG(42);
 
     beforeAll(async function () {
       paraApi = context.polkadotJs("para");
       atBlockNumber = (await paraApi.rpc.chain.getHeader()).number.toNumber();
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
       specVersion = apiAt.consts.system.version.specVersion.toNumber();
-      // Initialize PRNG with current timestamp
-      PRNG = new SeededPRNG(new Date().getTime());
-      log(`Initializing PRNG with seed "${PRNG.getSeed()}"`);
     });
 
     // This test simply load all the storage items to make sure they can be loaded.
@@ -101,7 +60,6 @@ describeSuite({
       timeout: ONE_HOURS,
       test: async function () {
         let currentStartKey = "";
-        let currentSeed = PRNG.getSeed();
         const modules = Object.keys(paraApi.query);
         for (const moduleName of modules) {
           log(`  - ${moduleName}`);
@@ -150,8 +108,7 @@ describeSuite({
                 // Overwrite the PRNG seed to check particular cases by
                 // uncommenting the following line
                 // PRNG = new SeededPRNG(42);
-                currentSeed = PRNG.getSeed();
-                currentStartKey = moduleKey + fnKey + PRNG.randomHex(paramsKey.length);
+                currentStartKey = moduleKey + fnKey + randomHex(paramsKey.length);
 
                 // 4. Fetch the storage entries with the random startKey
                 // Trying to decode all storage entries may cause the node to timeout, decoding
@@ -172,7 +129,7 @@ describeSuite({
               log(`     - ${fn}:  ${chalk.green(`✔`)}`);
             } catch (e) {
               const failMsg = `Failed to fetch storage at (${moduleName}::${fn}) `;
-              const PRNGDetails = `using seed "${currentSeed}" and startKey "${currentStartKey}"`;
+              const PRNGDetails = `using startKey "${currentStartKey} at block ${atBlockNumber}`;
               const msg = chalk.red(`${failMsg} ${PRNGDetails}`);
               log(msg, e);
               fail(msg);
