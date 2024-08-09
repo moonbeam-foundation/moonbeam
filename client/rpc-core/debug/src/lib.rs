@@ -31,6 +31,7 @@ pub struct TraceParams {
 	/// Javascript tracer (we just check if it's Blockscout tracer string)
 	pub tracer: Option<String>,
 	pub timeout: Option<String>,
+	pub with_log: Option<bool>,
 }
 
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize)]

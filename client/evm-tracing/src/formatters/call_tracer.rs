@@ -16,7 +16,7 @@
 
 use super::blockscout::BlockscoutCallInner;
 use crate::types::{
-	single::{Call, TransactionTrace},
+	single::{Call, TraceCallConfig, TransactionTrace},
 	CallResult, CallType, CreateResult,
 };
 
@@ -50,62 +50,72 @@ impl super::ResponseFormatter for Formatter {
 					let gas = it.gas;
 					let gas_used = it.gas_used;
 					let inner = it.inner.clone();
-					Call::CallTracer(CallTracerCall {
-						from: from,
-						gas: gas,
-						gas_used: gas_used,
-						trace_address: Some(trace_address.clone()),
-						inner: match inner.clone() {
-							BlockscoutCallInner::Call {
-								input,
-								to,
-								res,
-								call_type,
-							} => CallTracerInner::Call {
-								call_type: match call_type {
-									CallType::Call => "CALL".as_bytes().to_vec(),
-									CallType::CallCode => "CALLCODE".as_bytes().to_vec(),
-									CallType::DelegateCall => "DELEGATECALL".as_bytes().to_vec(),
-									CallType::StaticCall => "STATICCALL".as_bytes().to_vec(),
-								},
-								to,
-								input,
-								res,
-								value: Some(value),
-							},
-							BlockscoutCallInner::Create { init, res } => CallTracerInner::Create {
-								input: init,
-								error: match res {
-									CreateResult::Success { .. } => None,
-									CreateResult::Error { ref error } => Some(error.clone()),
-								},
-								to: match res {
-									CreateResult::Success {
-										created_contract_address_hash,
-										..
-									} => Some(created_contract_address_hash),
-									CreateResult::Error { .. } => None,
-								},
-								output: match res {
-									CreateResult::Success {
-										created_contract_code,
-										..
-									} => Some(created_contract_code),
-									CreateResult::Error { .. } => None,
-								},
-								value: value,
-								call_type: "CREATE".as_bytes().to_vec(),
-							},
-							BlockscoutCallInner::SelfDestruct { balance, to } => {
-								CallTracerInner::SelfDestruct {
-									value: balance,
+					let tracer_config = TraceCallConfig { with_log: true };
+					Call::CallTracer(
+						CallTracerCall {
+							from: from,
+							gas: gas,
+							gas_used: gas_used,
+							trace_address: Some(trace_address.clone()),
+							inner: match inner.clone() {
+								BlockscoutCallInner::Call {
+									input,
 									to,
-									call_type: "SELFDESTRUCT".as_bytes().to_vec(),
+									res,
+									call_type,
+								} => CallTracerInner::Call {
+									call_type: match call_type {
+										CallType::Call => "CALL".as_bytes().to_vec(),
+										CallType::CallCode => "CALLCODE".as_bytes().to_vec(),
+										CallType::DelegateCall => {
+											"DELEGATECALL".as_bytes().to_vec()
+										}
+										CallType::StaticCall => "STATICCALL".as_bytes().to_vec(),
+									},
+									to,
+									input,
+									res,
+									value: Some(value),
+								},
+								BlockscoutCallInner::Create { init, res } => {
+									CallTracerInner::Create {
+										input: init,
+										error: match res {
+											CreateResult::Success { .. } => None,
+											CreateResult::Error { ref error } => {
+												Some(error.clone())
+											}
+										},
+										to: match res {
+											CreateResult::Success {
+												created_contract_address_hash,
+												..
+											} => Some(created_contract_address_hash),
+											CreateResult::Error { .. } => None,
+										},
+										output: match res {
+											CreateResult::Success {
+												created_contract_code,
+												..
+											} => Some(created_contract_code),
+											CreateResult::Error { .. } => None,
+										},
+										value: value,
+										call_type: "CREATE".as_bytes().to_vec(),
+									}
 								}
-							}
+								BlockscoutCallInner::SelfDestruct { balance, to } => {
+									CallTracerInner::SelfDestruct {
+										value: balance,
+										to,
+										call_type: "SELFDESTRUCT".as_bytes().to_vec(),
+									}
+								}
+							},
+							calls: Vec::new(),
 						},
-						calls: Vec::new(),
-					})
+						tracer_config,
+					)
 				})
 				.collect();
 			// Geth's `callTracer` expects a tree of nested calls and we have a stack.
@@ -156,14 +166,20 @@ impl super::ResponseFormatter for Formatter {
 				//	- Is greater than its sibling.
 				result.sort_by(|a, b| match (a, b) {
 					(
-						Call::CallTracer(CallTracerCall {
-							trace_address: Some(a),
-							..
-						}),
-						Call::CallTracer(CallTracerCall {
-							trace_address: Some(b),
-							..
-						}),
+						Call::CallTracer(
+							CallTracerCall {
+								trace_address: Some(a),
+								..
+							},
+							_,
+						),
+						Call::CallTracer(
+							CallTracerCall {
+								trace_address: Some(b),
+								..
+							},
+							_,
+						),
 					) => {
 						let a_len = a.len();
 						let b_len = b.len();
@@ -198,14 +214,20 @@ impl super::ResponseFormatter for Formatter {
 							.iter()
 							.position(|current| match (last.clone(), current) {
 								(
-									Call::CallTracer(CallTracerCall {
-										trace_address: Some(a),
-										..
-									}),
-									Call::CallTracer(CallTracerCall {
-										trace_address: Some(b),
-										..
-									}),
+									Call::CallTracer(
+										CallTracerCall {
+											trace_address: Some(a),
+											..
+										},
+										_,
+									),
+									Call::CallTracer(
+										CallTracerCall {
+											trace_address: Some(b),
+											..
+										},
+										_,
+									),
 								) => {
 									&b[..]
 										== a.get(0..a.len() - 1).expect(
@@ -215,15 +237,18 @@ impl super::ResponseFormatter for Formatter {
 								_ => unreachable!(),
 							}) {
 						// Remove `trace_address` from result.
-						if let Call::CallTracer(CallTracerCall {
-							ref mut trace_address,
-							..
-						}) = last
+						if let Call::CallTracer(
+							CallTracerCall {
+								ref mut trace_address,
+								..
+							},
+							_,
+						) = last
 						{
 							*trace_address = None;
 						}
 						// Push the children to parent.
-						if let Some(Call::CallTracer(CallTracerCall { calls, .. })) =
+						if let Some(Call::CallTracer(CallTracerCall { calls, .. }, _)) =
 							result.get_mut(index)
 						{
 							calls.push(last);
@@ -232,7 +257,8 @@ impl super::ResponseFormatter for Formatter {
 				}
 			}
 			// Remove `trace_address` from result.
-			if let Some(Call::CallTracer(CallTracerCall { trace_address, .. })) = result.get_mut(0)
+			if let Some(Call::CallTracer(CallTracerCall { trace_address, .. }, _)) =
+				result.get_mut(0)
 			{
 				*trace_address = None;
 			}
