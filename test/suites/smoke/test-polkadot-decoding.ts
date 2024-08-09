@@ -13,9 +13,14 @@ const extractStorageKeyComponents = (storageKey: string) => {
   // - The module prefix (32 characters)
   // - The method name (32 characters)
   // - The parameters (variable length)
-  const moduleKey = storageKey.substring(0, 2 + 32); // Includes the 0x prefix
-  const fnKey = storageKey.substring(2 + 32, 2 + 32 + 32);
-  const paramsKey = storageKey.substring(2 + 32 + 32);
+  const regex = /(?<moduleKey>0x[a-f0-9]{32})(?<fnKey>[a-f0-9]{32})(?<paramsKey>[a-f0-9]*)/i;
+  const match = regex.exec(storageKey);
+
+  if (!match) {
+    throw new Error("Invalid storage key format");
+  }
+
+  const { moduleKey, fnKey, paramsKey } = match.groups!;
   return {
     moduleKey,
     fnKey,
