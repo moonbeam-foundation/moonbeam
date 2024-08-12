@@ -28,7 +28,7 @@ describeSuite({
 
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
-      transferredBalance = 10_000_000_000_000_000_000n;
+      transferredBalance = 1_000_000_000_000_000_000_000n;
 
       // We first fund parachain 2000 sovreign account
       await context.createBlock(
@@ -116,10 +116,6 @@ describeSuite({
                 fungible: transferredBalance / 2n,
               },
             ],
-            weight_limit: {
-              refTime: 5_000_000_000,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 3,
-            } as any,
             descend_origin: sendingAddress,
           })
             .descend_origin()
@@ -129,7 +125,7 @@ describeSuite({
               Transact: {
                 originKind: "SovereignAccount",
                 requireWeightAtMost: {
-                  refTime: 3000000000,
+                  refTime: 3_000_000_000,
                   proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
                 },
                 call: {
