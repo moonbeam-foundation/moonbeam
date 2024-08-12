@@ -150,7 +150,7 @@ describeSuite({
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)
         await polkadotJs.tx.balances
-          .transferAllowDeath(paraSovereign, parseEther("1"))
+          .transferAllowDeath(paraSovereign, parseEther("100"))
           .signAndSend(alith);
         await context.createBlock();
 
@@ -175,7 +175,7 @@ describeSuite({
           })
         ).equals(amountTransferred);
 
-        const feeAssetAmount = 1_100_000_000_000_000n;
+        const feeAssetAmount = 5_000_000_000_000_000n;
 
         // Create xcm message to send ERC20 tokens to Charleth
         const config: XcmFragmentConfig = {
