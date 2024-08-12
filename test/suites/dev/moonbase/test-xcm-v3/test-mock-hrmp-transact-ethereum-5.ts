@@ -94,7 +94,7 @@ describeSuite({
 
         let feeAmount = 0n;
 
-        const targetXcmWeight = 1_325_000_000n + 100_000_000n;
+        const targetXcmWeight = 5_000_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {
@@ -119,10 +119,6 @@ describeSuite({
                 fungible: targetXcmFee,
               },
             ],
-            weight_limit: {
-              refTime: targetXcmWeight,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 7,
-            } as any,
             descend_origin: sendingAddress,
           })
             .descend_origin()
