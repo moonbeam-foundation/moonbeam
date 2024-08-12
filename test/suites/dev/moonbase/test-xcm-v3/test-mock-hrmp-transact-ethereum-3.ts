@@ -52,8 +52,7 @@ describeSuite({
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
 
-    // Gas limit + one db read
-    const assetsToTransfer = (3_300_000_000n + 25_000_000n) * 2n;
+    const assetsToTransfer = 10_000_000_000n
 
     beforeAll(async () => {
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
@@ -97,8 +96,8 @@ describeSuite({
               .reserve_asset_deposited()
               .clear_origin()
               .buy_execution()
-              .deposit_asset()
-              .as_v2()
+              .deposit_asset_v3()
+              .as_v3()
           ) as any
       );
 
@@ -111,8 +110,8 @@ describeSuite({
         .reserve_asset_deposited()
         .clear_origin()
         .buy_execution()
-        .deposit_asset()
-        .as_v2();
+        .deposit_asset_v3()
+        .as_v3();
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, statemint_para_id, {
@@ -191,10 +190,6 @@ describeSuite({
                 fungible: assetsToTransfer / 2n,
               },
             ],
-            weight_limit: {
-              refTime: assetsToTransfer / 2n,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 3,
-            } as any,
             descend_origin: sendingAddress,
           })
             .descend_origin()
