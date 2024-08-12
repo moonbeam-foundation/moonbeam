@@ -16,7 +16,7 @@ made a transaction herself. **Bob** is thus paying the transaction fees and
 
 ## How to sign the permit
 
-The following code is an exemple that is working in a Metamask-injected webpage.
+The following code is an example that is working in a Metamask-injected webpage.
 **Bob** then need to make a transaction towards the precompile address with the same
 data and **Alice**'s signature.
 

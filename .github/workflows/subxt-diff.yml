@@ -59,6 +59,7 @@ jobs:
           --no-prometheus \
           --unsafe-rpc-external \
           --alice \
+          --unsafe-force-node-key-generation \
           --rpc-port=9911 \
           --tmp
 
@@ -79,6 +80,7 @@ jobs:
           --unsafe-rpc-external \
           --alice \
           --rpc-port=9977 \
+          --unsafe-force-node-key-generation \
           --tmp & sleep 2' &
 
       - name: Run Diffs
