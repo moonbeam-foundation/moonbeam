@@ -30,10 +30,7 @@ use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
 #[serde(rename_all = "camelCase", untagged)]
 pub enum Call {
 	Blockscout(crate::formatters::blockscout::BlockscoutCall),
-	CallTracer(
-		crate::formatters::call_tracer::CallTracerCall,
-		TraceCallConfig,
-	),
+	CallTracer(crate::formatters::call_tracer::CallTracerCall),
 }
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Encode, Decode)]

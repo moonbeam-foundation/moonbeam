@@ -43,82 +43,82 @@ impl super::ResponseFormatter for Formatter {
 		for entry in listener.entries.iter() {
 			let mut result: Vec<Call> = entry
 				.into_iter()
-				.map(|(_, it)| {
+				.map(|(entry_index, it)| {
 					let from = it.from;
 					let trace_address = it.trace_address.clone();
 					let value = it.value;
 					let gas = it.gas;
 					let gas_used = it.gas_used;
 					let inner = it.inner.clone();
-					let tracer_config = TraceCallConfig { with_log: true };
-					Call::CallTracer(
-						CallTracerCall {
-							from: from,
-							gas: gas,
-							gas_used: gas_used,
-							trace_address: Some(trace_address.clone()),
-							inner: match inner.clone() {
-								BlockscoutCallInner::Call {
-									input,
-									to,
-									res,
-									call_type,
-								} => CallTracerInner::Call {
-									call_type: match call_type {
-										CallType::Call => "CALL".as_bytes().to_vec(),
-										CallType::CallCode => "CALLCODE".as_bytes().to_vec(),
-										CallType::DelegateCall => {
-											"DELEGATECALL".as_bytes().to_vec()
-										}
-										CallType::StaticCall => "STATICCALL".as_bytes().to_vec(),
-									},
-									to,
-									input,
-									res,
-									value: Some(value),
-									// To Do: Add log formatting flow here
-									logs: Vec::new(),
+					Call::CallTracer(CallTracerCall {
+						from: from,
+						gas: gas,
+						gas_used: gas_used,
+						trace_address: Some(trace_address.clone()),
+						inner: match inner.clone() {
+							BlockscoutCallInner::Call {
+								input,
+								to,
+								res,
+								call_type,
+							} => CallTracerInner::Call {
+								call_type: match call_type {
+									CallType::Call => "CALL".as_bytes().to_vec(),
+									CallType::CallCode => "CALLCODE".as_bytes().to_vec(),
+									CallType::DelegateCall => "DELEGATECALL".as_bytes().to_vec(),
+									CallType::StaticCall => "STATICCALL".as_bytes().to_vec(),
 								},
-								BlockscoutCallInner::Create { init, res } => {
-									CallTracerInner::Create {
-										input: init,
-										error: match res {
-											CreateResult::Success { .. } => None,
-											CreateResult::Error { ref error } => {
-												Some(error.clone())
-											}
-										},
-										to: match res {
-											CreateResult::Success {
-												created_contract_address_hash,
-												..
-											} => Some(created_contract_address_hash),
-											CreateResult::Error { .. } => None,
-										},
-										output: match res {
-											CreateResult::Success {
-												created_contract_code,
-												..
-											} => Some(created_contract_code),
-											CreateResult::Error { .. } => None,
-										},
-										value: value,
-										call_type: "CREATE".as_bytes().to_vec(),
+								to,
+								input,
+								res: res.clone(),
+								value: Some(value),
+								logs: match res {
+									CallResult::Output { .. } => {
+										let mut entry_logs = Vec::<Log>::new();
+										let log_entries =
+											&listener.log_entries[*entry_index as usize];
+										if let Some(log) = log_entries.get(entry_index) {
+											entry_logs.push(log.clone());
+										}
+										entry_logs
 									}
-								}
-								BlockscoutCallInner::SelfDestruct { balance, to } => {
-									CallTracerInner::SelfDestruct {
-										value: balance,
-										to,
-										call_type: "SELFDESTRUCT".as_bytes().to_vec(),
-									}
-								}
+									CallResult::Error { .. } => Vec::new(),
+								},
 							},
-							calls: Vec::new(),
-							logs: Vec::new(),
+							BlockscoutCallInner::Create { init, res } => CallTracerInner::Create {
+								input: init,
+								error: match res {
+									CreateResult::Success { .. } => None,
+									CreateResult::Error { ref error } => Some(error.clone()),
+								},
+								to: match res {
+									CreateResult::Success {
+										created_contract_address_hash,
+										..
+									} => Some(created_contract_address_hash),
+									CreateResult::Error { .. } => None,
+								},
+								output: match res {
+									CreateResult::Success {
+										created_contract_code,
+										..
+									} => Some(created_contract_code),
+									CreateResult::Error { .. } => None,
+								},
+								value: value,
+								call_type: "CREATE".as_bytes().to_vec(),
+							},
+							BlockscoutCallInner::SelfDestruct { balance, to } => {
+								CallTracerInner::SelfDestruct {
+									value: balance,
+									to,
+									call_type: "SELFDESTRUCT".as_bytes().to_vec(),
+								}
+							}
 						},
-						tracer_config,
-					)
+						calls: Vec::new(),
+						//logs: Vec::new(),
+					})
 				})
 				.collect();
 			// Geth's `callTracer` expects a tree of nested calls and we have a stack.
@@ -169,20 +169,14 @@ impl super::ResponseFormatter for Formatter {
 				//	- Is greater than its sibling.
 				result.sort_by(|a, b| match (a, b) {
 					(
-						Call::CallTracer(
-							CallTracerCall {
-								trace_address: Some(a),
-								..
-							},
-							_,
-						),
-						Call::CallTracer(
-							CallTracerCall {
-								trace_address: Some(b),
-								..
-							},
-							_,
-						),
+						Call::CallTracer(CallTracerCall {
+							trace_address: Some(a),
+							..
+						}),
+						Call::CallTracer(CallTracerCall {
+							trace_address: Some(b),
+							..
+						}),
 					) => {
 						let a_len = a.len();
 						let b_len = b.len();
@@ -217,20 +211,14 @@ impl super::ResponseFormatter for Formatter {
 							.iter()
 							.position(|current| match (last.clone(), current) {
 								(
-									Call::CallTracer(
-										CallTracerCall {
-											trace_address: Some(a),
-											..
-										},
-										_,
-									),
-									Call::CallTracer(
-										CallTracerCall {
-											trace_address: Some(b),
-											..
-										},
-										_,
-									),
+									Call::CallTracer(CallTracerCall {
+										trace_address: Some(a),
+										..
+									}),
+									Call::CallTracer(CallTracerCall {
+										trace_address: Some(b),
+										..
+									}),
 								) => {
 									&b[..]
 										== a.get(0..a.len() - 1).expect(
@@ -240,18 +228,15 @@ impl super::ResponseFormatter for Formatter {
 								_ => unreachable!(),
 							}) {
 						// Remove `trace_address` from result.
-						if let Call::CallTracer(
-							CallTracerCall {
-								ref mut trace_address,
-								..
-							},
-							_,
-						) = last
+						if let Call::CallTracer(CallTracerCall {
+							ref mut trace_address,
+							..
+						}) = last
 						{
 							*trace_address = None;
 						}
 						// Push the children to parent.
-						if let Some(Call::CallTracer(CallTracerCall { calls, .. }, _)) =
+						if let Some(Call::CallTracer(CallTracerCall { calls, .. })) =
 							result.get_mut(index)
 						{
 							calls.push(last);
@@ -260,8 +245,7 @@ impl super::ResponseFormatter for Formatter {
 				}
 			}
 			// Remove `trace_address` from result.
-			if let Some(Call::CallTracer(CallTracerCall { trace_address, .. }, _)) =
-				result.get_mut(0)
+			if let Some(Call::CallTracer(CallTracerCall { trace_address, .. })) = result.get_mut(0)
 			{
 				*trace_address = None;
 			}
@@ -297,9 +281,8 @@ pub struct CallTracerCall {
 
 	#[serde(skip_serializing_if = "Vec::is_empty")]
 	pub calls: Vec<Call>,
-
-	#[serde(skip_serializing_if = "Vec::is_empty")]
-	logs: Vec<Log>,
+	//#[serde(skip_serializing_if = "Vec::is_empty")]
+	//logs: Vec<Log>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
