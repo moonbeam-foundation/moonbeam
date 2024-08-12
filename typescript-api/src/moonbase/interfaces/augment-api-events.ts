@@ -1719,6 +1719,27 @@ declare module "@polkadot/api-base/types/events" {
         [task: ITuple<[u32, u32]>, id: Option<U8aFixed>],
         { task: ITuple<[u32, u32]>; id: Option<U8aFixed> }
       >;
+      /** Cancel a retry configuration for some task. */
+      RetryCancelled: AugmentedEvent<
+        ApiType,
+        [task: ITuple<[u32, u32]>, id: Option<U8aFixed>],
+        { task: ITuple<[u32, u32]>; id: Option<U8aFixed> }
+      >;
+      /**
+       * The given task was unable to be retried since the agenda is full at that block or there was
+       * not enough weight to reschedule it.
+       */
+      RetryFailed: AugmentedEvent<
+        ApiType,
+        [task: ITuple<[u32, u32]>, id: Option<U8aFixed>],
+        { task: ITuple<[u32, u32]>; id: Option<U8aFixed> }
+      >;
+      /** Set a retry configuration for some task. */
+      RetrySet: AugmentedEvent<
+        ApiType,
+        [task: ITuple<[u32, u32]>, id: Option<U8aFixed>, period: u32, retries: u8],
+        { task: ITuple<[u32, u32]>; id: Option<U8aFixed>; period: u32; retries: u8 }
+      >;
       /** Scheduled some task. */
       Scheduled: AugmentedEvent<ApiType, [when: u32, index: u32], { when: u32; index: u32 }>;
       /** Generic event */
