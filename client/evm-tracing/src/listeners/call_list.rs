@@ -16,7 +16,7 @@
 
 use crate::formatters::blockscout::BlockscoutCall as Call;
 use crate::formatters::blockscout::BlockscoutCallInner as CallInner;
-use crate::types::{CallResult, CallType, ContextType, CreateResult};
+use crate::types::{single::Log, CallResult, CallType, ContextType, CreateResult};
 use ethereum_types::{H160, U256};
 use evm_tracing_events::{
 	runtime::{Capture, ExitError, ExitReason, ExitSucceed},
@@ -80,7 +80,11 @@ pub struct Listener {
 	/// Allow to correctly handle transactions that cannot pay for the tx data in Legacy mode.
 	record_transaction_event_only: bool,
 
+	/// If true the listener will collect EvmEvent::Log events.
 	pub with_log: bool,
+
+	/// Storage for all logs emitted by EvmEvent::Log events.
+	pub log_entries: Vec<BTreeMap<u32, Log>>,
 }
 
 struct Context {
@@ -119,6 +123,7 @@ impl Default for Listener {
 			call_list_first_transaction: true,
 			record_transaction_event_only: false,
 			with_log: false,
+			log_entries: vec![],
 		}
 	}
 }
@@ -522,8 +527,20 @@ impl Listener {
 				// behavior (like batch precompile does) thus we simply consider this a call.
 				self.call_type = Some(CallType::Call);
 			}
-			EvmEvent::Log { .. } => {
-				// TODO: add support for logs
+			EvmEvent::Log {
+				address,
+				topics,
+				data,
+			} => {
+				let log = Log {
+					address,
+					topics,
+					data,
+				};
+				let key = self.entries_next_index;
+				if self.with_log {
+					self.insert_log_entry(key, log);
+				}
 			}
 
 			// We ignore other kinds of message if any (new ones may be added in the future).
@@ -539,6 +556,16 @@ impl Listener {
 			let mut btree_map = BTreeMap::new();
 			btree_map.insert(key, entry);
 			self.entries.push(btree_map);
+		}
+	}
+
+	fn insert_log_entry(&mut self, key: u32, entry: Log) {
+		if let Some(ref mut last) = self.log_entries.last_mut() {
+			last.insert(key, entry);
+		} else {
+			let mut btree_map = BTreeMap::new();
+			btree_map.insert(key, entry);
+			self.log_entries.push(btree_map);
 		}
 	}
 
@@ -1142,5 +1169,34 @@ mod tests {
 		// Each nested call contains 11 elements in the callstack (main + 10 subcalls).
 		// There are 5 main nested calls for a total of 56 elements in the callstack: 1 main + 55 nested.
 		assert_eq!(listener.entries[0].len(), (depth * (subdepth + 1)) + 1);
+	}
+
+	#[test]
+	fn call_log_event() {
+		let mut listener = Listener::default();
+		listener.with_log = true;
+		do_transact_create_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_create_event(&mut listener);
+		do_evm_call_event(&mut listener);
+		do_evm_log_event(&mut listener);
+		do_exit_event(&mut listener);
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.log_entries.len(), 1);
+		assert_eq!(listener.log_entries[0].len(), 1);
+	}
+
+	#[test]
+	fn call_log_event_not_recorder_when_with_log_is_false() {
+		let mut listener = Listener::default();
+		listener.with_log = false;
+		do_transact_create_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_create_event(&mut listener);
+		do_evm_call_event(&mut listener);
+		do_evm_log_event(&mut listener);
+		do_exit_event(&mut listener);
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.log_entries.len(), 0);
 	}
 }
