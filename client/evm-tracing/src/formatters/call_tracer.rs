@@ -114,7 +114,6 @@ impl super::ResponseFormatter for Formatter {
 							}
 						},
 						calls: Vec::new(),
-						//logs: Vec::new(),
 					})
 				})
 				.collect();
@@ -278,8 +277,6 @@ pub struct CallTracerCall {
 
 	#[serde(skip_serializing_if = "Vec::is_empty")]
 	pub calls: Vec<Call>,
-	//#[serde(skip_serializing_if = "Vec::is_empty")]
-	//logs: Vec<Log>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
