@@ -738,8 +738,7 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
 	type RuntimeEvent = RuntimeEvent;
-	// TODO generate weights
-	type WeightInfo = ();
+	type WeightInfo = moonriver_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
 }
 
