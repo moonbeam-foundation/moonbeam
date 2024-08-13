@@ -16,7 +16,7 @@
 
 use super::blockscout::BlockscoutCallInner;
 use crate::types::{
-	single::{Call, Log, TraceCallConfig, TransactionTrace},
+	single::{Call, Log, TransactionTrace},
 	CallResult, CallType, CreateResult,
 };
 
