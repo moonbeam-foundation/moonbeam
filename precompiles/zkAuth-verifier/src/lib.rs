@@ -18,6 +18,8 @@
 
 use core::marker::PhantomData;
 use fp_evm::{Context, ExitReason, PrecompileFailure, PrecompileHandle, Transfer};
+use moonbeam_runtime_common::weights::pallet_precompile_benchmarks::WeightInfo;
+use pallet_precompile_benchmarks::WeightInfo as TWeightInfo;
 use precompile_utils::{evm::costs::call_cost, prelude::*};
 use sp_core::{ConstU32, U256};
 use sp_std::vec::Vec;
@@ -49,13 +51,15 @@ where
 	fn verify_proof(
 		handle: &mut impl PrecompileHandle,
 		receipt: BoundedBytes<GetArrayLimit>,
-	) -> EvmResult {
-		//TODO: record proper cost
-		handle.record_cost(1000)?;
-		let receipt: Vec<u8> = receipt.into();
+	) -> EvmResult<UnboundedBytes> {
+		// Charge weight for zkAuth receipt verification
+		let weight = WeightInfo::<Runtime>::zk_auth_verify();
+		handle.record_external_cost(Some(weight.ref_time()), Some(0), Some(0))?;
+
+		let encoded_receipt: Vec<u8> = receipt.into();
 
 		// Verify the risc0 zk-proof receipt
-		let receipt: risc0_zkvm::Receipt = postcard::from_bytes(&receipt)
+		let receipt: risc0_zkvm::Receipt = postcard::from_bytes(&encoded_receipt)
 			.map_err(|_| RevertReason::Custom("Receipt decoding failed".into()))?;
 
 		let image_id = storage::ImageId::get().ok_or(RevertReason::custom("no ImageId stored"))?;
@@ -63,8 +67,7 @@ where
 			.verify(image_id)
 			.map_err(|_| RevertReason::Custom("Error verifying receipt".into()))?;
 
-		// TODO: return journal fields
-		Ok(())
+		Ok(encoded_receipt.into())
 	}
 }
 

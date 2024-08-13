@@ -1,4 +1,4 @@
-// TODO: remove this file, only used for testing purposes
+// TODO: only used for testing purposes
 //
 // This is an encoded receipt of a risc0 guest program that performs a single validation over a
 // mocked JWT.

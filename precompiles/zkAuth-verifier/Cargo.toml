@@ -10,6 +10,10 @@ log = { workspace = true }
 num_enum = { workspace = true }
 rustc-hex = { workspace = true }
 
+# Moonbeam
+moonbeam-runtime-common = { workspace = true }
+pallet-precompile-benchmarks = { workspace = true }
+
 # risc0
 postcard = { workspace = true }
 risc0-zkvm = { workspace = true }
@@ -54,9 +58,11 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
+	"moonbeam-runtime-common/std",
 	"sp-core/std",
 	"sp-io/std",
 	"pallet-evm/std",
+	"pallet-precompile-benchmarks/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-runtime/std",
