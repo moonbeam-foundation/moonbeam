@@ -52,7 +52,7 @@ describeSuite({
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
 
-    const assetsToTransfer = 10_000_000_000n
+    const assetsToTransfer = 10_000_000_000n;
 
     beforeAll(async () => {
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
