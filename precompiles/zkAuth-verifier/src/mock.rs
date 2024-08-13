@@ -20,12 +20,12 @@ use super::*;
 use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{ConstU32, Everything, PalletInfo as PalletInfoTrait},
+	traits::{ConstU32, Everything},
 	weights::Weight,
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
-use sp_core::{H160, H256, U256};
+use sp_core::{H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage, Perbill,

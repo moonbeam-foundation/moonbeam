@@ -17,11 +17,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use core::marker::PhantomData;
-use fp_evm::{Context, ExitReason, PrecompileFailure, PrecompileHandle, Transfer};
+use fp_evm::PrecompileHandle;
 use moonbeam_runtime_common::weights::pallet_precompile_benchmarks::WeightInfo;
 use pallet_precompile_benchmarks::WeightInfo as TWeightInfo;
-use precompile_utils::{evm::costs::call_cost, prelude::*};
-use sp_core::{ConstU32, U256};
+use precompile_utils::prelude::*;
+use sp_core::ConstU32;
 use sp_std::vec::Vec;
 
 pub mod encoded_receipt;
