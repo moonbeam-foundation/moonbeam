@@ -9,8 +9,7 @@ ZkAuth constant ZK_AUTH_CONTRACT = ZkAuth(ZK_AUTH_ADDRESS);
 
 /// @author The Moonbeam Team
 /// @title ZkAuth verifier precompile
-/// @dev Allows to execute an evm call after verifying the integrity and validity of
-/// a risc0 zk-proof receipt.
+/// @dev Allows to verify the integrity and validity of a Risc0 zk-proof receipt.
 /// @custom:address 0x000000000000000000000000000000000000081c
 interface ZkAuth {
     /// @dev Verifies a Risc0 zk-proof receipt.
