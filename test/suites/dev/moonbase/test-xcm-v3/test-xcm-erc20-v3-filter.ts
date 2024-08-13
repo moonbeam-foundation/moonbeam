@@ -83,7 +83,7 @@ describeSuite({
                   X1: { PalletInstance: Number(balancesPalletIndex) },
                 },
               },
-              fungible: 1_700_000_000_000_000n,
+              fungible: 5_000_000_000_000_000n,
             },
             {
               multilocation: {
@@ -128,7 +128,7 @@ describeSuite({
           return Number(weightUsed.proofSize);
         };
 
-        const limit = 64n;
+        const limit = 20n;
         // get weight for n=limit-1 and n=limit
         const weight_under = await getTransferWeight(limit - 1n);
         const weight_limit = await getTransferWeight(limit);
