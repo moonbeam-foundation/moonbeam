@@ -47,14 +47,18 @@ describeSuite({
             abi: contracts.abiCaller,
             functionName: "someAction",
             args: [contracts.calleeAddr, 6],
-          })
+          }),
         };
         const tracerParams = {
-            tracerConfig: {
-              withLog: true,
-            }
-        }
-        const traceTx = await customDevRpcRequest("debug_traceCall", [callParams, "latest", tracerParams]);
+          tracerConfig: {
+            withLog: true,
+          },
+        };
+        const traceTx = await customDevRpcRequest("debug_traceCall", [
+          callParams,
+          "latest",
+          tracerParams,
+        ]);
         const logs: any[] = [];
         for (const log of traceTx.structLogs) {
           if (logs.length == 1) {
