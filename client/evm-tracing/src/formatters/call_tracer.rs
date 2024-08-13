@@ -74,13 +74,10 @@ impl super::ResponseFormatter for Formatter {
 								value: Some(value),
 								logs: match res {
 									CallResult::Output { .. } => {
-										let mut entry_logs = Vec::<Log>::new();
-										let log_entries =
-											&listener.log_entries[*entry_index as usize];
-										if let Some(log) = log_entries.get(entry_index) {
-											entry_logs.push(log.clone());
+										match listener.log_entries.get(entry_index) {
+											Some(entry_logs) => entry_logs.clone(),
+											None => Vec::new(),
 										}
-										entry_logs
 									}
 									CallResult::Error { .. } => Vec::new(),
 								},

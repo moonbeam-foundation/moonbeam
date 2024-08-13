@@ -84,7 +84,7 @@ pub struct Listener {
 	pub with_log: bool,
 
 	/// Storage for all logs emitted by EvmEvent::Log events.
-	pub log_entries: Vec<BTreeMap<u32, Log>>,
+	pub log_entries: BTreeMap<u32, Vec<Log>>,
 }
 
 struct Context {
@@ -123,7 +123,7 @@ impl Default for Listener {
 			call_list_first_transaction: true,
 			record_transaction_event_only: false,
 			with_log: false,
-			log_entries: vec![],
+			log_entries: BTreeMap::<u32, Vec<Log>>::new(),
 		}
 	}
 }
@@ -537,9 +537,9 @@ impl Listener {
 					topics,
 					data,
 				};
-				let key = self.entries_next_index;
+				let key = self.entries_next_index.saturating_sub(1u32);
 				if self.with_log {
-					self.insert_log_entry(key, log);
+					self.insert_log_entry(&key, log);
 				}
 			}
 
@@ -559,13 +559,15 @@ impl Listener {
 		}
 	}
 
-	fn insert_log_entry(&mut self, key: u32, entry: Log) {
-		if let Some(ref mut last) = self.log_entries.last_mut() {
-			last.insert(key, entry);
+	fn insert_log_entry(&mut self, key: &u32, entry: Log) {
+		if let Some(entry_logs) = self.log_entries.get(key) {
+			let mut new_entry_logs: Vec<Log> = (*entry_logs.clone()).to_vec();
+			new_entry_logs.push(entry);
+			self.log_entries.insert(*key, new_entry_logs);
 		} else {
-			let mut btree_map = BTreeMap::new();
-			btree_map.insert(key, entry);
-			self.log_entries.push(btree_map);
+			let mut logs_vec = Vec::<Log>::new();
+			logs_vec.push(entry);
+			self.log_entries.insert(*key, logs_vec);
 		}
 	}
 
@@ -1182,8 +1184,24 @@ mod tests {
 		do_evm_log_event(&mut listener);
 		do_exit_event(&mut listener);
 		assert_eq!(listener.entries.len(), 1);
-		assert_eq!(listener.log_entries.len(), 1);
-		assert_eq!(listener.log_entries[0].len(), 1);
+		assert_eq!(listener.log_entries.get(&1).is_some(), true);
+		assert_eq!(listener.log_entries.get(&1).unwrap().len(), 1);
+	}
+
+	#[test]
+	fn call_multiple_logs_event() {
+		let mut listener = Listener::default();
+		listener.with_log = true;
+		do_transact_create_event(&mut listener);
+		do_gasometer_event(&mut listener);
+		do_evm_create_event(&mut listener);
+		do_evm_call_event(&mut listener);
+		do_evm_log_event(&mut listener);
+		do_evm_log_event(&mut listener);
+		do_exit_event(&mut listener);
+		assert_eq!(listener.entries.len(), 1);
+		assert_eq!(listener.log_entries.get(&1).is_some(), true);
+		assert_eq!(listener.log_entries.get(&1).unwrap().len(), 2);
 	}
 
 	#[test]
@@ -1197,6 +1215,6 @@ mod tests {
 		do_evm_log_event(&mut listener);
 		do_exit_event(&mut listener);
 		assert_eq!(listener.entries.len(), 1);
-		assert_eq!(listener.log_entries.len(), 0);
+		assert_eq!(listener.log_entries.get(&0), None);
 	}
 }
