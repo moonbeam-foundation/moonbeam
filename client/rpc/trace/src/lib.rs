@@ -19,7 +19,7 @@
 //! executor.
 //!
 //! The implementation is composed of multiple tasks :
-//! - Many calls the the RPC handler `Trace::filter`, communicating with the main task.
+//! - Many calls the RPC handler `Trace::filter`, communicating with the main task.
 //! - A main `CacheTask` managing the cache and the communication between tasks.
 //! - For each traced block an async task responsible to wait for a permit, spawn a blocking
 //!   task and waiting for the result, then send it to the main `CacheTask`.
