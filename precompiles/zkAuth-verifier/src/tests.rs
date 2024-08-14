@@ -65,11 +65,11 @@ fn test_mocked_verification() {
 					Alice,
 					Precompile1,
 					PCall::verify_proof {
-						receipt: receipt.into(),
+						receipt: receipt.clone().into(),
 					},
 				)
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns(());
+				.execute_returns(UnboundedBytes::from(receipt));
 		});
 }
