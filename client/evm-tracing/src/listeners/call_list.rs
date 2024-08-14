@@ -82,9 +82,6 @@ pub struct Listener {
 
 	/// If true the listener will collect EvmEvent::Log events.
 	pub with_log: bool,
-
-	/// Storage for all logs emitted by EvmEvent::Log events.
-	pub log_entries: BTreeMap<u32, Vec<Log>>,
 }
 
 struct Context {
@@ -123,7 +120,6 @@ impl Default for Listener {
 			call_list_first_transaction: true,
 			record_transaction_event_only: false,
 			with_log: false,
-			log_entries: BTreeMap::<u32, Vec<Log>>::new(),
 		}
 	}
 }
@@ -168,6 +164,7 @@ impl Listener {
 							input: context.data,
 							res,
 						},
+						logs: Vec::<Log>::new(),
 					}
 				}
 				ContextType::Create => {
@@ -186,6 +183,7 @@ impl Listener {
 							init: context.data,
 							res,
 						},
+						logs: Vec::<Log>::new(),
 					}
 				}
 			};
@@ -216,6 +214,7 @@ impl Listener {
 					input: vec![],
 					res,
 				},
+				logs: Vec::<Log>::new(),
 			};
 
 			self.insert_entry(self.entries_next_index, entry);
@@ -500,6 +499,7 @@ impl Listener {
 							to: target,
 							balance,
 						},
+						logs: Vec::<Log>::new(),
 					},
 				);
 				self.entries_next_index += 1;
@@ -537,9 +537,9 @@ impl Listener {
 					topics,
 					data,
 				};
-				let key = self.entries_next_index.saturating_sub(1u32);
+				let key = self.entries_next_index;
 				if self.with_log {
-					self.insert_log_entry(&key, log);
+					self.insert_log_entry(key, log);
 				}
 			}
 
@@ -559,15 +559,13 @@ impl Listener {
 		}
 	}
 
-	fn insert_log_entry(&mut self, key: &u32, entry: Log) {
-		if let Some(entry_logs) = self.log_entries.get(key) {
-			let mut new_entry_logs: Vec<Log> = (*entry_logs.clone()).to_vec();
-			new_entry_logs.push(entry);
-			self.log_entries.insert(*key, new_entry_logs);
-		} else {
-			let mut logs_vec = Vec::<Log>::new();
-			logs_vec.push(entry);
-			self.log_entries.insert(*key, logs_vec);
+	fn insert_log_entry(&mut self, key: u32, log_entry: Log) {
+		if let Some(ref mut last) = self.entries.last_mut() {
+			if let Some(ref mut last_call) = last.get(&key) {
+				let mut call = (*last_call).clone();
+				call.logs.push(log_entry);
+				last.insert(key, call);
+			}
 		}
 	}
 
@@ -612,6 +610,7 @@ impl Listener {
 								input: context.data,
 								res,
 							},
+							logs: Vec::<Log>::new(),
 						}
 					}
 					ContextType::Create => {
@@ -640,6 +639,7 @@ impl Listener {
 								init: context.data,
 								res,
 							},
+							logs: Vec::<Log>::new(),
 						}
 					}
 				},
@@ -1183,9 +1183,10 @@ mod tests {
 		do_evm_call_event(&mut listener);
 		do_evm_log_event(&mut listener);
 		do_exit_event(&mut listener);
+		listener.finish_transaction();
 		assert_eq!(listener.entries.len(), 1);
-		assert_eq!(listener.log_entries.get(&1).is_some(), true);
-		assert_eq!(listener.log_entries.get(&1).unwrap().len(), 1);
+		assert_eq!(listener.entries[0].len(), 2);
+		assert_eq!(listener.entries[0].get(&1).unwrap().logs.len(), 1);
 	}
 
 	#[test]
@@ -1199,9 +1200,10 @@ mod tests {
 		do_evm_log_event(&mut listener);
 		do_evm_log_event(&mut listener);
 		do_exit_event(&mut listener);
+		listener.finish_transaction();
 		assert_eq!(listener.entries.len(), 1);
-		assert_eq!(listener.log_entries.get(&1).is_some(), true);
-		assert_eq!(listener.log_entries.get(&1).unwrap().len(), 2);
+		assert_eq!(listener.entries[0].len(), 2);
+		assert_eq!(listener.entries[0].get(&1).unwrap().logs.len(), 2);
 	}
 
 	#[test]
@@ -1215,6 +1217,6 @@ mod tests {
 		do_evm_log_event(&mut listener);
 		do_exit_event(&mut listener);
 		assert_eq!(listener.entries.len(), 1);
-		assert_eq!(listener.log_entries.get(&0), None);
+		assert_eq!(listener.entries[0].get(&1).unwrap().logs.len(), 0);
 	}
 }
