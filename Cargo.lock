@@ -2310,6 +2310,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-primitives-storage-weight-reclaim"
+version = "1.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.11.0#b040778745a8d7bfeb51b175ad42e9389b8c4315"
+dependencies = [
+ "cumulus-primitives-core",
+ "cumulus-primitives-proof-size-hostfunction",
+ "docify",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "cumulus-primitives-timestamp"
 version = "0.7.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.11.0#b040778745a8d7bfeb51b175ad42e9389b8c4315"
@@ -9940,6 +9957,7 @@ name = "pallet-parameters"
 version = "0.1.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.11.0#b040778745a8d7bfeb51b175ad42e9389b8c4315"
 dependencies = [
+ "cumulus-primitives-storage-weight-reclaim",
  "docify",
  "frame-benchmarking",
  "frame-support",
