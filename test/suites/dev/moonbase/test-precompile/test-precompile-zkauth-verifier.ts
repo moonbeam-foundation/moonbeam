@@ -10,9 +10,6 @@ describeSuite({
   title: "Precompiles - ZkAuth Verifier",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    beforeAll(async function () {
-      await context.deployContract!("XTokensInstance");
-    });
     it({
       id: "T01",
       title: "Proof verification",
@@ -105,6 +102,7 @@ describeSuite({
         const tx = context
           .polkadotJs()
           .tx.system.setStorage([[imageIdStorageKey, imageIdStorageValue]]);
+        console.log([imageIdStorageKey, imageIdStorageValue])
         await context.polkadotJs().tx.sudo.sudo(tx).signAndSend(alith);
         await context.createBlock();
 
