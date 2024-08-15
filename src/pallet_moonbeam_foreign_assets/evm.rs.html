@@ -405,10 +405,10 @@
 
 // Hardcoded gas limits (from manueal binary search)
 </span><span class="kw">const </span>ERC20_CREATE_GAS_LIMIT: u64 = <span class="number">3_367_000</span>; <span class="comment">// highest failure: 3_366_000
-</span><span class="kw">const </span>ERC20_BURN_FROM_GAS_LIMIT: u64 = <span class="number">155_000</span>; <span class="comment">// highest failure: 154_000
-</span><span class="kw">const </span>ERC20_MINT_INTO_GAS_LIMIT: u64 = <span class="number">155_000</span>; <span class="comment">// highest failure: 154_000
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ERC20_BURN_FROM_GAS_LIMIT: u64 = <span class="number">155_000</span>; <span class="comment">// highest failure: 154_000
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ERC20_MINT_INTO_GAS_LIMIT: u64 = <span class="number">155_000</span>; <span class="comment">// highest failure: 154_000
 </span><span class="kw">const </span>ERC20_PAUSE_GAS_LIMIT: u64 = <span class="number">150_000</span>; <span class="comment">// highest failure: 149_500
-</span><span class="kw">const </span>ERC20_TRANSFER_GAS_LIMIT: u64 = <span class="number">155_000</span>; <span class="comment">// highest failure: 154_000
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ERC20_TRANSFER_GAS_LIMIT: u64 = <span class="number">155_000</span>; <span class="comment">// highest failure: 154_000
 </span><span class="kw">const </span>ERC20_UNPAUSE_GAS_LIMIT: u64 = <span class="number">150_000</span>; <span class="comment">// highest failure: 149_500
 
 </span><span class="kw">pub enum </span>EvmError {

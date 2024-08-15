@@ -738,6 +738,28 @@
 <a href="#736" id="736">736</a>
 <a href="#737" id="737">737</a>
 <a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1445,6 +1467,28 @@
 	<span class="kw">type </span>Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
 	<span class="kw">type </span>Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
 	<span class="kw">type </span>EvmRunner = EvmRunnerPrecompileOrEthXcm&lt;MoonbeamCall, <span class="self">Self</span>&gt;;
+}
+
+<span class="kw">pub struct </span>AccountIdToH160;
+<span class="kw">impl </span>sp_runtime::traits::Convert&lt;AccountId, H160&gt; <span class="kw">for </span>AccountIdToH160 {
+	<span class="kw">fn </span>convert(account_id: AccountId) -&gt; H160 {
+		account_id.into()
+	}
+}
+
+<span class="kw">impl </span>pallet_moonbeam_foreign_assets::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>AccountIdToH160 = AccountIdToH160;
+	<span class="kw">type </span>AssetIdFilter = Nothing;
+	<span class="kw">type </span>EvmRunner = EvmRunnerPrecompileOrEthXcm&lt;MoonbeamCall, <span class="self">Self</span>&gt;;
+	<span class="kw">type </span>ForeignAssetCreatorOrigin = frame_system::EnsureNever&lt;AccountId&gt;;
+	<span class="kw">type </span>ForeignAssetFreezerOrigin = frame_system::EnsureNever&lt;AccountId&gt;;
+	<span class="kw">type </span>ForeignAssetModifierOrigin = frame_system::EnsureNever&lt;AccountId&gt;;
+	<span class="kw">type </span>ForeignAssetUnfreezerOrigin = frame_system::EnsureNever&lt;AccountId&gt;;
+	<span class="kw">type </span>OnForeignAssetCreated = ();
+	<span class="kw">type </span>MaxForeignAssets = ConstU32&lt;<span class="number">256</span>&gt;;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_moonbeam_foreign_assets::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>XcmLocationToH160 = LocationToH160;
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]

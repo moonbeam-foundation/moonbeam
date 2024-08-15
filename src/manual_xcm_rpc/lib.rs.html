@@ -157,6 +157,9 @@
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
 <a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -230,7 +233,10 @@
 				ClearOrigin,
 				BuyExecution {
 					fees: (Parent, <span class="number">10000000000000u128</span>).into(),
-					weight_limit: Limited(Weight::from_parts(<span class="number">4_000_000_000u64</span>, DEFAULT_PROOF_SIZE)),
+					weight_limit: Limited(Weight::from_parts(
+						<span class="number">10_000_000_000u64</span>,
+						DEFAULT_PROOF_SIZE,
+					)),
 				},
 				DepositAsset {
 					assets: AllCounted(<span class="number">1</span>).into(),
@@ -273,7 +279,7 @@
 					BuyExecution {
 						fees: ((Parent, Parachain(sender.into())), <span class="number">10000000000000u128</span>).into(),
 						weight_limit: Limited(Weight::from_parts(
-							<span class="number">4_000_000_000u64</span>,
+							<span class="number">10_000_000_000u64</span>,
 							DEFAULT_PROOF_SIZE,
 						)),
 					},
