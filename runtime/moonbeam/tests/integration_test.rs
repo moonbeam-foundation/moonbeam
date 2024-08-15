@@ -1945,7 +1945,7 @@ fn xtokens_precompile_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(59490)
+				.expect_cost(196490)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -1997,7 +1997,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(59490)
+				.expect_cost(196490)
 				.expect_no_logs()
 				.execute_returns(());
 		})

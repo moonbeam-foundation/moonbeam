@@ -30,7 +30,7 @@ describeSuite({
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
       random = generateKeyringPair();
-      transferredBalance = 10_000_000_000_000_000_000n;
+      transferredBalance = 100_000_000_000_000_000_000n;
 
       // We fund the Delegatee, which will send the xcm and pay fees
       await context.createBlock(
@@ -114,7 +114,7 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
-        const targetXcmWeight = 1_325_000_000n + 100_000_000n;
+        const targetXcmWeight = 5_000_000_000n + 100_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {

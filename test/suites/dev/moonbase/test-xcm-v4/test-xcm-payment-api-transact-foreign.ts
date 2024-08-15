@@ -104,7 +104,7 @@ describeSuite({
     let foreignAssetId: string;
     const weightLimit = {
       refTime: 40_000_000_000n,
-      proofSize: 110_000n,
+      proofSize: 120_000n,
     };
     let weightToForeignFee: any;
 

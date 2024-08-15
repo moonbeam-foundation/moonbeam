@@ -1453,6 +1453,9 @@ construct_runtime! {
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin, Event<T>} = 109,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 111,
+		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 114,
+
+		// Utils
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 112,
 
 		// TODO should not be included in production

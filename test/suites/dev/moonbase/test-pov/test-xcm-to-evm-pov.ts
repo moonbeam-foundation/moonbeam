@@ -90,7 +90,7 @@ describeSuite({
           },
         ];
 
-        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 800000000n;
+        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 5_000_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
         const transferCall = context
           .polkadotJs()
@@ -192,7 +192,7 @@ describeSuite({
           },
         ];
 
-        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 800000000n;
+        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 5_000_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
         const transferCall = context
           .polkadotJs()
