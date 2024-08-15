@@ -155,7 +155,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Equilibrium",
         paraId: 2011,
-        mutedUntil: new Date("2024-06-01").getTime(),
       },
       {
         name: "Parallel",
@@ -164,7 +163,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Composable",
         paraId: 2019,
-        mutedUntil: new Date("2024-08-12").getTime(),
+        mutedUntil: new Date("2024-10-15").getTime(),
       },
       {
         name: "Nodle",
