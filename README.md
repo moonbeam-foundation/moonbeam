@@ -1,4 +1,4 @@
-# ![Moonbeam](media/Banner.jpg)
+![Moonbeam](media/Banner.jpg)
 
 # Information
 
@@ -6,8 +6,10 @@
 
 **An Ethereum compatible [Parachain](https://polkadot.network/technology/) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
 
-👉 _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._<br>
-👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._<br>
+👉 _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._
+
+👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._
+
 👉 _Reference our [crate-level docs (rustdocs)](https://moonbeam-foundation.github.io/moonbeam) to contribute._
 
 ## Run a Moonbase Alpha (Moonbeam TestNet) Node with Docker
@@ -193,4 +195,4 @@ Rustdocs for the Moonbeam codebase are automatically generated and published
 Moonbeam is open-source under the terms of the GPL3, and we welcome contributions.. Please review our
 [CONTRIBUTIONS.md](CONTRIBUTIONS.md) document for more information.
 
-Example of version bumping PR (runtime and node): https://github.com/moonbeam-foundation/moonbeam/pull/601/files
+Example of version bumping PR (runtime and node): <https://github.com/moonbeam-foundation/moonbeam/pull/601/files>
