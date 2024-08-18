@@ -82,7 +82,7 @@ impl<
 				// This involves the same db read per block, mitigating any attack based on
 				// non-supported assets
 				if !AssetIdInfoGetter::payment_is_supported(asset_type.clone()) {
-					return Err(XcmError::TooExpensive);
+					return Err(XcmError::AssetNotFound);
 				}
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
 				{

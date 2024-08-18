@@ -10536,6 +10536,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-xcm-weight-trader"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-tracing",
+ "staging-xcm",
+ "staging-xcm-executor",
+]
+
+[[package]]
 name = "parachains-common"
 version = "7.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.11.0#ef915632fbda727583b13813417664ecefc000b8"
