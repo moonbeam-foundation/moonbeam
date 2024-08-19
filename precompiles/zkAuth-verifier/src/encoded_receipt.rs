@@ -22,8 +22,22 @@
 // It can be verified using the following ImageID:
 //
 // ImageID = [
-//	1923256869, 654795233, 2887859926, 1709721587, 1196091263, 3916749566, 1248329059, 610202488
-// ]
+//	1048202052, 2631604849, 1082788656, 3479421485, 130624907, 2018137352, 3790369263, 128876623,
+//	]
+
+// Proved guest program:
+// with user_op_hash = vec![1u8,2u8,3u8]
+
+// fn main() {
+//    let jwt: Jwt = env::read();
+//    let user_op_hash: Vec<u8> = env::read();
+
+//    let _ = jwt.validate().unwrap();
+
+//    let commit_value: (String, Vec<u8>) = (jwt.raw_jwt, user_op_hash);
+
+//    env::commit(&commit_value);
+//}
 
 use sp_std::vec::Vec;
 

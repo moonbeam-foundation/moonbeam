@@ -70,6 +70,6 @@ fn test_mocked_verification() {
 				)
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns(UnboundedBytes::from(receipt));
+				.execute_returns(UnboundedBytes::from(vec![1u8, 2u8, 3u8]));
 		});
 }
