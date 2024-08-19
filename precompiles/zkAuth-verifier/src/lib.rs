@@ -40,6 +40,10 @@ pub const JWT_VALIDATOR_ID: [u32; 8] = [
 	1923256869, 654795233, 2887859926, 1709721587, 1196091263, 3916749566, 1248329059, 610202488,
 ];
 
+pub const JWT_VALIDATOR_ID_2: [u32; 8] = [
+	1048202052, 2631604849, 1082788656, 3479421485, 130624907, 2018137352, 3790369263, 128876623,
+];
+
 pub struct ZkAuthVerifierPrecompile<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
@@ -67,7 +71,12 @@ where
 			.verify(image_id)
 			.map_err(|_| RevertReason::Custom("Error verifying receipt".into()))?;
 
-		Ok(encoded_receipt.into())
+		let journal: (String, Vec<u8>) = receipt
+			.journal
+			.decode::<(String, Vec<u8>)>()
+			.map_err(|_| RevertReason::Custom("Error decoding journal".into()))?;
+
+		Ok(journal.1.into())
 	}
 }
 
