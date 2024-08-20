@@ -67,6 +67,16 @@ pub mod pallet {
 		ContractNotCorrupted,
 	}
 
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+	
+		fn on_idle(_n: BlockNumber, _remaining_weight: Weight) -> Weight {
+			const MAX_ITEM_PROOF_SIZE: u32 = todo!();
+
+			todo!()
+		}
+	}
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		// TODO(rodrigo): This extrinsic should be removed once the storage of destroyed contracts
