@@ -1,9 +1,8 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect, customDevRpcRequest } from "@moonwall/cli";
+import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { error } from "console";
-import { ethers } from "ethers";
-import { encodeFunctionData, Hash } from "viem";
+import { encodeFunctionData } from "viem";
 
 // Each case has
 // - Contract Address
@@ -21,7 +20,7 @@ class BadBlockRegressionCase {
   issue: string;
   network: Network;
   contractAddress: `0x${string}`;
-  block: "latest" | "earliest" | "pending" | "safe" | "finalized" | BigInt;
+  block: "latest" | "earliest" | "pending" | "safe" | "finalized" | bigint;
   callData: `0x${string}`;
 }
 // MOON-2824
@@ -109,7 +108,7 @@ describeSuite({
             continue;
           }
 
-          let callParams = {
+          const callParams = {
             to: testCase.contractAddress,
             data: testCase.callData,
           };
