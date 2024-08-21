@@ -150,7 +150,7 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		/// Handle the migration of the storage keys, returns the number of read and write operations
-		pub fn handle_migration(remaining_weight: Weight) -> ReadWriteOps {
+		fn handle_migration(remaining_weight: Weight) -> ReadWriteOps {
 			let mut read_write_ops = ReadWriteOps::new();
 
 			// maximum number of items that can be migrated in one block
@@ -217,7 +217,7 @@ pub mod pallet {
 
 		/// Tries to get the next key in the storage, returns None if there are no more keys to migrate.
 		/// Returns an error if the key is too long.
-		pub fn get_next_key(key: &StorageKey) -> Result<Option<StorageKey>, &'static str> {
+		fn get_next_key(key: &StorageKey) -> Result<Option<StorageKey>, &'static str> {
 			let next_key = if let Some(next) = sp_io::storage::next_key(key) {
 				let key = next.try_into().map_err(|_| "Key too long")?;
 				Some(key)
@@ -230,7 +230,7 @@ pub mod pallet {
 		/// Migrate maximum of `limit` keys starting from `start`, returns the next key to migrate
 		/// if there are more keys to migrate. Returns None if there are no more keys to migrate.
 		/// Returns an error if an error occurred during migration.
-		pub fn migrate_keys(start: StorageKey, limit: u64) -> MigrationResult {
+		fn migrate_keys(start: StorageKey, limit: u64) -> MigrationResult {
 			let mut key = start;
 			let mut migrated = 0;
 			let mut writes = 0;
