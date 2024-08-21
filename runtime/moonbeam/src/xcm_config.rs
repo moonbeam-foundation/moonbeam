@@ -443,7 +443,7 @@ impl pallet_message_queue::Config for Runtime {
 	type QueueChangeHandler = NarrowOriginToSibling<XcmpQueue>;
 	// NarrowOriginToSibling calls XcmpQueue's is_paused if Origin is sibling. Allows all other origins
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
-	type WeightInfo = pallet_message_queue::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = moonbeam_weights::pallet_message_queue::WeightInfo<Runtime>;
 	type IdleMaxServiceWeight = MessageQueueServiceWeight;
 }
 
