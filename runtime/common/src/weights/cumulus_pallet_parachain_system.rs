@@ -55,7 +55,7 @@ impl<T: frame_system::Config> cumulus_pallet_parachain_system::WeightInfo for We
 	/// Storage: `ParachainSystem::ProcessedDownwardMessages` (r:0 w:1)
 	/// Proof: `ParachainSystem::ProcessedDownwardMessages` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `MessageQueue::Pages` (r:0 w:1000)
-	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(33585), added: 36060, mode: `MaxEncodedLen`)
+	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(107993), added: 110468, mode: `MaxEncodedLen`)
 	/// The range of component `n` is `[0, 1000]`.
 	fn enqueue_inbound_downward_messages(n: u32, ) -> Weight {
 		// Proof Size summary in bytes:
@@ -63,8 +63,8 @@ impl<T: frame_system::Config> cumulus_pallet_parachain_system::WeightInfo for We
 		//  Estimated: `3517`
 		// Minimum execution time: 2_000_000 picoseconds.
 		Weight::from_parts(2_000_000, 3517)
-			// Standard Error: 1_076_181
-			.saturating_add(Weight::from_parts(113_079_141, 0).saturating_mul(n.into()))
+			// Standard Error: 914_274
+			.saturating_add(Weight::from_parts(213_425_397, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(n.into())))
