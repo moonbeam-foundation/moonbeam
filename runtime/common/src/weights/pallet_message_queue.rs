@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -82,7 +82,7 @@ impl<T: frame_system::Config> pallet_message_queue::WeightInfo for WeightInfo<T>
 		// Proof Size summary in bytes:
 		//  Measured:  `190`
 		//  Estimated: `3517`
-		// Minimum execution time: 6_000_000 picoseconds.
+		// Minimum execution time: 7_000_000 picoseconds.
 		Weight::from_parts(7_000_000, 3517)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
@@ -117,8 +117,8 @@ impl<T: frame_system::Config> pallet_message_queue::WeightInfo for WeightInfo<T>
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 153_000_000 picoseconds.
-		Weight::from_parts(161_000_000, 0)
+		// Minimum execution time: 155_000_000 picoseconds.
+		Weight::from_parts(156_000_000, 0)
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
 	/// Storage: `MessageQueue::ServiceHead` (r:1 w:1)
@@ -129,7 +129,7 @@ impl<T: frame_system::Config> pallet_message_queue::WeightInfo for WeightInfo<T>
 		// Proof Size summary in bytes:
 		//  Measured:  `171`
 		//  Estimated: `3517`
-		// Minimum execution time: 6_000_000 picoseconds.
+		// Minimum execution time: 5_000_000 picoseconds.
 		Weight::from_parts(6_000_000, 3517)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
@@ -142,7 +142,7 @@ impl<T: frame_system::Config> pallet_message_queue::WeightInfo for WeightInfo<T>
 		// Proof Size summary in bytes:
 		//  Measured:  `134274`
 		//  Estimated: `137658`
-		// Minimum execution time: 46_000_000 picoseconds.
+		// Minimum execution time: 48_000_000 picoseconds.
 		Weight::from_parts(53_000_000, 137658)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
@@ -159,8 +159,8 @@ impl<T: frame_system::Config> pallet_message_queue::WeightInfo for WeightInfo<T>
 		// Proof Size summary in bytes:
 		//  Measured:  `134458`
 		//  Estimated: `137658`
-		// Minimum execution time: 68_000_000 picoseconds.
-		Weight::from_parts(74_000_000, 137658)
+		// Minimum execution time: 69_000_000 picoseconds.
+		Weight::from_parts(75_000_000, 137658)
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -177,7 +177,7 @@ impl<T: frame_system::Config> pallet_message_queue::WeightInfo for WeightInfo<T>
 		//  Measured:  `134458`
 		//  Estimated: `137658`
 		// Minimum execution time: 82_000_000 picoseconds.
-		Weight::from_parts(87_000_000, 137658)
+		Weight::from_parts(88_000_000, 137658)
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}

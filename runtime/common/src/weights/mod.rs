@@ -16,6 +16,7 @@
 
 //! Moonbeam common weights.
 
+pub mod cumulus_pallet_parachain_system;
 pub mod cumulus_pallet_xcmp_queue;
 pub mod db;
 pub mod pallet_asset_manager;
