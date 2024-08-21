@@ -103,6 +103,8 @@ pub mod pallet {
 			let proof_size_diff = proof_size_after.saturating_sub(proof_size_before);
 
 			Weight::from_parts(0, proof_size_diff)
+				// For now the DbWeight is only recording the ref_time and not account for
+				// the proof_size.
 				.saturating_add(T::DbWeight::get().reads_writes(res.reads, res.writes))
 		}
 	}
