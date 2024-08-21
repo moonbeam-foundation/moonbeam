@@ -115,7 +115,10 @@ pub mod pallet {
 
 	impl ReadWriteOps {
 		pub fn new() -> Self {
-			Self { reads: 0, writes: 0 }
+			Self {
+				reads: 0,
+				writes: 0,
+			}
 		}
 
 		pub fn add_one_read(&mut self) {
