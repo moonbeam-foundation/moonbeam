@@ -21,7 +21,7 @@ class BadBlockRegressionCase {
   issue: string;
   network: Network;
   contractAddress: `0x${string}`;
-  blockTag: string;
+  block: "latest" | "earliest" | "pending" | "safe" | "finalized" | BigInt;
   callData: `0x${string}`;
 }
 // MOON-2824
@@ -29,7 +29,7 @@ const moon2824: BadBlockRegressionCase = {
   issue: "MOON-2824",
   network: Network.Moonriver,
   contractAddress: "0x1b30a3b5744e733d8d2f19f0812e3f79152a8777",
-  blockTag: `0x${(1471037).toString(16)}`,
+  block: 1471037n,
   callData: encodeFunctionData({
     abi: [
       {
@@ -67,7 +67,7 @@ const moon2822: BadBlockRegressionCase = {
   issue: "MOON-2822",
   network: Network.Moonbeam,
   contractAddress: "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080",
-  blockTag: "latest",
+  block: "latest",
   callData: encodeFunctionData({
     abi: [
       {
@@ -109,14 +109,29 @@ describeSuite({
             continue;
           }
 
-          const result = await (context.ethers().provider as ethers.JsonRpcProvider).call({
+          let callParams = {
             to: testCase.contractAddress,
             data: testCase.callData,
-            blockTag: testCase.blockTag,
-          });
+          };
+          // Add either blockTag or blockNumber depending on the case specification
+          if (typeof testCase.block === "string") {
+            callParams["blockTag"] = testCase.block;
+          } else if (typeof testCase.block === "bigint") {
+            callParams["blockNumber"] = testCase.block;
+          }
 
-          log(`Result for ${testCase.issue} at block ${testCase.blockTag}: ${result}`);
-          expect(result).toBe("0x");
+          const result = await context.viem().call(callParams);
+
+          try {
+            expect(result.data).to.contain("0x");
+          } catch (e) {
+            log(
+              `Error found for ${testCase.issue} at block ${testCase.block.toString()}: ${
+                result.data
+              }`
+            );
+            throw e;
+          }
         }
       },
     });
