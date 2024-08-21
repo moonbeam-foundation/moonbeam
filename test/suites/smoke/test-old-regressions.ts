@@ -120,5 +120,67 @@ describeSuite({
         }
       },
     });
+
+    it({
+      id: "C002",
+      title: "Verify bad transaction tracing case",
+      chainType: "moonbeam",
+      test: async function () {
+        const badTxHash = "0xd91d98b539720d8a42069268126d366fd29165e487d94b165a97e0158842657b";
+        // Fetch and verify the trace of a bad transaction observed in client version 0.38
+        // Detailed in MOON-2702
+
+        const providers = [
+          "https://del-moon-rpc-1-moonbeam-rpc-graph-1.moonbeam.ol-infra.network",
+          "https://moonbeam.unitedbloc.com",
+        ];
+
+        for (const provider of providers) {
+          const versionRes = await fetch(provider, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              id: 1,
+              jsonrpc: "2.0",
+              method: "system_version",
+              params: [],
+            }),
+          });
+          const version = await versionRes.json();
+          log(
+            `Testing for tracing endpoint ${provider} running Moonbeam version: ${version.result}`
+          );
+
+          const traceTx = await fetch(provider, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              id: 1,
+              jsonrpc: "2.0",
+              method: "debug_traceTransaction",
+              params: [badTxHash, { tracer: "callTracer" }],
+            }),
+          });
+
+          const traceData = await traceTx.json();
+
+          try {
+            expect(traceData.result.from).toBe("0x7369626cee070000000000000000000000000000");
+            expect(traceData.result.to).toBe("0xef81930aa8ed07c17948b2e26b7bfaf20144ef2a");
+            expect(traceData.result.gas).toBe("0xa6f91");
+            expect(traceData.result.gasUsed).toBe("0x8cef");
+          } catch (e) {
+            error(
+              `Error in tracing TX ${badTxHash} using ${provider} running Moonbeam version: ${version.result}`
+            );
+            throw e;
+          }
+        }
+      },
+    });
   },
 });
