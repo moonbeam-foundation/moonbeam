@@ -9771,6 +9771,7 @@ dependencies = [
 name = "pallet-moonbeam-lazy-migrations"
 version = "0.1.0"
 dependencies = [
+ "cumulus-primitives-storage-weight-reclaim",
  "frame-benchmarking",
  "frame-support",
  "frame-system",

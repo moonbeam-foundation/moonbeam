@@ -1,38 +1,41 @@
 [package]
-authors = {workspace = true}
+authors = { workspace = true }
 description = "A pallet for performing migrations from extrinsics"
 edition = "2021"
 name = "pallet-moonbeam-lazy-migrations"
 version = "0.1.0"
 
 [dependencies]
-log = {workspace = true}
+log = { workspace = true }
 
 # Substrate
-frame-support = {workspace = true}
-frame-system = {workspace = true}
-pallet-scheduler = {workspace = true}
-pallet-assets = {workspace = true}
-pallet-balances = {workspace = true}
-parity-scale-codec = {workspace = true}
-scale-info = {workspace = true, features = ["derive"]}
-sp-core = {workspace = true}
-sp-io = {workspace = true}
-sp-runtime = {workspace = true}
-sp-std = {workspace = true}
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+pallet-scheduler = { workspace = true }
+pallet-assets = { workspace = true }
+pallet-balances = { workspace = true }
+parity-scale-codec = { workspace = true }
+scale-info = { workspace = true, features = ["derive"] }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
 
 # Frontier
-pallet-evm = {workspace = true, features = ["forbid-evm-reentrancy"]}
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+
+# Runtime Interfaces
+cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features = false }
 
 # Benchmarks
-frame-benchmarking = {workspace = true, optional = true}
+frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
-frame-benchmarking = {workspace = true, features = ["std"]}
-pallet-balances = {workspace = true, features = ["std", "insecure_zero_ed"]}
-pallet-timestamp = {workspace = true, features = ["std"]}
-rlp = {workspace = true, features = ["std"]}
-sp-io = {workspace = true, features = ["std"]}
+frame-benchmarking = { workspace = true, features = ["std"] }
+pallet-balances = { workspace = true, features = ["std", "insecure_zero_ed"] }
+pallet-timestamp = { workspace = true, features = ["std"] }
+rlp = { workspace = true, features = ["std"] }
+sp-io = { workspace = true, features = ["std"] }
 
 [features]
 default = ["std"]
@@ -48,6 +51,7 @@ std = [
   "sp-std/std",
   "pallet-evm/std",
   "pallet-timestamp/std",
+  "cumulus-primitives-storage-weight-reclaim/std",
   "rlp/std",
 ]
 try-runtime = ["frame-support/try-runtime"]
