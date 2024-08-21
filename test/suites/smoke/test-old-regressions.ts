@@ -189,9 +189,8 @@ describeSuite({
             expect(traceData.result.gas).toBe("0xa6f91");
             expect(traceData.result.gasUsed).toBe("0x8cef");
           } catch (e) {
-            error(
-              `Error in tracing TX ${badTxHash} using ${provider} running Moonbeam version: ${version.result}`
-            );
+            const providerDetails = `${provider} running Moonbeam version: ${version.result}`;
+            error(`Error in tracing TX ${badTxHash} using ${providerDetails}`);
             throw e;
           }
         }
