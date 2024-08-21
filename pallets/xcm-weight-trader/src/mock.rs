@@ -120,6 +120,11 @@ impl Contains<Location> for AssetLocationFilter {
 	}
 }
 
+pub fn get_parent_asset_deposited() -> Option<(AccountId, Balance)> {
+	storage::unhashed::get_raw(b"____parent_asset_deposited")
+		.map(|output| Decode::decode(&mut output.as_slice()).expect("Decoding should work"))
+}
+
 pub struct MockAssetTransactor;
 impl TransactAsset for MockAssetTransactor {
 	fn deposit_asset(asset: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
@@ -133,7 +138,11 @@ impl TransactAsset for MockAssetTransactor {
 					let _ = Balances::deposit_creating(who, amount);
 					Ok(())
 				} else if location == Location::parent() {
-					todo!()
+					storage::unhashed::put_raw(
+						b"____parent_asset_deposited",
+						(who, amount).encode().as_slice(),
+					);
+					Ok(())
 				} else {
 					Err(XcmError::AssetNotFound)
 				}

@@ -58,7 +58,7 @@ mod benchmarks {
 		assert_last_event::<T>(
 			Event::SupportedAssetAdded {
 				location,
-				units_for_one_billion_native: 1_000,
+				relative_price: 1_000,
 			}
 			.into(),
 		);
@@ -79,7 +79,7 @@ mod benchmarks {
 		assert_last_event::<T>(
 			Event::SupportedAssetEdited {
 				location,
-				units_for_one_billion_native: 2_000,
+				relative_price: 2_000,
 			}
 			.into(),
 		);

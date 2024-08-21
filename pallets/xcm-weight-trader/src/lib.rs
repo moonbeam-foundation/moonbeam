@@ -42,6 +42,8 @@ use xcm::latest::{
 };
 use xcm_executor::traits::{TransactAsset, WeightTrader};
 
+const RELATIVE_PRICE_DECIMALS: u32 = 9;
+
 #[pallet]
 pub mod pallet {
 	use super::*;
@@ -102,7 +104,7 @@ pub mod pallet {
 	}
 
 	/// Stores all supported assets per XCM Location.
-	/// The u128 is the number of units equal to one billion units of native currency.
+	/// The u128 is the asset price relative to native asset with 9 decimals
 	/// The boolean specify if the support for this asset is active
 	#[pallet::storage]
 	#[pallet::getter(fn supported_assets)]
@@ -130,12 +132,12 @@ pub mod pallet {
 		/// New supported asset is registered
 		SupportedAssetAdded {
 			location: Location,
-			units_for_one_billion_native: u128,
+			relative_price: u128,
 		},
 		/// Changed the amount of units we are charging per execution second for a given asset
 		SupportedAssetEdited {
 			location: Location,
-			units_for_one_billion_native: u128,
+			relative_price: u128,
 		},
 		/// Pause support for a given asset
 		PauseAssetSupport { location: Location },
@@ -152,14 +154,11 @@ pub mod pallet {
 		pub fn add_asset(
 			origin: OriginFor<T>,
 			location: Location,
-			units_for_one_billion_native: u128,
+			relative_price: u128,
 		) -> DispatchResult {
 			T::AddSupportedAssetOrigin::ensure_origin(origin)?;
 
-			ensure!(
-				units_for_one_billion_native != 0,
-				Error::<T>::UnitsCannotBeZero
-			);
+			ensure!(relative_price != 0, Error::<T>::UnitsCannotBeZero);
 			ensure!(
 				!SupportedAssets::<T>::contains_key(&location),
 				Error::<T>::AssetAlreadyAdded
@@ -169,11 +168,11 @@ pub mod pallet {
 				Error::<T>::XcmLocationFiltered
 			);
 
-			SupportedAssets::<T>::insert(&location, (true, units_for_one_billion_native));
+			SupportedAssets::<T>::insert(&location, (true, relative_price));
 
 			Self::deposit_event(Event::SupportedAssetAdded {
 				location,
-				units_for_one_billion_native,
+				relative_price,
 			});
 
 			Ok(())
@@ -184,24 +183,21 @@ pub mod pallet {
 		pub fn edit_asset(
 			origin: OriginFor<T>,
 			location: Location,
-			units_for_one_billion_native: u128,
+			relative_price: u128,
 		) -> DispatchResult {
 			T::EditSupportedAssetOrigin::ensure_origin(origin)?;
 
-			ensure!(
-				units_for_one_billion_native != 0,
-				Error::<T>::UnitsCannotBeZero
-			);
+			ensure!(relative_price != 0, Error::<T>::UnitsCannotBeZero);
 			ensure!(
 				SupportedAssets::<T>::contains_key(&location),
 				Error::<T>::AssetNotFound
 			);
 
-			SupportedAssets::<T>::insert(&location, (true, units_for_one_billion_native));
+			SupportedAssets::<T>::insert(&location, (true, relative_price));
 
 			Self::deposit_event(Event::SupportedAssetEdited {
 				location,
-				units_for_one_billion_native,
+				relative_price,
 			});
 
 			Ok(())
@@ -213,8 +209,8 @@ pub mod pallet {
 			T::PauseSupportedAssetOrigin::ensure_origin(origin)?;
 
 			match SupportedAssets::<T>::get(&location) {
-				Some((true, units_for_one_billion_native)) => {
-					SupportedAssets::<T>::insert(&location, (false, units_for_one_billion_native));
+				Some((true, relative_price)) => {
+					SupportedAssets::<T>::insert(&location, (false, relative_price));
 					Self::deposit_event(Event::PauseAssetSupport { location });
 					Ok(())
 				}
@@ -229,8 +225,8 @@ pub mod pallet {
 			T::ResumeSupportedAssetOrigin::ensure_origin(origin)?;
 
 			match SupportedAssets::<T>::get(&location) {
-				Some((false, units_for_one_billion_native)) => {
-					SupportedAssets::<T>::insert(&location, (true, units_for_one_billion_native));
+				Some((false, relative_price)) => {
+					SupportedAssets::<T>::insert(&location, (true, relative_price));
 					Self::deposit_event(Event::ResumeAssetSupport { location });
 					Ok(())
 				}
@@ -258,7 +254,7 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		pub fn get_asset_units_for_one_billion_native(location: &Location) -> Option<u128> {
+		pub fn get_asset_relative_price(location: &Location) -> Option<u128> {
 			if let Some((true, ratio)) = SupportedAssets::<T>::get(location) {
 				Some(ratio)
 			} else {
@@ -269,6 +265,30 @@ pub mod pallet {
 }
 
 struct Trader<T: crate::Config>(Weight, Option<Asset>, core::marker::PhantomData<T>);
+
+impl<T: crate::Config> Trader<T> {
+	fn compute_amount_to_charge(
+		weight: &Weight,
+		asset_location: &Location,
+	) -> Result<u128, XcmError> {
+		if *asset_location == <T as crate::Config>::NativeLocation::get() {
+			<T as crate::Config>::WeightToFee::weight_to_fee(&weight)
+				.try_into()
+				.map_err(|_| XcmError::Overflow)
+		} else if let Some(relative_price) = Pallet::<T>::get_asset_relative_price(asset_location) {
+			let native_amount: u128 = <T as crate::Config>::WeightToFee::weight_to_fee(&weight)
+				.try_into()
+				.map_err(|_| XcmError::Overflow)?;
+			Ok(native_amount
+				.checked_mul(10u128.pow(RELATIVE_PRICE_DECIMALS))
+				.ok_or(XcmError::Overflow)?
+				.checked_div(relative_price)
+				.ok_or(XcmError::Overflow)?)
+		} else {
+			Err(XcmError::AssetNotFound)
+		}
+	}
+}
 
 impl<T: crate::Config> WeightTrader for Trader<T> {
 	fn new() -> Self {
@@ -299,21 +319,7 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 
 		match (first_asset.id, first_asset.fun) {
 			(XcmAssetId(location), Fungibility::Fungible(_)) => {
-				let amount: u128 = if location == <T as crate::Config>::NativeLocation::get() {
-					<T as crate::Config>::WeightToFee::weight_to_fee(&weight)
-						.try_into()
-						.map_err(|_| XcmError::Overflow)?
-				} else if let Some(units_for_one_billion_native) =
-					Pallet::<T>::get_asset_units_for_one_billion_native(&location)
-				{
-					let native_amount: u128 =
-						<T as crate::Config>::WeightToFee::weight_to_fee(&weight)
-							.try_into()
-							.map_err(|_| XcmError::Overflow)?;
-					units_for_one_billion_native * native_amount / 1_000_000_000u128
-				} else {
-					return Err(XcmError::AssetNotFound);
-				};
+				let amount: u128 = Self::compute_amount_to_charge(&weight, &location)?;
 
 				// We dont need to proceed if the amount is 0
 				// For cases (specially tests) where the asset is very cheap with respect
@@ -339,37 +345,46 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 		}
 	}
 
-	fn refund_weight(&mut self, weight: Weight, context: &XcmContext) -> Option<Asset> {
+	fn refund_weight(&mut self, actual_weight: Weight, context: &XcmContext) -> Option<Asset> {
 		log::trace!(
 			target: "xcm-weight-trader",
 			"refund_weight weight: {:?}, context: {:?}, available weight: {:?}, asset: {:?}",
-			weight,
+			actual_weight,
 			context,
 			self.0,
 			self.1
 		);
-		let maybe_asset_to_refound = if let Some(Asset {
+		if let Some(Asset {
 			fun: Fungibility::Fungible(initial_amount),
 			id: XcmAssetId(location),
-		}) = &self.1
+		}) = self.1.take()
 		{
-			let weight = weight.min(self.0);
-			let amount: u128 = <T as crate::Config>::WeightToFee::weight_to_fee(&weight)
-				.try_into()
-				.unwrap_or(u128::MAX);
-			let final_amount = amount.min(*initial_amount);
-			let amount_to_refound = initial_amount.saturating_sub(final_amount);
-			self.0 -= weight;
-			log::trace!(target: "xcm-weight-trader", "refund_weight amount to refund: {:?}", amount_to_refound);
-			Some(Asset {
-				fun: Fungibility::Fungible(amount_to_refound),
-				id: XcmAssetId(location.clone()),
-			})
+			if actual_weight == self.0 {
+				self.1 = Some(Asset {
+					fun: Fungibility::Fungible(initial_amount),
+					id: XcmAssetId(location),
+				});
+				None
+			} else {
+				let weight = actual_weight.min(self.0);
+				let amount: u128 =
+					Self::compute_amount_to_charge(&weight, &location).unwrap_or(u128::MAX);
+				let final_amount = amount.min(initial_amount);
+				let amount_to_refound = initial_amount.saturating_sub(final_amount);
+				self.0 -= weight;
+				self.1 = Some(Asset {
+					fun: Fungibility::Fungible(final_amount),
+					id: XcmAssetId(location.clone()),
+				});
+				log::trace!(target: "xcm-weight-trader", "refund_weight amount to refund: {:?}", amount_to_refound);
+				Some(Asset {
+					fun: Fungibility::Fungible(amount_to_refound),
+					id: XcmAssetId(location),
+				})
+			}
 		} else {
 			None
-		};
-		self.1 = maybe_asset_to_refound.clone();
-		maybe_asset_to_refound
+		}
 	}
 }
 

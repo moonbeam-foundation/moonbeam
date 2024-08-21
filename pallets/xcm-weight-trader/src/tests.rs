@@ -17,11 +17,19 @@
 //! Unit testing
 use {
 	crate::mock::*,
-	crate::Error,
+	crate::{Error, Trader},
+	frame_support::pallet_prelude::Weight,
 	frame_support::{assert_noop, assert_ok},
 	sp_runtime::DispatchError,
-	xcm::latest::{Asset, Error as XcmError, Junction, Location, Result as XcmResult},
+	xcm::latest::{
+		Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext, XcmHash,
+	},
+	xcm_executor::traits::WeightTrader,
 };
+
+fn xcm_fees_account() -> <Test as frame_system::Config>::AccountId {
+	<Test as crate::Config>::XcmFeesAccount::get()
+}
 
 #[test]
 fn test_add_supported_asset() {
@@ -65,7 +73,7 @@ fn test_add_supported_asset() {
 
 		// The account should be supported
 		assert_eq!(
-			XcmWeightTrader::get_asset_units_for_one_billion_native(&Location::parent()),
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
 			Some(1_000),
 		);
 
@@ -107,7 +115,7 @@ fn test_edit_supported_asset() {
 			1_000,
 		));
 		assert_eq!(
-			XcmWeightTrader::get_asset_units_for_one_billion_native(&Location::parent()),
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
 			Some(1_000),
 		);
 
@@ -140,7 +148,7 @@ fn test_edit_supported_asset() {
 
 		// The account should be supported
 		assert_eq!(
-			XcmWeightTrader::get_asset_units_for_one_billion_native(&Location::parent()),
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
 			Some(2_000),
 		);
 
@@ -171,7 +179,7 @@ fn test_pause_asset_support() {
 			1_000,
 		));
 		assert_eq!(
-			XcmWeightTrader::get_asset_units_for_one_billion_native(&Location::parent()),
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
 			Some(1_000),
 		);
 
@@ -192,7 +200,7 @@ fn test_pause_asset_support() {
 
 		// The account should be paused
 		assert_eq!(
-			XcmWeightTrader::get_asset_units_for_one_billion_native(&Location::parent()),
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
 			None,
 		);
 
@@ -257,7 +265,7 @@ fn test_resume_asset_support() {
 
 		// The asset should be supported again
 		assert_eq!(
-			XcmWeightTrader::get_asset_units_for_one_billion_native(&Location::parent()),
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
 			Some(1_000),
 		);
 
@@ -297,7 +305,7 @@ fn test_remove_asset_support() {
 			1_000,
 		));
 		assert_eq!(
-			XcmWeightTrader::get_asset_units_for_one_billion_native(&Location::parent()),
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
 			Some(1_000),
 		);
 
@@ -318,7 +326,7 @@ fn test_remove_asset_support() {
 
 		// The account should be removed
 		assert_eq!(
-			XcmWeightTrader::get_asset_units_for_one_billion_native(&Location::parent()),
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
 			None,
 		);
 
@@ -336,5 +344,200 @@ fn test_remove_asset_support() {
 			),
 			Error::<Test>::AssetNotFound
 		);
+	})
+}
+
+#[test]
+fn test_trader_native_asset() {
+	new_test_ext().execute_with(|| {
+		let weight_to_buy = Weight::from_parts(10_000, 0);
+		let dummy_xcm_context = XcmContext::with_message_id(XcmHash::default());
+
+		// Should not be able to buy weight with too low asset balance
+		assert_eq!(
+			Trader::<Test>::new().buy_weight(
+				weight_to_buy,
+				Asset {
+					fun: Fungibility::Fungible(9_999),
+					id: XcmAssetId(Location::here()),
+				}
+				.into(),
+				&dummy_xcm_context
+			),
+			Err(XcmError::TooExpensive)
+		);
+
+		// Should not be able to buy weight with unsupported asset
+		assert_eq!(
+			Trader::<Test>::new().buy_weight(
+				weight_to_buy,
+				Asset {
+					fun: Fungibility::Fungible(10_000),
+					id: XcmAssetId(Location::parent()),
+				}
+				.into(),
+				&dummy_xcm_context
+			),
+			Err(XcmError::AssetNotFound)
+		);
+
+		// Should not be able to buy weight without asset
+		assert_eq!(
+			Trader::<Test>::new().buy_weight(weight_to_buy, Default::default(), &dummy_xcm_context),
+			Err(XcmError::AssetNotFound)
+		);
+
+		// Should be able to buy weight with just enough native asset
+		let mut trader = Trader::<Test>::new();
+		assert_eq!(
+			trader.buy_weight(
+				weight_to_buy,
+				Asset {
+					fun: Fungibility::Fungible(10_000),
+					id: XcmAssetId(Location::here()),
+				}
+				.into(),
+				&dummy_xcm_context
+			),
+			Ok(Default::default())
+		);
+
+		// Should not refund any funds
+		let actual_weight = weight_to_buy;
+		assert_eq!(
+			trader.refund_weight(actual_weight, &dummy_xcm_context),
+			None
+		);
+
+		// Should not be able to buy weight again with the same trader
+		assert_eq!(
+			trader.buy_weight(
+				weight_to_buy,
+				Asset {
+					fun: Fungibility::Fungible(10_000),
+					id: XcmAssetId(Location::here()),
+				}
+				.into(),
+				&dummy_xcm_context
+			),
+			Err(XcmError::NotWithdrawable)
+		);
+
+		// Fees asset should be deposited into XcmFeesAccount
+		drop(trader);
+		assert_eq!(Balances::free_balance(&xcm_fees_account()), 10_000);
+
+		// Should be able to buy weight with more native asset (and get back unused amount)
+		let mut trader = Trader::<Test>::new();
+		assert_eq!(
+			trader.buy_weight(
+				weight_to_buy,
+				Asset {
+					fun: Fungibility::Fungible(11_000),
+					id: XcmAssetId(Location::here()),
+				}
+				.into(),
+				&dummy_xcm_context
+			),
+			Ok(Asset {
+				fun: Fungibility::Fungible(1_000),
+				id: XcmAssetId(Location::here()),
+			}
+			.into())
+		);
+
+		// Should be able to refund unused weights
+		let actual_weight = weight_to_buy.saturating_sub(Weight::from_parts(2_000, 0));
+		assert_eq!(
+			trader.refund_weight(actual_weight, &dummy_xcm_context),
+			Some(Asset {
+				fun: Fungibility::Fungible(2_000),
+				id: XcmAssetId(Location::here()),
+			})
+		);
+
+		// Fees asset should be deposited again into XcmFeesAccount (2 times cost minus one refund)
+		drop(trader);
+		assert_eq!(
+			Balances::free_balance(&xcm_fees_account()),
+			(2 * 10_000) - 2_000
+		);
+	})
+}
+
+#[test]
+fn test_trader_parent_asset() {
+	new_test_ext().execute_with(|| {
+		let weight_to_buy = Weight::from_parts(10_000, 0);
+		let dummy_xcm_context = XcmContext::with_message_id(XcmHash::default());
+
+		// Setup (add a supported asset)
+		assert_ok!(XcmWeightTrader::add_asset(
+			RuntimeOrigin::signed(AddAccount::get()),
+			Location::parent(),
+			500_000_000,
+		));
+		assert_eq!(
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
+			Some(500_000_000),
+		);
+
+		// Should be able to pay fees with registered asset
+		let mut trader = Trader::<Test>::new();
+		assert_eq!(
+			trader.buy_weight(
+				weight_to_buy,
+				Asset {
+					fun: Fungibility::Fungible(22_000),
+					id: XcmAssetId(Location::parent()),
+				}
+				.into(),
+				&dummy_xcm_context
+			),
+			Ok(Asset {
+				fun: Fungibility::Fungible(2_000),
+				id: XcmAssetId(Location::parent()),
+			}
+			.into())
+		);
+
+		// Should be able to refund unused weights
+		let actual_weight = weight_to_buy.saturating_sub(Weight::from_parts(2_000, 0));
+		assert_eq!(
+			trader.refund_weight(actual_weight, &dummy_xcm_context),
+			Some(Asset {
+				fun: Fungibility::Fungible(4_000),
+				id: XcmAssetId(Location::parent()),
+			})
+		);
+
+		// Fees asset should be deposited into XcmFeesAccount
+		drop(trader);
+		assert_eq!(
+			get_parent_asset_deposited(),
+			Some((xcm_fees_account(), 20_000 - 4_000))
+		);
+
+		// Should not be able to buy weight if the asset is not a first position
+		assert_eq!(
+			Trader::<Test>::new().buy_weight(
+				weight_to_buy,
+				vec![
+					Asset {
+						fun: Fungibility::Fungible(10),
+						id: XcmAssetId(Location::here()),
+					},
+					Asset {
+						fun: Fungibility::Fungible(30_000),
+						id: XcmAssetId(Location::parent()),
+					}
+				]
+				.into(),
+				&dummy_xcm_context
+			),
+			Err(XcmError::TooExpensive)
+		);
+
+		// TODO
 	})
 }
