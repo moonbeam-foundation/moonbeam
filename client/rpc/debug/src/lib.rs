@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use futures::StreamExt;
 use jsonrpsee::core::{async_trait, RpcResult};
-pub use moonbeam_rpc_core_debug::{DebugServer, TraceParams};
+pub use moonbeam_rpc_core_debug::{DebugServer, TraceCallParams, TraceParams};
 
 use tokio::{
 	self,
@@ -23,7 +23,8 @@ use tokio::{
 };
 
 use ethereum_types::H256;
-use fc_rpc::{frontier_backend_client, internal_err, OverrideHandle};
+use fc_rpc::{frontier_backend_client, internal_err};
+use fc_storage::StorageOverride;
 use fp_rpc::EthereumRuntimeRPCApi;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
 use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
@@ -42,6 +43,7 @@ use sp_runtime::{
 use std::{future::Future, marker::PhantomData, sync::Arc};
 
 pub enum RequesterInput {
+	Call((RequestBlockId, TraceCallParams)),
 	Transaction(H256),
 	Block(RequestBlockId),
 }
@@ -122,6 +124,36 @@ impl DebugServer for Debug {
 				_ => unreachable!(),
 			})
 	}
+
+	/// Handler for `debug_traceCall` request. Communicates with the service-defined task
+	/// using channels.
+	async fn trace_call(
+		&self,
+		call_params: TraceCallParams,
+		id: RequestBlockId,
+		params: Option<TraceParams>,
+	) -> RpcResult<single::TransactionTrace> {
+		let requester = self.requester.clone();
+
+		let (tx, rx) = oneshot::channel();
+		// Send a message from the rpc handler to the service level task.
+		requester
+			.unbounded_send(((RequesterInput::Call((id, call_params)), params), tx))
+			.map_err(|err| {
+				internal_err(format!(
+					"failed to send request to debug service : {:?}",
+					err
+				))
+			})?;
+
+		// Receive a message from the service level task and send the rpc response.
+		rx.await
+			.map_err(|err| internal_err(format!("debug service dropped the channel : {:?}", err)))?
+			.map(|res| match res {
+				Response::Single(res) => res,
+				_ => unreachable!(),
+			})
+	}
 }
 
 pub struct DebugHandler<B: BlockT, C, BE>(PhantomData<(B, C, BE)>);
@@ -147,7 +179,7 @@ where
 		backend: Arc<BE>,
 		frontier_backend: Arc<dyn fc_api::Backend<B> + Send + Sync>,
 		permit_pool: Arc<Semaphore>,
-		overrides: Arc<OverrideHandle<B>>,
+		overrides: Arc<dyn StorageOverride<B>>,
 		raw_max_memory_usage: usize,
 	) -> (impl Future<Output = ()>, DebugRequester) {
 		let (tx, mut rx): (DebugRequester, _) =
@@ -178,6 +210,40 @@ where
 											transaction_hash,
 											params,
 											overrides.clone(),
+											raw_max_memory_usage,
+										)
+									})
+									.await
+									.map_err(|e| {
+										internal_err(format!(
+											"Internal error on spawned task : {:?}",
+											e
+										))
+									})?
+								}
+								.await,
+							);
+						});
+					}
+					Some((
+						(RequesterInput::Call((request_block_id, call_params)), params),
+						response_tx,
+					)) => {
+						let client = client.clone();
+						let frontier_backend = frontier_backend.clone();
+						let permit_pool = permit_pool.clone();
+
+						tokio::task::spawn(async move {
+							let _ = response_tx.send(
+								async {
+									let _permit = permit_pool.acquire().await;
+									tokio::task::spawn_blocking(move || {
+										Self::handle_call_request(
+											client.clone(),
+											frontier_backend.clone(),
+											request_block_id,
+											call_params,
+											params,
 											raw_max_memory_usage,
 										)
 									})
@@ -288,7 +354,7 @@ where
 		frontier_backend: Arc<dyn fc_api::Backend<B> + Send + Sync>,
 		request_block_id: RequestBlockId,
 		params: Option<TraceParams>,
-		overrides: Arc<OverrideHandle<B>>,
+		overrides: Arc<dyn StorageOverride<B>>,
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
 
@@ -332,21 +398,9 @@ where
 		// Get parent blockid.
 		let parent_block_hash = *header.parent_hash();
 
-		let schema = fc_storage::onchain_storage_schema::<B, C, BE>(client.as_ref(), hash);
-
-		// Using storage overrides we align with `:ethereum_schema` which will result in proper
-		// SCALE decoding in case of migration.
-		let statuses = match overrides.schemas.get(&schema) {
-			Some(schema) => schema
-				.current_transaction_statuses(hash)
-				.unwrap_or_default(),
-			_ => {
-				return Err(internal_err(format!(
-					"No storage override at {:?}",
-					reference_id
-				)))
-			}
-		};
+		let statuses = overrides
+			.current_transaction_statuses(hash)
+			.unwrap_or_default();
 
 		// Known ethereum transaction hashes.
 		let eth_tx_hashes: Vec<_> = statuses.iter().map(|t| t.transaction_hash).collect();
@@ -449,7 +503,7 @@ where
 		frontier_backend: Arc<dyn fc_api::Backend<B> + Send + Sync>,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-		overrides: Arc<OverrideHandle<B>>,
+		overrides: Arc<dyn StorageOverride<B>>,
 		raw_max_memory_usage: usize,
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
@@ -508,20 +562,7 @@ where
 			));
 		};
 
-		let schema =
-			fc_storage::onchain_storage_schema::<B, C, BE>(client.as_ref(), reference_hash);
-
-		// Get the block that contains the requested transaction. Using storage overrides we align
-		// with `:ethereum_schema` which will result in proper SCALE decoding in case of migration.
-		let reference_block = match overrides.schemas.get(&schema) {
-			Some(schema) => schema.current_block(reference_hash),
-			_ => {
-				return Err(internal_err(format!(
-					"No storage override at {:?}",
-					reference_hash
-				)))
-			}
-		};
+		let reference_block = overrides.current_block(reference_hash);
 
 		// Get the actual ethereum transaction.
 		if let Some(block) = reference_block {
@@ -639,5 +680,213 @@ where
 			}
 		}
 		Err(internal_err("Runtime block call failed".to_string()))
+	}
+
+	fn handle_call_request(
+		client: Arc<C>,
+		frontier_backend: Arc<dyn fc_api::Backend<B> + Send + Sync>,
+		request_block_id: RequestBlockId,
+		call_params: TraceCallParams,
+		trace_params: Option<TraceParams>,
+		raw_max_memory_usage: usize,
+	) -> RpcResult<Response> {
+		let (tracer_input, trace_type) = Self::handle_params(trace_params)?;
+
+		let reference_id: BlockId<B> = match request_block_id {
+			RequestBlockId::Number(n) => Ok(BlockId::Number(n.unique_saturated_into())),
+			RequestBlockId::Tag(RequestBlockTag::Latest) => {
+				Ok(BlockId::Number(client.info().best_number))
+			}
+			RequestBlockId::Tag(RequestBlockTag::Earliest) => {
+				Ok(BlockId::Number(0u32.unique_saturated_into()))
+			}
+			RequestBlockId::Tag(RequestBlockTag::Pending) => {
+				Err(internal_err("'pending' blocks are not supported"))
+			}
+			RequestBlockId::Hash(eth_hash) => {
+				match futures::executor::block_on(frontier_backend_client::load_hash::<B, C>(
+					client.as_ref(),
+					frontier_backend.as_ref(),
+					eth_hash,
+				)) {
+					Ok(Some(hash)) => Ok(BlockId::Hash(hash)),
+					Ok(_) => Err(internal_err("Block hash not found".to_string())),
+					Err(e) => Err(e),
+				}
+			}
+		}?;
+
+		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
+		let api = client.runtime_api();
+		// Get the header I want to work with.
+		let Ok(hash) = client.expect_block_hash_from_id(&reference_id) else {
+			return Err(internal_err("Block header not found"));
+		};
+		let header = match client.header(hash) {
+			Ok(Some(h)) => h,
+			_ => return Err(internal_err("Block header not found")),
+		};
+		// Get parent blockid.
+		let parent_block_hash = *header.parent_hash();
+
+		// Get DebugRuntimeApi version
+		let trace_api_version = if let Ok(Some(api_version)) =
+			api.api_version::<dyn DebugRuntimeApi<B>>(parent_block_hash)
+		{
+			api_version
+		} else {
+			return Err(internal_err(
+				"Runtime api version call failed (trace)".to_string(),
+			));
+		};
+
+		if trace_api_version <= 5 {
+			return Err(internal_err(
+				"debug_traceCall not supported with old runtimes".to_string(),
+			));
+		}
+
+		let TraceCallParams {
+			from,
+			to,
+			gas_price,
+			max_fee_per_gas,
+			max_priority_fee_per_gas,
+			gas,
+			value,
+			data,
+			nonce,
+			access_list,
+			..
+		} = call_params;
+
+		let (max_fee_per_gas, max_priority_fee_per_gas) =
+			match (gas_price, max_fee_per_gas, max_priority_fee_per_gas) {
+				(gas_price, None, None) => {
+					// Legacy request, all default to gas price.
+					// A zero-set gas price is None.
+					let gas_price = if gas_price.unwrap_or_default().is_zero() {
+						None
+					} else {
+						gas_price
+					};
+					(gas_price, gas_price)
+				}
+				(_, max_fee, max_priority) => {
+					// eip-1559
+					// A zero-set max fee is None.
+					let max_fee = if max_fee.unwrap_or_default().is_zero() {
+						None
+					} else {
+						max_fee
+					};
+					// Ensure `max_priority_fee_per_gas` is less or equal to `max_fee_per_gas`.
+					if let Some(max_priority) = max_priority {
+						let max_fee = max_fee.unwrap_or_default();
+						if max_priority > max_fee {
+							return Err(internal_err(
+							"Invalid input: `max_priority_fee_per_gas` greater than `max_fee_per_gas`",
+						));
+						}
+					}
+					(max_fee, max_priority)
+				}
+			};
+
+		let gas_limit = match gas {
+			Some(amount) => amount,
+			None => {
+				if let Some(block) = api
+					.current_block(parent_block_hash)
+					.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
+				{
+					block.header.gas_limit
+				} else {
+					return Err(internal_err(
+						"block unavailable, cannot query gas limit".to_string(),
+					));
+				}
+			}
+		};
+		let data = data.map(|d| d.0).unwrap_or_default();
+
+		let access_list = access_list.unwrap_or_default();
+
+		let f = || -> RpcResult<_> {
+			let _result = api
+				.trace_call(
+					parent_block_hash,
+					&header,
+					from.unwrap_or_default(),
+					to,
+					data,
+					value.unwrap_or_default(),
+					gas_limit,
+					max_fee_per_gas,
+					max_priority_fee_per_gas,
+					nonce,
+					Some(
+						access_list
+							.into_iter()
+							.map(|item| (item.address, item.storage_keys))
+							.collect(),
+					),
+				)
+				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
+				.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;
+
+			Ok(moonbeam_rpc_primitives_debug::Response::Single)
+		};
+
+		return match trace_type {
+			single::TraceType::Raw {
+				disable_storage,
+				disable_memory,
+				disable_stack,
+			} => {
+				let mut proxy = moonbeam_client_evm_tracing::listeners::Raw::new(
+					disable_storage,
+					disable_memory,
+					disable_stack,
+					raw_max_memory_usage,
+				);
+				proxy.using(f)?;
+				Ok(Response::Single(
+					moonbeam_client_evm_tracing::formatters::Raw::format(proxy).ok_or(
+						internal_err(
+							"replayed transaction generated too much data. \
+						try disabling memory or storage?",
+						),
+					)?,
+				))
+			}
+			single::TraceType::CallList => {
+				let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+				proxy.using(f)?;
+				proxy.finish_transaction();
+				let response = match tracer_input {
+					TracerInput::Blockscout => {
+						moonbeam_client_evm_tracing::formatters::Blockscout::format(proxy)
+							.ok_or("Trace result is empty.")
+							.map_err(|e| internal_err(format!("{:?}", e)))
+					}
+					TracerInput::CallTracer => {
+						let mut res =
+							moonbeam_client_evm_tracing::formatters::CallTracer::format(proxy)
+								.ok_or("Trace result is empty.")
+								.map_err(|e| internal_err(format!("{:?}", e)))?;
+						Ok(res.pop().expect("Trace result is empty."))
+					}
+					_ => Err(internal_err(
+						"Bug: failed to resolve the tracer format.".to_string(),
+					)),
+				}?;
+				Ok(Response::Single(response))
+			}
+			not_supported => Err(internal_err(format!(
+				"Bug: `handle_call_request` does not support {:?}.",
+				not_supported
+			))),
+		};
 	}
 }

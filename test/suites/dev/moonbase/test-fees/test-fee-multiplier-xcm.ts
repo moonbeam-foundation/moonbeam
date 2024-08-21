@@ -14,7 +14,7 @@ import {
 // export const TARGET_FILL_AMOUNT =
 //   ((MAX_BLOCK_WEIGHT * 0.75 * 0.25 - EXTRINSIC_BASE_WEIGHT) / MAX_BLOCK_WEIGHT) * 1_000_000_000;
 // In 0.9.43 rootTesting::fillBlock() now uses more weight so we need to account for that
-const TARGET_FILL_AMOUNT = 374_713_000;
+const TARGET_FILL_AMOUNT = 262_212_900;
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -37,7 +37,7 @@ describeSuite({
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       random = generateKeyringPair();
-      transferredBalance = 10_000_000_000_000_000_000n;
+      transferredBalance = 100_000_000_000_000_000_000n;
 
       await expectOk(
         context.createBlock(
@@ -102,6 +102,8 @@ describeSuite({
 
         // this is useful to manually find out what is the
         // TARGET_FILL_AMOUNT that will result in a static fee multiplier
+        // run the tests with
+        // pnpm moonwall test dev_moonbase -d test-fees D011604T02
         // console.log(`pre  ${initialValue.toHuman()}`);
         // console.log(`post ${postValue.toHuman()}`);
         // console.log(`diff ${initialValue.sub(postValue)}`);
@@ -118,14 +120,18 @@ describeSuite({
         const initialValue = await context
           .polkadotJs()
           .query.transactionPayment.nextFeeMultiplier();
+
+        let nonce = (
+          await context.polkadotJs().query.system.account(alith.address)
+        ).nonce.toNumber();
         await context
           .polkadotJs()
           .tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
-          .signAndSend(alith, { nonce: -1 });
+          .signAndSend(alith, { nonce: nonce++ });
         await context
           .polkadotJs()
           .tx.sudo.sudo(context.polkadotJs().tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
-          .signAndSend(alith, { nonce: -1 });
+          .signAndSend(alith, { nonce: nonce++ });
         await context.createBlock();
 
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
@@ -171,8 +177,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 110000n,
+            refTime: 9_000_000_000n,
+            proofSize: 150_000n,
           },
           descend_origin: sendingAddress,
         })
@@ -286,8 +292,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 110000n,
+            refTime: 9_000_000_000n,
+            proofSize: 150_000n,
           },
           descend_origin: sendingAddress,
         })

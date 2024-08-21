@@ -2,12 +2,8 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { alith } from "@moonwall/util";
-import {
-  registerForeignAsset,
-  XcmFragment,
-  RawXcmMessage,
-  injectHrmpMessageAndSeal,
-} from "../../../../helpers/xcm.js";
+import { XcmFragment, RawXcmMessage, injectHrmpMessageAndSeal } from "../../../../helpers/xcm.js";
+import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 const statemint_para_id = 1001;
@@ -40,8 +36,8 @@ describeSuite({
     let assetId: string;
 
     beforeAll(async () => {
-      // registerForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerForeignAsset(
+      // registerOldForeignAsset
+      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
         context,
         STATEMINT_LOCATION,
         assetMetadata

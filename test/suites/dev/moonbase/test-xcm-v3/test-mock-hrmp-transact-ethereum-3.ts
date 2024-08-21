@@ -11,9 +11,9 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
   MultiLocation,
-  registerForeignAsset,
   weightMessage,
 } from "../../../../helpers/xcm.js";
+import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 
 describeSuite({
   id: "D014025",
@@ -52,8 +52,7 @@ describeSuite({
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
 
-    // Gas limit + one db read
-    const assetsToTransfer = (3_300_000_000n + 25_000_000n) * 2n;
+    const assetsToTransfer = 100_000_000_000n;
 
     beforeAll(async () => {
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
@@ -66,8 +65,8 @@ describeSuite({
       descendedAddress = descendOriginAddress;
       random = generateKeyringPair();
 
-      // registerForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerForeignAsset(
+      // registerOldForeignAsset
+      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
         context,
         STATEMINT_LOCATION,
         assetMetadata,
@@ -80,7 +79,7 @@ describeSuite({
         assets: [
           {
             multilocation: ASSET_MULTILOCATION,
-            fungible: 0n,
+            fungible: assetsToTransfer,
           },
         ],
         beneficiary: descendOriginAddress,
@@ -97,8 +96,8 @@ describeSuite({
               .reserve_asset_deposited()
               .clear_origin()
               .buy_execution()
-              .deposit_asset()
-              .as_v2()
+              .deposit_asset_v3()
+              .as_v3()
           ) as any
       );
 
@@ -111,8 +110,8 @@ describeSuite({
         .reserve_asset_deposited()
         .clear_origin()
         .buy_execution()
-        .deposit_asset()
-        .as_v2();
+        .deposit_asset_v3()
+        .as_v3();
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, statemint_para_id, {
@@ -172,6 +171,8 @@ describeSuite({
         ];
 
         let expectedCalls = 0n;
+        // TODO: move this to the constant file
+        const STORAGE_READ_COST = 41_742_000n;
 
         for (const xcmTransaction of xcmTransactions) {
           expectedCalls++;
@@ -189,10 +190,6 @@ describeSuite({
                 fungible: assetsToTransfer / 2n,
               },
             ],
-            weight_limit: {
-              refTime: assetsToTransfer / 2n,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 3,
-            } as any,
             descend_origin: sendingAddress,
           })
             .descend_origin()
@@ -201,9 +198,9 @@ describeSuite({
             .push_any({
               Transact: {
                 originKind: "SovereignAccount",
-                // 100_000 gas + 1 db read
+                // 100_000 gas + 1 db read (41_742_000)
                 requireWeightAtMost: {
-                  refTime: 2_525_000_000,
+                  refTime: 2_525_000_000n + STORAGE_READ_COST,
                   proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
                 },
                 call: {

@@ -45,32 +45,16 @@ describeSuite({
 
           await context.createBlock();
 
-          // Delete the contract to make it a suicided contract
-          const rawTx = await createEthersTransaction(context, {
-            to: contractAddress,
-            data: encodeFunctionData({
-              abi,
-              functionName: "destroy",
-            }),
-            gasLimit: 2_000_000,
-          });
-          const { result } = await context.createBlock(rawTx);
-          const receipt = await context
-            .viem("public")
-            .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
-
-          expect(receipt.status).toBe("success");
-
           // Call the extrinsic to delete the storage entries
           const tx = await context.createBlock(
             api.tx.moonbeamLazyMigrations.clearSuicidedStorage([contractAddress], 199)
           );
           await expect(!tx.result?.successful, "The contract storage cannot be removed");
 
-          // Remove "Suicided" flag
+          // Remove The contract code to make it corrupted
           await context.createBlock(
             api.tx.sudo.sudo(
-              api.tx.system.killStorage([api.query.evm.suicided.key(contractAddress)])
+              api.tx.system.killStorage([api.query.evm.accountCodes.key(contractAddress)])
             )
           );
 

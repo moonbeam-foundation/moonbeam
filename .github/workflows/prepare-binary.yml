@@ -24,7 +24,9 @@ jobs:
         with:
           ref: ${{ github.event.inputs.sha }}
       - name: Setup Rust toolchain
-        run: rustup show
+        run: |
+          rustup override unset
+          rustup show
       - name: Build Node
         run: cargo build --profile=production --all
       - name: Save parachain binary
@@ -67,7 +69,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.2.0
+        uses: docker/setup-buildx-action@v3.6.1
         with:
           version: latest
           driver-opts: |
@@ -79,7 +81,7 @@ jobs:
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
       - name: Build and push moonbeam
         id: docker_build
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/moonbeam.Dockerfile
@@ -94,14 +96,3 @@ jobs:
             org.opencontainers.image.created=${{ steps.prep.outputs.created }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Tag it with purestake for 6 month
-        run: |
-          PURESTAKE_TAG=`echo "${{ steps.prep.outputs.tags }}" | sed 's/moonbeamfoundation/purestake/'`
-          docker pull ${{ steps.prep.outputs.tags }}
-          docker tag ${{ steps.prep.outputs.tags }} $PURESTAKE_TAG
-          docker push $PURESTAKE_TAG

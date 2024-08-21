@@ -9,14 +9,32 @@ import {
   PalletParachainStakingCollatorSnapshot,
   PalletParachainStakingBond,
   PalletParachainStakingBondWithAutoCompound,
+  PalletParachainStakingRoundInfo,
 } from "@polkadot/types/lookup";
 import { ApiDecoration } from "@polkadot/api/types";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { FIVE_MINS, ONE_HOURS, Perbill, Percent, TEN_MINS } from "@moonwall/util";
-import { rateLimiter } from "../../helpers/common.js";
-import { AccountId20 } from "@polkadot/types/interfaces";
+import { rateLimiter, getPreviousRound, getNextRound } from "../../helpers";
+import { AccountId20, Block } from "@polkadot/types/interfaces";
 
 const limiter = rateLimiter();
+
+interface RoundData {
+  data: PalletParachainStakingRoundInfo;
+  firstBlock: Block;
+  firstBlockApi: ApiDecoration<"promise">;
+  firstBlockSpecVersion: number;
+  priorBlock: Block;
+  priorBlockApi: ApiDecoration<"promise">;
+}
+
+interface PaymentRounds {
+  asyncBackingEnabled: boolean;
+  firstRewardBlock: Block;
+  rewardRound: RoundData; // Stores the last finished round (X)
+  roundToPay: RoundData; // Stores the round to pay (X-delay)
+  delayedPayoutRound: RoundData; // Stores the round where the delayedPayout is computed (X-delay+1)
+}
 
 describeSuite({
   id: "S22",
@@ -347,66 +365,107 @@ describeSuite({
       const latestRound = await (
         await api.at(latestBlock.block.hash)
       ).query.parachainStaking.round();
-      const nowBlockHash = await api.rpc.chain.getBlockHash(nowBlockNumber);
-      const nowRound = await (await api.at(nowBlockHash)).query.parachainStaking.round();
-      const nowRoundNumber = nowRound.current;
-      const nowRoundFirstBlock = nowRound.first;
-      const nowRoundFirstBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock);
-      const apiAtRewarded = await api.at(nowRoundFirstBlockHash);
-      const specVersion = (await apiAtRewarded.query.system.lastRuntimeUpgrade())
-        .unwrap()
-        .specVersion.toNumber();
-      const nowRoundFirstRewardBlock =
-        specVersion >= 2100 ? nowRoundFirstBlock.addn(1) : nowRoundFirstBlock;
-      const nowRoundFirstRewardBlockHash = await api.rpc.chain.getBlockHash(
-        nowRoundFirstRewardBlock
-      );
-      const rewardDelay = apiAtRewarded.consts.parachainStaking.rewardPaymentDelay;
-      const priorRewardedBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock.subn(1));
 
-      // obtain data from original round
-      const originalRoundNumber = (await apiAtRewarded.query.parachainStaking.round()).current.sub(
-        rewardDelay
-      );
-      let iterOriginalRoundBlock = nowRoundFirstBlock.toBn();
-      for (;;) {
-        const blockHash = await api.rpc.chain.getBlockHash(iterOriginalRoundBlock);
-        const round = await (await api.at(blockHash)).query.parachainStaking.round();
-        if (
-          round.current.eq(originalRoundNumber) ||
-          iterOriginalRoundBlock.sub(round.length).toNumber() < 0
-        ) {
-          break;
+      // Loads information and APIs for a given round
+      const loadRoundData = async (blockNumber: BN): Promise<RoundData> => {
+        console.log(`Loading round data for block number ${blockNumber}`);
+        let firstBlockNumber: BN;
+        let blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+        let apiAt = await api.at(blockHash);
+        const data = await apiAt.query.parachainStaking.round();
+        // update the block number and api with the right block
+        if (!data.first.toBn().eq(blockNumber)) {
+          firstBlockNumber = data.first.toBn();
+          blockHash = await api.rpc.chain.getBlockHash(data.first);
+          apiAt = await api.at(blockHash);
+        } else {
+          firstBlockNumber = blockNumber;
         }
 
-        // Go to previous round
-        iterOriginalRoundBlock = iterOriginalRoundBlock.sub(round.length);
-      }
-      // Go to the last block of the (original round - 1) since data is snapshotted at round start.
-      const originalRoundPriorBlock = iterOriginalRoundBlock.subn(1);
-      const originalRoundPriorBlockHash = await api.rpc.chain.getBlockHash(originalRoundPriorBlock);
-      const apiAtOriginal = await api.at(originalRoundPriorBlockHash);
+        const priorBlockHash = await api.rpc.chain.getBlockHash(firstBlockNumber.subn(1));
+        const priorApiAt = await api.at(priorBlockHash);
+
+        return {
+          data,
+          firstBlock: (await api.rpc.chain.getBlock(blockHash)).block,
+          firstBlockApi: apiAt,
+          firstBlockSpecVersion: (await apiAt.query.system.lastRuntimeUpgrade())
+            .unwrap()
+            .specVersion.toNumber(),
+          priorBlock: (await api.rpc.chain.getBlock(priorBlockHash)).block,
+          priorBlockApi: priorApiAt,
+        };
+      };
+
+      // Loads all information related to rounds involved in the reward
+      const loadPaymentRounds = async (blockNumber: BN): Promise<PaymentRounds> => {
+        const rewardRound = await loadRoundData(blockNumber);
+
+        const rewardDelay = rewardRound.firstBlockApi.consts.parachainStaking.rewardPaymentDelay;
+
+        const roundToPay = await loadRoundData(
+          (await getPreviousRound(api, rewardRound.data, rewardDelay)).first.toBn()
+        );
+        const delayedPayoutRound = await loadRoundData(
+          (await getNextRound(api, roundToPay.data)).first.toBn()
+        );
+
+        // Payment of collators have been moved 1 block later at runtime 2100
+        const delayBlockReward = rewardRound.firstBlockSpecVersion >= 2100 ? new BN(1) : new BN(0);
+
+        const firstRewardHash = await api.rpc.chain.getBlockHash(
+          rewardRound.firstBlock.header.number.toBn().add(delayBlockReward)
+        );
+        const firstRewardBlock = (await api.rpc.chain.getBlock(firstRewardHash)).block;
+
+        const asyncBackingEnabled = !!api.runtimeMetadata.asLatest.pallets.find(
+          ({ name }) => name.toHuman() === "AsyncBacking"
+        );
+
+        const payment: PaymentRounds = {
+          asyncBackingEnabled,
+          firstRewardBlock,
+          rewardRound,
+          roundToPay,
+          delayedPayoutRound,
+        };
+
+        return payment;
+      };
+
+      const payment: PaymentRounds = await loadPaymentRounds(new BN(nowBlockNumber));
 
       log(
-        `latest  ${latestRound.current.toString()}` +
-          ` (${latestBlockNumber} / ` +
-          `${latestBlockHash.toHex()})
-      now     ` +
-          `${nowRound.current.toString()} (${nowBlockNumber} / ${nowBlockHash.toHex()})` +
-          `round   ${originalRoundNumber.toString()} (prior round last block \
-      ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
-      paid in ${nowRoundNumber.toString()} (first block \
-      ${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior \
-      ${priorRewardedBlockHash.toHex()})
-      first rewarded ${nowRoundFirstRewardBlock.toNumber()} / ` +
-          nowRoundFirstRewardBlockHash.toHex()
+        `
+      latest  ${latestRound.current.toString()} ` +
+          `(${latestBlockNumber} / ${latestBlockHash.toHex()})
+      rewarded round ${payment.rewardRound.data.current.toString()} - ` +
+          `spec: ${payment.rewardRound.firstBlockSpecVersion.toString()}
+        reward: #${payment.firstRewardBlock.header.number.toString()} / ` +
+          `[${payment.firstRewardBlock.header.hash.toHex()}]
+         first: #${payment.rewardRound.firstBlock.header.number.toString()} / ` +
+          `[${payment.rewardRound.firstBlock.header.hash.toHex()}]
+         prior: #${payment.rewardRound.priorBlock.header.number.toString()} / ` +
+          `[${payment.rewardRound.priorBlock.header.hash.toHex()}]
+      delayed payout computation round ${payment.delayedPayoutRound.data.current.toString()} - ` +
+          `spec: ${payment.rewardRound.firstBlockSpecVersion.toString()}
+         first: #${payment.delayedPayoutRound.firstBlock.header.number.toString()} / ` +
+          `[${payment.delayedPayoutRound.firstBlock.header.hash.toHex()}]
+         prior: #${payment.delayedPayoutRound.priorBlock.header.number.toString()} / ` +
+          `[${payment.delayedPayoutRound.priorBlock.header.hash.toHex()}]
+      round to pay ${payment.roundToPay.data.current.toString()} - ` +
+          `spec: ${payment.rewardRound.firstBlockSpecVersion.toString()}
+         first: #${payment.roundToPay.firstBlock.header.number.toString()} / ` +
+          `[${payment.roundToPay.firstBlock.header.hash.toHex()}]
+         prior: #${payment.roundToPay.priorBlock.header.number.toString()} / ` +
+          `[${payment.roundToPay.priorBlock.header.hash.toHex()}]`
       );
 
       // collect info about staked value from collators and delegators
-      const apiAtPriorRewarded = await api.at(priorRewardedBlockHash);
-      const atStake = await apiAtPriorRewarded.query.parachainStaking.atStake.entries(
-        originalRoundNumber
-      );
+      const atStake =
+        await payment.rewardRound.priorBlockApi.query.parachainStaking.atStake.entries(
+          payment.roundToPay.data.current
+        );
       const stakedValue: StakedValue = {};
       const collatorCount = atStake.length;
 
@@ -419,11 +478,12 @@ describeSuite({
         value,
       ] of atStake) {
         // @ts-expect-error - changed to optional between RT versions
-        const { bond, total, delegations } = specVersion < 2600 ? value : value.unwrap();
+        const { bond, total, delegations } =
+          payment.rewardRound.firstBlockSpecVersion < 2600 ? value : value.unwrap();
         const collatorId = accountId.toHex();
         collators.add(collatorId);
-        const points = await apiAtPriorRewarded.query.parachainStaking.awardedPts(
-          originalRoundNumber,
+        const points = await payment.rewardRound.priorBlockApi.query.parachainStaking.awardedPts(
+          payment.roundToPay.data.current,
           accountId
         );
 
@@ -436,12 +496,12 @@ describeSuite({
         };
 
         const topDelegations = new Set(
-          (await apiAtOriginal.query.parachainStaking.topDelegations(accountId))
+          (await payment.roundToPay.firstBlockApi.query.parachainStaking.topDelegations(accountId))
             .unwrap()
             .delegations.map((d) => d.owner.toHex())
         );
         let countedDelegationSum = new BN(0);
-        if (specVersion >= 1900) {
+        if (payment.roundToPay.firstBlockSpecVersion >= 1900) {
           for (const { owner, amount, autoCompound } of delegations as any) {
             if (!topDelegations.has(owner.toHex())) {
               continue;
@@ -475,7 +535,7 @@ describeSuite({
           if (!Object.keys(collatorInfo.delegators).includes(topDelegation)) {
             throw new Error(
               `${topDelegation} is missing from collatorInfo ` +
-                `for round ${originalRoundNumber.toString()}`
+                `for round ${payment.roundToPay.data.current.toString()}`
             );
           }
         }
@@ -483,7 +543,7 @@ describeSuite({
           if (!topDelegations.has(delegator as any)) {
             throw new Error(
               `${delegator} is missing from topDelegations for round` +
-                ` ${originalRoundNumber.toString()}`
+                ` ${payment.roundToPay.data.current.toString()}`
             );
           }
         }
@@ -492,82 +552,85 @@ describeSuite({
       }
       expect(collatorCount).to.equal(
         Object.keys(stakedValue).length,
-        `collator count mismatch for round ${originalRoundNumber.toString()}`
+        `collator count mismatch for round ${payment.roundToPay.data.current.toString()}`
       );
 
       // calculate reward amounts
-      const parachainBondInfo = await apiAtPriorRewarded.query.parachainStaking.parachainBondInfo();
-      const parachainBondPercent = new Percent(parachainBondInfo.percent);
-      const totalPoints = await apiAtPriorRewarded.query.parachainStaking.points(
-        originalRoundNumber
-      );
-      const inflation = await apiAtPriorRewarded.query.parachainStaking.inflationConfig();
-      const totalIssuance = await apiAtPriorRewarded.query.balances.totalIssuance();
-      const collatorCommissionRate =
-        await apiAtPriorRewarded.query.parachainStaking.collatorCommission();
-
-      const range = {
-        min: new Perbill(inflation.round.min).of(totalIssuance),
-        ideal: new Perbill(inflation.round.ideal).of(totalIssuance),
-        max: new Perbill(inflation.round.max).of(totalIssuance),
-      };
-
       let totalRoundIssuance: BN;
-
-      // TODO: Update this as moonriver & moonbeam enable async backing
-      if (
-        apiAt.consts.system.version.specVersion.toNumber() >= 2801 &&
-        apiAt.consts.system.version.specName.toString() === "moonbase"
-      ) {
+      if (payment.asyncBackingEnabled) {
         // Formula:
         //   totalRoundIssuance = (roundDuration / idealDuration) * idealIssuance
-        const { first } = await apiAtPriorRewarded.query.parachainStaking.round();
-        const lastBlockOfRound = first.subn(1);
-        const lastBlockOfRoundHash = await api.rpc.chain.getBlockHash(lastBlockOfRound);
-        const lastBlockOfRoundApi = await api.at(lastBlockOfRoundHash);
+
         const currentSlot: u64 = (
-          await lastBlockOfRoundApi.query.asyncBacking.slotInfo()
+          await payment.delayedPayoutRound.priorBlockApi.query.asyncBacking.slotInfo()
         ).unwrap()[0];
 
-        const firstSlot = (await lastBlockOfRoundApi.query.parachainStaking.round()).firstSlot;
-        const slotDuration = lastBlockOfRoundApi.consts.parachainStaking.slotDuration;
+        const firstSlot = (
+          await payment.delayedPayoutRound.priorBlockApi.query.parachainStaking.round()
+        ).firstSlot;
+        const slotDuration =
+          payment.delayedPayoutRound.priorBlockApi.consts.parachainStaking.slotDuration;
         const roundDuration = currentSlot.sub(firstSlot).mul(slotDuration);
-        const idealDuration = (await lastBlockOfRoundApi.query.parachainStaking.round()).length.mul(
-          lastBlockOfRoundApi.consts.parachainStaking.blockTime
-        );
+        const idealDuration = (
+          await payment.delayedPayoutRound.priorBlockApi.query.parachainStaking.round()
+        ).length.mul(payment.delayedPayoutRound.priorBlockApi.consts.parachainStaking.blockTime);
 
-        const idealIssuance = (
-          await lastBlockOfRoundApi.query.parachainStaking.inflationConfig()
-        ).round.ideal
-          .mul(await lastBlockOfRoundApi.query.balances.totalIssuance())
-          .div(new BN("1000000000"));
+        const totalIssuance =
+          await payment.delayedPayoutRound.priorBlockApi.query.balances.totalIssuance();
+        const idealInflation = (
+          await payment.delayedPayoutRound.priorBlockApi.query.parachainStaking.inflationConfig()
+        ).round.ideal;
+        const idealIssuance = new Perbill(idealInflation).of(totalIssuance);
 
         totalRoundIssuance = roundDuration.mul(idealIssuance).div(idealDuration);
       } else {
         // Always apply max inflation
-        // It work because the total staked amound is already 1000 times more than the max on
+        // It works because the total staked amount is already 1000 times more than the max on
         // production, so it's very unlikely to change before RT2801 deployment on moonbeam
+
+        const totalIssuance =
+          await payment.delayedPayoutRound.priorBlockApi.query.balances.totalIssuance();
+
+        const inflation =
+          await payment.delayedPayoutRound.priorBlockApi.query.parachainStaking.inflationConfig();
+        const range = {
+          min: new Perbill(inflation.round.min).of(totalIssuance),
+          ideal: new Perbill(inflation.round.ideal).of(totalIssuance),
+          max: new Perbill(inflation.round.max).of(totalIssuance),
+        };
+
         totalRoundIssuance = range.max;
       }
+
+      const collatorCommissionRate =
+        await payment.rewardRound.priorBlockApi.query.parachainStaking.collatorCommission();
 
       const totalCollatorCommissionReward = new Perbill(collatorCommissionRate).of(
         totalRoundIssuance
       );
 
       // calculate total staking reward
-      const firstBlockRewardedEvents = await apiAtRewarded.query.system.events();
+      const firstBlockRewardedEvents =
+        await payment.delayedPayoutRound.firstBlockApi.query.system.events();
       let reservedForParachainBond = new BN(0);
       for (const { phase, event } of firstBlockRewardedEvents) {
         if (!phase.isInitialization) {
           continue;
         }
+        const eventTypes = payment.delayedPayoutRound.firstBlockApi.events;
         // only deduct parachainBondReward if it was transferred (event must exist)
-        if (apiAtRewarded.events.parachainStaking.ReservedForParachainBond.is(event)) {
+        if (eventTypes.parachainStaking.ReservedForParachainBond.is(event)) {
           reservedForParachainBond = event.data[1] as any;
           break;
         }
       }
 
+      const parachainBondInfo =
+        await payment.rewardRound.priorBlockApi.query.parachainStaking.parachainBondInfo();
+      const totalPoints = await payment.rewardRound.priorBlockApi.query.parachainStaking.points(
+        payment.roundToPay.data.current
+      );
+      const parachainBondPercent = new Percent(parachainBondInfo.percent);
       // total expected staking reward minus the amount reserved for parachain bond
       const totalStakingReward = (() => {
         const parachainBondReward = parachainBondPercent.of(totalRoundIssuance);
@@ -576,7 +639,7 @@ describeSuite({
             parachainBondReward.eq(reservedForParachainBond),
             `parachain bond amount does not match \
               ${parachainBondReward.toString()} != ${reservedForParachainBond.toString()} \
-              for round ${originalRoundNumber.toString()}`
+              for round ${payment.roundToPay.data.current.toString()}`
           ).to.be.true;
           return totalRoundIssuance.sub(parachainBondReward);
         }
@@ -585,17 +648,9 @@ describeSuite({
       })();
       const totalBondReward = totalStakingReward.sub(totalCollatorCommissionReward);
 
-      const delayedPayout = (
-        await apiAtRewarded.query.parachainStaking.delayedPayouts(originalRoundNumber)
-      ).unwrap();
-      expect(
-        withinTolerance(delayedPayout.totalStakingReward, totalStakingReward),
-        `reward amounts do not match \
-          ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()} \
-          for round ${originalRoundNumber.toString()}`
-      ).to.be.true;
-
-      log(`totalRoundIssuance            ${totalRoundIssuance.toString()}
+      log(`
+    paidRoundNumber               ${payment.roundToPay.data.current.toString()}
+    totalRoundIssuance            ${totalRoundIssuance.toString()}
     reservedForParachainBond      ${reservedForParachainBond} \
     (${parachainBondPercent} * totalRoundIssuance)
     totalCollatorCommissionReward ${totalCollatorCommissionReward.toString()} \
@@ -605,18 +660,32 @@ describeSuite({
     totalBondReward               ${totalBondReward} \
     (totalStakingReward - totalCollatorCommissionReward)`);
 
+      const delayedPayout = (
+        await payment.rewardRound.firstBlockApi.query.parachainStaking.delayedPayouts(
+          payment.roundToPay.data.current
+        )
+      ).unwrap();
+      expect(
+        delayedPayout.totalStakingReward.eq(totalStakingReward),
+        `reward amounts do not match \
+        ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()} \
+        for round ${payment.roundToPay.data.current.toString()}`
+      ).to.be.true;
+
       // get the collators to be awarded via `awardedPts` storage
       const awardedCollators = (
-        await apiAtPriorRewarded.query.parachainStaking.awardedPts.keys(originalRoundNumber)
+        await payment.rewardRound.priorBlockApi.query.parachainStaking.awardedPts.keys(
+          payment.roundToPay.data.current
+        )
       ).map((awarded) => awarded.args[1].toHex());
       const awardedCollatorCount = awardedCollators.length;
 
       // compute max rounds respecting the current block number and the number of awarded collators
-      const maxRoundChecks = Math.min(
-        latestBlockNumber - nowRoundFirstBlock.toNumber() + 1,
+      const maxRewardedBlocks = Math.min(
+        latestBlockNumber - payment.rewardRound.firstBlock.header.number.toNumber() + 1,
         collatorCount
       );
-      log(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
+      log(`verifying ${maxRewardedBlocks} blocks for rewards (awarded ${awardedCollatorCount})`);
       const expectedRewardedCollators = new Set(awardedCollators);
       const rewardedCollators = new Set<HexString>();
       let totalRewardedAmount = new BN(0);
@@ -632,8 +701,8 @@ describeSuite({
 
       let skippedRewardEvents = 0;
       // iterate over the next blocks to verify rewards
-      for await (const i of new Array(maxRoundChecks).keys()) {
-        const blockNumber = nowRoundFirstRewardBlock.addn(i);
+      for await (const i of new Array(maxRewardedBlocks).keys()) {
+        const blockNumber = payment.firstRewardBlock.header.number.toBn().addn(i);
         const blockHash = await api.rpc.chain.getBlockHash(blockNumber);
         const apiAtBlock = await api.at(blockHash);
 
@@ -664,7 +733,7 @@ describeSuite({
 
         const { rewarded, autoCompounded } = await assertRewardedEventsAtBlock(
           api,
-          specVersion,
+          payment.rewardRound.firstBlockSpecVersion,
           blockNumber,
           delegators,
           collators,
@@ -720,7 +789,7 @@ describeSuite({
           }" at block ${blockNumber}`
         ).to.be.empty;
 
-        if (specVersion >= 1900) {
+        if (payment.rewardRound.firstBlockSpecVersion >= 1900) {
           const expectedAutoCompoundedDelegators = new Set(
             Object.entries(stakedValue[rewarded.collator].delegators)
               .filter(
@@ -757,7 +826,7 @@ describeSuite({
       }
 
       // check reward amount with losses due to Perbill arithmetic
-      if (specVersion >= 1800) {
+      if (payment.rewardRound.firstBlockSpecVersion >= 1800) {
         // Perbill arithmetic can deviate at most ±1 per operation so we use the number of
         // collators to compute the max deviation per billion
         const maxDifference = awardedCollatorCount;
@@ -804,7 +873,7 @@ describeSuite({
           `Total rewarded events did not match total expected issuance for collators & delegators, \
           diff of "${actualTotalRewardedWithLoss
             .sub(totalStakingReward)
-            .toString()}" for round ${originalRoundNumber}`
+            .toString()}" for round ${payment.roundToPay.data.current.toString()}`
         );
       }
 
@@ -819,13 +888,13 @@ describeSuite({
         unexpectedlyRewarded,
         `collators "${[...unexpectedlyRewarded].join(
           ", "
-        )}" were unexpectedly rewarded for round ${originalRoundNumber.toString()}`
+        )}" were unexpectedly rewarded for round ${payment.roundToPay.data.current.toString()}`
       ).to.be.empty;
       expect(
         notRewarded,
         `collators "${[...notRewarded].join(
           ", "
-        )}" were not rewarded for round ${originalRoundNumber.toString()}`
+        )}" were not rewarded for round ${payment.roundToPay.data.current.toString()}`
       ).to.be.empty;
     };
 
@@ -946,10 +1015,8 @@ describeSuite({
           bondReward = collatorReward.sub(collatorCommissionReward);
 
           if (!stakedValue[accountId].delegators) {
-            expect(
-              withinTolerance(rewards[accountId].amount, collatorReward),
-              `${accountId} (COL) - Reward`
-            ).to.be.true;
+            expect(rewards[accountId].amount.eq(collatorReward), `${accountId} (COL) - Reward`).to
+              .be.true;
           } else {
             const bondShare = new Perbill(collatorInfo.bond, collatorInfo.total);
             totalBondRewardShare = totalBondRewardShare.add(bondShare.value());
@@ -957,10 +1024,8 @@ describeSuite({
             rewarded.amount.bondReward = rewarded.amount.bondReward.add(collatorBondReward);
             const collatorTotalReward = collatorBondReward.add(collatorCommissionReward);
 
-            expect(
-              withinTolerance(rewards[accountId].amount, collatorTotalReward),
-              `${accountId} (COL) - Reward`
-            ).to.be.true;
+            expect(rewards[accountId].amount.eq(collatorTotalReward), `${accountId} (COL) - Reward`)
+              .to.be.true;
           }
           rewarded.collator = accountId;
         } else if (delegators.has(accountId)) {
@@ -982,11 +1047,8 @@ describeSuite({
           const delegatorReward = bondShare.of(bondReward);
           rewarded.amount.bondReward = rewarded.amount.bondReward.add(delegatorReward);
           rewarded.delegators.add(accountId);
-
-          expect(
-            withinTolerance(rewards[accountId].amount, delegatorReward),
-            `${accountId} (DEL) - Reward`
-          ).to.be.true;
+          expect(rewards[accountId].amount.eq(delegatorReward), `${accountId} (DEL) - Reward`).to.be
+            .true;
 
           const canAutoCompound =
             !outstandingRevokes[rewarded.collator!] ||
@@ -1000,7 +1062,7 @@ describeSuite({
             const autoCompoundReward = autoCompoundPercent.ofCeil(rewards[accountId].amount);
             if (autoCompounds[accountId]) {
               expect(
-                withinTolerance(autoCompounds[accountId].amount, autoCompoundReward),
+                autoCompounds[accountId].amount.eq(autoCompoundReward),
                 `${accountId} (DEL) - AutoCompound ${autoCompoundPercent.toString()}% of ${rewards[
                   accountId
                 ].amount.toString()}`
@@ -1075,7 +1137,3 @@ describeSuite({
     };
   },
 });
-
-// Checks if A == B, within a given tolerance (default 1)
-const withinTolerance = (a: BN, b: BN, tolerance: BN = new BN(1)): boolean =>
-  a.sub(b).abs().lte(tolerance);

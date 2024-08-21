@@ -16,8 +16,7 @@ jobs:
           ref: runtime-${{ github.event.inputs.spec_version }}
       - name: Retrieve moonbeam binary
         run: |
-          COMMIT_SHA8=$(git log -1 --format="%H" | cut -c1-8)
-          DOCKER_TAG="moonbeamfoundation/moonbeam:sha-$COMMIT_SHA8"
+          DOCKER_TAG="moonbeamfoundation/moonbeam:runtime-${{ github.event.inputs.spec_version }}"
           # Clear the dummy container if it wasn't properly cleaned up
           docker rm -f dummy 2> /dev/null
           docker create -ti --name dummy $DOCKER_TAG bash
@@ -29,7 +28,7 @@ jobs:
         with:
           node-version: 20.10.0
       - name: Use pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8
       - name: Upgrade polkadotjs for moonbeam-types-bundle
@@ -53,6 +52,6 @@ jobs:
           branch: "typescript-api-${{ github.event.inputs.spec_version }}"
           commit-message: typescript API v0.${{ github.event.inputs.spec_version }}.0
           draft: true
-          title: "Upgrade typescript API for runtime  ${{ github.event.inputs.spec_version }}"
-          reviewers: "librelois,noandrea,timbrinded"
+          title: "Upgrade typescript API for runtime-${{ github.event.inputs.spec_version }}"
+          reviewers: "moonsong-coredev"
           labels: "B0-silent,D2-notlive"

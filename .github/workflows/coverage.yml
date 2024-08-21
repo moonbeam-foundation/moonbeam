@@ -91,7 +91,7 @@ jobs:
       labels: bare-metal
     needs: ["set-tags"]
     if: ${{ !github.event.pull_request.head.repo.fork }}
-    timeout-minutes: 60
+    timeout-minutes: 90
     env:
       RUSTC_WRAPPER: "sccache"
       CARGO_INCREMENTAL: "0"
@@ -208,7 +208,7 @@ jobs:
           cat coverage_report.md
       - name: Find Comment
         if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v3
         id: fc
         with:
           issue-number: ${{ github.event.pull_request.number }}
@@ -216,7 +216,7 @@ jobs:
           body-includes: Coverage generated
       - name: Create or update comment
         if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
-        uses: peter-evans/create-or-update-comment@v3
+        uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}

@@ -40,6 +40,8 @@ jobs:
           path: build
       - name: Install Subxt-cli
         run: |
+          rustup override unset
+          rustup show
           cargo install subxt-cli --locked
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - name: Run last_release node via Docker
@@ -57,6 +59,7 @@ jobs:
           --no-prometheus \
           --unsafe-rpc-external \
           --alice \
+          --unsafe-force-node-key-generation \
           --rpc-port=9911 \
           --tmp
 
@@ -77,6 +80,7 @@ jobs:
           --unsafe-rpc-external \
           --alice \
           --rpc-port=9977 \
+          --unsafe-force-node-key-generation \
           --tmp & sleep 2' &
 
       - name: Run Diffs
@@ -125,6 +129,6 @@ jobs:
           branch: "runtime-diff-${{ github.event.inputs.spec_version }}"
           commit-message: "runtime diff: v0.${{ github.event.inputs.spec_version }}.0"
           draft: true
-          title: "Notorize runtime upgrade differences: ${{ github.event.inputs.spec_version }}"
+          title: "Notorize runtime upgrade differences: runtime-${{ github.event.inputs.spec_version }}"
           reviewers: "librelois,noandrea"
           labels: "B0-silent,D2-notlive"

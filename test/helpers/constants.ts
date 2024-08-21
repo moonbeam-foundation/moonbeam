@@ -1,10 +1,42 @@
 // constants.ts -  Any common values here should be moved to moonwall if suitable
 
+import { DevModeContext } from "@moonwall/cli";
 import {
   ALITH_GENESIS_FREE_BALANCE,
   ALITH_GENESIS_LOCK_BALANCE,
   ALITH_GENESIS_RESERVE_BALANCE,
 } from "@moonwall/util";
+
+/**
+ * Class allowing to store multiple value for a runtime constant based on the runtime version
+ */
+class RuntimeConstant<T> {
+  private values: { [version: number]: T };
+
+  /*
+   * Get the expected value for a given runtime version. Lookup for the closest smaller runtime
+   */
+  get(runtimeVersion: number): T {
+    const versions = Object.keys(this.values).map(Number); // slow but easier to maintain
+    let value;
+    for (let i = 0; i < versions.length; i++) {
+      if (versions[i] > runtimeVersion) {
+        break;
+      }
+      value = this.values[versions[i]];
+    }
+    return value;
+  }
+
+  // Builds RuntimeConstant with single or multiple values
+  constructor(values: { [version: number]: T } | T) {
+    if (values instanceof Object) {
+      this.values = values;
+    } else {
+      this.values = { 0: values };
+    }
+  }
+}
 
 // Crowdloan Constants
 
@@ -26,51 +58,76 @@ export const PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS = "0x0000000000000000000000000
 export const PRECOMPILE_IDENTITY_ADDRESS = "0x0000000000000000000000000000000000000818";
 export const PRECOMPILE_RELAY_DATA_VERIFIER_ADDRESS = "0x0000000000000000000000000000000000000819";
 
-// Fees
+// Fees and gas limits
 export const RUNTIME_CONSTANTS = {
   MOONBASE: {
     MIN_FEE_MULTIPLIER: 100_000_000_000_000_000n,
     MAX_FEE_MULTIPLIER: 100_000_000_000_000_000_000_000n,
     MIN_BASE_FEE_IN_WEI: "125000000",
     MAX_BASE_FEE_IN_WEI: "125000000000000",
-    TARGET_FILL_PERMILL: 500_000n,
-    OLD_TARGET_FILL_PERMILL: 250_000n,
+    TARGET_FILL_PERMILL: new RuntimeConstant({ 3000: 350_000n, 2801: 500_000n, 0: 250_000n }),
+    // Deadline for block production in miliseconds
+    DEADLINE_MILISECONDS: 2000n,
+    // Caclulated as the weight per second by the deadline in seconds
+    BLOCK_WEIGHT_LIMIT: 2_000_000_000_000n,
+    // Gas limit considering the block utilization threshold (75%)
+    GAS_LIMIT: 60_000_000n,
+    // Maximum extrinsic weight is taken from the max allowed transaction weight per block (75%),
+    // minus the block initialization (10%) and minus the extrinsic base cost.
+    EXTRINSIC_GAS_LIMIT: 52_000_000n,
+    // Maximum Gas to PoV ratio used in the gasometer
+    GAS_PER_POV_BYTES: 16n,
   },
   MOONRIVER: {
     MIN_FEE_MULTIPLIER: 1_000_000_000_000_000_000n,
     MAX_FEE_MULTIPLIER: 100_000_000_000_000_000_000_000n,
     MIN_BASE_FEE_IN_WEI: "1250000000",
     MAX_BASE_FEE_IN_WEI: "125000000000000",
-    TARGET_FILL_PERMILL: 500_000n,
-    OLD_TARGET_FILL_PERMILL: 250_000n,
+    TARGET_FILL_PERMILL: new RuntimeConstant({ 3000: 350_000n, 2801: 500_000n, 0: 250_000n }),
+    // Deadline for block production in miliseconds
+    DEADLINE_MILISECONDS: 2000n,
+    // Caclulated as the weight per second by the deadline in seconds
+    BLOCK_WEIGHT_LIMIT: 2_000_000_000_000n,
+    // Gas limit considering the block utilization threshold (75%)
+    GAS_LIMIT: 60_000_000n,
+    // Maximum extrinsic weight is taken from the max allowed transaction weight per block (75%),
+    // minus the block initialization (10%) and minus the extrinsic base cost.
+    EXTRINSIC_GAS_LIMIT: 52_000_000n,
+    // Maximum Gas to PoV ratio used in the gasometer
+    GAS_PER_POV_BYTES: 16n,
   },
   MOONBEAM: {
     MIN_FEE_MULTIPLIER: 1_000_000_000_000_000_000n,
     MAX_FEE_MULTIPLIER: 100_000_000_000_000_000_000_000n,
     MIN_BASE_FEE_IN_WEI: "125000000000",
     MAX_BASE_FEE_IN_WEI: "12500000000000000",
-    TARGET_FILL_PERMILL: 500_000n,
-    OLD_TARGET_FILL_PERMILL: 250_000n,
+    TARGET_FILL_PERMILL: new RuntimeConstant({ 3000: 350_000n, 2801: 500_000n, 0: 250_000n }),
+    // Deadline for block production in miliseconds
+    DEADLINE_MILISECONDS: 1000n,
+    // Caclulated as the weight per second by the deadline in seconds
+    BLOCK_WEIGHT_LIMIT: 1_000_000_000_000n,
+    // Gas limit considering the block utilization threshold (75%)
+    GAS_LIMIT: 30_000_000n,
+    // Maximum extrinsic weight is taken from the max allowed transaction weight per block (75%),
+    // minus the block initialization (10%) and minus the extrinsic base cost.
+    EXTRINSIC_GAS_LIMIT: 26_000_000n,
+    // Maximum Gas to PoV ratio used in the gasometer
+    GAS_PER_POV_BYTES: 8n,
   },
 } as const;
 
-// Weight correspond to 1 picosecond
-export const WEIGHT_PER_SECOND = 1_000_000_000_000n;
-
-// Current gas per second
-export const GAS_PER_SECOND = 40_000_000n;
-export const GAS_PER_WEIGHT = WEIGHT_PER_SECOND / GAS_PER_SECOND;
-
-// Maximum Gas to PoV ratio used in the gasometer
-export const GAS_PER_POV_BYTES = 16n;
-// Our weight limit is 2s.
-export const BLOCK_WEIGHT_LIMIT = WEIGHT_PER_SECOND * 2n;
-export const BLOCK_GAS_LIMIT = BLOCK_WEIGHT_LIMIT / GAS_PER_WEIGHT;
-
-// Maximum extrinsic weight is taken from the max allowed transaction weight per block (75%),
-// minus the block initialization (10%) and minus the extrinsic base cost.
-export const EXTRINSIC_GAS_LIMIT = (BLOCK_GAS_LIMIT * 3n) / 4n - BLOCK_GAS_LIMIT / 10n;
-// Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
-export const MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES;
-
 export const GAS_LIMIT_POV_RATIO = 16;
+
+// Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
+export const MAX_ETH_POV_PER_TX = 3_250_000n;
+
+type ConstantStoreType = (typeof RUNTIME_CONSTANTS)["MOONBASE"];
+
+export function ConstantStore(context: DevModeContext): ConstantStoreType {
+  const runtimeChain = context.pjsApi.runtimeChain.toUpperCase();
+  const runtime = runtimeChain
+    .split(" ")
+    .filter((v) => Object.keys(RUNTIME_CONSTANTS).includes(v))
+    .join();
+  return RUNTIME_CONSTANTS[runtime];
+}

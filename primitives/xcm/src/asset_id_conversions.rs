@@ -49,13 +49,14 @@ where
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
 	fn convert(id: &xcm::v4::Location) -> Option<AssetId> {
-		let v3_location = xcm_builder::V4V3LocationConverter::convert(id)?;
+		let v3_location =
+			xcm_builder::WithLatestLocationConverter::<xcm::v3::Location>::convert(id)?;
 		AssetIdInfoGetter::get_asset_id(v3_location.clone().into())
 	}
 	fn convert_back(what: &AssetId) -> Option<xcm::v4::Location> {
 		let v3_location: Location =
 			AssetIdInfoGetter::get_asset_type(what.clone()).and_then(Into::into)?;
-		xcm_builder::V4V3LocationConverter::convert_back(&v3_location)
+		xcm_builder::WithLatestLocationConverter::convert_back(&v3_location)
 	}
 }
 impl<AssetId, AssetType, AssetIdInfoGetter> ConvertLocation<AssetId>
@@ -66,7 +67,8 @@ where
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
 	fn convert_location(id: &xcm::v4::Location) -> Option<AssetId> {
-		let v3_location = xcm_builder::V4V3LocationConverter::convert(id)?;
+		let v3_location =
+			xcm_builder::WithLatestLocationConverter::<xcm::v3::Location>::convert(id)?;
 		AssetIdInfoGetter::get_asset_id(v3_location.clone().into())
 	}
 }

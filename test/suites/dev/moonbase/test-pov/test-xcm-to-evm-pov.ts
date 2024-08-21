@@ -90,7 +90,7 @@ describeSuite({
           },
         ];
 
-        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 800000000n;
+        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 5_000_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
         const transferCall = context
           .polkadotJs()
@@ -123,7 +123,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                refTime: 50_025_000_000,
+                refTime: 50_041_742_000,
                 proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
               },
               call: {
@@ -138,7 +138,6 @@ describeSuite({
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        await context.createBlock();
         // This block is the one that processes the xcm messages
         const { result, block } = await context.createBlock();
 
@@ -193,7 +192,7 @@ describeSuite({
           },
         ];
 
-        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 800000000n;
+        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 5_000_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
         const transferCall = context
           .polkadotJs()
@@ -224,7 +223,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                refTime: 160_025_000_000,
+                refTime: 160_041_742_000,
                 proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
               },
               call: {
@@ -239,7 +238,7 @@ describeSuite({
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
-        context.createBlock();
+
         // This block is the one that processes the xcm messages
         const { result, block } = await context.createBlock();
 

@@ -5,7 +5,7 @@ import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 import {
   RELAY_SOURCE_LOCATION,
   XcmFragment,
-  registerForeignAsset,
+  registerOldForeignAsset,
   relayAssetMetadata,
 } from "../../../../helpers";
 
@@ -22,8 +22,8 @@ describeSuite({
     let assetId: string;
 
     beforeAll(async () => {
-      // registerForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerForeignAsset(
+      // registerOldForeignAsset
+      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
         context,
         RELAY_SOURCE_LOCATION,
         relayAssetMetadata

@@ -101,6 +101,11 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = ();
 	type OnSetCode = ();
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type SingleBlockMigrations = ();
+	type MultiBlockMigrator = ();
+	type PreInherents = ();
+	type PostInherents = ();
+	type PostTransactions = ();
 }
 
 parameter_types! {
@@ -126,7 +131,6 @@ impl pallet_balances::Config for Runtime {
 }
 
 pub type ForeignAssetInstance = ();
-pub type LocalAssetInstance = pallet_assets::Instance1;
 
 // Required for runtime benchmarks
 pallet_assets::runtime_benchmarks_enabled! {
@@ -151,30 +155,6 @@ parameter_types! {
 }
 
 impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type AssetAccountDeposit = AssetAccountDeposit;
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-	type RemoveItemsLimit = ConstU32<656>;
-	type AssetIdParameter = AssetId;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
-	type CallbackHandle = ();
-	pallet_assets::runtime_benchmarks_enabled! {
-		type BenchmarkHelper = BenchmarkHelper;
-	}
-}
-
-impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type AssetId = AssetId;
@@ -394,8 +374,10 @@ impl Config for XcmConfig {
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = Everything;
 	type Aliasers = Nothing;
-
 	type TransactionalProcessor = ();
+	type HrmpNewChannelOpenRequestHandler = ();
+	type HrmpChannelAcceptedHandler = ();
+	type HrmpChannelClosingHandler = ();
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -471,6 +453,8 @@ impl orml_xtokens::Config for Runtime {
 	type MinXcmFee = ParachainMinFee;
 	type LocationsFilter = Everything;
 	type ReserveProvider = xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
+	type RateLimiter = ();
+	type RateLimiterId = ();
 }
 
 parameter_types! {
@@ -1068,12 +1052,14 @@ impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 }
 
 impl pallet_ethereum_xcm::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type EnsureProxy = EthereumXcmEnsureProxy;
 	type ControllerOrigin = EnsureRoot<AccountId>;
+	type ForceOrigin = EnsureRoot<AccountId>;
 }
 
 type Block = frame_system::mocking::MockBlockU32<Runtime>;
@@ -1092,7 +1078,6 @@ construct_runtime!(
 		AssetManager: pallet_asset_manager,
 		XcmTransactor: pallet_xcm_transactor,
 		Treasury: pallet_treasury,
-		LocalAssets: pallet_assets::<Instance1>,
 		Proxy: pallet_proxy,
 
 		Timestamp: pallet_timestamp,
@@ -1111,7 +1096,7 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 }
 
 use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
-use frame_support::traits::{OnFinalize, OnInitialize, OnRuntimeUpgrade};
+use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
 pub(crate) fn on_runtime_upgrade() {
 	VersionUncheckedMigrateToV1::<Runtime>::on_runtime_upgrade();
 }

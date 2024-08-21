@@ -22,13 +22,10 @@ use frame_support::{
 	assert_ok,
 	traits::{OnFinalize, OnInitialize},
 };
-use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetType};
 pub use moonbase_runtime::{
-	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
-	AccountId, AssetId, AssetManager, Assets, AsyncBacking, AuthorInherent, Balance, Balances,
-	CrowdloanRewards, Ethereum, Executive, Header, InflationInfo, ParachainStaking,
-	ParachainSystem, Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
-	TransactionPaymentAsGasPrice, UncheckedExtrinsic, HOURS, WEEKS,
+	currency::UNIT, AccountId, AsyncBacking, AuthorInherent, Balance, Ethereum, EvmForeignAssets,
+	InflationInfo, ParachainStaking, Range, Runtime, RuntimeCall, RuntimeEvent, System,
+	TransactionConverter, UncheckedExtrinsic, HOURS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use polkadot_parachain::primitives::HeadData;
@@ -40,6 +37,10 @@ use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
 use pallet_transaction_payment::Multiplier;
+
+pub fn existential_deposit() -> u128 {
+	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
+}
 
 // A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =
@@ -105,10 +106,12 @@ pub fn last_event() -> RuntimeEvent {
 // Test struct with the purpose of initializing xcm assets
 #[derive(Clone)]
 pub struct XcmAssetInitialization {
-	pub asset_type: AssetType,
-	pub metadata: AssetRegistrarMetadata,
+	pub asset_id: u128,
+	pub xcm_location: xcm::v4::Location,
+	pub decimals: u8,
+	pub name: &'static str,
+	pub symbol: &'static str,
 	pub balances: Vec<(AccountId, Balance)>,
-	pub is_sufficient: bool,
 }
 
 pub struct ExtBuilder {
@@ -289,23 +292,31 @@ impl ExtBuilder {
 		ext.execute_with(|| {
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
-				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
-				AssetManager::register_foreign_asset(
+				let asset_id = xcm_asset_initialization.asset_id;
+				EvmForeignAssets::create_foreign_asset(
 					root_origin(),
-					xcm_asset_initialization.asset_type,
-					xcm_asset_initialization.metadata,
-					1,
-					xcm_asset_initialization.is_sufficient,
+					asset_id,
+					xcm_asset_initialization.xcm_location,
+					xcm_asset_initialization.decimals,
+					xcm_asset_initialization
+						.symbol
+						.as_bytes()
+						.to_vec()
+						.try_into()
+						.expect("too long"),
+					xcm_asset_initialization
+						.name
+						.as_bytes()
+						.to_vec()
+						.try_into()
+						.expect("too long"),
 				)
-				.unwrap();
+				.expect("fail to create foreign asset");
+
 				for (account, balance) in xcm_asset_initialization.balances {
-					Assets::mint(
-						origin_of(AssetManager::account_id()),
-						asset_id.into(),
-						account,
-						balance,
-					)
-					.unwrap();
+					if EvmForeignAssets::mint_into(asset_id, account, balance.into()).is_err() {
+						panic!("fail to mint foreign asset");
+					}
 				}
 			}
 			System::set_block_number(1);

@@ -37,4 +37,4 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 ]
-runtime-2900 = []
+runtime-3000 = []

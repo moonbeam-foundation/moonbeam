@@ -45,7 +45,7 @@ use substrate_prometheus_endpoint::{
 };
 
 use ethereum_types::H256;
-use fc_rpc::OverrideHandle;
+use fc_storage::StorageOverride;
 use fp_rpc::EthereumRuntimeRPCApi;
 
 use moonbeam_client_evm_tracing::{
@@ -442,7 +442,7 @@ where
 		backend: Arc<BE>,
 		cache_duration: Duration,
 		blocking_permits: Arc<Semaphore>,
-		overrides: Arc<OverrideHandle<B>>,
+		overrides: Arc<dyn StorageOverride<B>>,
 		prometheus: Option<PrometheusRegistry>,
 	) -> (impl Future<Output = ()>, CacheRequester) {
 		// Communication with the outside world :
@@ -535,7 +535,7 @@ where
 		blocking_tx: &mpsc::Sender<BlockingTaskMessage>,
 		sender: oneshot::Sender<CacheBatchId>,
 		blocks: Vec<H256>,
-		overrides: Arc<OverrideHandle<B>>,
+		overrides: Arc<dyn StorageOverride<B>>,
 	) {
 		tracing::trace!("Starting batch {}", self.next_batch_id);
 		self.batches.insert(self.next_batch_id, blocks.clone());
@@ -791,7 +791,7 @@ where
 		client: Arc<C>,
 		backend: Arc<BE>,
 		substrate_hash: H256,
-		overrides: Arc<OverrideHandle<B>>,
+		overrides: Arc<dyn StorageOverride<B>>,
 	) -> TxsTraceRes {
 		// Get Subtrate block data.
 		let api = client.runtime_api();
@@ -808,24 +808,18 @@ where
 		let height = *block_header.number();
 		let substrate_parent_hash = *block_header.parent_hash();
 
-		let schema =
-			fc_storage::onchain_storage_schema::<B, C, BE>(client.as_ref(), substrate_hash);
-
 		// Get Ethereum block data.
-		let (eth_block, eth_transactions) = match overrides.schemas.get(&schema) {
-			Some(schema) => match (
-				schema.current_block(substrate_hash),
-				schema.current_transaction_statuses(substrate_hash),
-			) {
-				(Some(a), Some(b)) => (a, b),
-				_ => {
-					return Err(format!(
-						"Failed to get Ethereum block data for Substrate block {}",
-						substrate_hash
-					))
-				}
-			},
-			_ => return Err(format!("No storage override at {:?}", substrate_hash)),
+		let (eth_block, eth_transactions) = match (
+			overrides.current_block(substrate_hash),
+			overrides.current_transaction_statuses(substrate_hash),
+		) {
+			(Some(a), Some(b)) => (a, b),
+			_ => {
+				return Err(format!(
+					"Failed to get Ethereum block data for Substrate block {}",
+					substrate_hash
+				))
+			}
 		};
 
 		let eth_block_hash = eth_block.header.hash();
@@ -896,37 +890,48 @@ where
 			Ok(moonbeam_rpc_primitives_debug::Response::Block)
 		};
 
+		let eth_transactions_by_index: BTreeMap<u32, H256> = eth_transactions
+			.iter()
+			.map(|t| (t.transaction_index, t.transaction_hash))
+			.collect();
+
 		let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
 		proxy.using(f)?;
-		let mut traces: Vec<_> =
+
+		let traces: Vec<TransactionTrace> =
 			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy)
-				.ok_or("Fail to format proxy")?;
-		// Fill missing data.
-		for trace in traces.iter_mut() {
-			trace.block_hash = eth_block_hash;
-			trace.block_number = height;
-			trace.transaction_hash = eth_transactions
-				.get(trace.transaction_position as usize)
-				.ok_or_else(|| {
-					tracing::warn!(
-						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
-						height
-					);
+				.ok_or("Fail to format proxy")?
+				.into_iter()
+				.filter_map(|mut trace| {
+					match eth_transactions_by_index.get(&trace.transaction_position) {
+						Some(transaction_hash) => {
+							trace.block_hash = eth_block_hash;
+							trace.block_number = height;
+							trace.transaction_hash = *transaction_hash;
 
-					format!(
-						"Bug: A transaction has been replayed while it shouldn't (in block {}).",
-						height
-					)
-				})?
-				.transaction_hash;
+							// Reformat error messages.
+							if let block::TransactionTraceOutput::Error(ref mut error) =
+								trace.output
+							{
+								if error.as_slice() == b"execution reverted" {
+									*error = b"Reverted".to_vec();
+								}
+							}
 
-			// Reformat error messages.
-			if let block::TransactionTraceOutput::Error(ref mut error) = trace.output {
-				if error.as_slice() == b"execution reverted" {
-					*error = b"Reverted".to_vec();
-				}
-			}
-		}
+							Some(trace)
+						}
+						None => {
+							log::warn!(
+								"A trace in block {} does not map to any known ethereum transaction. Trace: {:?}",
+								height,
+								trace,
+							);
+							None
+						}
+					}
+				})
+				.collect();
+
 		Ok(traces)
 	}
 }

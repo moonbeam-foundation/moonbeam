@@ -8,6 +8,7 @@ version = "1.0.0"
 environmental = { workspace = true }
 ethereum-types = { workspace = true }
 serde = { workspace = true, optional = true, features = ["derive"] }
+log = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }

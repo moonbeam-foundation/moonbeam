@@ -15,11 +15,17 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
-	TreasuryCouncilInstance,
+	asset_config::ForeignAssetInstance,
+	xcm_config::{AssetType, XcmExecutorConfig},
+	OpenTechCommitteeInstance, TreasuryCouncilInstance,
 };
-use crate::{AssetId, H160};
+use crate::{AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, Runtime, H160};
 use frame_support::parameter_types;
+use moonbeam_runtime_common::weights as moonbase_weights;
+use moonkit_xcm_primitives::{
+	location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher},
+	AccountIdAssetIdConversion,
+};
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
@@ -32,6 +38,7 @@ use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 use pallet_evm_precompile_gmp::GmpPrecompile;
 use pallet_evm_precompile_identity::IdentityPrecompile;
 use pallet_evm_precompile_modexp::Modexp;
+use pallet_evm_precompile_p256verify::P256Verify;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
 use pallet_evm_precompile_proxy::{OnlyIsProxyAndProxy, ProxyPrecompile};
@@ -43,14 +50,23 @@ use pallet_evm_precompile_relay_verifier::RelayDataVerifierPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use pallet_evm_precompile_storage_cleaner::StorageCleanerPrecompile;
+use pallet_evm_precompile_xcm::PalletXcmPrecompile;
 use pallet_evm_precompile_xcm_transactor::{
 	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2, v3::XcmTransactorPrecompileV3,
 };
 use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::{AccountIdAssetIdConversion, Erc20AssetsPrecompileSet};
+use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
+use pallet_precompile_benchmarks::WeightInfo;
+use precompile_foreign_asset_migrator::ForeignAssetMigratorPrecompile;
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;
+use xcm_primitives::AsAssetType;
+
+parameter_types! {
+	pub P256VerifyWeight: frame_support::weights::Weight =
+		moonbase_weights::pallet_precompile_benchmarks::WeightInfo::<Runtime>::p256_verify();
+}
 
 /// ERC20 metadata for the native token.
 pub struct NativeErc20Metadata;
@@ -85,12 +101,28 @@ pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
 /// to Erc20AssetsPrecompileSet being marked as local
 pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
 
+/// Const to identify ERC20_BALANCES_PRECOMPILE address
+pub const ERC20_BALANCES_PRECOMPILE: u64 = 2050;
+
 parameter_types! {
 	pub ForeignAssetPrefix: &'static [u8] = FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX;
 	pub LocalAssetPrefix: &'static [u8] = LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX;
 }
 
 type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, CallableByPrecompile);
+
+// Pallet-xcm precompile types.
+// Type that converts AssetId into Location
+type AssetIdToLocationManager = AsAssetType<AssetId, AssetType, AssetManager>;
+
+// The pallet-balances address is identified by ERC20_BALANCES_PRECOMPILE const
+type SingleAddressMatch = SingleAddressMatcher<AccountId, ERC20_BALANCES_PRECOMPILE, Balances>;
+
+// Type that matches an AccountId with a foreign asset address (if any)
+type ForeignAssetMatch = ForeignAssetMatcher<AccountId, AssetId, Runtime, AssetIdToLocationManager>;
+
+// Erc20XcmBridge pallet is used to match ERC20s
+type Erc20Match = Erc20PalletMatcher<AccountId, Erc20XcmBridge>;
 
 #[precompile_utils::precompile_name_from_address]
 type MoonbasePrecompilesAt<R> = (
@@ -105,6 +137,8 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<AddressU64<7>, Bn128Mul, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<8>, Bn128Pairing, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<9>, Blake2F, EthereumPrecompilesChecks>,
+	// (0x100 => 256) https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
+	PrecompileAt<AddressU64<256>, P256Verify<P256VerifyWeight>, EthereumPrecompilesChecks>,
 	// Non-Moonbeam specific nor Ethereum precompiles :
 	PrecompileAt<AddressU64<1024>, Sha3FIPS256, (CallableByContract, CallableByPrecompile)>,
 	RemovedPrecompileAt<AddressU64<1025>>, // Dispatch<R>
@@ -122,7 +156,7 @@ type MoonbasePrecompilesAt<R> = (
 		(CallableByContract, CallableByPrecompile),
 	>,
 	PrecompileAt<
-		AddressU64<2050>,
+		AddressU64<ERC20_BALANCES_PRECOMPILE>,
 		Erc20BalancesPrecompile<R, NativeErc20Metadata>,
 		(CallableByContract, CallableByPrecompile),
 	>,
@@ -240,6 +274,12 @@ type MoonbasePrecompilesAt<R> = (
 		RelayDataVerifierPrecompile<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
+	PrecompileAt<
+		AddressU64<2074>,
+		PalletXcmPrecompile<R, (SingleAddressMatch, ForeignAssetMatch, Erc20Match)>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<AddressU64<2075>, ForeignAssetMigratorPrecompile<R>, ()>,
 );
 
 pub struct DisabledLocalAssets<Runtime>(sp_std::marker::PhantomData<Runtime>);

@@ -4,7 +4,6 @@ import { WEIGHT_FEE, WEIGHT_PER_GAS, getBlockArray } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { GenericExtrinsic } from "@polkadot/types";
 import type { u128 } from "@polkadot/types-codec";
-import type { DispatchInfo } from "@polkadot/types/interfaces";
 import {
   EthereumBlock,
   EthereumReceiptReceiptV3,
@@ -16,6 +15,9 @@ import {
 import { AnyTuple } from "@polkadot/types/types";
 import { ethers } from "ethers";
 import { checkTimeSliceForUpgrades, rateLimiter, RUNTIME_CONSTANTS } from "../../helpers";
+import Debug from "debug";
+import { DispatchInfo } from "@polkadot/types/interfaces";
+const debug = Debug("smoke:dynamic-fees");
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
@@ -26,6 +28,7 @@ const atBlock = process.env.AT_BLOCK ? Number(process.env.AT_BLOCK) : -1;
 type BlockFilteredRecord = {
   blockNum: number;
   nextFeeMultiplier: u128;
+  fillPermill: bigint;
   ethBlock: EthereumBlock;
   extrinsics: GenericExtrinsic<AnyTuple>[];
   ethersTransactionsFees: bigint[];
@@ -50,6 +53,8 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     let blockData: BlockFilteredRecord[];
+    // includes blockData and also the previous block, needed for fee change computation.
+    let allBlocks: BlockFilteredRecord[];
     let runtime: "MOONRIVER" | "MOONBEAM" | "MOONBASE";
     let paraApi: ApiPromise;
     let skipAll = false;
@@ -97,7 +102,17 @@ describeSuite({
 
     beforeAll(async function () {
       paraApi = context.polkadotJs("para");
-      const { specVersion, specName } = paraApi.consts.system.version;
+
+      const blockNumArray = atBlock > 0 ? [atBlock] : await getBlockArray(paraApi, timePeriod);
+      // Retrieves the block before the first block of the data. This is used later to compute
+      // the fee changes of the first block of the data.
+      const previousBlockNumber = Math.max(blockNumArray[0] - 1, 0);
+
+      // Retrieves version of the last block to check.
+      const endsAtBlockHash = await paraApi.rpc.chain.getBlockHash(
+        blockNumArray[blockNumArray.length - 1]
+      );
+      const { specVersion, specName } = (await paraApi.at(endsAtBlockHash)).consts.system.version;
       runtime = specName.toUpperCase() as any;
 
       if (
@@ -119,14 +134,16 @@ describeSuite({
         skipAll = true;
       }
 
-      targetFillPermill =
-        specVersion.toNumber() >= 2801
-          ? RUNTIME_CONSTANTS[runtime].TARGET_FILL_PERMILL
-          : RUNTIME_CONSTANTS[runtime].OLD_TARGET_FILL_PERMILL;
+      targetFillPermill = RUNTIME_CONSTANTS[runtime].TARGET_FILL_PERMILL.get(
+        specVersion.toNumber()
+      );
 
-      const blockNumArray = atBlock > 0 ? [atBlock] : await getBlockArray(paraApi, timePeriod);
-
-      log(`Collecting ${hours} hours worth of block data`);
+      log(
+        `Collecting ${hours} hours worth of data ` +
+          `[from #${blockNumArray[0]} ` +
+          `to #${blockNumArray[blockNumArray.length - 1]}] ` +
+          `(${blockNumArray.length} blocks, RT${specVersion.toNumber()})`
+      );
 
       const getBlockData = async (blockNum: number) => {
         const blockHash = await paraApi.rpc.chain.getBlockHash(blockNum);
@@ -145,9 +162,16 @@ describeSuite({
         const weights = await apiAt.query.system.blockWeight();
         const receipts = (await apiAt.query.ethereum.currentReceipts()).unwrapOr([]);
         const events = await apiAt.query.system.events();
+        const nextFeeMultiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
+        const fillPermill =
+          (weights.normal.refTime.unwrap().toBigInt() * 1_000_000n) /
+          apiAt.consts.system.blockWeights.perClass.normal.maxTotal.unwrap().refTime.toBigInt();
+        debug(`Block #${blockNum} fullness: ${(Number(fillPermill) / 10_000).toFixed(2)}%`);
+
         return {
-          blockNum: blockNum,
-          nextFeeMultiplier: await apiAt.query.transactionPayment.nextFeeMultiplier(),
+          blockNum,
+          nextFeeMultiplier,
+          fillPermill,
           ethBlock,
           ethersTransactionsFees,
           transactionStatuses,
@@ -166,13 +190,20 @@ describeSuite({
         specVersion
       );
       if (result) {
-        log(`Time slice of blocks intersects with upgrade from RT ${onChainRt}, skipping tests.`);
+        log(
+          `Time slice of blocks intersects with upgrade ` +
+            `from RT ${onChainRt} to RT ${specVersion}, skipping tests.`
+        );
         skipAll = true;
       }
 
       blockData = await Promise.all(
         blockNumArray.map((num) => limiter.schedule(() => getBlockData(num)))
       );
+      allBlocks =
+        previousBlockNumber > 0
+          ? [await getBlockData(previousBlockNumber), ...blockData]
+          : blockData;
     }, timeout);
 
     it({
@@ -184,14 +215,9 @@ describeSuite({
           log("Skipping test suite due to runtime version");
           return;
         }
-        const maxWeights = paraApi.consts.system.blockWeights;
-        const enriched = blockData.map(({ weights, blockNum, nextFeeMultiplier }) => {
-          const fillPermill =
-            (weights.normal.refTime.toBigInt() * 1000000n) /
-            maxWeights.perClass.normal.maxTotal.unwrap().refTime.toBigInt();
-
+        const enriched = blockData.map(({ blockNum, fillPermill, nextFeeMultiplier }) => {
           const change = checkMultiplier(
-            blockData.find((blockDatum) => blockDatum.blockNum == blockNum - 1)!,
+            allBlocks.find((blockDatum) => blockDatum.blockNum == blockNum - 1)!,
             nextFeeMultiplier
           );
 
@@ -228,17 +254,12 @@ describeSuite({
           log("Skipping test suite due to runtime version");
           return;
         }
-        const enriched = blockData.map(({ blockNum, nextFeeMultiplier, weights }) => {
-          const fillPermill =
-            (weights.normal.refTime.unwrap().toBigInt() * 1_000_000n) /
-            paraApi.consts.system.blockWeights.perClass.normal.maxTotal.unwrap().refTime.toBigInt();
-
+        const enriched = blockData.map(({ blockNum, nextFeeMultiplier, fillPermill }) => {
           const change = checkMultiplier(
-            blockData.find((blockDatum) => blockDatum.blockNum == blockNum - 1)!,
+            allBlocks.find((blockDatum) => blockDatum.blockNum == blockNum - 1)!,
             nextFeeMultiplier
           );
           const valid = isChangeDirectionValid(fillPermill, change, nextFeeMultiplier.toBigInt());
-
           return { blockNum, fillPermill, change, valid };
         });
 
@@ -385,7 +406,10 @@ describeSuite({
 
             const gasUsed = filteredTxnEvents
               .map((txnEvent) => {
-                if (isEthereumTxn(blockNum, txnEvent.phase.asApplyExtrinsic.toNumber())) {
+                if (
+                  txnEvent.phase.isApplyExtrinsic && // Exclude XCM => EVM calls
+                  isEthereumTxn(blockNum, txnEvent.phase.asApplyExtrinsic.toNumber())
+                ) {
                   const txnHash = (txnEvent.event.data as any).transactionHash;
                   const index = transactionStatuses.findIndex((status) =>
                     status.transactionHash.eq(txnHash)

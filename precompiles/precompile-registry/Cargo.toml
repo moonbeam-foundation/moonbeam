@@ -8,9 +8,6 @@ version = "0.1.0"
 [dependencies]
 log = { workspace = true }
 
-# Moonbeam
-precompile-utils = { workspace = true }
-
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
@@ -21,7 +18,8 @@ sp-std = { workspace = true }
 
 # Frontier
 fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+precompile-utils = { workspace = true }
 
 [dev-dependencies]
 derive_more = { workspace = true }
@@ -29,17 +27,17 @@ hex-literal = { workspace = true }
 serde = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true, features = [ "std", "testing" ] }
+precompile-utils = { workspace = true, features = ["std", "testing"] }
 
 # Substrate
-pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
+pallet-balances = { workspace = true, features = ["insecure_zero_ed", "std"] }
 pallet-scheduler = { workspace = true }
 pallet-timestamp = { workspace = true }
-scale-info = { workspace = true, features = [ "derive" ] }
+scale-info = { workspace = true, features = ["derive"] }
 sp-runtime = { workspace = true }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"fp-evm/std",
 	"frame-support/std",

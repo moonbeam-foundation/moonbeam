@@ -32,21 +32,22 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
+use moonbeam_runtime::currency::{GIGAWEI, WEI};
 use moonbeam_runtime::{
 	asset_config::ForeignAssetInstance,
 	currency::GLMR,
 	xcm_config::{CurrencyId, SelfReserve},
-	AccountId, Balances, CrowdloanRewards, OpenTechCommitteeCollective, ParachainStaking,
-	PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
-	TransactionPayment, TreasuryCouncilCollective, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	AccountId, Balances, CrowdloanRewards, Executive, OpenTechCommitteeCollective,
+	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
+	RuntimeEvent, System, TransactionPayment, TransactionPaymentAsGasPrice,
+	TreasuryCouncilCollective, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	WEEKS,
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
+use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use pallet_evm_precompileset_assets_erc20::{
-	AccountIdAssetIdConversion, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
-};
+use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
@@ -449,22 +450,29 @@ fn verify_pallet_indices() {
 
 #[test]
 fn verify_reserved_indices() {
-	use frame_metadata::*;
-	let metadata = moonbeam_runtime::Runtime::metadata();
-	let metadata = match metadata.1 {
-		RuntimeMetadata::V14(metadata) => metadata,
-		_ => panic!("metadata has been bumped, test needs to be updated"),
-	};
-	// 40: Sudo
-	// 53: BaseFee
-	// 108: pallet_assets::<Instance1>
-	let reserved = vec![40, 53, 108];
-	let existing = metadata
-		.pallets
-		.iter()
-		.map(|p| p.index)
-		.collect::<Vec<u8>>();
-	assert!(reserved.iter().all(|index| !existing.contains(index)));
+	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
+		.unwrap()
+		.into();
+
+	t.execute_with(|| {
+		use frame_metadata::*;
+		let metadata = moonbeam_runtime::Runtime::metadata();
+		let metadata = match metadata.1 {
+			RuntimeMetadata::V14(metadata) => metadata,
+			_ => panic!("metadata has been bumped, test needs to be updated"),
+		};
+		// 40: Sudo
+		// 53: BaseFee
+		// 108: pallet_assets::<Instance1>
+		let reserved = vec![40, 53, 108];
+		let existing = metadata
+			.pallets
+			.iter()
+			.map(|p| p.index)
+			.collect::<Vec<u8>>();
+		assert!(reserved.iter().all(|index| !existing.contains(index)));
+	});
 }
 
 #[test]
@@ -626,10 +634,9 @@ fn reward_block_authors() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
-			for x in 2..3599 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
-			}
+			increase_last_relay_slot_number(1);
+			// Just before round 3
+			run_to_block(7199, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -639,7 +646,7 @@ fn reward_block_authors() {
 				Balances::usable_balance(AccountId::from(BOB)),
 				9_950_000 * GLMR,
 			);
-			run_to_block(3601, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(7201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -673,14 +680,14 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
+			increase_last_relay_slot_number(1);
 			assert_ok!(ParachainStaking::set_parachain_bond_account(
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
 
 			// Stop just before round 3
-			run_to_block(3599, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(7199, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// no collators rewards doled out yet
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -697,7 +704,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			);
 
 			// Go to round 3
-			run_to_block(3601, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(7201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 
 			// collators rewards minted and distributed
 			assert_eq!(
@@ -1094,7 +1101,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(AccountId::from(BOB).into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(1669)
 				.expect_no_logs()
 				.execute_returns(false);
 
@@ -1107,7 +1114,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(1669)
 				.expect_no_logs()
 				.execute_returns(true);
 		})
@@ -1179,7 +1186,7 @@ fn reward_info_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(1669)
 				.expect_no_logs()
 				.execute_returns((expected_total, expected_claimed));
 		})
@@ -1372,7 +1379,7 @@ fn initial_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				125_000_000_000u128.into(),
-				Weight::from_parts(25_000_000u64, 0)
+				Weight::from_parts(41_742_000u64, 0)
 			)
 		);
 	});
@@ -1394,7 +1401,7 @@ fn min_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				125_000_000_000u128.into(),
-				Weight::from_parts(25_000_000u64, 0)
+				Weight::from_parts(41_742_000u64, 0)
 			)
 		);
 	});
@@ -1714,7 +1721,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 					asset_precompile_address,
 					ForeignAssetsPCall::total_supply {},
 				)
-				.expect_cost(2000)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * GLMR));
 
@@ -1727,7 +1734,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 						who: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(2000)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * GLMR));
 		});
@@ -1773,7 +1780,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(24377)
+				.expect_cost(24713)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1792,7 +1799,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						who: Address(BOB.into()),
 					},
 				)
-				.expect_cost(2000)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * GLMR));
 		});
@@ -1838,7 +1845,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(14429)
+				.expect_cost(15587)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1859,7 +1866,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29748)
+				.expect_cost(29969)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1878,7 +1885,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						who: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(2000)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * GLMR));
 		});
@@ -1934,11 +1941,11 @@ fn xtokens_precompile_transfer() {
 					XtokensPCall::transfer {
 						currency_address: Address(asset_precompile_address.into()),
 						amount: 500_000_000_000_000u128.into(),
-						destination: destination.clone(),
+						destination,
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(57639)
+				.expect_cost(196490)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -1986,11 +1993,11 @@ fn xtokens_precompile_transfer_multiasset() {
 						// We want to transfer the relay token
 						asset: Location::parent(),
 						amount: 500_000_000_000_000u128.into(),
-						destination: destination.clone(),
+						destination,
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(57639)
+				.expect_cost(196490)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2141,7 +2148,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(17559)
+				.expect_cost(23278)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2347,7 +2354,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(1000)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2367,7 +2374,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_location,
 				},
 			)
-			.expect_cost(1000)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2397,7 +2404,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_location,
 				},
 			)
-			.expect_cost(1000)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
@@ -2437,7 +2444,7 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(1000)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});
@@ -2448,9 +2455,9 @@ fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067, 2068,
-			2069, 2070, 2071, 2072, 2073,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 256, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053,
+			2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067,
+			2068, 2069, 2070, 2071, 2072, 2073,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2669,16 +2676,17 @@ fn evm_success_keeps_substrate_events() {
 #[cfg(test)]
 mod fee_tests {
 	use super::*;
+	use fp_evm::FeeCalculator;
 	use frame_support::{
-		traits::ConstU128,
+		traits::{ConstU128, OnFinalize},
 		weights::{ConstantMultiplier, WeightToFee},
 	};
 	use moonbeam_runtime::{
 		currency, LengthToFee, MinimumMultiplier, RuntimeBlockWeights, SlowAdjustingFeeUpdate,
-		TargetBlockFullness, TransactionPayment,
+		TargetBlockFullness, TransactionPaymentAsGasPrice, NORMAL_WEIGHT, WEIGHT_PER_GAS,
 	};
 	use sp_core::Get;
-	use sp_runtime::FixedPointNumber;
+	use sp_runtime::{BuildStorage, FixedPointNumber, Perbill};
 
 	fn run_with_system_weight<F>(w: Weight, mut assertions: F)
 	where
@@ -2756,6 +2764,132 @@ mod fee_tests {
 				actual_fee,
 				"The actual fee did not match the expected fee, diff {}",
 				actual_fee - expected_fee
+			);
+		});
+	}
+
+	#[test]
+	fn test_min_gas_price_is_deterministic() {
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			let multiplier = sp_runtime::FixedU128::from_u32(1);
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
+			let actual = TransactionPaymentAsGasPrice::min_gas_price().0;
+			let expected: U256 = multiplier
+				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
+				.into();
+
+			assert_eq!(expected, actual);
+		});
+	}
+
+	#[test]
+	fn test_min_gas_price_has_no_precision_loss_from_saturating_mul_int() {
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			let multiplier_1 = sp_runtime::FixedU128::from_float(0.999593900000000000);
+			let multiplier_2 = sp_runtime::FixedU128::from_float(0.999593200000000000);
+
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier_1);
+			let a = TransactionPaymentAsGasPrice::min_gas_price();
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier_2);
+			let b = TransactionPaymentAsGasPrice::min_gas_price();
+
+			assert_ne!(
+				a, b,
+				"both gas prices were equal, unexpected precision loss incurred"
+			);
+		});
+	}
+
+	#[test]
+	fn test_fee_scenarios() {
+		use sp_runtime::FixedU128;
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+			.build_storage()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			let weight_fee_per_gas = currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128);
+			let sim = |start_gas_price: u128, fullness: Perbill, num_blocks: u64| -> U256 {
+				let start_multiplier =
+					FixedU128::from_rational(start_gas_price, weight_fee_per_gas);
+				pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(start_multiplier);
+
+				let block_weight = NORMAL_WEIGHT * fullness;
+
+				for i in 0..num_blocks {
+					System::set_block_number(i as u32);
+					System::set_block_consumed_resources(block_weight, 0);
+					TransactionPayment::on_finalize(i as u32);
+				}
+
+				TransactionPaymentAsGasPrice::min_gas_price().0
+			};
+
+			// The expected values are the ones observed during test execution,
+			// they are expected to change when parameters that influence
+			// the fee calculation are changed, and should be updated accordingly.
+			// If a test fails when nothing specific to fees has changed,
+			// it may indicate an unexpected collateral effect and should be investigated
+
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(0), 1),
+				U256::from(125_000_000_000u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(25), 1),
+				U256::from(125_000_000_000u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(50), 1),
+				U256::from(125_075_022_500u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(100), 1),
+				U256::from(125_325_422_500u128),
+			);
+
+			// 1 "real" hour (at 12-second blocks)
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(0), 600),
+				U256::from(125_000_000_000u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(25), 600),
+				U256::from(125_000_000_000u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(50), 600),
+				U256::from(179_166_172_951u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(100), 600),
+				U256::from(594_851_612_166u128),
+			);
+
+			// 1 "real" day (at 12-second blocks)
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(0), 14400),
+				U256::from(125_000_000_000u128), // lower bound enforced
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(25), 14400),
+				U256::from(125_000_000_000u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(50), 14400),
+				U256::from(706_665_861_883_635u128),
+			);
+			assert_eq!(
+				sim(1_000_000_000, Perbill::from_percent(100), 14400),
+				U256::from(12_500_000_000_000_000u128), // upper bound enforced
 			);
 		});
 	}

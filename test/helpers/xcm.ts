@@ -1,6 +1,6 @@
 import { DevModeContext, customDevRpcRequest } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import { AssetMetadata, XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { XcmpMessageFormat } from "@polkadot/types/interfaces";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   XcmV3JunctionNetworkId,
@@ -70,52 +70,6 @@ export function mockHrmpChannelExistanceTx(
   return context
     .polkadotJs()
     .tx.system.setStorage([[u8aToHex(overallKey), u8aToHex(stateToInsert.toU8a())]]);
-}
-
-export async function registerForeignAsset(
-  context: DevModeContext,
-  asset: any,
-  metadata: AssetMetadata,
-  unitsPerSecond?: number,
-  numAssetsWeightHint?: number
-) {
-  unitsPerSecond = unitsPerSecond != null ? unitsPerSecond : 0;
-  const { result } = await context.createBlock(
-    context
-      .polkadotJs()
-      .tx.sudo.sudo(
-        context.polkadotJs().tx.assetManager.registerForeignAsset(asset, metadata, new BN(1), true)
-      )
-  );
-  // Look for assetId in events
-  const registeredAssetId = result!.events
-    .find(({ event: { section } }) => section.toString() === "assetManager")!
-    .event.data[0].toHex()
-    .replace(/,/g, "");
-
-  // setAssetUnitsPerSecond
-  const { result: result2 } = await context.createBlock(
-    context
-      .polkadotJs()
-      .tx.sudo.sudo(
-        context
-          .polkadotJs()
-          .tx.assetManager.setAssetUnitsPerSecond(asset, unitsPerSecond, numAssetsWeightHint!)
-      ),
-    {
-      expectEvents: [context.polkadotJs().events.assetManager.UnitsPerSecondChanged],
-      allowFailures: false,
-    }
-  );
-  // check asset in storage
-  const registeredAsset = (
-    (await context.polkadotJs().query.assets.asset(registeredAssetId)) as any
-  ).unwrap();
-  return {
-    registeredAssetId,
-    events: result2!.events,
-    registeredAsset,
-  };
 }
 
 export function descendOriginFromAddress20(
@@ -214,9 +168,12 @@ export async function injectHrmpMessageAndSeal(
   message?: RawXcmMessage
 ) {
   await injectHrmpMessage(context, paraId, message);
-  // Create a block in which the XCM will be enqueued
-  await context.createBlock();
-  // The next block will process the hrmp message in the message queue
+  // Create a block in which the XCM will be enqueued.
+  //
+  // The message will be processed inside on_idle hook of this block
+  // using the remaining weight.
+  //
+  // See https://github.com/paritytech/polkadot-sdk/pull/3844 for more context.
   await context.createBlock();
 }
 

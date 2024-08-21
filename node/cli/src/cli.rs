@@ -235,7 +235,7 @@ pub struct RunCmd {
 	pub no_prometheus_prefix: bool,
 
 	/// Maximum duration in milliseconds to produce a block
-	#[clap(long, default_value = "1500", value_parser=block_authoring_duration_parser)]
+	#[clap(long, default_value = "2000", value_parser=block_authoring_duration_parser)]
 	pub block_authoring_duration: Duration,
 }
 

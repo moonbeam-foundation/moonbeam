@@ -1,4 +1,4 @@
-# ![Moonbeam](media/moonbeam-cover.jpg)
+# ![Moonbeam](media/Banner.jpg)
 
 ## Contributions
 

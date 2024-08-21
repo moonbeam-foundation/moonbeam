@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use fc_rpc::frontier_backend_client::{self, is_canon};
+
+use jsonrpsee::types::error::ErrorObject;
 use jsonrpsee::{core::RpcResult, proc_macros::rpc};
-use sp_core::H256;
-use std::{marker::PhantomData, sync::Arc};
-//TODO ideally we wouldn't depend on BlockId here. Can we change frontier
-// so it's load_hash helper returns an H256 instead of wrapping it in a BlockId?
 use sp_blockchain::HeaderBackend;
+use sp_core::H256;
 use sp_runtime::traits::Block;
+use std::ops::Deref;
+use std::{marker::PhantomData, sync::Arc};
 
 /// An RPC endpoint to check for finality of blocks and transactions in Moonbeam
 #[rpc(server)]
@@ -29,12 +30,16 @@ pub trait MoonbeamFinalityApi {
 	/// Reports whether a Substrate or Ethereum block is finalized.
 	/// Returns false if the block is not found.
 	#[method(name = "moon_isBlockFinalized")]
-	fn is_block_finalized(&self, block_hash: H256) -> RpcResult<bool>;
+	async fn is_block_finalized(&self, block_hash: H256) -> RpcResult<bool>;
 
 	/// Reports whether an Ethereum transaction is finalized.
 	/// Returns false if the transaction is not found
 	#[method(name = "moon_isTxFinalized")]
-	fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool>;
+	async fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool>;
+
+	/// Gets the latest block hash that is fully indexed in frontier's backend.
+	#[method(name = "moon_getLatestBlockHash")]
+	async fn get_latest_block_hash(&self) -> RpcResult<H256>;
 }
 
 pub struct MoonbeamFinality<B: Block, C> {
@@ -53,42 +58,56 @@ impl<B: Block, C> MoonbeamFinality<B, C> {
 	}
 }
 
+#[async_trait::async_trait]
 impl<B, C> MoonbeamFinalityApiServer for MoonbeamFinality<B, C>
 where
 	B: Block<Hash = H256>,
 	C: HeaderBackend<B> + Send + Sync + 'static,
 {
-	fn is_block_finalized(&self, raw_hash: H256) -> RpcResult<bool> {
+	async fn is_block_finalized(&self, raw_hash: H256) -> RpcResult<bool> {
 		let client = self.client.clone();
-		is_block_finalized_inner::<B, C>(self.backend.as_ref(), &client, raw_hash)
+		is_block_finalized_inner::<B, C>(self.backend.as_ref(), &client, raw_hash).await
 	}
 
-	fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool> {
+	async fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool> {
 		let client = self.client.clone();
 
 		if let Some((ethereum_block_hash, _ethereum_index)) =
-			futures::executor::block_on(frontier_backend_client::load_transactions::<B, C>(
+			frontier_backend_client::load_transactions::<B, C>(
 				&client,
 				self.backend.as_ref(),
 				tx_hash,
 				true,
-			))? {
+			)
+			.await?
+		{
 			is_block_finalized_inner::<B, C>(self.backend.as_ref(), &client, ethereum_block_hash)
+				.await
 		} else {
 			Ok(false)
 		}
 	}
+
+	async fn get_latest_block_hash(&self) -> RpcResult<H256> {
+		let res = self.backend.deref().latest_block_hash().await;
+		match res {
+			Ok(val) => Ok(val),
+			Err(e) => Err(ErrorObject::owned(
+				jsonrpsee::types::error::UNKNOWN_ERROR_CODE,
+				"No synced block",
+				Some(e),
+			)),
+		}
+	}
 }
 
-fn is_block_finalized_inner<B: Block<Hash = H256>, C: HeaderBackend<B> + 'static>(
+async fn is_block_finalized_inner<B: Block<Hash = H256>, C: HeaderBackend<B> + 'static>(
 	backend: &(dyn fc_api::Backend<B>),
 	client: &C,
 	raw_hash: H256,
 ) -> RpcResult<bool> {
 	let substrate_hash =
-		match futures::executor::block_on(frontier_backend_client::load_hash::<B, C>(
-			client, backend, raw_hash,
-		))? {
+		match frontier_backend_client::load_hash::<B, C>(client, backend, raw_hash).await? {
 			// If we find this hash in the frontier data base, we know it is an eth hash
 			Some(hash) => hash,
 			// Otherwise, we assume this is a Substrate hash.

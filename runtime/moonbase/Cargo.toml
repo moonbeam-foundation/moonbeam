@@ -24,7 +24,6 @@ account = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-relay-encoder = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
-precompile-utils = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
 
@@ -38,6 +37,7 @@ pallet-ethereum-xcm = { workspace = true }
 pallet-evm-chain-id = { workspace = true }
 pallet-maintenance-mode = { workspace = true, features = ["xcm-support"] }
 pallet-migrations = { workspace = true }
+pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-moonbeam-lazy-migrations = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
 pallet-parachain-staking = { workspace = true }
@@ -68,6 +68,8 @@ pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
 pallet-evm-precompileset-assets-erc20 = { workspace = true }
+pallet-evm-precompile-p256verify = { workspace = true }
+precompile-foreign-asset-migrator = { workspace = true }
 
 # Moonbeam tracing
 evm-tracing-events = { workspace = true, optional = true }
@@ -134,6 +136,7 @@ pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
 pallet-evm-precompile-storage-cleaner = { workspace = true }
+precompile-utils = { workspace = true }
 
 
 # Polkadot / XCM
@@ -149,6 +152,7 @@ polkadot-runtime-common = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
+xcm-fee-payment-runtime-api = { workspace = true }
 
 # Cumulus
 cumulus-pallet-dmp-queue = { workspace = true }
@@ -169,6 +173,7 @@ pallet-async-backing = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
 pallet-emergency-para-xcm = { workspace = true }
+pallet-evm-precompile-xcm = { workspace = true }
 pallet-relay-storage-roots = { workspace = true }
 
 # Benchmarking
@@ -251,15 +256,18 @@ std = [
 	"pallet-evm-precompile-referenda/std",
 	"pallet-evm-precompile-registry/std",
 	"pallet-evm-precompile-relay-verifier/std",
+	"pallet-evm-precompile-xcm/std",
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
 	"pallet-evm-precompileset-assets-erc20/std",
   	"pallet-evm-precompile-storage-cleaner/std",
+	"pallet-evm-precompile-p256verify/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
+	"pallet-moonbeam-foreign-assets/std",
 	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-moonbeam-orbiters/std",
 	"pallet-multisig/std",
@@ -305,6 +313,7 @@ std = [
 	"strum/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
+	"xcm-fee-payment-runtime-api/std",
 	"xcm-primitives/std",
 	"xcm/std",
 ]
@@ -349,6 +358,7 @@ runtime-benchmarks = [
 	"pallet-evm/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-migrations/runtime-benchmarks",
+	"pallet-moonbeam-foreign-assets/runtime-benchmarks",
 	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",

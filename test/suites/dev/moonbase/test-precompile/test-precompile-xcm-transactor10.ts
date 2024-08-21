@@ -7,7 +7,7 @@ import {
   expectEVMResult,
   RELAY_SOURCE_LOCATION,
   relayAssetMetadata,
-  registerForeignAsset,
+  registerOldForeignAsset,
   registerXcmTransactorAndContract,
   PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS,
 } from "../../../../helpers";
@@ -20,7 +20,7 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     beforeAll(async () => {
-      await registerForeignAsset(context, RELAY_SOURCE_LOCATION, relayAssetMetadata as any);
+      await registerOldForeignAsset(context, RELAY_SOURCE_LOCATION, relayAssetMetadata as any);
       await registerXcmTransactorAndContract(context);
     });
 

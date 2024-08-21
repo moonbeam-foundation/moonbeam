@@ -9,7 +9,7 @@ repository = { workspace = true }
 version = "0.1.0"
 
 [dependencies]
-futures = { workspace = true, features = [ "compat" ] }
+async-trait = { workspace = true }
 jsonrpsee = { workspace = true, features = [ "macros", "server" ] }
 parity-scale-codec = { workspace = true, features = [ "std" ] }
 tokio = { workspace = true, features = [ "sync", "time" ] }

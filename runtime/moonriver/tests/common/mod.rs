@@ -23,15 +23,14 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 };
 pub use moonriver_runtime::{
-	asset_config::AssetRegistrarMetadata,
-	currency::{GIGAWEI, MOVR, SUPPLY_FACTOR, WEI},
-	xcm_config::AssetType,
-	AccountId, AssetId, AssetManager, AuthorInherent, Balance, Balances, CrowdloanRewards,
-	Ethereum, Executive, Header, InflationInfo, ParachainStaking, Range, Runtime, RuntimeCall,
-	RuntimeEvent, System, TransactionConverter, TransactionPaymentAsGasPrice, UncheckedExtrinsic,
-	HOURS, WEEKS,
+	asset_config::AssetRegistrarMetadata, currency::MOVR, xcm_config::AssetType, AccountId,
+	AssetId, AssetManager, AsyncBacking, AuthorInherent, Balance, Ethereum, InflationInfo,
+	ParachainStaking, Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
+	UncheckedExtrinsic, HOURS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
+use polkadot_parachain::primitives::HeadData;
+use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
@@ -83,6 +82,8 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 				System::set_block_number(System::block_number() + 1);
 			}
 		}
+
+		increase_last_relay_slot_number(1);
 
 		// Initialize the new block
 		AuthorInherent::on_initialize(System::block_number());
@@ -346,8 +347,20 @@ pub fn root_origin() -> <Runtime as frame_system::Config>::RuntimeOrigin {
 pub fn set_parachain_inherent_data() {
 	use cumulus_primitives_core::PersistedValidationData;
 	use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-	let (relay_parent_storage_root, relay_chain_state) =
-		RelayStateSproofBuilder::default().into_state_root_and_proof();
+
+	let mut relay_sproof = RelayStateSproofBuilder::default();
+	relay_sproof.para_id = 100u32.into();
+	relay_sproof.included_para_head = Some(HeadData(vec![1, 2, 3]));
+
+	let additional_key_values = vec![(
+		moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
+		sp_timestamp::Timestamp::default().encode(),
+	)];
+
+	relay_sproof.additional_key_values = additional_key_values;
+
+	let (relay_parent_storage_root, relay_chain_state) = relay_sproof.into_state_root_and_proof();
+
 	let vfp = PersistedValidationData {
 		relay_parent_number: 1u32,
 		relay_parent_storage_root,
@@ -377,4 +390,12 @@ pub fn ethereum_transaction(raw_hex_tx: &str) -> pallet_ethereum::Transaction {
 	let transaction = ethereum::EnvelopedDecodable::decode(&bytes[..]);
 	assert!(transaction.is_ok());
 	transaction.unwrap()
+}
+
+pub(crate) fn increase_last_relay_slot_number(amount: u64) {
+	let last_relay_slot = u64::from(AsyncBacking::slot_info().unwrap_or_default().0);
+	frame_support::storage::unhashed::put(
+		&frame_support::storage::storage_prefix(b"AsyncBacking", b"SlotInfo"),
+		&((Slot::from(last_relay_slot + amount), 0)),
+	);
 }
