@@ -1205,7 +1205,7 @@
 	/// A good value depends on the expected message sizes, their weights, the weight that is
 	/// available for processing them and the maximal needed message size. The maximal message
 	/// size is slightly lower than this as defined by [`MaxMessageLenOf`].
-	</span><span class="kw">pub const </span>MessageQueueHeapSize: u32 = <span class="number">128 </span>* <span class="number">1048</span>;
+	</span><span class="kw">pub const </span>MessageQueueHeapSize: u32 = <span class="number">103 </span>* <span class="number">1024</span>;
 }
 
 <span class="kw">impl </span>pallet_message_queue::Config <span class="kw">for </span>Runtime {
@@ -1226,7 +1226,7 @@
 	</span><span class="kw">type </span>QueueChangeHandler = NarrowOriginToSibling&lt;XcmpQueue&gt;;
 	<span class="comment">// NarrowOriginToSibling calls XcmpQueue's is_paused if Origin is sibling. Allows all other origins
 	</span><span class="kw">type </span>QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling&lt;XcmpQueue&gt;);
-	<span class="kw">type </span>WeightInfo = pallet_message_queue::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonriver_weights::pallet_message_queue::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>IdleMaxServiceWeight = MessageQueueServiceWeight;
 }
 
