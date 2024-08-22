@@ -17,13 +17,14 @@
 //! Unit testing
 use {
 	crate::mock::*,
-	crate::{Error, Trader},
+	crate::{Error, Trader, XcmPaymentApiError},
 	frame_support::pallet_prelude::Weight,
 	frame_support::{assert_noop, assert_ok},
 	sp_runtime::DispatchError,
-	xcm::latest::{
+	xcm::v4::{
 		Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext, XcmHash,
 	},
+	xcm::{IntoVersion, VersionedAssetId},
 	xcm_executor::traits::WeightTrader,
 };
 
@@ -537,7 +538,127 @@ fn test_trader_parent_asset() {
 			),
 			Err(XcmError::TooExpensive)
 		);
+	})
+}
 
-		// TODO
+#[test]
+fn test_query_acceptable_payment_assets() {
+	new_test_ext().execute_with(|| {
+		// By default, only native asset should be supported
+		assert_eq!(
+			XcmWeightTrader::query_acceptable_payment_assets(4),
+			Ok(vec![VersionedAssetId::V4(XcmAssetId(
+				<Test as crate::Config>::NativeLocation::get()
+			))])
+		);
+
+		// We should support XCMv3
+		assert_eq!(
+			XcmWeightTrader::query_acceptable_payment_assets(3),
+			Ok(vec![VersionedAssetId::V4(XcmAssetId(
+				<Test as crate::Config>::NativeLocation::get()
+			))
+			.into_version(3)
+			.expect("native location should be convertible to v3")])
+		);
+
+		// We should not support XCMv2
+		assert_eq!(
+			XcmWeightTrader::query_acceptable_payment_assets(2),
+			Err(XcmPaymentApiError::UnhandledXcmVersion)
+		);
+
+		// Setup (add a supported asset)
+		assert_ok!(XcmWeightTrader::add_asset(
+			RuntimeOrigin::signed(AddAccount::get()),
+			Location::parent(),
+			500_000_000,
+		));
+		assert_eq!(
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
+			Some(500_000_000),
+		);
+
+		// We should support parent asset now
+		assert_eq!(
+			XcmWeightTrader::query_acceptable_payment_assets(4),
+			Ok(vec![
+				VersionedAssetId::V4(XcmAssetId(<Test as crate::Config>::NativeLocation::get())),
+				VersionedAssetId::V4(XcmAssetId(Location::parent()))
+			])
+		);
+
+		// Setup: pause parent asset
+		assert_ok!(XcmWeightTrader::pause_asset_support(
+			RuntimeOrigin::signed(PauseAccount::get()),
+			Location::parent(),
+		));
+		assert_eq!(
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
+			None
+		);
+
+		// We should not support paused assets
+		assert_eq!(
+			XcmWeightTrader::query_acceptable_payment_assets(4),
+			Ok(vec![VersionedAssetId::V4(XcmAssetId(
+				<Test as crate::Config>::NativeLocation::get()
+			)),])
+		);
+	})
+}
+
+#[test]
+fn test_query_weight_to_asset_fee() {
+	new_test_ext().execute_with(|| {
+		let native_asset =
+			VersionedAssetId::V4(XcmAssetId(<Test as crate::Config>::NativeLocation::get()));
+		let parent_asset = VersionedAssetId::V4(XcmAssetId(Location::parent()));
+		let weight_to_buy = Weight::from_parts(10_000, 0);
+
+		// Native asset price should be 1:1
+		assert_eq!(
+			XcmWeightTrader::query_weight_to_asset_fee(weight_to_buy, native_asset.clone()),
+			Ok(10_000)
+		);
+
+		// Should not be able to query fees for an unsupported asset
+		assert_eq!(
+			XcmWeightTrader::query_weight_to_asset_fee(weight_to_buy, parent_asset.clone()),
+			Err(XcmPaymentApiError::AssetNotFound)
+		);
+
+		// Setup (add a supported asset)
+		assert_ok!(XcmWeightTrader::add_asset(
+			RuntimeOrigin::signed(AddAccount::get()),
+			Location::parent(),
+			500_000_000,
+		));
+		assert_eq!(
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
+			Some(500_000_000),
+		);
+
+		// Parent asset price should be 0.5
+		assert_eq!(
+			XcmWeightTrader::query_weight_to_asset_fee(weight_to_buy, parent_asset.clone()),
+			Ok(2 * 10_000)
+		);
+
+		// Setup: pause parent asset
+		assert_ok!(XcmWeightTrader::pause_asset_support(
+			RuntimeOrigin::signed(PauseAccount::get()),
+			Location::parent(),
+		));
+		assert_eq!(
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
+			None
+		);
+
+		// We should not support paused assets
+		assert_eq!(
+			XcmWeightTrader::query_weight_to_asset_fee(weight_to_buy, parent_asset),
+			Err(XcmPaymentApiError::AssetNotFound)
+		);
 	})
 }

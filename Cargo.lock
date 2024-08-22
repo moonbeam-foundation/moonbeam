@@ -10553,6 +10553,7 @@ dependencies = [
  "sp-tracing",
  "staging-xcm",
  "staging-xcm-executor",
+ "xcm-fee-payment-runtime-api",
 ]
 
 [[package]]

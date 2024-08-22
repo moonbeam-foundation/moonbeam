@@ -22,6 +22,7 @@ sp-std = {workspace = true}
 # Polkadot
 xcm = { workspace = true }
 xcm-executor = { workspace = true }
+xcm-fee-payment-runtime-api = { workspace = true }
 
 # Benchmarks
 frame-benchmarking = {workspace = true, optional = true}
@@ -47,6 +48,7 @@ std = [
   "sp-runtime/std",
   "sp-std/std",
 	"xcm/std",
-  "xcm-executor/std"
+  "xcm-executor/std",
+	"xcm-fee-payment-runtime-api/std",
 ]
 try-runtime = ["frame-support/try-runtime"]
