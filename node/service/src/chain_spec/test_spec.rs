@@ -88,6 +88,7 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 	.build()
 }
 
+#[cfg(feature = "lazy-loading")]
 pub fn lazy_loading_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::builder(
 		WASM_BINARY.expect("WASM binary was not build, please build it!"),

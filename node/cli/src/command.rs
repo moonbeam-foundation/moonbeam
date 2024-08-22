@@ -21,8 +21,7 @@ use cumulus_client_cli::extract_genesis_wasm;
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::{info, warn};
-use moonbeam_cli_opt::{EthApi, LazyLoadingConfig};
-use moonbeam_service::chain_spec::test_spec::lazy_loading_spec;
+use moonbeam_cli_opt::EthApi;
 use moonbeam_service::{
 	chain_spec, frontier_database_dir, moonbase_runtime, moonbeam_runtime, moonriver_runtime,
 	HostFunctions, IdentifyVariant,
@@ -694,7 +693,7 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			let collator_options = cli.run.collator_options();
-			runner.run_node_until_exit(|mut config| async move {
+			runner.run_node_until_exit(|config| async move {
 				let hwbench = if !cli.run.no_hardware_benchmarks {
 					config.database.path().map(|database_path| {
 						let _ = std::fs::create_dir_all(&database_path);
@@ -717,14 +716,14 @@ pub fn run() -> Result<()> {
 						"Alice",
 					));
 
-					let lazy_loading_config = LazyLoadingConfig {
-						state_rpc: cli.run.fork_chain_from_rpc.expect("Expected a valid RPC"),
-						from_block: cli.run.block.expect("Expected a valid block hash"),
+					let lazy_loading_config = moonbeam_cli_opt::LazyLoadingConfig {
+						state_rpc: cli.run.fork_chain_from_rpc.expect("a valid RPC endpoint"),
+						from_block: cli.run.block.expect("a valid block hash"),
 						state_overrides_path: cli.run.fork_state_overrides,
 						runtime_override: cli.run.runtime_override,
 					};
 
-					let spec = lazy_loading_spec(Default::default());
+					let spec = chain_spec::test_spec::lazy_loading_spec(Default::default());
 					config.chain_spec = Box::new(spec);
 
 					return moonbeam_service::lazy_loading::new_lazy_loading_service::<
