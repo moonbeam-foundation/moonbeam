@@ -148,6 +148,12 @@ pub mod pallet {
 		writes: u64,
 	}
 
+	enum NextKeyResult {
+		NextKey(StorageKey),
+		NoMoreKeys,
+		Error(&'static str),
+	}
+
 	impl<T: Config> Pallet<T> {
 		/// Handle the migration of the storage keys, returns the number of read and write operations
 		fn handle_migration(remaining_weight: Weight) -> ReadWriteOps {
@@ -163,11 +169,18 @@ pub mod pallet {
 			read_write_ops.add_one_read();
 
 			let next_key = match &status {
-				MigrationStatus::NotStarted => Some(Default::default()),
+				MigrationStatus::NotStarted => Default::default(),
 				MigrationStatus::Started(storage_key) => {
-					match Pallet::<T>::get_next_key(storage_key) {
-						Ok(next_key) => next_key,
-						Err(e) => {
+					let (reads, next_key_result) = Pallet::<T>::get_next_key(storage_key);
+					read_write_ops.add_reads(reads);
+					match next_key_result {
+						NextKeyResult::NextKey(next_key) => next_key,
+						NextKeyResult::NoMoreKeys => {
+							StateMigrationStatus::<T>::put(MigrationStatus::Complete);
+							read_write_ops.add_one_write();
+							return read_write_ops;
+						}
+						NextKeyResult::Error(e) => {
 							StateMigrationStatus::<T>::put(MigrationStatus::Error(
 								e.as_bytes().to_vec().try_into().unwrap_or_default(),
 							));
@@ -177,15 +190,6 @@ pub mod pallet {
 					}
 				}
 				MigrationStatus::Complete | MigrationStatus::Error(_) => {
-					return read_write_ops;
-				}
-			};
-
-			let next_key = match next_key {
-				Some(key) => key,
-				None => {
-					StateMigrationStatus::<T>::put(MigrationStatus::Complete);
-					read_write_ops.add_one_write();
 					return read_write_ops;
 				}
 			};
@@ -217,14 +221,21 @@ pub mod pallet {
 
 		/// Tries to get the next key in the storage, returns None if there are no more keys to migrate.
 		/// Returns an error if the key is too long.
-		fn get_next_key(key: &StorageKey) -> Result<Option<StorageKey>, &'static str> {
-			let next_key = if let Some(next) = sp_io::storage::next_key(key) {
-				let key = next.try_into().map_err(|_| "Key too long")?;
-				Some(key)
+		fn get_next_key(key: &StorageKey) -> (u64, NextKeyResult) {
+			if let Some(next) = sp_io::storage::next_key(key) {
+				match next.try_into() {
+					Ok(key) => {
+						if key == sp_storage::well_known_keys::CODE {
+							let (reads, next_key_res) = Pallet::<T>::get_next_key(&key);
+							return (1 + reads, next_key_res);
+						}
+						(1, NextKeyResult::NextKey(key))
+					},
+					Err(_) => (1, NextKeyResult::Error("Key too long")),
+				}
 			} else {
-				None
-			};
-			Ok(next_key)
+				(1, NextKeyResult::NoMoreKeys)
+			}
 		}
 
 		/// Migrate maximum of `limit` keys starting from `start`, returns the next key to migrate
@@ -233,6 +244,7 @@ pub mod pallet {
 		fn migrate_keys(start: StorageKey, limit: u64) -> MigrationResult {
 			let mut key = start;
 			let mut migrated = 0;
+			let mut next_key_reads = 0;
 			let mut writes = 0;
 
 			while migrated < limit {
@@ -244,34 +256,36 @@ pub mod pallet {
 
 				migrated += 1;
 
-				let next_key = match Pallet::<T>::get_next_key(&key) {
-					Ok(next_key) => next_key,
-					Err(e) => {
+				let (reads, next_key_res) = Pallet::<T>::get_next_key(&key);
+				next_key_reads += reads;
+
+				match next_key_res {
+					NextKeyResult::NextKey(next_key) => {
+						key = next_key;
+					}
+					NextKeyResult::NoMoreKeys => {
+						return MigrationResult {
+							last_key: None,
+							error: None,
+							reads: migrated,
+							writes,
+						};
+					}
+					NextKeyResult::Error(e) => {
 						return MigrationResult {
 							last_key: Some(key),
 							error: Some(e),
 							reads: migrated,
 							writes,
-						}
+						};
 					}
 				};
-
-				if let Some(next_key) = next_key {
-					key = next_key;
-				} else {
-					return MigrationResult {
-						last_key: None,
-						error: None,
-						reads: migrated,
-						writes,
-					};
-				}
 			}
 
 			MigrationResult {
 				last_key: Some(key),
 				error: None,
-				reads: migrated,
+				reads: migrated + next_key_reads,
 				writes,
 			}
 		}
