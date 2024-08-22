@@ -137,7 +137,7 @@ declare module "@polkadot/api-base/types/errors" {
       AlreadyDelegating: AugmentedError<ApiType>;
       /**
        * The account currently has votes attached to it and the operation cannot succeed until these
-       * are removed, either through `unvote` or `reap_vote`.
+       * are removed through `remove_vote`.
        */
       AlreadyVoting: AugmentedError<ApiType>;
       /** The class ID supplied is invalid. */
@@ -247,8 +247,6 @@ declare module "@polkadot/api-base/types/errors" {
       InvalidNonce: AugmentedError<ApiType>;
       /** The signature is invalid. */
       InvalidSignature: AugmentedError<ApiType>;
-      /** Invalid Transaction */
-      InvalidTransaction: AugmentedError<ApiType>;
       /** Calculating total payment overflowed */
       PaymentOverflow: AugmentedError<ApiType>;
       /** EVM reentrancy */
@@ -371,18 +369,10 @@ declare module "@polkadot/api-base/types/errors" {
     moonbeamLazyMigrations: {
       /** There must be at least one address */
       AddressesLengthCannotBeZero: AugmentedError<ApiType>;
-      /** There are no more VotingOf entries to be removed and democracy funds to be unlocked */
-      AllDemocracyFundsUnlocked: AugmentedError<ApiType>;
-      /** There are no more storage entries to be removed */
-      AllStorageEntriesHaveBeenRemoved: AugmentedError<ApiType>;
       /** The contract is not corrupted (Still exist or properly suicided) */
       ContractNotCorrupted: AugmentedError<ApiType>;
       /** The limit cannot be zero */
       LimitCannotBeZero: AugmentedError<ApiType>;
-      /** The maximum number of assets cannot be zero */
-      MaxAssetsCannotBeZero: AugmentedError<ApiType>;
-      /** The limit for unlocking funds is too high */
-      UnlockLimitTooHigh: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -574,8 +564,6 @@ declare module "@polkadot/api-base/types/errors" {
       Filtered: AugmentedError<ApiType>;
       /** The unlock operation cannot succeed because there are still consumers of the lock. */
       InUse: AugmentedError<ApiType>;
-      /** Invalid non-concrete asset. */
-      InvalidAssetNotConcrete: AugmentedError<ApiType>;
       /** Invalid asset, reserve chain could not be determined for it. */
       InvalidAssetUnknownReserve: AugmentedError<ApiType>;
       /** Invalid asset, do not support remote asset reserves with different fees reserves. */
@@ -692,6 +680,8 @@ declare module "@polkadot/api-base/types/errors" {
       NoTrack: AugmentedError<ApiType>;
       /** The preimage does not exist. */
       PreimageNotExist: AugmentedError<ApiType>;
+      /** The preimage is stored with a different length than the one provided. */
+      PreimageStoredWithDifferentLength: AugmentedError<ApiType>;
       /** The queue of the track is empty. */
       QueueEmpty: AugmentedError<ApiType>;
       /** Any deposit cannot be refunded until after the decision is over. */
@@ -730,6 +720,8 @@ declare module "@polkadot/api-base/types/errors" {
       FailedToExtractRuntimeVersion: AugmentedError<ApiType>;
       /** The name of specification does not match between the current runtime and the new runtime. */
       InvalidSpecName: AugmentedError<ApiType>;
+      /** A multi-block migration is ongoing and prevents the current code from being replaced. */
+      MultiBlockMigrationsOngoing: AugmentedError<ApiType>;
       /** Suicide called when the account has non-default composite data. */
       NonDefaultComposite: AugmentedError<ApiType>;
       /** There is a non-zero reference count preventing the account from being purged. */
@@ -887,6 +879,8 @@ declare module "@polkadot/api-base/types/errors" {
       NotCrossChainTransferableCurrency: AugmentedError<ApiType>;
       /** Not supported Location */
       NotSupportedLocation: AugmentedError<ApiType>;
+      /** Asset transfer is limited by RateLimiter. */
+      RateLimited: AugmentedError<ApiType>;
       /** The number of assets to be sent is over the maximum. */
       TooManyAssetsBeingSent: AugmentedError<ApiType>;
       /** The message's weight could not be determined. */

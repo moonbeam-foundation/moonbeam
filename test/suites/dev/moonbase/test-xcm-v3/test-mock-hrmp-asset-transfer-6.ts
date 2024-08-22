@@ -3,12 +3,8 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { alith } from "@moonwall/util";
 
-import {
-  registerForeignAsset,
-  XcmFragment,
-  RawXcmMessage,
-  injectHrmpMessageAndSeal,
-} from "../../../../helpers/xcm.js";
+import { XcmFragment, RawXcmMessage, injectHrmpMessageAndSeal } from "../../../../helpers/xcm.js";
+import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -56,13 +52,13 @@ describeSuite({
     let assetIdOne: string;
 
     beforeAll(async () => {
-      // registerForeignAsset 0
+      // registerOldForeignAsset 0
       const { registeredAssetId: registeredAssetIdZero, registeredAsset: registeredAssetZero } =
-        await registerForeignAsset(context, STATEMINT_LOCATION, assetMetadata);
+        await registerOldForeignAsset(context, STATEMINT_LOCATION, assetMetadata);
       assetIdZero = registeredAssetIdZero;
-      // registerForeignAsset 1
+      // registerOldForeignAsset 1
       const { registeredAssetId: registeredAssetIdOne, registeredAsset: registeredAssetOne } =
-        await registerForeignAsset(context, STATEMINT_ASSET_ONE_LOCATION, assetMetadata, 0, 1);
+        await registerOldForeignAsset(context, STATEMINT_ASSET_ONE_LOCATION, assetMetadata, 0, 1);
       assetIdOne = registeredAssetIdOne;
 
       expect(registeredAssetZero.owner.toHex()).to.eq(palletId.toLowerCase());
@@ -105,8 +101,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 80000n,
+            refTime: 9_000_000_000n,
+            proofSize: 100_000n,
           } as any,
           beneficiary: alith.address,
         })

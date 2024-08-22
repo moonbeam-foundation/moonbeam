@@ -31,6 +31,10 @@ pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
 // be used in palletEVM as well. It may also need more traits such as AsRef, AsMut, etc like
 // AccountId32 has.
 
+/// System account size in bytes = Pallet_Name_Hash (16) + Storage_name_hash (16) +
+/// Blake2_128Concat (16) + AccountId (20) + AccountInfo (4 + 12 + AccountData (4* 16)) = 148
+pub const SYSTEM_ACCOUNT_SIZE: u64 = 148;
+
 /// The account type to be used in Moonbeam. It is a wrapper for 20 fixed bytes. We prefer to use
 /// a dedicated type to prevent using arbitrary 20 byte arrays were AccountIds are expected. With
 /// the introduction of the `scale-info` crate this benefit extends even to non-Rust tools like

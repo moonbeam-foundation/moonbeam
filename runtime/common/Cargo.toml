@@ -20,18 +20,19 @@ pallet-author-mapping = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
 pallet-migrations = { workspace = true }
+pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-moonbeam-lazy-migrations = { workspace = true }
 pallet-parachain-staking = { workspace = true }
 pallet-precompile-benchmarks = { workspace = true }
 pallet-randomness = { workspace = true }
 pallet-relay-storage-roots = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
-precompile-utils = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
 cumulus-pallet-parachain-system = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true }
+pallet-message-queue = { workspace = true }
 frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
@@ -65,6 +66,7 @@ fp-ethereum = { workspace = true }
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm-chain-id = { workspace = true }
+precompile-utils = { workspace = true }
 
 # Moonkit
 nimbus-primitives = { workspace = true }
@@ -76,6 +78,7 @@ pallet-author-slot-filter = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
+xcm-fee-payment-runtime-api = { workspace = true }
 
 # Parity
 parity-scale-codec = { workspace = true }
@@ -103,6 +106,7 @@ std = [
 	"pallet-xcm-transactor/std",
 	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-identity/std",
+	"pallet-message-queue/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-consensus-slots/std",
@@ -111,12 +115,14 @@ std = [
 	"sp-std/std",
 	"sp-genesis-builder/std",
 	"xcm-executor/std",
+	"xcm-fee-payment-runtime-api/std",
 	"xcm/std",
 	"account/std",
 ]
 runtime-benchmarks = [
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
+	"pallet-message-queue/runtime-benchmarks",
 	"frame-benchmarking/runtime-benchmarks",
 	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
@@ -148,4 +154,8 @@ runtime-benchmarks = [
 	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 ]
-try-runtime = ["cumulus-pallet-parachain-system/try-runtime", "frame-support/try-runtime", "pallet-migrations/try-runtime"]
+try-runtime = [
+	"cumulus-pallet-parachain-system/try-runtime",
+	"frame-support/try-runtime",
+	"pallet-migrations/try-runtime",
+]

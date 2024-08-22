@@ -37,7 +37,7 @@ describeSuite({
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       random = generateKeyringPair();
-      transferredBalance = 10_000_000_000_000_000_000n;
+      transferredBalance = 100_000_000_000_000_000_000n;
 
       await expectOk(
         context.createBlock(
@@ -120,14 +120,18 @@ describeSuite({
         const initialValue = await context
           .polkadotJs()
           .query.transactionPayment.nextFeeMultiplier();
+
+        let nonce = (
+          await context.polkadotJs().query.system.account(alith.address)
+        ).nonce.toNumber();
         await context
           .polkadotJs()
           .tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1_000_000_000_000_000_000n)
-          .signAndSend(alith, { nonce: -1 });
+          .signAndSend(alith, { nonce: nonce++ });
         await context
           .polkadotJs()
           .tx.sudo.sudo(context.polkadotJs().tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
-          .signAndSend(alith, { nonce: -1 });
+          .signAndSend(alith, { nonce: nonce++ });
         await context.createBlock();
 
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
@@ -173,8 +177,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 110000n,
+            refTime: 9_000_000_000n,
+            proofSize: 150_000n,
           },
           descend_origin: sendingAddress,
         })
@@ -288,8 +292,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 110000n,
+            refTime: 9_000_000_000n,
+            proofSize: 150_000n,
           },
           descend_origin: sendingAddress,
         })

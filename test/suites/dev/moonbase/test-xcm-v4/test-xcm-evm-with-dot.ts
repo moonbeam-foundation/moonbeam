@@ -9,7 +9,8 @@ import { hexToBigInt } from "@polkadot/util";
 import { Abi, encodeFunctionData } from "viem";
 import {
   RELAY_SOURCE_LOCATION,
-  mockAssetBalance,
+  mockOldAssetBalance,
+  registerOldForeignAsset,
   relayAssetMetadata,
   verifyLatestBlockFees,
 } from "../../../../helpers/index.js";
@@ -19,7 +20,6 @@ import {
   XcmFragmentConfig,
   descendOriginFromAddress20,
   injectHrmpMessageAndSeal,
-  registerForeignAsset,
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
@@ -40,7 +40,7 @@ describeSuite({
       api = context.polkadotJs();
 
       // Register DOT as foreign asset, obtaining xcDOTs
-      const { registeredAssetId } = await registerForeignAsset(
+      const { registeredAssetId } = await registerOldForeignAsset(
         context,
         RELAY_SOURCE_LOCATION,
         relayAssetMetadata as any,
@@ -64,7 +64,14 @@ describeSuite({
       });
 
       // Fund descend address with enough xcDOTs to pay XCM message and EVM execution fees
-      await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, descendAddress);
+      await mockOldAssetBalance(
+        context,
+        assetBalance,
+        assetDetails,
+        alith,
+        assetId,
+        descendAddress
+      );
 
       // Deploy example contract to be called through XCM
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
@@ -115,8 +122,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 100_000_000_000,
-            proofSize: 80_000,
+            refTime: 120_000_000_000,
+            proofSize: 90_000,
           } as any,
           descend_origin: sendingAddress,
           beneficiary: sendingAddress,

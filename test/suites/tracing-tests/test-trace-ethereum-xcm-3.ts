@@ -83,10 +83,6 @@ describeSuite({
               fungible: transferredBalance,
             },
           ],
-          weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 60000n,
-          } as any,
           descend_origin: sendingAddress,
         })
           .descend_origin()
