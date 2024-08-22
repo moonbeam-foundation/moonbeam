@@ -657,8 +657,29 @@ fn test_query_weight_to_asset_fee() {
 
 		// We should not support paused assets
 		assert_eq!(
-			XcmWeightTrader::query_weight_to_asset_fee(weight_to_buy, parent_asset),
+			XcmWeightTrader::query_weight_to_asset_fee(weight_to_buy, parent_asset.clone()),
 			Err(XcmPaymentApiError::AssetNotFound)
+		);
+
+		// Setup: unpause parent asset and edit price
+		assert_ok!(XcmWeightTrader::resume_asset_support(
+			RuntimeOrigin::signed(ResumeAccount::get()),
+			Location::parent(),
+		));
+		assert_ok!(XcmWeightTrader::edit_asset(
+			RuntimeOrigin::signed(EditAccount::get()),
+			Location::parent(),
+			2_000_000_000,
+		));
+		assert_eq!(
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
+			Some(2_000_000_000),
+		);
+
+		// We should support unpaused asset with new price
+		assert_eq!(
+			XcmWeightTrader::query_weight_to_asset_fee(weight_to_buy, parent_asset),
+			Ok(10_000 / 2)
 		);
 	})
 }
