@@ -485,4 +485,4 @@ inherits = "release"
 overflow-checks = true
 
 [patch."https://github.com/paritytech/polkadot-sdk"]
-sp-crypto-ec-utils =  { path = "../polkadot-sdk/substrate/primitives/crypto/ec-utils" }
+sp-crypto-ec-utils = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
