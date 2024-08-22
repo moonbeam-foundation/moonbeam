@@ -19,6 +19,7 @@ use crate::currency::{SUPPLY_FACTOR, UNIT};
 use crate::{Balance, Runtime};
 use account::AccountId20;
 use frame_support::dynamic_params::{dynamic_pallet_params, dynamic_params};
+use sp_runtime::Perbill;
 
 #[dynamic_params(RuntimeParameters, pallet_parameters::Parameters::<Runtime>)]
 pub mod dynamic_params {
@@ -26,6 +27,13 @@ pub mod dynamic_params {
 
 	#[dynamic_pallet_params]
 	#[codec(index = 0)]
+	pub mod runtime_config {
+		// for fees, 80% are burned, 20% to the treasury
+		#[codec(index = 0)]
+		pub static FeesTreasuryPercentage: Perbill = Perbill::from_percent(20);
+	}
+	#[dynamic_pallet_params]
+	#[codec(index = 1)]
 	pub mod pallet_referenda {
 
 		#[codec(index = 0)]
@@ -33,7 +41,7 @@ pub mod dynamic_params {
 	}
 
 	#[dynamic_pallet_params]
-	#[codec(index = 1)]
+	#[codec(index = 2)]
 	pub mod xcm_executor {
 
 		#[codec(index = 0)]

@@ -351,8 +351,10 @@ where
 		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
 	) {
 		if let Some(fees) = fees_then_tips.next() {
-			// for fees, 80% are burned, 20% to the treasury
-			let (_, to_treasury) = fees.ration(80, 20);
+			let treasury_perbill = runtime_params::dynamic_params::runtime_config::FeesTreasuryPercentage::get();
+			let treasury_part = 	treasury_perbill.deconstruct();
+			let burn_part = Perbill::one().deconstruct() - treasury_part;
+			let (_, to_treasury) = fees.ration(burn_part, treasury_part);
 			// Balances pallet automatically burns dropped Credits by decreasing
 			// total_supply accordingly
 			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
