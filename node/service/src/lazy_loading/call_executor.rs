@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::lazy_loading::wasm_override::WasmOverride;
+use crate::lazy_loading::wasm_substitutes::WasmSubstitutes;
 use moonbeam_cli_opt::LazyLoadingConfig;
 use sc_client_api::{
 	backend, call_executor::CallExecutor, execution_extensions::ExecutionExtensions, HeaderBackend,
 };
 use sc_executor::{NativeVersion, RuntimeVersion, RuntimeVersionOf};
-use sc_service::{ClientConfig, WasmOverride, WasmSubstitutes};
+use sc_service::ClientConfig;
 use sp_api::ProofRecorder;
 use sp_core::traits::{CallContext, CodeExecutor, Externalities, RuntimeCode};
 use sp_runtime::{

@@ -82,6 +82,7 @@ use substrate_prometheus_endpoint::Registry;
 pub use client::*;
 pub mod chain_spec;
 mod client;
+#[cfg(feature = "lazy-loading")]
 pub mod lazy_loading;
 
 type FullClient<RuntimeApi> = TFullClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;

@@ -62,10 +62,16 @@ pub mod call_executor;
 mod client;
 mod helpers;
 mod state_overrides;
+mod wasm_override;
+mod wasm_substitutes;
 
 /// Lazy loading client type.
-pub type TLazyLoadingClient<TBl, TRtApi, TExec> =
-	sc_service::Client<TLazyLoadingBackend<TBl>, TLazyLoadingCallExecutor<TBl, TExec>, TBl, TRtApi>;
+pub type TLazyLoadingClient<TBl, TRtApi, TExec> = sc_service::client::Client<
+	TLazyLoadingBackend<TBl>,
+	TLazyLoadingCallExecutor<TBl, TExec>,
+	TBl,
+	TRtApi,
+>;
 
 /// Lazy loading client backend type.
 pub type TLazyLoadingBackend<TBl> = backend::Backend<TBl>;

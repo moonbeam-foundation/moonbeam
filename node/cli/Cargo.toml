@@ -54,6 +54,8 @@ default = [
     "westend-native",
 ]
 
+lazy-loading = ["sc-service/test-helpers", "moonbeam-service/lazy-loading"]
+
 westend-native = ["polkadot-service/westend-native"]
 
 moonbase-native = ["moonbeam-service/moonbase-native", "westend-native"]

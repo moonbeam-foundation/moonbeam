@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use jsonrpsee::core::client::Error;
 use parking_lot::RwLock;
 use sp_blockchain::{CachedHeaderMetadata, HeaderMetadata};
 use sp_core::storage::well_known_keys;
@@ -26,14 +25,13 @@ use sp_runtime::{
 use sp_state_machine::{
 	BackendTransaction, ChildStorageCollection, IndexOperation, StorageCollection, TrieBackend,
 };
-use std::collections::hash_map::Iter;
 use std::future::Future;
-use std::ops::{AddAssign, Deref, SubAssign};
+use std::marker::PhantomData;
+use std::ops::AddAssign;
 use std::time::Duration;
 use std::{
-	cell::RefCell,
 	collections::{HashMap, HashSet},
-	future, io, ptr,
+	ptr,
 	sync::Arc,
 };
 
@@ -50,13 +48,11 @@ use sp_runtime::generic::SignedBlock;
 use moonbeam_cli_opt::LazyLoadingConfig;
 use moonbeam_core_primitives::BlockNumber;
 use sc_client_api::StorageKey;
-use sc_rpc_api::chain::ChainApiClient;
-use sc_rpc_api::state::StateApiClient;
 use sp_core::offchain::storage::InMemOffchainStorage;
 use sp_core::H256;
 use sp_rpc::list::ListOrValue;
 use sp_rpc::number::NumberOrHex;
-use sp_storage::{ChildInfo, StorageChangeSet, StorageData};
+use sp_storage::{ChildInfo, StorageData};
 use sp_trie::PrefixedMemoryDB;
 use tokio_retry::strategy::FixedInterval;
 use tokio_retry::Retry;
@@ -727,12 +723,12 @@ pub struct RawIterArgs {
 pub struct RawIter<Block: BlockT> {
 	pub(crate) args: RawIterArgs,
 	complete: bool,
-	inner: sp_state_machine::RawIter<
-		sp_trie::PrefixedMemoryDB<HashingFor<Block>>,
-		HashingFor<Block>,
-		sp_trie::cache::LocalTrieCache<HashingFor<Block>>,
-		sp_trie::recorder::Recorder<HashingFor<Block>>,
-	>,
+	_phantom: PhantomData<Block>, /*inner: sp_state_machine::RawIter<
+									  sp_trie::PrefixedMemoryDB<HashingFor<Block>>,
+									  HashingFor<Block>,
+									  sp_trie::cache::LocalTrieCache<HashingFor<Block>>,
+									  sp_trie::recorder::Recorder<HashingFor<Block>>,
+								  >*/
 }
 
 impl<Block: BlockT + sp_runtime::DeserializeOwned>
@@ -811,8 +807,6 @@ pub struct ForkedLazyBackend<Block: BlockT> {
 	block_hash: Option<Block::Hash>,
 	parent: Option<Arc<Self>>,
 	pub(crate) db: Arc<RwLock<sp_state_machine::InMemoryBackend<HashingFor<Block>>>>,
-	storage: Arc<RwLock<HashMap<Vec<u8>, Option<Vec<u8>>>>>,
-	storage_hash: Arc<RwLock<HashMap<Vec<u8>, Option<Block::Hash>>>>,
 	before_fork: bool,
 }
 
@@ -1006,11 +1000,12 @@ impl<B: BlockT + sp_runtime::DeserializeOwned> sp_state_machine::Backend<Hashing
 		clone.prefix = args.prefix.map(|v| v.to_vec());
 		clone.start_at = args.start_at.map(|v| v.to_vec());
 
-		let iter = self.db.read().raw_iter(args)?;
+		//let iter = self.db.read().raw_iter(args)?;
 		Ok(RawIter::<B> {
-			inner: iter,
+			//inner: iter,
 			args: clone,
 			complete: false,
+			_phantom: Default::default(),
 		})
 	}
 
@@ -1130,29 +1125,11 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 				None => old_state.db.clone(),
 			};
 
-			let new_db2 = match operation.new_state {
-				Some(mut state) => {
-					let new_db = old_state.storage.clone();
-					let mut storage = old_state.db.read().deref().backend_storage().clone();
-					for (key, value) in storage.drain() {
-						new_db.write().insert(key, Some(value.0.to_vec()));
-					}
-					for (key, value) in state.drain() {
-						new_db.write().insert(key, Some(value.0.to_vec()));
-					}
-
-					new_db
-				}
-				None => old_state.storage.clone(),
-			};
-
 			let new_state = ForkedLazyBackend {
 				rpc_client: self.rpc_client.clone(),
 				block_hash: Some(hash.clone()),
 				parent: Some(Arc::new(self.state_at(*header.parent_hash())?)),
 				db: new_state,
-				storage: new_db2,
-				storage_hash: Default::default(),
 				before_fork: operation.before_fork,
 			};
 			self.states.write().insert(hash, new_state);
@@ -1207,8 +1184,6 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 				block_hash: Some(hash),
 				parent: None,
 				db: Default::default(),
-				storage: Default::default(),
-				storage_hash: Default::default(),
 				before_fork: true,
 			});
 		}
@@ -1235,8 +1210,6 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 						block_hash: Some(hash),
 						parent: parent.map(|p| Arc::new(p)),
 						db: Default::default(),
-						storage: Default::default(),
-						storage_hash: Default::default(),
 						before_fork: false,
 					}
 				} else {
@@ -1245,8 +1218,6 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 						block_hash: Some(hash),
 						parent: None,
 						db: Default::default(),
-						storage: Default::default(),
-						storage_hash: Default::default(),
 						before_fork: true,
 					}
 				};
@@ -1323,7 +1294,6 @@ pub fn check_genesis_storage(storage: &Storage) -> sp_blockchain::Result<()> {
 pub struct RPC {
 	http_client: HttpClient,
 	delay_between_requests_ms: u64,
-	request_timeout_ms: u64,
 	max_retries_per_request: usize,
 	counter: Arc<RwLock<u64>>,
 }
@@ -1332,13 +1302,11 @@ impl RPC {
 	pub fn new(
 		http_client: HttpClient,
 		delay_between_requests_ms: u64,
-		request_timeout_ms: u64,
 		max_retries_per_request: usize,
 	) -> Self {
 		Self {
 			http_client,
 			delay_between_requests_ms,
-			request_timeout_ms,
 			max_retries_per_request,
 			counter: Default::default(),
 		}
@@ -1368,8 +1336,6 @@ impl RPC {
 		&self,
 		block_number: Option<BlockNumber>,
 	) -> Result<Option<Block::Hash>, jsonrpsee::core::ClientError> {
-		use sp_rpc::{list::ListOrValue, number::NumberOrHex};
-
 		let request = &|| {
 			substrate_rpc_client::ChainApi::<
 				BlockNumber,
@@ -1553,14 +1519,14 @@ where
 	let http_client = jsonrpsee::http_client::HttpClientBuilder::default()
 		.max_request_size(u32::MAX)
 		.max_response_size(u32::MAX)
-		.request_timeout(std::time::Duration::from_secs(10))
+		.request_timeout(Duration::from_secs(10))
 		.build(uri)
 		.map_err(|e| {
 			log::error!("error: {:?}", e);
 			sp_blockchain::Error::Backend("failed to build http client".to_string())
 		})?;
 
-	let rpc = RPC::new(http_client, 100, 5000, 10);
+	let rpc = RPC::new(http_client, 100, 10);
 	let block_hash: Block::Hash = lazy_loading_config.from_block.into();
 	let checkpoint = rpc.header::<Block>(Some(block_hash)).unwrap();
 

@@ -29,6 +29,8 @@ trie-root = { workspace = true }
 tokio-retry = { workspace = true }
 substrate-rpc-client = { workspace = true }
 hex = { workspace = true, features = ["std"] }
+thiserror = { workspace = true }
+tracing = { workspace = true }
 
 # Moonbeam
 manual-xcm-rpc = { workspace = true }
@@ -183,6 +185,8 @@ default = [
 	"rococo-native",
 	"westend-native",
 ]
+
+lazy-loading = []
 
 rococo-native = ["polkadot-cli/rococo-native", "polkadot-service/rococo-native"]
 westend-native = [
