@@ -121,8 +121,8 @@ fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
 			StateEntryConcrete {
 				pallet: "ParachainStaking".to_string(),
 				storage: "AtStake".to_string(),
-				key: Some(hex_literal::hex!("5153cb1f00942ff4010000004a6bb7c01d316509f24ff3a9cf04c71dbc94d0b566f7a27b94566cac").to_vec()),
-				value: hex_literal::hex!("0000a0dec5adc9353600000000000000000000a0dec5adc9353600000000000000").to_vec()
+				key: Some(hex_literal::hex!("5153cb1f00942ff4010000004a6bb7c01d316509f24ff3a9cf04c71dbc94d0b566f7a27b94566cac").to_vec()), // editorconfig-checker-disable-line
+				value: hex_literal::hex!("0000a0dec5adc9353600000000000000000000a0dec5adc9353600000000000000").to_vec() // editorconfig-checker-disable-line
 			}
 		),
 	]
