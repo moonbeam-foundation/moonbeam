@@ -48,6 +48,7 @@ use sp_runtime::generic::SignedBlock;
 use moonbeam_cli_opt::LazyLoadingConfig;
 use moonbeam_core_primitives::BlockNumber;
 use sc_client_api::StorageKey;
+use serde::de::DeserializeOwned;
 use sp_core::offchain::storage::InMemOffchainStorage;
 use sp_core::H256;
 use sp_rpc::list::ListOrValue;
@@ -132,7 +133,7 @@ pub struct Blockchain<Block: BlockT> {
 	storage: Arc<RwLock<BlockchainStorage<Block>>>,
 }
 
-impl<Block: BlockT + sp_runtime::DeserializeOwned> Blockchain<Block> {
+impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
 	/// Get header hash of given block.
 	pub fn id(&self, id: BlockId<Block>) -> Option<Block::Hash> {
 		match id {
@@ -346,7 +347,7 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> Blockchain<Block> {
 	}
 }
 
-impl<Block: BlockT + sp_runtime::DeserializeOwned> HeaderBackend<Block> for Blockchain<Block> {
+impl<Block: BlockT + DeserializeOwned> HeaderBackend<Block> for Blockchain<Block> {
 	fn header(
 		&self,
 		hash: Block::Hash,
@@ -419,7 +420,7 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> HeaderBackend<Block> for Bloc
 	}
 }
 
-impl<Block: BlockT + sp_runtime::DeserializeOwned> HeaderMetadata<Block> for Blockchain<Block> {
+impl<Block: BlockT + DeserializeOwned> HeaderMetadata<Block> for Blockchain<Block> {
 	type Error = sp_blockchain::Error;
 
 	fn header_metadata(
@@ -441,9 +442,7 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> HeaderMetadata<Block> for Blo
 	}
 }
 
-impl<Block: BlockT + sp_runtime::DeserializeOwned> blockchain::Backend<Block>
-	for Blockchain<Block>
-{
+impl<Block: BlockT + DeserializeOwned> blockchain::Backend<Block> for Blockchain<Block> {
 	fn body(
 		&self,
 		hash: Block::Hash,
@@ -517,7 +516,7 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> blockchain::Backend<Block>
 	}
 }
 
-impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::AuxStore for Blockchain<Block> {
+impl<Block: BlockT + DeserializeOwned> backend::AuxStore for Blockchain<Block> {
 	fn insert_aux<
 		'a,
 		'b: 'a,
@@ -555,7 +554,7 @@ pub struct BlockImportOperation<Block: BlockT> {
 	pub(crate) before_fork: bool,
 }
 
-impl<Block: BlockT + sp_runtime::DeserializeOwned> BlockImportOperation<Block> {
+impl<Block: BlockT + DeserializeOwned> BlockImportOperation<Block> {
 	fn apply_storage(
 		&mut self,
 		storage: Storage,
@@ -591,7 +590,7 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> BlockImportOperation<Block> {
 	}
 }
 
-impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::BlockImportOperation<Block>
+impl<Block: BlockT + DeserializeOwned> backend::BlockImportOperation<Block>
 	for BlockImportOperation<Block>
 {
 	type State = ForkedLazyBackend<Block>;
@@ -731,8 +730,8 @@ pub struct RawIter<Block: BlockT> {
 								  >*/
 }
 
-impl<Block: BlockT + sp_runtime::DeserializeOwned>
-	sp_state_machine::StorageIterator<HashingFor<Block>> for RawIter<Block>
+impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<HashingFor<Block>>
+	for RawIter<Block>
 {
 	type Backend = ForkedLazyBackend<Block>;
 	type Error = String;
@@ -810,7 +809,7 @@ pub struct ForkedLazyBackend<Block: BlockT> {
 	before_fork: bool,
 }
 
-impl<B: BlockT + sp_runtime::DeserializeOwned> sp_state_machine::Backend<HashingFor<B>>
+impl<B: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<B>>
 	for ForkedLazyBackend<B>
 {
 	type Error = <DbState<B> as sp_state_machine::Backend<HashingFor<B>>>::Error;
@@ -1041,7 +1040,7 @@ pub struct Backend<Block: BlockT> {
 	fork_checkpoint: Option<Block::Header>,
 }
 
-impl<Block: BlockT + sp_runtime::DeserializeOwned> Backend<Block> {
+impl<Block: BlockT + DeserializeOwned> Backend<Block> {
 	fn new(rpc_client: Arc<RPC>, fork_checkpoint: Option<Block::Header>) -> Self {
 		Backend {
 			rpc_client: rpc_client.clone(),
@@ -1054,7 +1053,7 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> Backend<Block> {
 	}
 }
 
-impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::AuxStore for Backend<Block> {
+impl<Block: BlockT + DeserializeOwned> backend::AuxStore for Backend<Block> {
 	fn insert_aux<
 		'a,
 		'b: 'a,
@@ -1074,7 +1073,7 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::AuxStore for Backend
 	}
 }
 
-impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for Backend<Block> {
+impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block> {
 	type BlockImportOperation = BlockImportOperation<Block>;
 	type Blockchain = Blockchain<Block>;
 	type State = ForkedLazyBackend<Block>;
@@ -1267,7 +1266,7 @@ impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::Backend<Block> for B
 	}
 }
 
-impl<Block: BlockT + sp_runtime::DeserializeOwned> backend::LocalBackend<Block> for Backend<Block> {}
+impl<Block: BlockT + DeserializeOwned> backend::LocalBackend<Block> for Backend<Block> {}
 
 /// Check that genesis storage is valid.
 pub fn check_genesis_storage(storage: &Storage) -> sp_blockchain::Result<()> {
@@ -1317,8 +1316,8 @@ impl RPC {
 		hash: Option<Hash>,
 	) -> Result<Option<SignedBlock<Block>>, jsonrpsee::core::ClientError>
 	where
-		Block: BlockT + sp_runtime::DeserializeOwned,
-		Hash: 'static + Send + Sync + sp_runtime::Serialize + sp_runtime::DeserializeOwned,
+		Block: BlockT + DeserializeOwned,
+		Hash: 'static + Send + Sync + sp_runtime::Serialize + DeserializeOwned,
 	{
 		let request = &|| {
 			substrate_rpc_client::ChainApi::<
@@ -1332,7 +1331,7 @@ impl RPC {
 		Ok(self.block_on(request).expect("get storage"))
 	}
 
-	pub fn block_hash<Block: BlockT + sp_runtime::DeserializeOwned>(
+	pub fn block_hash<Block: BlockT + DeserializeOwned>(
 		&self,
 		block_number: Option<BlockNumber>,
 	) -> Result<Option<Block::Hash>, jsonrpsee::core::ClientError> {
@@ -1357,7 +1356,7 @@ impl RPC {
 			.expect("get storage"))
 	}
 
-	pub fn header<Block: BlockT + sp_runtime::DeserializeOwned>(
+	pub fn header<Block: BlockT + DeserializeOwned>(
 		&self,
 		hash: Option<Block::Hash>,
 	) -> Result<Option<Block::Header>, jsonrpsee::core::ClientError> {
@@ -1375,7 +1374,7 @@ impl RPC {
 	}
 
 	pub fn storage_hash<
-		Hash: 'static + Clone + Sync + Send + sp_runtime::DeserializeOwned + sp_runtime::Serialize,
+		Hash: 'static + Clone + Sync + Send + DeserializeOwned + sp_runtime::Serialize,
 	>(
 		&self,
 		key: StorageKey,
@@ -1392,13 +1391,7 @@ impl RPC {
 	}
 
 	pub fn storage<
-		Hash: 'static
-			+ Clone
-			+ Sync
-			+ Send
-			+ sp_runtime::DeserializeOwned
-			+ sp_runtime::Serialize
-			+ core::fmt::Debug,
+		Hash: 'static + Clone + Sync + Send + DeserializeOwned + sp_runtime::Serialize + core::fmt::Debug,
 	>(
 		&self,
 		key: StorageKey,
@@ -1417,7 +1410,7 @@ impl RPC {
 	}
 
 	pub fn storage_keys_paged<
-		Hash: 'static + Clone + Sync + Send + sp_runtime::DeserializeOwned + sp_runtime::Serialize,
+		Hash: 'static + Clone + Sync + Send + DeserializeOwned + sp_runtime::Serialize,
 	>(
 		&self,
 		key: StorageKey,
@@ -1443,7 +1436,7 @@ impl RPC {
 	}
 
 	pub fn query_storage_at<
-		Hash: 'static + Clone + Sync + Send + sp_runtime::DeserializeOwned + sp_runtime::Serialize,
+		Hash: 'static + Clone + Sync + Send + DeserializeOwned + sp_runtime::Serialize,
 	>(
 		&self,
 		keys: Vec<StorageKey>,
@@ -1511,7 +1504,7 @@ pub fn new_lazy_loading_backend<Block>(
 	lazy_loading_config: &LazyLoadingConfig,
 ) -> Result<Arc<Backend<Block>>, sp_blockchain::Error>
 where
-	Block: BlockT + sp_runtime::DeserializeOwned,
+	Block: BlockT + DeserializeOwned,
 	Block::Hash: From<H256>,
 {
 	let uri: String = lazy_loading_config.state_rpc.clone().into();

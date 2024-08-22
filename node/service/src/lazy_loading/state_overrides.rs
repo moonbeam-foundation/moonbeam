@@ -78,24 +78,24 @@ fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
 			StateEntryConcrete {
 				pallet: "System".to_string(),
 				storage: "Account".to_string(),
-				key: Some(hex_literal::hex!("9dfefc73f89d24437a9c2dce5572808af24ff3a9cf04c71dbc94d0b566f7a27b94566cac").to_vec()),
-				value: hex_literal::hex!("360000000100000001000000010000002c1c7fd5d87ce640b80700000000000000006c139ba62d3b2402000000000000000040b2bac9e0191e02000000000000000040b2bac9e0191e02000000000080").to_vec()
+				key: Some(hex_literal::hex!("9dfefc73f89d24437a9c2dce5572808af24ff3a9cf04c71dbc94d0b566f7a27b94566cac").to_vec()), // editorconfig-checker-disable-line
+				value: hex_literal::hex!("360000000100000001000000010000002c1c7fd5d87ce640b80700000000000000006c139ba62d3b2402000000000000000040b2bac9e0191e02000000000000000040b2bac9e0191e02000000000080").to_vec() // editorconfig-checker-disable-line
 			}
 		),
 		StateEntry::Concrete(
 			StateEntryConcrete {
 				pallet: "AuthorMapping".to_string(),
 				storage: "NimbusLookup".to_string(),
-				key: Some(hex_literal::hex!("9dfefc73f89d24437a9c2dce5572808af24ff3a9cf04c71dbc94d0b566f7a27b94566cac").to_vec()),
-				value: hex_literal::hex!("d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d").to_vec()
+				key: Some(hex_literal::hex!("9dfefc73f89d24437a9c2dce5572808af24ff3a9cf04c71dbc94d0b566f7a27b94566cac").to_vec()), // editorconfig-checker-disable-line
+				value: hex_literal::hex!("d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d").to_vec() // editorconfig-checker-disable-line
 			}
 		),
 		StateEntry::Concrete(
 			StateEntryConcrete {
 				pallet: "AuthorMapping".to_string(),
 				storage: "MappingWithDeposit".to_string(),
-				key: Some(hex_literal::hex!("de1e86a9a8c739864cf3cc5ec2bea59fd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d").to_vec()),
-				value: hex_literal::hex!("f24ff3a9cf04c71dbc94d0b566f7a27b94566cac000010632d5ec76b0500000000000000d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d").to_vec()
+				key: Some(hex_literal::hex!("de1e86a9a8c739864cf3cc5ec2bea59fd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d").to_vec()), // editorconfig-checker-disable-line
+				value: hex_literal::hex!("f24ff3a9cf04c71dbc94d0b566f7a27b94566cac000010632d5ec76b0500000000000000d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d").to_vec() // editorconfig-checker-disable-line
 			}
 		),
 		// Set candidate pool
@@ -104,7 +104,7 @@ fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
 				pallet: "ParachainStaking".to_string(),
 				storage: "CandidatePool".to_string(),
 				key: None,
-				value: hex_literal::hex!("04f24ff3a9cf04c71dbc94d0b566f7a27b94566cac0000a0dec5adc9353600000000000000").to_vec()
+				value: hex_literal::hex!("04f24ff3a9cf04c71dbc94d0b566f7a27b94566cac0000a0dec5adc9353600000000000000").to_vec() // editorconfig-checker-disable-line
 			}
 		),
 		// Set Alith as selected candidate
