@@ -21,8 +21,8 @@
 //! * Moonriver tokenomics
 
 #![cfg_attr(not(feature = "std"), no_std)]
-// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
-#![recursion_limit = "256"]
+// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 512.
+#![recursion_limit = "512"]
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -98,13 +98,8 @@ use sp_runtime::{
 	Perquintill, SaturatedConversion,
 };
 use sp_std::{convert::TryFrom, prelude::*};
-use xcm::{
-	v3::{AssetId as XcmAssetId, Location},
-	IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
-};
-use xcm_config::AssetType;
+use xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
 use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
-use xcm_primitives::UnitsToWeightRatio;
 
 use smallvec::smallvec;
 #[cfg(feature = "std")]
@@ -1457,6 +1452,7 @@ construct_runtime! {
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 111,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 114,
+		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 115,
 
 		// Utils
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 112,

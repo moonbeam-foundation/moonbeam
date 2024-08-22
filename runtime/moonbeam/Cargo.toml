@@ -45,6 +45,7 @@ pallet-precompile-benchmarks = { workspace = true }
 pallet-proxy-genesis-companion = { workspace = true }
 pallet-randomness = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
+pallet-xcm-weight-trader = { workspace = true }
 
 # Moonbeam precompiles
 pallet-evm-precompile-author-mapping = { workspace = true }
@@ -281,6 +282,7 @@ std = [
 	"pallet-whitelist/std",
 	"pallet-xcm-transactor/std",
 	"pallet-xcm/std",
+	"pallet-xcm-weight-trader/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"parity-scale-codec/std",

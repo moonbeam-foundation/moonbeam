@@ -117,13 +117,8 @@ use sp_std::{
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
-use xcm::{
-	v3::{AssetId as XcmAssetId, Location},
-	IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
-};
-use xcm_config::AssetType;
+use xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
 use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
-use xcm_primitives::UnitsToWeightRatio;
 
 use smallvec::smallvec;
 use sp_runtime::serde::{Deserialize, Serialize};
@@ -1441,6 +1436,7 @@ construct_runtime! {
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 54,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 55,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 56,
+		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 57,
 	}
 }
 

@@ -62,11 +62,10 @@ fn receive_relay_asset_from_relay() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
+		assert_ok!(XcmWeightTrader::add_asset(
 			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
+			Location::parent(),
+			1u128,
 		));
 	});
 

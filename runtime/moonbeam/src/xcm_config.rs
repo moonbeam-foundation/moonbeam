@@ -18,7 +18,7 @@
 //!
 
 use super::{
-	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees, Erc20XcmBridge,
+	governance, AccountId, AssetId, AssetManager, Balance, Balances, Erc20XcmBridge,
 	MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
 	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
@@ -44,7 +44,7 @@ use xcm_builder::{
 	EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
 	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, UsingComponents, WeightInfoBounds, WithComputedOrigin,
+	TakeWeightCredit, WeightInfoBounds, WithComputedOrigin,
 };
 
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -59,8 +59,8 @@ use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
-	FirstAssetTrader, IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
-	UtilityEncodeCall, XcmTransact,
+	IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall,
+	XcmTransact,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -220,23 +220,6 @@ parameter_types! {
 	pub XcmFeesAccount: AccountId = Treasury::account_id();
 }
 
-/// This is the struct that will handle the revenue from xcm fees
-/// We do not burn anything because we want to mimic exactly what
-/// the sovereign account has
-pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
-	super::Assets,
-	(
-		ConvertedConcreteId<
-			AssetId,
-			Balance,
-			AsAssetType<AssetId, AssetType, AssetManager>,
-			JustTry,
-		>,
-	),
-	AccountId,
-	XcmFeesAccount,
->;
-
 pub struct SafeCallFilter;
 impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 	fn contains(_call: &RuntimeCall) -> bool {
@@ -299,16 +282,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// we use UsingComponents and the local way of handling fees
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
-	type Trader = (
-		UsingComponents<
-			<Runtime as pallet_transaction_payment::Config>::WeightToFee,
-			SelfReserve,
-			AccountId,
-			Balances,
-			DealWithFees<Runtime>,
-		>,
-		FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount>,
-	);
+	type Trader = pallet_xcm_weight_trader::Trader<Runtime>;
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = pallet_erc20_xcm_bridge::AssetTrapWrapper<PolkadotXcm, Runtime>;
@@ -727,6 +701,34 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbeam_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
+}
+
+pub struct AssetFeesFilter;
+impl frame_support::traits::Contains<Location> for AssetFeesFilter {
+	fn contains(location: &Location) -> bool {
+		location.parent_count() > 0
+			&& location.first_interior() != Erc20XcmBridgePalletLocation::get().first_interior()
+	}
+}
+
+impl pallet_xcm_weight_trader::Config for Runtime {
+	type AccountIdToLocation = AccountIdToLocation<AccountId>;
+	type AddSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type AssetLocationFilter = AssetFeesFilter;
+	type AssetTransactor = AssetTransactors;
+	type Balance = Balance;
+	type EditSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type NativeLocation = SelfReserve;
+	type PauseSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type RemoveSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type RuntimeEvent = RuntimeEvent;
+	type ResumeSupportedAssetOrigin = EnsureRoot<AccountId>;
+	// TODO generate weights
+	type WeightInfo = ();
+	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
+	type XcmFeesAccount = XcmFeesAccount;
+	#[cfg(feature = "runtime-benchmarks")]
+	type NotFilteredLocation = Location::parent();
 }
 
 #[cfg(feature = "runtime-benchmarks")]

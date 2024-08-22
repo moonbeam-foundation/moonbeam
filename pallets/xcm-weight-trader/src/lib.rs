@@ -37,6 +37,7 @@ use frame_support::traits::Contains;
 use frame_support::weights::WeightToFee;
 use frame_system::pallet_prelude::*;
 use sp_runtime::traits::{Convert, Zero};
+use sp_std::vec::Vec;
 use xcm::v4::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
 use xcm::{IntoVersion, VersionedAssetId};
 use xcm_executor::traits::{TransactAsset, WeightTrader};
@@ -309,7 +310,7 @@ pub mod pallet {
 	}
 }
 
-struct Trader<T: crate::Config>(Weight, Option<Asset>, core::marker::PhantomData<T>);
+pub struct Trader<T: crate::Config>(Weight, Option<Asset>, core::marker::PhantomData<T>);
 
 impl<T: crate::Config> Trader<T> {
 	fn compute_amount_to_charge(
