@@ -110,9 +110,7 @@ describeSuite({
             .polkadotJs()
             .tx.sudo.sudo(context.polkadotJs().tx.emergencyParaXcm.pausedToNormal()),
           {
-            expectEvents: [
-              context.polkadotJs().events.emergencyParaXcm.NormalXcmOperationResumed,
-            ],
+            expectEvents: [context.polkadotJs().events.emergencyParaXcm.NormalXcmOperationResumed],
             allowFailures: false,
           }
         );
@@ -136,10 +134,9 @@ describeSuite({
         const randomBalance2 = (
           await context.polkadotJs().query.system.account(random.address)
         ).data.free.toBigInt();
-        expect(
-          randomBalance2,
-          "beneficiary balance not increased, transfer has failed"
-        ).to.not.eq(0n)
+        expect(randomBalance2, "beneficiary balance not increased, transfer has failed").to.not.eq(
+          0n
+        );
       },
     });
   },
