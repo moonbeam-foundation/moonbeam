@@ -23,7 +23,7 @@ use super::{
 	ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights,
 	RuntimeCall, RuntimeEvent, RuntimeOrigin, XcmpQueue,
 };
-use crate::{runtime_params, OpenTechCommitteeInstance};
+use crate::OpenTechCommitteeInstance;
 use moonbeam_runtime_common::weights as moonbase_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
@@ -227,6 +227,11 @@ pub type XcmBarrier = (
 	>,
 );
 
+parameter_types! {
+	/// Xcm fees will go to the treasury account
+	pub XcmFeesAccount: AccountId = Treasury::account_id();
+}
+
 /// This is the struct that will handle the revenue from xcm fees
 /// We do not burn anything because we want to mimic exactly what
 /// the sovereign account has
@@ -241,7 +246,7 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 		>,
 	),
 	AccountId,
-	runtime_params::dynamic_params::xcm_executor::XcmFeesAccount,
+	XcmFeesAccount,
 >;
 
 // Our implementation of the Moonbeam Call

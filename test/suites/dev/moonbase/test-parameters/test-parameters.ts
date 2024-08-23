@@ -83,10 +83,6 @@ describeSuite({
       });
     }
 
-    testParam("PalletReferenda", "SubmissionDeposit", ["Balance", 55n * UNIT]);
-
-    testParam("XcmExecutor", "XcmFeesAccount", ["AccountId20", hexToU8a(BALTATHAR_ADDRESS)]);
-
     testParam("RuntimeConfig", "FeesTreasuryPercentage", ["Perbill", 200_000_000]);
   },
 });

@@ -24,29 +24,12 @@ use sp_runtime::Perbill;
 #[dynamic_params(RuntimeParameters, pallet_parameters::Parameters::<Runtime>)]
 pub mod dynamic_params {
 	use super::*;
-
 	#[dynamic_pallet_params]
 	#[codec(index = 0)]
 	pub mod runtime_config {
 		// for fees, 80% are burned, 20% to the treasury
 		#[codec(index = 0)]
 		pub static FeesTreasuryPercentage: Perbill = Perbill::from_percent(20);
-	}
-	#[dynamic_pallet_params]
-	#[codec(index = 1)]
-	pub mod pallet_referenda {
-
-		#[codec(index = 0)]
-		pub static SubmissionDeposit: Balance = 10 * UNIT * SUPPLY_FACTOR;
-	}
-
-	#[dynamic_pallet_params]
-	#[codec(index = 2)]
-	pub mod xcm_executor {
-
-		#[codec(index = 0)]
-		/// Xcm fees will go to the treasury account
-		pub static XcmFeesAccount: AccountId20 = crate::Treasury::account_id();
 	}
 }
 
