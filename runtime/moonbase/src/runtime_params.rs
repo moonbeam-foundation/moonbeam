@@ -15,9 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Dynamic runtime parametes.
-use crate::currency::{SUPPLY_FACTOR, UNIT};
-use crate::{Balance, Runtime};
-use account::AccountId20;
+use crate::Runtime;
 use frame_support::dynamic_params::{dynamic_pallet_params, dynamic_params};
 use sp_runtime::Perbill;
 

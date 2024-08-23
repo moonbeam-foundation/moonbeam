@@ -1,7 +1,6 @@
 import { describeSuite, DevModeContext, expect } from "@moonwall/cli";
 import "@moonbeam-network/api-augment";
-import { alith, BALTATHAR_ADDRESS } from "@moonwall/util";
-import { hexToU8a } from "@polkadot/util";
+import { alith } from "@moonwall/util";
 
 const UNIT = 1_000_000_000_000_000_000n;
 

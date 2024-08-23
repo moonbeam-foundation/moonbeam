@@ -21,6 +21,7 @@
 //! 3. pallet-referenda
 
 use super::*;
+use crate::currency::*;
 use frame_support::traits::{EitherOf, MapSuccess};
 use frame_system::EnsureRootWithSuccess;
 use moonbeam_runtime_common::weights as moonbase_weights;
