@@ -34,10 +34,10 @@ pub mod dynamic_params {
 #[cfg(feature = "runtime-benchmarks")]
 impl Default for RuntimeParameters {
 	fn default() -> Self {
-		RuntimeParameters::PalletReferenda(
-			dynamic_params::pallet_referenda::Parameters::SubmissionDeposit(
-				dynamic_params::pallet_referenda::SubmissionDeposit,
-				Some(10 * UNIT * SUPPLY_FACTOR),
+		RuntimeParameters::RuntimeConfig(
+			dynamic_params::runtime_config::Parameters::FeesTreasuryPercentage(
+				dynamic_params::runtime_config::FeesTreasuryPercentage,
+				Some(Perbill::from_percent(20)),
 			),
 		)
 	}
