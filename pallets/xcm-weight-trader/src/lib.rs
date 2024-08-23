@@ -123,8 +123,8 @@ pub mod pallet {
 		AssetNotPaused,
 		/// XCM location filtered
 		XcmLocationFiltered,
-		/// The units price cannot be zero
-		UnitsCannotBeZero,
+		/// The relative price cannot be zero
+		PriceCannotBeZero,
 	}
 
 	#[pallet::event]
@@ -159,7 +159,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::AddSupportedAssetOrigin::ensure_origin(origin)?;
 
-			ensure!(relative_price != 0, Error::<T>::UnitsCannotBeZero);
+			ensure!(relative_price != 0, Error::<T>::PriceCannotBeZero);
 			ensure!(
 				!SupportedAssets::<T>::contains_key(&location),
 				Error::<T>::AssetAlreadyAdded
@@ -188,7 +188,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::EditSupportedAssetOrigin::ensure_origin(origin)?;
 
-			ensure!(relative_price != 0, Error::<T>::UnitsCannotBeZero);
+			ensure!(relative_price != 0, Error::<T>::PriceCannotBeZero);
 			ensure!(
 				SupportedAssets::<T>::contains_key(&location),
 				Error::<T>::AssetNotFound
@@ -322,14 +322,18 @@ impl<T: crate::Config> Trader<T> {
 				.try_into()
 				.map_err(|_| XcmError::Overflow)
 		} else if let Some(relative_price) = Pallet::<T>::get_asset_relative_price(asset_location) {
-			let native_amount: u128 = <T as crate::Config>::WeightToFee::weight_to_fee(&weight)
-				.try_into()
-				.map_err(|_| XcmError::Overflow)?;
-			Ok(native_amount
-				.checked_mul(10u128.pow(RELATIVE_PRICE_DECIMALS))
-				.ok_or(XcmError::Overflow)?
-				.checked_div(relative_price)
-				.ok_or(XcmError::Overflow)?)
+			if relative_price == 0u128 {
+				Ok(0u128)
+			} else {
+				let native_amount: u128 = <T as crate::Config>::WeightToFee::weight_to_fee(&weight)
+					.try_into()
+					.map_err(|_| XcmError::Overflow)?;
+				Ok(native_amount
+					.checked_mul(10u128.pow(RELATIVE_PRICE_DECIMALS))
+					.ok_or(XcmError::Overflow)?
+					.checked_div(relative_price)
+					.ok_or(XcmError::Overflow)?)
+			}
 		} else {
 			Err(XcmError::AssetNotFound)
 		}
