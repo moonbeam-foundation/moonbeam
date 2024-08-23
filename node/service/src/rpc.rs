@@ -130,7 +130,11 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// Fee history cache.
 	pub fee_history_cache: FeeHistoryCache,
 	/// Channels for manual xcm messages (downward, hrmp)
-	pub dev_rpc_data: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
+	pub dev_rpc_data: Option<(
+		flume::Sender<Vec<u8>>,
+		flume::Sender<(ParaId, Vec<u8>)>,
+		Arc<std::sync::atomic::AtomicU32>,
+	)>,
 	/// Ethereum data access overrides.
 	pub overrides: Arc<dyn StorageOverride<Block>>,
 	/// Cache for Ethereum block data.
@@ -318,11 +322,14 @@ where
 		)?;
 	};
 
-	if let Some((downward_message_channel, hrmp_message_channel)) = dev_rpc_data {
+	if let Some((downward_message_channel, hrmp_message_channel, additional_relay_offset)) =
+		dev_rpc_data
+	{
 		io.merge(
 			DevRpc {
 				downward_message_channel,
 				hrmp_message_channel,
+				additional_relay_offset,
 			}
 			.into_rpc(),
 		)?;

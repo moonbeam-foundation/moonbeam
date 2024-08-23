@@ -52,11 +52,16 @@ pub trait DevApi {
 	/// transfer of the sending paraId's native token will be injected.
 	#[method(name = "xcm_injectHrmpMessage")]
 	async fn inject_hrmp_message(&self, sender: ParaId, message: Vec<u8>) -> RpcResult<()>;
+
+	/// Skip N relay blocks, for testing purposes
+	#[method(name = "test_skipRelayBlocks")]
+	async fn skip_relay_blocks(&self, n: u32) -> RpcResult<()>;
 }
 
 pub struct DevRpc {
 	pub downward_message_channel: flume::Sender<Vec<u8>>,
 	pub hrmp_message_channel: flume::Sender<(ParaId, Vec<u8>)>,
+	pub additional_relay_offset: std::sync::Arc<std::sync::atomic::AtomicU32>,
 }
 
 #[jsonrpsee::core::async_trait]
@@ -145,6 +150,12 @@ impl DevApiServer for DevRpc {
 			.await
 			.map_err(|err| internal_err(err.to_string()))?;
 
+		Ok(())
+	}
+
+	async fn skip_relay_blocks(&self, n: u32) -> RpcResult<()> {
+		self.additional_relay_offset
+			.fetch_add(n, std::sync::atomic::Ordering::SeqCst);
 		Ok(())
 	}
 }
