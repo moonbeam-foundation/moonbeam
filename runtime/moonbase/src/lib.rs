@@ -199,6 +199,9 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
+	#[cfg(feature = "runtime-benchmarks")]
+	state_version: 0,
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	state_version: 1,
 };
 
