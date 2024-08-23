@@ -1,5 +1,5 @@
 [package]
-name = "manual-xcm-rpc"
+name = "moonbeam-dev-rpc"
 authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"

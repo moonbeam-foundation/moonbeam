@@ -130,7 +130,7 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// Fee history cache.
 	pub fee_history_cache: FeeHistoryCache,
 	/// Channels for manual xcm messages (downward, hrmp)
-	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
+	pub dev_rpc_data: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
 	/// Ethereum data access overrides.
 	pub overrides: Arc<dyn StorageOverride<Block>>,
 	/// Cache for Ethereum block data.
@@ -173,7 +173,7 @@ where
 		Eth, EthApiServer, EthFilter, EthFilterApiServer, EthPubSub, EthPubSubApiServer, Net,
 		NetApiServer, Web3, Web3ApiServer,
 	};
-	use manual_xcm_rpc::{ManualXcm, ManualXcmApiServer};
+	use moonbeam_dev_rpc::{DevApiServer, DevRpc};
 	use moonbeam_finality_rpc::{MoonbeamFinality, MoonbeamFinalityApiServer};
 	use moonbeam_rpc_debug::{Debug, DebugServer};
 	use moonbeam_rpc_trace::{Trace, TraceServer};
@@ -198,7 +198,7 @@ where
 		max_past_logs,
 		fee_history_limit,
 		fee_history_cache,
-		xcm_senders,
+		dev_rpc_data,
 		overrides,
 		block_data_cache,
 		forced_parent_hashes,
@@ -318,9 +318,9 @@ where
 		)?;
 	};
 
-	if let Some((downward_message_channel, hrmp_message_channel)) = xcm_senders {
+	if let Some((downward_message_channel, hrmp_message_channel)) = dev_rpc_data {
 		io.merge(
-			ManualXcm {
+			DevRpc {
 				downward_message_channel,
 				hrmp_message_channel,
 			}

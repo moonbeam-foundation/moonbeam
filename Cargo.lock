@@ -6005,21 +6005,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "manual-xcm-rpc"
-version = "0.1.0"
-dependencies = [
- "cumulus-primitives-core",
- "flume 0.10.14",
- "futures 0.3.30",
- "hex-literal 0.3.4",
- "jsonrpsee",
- "parity-scale-codec",
- "staging-xcm",
- "tokio",
- "xcm-primitives 0.1.1",
-]
-
-[[package]]
 name = "maplit"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6549,6 +6534,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-dev-rpc"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "flume 0.10.14",
+ "futures 0.3.30",
+ "hex-literal 0.3.4",
+ "jsonrpsee",
+ "parity-scale-codec",
+ "staging-xcm",
+ "tokio",
+ "xcm-primitives 0.1.1",
+]
+
+[[package]]
 name = "moonbeam-evm-tracer"
 version = "0.1.0"
 dependencies = [
@@ -7057,11 +7057,11 @@ dependencies = [
  "jsonrpsee",
  "libsecp256k1",
  "log",
- "manual-xcm-rpc",
  "maplit",
  "moonbase-runtime",
  "moonbeam-cli-opt",
  "moonbeam-core-primitives",
+ "moonbeam-dev-rpc",
  "moonbeam-finality-rpc",
  "moonbeam-primitives-ext",
  "moonbeam-relay-encoder",
