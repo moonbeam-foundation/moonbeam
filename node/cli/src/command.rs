@@ -693,7 +693,10 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			let collator_options = cli.run.collator_options();
-			runner.run_node_until_exit(|config| async move {
+
+			// It is used when feature "lazy-loading" is enabled
+			#[allow(unused_mut)]
+			runner.run_node_until_exit(|mut config| async move {
 				let hwbench = if !cli.run.no_hardware_benchmarks {
 					config.database.path().map(|database_path| {
 						let _ = std::fs::create_dir_all(&database_path);
