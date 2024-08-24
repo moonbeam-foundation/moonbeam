@@ -120,6 +120,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Litmus",
         paraId: 2106,
+        mutedUntil: new Date("2024-10-01").getTime(),
       },
       {
         name: "Mangata",
