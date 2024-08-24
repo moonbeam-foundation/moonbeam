@@ -1,9 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
-import { alith, generateKeyringPair } from "@moonwall/util";
+import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
   RawXcmMessage,
@@ -92,13 +91,17 @@ describeSuite({
         // XCM Mode should be equal to Paused
         expect((await context.polkadotJs().query.emergencyParaXcm.mode()).isPaused).to.be.true;
 
+        // Produce some blocks when XCm is Paused
+        await context.createBlock();
+        await context.createBlock();
+
         // The sovereign account of foreign parachain sould still have funds
         const balance = (
           await context.polkadotJs().query.system.account(sovereignAddress)
         ).data.free.toBigInt();
         expect(balance, "Sovereign account balance has changed").to.eq(transferredBalance);
 
-        // The beneficiary of the XCm message should not have funds
+        // The beneficiary of the XCM message should not have funds
         const randomBalance = (
           await context.polkadotJs().query.system.account(random.address)
         ).data.free.toBigInt();
