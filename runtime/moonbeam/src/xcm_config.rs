@@ -396,7 +396,7 @@ parameter_types! {
 	/// A good value depends on the expected message sizes, their weights, the weight that is
 	/// available for processing them and the maximal needed message size. The maximal message
 	/// size is slightly lower than this as defined by [`MaxMessageLenOf`].
-	pub const MessageQueueHeapSize: u32 = 128 * 1048;
+	pub const MessageQueueHeapSize: u32 = 103 * 1024;
 }
 
 impl pallet_message_queue::Config for Runtime {
@@ -417,7 +417,7 @@ impl pallet_message_queue::Config for Runtime {
 	type QueueChangeHandler = NarrowOriginToSibling<XcmpQueue>;
 	// NarrowOriginToSibling calls XcmpQueue's is_paused if Origin is sibling. Allows all other origins
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
-	type WeightInfo = pallet_message_queue::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = moonbeam_weights::pallet_message_queue::WeightInfo<Runtime>;
 	type IdleMaxServiceWeight = MessageQueueServiceWeight;
 }
 

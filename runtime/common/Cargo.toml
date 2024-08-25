@@ -33,6 +33,7 @@ xcm-primitives = { workspace = true }
 # Substrate
 cumulus-pallet-parachain-system = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true }
+pallet-message-queue = { workspace = true }
 frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
@@ -109,6 +110,7 @@ std = [
 	"pallet-identity/std",
 	"pallet-transaction-payment/std",
 	"pallet-xcm-weight-trader/std",
+	"pallet-message-queue/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-consensus-slots/std",
@@ -124,6 +126,7 @@ std = [
 runtime-benchmarks = [
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
+	"pallet-message-queue/runtime-benchmarks",
 	"frame-benchmarking/runtime-benchmarks",
 	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
@@ -155,4 +158,8 @@ runtime-benchmarks = [
 	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 ]
-try-runtime = ["cumulus-pallet-parachain-system/try-runtime", "frame-support/try-runtime", "pallet-migrations/try-runtime"]
+try-runtime = [
+	"cumulus-pallet-parachain-system/try-runtime",
+	"frame-support/try-runtime",
+	"pallet-migrations/try-runtime",
+]

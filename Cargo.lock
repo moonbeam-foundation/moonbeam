@@ -6980,6 +6980,7 @@ dependencies = [
  "pallet-evm",
  "pallet-evm-chain-id",
  "pallet-identity",
+ "pallet-message-queue",
  "pallet-migrations",
  "pallet-moonbeam-foreign-assets",
  "pallet-moonbeam-lazy-migrations",
