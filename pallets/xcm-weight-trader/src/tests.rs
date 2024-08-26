@@ -489,14 +489,14 @@ fn test_trader_parent_asset() {
 			trader.buy_weight(
 				weight_to_buy,
 				Asset {
-					fun: Fungibility::Fungible(22_000),
+					fun: Fungibility::Fungible(22_000_000_000_000),
 					id: XcmAssetId(Location::parent()),
 				}
 				.into(),
 				&dummy_xcm_context
 			),
 			Ok(Asset {
-				fun: Fungibility::Fungible(2_000),
+				fun: Fungibility::Fungible(2_000_000_000_000),
 				id: XcmAssetId(Location::parent()),
 			}
 			.into())
@@ -507,7 +507,7 @@ fn test_trader_parent_asset() {
 		assert_eq!(
 			trader.refund_weight(actual_weight, &dummy_xcm_context),
 			Some(Asset {
-				fun: Fungibility::Fungible(4_000),
+				fun: Fungibility::Fungible(4_000_000_000_000),
 				id: XcmAssetId(Location::parent()),
 			})
 		);
@@ -516,7 +516,7 @@ fn test_trader_parent_asset() {
 		drop(trader);
 		assert_eq!(
 			get_parent_asset_deposited(),
-			Some((xcm_fees_account(), 20_000 - 4_000))
+			Some((xcm_fees_account(), 20_000_000_000_000 - 4_000_000_000_000))
 		);
 
 		// Should not be able to buy weight if the asset is not a first position
@@ -642,7 +642,7 @@ fn test_query_weight_to_asset_fee() {
 		// Parent asset price should be 0.5
 		assert_eq!(
 			XcmWeightTrader::query_weight_to_asset_fee(weight_to_buy, parent_asset.clone()),
-			Ok(2 * 10_000)
+			Ok(2 * 10_000_000_000_000)
 		);
 
 		// Setup: pause parent asset
@@ -679,7 +679,7 @@ fn test_query_weight_to_asset_fee() {
 		// We should support unpaused asset with new price
 		assert_eq!(
 			XcmWeightTrader::query_weight_to_asset_fee(weight_to_buy, parent_asset),
-			Ok(10_000 / 2)
+			Ok(10_000_000_000_000 / 2)
 		);
 	})
 }
