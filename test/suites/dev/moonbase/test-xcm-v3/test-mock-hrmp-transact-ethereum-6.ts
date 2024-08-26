@@ -22,10 +22,11 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
-
-    const STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
+    let STORAGE_READ_COST: bigint;
 
     beforeAll(async () => {
+      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
+
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
         context,
         charleth.address as `0x${string}`

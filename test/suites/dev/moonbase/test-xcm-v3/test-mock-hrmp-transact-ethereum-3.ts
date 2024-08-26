@@ -55,9 +55,10 @@ describeSuite({
 
     const assetsToTransfer = 100_000_000_000n;
 
-    const STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
+    let STORAGE_READ_COST: bigint;
 
     beforeAll(async () => {
+      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
 
       contractDeployed = contractAddress;

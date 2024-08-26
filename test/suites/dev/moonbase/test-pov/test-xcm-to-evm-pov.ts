@@ -24,9 +24,10 @@ describeSuite({
     let contracts: HeavyContract[];
     const EXPECTED_POV_ROUGH = 350_000; // bytes
     let balancesPalletIndex: number;
-    const STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
+    let STORAGE_READ_COST: bigint;
 
     beforeAll(async function () {
+      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
       // Get Pallet balances index
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
       const foundPallet = metadata.asLatest.pallets.find(

@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, generateKeyringPair } from "@moonwall/util";
 import { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { u8aToHex } from "@polkadot/util";
@@ -12,7 +12,10 @@ describeSuite({
   title: "Precompiles - xcm utils",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
-    const STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
+    let STORAGE_READ_COST;
+    beforeAll(async function () {
+      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
+    });
     it({
       id: "T01",
       title: "allows to retrieve parent-based ML account",
