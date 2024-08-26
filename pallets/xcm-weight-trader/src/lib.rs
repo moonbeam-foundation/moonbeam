@@ -350,7 +350,13 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 		payment: xcm_executor::AssetsInHolding,
 		context: &XcmContext,
 	) -> Result<xcm_executor::AssetsInHolding, XcmError> {
-		log::trace!(target: "xcm::weight", "UsingComponents::buy_weight weight: {:?}, payment: {:?}, context: {:?}", weight, payment, context);
+		log::trace!(
+			target: "xcm::weight",
+			"UsingComponents::buy_weight weight: {:?}, payment: {:?}, context: {:?}",
+			weight,
+			payment,
+			context
+		);
 
 		// Can only call one time
 		if self.1.is_some() {
@@ -426,7 +432,11 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 					fun: Fungibility::Fungible(final_amount),
 					id: XcmAssetId(location.clone()),
 				});
-				log::trace!(target: "xcm-weight-trader", "refund_weight amount to refund: {:?}", amount_to_refound);
+				log::trace!(
+					target: "xcm-weight-trader",
+					"refund_weight amount to refund: {:?}",
+					amount_to_refound
+				);
 				Some(Asset {
 					fun: Fungibility::Fungible(amount_to_refound),
 					id: XcmAssetId(location),
@@ -440,7 +450,12 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 
 impl<T: crate::Config> Drop for Trader<T> {
 	fn drop(&mut self) {
-		log::trace!(target: "xcm-weight-trader", "Dropping `Trader` instance: (weight: {:?}, asset: {:?})", &self.0, &self.1);
+		log::trace!(
+			target: "xcm-weight-trader",
+			"Dropping `Trader` instance: (weight: {:?}, asset: {:?})",
+			&self.0,
+			&self.1
+		);
 		if let Some(asset) = self.1.take() {
 			let res = T::AssetTransactor::deposit_asset(
 				&asset,
