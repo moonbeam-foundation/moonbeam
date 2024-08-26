@@ -108,7 +108,9 @@ where
 				)
 				.try_into()
 				.unwrap_or(u128::MAX);
-			let relative_price: u128 = native_amount_per_second / units_per_second;
+			let relative_price: u128 = native_amount_per_second
+				.saturating_mul(10u128.pow(pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS))
+				.saturating_div(units_per_second);
 			pallet_xcm_weight_trader::SupportedAssets::<Runtime>::insert(
 				asset_location,
 				(enabled, relative_price),
