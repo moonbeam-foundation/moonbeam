@@ -14,6 +14,7 @@ import {
   weightMessage,
 } from "../../../../helpers/xcm.js";
 import { registerOldForeignAsset } from "../../../../helpers/assets.js";
+import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({
   id: "D014025",
@@ -53,6 +54,8 @@ describeSuite({
     let contractABI: Abi;
 
     const assetsToTransfer = 100_000_000_000n;
+
+    const STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
 
     beforeAll(async () => {
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
@@ -171,8 +174,6 @@ describeSuite({
         ];
 
         let expectedCalls = 0n;
-        // TODO: move this to the constant file
-        const STORAGE_READ_COST = 41_742_000n;
 
         for (const xcmTransaction of xcmTransactions) {
           expectedCalls++;
