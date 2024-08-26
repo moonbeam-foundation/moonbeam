@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { GLMR, generateKeyringPair } from "@moonwall/util";
 import { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { u8aToHex } from "@polkadot/util";
-import { expectEVMResult, descendOriginFromAddress20 } from "../../../../helpers";
+import { expectEVMResult, descendOriginFromAddress20, ConstantStore } from "../../../../helpers";
 
 export const CLEAR_ORIGIN_WEIGHT = 5_194_000n;
 
@@ -12,6 +12,7 @@ describeSuite({
   title: "Precompiles - xcm utils",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
+    const STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
     it({
       id: "T01",
       title: "allows to retrieve parent-based ML account",
@@ -172,7 +173,7 @@ describeSuite({
             {
               Transact: {
                 originType: "SovereignAccount",
-                requireWeightAtMost: 566_742_000n, // 21_000 gas limit
+                requireWeightAtMost: 525_000_000n + STORAGE_READ_COST, // 21_000 gas limit
                 call: {
                   encoded: transferCallEncoded,
                 },
@@ -233,7 +234,7 @@ describeSuite({
             {
               Transact: {
                 originType: "SovereignAccount",
-                requireWeightAtMost: 566_742_000n, // 21_000 gas limit
+                requireWeightAtMost: 525_000_000n + STORAGE_READ_COST, // 21_000 gas limit
                 call: {
                   encoded: transferCallEncoded,
                 },

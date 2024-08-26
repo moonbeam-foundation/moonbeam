@@ -11,7 +11,7 @@ import {
   sendRawTransaction,
 } from "@moonwall/util";
 import { encodeFunctionData, fromHex } from "viem";
-import { expectEVMResult, getSignatureParameters } from "../../../../helpers";
+import { ConstantStore, expectEVMResult, getSignatureParameters } from "../../../../helpers";
 
 describeSuite({
   id: "D012822",
@@ -91,9 +91,10 @@ describeSuite({
           .viem("public")
           .getTransactionReceipt({ hash: batchSomeUntilFailureResult as `0x${string}` });
 
-        expect(batchAllReceipt["gasUsed"]).to.equal(45601n);
-        expect(batchSomeReceipt["gasUsed"]).to.equal(45601n);
-        expect(batchSomeUntilFailureReceipt["gasUsed"]).to.equal(45601n);
+        const STORAGE_READ_GAS_COST = ConstantStore(context).STORAGE_READ_GAS_COST;
+        expect(batchAllReceipt["gasUsed"]).to.equal(43932n + STORAGE_READ_GAS_COST);
+        expect(batchSomeReceipt["gasUsed"]).to.equal(43932n + STORAGE_READ_GAS_COST);
+        expect(batchSomeUntilFailureReceipt["gasUsed"]).to.equal(43932n + STORAGE_READ_GAS_COST);
       },
     });
 
