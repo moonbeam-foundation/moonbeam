@@ -62,7 +62,7 @@ fn test_add_supported_asset() {
 				Location::parent(),
 				0,
 			),
-			Error::<Test>::UnitsCannotBeZero
+			Error::<Test>::PriceCannotBeZero
 		);
 
 		// Call with the right origin
@@ -137,7 +137,7 @@ fn test_edit_supported_asset() {
 				Location::parent(),
 				0,
 			),
-			Error::<Test>::UnitsCannotBeZero
+			Error::<Test>::PriceCannotBeZero
 		);
 
 		// Call with right origin and valid params

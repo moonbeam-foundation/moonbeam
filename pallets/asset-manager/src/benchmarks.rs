@@ -37,7 +37,8 @@ benchmarks! {
 	}
 
 	change_existing_asset_type {
-		for i in 0..1 {
+		let x in 5..100;
+		for i in 0..x {
 			let asset_type: T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
@@ -62,7 +63,8 @@ benchmarks! {
 	}
 
 	remove_existing_asset_type {
-		for i in 0..1 {
+		let x in 5..100;
+		for i in 0..x {
 			let asset_type: T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
@@ -83,8 +85,6 @@ benchmarks! {
 	}: _(RawOrigin::Root, asset_id, x)
 	verify {
 		assert!(Pallet::<T>::asset_id_type(asset_id).is_none());
-		assert!(Pallet::<T>::asset_type_units_per_second(&asset_type_to_be_removed).is_none());
-		assert!(!Pallet::<T>::supported_fee_payment_assets().contains(&asset_type_to_be_removed));
 	}
 }
 

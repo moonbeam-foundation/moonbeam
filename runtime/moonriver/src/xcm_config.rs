@@ -741,7 +741,7 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;
 	#[cfg(feature = "runtime-benchmarks")]
-	type NotFilteredLocation = Location::parent();
+	type NotFilteredLocation = RelayLocation;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

@@ -952,13 +952,13 @@ macro_rules! impl_runtime_apis_plus_common {
 										location.clone().try_into().expect("convert to v3"),
 										i as u128
 									);
-									// set 1-1
-									<AssetManager as xcm_primitives::UnitsToWeightRatio<
+									// set 1-1 TODO: update before merging PR-2908
+									/*<AssetManager as xcm_primitives::UnitsToWeightRatio<
 										<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
 									>::set_units_per_second(
 										location.clone().try_into().expect("convert to v3"),
 										1_000_000_000_000u128
-									);
+									);*/
 								}
 							}
 							assets.into()

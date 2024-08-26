@@ -152,10 +152,8 @@ pub mod pallet {
 			metadata: T::AssetRegistrarMetadata,
 		},
 		/// Changed the amount of units we are charging per execution second for a given asset
-		UnitsPerSecondChanged {
-			asset_type: T::ForeignAssetType,
-			units_per_second: u128,
-		},
+		#[deprecated(note = "Should not be used")]
+		UnitsPerSecondChanged,
 		/// Changed the xcm type mapping for a given asset id
 		ForeignAssetXcmLocationChanged {
 			asset_id: T::AssetId,

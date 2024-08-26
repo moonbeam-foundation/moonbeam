@@ -809,6 +809,10 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
 }
 
+parameter_types! {
+	pub RelayLocation: Location = Location::parent();
+}
+
 impl pallet_xcm_weight_trader::Config for Runtime {
 	type AccountIdToLocation = xcm_primitives::AccountIdToLocation<AccountId>;
 	type AddSupportedAssetOrigin = EnsureRoot<AccountId>;
@@ -825,7 +829,7 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type WeightToFee = WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;
 	#[cfg(feature = "runtime-benchmarks")]
-	type NotFilteredLocation = Location::parent();
+	type NotFilteredLocation = RelayLocation;
 }
 
 parameter_types! {
