@@ -342,7 +342,6 @@ impl pallet_xcm::Config for Runtime {
 	type MaxLockers = ConstU32<8>;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
-	// TODO pallet-xcm weights
 	type WeightInfo = moonbeam_weights::pallet_xcm::WeightInfo<Runtime>;
 	type AdminOrigin = EnsureRoot<AccountId>;
 }
@@ -723,8 +722,7 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type RemoveSupportedAssetOrigin = EnsureRoot<AccountId>;
 	type RuntimeEvent = RuntimeEvent;
 	type ResumeSupportedAssetOrigin = EnsureRoot<AccountId>;
-	// TODO generate weights
-	type WeightInfo = ();
+	type WeightInfo = moonbeam_weights::pallet_xcm_weight_trader::WeightInfo<Runtime>;
 	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;
 	#[cfg(feature = "runtime-benchmarks")]
