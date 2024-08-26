@@ -6447,7 +6447,7 @@ dependencies = [
  "strum 0.24.1",
  "strum_macros 0.24.3",
  "substrate-wasm-builder",
- "xcm-fee-payment-runtime-api",
+ "xcm-runtime-apis",
  "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-simulator",
@@ -6939,7 +6939,7 @@ dependencies = [
  "strum 0.24.1",
  "strum_macros 0.24.3",
  "substrate-wasm-builder",
- "xcm-fee-payment-runtime-api",
+ "xcm-runtime-apis",
  "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-simulator",
@@ -7010,7 +7010,7 @@ dependencies = [
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
- "xcm-fee-payment-runtime-api",
+ "xcm-runtime-apis",
  "xcm-primitives 0.1.1",
 ]
 
@@ -7147,7 +7147,7 @@ dependencies = [
  "tiny-bip39",
  "tokio",
  "trie-root 0.15.2",
- "xcm-fee-payment-runtime-api",
+ "xcm-runtime-apis",
 ]
 
 [[package]]
@@ -7349,7 +7349,7 @@ dependencies = [
  "strum 0.24.1",
  "strum_macros 0.24.3",
  "substrate-wasm-builder",
- "xcm-fee-payment-runtime-api",
+ "xcm-runtime-apis",
  "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-simulator",
@@ -10488,7 +10488,7 @@ dependencies = [
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
- "xcm-fee-payment-runtime-api",
+ "xcm-runtime-apis",
 ]
 
 [[package]]
@@ -11921,7 +11921,7 @@ dependencies = [
  "tracing-gum",
  "westend-runtime",
  "westend-runtime-constants",
- "xcm-fee-payment-runtime-api",
+ "xcm-runtime-apis",
 ]
 
 [[package]]
@@ -13074,7 +13074,7 @@ dependencies = [
  "staging-xcm-executor",
  "static_assertions",
  "substrate-wasm-builder",
- "xcm-fee-payment-runtime-api",
+ "xcm-runtime-apis",
 ]
 
 [[package]]
@@ -18213,7 +18213,7 @@ dependencies = [
  "staging-xcm-executor",
  "substrate-wasm-builder",
  "westend-runtime-constants",
- "xcm-fee-payment-runtime-api",
+ "xcm-runtime-apis",
 ]
 
 [[package]]
@@ -18619,7 +18619,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "xcm-fee-payment-runtime-api"
+name = "xcm-runtime-apis"
 version = "0.1.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.11.0#ef915632fbda727583b13813417664ecefc000b8"
 dependencies = [

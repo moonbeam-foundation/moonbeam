@@ -144,7 +144,7 @@ polkadot-parachain = { workspace = true }
 polkadot-primitives = { workspace = true }
 polkadot-service = { workspace = true }
 xcm = { workspace = true }
-xcm-fee-payment-runtime-api = { workspace = true }
+xcm-runtime-apis = { workspace = true }
 
 # Benchmarking
 frame-benchmarking = { workspace = true, features = ["std"] }
