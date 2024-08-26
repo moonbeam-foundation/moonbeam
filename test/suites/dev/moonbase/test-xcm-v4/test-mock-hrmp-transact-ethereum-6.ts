@@ -9,6 +9,7 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
+import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({
   id: "D014122",
@@ -21,6 +22,8 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
+
+    const STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
 
     beforeAll(async () => {
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
@@ -71,9 +74,6 @@ describeSuite({
           .index.toNumber();
 
         const amountToTransfer = transferredBalance / 10n;
-
-        // TODO: move this to the constant file
-        const STORAGE_READ_COST = 41_742_000n;
 
         const xcmTransactions = [
           {
