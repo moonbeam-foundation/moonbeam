@@ -9,7 +9,7 @@ import {
   descendOriginFromAddress20,
   injectHrmpMessage,
 } from "../../../../helpers/xcm.js";
-import { GAS_LIMIT_POV_RATIO } from "../../../../helpers/constants";
+import { ConstantStore, GAS_LIMIT_POV_RATIO } from "../../../../helpers/constants";
 
 describeSuite({
   id: "D012706",
@@ -24,6 +24,7 @@ describeSuite({
     let contracts: HeavyContract[];
     const EXPECTED_POV_ROUGH = 350_000; // bytes
     let balancesPalletIndex: number;
+    const STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
 
     beforeAll(async function () {
       // Get Pallet balances index
@@ -123,7 +124,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                refTime: 50_041_742_000,
+                refTime: 50_000_000_000n + STORAGE_READ_COST,
                 proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
               },
               call: {
@@ -223,7 +224,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                refTime: 160_041_742_000,
+                refTime: 160_000_000_000n + STORAGE_READ_COST,
                 proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
               },
               call: {
