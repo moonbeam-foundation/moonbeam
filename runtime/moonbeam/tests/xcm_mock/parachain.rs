@@ -283,7 +283,7 @@ parameter_types! {
 	/// Xcm fees will go to the treasury account
 	pub XcmFeesAccount: AccountId = Treasury::account_id();
 	/// Parachain token units per second of execution
-	pub ParaTokensPerSecond: u128 = 1000000000000;
+	pub ParaTokensPerSecond: u128 = WEIGHT_REF_TIME_PER_SECOND as u128;
 }
 
 pub struct WeightToFee;
@@ -1088,6 +1088,8 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 
 use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
+use sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND;
+
 pub(crate) fn on_runtime_upgrade() {
 	VersionUncheckedMigrateToV1::<Runtime>::on_runtime_upgrade();
 }

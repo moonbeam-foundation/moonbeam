@@ -43,7 +43,7 @@ use xcm::{IntoVersion, VersionedAssetId};
 use xcm_executor::traits::{TransactAsset, WeightTrader};
 use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
 
-const RELATIVE_PRICE_DECIMALS: u32 = 9;
+pub const RELATIVE_PRICE_DECIMALS: u32 = 18;
 
 #[pallet]
 pub mod pallet {
@@ -105,7 +105,7 @@ pub mod pallet {
 	}
 
 	/// Stores all supported assets per XCM Location.
-	/// The u128 is the asset price relative to native asset with 9 decimals
+	/// The u128 is the asset price relative to native asset with 18 decimals
 	/// The boolean specify if the support for this asset is active
 	#[pallet::storage]
 	#[pallet::getter(fn supported_assets)]
@@ -371,7 +371,7 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 			(XcmAssetId(location), Fungibility::Fungible(_)) => {
 				let amount: u128 = Self::compute_amount_to_charge(&weight, &location)?;
 
-				// We dont need to proceed if the amount is 0
+				// We don't need to proceed if the amount is 0
 				// For cases (specially tests) where the asset is very cheap with respect
 				// to the weight needed
 				if amount.is_zero() {
@@ -389,9 +389,9 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 				self.0 = weight;
 				self.1 = Some(required);
 
-				return Ok(unused);
+				Ok(unused)
 			}
-			_ => return Err(XcmError::AssetNotFound),
+			_ => Err(XcmError::AssetNotFound),
 		}
 	}
 
@@ -440,6 +440,7 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 
 impl<T: crate::Config> Drop for Trader<T> {
 	fn drop(&mut self) {
+		log::trace!(target: "xcm-weight-trader", "Dropping `Trader` instance: (weight: {:?}, asset: {:?})", &self.0, &self.1);
 		if let Some(asset) = self.1.take() {
 			let res = T::AssetTransactor::deposit_asset(
 				&asset,

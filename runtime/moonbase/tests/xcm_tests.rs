@@ -60,8 +60,11 @@ fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128)
 		)
 		.try_into()
 		.map_err(|_| ())?;
+	let precision_factor = 10u128.pow(pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS);
 	let relative_price: u128 = if units_per_second > 0u128 {
-		native_amount_per_second / units_per_second
+		native_amount_per_second
+			.saturating_mul(precision_factor)
+			.saturating_div(units_per_second)
 	} else {
 		0u128
 	};
@@ -93,7 +96,7 @@ fn receive_relay_asset_from_relay() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location.clone(), 0u128,));
+		assert_ok!(add_supported_asset(source_location.clone(), 0));
 	});
 
 	// Actually send relay asset to parachain
@@ -144,7 +147,7 @@ fn send_relay_asset_to_relay() {
 			true
 		));
 		// Free execution
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	let dest: Location = Junction::AccountKey20 {
@@ -231,7 +234,7 @@ fn send_relay_asset_to_para_b() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location.clone(), 0u128,));
+		assert_ok!(add_supported_asset(source_location.clone(), 0));
 	});
 
 	// Register asset in paraB. Free execution
@@ -243,7 +246,7 @@ fn send_relay_asset_to_para_b() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	// First send relay chain asset to Parachain A like in previous test
@@ -328,7 +331,7 @@ fn send_para_a_asset_to_para_b() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	// Send para A asset from para A to para B
@@ -395,7 +398,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location.clone(), 0u128,));
+		assert_ok!(add_supported_asset(source_location.clone(), 0));
 	});
 
 	// Register para A asset in parachain C. Free execution
@@ -407,7 +410,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	// Send para A asset to para B
@@ -501,7 +504,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	// Send para A asset to para B
@@ -594,7 +597,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	let dest = Location {
@@ -702,7 +705,7 @@ fn receive_relay_asset_with_trader() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 2500000000000u128,));
+		assert_ok!(add_supported_asset(source_location, 2_500_000_000_000));
 	});
 
 	let dest: Location = Junction::AccountKey20 {
@@ -759,7 +762,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 2500000000000u128,));
+		assert_ok!(add_supported_asset(source_location, 2500000000000));
 	});
 
 	let dest = Location {
@@ -832,7 +835,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 			true
 		));
 		// With these units per second, 80K weight convrets to 1 asset unit
-		assert_ok!(add_supported_asset(source_location, 12500000u128,));
+		assert_ok!(add_supported_asset(source_location, 12500000));
 	});
 
 	let dest = Location {
@@ -867,7 +870,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 	});
 
 	ParaB::execute_with(|| {
-		// free execution, full amount received because trully the xcm instruction does not cost
+		// free execution, full amount received because the xcm instruction does not cost
 		// what it is specified
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 101);
 	});
@@ -902,7 +905,12 @@ fn error_when_not_paying_enough() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 2500000000000u128,));
+		assert_ok!(add_supported_asset(source_location, 2500000000000));
+	});
+
+	ParaA::execute_with(|| {
+		// amount not received as it is not paying enough
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 0);
 	});
 
 	// We are sending 100 tokens from relay.
@@ -946,7 +954,7 @@ fn transact_through_derivative_multilocation() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 1u128,));
+		assert_ok!(add_supported_asset(source_location, 1));
 
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
@@ -1111,7 +1119,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 1u128,));
+		assert_ok!(add_supported_asset(source_location, 1));
 	});
 
 	// Let's construct the call to know how much weight it is going to require
@@ -1262,7 +1270,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 1u128,));
+		assert_ok!(add_supported_asset(source_location, 1));
 	});
 
 	// Let's construct the call to know how much weight it is going to require
@@ -1412,7 +1420,7 @@ fn transact_through_sovereign() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 1u128,));
+		assert_ok!(add_supported_asset(source_location, 1));
 
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
@@ -1680,7 +1688,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 1u128,));
+		assert_ok!(add_supported_asset(source_location, 1));
 	});
 
 	let dest: Location = AccountKey20 {
@@ -1829,7 +1837,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 1u128,));
+		assert_ok!(add_supported_asset(source_location, 1));
 	});
 
 	let dest: Location = AccountKey20 {
@@ -1978,7 +1986,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	let response = Response::Version(2);
@@ -2127,7 +2135,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	ParaA::execute_with(|| {
@@ -2255,7 +2263,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 			1u128,
 			false
 		));
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	// Actually send relay asset to parachain
@@ -2330,7 +2338,7 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	// Actually send relay asset to parachain
@@ -2386,7 +2394,7 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	// Actually send relay asset to parachain
@@ -2451,7 +2459,7 @@ fn empty_account_should_not_be_reset() {
 			1u128,
 			false
 		));
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	// Send native token to evm_account
@@ -2557,7 +2565,7 @@ fn test_statemint_like() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(source_location, 0u128,));
+		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
 	Statemint::execute_with(|| {
@@ -2666,7 +2674,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(relay_location, 0u128,));
+		assert_ok!(add_supported_asset(relay_location, 0));
 
 		assert_ok!(AssetManager::register_foreign_asset(
 			parachain::RuntimeOrigin::root(),
@@ -2675,7 +2683,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(statemint_location_asset, 0u128,));
+		assert_ok!(add_supported_asset(statemint_location_asset, 0));
 	});
 
 	let parachain_beneficiary_from_relay: Location = Junction::AccountKey20 {

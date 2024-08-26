@@ -61,8 +61,11 @@ fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128)
 		)
 		.try_into()
 		.map_err(|_| ())?;
+	let precision_factor = 10u128.pow(pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS);
 	let relative_price: u128 = if units_per_second > 0u128 {
-		native_amount_per_second / units_per_second
+		native_amount_per_second
+			.saturating_mul(precision_factor)
+			.saturating_div(units_per_second)
 	} else {
 		0u128
 	};

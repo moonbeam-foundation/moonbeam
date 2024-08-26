@@ -60,8 +60,11 @@ fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128)
 		)
 		.try_into()
 		.map_err(|_| ())?;
+	let precision_factor = 10u128.pow(pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS);
 	let relative_price: u128 = if units_per_second > 0u128 {
-		native_amount_per_second / units_per_second
+		native_amount_per_second
+			.saturating_mul(precision_factor)
+			.saturating_div(units_per_second)
 	} else {
 		0u128
 	};
@@ -2364,6 +2367,7 @@ fn test_statemint_like() {
 }
 
 #[test]
+
 fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	MockNet::reset();
 
@@ -2409,7 +2413,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(relay_location.clone(), 0u128));
+		assert_ok!(add_supported_asset(relay_location, 0u128));
 
 		assert_ok!(AssetManager::register_foreign_asset(
 			parachain::RuntimeOrigin::root(),
@@ -2418,7 +2422,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			1u128,
 			true
 		));
-		assert_ok!(add_supported_asset(relay_location.clone(), 0u128));
+		assert_ok!(add_supported_asset(statemint_location_asset, 0u128));
 	});
 
 	let parachain_beneficiary_from_relay: Location = Junction::AccountKey20 {
