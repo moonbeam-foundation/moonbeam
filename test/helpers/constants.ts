@@ -77,8 +77,9 @@ export const RUNTIME_CONSTANTS = {
     EXTRINSIC_GAS_LIMIT: 52_000_000n,
     // Maximum Gas to PoV ratio used in the gasometer
     GAS_PER_POV_BYTES: 16n,
-    // Storage read and write costs in weight
+    // Storage read/write costs
     STORAGE_READ_COST: 41_742_000n,
+    STORAGE_READ_GAS_COST: 1669n,
   },
   MOONRIVER: {
     MIN_FEE_MULTIPLIER: 1_000_000_000_000_000_000n,
