@@ -127,13 +127,13 @@ describeSuite({
           allowFailures: false,
         });
 
-        // The sovereign account of foreign parachain sould still have funds
+        // The sovereign account of foreign parachain should now be empty
         const balance2 = (
           await context.polkadotJs().query.system.account(sovereignAddress)
         ).data.free.toBigInt();
         expect(balance2, "Sovereign account not empty, transfer has failed").to.eq(0n);
 
-        // The beneficiary of the XCm message should not have funds
+        // The beneficiary of the XCM message should now have funds
         const randomBalance2 = (
           await context.polkadotJs().query.system.account(random.address)
         ).data.free.toBigInt();
