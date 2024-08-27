@@ -305,7 +305,7 @@ cumulus-relay-chain-inprocess-interface = { git = "https://github.com/moonbeam-f
 cumulus-relay-chain-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 cumulus-relay-chain-minimal-node = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 cumulus-relay-chain-rpc-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
-cumulus-primitives-storage-weight-reclaim = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
+cumulus-primitives-storage-weight-reclaim = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false}
 
 # Polkadot / XCM (wasm)
 orml-traits = { git = "https://github.com/moonbeam-foundation/open-runtime-module-library", branch = "moonbeam-polkadot-v1.11.0", default-features = false }

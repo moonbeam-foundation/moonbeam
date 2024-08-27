@@ -6952,6 +6952,7 @@ dependencies = [
  "account",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcmp-queue",
+ "cumulus-primitives-storage-weight-reclaim",
  "fp-ethereum",
  "fp-evm",
  "frame-benchmarking",
@@ -7004,6 +7005,7 @@ dependencies = [
  "sp-consensus-slots",
  "sp-core",
  "sp-genesis-builder",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "staging-xcm",
@@ -9788,7 +9790,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "sp-storage",
 ]
 
 [[package]]

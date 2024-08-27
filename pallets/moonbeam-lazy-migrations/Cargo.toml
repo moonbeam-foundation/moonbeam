@@ -18,7 +18,6 @@ parity-scale-codec = { workspace = true }
 scale-info = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
-sp-storage = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 
@@ -48,7 +47,6 @@ std = [
   "scale-info/std",
   "sp-core/std",
   "sp-io/std",
-  "sp-storage/std",
   "sp-runtime/std",
   "sp-std/std",
   "pallet-evm/std",

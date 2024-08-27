@@ -48,11 +48,49 @@ where
 	}
 }
 
+pub struct MigrateCodeToStateTrieV1<Runtime>(PhantomData<Runtime>);
+impl<Runtime> Migration for MigrateCodeToStateTrieV1<Runtime>
+where
+	Runtime: frame_system::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_MigrateCodeToStateTrieV1"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		use cumulus_primitives_storage_weight_reclaim::get_proof_size;
+		use sp_core::Get;
+
+		let proof_size_before: u64 = get_proof_size().unwrap_or(0);
+
+		let key = sp_core::storage::well_known_keys::CODE;
+		let data = sp_io::storage::get(&key);
+		if let Some(data) = data {
+			sp_io::storage::set(&key, &data);
+		}
+
+		let proof_size_after: u64 = get_proof_size().unwrap_or(0);
+		let proof_size_diff = proof_size_after.saturating_sub(proof_size_before);
+
+		Weight::from_parts(0, proof_size_diff)
+			// For now the DbWeight is only recording the ref_time and not account for
+			// the proof_size.
+			.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().reads(1))
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {}
+}
+
 pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> GetMigrations for CommonMigrations<Runtime>
 where
 	Runtime: pallet_xcm::Config,
+	Runtime: frame_system::Config,
 	Runtime::AccountId: Default,
 	BlockNumberFor<Runtime>: Into<u64>,
 {
@@ -194,6 +232,7 @@ where
 			// Box::new(remove_collectives_addresses),
 			// permanent migrations
 			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
+			Box::new(MigrateCodeToStateTrieV1::<Runtime>(Default::default())),
 		]
 	}
 }

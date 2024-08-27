@@ -225,10 +225,10 @@ pub mod pallet {
 			if let Some(next) = sp_io::storage::next_key(key) {
 				match next.try_into() {
 					Ok(key) => {
-						if key == sp_storage::well_known_keys::CODE {
-							let (reads, next_key_res) = Pallet::<T>::get_next_key(&key);
-							return (1 + reads, next_key_res);
-						}
+						// if key.into() == sp_core::storage::well_known_keys::CODE.to_vec() {
+						// 	let (reads, next_key_res) = Pallet::<T>::get_next_key(&key);
+						// 	return (1 + reads, next_key_res);
+						// }
 						(1, NextKeyResult::NextKey(key))
 					},
 					Err(_) => (1, NextKeyResult::Error("Key too long")),

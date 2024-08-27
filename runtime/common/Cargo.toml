@@ -55,6 +55,7 @@ pallet-xcm = { workspace = true }
 sp-api = { workspace = true }
 sp-consensus-slots = { workspace = true }
 sp-core = { workspace = true }
+sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 sp-genesis-builder = { workspace = true }
@@ -84,6 +85,9 @@ parity-scale-codec = { workspace = true }
 
 account = { workspace = true }
 
+# Runtime Interfaces
+cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features = false }
+
 [features]
 std = [
 	"cumulus-pallet-parachain-system/std",
@@ -109,9 +113,11 @@ std = [
 	"precompile-utils/std",
 	"sp-consensus-slots/std",
 	"sp-core/std",
+	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",
 	"sp-genesis-builder/std",
+	"cumulus-primitives-storage-weight-reclaim/std",
 	"xcm-executor/std",
 	"xcm-fee-payment-runtime-api/std",
 	"xcm/std",
@@ -151,4 +157,8 @@ runtime-benchmarks = [
 	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 ]
-try-runtime = ["cumulus-pallet-parachain-system/try-runtime", "frame-support/try-runtime", "pallet-migrations/try-runtime"]
+try-runtime = [
+	"cumulus-pallet-parachain-system/try-runtime",
+	"frame-support/try-runtime",
+	"pallet-migrations/try-runtime",
+]
