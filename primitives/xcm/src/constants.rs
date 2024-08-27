@@ -14,4 +14,4 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-pub const MAX_ASSETS: u32 = 64;
+pub const MAX_ASSETS: u32 = 20;

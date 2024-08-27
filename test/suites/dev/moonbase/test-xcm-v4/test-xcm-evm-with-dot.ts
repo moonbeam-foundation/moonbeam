@@ -122,8 +122,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 100_000_000_000,
-            proofSize: 80_000,
+            refTime: 120_000_000_000,
+            proofSize: 90_000,
           } as any,
           descend_origin: sendingAddress,
           beneficiary: sendingAddress,

@@ -101,8 +101,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 80000n,
+            refTime: 9_000_000_000n,
+            proofSize: 100_000n,
           } as any,
           beneficiary: alith.address,
         })
