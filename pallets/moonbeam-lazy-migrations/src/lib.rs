@@ -39,7 +39,6 @@ pub mod pallet {
 	use cumulus_primitives_storage_weight_reclaim::get_proof_size;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-	use log::{error, log};
 	use sp_core::H160;
 
 	pub const ARRAY_LIMIT: u32 = 1000;
@@ -223,14 +222,15 @@ pub mod pallet {
 		/// Returns an error if the key is too long.
 		fn get_next_key(key: &StorageKey) -> (u64, NextKeyResult) {
 			if let Some(next) = sp_io::storage::next_key(key) {
-				match next.try_into() {
+				let next: Result<StorageKey, _> = next.try_into();
+				match next {
 					Ok(key) => {
-						// if key.into() == sp_core::storage::well_known_keys::CODE.to_vec() {
-						// 	let (reads, next_key_res) = Pallet::<T>::get_next_key(&key);
-						// 	return (1 + reads, next_key_res);
-						// }
+						if key.as_slice() == sp_core::storage::well_known_keys::CODE {
+							let (reads, next_key_res) = Pallet::<T>::get_next_key(&key);
+							return (1 + reads, next_key_res);
+						}
 						(1, NextKeyResult::NextKey(key))
-					},
+					}
 					Err(_) => (1, NextKeyResult::Error("Key too long")),
 				}
 			} else {
