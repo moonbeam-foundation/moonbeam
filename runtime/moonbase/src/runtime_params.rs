@@ -27,7 +27,7 @@ pub mod dynamic_params {
 	pub mod runtime_config {
 		// for fees, 80% are burned, 20% to the treasury
 		#[codec(index = 0)]
-		pub static FeesTreasuryPercentage: Perbill = Perbill::from_percent(20);
+		pub static FeesTreasuryProportion: Perbill = Perbill::from_percent(20);
 	}
 }
 
@@ -35,8 +35,8 @@ pub mod dynamic_params {
 impl Default for RuntimeParameters {
 	fn default() -> Self {
 		RuntimeParameters::RuntimeConfig(
-			dynamic_params::runtime_config::Parameters::FeesTreasuryPercentage(
-				dynamic_params::runtime_config::FeesTreasuryPercentage,
+			dynamic_params::runtime_config::Parameters::FeesTreasuryProportion(
+				dynamic_params::runtime_config::FeesTreasuryProportion,
 				Some(Perbill::from_percent(20)),
 			),
 		)

@@ -82,6 +82,6 @@ describeSuite({
       });
     }
 
-    testParam("RuntimeConfig", "FeesTreasuryPercentage", ["Perbill", 200_000_000]);
+    testParam("RuntimeConfig", "FeesTreasuryProportion", ["Perbill", 200_000_000]);
   },
 });

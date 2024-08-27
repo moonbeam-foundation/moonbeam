@@ -352,7 +352,7 @@ where
 	) {
 		if let Some(fees) = fees_then_tips.next() {
 			let treasury_perbill =
-				runtime_params::dynamic_params::runtime_config::FeesTreasuryPercentage::get();
+				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
 			let treasury_part = treasury_perbill.deconstruct();
 			let burn_part = Perbill::one().deconstruct() - treasury_part;
 			let (_, to_treasury) = fees.ration(burn_part, treasury_part);
