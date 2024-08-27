@@ -79,10 +79,26 @@ where
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {}
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		use parity_scale_codec::Encode;
+
+		let key = sp_core::storage::well_known_keys::CODE;
+		let data = sp_io::storage::get(&key);
+		Ok(Encode::encode(&data))
+	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {}
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		use frame_support::ensure;
+		use parity_scale_codec::Encode;
+
+		let key = sp_core::storage::well_known_keys::CODE;
+		let data = sp_io::storage::get(&key);
+
+		ensure!(Encode::encode(&data) == state, "Invalid state");
+
+		Ok(())
+	}
 }
 
 pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
