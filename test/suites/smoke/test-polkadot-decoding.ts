@@ -5,6 +5,9 @@ import { ONE_HOURS } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { fail } from "assert";
 
+// Change the following line to reproduce a particular case
+const STARTING_KEY_OVERRIDE = null;
+
 const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
 
 const extractStorageKeyComponents = (storageKey: string) => {
@@ -104,11 +107,9 @@ describeSuite({
                 // 2. Extract the module, fn and params keys
                 const { moduleKey, fnKey, paramsKey } = extractStorageKeyComponents(storageKey);
 
-                // 3. Generate a random startKey
-                // Overwrite the PRNG seed to check particular cases by
-                // uncommenting the following line
-                // PRNG = new SeededPRNG(42);
+                // 3. Generate a random startKey, will be overridden if STARTING_KEY_OVERRIDE is set
                 currentStartKey = moduleKey + fnKey + randomHex(paramsKey.length);
+                currentStartKey = STARTING_KEY_OVERRIDE || currentStartKey;
 
                 // 4. Fetch the storage entries with the random startKey
                 // Trying to decode all storage entries may cause the node to timeout, decoding
@@ -129,9 +130,12 @@ describeSuite({
               log(`     - ${fn}:  ${chalk.green(`✔`)}`);
             } catch (e) {
               const failMsg = `Failed to fetch storage at (${moduleName}::${fn}) `;
-              const PRNGDetails = `using startKey "${currentStartKey} at block ${atBlockNumber}`;
-              const msg = chalk.red(`${failMsg} ${PRNGDetails}`);
+              const RNGDetails = `using startKey "${currentStartKey} at block ${atBlockNumber}`;
+              const msg = chalk.red(`${failMsg} ${RNGDetails}`);
               log(msg, e);
+              const reproducing = `To reproduce this failled case, set the STARTING_KEY_OVERRIDE 
+              variable to "${currentStartKey}" at the top of the test file and run the test again.`;
+              log(chalk.red(reproducing));
               fail(msg);
             }
           }
