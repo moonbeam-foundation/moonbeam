@@ -239,7 +239,7 @@ pub mod pallet {
 		}
 
 		/// Migrate maximum of `limit` keys starting from `start`, returns the next key to migrate
-		/// if there are more keys to migrate. Returns None if there are no more keys to migrate.
+		/// Returns None if there are no more keys to migrate.
 		/// Returns an error if an error occurred during migration.
 		fn migrate_keys(start: StorageKey, limit: u64) -> MigrationResult {
 			let mut key = start;
