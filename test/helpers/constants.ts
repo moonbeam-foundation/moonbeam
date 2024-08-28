@@ -119,7 +119,7 @@ export const RUNTIME_CONSTANTS = {
 export const GAS_LIMIT_POV_RATIO = 16;
 
 // Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
-export const MAX_ETH_POV_PER_TX = 3_250_000n;
+export const MAX_ETH_POV_PER_TX = 62_500n;
 
 type ConstantStoreType = (typeof RUNTIME_CONSTANTS)["MOONBASE"];
 
