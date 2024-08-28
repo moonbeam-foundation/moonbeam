@@ -53,21 +53,21 @@ pub mod pallet {
 	pub(crate) type SuicidedContractsRemoved<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::storage]
-	pub(crate) type StateMigrationStatus<T: Config> = StorageValue<_, MigrationStatus, ValueQuery>;
+	pub(crate) type StateMigrationStatusValue<T: Config> = StorageValue<_, StateMigrationStatus, ValueQuery>;
 
 	pub(crate) type StorageKey = BoundedVec<u8, ConstU32<512>>;
 
 	#[derive(Clone, Encode, Decode, scale_info::TypeInfo, PartialEq, Eq, MaxEncodedLen)]
-	pub enum MigrationStatus {
+	pub enum StateMigrationStatus {
 		NotStarted,
 		Started(StorageKey),
 		Error(BoundedVec<u8, ConstU32<1024>>),
 		Complete,
 	}
 
-	impl Default for MigrationStatus {
+	impl Default for StateMigrationStatus {
 		fn default() -> Self {
-			return MigrationStatus::NotStarted;
+			return StateMigrationStatus::NotStarted;
 		}
 	}
 
@@ -167,23 +167,23 @@ pub mod pallet {
 				return read_write_ops;
 			}
 
-			let status = StateMigrationStatus::<T>::get();
+			let status = StateMigrationStatusValue::<T>::get();
 			read_write_ops.add_one_read();
 
 			let next_key = match &status {
-				MigrationStatus::NotStarted => Default::default(),
-				MigrationStatus::Started(storage_key) => {
+				StateMigrationStatus::NotStarted => Default::default(),
+				StateMigrationStatus::Started(storage_key) => {
 					let (reads, next_key_result) = Pallet::<T>::get_next_key(storage_key);
 					read_write_ops.add_reads(reads);
 					match next_key_result {
 						NextKeyResult::NextKey(next_key) => next_key,
 						NextKeyResult::NoMoreKeys => {
-							StateMigrationStatus::<T>::put(MigrationStatus::Complete);
+							StateMigrationStatusValue::<T>::put(StateMigrationStatus::Complete);
 							read_write_ops.add_one_write();
 							return read_write_ops;
 						}
 						NextKeyResult::Error(e) => {
-							StateMigrationStatus::<T>::put(MigrationStatus::Error(
+							StateMigrationStatusValue::<T>::put(StateMigrationStatus::Error(
 								e.as_bytes().to_vec().try_into().unwrap_or_default(),
 							));
 							read_write_ops.add_one_write();
@@ -191,7 +191,7 @@ pub mod pallet {
 						}
 					}
 				}
-				MigrationStatus::Complete | MigrationStatus::Error(_) => {
+				StateMigrationStatus::Complete | StateMigrationStatus::Error(_) => {
 					return read_write_ops;
 				}
 			};
@@ -202,18 +202,18 @@ pub mod pallet {
 
 			match (res.last_key, res.error) {
 				(None, None) => {
-					StateMigrationStatus::<T>::put(MigrationStatus::Complete);
+					StateMigrationStatusValue::<T>::put(StateMigrationStatus::Complete);
 					read_write_ops.add_one_write();
 				}
 				// maybe we should store the previous key in the storage as well
 				(_, Some(e)) => {
-					StateMigrationStatus::<T>::put(MigrationStatus::Error(
+					StateMigrationStatusValue::<T>::put(StateMigrationStatus::Error(
 						e.as_bytes().to_vec().try_into().unwrap_or_default(),
 					));
 					read_write_ops.add_one_write();
 				}
 				(Some(key), None) => {
-					StateMigrationStatus::<T>::put(MigrationStatus::Started(key));
+					StateMigrationStatusValue::<T>::put(StateMigrationStatus::Started(key));
 					read_write_ops.add_one_write();
 				}
 			}
