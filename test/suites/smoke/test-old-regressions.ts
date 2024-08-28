@@ -1,8 +1,8 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
+import { describeSuite, beforeAll, expect, customDevRpcRequest } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { error } from "console";
-import { encodeFunctionData } from "viem";
+import { encodeFunctionData, Hash } from "viem";
 
 // Each case has
 // - Contract Address
@@ -143,57 +143,61 @@ describeSuite({
         const badTxHash = "0xd91d98b539720d8a42069268126d366fd29165e487d94b165a97e0158842657b";
         // Fetch and verify the trace of a bad transaction observed in client version 0.38
         // Detailed in MOON-2702
+        const traceData = await context.viem().request<TraceTransactionSchema>({
+          method: "debug_traceTransaction",
+          params: [badTxHash, { tracer: "callTracer" }],
+        });
 
-        const providers = [
-          "https://del-moon-rpc-1-moonbeam-rpc-graph-1.moonbeam.ol-infra.network",
-          "https://moonbeam.unitedbloc.com",
-        ];
-
-        for (const provider of providers) {
-          const versionRes = await fetch(provider, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              id: 1,
-              jsonrpc: "2.0",
-              method: "system_version",
-              params: [],
-            }),
+        try {
+          expect(traceData.from).toBe("0x7369626cee070000000000000000000000000000");
+          expect(traceData.to).toBe("0xef81930aa8ed07c17948b2e26b7bfaf20144ef2a");
+          expect(traceData.gas).toBe("0xa6f91");
+          expect(traceData.gasUsed).toBe("0x8cef");
+        } catch (e) {
+          const provider = await context.viem().request<SystemVersionSchema>({
+            method: "system_version",
+            params: [],
           });
-          const version = await versionRes.json();
-          log(
-            `Testing for tracing endpoint ${provider} running Moonbeam version: ${version.result}`
-          );
-
-          const traceTx = await fetch(provider, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              id: 1,
-              jsonrpc: "2.0",
-              method: "debug_traceTransaction",
-              params: [badTxHash, { tracer: "callTracer" }],
-            }),
-          });
-
-          const traceData = await traceTx.json();
-
-          try {
-            expect(traceData.result.from).toBe("0x7369626cee070000000000000000000000000000");
-            expect(traceData.result.to).toBe("0xef81930aa8ed07c17948b2e26b7bfaf20144ef2a");
-            expect(traceData.result.gas).toBe("0xa6f91");
-            expect(traceData.result.gasUsed).toBe("0x8cef");
-          } catch (e) {
-            const providerDetails = `${provider} running Moonbeam version: ${version.result}`;
-            error(`Error in tracing TX ${badTxHash} using ${providerDetails}`);
-            throw e;
-          }
+          const url = context.viem().chain.rpcUrls.default;
+          log(`Testing for tracing endpoint ${url} running Moonbeam version: ${provider}`);
+          throw e;
         }
       },
     });
   },
 });
+
+type TraceTransactionSchema = {
+  Parameters: [
+    hash: Hash,
+    options:
+      | {
+          disableStorage?: boolean;
+          disableStack?: boolean;
+          enableMemory?: boolean;
+          enableReturnData?: boolean;
+          tracer?: string;
+        }
+      | {
+          timeout?: string;
+          tracerConfig?: {
+            onlyTopCall?: boolean;
+            withLog?: boolean;
+          };
+        }
+      | undefined
+  ];
+  ReturnType: {
+    from: string;
+    to: string;
+    gas: string;
+    gasUsed: string;
+  };
+};
+
+type SystemVersionSchema = {
+  Parameters: [];
+  ReturnType: {
+    any;
+  };
+};
