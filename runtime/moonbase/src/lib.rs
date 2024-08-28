@@ -190,7 +190,7 @@ pub mod opaque {
 /// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
 /// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
 /// changes which can be skipped.
-#[cfg(feature = "runtime-benchmarks")]
+// #[cfg(feature = "runtime-benchmarks")]
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
@@ -203,20 +203,20 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	state_version: 0,
 };
 
-/// We need to duplicate this because the `runtime_version` macro is conflicting with the
-/// conditional compilation at the state_version field.
-#[cfg(not(feature = "runtime-benchmarks"))]
-#[sp_version::runtime_version]
-pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonbase"),
-	impl_name: create_runtime_str!("moonbase"),
-	authoring_version: 4,
-	spec_version: 3200,
-	impl_version: 0,
-	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 2,
-	state_version: 1,
-};
+// /// We need to duplicate this because the `runtime_version` macro is conflicting with the
+// /// conditional compilation at the state_version field.
+// #[cfg(not(feature = "runtime-benchmarks"))]
+// #[sp_version::runtime_version]
+// pub const VERSION: RuntimeVersion = RuntimeVersion {
+// 	spec_name: create_runtime_str!("moonbase"),
+// 	impl_name: create_runtime_str!("moonbase"),
+// 	authoring_version: 4,
+// 	spec_version: 3200,
+// 	impl_version: 0,
+// 	apis: RUNTIME_API_VERSIONS,
+// 	transaction_version: 2,
+// 	state_version: 1,
+// };
 
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
