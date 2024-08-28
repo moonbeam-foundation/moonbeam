@@ -54,7 +54,7 @@ where
 	Runtime: frame_system::Config,
 {
 	fn friendly_name(&self) -> &str {
-		"MM_MigrateCodeToStateTrieV1"
+		"MM_MigrateCodeToStateTrieVersion1"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
