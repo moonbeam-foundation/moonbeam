@@ -55,7 +55,7 @@ where
 	Runtime: pallet_xcm_weight_trader::Config,
 {
 	fn friendly_name(&self) -> &str {
-		"MM_MigrateXcmFeesAssetsMeatdata"
+		"MM_MigrateXcmFeesAssetsMetadata"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
