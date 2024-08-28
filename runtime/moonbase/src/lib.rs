@@ -765,7 +765,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type CheckAssociatedRelayNumber = EmergencyParaXcm;
 	type ConsensusHook = ConsensusHookWrapperForRelayTimestamp<Runtime, ConsensusHook>;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
-	type WeightInfo = cumulus_pallet_parachain_system::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = moonbase_weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
 }
 
 impl parachain_info::Config for Runtime {}
@@ -1501,7 +1501,9 @@ mod benches {
 		[pallet_author_mapping, AuthorMapping]
 		[pallet_proxy, Proxy]
 		[pallet_identity, Identity]
+		[cumulus_pallet_parachain_system, ParachainSystem]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
+		[pallet_message_queue, MessageQueue]
 		[pallet_xcm, PalletXcmExtrinsicsBenchmark::<Runtime>]
 		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
