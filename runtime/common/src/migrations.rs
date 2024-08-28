@@ -248,7 +248,7 @@ where
 			// Box::new(remove_collectives_addresses),
 			// permanent migrations
 			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
-			// Box::new(MigrateCodeToStateTrieV1::<Runtime>(Default::default())),
+			Box::new(MigrateCodeToStateTrieV1::<Runtime>(Default::default())),
 		]
 	}
 }
