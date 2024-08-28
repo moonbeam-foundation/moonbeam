@@ -135,7 +135,6 @@ moonriver-runtime = { path = "runtime/moonriver" }
 
 frame-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 frame-executive = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-frame-metadata-hash-extension = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 frame-support = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 frame-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 frame-system-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
@@ -359,6 +358,7 @@ environmental = { version = "1.1.2", default-features = false }
 frame-metadata = { version = "16.0.0", default-features = false, features = [
 	"current",
 ] }
+frame-metadata-hash-extension = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.3.4" }
 impl-serde = { version = "0.3.1", default-features = false }
