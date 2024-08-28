@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect, customDevRpcRequest } from "@moonwall/cli";
+import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
-import { error } from "console";
 import { encodeFunctionData, Hash } from "viem";
 
 // Each case has
