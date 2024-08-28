@@ -79,7 +79,8 @@ export const RUNTIME_CONSTANTS = {
     GAS_PER_POV_BYTES: 16n,
     // Storage read/write costs
     STORAGE_READ_COST: 41_742_000n,
-    STORAGE_READ_GAS_COST: 1669n,
+    // Weight to gas convertion ratio
+    WEIGHT_TO_GAS_RATIO: 25_000n,
   },
   MOONRIVER: {
     MIN_FEE_MULTIPLIER: 1_000_000_000_000_000_000n,
