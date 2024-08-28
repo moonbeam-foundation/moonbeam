@@ -53,7 +53,6 @@ pub mod pallet {
 	pub(crate) type SuicidedContractsRemoved<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::storage]
-	/// The total number of suicided contracts that were removed
 	pub(crate) type StateMigrationStatus<T: Config> = StorageValue<_, MigrationStatus, ValueQuery>;
 
 	pub(crate) type StorageKey = BoundedVec<u8, ConstU32<512>>;
@@ -164,6 +163,10 @@ pub mod pallet {
 				.saturating_sub(PROOF_SIZE_BUFFER)
 				.saturating_div(MAX_ITEM_PROOF_SIZE);
 
+			if migration_limit == 0 {
+				return read_write_ops;
+			}
+
 			let status = StateMigrationStatus::<T>::get();
 			read_write_ops.add_one_read();
 
@@ -224,12 +227,12 @@ pub mod pallet {
 			if let Some(next) = sp_io::storage::next_key(key) {
 				let next: Result<StorageKey, _> = next.try_into();
 				match next {
-					Ok(key) => {
+					Ok(next_key) => {
 						if key.as_slice() == sp_core::storage::well_known_keys::CODE {
-							let (reads, next_key_res) = Pallet::<T>::get_next_key(&key);
+							let (reads, next_key_res) = Pallet::<T>::get_next_key(&next_key);
 							return (1 + reads, next_key_res);
 						}
-						(1, NextKeyResult::NextKey(key))
+						(1, NextKeyResult::NextKey(next_key))
 					}
 					Err(_) => (1, NextKeyResult::Error("Key too long")),
 				}
