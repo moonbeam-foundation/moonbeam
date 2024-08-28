@@ -211,6 +211,7 @@ std = [
 	"fp-self-contained/std",
 	"frame-benchmarking/std",
 	"frame-executive/std",
+	"frame-metadata-hash-extension/std",
 	"frame-support/std",
 	"frame-system-rpc-runtime-api/std",
 	"frame-system/std",
