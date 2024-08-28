@@ -78,6 +78,7 @@ moonbeam-rpc-primitives-txpool = { workspace = true }
 
 # Substrate
 frame-executive = { workspace = true }
+frame-metadata-hash-extension = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-system-rpc-runtime-api = { workspace = true }
