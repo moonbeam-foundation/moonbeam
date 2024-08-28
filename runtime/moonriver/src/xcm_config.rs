@@ -19,8 +19,9 @@
 
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, Erc20XcmBridge,
-	MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	MaintenanceMode, MessageQueue, OpenTechCommitteeInstance, ParachainInfo, ParachainSystem,
+	Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin,
+	Treasury, XcmpQueue,
 };
 
 use frame_support::{
@@ -723,18 +724,39 @@ impl frame_support::traits::Contains<Location> for AssetFeesFilter {
 	}
 }
 
+pub type AddSupportedAssetOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::GeneralAdmin,
+	>,
+>;
+
+pub type EditSupportedAssetOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::FastGeneralAdmin,
+	>,
+>;
+
+pub type RemoveSupportedAssetOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+>;
+
 impl pallet_xcm_weight_trader::Config for Runtime {
 	type AccountIdToLocation = AccountIdToLocation<AccountId>;
-	type AddSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type AddSupportedAssetOrigin = AddSupportedAssetOrigin;
 	type AssetLocationFilter = AssetFeesFilter;
 	type AssetTransactor = AssetTransactors;
 	type Balance = Balance;
-	type EditSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type EditSupportedAssetOrigin = EditSupportedAssetOrigin;
 	type NativeLocation = SelfReserve;
-	type PauseSupportedAssetOrigin = EnsureRoot<AccountId>;
-	type RemoveSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type PauseSupportedAssetOrigin = EditSupportedAssetOrigin;
+	type RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
 	type RuntimeEvent = RuntimeEvent;
-	type ResumeSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type ResumeSupportedAssetOrigin = RemoveSupportedAssetOrigin;
 	type WeightInfo = moonriver_weights::pallet_xcm_weight_trader::WeightInfo<Runtime>;
 	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;
