@@ -9776,7 +9776,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "pallet-assets",
  "pallet-balances",
  "pallet-evm",
  "pallet-scheduler",
