@@ -192,7 +192,5 @@ type TraceTransactionSchema = {
 
 type SystemVersionSchema = {
   Parameters: [];
-  ReturnType: {
-    any;
-  };
+  ReturnType: any;
 };
