@@ -189,12 +189,12 @@ pub mod pallet {
 			T::EditSupportedAssetOrigin::ensure_origin(origin)?;
 
 			ensure!(relative_price != 0, Error::<T>::PriceCannotBeZero);
-			ensure!(
-				SupportedAssets::<T>::contains_key(&location),
-				Error::<T>::AssetNotFound
-			);
 
-			SupportedAssets::<T>::insert(&location, (true, relative_price));
+			let enabled = SupportedAssets::<T>::get(&location)
+				.ok_or(Error::<T>::AssetNotFound)?
+				.0;
+
+			SupportedAssets::<T>::insert(&location, (enabled, relative_price));
 
 			Self::deposit_event(Event::SupportedAssetEdited {
 				location,

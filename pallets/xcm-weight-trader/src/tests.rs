@@ -199,7 +199,7 @@ fn test_pause_asset_support() {
 			Location::parent(),
 		));
 
-		// The account should be paused
+		// The asset should be paused
 		assert_eq!(
 			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
 			None,
@@ -218,6 +218,25 @@ fn test_pause_asset_support() {
 				Location::parent(),
 			),
 			Error::<Test>::AssetAlreadyPaused
+		);
+
+		// Should be able to udpate relative price of paused asset
+		assert_ok!(XcmWeightTrader::edit_asset(
+			RuntimeOrigin::signed(EditAccount::get()),
+			Location::parent(),
+			500
+		));
+
+		// The asset should still be paused
+		assert_eq!(
+			XcmWeightTrader::get_asset_relative_price(&Location::parent()),
+			None,
+		);
+
+		// Check storage
+		assert_eq!(
+			crate::pallet::SupportedAssets::<Test>::get(&Location::parent()),
+			Some((false, 500))
 		);
 	})
 }
