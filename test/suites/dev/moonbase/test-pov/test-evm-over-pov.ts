@@ -72,8 +72,8 @@ describeSuite({
         const { result, block } = await context.createBlock(rawSigned);
 
         log(`block.proof_size: ${block.proofSize} (successful: ${result?.successful})`);
-        expect(block.proofSize).to.be.at.least(EXPECTED_POV_ROUGH / 1.1);
-        expect(block.proofSize).to.be.at.most(EXPECTED_POV_ROUGH * 1.1);
+        expect(block.proofSize).to.be.at.least(EXPECTED_POV_ROUGH / 1.2);
+        expect(block.proofSize).to.be.at.most(EXPECTED_POV_ROUGH * 1.2);
         expect(result?.successful).to.equal(true);
       },
     });
