@@ -1125,8 +1125,10 @@ macro_rules! impl_runtime_apis_plus_common {
 											"04a74d81251e398fd8a0a4d55023bb3f")
 							.to_vec().into(),
 						// Parameters Parameters
-						hex_literal::hex!(  "c63bdd4a39095ccf55623a6f2872bf8a"
-											"c63bdd4a39095ccf55623a6f2872bf8a")
+						hex_literal::hex!(  "c63bdd4a39095ccf55623a6f2872bf8a" // Pallet: "Parameters"
+											"c63bdd4a39095ccf55623a6f2872bf8a" // Storage Prefix: "Parameters"
+											"71d0aacb690b61280d0c97c6b6a666640000" // MoonbaseRuntimeRuntimeParamsRuntimeParametersKey(FeesTreasuryProportion)
+										)
 							.to_vec().into(),
 
 					];
