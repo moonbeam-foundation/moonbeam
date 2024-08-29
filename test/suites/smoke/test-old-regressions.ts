@@ -3,18 +3,12 @@ import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { encodeFunctionData, Hash } from "viem";
 
-// Each case has
-// - Contract Address
-// - Error started at block
-// - Call data
-
 enum Network {
   Moonbeam = "moonbeam",
   Moonriver = "moonriver",
   Moonbase = "moonbase",
 }
 
-// Issues/Regressions
 class BadBlockRegressionCase {
   issue: string;
   network: Network;
@@ -22,6 +16,8 @@ class BadBlockRegressionCase {
   block: "latest" | "earliest" | "pending" | "safe" | "finalized" | bigint;
   callData: `0x${string}`;
 }
+
+// Issues/Regressions
 // MOON-2824
 const moon2824: BadBlockRegressionCase = {
   issue: "MOON-2824",
@@ -81,7 +77,6 @@ const moon2822: BadBlockRegressionCase = {
   }),
 };
 
-// Group all cases
 const cases = [moon2824, moon2822];
 
 describeSuite({
@@ -139,9 +134,10 @@ describeSuite({
       title: "Verify bad transaction tracing case",
       chainType: "moonbeam",
       test: async function () {
-        const badTxHash = "0xd91d98b539720d8a42069268126d366fd29165e487d94b165a97e0158842657b";
         // Fetch and verify the trace of a bad transaction observed in client version 0.38
         // Detailed in MOON-2702
+        const badTxHash = "0xd91d98b539720d8a42069268126d366fd29165e487d94b165a97e0158842657b";
+
         const traceData = await context.viem().request<TraceTransactionSchema>({
           method: "debug_traceTransaction",
           params: [badTxHash, { tracer: "callTracer" }],
