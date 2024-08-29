@@ -53,7 +53,8 @@ pub mod pallet {
 	pub(crate) type SuicidedContractsRemoved<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::storage]
-	pub(crate) type StateMigrationStatusValue<T: Config> = StorageValue<_, StateMigrationStatus, ValueQuery>;
+	pub(crate) type StateMigrationStatusValue<T: Config> =
+		StorageValue<_, StateMigrationStatus, ValueQuery>;
 
 	pub(crate) type StorageKey = BoundedVec<u8, ConstU32<512>>;
 
