@@ -1128,7 +1128,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						hex_literal::hex!(  "c63bdd4a39095ccf55623a6f2872bf8a" // Pallet: "Parameters"
 											"c63bdd4a39095ccf55623a6f2872bf8a" // Storage Prefix: "Parameters"
 											// MoonbaseRuntimeRuntimeParamsRuntimeParametersKey(FeesTreasuryProportion)
-											"71d0aacb690b61280d0c97c6b6a666640000" 
+											"71d0aacb690b61280d0c97c6b6a666640000"
 										)
 							.to_vec().into(),
 
