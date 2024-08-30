@@ -103,8 +103,8 @@ use xcm::{
 	IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
 };
 use xcm_config::AssetType;
-use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
 use xcm_primitives::UnitsToWeightRatio;
+use xcm_runtime_apis::conversions::Error as XcmPaymentApiError;
 use fp_evm::TransactionPov;
 
 #[cfg(feature = "std")]
@@ -586,22 +586,15 @@ type TreasuryRejectOrigin = EitherOfDiverse<
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
-	// At least three-fifths majority of the council is required (or root) to approve a proposal
-	type ApproveOrigin = TreasuryApproveOrigin;
 	// More than half of the council is required (or root) to reject a proposal
 	type RejectOrigin = TreasuryRejectOrigin;
 	type RuntimeEvent = RuntimeEvent;
-	// If spending proposal rejected, transfer proposer bond to treasury
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ConstU128<{ 1 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	type SpendPeriod = ConstU32<{ 6 * DAYS }>;
 	type Burn = ();
 	type BurnDestination = ();
 	type MaxApprovals = ConstU32<100>;
 	type WeightInfo = moonbeam_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
-	type ProposalBondMaximum = ();
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
 	#[cfg(feature = "runtime-benchmarks")]

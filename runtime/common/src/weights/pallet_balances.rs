@@ -148,4 +148,6 @@ impl<T: frame_system::Config> pallet_balances::WeightInfo for WeightInfo<T> {
 		Weight::from_parts(6_125_000, 1501)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 	}
+	fn burn_allow_death() -> frame_support::weights::Weight { todo!() }
+	fn burn_keep_alive() -> frame_support::weights::Weight { todo!() }
 }
