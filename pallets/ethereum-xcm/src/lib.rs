@@ -29,7 +29,7 @@ mod tests;
 
 use ethereum_types::{H160, H256, U256};
 use fp_ethereum::{TransactionData, ValidatedTransaction};
-use fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, TransactionValidationError};
+use fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, TransactionPov, TransactionValidationError};
 use frame_support::{
 	dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo},
 	traits::{EnsureOrigin, Get, ProcessMessage},
@@ -326,16 +326,14 @@ impl<T: Config> Pallet<T> {
 			let tx_hash = transaction.hash();
 			let transaction_data: TransactionData = (&transaction).into();
 
-			let (weight_limit, proof_size_base_cost) =
+			let transaction_pov =
 				match <T as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
 					transaction_data.gas_limit.unique_saturated_into(),
 					true,
 				) {
-					weight_limit if weight_limit.proof_size() > 0 => (
-						Some(weight_limit),
-						Some(Self::transaction_len(&transaction)),
-					),
-					_ => (None, None),
+					weight_limit if weight_limit.proof_size() > 0 =>
+						Some(TransactionPov::new(weight_limit, Self::transaction_len(&transaction))),
+					_ => None,
 				};
 
 			let _ = CheckEvmTransaction::<T::InvalidEvmTransactionError>::new(
@@ -351,8 +349,7 @@ impl<T: Config> Pallet<T> {
 					is_transactional: true,
 				},
 				transaction_data.into(),
-				weight_limit,
-				proof_size_base_cost,
+				transaction_pov
 			)
 			// We only validate the gas limit against the evm transaction cost.
 			// No need to validate fee payment, as it is handled by the xcm executor.

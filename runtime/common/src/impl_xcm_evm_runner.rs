@@ -17,7 +17,7 @@
 #[macro_export]
 macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 	{} => {
-		use fp_evm::{CallInfo, CallOrCreateInfo, Context, Transfer};
+		use fp_evm::{CallInfo, CallOrCreateInfo, Context, Transfer, TransactionPov};
 		use frame_support::dispatch::CallableCallFor;
 		use pallet_evm::{Runner, RunnerError};
 		use precompile_utils::{prelude::*, evm::handle::with_precompile_handle};
@@ -51,8 +51,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				access_list: Vec<(H160, Vec<H256>)>,
 				_is_transactional: bool,
 				_validate: bool,
-				_weight_limit: Option<Weight>,
-				_transaction_len: Option<u64>,
+				_transaction_pov: Option<TransactionPov>,
 				_config: &fp_evm::Config,
 			) -> Result<CallInfo, RunnerError<Self::Error>> {
 				// The `with_precompile_handle` function will execute the closure (and return the
@@ -139,8 +138,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_access_list: Vec<(H160, Vec<H256>)>,
 				_is_transactional: bool,
 				_validate: bool,
-				_weight_limit: Option<Weight>,
-				_transaction_len: Option<u64>,
+				_transaction_pov: Option<TransactionPov>,
 				_config: &fp_evm::Config,
 			) -> Result<fp_evm::CreateInfo, RunnerError<Self::Error>> {
 				unimplemented!()
@@ -158,8 +156,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_access_list: Vec<(H160, Vec<H256>)>,
 				_is_transactional: bool,
 				_validate: bool,
-				_weight_limit: Option<Weight>,
-				_transaction_len: Option<u64>,
+				_transaction_pov: Option<TransactionPov>,
 				_config: &fp_evm::Config,
 			) -> Result<fp_evm::CreateInfo, RunnerError<Self::Error>> {
 				unimplemented!()
@@ -176,8 +173,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				access_list: Vec<(H160, Vec<H256>)>,
 				is_transactional: bool,
 				validate: bool,
-				weight_limit: Option<Weight>,
-				transaction_len: Option<u64>,
+				transaction_pov: Option<TransactionPov>,
 				config: &fp_evm::Config,
 				force_address: H160,
 			) -> Result<fp_evm::CreateInfo, RunnerError<Self::Error>> {
@@ -230,8 +226,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_nonce: Option<U256>,
 				_access_list: Vec<(H160, Vec<H256>)>,
 				_is_transactional: bool,
-				_weight_limit: Option<Weight>,
-				_transaction_len: Option<u64>,
+				_transaction_pov: Option<TransactionPov>,
 				_evm_config: &fp_evm::Config,
 			) -> Result<(), RunnerError<Self::Error>> {
 				unimplemented!()
