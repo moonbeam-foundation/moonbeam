@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/rpc/manual-xcm/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="manual_xcm_rpc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/rpc/dev/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_dev_rpc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
             <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../manual_xcm_rpc/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../moonbeam_dev_rpc/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -160,6 +160,16 @@
 <a href="#158" id="158">158</a>
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -175,6 +185,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+
 </span><span class="kw">use </span>cumulus_primitives_core::ParaId;
 <span class="kw">use </span>cumulus_primitives_core::XcmpMessageFormat;
 <span class="kw">use </span>jsonrpsee::{
@@ -190,12 +201,10 @@
 <span class="kw">use </span>xcm::v4::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm_primitives::DEFAULT_PROOF_SIZE;
 
-<span class="doccomment">/// This RPC interface is used to manually submit XCM messages that will be injected into a
-/// parachain-enabled runtime. This allows testing XCM logic in a controlled way in integration
-/// tests.
+<span class="doccomment">/// This RPC interface is used to provide methods in dev mode only
 </span><span class="attr">#[rpc(server)]
 #[jsonrpsee::core::async_trait]
-</span><span class="kw">pub trait </span>ManualXcmApi {
+</span><span class="kw">pub trait </span>DevApi {
 	<span class="doccomment">/// Inject a downward xcm message - A message that comes from the relay chain.
 	/// You may provide an arbitrary message, or if you provide an emtpy byte array,
 	/// Then a default message (DOT transfer down to ALITH) will be injected
@@ -215,15 +224,20 @@
 	/// transfer of the sending paraId's native token will be injected.
 	</span><span class="attr">#[method(name = <span class="string">"xcm_injectHrmpMessage"</span>)]
 	</span><span class="kw">async fn </span>inject_hrmp_message(<span class="kw-2">&amp;</span><span class="self">self</span>, sender: ParaId, message: Vec&lt;u8&gt;) -&gt; RpcResult&lt;()&gt;;
+
+	<span class="doccomment">/// Skip N relay blocks, for testing purposes
+	</span><span class="attr">#[method(name = <span class="string">"test_skipRelayBlocks"</span>)]
+	</span><span class="kw">async fn </span>skip_relay_blocks(<span class="kw-2">&amp;</span><span class="self">self</span>, n: u32) -&gt; RpcResult&lt;()&gt;;
 }
 
-<span class="kw">pub struct </span>ManualXcm {
+<span class="kw">pub struct </span>DevRpc {
 	<span class="kw">pub </span>downward_message_channel: flume::Sender&lt;Vec&lt;u8&gt;&gt;,
 	<span class="kw">pub </span>hrmp_message_channel: flume::Sender&lt;(ParaId, Vec&lt;u8&gt;)&gt;,
+	<span class="kw">pub </span>additional_relay_offset: std::sync::Arc&lt;std::sync::atomic::AtomicU32&gt;,
 }
 
 <span class="attr">#[jsonrpsee::core::async_trait]
-</span><span class="kw">impl </span>ManualXcmApiServer <span class="kw">for </span>ManualXcm {
+</span><span class="kw">impl </span>DevApiServer <span class="kw">for </span>DevRpc {
 	<span class="kw">async fn </span>inject_downward_message(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: Vec&lt;u8&gt;) -&gt; RpcResult&lt;()&gt; {
 		<span class="kw">let </span>downward_message_channel = <span class="self">self</span>.downward_message_channel.clone();
 		<span class="comment">// If no message is supplied, inject a default one.
@@ -308,6 +322,12 @@
 			.<span class="kw">await
 			</span>.map_err(|err| internal_err(err.to_string()))<span class="question-mark">?</span>;
 
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="kw">async fn </span>skip_relay_blocks(<span class="kw-2">&amp;</span><span class="self">self</span>, n: u32) -&gt; RpcResult&lt;()&gt; {
+		<span class="self">self</span>.additional_relay_offset
+			.fetch_add(n, std::sync::atomic::Ordering::SeqCst);
 		<span class="prelude-val">Ok</span>(())
 	}
 }

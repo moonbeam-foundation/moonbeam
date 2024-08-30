@@ -1836,6 +1836,13 @@
 <a href="#1834" id="1834">1834</a>
 <a href="#1835" id="1835">1835</a>
 <a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2612,7 +2619,7 @@
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
 				sync: sync.clone(),
-				xcm_senders: <span class="prelude-val">None</span>,
+				dev_rpc_data: <span class="prelude-val">None</span>,
 				block_data_cache: block_data_cache.clone(),
 				overrides: overrides.clone(),
 				forced_parent_hashes,
@@ -3042,7 +3049,7 @@
 	<span class="kw">let </span>overrides = Arc::new(StorageOverrideHandler::new(client.clone()));
 	<span class="kw">let </span>fee_history_limit = rpc_config.fee_history_limit;
 	<span class="kw">let </span><span class="kw-2">mut </span>command_sink = <span class="prelude-val">None</span>;
-	<span class="kw">let </span><span class="kw-2">mut </span>xcm_senders = <span class="prelude-val">None</span>;
+	<span class="kw">let </span><span class="kw-2">mut </span>dev_rpc_data = <span class="prelude-val">None</span>;
 	<span class="kw">let </span>collator = config.role.is_authority();
 
 	<span class="kw">if </span>collator {
@@ -3107,7 +3114,12 @@
 		<span class="comment">// Create channels for mocked XCM messages.
 		</span><span class="kw">let </span>(downward_xcm_sender, downward_xcm_receiver) = flume::bounded::&lt;Vec&lt;u8&gt;&gt;(<span class="number">100</span>);
 		<span class="kw">let </span>(hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::&lt;(ParaId, Vec&lt;u8&gt;)&gt;(<span class="number">100</span>);
-		xcm_senders = <span class="prelude-val">Some</span>((downward_xcm_sender, hrmp_xcm_sender));
+		<span class="kw">let </span>additional_relay_offset = Arc::new(std::sync::atomic::AtomicU32::new(<span class="number">0</span>));
+		dev_rpc_data = <span class="prelude-val">Some</span>((
+			downward_xcm_sender,
+			hrmp_xcm_sender,
+			additional_relay_offset.clone(),
+		));
 
 		<span class="kw">let </span>client_clone = client.clone();
 		<span class="kw">let </span>keystore_clone = keystore_container.keystore().clone();
@@ -3142,6 +3154,7 @@
 					<span class="kw">let </span>maybe_current_para_head = client_set_aside_for_cidp.expect_header(block);
 					<span class="kw">let </span>downward_xcm_receiver = downward_xcm_receiver.clone();
 					<span class="kw">let </span>hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
+					<span class="kw">let </span>additional_relay_offset = additional_relay_offset.clone();
 
 					<span class="kw">let </span>client_for_xcm = client_set_aside_for_cidp.clone();
 					<span class="kw">async move </span>{
@@ -3162,7 +3175,8 @@
 						<span class="kw">let </span>mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
 							current_para_block_head,
-							relay_offset: <span class="number">1000</span>,
+							relay_offset: <span class="number">1000
+								</span>+ additional_relay_offset.load(std::sync::atomic::Ordering::SeqCst),
 							relay_blocks_per_para_block: <span class="number">2</span>,
 							<span class="comment">// TODO: Recheck
 							</span>para_blocks_per_relay_epoch: <span class="number">10</span>,
@@ -3278,7 +3292,7 @@
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
 				sync: sync.clone(),
-				xcm_senders: xcm_senders.clone(),
+				dev_rpc_data: dev_rpc_data.clone(),
 				overrides: overrides.clone(),
 				block_data_cache: block_data_cache.clone(),
 				forced_parent_hashes: <span class="prelude-val">None</span>,

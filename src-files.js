@@ -1,13 +1,13 @@
 var srcIndex = new Map(JSON.parse('[\
 ["account",["",[],["lib.rs"]]],\
 ["evm_tracing_events",["",[],["evm.rs","gasometer.rs","lib.rs","runtime.rs"]]],\
-["manual_xcm_rpc",["",[],["lib.rs"]]],\
 ["moonbase_runtime",["",[["governance",[],["councils.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]]],["asset_config.rs","lib.rs","migrations.rs","precompiles.rs","xcm_config.rs"]]],\
 ["moonbeam",["",[],["main.rs"]]],\
 ["moonbeam_cli",["",[],["cli.rs","command.rs","lib.rs"]]],\
 ["moonbeam_cli_opt",["",[],["account_key.rs","lib.rs"]]],\
 ["moonbeam_client_evm_tracing",["",[["formatters",[],["blockscout.rs","call_tracer.rs","mod.rs","raw.rs","trace_filter.rs"]],["listeners",[],["call_list.rs","mod.rs","raw.rs"]],["types",[],["block.rs","mod.rs","serialization.rs","single.rs"]]],["lib.rs"]]],\
 ["moonbeam_core_primitives",["",[],["lib.rs"]]],\
+["moonbeam_dev_rpc",["",[],["lib.rs"]]],\
 ["moonbeam_evm_tracer",["",[],["lib.rs"]]],\
 ["moonbeam_finality_rpc",["",[],["lib.rs"]]],\
 ["moonbeam_primitives_ext",["",[],["lib.rs"]]],\

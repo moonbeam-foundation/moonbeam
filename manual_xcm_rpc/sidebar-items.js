@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["internal_err"],"struct":["ManualXcm"],"trait":["ManualXcmApiServer"]};
