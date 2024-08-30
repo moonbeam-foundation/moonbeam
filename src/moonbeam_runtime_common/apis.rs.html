@@ -1178,6 +1178,13 @@
 <a href="#1176" id="1176">1176</a>
 <a href="#1177" id="1177">1177</a>
 <a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2303,6 +2310,13 @@
 						<span class="comment">// ParachainInfo ParachainId
 						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">"0d715f2646c8f85767b5d2764bb27826"
 											"04a74d81251e398fd8a0a4d55023bb3f"</span>)
+							.to_vec().into(),
+						<span class="comment">// Parameters Parameters
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">"c63bdd4a39095ccf55623a6f2872bf8a" </span><span class="comment">// Pallet: "Parameters"
+											</span><span class="string">"c63bdd4a39095ccf55623a6f2872bf8a" </span><span class="comment">// Storage Prefix: "Parameters"
+											// MoonbaseRuntimeRuntimeParamsRuntimeParametersKey(FeesTreasuryProportion)
+											</span><span class="string">"71d0aacb690b61280d0c97c6b6a666640000"
+										</span>)
 							.to_vec().into(),
 
 					];

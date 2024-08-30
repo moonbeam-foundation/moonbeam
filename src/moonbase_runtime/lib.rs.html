@@ -1841,6 +1841,21 @@
 <a href="#1839" id="1839">1839</a>
 <a href="#1840" id="1840">1840</a>
 <a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
+<a href="#1855" id="1855">1855</a>
+<a href="#1856" id="1856">1856</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1873,6 +1888,7 @@
 
 <span class="kw">pub mod </span>asset_config;
 <span class="kw">pub mod </span>governance;
+<span class="kw">pub mod </span>runtime_params;
 <span class="kw">pub mod </span>xcm_config;
 
 <span class="kw">mod </span>migrations;
@@ -1967,6 +1983,8 @@
 <span class="kw">use </span>xcm_config::AssetType;
 <span class="kw">use </span>xcm_fee_payment_runtime_api::Error <span class="kw">as </span>XcmPaymentApiError;
 <span class="kw">use </span>xcm_primitives::UnitsToWeightRatio;
+
+<span class="kw">use </span>runtime_params::<span class="kw-2">*</span>;
 
 <span class="kw">use </span>smallvec::smallvec;
 <span class="kw">use </span>sp_runtime::serde::{Deserialize, Serialize};
@@ -2191,8 +2209,11 @@
 		<span class="kw-2">mut </span>fees_then_tips: <span class="kw">impl </span>Iterator&lt;Item = Credit&lt;R::AccountId, pallet_balances::Pallet&lt;R&gt;&gt;&gt;,
 	) {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(fees) = fees_then_tips.next() {
-			<span class="comment">// for fees, 80% are burned, 20% to the treasury
-			</span><span class="kw">let </span>(<span class="kw">_</span>, to_treasury) = fees.ration(<span class="number">80</span>, <span class="number">20</span>);
+			<span class="kw">let </span>treasury_perbill =
+				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
+			<span class="kw">let </span>treasury_part = treasury_perbill.deconstruct();
+			<span class="kw">let </span>burn_part = Perbill::one().deconstruct() - treasury_part;
+			<span class="kw">let </span>(<span class="kw">_</span>, to_treasury) = fees.ration(burn_part, treasury_part);
 			<span class="comment">// Balances pallet automatically burns dropped Credits by decreasing
 			// total_supply accordingly
 			</span>ResolveTo::&lt;TreasuryAccountId&lt;R&gt;, pallet_balances::Pallet&lt;R&gt;&gt;::on_unbalanced(
@@ -3222,6 +3243,13 @@
 	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_precompile_benchmarks::WeightInfo&lt;Runtime&gt;;
 }
 
+<span class="kw">impl </span>pallet_parameters::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>AdminOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>RuntimeParameters = RuntimeParameters;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_parameters::WeightInfo&lt;Runtime&gt;;
+}
+
 <span class="macro">construct_runtime! </span>{
 	<span class="kw">pub enum </span>Runtime
 	{
@@ -3284,6 +3312,7 @@
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">54</span>,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = <span class="number">55</span>,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">56</span>,
+		Parameters: pallet_parameters = <span class="number">57</span>,
 	}
 }
 
@@ -3361,6 +3390,7 @@
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
+		[pallet_parameters, Parameters]
 	);
 }
 
