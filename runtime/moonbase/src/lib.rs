@@ -754,7 +754,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type SelfParaId = ParachainInfo;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type OutboundXcmpMessageSource = XcmpQueue;
-	type XcmpMessageHandler = EmergencyParaXcm;
+	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = EmergencyParaXcm;
 	type ConsensusHook = ConsensusHookWrapperForRelayTimestamp<Runtime, ConsensusHook>;

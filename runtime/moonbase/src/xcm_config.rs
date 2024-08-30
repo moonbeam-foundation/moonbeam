@@ -464,16 +464,24 @@ impl pallet_message_queue::Config for Runtime {
 	type IdleMaxServiceWeight = MessageQueueServiceWeight;
 }
 
+pub type FastAuthorizeUpgradeOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>,
+>;
+
+pub type ResumeXcmOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>,
+>;
+
 impl pallet_emergency_para_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CheckAssociatedRelayNumber =
 		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
 	type PausedThreshold = ConstU32<300>;
-	type FastAuthorizeUpgradeOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
-	type PausedToNormalOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
+	type FastAuthorizeUpgradeOrigin = FastAuthorizeUpgradeOrigin;
+	type PausedToNormalOrigin = ResumeXcmOrigin;
 }
 
 // Our AssetType. For now we only handle Xcm Assets
