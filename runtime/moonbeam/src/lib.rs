@@ -1830,8 +1830,8 @@ mod tests {
 
 	#[test]
 	fn test_storage_growth_ratio_is_correct() {
-		// This is the highest amount of new storage that can be created in a block 40 KB
-		let block_storage_limit = 80 * 1024;
+		// This is the highest amount of new storage that can be created in a block 160 KB
+		let block_storage_limit = 160 * 1024;
 		let expected_storage_growth_ratio = BlockGasLimit::get()
 			.low_u64()
 			.saturating_div(block_storage_limit);
