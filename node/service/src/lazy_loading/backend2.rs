@@ -368,18 +368,15 @@ impl<Block: BlockT + DeserializeOwned> HeaderBackend<Block> for Blockchain<Block
 		}
 
 		// If not found in local storage, fetch from RPC client
-		let header = self
-			.rpc_client
-			.block::<Block, _>(Some(hash))
-			.ok()
-			.flatten()
+		let header = self.rpc_client.block::<Block, _>(Some(hash)).ok().flatten()
 			.map(|full_block| {
 				// Cache block header
 				let block = full_block.block.clone();
-				self.storage.write().blocks.insert(
-					hash,
-					StoredBlock::Full(block.clone(), full_block.justifications),
-				);
+				self
+					.storage
+					.write()
+					.blocks
+					.insert(hash, StoredBlock::Full(block.clone(), full_block.justifications));
 
 				block.header().clone()
 			});
@@ -821,23 +818,33 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 
 	fn storage(&self, key: &[u8]) -> Result<Option<sp_state_machine::StorageValue>, Self::Error> {
 		let remote_fetch = |block: Option<Block::Hash>| {
-			let result = self.rpc_client.storage(StorageKey(key.to_vec()), block);
+			let result = self
+				.rpc_client
+				.storage(StorageKey(key.to_vec()), block);
 
 			match result {
 				Ok(data) => Ok(data.map(|v| v.0)),
-				Err(err) => Err(format!("Failed to fetch storage from RPC: {:?}", err).into()),
+				Err(err) => {
+					Err(format!("Failed to fetch storage from RPC: {:?}", err).into())
+				}
 			}
 		};
 
 		if self.before_fork {
-			return remote_fetch(self.block_hash);
+			let value = remote_fetch(self.block_hash);
+			let hexified = value.clone().map(|ok| ok.map(|some| hex::encode(some)));
+
+			log::error!("Fetching key {:x?} (before_fork: {}, value: {:x?})", hex::encode(key), self.before_fork, &hexified);
+			return value;
 		}
 
 		let maybe_storage = self.db.read().storage(key);
 		let value = match maybe_storage {
 			Ok(Some(data)) => Ok(Some(data)),
-			_ => remote_fetch(Some(self.fork_block)),
+			_ => Ok(remote_fetch(Some(self.fork_block)).expect("ERROR"))
 		};
+		let hexified = value.clone().map(|ok| ok.map(|some| hex::encode(some)));
+		log::error!("Fetching key {:x?} (before_fork: {}, value: {:x?})", hex::encode(key), self.before_fork, &hexified);
 
 		if let Ok(Some(ref val)) = value {
 			let mut entries: HashMap<Option<ChildInfo>, StorageCollection> = Default::default();
@@ -868,20 +875,18 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 			return remote_fetch(self.block_hash);
 		}
 
-		let storage_hash = self.db.read().storage_hash(key);
-		match storage_hash {
+		let db = self.db.read();
+		match db.storage_hash(key) {
 			Ok(Some(hash)) => Ok(Some(hash)),
-			_ => remote_fetch(Some(self.fork_block)),
+			_ => Ok(remote_fetch(Some(self.fork_block)).expect("ERROR"))
 		}
 	}
 
 	fn closest_merkle_value(
 		&self,
 		_key: &[u8],
-	) -> Result<
-		Option<sp_trie::MerkleValue<<HashingFor<Block> as sp_core::Hasher>::Out>>,
-		Self::Error,
-	> {
+	) -> Result<Option<sp_trie::MerkleValue<<HashingFor<Block> as sp_core::Hasher>::Out>>, Self::Error>
+	{
 		panic!("closest_merkle_value: unsupported feature for lazy loading")
 	}
 
@@ -889,10 +894,8 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 		&self,
 		_child_info: &sp_storage::ChildInfo,
 		_key: &[u8],
-	) -> Result<
-		Option<sp_trie::MerkleValue<<HashingFor<Block> as sp_core::Hasher>::Out>>,
-		Self::Error,
-	> {
+	) -> Result<Option<sp_trie::MerkleValue<<HashingFor<Block> as sp_core::Hasher>::Out>>, Self::Error>
+	{
 		panic!("child_closest_merkle_value: unsupported feature for lazy loading")
 	}
 
@@ -943,9 +946,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 					self.db.write().insert(entries, StateVersion::V0);
 					Ok(keys.get(1).cloned())
 				}
-				Err(err) => {
-					Err(format!("Failed to fetch `next storage key` from RPC: {:?}", err).into())
-				}
+				Err(err) => Err(format!("Failed to fetch `next storage key` from RPC: {:?}", err).into()),
 			}
 		};
 
@@ -953,10 +954,10 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 			return remote_fetch(self.block_hash);
 		}
 
-		let next_storage_key = self.db.read().next_storage_key(key);
-		match next_storage_key {
+		let db = self.db.read();
+		match db.next_storage_key(key) {
 			Ok(Some(key)) => Ok(Some(key)),
-			_ => remote_fetch(Some(self.fork_block)),
+			_ => Ok(remote_fetch(Some(self.fork_block)).expect("ERROR"))
 		}
 	}
 
@@ -1043,7 +1044,7 @@ pub struct Backend<Block: BlockT> {
 	pub(crate) blockchain: Blockchain<Block>,
 	import_lock: RwLock<()>,
 	pinned_blocks: RwLock<HashMap<Block::Hash, i64>>,
-	fork_checkpoint: Block::Header,
+	pub(crate) fork_checkpoint: Block::Header,
 }
 
 impl<Block: BlockT + DeserializeOwned> Backend<Block> {
@@ -1211,14 +1212,16 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 
 				let checkpoint = self.fork_checkpoint.clone();
 				let state = if header.number().gt(checkpoint.number()) {
-					let parent = self.state_at(*header.parent_hash()).ok();
+					//let parent = self.state_at(*header.parent_hash()).ok();
 
 					ForkedLazyBackend::<Block> {
 						rpc_client: self.rpc_client.clone(),
 						block_hash: Some(hash),
 						fork_block: checkpoint.hash(),
-						parent: parent.clone().map(|p| Arc::new(p)),
-						db: parent.map_or(Default::default(), |p| p.db),
+						parent: None,
+						//parent: parent.clone().map(|p| Arc::new(p)),
+						db: Default::default(),
+						//db: parent.map_or(Default::default(), |p| p.db),
 						before_fork: false,
 					}
 				} else {
@@ -1326,7 +1329,7 @@ impl RPC {
 			substrate_rpc_client::SystemApi::<H256, BlockNumber>::system_chain(&self.http_client)
 		};
 
-		self.block_on(request)
+		Ok(self.block_on(request).expect("ERROR"))
 	}
 
 	pub fn system_properties(
@@ -1338,7 +1341,7 @@ impl RPC {
 			)
 		};
 
-		self.block_on(request)
+		Ok(self.block_on(request).expect("ERROR"))
 	}
 
 	pub fn system_name(&self) -> Result<String, jsonrpsee::core::ClientError> {
@@ -1346,7 +1349,7 @@ impl RPC {
 			substrate_rpc_client::SystemApi::<H256, BlockNumber>::system_name(&self.http_client)
 		};
 
-		self.block_on(request)
+		Ok(self.block_on(request).expect("ERROR"))
 	}
 
 	pub fn block<Block, Hash: Clone>(
@@ -1366,7 +1369,7 @@ impl RPC {
 			>::block(&self.http_client, hash.clone())
 		};
 
-		self.block_on(request)
+		Ok(self.block_on(request).expect("ERROR"))
 	}
 
 	pub fn block_hash<Block: BlockT + DeserializeOwned>(
@@ -1385,10 +1388,13 @@ impl RPC {
 			)
 		};
 
-		self.block_on(request).map(|ok| match ok {
-			ListOrValue::List(v) => v.get(0).map_or(None, |some| *some),
-			ListOrValue::Value(v) => v,
-		})
+		Ok(self
+			.block_on(request)
+			.map(|ok| match ok {
+				ListOrValue::List(v) => v.get(0).map(|some| *some).flatten(),
+				ListOrValue::Value(v) => v,
+			})
+			.expect("get block hash"))
 	}
 
 	pub fn header<Block: BlockT + DeserializeOwned>(
@@ -1404,7 +1410,7 @@ impl RPC {
 			>::header(&self.http_client, hash)
 		};
 
-		self.block_on(request)
+		Ok(self.block_on(request).expect("ERROR"))
 	}
 
 	pub fn storage_hash<
@@ -1422,7 +1428,7 @@ impl RPC {
 			)
 		};
 
-		self.block_on(request)
+		Ok(self.block_on(request).expect("ERROR"))
 	}
 
 	pub fn storage<
@@ -1440,7 +1446,7 @@ impl RPC {
 			)
 		};
 
-		self.block_on(request)
+		Ok(self.block_on(request).expect("ERROR"))
 	}
 
 	pub fn storage_keys_paged<

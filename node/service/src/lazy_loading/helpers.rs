@@ -54,9 +54,9 @@ pub fn produce_genesis_block<TBl: BlockT + sp_runtime::DeserializeOwned>(
 	backend.commit_operation(op)
 }
 
-pub fn produce_first_block<TBl: BlockT + sp_runtime::DeserializeOwned>(
-	backend: Arc<lazy_loading::backend::Backend<TBl>>,
-	last_block: TBl,
+pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
+	backend: Arc<lazy_loading::backend::Backend<Block>>,
+	last_block: Block,
 	state_overrides: Vec<(Vec<u8>, Vec<u8>)>,
 ) -> sp_blockchain::Result<()> {
 	use sc_client_api::HeaderBackend;
@@ -73,7 +73,7 @@ pub fn produce_first_block<TBl: BlockT + sp_runtime::DeserializeOwned>(
 	let head_info = backend.blockchain.info();
 	let next_block_number = head_info.finalized_number.saturating_add(One::one());
 
-	let header: TBl::Header = TBl::Header::new(
+	let header: Block::Header = Block::Header::new(
 		next_block_number,
 		last_block.header().extrinsics_root().clone(),
 		state_root,

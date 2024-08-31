@@ -116,7 +116,7 @@ pub struct RpcConfig {
 #[derive(Clone)]
 pub struct LazyLoadingConfig {
 	pub state_rpc: String,
-	pub from_block: H256,
+	pub from_block: Option<H256>,
 	pub state_overrides_path: Option<PathBuf>,
 	pub runtime_override: Option<PathBuf>,
 }

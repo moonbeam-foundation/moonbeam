@@ -49,30 +49,7 @@ pub enum StateEntry {
 
 /// Mandatory state overrides that most exist when starting a node in lazy loading mode.
 fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
-	let runtime_code = if let Some(path) = runtime_code {
-		let mut reader = std::fs::File::open(path).expect("Can open file");
-		let mut data = vec![];
-		reader
-			.read_to_end(&mut data)
-			.expect("Runtime code override invalid.");
-
-		data.to_vec()
-	} else {
-		moonbeam_runtime::WASM_BINARY
-			.expect(
-				"Wasm binary is not available. This means the client is built with \
-							 `SKIP_WASM_BUILD` flag. Please rebuild with the flag disabled.",
-			)
-			.to_vec()
-	};
-	vec![
-		// Set runtime code
-		StateEntry::Raw(
-			StateEntryRaw {
-				key: sp_core::storage::well_known_keys::CODE.to_vec(),
-				value: runtime_code
-			}
-		),
+	let mut overrides = vec![
 		// Setup Alith account
 		StateEntry::Concrete(
 			StateEntryConcrete {
@@ -125,7 +102,22 @@ fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
 				value: hex_literal::hex!("0000a0dec5adc9353600000000000000000000a0dec5adc9353600000000000000").to_vec() // editorconfig-checker-disable-line
 			}
 		),
-	]
+	];
+	if let Some(path) = runtime_code {
+		let mut reader = std::fs::File::open(path.clone())
+			.expect(format!("Could not open file {:?}", path).as_str());
+		let mut data = vec![];
+		reader
+			.read_to_end(&mut data)
+			.expect("Runtime code override invalid.");
+
+		overrides.push(StateEntry::Raw(StateEntryRaw {
+			key: sp_core::storage::well_known_keys::CODE.to_vec(),
+			value: data.to_vec(),
+		}));
+	}
+
+	overrides
 }
 
 pub fn read(path: PathBuf, runtime_code_path: Option<PathBuf>) -> Result<Vec<StateEntry>, String> {
@@ -180,6 +172,6 @@ mod tests {
 		let file = "/Users/romarq/Projects/Moonsong/Moonbeam/moonbeam/state_overrides.json";
 		let path = std::path::PathBuf::from_str(file).expect("File exists");
 
-		read(path).map(|_| ())
+		read(path, None).map(|_| ())
 	}
 }

@@ -89,9 +89,11 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 }
 
 #[cfg(feature = "lazy-loading")]
-pub fn lazy_loading_spec(para_id: ParaId) -> ChainSpec {
-	ChainSpec::builder(
-		WASM_BINARY.expect("WASM binary was not build, please build it!"),
+pub fn lazy_loading_spec_builder(
+	para_id: ParaId,
+) -> sc_chain_spec::ChainSpecBuilder<crate::moonbeam_runtime::RuntimeGenesisConfig, Extensions> {
+	crate::chain_spec::moonbeam::ChainSpec::builder(
+		moonbeam_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 		Default::default(),
 	)
 	.with_name("Lazy Loading")
@@ -103,9 +105,7 @@ pub fn lazy_loading_spec(para_id: ParaId) -> ChainSpec {
 		)
 		.expect("Provided valid json map"),
 	)
-	.with_genesis_config(testnet_genesis(
-		// Root
-		AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
+	.with_genesis_config(crate::chain_spec::moonbeam::testnet_genesis(
 		// Treasury Council members: Baltathar, Charleth and Dorothy
 		vec![
 			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
@@ -122,12 +122,12 @@ pub fn lazy_loading_spec(para_id: ParaId) -> ChainSpec {
 			(
 				AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
 				get_from_seed::<NimbusId>("Alice"),
-				1_000 * UNIT,
+				1_000 * moonbeam_runtime::currency::GLMR,
 			),
 			(
 				AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")),
 				get_from_seed::<NimbusId>("Faith"),
-				1_000 * UNIT,
+				1_000 * moonbeam_runtime::currency::GLMR,
 			),
 		],
 		// Delegations
@@ -144,10 +144,9 @@ pub fn lazy_loading_spec(para_id: ParaId) -> ChainSpec {
 			AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")),
 			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 		],
-		3_000_000 * UNIT,
+		3_000_000 * moonbeam_runtime::currency::GLMR,
 		para_id,
 		// Chain ID
 		1280,
 	))
-	.build()
 }

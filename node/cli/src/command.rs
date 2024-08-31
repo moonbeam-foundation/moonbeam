@@ -721,13 +721,14 @@ pub fn run() -> Result<()> {
 
 					let lazy_loading_config = moonbeam_cli_opt::LazyLoadingConfig {
 						state_rpc: cli.run.fork_chain_from_rpc.expect("a valid RPC endpoint"),
-						from_block: cli.run.block.expect("a valid block hash"),
+						from_block: cli.run.block,
 						state_overrides_path: cli.run.fork_state_overrides,
 						runtime_override: cli.run.runtime_override,
 					};
 
-					let spec = chain_spec::test_spec::lazy_loading_spec(Default::default());
-					config.chain_spec = Box::new(spec);
+					let spec_builder =
+						chain_spec::test_spec::lazy_loading_spec_builder(Default::default());
+					config.chain_spec = Box::new(spec_builder.build());
 
 					return moonbeam_service::lazy_loading::new_lazy_loading_service::<
 						moonbeam_runtime::RuntimeApi,
