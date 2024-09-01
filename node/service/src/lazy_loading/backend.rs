@@ -807,7 +807,6 @@ pub struct ForkedLazyBackend<Block: BlockT> {
 	rpc_client: Arc<RPC>,
 	block_hash: Option<Block::Hash>,
 	fork_block: Block::Hash,
-	parent: Option<Arc<Self>>,
 	pub(crate) db: Arc<RwLock<sp_state_machine::InMemoryBackend<HashingFor<Block>>>>,
 	before_fork: bool,
 }
@@ -1134,7 +1133,6 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 				rpc_client: self.rpc_client.clone(),
 				block_hash: Some(hash.clone()),
 				fork_block: self.fork_checkpoint.hash(),
-				parent: Some(Arc::new(self.state_at(*header.parent_hash())?)),
 				db: new_state,
 				before_fork: operation.before_fork,
 			};
@@ -1189,7 +1187,6 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 				rpc_client: self.rpc_client.clone(),
 				block_hash: Some(hash),
 				fork_block: self.fork_checkpoint.hash(),
-				parent: None,
 				db: Default::default(),
 				before_fork: true,
 			});
@@ -1217,7 +1214,6 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 						rpc_client: self.rpc_client.clone(),
 						block_hash: Some(hash),
 						fork_block: checkpoint.hash(),
-						parent: parent.clone().map(|p| Arc::new(p)),
 						db: parent.map_or(Default::default(), |p| p.db),
 						before_fork: false,
 					}
@@ -1226,7 +1222,6 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 						rpc_client: self.rpc_client.clone(),
 						block_hash: Some(hash),
 						fork_block: checkpoint.hash(),
-						parent: None,
 						db: Default::default(),
 						before_fork: true,
 					}
