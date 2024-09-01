@@ -3,7 +3,6 @@ import { MoonwallContext, beforeAll, describeSuite, expect } from "@moonwall/cli
 import { alith } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
-import {upgradeRuntime} from "@moonwall/cli/dist/types/src/lib";
 
 describeSuite({
   id: "C01",

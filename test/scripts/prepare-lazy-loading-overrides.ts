@@ -57,12 +57,10 @@ yargs(hideBin(process.argv))
         u8aConcat(xxhashAsU8a("System", 128), xxhashAsU8a("AuthorizedUpgrade", 128))
       );
 
-      localRaw.push(
-        {
-          "key": storageKey,
-          "value": `${runtimeHash}01`, // 01 sets RT version check = true
-        }
-      )
+      localRaw.push({
+        key: storageKey,
+        value: `${runtimeHash}01`, // 01 sets RT version check = true
+      });
 
       process.stdout.write(`Writing to: ${argv.outputPath} ...`);
       await fs.writeFile(
