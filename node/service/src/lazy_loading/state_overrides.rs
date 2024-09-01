@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use parity_scale_codec::Encode;
 use serde::Deserialize;
 use std::io::Read;
 use std::path::PathBuf;
@@ -102,6 +103,15 @@ fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
 				value: hex_literal::hex!("0000a0dec5adc9353600000000000000000000a0dec5adc9353600000000000000").to_vec() // editorconfig-checker-disable-line
 			}
 		),
+		// Reset SlotInfo
+		StateEntry::Concrete(
+			StateEntryConcrete {
+				pallet: "AsyncBacking".to_string(),
+				storage: "SlotInfo".to_string(),
+				key: None,
+				value: (1u64, 1u32).encode()
+			}
+		)
 	];
 	if let Some(path) = runtime_code {
 		let mut reader = std::fs::File::open(path.clone())
