@@ -574,6 +574,7 @@ jobs:
       - name: "Run lazy loading tests"
         run: |
           cd test
+          pnpm install
           pnpm moonwall test lazy_loading_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
