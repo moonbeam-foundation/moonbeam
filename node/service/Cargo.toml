@@ -57,6 +57,8 @@ moonriver-runtime = { workspace = true, optional = true }
 
 # Substrate
 frame-system-rpc-runtime-api = { workspace = true, features = ["std"] }
+frame-system = { workspace = true, features = ["std"] }
+pallet-balances = { workspace = true, features = ["std"] }
 pallet-transaction-payment = { workspace = true, features = ["std"] }
 pallet-transaction-payment-rpc = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = [

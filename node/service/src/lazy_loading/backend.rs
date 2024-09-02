@@ -1577,28 +1577,30 @@ where
 		.with_properties(chain_properties);
 	config.chain_spec = Box::new(spec_builder.build());
 
-	let state_overrides: Vec<(Vec<u8>, Vec<u8>)> =
-		if let Some(path) = lazy_loading_config.state_overrides_path.clone() {
-			let state = state_overrides::read(path, lazy_loading_config.runtime_override.clone())?;
-			state
-				.iter()
-				.map(|entry| match entry {
-					StateEntry::Concrete(v) => {
-						let key = [
-							&twox_128(v.pallet.as_bytes()),
-							&twox_128(v.storage.as_bytes()),
-							v.key.clone().unwrap_or(Vec::new()).as_slice(),
-						]
-						.concat();
+	let base_overrides =
+		state_overrides::base_state_overrides(lazy_loading_config.runtime_override.clone());
+	let custom_overrides = if let Some(path) = lazy_loading_config.state_overrides_path.clone() {
+		state_overrides::read(path)?
+	} else {
+		Default::default()
+	};
+	let state_overrides: Vec<(Vec<u8>, Vec<u8>)> = [base_overrides, custom_overrides]
+		.concat()
+		.iter()
+		.map(|entry| match entry {
+			StateEntry::Concrete(v) => {
+				let key = [
+					&twox_128(v.pallet.as_bytes()),
+					&twox_128(v.storage.as_bytes()),
+					v.key.clone().unwrap_or(Vec::new()).as_slice(),
+				]
+				.concat();
 
-						(key, v.value.clone())
-					}
-					StateEntry::Raw(raw) => (raw.key.clone(), raw.value.clone()),
-				})
-				.collect()
-		} else {
-			Default::default()
-		};
+				(key, v.value.clone())
+			}
+			StateEntry::Raw(raw) => (raw.key.clone(), raw.value.clone()),
+		})
+		.collect();
 
 	let _ = helpers::produce_genesis_block(backend.clone());
 

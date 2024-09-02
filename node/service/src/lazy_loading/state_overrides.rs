@@ -52,7 +52,7 @@ pub enum StateEntry {
 }
 
 /// Mandatory state overrides that most exist when starting a node in lazy loading mode.
-fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
+pub fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
 	let mut overrides = vec![
 		StateEntry::Concrete(
 			StateEntryConcrete {
@@ -163,11 +163,11 @@ fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
 	overrides
 }
 
-pub fn read(path: PathBuf, runtime_code_path: Option<PathBuf>) -> Result<Vec<StateEntry>, String> {
+pub fn read(path: PathBuf) -> Result<Vec<StateEntry>, String> {
 	let reader = std::fs::File::open(path).expect("Can open file");
 	let state = serde_json::from_reader(reader).expect("Can parse state overrides JSON");
 
-	Ok([base_state_overrides(runtime_code_path), state].concat())
+	Ok(state)
 }
 
 mod serde_hex {
@@ -215,6 +215,6 @@ mod tests {
 		let file = "/Users/romarq/Projects/Moonsong/Moonbeam/moonbeam/state_overrides.json";
 		let path = std::path::PathBuf::from_str(file).expect("File exists");
 
-		read(path, None).map(|_| ())
+		read(path).map(|_| ())
 	}
 }
