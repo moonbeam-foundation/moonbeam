@@ -537,11 +537,11 @@ jobs:
   lazy-loading-tests:
     runs-on:
       labels: bare-metal
-    needs: [ "set-tags", "build" ]
+    needs: ["set-tags", "build"]
     strategy:
       fail-fast: false
       matrix:
-        chain: [ "moonbeam" ]
+        chain: ["moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
