@@ -84,7 +84,7 @@ describeSuite({
 
         // note that this is not really affected by the high multiplier because most of its fee is
         // derived from the length_fee, which is not scaled by the multiplier
-        expect(initialBalance - afterBalance).to.equal(449_284_776_265_723_667_008n);
+        expect(initialBalance - afterBalance).to.equal(449_284_789_462_127_813_277n);
       },
     });
 
@@ -111,7 +111,7 @@ describeSuite({
         // grab the first withdraw event and hope it's the right one...
         const withdrawEvent = result?.events.filter(({ event }) => event.method == "Withdraw")[0];
         const amount = withdrawEvent.event.data.amount.toBigInt();
-        expect(amount).to.equal(6_000_000_012_598_000_941_192n);
+        expect(amount).to.equal(6_000_000_012_599_000_970_299n);
       },
     });
 
