@@ -1,21 +1,13 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { u128 } from "@polkadot/types";
-import { BN, hexToU8a, u8aConcat, u8aToHex } from "@polkadot/util";
+import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
 import { expect, DevModeContext } from "@moonwall/cli";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { KeyringPair } from "@polkadot/keyring/types";
-import type {
-  MoonbaseRuntimeXcmConfigAssetType,
-  PalletAssetsAssetAccount,
-  PalletAssetsAssetDetails,
-  StagingXcmV3MultiLocation,
-  StagingXcmV4Asset,
-  StagingXcmV4Location,
-} from "@polkadot/types/lookup";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
 import { encodeFunctionData, parseAbi } from "viem";
 import { ApiPromise, WsProvider } from "@polkadot/api";
-import { relative } from "path";
 
 export const EVM_FOREIGN_ASSETS_PALLET_ACCOUNT = "0x6d6f646c666f7267617373740000000000000000";
 export const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
@@ -168,6 +160,86 @@ const runtimeApi = {
     },
   },
 };
+
+export async function calculateRelativePrice(
+  context: any,
+  unitsPerSecond: number
+): Promise<bigint> {
+  if (unitsPerSecond === 0) {
+    return 0n;
+  }
+
+  const WEIGHT_REF_TIME_PER_SECOND = 1_000_000_000_000;
+  const weight = {
+    refTime: WEIGHT_REF_TIME_PER_SECOND,
+    proofSize: 0,
+  };
+
+  const nativeAmountPerSecond = await context
+    .polkadotJs()
+    .tx.transactionPaymentApi.queryWeightToFee(weight);
+
+  const relativePriceDecimals = new BN(18);
+  const relativePrice = nativeAmountPerSecond
+    .mul(new BN(10).pow(relativePriceDecimals))
+    .div(new BN(unitsPerSecond));
+
+  return relativePrice;
+}
+
+function getSupportedAssedStorageKey(asset: any, context: any) {
+  const assetV4 = patchLocationV4recursively(asset);
+
+  const module = xxhashAsU8a(new TextEncoder().encode("XcmWeightTrader"), 128);
+  const method = xxhashAsU8a(new TextEncoder().encode("SupportedAssets"), 128);
+
+  const assetLocationU8a = context.polkadotJs().createType("StagingXcmV4Location", assetV4).toU8a();
+
+  const blake2concatStagingXcmV4Location = new Uint8Array([
+    ...blake2AsU8a(assetLocationU8a, 128),
+    ...assetLocationU8a,
+  ]);
+
+  return new Uint8Array([...module, ...method, ...blake2concatStagingXcmV4Location]);
+}
+
+export async function addAssetToWeightTrader(asset: any, relativePrice: number, context: any) {
+  const assetV4 = patchLocationV4recursively(asset.Xcm);
+
+  if (relativePrice == 0) {
+    const addAssetWithPlaceholderPrice = context
+      .polkadotJs()
+      .tx.sudo.sudo(context.polkadotJs().tx.xcmWeightTrader.addAsset(assetV4, 1n));
+    const overallAssetKey = getSupportedAssedStorageKey(assetV4, context);
+
+    const overrideAssetPrice = context.polkadotJs().tx.sudo.sudo(
+      context.polkadotJs().tx.system.setStorage([
+        [
+          u8aToHex(overallAssetKey),
+          "0x0100000000000000000000000000000000", // (enabled bool, 0 u128)
+        ],
+      ])
+    );
+    const batch = context
+      .polkadotJs()
+      .tx.utility.batch([addAssetWithPlaceholderPrice, overrideAssetPrice]);
+
+    await context.createBlock(batch, {
+      expectEvents: [context.polkadotJs().events.xcmWeightTrader.SupportedAssetAdded],
+      allowFailures: false,
+    });
+  } else {
+    await context.createBlock(
+      context
+        .polkadotJs()
+        .tx.sudo.sudo(context.polkadotJs().tx.xcmWeightTrader.addAsset(assetV4, relativePrice)),
+      {
+        expectEvents: [context.polkadotJs().events.xcmWeightTrader.SupportedAssetAdded],
+        allowFailures: false,
+      }
+    );
+  }
+}
 
 // This registers an old foreign asset via the asset-manager pallet.
 // DEPRECATED: Please don't use for new tests
