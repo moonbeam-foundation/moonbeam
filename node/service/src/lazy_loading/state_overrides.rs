@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::chain_spec::generate_accounts;
+use moonbeam_core_primitives::Balance;
 use parity_scale_codec::Encode;
 use serde::Deserialize;
+use sp_core::blake2_128;
 use std::io::Read;
 use std::path::PathBuf;
 
@@ -51,15 +54,6 @@ pub enum StateEntry {
 /// Mandatory state overrides that most exist when starting a node in lazy loading mode.
 fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
 	let mut overrides = vec![
-		// Setup Alith account
-		StateEntry::Concrete(
-			StateEntryConcrete {
-				pallet: "System".to_string(),
-				storage: "Account".to_string(),
-				key: Some(hex_literal::hex!("9dfefc73f89d24437a9c2dce5572808af24ff3a9cf04c71dbc94d0b566f7a27b94566cac").to_vec()), // editorconfig-checker-disable-line
-				value: hex_literal::hex!("360000000100000001000000010000002c1c7fd5d87ce640b80700000000000000006c139ba62d3b2402000000000000000040b2bac9e0191e02000000000000000040b2bac9e0191e02000000000080").to_vec() // editorconfig-checker-disable-line
-			}
-		),
 		StateEntry::Concrete(
 			StateEntryConcrete {
 				pallet: "AuthorMapping".to_string(),
@@ -122,6 +116,36 @@ fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
 			}
 		),
 	];
+
+	// Default mnemonic if none was provided
+	let test_mnemonic =
+		"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string();
+	// Prefund the standard dev accounts
+	for address in generate_accounts(test_mnemonic, 6) {
+		overrides.push(StateEntry::Concrete(StateEntryConcrete {
+			pallet: "System".to_string(),
+			storage: "Account".to_string(),
+			key: Some(
+				[blake2_128(&address.0).as_slice(), address.0.as_slice()]
+					.concat()
+					.to_vec(),
+			),
+			value: frame_system::AccountInfo {
+				nonce: 0u32,
+				consumers: 0,
+				providers: 1,
+				sufficients: 0,
+				data: pallet_balances::AccountData::<Balance> {
+					free: Balance::MAX,
+					reserved: Default::default(),
+					frozen: Default::default(),
+					flags: Default::default(),
+				},
+			}
+			.encode(),
+		}))
+	}
+
 	if let Some(path) = runtime_code {
 		let mut reader = std::fs::File::open(path.clone())
 			.expect(format!("Could not open file {:?}", path).as_str());
