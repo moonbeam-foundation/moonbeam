@@ -31,7 +31,9 @@ use moonbeam_core_primitives::{Block, Hash};
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_primitives::NimbusId;
 use parity_scale_codec::Encode;
-use polkadot_primitives::{PersistedValidationData, UpgradeGoAhead};
+use polkadot_primitives::{
+	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, UpgradeGoAhead,
+};
 use sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
 use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks, StorageProvider};
 use sc_consensus_manual_seal::rpc::{ManualSeal, ManualSealApiServer};
@@ -564,10 +566,32 @@ where
 							maybe_current_para_head?.encode(),
 						));
 
-						let mut additional_key_values = vec![(
-							moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-							sp_timestamp::Timestamp::current().encode(),
-						)];
+						let mut additional_key_values = vec![
+							(
+								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
+									.to_vec(),
+								sp_timestamp::Timestamp::current().encode(),
+							),
+							(
+								relay_chain::well_known_keys::ACTIVE_CONFIG.to_vec(),
+								AbridgedHostConfiguration {
+									max_code_size: 3_145_728,
+									max_head_data_size: 20_480,
+									max_upward_queue_count: 174_762,
+									max_upward_queue_size: 1_048_576,
+									max_upward_message_size: 65_531,
+									max_upward_message_num_per_candidate: 16,
+									hrmp_max_message_num_per_candidate: 10,
+									validation_upgrade_cooldown: 14_400,
+									validation_upgrade_delay: 600,
+									async_backing_params: AsyncBackingParams {
+										max_candidate_depth: 3,
+										allowed_ancestry_len: 2,
+									},
+								}
+								.encode(),
+							),
+						];
 
 						// If there is a pending upgrade, lets mimic a GoAhead
 						// signal from the relay
