@@ -117,6 +117,8 @@ jobs:
         run: rustup component add llvm-tools-preview
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
+        with:
+          features: metadata-hash
       - name: Enable coverage gathering
         run: |
           # Enable coverage when running tests
