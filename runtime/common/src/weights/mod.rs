@@ -36,6 +36,7 @@ pub mod pallet_moonbeam_lazy_migrations;
 pub mod pallet_moonbeam_orbiters;
 pub mod pallet_multisig;
 pub mod pallet_parachain_staking;
+pub mod pallet_parameters;
 pub mod pallet_precompile_benchmarks;
 pub mod pallet_preimage;
 pub mod pallet_proxy;

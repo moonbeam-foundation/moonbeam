@@ -90,6 +90,7 @@ pallet-conviction-voting = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-preimage = { workspace = true }
+pallet-parameters = { workspace = true }
 pallet-proxy = { workspace = true }
 pallet-referenda = { workspace = true }
 pallet-root-testing = { workspace = true }
@@ -275,6 +276,7 @@ std = [
 	"pallet-parachain-staking/std",
 	"pallet-precompile-benchmarks/std",
 	"pallet-preimage/std",
+	"pallet-parameters/std",
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness/std",
@@ -367,6 +369,7 @@ runtime-benchmarks = [
 	"pallet-parachain-staking/runtime-benchmarks",
 	"pallet-precompile-benchmarks/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
+	"pallet-parameters/runtime-benchmarks",
 	"pallet-proxy/runtime-benchmarks",
 	"pallet-randomness/runtime-benchmarks",
 	"pallet-referenda/runtime-benchmarks",
@@ -409,6 +412,7 @@ try-runtime = [
 	"pallet-moonbeam-lazy-migrations/try-runtime",
 	"pallet-parachain-staking/try-runtime",
 	"pallet-preimage/try-runtime",
+	"pallet-parameters/try-runtime",
 	"pallet-referenda/try-runtime",
 	"pallet-relay-storage-roots/try-runtime",
 	"pallet-root-testing/try-runtime",

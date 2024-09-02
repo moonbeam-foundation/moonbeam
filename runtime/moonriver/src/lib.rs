@@ -741,8 +741,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
-	type CheckAssociatedRelayNumber =
-		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+	type CheckAssociatedRelayNumber = EmergencyParaXcm;
 	type ConsensusHook = ConsensusHookWrapperForRelayTimestamp<Runtime, ConsensusHook>;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type WeightInfo = moonriver_weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
@@ -1453,6 +1452,7 @@ construct_runtime! {
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 111,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 114,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 115,
+		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 116,
 
 		// Utils
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 112,

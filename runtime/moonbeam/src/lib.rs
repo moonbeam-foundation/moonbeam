@@ -150,7 +150,7 @@ pub mod currency {
 
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
-	.saturating_mul(1)
+	.saturating_mul(2)
 	.set_proof_size(relay_chain::MAX_POV_SIZE as u64);
 
 pub const MILLISECS_PER_BLOCK: u64 = 6_000;
@@ -393,8 +393,8 @@ impl pallet_evm_chain_id::Config for Runtime {}
 
 /// Current approximation of the gas/s consumption considering
 /// EVM execution over compiled WASM (on 4.4Ghz CPU).
-/// Given the 1000ms Weight, from which 75% only are used for transactions,
-/// the total EVM execution gas limit is: GAS_PER_SECOND * 1 * 0.75 ~= 30_000_000.
+/// Given the 2000ms Weight, from which 75% only are used for transactions,
+/// the total EVM execution gas limit is: GAS_PER_SECOND * 2 * 0.75 ~= 60_000_000.
 pub const GAS_PER_SECOND: u64 = 40_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
@@ -427,9 +427,9 @@ parameter_types! {
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
 	/// We should re-check `xcm_config::Erc20XcmBridgeTransferGasLimit` when changing this value
-	pub const GasLimitPovSizeRatio: u64 = 8;
+	pub const GasLimitPovSizeRatio: u64 = 16;
 	/// The amount of gas per storage (in bytes): BLOCK_GAS_LIMIT / BLOCK_STORAGE_LIMIT
-	/// The current definition of BLOCK_STORAGE_LIMIT is 80 KB, resulting in a value of 366.
+	/// The current definition of BLOCK_STORAGE_LIMIT is 160 KB, resulting in a value of 366.
 	pub GasLimitStorageGrowthRatio: u64 = 366;
 }
 
@@ -705,8 +705,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
-	type CheckAssociatedRelayNumber =
-		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+	type CheckAssociatedRelayNumber = EmergencyParaXcm;
 	type ConsensusHook = ConsensusHookWrapperForRelayTimestamp<Runtime, ConsensusHook>;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type WeightInfo = moonbeam_weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
@@ -1450,6 +1449,7 @@ construct_runtime! {
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 111,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 114,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 115,
+		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 116,
 
 		// Utils
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 112,
@@ -1826,8 +1826,8 @@ mod tests {
 
 	#[test]
 	fn test_storage_growth_ratio_is_correct() {
-		// This is the highest amount of new storage that can be created in a block 40 KB
-		let block_storage_limit = 80 * 1024;
+		// This is the highest amount of new storage that can be created in a block 160 KB
+		let block_storage_limit = 160 * 1024;
 		let expected_storage_growth_ratio = BlockGasLimit::get()
 			.low_u64()
 			.saturating_div(block_storage_limit);

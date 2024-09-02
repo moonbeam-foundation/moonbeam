@@ -13,6 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
 use cumulus_primitives_core::ParaId;
 use cumulus_primitives_core::XcmpMessageFormat;
 use jsonrpsee::{
@@ -28,12 +29,10 @@ use xcm::opaque::lts::Weight;
 use xcm::v4::prelude::*;
 use xcm_primitives::DEFAULT_PROOF_SIZE;
 
-/// This RPC interface is used to manually submit XCM messages that will be injected into a
-/// parachain-enabled runtime. This allows testing XCM logic in a controlled way in integration
-/// tests.
+/// This RPC interface is used to provide methods in dev mode only
 #[rpc(server)]
 #[jsonrpsee::core::async_trait]
-pub trait ManualXcmApi {
+pub trait DevApi {
 	/// Inject a downward xcm message - A message that comes from the relay chain.
 	/// You may provide an arbitrary message, or if you provide an emtpy byte array,
 	/// Then a default message (DOT transfer down to ALITH) will be injected
@@ -53,15 +52,20 @@ pub trait ManualXcmApi {
 	/// transfer of the sending paraId's native token will be injected.
 	#[method(name = "xcm_injectHrmpMessage")]
 	async fn inject_hrmp_message(&self, sender: ParaId, message: Vec<u8>) -> RpcResult<()>;
+
+	/// Skip N relay blocks, for testing purposes
+	#[method(name = "test_skipRelayBlocks")]
+	async fn skip_relay_blocks(&self, n: u32) -> RpcResult<()>;
 }
 
-pub struct ManualXcm {
+pub struct DevRpc {
 	pub downward_message_channel: flume::Sender<Vec<u8>>,
 	pub hrmp_message_channel: flume::Sender<(ParaId, Vec<u8>)>,
+	pub additional_relay_offset: std::sync::Arc<std::sync::atomic::AtomicU32>,
 }
 
 #[jsonrpsee::core::async_trait]
-impl ManualXcmApiServer for ManualXcm {
+impl DevApiServer for DevRpc {
 	async fn inject_downward_message(&self, msg: Vec<u8>) -> RpcResult<()> {
 		let downward_message_channel = self.downward_message_channel.clone();
 		// If no message is supplied, inject a default one.
@@ -146,6 +150,12 @@ impl ManualXcmApiServer for ManualXcm {
 			.await
 			.map_err(|err| internal_err(err.to_string()))?;
 
+		Ok(())
+	}
+
+	async fn skip_relay_blocks(&self, n: u32) -> RpcResult<()> {
+		self.additional_relay_offset
+			.fetch_add(n, std::sync::atomic::Ordering::SeqCst);
 		Ok(())
 	}
 }
