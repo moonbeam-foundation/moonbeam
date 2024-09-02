@@ -1329,6 +1329,7 @@ where
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
+							para_id: Default::default(),
 							current_para_block_head,
 							relay_offset: 1000
 								+ additional_relay_offset.load(std::sync::atomic::Ordering::SeqCst),
@@ -1339,7 +1340,6 @@ where
 							xcm_config: MockXcmConfig::new(
 								&*client_for_xcm,
 								block,
-								Default::default(),
 								Default::default(),
 							),
 							raw_downward_messages: downward_xcm_receiver.drain().collect(),

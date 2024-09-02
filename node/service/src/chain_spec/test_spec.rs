@@ -16,7 +16,7 @@
 
 //! Embedded specs for testing purposes, must be compiled with --features=test-spec
 use crate::chain_spec::moonbase::{testnet_genesis, ChainSpec};
-use crate::chain_spec::{get_from_seed, Extensions};
+use crate::chain_spec::{get_from_seed};
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use moonbase_runtime::{currency::UNIT, AccountId, WASM_BINARY};
@@ -28,10 +28,7 @@ use sc_service::ChainType;
 pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::builder(
 		WASM_BINARY.expect("WASM binary was not build, please build it!"),
-		Extensions {
-			relay_chain: "westend_local".into(),
-			para_id: para_id.into(),
-		},
+		Default::default(),
 	)
 	.with_name("Moonbase Development Testnet")
 	.with_id("staking")

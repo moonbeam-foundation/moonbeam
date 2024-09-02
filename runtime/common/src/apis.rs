@@ -739,7 +739,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
-			impl xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApi<Block> for Runtime {
+			impl xcm_runtime_apis::fees::XcmPaymentApi<Block> for Runtime {
 				fn query_acceptable_payment_assets(
 					xcm_version: xcm::Version
 				) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {

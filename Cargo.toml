@@ -1,49 +1,49 @@
 [workspace]
 exclude = ["bin/utils/moonkey"]
 members = [
-	"bin/utils/moonkey",
-	"client/rpc/dev",
-	"client/rpc/finality",
-	"client/vrf",
-	"node",
-	"node/cli",
-	"node/service",
-	"pallets/asset-manager",
-	"pallets/erc20-xcm-bridge",
-	"pallets/ethereum-xcm",
-	"pallets/moonbeam-foreign-assets",
-	"pallets/moonbeam-lazy-migrations",
-	"pallets/moonbeam-orbiters",
-	"pallets/moonbeam-xcm-benchmarks",
-	"pallets/parachain-staking",
-	"pallets/precompile-benchmarks",
-	"pallets/proxy-genesis-companion",
-	"pallets/xcm-transactor",
-	"precompiles/balances-erc20",
-	"precompiles/batch",
-	"precompiles/call-permit",
-	"precompiles/collective",
-	"precompiles/conviction-voting",
-	"precompiles/crowdloan-rewards",
-	"precompiles/foreign-asset-migrator",
-	"precompiles/gmp",
-	"precompiles/identity",
-	"precompiles/parachain-staking",
-	"precompiles/precompile-registry",
-	"precompiles/preimage",
-	"precompiles/proxy",
-	"precompiles/referenda",
-	"precompiles/relay-encoder",
-	"precompiles/relay-data-verifier",
-	"precompiles/xcm-transactor",
-	"precompiles/xtokens",
-	"precompiles/p256verify",
-	"primitives/storage-proof",
-	"runtime/moonbase",
-	"runtime/moonbeam",
-	"runtime/moonriver",
-	"runtime/relay-encoder",
-	"runtime/summarize-precompile-checks",
+    "bin/utils/moonkey",
+    "client/rpc/dev",
+    "client/rpc/finality",
+    "client/vrf",
+    "node",
+    "node/cli",
+    "node/service",
+    "pallets/asset-manager",
+    "pallets/erc20-xcm-bridge",
+    "pallets/ethereum-xcm",
+    "pallets/moonbeam-foreign-assets",
+    "pallets/moonbeam-lazy-migrations",
+    "pallets/moonbeam-orbiters",
+    "pallets/moonbeam-xcm-benchmarks",
+    "pallets/parachain-staking",
+    "pallets/precompile-benchmarks",
+    "pallets/proxy-genesis-companion",
+    "pallets/xcm-transactor",
+    "precompiles/balances-erc20",
+    "precompiles/batch",
+    "precompiles/call-permit",
+    "precompiles/collective",
+    "precompiles/conviction-voting",
+    "precompiles/crowdloan-rewards",
+    "precompiles/foreign-asset-migrator",
+    "precompiles/gmp",
+    "precompiles/identity",
+    "precompiles/parachain-staking",
+    "precompiles/precompile-registry",
+    "precompiles/preimage",
+    "precompiles/proxy",
+    "precompiles/referenda",
+    "precompiles/relay-encoder",
+    "precompiles/relay-data-verifier",
+    "precompiles/xcm-transactor",
+    "precompiles/xtokens",
+    "precompiles/p256verify",
+    "primitives/storage-proof",
+    "runtime/moonbase",
+    "runtime/moonbeam",
+    "runtime/moonriver",
+    "runtime/relay-encoder",
+    "runtime/summarize-precompile-checks",
 ]
 resolver = "2"
 
@@ -64,7 +64,7 @@ evm-tracing-events = { path = "primitives/rpc/evm-tracing-events", default-featu
 moonbeam-core-primitives = { path = "core-primitives", default-features = false }
 moonbeam-primitives-ext = { path = "primitives/ext", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "primitives/rpc/debug", default-features = false, features = [
-	"runtime-3000",
+    "runtime-3000",
 ] }
 moonbeam-rpc-primitives-txpool = { path = "primitives/rpc/txpool", default-features = false }
 storage-proof-primitives = { path = "primitives/storage-proof", default-features = false }
@@ -148,6 +148,7 @@ pallet-identity = { git = "https://github.com/moonbeam-foundation/polkadot-sdk",
 pallet-message-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
 pallet-multisig = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
 pallet-preimage = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
+pallet-parameters = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
 pallet-proxy = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
 pallet-referenda = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
 pallet-root-testing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
@@ -162,10 +163,10 @@ pallet-treasury = { git = "https://github.com/moonbeam-foundation/polkadot-sdk",
 pallet-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
 pallet-whitelist = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
 parity-scale-codec = { version = "3.2.2", default-features = false, features = [
-	"derive",
+    "derive",
 ] }
 scale-info = { version = "2.0", default-features = false, features = [
-	"derive",
+    "derive",
 ] }
 sp-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
 sp-application-crypto = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
@@ -234,7 +235,7 @@ substrate-wasm-builder = { git = "https://github.com/moonbeam-foundation/polkado
 # Frontier (wasm)
 
 ethereum = { version = "0.15.0", default-features = false, features = [
-	"with-codec",
+    "with-codec",
 ] }
 ethereum-types = { version = "0.14", default-features = false }
 evm = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-stable2407", default-features = false }
@@ -245,10 +246,10 @@ fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "mo
 fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
 fp-self-contained = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
 pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false, features = [
-	"forbid-evm-reentrancy",
+    "forbid-evm-reentrancy",
 ] }
 pallet-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false, features = [
-	"forbid-evm-reentrancy",
+    "forbid-evm-reentrancy",
 ] }
 pallet-evm-chain-id = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
 pallet-evm-precompile-blake2 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
@@ -269,7 +270,7 @@ fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moo
 fc-api = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407" }
 fc-mapping-sync = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407" }
 fc-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", features = [
-	"rpc-binary-search-estimate",
+    "rpc-binary-search-estimate",
 ] }
 fc-rpc-core = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407" }
 fc-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407" }
@@ -354,7 +355,7 @@ blake2-rfc = { version = "0.2.18", default-features = false }
 derive_more = "0.99.17"
 environmental = { version = "1.1.4", default-features = false }
 frame-metadata = { version = "16.0.0", default-features = false, features = [
-	"current",
+    "current",
 ] }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.4.1", default-features = false }
@@ -373,7 +374,7 @@ strum = { version = "0.26.3", default-features = false, features = ["derive"] }
 strum_macros = "0.24"
 smallvec = "1.11.0"
 p256 = { version = "0.13.2", default-features = false, features = [
-	"ecdsa",
+    "ecdsa",
 ] }
 
 # Other (client)
@@ -398,7 +399,7 @@ similar-asserts = "1.1.0"
 tempfile = "3.8.1"
 tiny-bip39 = { version = "0.8", default-features = false }
 schnorrkel = { version = "0.11.4", default-features = false, features = [
-	"preaudit_deprecated",
+    "preaudit_deprecated",
 ] }
 tokio = { version = "1.37.0" }
 tracing = "0.1.37"
