@@ -37,6 +37,7 @@ use fp_rpc::TransactionStatus;
 use cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
+use fp_evm::TransactionPov;
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime,
@@ -104,8 +105,7 @@ use xcm::{
 };
 use xcm_config::AssetType;
 use xcm_primitives::UnitsToWeightRatio;
-use xcm_runtime_apis::conversions::Error as XcmPaymentApiError;
-use fp_evm::TransactionPov;
+use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
 
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
