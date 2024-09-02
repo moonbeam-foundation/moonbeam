@@ -21,7 +21,7 @@ describeSuite({
         .filter((v) => Object.keys(RUNTIME_CONSTANTS).includes(v))
         .join()
         .toLowerCase();
-      const wasmPath = `../target/release/wbuild/${runtime}-runtime/${runtime}_runtime.compact.compressed.wasm`;
+      const wasmPath = `../target/release/wbuild/${runtime}-runtime/${runtime}_runtime.compact.compressed.wasm`; // editorconfig-checker-disable-line
 
       const runtimeWasmHex = u8aToHex(await fs.readFile(wasmPath));
 
