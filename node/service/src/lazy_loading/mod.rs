@@ -458,7 +458,7 @@ where
 	let overrides = Arc::new(StorageOverrideHandler::new(client.clone()));
 	let fee_history_limit = rpc_config.fee_history_limit;
 	let mut command_sink = None;
-	let mut xcm_senders = None;
+	let mut dev_rpc_data = None;
 	let collator = config.role.is_authority();
 
 	if collator {
@@ -516,7 +516,12 @@ where
 		// Create channels for mocked XCM messages.
 		let (downward_xcm_sender, downward_xcm_receiver) = flume::bounded::<Vec<u8>>(100);
 		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<(ParaId, Vec<u8>)>(100);
-		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
+		let additional_relay_offset = Arc::new(std::sync::atomic::AtomicU32::new(0));
+		dev_rpc_data = Some((
+			downward_xcm_sender,
+			hrmp_xcm_sender,
+			additional_relay_offset,
+		));
 
 		let client_clone = client.clone();
 		let keystore_clone = keystore_container.keystore().clone();
@@ -733,7 +738,7 @@ where
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
 				sync: sync.clone(),
-				xcm_senders: xcm_senders.clone(),
+				dev_rpc_data: dev_rpc_data.clone(),
 				overrides: overrides.clone(),
 				block_data_cache: block_data_cache.clone(),
 				forced_parent_hashes: None,

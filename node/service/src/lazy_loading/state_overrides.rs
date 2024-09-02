@@ -111,7 +111,16 @@ fn base_state_overrides(runtime_code: Option<PathBuf>) -> Vec<StateEntry> {
 				key: None,
 				value: (1u64, 1u32).encode()
 			}
-		)
+		),
+		// Reset LastRelayChainBlockNumber
+		StateEntry::Concrete(
+			StateEntryConcrete {
+				pallet: "ParachainSystem".to_string(),
+				storage: "LastRelayChainBlockNumber".to_string(),
+				key: None,
+				value: 0u32.encode()
+			}
+		),
 	];
 	if let Some(path) = runtime_code {
 		let mut reader = std::fs::File::open(path.clone())
