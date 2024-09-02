@@ -354,7 +354,7 @@
       "runScripts": [
         "compile-contracts.ts compile",
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbeam-dev",
-        "prepare-lazy-loading-overrides.ts process state_overrides.json tmp/state_overrides.json ../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm"
+        "prepare-lazy-loading-overrides.ts process configs/lazyLoadingStateOverrides.json tmp/lazyLoadingStateOverrides.json ../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm"
       ],
       "multiThreads": 4,
       "envVars": ["DEBUG_COLORS=1"],
@@ -384,7 +384,7 @@
               "--sealing=manual",
               "--tmp",
               "--fork-chain-from-rpc=https://moonbeam.unitedbloc.com",
-              "--fork-state-overrides=tmp/state_overrides.json"
+              "--fork-state-overrides=tmp/lazyLoadingStateOverrides.json"
             ]
           }
         ]
