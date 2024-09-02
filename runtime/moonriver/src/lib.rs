@@ -38,6 +38,7 @@ use fp_rpc::TransactionStatus;
 use cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
+use fp_evm::TransactionPov;
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime,
@@ -105,7 +106,6 @@ use xcm::{
 use xcm_config::AssetType;
 use xcm_primitives::UnitsToWeightRatio;
 use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
-use fp_evm::TransactionPov;
 
 use smallvec::smallvec;
 #[cfg(feature = "std")]
@@ -574,11 +574,6 @@ parameter_types! {
 	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
-
-type TreasuryApproveOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<AccountId, TreasuryCouncilInstance, 3, 5>,
->;
 
 type TreasuryRejectOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
@@ -1439,7 +1434,7 @@ construct_runtime! {
 		// XCM Stuff
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Storage, Event<T>} = 100,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 101,
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 102,
+		// Previously 102: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>}
 		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event<T>, Origin, Config<T>} = 103,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,

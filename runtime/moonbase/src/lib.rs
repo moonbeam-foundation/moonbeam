@@ -77,6 +77,7 @@ use frame_support::{
 	PalletId,
 };
 
+use fp_evm::TransactionPov;
 use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
@@ -125,7 +126,6 @@ use xcm::{
 use xcm_config::AssetType;
 use xcm_primitives::UnitsToWeightRatio;
 use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
-use fp_evm::TransactionPov;
 
 use runtime_params::*;
 
@@ -596,11 +596,6 @@ parameter_types! {
 	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
-
-type TreasuryApproveOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<AccountId, TreasuryCouncilInstance, 3, 5>,
->;
 
 type TreasuryRejectOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
@@ -1416,7 +1411,7 @@ construct_runtime! {
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 24,
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 25,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 27,
+		// Previously 27: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 28,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,

@@ -410,15 +410,6 @@ parameter_types! {
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
-// TODO: This pallet can be removed after the lazy migration is done and
-// event `Completed` is emitted.
-// https://github.com/paritytech/polkadot-sdk/pull/1246
-impl cumulus_pallet_dmp_queue::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type DmpSink = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
-	type WeightInfo = cumulus_pallet_dmp_queue::weights::SubstrateWeight<Runtime>;
-}
-
 parameter_types! {
 	/// The amount of weight (if any) which should be provided to the message queue for
 	/// servicing enqueued items.
