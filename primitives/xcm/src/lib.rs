@@ -38,5 +38,3 @@ pub use ethereum_xcm::*;
 
 mod filter_asset_max_fee;
 pub use filter_asset_max_fee::*;
-
-pub type XcmV2Weight = xcm::v2::Weight;
