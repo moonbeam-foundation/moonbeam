@@ -188,6 +188,12 @@ moonbase-native = ["moonbase-runtime", "westend-native"]
 moonbeam-native = ["moonbeam-runtime"]
 moonriver-native = ["moonriver-runtime"]
 
+metadata-hash = [
+	"moonbase-runtime/metadata-hash",
+	"moonriver-runtime/metadata-hash",
+	"moonbeam-runtime/metadata-hash",
+]
+
 test-spec = []
 
 runtime-benchmarks = [
