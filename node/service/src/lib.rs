@@ -1117,6 +1117,7 @@ where
 /// the parachain inherent.
 pub async fn new_dev<RuntimeApi, Customizations, Net>(
 	mut config: Configuration,
+	para_id: Option<u32>,
 	_author_id: Option<NimbusId>,
 	sealing: moonbeam_cli_opt::Sealing,
 	rpc_config: RpcConfig,
@@ -1329,7 +1330,7 @@ where
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
-							para_id: Default::default(),
+							para_id: para_id.unwrap().into(),
 							current_para_block_head,
 							relay_offset: 1000
 								+ additional_relay_offset.load(std::sync::atomic::Ordering::SeqCst),
