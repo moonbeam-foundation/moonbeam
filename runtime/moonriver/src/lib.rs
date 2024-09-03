@@ -149,7 +149,7 @@ pub mod currency {
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 1 * GIGAWEI * SUPPLY_FACTOR;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROMOVR * SUPPLY_FACTOR;
-	pub const WEIGHT_FEE: Balance = 50 * KILOWEI * SUPPLY_FACTOR;
+	pub const WEIGHT_FEE: Balance = 25 * KILOWEI * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * MOVR * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
@@ -457,7 +457,7 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 		// There's still some precision loss when the final `gas_price` (used_gas * min_gas_price)
 		// is computed in frontier, but that's currently unavoidable.
 		let min_gas_price = TransactionPayment::next_fee_multiplier()
-			.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128));
+			.saturating_mul_int((currency::WEIGHT_FEE *2).saturating_mul(WEIGHT_PER_GAS as u128));
 		(
 			min_gas_price.into(),
 			<Runtime as frame_system::Config>::DbWeight::get().reads(1),
