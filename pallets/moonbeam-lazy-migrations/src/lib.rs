@@ -40,6 +40,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 	use sp_core::H160;
+	use sp_std::if_std;
 
 	pub const ARRAY_LIMIT: u32 = 1000;
 	pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
@@ -58,7 +59,7 @@ pub mod pallet {
 
 	pub(crate) type StorageKey = BoundedVec<u8, ConstU32<512>>;
 
-	#[derive(Clone, Encode, Decode, scale_info::TypeInfo, PartialEq, Eq, MaxEncodedLen)]
+	#[derive(Clone, Encode, Decode, scale_info::TypeInfo, PartialEq, Eq, MaxEncodedLen, Debug)]
 	pub enum StateMigrationStatus {
 		NotStarted,
 		Started(StorageKey),
@@ -90,14 +91,21 @@ pub mod pallet {
 		KeyTooLong,
 	}
 
-	const MAX_ITEM_PROOF_SIZE: u64 = 30 * 1024; // 30 KB
-	const PROOF_SIZE_BUFFER: u64 = 100 * 1024; // 100 KB
+	pub(crate) const MAX_ITEM_PROOF_SIZE: u64 = 30 * 1024; // 30 KB
+	pub(crate) const PROOF_SIZE_BUFFER: u64 = 100 * 1024; // 100 KB
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_idle(_n: BlockNumberFor<T>, remaining_weight: Weight) -> Weight {
 			let proof_size_before: u64 = get_proof_size().unwrap_or(0);
 			let res = Pallet::<T>::handle_migration(remaining_weight);
+			if_std! {
+				println!(
+					"State migration: reads: {}, writes: {}",
+					res.reads,
+					res.writes
+				);
+			}
 			let proof_size_after: u64 = get_proof_size().unwrap_or(0);
 			let proof_size_diff = proof_size_after.saturating_sub(proof_size_before);
 
@@ -106,8 +114,8 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Default, Clone)]
-	struct ReadWriteOps {
+	#[derive(Default, Clone, PartialEq, Eq, Encode, Decode, Debug)]
+	pub(crate) struct ReadWriteOps {
 		pub reads: u64,
 		pub writes: u64,
 	}
@@ -153,7 +161,7 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		/// Handle the migration of the storage keys, returns the number of read and write operations
-		fn handle_migration(remaining_weight: Weight) -> ReadWriteOps {
+		pub(crate) fn handle_migration(remaining_weight: Weight) -> ReadWriteOps {
 			let mut read_write_ops = ReadWriteOps::new();
 
 			// maximum number of items that can be migrated in one block
@@ -166,7 +174,14 @@ pub mod pallet {
 				return read_write_ops;
 			}
 
+			if_std! {
+				println!("Migration limit: {}", migration_limit);
+			}
+
 			let status = StateMigrationStatusValue::<T>::get();
+			if_std! {
+				println!("r++ State migration status: {:?}", status);
+			}
 			read_write_ops.add_one_read();
 
 			let next_key = match &status {
@@ -178,6 +193,9 @@ pub mod pallet {
 						NextKeyResult::NextKey(next_key) => next_key,
 						NextKeyResult::NoMoreKeys => {
 							StateMigrationStatusValue::<T>::put(StateMigrationStatus::Complete);
+							if_std! {
+								println!("w++ StateMigrationStatus::Complete 0");
+							}
 							read_write_ops.add_one_write();
 							return read_write_ops;
 						}
@@ -185,6 +203,9 @@ pub mod pallet {
 							StateMigrationStatusValue::<T>::put(StateMigrationStatus::Error(
 								e.as_bytes().to_vec().try_into().unwrap_or_default(),
 							));
+							if_std! {
+								println!("w++ StateMigrationStatus::Error 0");
+							}
 							read_write_ops.add_one_write();
 							return read_write_ops;
 						}
@@ -196,12 +217,19 @@ pub mod pallet {
 			};
 
 			let res = Pallet::<T>::migrate_keys(next_key, migration_limit);
+			if_std! {
+				println!("!! migrate_keys {} reads", res.reads);
+				println!("!! migrate_keys {} writes", res.writes);
+			}
 			read_write_ops.add_reads(res.reads);
 			read_write_ops.add_writes(res.writes);
 
 			match (res.last_key, res.error) {
 				(None, None) => {
 					StateMigrationStatusValue::<T>::put(StateMigrationStatus::Complete);
+					if_std! {
+						println!("w++ StateMigrationStatus::Complete");
+					}
 					read_write_ops.add_one_write();
 				}
 				// maybe we should store the previous key in the storage as well
@@ -209,10 +237,16 @@ pub mod pallet {
 					StateMigrationStatusValue::<T>::put(StateMigrationStatus::Error(
 						e.as_bytes().to_vec().try_into().unwrap_or_default(),
 					));
+					if_std! {
+						println!("w++ StateMigrationStatus::Error");
+					}
 					read_write_ops.add_one_write();
 				}
 				(Some(key), None) => {
 					StateMigrationStatusValue::<T>::put(StateMigrationStatus::Started(key));
+					if_std! {
+						println!("w++ StateMigrationStatus::Started");
+					}
 					read_write_ops.add_one_write();
 				}
 			}
@@ -227,15 +261,24 @@ pub mod pallet {
 				let next: Result<StorageKey, _> = next.try_into();
 				match next {
 					Ok(next_key) => {
-						if key.as_slice() == sp_core::storage::well_known_keys::CODE {
+						if next_key.as_slice() == sp_core::storage::well_known_keys::CODE {
+							if_std! {
+								println!("r++ Skipping code storage");
+							}
 							let (reads, next_key_res) = Pallet::<T>::get_next_key(&next_key);
 							return (1 + reads, next_key_res);
+						}
+						if_std! {
+							println!("r++ Next key");
 						}
 						(1, NextKeyResult::NextKey(next_key))
 					}
 					Err(_) => (1, NextKeyResult::Error("Key too long")),
 				}
 			} else {
+				if_std! {
+					println!("r++ No more keys to migrate, previous key: {}", sp_core::hexdisplay::ascii_format(&key));
+				}
 				(1, NextKeyResult::NoMoreKeys)
 			}
 		}
@@ -250,38 +293,52 @@ pub mod pallet {
 			let mut writes = 0;
 
 			while migrated < limit {
+				if_std! {
+					println!("Key: {}", sp_core::hexdisplay::ascii_format(&key));
+				}
 				let data = sp_io::storage::get(&key);
+				if_std! {
+					println!("r++ Reading key");
+				}
 				if let Some(data) = data {
+					if_std! {
+						println!("w++ Writing key");
+					}
 					sp_io::storage::set(&key, &data);
 					writes += 1;
 				}
 
 				migrated += 1;
 
-				let (reads, next_key_res) = Pallet::<T>::get_next_key(&key);
-				next_key_reads += reads;
+				if migrated < limit {
+					let (reads, next_key_res) = Pallet::<T>::get_next_key(&key);
+					next_key_reads += reads;
 
-				match next_key_res {
-					NextKeyResult::NextKey(next_key) => {
-						key = next_key;
-					}
-					NextKeyResult::NoMoreKeys => {
-						return StateMigrationResult {
-							last_key: None,
-							error: None,
-							reads: migrated,
-							writes,
-						};
-					}
-					NextKeyResult::Error(e) => {
-						return StateMigrationResult {
-							last_key: Some(key),
-							error: Some(e),
-							reads: migrated,
-							writes,
-						};
-					}
-				};
+					match next_key_res {
+						NextKeyResult::NextKey(next_key) => {
+							if_std! {
+								println!("Next Key of {} is {}", sp_core::hexdisplay::ascii_format(&key), sp_core::hexdisplay::ascii_format(&next_key));
+							}
+							key = next_key;
+						}
+						NextKeyResult::NoMoreKeys => {
+							return StateMigrationResult {
+								last_key: None,
+								error: None,
+								reads: migrated + next_key_reads,
+								writes,
+							};
+						}
+						NextKeyResult::Error(e) => {
+							return StateMigrationResult {
+								last_key: Some(key),
+								error: Some(e),
+								reads: migrated + next_key_reads,
+								writes,
+							};
+						}
+					};
+				}
 			}
 
 			StateMigrationResult {

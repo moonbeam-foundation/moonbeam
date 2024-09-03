@@ -51,6 +51,7 @@ std = [
   "sp-std/std",
   "pallet-evm/std",
   "pallet-timestamp/std",
+  "pallet-assets/std",
   "cumulus-primitives-storage-weight-reclaim/std",
   "rlp/std",
 ]

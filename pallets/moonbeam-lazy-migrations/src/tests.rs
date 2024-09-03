@@ -18,13 +18,14 @@
 use {
 	crate::{
 		mock::{ExtBuilder, LazyMigrations, RuntimeOrigin, Test},
-		Error,
+		Error, ReadWriteOps, StateMigrationStatus, StateMigrationStatusValue, MAX_ITEM_PROOF_SIZE,
+		PROOF_SIZE_BUFFER,
 	},
-	frame_support::assert_noop,
+	frame_support::{assert_noop, fail, traits::Hooks, weights::Weight},
 	rlp::RlpStream,
-	sp_core::{H160, H256},
+	sp_core::{hexdisplay, H160, H256},
 	sp_io::hashing::keccak_256,
-	sp_runtime::AccountId32,
+	sp_runtime::{print, traits::Bounded, AccountId32},
 };
 
 use pallet_evm::AddressMapping;
@@ -261,5 +262,201 @@ fn test_clear_suicided_mixed_suicided_and_non_suicided() {
 			pallet_evm::AccountStorages::<Test>::iter_prefix(contract_address4).count(),
 			10
 		);
+	})
+}
+
+fn count_keys_and_data_without_code() -> (u64, u64) {
+	let mut keys: u64 = 0;
+	let mut data: u64 = 0;
+
+	let mut current_key: Option<Vec<u8>> = Some(Default::default());
+	while let Some(key) = current_key {
+		if key.as_slice() == sp_core::storage::well_known_keys::CODE {
+			current_key = sp_io::storage::next_key(&key);
+			continue;
+		}
+		print!("Key: {} ", hexdisplay::ascii_format(&key));
+		keys += 1;
+		if let Some(_) = sp_io::storage::get(&key) {
+			print!("HAS DATA");
+			data += 1;
+		}
+		println!();
+		current_key = sp_io::storage::next_key(&key);
+	}
+
+	(keys, data)
+}
+
+fn weight_for(read: u64, write: u64) -> Weight {
+	<Test as frame_system::Config>::DbWeight::get().reads_writes(read, write)
+}
+
+fn base_line_weight_with(reads: u64, writes: u64) -> Weight {
+	Weight::from_parts(0, 0).saturating_add(
+		<Test as frame_system::Config>::DbWeight::get().reads_writes(reads + 10, writes + 9),
+	)
+}
+
+fn rem_weight_for_entries(num_entries: u64) -> Weight {
+	let proof = PROOF_SIZE_BUFFER + num_entries * MAX_ITEM_PROOF_SIZE;
+	Weight::from_parts(u64::max_value(), proof)
+}
+
+#[test]
+fn test_state_migration_baseline() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			StateMigrationStatusValue::<Test>::get(),
+			StateMigrationStatus::NotStarted
+		);
+
+		let (keys, data) = count_keys_and_data_without_code();
+		println!("Keys: {}, Data: {}", keys, data);
+
+		let weight = LazyMigrations::on_idle(0, Weight::max_value());
+
+		// READS: 2 * keys + 2 (skipped and status)
+		// Next key requests = keys (we have first key as default which is not counted, and extra
+		// next_key request to check if we are done)
+		//
+		// 1 next key request for the skipped key ":code"
+		// Read requests = keys (we read each key once)
+		// 1 Read request for the StateMigrationStatusValue
+
+		// WRITES: data + 1 (status)
+		// Write requests = data (we write each data once)
+		// 1 Write request for the StateMigrationStatusValue
+		assert_eq!(weight, weight_for(2 * keys + 2, data + 1));
+
+		assert_eq!(
+			StateMigrationStatusValue::<Test>::get(),
+			StateMigrationStatus::Complete
+		);
+	})
+}
+
+#[test]
+fn test_state_migration_cannot_fit_any_item() {
+	ExtBuilder::default().build().execute_with(|| {
+		StateMigrationStatusValue::<Test>::put(StateMigrationStatus::Complete);
+
+		let weight = LazyMigrations::on_idle(0, rem_weight_for_entries(0));
+
+		assert_eq!(weight, weight_for(0, 0));
+	})
+}
+
+#[test]
+fn test_state_migration_when_complete() {
+	ExtBuilder::default().build().execute_with(|| {
+		StateMigrationStatusValue::<Test>::put(StateMigrationStatus::Complete);
+
+		let weight = LazyMigrations::on_idle(0, Weight::max_value());
+
+		// just reading the status of the migration
+		assert_eq!(weight, weight_for(1, 0));
+	})
+}
+
+#[test]
+fn test_state_migration_when_errored() {
+	ExtBuilder::default().build().execute_with(|| {
+		StateMigrationStatusValue::<Test>::put(StateMigrationStatus::Error(
+			"Error".as_bytes().to_vec().try_into().unwrap_or_default(),
+		));
+
+		let weight = LazyMigrations::on_idle(0, Weight::max_value());
+
+		// just reading the status of the migration
+		assert_eq!(weight, weight_for(1, 0));
+	})
+}
+
+#[test]
+fn test_state_migration_can_only_fit_one_item() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			StateMigrationStatusValue::<Test>::get(),
+			StateMigrationStatus::NotStarted
+		);
+
+		let data = sp_io::storage::get(Default::default());
+		let weight = LazyMigrations::on_idle(0, rem_weight_for_entries(1));
+
+		let reads = 2; // key read + status read
+		let writes = 1 + data.map(|_| 1).unwrap_or(0);
+		assert_eq!(weight, weight_for(reads, writes));
+
+		assert!(matches!(
+			StateMigrationStatusValue::<Test>::get(),
+			StateMigrationStatus::Started(_)
+		));
+
+		let weight = LazyMigrations::on_idle(0, rem_weight_for_entries(3));
+		let reads = 3 + 3 + 1; // next key + key read + status
+		let writes = 1 + 3; // status write + key write
+		assert_eq!(weight, weight_for(reads, writes));
+	})
+}
+
+#[test]
+fn test_state_migration_can_only_fit_three_item() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			StateMigrationStatusValue::<Test>::get(),
+			StateMigrationStatus::NotStarted
+		);
+
+		let weight = LazyMigrations::on_idle(0, rem_weight_for_entries(3));
+
+		// 2 next key requests (default key dons't need a next key request) + 1 status read
+		// 3 key reads.
+		// 1 status write + 2 key writes (default key doesn't have any data)
+		let reads = 6;
+		let writes = 3;
+		assert_eq!(weight, weight_for(reads, writes));
+
+		assert!(matches!(
+			StateMigrationStatusValue::<Test>::get(),
+			StateMigrationStatus::Started(_)
+		));
+	})
+}
+
+#[test]
+fn test_state_migration_can_fit_exactly_all_item() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			StateMigrationStatusValue::<Test>::get(),
+			StateMigrationStatus::NotStarted
+		);
+
+		let (keys, data) = count_keys_and_data_without_code();
+		let weight = LazyMigrations::on_idle(0, rem_weight_for_entries(keys));
+
+		// we deduct the extra next_key request to check if we are done.
+		// will know if we are done on the next call to on_idle
+		assert_eq!(weight, weight_for(2 * keys + 1, data + 1));
+
+		assert!(matches!(
+			StateMigrationStatusValue::<Test>::get(),
+			StateMigrationStatus::Started(_),
+		));
+
+		// after calling on_idle status is added to the storage so we need to account for that
+		let (new_keys, new_data) = count_keys_and_data_without_code();
+		let (diff_keys, diff_data) = (new_keys - keys, new_data - data);
+
+		let weight = LazyMigrations::on_idle(0, rem_weight_for_entries(1 + diff_keys));
+		// (next_key + read) for each new key + status + next_key to check if we are done
+		let reads = diff_keys * 2 + 2;
+		let writes = 1 + diff_data; // status
+		assert_eq!(weight, weight_for(reads, writes));
+
+		assert!(matches!(
+			StateMigrationStatusValue::<Test>::get(),
+			StateMigrationStatus::Complete,
+		));
 	})
 }
