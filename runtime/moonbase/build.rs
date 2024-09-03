@@ -16,7 +16,7 @@
 
 use substrate_wasm_builder::WasmBuilder;
 
-#[cfg(all(not(feature = "metadata-hash")))]
+#[cfg(not(feature = "metadata-hash"))]
 fn main() {
 	WasmBuilder::new()
 		.with_current_project()
@@ -25,7 +25,7 @@ fn main() {
 		.build()
 }
 
-#[cfg(all(feature = "metadata-hash"))]
+#[cfg(feature = "metadata-hash")]
 fn main() {
 	WasmBuilder::new()
 		.with_current_project()
