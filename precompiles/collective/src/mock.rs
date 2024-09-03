@@ -209,20 +209,16 @@ impl ArgumentsFactory<(), AccountId> for BenchmarkHelper {
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
-	type ApproveOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
 	type RejectOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
 	type RuntimeEvent = RuntimeEvent;
 	// If spending proposal rejected, transfer proposer bond to treasury
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ConstU128<1>;
+	// If spending proposal rejected, transfer proposer bond to treasury
 	type SpendPeriod = ConstU32<1>;
 	type Burn = ();
 	type BurnDestination = ();
 	type MaxApprovals = ConstU32<100>;
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
-	type ProposalBondMaximum = ();
 	type SpendOrigin = MapSuccess<
 		pallet_collective::EnsureProportionMoreThan<AccountId, pallet_collective::Instance1, 1, 2>,
 		Replace<ConstU128<1000>>,
