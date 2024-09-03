@@ -17,8 +17,8 @@ describeSuite({
       id: "C100",
       title: "XCM Mode should be equal to Normal",
       test: async function (context) {
-        if ((await paraApi.consts.system.version.specVersion).toNumber() < 3200) {
-            context.skip();
+        if (paraApi.consts.system.version.specVersion.toNumber() < 3200) {
+          context.skip();
         }
 
         // XCM Mode should be equal to Normal
