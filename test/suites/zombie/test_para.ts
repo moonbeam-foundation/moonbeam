@@ -89,7 +89,9 @@ describeSuite({
 
         log("Please wait, this will take at least 30s for transaction to complete");
 
-        await new Promise((resolve, reject) => {
+        context.waitBlock(5);
+
+        await new Promise((resolve) => {
           paraApi.tx.balances
             .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
             .signAndSend(charleth, ({ status, events }) => {
@@ -100,22 +102,8 @@ describeSuite({
                 log("Transaction is finalized!");
                 resolve(events);
               }
-
-              if (
-                status.isDropped ||
-                status.isInvalid ||
-                status.isUsurped ||
-                status.isFinalityTimeout
-              ) {
-                reject("transaction failed!");
-                throw new Error("Transaction failed");
-              }
             });
-        })
-
-        await paraApi.tx.balances
-          .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
-          .signAndSend(charleth);
+        });
 
         const balAfter = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
         expect(
