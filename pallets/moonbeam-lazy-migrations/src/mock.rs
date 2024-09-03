@@ -21,7 +21,7 @@ use crate as pallet_moonbeam_lazy_migrations;
 use frame_support::{
 	construct_runtime, ord_parameter_types, parameter_types,
 	traits::{EqualPrivilegeOnly, Everything, SortedMembers},
-	weights::{constants::RocksDbWeight, RuntimeDbWeight, Weight},
+	weights::{RuntimeDbWeight, Weight},
 };
 use frame_system::EnsureRoot;
 use pallet_evm::{AddressMapping, EnsureAddressTruncated};

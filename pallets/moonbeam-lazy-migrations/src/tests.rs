@@ -18,14 +18,14 @@
 use {
 	crate::{
 		mock::{ExtBuilder, LazyMigrations, RuntimeOrigin, Test},
-		Error, ReadWriteOps, StateMigrationStatus, StateMigrationStatusValue, MAX_ITEM_PROOF_SIZE,
+		Error, StateMigrationStatus, StateMigrationStatusValue, MAX_ITEM_PROOF_SIZE,
 		PROOF_SIZE_BUFFER,
 	},
-	frame_support::{assert_noop, fail, traits::Hooks, weights::Weight},
+	frame_support::{assert_noop, traits::Hooks, weights::Weight},
 	rlp::RlpStream,
 	sp_core::{hexdisplay, H160, H256},
 	sp_io::hashing::keccak_256,
-	sp_runtime::{print, traits::Bounded, AccountId32},
+	sp_runtime::{traits::Bounded, AccountId32},
 };
 
 use pallet_evm::AddressMapping;
@@ -292,12 +292,6 @@ fn weight_for(read: u64, write: u64) -> Weight {
 	<Test as frame_system::Config>::DbWeight::get().reads_writes(read, write)
 }
 
-fn base_line_weight_with(reads: u64, writes: u64) -> Weight {
-	Weight::from_parts(0, 0).saturating_add(
-		<Test as frame_system::Config>::DbWeight::get().reads_writes(reads + 10, writes + 9),
-	)
-}
-
 fn rem_weight_for_entries(num_entries: u64) -> Weight {
 	let proof = PROOF_SIZE_BUFFER + num_entries * MAX_ITEM_PROOF_SIZE;
 	Weight::from_parts(u64::max_value(), proof)
@@ -458,5 +452,56 @@ fn test_state_migration_can_fit_exactly_all_item() {
 			StateMigrationStatusValue::<Test>::get(),
 			StateMigrationStatus::Complete,
 		));
+	})
+}
+
+#[test]
+fn test_state_migration_will_migrate_10_000_items() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			StateMigrationStatusValue::<Test>::get(),
+			StateMigrationStatus::NotStarted
+		);
+
+		for i in 0..100 {
+			mock_contract_with_entries(i as u8, i as u64, 100);
+		}
+
+		StateMigrationStatusValue::<Test>::put(StateMigrationStatus::NotStarted);
+
+		let (keys, data) = count_keys_and_data_without_code();
+
+		// assuming we can only fit 100 items at a time
+
+		let mut total_weight: Weight = Weight::zero();
+		let num_of_on_idle_calls = 200;
+		let entries_per_on_idle = 100;
+		for i in 0..num_of_on_idle_calls {
+			println!("-=-=-=-=");
+			let weight = LazyMigrations::on_idle(i, rem_weight_for_entries(entries_per_on_idle));
+			total_weight = total_weight.saturating_add(weight);
+		}
+
+
+
+		// Reads:
+		// Read status => num_of_on_idle_calls
+		// Read keys   => keys
+		// Next keys   => keys - 1  + 1 skip + 1 done check
+		// 
+		// Writes:
+		// Write status => needed_on_idle_calls 
+		// Write keys   => data
+		let needed_on_idle_calls = (keys as f64 / entries_per_on_idle as f64).ceil() as u64;
+		let reads = (keys - 1 + 2) + keys + num_of_on_idle_calls;
+		let writes = data + needed_on_idle_calls;
+
+		println!("Keys: {}, Data: {}", keys, data);
+		println!("entries_per_on_idle: {}", entries_per_on_idle);
+		println!("num_of_on_idle_calls: {}", num_of_on_idle_calls);
+		println!("needed_on_idle_calls: {}", needed_on_idle_calls);
+		println!("Reads: {}, Writes: {}", reads, writes);
+
+		assert_eq!(total_weight, weight_for(reads, writes));
 	})
 }
