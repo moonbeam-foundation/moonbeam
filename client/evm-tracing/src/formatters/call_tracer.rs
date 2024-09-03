@@ -43,7 +43,7 @@ impl super::ResponseFormatter for Formatter {
 		for entry in listener.entries.iter() {
 			let mut result: Vec<Call> = entry
 				.into_iter()
-				.map(|(entry_index, it)| {
+				.map(|(_, it)| {
 					let from = it.from;
 					let trace_address = it.trace_address.clone();
 					let value = it.value;
@@ -73,12 +73,7 @@ impl super::ResponseFormatter for Formatter {
 								res: res.clone(),
 								value: Some(value),
 								logs: match res {
-									CallResult::Output { .. } => {
-										match listener.log_entries.get(entry_index) {
-											Some(entry_logs) => entry_logs.clone(),
-											None => Vec::new(),
-										}
-									}
+									CallResult::Output { .. } => it.logs.clone(),
 									CallResult::Error { .. } => Vec::new(),
 								},
 							},
