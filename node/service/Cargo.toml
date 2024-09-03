@@ -28,7 +28,7 @@ tokio = { workspace = true, features = ["macros", "sync"] }
 trie-root = { workspace = true }
 
 # Moonbeam
-manual-xcm-rpc = { workspace = true }
+moonbeam-dev-rpc = { workspace = true }
 moonbeam-cli-opt = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-finality-rpc = { workspace = true }
