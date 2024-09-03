@@ -11,7 +11,7 @@ describeSuite({
       title: "XCM Mode should be equal to Normal",
       test: async function (context) {
         if ((await context.polkadotJs().consts.system.version.specVersion) < 3200) {
-          context.skip();
+          return context.skip();
         }
 
         // XCM Mode should be equal to Normal
