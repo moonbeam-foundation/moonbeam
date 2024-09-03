@@ -83,45 +83,39 @@ describeSuite({
     it({
       id: "T03",
       title: "Can connect to parachain and execute a transaction",
-      timeout: 240000,
+      timeout: 600000,
       test: async () => {
         const balBefore = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
 
         log("Please wait, this will take at least 30s for transaction to complete");
 
-        // TODO: Renable the below when we are using polkadot 1.7.0
-        //       There is a discrepancy with polkadotJs and 1.3.0
-        //
-        // await new Promise((resolve, reject) => {
-        //   paraApi.tx.balances
-        //     .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
-        //     .signAndSend(charleth, ({ status, events }) => {
-        //       if (status.isInBlock) {
-        //         log("Transaction is in block");
-        //       }
-        //       if (status.isFinalized) {
-        //         log("Transaction is finalized!");
-        //         resolve(events);
-        //       }
+        await new Promise((resolve, reject) => {
+          paraApi.tx.balances
+            .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
+            .signAndSend(charleth, ({ status, events }) => {
+              if (status.isInBlock) {
+                log("Transaction is in block");
+              }
+              if (status.isFinalized) {
+                log("Transaction is finalized!");
+                resolve(events);
+              }
 
-        //       if (
-        //         status.isDropped ||
-        //         status.isInvalid ||
-        //         status.isUsurped ||
-        //         status.isFinalityTimeout
-        //       ) {
-        //         reject("transaction failed!");
-        //         throw new Error("Transaction failed");
-        //       }
-        //     });
-        // })
+              if (
+                status.isDropped ||
+                status.isInvalid ||
+                status.isUsurped ||
+                status.isFinalityTimeout
+              ) {
+                reject("transaction failed!");
+                throw new Error("Transaction failed");
+              }
+            });
+        })
 
         await paraApi.tx.balances
           .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
           .signAndSend(charleth);
-
-        // TODO: Remove waitBlock below when we are using polkadot 1.7.0
-        await context.waitBlock(6);
 
         const balAfter = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
         expect(
