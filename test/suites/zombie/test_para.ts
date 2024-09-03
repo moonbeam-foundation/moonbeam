@@ -91,7 +91,7 @@ describeSuite({
 
         context.waitBlock(5);
 
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
           paraApi.tx.balances
             .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
             .signAndSend(charleth, ({ status, events }) => {
@@ -101,6 +101,18 @@ describeSuite({
               if (status.isFinalized) {
                 log("Transaction is finalized!");
                 resolve(events);
+              }
+
+              if (
+                status.isDropped ||
+                status.isInvalid ||
+                status.isUsurped ||
+                status.isFinalityTimeout
+              ) {
+                reject("transaction failed!");
+                log(status.toHuman());
+                log(events.map(e => e.toHuman()));
+                throw new Error("Transaction failed");
               }
             });
         });
