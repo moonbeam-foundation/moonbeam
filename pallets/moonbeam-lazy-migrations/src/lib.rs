@@ -138,7 +138,7 @@ pub mod pallet {
 	}
 
 	#[derive(Clone)]
-	struct MigrationResult {
+	struct StateMigrationResult {
 		last_key: Option<StorageKey>,
 		error: Option<&'static str>,
 		reads: u64,
@@ -243,7 +243,7 @@ pub mod pallet {
 		/// Migrate maximum of `limit` keys starting from `start`, returns the next key to migrate
 		/// Returns None if there are no more keys to migrate.
 		/// Returns an error if an error occurred during migration.
-		fn migrate_keys(start: StorageKey, limit: u64) -> MigrationResult {
+		fn migrate_keys(start: StorageKey, limit: u64) -> StateMigrationResult {
 			let mut key = start;
 			let mut migrated = 0;
 			let mut next_key_reads = 0;
@@ -266,7 +266,7 @@ pub mod pallet {
 						key = next_key;
 					}
 					NextKeyResult::NoMoreKeys => {
-						return MigrationResult {
+						return StateMigrationResult {
 							last_key: None,
 							error: None,
 							reads: migrated,
@@ -274,7 +274,7 @@ pub mod pallet {
 						};
 					}
 					NextKeyResult::Error(e) => {
-						return MigrationResult {
+						return StateMigrationResult {
 							last_key: Some(key),
 							error: Some(e),
 							reads: migrated,
@@ -284,7 +284,7 @@ pub mod pallet {
 				};
 			}
 
-			MigrationResult {
+			StateMigrationResult {
 				last_key: Some(key),
 				error: None,
 				reads: migrated + next_key_reads,
