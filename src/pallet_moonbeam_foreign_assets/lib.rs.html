@@ -522,6 +522,11 @@
 <a href="#520" id="520">520</a>
 <a href="#521" id="521">521</a>
 <a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
@@ -864,6 +869,11 @@
 
 			<span class="kw">let </span>previous_location =
 				AssetsById::&lt;T&gt;::get(<span class="kw-2">&amp;</span>asset_id).ok_or(Error::&lt;T&gt;::AssetDoesNotExist)<span class="question-mark">?</span>;
+
+			<span class="macro">ensure!</span>(
+				!AssetsByLocation::&lt;T&gt;::contains_key(<span class="kw-2">&amp;</span>new_xcm_location),
+				Error::&lt;T&gt;::LocationAlreadyExists
+			);
 
 			<span class="comment">// Remove previous foreign asset info
 			</span><span class="kw">let </span>(_asset_id, asset_status) = AssetsByLocation::&lt;T&gt;::take(<span class="kw-2">&amp;</span>previous_location)
