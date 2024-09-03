@@ -277,7 +277,10 @@ pub mod pallet {
 				}
 			} else {
 				if_std! {
-					println!("r++ No more keys to migrate, previous key: {}", sp_core::hexdisplay::ascii_format(&key));
+					println!(
+						"r++ No more keys to migrate, previous key: {}",
+						 sp_core::hexdisplay::ascii_format(&key),
+					);
 				}
 				(1, NextKeyResult::NoMoreKeys)
 			}
@@ -317,7 +320,10 @@ pub mod pallet {
 					match next_key_res {
 						NextKeyResult::NextKey(next_key) => {
 							if_std! {
-								println!("Next Key of {} is {}", sp_core::hexdisplay::ascii_format(&key), sp_core::hexdisplay::ascii_format(&next_key));
+								println!(
+									"Next Key of {} is {}", sp_core::hexdisplay::ascii_format(&key),
+									 sp_core::hexdisplay::ascii_format(&next_key),
+								);
 							}
 							key = next_key;
 						}
