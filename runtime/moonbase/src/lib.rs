@@ -30,7 +30,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub mod asset_config;
 pub mod governance;
-pub mod runtime_params;
+//pub mod runtime_params;
 pub mod xcm_config;
 
 mod migrations;
@@ -126,7 +126,7 @@ use xcm_config::AssetType;
 use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
 use xcm_primitives::UnitsToWeightRatio;
 
-use runtime_params::*;
+//use runtime_params::*;
 
 use smallvec::smallvec;
 use sp_runtime::serde::{Deserialize, Serialize};
@@ -351,11 +351,7 @@ where
 		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
 	) {
 		if let Some(fees) = fees_then_tips.next() {
-			let treasury_perbill =
-				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
-			let treasury_part = treasury_perbill.deconstruct();
-			let burn_part = Perbill::one().deconstruct() - treasury_part;
-			let (_, to_treasury) = fees.ration(burn_part, treasury_part);
+			let (_, to_treasury) = fees.ration(80, 20);
 			// Balances pallet automatically burns dropped Credits by decreasing
 			// total_supply accordingly
 			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
@@ -1385,13 +1381,6 @@ impl pallet_precompile_benchmarks::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_precompile_benchmarks::WeightInfo<Runtime>;
 }
 
-impl pallet_parameters::Config for Runtime {
-	type AdminOrigin = EnsureRoot<AccountId>;
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeParameters = RuntimeParameters;
-	type WeightInfo = moonbase_weights::pallet_parameters::WeightInfo<Runtime>;
-}
-
 construct_runtime! {
 	pub enum Runtime
 	{
@@ -1454,7 +1443,6 @@ construct_runtime! {
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 54,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 55,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 56,
-		Parameters: pallet_parameters = 57,
 	}
 }
 
@@ -1532,7 +1520,6 @@ mod benches {
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
-		[pallet_parameters, Parameters]
 	);
 }
 
