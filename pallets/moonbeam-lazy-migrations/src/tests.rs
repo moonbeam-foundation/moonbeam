@@ -482,15 +482,13 @@ fn test_state_migration_will_migrate_10_000_items() {
 			total_weight = total_weight.saturating_add(weight);
 		}
 
-
-
 		// Reads:
 		// Read status => num_of_on_idle_calls
 		// Read keys   => keys
 		// Next keys   => keys - 1  + 1 skip + 1 done check
-		// 
+		//
 		// Writes:
-		// Write status => needed_on_idle_calls 
+		// Write status => needed_on_idle_calls
 		// Write keys   => data
 		let needed_on_idle_calls = (keys as f64 / entries_per_on_idle as f64).ceil() as u64;
 		let reads = (keys - 1 + 2) + keys + num_of_on_idle_calls;
