@@ -9,6 +9,7 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
+import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({
   id: "D014023",
@@ -19,8 +20,10 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
+    let STORAGE_READ_COST;
 
     beforeAll(async () => {
+      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
@@ -54,8 +57,6 @@ describeSuite({
         const amountToTransfer = transferredBalance / 10n;
 
         const GAS_LIMIT = 500_000;
-        // TODO: move this to the constant file
-        const STORAGE_READ_COST = 41_742_000n;
 
         // We will put a very high gas limit. However, the weight accounted
         // for the block should only

@@ -77,6 +77,10 @@ export const RUNTIME_CONSTANTS = {
     EXTRINSIC_GAS_LIMIT: 52_000_000n,
     // Maximum Gas to PoV ratio used in the gasometer
     GAS_PER_POV_BYTES: 16n,
+    // Storage read/write costs
+    STORAGE_READ_COST: 41_742_000n,
+    // Weight to gas convertion ratio
+    WEIGHT_TO_GAS_RATIO: 25_000n,
   },
   MOONRIVER: {
     MIN_FEE_MULTIPLIER: 1_000_000_000_000_000_000n,
@@ -103,16 +107,16 @@ export const RUNTIME_CONSTANTS = {
     MAX_BASE_FEE_IN_WEI: "12500000000000000",
     TARGET_FILL_PERMILL: new RuntimeConstant({ 3000: 350_000n, 2801: 500_000n, 0: 250_000n }),
     // Deadline for block production in miliseconds
-    DEADLINE_MILISECONDS: 1000n,
+    DEADLINE_MILISECONDS: 2000n,
     // Caclulated as the weight per second by the deadline in seconds
-    BLOCK_WEIGHT_LIMIT: 1_000_000_000_000n,
+    BLOCK_WEIGHT_LIMIT: 2_000_000_000_000n,
     // Gas limit considering the block utilization threshold (75%)
-    GAS_LIMIT: 30_000_000n,
+    GAS_LIMIT: 60_000_000n,
     // Maximum extrinsic weight is taken from the max allowed transaction weight per block (75%),
     // minus the block initialization (10%) and minus the extrinsic base cost.
-    EXTRINSIC_GAS_LIMIT: 26_000_000n,
+    EXTRINSIC_GAS_LIMIT: 52_000_000n,
     // Maximum Gas to PoV ratio used in the gasometer
-    GAS_PER_POV_BYTES: 8n,
+    GAS_PER_POV_BYTES: 16n,
   },
 } as const;
 
