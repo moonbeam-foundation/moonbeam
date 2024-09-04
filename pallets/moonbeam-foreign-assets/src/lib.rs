@@ -341,6 +341,11 @@ pub mod pallet {
 			let previous_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
+			ensure!(
+				!AssetsByLocation::<T>::contains_key(&new_xcm_location),
+				Error::<T>::LocationAlreadyExists
+			);
+
 			// Remove previous foreign asset info
 			let (_asset_id, asset_status) = AssetsByLocation::<T>::take(&previous_location)
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
