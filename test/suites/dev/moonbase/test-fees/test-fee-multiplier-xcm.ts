@@ -108,8 +108,7 @@ describeSuite({
         // console.log(`post ${postValue.toHuman()}`);
         // console.log(`diff ${initialValue.sub(postValue)}`);
 
-        const errMsg = `Fee multiplier not static on ideal fill ratio: (${initialValue} != ${postValue})`;
-        expect(initialValue.eq(postValue), errMsg).to.be.true;
+        expect(initialValue, "Fee multiplier not static on ideal fill ratio").to.be.eq(postValue);
       },
     });
 
@@ -207,8 +206,7 @@ describeSuite({
         // Enqueue XCM message
         await context.createBlock();
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
-        const errMsg = `Fee Multiplier has changed between blocks: (${initialValue} != ${postValue})`;
-        expect(initialValue.eq(postValue), errMsg).to.be.true;
+        expect(initialValue, "Fee Multiplier has changed between blocks").to.be.eq(postValue);
 
         // Process xcm message
         await context.createBlock();
@@ -323,8 +321,7 @@ describeSuite({
         // Enqueue XCM message
         await context.createBlock();
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
-        const errMsg = `Fee Multiplier has changed between blocks: (${initialValue} != ${postValue})`;
-        expect(initialValue.eq(postValue), errMsg).to.be.true;
+        expect(initialValue, "Fee Multiplier has changed between blocks").to.be.eq(postValue);
 
         // Process xcm message
         await context.createBlock();
