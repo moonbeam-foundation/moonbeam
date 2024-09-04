@@ -1843,6 +1843,7 @@
 <a href="#1841" id="1841">1841</a>
 <a href="#1842" id="1842">1842</a>
 <a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2306,10 +2307,11 @@
 	<span class="kw">let </span>executor = wasm_builder.build();
 
 	<span class="kw">let </span>(client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::&lt;Block, RuntimeApi, <span class="kw">_</span>&gt;(
+		sc_service::new_full_parts_record_import::&lt;Block, RuntimeApi, <span class="kw">_</span>&gt;(
 			config,
 			telemetry.as_ref().map(|(<span class="kw">_</span>, telemetry)| telemetry.handle()),
 			executor,
+			<span class="bool-val">true</span>,
 		)<span class="question-mark">?</span>;
 
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(block_number) = Customizations::first_block_number_compatible_with_ed25519_zebra() {
