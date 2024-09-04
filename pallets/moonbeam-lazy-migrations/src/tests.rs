@@ -23,7 +23,7 @@ use {
 	},
 	frame_support::{assert_noop, traits::Hooks, weights::Weight},
 	rlp::RlpStream,
-	sp_core::{hexdisplay, H160, H256},
+	sp_core::{H160, H256},
 	sp_io::hashing::keccak_256,
 	sp_runtime::{traits::Bounded, AccountId32},
 };
@@ -275,13 +275,13 @@ fn count_keys_and_data_without_code() -> (u64, u64) {
 			current_key = sp_io::storage::next_key(&key);
 			continue;
 		}
-		print!("Key: {} ", hexdisplay::ascii_format(&key));
+		// print!("Key: {} ", hexdisplay::ascii_format(&key));
 		keys += 1;
 		if let Some(_) = sp_io::storage::get(&key) {
-			print!("HAS DATA");
+			// print!("HAS DATA");
 			data += 1;
 		}
-		println!();
+		// println!();
 		current_key = sp_io::storage::next_key(&key);
 	}
 
@@ -476,11 +476,7 @@ fn test_state_migration_will_migrate_10_000_items() {
 		let mut total_weight: Weight = Weight::zero();
 		let num_of_on_idle_calls = 200;
 		let entries_per_on_idle = 100;
-		for i in 0..num_of_on_idle_calls {
-			println!("-=-=-=-=");
-			let weight = LazyMigrations::on_idle(i, rem_weight_for_entries(entries_per_on_idle));
-			total_weight = total_weight.saturating_add(weight);
-		}
+		let needed_on_idle_calls = (keys as f64 / entries_per_on_idle as f64).ceil() as u64;
 
 		// Reads:
 		// Read status => num_of_on_idle_calls
@@ -490,16 +486,48 @@ fn test_state_migration_will_migrate_10_000_items() {
 		// Writes:
 		// Write status => needed_on_idle_calls
 		// Write keys   => data
-		let needed_on_idle_calls = (keys as f64 / entries_per_on_idle as f64).ceil() as u64;
-		let reads = (keys - 1 + 2) + keys + num_of_on_idle_calls;
-		let writes = data + needed_on_idle_calls;
+		let expected_reads = (keys - 1 + 2) + keys + num_of_on_idle_calls;
+		let expected_writes = data + needed_on_idle_calls;
 
 		println!("Keys: {}, Data: {}", keys, data);
 		println!("entries_per_on_idle: {}", entries_per_on_idle);
 		println!("num_of_on_idle_calls: {}", num_of_on_idle_calls);
 		println!("needed_on_idle_calls: {}", needed_on_idle_calls);
-		println!("Reads: {}, Writes: {}", reads, writes);
+		println!(
+			"Expected Reads: {}, Expected Writes: {}",
+			expected_reads, expected_writes
+		);
 
-		assert_eq!(total_weight, weight_for(reads, writes));
+		for i in 1..=num_of_on_idle_calls {
+			let weight = LazyMigrations::on_idle(i, rem_weight_for_entries(entries_per_on_idle));
+			total_weight = total_weight.saturating_add(weight);
+
+			let status = StateMigrationStatusValue::<Test>::get();
+			if i < needed_on_idle_calls {
+				assert!(
+					matches!(status, StateMigrationStatus::Started(_)),
+					"Status: {:?} at call: #{} doesn't match Started",
+					status,
+					i,
+				);
+				assert!(weight.all_gte(weight_for(1, 0)));
+			} else {
+				assert!(
+					matches!(status, StateMigrationStatus::Complete),
+					"Status: {:?} at call: {} doesn't match Complete",
+					status,
+					i,
+				);
+				if i == needed_on_idle_calls {
+					// last call to on_idle
+					assert!(weight.all_gte(weight_for(1, 0)));
+				} else {
+					// extra calls to on_idle, just status update check
+					assert_eq!(weight, weight_for(1, 0));
+				}
+			}
+		}
+
+		assert_eq!(total_weight, weight_for(expected_reads, expected_writes));
 	})
 }
