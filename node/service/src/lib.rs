@@ -33,8 +33,10 @@ use cumulus_client_service::{
 	prepare_node_config, start_relay_chain_tasks, CollatorSybilResistance, DARecoveryProfile,
 	ParachainHostFunctions, StartRelayChainTasksParams,
 };
-use cumulus_primitives_core::relay_chain::CollatorPair;
-use cumulus_primitives_core::ParaId;
+use cumulus_primitives_core::{
+	relay_chain::{well_known_keys, CollatorPair},
+	ParaId,
+};
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface, RelayChainResult};
 use cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node_with_rpc;
@@ -54,6 +56,7 @@ use moonbeam_vrf::VrfDigestsProvider;
 pub use moonriver_runtime;
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_primitives::{DigestsProvider, NimbusId};
+use polkadot_primitives::Slot;
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
@@ -108,6 +111,35 @@ type PartialComponentsResult<RuntimeApi> = Result<
 	>,
 	ServiceError,
 >;
+
+const RELAY_CHAIN_SLOT_DURATION_MILLIS: u64 = 6_000;
+
+thread_local!(static TIMESTAMP: std::cell::RefCell<u64> = const { std::cell::RefCell::new(0) });
+
+/// Provide a mock duration starting at 0 in millisecond for timestamp inherent.
+/// Each call will increment timestamp by slot_duration making Aura think time has passed.
+struct MockTimestampInherentDataProvider;
+#[async_trait::async_trait]
+impl sp_inherents::InherentDataProvider for MockTimestampInherentDataProvider {
+	async fn provide_inherent_data(
+		&self,
+		inherent_data: &mut sp_inherents::InherentData,
+	) -> Result<(), sp_inherents::Error> {
+		TIMESTAMP.with(|x| {
+			*x.borrow_mut() += RELAY_CHAIN_SLOT_DURATION_MILLIS;
+			inherent_data.put_data(sp_timestamp::INHERENT_IDENTIFIER, &*x.borrow())
+		})
+	}
+
+	async fn try_handle_error(
+		&self,
+		_identifier: &sp_inherents::InherentIdentifier,
+		_error: &[u8],
+	) -> Option<Result<(), sp_inherents::Error>> {
+		// The pallet never reports error.
+		None
+	}
+}
 
 #[cfg(feature = "runtime-benchmarks")]
 pub type HostFunctions = (
@@ -1311,10 +1343,11 @@ where
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
 					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
 					let additional_relay_offset = additional_relay_offset.clone();
+					let relay_slot_key = well_known_keys::CURRENT_SLOT.to_vec();
 
 					let client_for_xcm = client_set_aside_for_cidp.clone();
 					async move {
-						let time = sp_timestamp::InherentDataProvider::from_system_time();
+						let time = MockTimestampInherentDataProvider;
 
 						let current_para_block = maybe_current_para_block?
 							.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))?;
@@ -1323,10 +1356,21 @@ where
 							maybe_current_para_head?.encode(),
 						));
 
-						let additional_key_values = Some(vec![(
-							moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-							sp_timestamp::Timestamp::current().encode(),
-						)]);
+						// Get the mocked timestamp
+						let mut timestamp = 0u64;
+						TIMESTAMP.with(|x| {
+							timestamp = x.clone().take() + RELAY_CHAIN_SLOT_DURATION_MILLIS;
+						});
+						// Calculate mocked slot number (should be consecutively 1, 2, ...)
+						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
+						let additional_key_values = Some(vec![
+							(
+								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
+									.to_vec(),
+								sp_timestamp::Timestamp::current().encode(),
+							),
+							(relay_slot_key, Slot::from(slot).encode()),
+						]);
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
@@ -1767,7 +1811,9 @@ mod tests {
 			wasmtime_precompiled: None,
 			runtime_cache_size: 2,
 			rpc_rate_limit: Default::default(),
+			rpc_rate_limit_whitelisted_ips: vec![],
 			rpc_batch_config: BatchRequestConfig::Unlimited,
+			rpc_rate_limit_trust_proxy_headers: false,
 		}
 	}
 }
