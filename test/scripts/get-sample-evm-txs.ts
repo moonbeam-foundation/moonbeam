@@ -1,6 +1,5 @@
 import { runtimes } from "helpers/runtimes";
-import { Chain, createClient, createPublicClient, http } from "viem";
-import { net } from "web3";
+import { Chain, createPublicClient, http } from "viem";
 import fs from "fs";
 import path from "path";
 

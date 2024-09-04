@@ -5,7 +5,6 @@ import { encodeFunctionData, Hash } from "viem";
 import moonbaseSamples from "../../helpers/moonbase-tracing-samples.json";
 import moonbeamSamples from "../../helpers/moonbeam-tracing-samples.json";
 import moonriverSamples from "../../helpers/moonriver-tracing-samples.json";
-import { trace } from "console";
 
 interface Sample {
   network: string;
