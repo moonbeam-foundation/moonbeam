@@ -38,7 +38,7 @@ pub trait MoonbeamFinalityApi {
 	async fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool>;
 
 	/// Gets the range of blocks that are fully indexed in frontier's backend.
-	#[method(name = "moon_getFrontierSyncBlockRange")]
+	#[method(name = "moon_getEthSyncBlockRange")]
 	async fn get_frontier_sync_block_range(&self) -> RpcResult<(H256, H256)>;
 }
 
