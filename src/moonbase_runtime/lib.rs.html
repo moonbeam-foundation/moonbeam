@@ -2012,7 +2012,7 @@
 
 	<span class="kw">pub const </span>TRANSACTION_BYTE_FEE: Balance = <span class="number">1 </span>* GIGAWEI * SUPPLY_FACTOR;
 	<span class="kw">pub const </span>STORAGE_BYTE_FEE: Balance = <span class="number">100 </span>* MICROUNIT * SUPPLY_FACTOR;
-	<span class="kw">pub const </span>WEIGHT_FEE: Balance = <span class="number">50 </span>* KILOWEI * SUPPLY_FACTOR;
+	<span class="kw">pub const </span>WEIGHT_FEE: Balance = <span class="number">50 </span>* KILOWEI * SUPPLY_FACTOR / <span class="number">4</span>;
 
 	<span class="kw">pub const fn </span>deposit(items: u32, bytes: u32) -&gt; Balance {
 		items <span class="kw">as </span>Balance * <span class="number">1 </span>* UNIT * SUPPLY_FACTOR + (bytes <span class="kw">as </span>Balance) * STORAGE_BYTE_FEE
@@ -2339,7 +2339,7 @@
 		// There's still some precision loss when the final `gas_price` (used_gas * min_gas_price)
 		// is computed in frontier, but that's currently unavoidable.
 		</span><span class="kw">let </span>min_gas_price = TransactionPayment::next_fee_multiplier()
-			.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS <span class="kw">as </span>u128));
+			.saturating_mul_int((currency::WEIGHT_FEE * <span class="number">4</span>).saturating_mul(WEIGHT_PER_GAS <span class="kw">as </span>u128));
 		(
 			min_gas_price.into(),
 			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().reads(<span class="number">1</span>),
