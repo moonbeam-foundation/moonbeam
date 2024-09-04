@@ -85,7 +85,6 @@ describeSuite({
         // Just to make sure lazy state trie migration is done
         // probably not needed after migration is done
         for (let i = 0; i < 10; i++) {
-          console.log("Empty Block", i);
           await context.createBlock();
         }
 
