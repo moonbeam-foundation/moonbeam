@@ -58,6 +58,9 @@ function createChain(network: Network) {
 }
 
 const main = async () => {
+  console.log(
+    `Generating tracing samples for networks ${networks.flatMap((n) => n.name).join(", ")}`
+  );
   networks.forEach(async (network) => {
     let samples: Sample[] = [];
     const chain = createChain(network);
@@ -66,7 +69,7 @@ const main = async () => {
       transport: http(network.endpoint),
     });
     const relevantRuntimes = runtimes
-      .filter((r) => r.specVersion >= 3000) // Runtimes before 400 don't support tracing
+      .filter((r) => r.specVersion >= 400) // Runtimes before 400 don't support tracing
       .filter((r) => r.blockNumber[network.name as keyof typeof r.blockNumber] !== null);
 
     for (const runtime of relevantRuntimes) {
@@ -104,6 +107,7 @@ const main = async () => {
     const json = JSON.stringify(samples, null, 2);
     const filename = path.join("helpers", `${network.name}-tracing-samples.json`);
     fs.writeFileSync(filename, json);
+    console.log(`✅ Saved ${samples.length} samples to ${filename}`);
   });
 };
 
