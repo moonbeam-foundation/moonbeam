@@ -163,6 +163,7 @@ cumulus-pallet-xcmp-queue = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 cumulus-primitives-timestamp = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
+cumulus-primitives-storage-weight-reclaim = { workspace = true }
 parachain-info = { workspace = true }
 parachains-common = { workspace = true }
 
@@ -212,6 +213,7 @@ std = [
 	"cumulus-primitives-core/std",
 	"cumulus-primitives-timestamp/std",
 	"cumulus-primitives-utility/std",
+	"cumulus-primitives-storage-weight-reclaim/std",
 	"evm-tracing-events/std",
 	"fp-evm/std",
 	"fp-rpc/std",
