@@ -135,7 +135,7 @@ describeSuite({
 
         expect(weightToNativeFee.isOk).to.be.true;
         // 0.0005 GLMR
-        expect(BigInt(weightToNativeFee.asOk.toJSON())).to.eq(500_000_000_000_000n);
+        expect(BigInt(weightToNativeFee.asOk.toJSON())).to.eq(125_000_000_000_000n);
 
         const weightToForeignFee = await polkadotJs.call.xcmPaymentApi.queryWeightToAssetFee(
           {

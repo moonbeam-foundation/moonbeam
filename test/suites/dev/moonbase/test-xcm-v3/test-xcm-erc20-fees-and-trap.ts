@@ -232,7 +232,8 @@ describeSuite({
         );
         // We are charging chargedWeight
         // chargedWeight * 50000 = chargedFee
-        const chargedFee = chargedWeight * 50000n;
+        // Dividing by four the xcm fees constant to match the x4 cpu per block
+        const chargedFee = (chargedWeight * 50000n) / 4n;
 
         const amountOfTrappedAssets = feeAssetAmount - chargedFee;
         const claimConfig = {
@@ -279,7 +280,8 @@ describeSuite({
         );
         // We are charging chargedWeightForClaim
         // chargedWeightForClaim * 50000 = chargedFeeForClaim
-        const chargedFeeForClaim = chargedWeightForClaim * 50000n;
+        // Dividing by four the xcm fees constant to match the x4 cpu per block
+        const chargedFeeForClaim = (chargedWeightForClaim * 50000n) / 4n;
 
         const balanceAfter = (
           await polkadotJs.query.system.account(paraSovereign)
