@@ -210,3 +210,45 @@ fn test_asset_id_non_existent_error() {
 		);
 	});
 }
+
+#[test]
+fn test_location_already_exist_error() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Setup: create a first foreign asset taht we will try to override
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			Location::parent(),
+			18,
+			encode_ticker("MTT"),
+			encode_token_name("Mytoken"),
+		));
+
+		assert_noop!(
+			EvmForeignAssets::create_foreign_asset(
+				RuntimeOrigin::root(),
+				2,
+				Location::parent(),
+				18,
+				encode_ticker("MTT"),
+				encode_token_name("Mytoken"),
+			),
+			Error::<Test>::LocationAlreadyExists
+		);
+
+		// Setup: create a second foreign asset that will try to override the first one
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::root(),
+			2,
+			Location::new(2, *&[]),
+			18,
+			encode_ticker("MTT"),
+			encode_token_name("Mytoken"),
+		));
+
+		assert_noop!(
+			EvmForeignAssets::change_xcm_location(RuntimeOrigin::root(), 2, Location::parent()),
+			Error::<Test>::LocationAlreadyExists
+		);
+	});
+}

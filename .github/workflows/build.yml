@@ -304,6 +304,8 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
+        with:
+          features: metadata-hash
       - name: Upload runtimes
         uses: actions/upload-artifact@v4
         with:

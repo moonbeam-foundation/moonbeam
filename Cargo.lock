@@ -6310,6 +6310,7 @@ dependencies = [
  "cumulus-pallet-xcmp-queue",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-storage-weight-reclaim",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
@@ -6321,6 +6322,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-executive",
  "frame-metadata",
+ "frame-metadata-hash-extension",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
@@ -6824,6 +6826,7 @@ dependencies = [
  "cumulus-pallet-xcmp-queue",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-storage-weight-reclaim",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
@@ -6835,6 +6838,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-executive",
  "frame-metadata",
+ "frame-metadata-hash-extension",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
@@ -7246,6 +7250,7 @@ dependencies = [
  "cumulus-pallet-xcmp-queue",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-storage-weight-reclaim",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
@@ -7257,6 +7262,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-executive",
  "frame-metadata",
+ "frame-metadata-hash-extension",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
@@ -15617,7 +15623,7 @@ dependencies = [
 [[package]]
 name = "sp-crypto-ec-utils"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.11.0#ef915632fbda727583b13813417664ecefc000b8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-v1.11.0#125e709e299d83556c21d668660fe37e2e3962cb"
 dependencies = [
  "ark-bls12-377",
  "ark-bls12-377-ext",

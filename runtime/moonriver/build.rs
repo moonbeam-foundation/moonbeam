@@ -16,10 +16,21 @@
 
 use substrate_wasm_builder::WasmBuilder;
 
+#[cfg(not(feature = "metadata-hash"))]
 fn main() {
 	WasmBuilder::new()
 		.with_current_project()
 		.export_heap_base()
 		.import_memory()
+		.build()
+}
+
+#[cfg(feature = "metadata-hash")]
+fn main() {
+	WasmBuilder::new()
+		.with_current_project()
+		.export_heap_base()
+		.import_memory()
+		.enable_metadata_hash("MOVR", 18)
 		.build()
 }
