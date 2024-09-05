@@ -20,7 +20,7 @@ describeSuite({
         const stateMigrationStatus =
           await paraApi.query.moonbeamLazyMigrations.stateMigrationStatusValue();
         const isError = stateMigrationStatus.toJSON()?.toString().toLowerCase().includes("error");
-        expect(isError).to.be.true;
+        expect(isError).not.to.be.true;
       },
     });
   },
