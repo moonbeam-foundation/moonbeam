@@ -13,7 +13,7 @@ CMD="docker run \
   -e CARGO_NET_GIT_FETCH_WITH_CLI=true \
   -e PACKAGE=${GH_WORKFLOW_MATRIX_CHAIN}-runtime \
   -e RUNTIME_DIR=runtime/${GH_WORKFLOW_MATRIX_CHAIN} \
-  -e BUILD_OPTS=\"--features on-chain-release-build\" \
+  -e BUILD_OPTS='--features on-chain-release-build' \
   -e PROFILE=production \
   -e WASM_BUILD_STD=0 \
   -v ${PWD}:/build \
