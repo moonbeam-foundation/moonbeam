@@ -56,7 +56,7 @@ pub mod pallet {
 	pub(crate) type StateMigrationStatusValue<T: Config> =
 		StorageValue<_, StateMigrationStatus, ValueQuery>;
 
-	pub(crate) type StorageKey = BoundedVec<u8, ConstU32<512>>;
+	pub(crate) type StorageKey = BoundedVec<u8, ConstU32<1_024>>;
 
 	#[derive(Clone, Encode, Decode, scale_info::TypeInfo, PartialEq, Eq, MaxEncodedLen, Debug)]
 	pub enum StateMigrationStatus {
