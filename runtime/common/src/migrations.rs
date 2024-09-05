@@ -244,9 +244,9 @@ where
 			// completed in runtime 2900
 			// Box::new(remove_pallet_democracy),
 			// Box::new(remove_collectives_addresses),
+			Box::new(MigrateCodeToStateTrieV1::<Runtime>(Default::default())),
 			// permanent migrations
 			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
-			Box::new(MigrateCodeToStateTrieV1::<Runtime>(Default::default())),
 		]
 	}
 }
