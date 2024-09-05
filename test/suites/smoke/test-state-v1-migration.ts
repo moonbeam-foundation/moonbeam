@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { ApiPromise } from "@polkadot/api";
-import { beforeAll, describeSuite, expect, MoonwallContext, ProviderMap } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
   id: "S27",
