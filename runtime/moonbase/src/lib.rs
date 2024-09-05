@@ -154,7 +154,7 @@ pub mod currency {
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 1 * GIGAWEI * SUPPLY_FACTOR;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROUNIT * SUPPLY_FACTOR;
-	pub const WEIGHT_FEE: Balance = 50 * KILOWEI * SUPPLY_FACTOR;
+	pub const WEIGHT_FEE: Balance = 50 * KILOWEI * SUPPLY_FACTOR / 4;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * UNIT * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
@@ -202,7 +202,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_version: 3200,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 2,
+	transaction_version: 3,
 	state_version: 0,
 };
 
@@ -497,7 +497,7 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 		// There's still some precision loss when the final `gas_price` (used_gas * min_gas_price)
 		// is computed in frontier, but that's currently unavoidable.
 		let min_gas_price = TransactionPayment::next_fee_multiplier()
-			.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128));
+			.saturating_mul_int((currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128));
 		(
 			min_gas_price.into(),
 			<Runtime as frame_system::Config>::DbWeight::get().reads(1),
@@ -1491,6 +1491,8 @@ pub type SignedExtra = (
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
+	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =

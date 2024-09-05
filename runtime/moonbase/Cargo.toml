@@ -79,6 +79,7 @@ moonbeam-rpc-primitives-txpool = { workspace = true }
 
 # Substrate
 frame-executive = { workspace = true }
+frame-metadata-hash-extension = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-system-rpc-runtime-api = { workspace = true }
@@ -163,6 +164,7 @@ cumulus-pallet-xcmp-queue = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 cumulus-primitives-timestamp = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
+cumulus-primitives-storage-weight-reclaim = { workspace = true }
 parachain-info = { workspace = true }
 parachains-common = { workspace = true }
 
@@ -212,12 +214,14 @@ std = [
 	"cumulus-primitives-core/std",
 	"cumulus-primitives-timestamp/std",
 	"cumulus-primitives-utility/std",
+	"cumulus-primitives-storage-weight-reclaim/std",
 	"evm-tracing-events/std",
 	"fp-evm/std",
 	"fp-rpc/std",
 	"fp-self-contained/std",
 	"frame-benchmarking/std",
 	"frame-executive/std",
+	"frame-metadata-hash-extension/std",
 	"frame-support/std",
 	"frame-system-rpc-runtime-api/std",
 	"frame-system/std",
@@ -262,7 +266,7 @@ std = [
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
 	"pallet-evm-precompileset-assets-erc20/std",
-  	"pallet-evm-precompile-storage-cleaner/std",
+	"pallet-evm-precompile-storage-cleaner/std",
 	"pallet-evm-precompile-p256verify/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
@@ -329,10 +333,13 @@ force-debug = ["sp-debug-derive/force-debug"]
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
 runtime-wasm = []
 
+# Enable the metadata hash generation in the wasm builder.
+metadata-hash = ["substrate-wasm-builder/metadata-hash"]
+
 # A feature that should be enabled when the runtime should be build for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
 # to make it smaller like logging for example.
-on-chain-release-build = ["sp-api/disable-logging"]
+on-chain-release-build = ["metadata-hash", "sp-api/disable-logging"]
 
 runtime-benchmarks = [
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
