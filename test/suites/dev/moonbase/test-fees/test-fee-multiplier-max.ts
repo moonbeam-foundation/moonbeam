@@ -84,7 +84,9 @@ describeSuite({
 
         // note that this is not really affected by the high multiplier because most of its fee is
         // derived from the length_fee, which is not scaled by the multiplier
-        expect(initialBalance - afterBalance).to.equal(449_284_776_265_723_667_008n);
+        // ~/4 to compensate for the ref time XCM fee changes
+        // Previous value: 449_284_776_265_723_667_008n
+        expect(initialBalance - afterBalance).to.equal(119_241_285_640_723_667_008n);
       },
     });
 
@@ -111,7 +113,9 @@ describeSuite({
         // grab the first withdraw event and hope it's the right one...
         const withdrawEvent = result?.events.filter(({ event }) => event.method == "Withdraw")[0];
         const amount = withdrawEvent.event.data.amount.toBigInt();
-        expect(amount).to.equal(6_000_000_012_598_000_941_192n);
+        // ~/4 to compensate for the ref time XCM fee changes
+        // Previous value: 6_000_000_012_598_000_941_192n
+        expect(amount).to.equal(1_500_000_003_223_000_941_192n);
       },
     });
 
