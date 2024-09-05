@@ -19,8 +19,8 @@ describeSuite({
       test: async function (context) {
         const stateMigrationStatus =
           await paraApi.query.moonbeamLazyMigrations.stateMigrationStatusValue();
-        const isError = stateMigrationStatus.toJSON()?.toString().toLowerCase().includes("error");
-        expect(isError).not.to.be.true;
+        const isError = stateMigrationStatus.toString().toLowerCase().includes("error");
+        expect(isError).to.be.false;
       },
     });
   },
