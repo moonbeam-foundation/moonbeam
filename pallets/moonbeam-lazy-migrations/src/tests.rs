@@ -275,13 +275,10 @@ fn count_keys_and_data_without_code() -> (u64, u64) {
 			current_key = sp_io::storage::next_key(&key);
 			continue;
 		}
-		// print!("Key: {} ", hexdisplay::ascii_format(&key));
 		keys += 1;
 		if let Some(_) = sp_io::storage::get(&key) {
-			// print!("HAS DATA");
 			data += 1;
 		}
-		// println!();
 		current_key = sp_io::storage::next_key(&key);
 	}
 
