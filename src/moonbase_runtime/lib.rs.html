@@ -1857,6 +1857,7 @@
 <a href="#1855" id="1855">1855</a>
 <a href="#1856" id="1856">1856</a>
 <a href="#1857" id="1857">1857</a>
+<a href="#1858" id="1858">1858</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2060,7 +2061,7 @@
 	spec_version: <span class="number">3200</span>,
 	impl_version: <span class="number">0</span>,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: <span class="number">2</span>,
+	transaction_version: <span class="number">3</span>,
 	state_version: <span class="number">0</span>,
 };
 
@@ -3334,6 +3335,7 @@
 	frame_system::CheckNonce&lt;Runtime&gt;,
 	frame_system::CheckWeight&lt;Runtime&gt;,
 	pallet_transaction_payment::ChargeTransactionPayment&lt;Runtime&gt;,
+	frame_metadata_hash_extension::CheckMetadataHash&lt;Runtime&gt;,
 	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim&lt;Runtime&gt;,
 );
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.
