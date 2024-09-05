@@ -40,6 +40,8 @@ moonbase-native = [ "moonbeam-cli/moonbase-native", "moonbeam-service/moonbase-n
 moonbeam-native = [ "moonbeam-cli/moonbeam-native", "moonbeam-service/moonbeam-native" ]
 moonriver-native = [ "moonbeam-cli/moonriver-native", "moonbeam-service/moonriver-native" ]
 
+metadata-hash = ["moonbeam-service/metadata-hash"]
+
 test-spec = []
 
 runtime-benchmarks = [

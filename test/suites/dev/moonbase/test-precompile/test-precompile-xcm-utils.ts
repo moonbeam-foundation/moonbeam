@@ -147,8 +147,8 @@ describeSuite({
           // PalletInstance: Selector (04) + palconst instance 1 byte (03)
           [x2_pallet_instance_enum_selector + x2_instance],
         ];
-
-        const expectedUnitsPerSecond = 50_000n * 1_000_000_000_000n;
+        // Dividing by four the xcm fees constant to match the x4 cpu per block
+        const expectedUnitsPerSecond = (50_000n / 4n) * 1_000_000_000_000n;
 
         expect(
           await context.readPrecompile!({
