@@ -68,6 +68,9 @@ contract TraceFilter {
     }
 }
 
+event EventArgs0();
+event EventArgs1(string);
+
 contract TraceCallee {
     uint256 public store;
 
@@ -76,14 +79,29 @@ contract TraceCallee {
         store = _value;
         return _value + x;
     }
+
+    function emitSomeLogs(address addr) public {
+        emit EventArgs0();
+        emit EventArgs1("SUBCALL_TEST");
+
+        TraceCaller caller = TraceCaller(addr);
+        caller.someAction(address(this), 1);
+    }
 }
 
 contract TraceCaller {
     TraceCallee internal callee;
     uint256 public store;
 
-    function someAction(address _addr, uint256 _number) public {
-        callee = TraceCallee(_addr);
-        store = callee.addtwo(_number);
+    function someAction(address addr, uint256 number) public {
+        callee = TraceCallee(addr);
+        store = callee.addtwo(number);
+    }
+
+    function emitSomeLogs(address addr) public {
+        emit EventArgs0();
+        emit EventArgs1("TEST");
+        callee = TraceCallee(addr);
+        callee.emitSomeLogs(address(this));
     }
 }

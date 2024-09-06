@@ -3229,7 +3229,7 @@ dependencies = [
 [[package]]
 name = "evm"
 version = "0.41.1"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-v1.11.0#27d2b3b83ec4a72f09e9303f576377be948a57a7"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-v1.11.0#25cf24198458187c96cdf1138c11b244f9e35f6f"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -3249,7 +3249,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-v1.11.0#27d2b3b83ec4a72f09e9303f576377be948a57a7"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-v1.11.0#25cf24198458187c96cdf1138c11b244f9e35f6f"
 dependencies = [
  "parity-scale-codec",
  "primitive-types",
@@ -3260,7 +3260,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-v1.11.0#27d2b3b83ec4a72f09e9303f576377be948a57a7"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-v1.11.0#25cf24198458187c96cdf1138c11b244f9e35f6f"
 dependencies = [
  "environmental",
  "evm-core",
@@ -3271,7 +3271,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-v1.11.0#27d2b3b83ec4a72f09e9303f576377be948a57a7"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-v1.11.0#25cf24198458187c96cdf1138c11b244f9e35f6f"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -10584,8 +10584,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes 0.13.0",
- "rand 0.8.5",
- "rand_core 0.6.4",
+ "rand 0.7.3",
+ "rand_core 0.5.1",
  "serde",
  "unicode-normalization",
 ]
@@ -17475,7 +17475,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
