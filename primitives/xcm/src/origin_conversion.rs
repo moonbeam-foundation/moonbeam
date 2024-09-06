@@ -102,3 +102,9 @@ where
 			)
 	}
 }
+
+/// Helper trait to know the Asset Hub location on each runtime.
+pub trait AssetHubLocationHelper<CurrencyId> {
+	fn get_asset_hub_location() -> Location;
+	fn get_native_asset_hub_location() -> CurrencyId;
+}

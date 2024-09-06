@@ -32,6 +32,7 @@ use sp_std::{
 	boxed::Box,
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
+	str::FromStr,
 	vec::Vec,
 };
 use sp_weights::Weight;
@@ -39,7 +40,7 @@ use xcm::{
 	latest::{Asset, AssetId, Assets, Fungibility, Location, WeightLimit},
 	VersionedAsset, VersionedAssets, VersionedLocation,
 };
-use xcm_primitives::{AccountIdToCurrencyId, DEFAULT_PROOF_SIZE};
+use xcm_primitives::{AccountIdToCurrencyId, AssetHubLocationHelper, DEFAULT_PROOF_SIZE};
 
 #[cfg(test)]
 mod mock;
@@ -75,6 +76,7 @@ where
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
+	Runtime: AssetHubLocationHelper<CurrencyIdOf<Runtime>>,
 {
 	#[precompile::public("transfer(address,uint256,(uint8,bytes[]),uint64)")]
 	fn transfer(
@@ -88,9 +90,11 @@ where
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		// We convert the address into a currency id xtokens understands
-		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
+		let mut currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
+
+		Self::maybe_convert_currency_id(to_address, destination.clone(), &mut currency_id);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let amount = amount
@@ -134,10 +138,12 @@ where
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		// We convert the address into a currency id xtokens understands
-		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
+		let mut currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account).ok_or(
 				RevertReason::custom("Cannot convert into currency id").in_field("currencyAddress"),
 			)?;
+
+		Self::maybe_convert_currency_id(to_address, destination.clone(), &mut currency_id);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -189,6 +195,8 @@ where
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("amount"))?;
 
+		let asset = Self::maybe_convert_location(asset.clone(), destination.clone());
+
 		let dest_weight_limit = if weight == u64::MAX {
 			WeightLimit::Unlimited
 		} else {
@@ -235,6 +243,8 @@ where
 		let fee = fee
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("fee"))?;
+
+		let asset = Self::maybe_convert_location(asset.clone(), destination.clone());
 
 		let dest_weight_limit = if weight == u64::MAX {
 			WeightLimit::Unlimited
@@ -293,17 +303,22 @@ where
 						.in_field("currencies")
 				})?;
 
-				Ok((
-					Runtime::account_to_currency_id(Runtime::AddressMapping::into_account_id(
-						address_as_h160,
-					))
-					.ok_or(
-						RevertReason::custom("Cannot convert into currency id")
-							.in_array(index)
-							.in_field("currencies"),
-					)?,
-					amount,
-				))
+				let mut currency_id = Runtime::account_to_currency_id(
+					Runtime::AddressMapping::into_account_id(address_as_h160),
+				)
+				.ok_or(
+					RevertReason::custom("Cannot convert into currency id")
+						.in_array(index)
+						.in_field("currencies"),
+				)?;
+
+				Self::maybe_convert_currency_id(
+					address_as_h160,
+					destination.clone(),
+					&mut currency_id,
+				);
+
+				Ok((currency_id, amount))
 			})
 			.collect::<EvmResult<_>>()?;
 
@@ -355,7 +370,11 @@ where
 						.in_array(index)
 						.in_field("assets")
 				})?;
-				Ok((evm_multiasset.location, to_balance).into())
+
+				let asset_location =
+					Self::maybe_convert_location(evm_multiasset.location, destination.clone());
+
+				Ok((asset_location, to_balance).into())
 			})
 			.collect();
 
@@ -387,6 +406,31 @@ where
 		)?;
 
 		Ok(())
+	}
+
+	fn maybe_convert_currency_id(
+		currency_address: H160,
+		destination: Location,
+		currency_id_to_convert: &mut <Runtime as orml_xtokens::Config>::CurrencyId,
+	) {
+		let is_xcdot_currency: bool =
+			if let Ok(xcdot_addr) = H160::from_str("FfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080") {
+				currency_address == xcdot_addr
+			} else {
+				false
+			};
+
+		if is_xcdot_currency && destination == Runtime::get_asset_hub_location() {
+			*currency_id_to_convert = Runtime::get_native_asset_hub_location();
+		}
+	}
+
+	fn maybe_convert_location(asset_location: Location, destination: Location) -> Location {
+		if asset_location == Location::parent() && destination == Runtime::get_asset_hub_location()
+		{
+			return Runtime::get_asset_hub_location();
+		}
+		asset_location
 	}
 }
 
