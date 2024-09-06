@@ -268,6 +268,11 @@ pub mod pallet {
 		pub fn weight_of_erc20_transfer() -> Weight {
 			T::GasWeightMapping::gas_to_weight(evm::ERC20_TRANSFER_GAS_LIMIT, true)
 		}
+		#[cfg(feature = "runtime-benchmarks")]
+		pub fn set_asset(asset_location: Location, asset_id: AssetId) {
+			AssetsByLocation::<T>::insert(&asset_location, (asset_id, AssetStatus::Active));
+			AssetsById::<T>::insert(&asset_id, asset_location);
+		}
 	}
 
 	#[pallet::call]

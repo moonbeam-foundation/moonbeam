@@ -945,20 +945,14 @@ macro_rules! impl_runtime_apis_plus_common {
 									id: AssetId(location),
 									fun: Fungible(_)
 								} = asset {
-									<AssetManager as xcm_primitives::AssetTypeGetter<
-										<Runtime as PalletAssetManagerConfig>::AssetId,
-										<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
-									>::set_asset_type_asset_id(
-										location.clone().try_into().expect("convert to v3"),
+									EvmForeignAssets::set_asset(
+										location.clone(),
 										i as u128
 									);
-									// set 1-1 TODO: update before merging PR-2908
-									/*<AssetManager as xcm_primitives::UnitsToWeightRatio<
-										<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
-									>::set_units_per_second(
-										location.clone().try_into().expect("convert to v3"),
-										1_000_000_000_000u128
-									);*/
+									XcmWeightTrader::set_asset_price(
+										location.clone(),
+										1u128.pow(18)
+									);
 								}
 							}
 							assets.into()

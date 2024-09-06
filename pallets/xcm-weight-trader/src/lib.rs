@@ -307,6 +307,10 @@ pub mod pallet {
 				Err(XcmPaymentApiError::UnhandledXcmVersion)
 			}
 		}
+		#[cfg(feature = "runtime-benchmarks")]
+		pub fn set_asset_price(asset_location: Location, relative_price: u128) {
+			SupportedAssets::<T>::insert(&asset_location, (true, relative_price));
+		}
 	}
 }
 
