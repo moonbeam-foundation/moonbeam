@@ -86,6 +86,7 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -118,6 +119,7 @@
 	<span class="kw">pub </span>disable_stack: <span class="prelude-ty">Option</span>&lt;bool&gt;,
 	<span class="doccomment">/// Javascript tracer (we just check if it's Blockscout tracer string)
 	</span><span class="kw">pub </span>tracer: <span class="prelude-ty">Option</span>&lt;String&gt;,
+	<span class="kw">pub </span>tracer_config: <span class="prelude-ty">Option</span>&lt;single::TraceCallConfig&gt;,
 	<span class="kw">pub </span>timeout: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 

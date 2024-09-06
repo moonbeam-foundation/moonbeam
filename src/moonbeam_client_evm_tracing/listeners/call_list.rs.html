@@ -1130,6 +1130,97 @@
 <a href="#1128" id="1128">1128</a>
 <a href="#1129" id="1129">1129</a>
 <a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
+<a href="#1159" id="1159">1159</a>
+<a href="#1160" id="1160">1160</a>
+<a href="#1161" id="1161">1161</a>
+<a href="#1162" id="1162">1162</a>
+<a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
+<a href="#1169" id="1169">1169</a>
+<a href="#1170" id="1170">1170</a>
+<a href="#1171" id="1171">1171</a>
+<a href="#1172" id="1172">1172</a>
+<a href="#1173" id="1173">1173</a>
+<a href="#1174" id="1174">1174</a>
+<a href="#1175" id="1175">1175</a>
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1148,7 +1239,7 @@
 
 </span><span class="kw">use </span><span class="kw">crate</span>::formatters::blockscout::BlockscoutCall <span class="kw">as </span>Call;
 <span class="kw">use </span><span class="kw">crate</span>::formatters::blockscout::BlockscoutCallInner <span class="kw">as </span>CallInner;
-<span class="kw">use </span><span class="kw">crate</span>::types::{CallResult, CallType, ContextType, CreateResult};
+<span class="kw">use </span><span class="kw">crate</span>::types::{single::Log, CallResult, CallType, ContextType, CreateResult};
 <span class="kw">use </span>ethereum_types::{H160, U256};
 <span class="kw">use </span>evm_tracing_events::{
 	runtime::{Capture, ExitError, ExitReason, ExitSucceed},
@@ -1182,7 +1273,7 @@
 	<span class="comment">// Next index to use.
 	</span>entries_next_index: u32,
 	<span class="comment">// Stack of contexts with data to keep between events.
-	</span>context_stack: Vec&lt;Context&gt;,
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) context_stack: Vec&lt;Context&gt;,
 
 	<span class="comment">// Type of the next call.
 	// By default is None and corresponds to the root call, which
@@ -1211,9 +1302,12 @@
 	<span class="doccomment">/// True if only the `GasometerEvent::RecordTransaction` event has been received.
 	/// Allow to correctly handle transactions that cannot pay for the tx data in Legacy mode.
 	</span>record_transaction_event_only: bool,
+
+	<span class="doccomment">/// If true the listener will collect EvmEvent::Log events.
+	</span><span class="kw">pub </span>with_log: bool,
 }
 
-<span class="kw">struct </span>Context {
+<span class="kw">pub struct </span>Context {
 	entries_index: u32,
 
 	context_type: ContextType,
@@ -1230,6 +1324,8 @@
 	</span>data: Vec&lt;u8&gt;,
 	<span class="comment">// to / create address
 	</span>to: H160,
+
+	logs: Vec&lt;Log&gt;,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Listener {
@@ -1248,6 +1344,7 @@
 			skip_next_context: <span class="bool-val">false</span>,
 			call_list_first_transaction: <span class="bool-val">true</span>,
 			record_transaction_event_only: <span class="bool-val">false</span>,
+			with_log: <span class="bool-val">false</span>,
 		}
 	}
 }
@@ -1292,6 +1389,7 @@
 							input: context.data,
 							res,
 						},
+						logs: context.logs,
 					}
 				}
 				ContextType::Create =&gt; {
@@ -1310,6 +1408,7 @@
 							init: context.data,
 							res,
 						},
+						logs: context.logs,
 					}
 				}
 			};
@@ -1340,6 +1439,7 @@
 					input: <span class="macro">vec!</span>[],
 					res,
 				},
+				logs: Vec::&lt;Log&gt;::new(),
 			};
 
 			<span class="self">self</span>.insert_entry(<span class="self">self</span>.entries_next_index, entry);
@@ -1432,6 +1532,8 @@
 
 					data,
 					to: address,
+
+					logs: Vec::new(),
 				});
 
 				<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
@@ -1462,6 +1564,8 @@
 
 					data: init_code,
 					to: address,
+
+					logs: Vec::new(),
 				});
 
 				<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
@@ -1492,6 +1596,8 @@
 
 					data: init_code,
 					to: address,
+
+					logs: Vec::new(),
 				});
 
 				<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
@@ -1547,6 +1653,8 @@
 
 						data: input.to_vec(),
 						to: code_address,
+
+						logs: Vec::new(),
 					});
 
 					<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
@@ -1590,6 +1698,8 @@
 
 						data: init_code.to_vec(),
 						to: address,
+
+						logs: Vec::new(),
 					});
 
 					<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
@@ -1624,6 +1734,7 @@
 							to: target,
 							balance,
 						},
+						logs: Vec::&lt;Log&gt;::new(),
 					},
 				);
 				<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
@@ -1650,6 +1761,21 @@
 				// we need this new event. Precompile subcall might use non-standard call
 				// behavior (like batch precompile does) thus we simply consider this a call.
 				</span><span class="self">self</span>.call_type = <span class="prelude-val">Some</span>(CallType::Call);
+			}
+			EvmEvent::Log {
+				address,
+				topics,
+				data,
+			} =&gt; {
+				<span class="kw">if </span><span class="self">self</span>.with_log {
+					<span class="kw">if let </span><span class="prelude-val">Some</span>(stack) = <span class="self">self</span>.context_stack.last_mut() {
+						stack.logs.push(Log {
+							address,
+							topics,
+							data,
+						});
+					}
+				}
 			}
 
 			<span class="comment">// We ignore other kinds of message if any (new ones may be added in the future).
@@ -1709,6 +1835,7 @@
 								input: context.data,
 								res,
 							},
+							logs: context.logs,
 						}
 					}
 					ContextType::Create =&gt; {
@@ -1737,6 +1864,7 @@
 								init: context.data,
 								res,
 							},
+							logs: context.logs,
 						}
 					}
 				},
@@ -1797,6 +1925,7 @@
 #[allow(unused)]
 </span><span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span><span class="kw">crate</span>::formatters::blockscout::BlockscoutCallInner;
 	<span class="kw">use </span>ethereum_types::H256;
 	<span class="kw">use </span>evm_tracing_events::{
 		evm::CreateScheme,
@@ -1813,6 +1942,7 @@
 		TransactCall,
 		TransactCreate,
 		TransactCreate2,
+		Log,
 	}
 
 	<span class="kw">enum </span>TestRuntimeEvent {
@@ -1914,6 +2044,11 @@
 				gas_limit: <span class="number">0u64</span>,
 				address: H160::default(),
 			},
+			TestEvmEvent::Log =&gt; EvmEvent::Log {
+				address: H160::default(),
+				topics: Vec::new(),
+				data: Vec::new(),
+			},
 		}
 	}
 
@@ -2006,6 +2141,10 @@
 
 	<span class="kw">fn </span>do_evm_suicide_event(listener: <span class="kw-2">&amp;mut </span>Listener) {
 		listener.evm_event(test_emit_evm_event(TestEvmEvent::Suicide, <span class="bool-val">false</span>, <span class="prelude-val">None</span>));
+	}
+
+	<span class="kw">fn </span>do_evm_log_event(listener: <span class="kw-2">&amp;mut </span>Listener) {
+		listener.evm_event(test_emit_evm_event(TestEvmEvent::Log, <span class="bool-val">false</span>, <span class="prelude-val">None</span>));
 	}
 
 	<span class="kw">fn </span>do_runtime_step_event(listener: <span class="kw-2">&amp;mut </span>Listener) {
@@ -2258,6 +2397,49 @@
 		<span class="comment">// Each nested call contains 11 elements in the callstack (main + 10 subcalls).
 		// There are 5 main nested calls for a total of 56 elements in the callstack: 1 main + 55 nested.
 		</span><span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), (depth * (subdepth + <span class="number">1</span>)) + <span class="number">1</span>);
+	}
+
+	<span class="attr">#[test]
+	</span><span class="kw">fn </span>call_log_event() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		listener.with_log = <span class="bool-val">true</span>;
+		do_transact_create_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_create_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_log_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">2</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].get(<span class="kw-2">&amp;</span><span class="number">1</span>).unwrap().logs.len(), <span class="number">1</span>);
+	}
+
+	<span class="attr">#[test]
+	</span><span class="kw">fn </span>call_multiple_logs_event() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		listener.with_log = <span class="bool-val">true</span>;
+		do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_log_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_log_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].get(<span class="kw-2">&amp;</span><span class="number">0</span>).unwrap().logs.len(), <span class="number">2</span>);
+	}
+
+	<span class="attr">#[test]
+	</span><span class="kw">fn </span>call_log_event_not_recorder_when_with_log_is_false() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_log_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_log_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].get(<span class="kw-2">&amp;</span><span class="number">0</span>).unwrap().logs.len(), <span class="number">0</span>);
 	}
 }
 </code></pre></div></section></main></body></html>

@@ -314,6 +314,13 @@
 <a href="#312" id="312">312</a>
 <a href="#313" id="313">313</a>
 <a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -332,7 +339,7 @@
 
 </span><span class="kw">use </span><span class="kw">super</span>::blockscout::BlockscoutCallInner;
 <span class="kw">use </span><span class="kw">crate</span>::types::{
-	single::{Call, TransactionTrace},
+	single::{Call, Log, TransactionTrace},
 	CallResult, CallType, CreateResult,
 };
 
@@ -386,8 +393,12 @@
 								},
 								to,
 								input,
-								res,
+								res: res.clone(),
 								value: <span class="prelude-val">Some</span>(value),
+								logs: <span class="kw">match </span>res {
+									CallResult::Output { .. } =&gt; it.logs.clone(),
+									CallResult::Error { .. } =&gt; Vec::new(),
+								},
 							},
 							BlockscoutCallInner::Create { init, res } =&gt; CallTracerInner::Create {
 								input: init,
@@ -601,6 +612,9 @@
 
 		<span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
 		</span>value: <span class="prelude-ty">Option</span>&lt;U256&gt;,
+
+		<span class="attr">#[serde(skip_serializing_if = <span class="string">"Vec::is_empty"</span>)]
+		</span>logs: Vec&lt;Log&gt;,
 	},
 	Create {
 		<span class="attr">#[serde(rename = <span class="string">"type"</span>, serialize_with = <span class="string">"opcode_serialize"</span>)]

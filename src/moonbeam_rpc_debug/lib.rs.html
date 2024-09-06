@@ -892,6 +892,18 @@
 <a href="#890" id="890">890</a>
 <a href="#891" id="891">891</a>
 <a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1194,11 +1206,18 @@
 		(fut, tx)
 	}
 
-	<span class="kw">fn </span>handle_params(params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;) -&gt; RpcResult&lt;(TracerInput, single::TraceType)&gt; {
+	<span class="kw">fn </span>handle_params(
+		params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;,
+	) -&gt; RpcResult&lt;(
+		TracerInput,
+		single::TraceType,
+		<span class="prelude-ty">Option</span>&lt;single::TraceCallConfig&gt;,
+	)&gt; {
 		<span class="comment">// Set trace input and type
 		</span><span class="kw">match </span>params {
 			<span class="prelude-val">Some</span>(TraceParams {
 				tracer: <span class="prelude-val">Some</span>(tracer),
+				tracer_config,
 				..
 			}) =&gt; {
 				<span class="kw">const </span>BLOCKSCOUT_JS_CODE_HASH: [u8; <span class="number">16</span>] =
@@ -1215,7 +1234,7 @@
 						<span class="prelude-val">None
 					</span>};
 				<span class="kw">if let </span><span class="prelude-val">Some</span>(tracer) = tracer {
-					<span class="prelude-val">Ok</span>((tracer, single::TraceType::CallList))
+					<span class="prelude-val">Ok</span>((tracer, single::TraceType::CallList, tracer_config))
 				} <span class="kw">else </span>{
 					<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="macro">format!</span>(
 						<span class="string">"javascript based tracing is not available (hash :{:?})"</span>,
@@ -1230,6 +1249,7 @@
 					disable_memory: params.disable_memory.unwrap_or(<span class="bool-val">false</span>),
 					disable_stack: params.disable_stack.unwrap_or(<span class="bool-val">false</span>),
 				},
+				params.tracer_config,
 			)),
 			<span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>((
 				TracerInput::None,
@@ -1238,6 +1258,7 @@
 					disable_memory: <span class="bool-val">false</span>,
 					disable_stack: <span class="bool-val">false</span>,
 				},
+				<span class="prelude-val">None</span>,
 			)),
 		}
 	}
@@ -1250,7 +1271,7 @@
 		params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;,
 		overrides: Arc&lt;<span class="kw">dyn </span>StorageOverride&lt;B&gt;&gt;,
 	) -&gt; RpcResult&lt;Response&gt; {
-		<span class="kw">let </span>(tracer_input, trace_type) = <span class="self">Self</span>::handle_params(params)<span class="question-mark">?</span>;
+		<span class="kw">let </span>(tracer_input, trace_type, tracer_config) = <span class="self">Self</span>::handle_params(params)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>reference_id: BlockId&lt;B&gt; = <span class="kw">match </span>request_block_id {
 			RequestBlockId::Number(n) =&gt; <span class="prelude-val">Ok</span>(BlockId::Number(n.unique_saturated_into())),
@@ -1361,6 +1382,7 @@
 		<span class="kw">return match </span>trace_type {
 			single::TraceType::CallList =&gt; {
 				<span class="kw">let </span><span class="kw-2">mut </span>proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+				proxy.with_log = tracer_config.map_or(<span class="bool-val">false</span>, |cfg| cfg.with_log);
 				proxy.using(f)<span class="question-mark">?</span>;
 				proxy.finish_transaction();
 				<span class="kw">let </span>response = <span class="kw">match </span>tracer_input {
@@ -1400,7 +1422,7 @@
 		overrides: Arc&lt;<span class="kw">dyn </span>StorageOverride&lt;B&gt;&gt;,
 		raw_max_memory_usage: usize,
 	) -&gt; RpcResult&lt;Response&gt; {
-		<span class="kw">let </span>(tracer_input, trace_type) = <span class="self">Self</span>::handle_params(params)<span class="question-mark">?</span>;
+		<span class="kw">let </span>(tracer_input, trace_type, tracer_config) = <span class="self">Self</span>::handle_params(params)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>(hash, index) =
 			<span class="kw">match </span>futures::executor::block_on(frontier_backend_client::load_transactions::&lt;B, C&gt;(
@@ -1543,6 +1565,7 @@
 					}
 					single::TraceType::CallList =&gt; {
 						<span class="kw">let </span><span class="kw-2">mut </span>proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+						proxy.with_log = tracer_config.map_or(<span class="bool-val">false</span>, |cfg| cfg.with_log);
 						proxy.using(f)<span class="question-mark">?</span>;
 						proxy.finish_transaction();
 						<span class="kw">let </span>response = <span class="kw">match </span>tracer_input {
@@ -1584,7 +1607,7 @@
 		trace_params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;,
 		raw_max_memory_usage: usize,
 	) -&gt; RpcResult&lt;Response&gt; {
-		<span class="kw">let </span>(tracer_input, trace_type) = <span class="self">Self</span>::handle_params(trace_params)<span class="question-mark">?</span>;
+		<span class="kw">let </span>(tracer_input, trace_type, tracer_config) = <span class="self">Self</span>::handle_params(trace_params)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>reference_id: BlockId&lt;B&gt; = <span class="kw">match </span>request_block_id {
 			RequestBlockId::Number(n) =&gt; <span class="prelude-val">Ok</span>(BlockId::Number(n.unique_saturated_into())),
@@ -1756,6 +1779,7 @@
 			}
 			single::TraceType::CallList =&gt; {
 				<span class="kw">let </span><span class="kw-2">mut </span>proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+				proxy.with_log = tracer_config.map_or(<span class="bool-val">false</span>, |cfg| cfg.with_log);
 				proxy.using(f)<span class="question-mark">?</span>;
 				proxy.finish_transaction();
 				<span class="kw">let </span>response = <span class="kw">match </span>tracer_input {
