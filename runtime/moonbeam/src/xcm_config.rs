@@ -18,9 +18,10 @@
 //!
 
 use super::{
-	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees, Erc20XcmBridge,
-	MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees,
+	EmergencyParaXcm, Erc20XcmBridge, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance,
+	ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 
 use frame_support::{
@@ -422,7 +423,7 @@ parameter_types! {
 	/// A good value depends on the expected message sizes, their weights, the weight that is
 	/// available for processing them and the maximal needed message size. The maximal message
 	/// size is slightly lower than this as defined by [`MaxMessageLenOf`].
-	pub const MessageQueueHeapSize: u32 = 128 * 1048;
+	pub const MessageQueueHeapSize: u32 = 103 * 1024;
 }
 
 impl pallet_message_queue::Config for Runtime {
@@ -442,9 +443,29 @@ impl pallet_message_queue::Config for Runtime {
 	// The XCMP queue pallet is only ever able to handle the `Sibling(ParaId)` origin:
 	type QueueChangeHandler = NarrowOriginToSibling<XcmpQueue>;
 	// NarrowOriginToSibling calls XcmpQueue's is_paused if Origin is sibling. Allows all other origins
-	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
-	type WeightInfo = pallet_message_queue::weights::SubstrateWeight<Runtime>;
+	type QueuePausedQuery = EmergencyParaXcm;
+	type WeightInfo = moonbeam_weights::pallet_message_queue::WeightInfo<Runtime>;
 	type IdleMaxServiceWeight = MessageQueueServiceWeight;
+}
+
+pub type FastAuthorizeUpgradeOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>,
+>;
+
+pub type ResumeXcmOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>,
+>;
+
+impl pallet_emergency_para_xcm::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type CheckAssociatedRelayNumber =
+		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
+	type PausedThreshold = ConstU32<300>;
+	type FastAuthorizeUpgradeOrigin = FastAuthorizeUpgradeOrigin;
+	type PausedToNormalOrigin = ResumeXcmOrigin;
 }
 
 // Our AssetType. For now we only handle Xcm Assets
@@ -697,7 +718,7 @@ parameter_types! {
 
 	// To be able to support almost all erc20 implementations,
 	// we provide a sufficiently hight gas limit.
-	pub Erc20XcmBridgeTransferGasLimit: u64 = 400_000;
+	pub Erc20XcmBridgeTransferGasLimit: u64 = 800_000;
 }
 
 impl pallet_erc20_xcm_bridge::Config for Runtime {
@@ -705,6 +726,28 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
 	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+}
+
+pub struct AccountIdToH160;
+impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
+	fn convert(account_id: AccountId) -> H160 {
+		account_id.into()
+	}
+}
+
+impl pallet_moonbeam_foreign_assets::Config for Runtime {
+	type AccountIdToH160 = AccountIdToH160;
+	type AssetIdFilter = Nothing;
+	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type ForeignAssetCreatorOrigin = frame_system::EnsureNever<AccountId>;
+	type ForeignAssetFreezerOrigin = frame_system::EnsureNever<AccountId>;
+	type ForeignAssetModifierOrigin = frame_system::EnsureNever<AccountId>;
+	type ForeignAssetUnfreezerOrigin = frame_system::EnsureNever<AccountId>;
+	type OnForeignAssetCreated = ();
+	type MaxForeignAssets = ConstU32<256>;
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = moonbeam_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
+	type XcmLocationToH160 = LocationToH160;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

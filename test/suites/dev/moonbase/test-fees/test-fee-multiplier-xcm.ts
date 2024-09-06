@@ -14,7 +14,7 @@ import {
 // export const TARGET_FILL_AMOUNT =
 //   ((MAX_BLOCK_WEIGHT * 0.75 * 0.25 - EXTRINSIC_BASE_WEIGHT) / MAX_BLOCK_WEIGHT) * 1_000_000_000;
 // In 0.9.43 rootTesting::fillBlock() now uses more weight so we need to account for that
-const TARGET_FILL_AMOUNT = 262_212_900;
+const TARGET_FILL_AMOUNT = 262_349_350;
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -37,7 +37,7 @@ describeSuite({
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       random = generateKeyringPair();
-      transferredBalance = 10_000_000_000_000_000_000n;
+      transferredBalance = 100_000_000_000_000_000_000n;
 
       await expectOk(
         context.createBlock(
@@ -177,8 +177,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 110000n,
+            refTime: 9_000_000_000n,
+            proofSize: 150_000n,
           },
           descend_origin: sendingAddress,
         })
@@ -292,8 +292,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 110000n,
+            refTime: 9_000_000_000n,
+            proofSize: 150_000n,
           },
           descend_origin: sendingAddress,
         })

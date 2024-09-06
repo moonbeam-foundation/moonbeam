@@ -25,7 +25,7 @@ describeSuite({
     beforeAll(async () => {
       random = generateKeyringPair();
       sovereignAddress = sovereignAccountOfSibling(context, 2000);
-      transferredBalance = 100000000000000n;
+      transferredBalance = 1_000_000_000_000_000n;
 
       // We first fund parachain 2000 sovreign account
       await context.createBlock(
@@ -63,8 +63,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 4000000000n,
-            proofSize: 80000n,
+            refTime: 9_000_000_000n,
+            proofSize: 100_000n,
           } as any,
           beneficiary: random.address,
         })
@@ -80,7 +80,8 @@ describeSuite({
         );
         // We are charging chargedWeight
         // chargedWeight * 50000 = chargedFee
-        const chargedFee = chargedWeight * 50000n;
+        // Dividing by four the xcm fees constant to match the x4 cpu per block
+        const chargedFee = (chargedWeight * 50000n) / 4n;
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, foreign_para_id, {

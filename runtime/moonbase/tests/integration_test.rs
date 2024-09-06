@@ -1092,7 +1092,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(BOB.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(1669)
 				.expect_no_logs()
 				.execute_returns(false);
 
@@ -1105,7 +1105,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(1669)
 				.expect_no_logs()
 				.execute_returns(true);
 		})
@@ -1176,7 +1176,7 @@ fn reward_info_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1000)
+				.expect_cost(1669)
 				.expect_no_logs()
 				.execute_returns((expected_total, expected_claimed));
 		})
@@ -1353,7 +1353,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 					asset_precompile_address,
 					ForeignAssetsPCall::total_supply {},
 				)
-				.expect_cost(2000)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * UNIT));
 
@@ -1366,7 +1366,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 						who: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(2000)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * UNIT));
 		});
@@ -1408,7 +1408,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(24342)
+				.expect_cost(24695)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1427,7 +1427,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						who: Address(BOB.into()),
 					},
 				)
-				.expect_cost(2000)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * UNIT));
 		});
@@ -1469,7 +1469,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(14424)
+				.expect_cost(15604)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1490,7 +1490,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * UNIT }.into(),
 					},
 				)
-				.expect_cost(29686)
+				.expect_cost(29960)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1509,7 +1509,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						who: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(2000)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * UNIT));
 		});
@@ -1568,7 +1568,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(209239)
+				.expect_cost(348090)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1659,7 +1659,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(209239)
+				.expect_cost(348090)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1869,7 +1869,7 @@ fn initial_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				10_000_000_000u128.into(),
-				Weight::from_parts(25_000_000u64, 0)
+				Weight::from_parts(41_742_000u64, 0)
 			)
 		);
 	});
@@ -2282,7 +2282,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(18748)
+				.expect_cost(23278)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2322,7 +2322,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(18748)
+				.expect_cost(23278)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2404,7 +2404,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(15119)
+				.expect_cost(14212)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2426,7 +2426,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14723)
+				.expect_cost(13817)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2447,7 +2447,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15158)
+				.expect_cost(14251)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2490,7 +2490,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16233)
+				.expect_cost(15996)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2515,7 +2515,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16233)
+				.expect_cost(15996)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2546,7 +2546,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(1000)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2566,7 +2566,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(1000)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2596,7 +2596,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(1000)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
@@ -2636,7 +2636,7 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(1000)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});
@@ -3021,7 +3021,9 @@ mod fee_tests {
 			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
 			let actual = TransactionPaymentAsGasPrice::min_gas_price().0;
 			let expected: U256 = multiplier
-				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
+				.saturating_mul_int(
+					(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128),
+				)
 				.into();
 
 			assert_eq!(expected, actual);
@@ -3058,7 +3060,8 @@ mod fee_tests {
 			.unwrap()
 			.into();
 		t.execute_with(|| {
-			let weight_fee_per_gas = currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128);
+			let weight_fee_per_gas =
+				(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128);
 			let sim = |start_gas_price: u128, fullness: Perbill, num_blocks: u64| -> U256 {
 				let start_multiplier =
 					FixedU128::from_rational(start_gas_price, weight_fee_per_gas);

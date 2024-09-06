@@ -94,6 +94,7 @@ import type {
   PalletRandomnessRequestState,
   PalletRandomnessRequestType,
   PalletReferendaReferendumInfo,
+  PalletSchedulerRetryConfig,
   PalletSchedulerScheduled,
   PalletTransactionPaymentReleases,
   PalletTreasuryProposal,
@@ -104,10 +105,10 @@ import type {
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   PalletXcmVersionMigrationStage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
-  PolkadotPrimitivesV6AbridgedHostConfiguration,
-  PolkadotPrimitivesV6PersistedValidationData,
-  PolkadotPrimitivesV6UpgradeGoAhead,
-  PolkadotPrimitivesV6UpgradeRestriction,
+  PolkadotPrimitivesV7AbridgedHostConfiguration,
+  PolkadotPrimitivesV7PersistedValidationData,
+  PolkadotPrimitivesV7UpgradeGoAhead,
+  PolkadotPrimitivesV7UpgradeRestriction,
   SpRuntimeDigest,
   SpTrieStorageProof,
   SpWeightsWeightV2Weight,
@@ -325,6 +326,9 @@ declare module "@polkadot/api-base/types/storage" {
       /**
        * Any liquidity locks on some account balances. NOTE: Should only be accessed when setting,
        * changing and freeing a lock.
+       *
+       * Use of locks is deprecated in favour of freezes. See
+       * `https://github.com/paritytech/substrate/pull/12951/`
        */
       locks: AugmentedQuery<
         ApiType,
@@ -332,7 +336,12 @@ declare module "@polkadot/api-base/types/storage" {
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
-      /** Named reserves on some account balances. */
+      /**
+       * Named reserves on some account balances.
+       *
+       * Use of reserves is deprecated in favour of holds. See
+       * `https://github.com/paritytech/substrate/pull/12951/`
+       */
       reserves: AugmentedQuery<
         ApiType,
         (arg: AccountId20 | string | Uint8Array) => Observable<Vec<PalletBalancesReserveData>>,
@@ -757,7 +766,7 @@ declare module "@polkadot/api-base/types/storage" {
       /** The current members of the collective. This is stored sorted (just by value). */
       members: AugmentedQuery<ApiType, () => Observable<Vec<AccountId20>>, []> &
         QueryableStorageEntry<ApiType, []>;
-      /** The prime member that helps determine the default vote behavior in case of absentations. */
+      /** The prime member that helps determine the default vote behavior in case of abstentions. */
       prime: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
         QueryableStorageEntry<ApiType, []>;
       /** Proposals so far. */
@@ -960,7 +969,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       hostConfiguration: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV6AbridgedHostConfiguration>>,
+        () => Observable<Option<PolkadotPrimitivesV7AbridgedHostConfiguration>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1101,7 +1110,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       upgradeGoAhead: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV6UpgradeGoAhead>>,
+        () => Observable<Option<PolkadotPrimitivesV7UpgradeGoAhead>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1116,7 +1125,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       upgradeRestrictionSignal: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV6UpgradeRestriction>>,
+        () => Observable<Option<PolkadotPrimitivesV7UpgradeRestriction>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1136,7 +1145,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       validationData: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV6PersistedValidationData>>,
+        () => Observable<Option<PolkadotPrimitivesV7PersistedValidationData>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1434,6 +1443,15 @@ declare module "@polkadot/api-base/types/storage" {
         [U8aFixed]
       > &
         QueryableStorageEntry<ApiType, [U8aFixed]>;
+      /** Retry configurations for items to be executed, indexed by task address. */
+      retries: AugmentedQuery<
+        ApiType,
+        (
+          arg: ITuple<[u32, u32]> | [u32 | AnyNumber | Uint8Array, u32 | AnyNumber | Uint8Array]
+        ) => Observable<Option<PalletSchedulerRetryConfig>>,
+        [ITuple<[u32, u32]>]
+      > &
+        QueryableStorageEntry<ApiType, [ITuple<[u32, u32]>]>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -1524,6 +1542,9 @@ declare module "@polkadot/api-base/types/storage" {
         [u32]
       > &
         QueryableStorageEntry<ApiType, [u32]>;
+      /** Whether all inherents have been applied. */
+      inherentsApplied: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
       /** Stores the `spec_version` and `spec_name` of when the last runtime upgrade happened. */
       lastRuntimeUpgrade: AugmentedQuery<
         ApiType,
@@ -1609,7 +1630,7 @@ declare module "@polkadot/api-base/types/storage" {
       /** The current members of the collective. This is stored sorted (just by value). */
       members: AugmentedQuery<ApiType, () => Observable<Vec<AccountId20>>, []> &
         QueryableStorageEntry<ApiType, []>;
-      /** The prime member that helps determine the default vote behavior in case of absentations. */
+      /** The prime member that helps determine the default vote behavior in case of abstentions. */
       prime: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
         QueryableStorageEntry<ApiType, []>;
       /** Proposals so far. */

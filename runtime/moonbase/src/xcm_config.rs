@@ -24,7 +24,7 @@ use super::{
 	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 use crate::OpenTechCommitteeInstance;
-use moonbeam_runtime_common::weights as moonbeam_weights;
+use moonbeam_runtime_common::weights as moonbase_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
 	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
@@ -381,7 +381,7 @@ impl pallet_xcm::Config for Runtime {
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
 	// TODO pallet-xcm weights
-	type WeightInfo = moonbeam_weights::pallet_xcm::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_xcm::WeightInfo<Runtime>;
 	type AdminOrigin = EnsureRoot<AccountId>;
 }
 
@@ -398,7 +398,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type MaxInboundSuspended = sp_core::ConstU32<1_000>;
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
-	type WeightInfo = moonbeam_weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
 	type PriceForSiblingDelivery = polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery<
 		cumulus_primitives_core::ParaId,
 	>;
@@ -434,7 +434,7 @@ parameter_types! {
 	/// A good value depends on the expected message sizes, their weights, the weight that is
 	/// available for processing them and the maximal needed message size. The maximal message
 	/// size is slightly lower than this as defined by [`MaxMessageLenOf`].
-	pub const MessageQueueHeapSize: u32 = 128 * 1048;
+	pub const MessageQueueHeapSize: u32 = 103 * 1024;
 }
 
 impl pallet_message_queue::Config for Runtime {
@@ -455,21 +455,28 @@ impl pallet_message_queue::Config for Runtime {
 	type QueueChangeHandler = NarrowOriginToSibling<XcmpQueue>;
 	// NarrowOriginToSibling calls XcmpQueue's is_paused if Origin is sibling. Allows all other origins
 	type QueuePausedQuery = EmergencyParaXcm;
-	type WeightInfo = pallet_message_queue::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_message_queue::WeightInfo<Runtime>;
 	type IdleMaxServiceWeight = MessageQueueServiceWeight;
 }
+
+pub type FastAuthorizeUpgradeOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>,
+>;
+
+pub type ResumeXcmOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>,
+>;
 
 impl pallet_emergency_para_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CheckAssociatedRelayNumber =
 		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
-	type XcmpMessageHandler = XcmpQueue;
 	type PausedThreshold = ConstU32<300>;
-	type FastAuthorizeUpgradeOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
-	type PausedToNormalOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
+	type FastAuthorizeUpgradeOrigin = FastAuthorizeUpgradeOrigin;
+	type PausedToNormalOrigin = ResumeXcmOrigin;
 }
 
 // Our AssetType. For now we only handle Xcm Assets
@@ -710,7 +717,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
-	type WeightInfo = moonbeam_weights::pallet_xcm_transactor::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_xcm_transactor::WeightInfo<Runtime>;
 	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type HrmpOpenOrigin = FastGeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
@@ -774,7 +781,7 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = moonbeam_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
 }
 

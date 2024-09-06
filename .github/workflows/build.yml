@@ -174,7 +174,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
       - name: Check with Prettier
@@ -304,6 +304,8 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
+        with:
+          features: metadata-hash
       - name: Upload runtimes
         uses: actions/upload-artifact@v4
         with:
@@ -319,6 +321,170 @@ jobs:
         with:
           name: moonbeam
           path: build
+
+  check-wasm-size:
+    name: "Check WASM runtimes with Twiggy"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: ["set-tags", "build"]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+      - name: Setup Rust toolchain
+        run: |
+          rustup override unset
+          rustup show
+      - name: Download Twiggy
+        run: cargo install twiggy
+      - name: Lookup for latest target branch build
+        run: |
+          TARGET_BRANCH=${{ github.event.pull_request.base.ref }}
+          LATEST_TARGET_BRANCH_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq ".[] | select(.headBranch == \"$TARGET_BRANCH\" and .event == \"push\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
+          echo "LATEST_TARGET_BRANCH_BUILD=$LATEST_TARGET_BRANCH_BUILD" >> $GITHUB_OUTPUT
+      - name: Download latest target branch build artifacts
+        run: |
+          gh run download $LATEST_TARGET_BRANCH_BUILD -n uncompressed-runtimes --dir uncompressed-runtimes-target-branch
+          gh run download $LATEST_TARGET_BRANCH_BUILD -n runtimes --dir runtimes-target-branch
+      - name: Check Runtimes size for target branch
+        run: |
+          PREVIOUS_MOONBASE=$(du -k runtimes-target-branch/* | awk '/moonbase_runtime/ {print $1}')
+          PREVIOUS_MOONBEAM=$(du -k runtimes-target-branch/* | awk '/moonbeam_runtime/ {print $1}')
+          PREVIOUS_MOONRIVER=$(du -k runtimes-target-branch/* | awk '/moonriver_runtime/ {print $1}')
+          echo "PREVIOUS_MOONBASE=$PREVIOUS_MOONBASE" >> $GITHUB_ENV
+          echo "PREVIOUS_MOONBEAM=$PREVIOUS_MOONBEAM" >> $GITHUB_ENV
+          echo "PREVIOUS_MOONRIVER=$PREVIOUS_MOONRIVER" >> $GITHUB_ENV
+      - name: "Download branch built runtime"
+        uses: actions/download-artifact@v4
+        with:
+          name: runtimes
+          path: runtimes-current-branch
+      - name: "Download branch built uncompressed-runtimes"
+        uses: actions/download-artifact@v4
+        with:
+          name: uncompressed-runtimes
+          path: uncompressed-runtimes-current-branch
+      - name: Check Runtimes size for current branch
+        run: |
+          CURRENT_MOONBASE=$(du -k runtimes-current-branch/* | awk '/moonbase_runtime/ {print $1}')
+          CURRENT_MOONBEAM=$(du -k runtimes-current-branch/* | awk '/moonbeam_runtime/ {print $1}')
+          CURRENT_MOONRIVER=$(du -k runtimes-current-branch/* | awk '/moonriver_runtime/ {print $1}')
+          echo "CURRENT_MOONBASE=$CURRENT_MOONBASE" >> $GITHUB_ENV
+          echo "CURRENT_MOONBEAM=$CURRENT_MOONBEAM" >> $GITHUB_ENV
+          echo "CURRENT_MOONRIVER=$CURRENT_MOONRIVER" >> $GITHUB_ENV
+      - name: Fetch latest release tag
+        id: fetch_latest_release
+        run: |
+          LATEST_RELEASE_TAG=$(gh api repos/moonbeam-foundation/moonbeam/releases --paginate --jq '.[] | select(.tag_name | test("^runtime-\\d+$")) | .tag_name' | sort -V | tail -n 1)
+          echo "LATEST_RELEASE_TAG=$LATEST_RELEASE_TAG" >> $GITHUB_ENV
+          echo $LATEST_RELEASE_TAG
+      - name: Download latest release runtimes
+        run: |
+          gh release download $LATEST_RELEASE_TAG -R moonbeam-foundation/moonbeam -p "moonbeam-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" -p "moonbase-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" -p "moonriver-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" --dir runtimes-latest-release
+      - name: Check Runtimes size for latest release
+        run: |
+          LATEST_MOONBASE=$(du -k runtimes-latest-release/* | awk '/moonbase-runtime/ {print $1}')
+          LATEST_MOONBEAM=$(du -k runtimes-latest-release/* | awk '/moonbeam-runtime/ {print $1}')
+          LATEST_MOONRIVER=$(du -k runtimes-latest-release/* | awk '/moonriver-runtime/ {print $1}')
+          echo "LATEST_MOONBASE=$LATEST_MOONBASE" >> $GITHUB_ENV
+          echo "LATEST_MOONBEAM=$LATEST_MOONBEAM" >> $GITHUB_ENV
+          echo "LATEST_MOONRIVER=$LATEST_MOONRIVER" >> $GITHUB_ENV
+      - name: Create Twiggy diff reports
+        run: |
+          # Install Twiggy if not already installed
+          if ! command -v twiggy &> /dev/null; then
+            cargo install twiggy
+          fi
+
+          # Generate Twiggy diff reports in JSON format with top 100 entries
+          mkdir -p twiggy-diff-reports
+          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonbase_runtime.wasm uncompressed-runtimes-current-branch/moonbase_runtime.wasm > twiggy-diff-reports/twiggy_diff_moonbase.json
+          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonbeam_runtime.wasm uncompressed-runtimes-current-branch/moonbeam_runtime.wasm > twiggy-diff-reports/twiggy_diff_moonbeam.json
+          twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonriver_runtime.wasm uncompressed-runtimes-current-branch/moonriver_runtime.wasm > twiggy-diff-reports/twiggy_diff_moonriver.json
+
+      - name: Upload Twiggy diff reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: twiggy-diff-reports
+          path: twiggy-diff-reports
+      - name: Compare Runtimes sizes
+        run: |
+          # Create or truncate the file
+          echo "" > runtime_size_report.md
+
+          MOONBASE_DIFF=$((CURRENT_MOONBASE - PREVIOUS_MOONBASE))
+          MOONBEAM_DIFF=$((CURRENT_MOONBEAM - PREVIOUS_MOONBEAM))
+          MOONRIVER_DIFF=$((CURRENT_MOONRIVER - PREVIOUS_MOONRIVER))
+
+          LATEST_MOONBASE_DIFF=$((CURRENT_MOONBASE - LATEST_MOONBASE))
+          LATEST_MOONBEAM_DIFF=$((CURRENT_MOONBEAM - LATEST_MOONBEAM))
+          LATEST_MOONRIVER_DIFF=$((CURRENT_MOONRIVER - LATEST_MOONRIVER))
+
+          get_status_emoji() {
+            local size=$1
+            local diff=$2
+            if [ $size -gt 2400 ]; then
+              echo "🚨"
+            elif [ $diff -gt 0 ]; then
+              echo "⚠️"
+            else
+              echo "✅"
+            fi
+          }
+
+          MOONBASE_STATUS=$(get_status_emoji $CURRENT_MOONBASE $MOONBASE_DIFF)
+          MOONBEAM_STATUS=$(get_status_emoji $CURRENT_MOONBEAM $MOONBEAM_DIFF)
+          MOONRIVER_STATUS=$(get_status_emoji $CURRENT_MOONRIVER $MOONRIVER_DIFF)
+
+          LATEST_MOONBASE_STATUS=$(get_status_emoji $CURRENT_MOONBASE $LATEST_MOONBASE_DIFF)
+          LATEST_MOONBEAM_STATUS=$(get_status_emoji $CURRENT_MOONBEAM $LATEST_MOONBEAM_DIFF)
+          LATEST_MOONRIVER_STATUS=$(get_status_emoji $CURRENT_MOONRIVER $LATEST_MOONRIVER_DIFF)
+
+          MOONBASE_MSG="Moonbase runtime: ${CURRENT_MOONBASE} KB ($( [ $MOONBASE_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $MOONBASE_DIFF -gt 0 ] && echo "+" )${MOONBASE_DIFF} KB")) ${MOONBASE_STATUS}"
+          MOONBEAM_MSG="Moonbeam runtime: ${CURRENT_MOONBEAM} KB ($( [ $MOONBEAM_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $MOONBEAM_DIFF -gt 0 ] && echo "+" )${MOONBEAM_DIFF} KB")) ${MOONBEAM_STATUS}"
+          MOONRIVER_MSG="Moonriver runtime: ${CURRENT_MOONRIVER} KB ($( [ $MOONRIVER_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $MOONRIVER_DIFF -gt 0 ] && echo "+" )${MOONRIVER_DIFF} KB")) ${MOONRIVER_STATUS}"
+
+          LATEST_MOONBASE_MSG="Moonbase runtime: ${CURRENT_MOONBASE} KB ($( [ $LATEST_MOONBASE_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $LATEST_MOONBASE_DIFF -gt 0 ] && echo "+" )${LATEST_MOONBASE_DIFF} KB compared to latest release")) ${LATEST_MOONBASE_STATUS}"
+          LATEST_MOONBEAM_MSG="Moonbeam runtime: ${CURRENT_MOONBEAM} KB ($( [ $LATEST_MOONBEAM_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $LATEST_MOONBEAM_DIFF -gt 0 ] && echo "+" )${LATEST_MOONBEAM_DIFF} KB compared to latest release")) ${LATEST_MOONBEAM_STATUS}"
+          LATEST_MOONRIVER_MSG="Moonriver runtime: ${CURRENT_MOONRIVER} KB ($( [ $LATEST_MOONRIVER_DIFF -eq 0 ] && echo "no changes" || echo "$( [ $LATEST_MOONRIVER_DIFF -gt 0 ] && echo "+" )${LATEST_MOONRIVER_DIFF} KB compared to latest release")) ${LATEST_MOONRIVER_STATUS}"
+
+          echo "### WASM runtime size check:" > runtime_size_report.md
+          echo "" >> runtime_size_report.md
+          echo "#### Compared to target branch" >> runtime_size_report.md
+          echo "" >> runtime_size_report.md
+          echo "$MOONBASE_MSG" >> runtime_size_report.md
+          echo "" >> runtime_size_report.md
+          echo "$MOONBEAM_MSG" >> runtime_size_report.md
+          echo "" >> runtime_size_report.md
+          echo "$MOONRIVER_MSG" >> runtime_size_report.md
+          echo "" >> runtime_size_report.md
+          echo "#### Compared to latest release (${LATEST_RELEASE_TAG})" >> runtime_size_report.md
+          echo "" >> runtime_size_report.md
+          echo "$LATEST_MOONBASE_MSG" >> runtime_size_report.md
+          echo "" >> runtime_size_report.md
+          echo "$LATEST_MOONBEAM_MSG" >> runtime_size_report.md
+          echo "" >> runtime_size_report.md
+          echo "$LATEST_MOONRIVER_MSG" >> runtime_size_report.md
+          cat runtime_size_report.md
+      - name: Find Comment
+        uses: peter-evans/find-comment@v3
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: "WASM runtime size check"
+      - name: Create or update comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: runtime_size_report.md
+          edit-mode: replace
 
   rust-test:
     runs-on:
@@ -400,7 +566,7 @@ jobs:
           shard-count: 4
       - name: Upload HTML report to s3
         if: ${{ !github.event.pull_request.head.repo.fork}}
-        uses: opslayertech/upload-s3-action@v1.0.0
+        uses: opslayertech/upload-s3-action@v1.1.0
         id: S3
         with:
           aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
@@ -506,7 +672,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.3.0
+        uses: docker/setup-buildx-action@v3.6.1
         with:
           version: latest
           driver-opts: |
@@ -518,7 +684,7 @@ jobs:
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
       - name: Build and push moonbeam
         id: docker_build
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/moonbeam.Dockerfile

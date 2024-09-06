@@ -14,6 +14,7 @@ import {
   weightMessage,
 } from "../../../../helpers/xcm.js";
 import { registerOldForeignAsset } from "../../../../helpers/assets.js";
+import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({
   id: "D014025",
@@ -52,10 +53,12 @@ describeSuite({
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
 
-    // Gas limit + one db read
-    const assetsToTransfer = (3_300_000_000n + 25_000_000n) * 2n;
+    const assetsToTransfer = 100_000_000_000n;
+
+    let STORAGE_READ_COST: bigint;
 
     beforeAll(async () => {
+      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
 
       contractDeployed = contractAddress;
@@ -80,7 +83,7 @@ describeSuite({
         assets: [
           {
             multilocation: ASSET_MULTILOCATION,
-            fungible: 0n,
+            fungible: assetsToTransfer,
           },
         ],
         beneficiary: descendOriginAddress,
@@ -97,8 +100,8 @@ describeSuite({
               .reserve_asset_deposited()
               .clear_origin()
               .buy_execution()
-              .deposit_asset()
-              .as_v2()
+              .deposit_asset_v3()
+              .as_v3()
           ) as any
       );
 
@@ -111,8 +114,8 @@ describeSuite({
         .reserve_asset_deposited()
         .clear_origin()
         .buy_execution()
-        .deposit_asset()
-        .as_v2();
+        .deposit_asset_v3()
+        .as_v3();
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, statemint_para_id, {
@@ -189,10 +192,6 @@ describeSuite({
                 fungible: assetsToTransfer / 2n,
               },
             ],
-            weight_limit: {
-              refTime: assetsToTransfer / 2n,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 3,
-            } as any,
             descend_origin: sendingAddress,
           })
             .descend_origin()
@@ -201,9 +200,9 @@ describeSuite({
             .push_any({
               Transact: {
                 originKind: "SovereignAccount",
-                // 100_000 gas + 1 db read
+                // 100_000 gas + 1 db read (41_742_000)
                 requireWeightAtMost: {
-                  refTime: 2_525_000_000,
+                  refTime: 2_525_000_000n + STORAGE_READ_COST,
                   proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
                 },
                 call: {

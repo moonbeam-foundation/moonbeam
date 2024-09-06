@@ -32,6 +32,7 @@ xcm-primitives = { workspace = true }
 # Substrate
 cumulus-pallet-parachain-system = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true }
+pallet-message-queue = { workspace = true }
 frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
@@ -43,6 +44,7 @@ pallet-identity = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-preimage = { workspace = true }
+pallet-parameters = { workspace = true }
 pallet-proxy = { workspace = true }
 pallet-referenda = { workspace = true }
 pallet-scheduler = { workspace = true }
@@ -99,12 +101,14 @@ std = [
 	"pallet-evm/std",
 	"pallet-migrations/std",
 	"pallet-parachain-staking/std",
+	"pallet-parameters/std",
 	"pallet-randomness/std",
 	"pallet-referenda/std",
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
 	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-identity/std",
+	"pallet-message-queue/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-consensus-slots/std",
@@ -120,6 +124,7 @@ std = [
 runtime-benchmarks = [
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
+	"pallet-message-queue/runtime-benchmarks",
 	"frame-benchmarking/runtime-benchmarks",
 	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
@@ -136,6 +141,7 @@ runtime-benchmarks = [
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
+	"pallet-parameters/runtime-benchmarks",
 	"pallet-proxy/runtime-benchmarks",
 	"pallet-randomness/runtime-benchmarks",
 	"pallet-referenda/runtime-benchmarks",
@@ -151,4 +157,8 @@ runtime-benchmarks = [
 	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 ]
-try-runtime = ["cumulus-pallet-parachain-system/try-runtime", "frame-support/try-runtime", "pallet-migrations/try-runtime"]
+try-runtime = [
+	"cumulus-pallet-parachain-system/try-runtime",
+	"frame-support/try-runtime",
+	"pallet-migrations/try-runtime",
+]

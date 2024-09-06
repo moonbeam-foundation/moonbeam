@@ -107,7 +107,7 @@ pub enum AssetStatus {
 #[pallet]
 pub mod pallet {
 	use super::*;
-	use pallet_evm::Runner;
+	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_runtime::traits::{AccountIdConversion, Convert};
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::Error as MatchError;
@@ -259,6 +259,15 @@ pub mod pallet {
 			})
 			.map_err(Into::into)
 		}
+		pub fn weight_of_erc20_burn() -> Weight {
+			T::GasWeightMapping::gas_to_weight(evm::ERC20_BURN_FROM_GAS_LIMIT, true)
+		}
+		pub fn weight_of_erc20_mint() -> Weight {
+			T::GasWeightMapping::gas_to_weight(evm::ERC20_MINT_INTO_GAS_LIMIT, true)
+		}
+		pub fn weight_of_erc20_transfer() -> Weight {
+			T::GasWeightMapping::gas_to_weight(evm::ERC20_TRANSFER_GAS_LIMIT, true)
+		}
 	}
 
 	#[pallet::call]
@@ -331,6 +340,11 @@ pub mod pallet {
 
 			let previous_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			ensure!(
+				!AssetsByLocation::<T>::contains_key(&new_xcm_location),
+				Error::<T>::LocationAlreadyExists
+			);
 
 			// Remove previous foreign asset info
 			let (_asset_id, asset_status) = AssetsByLocation::<T>::take(&previous_location)
