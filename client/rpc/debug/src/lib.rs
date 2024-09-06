@@ -328,10 +328,7 @@ where
 						None
 					};
 				if let Some(tracer) = tracer {
-					if tracer == TracerInput::CallTracer {
-						return Ok((tracer, single::TraceType::CallList, tracer_config));
-					}
-					Ok((tracer, single::TraceType::CallList, None))
+					Ok((tracer, single::TraceType::CallList, tracer_config))
 				} else {
 					return Err(internal_err(format!(
 						"javascript based tracing is not available (hash :{:?})",
@@ -346,7 +343,7 @@ where
 					disable_memory: params.disable_memory.unwrap_or(false),
 					disable_stack: params.disable_stack.unwrap_or(false),
 				},
-				None,
+				params.tracer_config,
 			)),
 			_ => Ok((
 				TracerInput::None,
@@ -368,7 +365,7 @@ where
 		params: Option<TraceParams>,
 		overrides: Arc<dyn StorageOverride<B>>,
 	) -> RpcResult<Response> {
-		let (tracer_input, trace_type, _) = Self::handle_params(params)?;
+		let (tracer_input, trace_type, tracer_config) = Self::handle_params(params)?;
 
 		let reference_id: BlockId<B> = match request_block_id {
 			RequestBlockId::Number(n) => Ok(BlockId::Number(n.unique_saturated_into())),
@@ -479,6 +476,7 @@ where
 		return match trace_type {
 			single::TraceType::CallList => {
 				let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+				proxy.with_log = tracer_config.map_or(false, |cfg| cfg.with_log);
 				proxy.using(f)?;
 				proxy.finish_transaction();
 				let response = match tracer_input {
@@ -518,7 +516,7 @@ where
 		overrides: Arc<dyn StorageOverride<B>>,
 		raw_max_memory_usage: usize,
 	) -> RpcResult<Response> {
-		let (tracer_input, trace_type, _) = Self::handle_params(params)?;
+		let (tracer_input, trace_type, tracer_config) = Self::handle_params(params)?;
 
 		let (hash, index) =
 			match futures::executor::block_on(frontier_backend_client::load_transactions::<B, C>(
@@ -661,6 +659,7 @@ where
 					}
 					single::TraceType::CallList => {
 						let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+						proxy.with_log = tracer_config.map_or(false, |cfg| cfg.with_log);
 						proxy.using(f)?;
 						proxy.finish_transaction();
 						let response = match tracer_input {
@@ -703,12 +702,6 @@ where
 		raw_max_memory_usage: usize,
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type, tracer_config) = Self::handle_params(trace_params)?;
-
-		let with_log: bool = if let Some(config) = tracer_config {
-			config.with_log
-		} else {
-			false
-		};
 
 		let reference_id: BlockId<B> = match request_block_id {
 			RequestBlockId::Number(n) => Ok(BlockId::Number(n.unique_saturated_into())),
@@ -880,7 +873,7 @@ where
 			}
 			single::TraceType::CallList => {
 				let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
-				proxy.with_log = with_log;
+				proxy.with_log = tracer_config.map_or(false, |cfg| cfg.with_log);
 				proxy.using(f)?;
 				proxy.finish_transaction();
 				let response = match tracer_input {

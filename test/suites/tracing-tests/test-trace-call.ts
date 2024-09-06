@@ -45,11 +45,12 @@ describeSuite({
           to: contracts.callerAddr,
           data: encodeFunctionData({
             abi: contracts.abiCaller,
-            functionName: "someAction",
-            args: [contracts.calleeAddr, 6],
+            functionName: "emitSomeLogs",
+            args: [contracts.calleeAddr],
           }),
         };
         const tracerParams = {
+          tracer: "callTracer",
           tracerConfig: {
             withLog: true,
           },
@@ -59,18 +60,12 @@ describeSuite({
           "latest",
           tracerParams,
         ]);
-        const logs: any[] = [];
-        for (const log of traceTx.structLogs) {
-          if (logs.length == 1) {
-            logs.push(log);
-          }
-          if (log.op == "RETURN" || log.op == "CALL") {
-            logs.push(log);
-          }
-        }
-        expect(logs).to.be.lengthOf(2);
-        expect(logs[0].depth).to.be.equal(2);
-        expect(logs[1].depth).to.be.equal(1);
+
+        expect(traceTx.logs).to.be.lengthOf(2);
+        expect(traceTx.calls).to.be.lengthOf(1);
+        expect(traceTx.calls[0].logs).to.be.lengthOf(2);
+        expect(traceTx.calls[0].calls).to.be.lengthOf(1);
+        expect(traceTx.calls[0].calls[0].logs).to.be.undefined;
       },
     });
   },

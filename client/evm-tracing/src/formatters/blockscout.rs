@@ -89,6 +89,5 @@ pub struct BlockscoutCall {
 	pub gas_used: U256,
 	#[serde(flatten)]
 	pub inner: BlockscoutCallInner,
-
 	pub logs: Vec<crate::types::single::Log>,
 }

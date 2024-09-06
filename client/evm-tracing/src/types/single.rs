@@ -109,7 +109,7 @@ pub struct TraceCallConfig {
 
 impl Default for TraceCallConfig {
 	fn default() -> Self {
-		Self { with_log: true }
+		Self { with_log: false }
 	}
 }
 

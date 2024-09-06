@@ -50,7 +50,7 @@ pub struct Listener {
 	// Next index to use.
 	entries_next_index: u32,
 	// Stack of contexts with data to keep between events.
-	context_stack: Vec<Context>,
+	pub(crate) context_stack: Vec<Context>,
 
 	// Type of the next call.
 	// By default is None and corresponds to the root call, which
@@ -84,7 +84,7 @@ pub struct Listener {
 	pub with_log: bool,
 }
 
-struct Context {
+pub struct Context {
 	entries_index: u32,
 
 	context_type: ContextType,
@@ -101,6 +101,8 @@ struct Context {
 	data: Vec<u8>,
 	// to / create address
 	to: H160,
+
+	logs: Vec<Log>,
 }
 
 impl Default for Listener {
@@ -164,7 +166,7 @@ impl Listener {
 							input: context.data,
 							res,
 						},
-						logs: Vec::<Log>::new(),
+						logs: context.logs,
 					}
 				}
 				ContextType::Create => {
@@ -183,7 +185,7 @@ impl Listener {
 							init: context.data,
 							res,
 						},
-						logs: Vec::<Log>::new(),
+						logs: context.logs,
 					}
 				}
 			};
@@ -307,6 +309,8 @@ impl Listener {
 
 					data,
 					to: address,
+
+					logs: Vec::new(),
 				});
 
 				self.entries_next_index += 1;
@@ -337,6 +341,8 @@ impl Listener {
 
 					data: init_code,
 					to: address,
+
+					logs: Vec::new(),
 				});
 
 				self.entries_next_index += 1;
@@ -367,6 +373,8 @@ impl Listener {
 
 					data: init_code,
 					to: address,
+
+					logs: Vec::new(),
 				});
 
 				self.entries_next_index += 1;
@@ -422,6 +430,8 @@ impl Listener {
 
 						data: input.to_vec(),
 						to: code_address,
+
+						logs: Vec::new(),
 					});
 
 					self.entries_next_index += 1;
@@ -465,6 +475,8 @@ impl Listener {
 
 						data: init_code.to_vec(),
 						to: address,
+
+						logs: Vec::new(),
 					});
 
 					self.entries_next_index += 1;
@@ -532,14 +544,14 @@ impl Listener {
 				topics,
 				data,
 			} => {
-				let log = Log {
-					address,
-					topics,
-					data,
-				};
-				let key = self.entries_next_index;
 				if self.with_log {
-					self.insert_log_entry(key, log);
+					if let Some(stack) = self.context_stack.last_mut() {
+						stack.logs.push(Log {
+							address,
+							topics,
+							data,
+						});
+					}
 				}
 			}
 
@@ -556,16 +568,6 @@ impl Listener {
 			let mut btree_map = BTreeMap::new();
 			btree_map.insert(key, entry);
 			self.entries.push(btree_map);
-		}
-	}
-
-	fn insert_log_entry(&mut self, key: u32, log_entry: Log) {
-		if let Some(ref mut last) = self.entries.last_mut() {
-			if let Some(ref mut last_call) = last.get(&key) {
-				let mut call = (*last_call).clone();
-				call.logs.push(log_entry);
-				last.insert(key, call);
-			}
 		}
 	}
 
@@ -610,7 +612,7 @@ impl Listener {
 								input: context.data,
 								res,
 							},
-							logs: Vec::<Log>::new(),
+							logs: context.logs,
 						}
 					}
 					ContextType::Create => {
@@ -639,7 +641,7 @@ impl Listener {
 								init: context.data,
 								res,
 							},
-							logs: Vec::<Log>::new(),
+							logs: context.logs,
 						}
 					}
 				},
@@ -700,6 +702,7 @@ impl ListenerT for Listener {
 #[allow(unused)]
 mod tests {
 	use super::*;
+	use crate::formatters::blockscout::BlockscoutCallInner;
 	use ethereum_types::H256;
 	use evm_tracing_events::{
 		evm::CreateScheme,
@@ -1193,30 +1196,26 @@ mod tests {
 	fn call_multiple_logs_event() {
 		let mut listener = Listener::default();
 		listener.with_log = true;
-		do_transact_create_event(&mut listener);
-		do_gasometer_event(&mut listener);
-		do_evm_create_event(&mut listener);
 		do_evm_call_event(&mut listener);
 		do_evm_log_event(&mut listener);
 		do_evm_log_event(&mut listener);
 		do_exit_event(&mut listener);
 		listener.finish_transaction();
 		assert_eq!(listener.entries.len(), 1);
-		assert_eq!(listener.entries[0].len(), 2);
-		assert_eq!(listener.entries[0].get(&1).unwrap().logs.len(), 2);
+		assert_eq!(listener.entries[0].len(), 1);
+		assert_eq!(listener.entries[0].get(&0).unwrap().logs.len(), 2);
 	}
 
 	#[test]
 	fn call_log_event_not_recorder_when_with_log_is_false() {
 		let mut listener = Listener::default();
-		listener.with_log = false;
-		do_transact_create_event(&mut listener);
-		do_gasometer_event(&mut listener);
-		do_evm_create_event(&mut listener);
 		do_evm_call_event(&mut listener);
 		do_evm_log_event(&mut listener);
+		do_evm_log_event(&mut listener);
 		do_exit_event(&mut listener);
+		listener.finish_transaction();
 		assert_eq!(listener.entries.len(), 1);
-		assert_eq!(listener.entries[0].get(&1).unwrap().logs.len(), 0);
+		assert_eq!(listener.entries[0].len(), 1);
+		assert_eq!(listener.entries[0].get(&0).unwrap().logs.len(), 0);
 	}
 }
