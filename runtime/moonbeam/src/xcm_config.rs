@@ -568,14 +568,6 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	}
 }
 
-// TODO: delete as we are using NativeAssetHub variant instead of this.
-// Override the conversion
-// Create a new type that implements MaybeEquivalence and put
-// in 2 places.
-
-/// Create a wrapper that implements MaybeEq: MaybeNativeAssetHub
-/// will check if the loc if the native asset
-
 // How to convert from CurrencyId to Location
 pub struct CurrencyIdToLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<Location>>
