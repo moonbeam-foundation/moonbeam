@@ -435,10 +435,10 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 				log::trace!(
 					target: "xcm-weight-trader",
 					"refund_weight amount to refund: {:?}",
-					amount_to_refound
+					amount_to_refund
 				);
 				Some(Asset {
-					fun: Fungibility::Fungible(amount_to_refound),
+					fun: Fungibility::Fungible(amount_to_refund),
 					id: XcmAssetId(location),
 				})
 			}
