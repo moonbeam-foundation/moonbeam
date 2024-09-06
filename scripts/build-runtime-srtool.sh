@@ -13,7 +13,8 @@ CMD="docker run \
   -e CARGO_NET_GIT_FETCH_WITH_CLI=true \
   -e PACKAGE=${GH_WORKFLOW_MATRIX_CHAIN}-runtime \
   -e RUNTIME_DIR=runtime/${GH_WORKFLOW_MATRIX_CHAIN} \
-  -e PROFILE=production \
+  -e BUILD_OPTS=${RUNTIME_BUILD_OPTS} \
+  -e PROFILE=${RUNTIME_BUILD_PROFILE} \
   -e WASM_BUILD_STD=0 \
   -v ${PWD}:/build \
   -v /home/${USER}/srtool/.ssh:/home/builder/.ssh \
