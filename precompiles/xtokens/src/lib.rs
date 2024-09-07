@@ -24,6 +24,7 @@ use frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
 };
+use orml_traits::location::Parse;
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
@@ -32,7 +33,6 @@ use sp_std::{
 	boxed::Box,
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
-	str::FromStr,
 	vec::Vec,
 };
 use sp_weights::Weight;
@@ -413,20 +413,22 @@ where
 		destination: Location,
 		currency_id_to_convert: &mut <Runtime as orml_xtokens::Config>::CurrencyId,
 	) {
-		let is_xcdot_currency: bool =
-			if let Ok(xcdot_addr) = H160::from_str("FfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080") {
-				currency_address == xcdot_addr
-			} else {
-				false
-			};
-
-		if is_xcdot_currency && destination == Runtime::get_asset_hub_location() {
+		let is_relay_currency: bool = currency_address
+			== H160(hex_literal::hex!(
+				"FfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080"
+			));
+		if is_relay_currency
+			&& destination.chain_part().unwrap_or(Location::parent())
+				== Runtime::get_asset_hub_location()
+		{
 			*currency_id_to_convert = Runtime::get_native_asset_hub_location();
 		}
 	}
 
 	fn maybe_convert_location(asset_location: Location, destination: Location) -> Location {
-		if asset_location == Location::parent() && destination == Runtime::get_asset_hub_location()
+		if asset_location == Location::parent()
+			&& destination.chain_part().unwrap_or(Location::parent())
+				== Runtime::get_asset_hub_location()
 		{
 			return Runtime::get_asset_hub_location();
 		}

@@ -18,18 +18,18 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{AsEnsureOriginWithArg, Contains, Everything, Nothing},
+	traits::{AsEnsureOriginWithArg, Contains, ContainsPair, Everything, Get, Nothing},
 	weights::Weight,
 };
 use frame_system::{EnsureRoot, EnsureSigned};
 
+//use parachains_common::xcm_config::ConcreteAssetFromSystem;
+use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use sp_core::H256;
 use sp_runtime::{
 	traits::{ConstU32, Hash, IdentityLookup},
 	AccountId32,
 };
-
-use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 
 use polkadot_parachain::primitives::Id as ParaId;
 use polkadot_parachain::primitives::Sibling;
@@ -290,7 +290,28 @@ pub type Barrier = (
 parameter_types! {
 	pub MatcherLocation: Location = Location::here();
 	pub const MaxAssetsIntoHolding: u32 = 64;
+	pub const RelayTokenLocation: Location = Location::parent();
 }
+
+/// Accepts an asset if it is a concrete asset from the system (Relay Chain or system parachain).
+pub struct ConcreteAssetFromSystem<AssetLocation>(sp_std::marker::PhantomData<AssetLocation>);
+impl<AssetLocation: Get<Location>> ContainsPair<Asset, Location>
+	for ConcreteAssetFromSystem<AssetLocation>
+{
+	fn contains(asset: &Asset, origin: &Location) -> bool {
+		let is_system = match origin.unpack() {
+			// The Relay Chain
+			(1, []) => true,
+			// System parachain
+			(1, [Parachain(id)]) => false,
+			// Others
+			_ => false,
+		};
+		asset.id.0 == AssetLocation::get() && is_system
+	}
+}
+
+pub type TrustedTeleporters = (ConcreteAssetFromSystem<RelayTokenLocation>,);
 
 pub struct XcmConfig;
 impl Config for XcmConfig {
@@ -300,7 +321,7 @@ impl Config for XcmConfig {
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve =
 		orml_xcm_support::MultiNativeAsset<orml_traits::location::RelativeReserveProvider>;
-	type IsTeleporter = ();
+	type IsTeleporter = TrustedTeleporters;
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
@@ -580,3 +601,11 @@ construct_runtime!(
 
 	}
 );
+
+pub(crate) fn para_events() -> Vec<RuntimeEvent> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| Some(e))
+		.collect::<Vec<_>>()
+}

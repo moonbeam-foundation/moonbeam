@@ -309,9 +309,9 @@ cumulus-relay-chain-minimal-node = { git = "https://github.com/moonbeam-foundati
 cumulus-relay-chain-rpc-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 
 # Polkadot / XCM (wasm)
-orml-traits = { git = "https://github.com/moonbeam-foundation/open-runtime-module-library", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-orml-xcm-support = { git = "https://github.com/moonbeam-foundation/open-runtime-module-library", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-orml-xtokens = { git = "https://github.com/moonbeam-foundation/open-runtime-module-library", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
+orml-traits = { git = "https://github.com/moonbeam-foundation/open-runtime-module-library", branch = "v1.11.0-fix-xcDot-assetHub", default-features = false }
+orml-xcm-support = { git = "https://github.com/moonbeam-foundation/open-runtime-module-library", branch = "v1.11.0-fix-xcDot-assetHub", default-features = false }
+orml-xtokens = { git = "https://github.com/moonbeam-foundation/open-runtime-module-library", branch = "v1.11.0-fix-xcDot-assetHub", default-features = false }
 pallet-xcm = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 pallet-xcm-benchmarks = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 polkadot-core-primitives = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
