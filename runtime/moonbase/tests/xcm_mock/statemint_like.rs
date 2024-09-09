@@ -609,11 +609,3 @@ construct_runtime!(
 
 	}
 );
-
-pub(crate) fn para_events() -> Vec<RuntimeEvent> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.filter_map(|e| Some(e))
-		.collect::<Vec<_>>()
-}
