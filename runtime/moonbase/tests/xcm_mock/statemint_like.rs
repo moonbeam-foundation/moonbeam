@@ -311,7 +311,7 @@ impl<AssetLocation: Get<Location>> ContainsPair<Asset, Location>
 			// The Relay Chain
 			(1, []) => true,
 			// System parachain
-			(1, [Parachain(id)]) => false,
+			(1, [Parachain(_id)]) => false,
 			// Others
 			_ => false,
 		};
