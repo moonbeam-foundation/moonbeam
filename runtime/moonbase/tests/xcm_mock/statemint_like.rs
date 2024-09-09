@@ -293,7 +293,15 @@ parameter_types! {
 	pub const RelayTokenLocation: Location = Location::parent();
 }
 
-/// Accepts an asset if it is a concrete asset from the system (Relay Chain or system parachain).
+// Copied from:
+//
+// https://github.com/paritytech/polkadot-sdk/blob/f4eb41773611008040c9d4d8a8e6b7323eccfca1/cumulus
+// /parachains/common/src/xcm_config.rs#L118
+//
+// without the extra check for the system parachain, because we don't need it in tests.
+//
+// That checks ensures that our paraId is lower than ~1900.
+// If we keep it enabled our tests will fail given that our paraIds are 1, 2, 3 and so on.
 pub struct ConcreteAssetFromSystem<AssetLocation>(sp_std::marker::PhantomData<AssetLocation>);
 impl<AssetLocation: Get<Location>> ContainsPair<Asset, Location>
 	for ConcreteAssetFromSystem<AssetLocation>

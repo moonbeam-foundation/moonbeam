@@ -3021,7 +3021,7 @@ fn send_dot_from_moonbeam_to_statemint() {
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute)
+				VersionedLocation::V4(parachain_beneficiary_absolute.clone())
 					.clone()
 					.into()
 			),
@@ -3066,6 +3066,31 @@ fn send_dot_from_moonbeam_to_statemint() {
 			StatemintBalances::free_balance(RELAYBOB),
 			INITIAL_BALANCE + 100
 		);
+	});
+
+	// Send back tokens from AH to ParaA from Bob's account
+	Statemint::execute_with(|| {
+		// Now send those tokens to ParaA
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYBOB),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::V4(parachain_beneficiary_absolute)
+					.clone()
+					.into()
+			),
+			Box::new((Location::new(1, []), 100).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+
+		// 100 DOTs were deducted from Bob's account
+		assert_eq!(StatemintBalances::free_balance(RELAYBOB), INITIAL_BALANCE);
+	});
+
+	ParaA::execute_with(|| {
+		// Alice should have received 100 DOTs
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
 	});
 }
 

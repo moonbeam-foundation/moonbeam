@@ -94,7 +94,7 @@ where
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
 
-		Self::maybe_convert_currency_id(to_address, destination.clone(), &mut currency_id);
+		//Self::maybe_convert_currency_id(to_address, destination.clone(), &mut currency_id);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let amount = amount
@@ -143,7 +143,7 @@ where
 				RevertReason::custom("Cannot convert into currency id").in_field("currencyAddress"),
 			)?;
 
-		Self::maybe_convert_currency_id(to_address, destination.clone(), &mut currency_id);
+		//Self::maybe_convert_currency_id(to_address, destination.clone(), &mut currency_id);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -312,11 +312,11 @@ where
 						.in_field("currencies"),
 				)?;
 
-				Self::maybe_convert_currency_id(
+				/* 				Self::maybe_convert_currency_id(
 					address_as_h160,
 					destination.clone(),
 					&mut currency_id,
-				);
+				); */
 
 				Ok((currency_id, amount))
 			})
