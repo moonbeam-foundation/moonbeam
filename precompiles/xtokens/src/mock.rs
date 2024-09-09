@@ -253,7 +253,6 @@ impl WeightTrader for DummyWeightTrader {
 }
 
 parameter_types! {
-	pub AssetHubLocation: Location = Location::new(1, [Parachain(1000)]);
 	pub UniversalLocation: InteriorLocation = Here;
 	pub MatcherLocation: Location = Location::here();
 	pub const MaxAssetsIntoHolding: u32 = 64;
@@ -323,16 +322,6 @@ impl xcm_executor::Config for XcmConfig {
 pub enum CurrencyId {
 	SelfReserve,
 	OtherReserve(AssetId),
-	NativeAssetHub,
-}
-
-impl AssetHubLocationHelper<CurrencyId> for Runtime {
-	fn get_asset_hub_location() -> Location {
-		AssetHubLocation::get()
-	}
-	fn get_native_asset_hub_location() -> CurrencyId {
-		CurrencyId::NativeAssetHub
-	}
 }
 
 // Implement the trait, where we convert AccountId to AssetID
@@ -365,7 +354,6 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<Location>> for CurrencyIdToM
 					Some(Location::new(1, [Parachain(2), GeneralIndex(asset)]))
 				}
 			}
-			CurrencyId::NativeAssetHub => Some(AssetHubLocation::get()),
 		}
 	}
 }

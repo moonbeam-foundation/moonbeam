@@ -9510,7 +9510,6 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal 0.3.4",
  "log",
  "num_enum 0.5.11",
  "orml-traits",

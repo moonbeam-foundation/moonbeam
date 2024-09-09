@@ -61,8 +61,8 @@ use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
-	AssetHubLocationHelper, FirstAssetTrader, IsBridgedConcreteAssetFrom, SignedToAccountId20,
-	UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	FirstAssetTrader, IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
+	UtilityEncodeCall, XcmTransact,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -280,15 +280,6 @@ parameter_types! {
 		AssetHubLocation::get()
 	);
 	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
-}
-
-impl AssetHubLocationHelper<CurrencyId> for Runtime {
-	fn get_asset_hub_location() -> Location {
-		AssetHubLocation::get()
-	}
-	fn get_native_asset_hub_location() -> CurrencyId {
-		CurrencyId::NativeAssetHub
-	}
 }
 
 type Reserves = (
@@ -555,8 +546,6 @@ pub enum CurrencyId {
 	ForeignAsset(AssetId),
 	// Erc20 token
 	Erc20 { contract_address: H160 },
-	// Asset Hub's native token
-	NativeAssetHub,
 }
 
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
@@ -602,7 +591,6 @@ where
 					.ok();
 				Some(location)
 			}
-			CurrencyId::NativeAssetHub => Some(AssetHubLocation::get()),
 		}
 	}
 }
