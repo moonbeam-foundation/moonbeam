@@ -290,6 +290,7 @@ cumulus-primitives-parachain-inherent = { git = "https://github.com/moonbeam-fou
 cumulus-primitives-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 cumulus-primitives-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 cumulus-test-relay-sproof-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
+cumulus-primitives-storage-weight-reclaim = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 parachain-info = { package = "staging-parachain-info", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 parachains-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 
@@ -359,6 +360,7 @@ environmental = { version = "1.1.2", default-features = false }
 frame-metadata = { version = "16.0.0", default-features = false, features = [
 	"current",
 ] }
+frame-metadata-hash-extension = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.3.4" }
 impl-serde = { version = "0.3.1", default-features = false }
@@ -375,9 +377,7 @@ slices = "0.2.0"
 smallvec = "1.8.0"
 strum = { version = "0.24", default-features = false, features = ["derive"] }
 strum_macros = "0.24"
-p256 = { version = "0.13.2", default-features = false, features = [
-	"ecdsa",
-] }
+p256 = { version = "0.13.2", default-features = false, features = ["ecdsa"] }
 
 # Other (client)
 

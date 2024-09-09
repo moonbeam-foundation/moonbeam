@@ -80,7 +80,8 @@ describeSuite({
         );
         // We are charging chargedWeight
         // chargedWeight * 50000 = chargedFee
-        const chargedFee = chargedWeight * 50000n;
+        // Dividing by four the xcm fees constant to match the x4 cpu per block
+        const chargedFee = (chargedWeight * 50000n) / 4n;
 
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, foreign_para_id, {
