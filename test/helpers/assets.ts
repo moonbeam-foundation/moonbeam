@@ -4,9 +4,13 @@ import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
 import { expect, DevModeContext } from "@moonwall/cli";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { KeyringPair } from "@polkadot/keyring/types";
-import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type {
+  PalletAssetsAssetAccount,
+  PalletAssetsAssetDetails,
+  PalletEvmCodeMetadata,
+} from "@polkadot/types/lookup";
 import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
-import { encodeFunctionData, parseAbi } from "viem";
+import { encodeFunctionData, keccak256, parseAbi } from "viem";
 
 export const EVM_FOREIGN_ASSETS_PALLET_ACCOUNT = "0x6d6f646c666f7267617373740000000000000000";
 export const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
@@ -237,6 +241,18 @@ export async function mockOldAssetBalance(
   const assetKey = xxhashAsU8a(new TextEncoder().encode("Asset"), 128);
   const overallAssetKey = new Uint8Array([...module, ...assetKey, ...blake2concatAssetId]);
   const evmCodeAssetKey = api.query.evm.accountCodes.key("0xFfFFfFff" + assetId.toHex().slice(2));
+  const evmCodesMetadataAssetKey = api.query.evm.accountCodesMetadata.key(
+    "0xFfFFfFff" + assetId.toHex().slice(2)
+  );
+
+  const codeSize = DUMMY_REVERT_BYTECODE.slice(2).length / 2;
+  const codeMetadataHash = keccak256(DUMMY_REVERT_BYTECODE);
+  const mockPalletEvmCodeMetadata: PalletEvmCodeMetadata = context
+    .polkadotJs()
+    .createType("PalletEvmCodeMetadata", {
+      size: codeSize,
+      hash: codeMetadataHash,
+    });
 
   await context.createBlock(
     api.tx.sudo
@@ -250,6 +266,7 @@ export async function mockOldAssetBalance(
               .toString(16)
               .padStart(2)}${DUMMY_REVERT_BYTECODE.slice(2)}`,
           ],
+          [evmCodesMetadataAssetKey, u8aToHex(mockPalletEvmCodeMetadata.toU8a())],
         ])
       )
       .signAsync(sudoAccount)
