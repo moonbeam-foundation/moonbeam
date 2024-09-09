@@ -89,9 +89,10 @@ where
 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
 		use frame_support::ensure;
 		use parity_scale_codec::Encode;
+		use sp_core::storage::StorageKey;
 
-		let key = sp_core::storage::well_known_keys::CODE;
-		let data = sp_io::storage::get(&key);
+		let key = StorageKey(sp_core::storage::well_known_keys::CODE.to_vec());
+		let data = sp_io::storage::get(key.as_ref());
 
 		ensure!(Encode::encode(&data) == state, "Invalid state");
 
