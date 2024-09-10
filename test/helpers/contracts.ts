@@ -1,8 +1,5 @@
 import { DevModeContext } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith } from "@moonwall/util";
-import { PalletEvmCodeMetadata } from "@polkadot/types/lookup";
-import { u8aToHex } from "@polkadot/util";
-import { keccak256 } from "viem";
 
 export interface HeavyContract {
   deployed: boolean;
@@ -42,14 +39,6 @@ export const deployHeavyContracts = async (context: DevModeContext, first = 6000
     .polkadotJs()
     .registry.createType("Compact<u32>", `0x${BigInt((evmCode.length + 1) * 2).toString(16)}`)
     .toHex(true)}${evmCode}`;
-  const codeSize = evmCode.length / 2;
-  const codeMetadataHash = keccak256(("0x" + evmCode) as `0x${string}`);
-  const mockPalletEvmCodeMetadata: PalletEvmCodeMetadata = context
-    .polkadotJs()
-    .createType("PalletEvmCodeMetadata", {
-      size: codeSize,
-      hash: codeMetadataHash,
-    });
 
   // Create the batchs of contracts to deploy
   const batchs = contracts
@@ -58,10 +47,6 @@ export const deployHeavyContracts = async (context: DevModeContext, first = 6000
         if (acc[acc.length - 1].length >= 30) acc.push([]);
         if (!value.deployed) {
           acc[acc.length - 1].push([value.key, storageData]);
-          acc[acc.length - 1].push([
-            value.codesMetadataKey,
-            u8aToHex(mockPalletEvmCodeMetadata.toU8a()),
-          ]);
         }
         return acc;
       },
