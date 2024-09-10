@@ -131,6 +131,13 @@
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -170,9 +177,9 @@
 	</span><span class="attr">#[method(name = <span class="string">"moon_isTxFinalized"</span>)]
 	</span><span class="kw">async fn </span>is_tx_finalized(<span class="kw-2">&amp;</span><span class="self">self</span>, tx_hash: H256) -&gt; RpcResult&lt;bool&gt;;
 
-	<span class="doccomment">/// Gets the latest block hash that is fully indexed in frontier's backend.
-	</span><span class="attr">#[method(name = <span class="string">"moon_getLatestBlockHash"</span>)]
-	</span><span class="kw">async fn </span>get_latest_block_hash(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RpcResult&lt;H256&gt;;
+	<span class="doccomment">/// Gets the range of blocks that are fully indexed in frontier's backend.
+	</span><span class="attr">#[method(name = <span class="string">"moon_getEthSyncBlockRange"</span>)]
+	</span><span class="kw">async fn </span>get_frontier_sync_block_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RpcResult&lt;(H256, H256)&gt;;
 }
 
 <span class="kw">pub struct </span>MoonbeamFinality&lt;B: Block, C&gt; {
@@ -221,11 +228,18 @@
 		}
 	}
 
-	<span class="kw">async fn </span>get_latest_block_hash(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RpcResult&lt;H256&gt; {
-		<span class="kw">let </span>res = <span class="self">self</span>.backend.deref().latest_block_hash().<span class="kw">await</span>;
-		<span class="kw">match </span>res {
-			<span class="prelude-val">Ok</span>(val) =&gt; <span class="prelude-val">Ok</span>(val),
-			<span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(ErrorObject::owned(
+	<span class="kw">async fn </span>get_frontier_sync_block_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RpcResult&lt;(H256, H256)&gt; {
+		<span class="kw">match </span>(
+			<span class="self">self</span>.backend.deref().first_block_hash().<span class="kw">await</span>,
+			<span class="self">self</span>.backend.deref().latest_block_hash().<span class="kw">await</span>,
+		) {
+			(<span class="prelude-val">Ok</span>(first), <span class="prelude-val">Ok</span>(last)) =&gt; <span class="prelude-val">Ok</span>((first, last)),
+			(<span class="prelude-val">Err</span>(e), <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(ErrorObject::owned(
+				jsonrpsee::types::error::UNKNOWN_ERROR_CODE,
+				<span class="string">"No synced block"</span>,
+				<span class="prelude-val">Some</span>(e),
+			)),
+			(<span class="kw">_</span>, <span class="prelude-val">Err</span>(e)) =&gt; <span class="prelude-val">Err</span>(ErrorObject::owned(
 				jsonrpsee::types::error::UNKNOWN_ERROR_CODE,
 				<span class="string">"No synced block"</span>,
 				<span class="prelude-val">Some</span>(e),
