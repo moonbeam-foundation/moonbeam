@@ -204,17 +204,3 @@ mod serde_hex {
 		})
 	}
 }
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-	use std::str::FromStr;
-
-	#[test]
-	pub fn can_read_state_overrides() -> Result<(), String> {
-		let file = "/Users/romarq/Projects/Moonsong/Moonbeam/moonbeam/state_overrides.json";
-		let path = std::path::PathBuf::from_str(file).expect("File exists");
-
-		read(path).map(|_| ())
-	}
-}
