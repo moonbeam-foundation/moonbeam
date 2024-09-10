@@ -77,7 +77,6 @@ use frame_support::{
 	PalletId,
 };
 
-use fp_evm::TransactionPov;
 use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
