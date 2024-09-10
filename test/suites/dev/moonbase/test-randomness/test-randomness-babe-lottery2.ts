@@ -41,7 +41,7 @@ describeSuite({
         functionName: "fulfillRequest",
         args: [0],
         rawTxOnly: true,
-        gas: 500_000n,
+        gas: 700_000n, // TODO: estimate gas and snapshot the estimation
         privateKey: BALTATHAR_PRIVATE_KEY,
       });
 
