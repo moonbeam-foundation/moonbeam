@@ -5,7 +5,7 @@
 # current reference machine: https://github.com/paritytech/substrate/pull/5848
 
 runtime="${1:-moonbase}"
-output="common"
+output="${runtime}"
 profile="${2:-production}"
 
 echo "[+] Compiling benchmarks with $profile profile... (this will take a while)"

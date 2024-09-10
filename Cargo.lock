@@ -9360,7 +9360,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hex",
- "moonbeam-runtime-common",
  "pallet-balances",
  "pallet-evm",
  "pallet-precompile-benchmarks",
