@@ -44,7 +44,7 @@ describeSuite({
         precompileName: "Randomness",
         functionName: "fulfillRequest",
         args: [0],
-        gas: 500_000n,
+        gas: 700_000n, // TODO: estimate gas and snapshot the estimation
         rawTxOnly: true,
       });
       const { result } = await context.createBlock(rawTxn);
