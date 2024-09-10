@@ -22,7 +22,6 @@ export const deployHeavyContracts = async (context: DevModeContext, first = 6000
         deployed: false,
         account,
         key: context.polkadotJs().query.evm.accountCodes.key(account),
-        codesMetadataKey: context.polkadotJs().query.evm.accountCodesMetadata.key(account),
       };
     })
   );
@@ -45,9 +44,7 @@ export const deployHeavyContracts = async (context: DevModeContext, first = 6000
     .reduce(
       (acc, value) => {
         if (acc[acc.length - 1].length >= 30) acc.push([]);
-        if (!value.deployed) {
-          acc[acc.length - 1].push([value.key, storageData]);
-        }
+        if (!value.deployed) acc[acc.length - 1].push([value.key, storageData]);
         return acc;
       },
       [[]] as [string, string][][]
