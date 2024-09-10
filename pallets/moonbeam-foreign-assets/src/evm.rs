@@ -16,7 +16,7 @@
 
 use crate::{AssetId, Error, Pallet};
 use ethereum_types::{BigEndianHash, H160, H256, U256};
-use fp_evm::{ExitReason, ExitSucceed, TransactionPov};
+use fp_evm::{ExitReason, ExitSucceed};
 use frame_support::ensure;
 use frame_support::pallet_prelude::Weight;
 use pallet_evm::{GasWeightMapping, Runner};
@@ -129,6 +129,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			false,
 			false,
 			None,
+			None,
 			&<T as pallet_evm::Config>::config(),
 			contract_adress,
 		)
@@ -173,7 +174,8 @@ impl<T: crate::Config> EvmCaller<T> {
 			Default::default(),
 			false,
 			false,
-			Some(TransactionPov::new(weight_limit, 0)),
+			Some(weight_limit),
+			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
 		.map_err(|_| EvmError::EvmCallFail)?;
@@ -218,7 +220,8 @@ impl<T: crate::Config> EvmCaller<T> {
 			Default::default(),
 			false,
 			false,
-			Some(TransactionPov::new(weight_limit, 0)),
+			Some(weight_limit),
+			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
 		.map_err(|_| EvmError::EvmCallFail)?;
@@ -272,7 +275,8 @@ impl<T: crate::Config> EvmCaller<T> {
 			Default::default(),
 			false,
 			false,
-			Some(TransactionPov::new(weight_limit, 0)),
+			Some(weight_limit),
+			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
 		.map_err(|_| EvmError::EvmCallFail)?;
@@ -308,7 +312,8 @@ impl<T: crate::Config> EvmCaller<T> {
 			Default::default(),
 			false,
 			false,
-			Some(TransactionPov::new(weight_limit, 0)),
+			Some(weight_limit),
+			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
 		.map_err(|_| Error::<T>::EvmInternalError)?;
@@ -345,7 +350,8 @@ impl<T: crate::Config> EvmCaller<T> {
 			Default::default(),
 			false,
 			false,
-			Some(TransactionPov::new(weight_limit, 0)),
+			Some(weight_limit),
+			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
 		.map_err(|_| Error::<T>::EvmInternalError)?;

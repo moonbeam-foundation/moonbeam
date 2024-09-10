@@ -41,7 +41,7 @@ pub mod pallet {
 	use crate::errors::*;
 	use crate::xcm_holding_ext::*;
 	use ethereum_types::BigEndianHash;
-	use fp_evm::{ExitReason, ExitSucceed, TransactionPov};
+	use fp_evm::{ExitReason, ExitSucceed};
 	use frame_support::pallet_prelude::*;
 	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_core::{H160, H256, U256};
@@ -125,7 +125,8 @@ pub mod pallet {
 				Default::default(),
 				false,
 				false,
-				Some(TransactionPov::new(weight_limit, 0)),
+				Some(weight_limit),
+				Some(0),
 				&<T as pallet_evm::Config>::config(),
 			)
 			.map_err(|_| Erc20TransferError::EvmCallFail)?;

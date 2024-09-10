@@ -289,7 +289,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					#[cfg(feature = "evm-tracing")]
 					{
 						use moonbeam_evm_tracer::tracer::EvmTracer;
-						use fp_evm::TransactionPov;
 
 						// Initialize block: calls the "on_initialize" hook on every pallet
 						// in AllPalletsWithSystem.
@@ -324,15 +323,15 @@ macro_rules! impl_runtime_apis_plus_common {
 
 							let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
 
-							let transaction_pov =
+							let (weight_limit, proof_size_base_cost) =
 								match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
 									gas_limit,
 									without_base_extrinsic_weight
 								) {
 									weight_limit if weight_limit.proof_size() > 0 => {
-										(Some(TransactionPov::new(weight_limit, estimated_transaction_len as u64)))
+										(Some(weight_limit), Some(estimated_transaction_len as u64))
 									}
-									_ => (None),
+									_ => (None, None),
 								};
 
 							let _ = <Runtime as pallet_evm::Config>::Runner::call(
@@ -347,7 +346,8 @@ macro_rules! impl_runtime_apis_plus_common {
 								access_list.unwrap_or_default(),
 								is_transactional,
 								validate,
-								transaction_pov,
+								weight_limit,
+								proof_size_base_cost,
 								<Runtime as pallet_evm::Config>::config(),
 							);
 						});
@@ -459,15 +459,15 @@ macro_rules! impl_runtime_apis_plus_common {
 					let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
 					let without_base_extrinsic_weight = true;
 
-					let transaction_pov =
+					let (weight_limit, proof_size_base_cost) =
 						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
 							gas_limit,
 							without_base_extrinsic_weight
 						) {
 							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(TransactionPov::new(weight_limit, estimated_transaction_len as u64)))
+								(Some(weight_limit), Some(estimated_transaction_len as u64))
 							}
-							_ => (None),
+							_ => (None, None),
 						};
 
 					<Runtime as pallet_evm::Config>::Runner::call(
@@ -482,7 +482,8 @@ macro_rules! impl_runtime_apis_plus_common {
 						access_list.unwrap_or_default(),
 						is_transactional,
 						validate,
-						transaction_pov,
+						weight_limit,
+						proof_size_base_cost,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
@@ -535,15 +536,15 @@ macro_rules! impl_runtime_apis_plus_common {
 					};
 					let without_base_extrinsic_weight = true;
 
-					let transaction_pov =
+					let (weight_limit, proof_size_base_cost) =
 						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
 							gas_limit,
 							without_base_extrinsic_weight
 						) {
 							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(TransactionPov::new(weight_limit, estimated_transaction_len as u64)))
+								(Some(weight_limit), Some(estimated_transaction_len as u64))
 							}
-							_ => (None),
+							_ => (None, None),
 						};
 
 					#[allow(clippy::or_fun_call)] // suggestion not helpful here
@@ -558,7 +559,8 @@ macro_rules! impl_runtime_apis_plus_common {
 						access_list.unwrap_or_default(),
 						is_transactional,
 						validate,
-						transaction_pov,
+						weight_limit,
+						proof_size_base_cost,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}

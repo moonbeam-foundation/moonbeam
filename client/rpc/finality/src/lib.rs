@@ -22,7 +22,6 @@ use sp_core::H256;
 use sp_runtime::traits::Block;
 use std::ops::Deref;
 use std::{marker::PhantomData, sync::Arc};
-use fc_rpc::internal_err;
 
 /// An RPC endpoint to check for finality of blocks and transactions in Moonbeam
 #[rpc(server)]
@@ -73,14 +72,14 @@ where
 	async fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool> {
 		let client = self.client.clone();
 
-		if let Ok(Some((ethereum_block_hash, _ethereum_index))) =
+		if let Some((ethereum_block_hash, _ethereum_index)) =
 			frontier_backend_client::load_transactions::<B, C>(
 				&client,
 				self.backend.as_ref(),
 				tx_hash,
 				true,
 			)
-			.await
+			.await?
 		{
 			is_block_finalized_inner::<B, C>(self.backend.as_ref(), &client, ethereum_block_hash)
 				.await
@@ -108,11 +107,10 @@ async fn is_block_finalized_inner<B: Block<Hash = H256>, C: HeaderBackend<B> + '
 	raw_hash: H256,
 ) -> RpcResult<bool> {
 	let substrate_hash =
-		match frontier_backend_client::load_hash::<B, C>(client, backend, raw_hash)
-			.await
-			.map_err(|err| internal_err(format!("{:?}", err)))?
-		{
+		match frontier_backend_client::load_hash::<B, C>(client, backend, raw_hash).await? {
+			// If we find this hash in the frontier data base, we know it is an eth hash
 			Some(hash) => hash,
+			// Otherwise, we assume this is a Substrate hash.
 			None => raw_hash,
 		};
 
