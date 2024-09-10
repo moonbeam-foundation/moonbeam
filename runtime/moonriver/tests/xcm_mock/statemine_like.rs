@@ -18,7 +18,7 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{AsEnsureOriginWithArg, Contains, Everything, Nothing},
+	traits::{AsEnsureOriginWithArg, Contains, ContainsPair, Everything, Get, Nothing},
 	weights::Weight,
 };
 use frame_system::{EnsureRoot, EnsureSigned};
@@ -290,7 +290,36 @@ pub type Barrier = (
 parameter_types! {
 	pub MatcherLocation: Location = Location::here();
 	pub const MaxAssetsIntoHolding: u32 = 64;
+	pub const RelayTokenLocation: Location = Location::parent();
 }
+
+// Copied from:
+//
+// https://github.com/paritytech/polkadot-sdk/blob/f4eb41773611008040c9d4d8a8e6b7323eccfca1/cumulus
+// /parachains/common/src/xcm_config.rs#L118
+//
+// without the extra check for the system parachain, because we don't need it in tests.
+//
+// That checks ensures that our paraId is lower than ~1900.
+// If we keep it enabled our tests will fail given that our paraIds are 1, 2, 3 and so on.
+pub struct ConcreteAssetFromSystem<AssetLocation>(sp_std::marker::PhantomData<AssetLocation>);
+impl<AssetLocation: Get<Location>> ContainsPair<Asset, Location>
+	for ConcreteAssetFromSystem<AssetLocation>
+{
+	fn contains(asset: &Asset, origin: &Location) -> bool {
+		let is_system = match origin.unpack() {
+			// The Relay Chain
+			(1, []) => true,
+			// System parachain
+			(1, [Parachain(_id)]) => false,
+			// Others
+			_ => false,
+		};
+		asset.id.0 == AssetLocation::get() && is_system
+	}
+}
+
+pub type TrustedTeleporters = (ConcreteAssetFromSystem<RelayTokenLocation>,);
 
 pub struct XcmConfig;
 impl Config for XcmConfig {
@@ -300,7 +329,7 @@ impl Config for XcmConfig {
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve =
 		orml_xcm_support::MultiNativeAsset<orml_traits::location::RelativeReserveProvider>;
-	type IsTeleporter = ();
+	type IsTeleporter = TrustedTeleporters;
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;

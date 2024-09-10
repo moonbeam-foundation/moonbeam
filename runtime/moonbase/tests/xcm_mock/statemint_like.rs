@@ -22,8 +22,6 @@ use frame_support::{
 	weights::Weight,
 };
 use frame_system::{EnsureRoot, EnsureSigned};
-
-//use parachains_common::xcm_config::ConcreteAssetFromSystem;
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use sp_core::H256;
 use sp_runtime::{
