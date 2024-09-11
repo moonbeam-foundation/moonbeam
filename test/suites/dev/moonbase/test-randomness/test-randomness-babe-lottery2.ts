@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
+  BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
   DEFAULT_GENESIS_BALANCE,
@@ -34,21 +35,36 @@ describeSuite({
         gas: 500_000n,
         value: 1n * GLMR,
       });
+
       await context.createBlock();
+
+      await context.createBlock([fakeBabeResultTransaction(context)]);
+
+      const estimatedGas = await context.viem().estimateContractGas({
+        address: "0x0000000000000000000000000000000000000809",
+        abi: fetchCompiledContract("Randomness").abi,
+        functionName: "fulfillRequest",
+        args: [0],
+        account: BALTATHAR_ADDRESS,
+      });
+      expect(estimatedGas).toMatchInlineSnapshot(`171662n`);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",
         functionName: "fulfillRequest",
         args: [0],
         rawTxOnly: true,
-        gas: 700_000n, // TODO: estimate gas and snapshot the estimation
+        gas: 280576n, // Taken from fullfillReceipt inline snapshot
         privateKey: BALTATHAR_PRIVATE_KEY,
       });
 
+      // We fake the results twice, once to estimate the gas
+      // and once to actually fulfill the request
       const { result } = await context.createBlock([fakeBabeResultTransaction(context), rawTxn]);
       fulFillReceipt = await context
         .viem()
         .getTransactionReceipt({ hash: result![1].hash as `0x${string}` });
+      expect(fulFillReceipt.gasUsed).toMatchInlineSnapshot(`280576n`);
     });
 
     it({
