@@ -15,9 +15,9 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Dynamic runtime parametes.
-use crate::Runtime;
 use frame_support::dynamic_params::{dynamic_pallet_params, dynamic_params};
 use sp_runtime::Perbill;
+use crate::{Runtime, currency, Balance};
 
 #[dynamic_params(RuntimeParameters, pallet_parameters::Parameters::<Runtime>)]
 pub mod dynamic_params {
@@ -28,6 +28,13 @@ pub mod dynamic_params {
 		// for fees, 80% are burned, 20% to the treasury
 		#[codec(index = 0)]
 		pub static FeesTreasuryProportion: Perbill = Perbill::from_percent(20);
+	}
+
+	#[dynamic_pallet_params]
+	#[codec(index = 1)]
+	pub mod pallet_randomness {
+		#[codec(index = 0)]
+		pub static Deposit: Balance = 1 * currency::UNIT * currency::SUPPLY_FACTOR;
 	}
 }
 
