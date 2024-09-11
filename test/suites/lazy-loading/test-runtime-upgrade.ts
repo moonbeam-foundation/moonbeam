@@ -75,9 +75,7 @@ describeSuite({
       const rtAfter = api.consts.system.version.specVersion.toNumber();
       log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtAfter}`);
 
-      if (rtBefore === rtAfter) {
-        throw new Error("Runtime upgrade failed");
-      }
+      expect(rtBefore).to.be.not.equal(rtAfter, "Runtime upgrade failed");
 
       const specName = api.consts.system.version.specName.toString();
       log(`Currently connected to chain: ${specName}`);
