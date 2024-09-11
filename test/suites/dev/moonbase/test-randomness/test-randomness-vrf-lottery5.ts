@@ -40,11 +40,21 @@ describeSuite({
       await context.createBlock();
       await context.createBlock();
       await context.createBlock();
+
+      const estimatedGas = await context.viem().estimateContractGas({
+        address: "0x0000000000000000000000000000000000000809",
+        abi: fetchCompiledContract("Randomness").abi,
+        functionName: "fulfillRequest",
+        args: [0],
+      });
+
+      expect(estimatedGas).toMatchInlineSnapshot(`171514n`);
+
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",
         functionName: "fulfillRequest",
         args: [0],
-        gas: 700_000n, // TODO: estimate gas and snapshot the estimation
+        gas: 280576n, // Taken from fullfillReceipt inline snapshot
         rawTxOnly: true,
       });
       const { result } = await context.createBlock(rawTxn);
@@ -52,6 +62,8 @@ describeSuite({
       fulFillReceipt = await context
         .viem()
         .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+
+      expect(fulFillReceipt.gasUsed).toMatchInlineSnapshot(`280576n`);
     });
     it({
       id: "T01",
