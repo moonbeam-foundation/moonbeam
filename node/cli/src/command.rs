@@ -711,7 +711,7 @@ pub fn run() -> Result<()> {
 				let rpc_config = cli.run.new_rpc_config();
 
 				#[cfg(feature = "lazy-loading")]
-				if cli.run.fork_chain_from_rpc.is_some() {
+				if let Some(fork_chain_from_rpc) = cli.run.fork_chain_from_rpc {
 					// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
 					// the author-id flag. For now, this will work.
@@ -720,7 +720,7 @@ pub fn run() -> Result<()> {
 					));
 
 					let lazy_loading_config = moonbeam_cli_opt::LazyLoadingConfig {
-						state_rpc: cli.run.fork_chain_from_rpc.expect("a valid RPC endpoint"),
+						state_rpc: fork_chain_from_rpc,
 						from_block: cli.run.block,
 						state_overrides_path: cli.run.fork_state_overrides,
 						runtime_override: cli.run.runtime_override,
