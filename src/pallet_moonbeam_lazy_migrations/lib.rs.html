@@ -128,6 +128,62 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -163,6 +219,8 @@
 
 <span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 
+<span class="kw">const </span>MAX_CONTRACT_CODE_SIZE: u64 = <span class="number">25 </span>* <span class="number">1024</span>;
+
 <span class="attr">#[pallet]
 </span><span class="kw">pub mod </span>pallet {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
@@ -195,6 +253,10 @@
 		</span>AddressesLengthCannotBeZero,
 		<span class="doccomment">/// The contract is not corrupted (Still exist or properly suicided)
 		</span>ContractNotCorrupted,
+		<span class="doccomment">/// The contract already have metadata
+		</span>ContractMetadataAlreadySet,
+		<span class="doccomment">/// Contract not exist
+		</span>ContractNotExist,
 	}
 
 	<span class="attr">#[pallet::call]
@@ -253,6 +315,56 @@
 				}
 			}
 			<span class="prelude-val">Ok</span>(Pays::No.into())
+		}
+		<span class="attr">#[pallet::call_index(<span class="number">2</span>)]
+		#[pallet::weight(Pallet::&lt;T&gt;::create_contract_metadata_weight(MAX_CONTRACT_CODE_SIZE))]
+		</span><span class="kw">pub fn </span>create_contract_metadata(
+			origin: OriginFor&lt;T&gt;,
+			address: H160,
+		) -&gt; DispatchResultWithPostInfo {
+			ensure_signed(origin)<span class="question-mark">?</span>;
+
+			<span class="macro">ensure!</span>(
+				pallet_evm::AccountCodesMetadata::&lt;T&gt;::get(address).is_none(),
+				Error::&lt;T&gt;::ContractMetadataAlreadySet
+			);
+
+			<span class="comment">// Ensure contract exist
+			</span><span class="kw">let </span>code = pallet_evm::AccountCodes::&lt;T&gt;::get(address);
+			<span class="macro">ensure!</span>(!code.is_empty(), Error::&lt;T&gt;::ContractNotExist);
+
+			<span class="comment">// Construct metadata
+			</span><span class="kw">let </span>code_size = code.len() <span class="kw">as </span>u64;
+			<span class="kw">let </span>code_hash = sp_core::H256::from(sp_io::hashing::keccak_256(<span class="kw-2">&amp;</span>code));
+			<span class="kw">let </span>meta = pallet_evm::CodeMetadata {
+				size: code_size,
+				hash: code_hash,
+			};
+
+			<span class="comment">// Set metadata
+			</span>pallet_evm::AccountCodesMetadata::&lt;T&gt;::insert(address, meta);
+
+			<span class="prelude-val">Ok</span>((
+				<span class="prelude-val">Some</span>(<span class="self">Self</span>::create_contract_metadata_weight(code_size)),
+				Pays::No,
+			)
+				.into())
+		}
+	}
+
+	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+		<span class="kw">fn </span>create_contract_metadata_weight(code_size: u64) -&gt; Weight {
+			<span class="comment">// max entry size of AccountCodesMetadata (full key + value)
+			</span><span class="kw">const </span>PROOF_SIZE_CODE_METADATA: u64 = <span class="number">100</span>;
+			<span class="comment">// intermediates nodes might be up to 3Kb
+			</span><span class="kw">const </span>PROOF_SIZE_INTERMEDIATES_NODES: u64 = <span class="number">3 </span>* <span class="number">1024</span>;
+
+			<span class="comment">// Account for 2 reads, 1 write
+			</span>&lt;T <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get()
+				.reads_writes(<span class="number">2</span>, <span class="number">1</span>)
+				.set_proof_size(
+					code_size + (PROOF_SIZE_INTERMEDIATES_NODES * <span class="number">2</span>) + PROOF_SIZE_CODE_METADATA,
+				)
 		}
 	}
 }
