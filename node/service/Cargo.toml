@@ -15,7 +15,7 @@ exit-future = { workspace = true }
 flume = { workspace = true }
 futures = { workspace = true, features = ["compat"] }
 hex-literal = { workspace = true }
-jsonrpsee = { workspace = true, features = ["macros", "server"] }
+jsonrpsee = { workspace = true, features = ["macros", "server", "http-client"] }
 libsecp256k1 = { workspace = true, features = ["hmac"] }
 log = { workspace = true }
 maplit = { workspace = true }
@@ -26,6 +26,11 @@ sha3 = { workspace = true }
 tiny-bip39 = { workspace = true }
 tokio = { workspace = true, features = ["macros", "sync"] }
 trie-root = { workspace = true }
+tokio-retry = { workspace = true }
+substrate-rpc-client = { workspace = true }
+hex = { workspace = true, features = ["std"] }
+thiserror = { workspace = true }
+tracing = { workspace = true }
 
 # Moonbeam
 moonbeam-dev-rpc = { workspace = true }
@@ -52,6 +57,8 @@ moonriver-runtime = { workspace = true, optional = true }
 
 # Substrate
 frame-system-rpc-runtime-api = { workspace = true, features = ["std"] }
+frame-system = { workspace = true, features = ["std"] }
+pallet-balances = { workspace = true, features = ["std"] }
 pallet-transaction-payment = { workspace = true, features = ["std"] }
 pallet-transaction-payment-rpc = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = [
@@ -95,6 +102,10 @@ sp-storage = { workspace = true, features = ["std"] }
 sp-timestamp = { workspace = true, features = ["std"] }
 sp-transaction-pool = { workspace = true, features = ["std"] }
 sp-trie = { workspace = true, features = ["std"] }
+sp-state-machine = { workspace = true }
+sp-rpc = { workspace = true }
+sp-externalities = { workspace = true }
+sp-version = { workspace = true }
 substrate-frame-rpc-system = { workspace = true }
 substrate-prometheus-endpoint = { workspace = true }
 
@@ -177,6 +188,8 @@ default = [
 	"rococo-native",
 	"westend-native",
 ]
+
+lazy-loading = ["sc-service/test-helpers"]
 
 rococo-native = ["polkadot-cli/rococo-native", "polkadot-service/rococo-native"]
 westend-native = [

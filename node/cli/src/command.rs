@@ -693,7 +693,10 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			let collator_options = cli.run.collator_options();
-			runner.run_node_until_exit(|config| async move {
+
+			// It is used when feature "lazy-loading" is enabled
+			#[allow(unused_mut)]
+			runner.run_node_until_exit(|mut config| async move {
 				let hwbench = if !cli.run.no_hardware_benchmarks {
 					config.database.path().map(|database_path| {
 						let _ = std::fs::create_dir_all(&database_path);
@@ -704,23 +707,11 @@ pub fn run() -> Result<()> {
 				};
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
-				let para_id = extension.map(|e| e.para_id);
-				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
 
 				let rpc_config = cli.run.new_rpc_config();
 
-				// If dev service was requested, start up manual or instant seal.
-				// Otherwise continue with the normal parachain node.
-				// Dev service can be requested in two ways.
-				// 1. by providing the --dev-service flag to the CLI
-				// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
-				// NOTE: the --dev flag triggers the dev service by way of number 2
-				let relay_chain_id = extension.map(|e| e.relay_chain.as_str());
-				let dev_service = cli.run.dev_service
-					|| config.chain_spec.is_dev()
-					|| relay_chain_id == Some("dev-service");
-
-				if dev_service {
+				#[cfg(feature = "lazy-loading")]
+				if let Some(fork_chain_from_rpc) = cli.run.fork_chain_from_rpc {
 					// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
 					// the author-id flag. For now, this will work.
@@ -728,34 +719,81 @@ pub fn run() -> Result<()> {
 						"Alice",
 					));
 
-					return match &config.chain_spec {
-						#[cfg(feature = "moonriver-native")]
-						spec if spec.is_moonriver() => moonbeam_service::new_dev::<
-							moonbeam_service::moonriver_runtime::RuntimeApi,
-							moonbeam_service::MoonriverCustomizations,
-							sc_network::NetworkWorker<_, _>,
-						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
-						.await
-						.map_err(Into::into),
-						#[cfg(feature = "moonbeam-native")]
-						spec if spec.is_moonbeam() => moonbeam_service::new_dev::<
-							moonbeam_service::moonbeam_runtime::RuntimeApi,
-							moonbeam_service::MoonbeamCustomizations,
-							sc_network::NetworkWorker<_, _>,
-						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
-						.await
-						.map_err(Into::into),
-						#[cfg(feature = "moonbase-native")]
-						_ => moonbeam_service::new_dev::<
-							moonbeam_service::moonbase_runtime::RuntimeApi,
-							moonbeam_service::MoonbaseCustomizations,
-							sc_network::NetworkWorker<_, _>,
-						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
-						.await
-						.map_err(Into::into),
-						#[cfg(not(feature = "moonbase-native"))]
-						_ => panic!("invalid chain spec"),
+					let lazy_loading_config = moonbeam_cli_opt::LazyLoadingConfig {
+						state_rpc: fork_chain_from_rpc,
+						from_block: cli.run.block,
+						state_overrides_path: cli.run.fork_state_overrides,
+						runtime_override: cli.run.runtime_override,
 					};
+
+					let spec_builder =
+						chain_spec::test_spec::lazy_loading_spec_builder(Default::default());
+					config.chain_spec = Box::new(spec_builder.build());
+
+					return moonbeam_service::lazy_loading::new_lazy_loading_service::<
+						moonbeam_runtime::RuntimeApi,
+						moonbeam_service::MoonbeamCustomizations,
+						sc_network::NetworkWorker<_, _>,
+					>(
+						config,
+						author_id,
+						cli.run.sealing,
+						rpc_config,
+						lazy_loading_config,
+						hwbench,
+					)
+					.await
+					.map_err(Into::into);
+				}
+				#[cfg(not(feature = "lazy-loading"))]
+				{
+					// If dev service was requested, start up manual or instant seal.
+					// Otherwise continue with the normal parachain node.
+					// Dev service can be requested in two ways.
+					// 1. by providing the --dev-service flag to the CLI
+					// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
+					// NOTE: the --dev flag triggers the dev service by way of number 2
+					let relay_chain_id = extension.map(|e| e.relay_chain.as_str());
+					let dev_service = cli.run.dev_service
+						|| config.chain_spec.is_dev()
+						|| relay_chain_id == Some("dev-service");
+					if dev_service {
+						// When running the dev service, just use Alice's author inherent
+						//TODO maybe make the --alice etc flags work here, and consider bringing back
+						// the author-id flag. For now, this will work.
+						let author_id = Some(chain_spec::get_from_seed::<
+							nimbus_primitives::NimbusId,
+						>("Alice"));
+
+						return match &config.chain_spec {
+							#[cfg(feature = "moonriver-native")]
+							spec if spec.is_moonriver() => moonbeam_service::new_dev::<
+								moonbeam_service::moonriver_runtime::RuntimeApi,
+								moonbeam_service::MoonriverCustomizations,
+								sc_network::NetworkWorker<_, _>,
+							>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+							.await
+							.map_err(Into::into),
+							#[cfg(feature = "moonbeam-native")]
+							spec if spec.is_moonbeam() => moonbeam_service::new_dev::<
+								moonbeam_service::moonbeam_runtime::RuntimeApi,
+								moonbeam_service::MoonbeamCustomizations,
+								sc_network::NetworkWorker<_, _>,
+							>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+							.await
+							.map_err(Into::into),
+							#[cfg(feature = "moonbase-native")]
+							_ => moonbeam_service::new_dev::<
+								moonbeam_service::moonbase_runtime::RuntimeApi,
+								moonbeam_service::MoonbaseCustomizations,
+								sc_network::NetworkWorker<_, _>,
+							>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+							.await
+							.map_err(Into::into),
+							#[cfg(not(feature = "moonbase-native"))]
+							_ => panic!("invalid chain spec"),
+						};
+					}
 				}
 
 				let polkadot_cli = RelayChainCli::new(
@@ -764,6 +802,9 @@ pub fn run() -> Result<()> {
 						.iter()
 						.chain(cli.relaychain_args.iter()),
 				);
+
+				let para_id = extension.map(|e| e.para_id);
+				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
 
 				let parachain_account =
 					AccountIdConversion::<polkadot_primitives::v7::AccountId>::into_account_truncating(&id);
