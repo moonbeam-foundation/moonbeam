@@ -1844,6 +1844,7 @@
 <a href="#1842" id="1842">1842</a>
 <a href="#1843" id="1843">1843</a>
 <a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1914,6 +1915,7 @@
 };
 <span class="kw">use </span>sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 <span class="kw">use </span>sc_transaction_pool_api::OffchainTransactionPoolFactory;
+<span class="kw">use </span>session_keys_primitives::VrfApi;
 <span class="kw">use </span>sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 <span class="kw">use </span>sp_blockchain::{Error <span class="kw">as </span>BlockChainError, HeaderBackend, HeaderMetadata};
 <span class="kw">use </span>sp_consensus::SyncOracle;
@@ -1927,28 +1929,29 @@
 <span class="kw">pub use </span>client::<span class="kw-2">*</span>;
 <span class="kw">pub mod </span>chain_spec;
 <span class="kw">mod </span>client;
+<span class="attr">#[cfg(feature = <span class="string">"lazy-loading"</span>)]
+</span><span class="kw">pub mod </span>lazy_loading;
 
 <span class="kw">type </span>FullClient&lt;RuntimeApi&gt; = TFullClient&lt;Block, RuntimeApi, WasmExecutor&lt;HostFunctions&gt;&gt;;
 <span class="kw">type </span>FullBackend = TFullBackend&lt;Block&gt;;
 
-<span class="kw">type </span>MaybeSelectChain = <span class="prelude-ty">Option</span>&lt;sc_consensus::LongestChain&lt;FullBackend, Block&gt;&gt;;
-<span class="kw">type </span>FrontierBlockImport&lt;RuntimeApi&gt; =
-	TFrontierBlockImport&lt;Block, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;, FullClient&lt;RuntimeApi&gt;&gt;;
-<span class="kw">type </span>ParachainBlockImport&lt;RuntimeApi&gt; =
-	TParachainBlockImport&lt;Block, FrontierBlockImport&lt;RuntimeApi&gt;, FullBackend&gt;;
-<span class="kw">type </span>PartialComponentsResult&lt;RuntimeApi&gt; = <span class="prelude-ty">Result</span>&lt;
+<span class="kw">type </span>MaybeSelectChain&lt;Backend&gt; = <span class="prelude-ty">Option</span>&lt;sc_consensus::LongestChain&lt;Backend, Block&gt;&gt;;
+<span class="kw">type </span>FrontierBlockImport&lt;Client&gt; = TFrontierBlockImport&lt;Block, Arc&lt;Client&gt;, Client&gt;;
+<span class="kw">type </span>ParachainBlockImport&lt;Client, Backend&gt; =
+	TParachainBlockImport&lt;Block, FrontierBlockImport&lt;Client&gt;, Backend&gt;;
+<span class="kw">type </span>PartialComponentsResult&lt;Client, Backend&gt; = <span class="prelude-ty">Result</span>&lt;
 	PartialComponents&lt;
-		FullClient&lt;RuntimeApi&gt;,
-		FullBackend,
-		MaybeSelectChain,
+		Client,
+		Backend,
+		MaybeSelectChain&lt;Backend&gt;,
 		sc_consensus::DefaultImportQueue&lt;Block&gt;,
-		sc_transaction_pool::FullPool&lt;Block, FullClient&lt;RuntimeApi&gt;&gt;,
+		sc_transaction_pool::FullPool&lt;Block, Client&gt;,
 		(
-			BlockImportPipeline&lt;FrontierBlockImport&lt;RuntimeApi&gt;, ParachainBlockImport&lt;RuntimeApi&gt;&gt;,
+			BlockImportPipeline&lt;FrontierBlockImport&lt;Client&gt;, ParachainBlockImport&lt;Client, Backend&gt;&gt;,
 			<span class="prelude-ty">Option</span>&lt;FilterPool&gt;,
 			<span class="prelude-ty">Option</span>&lt;Telemetry&gt;,
 			<span class="prelude-ty">Option</span>&lt;TelemetryWorkerHandle&gt;,
-			Arc&lt;fc_db::Backend&lt;Block, FullClient&lt;RuntimeApi&gt;&gt;&gt;,
+			Arc&lt;fc_db::Backend&lt;Block, Client&gt;&gt;,
 			FeeHistoryCache,
 		),
 	&gt;,
@@ -2265,7 +2268,7 @@
 	config: <span class="kw-2">&amp;mut </span>Configuration,
 	rpc_config: <span class="kw-2">&amp;</span>RpcConfig,
 	dev_service: bool,
-) -&gt; PartialComponentsResult&lt;RuntimeApi&gt;
+) -&gt; PartialComponentsResult&lt;FullClient&lt;RuntimeApi&gt;, FullBackend&gt;
 <span class="kw">where
 	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
@@ -2784,7 +2787,7 @@
 	async_backing: bool,
 	backend: Arc&lt;FullBackend&gt;,
 	client: Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;,
-	block_import: ParachainBlockImport&lt;RuntimeApi&gt;,
+	block_import: ParachainBlockImport&lt;FullClient&lt;RuntimeApi&gt;, FullBackend&gt;,
 	prometheus_registry: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Registry&gt;,
 	telemetry: <span class="prelude-ty">Option</span>&lt;TelemetryHandle&gt;,
 	task_manager: <span class="kw-2">&amp;</span>TaskManager,
@@ -2803,8 +2806,7 @@
 <span class="kw">where
 	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	sc_client_api::StateBackendFor&lt;TFullBackend&lt;Block&gt;, Block&gt;:
-		sc_client_api::StateBackend&lt;BlakeTwo256&gt;,
+	sc_client_api::StateBackendFor&lt;FullBackend, Block&gt;: sc_client_api::StateBackend&lt;BlakeTwo256&gt;,
 	SO: SyncOracle + Send + Sync + Clone + <span class="lifetime">'static</span>,
 {
 	<span class="kw">let </span>proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
@@ -3618,29 +3620,29 @@
 	}
 }
 
-<span class="kw">struct </span>PendingConsensusDataProvider&lt;RuntimeApi&gt;
+<span class="kw">struct </span>PendingConsensusDataProvider&lt;Client&gt;
 <span class="kw">where
-	</span>RuntimeApi: Send + Sync,
+	</span>Client: HeaderBackend&lt;Block&gt; + sp_api::ProvideRuntimeApi&lt;Block&gt; + Send + Sync,
+	Client::Api: VrfApi&lt;Block&gt;,
 {
-	client: Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;,
+	client: Arc&lt;Client&gt;,
 	keystore: Arc&lt;<span class="kw">dyn </span>Keystore&gt;,
 }
 
-<span class="kw">impl</span>&lt;RuntimeApi&gt; PendingConsensusDataProvider&lt;RuntimeApi&gt;
+<span class="kw">impl</span>&lt;Client&gt; PendingConsensusDataProvider&lt;Client&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	</span>Client: HeaderBackend&lt;Block&gt; + sp_api::ProvideRuntimeApi&lt;Block&gt; + Send + Sync,
+	Client::Api: VrfApi&lt;Block&gt;,
 {
-	<span class="kw">pub fn </span>new(client: Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;, keystore: Arc&lt;<span class="kw">dyn </span>Keystore&gt;) -&gt; <span class="self">Self </span>{
+	<span class="kw">pub fn </span>new(client: Arc&lt;Client&gt;, keystore: Arc&lt;<span class="kw">dyn </span>Keystore&gt;) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{ client, keystore }
 	}
 }
 
-<span class="kw">impl</span>&lt;RuntimeApi&gt; fc_rpc::pending::ConsensusDataProvider&lt;Block&gt;
-	<span class="kw">for </span>PendingConsensusDataProvider&lt;RuntimeApi&gt;
+<span class="kw">impl</span>&lt;Client&gt; fc_rpc::pending::ConsensusDataProvider&lt;Block&gt; <span class="kw">for </span>PendingConsensusDataProvider&lt;Client&gt;
 <span class="kw">where
-	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	</span>Client: HeaderBackend&lt;Block&gt; + sp_api::ProvideRuntimeApi&lt;Block&gt; + Send + Sync,
+	Client::Api: VrfApi&lt;Block&gt;,
 {
 	<span class="kw">fn </span>create_digest(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
