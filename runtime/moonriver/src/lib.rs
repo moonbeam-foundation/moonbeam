@@ -1722,12 +1722,6 @@ mod tests {
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROMOVR));
 
-		// treasury minimums
-		assert_eq!(
-			get!(pallet_treasury, ProposalBondMinimum, u128),
-			Balance::from(1 * MOVR)
-		);
-
 		// pallet_identity deposits
 		assert_eq!(
 			get!(pallet_identity, BasicDeposit, u128),

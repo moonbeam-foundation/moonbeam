@@ -213,6 +213,7 @@ impl Config for XcmConfig {
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
+	type XcmRecorder = ();
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, KusamaNetwork>;
@@ -293,6 +294,7 @@ impl hrmp::Config for Runtime {
 	type WeightInfo = TestHrmpWeightInfo;
 	type ChannelManager = frame_system::EnsureRoot<AccountId>;
 	type DefaultChannelSizeAndCapacityWithSystem = DefaultChannelSizeAndCapacityWithSystem;
+	type VersionWrapper = XcmPallet;
 }
 
 impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime

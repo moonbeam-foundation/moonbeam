@@ -6572,8 +6572,6 @@ fn deferred_payment_and_at_stake_storage_items_cleaned_up_for_candidates_not_pro
 
 #[test]
 fn deferred_payment_steady_state_event_flow() {
-	use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
-
 	// this test "flows" through a number of rounds, asserting that certain things do/don't happen
 	// once the staking pallet is in a "steady state" (specifically, once we are past the first few
 	// rounds to clear RewardPaymentDelay)
@@ -6618,22 +6616,6 @@ fn deferred_payment_steady_state_event_flow() {
 				set_author(round as BlockNumber, 4, 1);
 			};
 
-			// grab initial issuance -- we will reset it before round issuance is calculated so that
-			// it is consistent every round
-			let initial_issuance = Balances::total_issuance();
-			let reset_issuance = || {
-				let new_issuance = Balances::total_issuance();
-				let diff = new_issuance - initial_issuance;
-				let burned = Balances::burn(diff);
-				Balances::settle(
-					&111,
-					burned,
-					WithdrawReasons::FEE,
-					ExistenceRequirement::AllowDeath,
-				)
-				.expect("Account can absorb burn");
-			};
-
 			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
 			let roll_through_initial_rounds = |mut round: BlockNumber| -> BlockNumber {
 				while round < crate::mock::RewardPaymentDelay::get() + 1 {
@@ -6642,8 +6624,6 @@ fn deferred_payment_steady_state_event_flow() {
 					roll_to_round_end(round);
 					round += 1;
 				}
-
-				reset_issuance();
 
 				round
 			};
@@ -6760,8 +6740,6 @@ fn deferred_payment_steady_state_event_flow() {
 
 				let num_rounds_rolled = roll_to_round_end(round);
 				assert_eq!(num_rounds_rolled, 0, "expected to be at round end already");
-
-				reset_issuance();
 
 				round + 1
 			};

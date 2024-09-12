@@ -133,7 +133,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::Identity>("Identity");
 	is_pallet_prefix::<moonbeam_runtime::XcmpQueue>("XcmpQueue");
 	is_pallet_prefix::<moonbeam_runtime::CumulusXcm>("CumulusXcm");
-	is_pallet_prefix::<moonbeam_runtime::DmpQueue>("DmpQueue");
 	is_pallet_prefix::<moonbeam_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonbeam_runtime::Assets>("Assets");
 	is_pallet_prefix::<moonbeam_runtime::XTokens>("XTokens");
@@ -440,7 +439,6 @@ fn verify_pallet_indices() {
 	// XCM Stuff
 	is_pallet_index::<moonbeam_runtime::XcmpQueue>(100);
 	is_pallet_index::<moonbeam_runtime::CumulusXcm>(101);
-	is_pallet_index::<moonbeam_runtime::DmpQueue>(102);
 	is_pallet_index::<moonbeam_runtime::PolkadotXcm>(103);
 	is_pallet_index::<moonbeam_runtime::Assets>(104);
 	is_pallet_index::<moonbeam_runtime::AssetManager>(105);
