@@ -579,6 +579,13 @@ fn fails_if_called_by_smart_contract() {
 		.execute_with(|| {
 			// Set code to Alice address as it if was a smart contract.
 			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+			pallet_evm::AccountCodesMetadata::<Runtime>::insert(
+				H160::from(Alice),
+				pallet_evm::CodeMetadata {
+					size: 10,
+					hash: H256::default(),
+				},
+			);
 
 			PrecompilesValue::get()
 				.prepare_test(
@@ -777,7 +784,21 @@ fn proxy_proxy_should_fail_if_called_by_smart_contract_for_a_non_eoa_account() {
 		.execute_with(|| {
 			// Set code to Alice & Bob addresses as if they are smart contracts.
 			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+			pallet_evm::AccountCodesMetadata::<Runtime>::insert(
+				H160::from(Alice),
+				pallet_evm::CodeMetadata {
+					size: 10,
+					hash: H256::default(),
+				},
+			);
 			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Bob), vec![10u8]);
+			pallet_evm::AccountCodesMetadata::<Runtime>::insert(
+				H160::from(Bob),
+				pallet_evm::CodeMetadata {
+					size: 10,
+					hash: H256::default(),
+				},
+			);
 
 			// Bob allows Alice to make calls on his behalf
 			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
