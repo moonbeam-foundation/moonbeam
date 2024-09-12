@@ -18,7 +18,6 @@
 
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
-#![allow(dead_code)]
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
@@ -103,14 +102,13 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_idle(_n: BlockNumberFor<T>, remaining_weight: Weight) -> Weight {
-			// let proof_size_before: u64 = get_proof_size().unwrap_or(0);
-			// let res = Pallet::<T>::handle_migration(remaining_weight);
-			// let proof_size_after: u64 = get_proof_size().unwrap_or(0);
-			// let proof_size_diff = proof_size_after.saturating_sub(proof_size_before);
+			let proof_size_before: u64 = get_proof_size().unwrap_or(0);
+			let res = Pallet::<T>::handle_migration(remaining_weight);
+			let proof_size_after: u64 = get_proof_size().unwrap_or(0);
+			let proof_size_diff = proof_size_after.saturating_sub(proof_size_before);
 
-			// Weight::from_parts(0, proof_size_diff)
-			// 	.saturating_add(T::DbWeight::get().reads_writes(res.reads, res.writes))
-			Weight::zero()
+			Weight::from_parts(0, proof_size_diff)
+				.saturating_add(T::DbWeight::get().reads_writes(res.reads, res.writes))
 		}
 	}
 
