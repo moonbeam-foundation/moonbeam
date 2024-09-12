@@ -75,7 +75,7 @@ where
 						.map(|OldAssetType::Xcm(location_v3)| location_v3),
 				)
 			} else {
-				return Weight::MAX;
+				return Weight::default();
 			};
 
 		let mut assets: Vec<(xcm::v4::Location, (bool, u128))> = Vec::new();
@@ -96,7 +96,7 @@ where
 
 		//***** Start mutate storage *****//
 
-		// Write asset metadat in new pallet_xcm_weight_trader
+		// Write asset metadata in new pallet_xcm_weight_trader
 		use frame_support::weights::WeightToFee as _;
 		for (asset_location, (enabled, units_per_second)) in assets {
 			let native_amount_per_second: u128 =
@@ -132,17 +132,25 @@ where
 			None,
 		);
 
-		Weight::MAX
+		Weight::default()
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		todo!()
+		Ok(Default::default())
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		todo!()
+		assert!(frame_support::storage::migration::storage_key_iter::<
+			OldAssetType,
+			u128,
+			frame_support::Blake2_128Concat,
+		>(b"AssetManager", b"AssetTypeUnitsPerSecond")
+		.next()
+		.is_none());
+
+		Ok(())
 	}
 }
 
