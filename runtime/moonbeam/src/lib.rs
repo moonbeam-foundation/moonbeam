@@ -198,6 +198,21 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	state_version: 0,
 };
 
+/// We need to duplicate this because the `runtime_version` macro is conflicting with the
+/// conditional compilation at the state_version field.
+#[cfg(not(feature = "runtime-benchmarks"))]
+#[sp_version::runtime_version]
+pub const VERSION: RuntimeVersion = RuntimeVersion {
+	spec_name: create_runtime_str!("moonbeam"),
+	impl_name: create_runtime_str!("moonbeam"),
+	authoring_version: 3,
+	spec_version: 3200,
+	impl_version: 0,
+	apis: RUNTIME_API_VERSIONS,
+	transaction_version: 3,
+	state_version: 1,
+};
+
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
