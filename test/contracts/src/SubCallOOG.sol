@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-interface CallForwarder {
+interface ICallForwarder {
     function callRange(address first, address last) external;
 }
 
-interface Looper {
+interface ILooper {
     function incrementalLoop(uint256 n) external;
 }
 
@@ -18,7 +18,7 @@ contract SubCallOOG {
         address first,
         address last
     ) public {
-        try CallForwarder(target).callRange(first, last) {
+        try ICallForwarder(target).callRange(first, last) {
             emit SubCallSucceed();
         } catch (bytes memory) {
             emit SubCallFail();
@@ -26,7 +26,7 @@ contract SubCallOOG {
     }
 
     function subCallLooper(address target, uint256 n) public {
-        try Looper(target).incrementalLoop(n) {
+        try ILooper(target).incrementalLoop(n) {
             emit SubCallSucceed();
         } catch (bytes memory) {
             emit SubCallFail();
