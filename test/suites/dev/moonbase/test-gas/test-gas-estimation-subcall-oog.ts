@@ -20,8 +20,8 @@ describeSuite({
     let subCallOogAbi: Abi;
     let subCallOogAddress: `0x${string}`;
 
-    let heavyContracts: HeavyContract[];
-    const MAX_HEAVY_CONTRACTS = 20;
+    let heavyContracts: string[] = [];
+    const MAX_HEAVY_CONTRACTS = 15;
 
     beforeAll(async function () {
       const { contractAddress } = await deployCreateCompiledContract(context, "CallForwarder");
@@ -41,7 +41,11 @@ describeSuite({
       subCallOogAddress = contractAddress3;
 
       // Deploy heavy contracts (test won't use more than what is needed for reaching max pov)
-      heavyContracts = await deployHeavyContracts(context, 6000, 6000 + MAX_HEAVY_CONTRACTS);
+      // heavyContracts = await deployHeavyContracts(context, 6000, 6000 + MAX_HEAVY_CONTRACTS);
+      for (let i = 0; i <= MAX_HEAVY_CONTRACTS; i++) {
+        const { contractAddress } = await deployCreateCompiledContract(context, "BloatedContract");
+        heavyContracts.push(contractAddress);
+      }
     });
 
     it({
@@ -93,24 +97,18 @@ describeSuite({
           address: subCallOogAddress,
           functionName: "subCallForwarder",
           maxPriorityFeePerGas: 0n,
-          args: [
-            callForwarderAddress,
-            heavyContracts[0].account,
-            heavyContracts[MAX_HEAVY_CONTRACTS].account,
-          ],
+          args: [heavyContracts],
           value: 0n,
         });
+
+        log(`Estimated gas: ${estimatedGas}`);
 
         const txHash = await context.viem().sendTransaction({
           to: subCallOogAddress,
           data: encodeFunctionData({
             abi: subCallOogAbi,
             functionName: "subCallForwarder",
-            args: [
-              callForwarderAddress,
-              heavyContracts[0].account,
-              heavyContracts[MAX_HEAVY_CONTRACTS].account,
-            ],
+            args: [heavyContracts],
           }),
           txnType: "eip1559",
           gasLimit: estimatedGas,
