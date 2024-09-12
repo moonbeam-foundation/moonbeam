@@ -42,6 +42,8 @@ moonriver-native = [ "moonbeam-cli/moonriver-native", "moonbeam-service/moonrive
 
 metadata-hash = ["moonbeam-service/metadata-hash"]
 
+lazy-loading = ["moonbeam-service/lazy-loading", "moonbeam-cli/lazy-loading"]
+
 test-spec = []
 
 runtime-benchmarks = [

@@ -161,8 +161,10 @@ describeSuite({
       title: "should return latest synced block",
       test: async function () {
         const expected = await context.createBlock([], { finalize: true });
-        const resp = await customDevRpcRequest("moon_getLatestBlockHash", []);
-        expect(resp, "Latest block hash").toBe(expected.block.hash);
+        const firstBlockHash = (await context.polkadotJs().rpc.chain.getBlockHash(0)).toHex();
+        const resp = await customDevRpcRequest("moon_getEthSyncBlockRange", []);
+        expect(resp[0], "First block hash").toBe(firstBlockHash);
+        expect(resp[1], "Latest block hash").toBe(expected.block.hash);
       },
     });
   },

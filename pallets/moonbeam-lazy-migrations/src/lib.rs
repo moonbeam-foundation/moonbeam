@@ -34,6 +34,8 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
+const MAX_CONTRACT_CODE_SIZE: u64 = 25 * 1024;
+
 #[pallet]
 pub mod pallet {
 	use super::*;
@@ -87,6 +89,10 @@ pub mod pallet {
 		AddressesLengthCannotBeZero,
 		/// The contract is not corrupted (Still exist or properly suicided)
 		ContractNotCorrupted,
+		/// The contract already have metadata
+		ContractMetadataAlreadySet,
+		/// Contract not exist
+		ContractNotExist,
 		/// The key lengths exceeds the maximum allowed
 		KeyTooLong,
 	}
@@ -353,6 +359,56 @@ pub mod pallet {
 				}
 			}
 			Ok(Pays::No.into())
+		}
+		#[pallet::call_index(2)]
+		#[pallet::weight(Pallet::<T>::create_contract_metadata_weight(MAX_CONTRACT_CODE_SIZE))]
+		pub fn create_contract_metadata(
+			origin: OriginFor<T>,
+			address: H160,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+
+			ensure!(
+				pallet_evm::AccountCodesMetadata::<T>::get(address).is_none(),
+				Error::<T>::ContractMetadataAlreadySet
+			);
+
+			// Ensure contract exist
+			let code = pallet_evm::AccountCodes::<T>::get(address);
+			ensure!(!code.is_empty(), Error::<T>::ContractNotExist);
+
+			// Construct metadata
+			let code_size = code.len() as u64;
+			let code_hash = sp_core::H256::from(sp_io::hashing::keccak_256(&code));
+			let meta = pallet_evm::CodeMetadata {
+				size: code_size,
+				hash: code_hash,
+			};
+
+			// Set metadata
+			pallet_evm::AccountCodesMetadata::<T>::insert(address, meta);
+
+			Ok((
+				Some(Self::create_contract_metadata_weight(code_size)),
+				Pays::No,
+			)
+				.into())
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		fn create_contract_metadata_weight(code_size: u64) -> Weight {
+			// max entry size of AccountCodesMetadata (full key + value)
+			const PROOF_SIZE_CODE_METADATA: u64 = 100;
+			// intermediates nodes might be up to 3Kb
+			const PROOF_SIZE_INTERMEDIATES_NODES: u64 = 3 * 1024;
+
+			// Account for 2 reads, 1 write
+			<T as frame_system::Config>::DbWeight::get()
+				.reads_writes(2, 1)
+				.set_proof_size(
+					code_size + (PROOF_SIZE_INTERMEDIATES_NODES * 2) + PROOF_SIZE_CODE_METADATA,
+				)
 		}
 	}
 }
