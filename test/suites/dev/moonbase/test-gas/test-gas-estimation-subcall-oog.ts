@@ -1,5 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+import {
+  beforeAll,
+  customDevRpcRequest,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+} from "@moonwall/cli";
 import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { Abi, decodeEventLog, encodeFunctionData } from "viem";
 import { HeavyContract, deployHeavyContracts } from "../../../../helpers";
@@ -52,7 +58,7 @@ describeSuite({
           value: 0n,
         });
 
-        const rawSigned = await createEthersTransaction(context, {
+        const txHash = await context.viem().sendTransaction({
           to: subCallOogAddress,
           data: encodeFunctionData({
             abi: subCallOogAbi,
@@ -63,17 +69,16 @@ describeSuite({
           gasLimit: estimatedGas,
         });
 
-        const { result } = await context.createBlock(rawSigned);
-        expect(result?.successful).to.equal(true);
+        await context.createBlock();
 
-        const receipt = await context
-          .viem()
-          .getTransactionReceipt({ hash: result![0].hash as `0x${string}` });
+        const receipt = await context.viem().getTransactionReceipt({ hash: txHash });
+
         const decoded = decodeEventLog({
           abi: subCallOogAbi,
           data: receipt.logs[0].data,
           topics: receipt.logs[0].topics,
         }) as any;
+
         expect(decoded.eventName).to.equal("SubCallFail");
       },
     });
@@ -96,7 +101,7 @@ describeSuite({
           value: 0n,
         });
 
-        const rawSigned = await createEthersTransaction(context, {
+        const txHash = await context.viem().sendTransaction({
           to: subCallOogAddress,
           data: encodeFunctionData({
             abi: subCallOogAbi,
@@ -111,12 +116,9 @@ describeSuite({
           gasLimit: estimatedGas,
         });
 
-        const { result } = await context.createBlock(rawSigned);
-        expect(result?.successful).to.equal(true);
+        await context.createBlock();
 
-        const receipt = await context
-          .viem()
-          .getTransactionReceipt({ hash: result![0].hash as `0x${string}` });
+        const receipt = await context.viem().getTransactionReceipt({ hash: txHash });
         const decoded = decodeEventLog({
           abi: subCallOogAbi,
           data: receipt.logs[0].data,
