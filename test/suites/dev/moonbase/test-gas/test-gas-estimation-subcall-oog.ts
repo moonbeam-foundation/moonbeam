@@ -1,14 +1,7 @@
 import "@moonbeam-network/api-augment";
-import {
-  beforeAll,
-  customDevRpcRequest,
-  deployCreateCompiledContract,
-  describeSuite,
-  expect,
-} from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
+import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+import { ALITH_ADDRESS } from "@moonwall/util";
 import { Abi, decodeEventLog, encodeFunctionData } from "viem";
-import { HeavyContract, deployHeavyContracts } from "../../../../helpers";
 
 describeSuite({
   id: "D011805",
@@ -20,8 +13,8 @@ describeSuite({
     let subCallOogAbi: Abi;
     let subCallOogAddress: `0x${string}`;
 
-    let heavyContracts: string[] = [];
-    const MAX_HEAVY_CONTRACTS = 15;
+    let bloatedContracts: string[] = [];
+    const MAX_BLOATED_CONTRACTS = 15;
 
     beforeAll(async function () {
       const { contractAddress } = await deployCreateCompiledContract(context, "CallForwarder");
@@ -40,11 +33,10 @@ describeSuite({
       subCallOogAbi = abi;
       subCallOogAddress = contractAddress3;
 
-      // Deploy heavy contracts (test won't use more than what is needed for reaching max pov)
-      // heavyContracts = await deployHeavyContracts(context, 6000, 6000 + MAX_HEAVY_CONTRACTS);
-      for (let i = 0; i <= MAX_HEAVY_CONTRACTS; i++) {
+      // Deploy bloated contracts (test won't use more than what is needed for reaching max pov)
+      for (let i = 0; i <= MAX_BLOATED_CONTRACTS; i++) {
         const { contractAddress } = await deployCreateCompiledContract(context, "BloatedContract");
-        heavyContracts.push(contractAddress);
+        bloatedContracts.push(contractAddress);
       }
     });
 
@@ -97,7 +89,7 @@ describeSuite({
           address: subCallOogAddress,
           functionName: "subCallForwarder",
           maxPriorityFeePerGas: 0n,
-          args: [heavyContracts],
+          args: [bloatedContracts],
           value: 0n,
         });
 
@@ -108,7 +100,7 @@ describeSuite({
           data: encodeFunctionData({
             abi: subCallOogAbi,
             functionName: "subCallForwarder",
-            args: [heavyContracts],
+            args: [bloatedContracts],
           }),
           txnType: "eip1559",
           gasLimit: estimatedGas,
