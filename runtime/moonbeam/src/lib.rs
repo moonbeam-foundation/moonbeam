@@ -64,10 +64,7 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::{
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
-	weights as moonbeam_weights,
-};
+use moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
@@ -125,8 +122,11 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
 pub mod asset_config;
 pub mod governance;
+mod weights;
 pub mod xcm_config;
+
 use governance::councils::*;
+pub(crate) use weights as moonbeam_weights;
 
 /// GLMR, the native token, uses 18 decimals of precision.
 pub mod currency {

@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use super::moonbeam_weights;
 use crate::{
 	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
 	Runtime, TreasuryCouncilInstance,
 };
 use crate::{AssetId, H160};
 use frame_support::parameter_types;
-use moonbeam_runtime_common::weights as moonbeam_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
@@ -246,7 +246,10 @@ type MoonbeamPrecompilesAt<R> = (
 	>,
 	PrecompileAt<
 		AddressU64<2073>,
-		RelayDataVerifierPrecompile<R>,
+		RelayDataVerifierPrecompile<
+			R,
+			moonbeam_weights::pallet_precompile_benchmarks::WeightInfo<Runtime>,
+		>,
 		(CallableByContract, CallableByPrecompile),
 	>,
 );

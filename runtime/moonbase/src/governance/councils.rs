@@ -16,8 +16,8 @@
 
 //! Councils for Gov1 and Gov2
 
+use super::moonbase_weights;
 use super::*;
-use moonbeam_runtime_common::weights as moonbase_weights;
 
 pub type TreasuryCouncilInstance = pallet_collective::Instance3;
 pub type OpenTechCommitteeInstance = pallet_collective::Instance4;
