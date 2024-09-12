@@ -26,6 +26,12 @@ use sc_cli::{Error as CliError, SubstrateCli};
 use std::path::PathBuf;
 use std::time::Duration;
 
+#[cfg(feature = "lazy-loading")]
+fn parse_block_hash(s: &str) -> Result<sp_core::H256, String> {
+	use std::str::FromStr;
+	sp_core::H256::from_str(s).map_err(|err| err.to_string())
+}
+
 /// Sub-commands supported by the collator.
 #[derive(Debug, clap::Subcommand)]
 pub enum Subcommand {
@@ -135,6 +141,22 @@ pub struct RunCmd {
 	/// Enable the development service to run without a backing relay chain
 	#[clap(long)]
 	pub dev_service: bool,
+
+	#[cfg(feature = "lazy-loading")]
+	#[clap(long)]
+	pub fork_chain_from_rpc: Option<String>,
+
+	#[cfg(feature = "lazy-loading")]
+	#[arg(long, value_name = "BLOCK", value_parser = parse_block_hash)]
+	pub block: Option<sp_core::H256>,
+
+	#[cfg(feature = "lazy-loading")]
+	#[clap(long, value_name = "PATH", value_parser)]
+	pub fork_state_overrides: Option<PathBuf>,
+
+	#[cfg(feature = "lazy-loading")]
+	#[clap(long, value_name = "PATH", value_parser)]
+	pub runtime_override: Option<PathBuf>,
 
 	/// When blocks should be sealed in the dev service.
 	///
