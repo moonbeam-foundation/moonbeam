@@ -8071,7 +8071,7 @@ dependencies = [
 [[package]]
 name = "orml-traits"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#b86bc7dda8cc59e57c8b5dcfa813ebdbf76bee0e"
+source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#f653f239532bd72b6bc4a7290db10790a38b0b92"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -8091,7 +8091,7 @@ dependencies = [
 [[package]]
 name = "orml-utilities"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#b86bc7dda8cc59e57c8b5dcfa813ebdbf76bee0e"
+source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#f653f239532bd72b6bc4a7290db10790a38b0b92"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -8106,7 +8106,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm-support"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#b86bc7dda8cc59e57c8b5dcfa813ebdbf76bee0e"
+source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#f653f239532bd72b6bc4a7290db10790a38b0b92"
 dependencies = [
  "frame-support",
  "orml-traits",
@@ -8120,7 +8120,7 @@ dependencies = [
 [[package]]
 name = "orml-xtokens"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#b86bc7dda8cc59e57c8b5dcfa813ebdbf76bee0e"
+source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#f653f239532bd72b6bc4a7290db10790a38b0b92"
 dependencies = [
  "frame-support",
  "frame-system",

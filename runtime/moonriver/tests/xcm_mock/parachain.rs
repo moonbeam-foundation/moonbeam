@@ -49,11 +49,11 @@ use xcm::latest::{
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, EnsureXcmOrigin, FixedRateOfFungible,
-	FixedWeightBounds, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, IsConcrete,
-	NoChecking, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, WithComputedOrigin,
+	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, EnsureXcmOrigin,
+	FixedRateOfFungible, FixedWeightBounds, FungibleAdapter as XcmCurrencyAdapter,
+	FungiblesAdapter, IsConcrete, NoChecking, ParentAsSuperuser, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
@@ -321,6 +321,18 @@ parameter_types! {
 		].into()
 	};
 	pub const MaxAssetsIntoHolding: u32 = 64;
+
+	pub AssetHubLocation: Location = Location::new(1, [Parachain(1000)]);
+	pub const RelayLocation: Location = Location::parent();
+	pub RelayLocationFilter: AssetFilter = Wild(AllOf {
+		fun: WildFungible,
+		id: xcm::prelude::AssetId(RelayLocation::get()),
+	});
+
+	pub RelayChainNativeAssetFromAssetHub: (AssetFilter, Location) = (
+		RelayLocationFilter::get(),
+		AssetHubLocation::get()
+	);
 }
 
 use frame_system::RawOrigin;
@@ -329,15 +341,22 @@ use sp_runtime::DispatchErrorWithPostInfo;
 use xcm_executor::traits::CallDispatcher;
 moonbeam_runtime_common::impl_moonbeam_xcm_call!();
 
+type Reserves = (
+	// Relaychain (DOT) from Asset Hub
+	Case<RelayChainNativeAssetFromAssetHub>,
+	// Assets which the reserve is the same as the origin.
+	orml_xcm_support::MultiNativeAsset<
+		xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>,
+	>,
+);
+
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
 	type XcmSender = XcmRouter;
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = orml_xcm_support::MultiNativeAsset<
-		xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>,
-	>;
+	type IsReserve = Reserves;
 	type IsTeleporter = ();
 	type UniversalLocation = UniversalLocation;
 	type Barrier = XcmBarrier;
@@ -420,7 +439,7 @@ parameter_types! {
 parameter_type_with_key! {
 	pub ParachainMinFee: |location: Location| -> Option<u128> {
 		match (location.parents, location.first_interior()) {
-			(1, Some(Parachain(4u32))) => Some(50u128),
+			(1, Some(Parachain(1000u32))) => Some(50u128),
 			_ => None,
 		}
 	};

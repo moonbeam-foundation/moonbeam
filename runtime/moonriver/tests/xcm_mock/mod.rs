@@ -106,7 +106,7 @@ decl_test_parachain! {
 		Runtime = statemine_like::Runtime,
 		XcmpMessageHandler = statemine_like::MsgQueue,
 		DmpMessageHandler = statemine_like::MsgQueue,
-		new_ext = statemine_ext(4),
+		new_ext = statemine_ext(1000),
 	}
 }
 
@@ -118,7 +118,7 @@ decl_test_relay_chain! {
 		XcmConfig = relay_chain::XcmConfig,
 		MessageQueue = relay_chain::MessageQueue,
 		System = relay_chain::System,
-		new_ext = relay_ext(vec![1, 2, 3, 4]),
+		new_ext = relay_ext(vec![1, 2, 3, 1000]),
 	}
 }
 
@@ -129,7 +129,7 @@ decl_test_network! {
 			(1, ParaA),
 			(2, ParaB),
 			(3, ParaC),
-			(4, Statemine),
+			(1000, Statemine),
 		],
 	}
 }
