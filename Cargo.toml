@@ -243,41 +243,41 @@ ethereum-types = { version = "0.14", default-features = false }
 evm = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 evm-gasometer = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 evm-runtime = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-fp-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-fp-self-contained = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false, features = [
+fp-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
+fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
+fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
+fp-self-contained = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false, features = [
 	"forbid-evm-reentrancy",
 ] }
-pallet-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false, features = [
+pallet-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false, features = [
 	"forbid-evm-reentrancy",
 ] }
-pallet-evm-chain-id = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-evm-precompile-blake2 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-evm-precompile-bn128 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-evm-precompile-dispatch = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-evm-precompile-modexp = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-evm-precompile-sha3fips = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-evm-precompile-storage-cleaner = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
+pallet-evm-chain-id = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-evm-precompile-blake2 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-evm-precompile-bn128 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-evm-precompile-dispatch = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-evm-precompile-modexp = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-evm-precompile-sha3fips = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-evm-precompile-storage-cleaner = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
 
-precompile-utils = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-precompile-utils-macro = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
+precompile-utils = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
+precompile-utils-macro = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", default-features = false }
 
 
 # Frontier (client)
-fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
-fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
-fc-api = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
-fc-mapping-sync = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
-fc-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0", features = [
+fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa" }
+fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa" }
+fc-api = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa" }
+fc-mapping-sync = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa" }
+fc-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa", features = [
 	"rpc-binary-search-estimate",
 ] }
-fc-rpc-core = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
-fc-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
-fp-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
-fp-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-v1.11.0" }
+fc-rpc-core = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa" }
+fc-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa" }
+fp-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa" }
+fp-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "elois-contract-without-meta-eoa" }
 
 # Cumulus (wasm)
 
@@ -336,23 +336,23 @@ westend-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk",
 xcm-simulator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 
 # Moonkit (wasm)
-async-backing-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-moonkit-xcm-primitives = { package = "xcm-primitives", git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-nimbus-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-async-backing = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-author-inherent = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-author-mapping = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-author-slot-filter = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-emergency-para-xcm = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-evm-precompile-xcm = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-maintenance-mode = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-migrations = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-randomness = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-pallet-relay-storage-roots = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
-session-keys-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
+async-backing-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+moonkit-xcm-primitives = { package = "xcm-primitives", git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+nimbus-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-async-backing = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-author-inherent = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-author-mapping = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-author-slot-filter = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-emergency-para-xcm = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-evm-precompile-xcm = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-maintenance-mode = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-migrations = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-randomness = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+pallet-relay-storage-roots = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
+session-keys-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa", default-features = false }
 
 # Moonkit (client)
-nimbus-consensus = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-v1.11.0" }
+nimbus-consensus = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "elois-contract-without-meta-eoa" }
 
 # Other (wasm)
 async-trait = { version = "0.1.42" }
