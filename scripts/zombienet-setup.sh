@@ -3,7 +3,6 @@
 set -e
 
 runtime="${1:-moonbase}"
-commit="${2:85851603}"
 
 echo "[+] Compiling runtime for $runtime... (this will take a while)"
 cargo build --release
@@ -12,7 +11,7 @@ echo "[+] Creating test/tmp folder"
 mkdir -p test/tmp
 
 echo "[+] Copying latest runtime to test/tmp folder"
-SHA8="$commit"
+SHA8="01d81aaa"
 DOCKER_TAG="moonbeamfoundation/moonbeam:sha-$SHA8"
 docker rm -f moonbeam_container 2> /dev/null | true
 docker create --name moonbeam_container $DOCKER_TAG bash
