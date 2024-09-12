@@ -298,28 +298,24 @@ parameter_types! {
 // https://github.com/paritytech/polkadot-sdk/blob/f4eb41773611008040c9d4d8a8e6b7323eccfca1/cumulus
 // /parachains/common/src/xcm_config.rs#L118
 //
-// without the extra check for the system parachain, because we don't need it in tests.
-//
-// That checks ensures that our paraId is lower than ~1900.
-// If we keep it enabled our tests will fail given that our paraIds are 1, 2, 3 and so on.
-pub struct ConcreteAssetFromSystem<AssetLocation>(sp_std::marker::PhantomData<AssetLocation>);
+// The difference with the original "ConcreteAssetFromSystem" (which is used by AssetHub),
+// is that in our tests we only need to check if the asset matches the relay one.
+pub struct ConcreteAssetFromRelay<AssetLocation>(sp_std::marker::PhantomData<AssetLocation>);
 impl<AssetLocation: Get<Location>> ContainsPair<Asset, Location>
-	for ConcreteAssetFromSystem<AssetLocation>
+	for ConcreteAssetFromRelay<AssetLocation>
 {
 	fn contains(asset: &Asset, origin: &Location) -> bool {
-		let is_system = match origin.unpack() {
+		let is_relay = match origin.unpack() {
 			// The Relay Chain
 			(1, []) => true,
-			// System parachain
-			(1, [Parachain(_id)]) => false,
 			// Others
 			_ => false,
 		};
-		asset.id.0 == AssetLocation::get() && is_system
+		asset.id.0 == AssetLocation::get() && is_relay
 	}
 }
 
-pub type TrustedTeleporters = (ConcreteAssetFromSystem<RelayTokenLocation>,);
+pub type TrustedTeleporters = (ConcreteAssetFromRelay<RelayTokenLocation>,);
 
 pub struct XcmConfig;
 impl Config for XcmConfig {

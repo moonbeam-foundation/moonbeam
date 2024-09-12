@@ -3001,6 +3001,13 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 			0,
 			WeightLimit::Unlimited
 		));
+
+		// Transfer the XCM execution fee amount to ParaA's sovereign account
+		assert_ok!(RelayBalances::transfer_keep_alive(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			para_a_account(),
+			4000000000u128
+		));
 	});
 
 	// Send DOTs from AssetHub to ParaA (Moonbeam)
