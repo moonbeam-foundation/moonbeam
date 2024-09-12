@@ -48,6 +48,11 @@ where
 	}
 }
 
+#[derive(parity_scale_codec::Decode, Eq, Ord, PartialEq, PartialOrd)]
+enum OldAssetType {
+	Xcm(xcm::v3::Location),
+}
+
 pub struct MigrateXcmFeesAssetsMeatdata<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Migration for MigrateXcmFeesAssetsMeatdata<Runtime>
 where
@@ -59,11 +64,6 @@ where
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		#[derive(parity_scale_codec::Decode, Eq, Ord, PartialEq, PartialOrd)]
-		enum OldAssetType {
-			Xcm(xcm::v3::Location),
-		}
-
 		let supported_assets =
 			if let Some(supported_assets) = frame_support::storage::migration::get_storage_value::<
 				Vec<OldAssetType>,
