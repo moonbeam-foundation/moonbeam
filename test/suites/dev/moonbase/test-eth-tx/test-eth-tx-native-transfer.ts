@@ -21,8 +21,8 @@ describeSuite({
     });
 
     it({
-      id: "T01",
-      title: "Native token transfer with fixed gas limit (20000) should succeed",
+      id: "D011300",
+      title: "Native transfer with fixed gas limit (21000) should succeed",
       test: async function () {
         const amountToTransfer = 1n * GLMR;
         const gasLimit = 21000n;
