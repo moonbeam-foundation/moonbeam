@@ -2866,10 +2866,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 			1u128,
 			true
 		));
-		XcmWeightTrader::set_asset_price(
-			Location::parent(),
-			0u128,
-		);
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 	});
 
 	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
@@ -3022,10 +3019,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 			1u128,
 			true
 		));
-		XcmWeightTrader::set_asset_price(
-			Location::parent(),
-			0u128,
-		);
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 	});
 
 	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
@@ -3182,10 +3176,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 			1u128,
 			true
 		));
-		XcmWeightTrader::set_asset_price(
-			Location::parent(),
-			0u128,
-		);
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 	});
 
 	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
@@ -3357,10 +3348,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			1u128,
 			true
 		));
-		XcmWeightTrader::set_asset_price(
-			Location::parent(),
-			0u128,
-		);
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 
 		assert_ok!(AssetManager::register_foreign_asset(
 			parachain::RuntimeOrigin::root(),
@@ -3369,10 +3357,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			1u128,
 			true
 		));
-		XcmWeightTrader::set_asset_price(
-			statemint_asset,
-			0u128,
-		);
+		XcmWeightTrader::set_asset_price(statemint_asset, 0u128);
 	});
 
 	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
@@ -3609,10 +3594,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			1u128,
 			true
 		));
-		XcmWeightTrader::set_asset_price(
-			Location::parent(),
-			0u128,
-		);
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 
 		assert_ok!(AssetManager::register_foreign_asset(
 			parachain::RuntimeOrigin::root(),
@@ -3621,10 +3603,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			1u128,
 			true
 		));
-		XcmWeightTrader::set_asset_price(
-			statemint_asset.clone(),
-			0u128,
-		);
+		XcmWeightTrader::set_asset_price(statemint_asset.clone(), 0u128);
 	});
 
 	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
