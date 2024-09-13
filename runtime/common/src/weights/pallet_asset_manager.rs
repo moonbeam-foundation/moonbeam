@@ -75,10 +75,10 @@ impl<T: frame_system::Config> pallet_asset_manager::WeightInfo for WeightInfo<T>
 		// Minimum execution time: 16_395_000 picoseconds.
 		Weight::from_parts(18_250_914, 3909)
 			// Standard Error: 1_597
-			.saturating_add(Weight::from_parts(80_983, 0).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(80_983, 0)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
-			.saturating_add(Weight::from_parts(0, 5).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(0, 5)
 	}
 	/// Storage: `AssetManager::AssetIdType` (r:1 w:1)
 	/// Proof: `AssetManager::AssetIdType` (`max_values`: None, `max_size`: None, mode: `Measured`)
@@ -92,9 +92,9 @@ impl<T: frame_system::Config> pallet_asset_manager::WeightInfo for WeightInfo<T>
 		// Minimum execution time: 13_955_000 picoseconds.
 		Weight::from_parts(15_660_921, 3909)
 			// Standard Error: 1_442
-			.saturating_add(Weight::from_parts(80_494, 0).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(80_494, 0)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
-			.saturating_add(Weight::from_parts(0, 5).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(0, 5)
 	}
 }
