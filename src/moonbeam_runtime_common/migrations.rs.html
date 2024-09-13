@@ -199,6 +199,115 @@
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -249,11 +358,118 @@
 	}
 }
 
+<span class="attr">#[derive(parity_scale_codec::Decode, Eq, Ord, PartialEq, PartialOrd)]
+</span><span class="kw">enum </span>OldAssetType {
+	Xcm(xcm::v3::Location),
+}
+
+<span class="kw">pub struct </span>MigrateXcmFeesAssetsMeatdata&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
+<span class="kw">impl</span>&lt;Runtime&gt; Migration <span class="kw">for </span>MigrateXcmFeesAssetsMeatdata&lt;Runtime&gt;
+<span class="kw">where
+	</span>Runtime: pallet_transaction_payment::Config,
+	Runtime: pallet_xcm_weight_trader::Config,
+{
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">"MM_MigrateXcmFeesAssetsMetadata"
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		<span class="kw">let </span>supported_assets =
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(supported_assets) = frame_support::storage::migration::get_storage_value::&lt;
+				Vec&lt;OldAssetType&gt;,
+			&gt;(<span class="string">b"AssetManager"</span>, <span class="string">b"SupportedFeePaymentAssets"</span>, <span class="kw-2">&amp;</span>[])
+			{
+				sp_std::collections::btree_set::BTreeSet::from_iter(
+					supported_assets
+						.into_iter()
+						.map(|OldAssetType::Xcm(location_v3)| location_v3),
+				)
+			} <span class="kw">else </span>{
+				<span class="kw">return </span>Weight::default();
+			};
+
+		<span class="kw">let </span><span class="kw-2">mut </span>assets: Vec&lt;(xcm::v4::Location, (bool, u128))&gt; = Vec::new();
+
+		<span class="kw">for </span>(OldAssetType::Xcm(location_v3), units_per_seconds) <span class="kw">in
+			</span>frame_support::storage::migration::storage_key_iter::&lt;
+				OldAssetType,
+				u128,
+				frame_support::Blake2_128Concat,
+			&gt;(<span class="string">b"AssetManager"</span>, <span class="string">b"AssetTypeUnitsPerSecond"</span>)
+		{
+			<span class="kw">let </span>enabled = supported_assets.get(<span class="kw-2">&amp;</span>location_v3).is_some();
+
+			<span class="kw">if let </span><span class="prelude-val">Ok</span>(location_v4) = location_v3.try_into() {
+				assets.push((location_v4, (enabled, units_per_seconds)));
+			}
+		}
+
+		<span class="comment">//***** Start mutate storage *****//
+
+		// Write asset metadata in new pallet_xcm_weight_trader
+		</span><span class="kw">use </span>frame_support::weights::WeightToFee <span class="kw">as _</span>;
+		<span class="kw">for </span>(asset_location, (enabled, units_per_second)) <span class="kw">in </span>assets {
+			<span class="kw">let </span>native_amount_per_second: u128 =
+				&lt;Runtime <span class="kw">as </span>pallet_transaction_payment::Config&gt;::WeightToFee::weight_to_fee(
+					<span class="kw-2">&amp;</span>Weight::from_parts(
+						frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND,
+						<span class="number">0</span>,
+					),
+				)
+				.try_into()
+				.unwrap_or(u128::MAX);
+			<span class="kw">let </span>relative_price: u128 = native_amount_per_second
+				.saturating_mul(<span class="number">10u128</span>.pow(pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS))
+				.saturating_div(units_per_second);
+			pallet_xcm_weight_trader::SupportedAssets::&lt;Runtime&gt;::insert(
+				asset_location,
+				(enabled, relative_price),
+			);
+		}
+
+		<span class="comment">// Remove storage value AssetManager::SupportedFeePaymentAssets
+		</span>frame_support::storage::unhashed::kill(<span class="kw-2">&amp;</span>frame_support::storage::storage_prefix(
+			<span class="string">b"AssetManager"</span>,
+			<span class="string">b"SupportedFeePaymentAssets"</span>,
+		));
+
+		<span class="comment">// Remove storage map AssetManager::AssetTypeUnitsPerSecond
+		</span><span class="kw">let _ </span>= frame_support::storage::migration::clear_storage_prefix(
+			<span class="string">b"AssetManager"</span>,
+			<span class="string">b"AssetTypeUnitsPerSecond"</span>,
+			<span class="kw-2">&amp;</span>[],
+			<span class="prelude-val">None</span>,
+			<span class="prelude-val">None</span>,
+		);
+
+		Weight::default()
+	}
+
+	<span class="attr">#[cfg(feature = <span class="string">"try-runtime"</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sp_runtime::DispatchError&gt; {
+		<span class="prelude-val">Ok</span>(Default::default())
+	}
+
+	<span class="attr">#[cfg(feature = <span class="string">"try-runtime"</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>, state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt; {
+		<span class="macro">assert!</span>(frame_support::storage::migration::storage_key_iter::&lt;
+			OldAssetType,
+			u128,
+			frame_support::Blake2_128Concat,
+		&gt;(<span class="string">b"AssetManager"</span>, <span class="string">b"AssetTypeUnitsPerSecond"</span>)
+		.next()
+		.is_none());
+
+		<span class="prelude-val">Ok</span>(())
+	}
+}
+
 <span class="kw">pub struct </span>CommonMigrations&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
 
 <span class="kw">impl</span>&lt;Runtime&gt; GetMigrations <span class="kw">for </span>CommonMigrations&lt;Runtime&gt;
 <span class="kw">where
-	</span>Runtime: pallet_xcm::Config,
+	</span>Runtime:
+		pallet_xcm::Config + pallet_transaction_payment::Config + pallet_xcm_weight_trader::Config,
 	Runtime::AccountId: Default,
 	BlockNumberFor&lt;Runtime&gt;: Into&lt;u64&gt;,
 {
@@ -393,7 +609,9 @@
 			// completed in runtime 2900
 			// Box::new(remove_pallet_democracy),
 			// Box::new(remove_collectives_addresses),
-			// permanent migrations
+			// completed in runtime 3200
+			</span>Box::new(MigrateXcmFeesAssetsMeatdata::&lt;Runtime&gt;(Default::default())),
+			<span class="comment">// permanent migrations
 			</span>Box::new(MigrateToLatestXcmVersion::&lt;Runtime&gt;(Default::default())),
 		]
 	}

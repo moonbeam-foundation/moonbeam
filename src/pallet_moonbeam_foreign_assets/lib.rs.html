@@ -527,6 +527,11 @@
 <a href="#525" id="525">525</a>
 <a href="#526" id="526">526</a>
 <a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
@@ -796,6 +801,11 @@
 		}
 		<span class="kw">pub fn </span>weight_of_erc20_transfer() -&gt; Weight {
 			T::GasWeightMapping::gas_to_weight(evm::ERC20_TRANSFER_GAS_LIMIT, <span class="bool-val">true</span>)
+		}
+		<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
+		</span><span class="kw">pub fn </span>set_asset(asset_location: Location, asset_id: AssetId) {
+			AssetsByLocation::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>asset_location, (asset_id, AssetStatus::Active));
+			AssetsById::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>asset_id, asset_location);
 		}
 	}
 

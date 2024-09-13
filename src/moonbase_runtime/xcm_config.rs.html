@@ -836,10 +836,10 @@
 //!
 
 </span><span class="kw">use super</span>::{
-	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees,
-	EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue,
-	ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights,
-	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
+	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo,
+	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
+	RuntimeOrigin, Treasury, XcmpQueue,
 };
 <span class="kw">use </span><span class="kw">crate</span>::OpenTechCommitteeInstance;
 <span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbase_weights;
@@ -863,7 +863,7 @@
 	EnsureXcmOrigin, FungibleAdapter <span class="kw">as </span>XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
 	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, UsingComponents, WeightInfoBounds, WithComputedOrigin,
+	TakeWeightCredit, WeightInfoBounds, WithComputedOrigin,
 };
 
 <span class="kw">use </span>parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -879,8 +879,8 @@
 <span class="kw">use </span>orml_xcm_support::MultiNativeAsset;
 <span class="kw">use </span>xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
-	FirstAssetTrader, IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
-	UtilityEncodeCall, XcmTransact,
+	IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall,
+	XcmTransact,
 };
 
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
@@ -1050,23 +1050,6 @@
 	</span><span class="kw">pub </span>XcmFeesAccount: AccountId = Treasury::account_id();
 }
 
-<span class="doccomment">/// This is the struct that will handle the revenue from xcm fees
-/// We do not burn anything because we want to mimic exactly what
-/// the sovereign account has
-</span><span class="kw">pub type </span>XcmFeesToAccount = xcm_primitives::XcmFeesToAccount&lt;
-	<span class="kw">super</span>::Assets,
-	(
-		ConvertedConcreteId&lt;
-			AssetId,
-			Balance,
-			AsAssetType&lt;AssetId, AssetType, AssetManager&gt;,
-			JustTry,
-		&gt;,
-	),
-	AccountId,
-	XcmFeesAccount,
-&gt;;
-
 <span class="comment">// Our implementation of the Moonbeam Call
 // Attachs the right origin in case the call is made to pallet-ethereum-xcm
 </span><span class="attr">#[cfg(not(feature = <span class="string">"evm-tracing"</span>))]
@@ -1129,16 +1112,7 @@
 	// we use UsingComponents and the local way of handling fees
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
-	</span><span class="kw">type </span>Trader = (
-		UsingComponents&lt;
-			&lt;Runtime <span class="kw">as </span>pallet_transaction_payment::Config&gt;::WeightToFee,
-			SelfReserve,
-			AccountId,
-			Balances,
-			DealWithFees&lt;Runtime&gt;,
-		&gt;,
-		FirstAssetTrader&lt;AssetType, AssetManager, XcmFeesToAccount&gt;,
-	);
+	</span><span class="kw">type </span>Trader = pallet_xcm_weight_trader::Trader&lt;Runtime&gt;;
 	<span class="kw">type </span>ResponseHandler = PolkadotXcm;
 	<span class="kw">type </span>SubscriptionService = PolkadotXcm;
 	<span class="kw">type </span>AssetTrap = pallet_erc20_xcm_bridge::AssetTrapWrapper&lt;PolkadotXcm, Runtime&gt;;
@@ -1198,8 +1172,7 @@
 	<span class="kw">type </span>MaxLockers = ConstU32&lt;<span class="number">8</span>&gt;;
 	<span class="kw">type </span>MaxRemoteLockConsumers = ConstU32&lt;<span class="number">0</span>&gt;;
 	<span class="kw">type </span>RemoteLockConsumerIdentifier = ();
-	<span class="comment">// TODO pallet-xcm weights
-	</span><span class="kw">type </span>WeightInfo = moonbase_weights::pallet_xcm::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_xcm::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>AdminOrigin = EnsureRoot&lt;AccountId&gt;;
 }
 
@@ -1601,6 +1574,33 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>XcmLocationToH160 = LocationToH160;
+}
+
+<span class="kw">pub struct </span>AssetFeesFilter;
+<span class="kw">impl </span>frame_support::traits::Contains&lt;Location&gt; <span class="kw">for </span>AssetFeesFilter {
+	<span class="kw">fn </span>contains(location: <span class="kw-2">&amp;</span>Location) -&gt; bool {
+		location.parent_count() &gt; <span class="number">0
+			</span>&amp;&amp; location.first_interior() != Erc20XcmBridgePalletLocation::get().first_interior()
+	}
+}
+
+<span class="kw">impl </span>pallet_xcm_weight_trader::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>AccountIdToLocation = AccountIdToLocation&lt;AccountId&gt;;
+	<span class="kw">type </span>AddSupportedAssetOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>AssetLocationFilter = AssetFeesFilter;
+	<span class="kw">type </span>AssetTransactor = AssetTransactors;
+	<span class="kw">type </span>Balance = Balance;
+	<span class="kw">type </span>EditSupportedAssetOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>NativeLocation = SelfReserve;
+	<span class="kw">type </span>PauseSupportedAssetOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>RemoveSupportedAssetOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>ResumeSupportedAssetOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_xcm_weight_trader::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightToFee = &lt;Runtime <span class="kw">as </span>pallet_transaction_payment::Config&gt;::WeightToFee;
+	<span class="kw">type </span>XcmFeesAccount = XcmFeesAccount;
+	<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
+	</span><span class="kw">type </span>NotFilteredLocation = RelayLocation;
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]

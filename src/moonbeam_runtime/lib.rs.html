@@ -1843,10 +1843,6 @@
 <a href="#1841" id="1841">1841</a>
 <a href="#1842" id="1842">1842</a>
 <a href="#1843" id="1843">1843</a>
-<a href="#1844" id="1844">1844</a>
-<a href="#1845" id="1845">1845</a>
-<a href="#1846" id="1846">1846</a>
-<a href="#1847" id="1847">1847</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1947,13 +1943,8 @@
 	Perquintill, SaturatedConversion,
 };
 <span class="kw">use </span>sp_std::{convert::TryFrom, prelude::<span class="kw-2">*</span>};
-<span class="kw">use </span>xcm::{
-	v3::{AssetId <span class="kw">as </span>XcmAssetId, Location},
-	IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
-};
-<span class="kw">use </span>xcm_config::AssetType;
+<span class="kw">use </span>xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
 <span class="kw">use </span>xcm_fee_payment_runtime_api::Error <span class="kw">as </span>XcmPaymentApiError;
-<span class="kw">use </span>xcm_primitives::UnitsToWeightRatio;
 
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span>sp_version::NativeVersion;
@@ -3302,6 +3293,7 @@
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = <span class="number">110</span>,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">111</span>,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">114</span>,
+		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">115</span>,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = <span class="number">116</span>,
 
 		<span class="comment">// Utils

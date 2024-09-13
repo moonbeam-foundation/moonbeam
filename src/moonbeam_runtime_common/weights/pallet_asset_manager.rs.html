@@ -108,42 +108,6 @@
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -209,25 +173,6 @@
 			.saturating_add(T::DbWeight::get().reads(<span class="number">3_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">4_u64</span>))
 	}
-	<span class="doccomment">/// Storage: `AssetManager::AssetTypeId` (r:1 w:0)
-	/// Proof: `AssetManager::AssetTypeId` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `AssetManager::SupportedFeePaymentAssets` (r:1 w:1)
-	/// Proof: `AssetManager::SupportedFeePaymentAssets` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `AssetManager::AssetTypeUnitsPerSecond` (r:0 w:1)
-	/// Proof: `AssetManager::AssetTypeUnitsPerSecond` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// The range of component `x` is `[5, 100]`.
-	</span><span class="kw">fn </span>set_asset_units_per_second(x: u32, ) -&gt; Weight {
-		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `611 + x * (9 ±0)`
-		//  Estimated: `4000 + x * (10 ±0)`
-		// Minimum execution time: 19_578_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">18_705_391</span>, <span class="number">4000</span>)
-			<span class="comment">// Standard Error: 3_442
-			</span>.saturating_add(Weight::from_parts(<span class="number">792_309</span>, <span class="number">0</span>).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
-			.saturating_add(T::DbWeight::get().writes(<span class="number">2_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10</span>).saturating_mul(x.into()))
-	}
 	<span class="doccomment">/// Storage: `AssetManager::SupportedFeePaymentAssets` (r:1 w:1)
 	/// Proof: `AssetManager::SupportedFeePaymentAssets` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `AssetManager::AssetIdType` (r:1 w:1)
@@ -237,34 +182,17 @@
 	/// Storage: `AssetManager::AssetTypeId` (r:0 w:2)
 	/// Proof: `AssetManager::AssetTypeId` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// The range of component `x` is `[5, 100]`.
-	</span><span class="kw">fn </span>change_existing_asset_type(x: u32, ) -&gt; Weight {
+	</span><span class="kw">fn </span>change_existing_asset_type() -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `926 + x * (13 ±0)`
 		//  Estimated: `4309 + x * (15 ±0)`
 		// Minimum execution time: 29_180_000 picoseconds.
 		</span>Weight::from_parts(<span class="number">29_891_006</span>, <span class="number">4309</span>)
 			<span class="comment">// Standard Error: 4_391
-			</span>.saturating_add(Weight::from_parts(<span class="number">874_012</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			</span>.saturating_add(Weight::from_parts(<span class="number">874_012</span>, <span class="number">0</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">3_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">6_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">15</span>).saturating_mul(x.into()))
-	}
-	<span class="doccomment">/// Storage: `AssetManager::SupportedFeePaymentAssets` (r:1 w:1)
-	/// Proof: `AssetManager::SupportedFeePaymentAssets` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `AssetManager::AssetTypeUnitsPerSecond` (r:0 w:1)
-	/// Proof: `AssetManager::AssetTypeUnitsPerSecond` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// The range of component `x` is `[5, 100]`.
-	</span><span class="kw">fn </span>remove_supported_asset(x: u32, ) -&gt; Weight {
-		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `196 + x * (5 ±0)`
-		//  Estimated: `1678 + x * (5 ±0)`
-		// Minimum execution time: 15_115_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">13_493_610</span>, <span class="number">1678</span>)
-			<span class="comment">// Standard Error: 2_952
-			</span>.saturating_add(Weight::from_parts(<span class="number">694_325</span>, <span class="number">0</span>).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(<span class="number">1_u64</span>))
-			.saturating_add(T::DbWeight::get().writes(<span class="number">2_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">5</span>).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">15</span>))
 	}
 	<span class="doccomment">/// Storage: `AssetManager::SupportedFeePaymentAssets` (r:1 w:1)
 	/// Proof: `AssetManager::SupportedFeePaymentAssets` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
@@ -275,17 +203,17 @@
 	/// Storage: `AssetManager::AssetTypeId` (r:0 w:1)
 	/// Proof: `AssetManager::AssetTypeId` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// The range of component `x` is `[5, 100]`.
-	</span><span class="kw">fn </span>remove_existing_asset_type(x: u32, ) -&gt; Weight {
+	</span><span class="kw">fn </span>remove_existing_asset_type() -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `482 + x * (10 ±0)`
 		//  Estimated: `3955 + x * (10 ±0)`
 		// Minimum execution time: 21_219_000 picoseconds.
 		</span>Weight::from_parts(<span class="number">20_476_212</span>, <span class="number">3955</span>)
 			<span class="comment">// Standard Error: 3_389
-			</span>.saturating_add(Weight::from_parts(<span class="number">716_188</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			</span>.saturating_add(Weight::from_parts(<span class="number">716_188</span>, <span class="number">0</span>))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">4_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10</span>).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">10</span>))
 	}
 }
 </code></pre></div></section></main></body></html>
