@@ -320,10 +320,9 @@ parameter_types! {
 	pub const MaxAssetsIntoHolding: u32 = 64;
 
 	pub AssetHubLocation: Location = Location::new(1, [Parachain(1000)]);
-	pub const RelayLocation: Location = Location::parent();
 	pub RelayLocationFilter: AssetFilter = Wild(AllOf {
 		fun: WildFungible,
-		id: xcm::prelude::AssetId(RelayLocation::get()),
+		id: xcm::prelude::AssetId(Location::parent()),
 	});
 
 	pub RelayChainNativeAssetFromAssetHub: (AssetFilter, Location) = (
