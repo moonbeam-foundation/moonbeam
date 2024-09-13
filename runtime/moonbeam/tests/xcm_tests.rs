@@ -35,13 +35,46 @@ use xcm::latest::prelude::{
 	Fungible, GeneralIndex, Junction, Junctions, Limited, Location, OriginKind, PalletInstance,
 	Parachain, QueryResponse, Reanchorable, Response, WeightLimit, Xcm,
 };
-use xcm::{VersionedLocation, WrapVersion};
+use xcm::{IntoVersion, VersionedLocation, WrapVersion};
 use xcm_executor::traits::ConvertLocation;
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
 use xcm_primitives::{UtilityEncodeCall, DEFAULT_PROOF_SIZE};
 use xcm_simulator::TestExt;
+
+fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128) -> Result<(), ()> {
+	let parachain::AssetType::Xcm(location_v3) = asset_type;
+	let VersionedLocation::V4(location_v4) = VersionedLocation::V3(location_v3)
+		.into_version(4)
+		.map_err(|_| ())?
+	else {
+		return Err(());
+	};
+	use frame_support::weights::WeightToFee as _;
+	let native_amount_per_second: u128 =
+		<parachain::Runtime as pallet_xcm_weight_trader::Config>::WeightToFee::weight_to_fee(
+			&Weight::from_parts(
+				frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND,
+				0,
+			),
+		)
+		.try_into()
+		.map_err(|_| ())?;
+	let precision_factor = 10u128.pow(pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS);
+	let relative_price: u128 = if units_per_second > 0u128 {
+		native_amount_per_second
+			.saturating_mul(precision_factor)
+			.saturating_div(units_per_second)
+	} else {
+		0u128
+	};
+	pallet_xcm_weight_trader::SupportedAssets::<parachain::Runtime>::insert(
+		location_v4,
+		(true, relative_price),
+	);
+	Ok(())
+}
 
 // Send a relay asset (like DOT) to a parachain A
 #[test]
@@ -65,12 +98,7 @@ fn receive_relay_asset_from_relay() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	// Actually send relay asset to parachain
@@ -123,12 +151,7 @@ fn send_relay_asset_to_relay() {
 			true
 		));
 		// Free execution
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location, 0u128));
 	});
 
 	let dest: Location = Junction::AccountKey20 {
@@ -214,12 +237,7 @@ fn send_relay_asset_to_para_b() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location.clone(),
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	// Register asset in paraB. Free execution
@@ -231,12 +249,7 @@ fn send_relay_asset_to_para_b() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	let dest: Location = Junction::AccountKey20 {
@@ -320,12 +333,7 @@ fn send_para_a_asset_to_para_b() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	// Send para A asset from para A to para B
@@ -393,12 +401,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location.clone(),
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	// Register para A asset in parachain C. Free execution
@@ -410,12 +413,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	let dest = Location {
@@ -507,12 +505,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	// Send para A asset to para B
@@ -606,11 +599,9 @@ fn receive_relay_asset_with_trader() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			2500000000000u128,
-			0
+		assert_ok!(add_supported_asset(
+			source_location.clone(),
+			2500000000000u128
 		));
 	});
 
@@ -668,11 +659,9 @@ fn send_para_a_asset_to_para_b_with_trader() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			2500000000000u128,
-			0
+		assert_ok!(add_supported_asset(
+			source_location.clone(),
+			2500000000000u128
 		));
 	});
 
@@ -746,12 +735,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 			true
 		));
 		// With these units per second, 80K weight convrets to 1 asset unit
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			12500000u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 12500000u128));
 	});
 
 	let dest = Location {
@@ -821,11 +805,9 @@ fn error_when_not_paying_enough() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			2500000000000u128,
-			0
+		assert_ok!(add_supported_asset(
+			source_location.clone(),
+			2500000000000u128
 		));
 	});
 
@@ -870,12 +852,7 @@ fn transact_through_derivative_multilocation() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			1u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 1u128));
 
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
@@ -1030,12 +1007,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			1u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 1u128));
 	});
 
 	// Let's construct the call to know how much weight it is going to require
@@ -1186,12 +1158,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			1u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 1u128));
 	});
 
 	// Let's construct the call to know how much weight it is going to require
@@ -1341,12 +1308,7 @@ fn transact_through_sovereign() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			1u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 1u128));
 
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
@@ -1614,12 +1576,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			1u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 1u128));
 	});
 
 	let dest: Location = AccountKey20 {
@@ -1768,12 +1725,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			1u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 1u128));
 	});
 
 	let dest: Location = AccountKey20 {
@@ -1922,12 +1874,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	let response = Response::Version(2);
@@ -2054,12 +2001,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 			1u128,
 			false
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	// Actually send relay asset to parachain
@@ -2134,12 +2076,7 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	// Actually send relay asset to parachain
@@ -2195,12 +2132,7 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	// Actually send relay asset to parachain
@@ -2265,12 +2197,7 @@ fn empty_account_should_not_be_reset() {
 			1u128,
 			false
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	// Send native token to evm_account
@@ -2376,12 +2303,7 @@ fn test_statemint_like() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			source_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0u128));
 	});
 
 	Statemint::execute_with(|| {
@@ -2446,6 +2368,7 @@ fn test_statemint_like() {
 }
 
 #[test]
+
 fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	MockNet::reset();
 
@@ -2495,12 +2418,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			relay_location,
-			0u128,
-			0
-		));
+		assert_ok!(add_supported_asset(relay_location, 0u128));
 
 		assert_ok!(AssetManager::register_foreign_asset(
 			parachain::RuntimeOrigin::root(),
@@ -2509,12 +2427,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			statemint_location_asset,
-			0u128,
-			1
-		));
+		assert_ok!(add_supported_asset(statemint_location_asset, 0u128));
 	});
 
 	let parachain_beneficiary_from_relay: Location = Junction::AccountKey20 {
@@ -2693,12 +2606,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			relay_location,
-			0u128,
-			0
-		));
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 	});
 
 	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
@@ -2851,12 +2759,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			relay_location,
-			0u128,
-			0
-		));
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 	});
 
 	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
@@ -3013,12 +2916,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			relay_location,
-			0u128,
-			0
-		));
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 	});
 
 	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
@@ -3190,12 +3088,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			relay_location,
-			0u128,
-			0
-		));
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 
 		assert_ok!(AssetManager::register_foreign_asset(
 			parachain::RuntimeOrigin::root(),
@@ -3204,12 +3097,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			statemint_location_asset,
-			0u128,
-			1
-		));
+		XcmWeightTrader::set_asset_price(statemint_asset.clone(), 0u128);
 	});
 
 	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
@@ -3446,12 +3334,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			relay_location,
-			0u128,
-			0
-		));
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 
 		assert_ok!(AssetManager::register_foreign_asset(
 			parachain::RuntimeOrigin::root(),
@@ -3460,12 +3343,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			1u128,
 			true
 		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::RuntimeOrigin::root(),
-			statemint_location_asset,
-			0u128,
-			1
-		));
+		XcmWeightTrader::set_asset_price(statemint_asset.clone(), 0u128);
 	});
 
 	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
@@ -3981,7 +3859,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
-			parachain::ParaTokensPerSecond::get().1 as u128,
+			parachain::ParaTokensPerSecond::get(),
 		));
 		ancestry = parachain::UniversalLocation::get().into();
 	});
@@ -4079,7 +3957,7 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
-			parachain::ParaTokensPerSecond::get().1 as u128,
+			parachain::ParaTokensPerSecond::get(),
 		));
 		ancestry = parachain::UniversalLocation::get().into();
 	});
@@ -4191,7 +4069,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
-			parachain::ParaTokensPerSecond::get().1 as u128,
+			parachain::ParaTokensPerSecond::get(),
 		));
 		ancestry = parachain::UniversalLocation::get().into();
 	});
@@ -4318,7 +4196,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
-			parachain::ParaTokensPerSecond::get().1 as u128,
+			parachain::ParaTokensPerSecond::get(),
 		));
 		ancestry = parachain::UniversalLocation::get().into();
 	});
@@ -4441,7 +4319,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
-			parachain::ParaTokensPerSecond::get().1 as u128,
+			parachain::ParaTokensPerSecond::get(),
 		));
 		ancestry = parachain::UniversalLocation::get().into();
 	});

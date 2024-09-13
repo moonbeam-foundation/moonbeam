@@ -27,6 +27,7 @@ pallet-precompile-benchmarks = { workspace = true }
 pallet-randomness = { workspace = true }
 pallet-relay-storage-roots = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
+pallet-xcm-weight-trader = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -50,6 +51,7 @@ pallet-referenda = { workspace = true }
 pallet-scheduler = { workspace = true }
 pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
+pallet-transaction-payment = { workspace = true }
 pallet-treasury = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-whitelist = { workspace = true }
@@ -108,6 +110,8 @@ std = [
 	"pallet-xcm-transactor/std",
 	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-identity/std",
+	"pallet-transaction-payment/std",
+	"pallet-xcm-weight-trader/std",
 	"pallet-message-queue/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",

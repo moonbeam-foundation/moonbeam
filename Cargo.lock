@@ -6419,6 +6419,7 @@ dependencies = [
  "pallet-xcm",
  "pallet-xcm-benchmarks",
  "pallet-xcm-transactor",
+ "pallet-xcm-weight-trader",
  "parachains-common",
  "parity-scale-codec",
  "polkadot-core-primitives",
@@ -6931,6 +6932,7 @@ dependencies = [
  "pallet-xcm",
  "pallet-xcm-benchmarks",
  "pallet-xcm-transactor",
+ "pallet-xcm-weight-trader",
  "parachains-common",
  "parity-scale-codec",
  "polkadot-core-primitives",
@@ -7022,11 +7024,13 @@ dependencies = [
  "pallet-scheduler",
  "pallet-sudo",
  "pallet-timestamp",
+ "pallet-transaction-payment",
  "pallet-treasury",
  "pallet-utility",
  "pallet-whitelist",
  "pallet-xcm",
  "pallet-xcm-transactor",
+ "pallet-xcm-weight-trader",
  "parity-scale-codec",
  "precompile-utils",
  "sp-api",
@@ -7355,6 +7359,7 @@ dependencies = [
  "pallet-xcm",
  "pallet-xcm-benchmarks",
  "pallet-xcm-transactor",
+ "pallet-xcm-weight-trader",
  "parachains-common",
  "parity-scale-codec",
  "polkadot-core-primitives",
@@ -10575,6 +10580,27 @@ dependencies = [
  "staging-xcm-builder",
  "staging-xcm-executor",
  "xcm-primitives 0.1.1",
+]
+
+[[package]]
+name = "pallet-xcm-weight-trader"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-tracing",
+ "staging-xcm",
+ "staging-xcm-executor",
+ "xcm-fee-payment-runtime-api",
 ]
 
 [[package]]

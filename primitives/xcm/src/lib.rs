@@ -24,9 +24,6 @@ pub use asset_id_conversions::*;
 mod constants;
 pub use constants::*;
 
-mod fee_handlers;
-pub use fee_handlers::*;
-
 mod origin_conversion;
 pub use origin_conversion::*;
 
