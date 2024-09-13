@@ -8,7 +8,7 @@ import {
 } from "@moonwall/util";
 
 describeSuite({
-  id: "D010307",
+  id: "D011300",
   title: "Native Token Transfer Test",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -21,12 +21,12 @@ describeSuite({
     });
 
     it({
-      id: "D011300",
+      id: "T01",
       title: "Native transfer with fixed gas limit (21000) should succeed",
       test: async function () {
         const amountToTransfer = 1n * GLMR;
         const gasLimit = 21000n;
-        
+
         // Create and send the transaction with fixed gas limit
         const { result } = await context.createBlock(
           createViemTransaction(context, {
@@ -44,7 +44,9 @@ describeSuite({
         const baltatharBalanceAfter = await checkBalance(context, BALTATHAR_ADDRESS);
 
         // Calculate gas cost
-        const receipt = await context.viem().getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         const gasCost = gasLimit * receipt.effectiveGasPrice;
 
         // Verify balances
@@ -55,5 +57,19 @@ describeSuite({
         expect(receipt.gasUsed).to.equal(gasLimit);
       },
     });
-  }
+
+    it({
+      id: "T02",
+      title: "should estimate 21000 gas for native transfer",
+      test: async function () {
+        const estimatedGas = await context.viem().estimateGas({
+          account: ALITH_ADDRESS,
+          to: BALTATHAR_ADDRESS,
+          value: 1n * GLMR,
+        });
+
+        expect(estimatedGas).to.equal(21000n);
+      },
+    });
+  },
 });
