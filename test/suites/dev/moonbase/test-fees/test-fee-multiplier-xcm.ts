@@ -14,7 +14,7 @@ import {
 // export const TARGET_FILL_AMOUNT =
 //   ((MAX_BLOCK_WEIGHT * 0.75 * 0.25 - EXTRINSIC_BASE_WEIGHT) / MAX_BLOCK_WEIGHT) * 1_000_000_000;
 // In 0.9.43 rootTesting::fillBlock() now uses more weight so we need to account for that
-const TARGET_FILL_AMOUNT = 262_349_350;
+const TARGET_FILL_AMOUNT = 262_349_220;
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -101,9 +101,10 @@ describeSuite({
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
 
         // this is useful to manually find out what is the
-        // TARGET_FILL_AMOUNT that will result in a static fee multiplier
+        // TARGET_FILL_AMOUNT that will result in a static fee multiplier (the difference between init, and post value should be 0)
         // run the tests with
         // pnpm moonwall test dev_moonbase -d test-fees D011604T02
+        // console.log(`TARGET: ${TARGET_FILL_AMOUNT}`);
         // console.log(`pre  ${initialValue.toHuman()}`);
         // console.log(`post ${postValue.toHuman()}`);
         // console.log(`diff ${initialValue.sub(postValue)}`);
