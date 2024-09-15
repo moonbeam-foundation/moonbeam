@@ -8,7 +8,6 @@ describeSuite({
   title: "Estimate Gas - subCall",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let callForwarderAddress: `0x${string}`;
     let looperAddress: `0x${string}`;
     let subCallOogAbi: Abi;
     let subCallOogAddress: `0x${string}`;
@@ -17,9 +16,6 @@ describeSuite({
     const MAX_BLOATED_CONTRACTS = 15;
 
     beforeAll(async function () {
-      const { contractAddress } = await deployCreateCompiledContract(context, "CallForwarder");
-      callForwarderAddress = contractAddress;
-
       const { contractAddress: contractAddress2 } = await deployCreateCompiledContract(
         context,
         "Looper"
@@ -87,7 +83,7 @@ describeSuite({
           account: ALITH_ADDRESS,
           abi: subCallOogAbi,
           address: subCallOogAddress,
-          functionName: "subCallForwarder",
+          functionName: "subCallPov",
           maxPriorityFeePerGas: 0n,
           args: [bloatedContracts],
           value: 0n,
@@ -99,7 +95,7 @@ describeSuite({
           to: subCallOogAddress,
           data: encodeFunctionData({
             abi: subCallOogAbi,
-            functionName: "subCallForwarder",
+            functionName: "subCallPov",
             args: [bloatedContracts],
           }),
           txnType: "eip1559",
@@ -111,8 +107,8 @@ describeSuite({
         const receipt = await context.viem().getTransactionReceipt({ hash: txHash });
         const decoded = decodeEventLog({
           abi: subCallOogAbi,
-          data: receipt.logs[0].data,
-          topics: receipt.logs[0].topics,
+          data: receipt.logs[bloatedContracts.length - 1].data,
+          topics: receipt.logs[bloatedContracts.length - 1].topics,
         }) as any;
         expect(decoded.eventName).to.equal("SubCallSucceed");
       },

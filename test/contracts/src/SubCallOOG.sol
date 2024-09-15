@@ -13,7 +13,7 @@ contract SubCallOOG {
     event SubCallSucceed();
     event SubCallFail();
 
-    function subCallForwarder(address[] memory addresses) public {
+    function subCallPov(address[] memory addresses) public {
         for (uint256 i = 0; i < addresses.length; i++) {
             try IBloatedContract(addresses[i]).doSomething() {
                 emit SubCallSucceed();
