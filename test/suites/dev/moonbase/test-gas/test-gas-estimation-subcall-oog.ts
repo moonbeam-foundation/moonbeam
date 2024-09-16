@@ -12,7 +12,7 @@ describeSuite({
     let subCallOogAbi: Abi;
     let subCallOogAddress: `0x${string}`;
 
-    let bloatedContracts: string[] = [];
+    const bloatedContracts: string[] = [];
     const MAX_BLOATED_CONTRACTS = 15;
 
     beforeAll(async function () {
