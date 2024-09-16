@@ -100,12 +100,118 @@ where
 // 	}
 // }
 
+#[derive(parity_scale_codec::Decode, Eq, Ord, PartialEq, PartialOrd)]
+enum OldAssetType {
+	Xcm(xcm::v3::Location),
+}
+
+pub struct MigrateXcmFeesAssetsMeatdata<Runtime>(PhantomData<Runtime>);
+impl<Runtime> Migration for MigrateXcmFeesAssetsMeatdata<Runtime>
+where
+	Runtime: pallet_transaction_payment::Config,
+	Runtime: pallet_xcm_weight_trader::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_MigrateXcmFeesAssetsMetadata"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		let supported_assets =
+			if let Some(supported_assets) = frame_support::storage::migration::get_storage_value::<
+				Vec<OldAssetType>,
+			>(b"AssetManager", b"SupportedFeePaymentAssets", &[])
+			{
+				sp_std::collections::btree_set::BTreeSet::from_iter(
+					supported_assets
+						.into_iter()
+						.map(|OldAssetType::Xcm(location_v3)| location_v3),
+				)
+			} else {
+				return Weight::default();
+			};
+
+		let mut assets: Vec<(xcm::v4::Location, (bool, u128))> = Vec::new();
+
+		for (OldAssetType::Xcm(location_v3), units_per_seconds) in
+			frame_support::storage::migration::storage_key_iter::<
+				OldAssetType,
+				u128,
+				frame_support::Blake2_128Concat,
+			>(b"AssetManager", b"AssetTypeUnitsPerSecond")
+		{
+			let enabled = supported_assets.get(&location_v3).is_some();
+
+			if let Ok(location_v4) = location_v3.try_into() {
+				assets.push((location_v4, (enabled, units_per_seconds)));
+			}
+		}
+
+		//***** Start mutate storage *****//
+
+		// Write asset metadata in new pallet_xcm_weight_trader
+		use frame_support::weights::WeightToFee as _;
+		for (asset_location, (enabled, units_per_second)) in assets {
+			let native_amount_per_second: u128 =
+				<Runtime as pallet_transaction_payment::Config>::WeightToFee::weight_to_fee(
+					&Weight::from_parts(
+						frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND,
+						0,
+					),
+				)
+				.try_into()
+				.unwrap_or(u128::MAX);
+			let relative_price: u128 = native_amount_per_second
+				.saturating_mul(10u128.pow(pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS))
+				.saturating_div(units_per_second);
+			pallet_xcm_weight_trader::SupportedAssets::<Runtime>::insert(
+				asset_location,
+				(enabled, relative_price),
+			);
+		}
+
+		// Remove storage value AssetManager::SupportedFeePaymentAssets
+		frame_support::storage::unhashed::kill(&frame_support::storage::storage_prefix(
+			b"AssetManager",
+			b"SupportedFeePaymentAssets",
+		));
+
+		// Remove storage map AssetManager::AssetTypeUnitsPerSecond
+		let _ = frame_support::storage::migration::clear_storage_prefix(
+			b"AssetManager",
+			b"AssetTypeUnitsPerSecond",
+			&[],
+			None,
+			None,
+		);
+
+		Weight::default()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		Ok(Default::default())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		assert!(frame_support::storage::migration::storage_key_iter::<
+			OldAssetType,
+			u128,
+			frame_support::Blake2_128Concat,
+		>(b"AssetManager", b"AssetTypeUnitsPerSecond")
+		.next()
+		.is_none());
+
+		Ok(())
+	}
+}
+
 pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> GetMigrations for CommonMigrations<Runtime>
 where
-	Runtime: pallet_xcm::Config,
-	Runtime: frame_system::Config,
+	Runtime:
+		pallet_xcm::Config + pallet_transaction_payment::Config + pallet_xcm_weight_trader::Config,
 	Runtime::AccountId: Default,
 	BlockNumberFor<Runtime>: Into<u64>,
 {
@@ -246,6 +352,8 @@ where
 			// Box::new(remove_pallet_democracy),
 			// Box::new(remove_collectives_addresses),
 			// Box::new(MigrateCodeToStateTrieV1::<Runtime>(Default::default())),
+			// completed in runtime 3200
+			Box::new(MigrateXcmFeesAssetsMeatdata::<Runtime>(Default::default())),
 			// permanent migrations
 			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
 		]
