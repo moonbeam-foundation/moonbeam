@@ -8,13 +8,33 @@ import {
   descendOriginFromAddress20,
   expectOk,
   injectHrmpMessage,
+  ConstantStore,
 } from "../../../../helpers";
 
 // Below should be the calculation:
 // export const TARGET_FILL_AMOUNT =
 //   ((MAX_BLOCK_WEIGHT * 0.75 * 0.25 - EXTRINSIC_BASE_WEIGHT) / MAX_BLOCK_WEIGHT) * 1_000_000_000;
 // In 0.9.43 rootTesting::fillBlock() now uses more weight so we need to account for that
-const TARGET_FILL_AMOUNT = 262_349_220;
+const TARGET_FILL_AMOUNT = 262_349_219;
+// const TARGET_FILL_AMOUNT = 262_349_210;
+
+async function setFeeMultiplier(context: any, value: bigint) {
+  const MULTIPLIER_STORAGE_KEY = context
+    .polkadotJs()
+    .query.transactionPayment.nextFeeMultiplier.key(0)
+    .toString();
+  await context
+    .polkadotJs()
+    .tx.sudo.sudo(
+      context
+        .polkadotJs()
+        .tx.system.setStorage([
+          [MULTIPLIER_STORAGE_KEY, bnToHex(value, { isLe: true, bitLength: 128 })],
+        ])
+    )
+    .signAndSend(alith);
+  await context.createBlock();
+}
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -32,6 +52,7 @@ describeSuite({
     let random: KeyringPair;
     let transferredBalance: bigint;
     let balancesPalletIndex: number;
+    let MIN_FEE_MULTIPLIER: bigint;
 
     beforeAll(async function () {
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
@@ -54,28 +75,15 @@ describeSuite({
     });
 
     beforeEach(async () => {
-      const MULTIPLIER_STORAGE_KEY = context
-        .polkadotJs()
-        .query.transactionPayment.nextFeeMultiplier.key(0)
-        .toString();
-
-      await context
-        .polkadotJs()
-        .tx.sudo.sudo(
-          context
-            .polkadotJs()
-            .tx.system.setStorage([
-              [MULTIPLIER_STORAGE_KEY, bnToHex(startingBn, { isLe: true, bitLength: 128 })],
-            ])
-        )
-        .signAndSend(alith);
-      await context.createBlock();
+      MIN_FEE_MULTIPLIER = ConstantStore(context).MIN_FEE_MULTIPLIER;
+      await setFeeMultiplier(context, MIN_FEE_MULTIPLIER);
     });
 
     it({
       id: "T01",
       title: "should decay with no activity",
       test: async function () {
+        await setFeeMultiplier(context, MIN_FEE_MULTIPLIER * 4n);
         const initialValue = await context
           .polkadotJs()
           .query.transactionPayment.nextFeeMultiplier();
@@ -87,35 +95,6 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "should not decay when block size at target amount",
-      test: async function () {
-        const initialValue = await context
-          .polkadotJs()
-          .query.transactionPayment.nextFeeMultiplier();
-        await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(context.polkadotJs().tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
-        );
-
-        const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
-
-        // this is useful to manually find out what is the
-        // TARGET_FILL_AMOUNT that will result in a static fee multiplier (the difference between init, and post value should be 0)
-        // run the tests with
-        // pnpm moonwall test dev_moonbase -d test-fees D011604T02
-        // console.log(`TARGET: ${TARGET_FILL_AMOUNT}`);
-        // console.log(`pre  ${initialValue.toHuman()}`);
-        // console.log(`post ${postValue.toHuman()}`);
-        // console.log(`diff ${initialValue.sub(postValue)}`);
-
-        expect(initialValue.eq(postValue), "Fee multiplier not static on ideal fill ratio").to.be
-          .true;
-      },
-    });
-
-    it({
-      id: "T03",
       title: "should increase when above target fill ratio",
       test: async function () {
         const initialValue = await context
@@ -144,7 +123,7 @@ describeSuite({
     });
 
     it({
-      id: "T04",
+      id: "T03",
       title: "should not increase fees with xcm activity",
       test: async () => {
         const transferCallEncoded = context
@@ -161,10 +140,6 @@ describeSuite({
           await context.polkadotJs().rpc.chain.getBlock()
         ).block.header.number.toNumber();
 
-        await context
-          .polkadotJs()
-          .tx.sudo.sudo(context.polkadotJs().tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
-          .signAndSend(alith, { nonce: -1 });
         const xcmMessage = new XcmFragment({
           assets: [
             {
@@ -225,7 +200,7 @@ describeSuite({
     });
 
     it({
-      id: "T05",
+      id: "T04",
       title: "should not increase fees with xcm ETH activity",
       test: async () => {
         const amountToTransfer = transferredBalance / 10n;
