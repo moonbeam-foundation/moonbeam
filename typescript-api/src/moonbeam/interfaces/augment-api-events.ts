@@ -87,7 +87,7 @@ declare module "@polkadot/api-base/types/events" {
         { assetId: u128; assetType: MoonbeamRuntimeXcmConfigAssetType }
       >;
       /** Changed the xcm type mapping for a given asset id */
-      ForeignAssetTypeChanged: AugmentedEvent<
+      ForeignAssetXcmLocationChanged: AugmentedEvent<
         ApiType,
         [assetId: u128, newAssetType: MoonbeamRuntimeXcmConfigAssetType],
         { assetId: u128; newAssetType: MoonbeamRuntimeXcmConfigAssetType }
@@ -101,11 +101,7 @@ declare module "@polkadot/api-base/types/events" {
         { assetType: MoonbeamRuntimeXcmConfigAssetType }
       >;
       /** Changed the amount of units we are charging per execution second for a given asset */
-      UnitsPerSecondChanged: AugmentedEvent<
-        ApiType,
-        [assetType: MoonbeamRuntimeXcmConfigAssetType, unitsPerSecond: u128],
-        { assetType: MoonbeamRuntimeXcmConfigAssetType; unitsPerSecond: u128 }
-      >;
+      UnitsPerSecondChanged: AugmentedEvent<ApiType, []>;
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
     };
@@ -517,6 +513,14 @@ declare module "@polkadot/api-base/types/events" {
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
     };
+    emergencyParaXcm: {
+      /** The XCM incoming execution was Paused */
+      EnteredPausedXcmMode: AugmentedEvent<ApiType, []>;
+      /** The XCM incoming execution returned to normal operation */
+      NormalXcmOperationResumed: AugmentedEvent<ApiType, []>;
+      /** Generic event */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
     ethereum: {
       /** An ethereum transaction was successfully executed. */
       Executed: AugmentedEvent<
@@ -539,6 +543,16 @@ declare module "@polkadot/api-base/types/events" {
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
     };
+    ethereumXcm: {
+      /** Ethereum transaction executed from XCM */
+      ExecutedFromXcm: AugmentedEvent<
+        ApiType,
+        [xcmMsgHash: H256, ethTxHash: H256],
+        { xcmMsgHash: H256; ethTxHash: H256 }
+      >;
+      /** Generic event */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
     evm: {
       /** A contract has been created at given address. */
       Created: AugmentedEvent<ApiType, [address: H160], { address: H160 }>;
@@ -550,6 +564,32 @@ declare module "@polkadot/api-base/types/events" {
       ExecutedFailed: AugmentedEvent<ApiType, [address: H160], { address: H160 }>;
       /** Ethereum events from contracts. */
       Log: AugmentedEvent<ApiType, [log: EthereumLog], { log: EthereumLog }>;
+      /** Generic event */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    evmForeignAssets: {
+      /** New asset with the asset manager is registered */
+      ForeignAssetCreated: AugmentedEvent<
+        ApiType,
+        [contractAddress: H160, assetId: u128, xcmLocation: StagingXcmV4Location],
+        { contractAddress: H160; assetId: u128; xcmLocation: StagingXcmV4Location }
+      >;
+      ForeignAssetFrozen: AugmentedEvent<
+        ApiType,
+        [assetId: u128, xcmLocation: StagingXcmV4Location],
+        { assetId: u128; xcmLocation: StagingXcmV4Location }
+      >;
+      ForeignAssetUnfrozen: AugmentedEvent<
+        ApiType,
+        [assetId: u128, xcmLocation: StagingXcmV4Location],
+        { assetId: u128; xcmLocation: StagingXcmV4Location }
+      >;
+      /** Changed the xcm type mapping for a given asset id */
+      ForeignAssetXcmLocationChanged: AugmentedEvent<
+        ApiType,
+        [assetId: u128, newXcmLocation: StagingXcmV4Location],
+        { assetId: u128; newXcmLocation: StagingXcmV4Location }
+      >;
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
     };
@@ -2016,6 +2056,40 @@ declare module "@polkadot/api-base/types/events" {
       >;
       /** Removed the transact info of a location */
       TransactInfoRemoved: AugmentedEvent<
+        ApiType,
+        [location: StagingXcmV4Location],
+        { location: StagingXcmV4Location }
+      >;
+      /** Generic event */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    xcmWeightTrader: {
+      /** Pause support for a given asset */
+      PauseAssetSupport: AugmentedEvent<
+        ApiType,
+        [location: StagingXcmV4Location],
+        { location: StagingXcmV4Location }
+      >;
+      /** Resume support for a given asset */
+      ResumeAssetSupport: AugmentedEvent<
+        ApiType,
+        [location: StagingXcmV4Location],
+        { location: StagingXcmV4Location }
+      >;
+      /** New supported asset is registered */
+      SupportedAssetAdded: AugmentedEvent<
+        ApiType,
+        [location: StagingXcmV4Location, relativePrice: u128],
+        { location: StagingXcmV4Location; relativePrice: u128 }
+      >;
+      /** Changed the amount of units we are charging per execution second for a given asset */
+      SupportedAssetEdited: AugmentedEvent<
+        ApiType,
+        [location: StagingXcmV4Location, relativePrice: u128],
+        { location: StagingXcmV4Location; relativePrice: u128 }
+      >;
+      /** Supported asset type for fee payment removed */
+      SupportedAssetRemoved: AugmentedEvent<
         ApiType,
         [location: StagingXcmV4Location],
         { location: StagingXcmV4Location }

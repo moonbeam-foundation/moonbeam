@@ -132,22 +132,6 @@ declare module "@polkadot/api-base/types/submittable" {
         ) => SubmittableExtrinsic<ApiType>,
         [u128, u32]
       >;
-      removeSupportedAsset: AugmentedSubmittable<
-        (
-          assetType: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
-          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeXcmConfigAssetType, u32]
-      >;
-      /** Change the amount of units we are charging per execution second for a given ForeignAssetType */
-      setAssetUnitsPerSecond: AugmentedSubmittable<
-        (
-          assetType: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
-          unitsPerSecond: u128 | AnyNumber | Uint8Array,
-          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeXcmConfigAssetType, u128, u32]
-      >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
@@ -1315,6 +1299,17 @@ declare module "@polkadot/api-base/types/submittable" {
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
+    emergencyParaXcm: {
+      /** Authorize a runtime upgrade. Only callable in `Paused` mode */
+      fastAuthorizeUpgrade: AugmentedSubmittable<
+        (codeHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [H256]
+      >;
+      /** Resume `Normal` mode */
+      pausedToNormal: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /** Generic tx */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
     ethereum: {
       /** Transact an Ethereum transaction. */
       transact: AugmentedSubmittable<
@@ -1333,6 +1328,24 @@ declare module "@polkadot/api-base/types/submittable" {
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
     ethereumXcm: {
+      /**
+       * Xcm Transact an Ethereum transaction, but allow to force the caller and create address.
+       * This call should be restricted (callable only by the runtime or governance). Weight: Gas
+       * limit plus the db reads involving the suspension and proxy checks
+       */
+      forceTransactAs: AugmentedSubmittable<
+        (
+          transactAs: H160 | string | Uint8Array,
+          xcmTransaction:
+            | XcmPrimitivesEthereumXcmEthereumXcmTransaction
+            | { V1: any }
+            | { V2: any }
+            | string
+            | Uint8Array,
+          forceCreateAddress: Option<H160> | null | Uint8Array | H160 | string
+        ) => SubmittableExtrinsic<ApiType>,
+        [H160, XcmPrimitivesEthereumXcmEthereumXcmTransaction, Option<H160>]
+      >;
       /**
        * Resumes all Ethereum executions from XCM.
        *
@@ -1457,6 +1470,53 @@ declare module "@polkadot/api-base/types/submittable" {
           value: u128 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [H160, u128]
+      >;
+      /** Generic tx */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    evmForeignAssets: {
+      /**
+       * Change the xcm type mapping for a given assetId We also change this if the previous units
+       * per second where pointing at the old assetType
+       */
+      changeXcmLocation: AugmentedSubmittable<
+        (
+          assetId: u128 | AnyNumber | Uint8Array,
+          newXcmLocation:
+            | StagingXcmV4Location
+            | { parents?: any; interior?: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [u128, StagingXcmV4Location]
+      >;
+      /** Create new asset with the ForeignAssetCreator */
+      createForeignAsset: AugmentedSubmittable<
+        (
+          assetId: u128 | AnyNumber | Uint8Array,
+          xcmLocation:
+            | StagingXcmV4Location
+            | { parents?: any; interior?: any }
+            | string
+            | Uint8Array,
+          decimals: u8 | AnyNumber | Uint8Array,
+          symbol: Bytes | string | Uint8Array,
+          name: Bytes | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [u128, StagingXcmV4Location, u8, Bytes, Bytes]
+      >;
+      /** Freeze a given foreign assetId */
+      freezeForeignAsset: AugmentedSubmittable<
+        (
+          assetId: u128 | AnyNumber | Uint8Array,
+          allowXcmDeposit: bool | boolean | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [u128, bool]
+      >;
+      /** Unfreeze a given foreign assetId */
+      unfreezeForeignAsset: AugmentedSubmittable<
+        (assetId: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [u128]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -1916,6 +1976,10 @@ declare module "@polkadot/api-base/types/submittable" {
           limit: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Vec<H160>, u32]
+      >;
+      createContractMetadata: AugmentedSubmittable<
+        (address: H160 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [H160]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -4701,6 +4765,42 @@ declare module "@polkadot/api-base/types/submittable" {
           PalletXcmTransactorTransactWeights,
           bool
         ]
+      >;
+      /** Generic tx */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    xcmWeightTrader: {
+      addAsset: AugmentedSubmittable<
+        (
+          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array,
+          relativePrice: u128 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [StagingXcmV4Location, u128]
+      >;
+      editAsset: AugmentedSubmittable<
+        (
+          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array,
+          relativePrice: u128 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [StagingXcmV4Location, u128]
+      >;
+      pauseAssetSupport: AugmentedSubmittable<
+        (
+          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [StagingXcmV4Location]
+      >;
+      removeAsset: AugmentedSubmittable<
+        (
+          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [StagingXcmV4Location]
+      >;
+      resumeAssetSupport: AugmentedSubmittable<
+        (
+          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [StagingXcmV4Location]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
