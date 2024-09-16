@@ -477,7 +477,7 @@ fn test_state_migration_can_fit_exactly_all_item() {
 
 		assert!(matches!(
 			StateMigrationStatusValue::<Test>::get(),
-			(StateMigrationStatus::Started(_), keys),
+			(StateMigrationStatus::Started(_), n) if n == keys,
 		));
 
 		// after calling on_idle status is added to the storage so we need to account for that
@@ -492,7 +492,7 @@ fn test_state_migration_can_fit_exactly_all_item() {
 
 		assert!(matches!(
 			StateMigrationStatusValue::<Test>::get(),
-			(StateMigrationStatus::Complete, new_keys),
+			(StateMigrationStatus::Complete, n) if n == new_keys,
 		));
 	})
 }
@@ -548,7 +548,7 @@ fn test_state_migration_will_migrate_10_000_items() {
 			if i < needed_on_idle_calls {
 				let migrated_so_far = i * entries_per_on_idle;
 				assert!(
-					matches!(status, (StateMigrationStatus::Started(_), migrated_so_far)),
+					matches!(status, (StateMigrationStatus::Started(_), n) if n == migrated_so_far),
 					"Status: {:?} at call: #{} doesn't match Started",
 					status,
 					i,
@@ -556,7 +556,7 @@ fn test_state_migration_will_migrate_10_000_items() {
 				assert!(weight.all_gte(weight_for(1, 0)));
 			} else {
 				assert!(
-					matches!(status, (StateMigrationStatus::Complete, keys)),
+					matches!(status, (StateMigrationStatus::Complete, n) if n == keys),
 					"Status: {:?} at call: {} doesn't match Complete",
 					status,
 					i,
