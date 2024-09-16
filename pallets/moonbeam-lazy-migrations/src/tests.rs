@@ -343,7 +343,7 @@ fn test_state_migration_baseline() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(
 			StateMigrationStatusValue::<Test>::get(),
-			StateMigrationStatus::NotStarted
+			(StateMigrationStatus::NotStarted, 0)
 		);
 
 		let (keys, data) = count_keys_and_data_without_code();
@@ -366,7 +366,7 @@ fn test_state_migration_baseline() {
 
 		assert_eq!(
 			StateMigrationStatusValue::<Test>::get(),
-			StateMigrationStatus::Complete
+			(StateMigrationStatus::Complete, keys)
 		);
 	})
 }
@@ -374,7 +374,7 @@ fn test_state_migration_baseline() {
 #[test]
 fn test_state_migration_cannot_fit_any_item() {
 	ExtBuilder::default().build().execute_with(|| {
-		StateMigrationStatusValue::<Test>::put(StateMigrationStatus::Complete);
+		StateMigrationStatusValue::<Test>::put((StateMigrationStatus::NotStarted, 0));
 
 		let weight = LazyMigrations::on_idle(0, rem_weight_for_entries(0));
 
@@ -385,7 +385,7 @@ fn test_state_migration_cannot_fit_any_item() {
 #[test]
 fn test_state_migration_when_complete() {
 	ExtBuilder::default().build().execute_with(|| {
-		StateMigrationStatusValue::<Test>::put(StateMigrationStatus::Complete);
+		StateMigrationStatusValue::<Test>::put((StateMigrationStatus::Complete, 0));
 
 		let weight = LazyMigrations::on_idle(0, Weight::max_value());
 
@@ -397,9 +397,9 @@ fn test_state_migration_when_complete() {
 #[test]
 fn test_state_migration_when_errored() {
 	ExtBuilder::default().build().execute_with(|| {
-		StateMigrationStatusValue::<Test>::put(StateMigrationStatus::Error(
+		StateMigrationStatusValue::<Test>::put((StateMigrationStatus::Error(
 			"Error".as_bytes().to_vec().try_into().unwrap_or_default(),
-		));
+		), 1));
 
 		let weight = LazyMigrations::on_idle(0, Weight::max_value());
 
@@ -413,7 +413,7 @@ fn test_state_migration_can_only_fit_one_item() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(
 			StateMigrationStatusValue::<Test>::get(),
-			StateMigrationStatus::NotStarted
+			(StateMigrationStatus::NotStarted, 0)
 		);
 
 		let data = sp_io::storage::get(Default::default());
@@ -425,7 +425,7 @@ fn test_state_migration_can_only_fit_one_item() {
 
 		assert!(matches!(
 			StateMigrationStatusValue::<Test>::get(),
-			StateMigrationStatus::Started(_)
+			(StateMigrationStatus::Started(_), 1)
 		));
 
 		let weight = LazyMigrations::on_idle(0, rem_weight_for_entries(3));
@@ -440,7 +440,7 @@ fn test_state_migration_can_only_fit_three_item() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(
 			StateMigrationStatusValue::<Test>::get(),
-			StateMigrationStatus::NotStarted
+			(StateMigrationStatus::NotStarted, 0)
 		);
 
 		let weight = LazyMigrations::on_idle(0, rem_weight_for_entries(3));
@@ -454,7 +454,7 @@ fn test_state_migration_can_only_fit_three_item() {
 
 		assert!(matches!(
 			StateMigrationStatusValue::<Test>::get(),
-			StateMigrationStatus::Started(_)
+			(StateMigrationStatus::Started(_), 3)
 		));
 	})
 }
@@ -464,7 +464,7 @@ fn test_state_migration_can_fit_exactly_all_item() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(
 			StateMigrationStatusValue::<Test>::get(),
-			StateMigrationStatus::NotStarted
+			(StateMigrationStatus::NotStarted, 0)
 		);
 
 		let (keys, data) = count_keys_and_data_without_code();
@@ -476,7 +476,7 @@ fn test_state_migration_can_fit_exactly_all_item() {
 
 		assert!(matches!(
 			StateMigrationStatusValue::<Test>::get(),
-			StateMigrationStatus::Started(_),
+			(StateMigrationStatus::Started(_), keys),
 		));
 
 		// after calling on_idle status is added to the storage so we need to account for that
@@ -491,7 +491,7 @@ fn test_state_migration_can_fit_exactly_all_item() {
 
 		assert!(matches!(
 			StateMigrationStatusValue::<Test>::get(),
-			StateMigrationStatus::Complete,
+			(StateMigrationStatus::Complete, new_keys),
 		));
 	})
 }
@@ -501,14 +501,14 @@ fn test_state_migration_will_migrate_10_000_items() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(
 			StateMigrationStatusValue::<Test>::get(),
-			StateMigrationStatus::NotStarted
+			(StateMigrationStatus::NotStarted, 0)
 		);
 
 		for i in 0..100 {
 			mock_contract_with_entries(i as u8, i as u64, 100);
 		}
 
-		StateMigrationStatusValue::<Test>::put(StateMigrationStatus::NotStarted);
+		StateMigrationStatusValue::<Test>::put((StateMigrationStatus::NotStarted, 0));
 
 		let (keys, data) = count_keys_and_data_without_code();
 
@@ -545,8 +545,9 @@ fn test_state_migration_will_migrate_10_000_items() {
 
 			let status = StateMigrationStatusValue::<Test>::get();
 			if i < needed_on_idle_calls {
+				let migrated_so_far = i * entries_per_on_idle;
 				assert!(
-					matches!(status, StateMigrationStatus::Started(_)),
+					matches!(status, (StateMigrationStatus::Started(_), migrated_so_far)),
 					"Status: {:?} at call: #{} doesn't match Started",
 					status,
 					i,
@@ -554,7 +555,7 @@ fn test_state_migration_will_migrate_10_000_items() {
 				assert!(weight.all_gte(weight_for(1, 0)));
 			} else {
 				assert!(
-					matches!(status, StateMigrationStatus::Complete),
+					matches!(status, (StateMigrationStatus::Complete, keys)),
 					"Status: {:?} at call: {} doesn't match Complete",
 					status,
 					i,
