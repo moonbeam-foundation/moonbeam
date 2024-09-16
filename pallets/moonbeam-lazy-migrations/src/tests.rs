@@ -397,9 +397,10 @@ fn test_state_migration_when_complete() {
 #[test]
 fn test_state_migration_when_errored() {
 	ExtBuilder::default().build().execute_with(|| {
-		StateMigrationStatusValue::<Test>::put((StateMigrationStatus::Error(
-			"Error".as_bytes().to_vec().try_into().unwrap_or_default(),
-		), 1));
+		StateMigrationStatusValue::<Test>::put((
+			StateMigrationStatus::Error("Error".as_bytes().to_vec().try_into().unwrap_or_default()),
+			1,
+		));
 
 		let weight = LazyMigrations::on_idle(0, Weight::max_value());
 

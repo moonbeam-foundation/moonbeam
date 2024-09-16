@@ -184,14 +184,20 @@ pub mod pallet {
 					match next_key_result {
 						NextKeyResult::NextKey(next_key) => next_key,
 						NextKeyResult::NoMoreKeys => {
-							StateMigrationStatusValue::<T>::put((StateMigrationStatus::Complete, migrated_keys));
+							StateMigrationStatusValue::<T>::put((
+								StateMigrationStatus::Complete,
+								migrated_keys,
+							));
 							read_write_ops.add_one_write();
 							return read_write_ops;
 						}
 						NextKeyResult::Error(e) => {
-							StateMigrationStatusValue::<T>::put((StateMigrationStatus::Error(
-								e.as_bytes().to_vec().try_into().unwrap_or_default(),
-							), migrated_keys));
+							StateMigrationStatusValue::<T>::put((
+								StateMigrationStatus::Error(
+									e.as_bytes().to_vec().try_into().unwrap_or_default(),
+								),
+								migrated_keys,
+							));
 							read_write_ops.add_one_write();
 							return read_write_ops;
 						}
@@ -209,18 +215,27 @@ pub mod pallet {
 
 			match (res.last_key, res.error) {
 				(None, None) => {
-					StateMigrationStatusValue::<T>::put((StateMigrationStatus::Complete, migrated_keys));
+					StateMigrationStatusValue::<T>::put((
+						StateMigrationStatus::Complete,
+						migrated_keys,
+					));
 					read_write_ops.add_one_write();
 				}
 				// maybe we should store the previous key in the storage as well
 				(_, Some(e)) => {
-					StateMigrationStatusValue::<T>::put((StateMigrationStatus::Error(
-						e.as_bytes().to_vec().try_into().unwrap_or_default(),
-					), migrated_keys));
+					StateMigrationStatusValue::<T>::put((
+						StateMigrationStatus::Error(
+							e.as_bytes().to_vec().try_into().unwrap_or_default(),
+						),
+						migrated_keys,
+					));
 					read_write_ops.add_one_write();
 				}
 				(Some(key), None) => {
-					StateMigrationStatusValue::<T>::put((StateMigrationStatus::Started(key), migrated_keys));
+					StateMigrationStatusValue::<T>::put((
+						StateMigrationStatus::Started(key),
+						migrated_keys,
+					));
 					read_write_ops.add_one_write();
 				}
 			}
