@@ -28,10 +28,12 @@ use sp_runtime::traits::{Convert, Dispatchable};
 use sp_std::{boxed::Box, convert::TryInto, marker::PhantomData, vec::Vec};
 use sp_weights::Weight;
 use xcm::{
-	latest::{Asset, AssetId, Assets, Fungibility, Junction, Junctions, Location, WeightLimit},
+	latest::{Asset, AssetId, Assets, Fungibility, Location, WeightLimit},
 	VersionedAssets, VersionedLocation,
 };
-use xcm_primitives::{AccountIdToCurrencyId, DEFAULT_PROOF_SIZE};
+use xcm_primitives::{
+	split_location_into_chain_part_and_beneficiary, AccountIdToCurrencyId, DEFAULT_PROOF_SIZE,
+};
 
 #[cfg(test)]
 mod mock;
@@ -451,31 +453,5 @@ impl From<(Location, U256)> for EvmAsset {
 			location: tuple.0,
 			amount: tuple.1,
 		}
-	}
-}
-
-fn split_location_into_chain_part_and_beneficiary(
-	mut location: Location,
-) -> Option<(Location, Location)> {
-	let mut beneficiary_junctions = Junctions::Here;
-
-	// start popping junctions until we reach chain identifier
-	while let Some(j) = location.last() {
-		if matches!(j, Junction::Parachain(_) | Junction::GlobalConsensus(_)) {
-			// return chain subsection
-			return Some((location, beneficiary_junctions.into_location()));
-		} else {
-			let (location_prefix, maybe_last_junction) = location.split_last_interior();
-			location = location_prefix;
-			if let Some(junction) = maybe_last_junction {
-				beneficiary_junctions.push(junction).ok()?;
-			}
-		}
-	}
-
-	if location.parent_count() == 1 {
-		Some((Location::parent(), beneficiary_junctions.into_location()))
-	} else {
-		None
 	}
 }

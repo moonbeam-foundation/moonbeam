@@ -36,4 +36,32 @@ pub use ethereum_xcm::*;
 mod filter_asset_max_fee;
 pub use filter_asset_max_fee::*;
 
+use xcm::latest::{Junction, Junctions, Location};
+
 pub type XcmV2Weight = xcm::v2::Weight;
+
+pub fn split_location_into_chain_part_and_beneficiary(
+	mut location: Location,
+) -> Option<(Location, Location)> {
+	let mut beneficiary_junctions = Junctions::Here;
+
+	// start popping junctions until we reach chain identifier
+	while let Some(j) = location.last() {
+		if matches!(j, Junction::Parachain(_) | Junction::GlobalConsensus(_)) {
+			// return chain subsection
+			return Some((location, beneficiary_junctions.into_location()));
+		} else {
+			let (location_prefix, maybe_last_junction) = location.split_last_interior();
+			location = location_prefix;
+			if let Some(junction) = maybe_last_junction {
+				beneficiary_junctions.push(junction).ok()?;
+			}
+		}
+	}
+
+	if location.parent_count() == 1 {
+		Some((Location::parent(), beneficiary_junctions.into_location()))
+	} else {
+		None
+	}
+}
