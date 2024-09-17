@@ -24,7 +24,7 @@ runs:
         version: 8.6.12
     - uses: actions/setup-node@v4
       with:
-        node-version: 20.10.0
+        node-version: 22.8.0
         cache: "pnpm"
         cache-dependency-path: test/pnpm-lock.yaml
 
