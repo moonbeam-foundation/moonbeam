@@ -39,7 +39,7 @@ runs:
         #### Preparing the typescript api
         cd ../typescript-api
         pnpm i
-        scripts/runtime-upgrade.sh
+        pnpm build
 
         cd ../test
         pnpm add ../typescript-api
