@@ -41,7 +41,7 @@ runs:
         npm ci
 
         cd ../test
-        pnpm i ../typescript-api
+        pnpm add ../typescript-api
 
     - name: "Install and run dev test"
       shell: bash

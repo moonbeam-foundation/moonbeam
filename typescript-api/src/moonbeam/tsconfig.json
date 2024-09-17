@@ -2,7 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "../../build",
+    "baseUrl": "./",
+    "outDir": "../../dist",
     "paths": {
       "@moonbeam/api-augment/*": ["src/moonbeam/*"],
       "@polkadot/api/augment": ["src/moonbeam/interfaces/augment-api.ts"],

@@ -3,13 +3,13 @@
 
 // import type lookup before we augment - in some environments
 // this is required to allow for ambient/previous definitions
-import "@polkadot/api-base/types/errors";
+import '@polkadot/api-base/types/errors';
 
-import type { ApiTypes, AugmentedError } from "@polkadot/api-base/types";
+import type { ApiTypes, AugmentedError } from '@polkadot/api-base/types';
 
 export type __AugmentedError<ApiType extends ApiTypes> = AugmentedError<ApiType>;
 
-declare module "@polkadot/api-base/types/errors" {
+declare module '@polkadot/api-base/types/errors' {
   interface AugmentedErrors<ApiType extends ApiTypes> {
     assetManager: {
       AssetAlreadyExists: AugmentedError<ApiType>;
@@ -20,244 +20,426 @@ declare module "@polkadot/api-base/types/errors" {
       NonExistentLocalAsset: AugmentedError<ApiType>;
       NotSufficientDeposit: AugmentedError<ApiType>;
       TooLowNumAssetsWeightHint: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     assets: {
-      /** The asset-account already exists. */
+      /**
+       * The asset-account already exists.
+       **/
       AlreadyExists: AugmentedError<ApiType>;
-      /** The asset is not live, and likely being destroyed. */
+      /**
+       * The asset is not live, and likely being destroyed.
+       **/
       AssetNotLive: AugmentedError<ApiType>;
-      /** Invalid metadata given. */
+      /**
+       * Invalid metadata given.
+       **/
       BadMetadata: AugmentedError<ApiType>;
-      /** Invalid witness data given. */
+      /**
+       * Invalid witness data given.
+       **/
       BadWitness: AugmentedError<ApiType>;
-      /** Account balance must be greater than or equal to the transfer amount. */
+      /**
+       * Account balance must be greater than or equal to the transfer amount.
+       **/
       BalanceLow: AugmentedError<ApiType>;
-      /** Callback action resulted in error */
+      /**
+       * Callback action resulted in error
+       **/
       CallbackFailed: AugmentedError<ApiType>;
-      /** The origin account is frozen. */
+      /**
+       * The origin account is frozen.
+       **/
       Frozen: AugmentedError<ApiType>;
-      /** The asset status is not the expected status. */
+      /**
+       * The asset status is not the expected status.
+       **/
       IncorrectStatus: AugmentedError<ApiType>;
-      /** The asset ID is already taken. */
+      /**
+       * The asset ID is already taken.
+       **/
       InUse: AugmentedError<ApiType>;
       /**
-       * The asset is a live asset and is actively being used. Usually emit for operations such as
-       * `start_destroy` which require the asset to be in a destroying state.
-       */
+       * The asset is a live asset and is actively being used. Usually emit for operations such
+       * as `start_destroy` which require the asset to be in a destroying state.
+       **/
       LiveAsset: AugmentedError<ApiType>;
-      /** Minimum balance should be non-zero. */
+      /**
+       * Minimum balance should be non-zero.
+       **/
       MinBalanceZero: AugmentedError<ApiType>;
-      /** The account to alter does not exist. */
+      /**
+       * The account to alter does not exist.
+       **/
       NoAccount: AugmentedError<ApiType>;
-      /** The asset-account doesn't have an associated deposit. */
+      /**
+       * The asset-account doesn't have an associated deposit.
+       **/
       NoDeposit: AugmentedError<ApiType>;
-      /** The signing account has no permission to do the operation. */
+      /**
+       * The signing account has no permission to do the operation.
+       **/
       NoPermission: AugmentedError<ApiType>;
-      /** The asset should be frozen before the given operation. */
+      /**
+       * The asset should be frozen before the given operation.
+       **/
       NotFrozen: AugmentedError<ApiType>;
-      /** No approval exists that would allow the transfer. */
+      /**
+       * No approval exists that would allow the transfer.
+       **/
       Unapproved: AugmentedError<ApiType>;
       /**
        * Unable to increment the consumer reference counters on the account. Either no provider
-       * reference exists to allow a non-zero balance of a non-self-sufficient asset, or one fewer
-       * then the maximum number of consumers has been reached.
-       */
+       * reference exists to allow a non-zero balance of a non-self-sufficient asset, or one
+       * fewer then the maximum number of consumers has been reached.
+       **/
       UnavailableConsumer: AugmentedError<ApiType>;
-      /** The given asset ID is unknown. */
+      /**
+       * The given asset ID is unknown.
+       **/
       Unknown: AugmentedError<ApiType>;
-      /** The operation would result in funds being burned. */
+      /**
+       * The operation would result in funds being burned.
+       **/
       WouldBurn: AugmentedError<ApiType>;
-      /** The source account would not survive the transfer and it needs to stay alive. */
+      /**
+       * The source account would not survive the transfer and it needs to stay alive.
+       **/
       WouldDie: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     authorInherent: {
-      /** Author already set in block. */
+      /**
+       * Author already set in block.
+       **/
       AuthorAlreadySet: AugmentedError<ApiType>;
-      /** The author in the inherent is not an eligible author. */
+      /**
+       * The author in the inherent is not an eligible author.
+       **/
       CannotBeAuthor: AugmentedError<ApiType>;
-      /** No AccountId was found to be associated with this author */
+      /**
+       * No AccountId was found to be associated with this author
+       **/
       NoAccountId: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     authorMapping: {
-      /** The NimbusId in question is already associated and cannot be overwritten */
+      /**
+       * The NimbusId in question is already associated and cannot be overwritten
+       **/
       AlreadyAssociated: AugmentedError<ApiType>;
-      /** The association can't be cleared because it is not found. */
+      /**
+       * The association can't be cleared because it is not found.
+       **/
       AssociationNotFound: AugmentedError<ApiType>;
-      /** This account cannot set an author because it cannon afford the security deposit */
+      /**
+       * This account cannot set an author because it cannon afford the security deposit
+       **/
       CannotAffordSecurityDeposit: AugmentedError<ApiType>;
-      /** Failed to decode T::Keys for `set_keys` */
+      /**
+       * Failed to decode T::Keys for `set_keys`
+       **/
       DecodeKeysFailed: AugmentedError<ApiType>;
-      /** Failed to decode NimbusId for `set_keys` */
+      /**
+       * Failed to decode NimbusId for `set_keys`
+       **/
       DecodeNimbusFailed: AugmentedError<ApiType>;
-      /** The association can't be cleared because it belongs to another account. */
+      /**
+       * The association can't be cleared because it belongs to another account.
+       **/
       NotYourAssociation: AugmentedError<ApiType>;
-      /** No existing NimbusId can be found for the account */
+      /**
+       * No existing NimbusId can be found for the account
+       **/
       OldAuthorIdNotFound: AugmentedError<ApiType>;
-      /** Keys have wrong size */
+      /**
+       * Keys have wrong size
+       **/
       WrongKeySize: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     balances: {
-      /** Beneficiary account must pre-exist. */
+      /**
+       * Beneficiary account must pre-exist.
+       **/
       DeadAccount: AugmentedError<ApiType>;
-      /** The delta cannot be zero. */
+      /**
+       * The delta cannot be zero.
+       **/
       DeltaZero: AugmentedError<ApiType>;
-      /** Value too low to create account due to existential deposit. */
+      /**
+       * Value too low to create account due to existential deposit.
+       **/
       ExistentialDeposit: AugmentedError<ApiType>;
-      /** A vesting schedule already exists for this account. */
+      /**
+       * A vesting schedule already exists for this account.
+       **/
       ExistingVestingSchedule: AugmentedError<ApiType>;
-      /** Transfer/payment would kill account. */
+      /**
+       * Transfer/payment would kill account.
+       **/
       Expendability: AugmentedError<ApiType>;
-      /** Balance too low to send value. */
+      /**
+       * Balance too low to send value.
+       **/
       InsufficientBalance: AugmentedError<ApiType>;
-      /** The issuance cannot be modified since it is already deactivated. */
+      /**
+       * The issuance cannot be modified since it is already deactivated.
+       **/
       IssuanceDeactivated: AugmentedError<ApiType>;
-      /** Account liquidity restrictions prevent withdrawal. */
+      /**
+       * Account liquidity restrictions prevent withdrawal.
+       **/
       LiquidityRestrictions: AugmentedError<ApiType>;
-      /** Number of freezes exceed `MaxFreezes`. */
+      /**
+       * Number of freezes exceed `MaxFreezes`.
+       **/
       TooManyFreezes: AugmentedError<ApiType>;
-      /** Number of holds exceed `VariantCountOf<T::RuntimeHoldReason>`. */
+      /**
+       * Number of holds exceed `VariantCountOf<T::RuntimeHoldReason>`.
+       **/
       TooManyHolds: AugmentedError<ApiType>;
-      /** Number of named reserves exceed `MaxReserves`. */
+      /**
+       * Number of named reserves exceed `MaxReserves`.
+       **/
       TooManyReserves: AugmentedError<ApiType>;
-      /** Vesting balance too high to send value. */
+      /**
+       * Vesting balance too high to send value.
+       **/
       VestingBalance: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     convictionVoting: {
-      /** The account is already delegating. */
+      /**
+       * The account is already delegating.
+       **/
       AlreadyDelegating: AugmentedError<ApiType>;
       /**
-       * The account currently has votes attached to it and the operation cannot succeed until these
-       * are removed through `remove_vote`.
-       */
+       * The account currently has votes attached to it and the operation cannot succeed until
+       * these are removed through `remove_vote`.
+       **/
       AlreadyVoting: AugmentedError<ApiType>;
-      /** The class ID supplied is invalid. */
+      /**
+       * The class ID supplied is invalid.
+       **/
       BadClass: AugmentedError<ApiType>;
-      /** The class must be supplied since it is not easily determinable from the state. */
+      /**
+       * The class must be supplied since it is not easily determinable from the state.
+       **/
       ClassNeeded: AugmentedError<ApiType>;
-      /** Too high a balance was provided that the account cannot afford. */
+      /**
+       * Too high a balance was provided that the account cannot afford.
+       **/
       InsufficientFunds: AugmentedError<ApiType>;
-      /** Maximum number of votes reached. */
+      /**
+       * Maximum number of votes reached.
+       **/
       MaxVotesReached: AugmentedError<ApiType>;
-      /** Delegation to oneself makes no sense. */
+      /**
+       * Delegation to oneself makes no sense.
+       **/
       Nonsense: AugmentedError<ApiType>;
-      /** The actor has no permission to conduct the action. */
+      /**
+       * The actor has no permission to conduct the action.
+       **/
       NoPermission: AugmentedError<ApiType>;
-      /** The actor has no permission to conduct the action right now but will do in the future. */
+      /**
+       * The actor has no permission to conduct the action right now but will do in the future.
+       **/
       NoPermissionYet: AugmentedError<ApiType>;
-      /** The account is not currently delegating. */
+      /**
+       * The account is not currently delegating.
+       **/
       NotDelegating: AugmentedError<ApiType>;
-      /** Poll is not ongoing. */
+      /**
+       * Poll is not ongoing.
+       **/
       NotOngoing: AugmentedError<ApiType>;
-      /** The given account did not vote on the poll. */
+      /**
+       * The given account did not vote on the poll.
+       **/
       NotVoter: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     crowdloanRewards: {
       /**
-       * User trying to associate a native identity with a relay chain identity for posterior reward
-       * claiming provided an already associated relay chain identity
-       */
+       * User trying to associate a native identity with a relay chain identity for posterior
+       * reward claiming provided an already associated relay chain identity
+       **/
       AlreadyAssociated: AugmentedError<ApiType>;
-      /** Trying to introduce a batch that goes beyond the limits of the funds */
+      /**
+       * Trying to introduce a batch that goes beyond the limits of the funds
+       **/
       BatchBeyondFundPot: AugmentedError<ApiType>;
-      /** First claim already done */
+      /**
+       * First claim already done
+       **/
       FirstClaimAlreadyDone: AugmentedError<ApiType>;
-      /** User submitted an unsifficient number of proofs to change the reward address */
+      /**
+       * User submitted an unsifficient number of proofs to change the reward address
+       **/
       InsufficientNumberOfValidProofs: AugmentedError<ApiType>;
       /**
-       * User trying to associate a native identity with a relay chain identity for posterior reward
-       * claiming provided a wrong signature
-       */
+       * User trying to associate a native identity with a relay chain identity for posterior
+       * reward claiming provided a wrong signature
+       **/
       InvalidClaimSignature: AugmentedError<ApiType>;
-      /** User trying to claim the first free reward provided the wrong signature */
+      /**
+       * User trying to claim the first free reward provided the wrong signature
+       **/
       InvalidFreeClaimSignature: AugmentedError<ApiType>;
       /**
-       * User trying to claim an award did not have an claim associated with it. This may mean they
-       * did not contribute to the crowdloan, or they have not yet associated a native id with their
-       * contribution
-       */
+       * User trying to claim an award did not have an claim associated with it. This may mean
+       * they did not contribute to the crowdloan, or they have not yet associated a native id
+       * with their contribution
+       **/
       NoAssociatedClaim: AugmentedError<ApiType>;
-      /** User provided a signature from a non-contributor relay account */
+      /**
+       * User provided a signature from a non-contributor relay account
+       **/
       NonContributedAddressProvided: AugmentedError<ApiType>;
-      /** The contribution is not high enough to be eligible for rewards */
+      /**
+       * The contribution is not high enough to be eligible for rewards
+       **/
       RewardNotHighEnough: AugmentedError<ApiType>;
       /**
-       * User trying to claim rewards has already claimed all rewards associated with its identity
-       * and contribution
-       */
+       * User trying to claim rewards has already claimed all rewards associated with its
+       * identity and contribution
+       **/
       RewardsAlreadyClaimed: AugmentedError<ApiType>;
-      /** Rewards should match funds of the pallet */
+      /**
+       * Rewards should match funds of the pallet
+       **/
       RewardsDoNotMatchFund: AugmentedError<ApiType>;
-      /** Reward vec has already been initialized */
+      /**
+       * Reward vec has already been initialized
+       **/
       RewardVecAlreadyInitialized: AugmentedError<ApiType>;
-      /** Reward vec has not yet been fully initialized */
+      /**
+       * Reward vec has not yet been fully initialized
+       **/
       RewardVecNotFullyInitializedYet: AugmentedError<ApiType>;
-      /** Initialize_reward_vec received too many contributors */
+      /**
+       * Initialize_reward_vec received too many contributors
+       **/
       TooManyContributors: AugmentedError<ApiType>;
-      /** Provided vesting period is not valid */
+      /**
+       * Provided vesting period is not valid
+       **/
       VestingPeriodNonValid: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     emergencyParaXcm: {
-      /** The current XCM Mode is not Paused */
+      /**
+       * The current XCM Mode is not Paused
+       **/
       NotInPausedMode: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     ethereum: {
-      /** Signature is invalid. */
+      /**
+       * Signature is invalid.
+       **/
       InvalidSignature: AugmentedError<ApiType>;
-      /** Pre-log is present, therefore transact is not allowed. */
+      /**
+       * Pre-log is present, therefore transact is not allowed.
+       **/
       PreLogExists: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     ethereumXcm: {
-      /** Xcm to Ethereum execution is suspended */
+      /**
+       * Xcm to Ethereum execution is suspended
+       **/
       EthereumXcmExecutionSuspended: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     evm: {
-      /** Not enough balance to perform action */
+      /**
+       * Not enough balance to perform action
+       **/
       BalanceLow: AugmentedError<ApiType>;
-      /** Calculating total fee overflowed */
+      /**
+       * Calculating total fee overflowed
+       **/
       FeeOverflow: AugmentedError<ApiType>;
-      /** Gas limit is too high. */
+      /**
+       * Gas limit is too high.
+       **/
       GasLimitTooHigh: AugmentedError<ApiType>;
-      /** Gas limit is too low. */
+      /**
+       * Gas limit is too low.
+       **/
       GasLimitTooLow: AugmentedError<ApiType>;
-      /** Gas price is too low. */
+      /**
+       * Gas price is too low.
+       **/
       GasPriceTooLow: AugmentedError<ApiType>;
-      /** The chain id is invalid. */
+      /**
+       * The chain id is invalid.
+       **/
       InvalidChainId: AugmentedError<ApiType>;
-      /** Nonce is invalid */
+      /**
+       * Nonce is invalid
+       **/
       InvalidNonce: AugmentedError<ApiType>;
-      /** The signature is invalid. */
+      /**
+       * the signature is invalid.
+       **/
       InvalidSignature: AugmentedError<ApiType>;
-      /** Calculating total payment overflowed */
+      /**
+       * Calculating total payment overflowed
+       **/
       PaymentOverflow: AugmentedError<ApiType>;
-      /** EVM reentrancy */
+      /**
+       * EVM reentrancy
+       **/
       Reentrancy: AugmentedError<ApiType>;
-      /** EIP-3607, */
+      /**
+       * EIP-3607,
+       **/
       TransactionMustComeFromEOA: AugmentedError<ApiType>;
-      /** Undefined error. */
+      /**
+       * Undefined error.
+       **/
       Undefined: AugmentedError<ApiType>;
-      /** Withdraw fee failed */
+      /**
+       * Withdraw fee failed
+       **/
       WithdrawFailed: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     evmForeignAssets: {
@@ -275,210 +457,384 @@ declare module "@polkadot/api-base/types/errors" {
       InvalidTokenName: AugmentedError<ApiType>;
       LocationAlreadyExists: AugmentedError<ApiType>;
       TooManyForeignAssets: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     identity: {
-      /** Account ID is already named. */
+      /**
+       * Account ID is already named.
+       **/
       AlreadyClaimed: AugmentedError<ApiType>;
-      /** Empty index. */
+      /**
+       * Empty index.
+       **/
       EmptyIndex: AugmentedError<ApiType>;
-      /** Fee is changed. */
+      /**
+       * Fee is changed.
+       **/
       FeeChanged: AugmentedError<ApiType>;
-      /** The index is invalid. */
+      /**
+       * The index is invalid.
+       **/
       InvalidIndex: AugmentedError<ApiType>;
-      /** Invalid judgement. */
+      /**
+       * Invalid judgement.
+       **/
       InvalidJudgement: AugmentedError<ApiType>;
-      /** The signature on a username was not valid. */
+      /**
+       * The signature on a username was not valid.
+       **/
       InvalidSignature: AugmentedError<ApiType>;
-      /** The provided suffix is too long. */
+      /**
+       * The provided suffix is too long.
+       **/
       InvalidSuffix: AugmentedError<ApiType>;
-      /** The target is invalid. */
+      /**
+       * The target is invalid.
+       **/
       InvalidTarget: AugmentedError<ApiType>;
-      /** The username does not meet the requirements. */
+      /**
+       * The username does not meet the requirements.
+       **/
       InvalidUsername: AugmentedError<ApiType>;
-      /** The provided judgement was for a different identity. */
+      /**
+       * The provided judgement was for a different identity.
+       **/
       JudgementForDifferentIdentity: AugmentedError<ApiType>;
-      /** Judgement given. */
+      /**
+       * Judgement given.
+       **/
       JudgementGiven: AugmentedError<ApiType>;
-      /** Error that occurs when there is an issue paying for judgement. */
+      /**
+       * Error that occurs when there is an issue paying for judgement.
+       **/
       JudgementPaymentFailed: AugmentedError<ApiType>;
-      /** The authority cannot allocate any more usernames. */
+      /**
+       * The authority cannot allocate any more usernames.
+       **/
       NoAllocation: AugmentedError<ApiType>;
-      /** No identity found. */
+      /**
+       * No identity found.
+       **/
       NoIdentity: AugmentedError<ApiType>;
-      /** The username cannot be forcefully removed because it can still be accepted. */
+      /**
+       * The username cannot be forcefully removed because it can still be accepted.
+       **/
       NotExpired: AugmentedError<ApiType>;
-      /** Account isn't found. */
+      /**
+       * Account isn't found.
+       **/
       NotFound: AugmentedError<ApiType>;
-      /** Account isn't named. */
+      /**
+       * Account isn't named.
+       **/
       NotNamed: AugmentedError<ApiType>;
-      /** Sub-account isn't owned by sender. */
+      /**
+       * Sub-account isn't owned by sender.
+       **/
       NotOwned: AugmentedError<ApiType>;
-      /** Sender is not a sub-account. */
+      /**
+       * Sender is not a sub-account.
+       **/
       NotSub: AugmentedError<ApiType>;
-      /** The sender does not have permission to issue a username. */
+      /**
+       * The sender does not have permission to issue a username.
+       **/
       NotUsernameAuthority: AugmentedError<ApiType>;
-      /** The requested username does not exist. */
+      /**
+       * The requested username does not exist.
+       **/
       NoUsername: AugmentedError<ApiType>;
-      /** Setting this username requires a signature, but none was provided. */
+      /**
+       * Setting this username requires a signature, but none was provided.
+       **/
       RequiresSignature: AugmentedError<ApiType>;
-      /** Sticky judgement. */
+      /**
+       * Sticky judgement.
+       **/
       StickyJudgement: AugmentedError<ApiType>;
-      /** Maximum amount of registrars reached. Cannot add any more. */
+      /**
+       * Maximum amount of registrars reached. Cannot add any more.
+       **/
       TooManyRegistrars: AugmentedError<ApiType>;
-      /** Too many subs-accounts. */
+      /**
+       * Too many subs-accounts.
+       **/
       TooManySubAccounts: AugmentedError<ApiType>;
-      /** The username is already taken. */
+      /**
+       * The username is already taken.
+       **/
       UsernameTaken: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     maintenanceMode: {
-      /** The chain cannot enter maintenance mode because it is already in maintenance mode */
+      /**
+       * The chain cannot enter maintenance mode because it is already in maintenance mode
+       **/
       AlreadyInMaintenanceMode: AugmentedError<ApiType>;
-      /** The chain cannot resume normal operation because it is not in maintenance mode */
+      /**
+       * The chain cannot resume normal operation because it is not in maintenance mode
+       **/
       NotInMaintenanceMode: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     messageQueue: {
-      /** The message was already processed and cannot be processed again. */
+      /**
+       * The message was already processed and cannot be processed again.
+       **/
       AlreadyProcessed: AugmentedError<ApiType>;
-      /** There is temporarily not enough weight to continue servicing messages. */
+      /**
+       * There is temporarily not enough weight to continue servicing messages.
+       **/
       InsufficientWeight: AugmentedError<ApiType>;
-      /** The referenced message could not be found. */
+      /**
+       * The referenced message could not be found.
+       **/
       NoMessage: AugmentedError<ApiType>;
-      /** Page to be reaped does not exist. */
+      /**
+       * Page to be reaped does not exist.
+       **/
       NoPage: AugmentedError<ApiType>;
-      /** Page is not reapable because it has items remaining to be processed and is not old enough. */
+      /**
+       * Page is not reapable because it has items remaining to be processed and is not old
+       * enough.
+       **/
       NotReapable: AugmentedError<ApiType>;
-      /** The message is queued for future execution. */
+      /**
+       * The message is queued for future execution.
+       **/
       Queued: AugmentedError<ApiType>;
       /**
        * The queue is paused and no message can be executed from it.
-       *
+       * 
        * This can change at any time and may resolve in the future by re-trying.
-       */
+       **/
       QueuePaused: AugmentedError<ApiType>;
-      /** Another call is in progress and needs to finish before this call can happen. */
+      /**
+       * Another call is in progress and needs to finish before this call can happen.
+       **/
       RecursiveDisallowed: AugmentedError<ApiType>;
       /**
        * This message is temporarily unprocessable.
-       *
-       * Such errors are expected, but not guaranteed, to resolve themselves eventually through retrying.
-       */
+       * 
+       * Such errors are expected, but not guaranteed, to resolve themselves eventually through
+       * retrying.
+       **/
       TemporarilyUnprocessable: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     migrations: {
-      /** Preimage already exists in the new storage. */
+      /**
+       * Preimage already exists in the new storage.
+       **/
       PreimageAlreadyExists: AugmentedError<ApiType>;
-      /** Preimage is larger than the new max size. */
+      /**
+       * Preimage is larger than the new max size.
+       **/
       PreimageIsTooBig: AugmentedError<ApiType>;
-      /** Missing preimage in original democracy storage */
+      /**
+       * Missing preimage in original democracy storage
+       **/
       PreimageMissing: AugmentedError<ApiType>;
-      /** Provided upper bound is too low. */
+      /**
+       * Provided upper bound is too low.
+       **/
       WrongUpperBound: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     moonbeamLazyMigrations: {
-      /** There must be at least one address */
+      /**
+       * There must be at least one address
+       **/
       AddressesLengthCannotBeZero: AugmentedError<ApiType>;
-      /** The contract already have metadata */
+      /**
+       * The contract already have metadata
+       **/
       ContractMetadataAlreadySet: AugmentedError<ApiType>;
-      /** The contract is not corrupted (Still exist or properly suicided) */
+      /**
+       * The contract is not corrupted (Still exist or properly suicided)
+       **/
       ContractNotCorrupted: AugmentedError<ApiType>;
-      /** Contract not exist */
+      /**
+       * Contract not exist
+       **/
       ContractNotExist: AugmentedError<ApiType>;
-      /** The limit cannot be zero */
+      /**
+       * The limit cannot be zero
+       **/
       LimitCannotBeZero: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     moonbeamOrbiters: {
-      /** The collator is already added in orbiters program. */
+      /**
+       * The collator is already added in orbiters program.
+       **/
       CollatorAlreadyAdded: AugmentedError<ApiType>;
-      /** This collator is not in orbiters program. */
+      /**
+       * This collator is not in orbiters program.
+       **/
       CollatorNotFound: AugmentedError<ApiType>;
-      /** There are already too many orbiters associated with this collator. */
+      /**
+       * There are already too many orbiters associated with this collator.
+       **/
       CollatorPoolTooLarge: AugmentedError<ApiType>;
-      /** There are more collator pools than the number specified in the parameter. */
+      /**
+       * There are more collator pools than the number specified in the parameter.
+       **/
       CollatorsPoolCountTooLow: AugmentedError<ApiType>;
       /**
        * The minimum deposit required to register as an orbiter has not yet been included in the
        * onchain storage
-       */
+       **/
       MinOrbiterDepositNotSet: AugmentedError<ApiType>;
-      /** This orbiter is already associated with this collator. */
+      /**
+       * This orbiter is already associated with this collator.
+       **/
       OrbiterAlreadyInPool: AugmentedError<ApiType>;
-      /** This orbiter has not made a deposit */
+      /**
+       * This orbiter has not made a deposit
+       **/
       OrbiterDepositNotFound: AugmentedError<ApiType>;
-      /** This orbiter is not found */
+      /**
+       * This orbiter is not found
+       **/
       OrbiterNotFound: AugmentedError<ApiType>;
-      /** The orbiter is still at least in one pool */
+      /**
+       * The orbiter is still at least in one pool
+       **/
       OrbiterStillInAPool: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     multisig: {
-      /** Call is already approved by this signatory. */
+      /**
+       * Call is already approved by this signatory.
+       **/
       AlreadyApproved: AugmentedError<ApiType>;
-      /** The data to be stored is already stored. */
+      /**
+       * The data to be stored is already stored.
+       **/
       AlreadyStored: AugmentedError<ApiType>;
-      /** The maximum weight information provided was too low. */
+      /**
+       * The maximum weight information provided was too low.
+       **/
       MaxWeightTooLow: AugmentedError<ApiType>;
-      /** Threshold must be 2 or greater. */
+      /**
+       * Threshold must be 2 or greater.
+       **/
       MinimumThreshold: AugmentedError<ApiType>;
-      /** Call doesn't need any (more) approvals. */
+      /**
+       * Call doesn't need any (more) approvals.
+       **/
       NoApprovalsNeeded: AugmentedError<ApiType>;
-      /** Multisig operation not found when attempting to cancel. */
+      /**
+       * Multisig operation not found when attempting to cancel.
+       **/
       NotFound: AugmentedError<ApiType>;
-      /** No timepoint was given, yet the multisig operation is already underway. */
+      /**
+       * No timepoint was given, yet the multisig operation is already underway.
+       **/
       NoTimepoint: AugmentedError<ApiType>;
-      /** Only the account that originally created the multisig is able to cancel it. */
+      /**
+       * Only the account that originally created the multisig is able to cancel it.
+       **/
       NotOwner: AugmentedError<ApiType>;
-      /** The sender was contained in the other signatories; it shouldn't be. */
+      /**
+       * The sender was contained in the other signatories; it shouldn't be.
+       **/
       SenderInSignatories: AugmentedError<ApiType>;
-      /** The signatories were provided out of order; they should be ordered. */
+      /**
+       * The signatories were provided out of order; they should be ordered.
+       **/
       SignatoriesOutOfOrder: AugmentedError<ApiType>;
-      /** There are too few signatories in the list. */
+      /**
+       * There are too few signatories in the list.
+       **/
       TooFewSignatories: AugmentedError<ApiType>;
-      /** There are too many signatories in the list. */
+      /**
+       * There are too many signatories in the list.
+       **/
       TooManySignatories: AugmentedError<ApiType>;
-      /** A timepoint was given, yet no multisig operation is underway. */
+      /**
+       * A timepoint was given, yet no multisig operation is underway.
+       **/
       UnexpectedTimepoint: AugmentedError<ApiType>;
-      /** A different timepoint was given to the multisig operation that is underway. */
+      /**
+       * A different timepoint was given to the multisig operation that is underway.
+       **/
       WrongTimepoint: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     openTechCommitteeCollective: {
-      /** Members are already initialized! */
+      /**
+       * Members are already initialized!
+       **/
       AlreadyInitialized: AugmentedError<ApiType>;
-      /** Duplicate proposals not allowed */
+      /**
+       * Duplicate proposals not allowed
+       **/
       DuplicateProposal: AugmentedError<ApiType>;
-      /** Duplicate vote ignored */
+      /**
+       * Duplicate vote ignored
+       **/
       DuplicateVote: AugmentedError<ApiType>;
-      /** Account is not a member */
+      /**
+       * Account is not a member
+       **/
       NotMember: AugmentedError<ApiType>;
-      /** Prime account is not a member */
+      /**
+       * Prime account is not a member
+       **/
       PrimeAccountNotMember: AugmentedError<ApiType>;
-      /** Proposal must exist */
+      /**
+       * Proposal must exist
+       **/
       ProposalMissing: AugmentedError<ApiType>;
-      /** The close call was made too early, before the end of the voting. */
+      /**
+       * The close call was made too early, before the end of the voting.
+       **/
       TooEarly: AugmentedError<ApiType>;
-      /** There can only be a maximum of `MaxProposals` active proposals. */
+      /**
+       * There can only be a maximum of `MaxProposals` active proposals.
+       **/
       TooManyProposals: AugmentedError<ApiType>;
-      /** Mismatched index */
+      /**
+       * Mismatched index
+       **/
       WrongIndex: AugmentedError<ApiType>;
-      /** The given length bound for the proposal was too low. */
+      /**
+       * The given length bound for the proposal was too low.
+       **/
       WrongProposalLength: AugmentedError<ApiType>;
-      /** The given weight bound for the proposal was too low. */
+      /**
+       * The given weight bound for the proposal was too low.
+       **/
       WrongProposalWeight: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     parachainStaking: {
@@ -537,130 +893,236 @@ declare module "@polkadot/api-base/types/errors" {
       TooLowDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowDelegationCountToLeaveDelegators: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     parachainSystem: {
-      /** The inherent which supplies the host configuration did not run this block. */
+      /**
+       * The inherent which supplies the host configuration did not run this block.
+       **/
       HostConfigurationNotAvailable: AugmentedError<ApiType>;
-      /** No code upgrade has been authorized. */
+      /**
+       * No code upgrade has been authorized.
+       **/
       NothingAuthorized: AugmentedError<ApiType>;
-      /** No validation function upgrade is currently scheduled. */
+      /**
+       * No validation function upgrade is currently scheduled.
+       **/
       NotScheduled: AugmentedError<ApiType>;
-      /** Attempt to upgrade validation function while existing upgrade pending. */
+      /**
+       * Attempt to upgrade validation function while existing upgrade pending.
+       **/
       OverlappingUpgrades: AugmentedError<ApiType>;
-      /** Polkadot currently prohibits this parachain from upgrading its validation function. */
+      /**
+       * Polkadot currently prohibits this parachain from upgrading its validation function.
+       **/
       ProhibitedByPolkadot: AugmentedError<ApiType>;
-      /** The supplied validation function has compiled into a blob larger than Polkadot is willing to run. */
+      /**
+       * The supplied validation function has compiled into a blob larger than Polkadot is
+       * willing to run.
+       **/
       TooBig: AugmentedError<ApiType>;
-      /** The given code upgrade has not been authorized. */
+      /**
+       * The given code upgrade has not been authorized.
+       **/
       Unauthorized: AugmentedError<ApiType>;
-      /** The inherent which supplies the validation data did not run this block. */
+      /**
+       * The inherent which supplies the validation data did not run this block.
+       **/
       ValidationDataNotAvailable: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     polkadotXcm: {
-      /** The given account is not an identifiable sovereign account for any location. */
+      /**
+       * The given account is not an identifiable sovereign account for any location.
+       **/
       AccountNotSovereign: AugmentedError<ApiType>;
-      /** The location is invalid since it already has a subscription from us. */
+      /**
+       * The location is invalid since it already has a subscription from us.
+       **/
       AlreadySubscribed: AugmentedError<ApiType>;
       /**
-       * The given location could not be used (e.g. because it cannot be expressed in the desired
-       * version of XCM).
-       */
+       * The given location could not be used (e.g. because it cannot be expressed in the
+       * desired version of XCM).
+       **/
       BadLocation: AugmentedError<ApiType>;
-      /** The version of the `Versioned` value used is not able to be interpreted. */
+      /**
+       * The version of the `Versioned` value used is not able to be interpreted.
+       **/
       BadVersion: AugmentedError<ApiType>;
-      /** Could not check-out the assets for teleportation to the destination chain. */
+      /**
+       * Could not check-out the assets for teleportation to the destination chain.
+       **/
       CannotCheckOutTeleport: AugmentedError<ApiType>;
-      /** Could not re-anchor the assets to declare the fees for the destination chain. */
+      /**
+       * Could not re-anchor the assets to declare the fees for the destination chain.
+       **/
       CannotReanchor: AugmentedError<ApiType>;
-      /** The destination `Location` provided cannot be inverted. */
+      /**
+       * The destination `Location` provided cannot be inverted.
+       **/
       DestinationNotInvertible: AugmentedError<ApiType>;
-      /** The assets to be sent are empty. */
+      /**
+       * The assets to be sent are empty.
+       **/
       Empty: AugmentedError<ApiType>;
-      /** The operation required fees to be paid which the initiator could not meet. */
+      /**
+       * The operation required fees to be paid which the initiator could not meet.
+       **/
       FeesNotMet: AugmentedError<ApiType>;
-      /** The message execution fails the filter. */
+      /**
+       * The message execution fails the filter.
+       **/
       Filtered: AugmentedError<ApiType>;
-      /** The unlock operation cannot succeed because there are still consumers of the lock. */
+      /**
+       * The unlock operation cannot succeed because there are still consumers of the lock.
+       **/
       InUse: AugmentedError<ApiType>;
-      /** Invalid asset, reserve chain could not be determined for it. */
+      /**
+       * Invalid asset, reserve chain could not be determined for it.
+       **/
       InvalidAssetUnknownReserve: AugmentedError<ApiType>;
-      /** Invalid asset, do not support remote asset reserves with different fees reserves. */
+      /**
+       * Invalid asset, do not support remote asset reserves with different fees reserves.
+       **/
       InvalidAssetUnsupportedReserve: AugmentedError<ApiType>;
-      /** Origin is invalid for sending. */
+      /**
+       * Origin is invalid for sending.
+       **/
       InvalidOrigin: AugmentedError<ApiType>;
-      /** Local XCM execution incomplete. */
+      /**
+       * Local XCM execution incomplete.
+       **/
       LocalExecutionIncomplete: AugmentedError<ApiType>;
-      /** A remote lock with the corresponding data could not be found. */
+      /**
+       * A remote lock with the corresponding data could not be found.
+       **/
       LockNotFound: AugmentedError<ApiType>;
-      /** The owner does not own (all) of the asset that they wish to do the operation on. */
+      /**
+       * The owner does not own (all) of the asset that they wish to do the operation on.
+       **/
       LowBalance: AugmentedError<ApiType>;
-      /** The referenced subscription could not be found. */
+      /**
+       * The referenced subscription could not be found.
+       **/
       NoSubscription: AugmentedError<ApiType>;
       /**
-       * There was some other issue (i.e. not to do with routing) in sending the message. Perhaps a
-       * lack of space for buffering the message.
-       */
+       * There was some other issue (i.e. not to do with routing) in sending the message.
+       * Perhaps a lack of space for buffering the message.
+       **/
       SendFailure: AugmentedError<ApiType>;
-      /** Too many assets have been attempted for transfer. */
+      /**
+       * Too many assets have been attempted for transfer.
+       **/
       TooManyAssets: AugmentedError<ApiType>;
-      /** The asset owner has too many locks on the asset. */
+      /**
+       * The asset owner has too many locks on the asset.
+       **/
       TooManyLocks: AugmentedError<ApiType>;
-      /** Too many assets with different reserve locations have been attempted for transfer. */
+      /**
+       * Too many assets with different reserve locations have been attempted for transfer.
+       **/
       TooManyReserves: AugmentedError<ApiType>;
-      /** The desired destination was unreachable, generally because there is a no way of routing to it. */
+      /**
+       * The desired destination was unreachable, generally because there is a no way of routing
+       * to it.
+       **/
       Unreachable: AugmentedError<ApiType>;
-      /** The message's weight could not be determined. */
+      /**
+       * The message's weight could not be determined.
+       **/
       UnweighableMessage: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     precompileBenchmarks: {
       BenchmarkError: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     preimage: {
-      /** Preimage has already been noted on-chain. */
+      /**
+       * Preimage has already been noted on-chain.
+       **/
       AlreadyNoted: AugmentedError<ApiType>;
-      /** The user is not authorized to perform this action. */
+      /**
+       * The user is not authorized to perform this action.
+       **/
       NotAuthorized: AugmentedError<ApiType>;
-      /** The preimage cannot be removed since it has not yet been noted. */
+      /**
+       * The preimage cannot be removed since it has not yet been noted.
+       **/
       NotNoted: AugmentedError<ApiType>;
-      /** The preimage request cannot be removed since no outstanding requests exist. */
+      /**
+       * The preimage request cannot be removed since no outstanding requests exist.
+       **/
       NotRequested: AugmentedError<ApiType>;
-      /** A preimage may not be removed when there are outstanding requests. */
+      /**
+       * A preimage may not be removed when there are outstanding requests.
+       **/
       Requested: AugmentedError<ApiType>;
-      /** Preimage is too large to store on-chain. */
+      /**
+       * Preimage is too large to store on-chain.
+       **/
       TooBig: AugmentedError<ApiType>;
-      /** Too few hashes were requested to be upgraded (i.e. zero). */
+      /**
+       * Too few hashes were requested to be upgraded (i.e. zero).
+       **/
       TooFew: AugmentedError<ApiType>;
-      /** More than `MAX_HASH_UPGRADE_BULK_COUNT` hashes were requested to be upgraded at once. */
+      /**
+       * More than `MAX_HASH_UPGRADE_BULK_COUNT` hashes were requested to be upgraded at once.
+       **/
       TooMany: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     proxy: {
-      /** Account is already a proxy. */
+      /**
+       * Account is already a proxy.
+       **/
       Duplicate: AugmentedError<ApiType>;
-      /** Call may not be made by proxy because it may escalate its privileges. */
+      /**
+       * Call may not be made by proxy because it may escalate its privileges.
+       **/
       NoPermission: AugmentedError<ApiType>;
-      /** Cannot add self as proxy. */
+      /**
+       * Cannot add self as proxy.
+       **/
       NoSelfProxy: AugmentedError<ApiType>;
-      /** Proxy registration not found. */
+      /**
+       * Proxy registration not found.
+       **/
       NotFound: AugmentedError<ApiType>;
-      /** Sender is not a proxy of the account to be proxied. */
+      /**
+       * Sender is not a proxy of the account to be proxied.
+       **/
       NotProxy: AugmentedError<ApiType>;
-      /** There are too many proxies registered or too many announcements pending. */
+      /**
+       * There are too many proxies registered or too many announcements pending.
+       **/
       TooMany: AugmentedError<ApiType>;
-      /** Announcement, if made at all, was made too recently. */
+      /**
+       * Announcement, if made at all, was made too recently.
+       **/
       Unannounced: AugmentedError<ApiType>;
-      /** A call which is incompatible with the proxy type's filter was attempted. */
+      /**
+       * A call which is incompatible with the proxy type's filter was attempted.
+       **/
       Unproxyable: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     randomness: {
@@ -676,169 +1138,312 @@ declare module "@polkadot/api-base/types/errors" {
       RequestDNE: AugmentedError<ApiType>;
       RequestFeeOverflowed: AugmentedError<ApiType>;
       RequestHasNotExpired: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     referenda: {
-      /** The referendum index provided is invalid in this context. */
+      /**
+       * The referendum index provided is invalid in this context.
+       **/
       BadReferendum: AugmentedError<ApiType>;
-      /** The referendum status is invalid for this operation. */
+      /**
+       * The referendum status is invalid for this operation.
+       **/
       BadStatus: AugmentedError<ApiType>;
-      /** The track identifier given was invalid. */
+      /**
+       * The track identifier given was invalid.
+       **/
       BadTrack: AugmentedError<ApiType>;
-      /** There are already a full complement of referenda in progress for this track. */
+      /**
+       * There are already a full complement of referenda in progress for this track.
+       **/
       Full: AugmentedError<ApiType>;
-      /** Referendum's decision deposit is already paid. */
+      /**
+       * Referendum's decision deposit is already paid.
+       **/
       HasDeposit: AugmentedError<ApiType>;
-      /** The deposit cannot be refunded since none was made. */
+      /**
+       * The deposit cannot be refunded since none was made.
+       **/
       NoDeposit: AugmentedError<ApiType>;
-      /** The deposit refunder is not the depositor. */
+      /**
+       * The deposit refunder is not the depositor.
+       **/
       NoPermission: AugmentedError<ApiType>;
-      /** There was nothing to do in the advancement. */
+      /**
+       * There was nothing to do in the advancement.
+       **/
       NothingToDo: AugmentedError<ApiType>;
-      /** Referendum is not ongoing. */
+      /**
+       * Referendum is not ongoing.
+       **/
       NotOngoing: AugmentedError<ApiType>;
-      /** No track exists for the proposal origin. */
+      /**
+       * No track exists for the proposal origin.
+       **/
       NoTrack: AugmentedError<ApiType>;
-      /** The preimage does not exist. */
+      /**
+       * The preimage does not exist.
+       **/
       PreimageNotExist: AugmentedError<ApiType>;
-      /** The preimage is stored with a different length than the one provided. */
+      /**
+       * The preimage is stored with a different length than the one provided.
+       **/
       PreimageStoredWithDifferentLength: AugmentedError<ApiType>;
-      /** The queue of the track is empty. */
+      /**
+       * The queue of the track is empty.
+       **/
       QueueEmpty: AugmentedError<ApiType>;
-      /** Any deposit cannot be refunded until after the decision is over. */
+      /**
+       * Any deposit cannot be refunded until after the decision is over.
+       **/
       Unfinished: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     scheduler: {
-      /** Failed to schedule a call */
+      /**
+       * Failed to schedule a call
+       **/
       FailedToSchedule: AugmentedError<ApiType>;
-      /** Attempt to use a non-named function on a named task. */
+      /**
+       * Attempt to use a non-named function on a named task.
+       **/
       Named: AugmentedError<ApiType>;
-      /** Cannot find the scheduled call. */
+      /**
+       * Cannot find the scheduled call.
+       **/
       NotFound: AugmentedError<ApiType>;
-      /** Reschedule failed because it does not change scheduled time. */
+      /**
+       * Reschedule failed because it does not change scheduled time.
+       **/
       RescheduleNoChange: AugmentedError<ApiType>;
-      /** Given target block number is in the past. */
+      /**
+       * Given target block number is in the past.
+       **/
       TargetBlockNumberInPast: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     sudo: {
-      /** Sender must be the Sudo account. */
+      /**
+       * Sender must be the Sudo account.
+       **/
       RequireSudo: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     system: {
-      /** The origin filter prevent the call to be dispatched. */
+      /**
+       * The origin filter prevent the call to be dispatched.
+       **/
       CallFiltered: AugmentedError<ApiType>;
       /**
        * Failed to extract the runtime version from the new runtime.
-       *
+       * 
        * Either calling `Core_version` or decoding `RuntimeVersion` failed.
-       */
+       **/
       FailedToExtractRuntimeVersion: AugmentedError<ApiType>;
-      /** The name of specification does not match between the current runtime and the new runtime. */
+      /**
+       * The name of specification does not match between the current runtime
+       * and the new runtime.
+       **/
       InvalidSpecName: AugmentedError<ApiType>;
-      /** A multi-block migration is ongoing and prevents the current code from being replaced. */
+      /**
+       * A multi-block migration is ongoing and prevents the current code from being replaced.
+       **/
       MultiBlockMigrationsOngoing: AugmentedError<ApiType>;
-      /** Suicide called when the account has non-default composite data. */
+      /**
+       * Suicide called when the account has non-default composite data.
+       **/
       NonDefaultComposite: AugmentedError<ApiType>;
-      /** There is a non-zero reference count preventing the account from being purged. */
+      /**
+       * There is a non-zero reference count preventing the account from being purged.
+       **/
       NonZeroRefCount: AugmentedError<ApiType>;
-      /** No upgrade authorized. */
+      /**
+       * No upgrade authorized.
+       **/
       NothingAuthorized: AugmentedError<ApiType>;
-      /** The specification version is not allowed to decrease between the current runtime and the new runtime. */
+      /**
+       * The specification version is not allowed to decrease between the current runtime
+       * and the new runtime.
+       **/
       SpecVersionNeedsToIncrease: AugmentedError<ApiType>;
-      /** The submitted code is not authorized. */
+      /**
+       * The submitted code is not authorized.
+       **/
       Unauthorized: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     treasury: {
-      /** The payment has already been attempted. */
+      /**
+       * The payment has already been attempted.
+       **/
       AlreadyAttempted: AugmentedError<ApiType>;
-      /** The spend is not yet eligible for payout. */
+      /**
+       * The spend is not yet eligible for payout.
+       **/
       EarlyPayout: AugmentedError<ApiType>;
-      /** The balance of the asset kind is not convertible to the balance of the native asset. */
+      /**
+       * The balance of the asset kind is not convertible to the balance of the native asset.
+       **/
       FailedToConvertBalance: AugmentedError<ApiType>;
-      /** The payment has neither failed nor succeeded yet. */
+      /**
+       * The payment has neither failed nor succeeded yet.
+       **/
       Inconclusive: AugmentedError<ApiType>;
-      /** The spend origin is valid but the amount it is allowed to spend is lower than the amount to be spent. */
+      /**
+       * The spend origin is valid but the amount it is allowed to spend is lower than the
+       * amount to be spent.
+       **/
       InsufficientPermission: AugmentedError<ApiType>;
-      /** Proposer's balance is too low. */
+      /**
+       * Proposer's balance is too low.
+       **/
       InsufficientProposersBalance: AugmentedError<ApiType>;
-      /** No proposal, bounty or spend at that index. */
+      /**
+       * No proposal, bounty or spend at that index.
+       **/
       InvalidIndex: AugmentedError<ApiType>;
-      /** The payout was not yet attempted/claimed. */
+      /**
+       * The payout was not yet attempted/claimed.
+       **/
       NotAttempted: AugmentedError<ApiType>;
-      /** There was some issue with the mechanism of payment. */
+      /**
+       * There was some issue with the mechanism of payment.
+       **/
       PayoutError: AugmentedError<ApiType>;
-      /** Proposal has not been approved. */
+      /**
+       * Proposal has not been approved.
+       **/
       ProposalNotApproved: AugmentedError<ApiType>;
-      /** The spend has expired and cannot be claimed. */
+      /**
+       * The spend has expired and cannot be claimed.
+       **/
       SpendExpired: AugmentedError<ApiType>;
-      /** Too many approvals in the queue. */
+      /**
+       * Too many approvals in the queue.
+       **/
       TooManyApprovals: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     treasuryCouncilCollective: {
-      /** Members are already initialized! */
+      /**
+       * Members are already initialized!
+       **/
       AlreadyInitialized: AugmentedError<ApiType>;
-      /** Duplicate proposals not allowed */
+      /**
+       * Duplicate proposals not allowed
+       **/
       DuplicateProposal: AugmentedError<ApiType>;
-      /** Duplicate vote ignored */
+      /**
+       * Duplicate vote ignored
+       **/
       DuplicateVote: AugmentedError<ApiType>;
-      /** Account is not a member */
+      /**
+       * Account is not a member
+       **/
       NotMember: AugmentedError<ApiType>;
-      /** Prime account is not a member */
+      /**
+       * Prime account is not a member
+       **/
       PrimeAccountNotMember: AugmentedError<ApiType>;
-      /** Proposal must exist */
+      /**
+       * Proposal must exist
+       **/
       ProposalMissing: AugmentedError<ApiType>;
-      /** The close call was made too early, before the end of the voting. */
+      /**
+       * The close call was made too early, before the end of the voting.
+       **/
       TooEarly: AugmentedError<ApiType>;
-      /** There can only be a maximum of `MaxProposals` active proposals. */
+      /**
+       * There can only be a maximum of `MaxProposals` active proposals.
+       **/
       TooManyProposals: AugmentedError<ApiType>;
-      /** Mismatched index */
+      /**
+       * Mismatched index
+       **/
       WrongIndex: AugmentedError<ApiType>;
-      /** The given length bound for the proposal was too low. */
+      /**
+       * The given length bound for the proposal was too low.
+       **/
       WrongProposalLength: AugmentedError<ApiType>;
-      /** The given weight bound for the proposal was too low. */
+      /**
+       * The given weight bound for the proposal was too low.
+       **/
       WrongProposalWeight: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     utility: {
-      /** Too many calls batched. */
+      /**
+       * Too many calls batched.
+       **/
       TooManyCalls: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     whitelist: {
-      /** The call was already whitelisted; No-Op. */
+      /**
+       * The call was already whitelisted; No-Op.
+       **/
       CallAlreadyWhitelisted: AugmentedError<ApiType>;
-      /** The call was not whitelisted. */
+      /**
+       * The call was not whitelisted.
+       **/
       CallIsNotWhitelisted: AugmentedError<ApiType>;
-      /** The weight of the decoded call was higher than the witness. */
+      /**
+       * The weight of the decoded call was higher than the witness.
+       **/
       InvalidCallWeightWitness: AugmentedError<ApiType>;
-      /** The preimage of the call hash could not be loaded. */
+      /**
+       * The preimage of the call hash could not be loaded.
+       **/
       UnavailablePreImage: AugmentedError<ApiType>;
-      /** The call could not be decoded. */
+      /**
+       * The call could not be decoded.
+       **/
       UndecodableCall: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     xcmpQueue: {
-      /** The execution is already resumed. */
+      /**
+       * The execution is already resumed.
+       **/
       AlreadyResumed: AugmentedError<ApiType>;
-      /** The execution is already suspended. */
+      /**
+       * The execution is already suspended.
+       **/
       AlreadySuspended: AugmentedError<ApiType>;
-      /** Setting the queue config failed since one of its values was invalid. */
+      /**
+       * Setting the queue config failed since one of its values was invalid.
+       **/
       BadQueueConfig: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     xcmTransactor: {
@@ -869,67 +1474,128 @@ declare module "@polkadot/api-base/types/errors" {
       UnweighableMessage: AugmentedError<ApiType>;
       WeightOverflow: AugmentedError<ApiType>;
       XcmExecuteError: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     xcmWeightTrader: {
-      /** The given asset was already added */
+      /**
+       * The given asset was already added
+       **/
       AssetAlreadyAdded: AugmentedError<ApiType>;
-      /** The given asset was already paused */
+      /**
+       * The given asset was already paused
+       **/
       AssetAlreadyPaused: AugmentedError<ApiType>;
-      /** The given asset was not found */
+      /**
+       * The given asset was not found
+       **/
       AssetNotFound: AugmentedError<ApiType>;
-      /** The given asset is not paused */
+      /**
+       * The given asset is not paused
+       **/
       AssetNotPaused: AugmentedError<ApiType>;
-      /** The relative price cannot be zero */
+      /**
+       * The relative price cannot be zero
+       **/
       PriceCannotBeZero: AugmentedError<ApiType>;
-      /** XCM location filtered */
+      /**
+       * XCM location filtered
+       **/
       XcmLocationFiltered: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
     xTokens: {
-      /** Asset has no reserve location. */
+      /**
+       * Asset has no reserve location.
+       **/
       AssetHasNoReserve: AugmentedError<ApiType>;
-      /** The specified index does not exist in a Assets struct. */
+      /**
+       * The specified index does not exist in a Assets struct.
+       **/
       AssetIndexNonExistent: AugmentedError<ApiType>;
-      /** The version of the `Versioned` value used is not able to be interpreted. */
+      /**
+       * The version of the `Versioned` value used is not able to be
+       * interpreted.
+       **/
       BadVersion: AugmentedError<ApiType>;
-      /** Could not re-anchor the assets to declare the fees for the destination chain. */
+      /**
+       * Could not re-anchor the assets to declare the fees for the
+       * destination chain.
+       **/
       CannotReanchor: AugmentedError<ApiType>;
-      /** The destination `Location` provided cannot be inverted. */
+      /**
+       * The destination `Location` provided cannot be inverted.
+       **/
       DestinationNotInvertible: AugmentedError<ApiType>;
-      /** We tried sending distinct asset and fee but they have different reserve chains. */
+      /**
+       * We tried sending distinct asset and fee but they have different
+       * reserve chains.
+       **/
       DistinctReserveForAssetAndFee: AugmentedError<ApiType>;
-      /** Fee is not enough. */
+      /**
+       * Fee is not enough.
+       **/
       FeeNotEnough: AugmentedError<ApiType>;
-      /** Could not get ancestry of asset reserve location. */
+      /**
+       * Could not get ancestry of asset reserve location.
+       **/
       InvalidAncestry: AugmentedError<ApiType>;
-      /** The Asset is invalid. */
+      /**
+       * The Asset is invalid.
+       **/
       InvalidAsset: AugmentedError<ApiType>;
-      /** Invalid transfer destination. */
+      /**
+       * Invalid transfer destination.
+       **/
       InvalidDest: AugmentedError<ApiType>;
-      /** MinXcmFee not registered for certain reserve location */
+      /**
+       * MinXcmFee not registered for certain reserve location
+       **/
       MinXcmFeeNotDefined: AugmentedError<ApiType>;
-      /** Not cross-chain transfer. */
+      /**
+       * Not cross-chain transfer.
+       **/
       NotCrossChainTransfer: AugmentedError<ApiType>;
-      /** Currency is not cross-chain transferable. */
+      /**
+       * Currency is not cross-chain transferable.
+       **/
       NotCrossChainTransferableCurrency: AugmentedError<ApiType>;
-      /** Not supported Location */
+      /**
+       * Not supported Location
+       **/
       NotSupportedLocation: AugmentedError<ApiType>;
-      /** Asset transfer is limited by RateLimiter. */
+      /**
+       * Asset transfer is limited by RateLimiter.
+       **/
       RateLimited: AugmentedError<ApiType>;
-      /** The number of assets to be sent is over the maximum. */
+      /**
+       * The number of assets to be sent is over the maximum.
+       **/
       TooManyAssetsBeingSent: AugmentedError<ApiType>;
-      /** The message's weight could not be determined. */
+      /**
+       * The message's weight could not be determined.
+       **/
       UnweighableMessage: AugmentedError<ApiType>;
-      /** XCM execution failed. */
+      /**
+       * XCM execution failed.
+       **/
       XcmExecutionFailed: AugmentedError<ApiType>;
-      /** The transfering asset amount is zero. */
+      /**
+       * The transfering asset amount is zero.
+       **/
       ZeroAmount: AugmentedError<ApiType>;
-      /** The fee is zero. */
+      /**
+       * The fee is zero.
+       **/
       ZeroFee: AugmentedError<ApiType>;
-      /** Generic error */
+      /**
+       * Generic error
+       **/
       [key: string]: AugmentedError<ApiType>;
     };
   } // AugmentedErrors
