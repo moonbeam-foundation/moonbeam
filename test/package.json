@@ -31,6 +31,7 @@
     "@polkadot/types-codec": "12.1.1",
     "@polkadot/util": "12.6.2",
     "@polkadot/util-crypto": "12.6.2",
+    "@polkadot-api/merkleize-metadata": "1.1.2",
     "@substrate/txwrapper-core": "7.5.1",
     "@substrate/txwrapper-substrate": "7.5.1",
     "@vitest/ui": "2.0.1",

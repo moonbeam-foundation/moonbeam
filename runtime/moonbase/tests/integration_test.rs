@@ -1568,7 +1568,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(348090)
+				.expect_cost(348298)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1659,7 +1659,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(348090)
+				.expect_cost(348298)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1743,7 +1743,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(16000)
+				.expect_cost(16208)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2282,7 +2282,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(23278)
+				.expect_cost(23239)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2322,7 +2322,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23278)
+				.expect_cost(23239)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2404,7 +2404,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(14212)
+				.expect_cost(14255)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2426,7 +2426,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(13817)
+				.expect_cost(13829)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2447,7 +2447,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14251)
+				.expect_cost(14294)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2490,7 +2490,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(15996)
+				.expect_cost(16049)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2515,7 +2515,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(15996)
+				.expect_cost(16049)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -3021,7 +3021,9 @@ mod fee_tests {
 			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
 			let actual = TransactionPaymentAsGasPrice::min_gas_price().0;
 			let expected: U256 = multiplier
-				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
+				.saturating_mul_int(
+					(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128),
+				)
 				.into();
 
 			assert_eq!(expected, actual);
@@ -3058,7 +3060,8 @@ mod fee_tests {
 			.unwrap()
 			.into();
 		t.execute_with(|| {
-			let weight_fee_per_gas = currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128);
+			let weight_fee_per_gas =
+				(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128);
 			let sim = |start_gas_price: u128, fullness: Perbill, num_blocks: u64| -> U256 {
 				let start_multiplier =
 					FixedU128::from_rational(start_gas_price, weight_fee_per_gas);

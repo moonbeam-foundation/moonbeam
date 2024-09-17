@@ -19,6 +19,7 @@ members = [
 	"pallets/precompile-benchmarks",
 	"pallets/proxy-genesis-companion",
 	"pallets/xcm-transactor",
+	"pallets/xcm-weight-trader",
 	"precompiles/balances-erc20",
 	"precompiles/batch",
 	"precompiles/call-permit",
@@ -107,6 +108,7 @@ pallet-parachain-staking = { path = "pallets/parachain-staking", default-feature
 pallet-precompile-benchmarks = { path = "pallets/precompile-benchmarks", default-features = false }
 pallet-proxy-genesis-companion = { path = "pallets/proxy-genesis-companion", default-features = false }
 pallet-xcm-transactor = { path = "pallets/xcm-transactor", default-features = false }
+pallet-xcm-weight-trader = { path = "pallets/xcm-weight-trader", default-features = false }
 precompile-foreign-asset-migrator = { path = "precompiles/foreign-asset-migrator", default-features = false }
 xcm-primitives = { path = "primitives/xcm", default-features = false }
 
@@ -185,6 +187,7 @@ sp-runtime-interface = { git = "https://github.com/moonbeam-foundation/polkadot-
 sp-session = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 sp-std = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 sp-state-machine = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
+sp-tracing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 sp-transaction-pool = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 sp-trie = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 sp-version = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
@@ -224,6 +227,7 @@ sp-consensus = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", br
 sp-storage = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 sp-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 sp-wasm-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
+sp-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 substrate-build-script-utils = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 substrate-frame-rpc-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 substrate-prometheus-endpoint = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
@@ -231,6 +235,7 @@ substrate-test-client = { git = "https://github.com/moonbeam-foundation/polkadot
 substrate-test-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 substrate-test-runtime-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 substrate-wasm-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
+substrate-rpc-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0" }
 
 # Frontier (wasm)
 
@@ -290,6 +295,7 @@ cumulus-primitives-parachain-inherent = { git = "https://github.com/moonbeam-fou
 cumulus-primitives-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 cumulus-primitives-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 cumulus-test-relay-sproof-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
+cumulus-primitives-storage-weight-reclaim = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 parachain-info = { package = "staging-parachain-info", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 parachains-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 
@@ -359,6 +365,7 @@ environmental = { version = "1.1.2", default-features = false }
 frame-metadata = { version = "16.0.0", default-features = false, features = [
 	"current",
 ] }
+frame-metadata-hash-extension = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-v1.11.0", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.3.4" }
 impl-serde = { version = "0.3.1", default-features = false }
@@ -375,9 +382,7 @@ slices = "0.2.0"
 smallvec = "1.8.0"
 strum = { version = "0.24", default-features = false, features = ["derive"] }
 strum_macros = "0.24"
-p256 = { version = "0.13.2", default-features = false, features = [
-	"ecdsa",
-] }
+p256 = { version = "0.13.2", default-features = false, features = ["ecdsa"] }
 
 # Other (client)
 
@@ -404,10 +409,12 @@ schnorrkel = { version = "0.11.4", default-features = false, features = [
 	"preaudit_deprecated",
 ] }
 tokio = { version = "1.36" }
+tokio-retry = { version = "0.3.0" }
 tracing = "0.1.34"
 tracing-core = "0.1.29"
 trie-root = "0.15.2"
 url = "2.2.2"
+thiserror = "1.0.63"
 
 # The list of dependencies below (which can be both direct and indirect dependencies) are crates
 # that are suspected to be CPU-intensive, and that are unlikely to require debugging (as some of

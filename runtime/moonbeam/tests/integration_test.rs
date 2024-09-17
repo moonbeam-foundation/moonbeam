@@ -1780,7 +1780,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(24713)
+				.expect_cost(24673)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1845,7 +1845,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(15587)
+				.expect_cost(15571)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1866,7 +1866,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29969)
+				.expect_cost(29961)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1945,7 +1945,7 @@ fn xtokens_precompile_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(196490)
+				.expect_cost(196698)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -1997,7 +1997,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(196490)
+				.expect_cost(196698)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2148,7 +2148,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23278)
+				.expect_cost(23239)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2779,7 +2779,9 @@ mod fee_tests {
 			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
 			let actual = TransactionPaymentAsGasPrice::min_gas_price().0;
 			let expected: U256 = multiplier
-				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
+				.saturating_mul_int(
+					(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128),
+				)
 				.into();
 
 			assert_eq!(expected, actual);
@@ -2816,7 +2818,8 @@ mod fee_tests {
 			.unwrap()
 			.into();
 		t.execute_with(|| {
-			let weight_fee_per_gas = currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128);
+			let weight_fee_per_gas =
+				(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128);
 			let sim = |start_gas_price: u128, fullness: Perbill, num_blocks: u64| -> U256 {
 				let start_multiplier =
 					FixedU128::from_rational(start_gas_price, weight_fee_per_gas);

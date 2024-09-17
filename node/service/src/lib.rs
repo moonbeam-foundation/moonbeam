@@ -68,6 +68,7 @@ use sc_service::{
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
+use session_keys_primitives::VrfApi;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_consensus::SyncOracle;
@@ -81,28 +82,29 @@ use substrate_prometheus_endpoint::Registry;
 pub use client::*;
 pub mod chain_spec;
 mod client;
+#[cfg(feature = "lazy-loading")]
+pub mod lazy_loading;
 
 type FullClient<RuntimeApi> = TFullClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
 type FullBackend = TFullBackend<Block>;
 
-type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
-type FrontierBlockImport<RuntimeApi> =
-	TFrontierBlockImport<Block, Arc<FullClient<RuntimeApi>>, FullClient<RuntimeApi>>;
-type ParachainBlockImport<RuntimeApi> =
-	TParachainBlockImport<Block, FrontierBlockImport<RuntimeApi>, FullBackend>;
-type PartialComponentsResult<RuntimeApi> = Result<
+type MaybeSelectChain<Backend> = Option<sc_consensus::LongestChain<Backend, Block>>;
+type FrontierBlockImport<Client> = TFrontierBlockImport<Block, Arc<Client>, Client>;
+type ParachainBlockImport<Client, Backend> =
+	TParachainBlockImport<Block, FrontierBlockImport<Client>, Backend>;
+type PartialComponentsResult<Client, Backend> = Result<
 	PartialComponents<
-		FullClient<RuntimeApi>,
-		FullBackend,
-		MaybeSelectChain,
+		Client,
+		Backend,
+		MaybeSelectChain<Backend>,
 		sc_consensus::DefaultImportQueue<Block>,
-		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi>>,
+		sc_transaction_pool::FullPool<Block, Client>,
 		(
-			BlockImportPipeline<FrontierBlockImport<RuntimeApi>, ParachainBlockImport<RuntimeApi>>,
+			BlockImportPipeline<FrontierBlockImport<Client>, ParachainBlockImport<Client, Backend>>,
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
-			Arc<fc_db::Backend<Block, FullClient<RuntimeApi>>>,
+			Arc<fc_db::Backend<Block, Client>>,
 			FeeHistoryCache,
 		),
 	>,
@@ -419,7 +421,7 @@ pub fn new_partial<RuntimeApi, Customizations>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
-) -> PartialComponentsResult<RuntimeApi>
+) -> PartialComponentsResult<FullClient<RuntimeApi>, FullBackend>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
@@ -461,10 +463,11 @@ where
 	let executor = wasm_builder.build();
 
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, RuntimeApi, _>(
+		sc_service::new_full_parts_record_import::<Block, RuntimeApi, _>(
 			config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
+			true,
 		)?;
 
 	if let Some(block_number) = Customizations::first_block_number_compatible_with_ed25519_zebra() {
@@ -937,7 +940,7 @@ fn start_consensus<RuntimeApi, SO>(
 	async_backing: bool,
 	backend: Arc<FullBackend>,
 	client: Arc<FullClient<RuntimeApi>>,
-	block_import: ParachainBlockImport<RuntimeApi>,
+	block_import: ParachainBlockImport<FullClient<RuntimeApi>, FullBackend>,
 	prometheus_registry: Option<&Registry>,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
@@ -956,8 +959,7 @@ fn start_consensus<RuntimeApi, SO>(
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>:
-		sc_client_api::StateBackend<BlakeTwo256>,
+	sc_client_api::StateBackendFor<FullBackend, Block>: sc_client_api::StateBackend<BlakeTwo256>,
 	SO: SyncOracle + Send + Sync + Clone + 'static,
 {
 	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
@@ -1771,29 +1773,29 @@ mod tests {
 	}
 }
 
-struct PendingConsensusDataProvider<RuntimeApi>
+struct PendingConsensusDataProvider<Client>
 where
-	RuntimeApi: Send + Sync,
+	Client: HeaderBackend<Block> + sp_api::ProvideRuntimeApi<Block> + Send + Sync,
+	Client::Api: VrfApi<Block>,
 {
-	client: Arc<FullClient<RuntimeApi>>,
+	client: Arc<Client>,
 	keystore: Arc<dyn Keystore>,
 }
 
-impl<RuntimeApi> PendingConsensusDataProvider<RuntimeApi>
+impl<Client> PendingConsensusDataProvider<Client>
 where
-	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Client: HeaderBackend<Block> + sp_api::ProvideRuntimeApi<Block> + Send + Sync,
+	Client::Api: VrfApi<Block>,
 {
-	pub fn new(client: Arc<FullClient<RuntimeApi>>, keystore: Arc<dyn Keystore>) -> Self {
+	pub fn new(client: Arc<Client>, keystore: Arc<dyn Keystore>) -> Self {
 		Self { client, keystore }
 	}
 }
 
-impl<RuntimeApi> fc_rpc::pending::ConsensusDataProvider<Block>
-	for PendingConsensusDataProvider<RuntimeApi>
+impl<Client> fc_rpc::pending::ConsensusDataProvider<Block> for PendingConsensusDataProvider<Client>
 where
-	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Client: HeaderBackend<Block> + sp_api::ProvideRuntimeApi<Block> + Send + Sync,
+	Client::Api: VrfApi<Block>,
 {
 	fn create_digest(
 		&self,

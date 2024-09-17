@@ -20,7 +20,7 @@ use {
 		mock::{ExtBuilder, LazyMigrations, RuntimeOrigin, Test},
 		Error,
 	},
-	frame_support::assert_noop,
+	frame_support::{assert_noop, assert_ok},
 	rlp::RlpStream,
 	sp_core::{H160, H256},
 	sp_io::hashing::keccak_256,
@@ -62,6 +62,13 @@ fn mock_contract_with_entries(seed: u8, nonce: u64, num_entries: u32) -> H160 {
 	}
 
 	contract_address
+}
+
+fn create_dummy_contract_without_metadata(seed: u8) -> H160 {
+	let address = address_build(seed);
+	let dummy_code = vec![1, 2, 3];
+	pallet_evm::AccountCodes::<Test>::insert(address, dummy_code);
+	address
 }
 
 #[test]
@@ -262,4 +269,41 @@ fn test_clear_suicided_mixed_suicided_and_non_suicided() {
 			10
 		);
 	})
+}
+
+#[test]
+fn test_create_contract_metadata_contract_not_exist() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			LazyMigrations::create_contract_metadata(
+				RuntimeOrigin::signed(AccountId32::from([45; 32])),
+				address_build(1),
+			),
+			Error::<Test>::ContractNotExist
+		);
+	});
+}
+
+#[test]
+fn test_create_contract_metadata_success_path() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Setup: create a dummy contract
+		let address = create_dummy_contract_without_metadata(1);
+
+		assert_ok!(LazyMigrations::create_contract_metadata(
+			RuntimeOrigin::signed(AccountId32::from([45; 32])),
+			address,
+		));
+
+		assert!(pallet_evm::AccountCodesMetadata::<Test>::get(address).is_some());
+
+		// Should not be able to set metadata again
+		assert_noop!(
+			LazyMigrations::create_contract_metadata(
+				RuntimeOrigin::signed(AccountId32::from([45; 32])),
+				address,
+			),
+			Error::<Test>::ContractMetadataAlreadySet
+		);
+	});
 }

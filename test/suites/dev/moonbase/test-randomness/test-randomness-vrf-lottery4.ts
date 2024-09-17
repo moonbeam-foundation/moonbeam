@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { GLMR } from "@moonwall/util";
 import { expectEVMResult, setupLotteryWithParticipants } from "../../../../helpers";
 
@@ -12,13 +12,24 @@ describeSuite({
 
     beforeAll(async function () {
       lotteryContract = await setupLotteryWithParticipants(context, "VRF");
+
+      const estimatedGas = await context.viem().estimateContractGas({
+        address: lotteryContract,
+        abi: fetchCompiledContract("RandomnessLotteryDemo").abi,
+        functionName: "startLottery",
+        value: 1n * GLMR,
+      });
+      log("Estimated Gas for startLottery", estimatedGas);
+      expect(estimatedGas).toMatchInlineSnapshot(`218380n`);
+
       await context.writeContract!({
         contractAddress: lotteryContract,
         contractName: "RandomnessLotteryDemo",
         functionName: "startLottery",
         value: 1n * GLMR,
-        gas: 300_000n,
+        gas: estimatedGas,
       });
+
       await context.createBlock();
     });
 
@@ -27,12 +38,22 @@ describeSuite({
       title: "should succeed to fulfill after the delay",
       test: async function () {
         await context.createBlock();
+        await context.createBlock();
+
+        const estimatedGas = await context.viem().estimateContractGas({
+          address: "0x0000000000000000000000000000000000000809", // Randomness contract address
+          abi: fetchCompiledContract("Randomness").abi,
+          functionName: "fulfillRequest",
+          args: [0],
+        });
+        log("Estimated Gas for startLottery", estimatedGas);
+        expect(estimatedGas).toMatchInlineSnapshot(`677344n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Randomness",
           functionName: "fulfillRequest",
           args: [0],
-          gas: 500_000n,
+          gas: estimatedGas,
           rawTxOnly: true,
         });
         const { result } = await context.createBlock(rawTxn);
