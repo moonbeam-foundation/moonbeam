@@ -1,3 +1,4 @@
+
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
@@ -38,13 +39,6 @@ describeSuite({
       query.forEach(([key, exposure]) => {
         const assetType = key.args.toString();
         foreignAssetTypeId[assetType] = exposure.unwrap().toString();
-      });
-
-      query = await apiAt.query.assetManager.assetTypeUnitsPerSecond.entries();
-
-      query.forEach(([key, _]) => {
-        const assetType = key.args.toString();
-        foreignXcmAcceptedAssets.push(assetType);
       });
 
       if (specVersion >= 2200) {
