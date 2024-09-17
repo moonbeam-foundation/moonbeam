@@ -22,11 +22,11 @@ fi
 
 echo "Preparing tests dependencies…"
 cd moonbeam-types-bundle
-npm ci
-npm run build
+pnpm i
+pnpm build
 
 cd ../typescript-api
-npm ci
+pnpm i
 
 echo "Run tracing tests…"
 cd ../test

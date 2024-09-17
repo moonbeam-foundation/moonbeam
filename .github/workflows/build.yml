@@ -163,7 +163,7 @@ jobs:
           chmod +x bin/ec-linux-amd64
       - name: Check files
         # Prettier and editorconfig-checker have different ideas about indentation
-        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/src\/moon(?:base|beam|river)\/interfaces\/.*\.ts)|(test\/contracts\/lib\/.*)" -disable-indent-size
+        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/)|(test\/contracts\/lib\/.*)" -disable-indent-size
 
   check-prettier:
     name: "Check with Prettier"
@@ -638,7 +638,7 @@ jobs:
 
           ####  Preparing the typescript api
           cd ../typescript-api
-          npm ci
+          pnpm i
       - name: Running Tracing Tests
         env:
           DEBUG_COLOURS: "1"

@@ -38,7 +38,7 @@ runs:
 
         #### Preparing the typescript api
         cd ../typescript-api
-        npm ci
+        pnpm i
 
         cd ../test
         pnpm add ../typescript-api
