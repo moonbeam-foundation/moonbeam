@@ -27,6 +27,7 @@ pnpm load:meta
 pnpm load:meta:local
 pnpm generate:defs
 pnpm generate:meta
+pnpm fmt:fix
 
 kill $PID
 echo "Done :)"

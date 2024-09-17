@@ -34,7 +34,7 @@
     "build": "tsc -b --verbose",
     "publish": "npm publish",
     "deploy": "pnpm generate && pnpm build && pnpm publish",
-    "pretty": "prettier --write --ignore-unknown --plugin prettier-plugin-jsdoc 'src/**/*' 'scripts/**/*'"
+    "fmt:fix": "prettier --write --ignore-unknown --plugin prettier-plugin-jsdoc 'src/**/*' 'scripts/**/*'"
   },
   "module": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
