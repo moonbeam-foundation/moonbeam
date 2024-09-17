@@ -83,6 +83,6 @@ describeSuite({
     }
 
     testParam("RuntimeConfig", "FeesTreasuryProportion", ["Perbill", 200_000_000]);
-    testParam("PalletRandomness", "Deposit", ["Balance", 1_000_000_000_000_000_000n * 100n]);
+    testParam("PalletRandomness", "Deposit", ["u128", 1_000_000_000_000_000_000n * 100n]);
   },
 });
