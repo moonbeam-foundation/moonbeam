@@ -31,7 +31,6 @@ pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 precompile-utils = { workspace = true }
 
 # Polkadot / XCM
-orml-traits = { workspace = true }
 pallet-xcm = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }

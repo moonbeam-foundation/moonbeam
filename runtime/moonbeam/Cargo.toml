@@ -138,9 +138,6 @@ pallet-evm-precompile-simple = { workspace = true }
 precompile-utils = { workspace = true }
 
 # Polkadot / XCM
-orml-traits = { workspace = true }
-orml-xcm-support = { workspace = true }
-orml-xtokens = { workspace = true }
 pallet-xcm = { workspace = true }
 pallet-xcm-benchmarks = { workspace = true, optional = true }
 pallet-message-queue = { workspace = true }
@@ -228,7 +225,6 @@ std = [
 	"moonbeam-xcm-benchmarks/std",
 	"moonkit-xcm-primitives/std",
 	"nimbus-primitives/std",
-	"orml-xtokens/std",
 	"pallet-asset-manager/std",
 	"pallet-assets/std",
 	"pallet-async-backing/std",
@@ -425,7 +421,6 @@ try-runtime = [
 	"pallet-crowdloan-rewards/try-runtime",
 	"pallet-proxy/try-runtime",
 	"pallet-identity/try-runtime",
-	"orml-xtokens/try-runtime",
 	"pallet-assets/try-runtime",
 	"pallet-xcm-transactor/try-runtime",
 	"pallet-proxy-genesis-companion/try-runtime",

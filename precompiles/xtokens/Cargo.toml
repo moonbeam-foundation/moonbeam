@@ -51,7 +51,6 @@ sp-io = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 
 # Polkadot
-orml-traits = { workspace = true }
 pallet-xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
