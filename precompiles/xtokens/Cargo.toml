@@ -13,6 +13,7 @@ rustc-hex = { workspace = true }
 # Moonbeam
 account = { workspace = true }
 xcm-primitives = { workspace = true }
+pallet-xcm-transactor = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -28,8 +29,8 @@ pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 precompile-utils = { workspace = true, features = ["codec-xcm"] }
 
 # Polkadot / XCM
-orml-xtokens = { workspace = true }
 xcm = { workspace = true }
+pallet-xcm = { workspace = true }
 
 [dev-dependencies]
 derive_more = { workspace = true }
@@ -61,7 +62,6 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
-	"orml-xtokens/std",
 	"pallet-evm/std",
 	"precompile-utils/std",
 	"sp-core/std",
