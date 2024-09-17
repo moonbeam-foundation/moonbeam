@@ -639,6 +639,7 @@ jobs:
           ####  Preparing the typescript api
           cd ../typescript-api
           pnpm i
+          scripts/runtime-upgrade.sh
       - name: Running Tracing Tests
         env:
           DEBUG_COLOURS: "1"
