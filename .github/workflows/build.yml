@@ -200,11 +200,11 @@ jobs:
       - name: Use pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8.6.12
+          version: 9
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version: 22
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - name: Run Eslint check
@@ -607,11 +607,11 @@ jobs:
       - name: Use pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8.6.12
+          version: 9
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version: 22
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - run: |
@@ -633,8 +633,8 @@ jobs:
 
           ####  Preparing the repository
           cd moonbeam-types-bundle
-          npm ci
-          npm run build
+          pnpm i
+          pnpm build
 
           ####  Preparing the typescript api
           cd ../typescript-api
@@ -719,10 +719,10 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version: 22
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -775,10 +775,10 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version: 22
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - name: Create local folders
@@ -824,10 +824,10 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version: 22
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
