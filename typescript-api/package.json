@@ -17,6 +17,7 @@
   },
   "scripts": {
     "generate": "npm run load:meta && npm run generate:defs && npm run generate:meta",
+    "generate:local": "./scripts/generate-local-types.sh",
     "postgenerate": "npm run pretty",
     "load:meta": "npm run load:meta:moonbase && npm run load:meta:moonriver && npm run load:meta:moonbeam",
     "load:meta:local": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' http://localhost:9944 > metadata-moonbase.json",
@@ -36,7 +37,8 @@
     "postbuild": "node --experimental-specifier-resolution=node --loader ts-node/esm ./scripts/postbuild.js",
     "publish": "cd build && npm publish",
     "deploy": "npm run generate && npm run build && npm run publish",
-    "pretty": "prettier --write --ignore-unknown --plugin prettier-plugin-jsdoc 'src/**/*' 'scripts/**/*'"
+    "pretty": "prettier --write --ignore-unknown --plugin prettier-plugin-jsdoc 'src/**/*' 'scripts/**/*'",
+    "trace": "touch script-worked in the types dir"
   },
   "main": "./index.cjs",
   "module": "./index.js",
@@ -84,8 +86,8 @@
     "api"
   ],
   "devDependencies": {
-    "@polkadot/api": "^11.2.1",
-    "@polkadot/typegen": "^11.2.1",
+    "@polkadot/api": "^13.0.1",
+    "@polkadot/typegen": "^13.0.1",
     "prettier": "^2.7.1",
     "prettier-plugin-jsdoc": "^0.3.38",
     "rimraf": "^3.0.2",

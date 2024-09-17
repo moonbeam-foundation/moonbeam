@@ -11,6 +11,7 @@ fi
 # Fail if any command fails
 
 echo "Installing Packages"
+npm install
 npm ci
 
 echo "Starting moonbeam node"

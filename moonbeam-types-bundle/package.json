@@ -9,7 +9,8 @@
     "compare": "rm -fr dist && tsc && npx ts-node check.ts",
     "build": "rm -fr dist && node_modules/.bin/tsc",
     "publish-package": "npm run build && npm publish",
-    "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
+    "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'",
+    "trace": "touch script-worked"
   },
   "keywords": [
     "moonbeam",
@@ -26,7 +27,7 @@
     "url": "git+https://github.com/moonbeam-foundation/moonbeam.git"
   },
   "dependencies": {
-    "@polkadot/api": "^11.2.1",
+    "@polkadot/api": "^13.0.1",
     "typescript": "^4.7.4"
   },
   "devDependencies": {
