@@ -1,13 +1,23 @@
 {
-  "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
-    "lib": ["es2017", "es7", "es6", "dom"],
-    "declaration": true,
-    "outDir": "dist",
-    "strict": true,
-    "esModuleInterop": true,
-    "moduleResolution": "node16"
-  },
-  "exclude": ["node_modules", "dist"]
+	"compilerOptions": {
+		"incremental": false,
+		"rootDir": "src",
+		"outDir": "dist",
+		"baseUrl": "./",
+		"noEmit": false,
+		"declaration": true,
+		"declarationDir": "dist/types",
+		"allowImportingTsExtensions": false,
+		"typeRoots": [
+			// "dist/types",
+			"node_modules/@types"
+		],
+    "skipLibCheck": true
+	},
+"include": ["src/**/*"],
+	"exclude": [
+		"node_modules",
+		"dist",
+		"scripts"
+	]
 }

@@ -1,15 +1,24 @@
 {
   "name": "moonbeam-types-bundle",
-  "version": "2.0.10",
+  "version": "3.0.0",
   "description": "Bundled types to instantiate the Polkadot JS api with a Moonbeam network",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "prepublish": "tsc",
+  "type": "module",
+  "module": "./dist/definitions.js",
+  "types": "./dist/types/definitions.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/definitions.d.ts",
+      "module": "./dist/definitions.js",
+      "default": "./dist/definitions.js"
+    }
+  },
   "scripts": {
-    "compare": "rm -fr dist && tsc && npx ts-node check.ts",
-    "build": "rm -fr dist && node_modules/.bin/tsc",
+    "tsc": "tsc --noEmit --pretty",
+    "build": "tsc -b --verbose",
     "publish-package": "npm run build && npm publish",
-    "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
+    "lint": "prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
   "keywords": [
     "moonbeam",
@@ -19,33 +28,19 @@
     "polkadot",
     "api"
   ],
-  "author": "Antoine Estienne",
+  "author": "Moonsong Labs",
   "license": "GPL-3.0-only",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/moonbeam-foundation/moonbeam.git"
   },
   "dependencies": {
-    "@polkadot/api": "^13.0.1",
-    "typescript": "^4.7.4"
-  },
-  "devDependencies": {
-    "@types/underscore": "^1.11.3",
-    "underscore": "^1.13.1"
-  },
-  "overrides": {
-    "@polkadot/api": "$@polkadot/api",
-    "@polkadot/api-derive": "$@polkadot/api",
-    "@polkadot/api-augment": "$@polkadot/api",
-    "@polkadot/api-base": "$@polkadot/api",
-    "@polkadot/rpc-augment": "$@polkadot/api",
-    "@polkadot/rpc-core": "$@polkadot/api",
-    "@polkadot/rpc-provider": "$@polkadot/api",
-    "@polkadot/types-create": "$@polkadot/api",
-    "@polkadot/types-augment": "$@polkadot/api",
-    "@polkadot/types-support": "$@polkadot/api",
-    "@polkadot/types-codec": "$@polkadot/api",
-    "@polkadot/types": "$@polkadot/api",
-    "@polkadot/types-known": "$@polkadot/api"
+    "@polkadot/api": "13.0.1",
+    "@polkadot/api-base": "13.0.1",
+    "@polkadot/rpc-core": "13.0.1",
+    "@polkadot/typegen": "13.0.1",
+    "@polkadot/types": "13.0.1",
+    "@polkadot/types-codec": "13.0.1",
+    "typescript": "5.6.2"
   }
 }

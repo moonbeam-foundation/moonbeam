@@ -1,8 +1,10 @@
 {
   "editor.formatOnSave": true,
-  "editor.rulers": [100],
+  "editor.rulers": [
+    100
+  ],
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "vscode.typescript-language-features"
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
