@@ -15,18 +15,18 @@ if [[ $# -gt 0 ]]; then
   npm version --no-git-tag-version 0.$RUNTIME_CHAIN_SPEC.0
 fi
 
-if [[ ! -f ../build/moonbeam ]]; then
-  echo "Missing ../build/moonbeam binary"
+if [[ ! -f ../target/release/moonbeam ]]; then
+  echo "Missing ../target/release/moonbeam binary"
   exit 1
 fi
 
 # Install dependencies
-npm install
+pnpm install
 
 # Get runtimes metadata
 for CHAIN in ${CHAINS[@]}; do
   echo "Starting $CHAIN node"
-  ../build/moonbeam \
+  ../target/release/moonbeam \
     --no-hardware-benchmarks \
     --unsafe-force-node-key-generation \
     --no-telemetry --no-prometheus --alice \
@@ -44,19 +44,8 @@ done
 
 # Generate typescript api code
 echo "Generating typescript api code..."
-npm run generate:defs && npm run generate:meta
-
-# We don't need anymore fix for BTreeSet
-#
-## Manually fix BTreeSet issue
-#echo "Manually fix BTreeSet issue..."
-#for CHAIN in ${CHAINS[@]}; do
-#  sed -i -e 's/BTreeSet,/BTreeSet as BTreeSetType,/g' src/$CHAIN/interfaces/types-lookup.ts
-#  sed -i -e 's/BTreeSet<Bytes>/BTreeSetType<Bytes>/g' src/$CHAIN/interfaces/types-lookup.ts
-#done
+pnpm generate:defs && pnpm generate:meta
 
 # Build the package
-npm run build
-
-# Run post build stuff (like formatter)
-npm run postgenerate
+pnpm run build
+pnpm fmt:fix

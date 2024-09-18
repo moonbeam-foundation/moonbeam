@@ -118,13 +118,8 @@ use sp_std::{
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
-use xcm::{
-	v3::{AssetId as XcmAssetId, Location},
-	IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
-};
-use xcm_config::AssetType;
+use xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
 use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
-use xcm_primitives::UnitsToWeightRatio;
 
 use runtime_params::*;
 
@@ -198,7 +193,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 3200,
+	spec_version: 3300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -1455,6 +1450,7 @@ construct_runtime! {
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 55,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 56,
 		Parameters: pallet_parameters = 57,
+		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 58,
 	}
 }
 
@@ -1535,6 +1531,7 @@ mod benches {
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_parameters, Parameters]
+		[pallet_xcm_weight_trader, XcmWeightTrader]
 	);
 }
 
