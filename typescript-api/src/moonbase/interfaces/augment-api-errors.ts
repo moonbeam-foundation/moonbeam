@@ -260,6 +260,24 @@ declare module "@polkadot/api-base/types/errors" {
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
+    evmForeignAssets: {
+      AssetAlreadyExists: AugmentedError<ApiType>;
+      AssetAlreadyFrozen: AugmentedError<ApiType>;
+      AssetDoesNotExist: AugmentedError<ApiType>;
+      AssetIdFiltered: AugmentedError<ApiType>;
+      AssetNotFrozen: AugmentedError<ApiType>;
+      CorruptedStorageOrphanLocation: AugmentedError<ApiType>;
+      Erc20ContractCreationFail: AugmentedError<ApiType>;
+      EvmCallPauseFail: AugmentedError<ApiType>;
+      EvmCallUnpauseFail: AugmentedError<ApiType>;
+      EvmInternalError: AugmentedError<ApiType>;
+      InvalidSymbol: AugmentedError<ApiType>;
+      InvalidTokenName: AugmentedError<ApiType>;
+      LocationAlreadyExists: AugmentedError<ApiType>;
+      TooManyForeignAssets: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
     identity: {
       /** Account ID is already named. */
       AlreadyClaimed: AugmentedError<ApiType>;
@@ -369,8 +387,12 @@ declare module "@polkadot/api-base/types/errors" {
     moonbeamLazyMigrations: {
       /** There must be at least one address */
       AddressesLengthCannotBeZero: AugmentedError<ApiType>;
+      /** The contract already have metadata */
+      ContractMetadataAlreadySet: AugmentedError<ApiType>;
       /** The contract is not corrupted (Still exist or properly suicided) */
       ContractNotCorrupted: AugmentedError<ApiType>;
+      /** Contract not exist */
+      ContractNotExist: AugmentedError<ApiType>;
       /** The limit cannot be zero */
       LimitCannotBeZero: AugmentedError<ApiType>;
       /** Generic error */
@@ -847,6 +869,22 @@ declare module "@polkadot/api-base/types/errors" {
       UnweighableMessage: AugmentedError<ApiType>;
       WeightOverflow: AugmentedError<ApiType>;
       XcmExecuteError: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    xcmWeightTrader: {
+      /** The given asset was already added */
+      AssetAlreadyAdded: AugmentedError<ApiType>;
+      /** The given asset was already paused */
+      AssetAlreadyPaused: AugmentedError<ApiType>;
+      /** The given asset was not found */
+      AssetNotFound: AugmentedError<ApiType>;
+      /** The given asset is not paused */
+      AssetNotPaused: AugmentedError<ApiType>;
+      /** The relative price cannot be zero */
+      PriceCannotBeZero: AugmentedError<ApiType>;
+      /** XCM location filtered */
+      XcmLocationFiltered: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };

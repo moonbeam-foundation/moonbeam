@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "strict": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
@@ -17,9 +17,5 @@
       "moonbase": ["moonbase/src"]
     }
   },
-  "exclude": ["node_modules", "build"],
-  "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node"
-  }
+  "exclude": ["node_modules","dist", "scripts"]
 }
