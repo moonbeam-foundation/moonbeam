@@ -634,7 +634,7 @@ checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
 [[package]]
 name = "async-backing-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "sp-api",
  "sp-consensus-slots",
@@ -1587,7 +1587,7 @@ dependencies = [
 [[package]]
 name = "common"
 version = "0.1.0"
-source = "git+https://github.com/w3f/ring-proof#665f5f51af5734c7b6d90b985dd6861d4c5b4752"
+source = "git+https://github.com/w3f/ring-proof#b273d33f9981e2bb3375ab45faeb537f7ee35224"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -3462,7 +3462,7 @@ dependencies = [
  "fc-mapping-sync",
  "fc-rpc-core",
  "fc-storage",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "fp-rpc",
  "fp-storage",
  "futures 0.3.30",
@@ -3470,7 +3470,7 @@ dependencies = [
  "jsonrpsee",
  "libsecp256k1",
  "log",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "parity-scale-codec",
  "prometheus",
  "rand 0.8.5",
@@ -3716,24 +3716,6 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0#42a7a8e179bb96401daf6c71728e6c71e38c8293"
-dependencies = [
- "hex",
- "impl-serde 0.4.0",
- "libsecp256k1",
- "log",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-runtime-interface",
-]
-
-[[package]]
-name = "fp-account"
-version = "1.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102#f070fb0eacb9cb472f627ddbc0affadf1a23a7a2"
 dependencies = [
  "hex",
@@ -3767,25 +3749,9 @@ source = "git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtim
 dependencies = [
  "ethereum",
  "ethereum-types",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "parity-scale-codec",
-]
-
-[[package]]
-name = "fp-evm"
-version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0#42a7a8e179bb96401daf6c71728e6c71e38c8293"
-dependencies = [
- "environmental",
- "evm",
- "frame-support",
- "num_enum 0.7.2",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-runtime",
 ]
 
 [[package]]
@@ -3811,7 +3777,7 @@ source = "git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtim
 dependencies = [
  "ethereum",
  "ethereum-types",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "parity-scale-codec",
  "scale-info",
  "sp-api",
@@ -6327,7 +6293,7 @@ dependencies = [
  "cumulus-test-relay-sproof-builder",
  "ethereum",
  "evm-tracing-events",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -6367,7 +6333,7 @@ dependencies = [
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
  "pallet-ethereum-xcm",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-evm-chain-id",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
@@ -6435,7 +6401,7 @@ dependencies = [
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
  "precompile-foreign-asset-migrator",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "rlp",
  "scale-info",
  "serde",
@@ -6575,9 +6541,9 @@ dependencies = [
  "evm-gasometer",
  "evm-runtime",
  "evm-tracing-events",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "moonbeam-primitives-ext",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "parity-scale-codec",
  "sp-core",
  "sp-io",
@@ -6825,7 +6791,7 @@ dependencies = [
  "cumulus-test-relay-sproof-builder",
  "ethereum",
  "evm-tracing-events",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -6864,7 +6830,7 @@ dependencies = [
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
  "pallet-ethereum-xcm",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-evm-chain-id",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
@@ -6927,7 +6893,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "rlp",
  "scale-info",
  "serde",
@@ -6970,7 +6936,7 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcmp-queue",
  "fp-ethereum",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -6992,7 +6958,7 @@ dependencies = [
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
  "pallet-ethereum-xcm",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-evm-chain-id",
  "pallet-identity",
  "pallet-migrations",
@@ -7016,7 +6982,7 @@ dependencies = [
  "pallet-xcm",
  "pallet-xcm-transactor",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "sp-api",
  "sp-consensus-slots",
  "sp-core",
@@ -7231,7 +7197,7 @@ dependencies = [
  "cumulus-test-relay-sproof-builder",
  "ethereum",
  "evm-tracing-events",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -7270,7 +7236,7 @@ dependencies = [
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
  "pallet-ethereum-xcm",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-evm-chain-id",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
@@ -7333,7 +7299,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "rlp",
  "scale-info",
  "serde",
@@ -7666,7 +7632,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "async-backing-primitives",
  "async-trait",
@@ -7706,7 +7672,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "async-trait",
  "frame-benchmarking",
@@ -8106,7 +8072,7 @@ dependencies = [
 [[package]]
 name = "orml-traits"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#f653f239532bd72b6bc4a7290db10790a38b0b92"
+source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#b86bc7dda8cc59e57c8b5dcfa813ebdbf76bee0e"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -8126,7 +8092,7 @@ dependencies = [
 [[package]]
 name = "orml-utilities"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#f653f239532bd72b6bc4a7290db10790a38b0b92"
+source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#b86bc7dda8cc59e57c8b5dcfa813ebdbf76bee0e"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -8141,7 +8107,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm-support"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#f653f239532bd72b6bc4a7290db10790a38b0b92"
+source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#b86bc7dda8cc59e57c8b5dcfa813ebdbf76bee0e"
 dependencies = [
  "frame-support",
  "orml-traits",
@@ -8155,7 +8121,7 @@ dependencies = [
 [[package]]
 name = "orml-xtokens"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#f653f239532bd72b6bc4a7290db10790a38b0b92"
+source = "git+https://github.com/moonbeam-foundation/open-runtime-module-library?branch=moonbeam-polkadot-v1.11.0#b86bc7dda8cc59e57c8b5dcfa813ebdbf76bee0e"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8282,7 +8248,7 @@ dependencies = [
 [[package]]
 name = "pallet-async-backing"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -8302,7 +8268,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8321,7 +8287,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-mapping"
 version = "2.0.5"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8340,7 +8306,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8701,7 +8667,7 @@ dependencies = [
 [[package]]
 name = "pallet-emergency-para-xcm"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -8723,12 +8689,12 @@ version = "1.0.0"
 dependencies = [
  "environmental",
  "ethereum-types",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
@@ -8752,12 +8718,12 @@ dependencies = [
  "evm",
  "fp-consensus",
  "fp-ethereum",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "fp-rpc",
  "fp-storage",
  "frame-support",
  "frame-system",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "parity-scale-codec",
  "scale-info",
  "sp-io",
@@ -8772,7 +8738,7 @@ dependencies = [
  "ethereum",
  "ethereum-types",
  "fp-ethereum",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -8782,7 +8748,7 @@ dependencies = [
  "libsecp256k1",
  "pallet-balances",
  "pallet-ethereum",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-evm-precompile-proxy",
  "pallet-proxy",
  "pallet-timestamp",
@@ -8800,37 +8766,12 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0#42a7a8e179bb96401daf6c71728e6c71e38c8293"
-dependencies = [
- "environmental",
- "evm",
- "fp-account 1.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0)",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0)",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hash-db 0.16.0",
- "hex",
- "hex-literal 0.4.1",
- "impl-trait-for-tuples",
- "log",
- "parity-scale-codec",
- "rlp",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
-]
-
-[[package]]
-name = "pallet-evm"
-version = "6.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102#f070fb0eacb9cb472f627ddbc0affadf1a23a7a2"
 dependencies = [
  "environmental",
  "evm",
- "fp-account 1.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-account",
+ "fp-evm",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -8863,7 +8804,7 @@ name = "pallet-evm-precompile-author-mapping"
 version = "0.2.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
@@ -8872,11 +8813,11 @@ dependencies = [
  "num_enum 0.5.11",
  "pallet-author-mapping",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sp-core",
@@ -8891,7 +8832,7 @@ version = "0.1.0"
 dependencies = [
  "account",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
@@ -8899,11 +8840,11 @@ dependencies = [
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -8920,18 +8861,18 @@ version = "0.1.0"
 dependencies = [
  "derive_more",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -8947,7 +8888,7 @@ name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102#f070fb0eacb9cb472f627ddbc0affadf1a23a7a2"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
 ]
 
 [[package]]
@@ -8955,7 +8896,7 @@ name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102#f070fb0eacb9cb472f627ddbc0affadf1a23a7a2"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "sp-core",
  "substrate-bn",
 ]
@@ -8966,7 +8907,7 @@ version = "0.1.0"
 dependencies = [
  "derive_more",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
@@ -8974,11 +8915,11 @@ dependencies = [
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -8996,7 +8937,7 @@ dependencies = [
  "account",
  "derive_more",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
@@ -9004,12 +8945,12 @@ dependencies = [
  "num_enum 0.5.11",
  "pallet-balances",
  "pallet-collective",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-timestamp",
  "pallet-treasury",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -9028,7 +8969,7 @@ version = "0.1.0"
 dependencies = [
  "account",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
@@ -9036,10 +8977,10 @@ dependencies = [
  "num_enum 0.5.11",
  "pallet-balances",
  "pallet-conviction-voting",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9059,19 +9000,19 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
  "pallet-crowdloan-rewards",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-message-queue",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9087,9 +9028,9 @@ name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102#f070fb0eacb9cb472f627ddbc0affadf1a23a7a2"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "parity-scale-codec",
  "sp-runtime",
 ]
@@ -9102,7 +9043,7 @@ dependencies = [
  "cumulus-primitives-core",
  "derive_more",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex",
@@ -9112,12 +9053,12 @@ dependencies = [
  "orml-traits",
  "orml-xtokens",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -9138,18 +9079,18 @@ version = "0.1.0"
 dependencies = [
  "enumflags2",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex",
  "hex-literal 0.3.4",
  "log",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-identity",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -9164,7 +9105,7 @@ name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102#f070fb0eacb9cb472f627ddbc0affadf1a23a7a2"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "num",
 ]
 
@@ -9172,11 +9113,11 @@ dependencies = [
 name = "pallet-evm-precompile-p256verify"
 version = "0.1.0"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "hex-literal 0.3.4",
  "p256",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
 ]
 
 [[package]]
@@ -9184,17 +9125,17 @@ name = "pallet-evm-precompile-parachain-staking"
 version = "1.0.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-parachain-staking",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9211,18 +9152,18 @@ name = "pallet-evm-precompile-preimage"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-preimage",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9240,18 +9181,18 @@ dependencies = [
  "account",
  "derive_more",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-proxy",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9267,7 +9208,7 @@ name = "pallet-evm-precompile-randomness"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
@@ -9276,12 +9217,12 @@ dependencies = [
  "num_enum 0.5.11",
  "pallet-author-mapping",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-randomness",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "session-keys-primitives",
  "sp-core",
@@ -9295,20 +9236,20 @@ name = "pallet-evm-precompile-referenda"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-preimage",
  "pallet-referenda",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9324,17 +9265,17 @@ name = "pallet-evm-precompile-registry"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
  "log",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sp-core",
@@ -9350,7 +9291,7 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
@@ -9358,13 +9299,13 @@ dependencies = [
  "num_enum 0.5.11",
  "orml-traits",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-message-queue",
  "pallet-staking",
  "pallet-timestamp",
  "pallet-xcm-transactor",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9385,18 +9326,18 @@ version = "0.1.0"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex",
  "moonbeam-runtime-common",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-precompile-benchmarks",
  "pallet-relay-storage-roots",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -9410,7 +9351,7 @@ name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102#f070fb0eacb9cb472f627ddbc0affadf1a23a7a2"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "tiny-keccak",
 ]
 
@@ -9419,7 +9360,7 @@ name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102#f070fb0eacb9cb472f627ddbc0affadf1a23a7a2"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "ripemd",
  "sp-io",
 ]
@@ -9429,12 +9370,12 @@ name = "pallet-evm-precompile-storage-cleaner"
 version = "0.1.0"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102#f070fb0eacb9cb472f627ddbc0affadf1a23a7a2"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "sp-core",
  "sp-runtime",
 ]
@@ -9442,18 +9383,18 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-xcm"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "cumulus-primitives-core",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
  "num_enum 0.7.2",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0)",
+ "pallet-evm",
  "pallet-xcm",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0)",
+ "precompile-utils",
  "sp-core",
  "sp-runtime",
  "sp-std",
@@ -9469,19 +9410,19 @@ dependencies = [
  "cumulus-primitives-core",
  "derive_more",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
  "num_enum 0.5.11",
  "orml-traits",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
  "pallet-xcm-transactor",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9503,18 +9444,18 @@ version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "num_enum 0.5.11",
  "orml-traits",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
  "parity-scale-codec",
  "polkadot-parachain-primitives",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -9536,7 +9477,7 @@ dependencies = [
  "account",
  "cumulus-primitives-core",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
@@ -9544,11 +9485,11 @@ dependencies = [
  "orml-traits",
  "orml-xtokens",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9570,7 +9511,7 @@ version = "0.1.0"
 dependencies = [
  "account",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
@@ -9579,11 +9520,11 @@ dependencies = [
  "num_enum 0.5.11",
  "pallet-assets",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -9694,7 +9635,7 @@ dependencies = [
 [[package]]
 name = "pallet-maintenance-mode"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -9747,7 +9688,7 @@ dependencies = [
 [[package]]
 name = "pallet-migrations"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9786,18 +9727,18 @@ name = "pallet-moonbeam-foreign-assets"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "hex",
  "log",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
- "precompile-utils-macro 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
+ "precompile-utils-macro",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -9817,7 +9758,7 @@ dependencies = [
  "log",
  "pallet-assets",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
@@ -10016,14 +9957,14 @@ version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "pallet-evm-precompile-p256verify",
  "pallet-relay-storage-roots",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "sp-core",
  "sp-std",
@@ -10083,7 +10024,7 @@ dependencies = [
 [[package]]
 name = "pallet-randomness"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "environmental",
  "frame-benchmarking",
@@ -10161,7 +10102,7 @@ dependencies = [
 [[package]]
 name = "pallet-relay-storage-roots"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -10612,8 +10553,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes 0.13.0",
- "rand 0.7.3",
- "rand_core 0.5.1",
+ "rand 0.8.5",
+ "rand_core 0.6.4",
  "serde",
  "unicode-normalization",
 ]
@@ -12157,7 +12098,7 @@ version = "0.1.0"
 dependencies = [
  "account",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.3.4",
@@ -12167,12 +12108,12 @@ dependencies = [
  "pallet-asset-manager",
  "pallet-assets",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "pallet-moonbeam-foreign-assets",
  "pallet-timestamp",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -12187,36 +12128,12 @@ dependencies = [
 [[package]]
 name = "precompile-utils"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0#42a7a8e179bb96401daf6c71728e6c71e38c8293"
-dependencies = [
- "environmental",
- "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0)",
- "frame-support",
- "frame-system",
- "hex",
- "impl-trait-for-tuples",
- "log",
- "num_enum 0.7.2",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0)",
- "parity-scale-codec",
- "precompile-utils-macro 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0)",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-weights",
- "staging-xcm",
-]
-
-[[package]]
-name = "precompile-utils"
-version = "0.1.0"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102#f070fb0eacb9cb472f627ddbc0affadf1a23a7a2"
 dependencies = [
  "derive_more",
  "environmental",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex",
@@ -12224,9 +12141,9 @@ dependencies = [
  "impl-trait-for-tuples",
  "log",
  "num_enum 0.7.2",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "pallet-evm",
  "parity-scale-codec",
- "precompile-utils-macro 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils-macro",
  "scale-info",
  "serde",
  "similar-asserts",
@@ -12235,20 +12152,6 @@ dependencies = [
  "sp-runtime",
  "sp-weights",
  "staging-xcm",
-]
-
-[[package]]
-name = "precompile-utils-macro"
-version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.11.0#42a7a8e179bb96401daf6c71728e6c71e38c8293"
-dependencies = [
- "case",
- "num_enum 0.7.2",
- "prettyplease 0.2.20",
- "proc-macro2",
- "quote",
- "sp-crypto-hashing",
- "syn 1.0.109",
 ]
 
 [[package]]
@@ -12536,7 +12439,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "19de2de2a00075bf566bee3bd4db014b11587e84184d3f7a791bc17f1a8e9e48"
 dependencies = [
  "anyhow",
- "itertools 0.12.1",
+ "itertools 0.11.0",
  "proc-macro2",
  "quote",
  "syn 2.0.66",
@@ -12968,14 +12871,13 @@ dependencies = [
 [[package]]
 name = "ring"
 version = "0.1.0"
-source = "git+https://github.com/w3f/ring-proof#665f5f51af5734c7b6d90b985dd6861d4c5b4752"
+source = "git+https://github.com/w3f/ring-proof#b273d33f9981e2bb3375ab45faeb537f7ee35224"
 dependencies = [
  "ark-ec",
  "ark-ff",
  "ark-poly",
  "ark-serialize",
  "ark-std",
- "arrayvec 0.7.4",
  "blake2 0.10.6",
  "common",
  "fflonk",
@@ -14977,7 +14879,7 @@ dependencies = [
 [[package]]
 name = "session-keys-primitives"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -16779,7 +16681,7 @@ dependencies = [
  "moonbase-runtime",
  "moonbeam-runtime",
  "moonriver-runtime",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=perm-runtime-3102)",
+ "precompile-utils",
  "serde_json",
 ]
 
@@ -16889,9 +16791,9 @@ checksum = "3369f5ac52d5eb6ab48c6b4ffdc8efbcad6b89c765749064ba298f2c68a16a76"
 
 [[package]]
 name = "thiserror"
-version = "1.0.63"
+version = "1.0.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0342370b38b6a11b6cc11d6a805569958d54cfa061a29969c3b5ce2ea405724"
+checksum = "c546c80d6be4bc6a00c0f01730c08df82eaa7a7a61f11d656526506112cc1709"
 dependencies = [
  "thiserror-impl",
 ]
@@ -16918,9 +16820,9 @@ dependencies = [
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.63"
+version = "1.0.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4558b58466b9ad7ca0f102865eccc95938dca1a74a856f2b57b6629050da261"
+checksum = "46c3384250002a6d5af4d114f2845d37b57521033f30d5c3f46c4d70e1197533"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -17542,7 +17444,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.7.3",
+ "rand 0.8.5",
  "static_assertions",
 ]
 
@@ -18713,7 +18615,7 @@ dependencies = [
 [[package]]
 name = "xcm-primitives"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-v1.11.0#597e9e5fcbffa1b2436eaf4b9dc436c0b96708f6"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=perm-runtime-3102#95372c7a1412803d22bb0d19a741ac14ed497cdd"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
