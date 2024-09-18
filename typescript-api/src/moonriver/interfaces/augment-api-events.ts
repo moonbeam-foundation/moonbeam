@@ -87,7 +87,7 @@ declare module "@polkadot/api-base/types/events" {
         { assetId: u128; assetType: MoonriverRuntimeXcmConfigAssetType }
       >;
       /** Changed the xcm type mapping for a given asset id */
-      ForeignAssetTypeChanged: AugmentedEvent<
+      ForeignAssetXcmLocationChanged: AugmentedEvent<
         ApiType,
         [assetId: u128, newAssetType: MoonriverRuntimeXcmConfigAssetType],
         { assetId: u128; newAssetType: MoonriverRuntimeXcmConfigAssetType }
@@ -535,6 +535,16 @@ declare module "@polkadot/api-base/types/events" {
           exitReason: EvmCoreErrorExitReason;
           extraData: Bytes;
         }
+      >;
+      /** Generic event */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    ethereumXcm: {
+      /** Ethereum transaction executed from XCM */
+      ExecutedFromXcm: AugmentedEvent<
+        ApiType,
+        [xcmMsgHash: H256, ethTxHash: H256],
+        { xcmMsgHash: H256; ethTxHash: H256 }
       >;
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;

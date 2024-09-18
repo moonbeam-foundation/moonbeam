@@ -1,0 +1,54 @@
+[package]
+authors = { workspace = true }
+description = "A pallet to trade weight for XCM execution"
+edition = "2021"
+name = "pallet-xcm-weight-trader"
+version = "0.1.0"
+
+[dependencies]
+log = { workspace = true }
+
+# Substrate
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+pallet-balances = { workspace = true }
+parity-scale-codec = { workspace = true }
+scale-info = { workspace = true, features = ["derive"] }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
+
+# Polkadot
+xcm = { workspace = true }
+xcm-executor = { workspace = true }
+xcm-runtime-apis = { workspace = true }
+
+# Benchmarks
+frame-benchmarking = { workspace = true, optional = true }
+
+[dev-dependencies]
+frame-benchmarking = { workspace = true, features = ["std"] }
+pallet-balances = { workspace = true, features = ["std", "insecure_zero_ed"] }
+sp-tracing = { workspace = true, features = ["std"] }
+
+[features]
+default = ["std"]
+runtime-benchmarks = [
+    "frame-benchmarking",
+    "frame-system/runtime-benchmarks"
+]
+std = [
+    "frame-support/std",
+    "frame-system/std",
+    "pallet-balances/std",
+    "scale-info/std",
+    "sp-core/std",
+    "sp-io/std",
+    "sp-runtime/std",
+    "sp-std/std",
+    "xcm/std",
+    "xcm-executor/std",
+    "xcm-runtime-apis/std",
+]
+try-runtime = ["frame-support/try-runtime"]

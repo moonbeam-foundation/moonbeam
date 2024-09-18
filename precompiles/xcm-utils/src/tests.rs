@@ -244,6 +244,13 @@ fn execute_fails_if_called_by_smart_contract() {
 		.execute_with(|| {
 			// Set code to Alice address as it if was a smart contract.
 			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+			pallet_evm::AccountCodesMetadata::<Runtime>::insert(
+				H160::from(Alice),
+				pallet_evm::CodeMetadata {
+					size: 10,
+					hash: sp_core::H256::default(),
+				},
+			);
 
 			let xcm_to_execute = VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
 

@@ -19,12 +19,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: pnpm/action-setup@v3
+    - uses: pnpm/action-setup@v4
       with:
-        version: 8.6.12
+        version: 9
     - uses: actions/setup-node@v4
       with:
-        node-version: 20.10.0
+        node-version: 22.8.0
         cache: "pnpm"
         cache-dependency-path: test/pnpm-lock.yaml
 
@@ -33,15 +33,16 @@ runs:
       run: |
         #### Preparing the legacy types
         cd moonbeam-types-bundle
-        npm ci
-        npm run build
+        pnpm i
+        pnpm build
 
         #### Preparing the typescript api
         cd ../typescript-api
-        npm ci
+        pnpm i
+        pnpm build
 
         cd ../test
-        pnpm i ../typescript-api
+        pnpm add ../typescript-api
 
     - name: "Install and run dev test"
       shell: bash

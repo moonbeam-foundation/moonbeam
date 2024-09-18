@@ -38,7 +38,7 @@ jobs:
       - id: get-version
         run: |
           RUST_VERSION=$(cat rust-toolchain | grep channel | grep --only-matching --perl-regexp "(\d+\.){2}\d+(-nightly)?")
-          echo "::set-output name=rust_version::$RUST_VERSION"
+          echo "rust_version=$RUST_VERSION" >> $GITHUB_OUTPUT
 
   build-srtool-runtimes:
     needs: ["setup-scripts", "read-rust-version"]
@@ -89,6 +89,8 @@ jobs:
           GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
           GH_WORKFLOW_MATRIX_SRTOOL_IMAGE: ${{ matrix.srtool_image }}
           GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG: ${{ matrix.srtool_image_tag }}
+          RUNTIME_BUILD_OPTS: "--features=on-chain-release-build"
+          RUNTIME_BUILD_PROFILE: "production"
         run: |
           # Ensure we have permissions to write to the runtime folder target for the docker user
           mkdir -p runtime/${GH_WORKFLOW_MATRIX_CHAIN}/target

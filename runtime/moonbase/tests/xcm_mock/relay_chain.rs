@@ -177,7 +177,7 @@ pub type XcmBarrier = (
 
 parameter_types! {
 	pub Kusama: AssetFilter = Wild(AllOf { fun: WildFungible, id: AssetId(KsmLocation::get()) });
-	pub Statemine: Location = Parachain(4).into();
+	pub Statemine: Location = Parachain(1000).into();
 	pub KusamaForStatemine: (AssetFilter, Location) = (Kusama::get(), Statemine::get());
 }
 

@@ -346,6 +346,51 @@
       ]
     },
     {
+      "name": "lazy_loading_moonbeam",
+      "testFileDir": ["suites/lazy-loading"],
+      "include": ["**/*test*"],
+      "timeout": 180000,
+      "contracts": "contracts/",
+      "runScripts": [
+        "compile-contracts.ts compile",
+        "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbeam-dev",
+        "prepare-lazy-loading-overrides.ts process configs/lazyLoadingStateOverrides.json tmp/lazyLoadingStateOverrides.json ../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm"
+      ],
+      "multiThreads": 4,
+      "envVars": ["DEBUG_COLORS=1"],
+      "reporters": ["basic", "html", "json"],
+      "reportFile": {
+        "json": "./tmp/testResultsLazyLoadingMoonbeam.json"
+      },
+      "foundation": {
+        "type": "dev",
+        "launchSpec": [
+          {
+            "name": "moonbeam",
+            "binPath": "../target/release/lazy-loading",
+            "newRpcBehaviour": true,
+            "options": [
+              "--ethapi=txpool",
+              "--no-hardware-benchmarks",
+              "--no-telemetry",
+              "--wasmtime-precompiled=wasm",
+              "--unsafe-force-node-key-generation",
+              "--reserved-only",
+              "--no-grandpa",
+              "--no-prometheus",
+              "--force-authoring",
+              "--rpc-cors=all",
+              "--alice",
+              "--sealing=manual",
+              "--tmp",
+              "--fork-chain-from-rpc=https://moonbeam.unitedbloc.com",
+              "--fork-state-overrides=tmp/lazyLoadingStateOverrides.json"
+            ]
+          }
+        ]
+      }
+    },
+    {
       "name": "dev_moonbeam",
       "testFileDir": ["suites/dev/moonbeam", "suites/dev/common"],
       "include": ["**/*test*"],
