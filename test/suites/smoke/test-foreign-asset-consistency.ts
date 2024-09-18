@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
+import { patchLocationV4recursively } from "../../helpers";
 
 describeSuite({
   id: "S12",
@@ -12,7 +13,7 @@ describeSuite({
     let apiAt: ApiDecoration<"promise">;
     const foreignAssetIdType: { [assetId: string]: string } = {};
     const foreignAssetTypeId: { [assetType: string]: string } = {};
-    const foreignXcmAcceptedAssets: string[] = [];
+    const xcmWeightManagerSupportedAssets: string[] = [];
     let liveForeignAssets: { [key: string]: boolean };
     let specVersion: number;
     let paraApi: ApiPromise;
@@ -40,6 +41,18 @@ describeSuite({
         foreignAssetTypeId[assetType] = exposure.unwrap().toString();
       });
 
+      if (specVersion >= 3200) {
+        query = await apiAt.query.xcmWeightTrader.supportedAssets.entries();
+        query.forEach(([key, _]) => {
+          const assetType = key.args.toString();
+          xcmWeightManagerSupportedAssets.push(assetType);
+        });
+      }
+      // log(`Foreign Xcm Accepted Assets: ${foreignXcmAcceptedAssets}`);
+      // log(`Foreign AssetId<->AssetType: ${JSON.stringify(foreignAssetIdType)}`);
+      // foreignAssetTypeId
+      // log(`Foreign AssetType<->AssetId: ${JSON.stringify(foreignAssetTypeId)}`);
+
       if (specVersion >= 2200) {
         liveForeignAssets = (await apiAt.query.assets.asset.entries()).reduce(
           (acc, [key, value]) => {
@@ -56,14 +69,14 @@ describeSuite({
       title: `should make sure xcm fee assets accepted is <=> than existing assets`,
       test: async function () {
         expect(
-          foreignXcmAcceptedAssets.length,
+          xcmWeightManagerSupportedAssets.length,
           `Number of foreign asset deposits does not match the number of foreign assets`
         ).to.be.lessThanOrEqual(Object.keys(foreignAssetIdType).length);
 
         log(
           `Verified FOREIGN asset counter (${
             Object.keys(foreignAssetIdType).length
-          }) >= xcm fee payment assets: (${foreignXcmAcceptedAssets.length})`
+          }) >= xcm fee payment assets: (${xcmWeightManagerSupportedAssets.length})`
         );
       },
     });
@@ -101,8 +114,21 @@ describeSuite({
       test: async function () {
         const failedXcmPaymentAssets: { assetType: string }[] = [];
 
-        for (const assetType of foreignXcmAcceptedAssets) {
-          if (!Object.keys(foreignAssetTypeId).includes(assetType)) {
+        log(`xcmWeightManagerSupportedAssets: ${xcmWeightManagerSupportedAssets}`);
+
+        // Patch the location
+        const xcmForForeignAssets = Object.values(foreignAssetIdType).map((type) => {
+          const parents = JSON.parse(type).xcm.parents;
+          const interior = JSON.parse(type).xcm.interior;
+          patchLocationV4recursively(interior);
+          return JSON.stringify({
+            parents,
+            interior,
+          });
+        });
+
+        for (const assetType of xcmWeightManagerSupportedAssets) {
+          if (!xcmForForeignAssets.includes(assetType)) {
             failedXcmPaymentAssets.push({ assetType });
           }
         }
@@ -114,7 +140,7 @@ describeSuite({
             .join(`\n`)}`
         ).to.equal(0);
         log(
-          `Verified ${foreignXcmAcceptedAssets.length} xcm ` +
+          `Verified ${xcmWeightManagerSupportedAssets.length} xcm ` +
             `fee payment assets (at #${atBlockNumber})`
         );
       },
@@ -150,6 +176,33 @@ describeSuite({
     it({
       id: "C500",
       title: "should make sure all live assets are managed",
+      test: async function () {
+        if (specVersion < 2200) {
+          log(`ChainSpec ${specVersion} unsupported, skipping.`);
+          return;
+        }
+
+        const notLiveAssets: string[] = [];
+        const liveAssets = Object.keys(liveForeignAssets);
+        for (const assetId of liveAssets) {
+          if (!(assetId in foreignAssetIdType)) {
+            notLiveAssets.push(assetId);
+          }
+        }
+
+        expect(
+          notLiveAssets.length,
+          `Failed not managed live assets - ${notLiveAssets
+            .map((assetId) => `expected: ${assetId} to be managed`)
+            .join(`\n`)}`
+        ).to.equal(0);
+        log(`Verified ${liveAssets.length} live assets (at #${atBlockNumber})`);
+      },
+    });
+
+    it({
+      id: "C500",
+      title: "should make sure all live assets are supported by xcmWeightManager",
       test: async function () {
         if (specVersion < 2200) {
           log(`ChainSpec ${specVersion} unsupported, skipping.`);
