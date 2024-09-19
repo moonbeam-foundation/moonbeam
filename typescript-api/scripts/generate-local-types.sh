@@ -11,7 +11,7 @@ fi
 # Fail if any command fails
 
 echo "Installing Packages"
-npm ci
+pnpm i
 
 echo "Starting moonbeam node"
 ../target/release/moonbeam --tmp --chain=moonbase-local --rpc-port=9933 &> /tmp/node-start.log &
@@ -19,15 +19,16 @@ PID=$!
 
 echo "Waiting node...(5s)"
 sleep 1
-( tail -f -n0 /tmp/node-start.log & ) | grep -q 'new connection'
+( tail -f -n0 /tmp/node-start.log & ) | grep -q 'Running JSON-RPC server:'
 
 echo "Generating types...(10s)"
 sleep 1
-npm run load:meta
-npm run load:meta:local
-npm run generate:defs
-npm run generate:meta
-npm run postgenerate
+pnpm load:meta
+pnpm load:meta:local
+pnpm generate:defs
+pnpm generate:meta
+pnpm fmt:fix
 
 kill $PID
 echo "Done :)"
+exit 0
