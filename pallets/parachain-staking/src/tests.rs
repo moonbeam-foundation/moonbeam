@@ -31,7 +31,8 @@ use crate::mock::{
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded,
-	EnableMarkingOffline, Error, Event, Range, DELEGATOR_LOCK_ID,
+	EnableMarkingOffline, Error, Event, InflationDistributionConfig, InflationDistributionConfigId,
+	Range, DELEGATOR_LOCK_ID,
 };
 use frame_support::{assert_err, assert_noop, assert_ok, pallet_prelude::*, BoundedVec};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -392,13 +393,13 @@ fn invalid_monetary_origin_fails() {
 			sp_runtime::DispatchError::BadOrigin
 		);
 		assert_noop!(
-			ParachainStaking::set_parachain_bond_account(RuntimeOrigin::signed(45), 11),
-			sp_runtime::DispatchError::BadOrigin
-		);
-		assert_noop!(
-			ParachainStaking::set_parachain_bond_reserve_percent(
+			ParachainStaking::set_inflation_distribution_config(
 				RuntimeOrigin::signed(45),
-				Percent::from_percent(2)
+				InflationDistributionConfigId::ParachainBondReserve,
+				Some(InflationDistributionConfig {
+					account: 1u64,
+					percent: Percent::from_percent(30)
+				})
 			),
 			sp_runtime::DispatchError::BadOrigin
 		);
@@ -604,43 +605,84 @@ fn cannot_set_same_inflation() {
 	});
 }
 
-// SET PARACHAIN BOND ACCOUNT
+// SET INFLATION DISTRIBUTION CONFIG
 
 #[test]
 fn set_parachain_bond_account_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(ParachainStaking::set_parachain_bond_account(
+		assert_ok!(ParachainStaking::set_inflation_distribution_config(
 			RuntimeOrigin::root(),
-			11
+			InflationDistributionConfigId::ParachainBondReserve,
+			Some(InflationDistributionConfig {
+				account: 11,
+				percent: Percent::from_percent(30)
+			}),
 		));
-		assert_events_eq!(Event::ParachainBondAccountSet { old: 0, new: 11 });
+		assert_events_eq!(Event::InflationDistributionConfigUpdated {
+			id: InflationDistributionConfigId::ParachainBondReserve,
+			old: Some(InflationDistributionConfig {
+				account: 1,
+				percent: Percent::from_percent(30)
+			}),
+			new: Some(InflationDistributionConfig {
+				account: 11,
+				percent: Percent::from_percent(30)
+			}),
+		});
 	});
 }
 
 #[test]
 fn set_parachain_bond_account_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(ParachainStaking::inflation_distribution_info().account, 0);
-		assert_ok!(ParachainStaking::set_parachain_bond_account(
+		assert_eq!(
+			ParachainStaking::inflation_distribution_info(
+				InflationDistributionConfigId::ParachainBondReserve,
+			)
+			.expect("Expected ParachainBondReserve to be set")
+			.account,
+			0,
+		);
+		assert_ok!(ParachainStaking::set_inflation_distribution_config(
 			RuntimeOrigin::root(),
-			11
+			InflationDistributionConfigId::ParachainBondReserve,
+			Some(InflationDistributionConfig {
+				account: 11,
+				percent: Percent::from_percent(30)
+			}),
 		));
-		assert_eq!(ParachainStaking::inflation_distribution_info().account, 11);
+		assert_eq!(
+			ParachainStaking::inflation_distribution_info(
+				InflationDistributionConfigId::ParachainBondReserve,
+			)
+			.expect("Expected ParachainBondReserve to be set")
+			.account,
+			11,
+		);
 	});
 }
-
-// SET PARACHAIN BOND RESERVE PERCENT
 
 #[test]
 fn set_parachain_bond_reserve_percent_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(ParachainStaking::set_parachain_bond_reserve_percent(
+		assert_ok!(ParachainStaking::set_inflation_distribution_config(
 			RuntimeOrigin::root(),
-			Percent::from_percent(50)
+			InflationDistributionConfigId::ParachainBondReserve,
+			Some(InflationDistributionConfig {
+				account: 0,
+				percent: Percent::from_percent(50)
+			}),
 		));
-		assert_events_eq!(Event::ParachainBondReservePercentSet {
-			old: Percent::from_percent(30),
-			new: Percent::from_percent(50),
+		assert_events_eq!(Event::InflationDistributionConfigUpdated {
+			id: InflationDistributionConfigId::ParachainBondReserve,
+			old: Some(InflationDistributionConfig {
+				account: 0,
+				percent: Percent::from_percent(30)
+			}),
+			new: Some(InflationDistributionConfig {
+				account: 0,
+				percent: Percent::from_percent(50)
+			}),
 		});
 	});
 }
@@ -649,16 +691,28 @@ fn set_parachain_bond_reserve_percent_event_emits_correctly() {
 fn set_parachain_bond_reserve_percent_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(
-			ParachainStaking::inflation_distribution_info().percent,
-			Percent::from_percent(30)
+			ParachainStaking::inflation_distribution_info(
+				InflationDistributionConfigId::ParachainBondReserve,
+			)
+			.expect("Expected ParachainBondReserve to be set")
+			.percent,
+			Percent::from_percent(30),
 		);
-		assert_ok!(ParachainStaking::set_parachain_bond_reserve_percent(
+		assert_ok!(ParachainStaking::set_inflation_distribution_config(
 			RuntimeOrigin::root(),
-			Percent::from_percent(50)
+			InflationDistributionConfigId::ParachainBondReserve,
+			Some(InflationDistributionConfig {
+				account: 0,
+				percent: Percent::from_percent(50)
+			}),
 		));
 		assert_eq!(
-			ParachainStaking::inflation_distribution_info().percent,
-			Percent::from_percent(50)
+			ParachainStaking::inflation_distribution_info(
+				InflationDistributionConfigId::ParachainBondReserve,
+			)
+			.expect("Expected ParachainBondReserve to be set")
+			.percent,
+			Percent::from_percent(50),
 		);
 	});
 }
@@ -667,9 +721,13 @@ fn set_parachain_bond_reserve_percent_storage_updates_correctly() {
 fn cannot_set_same_parachain_bond_reserve_percent() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::set_parachain_bond_reserve_percent(
+			ParachainStaking::set_inflation_distribution_config(
 				RuntimeOrigin::root(),
-				Percent::from_percent(30)
+				InflationDistributionConfigId::ParachainBondReserve,
+				Some(InflationDistributionConfig {
+					account: 0,
+					percent: Percent::from_percent(30)
+				}),
 			),
 			Error::<Test>::NoWritingSameValue
 		);
@@ -3962,11 +4020,25 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			assert_eq!(Balances::free_balance(&11), 1);
 			// set parachain bond account so DefaultParachainBondReservePercent = 30% of inflation
 			// is allocated to this account hereafter
-			assert_ok!(ParachainStaking::set_parachain_bond_account(
+			assert_ok!(ParachainStaking::set_inflation_distribution_config(
 				RuntimeOrigin::root(),
-				11
+				InflationDistributionConfigId::ParachainBondReserve,
+				Some(InflationDistributionConfig {
+					account: 11,
+					percent: Percent::from_percent(30),
+				}),
 			));
-			assert_events_eq!(Event::ParachainBondAccountSet { old: 0, new: 11 });
+			assert_events_eq!(Event::InflationDistributionConfigUpdated {
+				id: InflationDistributionConfigId::ParachainBondReserve,
+				old: Some(InflationDistributionConfig {
+					account: 0,
+					percent: Percent::from_percent(30),
+				}),
+				new: Some(InflationDistributionConfig {
+					account: 11,
+					percent: Percent::from_percent(30),
+				}),
+			});
 			roll_to_round_begin(2);
 			// chooses top TotalSelectedCandidates (5), in order
 			assert_events_eq!(
@@ -4022,7 +4094,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				1,
 			));
 			assert_events_eq!(
-				Event::ReservedForParachainBond {
+				Event::InflationDistributed {
+					id: InflationDistributionConfigId::ParachainBondReserve,
 					account: 11,
 					value: 15,
 				},
@@ -4085,7 +4158,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			// fast forward to block in which delegator 6 exit executes
 			roll_to_round_begin(5);
 			assert_events_eq!(
-				Event::ReservedForParachainBond {
+				Event::InflationDistributed {
+					id: InflationDistributionConfigId::ParachainBondReserve,
 					account: 11,
 					value: 16,
 				},
@@ -4147,7 +4221,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				10
 			));
 			assert_events_eq!(
-				Event::ReservedForParachainBond {
+				Event::InflationDistributed {
+					id: InflationDistributionConfigId::ParachainBondReserve,
 					account: 11,
 					value: 16,
 				},
@@ -4214,7 +4289,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			);
 			roll_to_round_begin(7);
 			assert_events_eq!(
-				Event::ReservedForParachainBond {
+				Event::InflationDistributed {
+					id: InflationDistributionConfigId::ParachainBondReserve,
 					account: 11,
 					value: 17,
 				},
@@ -4267,20 +4343,32 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			);
 			assert_eq!(Balances::free_balance(&11), 65);
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::set_parachain_bond_reserve_percent(
+			assert_ok!(ParachainStaking::set_inflation_distribution_config(
 				RuntimeOrigin::root(),
-				Percent::from_percent(50)
+				InflationDistributionConfigId::ParachainBondReserve,
+				Some(InflationDistributionConfig {
+					account: 11,
+					percent: Percent::from_percent(50),
+				}),
 			));
-			assert_events_eq!(Event::ParachainBondReservePercentSet {
-				old: Percent::from_percent(30),
-				new: Percent::from_percent(50),
+			assert_events_eq!(Event::InflationDistributionConfigUpdated {
+				id: InflationDistributionConfigId::ParachainBondReserve,
+				old: Some(InflationDistributionConfig {
+					account: 11,
+					percent: Percent::from_percent(30),
+				}),
+				new: Some(InflationDistributionConfig {
+					account: 11,
+					percent: Percent::from_percent(50),
+				}),
 			});
 			// 6 won't be paid for this round because they left already
 			set_author(6, 1, 100);
 			roll_to_round_begin(8);
 			// keep paying 6
 			assert_events_eq!(
-				Event::ReservedForParachainBond {
+				Event::InflationDistributed {
+					id: InflationDistributionConfigId::ParachainBondReserve,
 					account: 11,
 					value: 30,
 				},
@@ -4336,7 +4424,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			roll_to_round_begin(9);
 			// no more paying 6
 			assert_events_eq!(
-				Event::ReservedForParachainBond {
+				Event::InflationDistributed {
+					id: InflationDistributionConfigId::ParachainBondReserve,
 					account: 11,
 					value: 32,
 				},
@@ -4407,7 +4496,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			roll_to_round_begin(10);
 			// new delegation is not rewarded yet
 			assert_events_eq!(
-				Event::ReservedForParachainBond {
+				Event::InflationDistributed {
+					id: InflationDistributionConfigId::ParachainBondReserve,
 					account: 11,
 					value: 33,
 				},
@@ -4464,7 +4554,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			roll_to_round_begin(11);
 			// new delegation is still not rewarded yet
 			assert_events_eq!(
-				Event::ReservedForParachainBond {
+				Event::InflationDistributed {
+					id: InflationDistributionConfigId::ParachainBondReserve,
 					account: 11,
 					value: 35,
 				},
@@ -4519,7 +4610,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			roll_to_round_begin(12);
 			// new delegation is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
 			assert_events_eq!(
-				Event::ReservedForParachainBond {
+				Event::InflationDistributed {
+					id: InflationDistributionConfigId::ParachainBondReserve,
 					account: 11,
 					value: 37,
 				},

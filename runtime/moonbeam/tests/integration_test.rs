@@ -48,6 +48,7 @@ use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
+use pallet_parachain_staking::{InflationDistributionConfig, InflationDistributionConfigId};
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
@@ -681,9 +682,13 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		.build()
 		.execute_with(|| {
 			increase_last_relay_slot_number(1);
-			assert_ok!(ParachainStaking::set_parachain_bond_account(
+			assert_ok!(ParachainStaking::set_inflation_distribution_config(
 				root_origin(),
-				AccountId::from(CHARLIE),
+				InflationDistributionConfigId::ParachainBondReserve,
+				Some(InflationDistributionConfig {
+					account: AccountId::from(CHARLIE),
+					percent: sp_runtime::Percent::from_percent(30),
+				}),
 			),);
 
 			// Stop just before round 3

@@ -409,7 +409,8 @@ pub mod pallet {
 		/// Inflation distribution config updated.
 		InflationDistributionConfigUpdated {
 			id: InflationDistributionConfigId,
-			config: Option<InflationDistributionConfig<T::AccountId>>,
+			old: Option<InflationDistributionConfig<T::AccountId>>,
+			new: Option<InflationDistributionConfig<T::AccountId>>,
 		},
 		/// Annual inflation input (first 3) was used to derive new per-round inflation (last 3)
 		InflationSet {
@@ -1492,7 +1493,7 @@ pub mod pallet {
 		///   across all configurations exceeds 100% after applying the new configuration.
 		#[pallet::call_index(32)]
 		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_account())]
-		pub fn set_inflation_distribution_account(
+		pub fn set_inflation_distribution_config(
 			origin: OriginFor<T>,
 			id: InflationDistributionConfigId,
 			config: Option<InflationDistributionConfig<T::AccountId>>,
@@ -1505,7 +1506,7 @@ pub mod pallet {
 			for config in <InflationDistributionInfo<T>>::iter_values() {
 				total_percent = total_percent.saturating_add(config.percent);
 			}
-			if let Some(old_config) = old_config {
+			if let Some(ref old_config) = old_config {
 				total_percent = total_percent.saturating_add(old_config.percent);
 			}
 			if let Some(ref config) = config {
@@ -1517,7 +1518,11 @@ pub mod pallet {
 			);
 
 			<InflationDistributionInfo<T>>::set(id.clone(), config.clone());
-			Self::deposit_event(Event::InflationDistributionConfigUpdated { id, config });
+			Self::deposit_event(Event::InflationDistributionConfigUpdated {
+				id,
+				old: old_config,
+				new: config,
+			});
 			Ok(().into())
 		}
 	}

@@ -19,6 +19,7 @@
 mod common;
 use common::*;
 
+use pallet_parachain_staking::{InflationDistributionConfig, InflationDistributionConfigId};
 use precompile_utils::{
 	precompile_set::{is_precompile_or_fail, IsActivePrecompile},
 	prelude::*,
@@ -679,9 +680,13 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		.build()
 		.execute_with(|| {
 			increase_last_relay_slot_number(1);
-			assert_ok!(ParachainStaking::set_parachain_bond_account(
+			assert_ok!(ParachainStaking::set_inflation_distribution_config(
 				root_origin(),
-				AccountId::from(CHARLIE),
+				InflationDistributionConfigId::ParachainBondReserve,
+				Some(InflationDistributionConfig {
+					account: AccountId::from(CHARLIE),
+					percent: sp_runtime::Percent::from_percent(30),
+				}),
 			),);
 
 			// Stop just before round 2
