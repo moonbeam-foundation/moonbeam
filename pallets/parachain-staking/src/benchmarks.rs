@@ -19,8 +19,8 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
-	DelegationAction, EnableMarkingOffline, Pallet, InflationDistributionConfig, ParachainBondInfo, Points,
-	Range, RewardPayment, Round, ScheduledRequest, TopDelegations,
+	DelegationAction, EnableMarkingOffline, InflationDistributionConfig, Pallet, ParachainBondInfo,
+	Points, Range, RewardPayment, Round, ScheduledRequest, TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
