@@ -15,19 +15,11 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-<<<<<<< HEAD
-    "generate": "npm run load:meta && npm run generate:defs && npm run generate:meta",
-    "generate:local": "./scripts/generate-local-types.sh",
-    "postgenerate": "npm run pretty",
-    "load:meta": "npm run load:meta:moonbase && npm run load:meta:moonriver && npm run load:meta:moonbeam",
-    "load:meta:local": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' http://localhost:9944 > metadata-moonbase.json",
-=======
     "generate": "pnpm load:meta && pnpm generate:defs && pnpm generate:meta",
     "scrape": "pnpm tsx scripts/scrapeMetadata.ts",
     "postgenerate": "pnpm pretty",
     "load:meta": "pnpm load:meta:moonbase && pnpm load:meta:moonriver && pnpm load:meta:moonbeam",
     "load:meta:local": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' http://localhost:9933 > metadata-moonbase.json",
->>>>>>> master
     "load:meta:moonbase": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' https://rpc.api.moonbase.moonbeam.network > metadata-moonbase.json",
     "load:meta:moonriver": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' https://rpc.api.moonriver.moonbeam.network > metadata-moonriver.json",
     "load:meta:moonbeam": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' https://rpc.api.moonbeam.network > metadata-moonbeam.json",
