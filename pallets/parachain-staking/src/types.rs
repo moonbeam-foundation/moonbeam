@@ -1749,6 +1749,13 @@ impl<
 }
 
 #[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
+pub enum InflationDistributionConfigId {
+	ParachainBondReserve,
+	Treasury,
+	Other([u8; 32]),
+}
+
+#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// Reserve information { account, percent_of_inflation }
 pub struct ParachainBondConfig<AccountId> {
 	/// Account which receives funds intended for parachain bond
