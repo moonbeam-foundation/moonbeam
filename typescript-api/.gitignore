@@ -1,5 +1,6 @@
 metadata-*.json
 build
+dist
 *.tgz
 
 # Logs
