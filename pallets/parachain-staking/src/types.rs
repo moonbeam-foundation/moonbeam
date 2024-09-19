@@ -1763,15 +1763,6 @@ pub struct InflationDistributionConfig<AccountId> {
 	/// Percent of inflation set aside for parachain bond account
 	pub percent: Percent,
 }
-impl<A: Decode> Default for InflationDistributionConfig<A> {
-	fn default() -> InflationDistributionConfig<A> {
-		InflationDistributionConfig {
-			account: A::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
-				.expect("infinite length input; no invalid inputs for type; qed"),
-			percent: Percent::zero(),
-		}
-	}
-}
 
 pub enum BondAdjust<Balance> {
 	Increase(Balance),

@@ -520,8 +520,13 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn inflation_distribution_info)]
 	/// Parachain bond config info { account, percent_of_inflation }
-	pub(crate) type InflationDistributionInfo<T: Config> =
-		StorageValue<_, InflationDistributionConfig<T::AccountId>, ValueQuery>;
+	pub(crate) type InflationDistributionInfo<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		InflationDistributionConfigId,
+		InflationDistributionConfig<T::AccountId>,
+		ValueQuery,
+	>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
@@ -787,7 +792,7 @@ pub mod pallet {
 			// Set collator commission to default config
 			<CollatorCommission<T>>::put(self.collator_commission);
 			// Set parachain bond config to default config
-			<InflationDistributionInfo<T>>::put(InflationDistributionConfig {
+			<InflationDistributionInfo<T>>::put(InflationDistributionConfigId::ParachainBondReserve,InflationDistributionConfig {
 				// must be set soon; if not => due inflation will be sent to collators/delegators
 				account: T::AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
 					.expect("infinite length input; no invalid inputs for type; qed"),
