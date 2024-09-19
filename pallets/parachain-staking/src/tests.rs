@@ -620,12 +620,12 @@ fn set_parachain_bond_account_event_emits_correctly() {
 #[test]
 fn set_parachain_bond_account_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(ParachainStaking::parachain_bond_info().account, 0);
+		assert_eq!(ParachainStaking::inflation_distribution_info().account, 0);
 		assert_ok!(ParachainStaking::set_parachain_bond_account(
 			RuntimeOrigin::root(),
 			11
 		));
-		assert_eq!(ParachainStaking::parachain_bond_info().account, 11);
+		assert_eq!(ParachainStaking::inflation_distribution_info().account, 11);
 	});
 }
 
@@ -649,7 +649,7 @@ fn set_parachain_bond_reserve_percent_event_emits_correctly() {
 fn set_parachain_bond_reserve_percent_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(
-			ParachainStaking::parachain_bond_info().percent,
+			ParachainStaking::inflation_distribution_info().percent,
 			Percent::from_percent(30)
 		);
 		assert_ok!(ParachainStaking::set_parachain_bond_reserve_percent(
@@ -657,7 +657,7 @@ fn set_parachain_bond_reserve_percent_storage_updates_correctly() {
 			Percent::from_percent(50)
 		));
 		assert_eq!(
-			ParachainStaking::parachain_bond_info().percent,
+			ParachainStaking::inflation_distribution_info().percent,
 			Percent::from_percent(50)
 		);
 	});
