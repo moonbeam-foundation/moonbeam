@@ -1492,7 +1492,7 @@ pub mod pallet {
 		/// * `TotalInflationDistributionPercentExceeds100` - Occurs if the total inflation distribution
 		///   across all configurations exceeds 100% after applying the new configuration.
 		#[pallet::call_index(32)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_account())]
+		#[pallet::weight(<T as Config>::WeightInfo::set_inflation_distribution_config())]
 		pub fn set_inflation_distribution_config(
 			origin: OriginFor<T>,
 			id: InflationDistributionConfigId,

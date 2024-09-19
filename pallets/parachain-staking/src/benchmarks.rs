@@ -19,8 +19,9 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
-	DelegationAction, EnableMarkingOffline, InflationDistributionConfig, Pallet, ParachainBondInfo,
-	Points, Range, RewardPayment, Round, ScheduledRequest, TopDelegations,
+	DelegationAction, EnableMarkingOffline, InflationDistributionConfig,
+	InflationDistributionConfigId, InflationDistributionInfo, Pallet, Points, Range, RewardPayment,
+	Round, ScheduledRequest, TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
@@ -276,17 +277,17 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::inflation_config().annual, inflation_range);
 	}
 
-	set_parachain_bond_account {
-		let parachain_bond_account: T::AccountId = account("TEST", 0u32, USER_SEED);
-	}: _(RawOrigin::Root, parachain_bond_account.clone())
+	set_inflation_distribution_config {
+		let id = InflationDistributionConfigId::ParachainBondReserve;
+		let account: T::AccountId = account("TEST", 0u32, USER_SEED);
+		let percent = Percent::from_percent(33);
+		let config = InflationDistributionConfig {
+			account,
+			percent,
+		};
+	}: _(RawOrigin::Root, id.clone(), Some(config.clone()))
 	verify {
-		assert_eq!(Pallet::<T>::inflation_distribution_info().account, parachain_bond_account);
-	}
-
-	set_parachain_bond_reserve_percent {
-	}: _(RawOrigin::Root, Percent::from_percent(33))
-	verify {
-		assert_eq!(Pallet::<T>::inflation_distribution_info().percent, Percent::from_percent(33));
+		assert_eq!(Pallet::<T>::inflation_distribution_info(id), Some(config));
 	}
 
 	// ROOT DISPATCHABLES
@@ -1554,7 +1555,7 @@ benchmarks! {
 		let payout_round = round.current - reward_delay;
 		// may need:
 		//  <Points<T>>
-		//  <ParachainBondInfo<T>>
+		//  <InflationDistributionInfo<T>>
 		//  ensure parachain bond account exists so that deposit_into_existing succeeds
 		<Points<T>>::insert(payout_round, 100);
 
@@ -1564,10 +1565,12 @@ benchmarks! {
 			0,
 			min_candidate_stk::<T>(),
 		).0;
-		<ParachainBondInfo<T>>::put(InflationDistributionConfig {
+		<InflationDistributionInfo<T>>::set(
+			InflationDistributionConfigId::ParachainBondReserve,
+			Some( InflationDistributionConfig {
 			account,
 			percent: Percent::from_percent(50),
-		});
+		}));
 
 	}: { Pallet::<T>::prepare_staking_payouts(round, current_slot); }
 	verify {
@@ -2332,16 +2335,9 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_set_parachain_bond_account() {
+	fn bench_set_inflation_distribution_config() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_set_parachain_bond_account());
-		});
-	}
-
-	#[test]
-	fn bench_set_parachain_bond_reserve_percent() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_set_parachain_bond_reserve_percent());
+			assert_ok!(Pallet::<Test>::test_benchmark_set_inflation_distribution_config());
 		});
 	}
 

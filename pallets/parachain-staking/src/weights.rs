@@ -54,8 +54,7 @@ use sp_std::marker::PhantomData;
 pub trait WeightInfo {
 	fn set_staking_expectations() -> Weight;
 	fn set_inflation() -> Weight;
-	fn set_parachain_bond_account() -> Weight;
-	fn set_parachain_bond_reserve_percent() -> Weight;
+	fn set_inflation_distribution_config() -> Weight;
 	fn set_total_selected() -> Weight;
 	fn set_collator_commission() -> Weight;
 	fn set_blocks_per_round() -> Weight;
@@ -117,26 +116,15 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	/// Storage: ParachainStaking ParachainBondInfo (r:1 w:1)
-	/// Proof Skipped: ParachainStaking ParachainBondInfo (max_values: Some(1), max_size: None, mode: Measured)
-	fn set_parachain_bond_account() -> Weight {
+	/// Storage: `ParachainStaking::InflationDistributionInfo` (r:2 w:1)
+	/// Proof: `ParachainStaking::InflationDistributionInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn set_inflation_distribution_config() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `6`
-		//  Estimated: `1491`
-		// Minimum execution time: 14_675_000 picoseconds.
-		Weight::from_parts(15_094_000, 1491)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
-	/// Storage: ParachainStaking ParachainBondInfo (r:1 w:1)
-	/// Proof Skipped: ParachainStaking ParachainBondInfo (max_values: Some(1), max_size: None, mode: Measured)
-	fn set_parachain_bond_reserve_percent() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `6`
-		//  Estimated: `1491`
-		// Minimum execution time: 13_898_000 picoseconds.
-		Weight::from_parts(14_492_000, 1491)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
+		//  Measured:  `33`
+		//  Estimated: `5973`
+		// Minimum execution time: 15_830_000 picoseconds.
+		Weight::from_parts(23_810_000, 5973)
+			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 	/// Storage: ParachainStaking TotalSelected (r:1 w:1)
