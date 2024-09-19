@@ -2,7 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "../../build/moonbase",
+    "baseUrl": "./",
+    "outDir": "../../dist/moonbase",
     "paths": {
       "@moonbeam/api-augment/moonbase/*": ["src/moonbase/*"],
       "@polkadot/api/augment": ["src/moonbase/interfaces/augment-api.ts"],

@@ -1,102 +1,6 @@
-import type {
-  OverrideBundleDefinition,
-  OverrideBundleType,
-  OverrideModuleType,
-  DefinitionRpc,
-  DefinitionRpcSub,
-  RegistryTypes,
-  OverrideVersionedType,
-  // @ts-expect-error
-} from "@polkadot/types/types";
+import type { RegistryTypes } from "@polkadot/types/types";
 
-// override types for specific pallets
-export const moduleDefinitions: Record<string, OverrideModuleType> = {
-  assetManager: {
-    Balance: "TAssetBalance",
-  },
-  xTokens: {
-    Balance: "TAssetBalance",
-  },
-};
-
-// Moonbeam specific rpc methods
-export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | DefinitionRpcSub>> = {
-  txpool: {
-    content: {
-      aliasSection: "txpool",
-      description:
-        "The detailed information regarding Ethereum transactions that are currently in the " +
-        "Substrate transaction pool.",
-      params: [],
-      type: "TxPoolResultContent",
-    },
-    inspect: {
-      aliasSection: "txpool",
-      description:
-        "Summarized information of the Ethereum transactions that are currently in the Substrate" +
-        " transaction pool.",
-      params: [],
-      type: "TxPoolResultInspect",
-    },
-    status: {
-      aliasSection: "txpool",
-      description:
-        "The number of Ethereum transaction that are currently in the Substrate transaction pool.",
-      params: [],
-      type: "TxPoolResultStatus",
-    },
-  },
-  trace: {
-    filter: {
-      aliasSection: "trace",
-      description: "Trace Filter",
-      params: [{ name: "filter", type: "FilterRequest" }],
-      type: "Result<Vec<TransactionTrace>>",
-    },
-  },
-  debug: {
-    traceTransaction: {
-      aliasSection: "debug",
-      description: "Debug trace tx",
-      params: [{ name: "transaction_hash", type: "H256" }],
-      type: "Result<Vec<TransactionTrace>>",
-    },
-  },
-  xcm: {
-    injectDownwardMessage: {
-      description: "Inject a downward message from the relay chain.",
-      params: [{ name: "message", type: "Vec<u8>" }],
-      type: "Result<()>",
-    },
-    injectHrmpMessage: {
-      description: "Inject an HRMP message from a dedicated channel from a sibling parachain",
-      params: [
-        { name: "sender", type: "ParaId" },
-        { name: "message", type: "Vec<u8>" },
-      ],
-      type: "Result<()>",
-    },
-  },
-  moon: {
-    isBlockFinalized: {
-      description: "Returns whether an Ethereum block is finalized",
-      params: [{ name: "blockHash", type: "Hash" }],
-      type: "bool",
-    },
-    isTxFinalized: {
-      description: "Returns whether an Ethereum transaction is finalized",
-      params: [{ name: "txHash", type: "Hash" }],
-      type: "bool",
-    },
-    getLatestSyncedBlock: {
-      description: "Returns the latest synced block from frontier's backend",
-      params: [],
-      type: "u32",
-    },
-  },
-};
-
-const TYPES_0_4: RegistryTypes = {
+export const TYPES_0_4: RegistryTypes = {
   AccountId: "EthereumAccountId",
   Address: "AccountId",
   Balance: "u128",
@@ -109,9 +13,10 @@ const TYPES_0_4: RegistryTypes = {
   EthTransaction: "LegacyTransaction",
   DispatchErrorModule: "DispatchErrorModuleU8",
 };
-const { RefCount, ...TYPES_5_5 } = TYPES_0_4;
 
-const TYPES_6_19: RegistryTypes = {
+export const { RefCount, ...TYPES_5_5 } = TYPES_0_4;
+
+export const TYPES_6_19: RegistryTypes = {
   ...TYPES_5_5,
   ExtrinsicSignature: "EthereumSignature",
   RoundIndex: "u32",
@@ -161,7 +66,7 @@ const TYPES_6_19: RegistryTypes = {
   },
 };
 const { ValidatorStatus, ...omitFields } = TYPES_6_19;
-const TYPES_19_35: RegistryTypes = {
+export const TYPES_19_35: RegistryTypes = {
   ...omitFields,
   AccountInfo: "AccountInfoWithTripleRefCount",
   Candidate: {
@@ -217,11 +122,11 @@ const TYPES_19_35: RegistryTypes = {
     length: "u32",
   },
 };
-const TYPES_36_36: RegistryTypes = {
+export const TYPES_36_36: RegistryTypes = {
   ...TYPES_19_35,
   AuthorId: "AccountId",
 };
-const TYPES_37_42: RegistryTypes = {
+export const TYPES_37_42: RegistryTypes = {
   ...TYPES_36_36,
   AccountId32: "H256",
   AuthorId: "AccountId32",
@@ -243,7 +148,7 @@ const TYPES_37_42: RegistryTypes = {
   },
 };
 
-const TYPES_43_154: RegistryTypes = {
+export const TYPES_43_154: RegistryTypes = {
   ...TYPES_37_42,
   Collator2: {
     id: "AccountId",
@@ -268,7 +173,7 @@ const TYPES_43_154: RegistryTypes = {
   },
 };
 
-const TYPES_155_199: RegistryTypes = {
+export const TYPES_155_199: RegistryTypes = {
   ...TYPES_43_154,
   EthereumSignature: {
     r: "H256",
@@ -280,7 +185,7 @@ const TYPES_155_199: RegistryTypes = {
   },
 };
 
-const TYPES_200_399: RegistryTypes = {
+export const TYPES_200_399: RegistryTypes = {
   ...TYPES_155_199,
   NominatorStatus: {
     _enum: { Active: "Null", Leaving: "RoundIndex" },
@@ -301,7 +206,7 @@ const TYPES_200_399: RegistryTypes = {
   },
 };
 
-const TYPES_400_599: RegistryTypes = {
+export const TYPES_400_599: RegistryTypes = {
   ...TYPES_200_399,
   RewardInfo: {
     totalReward: "Balance",
@@ -310,7 +215,7 @@ const TYPES_400_599: RegistryTypes = {
   },
 };
 
-const TYPES_600_799: RegistryTypes = {
+export const TYPES_600_799: RegistryTypes = {
   ...TYPES_400_599,
   AssetType: {
     _enum: {
@@ -365,7 +270,7 @@ const TYPES_600_799: RegistryTypes = {
   MultiLocation: "MultiLocationV0",
 };
 
-const TYPES_800_899: RegistryTypes = {
+export const TYPES_800_899: RegistryTypes = {
   ...TYPES_600_799,
   JunctionV1: {
     _enum: {
@@ -383,7 +288,7 @@ const TYPES_800_899: RegistryTypes = {
   MultiLocation: "MultiLocationV1",
 };
 
-const TYPES_900_undefined_deprecated: RegistryTypes = {
+export const TYPES_900_undefined_deprecated: RegistryTypes = {
   ...TYPES_800_899,
   MoonbaseRuntimeAssetRegistrarMetadata: {
     name: "Vec<u8>",
@@ -422,7 +327,7 @@ const TYPES_900_undefined_deprecated: RegistryTypes = {
   },
 };
 
-const TYPES_POST_900: RegistryTypes = {
+export const TYPES_POST_900: RegistryTypes = {
   ProxyType: {
     _enum: [
       "Any",
@@ -435,98 +340,3 @@ const TYPES_POST_900: RegistryTypes = {
     ],
   },
 };
-
-export const moonbeamDefinitions = {
-  alias: moduleDefinitions,
-  rpc: rpcDefinitions,
-  instances: {
-    council: ["councilCollective"],
-    technicalCommittee: ["techCommitteeCollective", "openTechCommitteeCollective"],
-  },
-  types: [
-    {
-      minmax: [0, 4],
-      types: TYPES_0_4,
-    },
-    {
-      minmax: [5, 5],
-      types: TYPES_5_5,
-    },
-    {
-      minmax: [6, 19],
-      types: TYPES_6_19,
-    },
-    {
-      minmax: [19, 35],
-      types: TYPES_19_35,
-    },
-    {
-      minmax: [36, 36],
-      types: TYPES_36_36,
-    },
-    {
-      minmax: [37, 42],
-      types: TYPES_37_42,
-    },
-    {
-      minmax: [43, 154],
-      types: TYPES_43_154,
-    },
-    {
-      minmax: [155, 199],
-      types: TYPES_155_199,
-    },
-    {
-      minmax: [200, 399],
-      types: TYPES_200_399,
-    },
-    {
-      minmax: [400, 599],
-      types: TYPES_400_599,
-    },
-    {
-      minmax: [600, 799],
-      types: TYPES_600_799,
-    },
-    {
-      minmax: [800, 899],
-      types: TYPES_800_899,
-    },
-    {
-      minmax: [900, undefined],
-      types: TYPES_POST_900,
-    },
-  ],
-} as OverrideBundleDefinition;
-
-export const moonbeamDefinitionsDeprecated = {
-  ...moonbeamDefinitions,
-  types: [
-    ...(moonbeamDefinitions.types as OverrideVersionedType[]),
-    {
-      minmax: [900, undefined],
-      types: TYPES_900_undefined_deprecated,
-    },
-  ],
-} as OverrideBundleDefinition;
-
-export const typesBundlePre900 = {
-  spec: {
-    moonbeam: moonbeamDefinitions,
-    moonbeamDefinitions,
-    moonbase: moonbeamDefinitions,
-    moonriver: moonbeamDefinitions,
-  },
-} as OverrideBundleType;
-
-export const typesBundleDeprecated = {
-  spec: {
-    moonbeam: moonbeamDefinitionsDeprecated,
-    moonbeamDefinitions: moonbeamDefinitionsDeprecated,
-    moonbase: moonbeamDefinitionsDeprecated,
-    moonriver: moonbeamDefinitionsDeprecated,
-  },
-} as OverrideBundleType;
-
-// default types to use
-export const types = typesBundlePre900;

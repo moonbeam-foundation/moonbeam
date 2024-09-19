@@ -298,6 +298,14 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
         (at: Hash | string | Uint8Array) => Observable<Option<BlockStats>>
       >;
     };
+    empty: {
+      /** Returns the latest synced block from Frontier's backend */
+      getLatestSyncedBlock: AugmentedRpc<() => Observable<u32>>;
+      /** Returns whether an Ethereum block is finalized */
+      isBlockFinalized: AugmentedRpc<(blockHash: Hash | string | Uint8Array) => Observable<bool>>;
+      /** Returns whether an Ethereum transaction is finalized */
+      isTxFinalized: AugmentedRpc<(txHash: Hash | string | Uint8Array) => Observable<bool>>;
+    };
     engine: {
       /** Instructs the manual-seal authorship task to create a new block */
       createBlock: AugmentedRpc<
