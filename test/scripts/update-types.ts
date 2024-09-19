@@ -39,7 +39,6 @@ const executeScript = async (relativeDir: string, command: string) => {
 const checkBinary = async () => {
   try {
     const { stdout, stderr } = await execAsync("ls ../target/release/moonbeam");
-    if (stdout) console.log(`${stdout}`);
     if (stderr) console.error(`stderr: ${stderr}`);
   } catch (e) {
     console.error("Moonbeam binary missing, please build it first using `cargo build --release`");
