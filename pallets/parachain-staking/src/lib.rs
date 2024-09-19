@@ -518,10 +518,10 @@ pub mod pallet {
 	pub(crate) type TotalSelected<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn parachain_bond_info)]
+	#[pallet::getter(fn inflation_distribution_info)]
 	/// Parachain bond config info { account, percent_of_inflation }
-	pub(crate) type ParachainBondInfo<T: Config> =
-		StorageValue<_, ParachainBondConfig<T::AccountId>, ValueQuery>;
+	pub(crate) type InflationDistributionInfo<T: Config> =
+		StorageValue<_, InflationDistributionConfig<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
@@ -787,7 +787,7 @@ pub mod pallet {
 			// Set collator commission to default config
 			<CollatorCommission<T>>::put(self.collator_commission);
 			// Set parachain bond config to default config
-			<ParachainBondInfo<T>>::put(ParachainBondConfig {
+			<InflationDistributionInfo<T>>::put(InflationDistributionConfig {
 				// must be set soon; if not => due inflation will be sent to collators/delegators
 				account: T::AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
 					.expect("infinite length input; no invalid inputs for type; qed"),
@@ -880,12 +880,12 @@ pub mod pallet {
 			new: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
-			let ParachainBondConfig {
+			let InflationDistributionConfig {
 				account: old,
 				percent,
-			} = <ParachainBondInfo<T>>::get();
+			} = <InflationDistributionInfo<T>>::get();
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
-			<ParachainBondInfo<T>>::put(ParachainBondConfig {
+			<InflationDistributionInfo<T>>::put(InflationDistributionConfig {
 				account: new.clone(),
 				percent,
 			});
@@ -901,12 +901,12 @@ pub mod pallet {
 			new: Percent,
 		) -> DispatchResultWithPostInfo {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
-			let ParachainBondConfig {
+			let InflationDistributionConfig {
 				account,
 				percent: old,
-			} = <ParachainBondInfo<T>>::get();
+			} = <InflationDistributionInfo<T>>::get();
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
-			<ParachainBondInfo<T>>::put(ParachainBondConfig {
+			<InflationDistributionInfo<T>>::put(InflationDistributionConfig {
 				account,
 				percent: new,
 			});
@@ -1839,7 +1839,7 @@ pub mod pallet {
 
 			// reserve portion of issuance for parachain bond account
 			let mut left_issuance = total_issuance;
-			let bond_config = <ParachainBondInfo<T>>::get();
+			let bond_config = <InflationDistributionInfo<T>>::get();
 			let parachain_bond_reserve = bond_config.percent * total_issuance;
 			if let Ok(imb) =
 				T::Currency::deposit_into_existing(&bond_config.account, parachain_bond_reserve)

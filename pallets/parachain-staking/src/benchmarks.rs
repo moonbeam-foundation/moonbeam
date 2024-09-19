@@ -19,7 +19,7 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
-	DelegationAction, EnableMarkingOffline, Pallet, ParachainBondConfig, ParachainBondInfo, Points,
+	DelegationAction, EnableMarkingOffline, Pallet, InflationDistributionConfig, ParachainBondInfo, Points,
 	Range, RewardPayment, Round, ScheduledRequest, TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
@@ -280,13 +280,13 @@ benchmarks! {
 		let parachain_bond_account: T::AccountId = account("TEST", 0u32, USER_SEED);
 	}: _(RawOrigin::Root, parachain_bond_account.clone())
 	verify {
-		assert_eq!(Pallet::<T>::parachain_bond_info().account, parachain_bond_account);
+		assert_eq!(Pallet::<T>::inflation_distribution_info().account, parachain_bond_account);
 	}
 
 	set_parachain_bond_reserve_percent {
 	}: _(RawOrigin::Root, Percent::from_percent(33))
 	verify {
-		assert_eq!(Pallet::<T>::parachain_bond_info().percent, Percent::from_percent(33));
+		assert_eq!(Pallet::<T>::inflation_distribution_info().percent, Percent::from_percent(33));
 	}
 
 	// ROOT DISPATCHABLES
@@ -1564,7 +1564,7 @@ benchmarks! {
 			0,
 			min_candidate_stk::<T>(),
 		).0;
-		<ParachainBondInfo<T>>::put(ParachainBondConfig {
+		<ParachainBondInfo<T>>::put(InflationDistributionConfig {
 			account,
 			percent: Percent::from_percent(50),
 		});
