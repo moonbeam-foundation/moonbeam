@@ -28,6 +28,7 @@ import type {
   CumulusPalletXcmpQueueQueueConfigData,
   CumulusPrimitivesCoreAggregateMessageOrigin,
   CumulusPrimitivesParachainInherentParachainInherentData,
+  CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim,
   EthbloomBloom,
   EthereumBlock,
   EthereumHeader,
@@ -48,6 +49,8 @@ import type {
   EvmCoreErrorExitRevert,
   EvmCoreErrorExitSucceed,
   FpRpcTransactionStatus,
+  FrameMetadataHashExtensionCheckMetadataHash,
+  FrameMetadataHashExtensionMode,
   FrameSupportDispatchDispatchClass,
   FrameSupportDispatchDispatchInfo,
   FrameSupportDispatchPays,
@@ -141,6 +144,10 @@ import type {
   PalletCrowdloanRewardsError,
   PalletCrowdloanRewardsEvent,
   PalletCrowdloanRewardsRewardInfo,
+  PalletEmergencyParaXcmCall,
+  PalletEmergencyParaXcmError,
+  PalletEmergencyParaXcmEvent,
+  PalletEmergencyParaXcmXcmMode,
   PalletEthereumCall,
   PalletEthereumError,
   PalletEthereumEvent,
@@ -172,6 +179,10 @@ import type {
   PalletMessageQueuePage,
   PalletMigrationsError,
   PalletMigrationsEvent,
+  PalletMoonbeamForeignAssetsAssetStatus,
+  PalletMoonbeamForeignAssetsCall,
+  PalletMoonbeamForeignAssetsError,
+  PalletMoonbeamForeignAssetsEvent,
   PalletMoonbeamLazyMigrationsCall,
   PalletMoonbeamLazyMigrationsError,
   PalletMoonbeamOrbitersCall,
@@ -203,8 +214,9 @@ import type {
   PalletParachainStakingDelegatorStatus,
   PalletParachainStakingError,
   PalletParachainStakingEvent,
+  PalletParachainStakingInflationDistributionConfig,
+  PalletParachainStakingInflationDistributionConfigId,
   PalletParachainStakingInflationInflationInfo,
-  PalletParachainStakingParachainBondConfig,
   PalletParachainStakingRoundInfo,
   PalletParachainStakingSetBoundedOrderedSet,
   PalletParachainStakingSetOrderedSet,
@@ -277,6 +289,9 @@ import type {
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   PalletXcmTransactorTransactWeights,
   PalletXcmVersionMigrationStage,
+  PalletXcmWeightTraderCall,
+  PalletXcmWeightTraderError,
+  PalletXcmWeightTraderEvent,
   PolkadotCorePrimitivesInboundDownwardMessage,
   PolkadotCorePrimitivesInboundHrmpMessage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
@@ -402,6 +417,7 @@ declare module "@polkadot/types/types/registry" {
     CumulusPalletXcmpQueueQueueConfigData: CumulusPalletXcmpQueueQueueConfigData;
     CumulusPrimitivesCoreAggregateMessageOrigin: CumulusPrimitivesCoreAggregateMessageOrigin;
     CumulusPrimitivesParachainInherentParachainInherentData: CumulusPrimitivesParachainInherentParachainInherentData;
+    CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim: CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim;
     EthbloomBloom: EthbloomBloom;
     EthereumBlock: EthereumBlock;
     EthereumHeader: EthereumHeader;
@@ -422,6 +438,8 @@ declare module "@polkadot/types/types/registry" {
     EvmCoreErrorExitRevert: EvmCoreErrorExitRevert;
     EvmCoreErrorExitSucceed: EvmCoreErrorExitSucceed;
     FpRpcTransactionStatus: FpRpcTransactionStatus;
+    FrameMetadataHashExtensionCheckMetadataHash: FrameMetadataHashExtensionCheckMetadataHash;
+    FrameMetadataHashExtensionMode: FrameMetadataHashExtensionMode;
     FrameSupportDispatchDispatchClass: FrameSupportDispatchDispatchClass;
     FrameSupportDispatchDispatchInfo: FrameSupportDispatchDispatchInfo;
     FrameSupportDispatchPays: FrameSupportDispatchPays;
@@ -515,6 +533,10 @@ declare module "@polkadot/types/types/registry" {
     PalletCrowdloanRewardsError: PalletCrowdloanRewardsError;
     PalletCrowdloanRewardsEvent: PalletCrowdloanRewardsEvent;
     PalletCrowdloanRewardsRewardInfo: PalletCrowdloanRewardsRewardInfo;
+    PalletEmergencyParaXcmCall: PalletEmergencyParaXcmCall;
+    PalletEmergencyParaXcmError: PalletEmergencyParaXcmError;
+    PalletEmergencyParaXcmEvent: PalletEmergencyParaXcmEvent;
+    PalletEmergencyParaXcmXcmMode: PalletEmergencyParaXcmXcmMode;
     PalletEthereumCall: PalletEthereumCall;
     PalletEthereumError: PalletEthereumError;
     PalletEthereumEvent: PalletEthereumEvent;
@@ -546,6 +568,10 @@ declare module "@polkadot/types/types/registry" {
     PalletMessageQueuePage: PalletMessageQueuePage;
     PalletMigrationsError: PalletMigrationsError;
     PalletMigrationsEvent: PalletMigrationsEvent;
+    PalletMoonbeamForeignAssetsAssetStatus: PalletMoonbeamForeignAssetsAssetStatus;
+    PalletMoonbeamForeignAssetsCall: PalletMoonbeamForeignAssetsCall;
+    PalletMoonbeamForeignAssetsError: PalletMoonbeamForeignAssetsError;
+    PalletMoonbeamForeignAssetsEvent: PalletMoonbeamForeignAssetsEvent;
     PalletMoonbeamLazyMigrationsCall: PalletMoonbeamLazyMigrationsCall;
     PalletMoonbeamLazyMigrationsError: PalletMoonbeamLazyMigrationsError;
     PalletMoonbeamOrbitersCall: PalletMoonbeamOrbitersCall;
@@ -577,8 +603,9 @@ declare module "@polkadot/types/types/registry" {
     PalletParachainStakingDelegatorStatus: PalletParachainStakingDelegatorStatus;
     PalletParachainStakingError: PalletParachainStakingError;
     PalletParachainStakingEvent: PalletParachainStakingEvent;
+    PalletParachainStakingInflationDistributionConfig: PalletParachainStakingInflationDistributionConfig;
+    PalletParachainStakingInflationDistributionConfigId: PalletParachainStakingInflationDistributionConfigId;
     PalletParachainStakingInflationInflationInfo: PalletParachainStakingInflationInflationInfo;
-    PalletParachainStakingParachainBondConfig: PalletParachainStakingParachainBondConfig;
     PalletParachainStakingRoundInfo: PalletParachainStakingRoundInfo;
     PalletParachainStakingSetBoundedOrderedSet: PalletParachainStakingSetBoundedOrderedSet;
     PalletParachainStakingSetOrderedSet: PalletParachainStakingSetOrderedSet;
@@ -651,6 +678,9 @@ declare module "@polkadot/types/types/registry" {
     PalletXcmTransactorRemoteTransactInfoWithMaxWeight: PalletXcmTransactorRemoteTransactInfoWithMaxWeight;
     PalletXcmTransactorTransactWeights: PalletXcmTransactorTransactWeights;
     PalletXcmVersionMigrationStage: PalletXcmVersionMigrationStage;
+    PalletXcmWeightTraderCall: PalletXcmWeightTraderCall;
+    PalletXcmWeightTraderError: PalletXcmWeightTraderError;
+    PalletXcmWeightTraderEvent: PalletXcmWeightTraderEvent;
     PolkadotCorePrimitivesInboundDownwardMessage: PolkadotCorePrimitivesInboundDownwardMessage;
     PolkadotCorePrimitivesInboundHrmpMessage: PolkadotCorePrimitivesInboundHrmpMessage;
     PolkadotCorePrimitivesOutboundHrmpMessage: PolkadotCorePrimitivesOutboundHrmpMessage;

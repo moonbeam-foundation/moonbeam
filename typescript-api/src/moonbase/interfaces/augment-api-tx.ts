@@ -58,6 +58,8 @@ import type {
   PalletIdentityJudgement,
   PalletIdentityLegacyIdentityInfo,
   PalletMultisigTimepoint,
+  PalletParachainStakingInflationDistributionConfig,
+  PalletParachainStakingInflationDistributionConfigId,
   PalletXcmTransactorCurrencyPayment,
   PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorTransactWeights,
@@ -2558,15 +2560,45 @@ declare module "@polkadot/api-base/types/submittable" {
           } & Struct
         ]
       >;
-      /** Set the account that will hold funds set aside for parachain bond */
-      setParachainBondAccount: AugmentedSubmittable<
-        (updated: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [AccountId20]
-      >;
-      /** Set the percent of inflation set aside for parachain bond */
-      setParachainBondReservePercent: AugmentedSubmittable<
-        (updated: Percent | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Percent]
+      /**
+       * Set or remove the inflation distribution configuration, which specifies how inflation is
+       * distributed between the parachain bond account and other accounts. The total percentage of
+       * all inflation distributions must not exceed 100%.
+       *
+       * To remove the configuration for a given `id`, pass `None` as the `config`.
+       *
+       * # Arguments
+       *
+       * - `id` - The identifier of the inflation distribution configuration.
+       * - `config` - The new configuration, or `None` to remove the current one.
+       *
+       * # Errors
+       *
+       * - `NoWritingSameValue` - Occurs if the provided configuration is the same as the existing one.
+       * - `TotalInflationDistributionPercentExceeds100` - Occurs if the total inflation distribution
+       *   across all configurations exceeds 100% after applying the new configuration.
+       */
+      setInflationDistributionConfig: AugmentedSubmittable<
+        (
+          id:
+            | PalletParachainStakingInflationDistributionConfigId
+            | { ParachainBondReserve: any }
+            | { Treasury: any }
+            | { Other: any }
+            | string
+            | Uint8Array,
+          config:
+            | Option<PalletParachainStakingInflationDistributionConfig>
+            | null
+            | Uint8Array
+            | PalletParachainStakingInflationDistributionConfig
+            | { account?: any; percent?: any }
+            | string
+        ) => SubmittableExtrinsic<ApiType>,
+        [
+          PalletParachainStakingInflationDistributionConfigId,
+          Option<PalletParachainStakingInflationDistributionConfig>
+        ]
       >;
       /**
        * Set the expectations for total staked. These expectations determine the issuance for the

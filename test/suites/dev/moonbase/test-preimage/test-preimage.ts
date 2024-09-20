@@ -16,8 +16,12 @@ describeSuite({
         const encodedProposal =
           context
             .polkadotJs()
-            .tx.parachainStaking.setParachainBondAccount(
-              privateKeyToAccount(generatePrivateKey()).address
+            .tx.parachainStaking.setInflationDistributionConfig(
+              "ParachainBondReserve",
+              {
+                account: privateKeyToAccount(generatePrivateKey()).address,
+                percent: 30,
+              }
             )
             .method.toHex() || "";
         const encodedHash = blake2AsHex(encodedProposal);
@@ -44,8 +48,12 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .tx.parachainStaking.setParachainBondAccount(
-              privateKeyToAccount(generatePrivateKey()).address
+            .tx.parachainStaking.setInflationDistributionConfig(
+              "ParachainBondReserve",
+              {
+                account: privateKeyToAccount(generatePrivateKey()).address,
+                percent: 30,
+              }
             ),
           alith
         );

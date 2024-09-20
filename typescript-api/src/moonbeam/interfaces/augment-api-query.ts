@@ -65,12 +65,14 @@ import type {
   PalletCollectiveVotes,
   PalletConvictionVotingVoteVoting,
   PalletCrowdloanRewardsRewardInfo,
+  PalletEmergencyParaXcmXcmMode,
   PalletEvmCodeMetadata,
   PalletIdentityAuthorityProperties,
   PalletIdentityRegistrarInfo,
   PalletIdentityRegistration,
   PalletMessageQueueBookState,
   PalletMessageQueuePage,
+  PalletMoonbeamForeignAssetsAssetStatus,
   PalletMoonbeamOrbitersCollatorPoolInfo,
   PalletMultisigMultisig,
   PalletParachainStakingAutoCompoundAutoCompoundConfig,
@@ -81,8 +83,9 @@ import type {
   PalletParachainStakingDelegationRequestsScheduledRequest,
   PalletParachainStakingDelegations,
   PalletParachainStakingDelegator,
+  PalletParachainStakingInflationDistributionConfig,
+  PalletParachainStakingInflationDistributionConfigId,
   PalletParachainStakingInflationInflationInfo,
-  PalletParachainStakingParachainBondConfig,
   PalletParachainStakingRoundInfo,
   PalletParachainStakingSetBoundedOrderedSet,
   PalletPreimageOldRequestStatus,
@@ -148,25 +151,6 @@ declare module "@polkadot/api-base/types/storage" {
         [MoonbeamRuntimeXcmConfigAssetType]
       > &
         QueryableStorageEntry<ApiType, [MoonbeamRuntimeXcmConfigAssetType]>;
-      /**
-       * Stores the units per second for local execution for a AssetType. This is used to know how
-       * to charge for XCM execution in a particular asset Not all assets might contain units per
-       * second, hence the different storage
-       */
-      assetTypeUnitsPerSecond: AugmentedQuery<
-        ApiType,
-        (
-          arg: MoonbeamRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array
-        ) => Observable<Option<u128>>,
-        [MoonbeamRuntimeXcmConfigAssetType]
-      > &
-        QueryableStorageEntry<ApiType, [MoonbeamRuntimeXcmConfigAssetType]>;
-      supportedFeePaymentAssets: AugmentedQuery<
-        ApiType,
-        () => Observable<Vec<MoonbeamRuntimeXcmConfigAssetType>>,
-        []
-      > &
-        QueryableStorageEntry<ApiType, []>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -435,6 +419,13 @@ declare module "@polkadot/api-base/types/storage" {
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
+    emergencyParaXcm: {
+      /** Whether incoming XCM is enabled or paused */
+      mode: AugmentedQuery<ApiType, () => Observable<PalletEmergencyParaXcmXcmMode>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
     ethereum: {
       blockHash: AugmentedQuery<
         ApiType,
@@ -517,6 +508,36 @@ declare module "@polkadot/api-base/types/storage" {
         [H160]
       > &
         QueryableStorageEntry<ApiType, [H160]>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    evmForeignAssets: {
+      /**
+       * Mapping from an asset id to a Foreign asset type. This is mostly used when receiving
+       * transaction specifying an asset directly, like transferring an asset from this chain to another.
+       */
+      assetsById: AugmentedQuery<
+        ApiType,
+        (arg: u128 | AnyNumber | Uint8Array) => Observable<Option<StagingXcmV4Location>>,
+        [u128]
+      > &
+        QueryableStorageEntry<ApiType, [u128]>;
+      /**
+       * Reverse mapping of AssetsById. Mapping from a foreign asset to an asset id. This is mostly
+       * used when receiving a multilocation XCM message to retrieve the corresponding asset in
+       * which tokens should me minted.
+       */
+      assetsByLocation: AugmentedQuery<
+        ApiType,
+        (
+          arg: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
+        ) => Observable<Option<ITuple<[u128, PalletMoonbeamForeignAssetsAssetStatus]>>>,
+        [StagingXcmV4Location]
+      > &
+        QueryableStorageEntry<ApiType, [StagingXcmV4Location]>;
+      /** Counter for the related counted storage map */
+      counterForAssetsById: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -886,12 +907,20 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, []>;
       /** Parachain bond config info { account, percent_of_inflation } */
-      parachainBondInfo: AugmentedQuery<
+      inflationDistributionInfo: AugmentedQuery<
         ApiType,
-        () => Observable<PalletParachainStakingParachainBondConfig>,
-        []
+        (
+          arg:
+            | PalletParachainStakingInflationDistributionConfigId
+            | { ParachainBondReserve: any }
+            | { Treasury: any }
+            | { Other: any }
+            | string
+            | Uint8Array
+        ) => Observable<Option<PalletParachainStakingInflationDistributionConfig>>,
+        [PalletParachainStakingInflationDistributionConfigId]
       > &
-        QueryableStorageEntry<ApiType, []>;
+        QueryableStorageEntry<ApiType, [PalletParachainStakingInflationDistributionConfigId]>;
       /** Total points awarded to collators for block production in the round */
       points: AugmentedQuery<
         ApiType,
@@ -1756,6 +1785,22 @@ declare module "@polkadot/api-base/types/storage" {
         (
           arg: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
         ) => Observable<Option<PalletXcmTransactorRemoteTransactInfoWithMaxWeight>>,
+        [StagingXcmV4Location]
+      > &
+        QueryableStorageEntry<ApiType, [StagingXcmV4Location]>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    xcmWeightTrader: {
+      /**
+       * Stores all supported assets per XCM Location. The u128 is the asset price relative to
+       * native asset with 18 decimals The boolean specify if the support for this asset is active
+       */
+      supportedAssets: AugmentedQuery<
+        ApiType,
+        (
+          arg: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
+        ) => Observable<Option<ITuple<[bool, u128]>>>,
         [StagingXcmV4Location]
       > &
         QueryableStorageEntry<ApiType, [StagingXcmV4Location]>;

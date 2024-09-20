@@ -15,9 +15,9 @@ describeSuite({
       test: async function () {
         const parachainBondInfo = await context
           .polkadotJs()
-          .query.parachainStaking.parachainBondInfo();
-        expect(parachainBondInfo.account.toString()).to.equal(ZERO_ADDRESS);
-        expect(parachainBondInfo.percent.toNumber()).to.equal(30);
+          .query.parachainStaking.inflationDistributionInfo("ParachainBondReserve");
+        expect(parachainBondInfo.value.account.toString()).to.equal(ZERO_ADDRESS);
+        expect(parachainBondInfo.value.percent.toNumber()).to.equal(30);
       },
     });
 
@@ -30,16 +30,22 @@ describeSuite({
           context
             .polkadotJs()
             .tx.sudo.sudo(
-              context.polkadotJs().tx.parachainStaking.setParachainBondAccount(alith.address)
+              context.polkadotJs().tx.parachainStaking.setInflationDistributionConfig(
+                "ParachainBondReserve",
+                {
+                  account: alith.address,
+                  percent: 30,
+                },
+              )
             )
         );
         expect(result!.successful).to.be.true;
 
         const parachainBondInfo = await context
           .polkadotJs()
-          .query.parachainStaking.parachainBondInfo();
-        expect(parachainBondInfo.account.toString()).to.equal(alith.address);
-        expect(parachainBondInfo.percent.toNumber()).to.equal(30);
+          .query.parachainStaking.inflationDistributionInfo("ParachainBondReserve");
+        expect(parachainBondInfo.value.account.toString()).to.equal(alith.address);
+        expect(parachainBondInfo.value.percent.toNumber()).to.equal(30);
       },
     });
 
@@ -49,7 +55,13 @@ describeSuite({
       test: async function () {
         // should be able to register the genesis account for reward
         const { result } = await context.createBlock(
-          context.polkadotJs().tx.parachainStaking.setParachainBondAccount(alith.address)
+          context.polkadotJs().tx.parachainStaking.setInflationDistributionConfig(
+            "ParachainBondReserve",
+            {
+              account: alith.address,
+              percent: 30,
+            },
+          )
         );
         expect(result!.successful).to.be.false;
         expect(result!.error!.name).to.equal("BadOrigin");
@@ -67,15 +79,21 @@ describeSuite({
             .tx.sudo.sudo(
               context
                 .polkadotJs()
-                .tx.parachainStaking.setParachainBondReservePercent(TWENTY_PERCENT)
+                .tx.parachainStaking.setInflationDistributionConfig(
+                  "ParachainBondReserve",
+                  {
+                    account: ZERO_ADDRESS,
+                    percent: TWENTY_PERCENT,
+                  }
+                )
             )
         );
         expect(result!.successful).to.be.true;
 
         const parachainBondInfo = await context
           .polkadotJs()
-          .query.parachainStaking.parachainBondInfo();
-        expect(parachainBondInfo.percent.toBigInt()).to.equal(20n);
+          .query.parachainStaking.inflationDistributionInfo("ParachainBondReserve");
+        expect(parachainBondInfo.value.percent.toBigInt()).to.equal(20n);
       },
     });
 
@@ -84,7 +102,13 @@ describeSuite({
       title: "should NOT be able set the parachain bond reserve percent without sudo",
       test: async function () {
         const { result } = await context.createBlock(
-          context.polkadotJs().tx.parachainStaking.setParachainBondReservePercent(TWENTY_PERCENT)
+          context.polkadotJs().tx.parachainStaking.setInflationDistributionConfig(
+            "ParachainBondReserve",
+            {
+              account: ZERO_ADDRESS,
+              percent: TWENTY_PERCENT,
+            }
+          )
         );
         expect(result!.successful).to.be.false;
         expect(result!.error!.name).to.equal("BadOrigin");

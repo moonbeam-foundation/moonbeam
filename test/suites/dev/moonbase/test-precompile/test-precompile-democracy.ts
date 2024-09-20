@@ -28,8 +28,9 @@ describeSuite({
       test: async function () {
         const parachainBondInfo = await context
           .polkadotJs()
-          .query.parachainStaking.parachainBondInfo();
-        expect(parachainBondInfo.account.toString()).to.equal(ZERO_ADDRESS);
+          .query.parachainStaking.inflationDistributionInfo("ParachainBondReserve");
+        
+        expect(parachainBondInfo.value.account.toString()).to.equal(ZERO_ADDRESS);
       },
     });
 

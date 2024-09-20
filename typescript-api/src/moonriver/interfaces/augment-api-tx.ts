@@ -57,6 +57,8 @@ import type {
   PalletIdentityJudgement,
   PalletIdentityLegacyIdentityInfo,
   PalletMultisigTimepoint,
+  PalletParachainStakingInflationDistributionConfig,
+  PalletParachainStakingInflationDistributionConfigId,
   PalletXcmTransactorCurrencyPayment,
   PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorTransactWeights,
@@ -131,22 +133,6 @@ declare module "@polkadot/api-base/types/submittable" {
           numAssetsWeightHint: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [u128, u32]
-      >;
-      removeSupportedAsset: AugmentedSubmittable<
-        (
-          assetType: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
-          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeXcmConfigAssetType, u32]
-      >;
-      /** Change the amount of units we are charging per execution second for a given ForeignAssetType */
-      setAssetUnitsPerSecond: AugmentedSubmittable<
-        (
-          assetType: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
-          unitsPerSecond: u128 | AnyNumber | Uint8Array,
-          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeXcmConfigAssetType, u128, u32]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -1315,6 +1301,17 @@ declare module "@polkadot/api-base/types/submittable" {
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
+    emergencyParaXcm: {
+      /** Authorize a runtime upgrade. Only callable in `Paused` mode */
+      fastAuthorizeUpgrade: AugmentedSubmittable<
+        (codeHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [H256]
+      >;
+      /** Resume `Normal` mode */
+      pausedToNormal: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /** Generic tx */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
     ethereum: {
       /** Transact an Ethereum transaction. */
       transact: AugmentedSubmittable<
@@ -1475,6 +1472,53 @@ declare module "@polkadot/api-base/types/submittable" {
           value: u128 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [H160, u128]
+      >;
+      /** Generic tx */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    evmForeignAssets: {
+      /**
+       * Change the xcm type mapping for a given assetId We also change this if the previous units
+       * per second where pointing at the old assetType
+       */
+      changeXcmLocation: AugmentedSubmittable<
+        (
+          assetId: u128 | AnyNumber | Uint8Array,
+          newXcmLocation:
+            | StagingXcmV4Location
+            | { parents?: any; interior?: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [u128, StagingXcmV4Location]
+      >;
+      /** Create new asset with the ForeignAssetCreator */
+      createForeignAsset: AugmentedSubmittable<
+        (
+          assetId: u128 | AnyNumber | Uint8Array,
+          xcmLocation:
+            | StagingXcmV4Location
+            | { parents?: any; interior?: any }
+            | string
+            | Uint8Array,
+          decimals: u8 | AnyNumber | Uint8Array,
+          symbol: Bytes | string | Uint8Array,
+          name: Bytes | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [u128, StagingXcmV4Location, u8, Bytes, Bytes]
+      >;
+      /** Freeze a given foreign assetId */
+      freezeForeignAsset: AugmentedSubmittable<
+        (
+          assetId: u128 | AnyNumber | Uint8Array,
+          allowXcmDeposit: bool | boolean | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [u128, bool]
+      >;
+      /** Unfreeze a given foreign assetId */
+      unfreezeForeignAsset: AugmentedSubmittable<
+        (assetId: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [u128]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -1934,6 +1978,10 @@ declare module "@polkadot/api-base/types/submittable" {
           limit: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Vec<H160>, u32]
+      >;
+      createContractMetadata: AugmentedSubmittable<
+        (address: H160 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [H160]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -2511,15 +2559,45 @@ declare module "@polkadot/api-base/types/submittable" {
           } & Struct
         ]
       >;
-      /** Set the account that will hold funds set aside for parachain bond */
-      setParachainBondAccount: AugmentedSubmittable<
-        (updated: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [AccountId20]
-      >;
-      /** Set the percent of inflation set aside for parachain bond */
-      setParachainBondReservePercent: AugmentedSubmittable<
-        (updated: Percent | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Percent]
+      /**
+       * Set or remove the inflation distribution configuration, which specifies how inflation is
+       * distributed between the parachain bond account and other accounts. The total percentage of
+       * all inflation distributions must not exceed 100%.
+       *
+       * To remove the configuration for a given `id`, pass `None` as the `config`.
+       *
+       * # Arguments
+       *
+       * - `id` - The identifier of the inflation distribution configuration.
+       * - `config` - The new configuration, or `None` to remove the current one.
+       *
+       * # Errors
+       *
+       * - `NoWritingSameValue` - Occurs if the provided configuration is the same as the existing one.
+       * - `TotalInflationDistributionPercentExceeds100` - Occurs if the total inflation distribution
+       *   across all configurations exceeds 100% after applying the new configuration.
+       */
+      setInflationDistributionConfig: AugmentedSubmittable<
+        (
+          id:
+            | PalletParachainStakingInflationDistributionConfigId
+            | { ParachainBondReserve: any }
+            | { Treasury: any }
+            | { Other: any }
+            | string
+            | Uint8Array,
+          config:
+            | Option<PalletParachainStakingInflationDistributionConfig>
+            | null
+            | Uint8Array
+            | PalletParachainStakingInflationDistributionConfig
+            | { account?: any; percent?: any }
+            | string
+        ) => SubmittableExtrinsic<ApiType>,
+        [
+          PalletParachainStakingInflationDistributionConfigId,
+          Option<PalletParachainStakingInflationDistributionConfig>
+        ]
       >;
       /**
        * Set the expectations for total staked. These expectations determine the issuance for the
@@ -4719,6 +4797,42 @@ declare module "@polkadot/api-base/types/submittable" {
           PalletXcmTransactorTransactWeights,
           bool
         ]
+      >;
+      /** Generic tx */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    xcmWeightTrader: {
+      addAsset: AugmentedSubmittable<
+        (
+          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array,
+          relativePrice: u128 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [StagingXcmV4Location, u128]
+      >;
+      editAsset: AugmentedSubmittable<
+        (
+          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array,
+          relativePrice: u128 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [StagingXcmV4Location, u128]
+      >;
+      pauseAssetSupport: AugmentedSubmittable<
+        (
+          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [StagingXcmV4Location]
+      >;
+      removeAsset: AugmentedSubmittable<
+        (
+          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [StagingXcmV4Location]
+      >;
+      resumeAssetSupport: AugmentedSubmittable<
+        (
+          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [StagingXcmV4Location]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;

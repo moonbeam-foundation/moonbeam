@@ -25,7 +25,13 @@ describeSuite({
       randomAccount = generateKeyringPair();
       randomAddress = randomAccount.address;
 
-      const proposal = context.pjsApi.tx.parachainStaking.setParachainBondAccount(randomAddress);
+      const proposal = context.pjsApi.tx.parachainStaking.setInflationDistributionConfig(
+        "ParachainBondReserve",
+        {
+          account: randomAddress,
+          percent: 35,
+        }
+      );
 
       const { whitelistedHash: wlHash } = await whiteListTrackNoSend(context, proposal);
       whitelistedHash = wlHash;
@@ -77,8 +83,13 @@ describeSuite({
         expect(finishedReferendum.isOngoing, "Still ongoing").to.be.false;
         expect(finishedReferendum.isTimedOut, "Timed out").to.be.false;
 
-        const parachainBondInfo = await context.pjsApi.query.parachainStaking.parachainBondInfo();
-        expect(parachainBondInfo.account.toString()).toBe(randomAddress);
+        const parachainBondInfo = await context
+          .pjsApi
+          .query
+          .parachainStaking
+          .inflationDistributionInfo("ParachainBondReserve");
+        expect(parachainBondInfo.value.account.toString()).toBe(randomAddress);
+        expect(parachainBondInfo.value.percent).toBe(35);
       },
     });
 

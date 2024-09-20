@@ -85,8 +85,9 @@ import type {
   PalletParachainStakingDelegationRequestsScheduledRequest,
   PalletParachainStakingDelegations,
   PalletParachainStakingDelegator,
+  PalletParachainStakingInflationDistributionConfig,
+  PalletParachainStakingInflationDistributionConfigId,
   PalletParachainStakingInflationInflationInfo,
-  PalletParachainStakingParachainBondConfig,
   PalletParachainStakingRoundInfo,
   PalletParachainStakingSetBoundedOrderedSet,
   PalletPreimageOldRequestStatus,
@@ -908,12 +909,20 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, []>;
       /** Parachain bond config info { account, percent_of_inflation } */
-      parachainBondInfo: AugmentedQuery<
+      inflationDistributionInfo: AugmentedQuery<
         ApiType,
-        () => Observable<PalletParachainStakingParachainBondConfig>,
-        []
+        (
+          arg:
+            | PalletParachainStakingInflationDistributionConfigId
+            | { ParachainBondReserve: any }
+            | { Treasury: any }
+            | { Other: any }
+            | string
+            | Uint8Array
+        ) => Observable<Option<PalletParachainStakingInflationDistributionConfig>>,
+        [PalletParachainStakingInflationDistributionConfigId]
       > &
-        QueryableStorageEntry<ApiType, []>;
+        QueryableStorageEntry<ApiType, [PalletParachainStakingInflationDistributionConfigId]>;
       /** Total points awarded to collators for block production in the round */
       points: AugmentedQuery<
         ApiType,
