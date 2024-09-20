@@ -20,17 +20,14 @@ describeSuite({
       title: "should be able to call sudo with the right account",
       test: async function () {
         const { result } = await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(
-              context.polkadotJs().tx.parachainStaking.setInflationDistributionConfig(
-                "ParachainBondReserve",
-                {
-                  account: alith.address,
-                  percent: 30,
-                }
-              )
-            )
+          context.polkadotJs().tx.sudo.sudo(
+            context
+              .polkadotJs()
+              .tx.parachainStaking.setInflationDistributionConfig("ParachainBondReserve", {
+                account: alith.address,
+                percent: 30,
+              })
+          )
         );
         const parachainBondInfo = await context
           .polkadotJs()
@@ -61,17 +58,14 @@ describeSuite({
       title: "should charge the correct amount of gas when calling sudo",
       test: async function () {
         await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(
-              context.polkadotJs().tx.parachainStaking.setInflationDistributionConfig(
-                "ParachainBondReserve",
-                {
-                  account: alith.address,
-                  percent: 30,
-                }
-              )
-            )
+          context.polkadotJs().tx.sudo.sudo(
+            context
+              .polkadotJs()
+              .tx.parachainStaking.setInflationDistributionConfig("ParachainBondReserve", {
+                account: alith.address,
+                percent: 30,
+              })
+          )
         );
 
         await verifyLatestBlockFees(context);
@@ -83,7 +77,9 @@ describeSuite({
       title: "should NOT be able to call sudo with another account than sudo account",
       test: async function () {
         const parachainBondAccount = (
-          await context.polkadotJs().query.parachainStaking.inflationDistributionInfo("ParachainBondReserve")
+          await context
+            .polkadotJs()
+            .query.parachainStaking.inflationDistributionInfo("ParachainBondReserve")
         ).value.account.toString();
 
         const { result } = await context.createBlock(
@@ -92,13 +88,10 @@ describeSuite({
             .tx.sudo.sudo(
               context
                 .polkadotJs()
-                .tx.parachainStaking.setInflationDistributionConfig(
-                  "ParachainBondReserve",
-                  {
-                    account: generateKeyringPair().address,
-                    percent: 30,
-                  }
-                )
+                .tx.parachainStaking.setInflationDistributionConfig("ParachainBondReserve", {
+                  account: generateKeyringPair().address,
+                  percent: 30,
+                })
             )
             .signAsync(baltathar),
           { allowFailures: true }
@@ -119,8 +112,8 @@ describeSuite({
 
         expect(
           (await context.viem().getBalance({ address: BALTATHAR_ADDRESS })) -
-          DEFAULT_GENESIS_BALANCE !==
-          0n,
+            DEFAULT_GENESIS_BALANCE !==
+            0n,
           "should not be null for a failed extrinsic"
         ).to.equal(true);
       },
@@ -132,7 +125,9 @@ describeSuite({
       test: async function () {
         const newSigner = generateKeyringPair();
         const parachainBondAccount = (
-          await context.polkadotJs().query.parachainStaking.inflationDistributionInfo("ParachainBondReserve")
+          await context
+            .polkadotJs()
+            .query.parachainStaking.inflationDistributionInfo("ParachainBondReserve")
         ).value.account.toString();
 
         await context.createBlock(context.polkadotJs().tx.sudo.setKey(newSigner.address), {
@@ -149,13 +144,12 @@ describeSuite({
               context
                 .polkadotJs()
                 .tx.sudo.sudo(
-                  context.polkadotJs().tx.parachainStaking.setInflationDistributionConfig(
-                    "ParachainBondReserve",
-                    {
+                  context
+                    .polkadotJs()
+                    .tx.parachainStaking.setInflationDistributionConfig("ParachainBondReserve", {
                       account: alith.address,
                       percent: 30,
-                    }
-                  )
+                    })
                 )
                 .signAsync(newSigner)
             )

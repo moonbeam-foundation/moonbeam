@@ -27,17 +27,14 @@ describeSuite({
       test: async function () {
         // should be able to register the genesis account for reward
         const { result } = await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(
-              context.polkadotJs().tx.parachainStaking.setInflationDistributionConfig(
-                "ParachainBondReserve",
-                {
-                  account: alith.address,
-                  percent: 30,
-                },
-              )
-            )
+          context.polkadotJs().tx.sudo.sudo(
+            context
+              .polkadotJs()
+              .tx.parachainStaking.setInflationDistributionConfig("ParachainBondReserve", {
+                account: alith.address,
+                percent: 30,
+              })
+          )
         );
         expect(result!.successful).to.be.true;
 
@@ -55,13 +52,12 @@ describeSuite({
       test: async function () {
         // should be able to register the genesis account for reward
         const { result } = await context.createBlock(
-          context.polkadotJs().tx.parachainStaking.setInflationDistributionConfig(
-            "ParachainBondReserve",
-            {
+          context
+            .polkadotJs()
+            .tx.parachainStaking.setInflationDistributionConfig("ParachainBondReserve", {
               account: alith.address,
               percent: 30,
-            },
-          )
+            })
         );
         expect(result!.successful).to.be.false;
         expect(result!.error!.name).to.equal("BadOrigin");
@@ -74,19 +70,14 @@ describeSuite({
       test: async function () {
         // should be able to register the genesis account
         const { result } = await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(
-              context
-                .polkadotJs()
-                .tx.parachainStaking.setInflationDistributionConfig(
-                  "ParachainBondReserve",
-                  {
-                    account: ZERO_ADDRESS,
-                    percent: TWENTY_PERCENT,
-                  }
-                )
-            )
+          context.polkadotJs().tx.sudo.sudo(
+            context
+              .polkadotJs()
+              .tx.parachainStaking.setInflationDistributionConfig("ParachainBondReserve", {
+                account: ZERO_ADDRESS,
+                percent: TWENTY_PERCENT,
+              })
+          )
         );
         expect(result!.successful).to.be.true;
 
@@ -102,13 +93,12 @@ describeSuite({
       title: "should NOT be able set the parachain bond reserve percent without sudo",
       test: async function () {
         const { result } = await context.createBlock(
-          context.polkadotJs().tx.parachainStaking.setInflationDistributionConfig(
-            "ParachainBondReserve",
-            {
+          context
+            .polkadotJs()
+            .tx.parachainStaking.setInflationDistributionConfig("ParachainBondReserve", {
               account: ZERO_ADDRESS,
               percent: TWENTY_PERCENT,
-            }
-          )
+            })
         );
         expect(result!.successful).to.be.false;
         expect(result!.error!.name).to.equal("BadOrigin");

@@ -83,11 +83,10 @@ describeSuite({
         expect(finishedReferendum.isOngoing, "Still ongoing").to.be.false;
         expect(finishedReferendum.isTimedOut, "Timed out").to.be.false;
 
-        const parachainBondInfo = await context
-          .pjsApi
-          .query
-          .parachainStaking
-          .inflationDistributionInfo("ParachainBondReserve");
+        const parachainBondInfo =
+          await context.pjsApi.query.parachainStaking.inflationDistributionInfo(
+            "ParachainBondReserve"
+          );
         expect(parachainBondInfo.value.account.toString()).toBe(randomAddress);
         expect(parachainBondInfo.value.percent).toBe(35);
       },

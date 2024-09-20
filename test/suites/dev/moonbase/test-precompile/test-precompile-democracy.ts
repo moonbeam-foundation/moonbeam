@@ -29,7 +29,7 @@ describeSuite({
         const parachainBondInfo = await context
           .polkadotJs()
           .query.parachainStaking.inflationDistributionInfo("ParachainBondReserve");
-        
+
         expect(parachainBondInfo.value.account.toString()).to.equal(ZERO_ADDRESS);
       },
     });
