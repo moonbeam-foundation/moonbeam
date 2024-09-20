@@ -925,28 +925,6 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(1_u64))
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
-	/// Storage: ParachainStaking ParachainBondInfo (r:1 w:1)
-	/// Proof Skipped: ParachainStaking ParachainBondInfo (max_values: Some(1), max_size: None, mode: Measured)
-	fn set_parachain_bond_account() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `6`
-		//  Estimated: `1491`
-		// Minimum execution time: 14_675_000 picoseconds.
-		Weight::from_parts(15_094_000, 1491)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: ParachainStaking ParachainBondInfo (r:1 w:1)
-	/// Proof Skipped: ParachainStaking ParachainBondInfo (max_values: Some(1), max_size: None, mode: Measured)
-	fn set_parachain_bond_reserve_percent() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `6`
-		//  Estimated: `1491`
-		// Minimum execution time: 13_898_000 picoseconds.
-		Weight::from_parts(14_492_000, 1491)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
 	/// Storage: ParachainStaking TotalSelected (r:1 w:1)
 	/// Proof Skipped: ParachainStaking TotalSelected (max_values: Some(1), max_size: None, mode: Measured)
 	fn set_total_selected() -> Weight {
