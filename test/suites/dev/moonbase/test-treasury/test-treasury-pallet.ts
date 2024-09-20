@@ -2,8 +2,6 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { alith, baltathar, ethan } from "@moonwall/util";
-import { Signer } from "@polkadot/types/types";
-import { jumpBlocks } from "../../../../helpers";
 
 describeSuite({
   id: "D013801",
@@ -38,7 +36,8 @@ describeSuite({
       test: async function () {
         expect((await api.query.treasury.spendCount()).toNumber()).to.equal(0);
         // Creates a proposal
-        // Value needs to be higher than the transaction fee paid by ethan, but lower than the total treasury pot
+        // Value needs to be higher than the transaction fee paid by ethan,
+        // but lower than the total treasury pot
         const proposal_value = 1000000000n;
         const tx = api.tx.treasury.spendLocal(proposal_value, ethan.address);
         const signedTx = await api.tx.sudo.sudo(tx).signAsync(alith);
