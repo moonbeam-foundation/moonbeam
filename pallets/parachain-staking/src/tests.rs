@@ -621,7 +621,7 @@ fn set_parachain_bond_account_event_emits_correctly() {
 		assert_events_eq!(Event::InflationDistributionConfigUpdated {
 			id: InflationDistributionConfigId::ParachainBondReserve,
 			old: Some(InflationDistributionConfig {
-				account: 1,
+				account: 0,
 				percent: Percent::from_percent(30)
 			}),
 			new: Some(InflationDistributionConfig {
