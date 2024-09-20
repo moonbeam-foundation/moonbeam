@@ -29,12 +29,14 @@ describeSuite({
               })
           )
         );
-        const parachainBondInfo = await context
-          .polkadotJs()
-          .query.parachainStaking.inflationDistributionInfo("ParachainBondReserve");
+        const parachainBondInfo = (
+          await context
+            .polkadotJs()
+            .query.parachainStaking.inflationDistributionInfo("ParachainBondReserve")
+        ).value;
 
-        expect(parachainBondInfo.value.account.toString()).to.equal(alith.address);
-        expect(parachainBondInfo.value.percent.toNumber()).to.equal(30);
+        expect(parachainBondInfo.account.toString()).to.equal(alith.address);
+        expect(parachainBondInfo.percent.toNumber()).to.equal(30);
 
         expect(result!.events.length).to.eq(6);
         expect(
