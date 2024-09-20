@@ -620,6 +620,7 @@ where
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
+							para_id: ParaId::new(parachain_id),
 							current_para_block_head,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
@@ -629,7 +630,6 @@ where
 							xcm_config: MockXcmConfig::new(
 								&*client_for_cidp,
 								block,
-								ParaId::new(parachain_id),
 								Default::default(),
 							),
 							raw_downward_messages: downward_xcm_receiver.drain().collect(),
