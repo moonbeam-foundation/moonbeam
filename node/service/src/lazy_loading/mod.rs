@@ -56,6 +56,7 @@ use sp_runtime::traits::NumberFor;
 use sp_storage::StorageKey;
 use std::collections::BTreeMap;
 use std::str::FromStr;
+use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -574,10 +575,7 @@ where
 						));
 
 						// Get the mocked timestamp
-						let mut timestamp = 0u64;
-						TIMESTAMP.with(|x| {
-							timestamp = x.clone().take() + RELAY_CHAIN_SLOT_DURATION_MILLIS;
-						});
+						let timestamp = TIMESTAMP.load(Ordering::SeqCst);
 						// Calculate mocked slot number (should be consecutively 1, 2, ...)
 						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 

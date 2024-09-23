@@ -78,6 +78,7 @@ use sp_consensus::SyncOracle;
 use sp_core::{ByteArray, Encode, H256};
 use sp_keystore::{Keystore, KeystorePtr};
 use std::str::FromStr;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::{collections::BTreeMap, path::Path, sync::Mutex, time::Duration};
 use substrate_prometheus_endpoint::Registry;
@@ -116,7 +117,7 @@ type PartialComponentsResult<Client, Backend> = Result<
 
 const RELAY_CHAIN_SLOT_DURATION_MILLIS: u64 = 6_000;
 
-thread_local!(static TIMESTAMP: std::cell::RefCell<u64> = const { std::cell::RefCell::new(0) });
+static TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 
 /// Provide a mock duration starting at 0 in millisecond for timestamp inherent.
 /// Each call will increment timestamp by slot_duration making Aura think time has passed.
@@ -127,10 +128,11 @@ impl sp_inherents::InherentDataProvider for MockTimestampInherentDataProvider {
 		&self,
 		inherent_data: &mut sp_inherents::InherentData,
 	) -> Result<(), sp_inherents::Error> {
-		TIMESTAMP.with(|x| {
-			*x.borrow_mut() += RELAY_CHAIN_SLOT_DURATION_MILLIS;
-			inherent_data.put_data(sp_timestamp::INHERENT_IDENTIFIER, &*x.borrow())
-		})
+		TIMESTAMP.fetch_add(RELAY_CHAIN_SLOT_DURATION_MILLIS, Ordering::SeqCst);
+		inherent_data.put_data(
+			sp_timestamp::INHERENT_IDENTIFIER,
+			&TIMESTAMP.load(Ordering::SeqCst),
+		)
 	}
 
 	async fn try_handle_error(
@@ -1359,12 +1361,10 @@ where
 						));
 
 						// Get the mocked timestamp
-						let mut timestamp = 0u64;
-						TIMESTAMP.with(|x| {
-							timestamp = x.clone().take() + RELAY_CHAIN_SLOT_DURATION_MILLIS;
-						});
+						let timestamp = TIMESTAMP.load(Ordering::SeqCst);
 						// Calculate mocked slot number (should be consecutively 1, 2, ...)
 						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
+
 						let additional_key_values = Some(vec![
 							(
 								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
