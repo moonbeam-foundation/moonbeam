@@ -8,7 +8,7 @@ on:
       DryRun:
         description: Dry run mode
         required: false
-        default: 'false'
+        default: "false"
 
 jobs:
   publish-typescript-api:

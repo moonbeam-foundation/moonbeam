@@ -1,0 +1,53 @@
+name: Upgrade typescript API
+on:
+  workflow_dispatch:
+    inputs:
+      spec_version:
+        description: runtime spec version (ex. 1601)
+        required: false
+
+jobs:
+  upgrading-typescript-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: runtime-${{ github.event.inputs.spec_version }}
+      - name: Retrieve moonbeam binary
+        run: |
+          DOCKER_TAG="moonbeamfoundation/moonbeam:runtime-${{ github.event.inputs.spec_version }}"
+          # Clear the dummy container if it wasn't properly cleaned up
+          docker rm -f dummy 2> /dev/null
+          docker create -ti --name dummy $DOCKER_TAG bash
+          mkdir -p build
+          docker cp dummy:/moonbeam/moonbeam build/moonbeam
+          docker rm -f dummy
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Use pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Upgrade polkadotjs for moonbeam-types-bundle
+        run: |
+          cd moonbeam-types-bundle
+          pnpm install
+      - name: regenerate typescript api with new runtime metadata
+        run: |
+          cd typescript-api
+          ./scripts/runtime-upgrade.sh ${{ github.event.inputs.spec_version }}
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          base: master
+          branch: "typescript-api-${{ github.event.inputs.spec_version }}"
+          commit-message: typescript API v0.${{ github.event.inputs.spec_version }}.0
+          draft: true
+          title: "Upgrade typescript API for runtime-${{ github.event.inputs.spec_version }}"
+          reviewers: "moonsong-coredev"
+          labels: "B0-silent,D2-notlive"
