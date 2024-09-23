@@ -2,9 +2,17 @@ name: Publish Typescript API
 on:
   workflow_dispatch:
     inputs:
-      sha:
-        description: full sha to build the npm package from
+      TargetSHA:
+        description: full sha of commit to publish ApiAugment from
         required: true
+      OverrideVersion:
+        description: Override version of the package
+        required: false
+        default: ''
+      DryRun:
+        description: Dry run mode
+        required: false
+        default: 'false'
 
 jobs:
   publish-typescript-api:
@@ -13,43 +21,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.sha }}
+          ref: ${{ github.event.inputs.TargetSHA }}
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Build typescript API
+      - name: Build Typescript Augment API package
         run: |
-          cd typescript-api
-          npm install
-          npm run build
+          scripts/runtime-upgrade.sh ${{ github.event.inputs.OverrideVersion }}
       - name: Publish typescript API
         uses: JS-DevTools/npm-publish@v3
         with:
           token: ${{ secrets.NPM_TOKEN }}
-          package: typescript-api/build/package.json
-
-  update-polkadot-js-for-tests-and-tools:
-    runs-on: ubuntu-latest
-    needs: ["publish-typescript-api"]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.sha }}
-      - name: Use pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Upgrade polkadotjs for tests
-        run: |
-          cd test
-          pnpm install @polkadot/api@latest
-      - name: Upgrade polkadotjs for tools
-        run: |
-          cd tools
-          npm install @polkadot/api@latest
+          package: typescript-api/package.json
+          dry-run: ${{ github.event.inputs.DryRun }}
