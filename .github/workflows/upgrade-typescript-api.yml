@@ -17,12 +17,11 @@ jobs:
       - name: Retrieve moonbeam binary
         run: |
           DOCKER_TAG="moonbeamfoundation/moonbeam:runtime-${{ github.event.inputs.spec_version }}"
-          # Clear the dummy container if it wasn't properly cleaned up
-          docker rm -f dummy 2> /dev/null
-          docker create -ti --name dummy $DOCKER_TAG bash
-          mkdir -p build
-          docker cp dummy:/moonbeam/moonbeam build/moonbeam
-          docker rm -f dummy
+          docker rm -f rtRelease 2> /dev/null
+          docker create -ti --name rtRelease $DOCKER_TAG bash
+          mkdir -p target/release
+          docker cp rtRelease:/moonbeam/moonbeam target/release/moonbeam
+          docker rm -f rtRelease
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
