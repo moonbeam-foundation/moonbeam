@@ -28,6 +28,7 @@ jobs:
           node-version: 22
       - name: Build Typescript Augment API package
         run: |
+          cd typescript-api
           scripts/runtime-upgrade.sh ${{ github.event.inputs.OverrideVersion }}
       - name: Publish typescript API
         uses: JS-DevTools/npm-publish@v3
