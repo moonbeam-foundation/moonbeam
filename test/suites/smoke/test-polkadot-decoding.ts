@@ -84,9 +84,7 @@ describeSuite({
           log(`first entry: ${entries[0][0].toString()}`);
           log(`last entry: ${entries[entries.length - 1][0].toString()}`);
           log(`     - ${FN_NAME}:  ${chalk.green(`✔`)} (startKey: ${STARTING_KEY_OVERRIDE})`);
-
         } else {
-
           let currentStartKey = "";
           const modules = Object.keys(paraApi.query);
           for (const moduleName of modules) {
@@ -122,7 +120,7 @@ describeSuite({
                   }
                   // Log emptyKeyFirstEntry
                   const emptyKeyFirstEntryKey = emptyKeyEntries[0][0].toString();
-                  log(`     - ${fn}:  ${chalk.green(`🔎`)} (first key: ${emptyKeyFirstEntryKey})`);
+                  log(`   - ${fn}:  ${chalk.green(`🔎`)} (first key: ${emptyKeyFirstEntryKey})`);
 
                   // If there are more entries, perform a random check
                   // 1. Get the first entry storage key
