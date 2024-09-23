@@ -7,9 +7,8 @@ import { fail } from "assert";
 
 // Change the following line to reproduce a particular case
 const STARTING_KEY_OVERRIDE = "";
-// const STARTING_KEY_OVERRIDE = "";
-const MODULE_NAME = "assets";
-const FN_NAME = "account";
+const MODULE_NAME = "";
+const FN_NAME = "";
 
 const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 1000;
 
