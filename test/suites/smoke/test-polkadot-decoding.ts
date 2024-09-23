@@ -137,7 +137,6 @@ describeSuite({
                     // 3. Generate a random startKey
                     // will be overridden if STARTING_KEY_OVERRIDE is set
                     currentStartKey = moduleKey + fnKey + randomHex(paramsKey.length);
-                    currentStartKey = currentStartKey;
 
                     // 4. Fetch the storage entries with the random startKey
                     // Trying to decode all storage entries may cause the node to timeout, decoding
