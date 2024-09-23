@@ -5,6 +5,11 @@ on:
       spec_version:
         description: runtime spec version (ex. 1601)
         required: false
+      dry_run:
+        description: if true, will not create a PR
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   upgrading-typescript-api:
@@ -39,12 +44,19 @@ jobs:
           cd typescript-api
           ./scripts/runtime-upgrade.sh ${{ github.event.inputs.spec_version }}
       - name: Create Pull Request
+        if: ${{ !inputs.dry_run }}
         uses: peter-evans/create-pull-request@v6
         with:
           base: master
           branch: "typescript-api-${{ github.event.inputs.spec_version }}"
           commit-message: typescript API v0.${{ github.event.inputs.spec_version }}.0
           draft: true
+
           title: "Upgrade typescript API for runtime-${{ github.event.inputs.spec_version }}"
           reviewers: "moonsong-coredev"
           labels: "B0-silent,D2-notlive"
+      - name: Display changes (Dry Run)
+        if: ${{ inputs.dry_run }}
+        run: |
+          git diff
+          echo "Dry run completed. Changes were not committed or pushed."
