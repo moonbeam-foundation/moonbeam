@@ -62,9 +62,12 @@ pub mod backend;
 pub mod call_executor;
 mod client;
 mod helpers;
+mod lock;
 mod state_overrides;
 mod wasm_override;
 mod wasm_substitutes;
+
+pub const LAZY_LOADING_LOG_TARGET: &'static str = "lazy-loading";
 
 /// Lazy loading client type.
 pub type TLazyLoadingClient<TBl, TRtApi, TExec> = sc_service::client::Client<

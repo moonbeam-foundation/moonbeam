@@ -24,7 +24,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 sha3 = { workspace = true }
 tiny-bip39 = { workspace = true }
-tokio = { workspace = true, features = ["macros", "sync"] }
+tokio = { workspace = true, features = ["sync", "rt-multi-thread"] }
 trie-root = { workspace = true }
 tokio-retry = { workspace = true }
 substrate-rpc-client = { workspace = true }
@@ -189,7 +189,7 @@ default = [
 	"westend-native",
 ]
 
-lazy-loading = ["sc-service/test-helpers"]
+lazy-loading = ["sc-service/test-helpers", "parking_lot/send_guard"]
 
 rococo-native = ["polkadot-cli/rococo-native", "polkadot-service/rococo-native"]
 westend-native = [
