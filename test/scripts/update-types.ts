@@ -27,7 +27,7 @@ const executeScript = async (relativeDir: string, command: string) => {
           .split("\n")
           .find((line) => line.includes("Done"))} ✅`
       );
-    if (stdout) console.log(`${stdout}`);
+    // if (stdout) console.log(`${stdout}`);
     if (stderr) console.error(`stderr: ${stderr}`);
   } catch (e) {
     console.error(`Error executing ${command} script in package ${relativeDir}`);
@@ -35,18 +35,15 @@ const executeScript = async (relativeDir: string, command: string) => {
   }
 };
 
-// A function that checks that ../../target/release/moonbeam binary exists
 const checkBinary = async () => {
   try {
     const { stdout, stderr } = await execAsync("ls ../target/release/moonbeam");
     if (stderr) console.error(`stderr: ${stderr}`);
   } catch (e) {
     console.error("Moonbeam binary missing, please build it first using `cargo build --release`");
-    // console.error(e);
   }
 };
 
-// A function that spawns a child running the moonbeam binary in the background and returns the process
 const startMoonbeam = () => {
   const moonbeam = spawn(
     "../target/release/moonbeam",
