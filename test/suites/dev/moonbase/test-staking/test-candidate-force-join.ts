@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, ExtrinsicCreation } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_STAKING, alith, ethan, faith } from "@moonwall/util";
 
 describeSuite({
