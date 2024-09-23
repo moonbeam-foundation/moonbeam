@@ -1260,7 +1260,7 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 			let hash = header.hash();
 
 			let new_removed_keys = old_state.removed_keys.clone();
-			for (key, value) in operation.storage_updates {
+			for (key, value) in operation.storage_updates.clone() {
 				if value.is_some() {
 					new_removed_keys.write().remove(&key.clone());
 				} else {
@@ -1270,7 +1270,7 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 
 			let new_db = old_state.db.clone();
 			new_db.write().insert(
-				vec![(None::<ChildInfo>, operation.storage_updates.clone())],
+				vec![(None::<ChildInfo>, operation.storage_updates)],
 				StateVersion::V0,
 			);
 			let new_state = ForkedLazyBackend {
