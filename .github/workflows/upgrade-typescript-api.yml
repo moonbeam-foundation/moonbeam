@@ -6,7 +6,7 @@ on:
         description: runtime spec version (ex. 1601)
         required: false
       dry_run:
-        description: if true, will not create a PR
+        description: Dry Run - do not create PR
         required: false
         type: boolean
         default: false
