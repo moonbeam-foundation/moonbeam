@@ -14,19 +14,24 @@ describeSuite({
     let relayApi: ApiPromise;
 
     beforeAll(async () => {
+      log("Connecting to parachain and relaychain");
       paraApi = context.polkadotJs("parachain");
       relayApi = context.polkadotJs("relaychain");
 
+      log("Waiting for parachain to produce blocks");
       const currentBlock = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
       expect(currentBlock, "Parachain not producing blocks").to.be.greaterThan(0);
-    }, 480000);
+      log(`Parachain is producing blocks at #${currentBlock}`);
+    }, 120000);
 
     it({
       id: "T01",
       title: "Blocks are being produced on parachain",
       test: async () => {
+        log("T01: Waiting for a block to be produced on parachain");
         const blockNum = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
         expect(blockNum).to.be.greaterThan(0);
+        log(`Block #${blockNum} produced on parachain`);
       },
     });
 
@@ -35,10 +40,12 @@ describeSuite({
       title: "Chain can be upgraded",
       timeout: 600000,
       test: async () => {
+        log("T02: Getting current runtime code");
         const currentCode = (await paraApi.rpc.state.getStorage(":code")) as any;
         const codeString = currentCode.toString();
         const upgradePath = (await MoonwallContext.getContext()).rtUpgradePath;
 
+        log("Getting current runtime version");
         const rtBefore = paraApi.consts.system.version.specVersion.toNumber();
 
         if (!upgradePath) {
@@ -48,6 +55,7 @@ describeSuite({
         const wasm = fs.readFileSync(upgradePath);
         const rtHex = `0x${wasm.toString("hex")}`;
 
+        log("Checking if runtime is already upgraded");
         if (rtHex === codeString) {
           log("Runtime already upgraded, skipping test");
           return;
