@@ -122,7 +122,7 @@ describeSuite({
                   }
                   // Log emptyKeyFirstEntry
                   const emptyKeyFirstEntryKey = emptyKeyEntries[0][0].toString();
-                  log(`     - ${fn}:  ${chalk.green(`🔎`)} (first key : ${emptyKeyFirstEntryKey})`);
+                  log(`     - ${fn}:  ${chalk.green(`🔎`)} (first key: ${emptyKeyFirstEntryKey})`);
 
                   // If there are more entries, perform a random check
                   // 1. Get the first entry storage key
