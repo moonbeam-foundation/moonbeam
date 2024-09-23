@@ -807,7 +807,7 @@ jobs:
 
   zombie_upgrade_test:
     runs-on:
-      labels: bare-metal
+      labels: ubuntu-latest
     needs: ["set-tags", "build"]
     strategy:
       fail-fast: false
