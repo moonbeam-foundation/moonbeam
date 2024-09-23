@@ -29,7 +29,6 @@ import type {
   CumulusPalletXcmpQueueQueueConfigData,
   CumulusPrimitivesCoreAggregateMessageOrigin,
   CumulusPrimitivesParachainInherentParachainInherentData,
-  CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim,
   EthbloomBloom,
   EthereumBlock,
   EthereumHeader,
@@ -50,8 +49,6 @@ import type {
   EvmCoreErrorExitRevert,
   EvmCoreErrorExitSucceed,
   FpRpcTransactionStatus,
-  FrameMetadataHashExtensionCheckMetadataHash,
-  FrameMetadataHashExtensionMode,
   FrameSupportDispatchDispatchClass,
   FrameSupportDispatchDispatchInfo,
   FrameSupportDispatchPays,
@@ -88,13 +85,6 @@ import type {
   MoonbaseRuntimeProxyType,
   MoonbaseRuntimeRuntime,
   MoonbaseRuntimeRuntimeHoldReason,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigFeesTreasuryProportion,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue,
-  MoonbaseRuntimeRuntimeParamsRuntimeParameters,
-  MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
-  MoonbaseRuntimeRuntimeParamsRuntimeParametersValue,
   MoonbaseRuntimeXcmConfigAssetType,
   MoonbaseRuntimeXcmConfigCurrencyId,
   MoonbaseRuntimeXcmConfigTransactors,
@@ -227,8 +217,6 @@ import type {
   PalletParachainStakingRoundInfo,
   PalletParachainStakingSetBoundedOrderedSet,
   PalletParachainStakingSetOrderedSet,
-  PalletParametersCall,
-  PalletParametersEvent,
   PalletPrecompileBenchmarksError,
   PalletPreimageCall,
   PalletPreimageError,
@@ -301,9 +289,6 @@ import type {
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   PalletXcmTransactorTransactWeights,
   PalletXcmVersionMigrationStage,
-  PalletXcmWeightTraderCall,
-  PalletXcmWeightTraderError,
-  PalletXcmWeightTraderEvent,
   PolkadotCorePrimitivesInboundDownwardMessage,
   PolkadotCorePrimitivesInboundHrmpMessage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
@@ -430,7 +415,6 @@ declare module "@polkadot/types/types/registry" {
     CumulusPalletXcmpQueueQueueConfigData: CumulusPalletXcmpQueueQueueConfigData;
     CumulusPrimitivesCoreAggregateMessageOrigin: CumulusPrimitivesCoreAggregateMessageOrigin;
     CumulusPrimitivesParachainInherentParachainInherentData: CumulusPrimitivesParachainInherentParachainInherentData;
-    CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim: CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim;
     EthbloomBloom: EthbloomBloom;
     EthereumBlock: EthereumBlock;
     EthereumHeader: EthereumHeader;
@@ -451,8 +435,6 @@ declare module "@polkadot/types/types/registry" {
     EvmCoreErrorExitRevert: EvmCoreErrorExitRevert;
     EvmCoreErrorExitSucceed: EvmCoreErrorExitSucceed;
     FpRpcTransactionStatus: FpRpcTransactionStatus;
-    FrameMetadataHashExtensionCheckMetadataHash: FrameMetadataHashExtensionCheckMetadataHash;
-    FrameMetadataHashExtensionMode: FrameMetadataHashExtensionMode;
     FrameSupportDispatchDispatchClass: FrameSupportDispatchDispatchClass;
     FrameSupportDispatchDispatchInfo: FrameSupportDispatchDispatchInfo;
     FrameSupportDispatchPays: FrameSupportDispatchPays;
@@ -489,13 +471,6 @@ declare module "@polkadot/types/types/registry" {
     MoonbaseRuntimeProxyType: MoonbaseRuntimeProxyType;
     MoonbaseRuntimeRuntime: MoonbaseRuntimeRuntime;
     MoonbaseRuntimeRuntimeHoldReason: MoonbaseRuntimeRuntimeHoldReason;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigFeesTreasuryProportion: MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigFeesTreasuryProportion;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters: MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey: MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue: MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue;
-    MoonbaseRuntimeRuntimeParamsRuntimeParameters: MoonbaseRuntimeRuntimeParamsRuntimeParameters;
-    MoonbaseRuntimeRuntimeParamsRuntimeParametersKey: MoonbaseRuntimeRuntimeParamsRuntimeParametersKey;
-    MoonbaseRuntimeRuntimeParamsRuntimeParametersValue: MoonbaseRuntimeRuntimeParamsRuntimeParametersValue;
     MoonbaseRuntimeXcmConfigAssetType: MoonbaseRuntimeXcmConfigAssetType;
     MoonbaseRuntimeXcmConfigCurrencyId: MoonbaseRuntimeXcmConfigCurrencyId;
     MoonbaseRuntimeXcmConfigTransactors: MoonbaseRuntimeXcmConfigTransactors;
@@ -628,8 +603,6 @@ declare module "@polkadot/types/types/registry" {
     PalletParachainStakingRoundInfo: PalletParachainStakingRoundInfo;
     PalletParachainStakingSetBoundedOrderedSet: PalletParachainStakingSetBoundedOrderedSet;
     PalletParachainStakingSetOrderedSet: PalletParachainStakingSetOrderedSet;
-    PalletParametersCall: PalletParametersCall;
-    PalletParametersEvent: PalletParametersEvent;
     PalletPrecompileBenchmarksError: PalletPrecompileBenchmarksError;
     PalletPreimageCall: PalletPreimageCall;
     PalletPreimageError: PalletPreimageError;
@@ -702,9 +675,6 @@ declare module "@polkadot/types/types/registry" {
     PalletXcmTransactorRemoteTransactInfoWithMaxWeight: PalletXcmTransactorRemoteTransactInfoWithMaxWeight;
     PalletXcmTransactorTransactWeights: PalletXcmTransactorTransactWeights;
     PalletXcmVersionMigrationStage: PalletXcmVersionMigrationStage;
-    PalletXcmWeightTraderCall: PalletXcmWeightTraderCall;
-    PalletXcmWeightTraderError: PalletXcmWeightTraderError;
-    PalletXcmWeightTraderEvent: PalletXcmWeightTraderEvent;
     PolkadotCorePrimitivesInboundDownwardMessage: PolkadotCorePrimitivesInboundDownwardMessage;
     PolkadotCorePrimitivesInboundHrmpMessage: PolkadotCorePrimitivesInboundHrmpMessage;
     PolkadotCorePrimitivesOutboundHrmpMessage: PolkadotCorePrimitivesOutboundHrmpMessage;

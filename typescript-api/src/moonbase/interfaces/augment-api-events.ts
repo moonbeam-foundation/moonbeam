@@ -32,8 +32,6 @@ import type {
   FrameSupportTokensMiscBalanceStatus,
   MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
   MoonbaseRuntimeProxyType,
-  MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
-  MoonbaseRuntimeRuntimeParamsRuntimeParametersValue,
   MoonbaseRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletConvictionVotingTally,
@@ -103,7 +101,11 @@ declare module "@polkadot/api-base/types/events" {
         { assetType: MoonbaseRuntimeXcmConfigAssetType }
       >;
       /** Changed the amount of units we are charging per execution second for a given asset */
-      UnitsPerSecondChanged: AugmentedEvent<ApiType, []>;
+      UnitsPerSecondChanged: AugmentedEvent<
+        ApiType,
+        [assetType: MoonbaseRuntimeXcmConfigAssetType, unitsPerSecond: u128],
+        { assetType: MoonbaseRuntimeXcmConfigAssetType; unitsPerSecond: u128 }
+      >;
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
     };
@@ -1240,28 +1242,6 @@ declare module "@polkadot/api-base/types/events" {
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
     };
-    parameters: {
-      /**
-       * A Parameter was set.
-       *
-       * Is also emitted when the value was not changed.
-       */
-      Updated: AugmentedEvent<
-        ApiType,
-        [
-          key: MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
-          oldValue: Option<MoonbaseRuntimeRuntimeParamsRuntimeParametersValue>,
-          newValue: Option<MoonbaseRuntimeRuntimeParamsRuntimeParametersValue>
-        ],
-        {
-          key: MoonbaseRuntimeRuntimeParamsRuntimeParametersKey;
-          oldValue: Option<MoonbaseRuntimeRuntimeParamsRuntimeParametersValue>;
-          newValue: Option<MoonbaseRuntimeRuntimeParamsRuntimeParametersValue>;
-        }
-      >;
-      /** Generic event */
-      [key: string]: AugmentedEvent<ApiType>;
-    };
     polkadotXcm: {
       /** Some assets have been claimed from an asset trap */
       AssetsClaimed: AugmentedEvent<
@@ -2104,40 +2084,6 @@ declare module "@polkadot/api-base/types/events" {
       >;
       /** Removed the transact info of a location */
       TransactInfoRemoved: AugmentedEvent<
-        ApiType,
-        [location: StagingXcmV4Location],
-        { location: StagingXcmV4Location }
-      >;
-      /** Generic event */
-      [key: string]: AugmentedEvent<ApiType>;
-    };
-    xcmWeightTrader: {
-      /** Pause support for a given asset */
-      PauseAssetSupport: AugmentedEvent<
-        ApiType,
-        [location: StagingXcmV4Location],
-        { location: StagingXcmV4Location }
-      >;
-      /** Resume support for a given asset */
-      ResumeAssetSupport: AugmentedEvent<
-        ApiType,
-        [location: StagingXcmV4Location],
-        { location: StagingXcmV4Location }
-      >;
-      /** New supported asset is registered */
-      SupportedAssetAdded: AugmentedEvent<
-        ApiType,
-        [location: StagingXcmV4Location, relativePrice: u128],
-        { location: StagingXcmV4Location; relativePrice: u128 }
-      >;
-      /** Changed the amount of units we are charging per execution second for a given asset */
-      SupportedAssetEdited: AugmentedEvent<
-        ApiType,
-        [location: StagingXcmV4Location, relativePrice: u128],
-        { location: StagingXcmV4Location; relativePrice: u128 }
-      >;
-      /** Supported asset type for fee payment removed */
-      SupportedAssetRemoved: AugmentedEvent<
         ApiType,
         [location: StagingXcmV4Location],
         { location: StagingXcmV4Location }

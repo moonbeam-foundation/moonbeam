@@ -47,7 +47,6 @@ import type {
   MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
   MoonbaseRuntimeOriginCaller,
   MoonbaseRuntimeProxyType,
-  MoonbaseRuntimeRuntimeParamsRuntimeParameters,
   MoonbaseRuntimeXcmConfigAssetType,
   MoonbaseRuntimeXcmConfigCurrencyId,
   MoonbaseRuntimeXcmConfigTransactors,
@@ -132,6 +131,22 @@ declare module "@polkadot/api-base/types/submittable" {
           numAssetsWeightHint: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [u128, u32]
+      >;
+      removeSupportedAsset: AugmentedSubmittable<
+        (
+          assetType: MoonbaseRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
+          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [MoonbaseRuntimeXcmConfigAssetType, u32]
+      >;
+      /** Change the amount of units we are charging per execution second for a given ForeignAssetType */
+      setAssetUnitsPerSecond: AugmentedSubmittable<
+        (
+          assetType: MoonbaseRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
+          unitsPerSecond: u128 | AnyNumber | Uint8Array,
+          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [MoonbaseRuntimeXcmConfigAssetType, u128, u32]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -1978,10 +1993,6 @@ declare module "@polkadot/api-base/types/submittable" {
         ) => SubmittableExtrinsic<ApiType>,
         [Vec<H160>, u32]
       >;
-      createContractMetadata: AugmentedSubmittable<
-        (address: H160 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [H160]
-      >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
@@ -2665,26 +2676,6 @@ declare module "@polkadot/api-base/types/submittable" {
       sudoSendUpwardMessage: AugmentedSubmittable<
         (message: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Bytes]
-      >;
-      /** Generic tx */
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
-    parameters: {
-      /**
-       * Set the value of a parameter.
-       *
-       * The dispatch origin of this call must be `AdminOrigin` for the given `key`. Values be
-       * deleted by setting them to `None`.
-       */
-      setParameter: AugmentedSubmittable<
-        (
-          keyValue:
-            | MoonbaseRuntimeRuntimeParamsRuntimeParameters
-            | { RuntimeConfig: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [MoonbaseRuntimeRuntimeParamsRuntimeParameters]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -4883,42 +4874,6 @@ declare module "@polkadot/api-base/types/submittable" {
           PalletXcmTransactorTransactWeights,
           bool
         ]
-      >;
-      /** Generic tx */
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
-    xcmWeightTrader: {
-      addAsset: AugmentedSubmittable<
-        (
-          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array,
-          relativePrice: u128 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [StagingXcmV4Location, u128]
-      >;
-      editAsset: AugmentedSubmittable<
-        (
-          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array,
-          relativePrice: u128 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [StagingXcmV4Location, u128]
-      >;
-      pauseAssetSupport: AugmentedSubmittable<
-        (
-          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [StagingXcmV4Location]
-      >;
-      removeAsset: AugmentedSubmittable<
-        (
-          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [StagingXcmV4Location]
-      >;
-      resumeAssetSupport: AugmentedSubmittable<
-        (
-          location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [StagingXcmV4Location]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
