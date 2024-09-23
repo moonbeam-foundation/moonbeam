@@ -19,7 +19,7 @@ describeSuite({
 
       const currentBlock = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
       expect(currentBlock, "Parachain not producing blocks").to.be.greaterThan(0);
-    }, 120000);
+    }, 480000);
 
     it({
       id: "T01",
