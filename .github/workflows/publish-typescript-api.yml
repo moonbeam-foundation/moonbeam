@@ -5,10 +5,6 @@ on:
       TargetSHA:
         description: full sha of commit to publish ApiAugment from
         required: true
-      OverrideVersion:
-        description: Override version of the package
-        required: false
-        default: ''
       DryRun:
         description: Dry run mode
         required: false
@@ -27,12 +23,10 @@ jobs:
         with:
           version: 9
           run_install: false
-
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
       - name: Build Typescript Augment API package
         run: |
           cd typescript-api
