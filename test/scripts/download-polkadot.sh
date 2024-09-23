@@ -5,9 +5,7 @@ set -e
 
 # Grab Polkadot version
 branch=$(egrep -o '/polkadot.*#([^\"]*)' $(dirname $0)/../../Cargo.lock | head -1 | sed 's/.*release-//#')
-polkadot_release=$(echo $branch | sed 's/#.*//' | sed 's/\/polkadot-sdk?branch=moonbeam-polkadot-v?//')
-# Workaround for supporting 'stable2407' versioning
-polkadot_release=$(echo $polkadot_release | sed 's/#.*//' | sed 's/\/polkadot-sdk?branch=moonbeam-polkadot-//')
+polkadot_release=$(echo $branch | sed 's/#.*//' | sed 's/\/polkadot-sdk?branch=moonbeam-polkadot-//')
 
 # Always run the commands from the "test" dir
 cd $(dirname $0)/..
@@ -19,7 +17,7 @@ if [[ -f tmp/polkadot ]]; then
   else
     echo "Updating polkadot binary..."
 
-    wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v$polkadot_release/polkadot -P tmp
+    wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$polkadot_release/polkadot -P tmp
     chmod +x tmp/polkadot
 
     pnpm moonwall download polkadot-execute-worker $polkadot_release tmp
@@ -31,7 +29,7 @@ if [[ -f tmp/polkadot ]]; then
   fi
 else
   echo "Polkadot binary not found, downloading..."
-  wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v$polkadot_release/polkadot -P tmp
+  wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$polkadot_release/polkadot -P tmp
   chmod +x tmp/polkadot
 
   pnpm moonwall download polkadot-execute-worker $polkadot_release tmp
