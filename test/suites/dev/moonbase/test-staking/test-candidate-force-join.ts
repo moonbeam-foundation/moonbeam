@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, ExtrinsicCreation } from "@moonwall/cli";
 import { MIN_GLMR_STAKING, alith, ethan, faith } from "@moonwall/util";
 
 describeSuite({
@@ -69,7 +69,7 @@ describeSuite({
         const event = events.find((event) => {
           const module = event.event.data[0].toPrimitive().err?.module;
           const parachainStaking = 12;
-          const tooLowCandidateCountWeightHintJoinCandidates = "0x1b000000";
+          const tooLowCandidateCountWeightHintJoinCandidates = "0x1c000000";
           return (
             module?.index === parachainStaking &&
             module?.error === tooLowCandidateCountWeightHintJoinCandidates
