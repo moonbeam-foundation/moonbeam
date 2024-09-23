@@ -891,12 +891,6 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 			maybe_next_key.clone().map(|key| hex::encode(key))
 		);
 
-		if let Some(new_start_key) = maybe_next_key.clone() {
-			self.args.start_at = Some(new_start_key);
-		} else {
-			self.complete = true;
-		}
-
 		let maybe_value = maybe_next_key
 			.clone()
 			.map(|key| (*backend).storage(key.as_slice()).ok())
