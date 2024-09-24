@@ -148,29 +148,51 @@ describeSuite({
 
     it({
       id: "T05",
-      title: "should forbid xtokens transfer",
+      title: "should forbid xcm transfer",
       test: async () => {
         expect(
           async () =>
             await context.createBlock(
               context
                 .polkadotJs()
-                .tx.xTokens.transfer(
-                  "SelfReserve", //enum
-                  100n * GLMR,
+                .tx.polkadotXcm.transferAssets(
+                  // Destination
                   {
-                    V3: {
+                    V4: {
                       parents: 1n,
                       interior: {
-                        X2: [
-                          { Parachain: 2000n },
+                        X1: [{ Parachain: 2000n }]
+                      }
+                    },
+                  } as any,
+                  // Beneficiary
+                  {
+                    V4: {
+                      parents: 0n,
+                      interior: {
+                        X1: [
                           { AccountKey20: { network: null, key: hexToU8a(baltathar.address) } },
-                        ],
+                        ]
                       },
                     },
                   } as any,
+                  // Assets
                   {
-                    Limited: { refTime: 4000000000, proofSize: 64 * 1024 },
+                    V4: [{
+                      id: {
+                        V4: {
+                          parents: 0n,
+                          interior: {
+                            Here: null,
+                          },
+                        }
+                      },
+                      fun: { Fungible: 100n * GLMR },
+                    }]
+                  },
+                  0, // FeeAssetItem
+                  {
+                    Limited: { refTime: 8000000000, proofSize: 128 * 1024 },
                   }
                 )
                 .signAsync(baltathar)
