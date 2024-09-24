@@ -638,11 +638,9 @@ describeSuite({
         }
 
         expectEVMResult(result.result.events, "Succeed", "Returned");
-        const events = expectSubstrateEvents(result, "xTokens", "TransferredAssets");
-        const transferFungible = events[0].data[1][0].fun;
-        expect(transferFungible.isFungible);
-        const transferAmount = transferFungible.asFungible.toBigInt();
-        expect(transferAmount).to.eq(realAmount);
+        const events = expectSubstrateEvents(result, "polkadotXcm", "Attempted");
+        const outcomeEvent = events[0].data[0];
+        expect(outcomeEvent.isComplete);
       },
     });
   },
