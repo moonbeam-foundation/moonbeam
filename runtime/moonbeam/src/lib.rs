@@ -1440,7 +1440,7 @@ construct_runtime! {
 		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event<T>, Origin, Config<T>} = 103,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
-		//XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
+		// Previously 106: XTokens
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 		// Previously 108: pallet_assets::<Instance1>
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin, Event<T>} = 109,
