@@ -20,7 +20,6 @@ use crate::chain_spec::{get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use moonbase_runtime::{currency::UNIT, AccountId, WASM_BINARY};
-use moonbeam_runtime::currency::{GLMR, SUPPLY_FACTOR};
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
 
@@ -93,6 +92,7 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 pub fn lazy_loading_spec_builder(
 	para_id: ParaId,
 ) -> sc_chain_spec::ChainSpecBuilder<crate::moonbeam_runtime::RuntimeGenesisConfig, Extensions> {
+	use moonbeam_runtime::currency::{GLMR, SUPPLY_FACTOR};
 	crate::chain_spec::moonbeam::ChainSpec::builder(
 		moonbeam_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 		Default::default(),
