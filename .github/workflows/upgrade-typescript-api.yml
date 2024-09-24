@@ -4,7 +4,7 @@ on:
     inputs:
       spec_version:
         description: runtime spec version (ex. 1601)
-        required: false
+        required: true
       dry_run:
         description: Dry Run - do not create PR
         required: false
