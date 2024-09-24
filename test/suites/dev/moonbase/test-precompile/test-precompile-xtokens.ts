@@ -61,7 +61,8 @@ describeSuite({
       },
     });
 
-    it({
+    // transferWithFee behave the same as transfer now
+    /*it({
       id: "T02",
       title: "allows to issue transfer xtokens with fee",
       test: async function () {
@@ -105,7 +106,7 @@ describeSuite({
         expect(balBefore - balAfter).to.equal(amountTransferred + fee + fees);
         await verifyLatestBlockFees(context, amountTransferred + fee);
       },
-    });
+    });*/
 
     it({
       id: "T03",
@@ -167,7 +168,8 @@ describeSuite({
       },
     });
 
-    it({
+    // transferMultiassetWithFee behacve the same as transferMultiasset now
+    /*it({
       id: "T04",
       title: "allows to issue transfer_multiasset xtokens with fee",
       test: async function () {
@@ -226,7 +228,7 @@ describeSuite({
         expect(balBefore - balAfter).to.equal(amountTransferred + fee + fees);
         await verifyLatestBlockFees(context, amountTransferred + fee);
       },
-    });
+    });*/
 
     it({
       id: "T05",
