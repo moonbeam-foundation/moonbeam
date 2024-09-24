@@ -375,11 +375,9 @@ describeSuite({
         }
 
         expectEVMResult(block.result.events, "Succeed", "Returned");
-        const events = expectSubstrateEvents(block, "xTokens", "TransferredAssets");
-        const transferFungible = events[0].data[1][0].fun;
-        expect(transferFungible.isFungible);
-        const transferAmount = transferFungible.asFungible.toBigInt();
-        expect(transferAmount).to.eq(realAmount);
+        const events = expectSubstrateEvents(block, "polkadotXcm", "Attempted");
+        const outcomeEvent = events[0].data[0];
+        expect(outcomeEvent.isComplete);
       },
     });
 
@@ -426,11 +424,9 @@ describeSuite({
         }
 
         expectEVMResult(block.result.events, "Succeed", "Returned");
-        const events = expectSubstrateEvents(block, "xTokens", "TransferredAssets");
-        const transferFungible = events[0].data[1][0].fun;
-        expect(transferFungible.isFungible);
-        const transferAmount = transferFungible.asFungible.toBigInt();
-        expect(transferAmount).to.eq(realAmount - fee);
+        const events = expectSubstrateEvents(block, "polkadotXcm", "Attempted");
+        const outcomeEvent = events[0].data[0];
+        expect(outcomeEvent.isComplete);
 
         const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
         expect(alithWHTokenAfter - alithWHTokenBefore).to.eq(fee);
@@ -481,7 +477,7 @@ describeSuite({
 
         expectEVMResult(block.result.events, "Succeed", "Returned");
         // there should be no xTokens TransferredMultiAssets event since fee >= amount sent
-        const events = expectSubstrateEvents(block!, "xTokens", "TransferredAssets");
+        const events = expectSubstrateEvents(block!, "polkadotXcm", "Attempted");
         expect(events.length).to.eq(0); // TODO: isn't expectSubstrateEvents supposed to expect > 0?
 
         const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
@@ -532,11 +528,9 @@ describeSuite({
         }
 
         expectEVMResult(block.result.events, "Succeed", "Returned");
-        const events = expectSubstrateEvents(block, "xTokens", "TransferredAssets");
-        const transferFungible = events[0].data[1][0].fun;
-        expect(transferFungible.isFungible);
-        const transferAmount = transferFungible.asFungible.toBigInt();
-        expect(transferAmount).to.eq(realAmount);
+        const events = expectSubstrateEvents(block, "polkadotXcm", "Attempted");
+        const outcomeEvent = events[0].data[0];
+        expect(outcomeEvent.isComplete);
 
         // no fee paid
         const alithWHTokenAfter = await whWethContract.balanceOf(ALITH_ADDRESS);
