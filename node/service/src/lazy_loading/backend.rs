@@ -1182,7 +1182,7 @@ pub struct Backend<Block: BlockT> {
 	pub(crate) blockchain: Blockchain<Block>,
 	import_lock: parking_lot::RwLock<()>,
 	pinned_blocks: ReadWriteLock<HashMap<Block::Hash, i64>>,
-	fork_checkpoint: Block::Header,
+	pub(crate) fork_checkpoint: Block::Header,
 }
 
 impl<Block: BlockT + DeserializeOwned> Backend<Block> {

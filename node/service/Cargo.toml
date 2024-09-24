@@ -31,6 +31,7 @@ substrate-rpc-client = { workspace = true }
 hex = { workspace = true, features = ["std"] }
 thiserror = { workspace = true }
 tracing = { workspace = true }
+ansi_term = { workspace = true }
 
 # Moonbeam
 moonbeam-dev-rpc = { workspace = true }
