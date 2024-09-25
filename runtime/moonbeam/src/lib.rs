@@ -99,7 +99,13 @@ use sp_runtime::{
 };
 use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
-use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
+//use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
+
+//use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
+use xcm_runtime_apis::{
+	dry_run::{CallDryRunEffects, Error as XcmDryRunApiError, XcmDryRunEffects},
+	fees::Error as XcmPaymentApiError,
+};
 
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
