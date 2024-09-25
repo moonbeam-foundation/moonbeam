@@ -1,7 +1,7 @@
 # Inspired by Polkadot Dockerfile
 
 FROM docker.io/paritytech/ci-linux:production as builder
-LABEL maintainer "alan@purestake.com"
+LABEL maintainer="alan@moonsonglabs.com"
 LABEL description="This is the build stage for Polkadot. Here we create the binary."
 
 ARG POLKADOT_COMMIT=master
@@ -22,7 +22,7 @@ RUN cargo build --profile release --locked
 # ===== SECOND STAGE ======
 
 FROM debian:buster-slim
-LABEL maintainer "alan@purestake.com"
+LABEL maintainer="alan@moonsonglabs.com"
 LABEL description="Polkadot for Moonbeam Relay Chains"
 COPY --from=builder /polkadot-sdk/target/release/polkadot /usr/local/bin
 COPY --from=builder /polkadot-sdk/target/release/polkadot-execute-worker /usr/local/bin
@@ -38,7 +38,7 @@ USER moonbeam
 
 COPY --chown=moonbeam specs/alphanet/westend-embedded-specs-v8.json /moonbase-alphanet/alphanet-relay-raw-specs.json
 RUN grep -v '/p2p/' /moonbase-alphanet/alphanet-relay-raw-specs.json > \
-    /moonbase-alphanet/alphanet-relay-raw-specs-no-bootnodes.json
+	/moonbase-alphanet/alphanet-relay-raw-specs-no-bootnodes.json
 
 # 30333 for p2p traffic
 # 9933 for RPC call
