@@ -19,8 +19,9 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
-	DelegationAction, EnableMarkingOffline, InflationDistributionAccount, Pallet,
-	ParachainBondInfo, Points, Range, RewardPayment, Round, ScheduledRequest, TopDelegations,
+	DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
+	InflationDistributionInfo, Pallet, Points, Range, RewardPayment, Round, ScheduledRequest,
+	TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
@@ -280,13 +281,13 @@ benchmarks! {
 		let parachain_bond_account: T::AccountId = account("TEST", 0u32, USER_SEED);
 	}: _(RawOrigin::Root, parachain_bond_account.clone())
 	verify {
-		assert_eq!(Pallet::<T>::parachain_bond_info().account, parachain_bond_account);
+		assert_eq!(Pallet::<T>::inflation_distribution_info()[0].account, parachain_bond_account);
 	}
 
 	set_parachain_bond_reserve_percent {
 	}: _(RawOrigin::Root, Percent::from_percent(33))
 	verify {
-		assert_eq!(Pallet::<T>::parachain_bond_info().percent, Percent::from_percent(33));
+		assert_eq!(Pallet::<T>::inflation_distribution_info()[0].percent, Percent::from_percent(33));
 	}
 
 	// ROOT DISPATCHABLES
@@ -1554,7 +1555,7 @@ benchmarks! {
 		let payout_round = round.current - reward_delay;
 		// may need:
 		//  <Points<T>>
-		//  <ParachainBondInfo<T>>
+		//  <InflationDistributionInfo<T>>
 		//  ensure parachain bond account exists so that deposit_into_existing succeeds
 		<Points<T>>::insert(payout_round, 100);
 
@@ -1564,10 +1565,13 @@ benchmarks! {
 			0,
 			min_candidate_stk::<T>(),
 		).0;
-		<ParachainBondInfo<T>>::put(ParachainBondConfig {
+		<InflationDistributionInfo<T>>::put([
+			InflationDistributionAccount {
 			account,
 			percent: Percent::from_percent(50),
-		});
+		},
+		 Default::default(),
+		 ]);
 
 	}: { Pallet::<T>::prepare_staking_payouts(round, current_slot); }
 	verify {

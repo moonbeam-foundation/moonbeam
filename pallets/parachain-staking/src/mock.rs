@@ -15,7 +15,9 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
-use crate::{self as pallet_parachain_staking, InflationDistributionAccount, InflationDistributionConfig};
+use crate::{
+	self as pallet_parachain_staking, InflationDistributionAccount, InflationDistributionConfig,
+};
 use crate::{
 	pallet, AwardedPts, Config, Event as ParachainStakingEvent, InflationInfo, Points, Range,
 	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,

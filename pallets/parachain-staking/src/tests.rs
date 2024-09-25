@@ -623,12 +623,18 @@ fn set_parachain_bond_account_event_emits_correctly() {
 #[test]
 fn set_parachain_bond_account_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(ParachainStaking::inflation_distribution_info()[0].account, 0);
+		assert_eq!(
+			ParachainStaking::inflation_distribution_info()[0].account,
+			0
+		);
 		assert_ok!(ParachainStaking::set_parachain_bond_account(
 			RuntimeOrigin::root(),
 			11
 		));
-		assert_eq!(ParachainStaking::inflation_distribution_info()[0].account, 11);
+		assert_eq!(
+			ParachainStaking::inflation_distribution_info()[0].account,
+			11
+		);
 	});
 }
 

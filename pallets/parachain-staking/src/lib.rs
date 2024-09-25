@@ -1866,9 +1866,7 @@ pub mod pallet {
 			let configs = <InflationDistributionInfo<T>>::get();
 			for (index, config) in configs.iter().enumerate() {
 				let reserve = config.percent * total_issuance;
-				if let Ok(imb) =
-					T::Currency::deposit_into_existing(&config.account, reserve)
-				{
+				if let Ok(imb) = T::Currency::deposit_into_existing(&config.account, reserve) {
 					// update round issuance if transfer succeeds
 					left_issuance = left_issuance.saturating_sub(imb.peek());
 					Self::deposit_event(Event::InflationDistributed {
