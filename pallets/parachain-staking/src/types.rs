@@ -1748,17 +1748,21 @@ impl<
 	}
 }
 
+// Type which encapsulates the configuration for the inflation distribution, the first account being
+// the parachain bond reserve PBR account and the second account being the treasury account.
+pub type InflationDistributionConfig<AccountId> = [InflationDistributionAccount<AccountId>; 2];
+
 #[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// Reserve information { account, percent_of_inflation }
-pub struct ParachainBondConfig<AccountId> {
+pub struct InflationDistributionAccount<AccountId> {
 	/// Account which receives funds intended for parachain bond
 	pub account: AccountId,
 	/// Percent of inflation set aside for parachain bond account
 	pub percent: Percent,
 }
-impl<A: Decode> Default for ParachainBondConfig<A> {
-	fn default() -> ParachainBondConfig<A> {
-		ParachainBondConfig {
+impl<A: Decode> Default for InflationDistributionAccount<A> {
+	fn default() -> InflationDistributionAccount<A> {
+		InflationDistributionAccount {
 			account: A::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
 				.expect("infinite length input; no invalid inputs for type; qed"),
 			percent: Percent::zero(),
