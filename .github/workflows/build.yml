@@ -707,6 +707,7 @@ jobs:
     needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         chain: ["moonbeam"]
     env:
@@ -811,6 +812,7 @@ jobs:
     needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         ## TODO: add moonriver here when it is ready
         chain: ["moonbase", "moonbeam"]
