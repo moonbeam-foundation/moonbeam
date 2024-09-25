@@ -594,7 +594,7 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "dev-test"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -704,7 +704,7 @@ jobs:
   lazy-loading-tests:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
       matrix:
@@ -761,7 +761,7 @@ jobs:
   chopsticks-upgrade-test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
       matrix:
@@ -808,7 +808,7 @@ jobs:
   zombie_upgrade_test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
       matrix:
