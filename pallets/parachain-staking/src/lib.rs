@@ -77,6 +77,8 @@ pub use RoundIndex;
 
 #[pallet]
 pub mod pallet {
+	use core::f32::consts::E;
+
 	use crate::delegation_requests::{
 		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
 	};
@@ -1865,6 +1867,9 @@ pub mod pallet {
 
 			let configs = <InflationDistributionInfo<T>>::get();
 			for (index, config) in configs.iter().enumerate() {
+				if config.percent.is_zero() {
+					continue;
+				}
 				let reserve = config.percent * total_issuance;
 				if let Ok(imb) = T::Currency::deposit_into_existing(&config.account, reserve) {
 					// update round issuance if transfer succeeds
