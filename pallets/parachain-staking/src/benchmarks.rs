@@ -290,6 +290,24 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::inflation_distribution_info()[0].percent, Percent::from_percent(33));
 	}
 
+	set_inflation_distribution_config {
+	}: _(RawOrigin::Root, [
+		InflationDistributionAccount {
+			account: account("TEST1", 0u32, USER_SEED),
+			percent: Percent::from_percent(33),
+		},
+		InflationDistributionAccount {
+			account: account("TEST2", 1u32, USER_SEED),
+			percent: Percent::from_percent(22),
+		},
+	])
+	verify {
+		assert_eq!(Pallet::<T>::inflation_distribution_info()[0].account, account("TEST1", 0u32, USER_SEED));
+		assert_eq!(Pallet::<T>::inflation_distribution_info()[0].percent, Percent::from_percent(33));
+		assert_eq!(Pallet::<T>::inflation_distribution_info()[1].account, account("TEST2", 1u32, USER_SEED));
+		assert_eq!(Pallet::<T>::inflation_distribution_info()[1].percent, Percent::from_percent(22));
+	}
+
 	// ROOT DISPATCHABLES
 
 	set_total_selected {
@@ -2346,6 +2364,13 @@ mod tests {
 	fn bench_set_parachain_bond_reserve_percent() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_set_parachain_bond_reserve_percent());
+		});
+	}
+
+	#[test]
+	fn bench_set_inflation_distribution_config() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Pallet::<Test>::test_benchmark_set_inflation_distribution_config());
 		});
 	}
 

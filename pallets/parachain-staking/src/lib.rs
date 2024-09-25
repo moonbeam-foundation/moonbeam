@@ -77,8 +77,6 @@ pub use RoundIndex;
 
 #[pallet]
 pub mod pallet {
-	use core::f32::consts::E;
-
 	use crate::delegation_requests::{
 		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
 	};
