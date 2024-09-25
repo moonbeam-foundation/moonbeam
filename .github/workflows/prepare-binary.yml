@@ -16,11 +16,6 @@ jobs:
 
   build-binary:
     runs-on: bare-metal
-    strategy:
-      matrix:
-        cpu: ["x86-64"]
-    env:
-      RUSTFLAGS: "-C target-cpu=${{ matrix.cpu }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,15 +28,9 @@ jobs:
       - name: Build Node
         run: cargo build --profile=production --all
       - name: Save parachain binary
-        if: ${{ matrix.cpu == '' }}
         run: |
           mkdir -p build
           cp target/production/moonbeam build/moonbeam
-      - name: Save parachain custom binary
-        if: ${{ matrix.cpu != '' }}
-        run: |
-          mkdir -p build
-          cp target/production/moonbeam build/moonbeam-${{matrix.cpu}}
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
@@ -59,8 +48,7 @@ jobs:
           ref: ${{ github.event.inputs.sha }}
       - uses: actions/download-artifact@v4
         with:
-          pattern: binaries-*
-          merge-multiple: true
+          name: moonbeam
           path: build
       - name: Prepare
         id: prep
