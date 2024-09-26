@@ -30,9 +30,9 @@ describeSuite({
           .polkadotJs()
           .query.parachainStaking.inflationDistributionInfo();
         expect(inflationDistributionConfig[0].account.toString()).to.equal(ZERO_ADDRESS);
-        expect(inflationDistributionConfig[0].percent).to.equal(30);
+        expect(inflationDistributionConfig[0].percent.toNumber()).to.equal(30);
         expect(inflationDistributionConfig[1].account.toString()).to.equal(ZERO_ADDRESS);
-        expect(inflationDistributionConfig[1].percent).to.equal(0);
+        expect(inflationDistributionConfig[1].percent.toNumber()).to.equal(0);
       },
     });
 
