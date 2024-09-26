@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use parking_lot::RwLock;
 use sp_blockchain::{CachedHeaderMetadata, HeaderMetadata};
 use sp_core::storage::well_known_keys;
 use sp_runtime::{
@@ -46,6 +45,7 @@ use jsonrpsee::http_client::HttpClient;
 use sp_runtime::generic::SignedBlock;
 
 use crate::chain_spec;
+use crate::lazy_loading::lock::ReadWriteLock;
 use crate::lazy_loading::state_overrides::StateEntry;
 use crate::lazy_loading::{helpers, state_overrides};
 use moonbeam_cli_opt::LazyLoadingConfig;
@@ -134,7 +134,7 @@ struct BlockchainStorage<Block: BlockT> {
 #[derive(Clone)]
 pub struct Blockchain<Block: BlockT> {
 	rpc_client: Arc<RPC>,
-	storage: Arc<RwLock<BlockchainStorage<Block>>>,
+	storage: Arc<ReadWriteLock<BlockchainStorage<Block>>>,
 }
 
 impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
@@ -148,7 +148,7 @@ impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
 
 	/// Create new in-memory blockchain storage.
 	fn new(rpc_client: Arc<RPC>) -> Blockchain<Block> {
-		let storage = Arc::new(RwLock::new(BlockchainStorage {
+		let storage = Arc::new(ReadWriteLock::new(BlockchainStorage {
 			blocks: HashMap::new(),
 			hashes: HashMap::new(),
 			best_hash: Default::default(),
@@ -203,7 +203,12 @@ impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
 	/// Get total number of blocks.
 	pub fn blocks_count(&self) -> usize {
 		let count = self.storage.read().blocks.len();
-		log::error!("Total number of blocks: {:?}", count);
+
+		log::debug!(
+			target: super::LAZY_LOADING_LOG_TARGET,
+			"Total number of blocks: {:?}",
+			count
+		);
 
 		count
 	}
@@ -249,37 +254,11 @@ impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
 	}
 
 	fn apply_head(&self, header: &<Block as BlockT>::Header) -> sp_blockchain::Result<()> {
+		let mut storage = self.storage.write();
+
 		let hash = header.hash();
 		let number = header.number();
-		/*
-		// Note: this may lock storage, so it must happen before obtaining storage
-		// write lock.
-		let best_tree_route = {
-			let best_hash = self.storage.read().best_hash;
-			if &best_hash == header.parent_hash() {
-				None
-			} else {
-				let route = sp_blockchain::tree_route(self, best_hash, *header.parent_hash())?;
-				Some(route)
-			}
-		};
-		*/
 
-		let mut storage = self.storage.write();
-		/*
-				if let Some(tree_route) = best_tree_route {
-					// apply retraction and enaction when reorganizing up to parent hash
-					let enacted = tree_route.enacted();
-
-					for entry in enacted {
-						storage.hashes.insert(entry.number, entry.hash);
-					}
-
-					for entry in tree_route.retracted().iter().skip(enacted.len()) {
-						storage.hashes.remove(&entry.number);
-					}
-				}
-		*/
 		storage.best_hash = hash;
 		storage.best_number = *number;
 		storage.hashes.insert(*number, hash);
@@ -385,7 +364,11 @@ impl<Block: BlockT + DeserializeOwned> HeaderBackend<Block> for Blockchain<Block
 			});
 
 		if header.is_none() {
-			log::warn!("Expected block {:x?} to exist.", &hash);
+			log::warn!(
+				target: super::LAZY_LOADING_LOG_TARGET,
+				"Expected block {:x?} to exist.",
+				&hash
+			);
 		}
 
 		Ok(header)
@@ -418,9 +401,8 @@ impl<Block: BlockT + DeserializeOwned> HeaderBackend<Block> for Blockchain<Block
 			_ => match self.rpc_client.block::<Block, _>(Some(hash)) {
 				Ok(Some(block)) => *block.block.header().number(),
 				err => {
-					log::error!("Failed to fetch block number from RPC: {:?}", err);
 					return Err(sp_blockchain::Error::UnknownBlock(
-						"Failed to fetch block number from RPC".into(),
+						format!("Failed to fetch block number from RPC: {:?}", err).into(),
 					));
 				}
 			},
@@ -553,6 +535,7 @@ pub struct BlockImportOperation<Block: BlockT> {
 	old_state: ForkedLazyBackend<Block>,
 	new_state: Option<BackendTransaction<HashingFor<Block>>>,
 	aux: Vec<(Vec<u8>, Option<Vec<u8>>)>,
+	storage_updates: StorageCollection,
 	finalized_blocks: Vec<(Block::Hash, Option<Justification>)>,
 	set_head: Option<Block::Hash>,
 	pub(crate) before_fork: bool,
@@ -589,6 +572,11 @@ impl<Block: BlockT + DeserializeOwned> BlockImportOperation<Block> {
 
 		if commit {
 			self.new_state = Some(transaction);
+			self.storage_updates = storage
+				.top
+				.iter()
+				.map(|(k, v)| (k.clone(), Some(v.clone())))
+				.collect();
 		}
 		Ok(root)
 	}
@@ -657,9 +645,10 @@ impl<Block: BlockT + DeserializeOwned> backend::BlockImportOperation<Block>
 
 	fn update_storage(
 		&mut self,
-		_update: StorageCollection,
+		update: StorageCollection,
 		_child_update: ChildStorageCollection,
 	) -> sp_blockchain::Result<()> {
+		self.storage_updates = update.clone();
 		Ok(())
 	}
 
@@ -706,9 +695,6 @@ pub struct RawIterArgs {
 	/// If this is `true` then the iteration will *not* include
 	/// the key specified in `start_at`, if there is such a key.
 	pub start_at_exclusive: bool,
-
-	/// The info of the child trie over which to iterate over.
-	pub child_info: Option<ChildInfo>,
 }
 
 /// A raw iterator over the `BenchmarkingState`.
@@ -730,22 +716,91 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 	) -> Option<Result<sp_state_machine::StorageKey, Self::Error>> {
 		use sp_state_machine::Backend;
 
-		let result = if let Some(start_at) = self.args.start_at.clone() {
-			let maybe_key = (*backend)
-				.next_storage_key(start_at.as_slice())
+		let remote_fetch =
+			|key: Option<StorageKey>, start_key: Option<StorageKey>, block: Option<Block::Hash>| {
+				let result = backend
+					.rpc_client
+					.storage_keys_paged(key, 5, start_key, block);
+
+				match result {
+					Ok(keys) => keys.first().map(|key| key.clone()),
+					Err(err) => {
+						log::trace!(
+							target: super::LAZY_LOADING_LOG_TARGET,
+							"Failed to fetch `next key` from RPC: {:?}",
+							err
+						);
+
+						None
+					}
+				}
+			};
+
+		let prefix = self.args.prefix.clone().map(|k| StorageKey(k));
+		let start_key = self.args.start_at.clone().map(|k| StorageKey(k));
+
+		let maybe_next_key = if backend.before_fork {
+			remote_fetch(prefix, start_key, backend.block_hash)
+		} else {
+			let mut iter_args = sp_state_machine::backend::IterArgs::default();
+			iter_args.prefix = self.args.prefix.as_ref().map(|b| b.as_slice());
+			iter_args.start_at = self.args.start_at.as_ref().map(|b| b.as_slice());
+			iter_args.start_at_exclusive = true;
+			iter_args.stop_on_incomplete_database = true;
+
+			let readable_db = backend.db.read();
+			let next_storage_key = readable_db
+				.raw_iter(iter_args)
+				.map(|mut iter| iter.next_key(&readable_db))
+				.map(|op| op.map(|result| result.ok()).flatten())
 				.ok()
 				.flatten();
-			self.args.start_at = maybe_key.clone();
-			maybe_key.map(|v| Ok::<sp_state_machine::StorageKey, Self::Error>(v))
-		} else {
-			None
+
+			// IMPORTANT: free storage read lock
+			drop(readable_db);
+
+			let removed_key = start_key
+				.clone()
+				.or(prefix.clone())
+				.map(|key| backend.removed_keys.read().contains_key(&key.0))
+				.unwrap_or(false);
+			if next_storage_key.is_none() && !removed_key {
+				let maybe_next_key = remote_fetch(prefix, start_key, Some(backend.fork_block));
+				match maybe_next_key {
+					Some(key) if !backend.removed_keys.read().contains_key(&key) => Some(key),
+					_ => None,
+				}
+			} else {
+				next_storage_key
+			}
 		};
 
-		if result.is_none() {
-			self.complete = true;
-		}
+		log::trace!(
+			target: super::LAZY_LOADING_LOG_TARGET,
+			"next_key: (prefix: {:?}, start_at: {:?}, next_key: {:?})",
+			self.args.prefix.clone().map(|key| hex::encode(key)),
+			self.args.start_at.clone().map(|key| hex::encode(key)),
+			maybe_next_key.clone().map(|key| hex::encode(key))
+		);
 
-		result
+		if let Some(next_key) = maybe_next_key {
+			if self
+				.args
+				.prefix
+				.clone()
+				.map(|filter_key| next_key.starts_with(&filter_key))
+				.unwrap_or(false)
+			{
+				self.args.start_at = Some(next_key.clone());
+				Some(Ok(next_key))
+			} else {
+				self.complete = true;
+				None
+			}
+		} else {
+			self.complete = true;
+			None
+		}
 	}
 
 	fn next_pair(
@@ -755,32 +810,101 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 	{
 		use sp_state_machine::Backend;
 
-		let result = if let Some(start_at) = self.args.start_at.clone() {
-			let maybe_key = (*backend)
-				.next_storage_key(start_at.as_slice())
+		let remote_fetch =
+			|key: Option<StorageKey>, start_key: Option<StorageKey>, block: Option<Block::Hash>| {
+				let result = backend
+					.rpc_client
+					.storage_keys_paged(key, 5, start_key, block);
+
+				match result {
+					Ok(keys) => keys.first().map(|key| key.clone()),
+					Err(err) => {
+						log::trace!(
+							target: super::LAZY_LOADING_LOG_TARGET,
+							"Failed to fetch `next key` from RPC: {:?}",
+							err
+						);
+
+						None
+					}
+				}
+			};
+
+		let prefix = self.args.prefix.clone().map(|k| StorageKey(k));
+		let start_key = self.args.start_at.clone().map(|k| StorageKey(k));
+
+		let maybe_next_key = if backend.before_fork {
+			remote_fetch(prefix, start_key, backend.block_hash)
+		} else {
+			let mut iter_args = sp_state_machine::backend::IterArgs::default();
+			iter_args.prefix = self.args.prefix.as_ref().map(|b| b.as_slice());
+			iter_args.start_at = self.args.start_at.as_ref().map(|b| b.as_slice());
+			iter_args.start_at_exclusive = true;
+			iter_args.stop_on_incomplete_database = true;
+
+			let readable_db = backend.db.read();
+			let next_storage_key = readable_db
+				.raw_iter(iter_args)
+				.map(|mut iter| iter.next_key(&readable_db))
+				.map(|op| op.map(|result| result.ok()).flatten())
 				.ok()
 				.flatten();
-			self.args.start_at = maybe_key.clone();
 
-			let maybe_value = maybe_key
+			// IMPORTANT: free storage read lock
+			drop(readable_db);
+
+			let removed_key = start_key
 				.clone()
-				.map(|key| (*backend).storage(key.as_slice()).ok())
-				.flatten()
-				.flatten();
-
-			match (maybe_key, maybe_value) {
-				(Some(key), Some(value)) => Some(Ok((key, value))),
-				_ => None,
+				.or(prefix.clone())
+				.map(|key| backend.removed_keys.read().contains_key(&key.0))
+				.unwrap_or(false);
+			if next_storage_key.is_none() && !removed_key {
+				let maybe_next_key = remote_fetch(prefix, start_key, Some(backend.fork_block));
+				match maybe_next_key {
+					Some(key) if !backend.removed_keys.read().contains_key(&key) => Some(key),
+					_ => None,
+				}
+			} else {
+				next_storage_key
 			}
-		} else {
-			None
 		};
 
-		if result.is_none() {
-			self.complete = true;
-		}
+		log::trace!(
+			target: super::LAZY_LOADING_LOG_TARGET,
+			"next_pair: (prefix: {:?}, start_at: {:?}, next_key: {:?})",
+			self.args.prefix.clone().map(|key| hex::encode(key)),
+			self.args.start_at.clone().map(|key| hex::encode(key)),
+			maybe_next_key.clone().map(|key| hex::encode(key))
+		);
 
-		result
+		let maybe_value = maybe_next_key
+			.clone()
+			.map(|key| (*backend).storage(key.as_slice()).ok())
+			.flatten()
+			.flatten();
+
+		if let Some(next_key) = maybe_next_key {
+			if self
+				.args
+				.prefix
+				.clone()
+				.map(|filter_key| next_key.starts_with(&filter_key))
+				.unwrap_or(false)
+			{
+				self.args.start_at = Some(next_key.clone());
+
+				match maybe_value {
+					Some(value) => Some(Ok((next_key, value))),
+					_ => None,
+				}
+			} else {
+				self.complete = true;
+				None
+			}
+		} else {
+			self.complete = true;
+			None
+		}
 	}
 
 	fn was_complete(&self) -> bool {
@@ -793,8 +917,20 @@ pub struct ForkedLazyBackend<Block: BlockT> {
 	rpc_client: Arc<RPC>,
 	block_hash: Option<Block::Hash>,
 	fork_block: Block::Hash,
-	pub(crate) db: Arc<RwLock<sp_state_machine::InMemoryBackend<HashingFor<Block>>>>,
+	pub(crate) db: Arc<ReadWriteLock<sp_state_machine::InMemoryBackend<HashingFor<Block>>>>,
+	pub(crate) removed_keys: Arc<ReadWriteLock<HashMap<Vec<u8>, ()>>>,
 	before_fork: bool,
+}
+
+impl<Block: BlockT> ForkedLazyBackend<Block> {
+	fn update_storage(&self, key: &[u8], value: &Option<Vec<u8>>) {
+		if let Some(ref val) = value {
+			let mut entries: HashMap<Option<ChildInfo>, StorageCollection> = Default::default();
+			entries.insert(None, vec![(key.to_vec(), Some(val.clone()))]);
+
+			self.db.write().insert(entries, StateVersion::V0);
+		}
+	}
 }
 
 impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Block>>
@@ -809,29 +945,39 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 			let result = self.rpc_client.storage(StorageKey(key.to_vec()), block);
 
 			match result {
-				Ok(data) => Ok(data.map(|v| v.0)),
-				Err(err) => Err(format!("Failed to fetch storage from RPC: {:?}", err).into()),
+				Ok(data) => data.map(|v| v.0),
+				Err(err) => {
+					log::debug!(
+						target: super::LAZY_LOADING_LOG_TARGET,
+						"Failed to fetch storage from live network: {:?}",
+						err
+					);
+					None
+				}
 			}
 		};
 
 		if self.before_fork {
-			return remote_fetch(self.block_hash);
+			return Ok(remote_fetch(self.block_hash));
 		}
 
-		let maybe_storage = self.db.read().storage(key);
+		let readable_db = self.db.read();
+		let maybe_storage = readable_db.storage(key);
 		let value = match maybe_storage {
-			Ok(Some(data)) => Ok(Some(data)),
-			_ => remote_fetch(Some(self.fork_block)),
+			Ok(Some(data)) => Some(data),
+			_ if !self.removed_keys.read().contains_key(key) => {
+				let result = remote_fetch(Some(self.fork_block));
+
+				// Cache state
+				drop(readable_db);
+				self.update_storage(key, &result);
+
+				result
+			}
+			_ => None,
 		};
 
-		if let Ok(Some(ref val)) = value {
-			let mut entries: HashMap<Option<ChildInfo>, StorageCollection> = Default::default();
-			entries.insert(None, vec![(key.to_vec(), Some(val.clone()))]);
-
-			self.db.write().insert(entries, StateVersion::V1);
-		}
-
-		value
+		Ok(value)
 	}
 
 	fn storage_hash(
@@ -856,7 +1002,8 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 		let storage_hash = self.db.read().storage_hash(key);
 		match storage_hash {
 			Ok(Some(hash)) => Ok(Some(hash)),
-			_ => remote_fetch(Some(self.fork_block)),
+			_ if !self.removed_keys.read().contains_key(key) => remote_fetch(Some(self.fork_block)),
+			_ => Ok(None),
 		}
 	}
 
@@ -867,7 +1014,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 		Option<sp_trie::MerkleValue<<HashingFor<Block> as sp_core::Hasher>::Out>>,
 		Self::Error,
 	> {
-		panic!("closest_merkle_value: unsupported feature for lazy loading")
+		unimplemented!("closest_merkle_value: unsupported feature for lazy loading")
 	}
 
 	fn child_closest_merkle_value(
@@ -878,7 +1025,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 		Option<sp_trie::MerkleValue<<HashingFor<Block> as sp_core::Hasher>::Out>>,
 		Self::Error,
 	> {
-		panic!("child_closest_merkle_value: unsupported feature for lazy loading")
+		unimplemented!("child_closest_merkle_value: unsupported feature for lazy loading")
 	}
 
 	fn child_storage(
@@ -886,7 +1033,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 		_child_info: &sp_storage::ChildInfo,
 		_key: &[u8],
 	) -> Result<Option<sp_state_machine::StorageValue>, Self::Error> {
-		panic!("child_storage: unsupported feature for lazy loading");
+		unimplemented!("child_storage: unsupported feature for lazy loading");
 	}
 
 	fn child_storage_hash(
@@ -894,7 +1041,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 		_child_info: &sp_storage::ChildInfo,
 		_key: &[u8],
 	) -> Result<Option<<HashingFor<Block> as sp_core::Hasher>::Out>, Self::Error> {
-		panic!("child_storage_hash: unsupported feature for lazy loading");
+		unimplemented!("child_storage_hash: unsupported feature for lazy loading");
 	}
 
 	fn next_storage_key(
@@ -902,47 +1049,46 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 		key: &[u8],
 	) -> Result<Option<sp_state_machine::StorageKey>, Self::Error> {
 		let remote_fetch = |block: Option<Block::Hash>| {
+			let start_key = Some(StorageKey(key.to_vec()));
 			let result = self
 				.rpc_client
-				.storage_keys_paged(StorageKey(key.to_vec()), block);
+				.storage_keys_paged(start_key.clone(), 2, None, block);
 
 			match result {
-				Ok(keys) => {
-					let mut entries: HashMap<Option<ChildInfo>, StorageCollection> =
-						Default::default();
-					let _ = self
-						.rpc_client
-						.query_storage_at(
-							keys.iter().map(|item| StorageKey(item.clone())).collect(),
-							self.block_hash,
-						)
-						.map(|keys| {
-							for (key, value) in &keys {
-								entries.insert(
-									None,
-									vec![(key.0.to_vec(), value.clone().map(|v| v.0))],
-								);
-							}
-						});
-
-					self.db.write().insert(entries, StateVersion::V0);
-					Ok(keys.get(1).cloned())
-				}
+				Ok(keys) => keys.last().cloned(),
 				Err(err) => {
-					Err(format!("Failed to fetch `next storage key` from RPC: {:?}", err).into())
+					log::trace!(
+						target: super::LAZY_LOADING_LOG_TARGET,
+						"Failed to fetch `next storage key` from RPC: {:?}",
+						err
+					);
+
+					None
 				}
 			}
 		};
 
-		if self.before_fork {
-			return remote_fetch(self.block_hash);
-		}
+		let maybe_next_key = if self.before_fork {
+			remote_fetch(self.block_hash)
+		} else {
+			let next_storage_key = self.db.read().next_storage_key(key);
+			match next_storage_key {
+				Ok(Some(key)) => Some(key),
+				_ if !self.removed_keys.read().contains_key(key) => {
+					remote_fetch(Some(self.fork_block))
+				}
+				_ => None,
+			}
+		};
 
-		let next_storage_key = self.db.read().next_storage_key(key);
-		match next_storage_key {
-			Ok(Some(key)) => Ok(Some(key)),
-			_ => remote_fetch(Some(self.fork_block)),
-		}
+		log::trace!(
+			target: super::LAZY_LOADING_LOG_TARGET,
+			"next_storage_key: (key: {:?}, next_key: {:?})",
+			hex::encode(key),
+			maybe_next_key.clone().map(|key| hex::encode(key))
+		);
+
+		Ok(maybe_next_key)
 	}
 
 	fn next_child_storage_key(
@@ -950,7 +1096,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 		_child_info: &sp_storage::ChildInfo,
 		_key: &[u8],
 	) -> Result<Option<sp_state_machine::StorageKey>, Self::Error> {
-		panic!("next_child_storage_key: unsupported feature for lazy loading");
+		unimplemented!("next_child_storage_key: unsupported feature for lazy loading");
 	}
 
 	fn storage_root<'a>(
@@ -969,9 +1115,9 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 
 	fn child_storage_root<'a>(
 		&self,
-		child_info: &sp_storage::ChildInfo,
-		delta: impl Iterator<Item = (&'a [u8], Option<&'a [u8]>)>,
-		state_version: StateVersion,
+		_child_info: &sp_storage::ChildInfo,
+		_delta: impl Iterator<Item = (&'a [u8], Option<&'a [u8]>)>,
+		_state_version: StateVersion,
 	) -> (
 		<HashingFor<Block> as sp_core::Hasher>::Out,
 		bool,
@@ -980,15 +1126,12 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 	where
 		<HashingFor<Block> as sp_core::Hasher>::Out: Ord,
 	{
-		self.db
-			.read()
-			.child_storage_root(child_info, delta, state_version)
+		unimplemented!("child_storage_root: unsupported in lazy loading")
 	}
 
 	fn raw_iter(&self, args: sp_state_machine::IterArgs) -> Result<Self::RawIter, Self::Error> {
 		let mut clone: RawIterArgs = Default::default();
 		clone.start_at_exclusive = args.start_at_exclusive.clone();
-		clone.child_info = args.child_info.clone();
 		clone.prefix = args.prefix.map(|v| v.to_vec());
 		clone.start_at = args.start_at.map(|v| v.to_vec());
 
@@ -1018,24 +1161,21 @@ impl<B: BlockT> sp_state_machine::backend::AsTrieBackend<HashingFor<B>> for Fork
 	}
 }
 
-/// In-memory backend. Keeps all states and blocks in memory.
-///
-/// > **Warning**: Doesn't support all the features necessary for a proper database. Only use this
-/// > struct for testing purposes. Do **NOT** use in production.
+/// Lazy loading (In-memory) backend. Keeps all states and blocks in memory.
 pub struct Backend<Block: BlockT> {
 	pub(crate) rpc_client: Arc<RPC>,
-	states: RwLock<HashMap<Block::Hash, ForkedLazyBackend<Block>>>,
+	states: ReadWriteLock<HashMap<Block::Hash, ForkedLazyBackend<Block>>>,
 	pub(crate) blockchain: Blockchain<Block>,
-	import_lock: RwLock<()>,
-	pinned_blocks: RwLock<HashMap<Block::Hash, i64>>,
-	fork_checkpoint: Block::Header,
+	import_lock: parking_lot::RwLock<()>,
+	pinned_blocks: ReadWriteLock<HashMap<Block::Hash, i64>>,
+	pub(crate) fork_checkpoint: Block::Header,
 }
 
 impl<Block: BlockT + DeserializeOwned> Backend<Block> {
 	fn new(rpc_client: Arc<RPC>, fork_checkpoint: Block::Header) -> Self {
 		Backend {
 			rpc_client: rpc_client.clone(),
-			states: RwLock::new(HashMap::new()),
+			states: Default::default(),
 			blockchain: Blockchain::new(rpc_client),
 			import_lock: Default::default(),
 			pinned_blocks: Default::default(),
@@ -1077,6 +1217,7 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 			old_state,
 			new_state: None,
 			aux: Default::default(),
+			storage_updates: Default::default(),
 			finalized_blocks: Default::default(),
 			set_head: None,
 			before_fork: false,
@@ -1102,24 +1243,28 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 		if let Some(pending_block) = operation.pending_block {
 			let old_state = &operation.old_state;
 			let (header, body, justification) = pending_block.block.into_inner();
-
 			let hash = header.hash();
 
-			let new_state = match operation.new_state.clone() {
-				Some(state) => Arc::new(RwLock::new(
-					old_state
-						.db
-						.read()
-						.update_backend(*header.state_root(), state),
-				)),
-				None => old_state.db.clone(),
-			};
+			let new_removed_keys = old_state.removed_keys.clone();
+			for (key, value) in operation.storage_updates.clone() {
+				if value.is_some() {
+					new_removed_keys.write().remove(&key.clone());
+				} else {
+					new_removed_keys.write().insert(key.clone(), ());
+				}
+			}
 
+			let new_db = old_state.db.clone();
+			new_db.write().insert(
+				vec![(None::<ChildInfo>, operation.storage_updates)],
+				StateVersion::V0,
+			);
 			let new_state = ForkedLazyBackend {
 				rpc_client: self.rpc_client.clone(),
 				block_hash: Some(hash.clone()),
 				fork_block: self.fork_checkpoint.hash(),
-				db: new_state,
+				db: new_db,
+				removed_keys: new_removed_keys,
 				before_fork: operation.before_fork,
 			};
 			self.states.write().insert(hash, new_state);
@@ -1174,6 +1319,7 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 				block_hash: Some(hash),
 				fork_block: self.fork_checkpoint.hash(),
 				db: Default::default(),
+				removed_keys: Default::default(),
 				before_fork: true,
 			});
 		}
@@ -1200,7 +1346,8 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 						rpc_client: self.rpc_client.clone(),
 						block_hash: Some(hash),
 						fork_block: checkpoint.hash(),
-						db: parent.map_or(Default::default(), |p| p.db),
+						db: parent.clone().map_or(Default::default(), |p| p.db),
+						removed_keys: parent.map_or(Default::default(), |p| p.removed_keys),
 						before_fork: false,
 					}
 				} else {
@@ -1209,6 +1356,7 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 						block_hash: Some(hash),
 						fork_block: checkpoint.hash(),
 						db: Default::default(),
+						removed_keys: Default::default(),
 						before_fork: true,
 					}
 				};
@@ -1235,7 +1383,7 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 		Ok(())
 	}
 
-	fn get_import_lock(&self) -> &RwLock<()> {
+	fn get_import_lock(&self) -> &parking_lot::RwLock<()> {
 		&self.import_lock
 	}
 
@@ -1286,7 +1434,7 @@ pub struct RPC {
 	http_client: HttpClient,
 	delay_between_requests_ms: u64,
 	max_retries_per_request: usize,
-	counter: Arc<RwLock<u64>>,
+	counter: Arc<ReadWriteLock<u64>>,
 }
 
 impl RPC {
@@ -1428,26 +1576,26 @@ impl RPC {
 		Hash: 'static + Clone + Sync + Send + DeserializeOwned + sp_runtime::Serialize,
 	>(
 		&self,
-		key: StorageKey,
+		key: Option<StorageKey>,
+		count: u32,
+		start_key: Option<StorageKey>,
 		at: Option<Hash>,
 	) -> Result<Vec<sp_state_machine::StorageKey>, jsonrpsee::core::ClientError> {
 		let request = &|| {
 			substrate_rpc_client::StateApi::<Hash>::storage_keys_paged(
 				&self.http_client,
-				Some(key.clone()),
-				2,
-				None,
+				key.clone(),
+				count.clone(),
+				start_key.clone(),
 				at.clone(),
 			)
 		};
 		let result = self.block_on(request);
 
-		let keys = match result {
-			Ok(result) => result.iter().map(|item| item.0.clone()).collect(),
-			Err(err) => panic!("failed in `storage_keys_paged`: {:?}", err),
-		};
-
-		Ok(keys)
+		match result {
+			Ok(result) => Ok(result.iter().map(|item| item.0.clone()).collect()),
+			Err(err) => Err(err),
+		}
 	}
 
 	pub fn query_storage_at<
@@ -1485,10 +1633,13 @@ impl RPC {
 			Handle::current().block_on(async move {
 				let delay_between_requests = Duration::from_millis(self.delay_between_requests_ms);
 
-				// TODO: Remove debug information
 				let start = std::time::Instant::now();
 				self.counter.write().add_assign(1);
-				log::debug!("sending request: {}", self.counter.read());
+				log::debug!(
+					target: super::LAZY_LOADING_LOG_TARGET,
+					"Sending request: {}",
+					self.counter.read()
+				);
 
 				// Explicit request delay, to avoid getting 429 errors
 				let _ = tokio::time::sleep(delay_between_requests).await;
@@ -1500,6 +1651,7 @@ impl RPC {
 				let result = Retry::spawn(retry_strategy, f).await;
 
 				log::debug!(
+					target: super::LAZY_LOADING_LOG_TARGET,
 					"Completed request (id: {}, successful: {}, elapsed_time: {:?})",
 					self.counter.read(),
 					result.is_ok(),
@@ -1606,7 +1758,7 @@ where
 	backend.commit_operation(op)?;
 
 	// Produce first block after the fork
-	let _ = helpers::produce_first_block(backend.clone(), checkpoint, state_overrides)?;
+	let _ = helpers::produce_first_block(backend.clone(), state_overrides)?;
 
 	Ok(backend)
 }
