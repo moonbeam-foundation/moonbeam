@@ -56,7 +56,6 @@ pub fn produce_genesis_block<TBl: BlockT + sp_runtime::DeserializeOwned>(
 
 pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 	backend: Arc<lazy_loading::backend::Backend<Block>>,
-	last_block: Block,
 	state_overrides: Vec<(Vec<u8>, Vec<u8>)>,
 ) -> sp_blockchain::Result<()> {
 	use sc_client_api::HeaderBackend;
@@ -67,7 +66,7 @@ pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 			top: state_overrides.into_iter().collect(),
 			children_default: Default::default(),
 		},
-		StateVersion::V1,
+		StateVersion::V0,
 	)?;
 
 	let head_info = backend.blockchain.info();
@@ -75,7 +74,7 @@ pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 
 	let header: Block::Header = Block::Header::new(
 		next_block_number,
-		last_block.header().extrinsics_root().clone(),
+		Default::default(),
 		state_root,
 		head_info.finalized_hash,
 		Default::default(),
@@ -83,7 +82,7 @@ pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 
 	let _ = op.set_block_data(
 		header.clone(),
-		Some(last_block.extrinsics().to_vec()),
+		Some(Default::default()),
 		None,
 		None,
 		NewBlockState::Final,
