@@ -26,7 +26,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20.10.0
       - name: Build Typescript Augment API package
         run: |
           cd typescript-api
@@ -38,3 +38,4 @@ jobs:
           token: ${{ secrets.NPM_TOKEN }}
           package: typescript-api/package.json
           dry-run: ${{ github.event.inputs.DryRun }}
+          
