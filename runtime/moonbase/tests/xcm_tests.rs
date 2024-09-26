@@ -192,6 +192,31 @@ fn send_relay_asset_to_relay() {
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
+		assert_ok!(PolkadotXcm::transfer_assets(
+					parachain::RuntimeOrigin::signed(PARAALICE.into()),
+					// dest chain part
+					Location::parent(),
+					// beneficiary
+					Location {
+						parents: 0,
+						interior: [AccountId32 {
+							network: None,
+							id: RELAYALICE.into(),
+						}]
+						.into(),
+					},
+					// assets
+					Asset {
+						id: Location,
+						fun: Fungibility::Fungible(1232)
+					}.into(),
+					// feeitem
+					0,
+					// weightLimit
+					WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
+				));
+		});
+
 		assert_ok!(XTokens::transfer(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
