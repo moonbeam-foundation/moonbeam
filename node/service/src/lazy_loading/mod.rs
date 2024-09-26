@@ -16,9 +16,8 @@
 
 use crate::{
 	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, BlockImportPipeline,
-	ClientCustomizations, FrontierBlockImport, HostFunctions, MockTimestampInherentDataProvider,
-	PartialComponentsResult, PendingConsensusDataProvider, RuntimeApiCollection,
-	RELAY_CHAIN_SLOT_DURATION_MILLIS, SOFT_DEADLINE_PERCENT, TIMESTAMP,
+	ClientCustomizations, FrontierBlockImport, HostFunctions, PartialComponentsResult,
+	PendingConsensusDataProvider, RuntimeApiCollection, SOFT_DEADLINE_PERCENT,
 };
 use cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
 use cumulus_primitives_core::{relay_chain, BlockT, ParaId};
@@ -56,7 +55,6 @@ use sp_runtime::traits::NumberFor;
 use sp_storage::StorageKey;
 use std::collections::BTreeMap;
 use std::str::FromStr;
-use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -596,11 +594,10 @@ where
 					let maybe_current_para_head = client_set_aside_for_cidp.expect_header(block);
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
 					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
-					let relay_slot_key = relay_chain::well_known_keys::CURRENT_SLOT.to_vec();
 
 					let client_for_cidp = client_set_aside_for_cidp.clone();
 					async move {
-						let time = MockTimestampInherentDataProvider;
+						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
 						let current_para_block = maybe_current_para_block?
 							.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))?;
@@ -608,11 +605,6 @@ where
 						let current_para_block_head = Some(polkadot_primitives::HeadData(
 							maybe_current_para_head?.encode(),
 						));
-
-						// Get the mocked timestamp
-						let timestamp = TIMESTAMP.load(Ordering::SeqCst);
-						// Calculate mocked slot number (should be consecutively 1, 2, ...)
-						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
 						let mut additional_key_values = vec![
 							(
@@ -639,7 +631,11 @@ where
 								}
 								.encode(),
 							),
-							(relay_slot_key, Slot::from(slot).encode()),
+							// Override current slot number
+							(
+								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),
+								Slot::from(u64::from(current_para_block)).encode(),
+							),
 						];
 
 						// If there is a pending upgrade, lets mimic a GoAhead
