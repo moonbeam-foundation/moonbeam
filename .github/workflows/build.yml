@@ -743,7 +743,6 @@ jobs:
         run: |
           cd test
           pnpm install
-          chmod uog+x ../target/release/lazy-loading
           pnpm moonwall test lazy_loading_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
