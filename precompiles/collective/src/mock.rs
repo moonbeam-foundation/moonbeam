@@ -212,7 +212,6 @@ impl pallet_treasury::Config for Runtime {
 	type RejectOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
 	type RuntimeEvent = RuntimeEvent;
 	// If spending proposal rejected, transfer proposer bond to treasury
-	// If spending proposal rejected, transfer proposer bond to treasury
 	type SpendPeriod = ConstU32<1>;
 	type Burn = ();
 	type BurnDestination = ();
