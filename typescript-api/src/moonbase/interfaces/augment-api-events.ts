@@ -12,6 +12,7 @@ import type {
   Option,
   Result,
   U8aFixed,
+  Vec,
   bool,
   u128,
   u16,
@@ -40,6 +41,7 @@ import type {
   PalletMultisigTimepoint,
   PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
   PalletParachainStakingDelegatorAdded,
+  PalletParachainStakingInflationDistributionAccount,
   PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
@@ -1145,6 +1147,23 @@ declare module "@polkadot/api-base/types/events" {
           totalCandidateStaked: u128;
         }
       >;
+      /** Transferred to account which holds funds reserved for parachain bond. */
+      InflationDistributed: AugmentedEvent<
+        ApiType,
+        [index: u32, account: AccountId20, value: u128],
+        { index: u32; account: AccountId20; value: u128 }
+      >;
+      InflationDistributionConfigUpdated: AugmentedEvent<
+        ApiType,
+        [
+          old: Vec<PalletParachainStakingInflationDistributionAccount>,
+          new_: Vec<PalletParachainStakingInflationDistributionAccount>
+        ],
+        {
+          old: Vec<PalletParachainStakingInflationDistributionAccount>;
+          new_: Vec<PalletParachainStakingInflationDistributionAccount>;
+        }
+      >;
       /** Annual inflation input (first 3) was used to derive new per-round inflation (last 3) */
       InflationSet: AugmentedEvent<
         ApiType,
@@ -1176,24 +1195,6 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [startingBlock: u32, round: u32, selectedCollatorsNumber: u32, totalBalance: u128],
         { startingBlock: u32; round: u32; selectedCollatorsNumber: u32; totalBalance: u128 }
-      >;
-      /** Account (re)set for parachain bond treasury. */
-      ParachainBondAccountSet: AugmentedEvent<
-        ApiType,
-        [old: AccountId20, new_: AccountId20],
-        { old: AccountId20; new_: AccountId20 }
-      >;
-      /** Percent of inflation reserved for parachain bond (re)set. */
-      ParachainBondReservePercentSet: AugmentedEvent<
-        ApiType,
-        [old: Percent, new_: Percent],
-        { old: Percent; new_: Percent }
-      >;
-      /** Transferred to account which holds funds reserved for parachain bond. */
-      ReservedForParachainBond: AugmentedEvent<
-        ApiType,
-        [account: AccountId20, value: u128],
-        { account: AccountId20; value: u128 }
       >;
       /** Paid the account (delegator or collator) the balance as liquid rewards. */
       Rewarded: AugmentedEvent<

@@ -13,7 +13,7 @@ importers:
         version: 0.12.2(bufferutil@4.0.8)(debug@4.3.5)(ts-node@10.9.2(@types/node@22.5.5)(typescript@5.6.2))(utf-8-validate@5.0.10)
       '@moonbeam-network/api-augment':
         specifier: 0.2902.0
-        version: 0.2902.0
+        version: link:../typescript-api
       '@moonwall/cli':
         specifier: 5.3.3
         version: 5.3.3(@acala-network/chopsticks@0.12.2(bufferutil@4.0.8)(debug@4.3.5)(ts-node@10.9.2(@types/node@22.5.5)(typescript@5.6.2))(utf-8-validate@5.0.10))(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(@types/node@22.5.5)(@vitest/ui@2.0.1(vitest@2.0.1))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(vitest@2.0.1(@types/node@22.5.5)(@vitest/ui@2.0.1)(jsdom@25.0.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)))(zod@3.23.8)

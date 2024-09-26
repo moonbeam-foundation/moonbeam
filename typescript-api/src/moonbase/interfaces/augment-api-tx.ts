@@ -2558,12 +2558,25 @@ declare module "@polkadot/api-base/types/submittable" {
           } & Struct
         ]
       >;
-      /** Set the account that will hold funds set aside for parachain bond */
+      /** Set the percent of inflation set aside for parachain bond */
+      setInflationDistributionConfig: AugmentedSubmittable<
+        (updated: Vec<Lookup61>) => SubmittableExtrinsic<ApiType>,
+        [Vec<Lookup61>]
+      >;
+      /**
+       * Deprecated: please use `set_inflation_distribution_config` instead.
+       *
+       * Set the account that will hold funds set aside for parachain bond
+       */
       setParachainBondAccount: AugmentedSubmittable<
         (updated: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [AccountId20]
       >;
-      /** Set the percent of inflation set aside for parachain bond */
+      /**
+       * Deprecated: please use `set_inflation_distribution_config` instead.
+       *
+       * Set the percent of inflation set aside for parachain bond
+       */
       setParachainBondReservePercent: AugmentedSubmittable<
         (updated: Percent | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Percent]

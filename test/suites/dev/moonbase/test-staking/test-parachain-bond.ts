@@ -13,11 +13,15 @@ describeSuite({
       id: "T01",
       title: "should be initialized at address zero",
       test: async function () {
-        const parachainBondInfo = await context
+        const inflationDistributionConfig = await context
           .polkadotJs()
-          .query.parachainStaking.parachainBondInfo();
-        expect(parachainBondInfo.account.toString()).to.equal(ZERO_ADDRESS);
-        expect(parachainBondInfo.percent.toNumber()).to.equal(30);
+          .query.parachainStaking.inflationDistributionInfo();
+        expect(inflationDistributionConfig[0].account.toString()).to.equal(ZERO_ADDRESS);
+        expect(inflationDistributionConfig[0].percent.toNumber()).to.equal(30);
+
+        // Treasury account
+        expect(inflationDistributionConfig[1].account.toString()).to.equal(ZERO_ADDRESS);
+        expect(inflationDistributionConfig[1].percent.toNumber()).to.equal(0);
       },
     });
 
@@ -35,11 +39,11 @@ describeSuite({
         );
         expect(result!.successful).to.be.true;
 
-        const parachainBondInfo = await context
+        const inflationDistributionConfig = await context
           .polkadotJs()
-          .query.parachainStaking.parachainBondInfo();
-        expect(parachainBondInfo.account.toString()).to.equal(alith.address);
-        expect(parachainBondInfo.percent.toNumber()).to.equal(30);
+          .query.parachainStaking.inflationDistributionInfo();
+        expect(inflationDistributionConfig[0].account.toString()).to.equal(alith.address);
+        expect(inflationDistributionConfig[0].percent.toNumber()).to.equal(30);
       },
     });
 
@@ -72,10 +76,10 @@ describeSuite({
         );
         expect(result!.successful).to.be.true;
 
-        const parachainBondInfo = await context
+        const inflationDistributionConfig = await context
           .polkadotJs()
-          .query.parachainStaking.parachainBondInfo();
-        expect(parachainBondInfo.percent.toBigInt()).to.equal(20n);
+          .query.parachainStaking.inflationDistributionInfo();
+        expect(inflationDistributionConfig[0].percent.toBigInt()).to.equal(20n);
       },
     });
 
