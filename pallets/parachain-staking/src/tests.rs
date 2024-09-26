@@ -6631,7 +6631,7 @@ fn deferred_payment_steady_state_event_flow() {
 					who: account,
 					amount: amount_to_burn,
 				}));
-				let event = Balances::settle(
+				Balances::settle(
 					&account,
 					PositiveImbalance::new(amount_to_burn),
 					WithdrawReasons::FEE,
