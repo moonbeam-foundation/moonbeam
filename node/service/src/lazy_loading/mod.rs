@@ -62,9 +62,12 @@ pub mod backend;
 pub mod call_executor;
 mod client;
 mod helpers;
+mod lock;
 mod state_overrides;
 mod wasm_override;
 mod wasm_substitutes;
+
+pub const LAZY_LOADING_LOG_TARGET: &'static str = "lazy-loading";
 
 /// Lazy loading client type.
 pub type TLazyLoadingClient<TBl, TRtApi, TExec> = sc_service::client::Client<
@@ -405,6 +408,38 @@ where
 		&lazy_loading_config,
 	)?;
 
+	let start_delay = 10;
+	let lazy_loading_startup_disclaimer = format!(
+		r#"
+
+		You are now running the Moonbeam client in lazy loading mode, where data is retrieved
+		from a live RPC node on demand.
+
+		Using remote state from: {rpc}
+		Forking from block: {fork_block}
+
+		To ensure the client works properly, please note the following:
+
+		    1. *Avoid Throttling*: Ensure that the backing RPC node is not limiting the number of
+		    requests, as this can prevent the lazy loading client from functioning correctly;
+
+		    2. *Be Patient*: As the client may take approximately 20 times longer than normal to
+		    retrieve and process the necessary data for the requested operation.
+
+
+		The service will start in {start_delay} seconds...
+
+		"#,
+		rpc = lazy_loading_config.state_rpc,
+		fork_block = backend.fork_checkpoint.number
+	);
+
+	log::warn!(
+		"{}",
+		ansi_term::Colour::Yellow.paint(lazy_loading_startup_disclaimer)
+	);
+	tokio::time::sleep(Duration::from_secs(start_delay)).await;
+
 	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
 		block_import
 	} else {
@@ -506,7 +541,7 @@ where
 			};
 
 		let select_chain = maybe_select_chain.expect(
-			"`new_partial` builds a `LongestChainRule` when building dev service.\
+			"`new_lazy_loading_partial` builds a `LongestChainRule` when building dev service.\
 				We specified the dev service when calling `new_partial`.\
 				Therefore, a `LongestChainRule` is present. qed.",
 		);
