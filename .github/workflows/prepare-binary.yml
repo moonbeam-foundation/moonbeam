@@ -16,26 +16,42 @@ jobs:
 
   build-binary:
     runs-on: bare-metal
+    strategy:
+      matrix:
+        cpu: ["x86-64", "skylake", "znver3"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.sha }}
-      - name: Setup Rust toolchain
+      - name: Build production moonbeam
         run: |
-          rustup override unset
-          rustup show
-      - name: Build Node
-        run: cargo build --profile=production --all
+          # Build moonbeam
+          # (we don't use volumes because of ownership/permissions issues)
+          docker build \
+            --tag prod --no-cache \
+            --build-arg="COMMIT=${{ github.event.inputs.sha }}" \
+            --build-arg="RUSTFLAGS=-C target-cpu=${{ matrix.cpu }}" \
+            - < docker/moonbeam-production.Dockerfile
+
+          # Copy moonbeam binary
+          docker rm -f dummy 2> /dev/null | true
+          docker create -ti --name dummy prod bash
+          docker cp dummy:/moonbeam/moonbeam moonbeam
+          docker rm -f dummy
+
+          # Cleanup
+          docker rmi prod
+
       - name: Save parachain binary
         run: |
           mkdir -p build
-          cp target/production/moonbeam build/moonbeam
+          cp moonbeam build/moonbeam-${{matrix.cpu}}
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: moonbeam
-          path: build
+          name: binaries-${{matrix.cpu}}
+          path: build/moonbeam-${{matrix.cpu}}
 
   ####### Prepare the release draft #######
   docker-release-candidate:
@@ -48,7 +64,8 @@ jobs:
           ref: ${{ github.event.inputs.sha }}
       - uses: actions/download-artifact@v4
         with:
-          name: moonbeam
+          pattern: binaries-*
+          merge-multiple: true
           path: build
       - name: Prepare
         id: prep
