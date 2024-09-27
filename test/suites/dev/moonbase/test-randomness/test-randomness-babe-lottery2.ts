@@ -175,11 +175,11 @@ describeSuite({
         ).to.be.true;
         expect(
           (await context.polkadotJs().query.system.account(charleth.address)).data.free.toBigInt() >
-          DEFAULT_GENESIS_BALANCE
+            DEFAULT_GENESIS_BALANCE
         ).to.be.false;
         expect(
           (await context.polkadotJs().query.system.account(dorothy.address)).data.free.toBigInt() >
-          DEFAULT_GENESIS_BALANCE
+            DEFAULT_GENESIS_BALANCE
         ).to.be.true;
       },
     });
