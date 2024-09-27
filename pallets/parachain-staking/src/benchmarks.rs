@@ -302,10 +302,22 @@ benchmarks! {
 		},
 	])
 	verify {
-		assert_eq!(Pallet::<T>::inflation_distribution_info()[0].account, account("TEST1", 0u32, USER_SEED));
-		assert_eq!(Pallet::<T>::inflation_distribution_info()[0].percent, Percent::from_percent(33));
-		assert_eq!(Pallet::<T>::inflation_distribution_info()[1].account, account("TEST2", 1u32, USER_SEED));
-		assert_eq!(Pallet::<T>::inflation_distribution_info()[1].percent, Percent::from_percent(22));
+		assert_eq!(
+			Pallet::<T>::inflation_distribution_info()[0].account,
+			 account("TEST1", 0u32, USER_SEED)
+		);
+		assert_eq!(
+			Pallet::<T>::inflation_distribution_info()[0].percent,
+			 Percent::from_percent(33)
+		);
+		assert_eq!(
+			Pallet::<T>::inflation_distribution_info()[1].account,
+			 account("TEST2", 1u32, USER_SEED)
+		);
+		assert_eq!(
+			Pallet::<T>::inflation_distribution_info()[1].percent,
+			 Percent::from_percent(22)
+		);
 	}
 
 	// ROOT DISPATCHABLES
