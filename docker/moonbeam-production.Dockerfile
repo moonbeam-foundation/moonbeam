@@ -24,8 +24,18 @@ ENV PATH="/root/.cargo/bin:$PATH"
 RUN rustup default stable
 # rustup version are pinned in the rust-toolchain file
 
-RUN echo "*** Cloning Moonbeam ***"
-RUN git clone --depth=1 --branch $COMMIT https://github.com/purestake/moonbeam.git
+# Clone the Moonbeam repository
+RUN echo "*** Cloning Moonbeam ***" && \
+	if git ls-remote --heads https://github.com/moonbeam-foundation/moonbeam.git $COMMIT | grep -q $COMMIT; then \
+	echo "Cloning branch $COMMIT"; \
+	git clone --depth=1 --branch $COMMIT https://github.com/moonbeam-foundation/moonbeam.git; \
+	else \
+	echo "Cloning specific commit $COMMIT"; \
+	git clone --depth=1 https://github.com/moonbeam-foundation/moonbeam.git && \
+	cd moonbeam && \
+	git fetch --depth=1 origin $COMMIT && \
+	git checkout $COMMIT; \
+	fi
 
 WORKDIR /moonbeam/moonbeam
 
