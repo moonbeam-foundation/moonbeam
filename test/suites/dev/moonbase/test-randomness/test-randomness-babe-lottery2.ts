@@ -47,14 +47,14 @@ describeSuite({
         args: [0],
         account: BALTATHAR_ADDRESS,
       });
-      expect(estimatedGas).toMatchInlineSnapshot(`171662n`);
+      expect(estimatedGas).toMatchInlineSnapshot(`687763n`);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",
         functionName: "fulfillRequest",
         args: [0],
+        gas: estimatedGas,
         rawTxOnly: true,
-        gas: 280576n, // Taken from fullfillReceipt inline snapshot
         privateKey: BALTATHAR_PRIVATE_KEY,
       });
 
@@ -175,11 +175,11 @@ describeSuite({
         ).to.be.true;
         expect(
           (await context.polkadotJs().query.system.account(charleth.address)).data.free.toBigInt() >
-            DEFAULT_GENESIS_BALANCE
+          DEFAULT_GENESIS_BALANCE
         ).to.be.false;
         expect(
           (await context.polkadotJs().query.system.account(dorothy.address)).data.free.toBigInt() >
-            DEFAULT_GENESIS_BALANCE
+          DEFAULT_GENESIS_BALANCE
         ).to.be.true;
       },
     });

@@ -48,13 +48,13 @@ describeSuite({
         args: [0],
       });
 
-      expect(estimatedGas).toMatchInlineSnapshot(`171514n`);
+      expect(estimatedGas).toMatchInlineSnapshot(`677344n`);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",
         functionName: "fulfillRequest",
         args: [0],
-        gas: 280576n, // Taken from fullfillReceipt inline snapshot
+        gas: estimatedGas,
         rawTxOnly: true,
       });
       const { result } = await context.createBlock(rawTxn);
