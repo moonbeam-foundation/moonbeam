@@ -2,7 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "../../build/moonriver",
+    "baseUrl": "./",
+    "outDir": "../../dist/moonriver",
     "paths": {
       "@moonbeam/api-augment/moonriver/*": ["src/moonriver/*"],
       "@polkadot/api/augment": ["src/moonriver/interfaces/augment-api.ts"],

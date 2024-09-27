@@ -163,7 +163,7 @@ jobs:
           chmod +x bin/ec-linux-amd64
       - name: Check files
         # Prettier and editorconfig-checker have different ideas about indentation
-        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/src\/moon(?:base|beam|river)\/interfaces\/.*\.ts)|(test\/contracts\/lib\/.*)" -disable-indent-size
+        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/)|(test\/contracts\/lib\/.*)" -disable-indent-size
 
   check-prettier:
     name: "Check with Prettier"
@@ -200,7 +200,7 @@ jobs:
       - name: Use pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8.6.12
+          version: 9
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -594,7 +594,7 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "dev-test"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -607,7 +607,7 @@ jobs:
       - name: Use pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8.6.12
+          version: 9
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -633,12 +633,13 @@ jobs:
 
           ####  Preparing the repository
           cd moonbeam-types-bundle
-          npm ci
-          npm run build
+          pnpm i
+          pnpm build
 
           ####  Preparing the typescript api
           cd ../typescript-api
-          npm ci
+          pnpm i
+          pnpm build
       - name: Running Tracing Tests
         env:
           DEBUG_COLOURS: "1"
@@ -700,10 +701,68 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
 
+  lazy-loading-tests:
+    runs-on:
+      labels: bare-metal
+    needs: ["set-tags", "build", "typescript-tracing-tests"]
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        chain: ["moonbeam"]
+    env:
+      GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+      DEBUG_COLORS: 1
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.10.0
+      - name: Create local folders
+        run: |
+          mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
+          mkdir -p test/tmp
+      - name: "Download branch built runtime"
+        uses: actions/download-artifact@v4
+        with:
+          name: runtimes
+          path: target/release/wbuild/${{ matrix.chain }}-runtime/
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v4
+        with:
+          name: moonbeam
+          path: target/release
+      - name: "Run lazy loading tests"
+        run: |
+          cd test
+          pnpm install
+          chmod uog+x ../target/release/lazy-loading
+          pnpm moonwall test lazy_loading_${{ matrix.chain }}
+      - name: Zip and Upload Node Logs on Failure
+        if: failure()
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          export NODE_LOGS_ZIP="node_logs_$TIMESTAMP.zip"
+          MOST_RECENT_ZOMBIE_DIR=$(ls -td /tmp/zombie-* | head -n 1)
+          find $MOST_RECENT_ZOMBIE_DIR -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
+          echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: failed-node-logs
+          path: ${{ env.NODE_LOGS_ZIP }}
+
   chopsticks-upgrade-test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
       matrix:
@@ -718,7 +777,7 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20.10.0
@@ -750,9 +809,10 @@ jobs:
   zombie_upgrade_test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         ## TODO: add moonriver here when it is ready
         chain: ["moonbase", "moonbeam"]
@@ -767,7 +827,7 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20.10.0
