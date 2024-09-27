@@ -36,7 +36,6 @@ use polkadot_primitives::{
 };
 use sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
 use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks, StorageProvider};
-use sc_consensus_manual_seal::rpc::{ManualSeal, ManualSealApiServer};
 use sc_executor::{HeapAllocStrategy, RuntimeVersionOf, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 use sc_network::config::FullNetworkConfiguration;
 use sc_network::NetworkBackend;
@@ -837,17 +836,6 @@ where
 	}
 
 	network_starter.start_network();
-
-	// If a manual seal channel exists, create the first block
-	if let Some(sink) = command_sink {
-		let _ = <ManualSeal<_> as ManualSealApiServer<_>>::create_block(
-			&ManualSeal::new(sink),
-			true,
-			false,
-			None,
-		)
-		.await;
-	}
 
 	log::info!("Service Ready");
 
