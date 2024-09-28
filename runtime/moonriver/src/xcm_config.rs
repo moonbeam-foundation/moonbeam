@@ -376,7 +376,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type MaxActiveOutboundChannels = ConstU32<128>;
 	// Most on-chain HRMP channels are configured to use 102400 bytes of max message size, so we
 	// need to set the page size larger than that until we reduce the channel size on-chain.
-	type MaxPageSize = ConstU32<{ 103 * 1024 }>;
+	type MaxPageSize = MessageQueueHeapSize;
 }
 
 parameter_types! {

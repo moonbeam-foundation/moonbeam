@@ -16,9 +16,8 @@
 
 use crate::{
 	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, BlockImportPipeline,
-	ClientCustomizations, FrontierBlockImport, HostFunctions, MockTimestampInherentDataProvider,
-	PartialComponentsResult, PendingConsensusDataProvider, RuntimeApiCollection,
-	RELAY_CHAIN_SLOT_DURATION_MILLIS, SOFT_DEADLINE_PERCENT, TIMESTAMP,
+	ClientCustomizations, FrontierBlockImport, HostFunctions, PartialComponentsResult,
+	PendingConsensusDataProvider, RuntimeApiCollection, SOFT_DEADLINE_PERCENT,
 };
 use cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
 use cumulus_primitives_core::{relay_chain, BlockT, ParaId};
@@ -56,7 +55,6 @@ use sp_runtime::traits::NumberFor;
 use sp_storage::StorageKey;
 use std::collections::BTreeMap;
 use std::str::FromStr;
-use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -64,9 +62,12 @@ pub mod backend;
 pub mod call_executor;
 mod client;
 mod helpers;
+mod lock;
 mod state_overrides;
 mod wasm_override;
 mod wasm_substitutes;
+
+pub const LAZY_LOADING_LOG_TARGET: &'static str = "lazy-loading";
 
 /// Lazy loading client type.
 pub type TLazyLoadingClient<TBl, TRtApi, TExec> = sc_service::client::Client<
@@ -407,6 +408,38 @@ where
 		&lazy_loading_config,
 	)?;
 
+	let start_delay = 10;
+	let lazy_loading_startup_disclaimer = format!(
+		r#"
+
+		You are now running the Moonbeam client in lazy loading mode, where data is retrieved
+		from a live RPC node on demand.
+
+		Using remote state from: {rpc}
+		Forking from block: {fork_block}
+
+		To ensure the client works properly, please note the following:
+
+		    1. *Avoid Throttling*: Ensure that the backing RPC node is not limiting the number of
+		    requests, as this can prevent the lazy loading client from functioning correctly;
+
+		    2. *Be Patient*: As the client may take approximately 20 times longer than normal to
+		    retrieve and process the necessary data for the requested operation.
+
+
+		The service will start in {start_delay} seconds...
+
+		"#,
+		rpc = lazy_loading_config.state_rpc,
+		fork_block = backend.fork_checkpoint.number
+	);
+
+	log::warn!(
+		"{}",
+		ansi_term::Colour::Yellow.paint(lazy_loading_startup_disclaimer)
+	);
+	tokio::time::sleep(Duration::from_secs(start_delay)).await;
+
 	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
 		block_import
 	} else {
@@ -508,7 +541,7 @@ where
 			};
 
 		let select_chain = maybe_select_chain.expect(
-			"`new_partial` builds a `LongestChainRule` when building dev service.\
+			"`new_lazy_loading_partial` builds a `LongestChainRule` when building dev service.\
 				We specified the dev service when calling `new_partial`.\
 				Therefore, a `LongestChainRule` is present. qed.",
 		);
@@ -561,11 +594,10 @@ where
 					let maybe_current_para_head = client_set_aside_for_cidp.expect_header(block);
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
 					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
-					let relay_slot_key = relay_chain::well_known_keys::CURRENT_SLOT.to_vec();
 
 					let client_for_cidp = client_set_aside_for_cidp.clone();
 					async move {
-						let time = MockTimestampInherentDataProvider;
+						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
 						let current_para_block = maybe_current_para_block?
 							.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))?;
@@ -573,11 +605,6 @@ where
 						let current_para_block_head = Some(polkadot_primitives::HeadData(
 							maybe_current_para_head?.encode(),
 						));
-
-						// Get the mocked timestamp
-						let timestamp = TIMESTAMP.load(Ordering::SeqCst);
-						// Calculate mocked slot number (should be consecutively 1, 2, ...)
-						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
 						let mut additional_key_values = vec![
 							(
@@ -604,7 +631,11 @@ where
 								}
 								.encode(),
 							),
-							(relay_slot_key, Slot::from(slot).encode()),
+							// Override current slot number
+							(
+								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),
+								Slot::from(u64::from(current_para_block)).encode(),
+							),
 						];
 
 						// If there is a pending upgrade, lets mimic a GoAhead

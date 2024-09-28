@@ -6944,6 +6944,7 @@ dependencies = [
 name = "moonbeam-service"
 version = "0.41.0"
 dependencies = [
+ "ansi_term",
  "async-backing-primitives",
  "async-io 1.13.0",
  "async-trait",

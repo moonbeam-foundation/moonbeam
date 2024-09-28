@@ -21,25 +21,25 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let lotteryAddress: `0x${string}`;
+    let estimatedGasBefore;
 
     beforeEach(async function () {
       lotteryAddress = await setupLotteryWithParticipants(context, "BABE");
 
-      const estimatedGas = await context.viem().estimateContractGas({
+      estimatedGasBefore = await context.viem().estimateContractGas({
         address: lotteryAddress,
         abi: fetchCompiledContract("RandomnessLotteryDemo").abi,
         functionName: "startLottery",
         value: 1n * GLMR,
       });
-      log("Estimated Gas for startLottery", estimatedGas);
-      expect(estimatedGas).toMatchInlineSnapshot(`218380n`);
+      log("Estimated Gas for startLottery", estimatedGasBefore);
 
       await context.writeContract!({
         contractName: "RandomnessLotteryDemo",
         contractAddress: lotteryAddress,
         functionName: "startLottery",
         value: 1n * GLMR,
-        gas: estimatedGas,
+        gas: estimatedGasBefore,
       });
 
       await context.createBlock();
@@ -49,6 +49,8 @@ describeSuite({
       id: "T01",
       title: "should fail to fulfill before the delay",
       test: async function () {
+        expect(estimatedGasBefore).toMatchInlineSnapshot(`218380n`);
+
         expect(
           await context.readPrecompile!({
             precompileName: "Randomness",
@@ -84,6 +86,7 @@ describeSuite({
       id: "T02",
       title: "should succeed to fulfill after the delay",
       test: async function () {
+        expect(estimatedGasBefore).toMatchInlineSnapshot(`218380n`);
         // await context.createBlock();
 
         await context.createBlock([

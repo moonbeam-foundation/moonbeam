@@ -382,6 +382,7 @@ strum_macros = "0.24"
 smallvec = "1.11.0"
 p256 = { version = "0.13.2", default-features = false, features = [
     "ecdsa"] }
+ansi_term = "0.12.1"
 
 # Other (client)
 
