@@ -42,7 +42,7 @@ WORKDIR /moonbeam/moonbeam
 RUN echo "*** Building Moonbeam ***"
 RUN cargo build --profile=production --all
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 LABEL maintainer="alan@moonsonglabs.com"
 LABEL description="Binary for Moonbeam Nodes"
 

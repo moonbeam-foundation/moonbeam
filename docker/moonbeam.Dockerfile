@@ -6,9 +6,10 @@ FROM docker.io/library/ubuntu:24.04 AS builder
 
 RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificates
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 LABEL maintainer="alan@moonsonglabs.com"
 LABEL description="Binary for Moonbeam Collator"
+
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbeam moonbeam && \
 	mkdir -p /moonbeam/.local/share && \
