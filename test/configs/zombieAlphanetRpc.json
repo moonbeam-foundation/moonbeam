@@ -65,7 +65,7 @@
           "command": "tmp/moonbeam_rt",
           "args": [
             "--no-hardware-benchmarks",
-            "-lparachain=debug",
+            "-lparachain=trace",
             "--database=paritydb"
           ]
         }
