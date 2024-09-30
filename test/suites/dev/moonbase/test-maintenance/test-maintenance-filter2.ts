@@ -9,7 +9,11 @@ import {
 import { ALITH_ADDRESS, alith, baltathar } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { RELAY_SOURCE_LOCATION, mockOldAssetBalance } from "../../../../helpers";
+import {
+  RELAY_SOURCE_LOCATION,
+  addAssetToWeightTrader,
+  mockOldAssetBalance,
+} from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
@@ -47,14 +51,8 @@ describeSuite({
         baltathar.address
       );
 
-      // setAssetUnitsPerSecond
-      await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.sudo.sudo(
-            context.polkadotJs().tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 0, 0)
-          )
-      );
+      // set relative price in xcmWeightTrader
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 0, context);
 
       await execOpenTechCommitteeProposal(
         context,

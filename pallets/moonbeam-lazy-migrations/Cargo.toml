@@ -12,7 +12,6 @@ log = {workspace = true}
 frame-support = {workspace = true}
 frame-system = {workspace = true}
 pallet-scheduler = {workspace = true}
-pallet-assets = {workspace = true}
 pallet-balances = {workspace = true}
 parity-scale-codec = {workspace = true}
 scale-info = {workspace = true, features = ["derive"]}

@@ -37,9 +37,9 @@ pub trait MoonbeamFinalityApi {
 	#[method(name = "moon_isTxFinalized")]
 	async fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool>;
 
-	/// Gets the latest block hash that is fully indexed in frontier's backend.
-	#[method(name = "moon_getLatestBlockHash")]
-	async fn get_latest_block_hash(&self) -> RpcResult<H256>;
+	/// Gets the range of blocks that are fully indexed in frontier's backend.
+	#[method(name = "moon_getEthSyncBlockRange")]
+	async fn get_frontier_sync_block_range(&self) -> RpcResult<(H256, H256)>;
 }
 
 pub struct MoonbeamFinality<B: Block, C> {
@@ -88,11 +88,18 @@ where
 		}
 	}
 
-	async fn get_latest_block_hash(&self) -> RpcResult<H256> {
-		let res = self.backend.deref().latest_block_hash().await;
-		match res {
-			Ok(val) => Ok(val),
-			Err(e) => Err(ErrorObject::owned(
+	async fn get_frontier_sync_block_range(&self) -> RpcResult<(H256, H256)> {
+		match (
+			self.backend.deref().first_block_hash().await,
+			self.backend.deref().latest_block_hash().await,
+		) {
+			(Ok(first), Ok(last)) => Ok((first, last)),
+			(Err(e), _) => Err(ErrorObject::owned(
+				jsonrpsee::types::error::UNKNOWN_ERROR_CODE,
+				"No synced block",
+				Some(e),
+			)),
+			(_, Err(e)) => Err(ErrorObject::owned(
 				jsonrpsee::types::error::UNKNOWN_ERROR_CODE,
 				"No synced block",
 				Some(e),

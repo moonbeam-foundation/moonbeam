@@ -68,6 +68,7 @@ use sc_service::{
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
+use session_keys_primitives::VrfApi;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_consensus::SyncOracle;
@@ -81,28 +82,29 @@ use substrate_prometheus_endpoint::Registry;
 pub use client::*;
 pub mod chain_spec;
 mod client;
+#[cfg(feature = "lazy-loading")]
+pub mod lazy_loading;
 
 type FullClient<RuntimeApi> = TFullClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
 type FullBackend = TFullBackend<Block>;
 
-type MaybeSelectChain = Option<sc_consensus::LongestChain<FullBackend, Block>>;
-type FrontierBlockImport<RuntimeApi> =
-	TFrontierBlockImport<Block, Arc<FullClient<RuntimeApi>>, FullClient<RuntimeApi>>;
-type ParachainBlockImport<RuntimeApi> =
-	TParachainBlockImport<Block, FrontierBlockImport<RuntimeApi>, FullBackend>;
-type PartialComponentsResult<RuntimeApi> = Result<
+type MaybeSelectChain<Backend> = Option<sc_consensus::LongestChain<Backend, Block>>;
+type FrontierBlockImport<Client> = TFrontierBlockImport<Block, Arc<Client>, Client>;
+type ParachainBlockImport<Client, Backend> =
+	TParachainBlockImport<Block, FrontierBlockImport<Client>, Backend>;
+type PartialComponentsResult<Client, Backend> = Result<
 	PartialComponents<
-		FullClient<RuntimeApi>,
-		FullBackend,
-		MaybeSelectChain,
+		Client,
+		Backend,
+		MaybeSelectChain<Backend>,
 		sc_consensus::DefaultImportQueue<Block>,
-		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi>>,
+		sc_transaction_pool::FullPool<Block, Client>,
 		(
-			BlockImportPipeline<FrontierBlockImport<RuntimeApi>, ParachainBlockImport<RuntimeApi>>,
+			BlockImportPipeline<FrontierBlockImport<Client>, ParachainBlockImport<Client, Backend>>,
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
-			Arc<fc_db::Backend<Block, FullClient<RuntimeApi>>>,
+			Arc<fc_db::Backend<Block, Client>>,
 			FeeHistoryCache,
 		),
 	>,
@@ -419,7 +421,7 @@ pub fn new_partial<RuntimeApi, Customizations>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
-) -> PartialComponentsResult<RuntimeApi>
+) -> PartialComponentsResult<FullClient<RuntimeApi>, FullBackend>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
@@ -461,10 +463,11 @@ where
 	let executor = wasm_builder.build();
 
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, RuntimeApi, _>(
+		sc_service::new_full_parts_record_import::<Block, RuntimeApi, _>(
 			config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
+			true,
 		)?;
 
 	if let Some(block_number) = Customizations::first_block_number_compatible_with_ed25519_zebra() {
@@ -774,7 +777,7 @@ where
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
 				sync: sync.clone(),
-				xcm_senders: None,
+				dev_rpc_data: None,
 				block_data_cache: block_data_cache.clone(),
 				overrides: overrides.clone(),
 				forced_parent_hashes,
@@ -937,7 +940,7 @@ fn start_consensus<RuntimeApi, SO>(
 	async_backing: bool,
 	backend: Arc<FullBackend>,
 	client: Arc<FullClient<RuntimeApi>>,
-	block_import: ParachainBlockImport<RuntimeApi>,
+	block_import: ParachainBlockImport<FullClient<RuntimeApi>, FullBackend>,
 	prometheus_registry: Option<&Registry>,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
@@ -956,8 +959,7 @@ fn start_consensus<RuntimeApi, SO>(
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
-	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>:
-		sc_client_api::StateBackend<BlakeTwo256>,
+	sc_client_api::StateBackendFor<FullBackend, Block>: sc_client_api::StateBackend<BlakeTwo256>,
 	SO: SyncOracle + Send + Sync + Clone + 'static,
 {
 	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
@@ -1204,7 +1206,7 @@ where
 	let overrides = Arc::new(StorageOverrideHandler::new(client.clone()));
 	let fee_history_limit = rpc_config.fee_history_limit;
 	let mut command_sink = None;
-	let mut xcm_senders = None;
+	let mut dev_rpc_data = None;
 	let collator = config.role.is_authority();
 
 	if collator {
@@ -1269,7 +1271,12 @@ where
 		// Create channels for mocked XCM messages.
 		let (downward_xcm_sender, downward_xcm_receiver) = flume::bounded::<Vec<u8>>(100);
 		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<(ParaId, Vec<u8>)>(100);
-		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
+		let additional_relay_offset = Arc::new(std::sync::atomic::AtomicU32::new(0));
+		dev_rpc_data = Some((
+			downward_xcm_sender,
+			hrmp_xcm_sender,
+			additional_relay_offset.clone(),
+		));
 
 		let client_clone = client.clone();
 		let keystore_clone = keystore_container.keystore().clone();
@@ -1304,6 +1311,7 @@ where
 					let maybe_current_para_head = client_set_aside_for_cidp.expect_header(block);
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
 					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
+					let additional_relay_offset = additional_relay_offset.clone();
 
 					let client_for_xcm = client_set_aside_for_cidp.clone();
 					async move {
@@ -1324,7 +1332,8 @@ where
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
 							current_para_block_head,
-							relay_offset: 1000,
+							relay_offset: 1000
+								+ additional_relay_offset.load(std::sync::atomic::Ordering::SeqCst),
 							relay_blocks_per_para_block: 2,
 							// TODO: Recheck
 							para_blocks_per_relay_epoch: 10,
@@ -1440,7 +1449,7 @@ where
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
 				sync: sync.clone(),
-				xcm_senders: xcm_senders.clone(),
+				dev_rpc_data: dev_rpc_data.clone(),
 				overrides: overrides.clone(),
 				block_data_cache: block_data_cache.clone(),
 				forced_parent_hashes: None,
@@ -1764,29 +1773,29 @@ mod tests {
 	}
 }
 
-struct PendingConsensusDataProvider<RuntimeApi>
+struct PendingConsensusDataProvider<Client>
 where
-	RuntimeApi: Send + Sync,
+	Client: HeaderBackend<Block> + sp_api::ProvideRuntimeApi<Block> + Send + Sync,
+	Client::Api: VrfApi<Block>,
 {
-	client: Arc<FullClient<RuntimeApi>>,
+	client: Arc<Client>,
 	keystore: Arc<dyn Keystore>,
 }
 
-impl<RuntimeApi> PendingConsensusDataProvider<RuntimeApi>
+impl<Client> PendingConsensusDataProvider<Client>
 where
-	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Client: HeaderBackend<Block> + sp_api::ProvideRuntimeApi<Block> + Send + Sync,
+	Client::Api: VrfApi<Block>,
 {
-	pub fn new(client: Arc<FullClient<RuntimeApi>>, keystore: Arc<dyn Keystore>) -> Self {
+	pub fn new(client: Arc<Client>, keystore: Arc<dyn Keystore>) -> Self {
 		Self { client, keystore }
 	}
 }
 
-impl<RuntimeApi> fc_rpc::pending::ConsensusDataProvider<Block>
-	for PendingConsensusDataProvider<RuntimeApi>
+impl<Client> fc_rpc::pending::ConsensusDataProvider<Block> for PendingConsensusDataProvider<Client>
 where
-	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	Client: HeaderBackend<Block> + sp_api::ProvideRuntimeApi<Block> + Send + Sync,
+	Client::Api: VrfApi<Block>,
 {
 	fn create_digest(
 		&self,
@@ -1799,7 +1808,9 @@ where
 			.client
 			.header(hash)
 			.map_err(|e| sp_inherents::Error::Application(Box::new(e)))?
-			.expect("Best block header should be present")
+			.ok_or(sp_inherents::Error::Application(
+				"Best block header should be present".into(),
+			))?
 			.digest;
 		// Get the nimbus id from the digest.
 		let nimbus_id = digest
@@ -1807,15 +1818,18 @@ where
 			.iter()
 			.find_map(|x| {
 				if let DigestItem::PreRuntime(nimbus_primitives::NIMBUS_ENGINE_ID, nimbus_id) = x {
-					Some(
-						NimbusId::from_slice(nimbus_id.as_slice())
-							.expect("Nimbus pre-runtime digest should be valid"),
-					)
+					Some(NimbusId::from_slice(nimbus_id.as_slice()).map_err(|_| {
+						sp_inherents::Error::Application(
+							"Nimbus pre-runtime digest should be valid".into(),
+						)
+					}))
 				} else {
 					None
 				}
 			})
-			.expect("Nimbus pre-runtime digest should be present");
+			.ok_or(sp_inherents::Error::Application(
+				"Nimbus pre-runtime digest should be present".into(),
+			))??;
 		// Remove the old VRF digest.
 		let pos = digest.logs.iter().position(|x| {
 			matches!(

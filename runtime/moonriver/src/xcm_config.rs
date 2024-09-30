@@ -18,9 +18,10 @@
 //!
 
 use super::{
-	governance, AccountId, AssetId, AssetManager, Balance, Balances, DealWithFees, Erc20XcmBridge,
-	MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
+	Erc20XcmBridge, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance, ParachainInfo,
+	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
+	RuntimeOrigin, Treasury, XcmpQueue,
 };
 
 use frame_support::{
@@ -44,7 +45,7 @@ use xcm_builder::{
 	EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
 	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, UsingComponents, WeightInfoBounds, WithComputedOrigin,
+	TakeWeightCredit, WeightInfoBounds, WithComputedOrigin,
 };
 
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -59,8 +60,8 @@ use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
-	FirstAssetTrader, IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls,
-	UtilityEncodeCall, XcmTransact,
+	IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall,
+	XcmTransact,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -228,23 +229,6 @@ parameter_types! {
 	pub XcmFeesAccount: AccountId = Treasury::account_id();
 }
 
-/// This is the struct that will handle the revenue from xcm fees
-/// We do not burn anything because we want to mimic exactly what
-/// the sovereign account has
-pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
-	super::Assets,
-	(
-		ConvertedConcreteId<
-			AssetId,
-			Balance,
-			AsAssetType<AssetId, AssetType, AssetManager>,
-			JustTry,
-		>,
-	),
-	AccountId,
-	XcmFeesAccount,
->;
-
 pub struct SafeCallFilter;
 impl frame_support::traits::Contains<RuntimeCall> for SafeCallFilter {
 	fn contains(_call: &RuntimeCall) -> bool {
@@ -307,16 +291,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// we use UsingComponents and the local way of handling fees
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
-	type Trader = (
-		UsingComponents<
-			<Runtime as pallet_transaction_payment::Config>::WeightToFee,
-			SelfReserve,
-			AccountId,
-			Balances,
-			DealWithFees<Runtime>,
-		>,
-		FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount>,
-	);
+	type Trader = pallet_xcm_weight_trader::Trader<Runtime>;
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = pallet_erc20_xcm_bridge::AssetTrapWrapper<PolkadotXcm, Runtime>;
@@ -376,7 +351,6 @@ impl pallet_xcm::Config for Runtime {
 	type MaxLockers = ConstU32<8>;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
-	// TODO pallet-xcm weights
 	type WeightInfo = moonriver_weights::pallet_xcm::WeightInfo<Runtime>;
 	type AdminOrigin = EnsureRoot<AccountId>;
 }
@@ -430,7 +404,7 @@ parameter_types! {
 	/// A good value depends on the expected message sizes, their weights, the weight that is
 	/// available for processing them and the maximal needed message size. The maximal message
 	/// size is slightly lower than this as defined by [`MaxMessageLenOf`].
-	pub const MessageQueueHeapSize: u32 = 128 * 1048;
+	pub const MessageQueueHeapSize: u32 = 103 * 1024;
 }
 
 impl pallet_message_queue::Config for Runtime {
@@ -450,9 +424,29 @@ impl pallet_message_queue::Config for Runtime {
 	// The XCMP queue pallet is only ever able to handle the `Sibling(ParaId)` origin:
 	type QueueChangeHandler = NarrowOriginToSibling<XcmpQueue>;
 	// NarrowOriginToSibling calls XcmpQueue's is_paused if Origin is sibling. Allows all other origins
-	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
-	type WeightInfo = pallet_message_queue::weights::SubstrateWeight<Runtime>;
+	type QueuePausedQuery = EmergencyParaXcm;
+	type WeightInfo = moonriver_weights::pallet_message_queue::WeightInfo<Runtime>;
 	type IdleMaxServiceWeight = MessageQueueServiceWeight;
+}
+
+pub type FastAuthorizeUpgradeOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>,
+>;
+
+pub type ResumeXcmOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>,
+>;
+
+impl pallet_emergency_para_xcm::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type CheckAssociatedRelayNumber =
+		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
+	type PausedThreshold = ConstU32<300>;
+	type FastAuthorizeUpgradeOrigin = FastAuthorizeUpgradeOrigin;
+	type PausedToNormalOrigin = ResumeXcmOrigin;
 }
 
 // Our AssetType. For now we only handle Xcm Assets
@@ -718,6 +712,76 @@ impl pallet_erc20_xcm_bridge::Config for Runtime {
 	type Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
 	type Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+}
+
+pub struct AccountIdToH160;
+impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
+	fn convert(account_id: AccountId) -> H160 {
+		account_id.into()
+	}
+}
+
+impl pallet_moonbeam_foreign_assets::Config for Runtime {
+	type AccountIdToH160 = AccountIdToH160;
+	type AssetIdFilter = Nothing;
+	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type ForeignAssetCreatorOrigin = frame_system::EnsureNever<AccountId>;
+	type ForeignAssetFreezerOrigin = frame_system::EnsureNever<AccountId>;
+	type ForeignAssetModifierOrigin = frame_system::EnsureNever<AccountId>;
+	type ForeignAssetUnfreezerOrigin = frame_system::EnsureNever<AccountId>;
+	type OnForeignAssetCreated = ();
+	type MaxForeignAssets = ConstU32<256>;
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = moonriver_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
+	type XcmLocationToH160 = LocationToH160;
+}
+
+pub struct AssetFeesFilter;
+impl frame_support::traits::Contains<Location> for AssetFeesFilter {
+	fn contains(location: &Location) -> bool {
+		location.parent_count() > 0
+			&& location.first_interior() != Erc20XcmBridgePalletLocation::get().first_interior()
+	}
+}
+
+pub type AddSupportedAssetOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::GeneralAdmin,
+	>,
+>;
+
+pub type EditSupportedAssetOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::FastGeneralAdmin,
+	>,
+>;
+
+pub type RemoveSupportedAssetOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+>;
+
+impl pallet_xcm_weight_trader::Config for Runtime {
+	type AccountIdToLocation = AccountIdToLocation<AccountId>;
+	type AddSupportedAssetOrigin = AddSupportedAssetOrigin;
+	type AssetLocationFilter = AssetFeesFilter;
+	type AssetTransactor = AssetTransactors;
+	type Balance = Balance;
+	type EditSupportedAssetOrigin = EditSupportedAssetOrigin;
+	type NativeLocation = SelfReserve;
+	type PauseSupportedAssetOrigin = EditSupportedAssetOrigin;
+	type RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
+	type RuntimeEvent = RuntimeEvent;
+	type ResumeSupportedAssetOrigin = RemoveSupportedAssetOrigin;
+	type WeightInfo = moonriver_weights::pallet_xcm_weight_trader::WeightInfo<Runtime>;
+	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
+	type XcmFeesAccount = XcmFeesAccount;
+	#[cfg(feature = "runtime-benchmarks")]
+	type NotFilteredLocation = RelayLocation;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

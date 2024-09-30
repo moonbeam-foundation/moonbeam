@@ -43,15 +43,15 @@ use pallet_ethereum::PostLogContent;
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
 use xcm::latest::{
-	AssetId as XcmAssetId, Error as XcmError, ExecuteXcm,
+	Error as XcmError, ExecuteXcm,
 	Junction::{PalletInstance, Parachain},
 	Location, NetworkId, Outcome, Xcm,
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteId, EnsureXcmOrigin, FixedRateOfFungible,
-	FixedWeightBounds, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, IsConcrete,
-	NoChecking, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, EnsureXcmOrigin, FixedWeightBounds,
+	FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, IsConcrete, NoChecking,
+	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
 	TakeWeightCredit, WithComputedOrigin,
 };
@@ -282,31 +282,20 @@ pub type XcmBarrier = (
 parameter_types! {
 	/// Xcm fees will go to the treasury account
 	pub XcmFeesAccount: AccountId = Treasury::account_id();
+	/// Parachain token units per second of execution
+	pub ParaTokensPerSecond: u128 = 1000000000000;
 }
 
-/// This is the struct that will handle the revenue from xcm fees
-pub type XcmFeesToAccount_ = xcm_primitives::XcmFeesToAccount<
-	Assets,
-	(
-		ConvertedConcreteId<
-			AssetId,
-			Balance,
-			xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>,
-			JustTry,
-		>,
-	),
-	AccountId,
-	XcmFeesAccount,
->;
+pub struct WeightToFee;
+impl sp_weights::WeightToFee for WeightToFee {
+	type Balance = Balance;
 
-parameter_types! {
-	// We cannot skip the native trader for some specific tests, so we will have to work with
-	// a native trader that charges same number of units as weight
-	pub ParaTokensPerSecond: (XcmAssetId, u128, u128) = (
-		AssetId(SelfReserve::get()),
-		1000000000000,
-		0,
-	);
+	fn weight_to_fee(weight: &Weight) -> Self::Balance {
+		use sp_runtime::SaturatedConversion as _;
+		Self::Balance::saturated_from(weight.ref_time())
+			.saturating_mul(ParaTokensPerSecond::get())
+			.saturating_div(frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND as u128)
+	}
 }
 
 parameter_types! {
@@ -321,6 +310,17 @@ parameter_types! {
 		].into()
 	};
 	pub const MaxAssetsIntoHolding: u32 = 64;
+
+	pub AssetHubLocation: Location = Location::new(1, [Parachain(1000)]);
+	pub RelayLocationFilter: AssetFilter = Wild(AllOf {
+		fun: WildFungible,
+		id: xcm::prelude::AssetId(Location::parent()),
+	});
+
+	pub RelayChainNativeAssetFromAssetHub: (AssetFilter, Location) = (
+		RelayLocationFilter::get(),
+		AssetHubLocation::get()
+	);
 }
 
 use frame_system::RawOrigin;
@@ -329,27 +329,27 @@ use sp_runtime::DispatchErrorWithPostInfo;
 use xcm_executor::traits::CallDispatcher;
 moonbeam_runtime_common::impl_moonbeam_xcm_call!();
 
+type Reserves = (
+	// Relaychain (DOT) from Asset Hub
+	Case<RelayChainNativeAssetFromAssetHub>,
+	// Assets which the reserve is the same as the origin.
+	orml_xcm_support::MultiNativeAsset<
+		xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>,
+	>,
+);
+
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
 	type XcmSender = XcmRouter;
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = orml_xcm_support::MultiNativeAsset<
-		xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>,
-	>;
+	type IsReserve = Reserves;
 	type IsTeleporter = ();
 	type UniversalLocation = UniversalLocation;
 	type Barrier = XcmBarrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
-	// We use three traders
-	// When we receive either representation of the self-reserve asset,
-	// When we receive a non-reserve asset, we use AssetManager to fetch how many
-	// units per second we should charge
-	type Trader = (
-		FixedRateOfFungible<ParaTokensPerSecond, ()>,
-		xcm_primitives::FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount_>,
-	);
+	type Trader = pallet_xcm_weight_trader::Trader<Runtime>;
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -420,7 +420,7 @@ parameter_types! {
 parameter_type_with_key! {
 	pub ParachainMinFee: |location: Location| -> Option<u128> {
 		match (location.parents, location.first_interior()) {
-			(1, Some(Parachain(4u32))) => Some(50u128),
+			(1, Some(Parachain(1000u32))) => Some(50u128),
 			_ => None,
 		}
 	};
@@ -819,6 +819,29 @@ impl pallet_xcm_transactor::Config for Runtime {
 }
 
 parameter_types! {
+	pub RelayLocation: Location = Location::parent();
+}
+
+impl pallet_xcm_weight_trader::Config for Runtime {
+	type AccountIdToLocation = xcm_primitives::AccountIdToLocation<AccountId>;
+	type AddSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type AssetLocationFilter = Everything;
+	type AssetTransactor = AssetTransactors;
+	type Balance = Balance;
+	type EditSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type NativeLocation = SelfReserve;
+	type PauseSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type RemoveSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type RuntimeEvent = RuntimeEvent;
+	type ResumeSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type WeightInfo = ();
+	type WeightToFee = WeightToFee;
+	type XcmFeesAccount = XcmFeesAccount;
+	#[cfg(feature = "runtime-benchmarks")]
+	type NotFilteredLocation = RelayLocation;
+}
+
+parameter_types! {
 	pub const MinimumPeriod: u64 = 1000;
 }
 impl pallet_timestamp::Config for Runtime {
@@ -1068,6 +1091,7 @@ construct_runtime!(
 		XTokens: orml_xtokens,
 		AssetManager: pallet_asset_manager,
 		XcmTransactor: pallet_xcm_transactor,
+		XcmWeightTrader: pallet_xcm_weight_trader,
 		Treasury: pallet_treasury,
 		Proxy: pallet_proxy,
 

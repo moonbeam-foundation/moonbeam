@@ -32,11 +32,13 @@ moonbeam-xcm-benchmarks = { workspace = true }
 pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
+pallet-emergency-para-xcm = { workspace = true }
 pallet-erc20-xcm-bridge = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
 pallet-evm-chain-id = { workspace = true }
 pallet-maintenance-mode = { workspace = true, features = ["xcm-support"] }
 pallet-migrations = { workspace = true }
+pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-moonbeam-lazy-migrations = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
 pallet-parachain-staking = { workspace = true }
@@ -44,6 +46,7 @@ pallet-precompile-benchmarks = { workspace = true }
 pallet-proxy-genesis-companion = { workspace = true }
 pallet-randomness = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
+pallet-xcm-weight-trader = { workspace = true }
 
 # Moonbeam precompiles
 pallet-evm-precompile-author-mapping = { workspace = true }
@@ -77,6 +80,7 @@ moonbeam-rpc-primitives-txpool = { workspace = true }
 
 # Substrate
 frame-executive = { workspace = true }
+frame-metadata-hash-extension = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-system-rpc-runtime-api = { workspace = true }
@@ -157,6 +161,7 @@ cumulus-pallet-xcmp-queue = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 cumulus-primitives-timestamp = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
+cumulus-primitives-storage-weight-reclaim = { workspace = true }
 parachain-info = { workspace = true }
 parachains-common = { workspace = true }
 
@@ -204,12 +209,14 @@ std = [
 	"cumulus-primitives-core/std",
 	"cumulus-primitives-timestamp/std",
 	"cumulus-primitives-utility/std",
+	"cumulus-primitives-storage-weight-reclaim/std",
 	"evm-tracing-events/std",
 	"fp-evm/std",
 	"fp-rpc/std",
 	"fp-self-contained/std",
 	"frame-benchmarking/std",
 	"frame-executive/std",
+	"frame-metadata-hash-extension/std",
 	"frame-support/std",
 	"frame-system-rpc-runtime-api/std",
 	"frame-system/std",
@@ -233,6 +240,7 @@ std = [
 	"pallet-collective/std",
 	"pallet-conviction-voting/std",
 	"pallet-crowdloan-rewards/std",
+	"pallet-emergency-para-xcm/std",
 	"pallet-erc20-xcm-bridge/std",
 	"pallet-evm-chain-id/std",
 	"pallet-ethereum-xcm/std",
@@ -257,6 +265,7 @@ std = [
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
+	"pallet-moonbeam-foreign-assets/std",
 	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-moonbeam-orbiters/std",
 	"pallet-multisig/std",
@@ -279,6 +288,7 @@ std = [
 	"pallet-whitelist/std",
 	"pallet-xcm-transactor/std",
 	"pallet-xcm/std",
+	"pallet-xcm-weight-trader/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"parity-scale-codec/std",
@@ -315,10 +325,13 @@ force-debug = ["sp-debug-derive/force-debug"]
 # Will be enabled by the `wasm-builder` when building the runtime for WASM.
 runtime-wasm = []
 
+# Enable the metadata hash generation in the wasm builder.
+metadata-hash = ["substrate-wasm-builder/metadata-hash"]
+
 # A feature that should be enabled when the runtime should be build for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
 # to make it smaller like logging for example.
-on-chain-release-build = ["sp-api/disable-logging"]
+on-chain-release-build = ["metadata-hash", "sp-api/disable-logging"]
 
 runtime-benchmarks = [
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
@@ -347,6 +360,7 @@ runtime-benchmarks = [
 	"pallet-evm/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-migrations/runtime-benchmarks",
+	"pallet-moonbeam-foreign-assets/runtime-benchmarks",
 	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
@@ -366,6 +380,7 @@ runtime-benchmarks = [
 	"pallet-xcm-benchmarks/runtime-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
+	"pallet-xcm-weight-trader/runtime-benchmarks",
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",

@@ -300,11 +300,18 @@ where
 		(fut, tx)
 	}
 
-	fn handle_params(params: Option<TraceParams>) -> RpcResult<(TracerInput, single::TraceType)> {
+	fn handle_params(
+		params: Option<TraceParams>,
+	) -> RpcResult<(
+		TracerInput,
+		single::TraceType,
+		Option<single::TraceCallConfig>,
+	)> {
 		// Set trace input and type
 		match params {
 			Some(TraceParams {
 				tracer: Some(tracer),
+				tracer_config,
 				..
 			}) => {
 				const BLOCKSCOUT_JS_CODE_HASH: [u8; 16] =
@@ -321,7 +328,7 @@ where
 						None
 					};
 				if let Some(tracer) = tracer {
-					Ok((tracer, single::TraceType::CallList))
+					Ok((tracer, single::TraceType::CallList, tracer_config))
 				} else {
 					return Err(internal_err(format!(
 						"javascript based tracing is not available (hash :{:?})",
@@ -336,6 +343,7 @@ where
 					disable_memory: params.disable_memory.unwrap_or(false),
 					disable_stack: params.disable_stack.unwrap_or(false),
 				},
+				params.tracer_config,
 			)),
 			_ => Ok((
 				TracerInput::None,
@@ -344,6 +352,7 @@ where
 					disable_memory: false,
 					disable_stack: false,
 				},
+				None,
 			)),
 		}
 	}
@@ -356,7 +365,7 @@ where
 		params: Option<TraceParams>,
 		overrides: Arc<dyn StorageOverride<B>>,
 	) -> RpcResult<Response> {
-		let (tracer_input, trace_type) = Self::handle_params(params)?;
+		let (tracer_input, trace_type, tracer_config) = Self::handle_params(params)?;
 
 		let reference_id: BlockId<B> = match request_block_id {
 			RequestBlockId::Number(n) => Ok(BlockId::Number(n.unique_saturated_into())),
@@ -433,15 +442,30 @@ where
 				// The block is initialized inside "trace_block"
 				api.trace_block(parent_block_hash, exts, eth_tx_hashes, &header)
 			} else {
-				// Pre pallet-message-queue
+				// Get core runtime api version
+				let core_api_version = if let Ok(Some(api_version)) =
+					api.api_version::<dyn Core<B>>(parent_block_hash)
+				{
+					api_version
+				} else {
+					return Err(internal_err(
+						"Runtime api version call failed (core)".to_string(),
+					));
+				};
 
 				// Initialize block: calls the "on_initialize" hook on every pallet
 				// in AllPalletsWithSystem
 				// This was fine before pallet-message-queue because the XCM messages
 				// were processed by the "setValidationData" inherent call and not on an
 				// "on_initialize" hook, which runs before enabling XCM tracing
-				api.initialize_block(parent_block_hash, &header)
-					.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+				if core_api_version >= 5 {
+					api.initialize_block(parent_block_hash, &header)
+						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+				} else {
+					#[allow(deprecated)]
+					api.initialize_block_before_version_5(parent_block_hash, &header)
+						.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+				}
 
 				#[allow(deprecated)]
 				api.trace_block_before_version_5(parent_block_hash, exts, eth_tx_hashes)
@@ -467,6 +491,7 @@ where
 		return match trace_type {
 			single::TraceType::CallList => {
 				let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+				proxy.with_log = tracer_config.map_or(false, |cfg| cfg.with_log);
 				proxy.using(f)?;
 				proxy.finish_transaction();
 				let response = match tracer_input {
@@ -506,7 +531,7 @@ where
 		overrides: Arc<dyn StorageOverride<B>>,
 		raw_max_memory_usage: usize,
 	) -> RpcResult<Response> {
-		let (tracer_input, trace_type) = Self::handle_params(params)?;
+		let (tracer_input, trace_type, tracer_config) = Self::handle_params(params)?;
 
 		let (hash, index) =
 			match futures::executor::block_on(frontier_backend_client::load_transactions::<B, C>(
@@ -573,15 +598,34 @@ where
 						// The block is initialized inside "trace_transaction"
 						api.trace_transaction(parent_block_hash, exts, &transaction, &header)
 					} else {
+						// Get core runtime api version
+						let core_api_version = if let Ok(Some(api_version)) =
+							api.api_version::<dyn Core<B>>(parent_block_hash)
+						{
+							api_version
+						} else {
+							return Err(internal_err(
+								"Runtime api version call failed (core)".to_string(),
+							));
+						};
+
 						// Initialize block: calls the "on_initialize" hook on every pallet
 						// in AllPalletsWithSystem
 						// This was fine before pallet-message-queue because the XCM messages
 						// were processed by the "setValidationData" inherent call and not on an
 						// "on_initialize" hook, which runs before enabling XCM tracing
-						api.initialize_block(parent_block_hash, &header)
-							.map_err(|e| {
-								internal_err(format!("Runtime api access error: {:?}", e))
-							})?;
+						if core_api_version >= 5 {
+							api.initialize_block(parent_block_hash, &header)
+								.map_err(|e| {
+									internal_err(format!("Runtime api access error: {:?}", e))
+								})?;
+						} else {
+							#[allow(deprecated)]
+							api.initialize_block_before_version_5(parent_block_hash, &header)
+								.map_err(|e| {
+									internal_err(format!("Runtime api access error: {:?}", e))
+								})?;
+						}
 
 						if trace_api_version == 4 {
 							// Pre pallet-message-queue
@@ -649,6 +693,7 @@ where
 					}
 					single::TraceType::CallList => {
 						let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+						proxy.with_log = tracer_config.map_or(false, |cfg| cfg.with_log);
 						proxy.using(f)?;
 						proxy.finish_transaction();
 						let response = match tracer_input {
@@ -690,7 +735,7 @@ where
 		trace_params: Option<TraceParams>,
 		raw_max_memory_usage: usize,
 	) -> RpcResult<Response> {
-		let (tracer_input, trace_type) = Self::handle_params(trace_params)?;
+		let (tracer_input, trace_type, tracer_config) = Self::handle_params(trace_params)?;
 
 		let reference_id: BlockId<B> = match request_block_id {
 			RequestBlockId::Number(n) => Ok(BlockId::Number(n.unique_saturated_into())),
@@ -862,6 +907,7 @@ where
 			}
 			single::TraceType::CallList => {
 				let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+				proxy.with_log = tracer_config.map_or(false, |cfg| cfg.with_log);
 				proxy.using(f)?;
 				proxy.finish_transaction();
 				let response = match tracer_input {

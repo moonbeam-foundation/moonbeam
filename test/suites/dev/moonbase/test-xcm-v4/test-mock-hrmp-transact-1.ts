@@ -68,8 +68,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 40000000000n,
-            proofSize: 110000n,
+            refTime: 40_000_000_000n,
+            proofSize: 120_000n,
           },
           descend_origin: sendingAddress,
         })

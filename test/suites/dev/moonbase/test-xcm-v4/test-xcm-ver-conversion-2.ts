@@ -25,7 +25,7 @@ describeSuite({
     beforeAll(async () => {
       random = generateKeyringPair();
       sovereignAddress = sovereignAccountOfSibling(context, 2000);
-      transferredBalance = 100000000000000n;
+      transferredBalance = 1_000_000_000_000_000n;
 
       await context.createBlock(
         context.polkadotJs().tx.balances.transferAllowDeath(sovereignAddress, transferredBalance),
@@ -60,8 +60,8 @@ describeSuite({
             },
           ],
           weight_limit: {
-            refTime: 8000000000,
-            proofSize: 110000n,
+            refTime: 10_000_000_000,
+            proofSize: 120_000n,
           },
           beneficiary: random.address,
         })
@@ -75,8 +75,8 @@ describeSuite({
           context,
           context.polkadotJs().createType("XcmVersionedXcm", xcmMessage)
         );
-
-        const chargedFee = chargedWeight * 50000n;
+        // Dividing by four the xcm fees constant to match the x4 cpu per block
+        const chargedFee = (chargedWeight * 50000n) / 4n;
 
         await injectHrmpMessageAndSeal(context, foreign_para_id, {
           type: "XcmVersionedXcm",

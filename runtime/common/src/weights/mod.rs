@@ -16,6 +16,7 @@
 
 //! Moonbeam common weights.
 
+pub mod cumulus_pallet_parachain_system;
 pub mod cumulus_pallet_xcmp_queue;
 pub mod db;
 pub mod pallet_asset_manager;
@@ -29,11 +30,13 @@ pub mod pallet_conviction_voting;
 pub mod pallet_crowdloan_rewards;
 pub mod pallet_evm;
 pub mod pallet_identity;
+pub mod pallet_message_queue;
 pub mod pallet_moonbeam_foreign_assets;
 pub mod pallet_moonbeam_lazy_migrations;
 pub mod pallet_moonbeam_orbiters;
 pub mod pallet_multisig;
 pub mod pallet_parachain_staking;
+pub mod pallet_parameters;
 pub mod pallet_precompile_benchmarks;
 pub mod pallet_preimage;
 pub mod pallet_proxy;
@@ -48,3 +51,4 @@ pub mod pallet_utility;
 pub mod pallet_whitelist;
 pub mod pallet_xcm;
 pub mod pallet_xcm_transactor;
+pub mod pallet_xcm_weight_trader;

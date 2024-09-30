@@ -106,7 +106,7 @@ decl_test_parachain! {
 		Runtime = statemint_like::Runtime,
 		XcmpMessageHandler = statemint_like::MsgQueue,
 		DmpMessageHandler = statemint_like::MsgQueue,
-		new_ext = statemint_ext(4),
+		new_ext = statemint_ext(1000),
 	}
 }
 
@@ -118,7 +118,7 @@ decl_test_relay_chain! {
 		XcmConfig = relay_chain::XcmConfig,
 		MessageQueue = relay_chain::MessageQueue,
 		System = relay_chain::System,
-		new_ext = relay_ext(vec![1, 2, 3, 4]),
+		new_ext = relay_ext(vec![1, 2, 3, 1000]),
 	}
 }
 
@@ -129,7 +129,7 @@ decl_test_network! {
 			(1, ParaA),
 			(2, ParaB),
 			(3, ParaC),
-			(4, Statemint),
+			(1000, Statemint),
 		],
 	}
 }
@@ -270,3 +270,4 @@ pub type XTokens = orml_xtokens::Pallet<parachain::Runtime>;
 pub type RelayBalances = pallet_balances::Pallet<relay_chain::Runtime>;
 pub type ParaBalances = pallet_balances::Pallet<parachain::Runtime>;
 pub type XcmTransactor = pallet_xcm_transactor::Pallet<parachain::Runtime>;
+pub type XcmWeightTrader = pallet_xcm_weight_trader::Pallet<parachain::Runtime>;

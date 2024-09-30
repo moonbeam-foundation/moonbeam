@@ -4,7 +4,7 @@ authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.40.0"
+version = "0.41.0"
 
 [dependencies]
 async-io = { workspace = true }
@@ -15,7 +15,7 @@ exit-future = { workspace = true }
 flume = { workspace = true }
 futures = { workspace = true, features = ["compat"] }
 hex-literal = { workspace = true }
-jsonrpsee = { workspace = true, features = ["macros", "server"] }
+jsonrpsee = { workspace = true, features = ["macros", "server", "http-client"] }
 libsecp256k1 = { workspace = true, features = ["hmac"] }
 log = { workspace = true }
 maplit = { workspace = true }
@@ -24,11 +24,17 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 sha3 = { workspace = true }
 tiny-bip39 = { workspace = true }
-tokio = { workspace = true, features = ["macros", "sync"] }
+tokio = { workspace = true, features = ["sync", "rt-multi-thread"] }
 trie-root = { workspace = true }
+tokio-retry = { workspace = true }
+substrate-rpc-client = { workspace = true }
+hex = { workspace = true, features = ["std"] }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+ansi_term = { workspace = true }
 
 # Moonbeam
-manual-xcm-rpc = { workspace = true }
+moonbeam-dev-rpc = { workspace = true }
 moonbeam-cli-opt = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-finality-rpc = { workspace = true }
@@ -52,6 +58,8 @@ moonriver-runtime = { workspace = true, optional = true }
 
 # Substrate
 frame-system-rpc-runtime-api = { workspace = true, features = ["std"] }
+frame-system = { workspace = true, features = ["std"] }
+pallet-balances = { workspace = true, features = ["std"] }
 pallet-transaction-payment = { workspace = true, features = ["std"] }
 pallet-transaction-payment-rpc = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = [
@@ -95,6 +103,10 @@ sp-storage = { workspace = true, features = ["std"] }
 sp-timestamp = { workspace = true, features = ["std"] }
 sp-transaction-pool = { workspace = true, features = ["std"] }
 sp-trie = { workspace = true, features = ["std"] }
+sp-state-machine = { workspace = true }
+sp-rpc = { workspace = true }
+sp-externalities = { workspace = true }
+sp-version = { workspace = true }
 substrate-frame-rpc-system = { workspace = true }
 substrate-prometheus-endpoint = { workspace = true }
 
@@ -178,6 +190,8 @@ default = [
 	"westend-native",
 ]
 
+lazy-loading = ["sc-service/test-helpers", "parking_lot/send_guard"]
+
 rococo-native = ["polkadot-cli/rococo-native", "polkadot-service/rococo-native"]
 westend-native = [
 	"polkadot-cli/westend-native",
@@ -187,6 +201,12 @@ westend-native = [
 moonbase-native = ["moonbase-runtime", "westend-native"]
 moonbeam-native = ["moonbeam-runtime"]
 moonriver-native = ["moonriver-runtime"]
+
+metadata-hash = [
+	"moonbase-runtime/metadata-hash",
+	"moonriver-runtime/metadata-hash",
+	"moonbeam-runtime/metadata-hash",
+]
 
 test-spec = []
 

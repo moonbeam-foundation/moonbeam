@@ -9,7 +9,7 @@ import {
   descendOriginFromAddress20,
   injectHrmpMessage,
 } from "../../../../helpers/xcm.js";
-import { GAS_LIMIT_POV_RATIO } from "../../../../helpers/constants";
+import { ConstantStore, GAS_LIMIT_POV_RATIO } from "../../../../helpers/constants";
 
 describeSuite({
   id: "D012706",
@@ -24,8 +24,10 @@ describeSuite({
     let contracts: HeavyContract[];
     const EXPECTED_POV_ROUGH = 350_000; // bytes
     let balancesPalletIndex: number;
+    let STORAGE_READ_COST: bigint;
 
     beforeAll(async function () {
+      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
       // Get Pallet balances index
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
       const foundPallet = metadata.asLatest.pallets.find(
@@ -90,7 +92,7 @@ describeSuite({
           },
         ];
 
-        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 800000000n;
+        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 5_000_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
         const transferCall = context
           .polkadotJs()
@@ -123,7 +125,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                refTime: 50_041_742_000,
+                refTime: 50_000_000_000n + STORAGE_READ_COST,
                 proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
               },
               call: {
@@ -192,7 +194,7 @@ describeSuite({
           },
         ];
 
-        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 800000000n;
+        const targetXcmWeight = BigInt(GAS_LIMIT) * 25000n + 25_000_000n + 5_000_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
         const transferCall = context
           .polkadotJs()
@@ -223,7 +225,7 @@ describeSuite({
             Transact: {
               originKind: "SovereignAccount",
               requireWeightAtMost: {
-                refTime: 160_041_742_000,
+                refTime: 160_000_000_000n + STORAGE_READ_COST,
                 proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
               },
               call: {

@@ -221,18 +221,8 @@ fn validate_trace_environment(cli: &Cli) -> Result<()> {
 
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
-	let mut cli = Cli::from_args();
+	let cli = Cli::from_args();
 	let _ = validate_trace_environment(&cli)?;
-	// Set --execution wasm as default
-	let execution_strategies = cli.run.base.base.import_params.execution_strategies.clone();
-	if execution_strategies.execution.is_none() {
-		cli.run
-			.base
-			.base
-			.import_params
-			.execution_strategies
-			.execution = Some(sc_cli::ExecutionStrategy::Wasm);
-	}
 
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(params)) => {
@@ -693,7 +683,8 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			let collator_options = cli.run.collator_options();
-			runner.run_node_until_exit(|config| async move {
+
+			runner.run_node_until_exit(|mut config| async move {
 				let hwbench = if !cli.run.no_hardware_benchmarks {
 					config.database.path().map(|database_path| {
 						let _ = std::fs::create_dir_all(&database_path);
@@ -704,8 +695,6 @@ pub fn run() -> Result<()> {
 				};
 
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
-				let para_id = extension.map(|e| e.para_id);
-				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
 
 				let rpc_config = cli.run.new_rpc_config();
 
@@ -719,7 +708,6 @@ pub fn run() -> Result<()> {
 				let dev_service = cli.run.dev_service
 					|| config.chain_spec.is_dev()
 					|| relay_chain_id == Some("dev-service");
-
 				if dev_service {
 					// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
@@ -757,6 +745,42 @@ pub fn run() -> Result<()> {
 						_ => panic!("invalid chain spec"),
 					};
 				}
+				#[cfg(feature = "lazy-loading")]
+				if let Some(fork_chain_from_rpc) = cli.run.fork_chain_from_rpc {
+					let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
+						"Alice",
+					));
+
+					let lazy_loading_config = moonbeam_cli_opt::LazyLoadingConfig {
+						state_rpc: fork_chain_from_rpc,
+						from_block: cli.run.block,
+						state_overrides_path: cli.run.fork_state_overrides,
+						runtime_override: cli.run.runtime_override,
+					};
+
+					let spec_builder =
+						chain_spec::test_spec::lazy_loading_spec_builder(Default::default());
+					config.chain_spec = Box::new(spec_builder.build());
+
+					// TODO: create a tokio runtime inside offchain_worker thread (otherwise it will panic)
+					// We just disable it for now, since it is not needed
+					config.offchain_worker.enabled = false;
+
+					return moonbeam_service::lazy_loading::new_lazy_loading_service::<
+						moonbeam_runtime::RuntimeApi,
+						moonbeam_service::MoonbeamCustomizations,
+						sc_network::NetworkWorker<_, _>,
+					>(
+						config,
+						author_id,
+						cli.run.sealing,
+						rpc_config,
+						lazy_loading_config,
+						hwbench,
+					)
+					.await
+					.map_err(Into::into);
+				}
 
 				let polkadot_cli = RelayChainCli::new(
 					&config,
@@ -764,6 +788,9 @@ pub fn run() -> Result<()> {
 						.iter()
 						.chain(cli.relaychain_args.iter()),
 				);
+
+				let para_id = extension.map(|e| e.para_id);
+				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
 
 				let parachain_account =
 					AccountIdConversion::<polkadot_primitives::v7::AccountId>::into_account_truncating(&id);

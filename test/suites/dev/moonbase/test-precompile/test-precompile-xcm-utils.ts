@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, generateKeyringPair } from "@moonwall/util";
 import { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { u8aToHex } from "@polkadot/util";
-import { expectEVMResult, descendOriginFromAddress20 } from "../../../../helpers";
+import { expectEVMResult, descendOriginFromAddress20, ConstantStore } from "../../../../helpers";
 
 export const CLEAR_ORIGIN_WEIGHT = 5_194_000n;
 
@@ -12,6 +12,10 @@ describeSuite({
   title: "Precompiles - xcm utils",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
+    let STORAGE_READ_COST;
+    beforeAll(async function () {
+      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
+    });
     it({
       id: "T01",
       title: "allows to retrieve parent-based ML account",
@@ -143,8 +147,8 @@ describeSuite({
           // PalletInstance: Selector (04) + palconst instance 1 byte (03)
           [x2_pallet_instance_enum_selector + x2_instance],
         ];
-
-        const expectedUnitsPerSecond = 50_000n * 1_000_000_000_000n;
+        // Dividing by four the xcm fees constant to match the x4 cpu per block
+        const expectedUnitsPerSecond = (50_000n / 4n) * 1_000_000_000_000n;
 
         expect(
           await context.readPrecompile!({
@@ -172,7 +176,7 @@ describeSuite({
             {
               Transact: {
                 originType: "SovereignAccount",
-                requireWeightAtMost: 566_742_000n, // 21_000 gas limit
+                requireWeightAtMost: 525_000_000n + STORAGE_READ_COST, // 21_000 gas limit
                 call: {
                   encoded: transferCallEncoded,
                 },
@@ -233,7 +237,7 @@ describeSuite({
             {
               Transact: {
                 originType: "SovereignAccount",
-                requireWeightAtMost: 566_742_000n, // 21_000 gas limit
+                requireWeightAtMost: 525_000_000n + STORAGE_READ_COST, // 21_000 gas limit
                 call: {
                   encoded: transferCallEncoded,
                 },

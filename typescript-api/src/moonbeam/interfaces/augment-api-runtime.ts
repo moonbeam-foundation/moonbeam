@@ -14,6 +14,7 @@ import type {
   U256,
   Vec,
   bool,
+  u128,
   u256,
   u32,
   u64,
@@ -45,10 +46,13 @@ import type {
   KeyTypeId,
   Permill,
   Weight,
+  WeightV2,
 } from "@polkadot/types/interfaces/runtime";
 import type { RuntimeVersion } from "@polkadot/types/interfaces/state";
 import type { ApplyExtrinsicResult, DispatchError } from "@polkadot/types/interfaces/system";
 import type { TransactionSource, TransactionValidity } from "@polkadot/types/interfaces/txqueue";
+import type { XcmPaymentApiError } from "@polkadot/types/interfaces/xcmPaymentApi";
+import type { XcmVersionedAssetId, XcmVersionedXcm } from "@polkadot/types/lookup";
 import type { IExtrinsic, Observable } from "@polkadot/types/types";
 
 export type __AugmentedCall<ApiType extends ApiTypes> = AugmentedCall<ApiType>;
@@ -393,6 +397,31 @@ declare module "@polkadot/api-base/types/calls" {
         (
           weight: Weight | { refTime?: any; proofSize?: any } | string | Uint8Array
         ) => Observable<Balance>
+      >;
+      /** Generic call */
+      [key: string]: DecoratedCallBase<ApiType>;
+    };
+    /** 0x6ff52ee858e6c5bd/1 */
+    xcmPaymentApi: {
+      /** The API to query acceptable payment assets */
+      queryAcceptablePaymentAssets: AugmentedCall<
+        ApiType,
+        (
+          version: u32 | AnyNumber | Uint8Array
+        ) => Observable<Result<Vec<XcmVersionedAssetId>, XcmPaymentApiError>>
+      >;
+      queryWeightToAssetFee: AugmentedCall<
+        ApiType,
+        (
+          weight: WeightV2 | { refTime?: any; proofSize?: any } | string | Uint8Array,
+          asset: XcmVersionedAssetId | { V3: any } | { V4: any } | string | Uint8Array
+        ) => Observable<Result<u128, XcmPaymentApiError>>
+      >;
+      queryXcmWeight: AugmentedCall<
+        ApiType,
+        (
+          message: XcmVersionedXcm | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array
+        ) => Observable<Result<WeightV2, XcmPaymentApiError>>
       >;
       /** Generic call */
       [key: string]: DecoratedCallBase<ApiType>;

@@ -9,6 +9,7 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
+import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({
   id: "D014122",
@@ -22,7 +23,10 @@ describeSuite({
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
 
+    let STORAGE_READ_COST: bigint;
+
     beforeAll(async () => {
+      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
         context,
         charleth.address as `0x${string}`
@@ -30,7 +34,7 @@ describeSuite({
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
       random = generateKeyringPair();
-      transferredBalance = 10_000_000_000_000_000_000n;
+      transferredBalance = 100_000_000_000_000_000_000n;
 
       // We fund the Delegatee, which will send the xcm and pay fees
       await context.createBlock(
@@ -72,9 +76,6 @@ describeSuite({
 
         const amountToTransfer = transferredBalance / 10n;
 
-        // TODO: move this to the constant file
-        const STORAGE_READ_COST = 41_742_000n;
-
         const xcmTransactions = [
           {
             V1: {
@@ -108,7 +109,7 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
-        const targetXcmWeight = 1_325_000_000n + 100_000_000n;
+        const targetXcmWeight = 5_000_000_000n + 100_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {
@@ -136,7 +137,7 @@ describeSuite({
             ],
             weight_limit: {
               refTime: targetXcmWeight,
-              proofSize: 110000n,
+              proofSize: 120_000n,
             },
             descend_origin: sendingAddress,
           })
