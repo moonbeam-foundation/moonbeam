@@ -39,9 +39,9 @@ pub mod dynamic_params {
 
 		#[codec(index = 0)]
 		pub static Deposit: BoundedU128<
-			{ 2 * currency::UNIT * currency::SUPPLY_FACTOR },
+			{ 1 * currency::UNIT * currency::SUPPLY_FACTOR },
 			{ 1_000 * currency::UNIT * currency::SUPPLY_FACTOR },
-		> = BoundedU128::new_or_min(100 * currency::UNIT * currency::SUPPLY_FACTOR);
+		> = BoundedU128::new_or_min(1 * currency::UNIT * currency::SUPPLY_FACTOR);
 	}
 }
 
