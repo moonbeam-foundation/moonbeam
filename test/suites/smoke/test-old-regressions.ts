@@ -135,10 +135,7 @@ describeSuite({
           try {
             expect(result.data).to.contain("0x");
           } catch (e) {
-            log(
-              `Error found for ${testCase.issue} at block ${testCase.block.toString()}: ${result.data
-              }`
-            );
+            log(`${testCase.issue}: error at block ${testCase.block.toString()}: ${result.data}`);
             throw e;
           }
         }
@@ -206,9 +203,9 @@ describeSuite({
       title: "Moonriver: eth_getLogs with more than 16 addresses filtered should return logs",
       chainType: "moonriver",
       test: async function () {
-
-        const addresses = Array.from({ length: 17 }, () => generateKeyringPair())
-          .map((a) => a.address as `0x${string}`);
+        const addresses = Array.from({ length: 17 }, () => generateKeyringPair()).map(
+          (a) => a.address as `0x${string}`
+        );
 
         // Original case identified at this particular block height
         const logs = await context.viem().getLogs({
@@ -218,7 +215,7 @@ describeSuite({
         });
         log(`Logs found: ${logs.length}`);
       },
-    })
+    });
   },
 });
 
@@ -226,21 +223,21 @@ type TraceTransactionSchema = {
   Parameters: [
     hash: Hash,
     options:
-    | {
-      disableStorage?: boolean;
-      disableStack?: boolean;
-      enableMemory?: boolean;
-      enableReturnData?: boolean;
-      tracer?: string;
-    }
-    | {
-      timeout?: string;
-      tracerConfig?: {
-        onlyTopCall?: boolean;
-        withLog?: boolean;
-      };
-    }
-    | undefined
+      | {
+          disableStorage?: boolean;
+          disableStack?: boolean;
+          enableMemory?: boolean;
+          enableReturnData?: boolean;
+          tracer?: string;
+        }
+      | {
+          timeout?: string;
+          tracerConfig?: {
+            onlyTopCall?: boolean;
+            withLog?: boolean;
+          };
+        }
+      | undefined
   ];
   ReturnType: {
     from: string;
