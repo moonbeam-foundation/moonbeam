@@ -10,7 +10,7 @@ const STARTING_KEY_OVERRIDE = "";
 const MODULE_NAME = "";
 const FN_NAME = "";
 
-const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 1000;
+const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
 
 const extractStorageKeyComponents = (storageKey: string) => {
   // The full storage key is composed of
@@ -133,6 +133,7 @@ describeSuite({
 
                 let randomEntriesCount = 0;
                 let randomEntries;
+                let retries = 0;
                 // Re-try on empty entries cases to avoid false positives
                 while (randomEntriesCount === 0) {
                   // 3. Generate a random startKey
@@ -149,6 +150,12 @@ describeSuite({
                     startKey: currentStartKey,
                   });
                   randomEntriesCount = randomEntries.length;
+                  retries++;
+                  if (retries > 10) {
+                    fail(
+                      `Failed to fetch storage entries for module ${moduleName}::${fn} after 10 retries`
+                    );
+                  }
                 }
                 // Log first entry storage key
                 const firstRandomEntryKey = randomEntries[0][0].toString();
