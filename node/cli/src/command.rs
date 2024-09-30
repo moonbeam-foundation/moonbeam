@@ -221,18 +221,8 @@ fn validate_trace_environment(cli: &Cli) -> Result<()> {
 
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
-	let mut cli = Cli::from_args();
+	let cli = Cli::from_args();
 	let _ = validate_trace_environment(&cli)?;
-	// Set --execution wasm as default
-	let execution_strategies = cli.run.base.base.import_params.execution_strategies.clone();
-	if execution_strategies.execution.is_none() {
-		cli.run
-			.base
-			.base
-			.import_params
-			.execution_strategies
-			.execution = Some(sc_cli::ExecutionStrategy::Wasm);
-	}
 
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(params)) => {
