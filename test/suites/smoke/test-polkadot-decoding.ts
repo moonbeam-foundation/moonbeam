@@ -83,93 +83,95 @@ describeSuite({
           log(`first entry: ${entries[0][0].toString()}`);
           log(`last entry: ${entries[entries.length - 1][0].toString()}`);
           log(`     - ${FN_NAME}:  ${chalk.green(`✔`)} (startKey: ${STARTING_KEY_OVERRIDE})`);
-        } else {
-          let currentStartKey = "";
-          const modules = Object.keys(paraApi.query);
-          for (const moduleName of modules) {
-            log(`  - ${moduleName}`);
-            const module = apiAt.query[moduleName];
-            const fns = Object.keys(module);
-            for (const fn of fns) {
-              log(`🔎 checking ${moduleName}::${fn}`);
-              const keys = Object.keys(module[fn]);
-              try {
-                if (keys.includes("keysPaged")) {
-                  // Generate a first query with an empty startKey
-                  currentStartKey = "";
-                  const emptyKeyEntries = await module[fn].entriesPaged({
+          return;
+        }
+
+        let currentStartKey = "";
+        const modules = Object.keys(paraApi.query);
+        for (const moduleName of modules) {
+          log(`  - ${moduleName}`);
+          const module = apiAt.query[moduleName];
+          const fns = Object.keys(module);
+          for (const fn of fns) {
+            log(`🔎 checking ${moduleName}::${fn}`);
+            const keys = Object.keys(module[fn]);
+            try {
+              if (keys.includes("keysPaged")) {
+                // Generate a first query with an empty startKey
+                currentStartKey = "";
+                const emptyKeyEntries = await module[fn].entriesPaged({
+                  args: [],
+                  pageSize,
+                  startKey: currentStartKey,
+                });
+
+                // Skip if no entries are found
+                if (emptyKeyEntries.length === 0) {
+                  log(`     - ${fn}:  ${chalk.green(`✔ No entries found`)}`);
+                  continue;
+                }
+                // Skip if all entries are checked
+                if (emptyKeyEntries.length < pageSize) {
+                  log(
+                    `     - ${fn}:  ${chalk.green(
+                      `✔ All ${emptyKeyEntries.length} entries checked`
+                    )}`
+                  );
+                  continue;
+                }
+                // Log emptyKeyFirstEntry
+                const emptyKeyFirstEntryKey = emptyKeyEntries[0][0].toString();
+                log(`   - ${fn}:  ${chalk.green(`🔎`)} (first key: ${emptyKeyFirstEntryKey})`);
+
+                // If there are more entries, perform a random check
+                // 1. Get the first entry storage key
+                const firstEntry = emptyKeyEntries[0];
+                const storageKey = firstEntry[0].toString();
+
+                // 2. Extract the module, fn and params keys
+                const { moduleKey, fnKey, paramsKey } = extractStorageKeyComponents(storageKey);
+
+                let randomEntriesCount = 0;
+                let randomEntries;
+                // Re-try on empty entries cases to avoid false positives
+                while (randomEntriesCount === 0) {
+                  // 3. Generate a random startKey
+                  // will be overridden if STARTING_KEY_OVERRIDE is set
+                  currentStartKey = moduleKey + fnKey + randomHex(paramsKey.length);
+
+                  // 4. Fetch the storage entries with the random startKey
+                  // Trying to decode all storage entries may cause the node to timeout, decoding
+                  // random storage entries should be enough to verify if a storage migration
+                  // was missed.
+                  randomEntries = await module[fn].entriesPaged({
                     args: [],
                     pageSize,
                     startKey: currentStartKey,
                   });
-
-                  // Skip if no entries are found
-                  if (emptyKeyEntries.length === 0) {
-                    log(`     - ${fn}:  ${chalk.green(`✔ No entries found`)}`);
-                    continue;
-                  }
-                  // Skip if all entries are checked
-                  if (emptyKeyEntries.length < pageSize) {
-                    log(
-                      `     - ${fn}:  ${chalk.green(
-                        `✔ All ${emptyKeyEntries.length} entries checked`
-                      )}`
-                    );
-                    continue;
-                  }
-                  // Log emptyKeyFirstEntry
-                  const emptyKeyFirstEntryKey = emptyKeyEntries[0][0].toString();
-                  log(`   - ${fn}:  ${chalk.green(`🔎`)} (first key: ${emptyKeyFirstEntryKey})`);
-
-                  // If there are more entries, perform a random check
-                  // 1. Get the first entry storage key
-                  const firstEntry = emptyKeyEntries[0];
-                  const storageKey = firstEntry[0].toString();
-
-                  // 2. Extract the module, fn and params keys
-                  const { moduleKey, fnKey, paramsKey } = extractStorageKeyComponents(storageKey);
-
-                  let randomEntriesCount = 0;
-                  let randomEntries;
-                  // Re-try on empty entries cases to avoid false positives
-                  while (randomEntriesCount === 0) {
-                    // 3. Generate a random startKey
-                    // will be overridden if STARTING_KEY_OVERRIDE is set
-                    currentStartKey = moduleKey + fnKey + randomHex(paramsKey.length);
-
-                    // 4. Fetch the storage entries with the random startKey
-                    // Trying to decode all storage entries may cause the node to timeout, decoding
-                    // random storage entries should be enough to verify if a storage migration
-                    // was missed.
-                    randomEntries = await module[fn].entriesPaged({
-                      args: [],
-                      pageSize,
-                      startKey: currentStartKey,
-                    });
-                    randomEntriesCount = randomEntries.length;
-                  }
-                  // Log first entry storage key
-                  const firstRandomEntryKey = randomEntries[0][0].toString();
-                  log(`     - ${fn}:  ${chalk.green(`🔎`)} (random key: ${firstRandomEntryKey})`);
-                } else if (fn != "code") {
-                  await module[fn]();
+                  randomEntriesCount = randomEntries.length;
                 }
-
-                log(`     - ${fn}:  ${chalk.green(`✔`)}`);
-              } catch (e) {
-                const failMsg = `Failed to fetch storage at (${moduleName}::${fn}) `;
-                const RNGDetails = `using startKey "${currentStartKey}" at block ${atBlockNumber}`;
-                const msg = chalk.red(`${failMsg} ${RNGDetails}`);
-                log(msg, e);
-                const reproducing = `To reproduce this failled case, set the STARTING_KEY_OVERRIDE 
-              variable to "${currentStartKey}" at the top of the test file and run the test again.`;
-                log(chalk.red(reproducing));
-                fail(msg);
+                // Log first entry storage key
+                const firstRandomEntryKey = randomEntries[0][0].toString();
+                log(`     - ${fn}:  ${chalk.green(`🔎`)} (random key: ${firstRandomEntryKey})`);
+              } else if (fn != "code") {
+                await module[fn]();
               }
+
+              log(`     - ${fn}:  ${chalk.green(`✔`)}`);
+            } catch (e) {
+              const failMsg = `Failed to fetch storage at (${moduleName}::${fn}) `;
+              const RNGDetails = `using startKey "${currentStartKey}" at block ${atBlockNumber}`;
+              const msg = chalk.red(`${failMsg} ${RNGDetails}`);
+              log(msg, e);
+              const reproducing = `To reproduce this failled case, set the STARTING_KEY_OVERRIDE 
+              variable to "${currentStartKey}" at the top of the test file and run the test again.`;
+              log(chalk.red(reproducing));
+              fail(msg);
             }
           }
         }
-      },
+
+      }
     });
   },
 });
