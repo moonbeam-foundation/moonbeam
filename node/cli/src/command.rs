@@ -221,18 +221,8 @@ fn validate_trace_environment(cli: &Cli) -> Result<()> {
 
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
-	let mut cli = Cli::from_args();
+	let cli = Cli::from_args();
 	let _ = validate_trace_environment(&cli)?;
-	// Set --execution wasm as default
-	let execution_strategies = cli.run.base.base.import_params.execution_strategies.clone();
-	if execution_strategies.execution.is_none() {
-		cli.run
-			.base
-			.base
-			.import_params
-			.execution_strategies
-			.execution = Some(sc_cli::ExecutionStrategy::Wasm);
-	}
 
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(params)) => {
@@ -729,6 +719,10 @@ pub fn run() -> Result<()> {
 					let spec_builder =
 						chain_spec::test_spec::lazy_loading_spec_builder(Default::default());
 					config.chain_spec = Box::new(spec_builder.build());
+
+					// TODO: create a tokio runtime inside offchain_worker thread (otherwise it will panic)
+					// We just disable it for now, since it is not needed
+					config.offchain_worker.enabled = false;
 
 					return moonbeam_service::lazy_loading::new_lazy_loading_service::<
 						moonbeam_runtime::RuntimeApi,

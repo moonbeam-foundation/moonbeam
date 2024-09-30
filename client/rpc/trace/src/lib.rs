@@ -19,7 +19,7 @@
 //! executor.
 //!
 //! The implementation is composed of multiple tasks :
-//! - Many calls the the RPC handler `Trace::filter`, communicating with the main task.
+//! - Many calls the RPC handler `Trace::filter`, communicating with the main task.
 //! - A main `CacheTask` managing the cache and the communication between tasks.
 //! - For each traced block an async task responsible to wait for a permit, spawn a blocking
 //!   task and waiting for the result, then send it to the main `CacheTask`.
@@ -859,15 +859,28 @@ where
 					&block_header,
 				)
 			} else {
-				// Pre pallet-message-queue
+				// Get core runtime api version
+				let core_api_version = if let Ok(Some(api_version)) =
+					api.api_version::<dyn Core<B>>(substrate_parent_hash)
+				{
+					api_version
+				} else {
+					return Err("Runtime api version call failed (core)".to_string());
+				};
 
 				// Initialize block: calls the "on_initialize" hook on every pallet
 				// in AllPalletsWithSystem
 				// This was fine before pallet-message-queue because the XCM messages
 				// were processed by the "setValidationData" inherent call and not on an
 				// "on_initialize" hook, which runs before enabling XCM tracing
-				api.initialize_block(substrate_parent_hash, &block_header)
-					.map_err(|e| format!("Runtime api access error: {:?}", e))?;
+				if core_api_version >= 5 {
+					api.initialize_block(substrate_parent_hash, &block_header)
+						.map_err(|e| format!("Runtime api access error: {:?}", e))?;
+				} else {
+					#[allow(deprecated)]
+					api.initialize_block_before_version_5(substrate_parent_hash, &block_header)
+						.map_err(|e| format!("Runtime api access error: {:?}", e))?;
+				}
 
 				#[allow(deprecated)]
 				api.trace_block_before_version_5(substrate_parent_hash, extrinsics, eth_tx_hashes)
