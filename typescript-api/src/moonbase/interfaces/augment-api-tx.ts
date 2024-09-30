@@ -58,6 +58,7 @@ import type {
   PalletIdentityJudgement,
   PalletIdentityLegacyIdentityInfo,
   PalletMultisigTimepoint,
+  PalletParachainStakingInflationDistributionConfig,
   PalletXcmTransactorCurrencyPayment,
   PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorTransactWeights,
@@ -2560,8 +2561,10 @@ declare module "@polkadot/api-base/types/submittable" {
       >;
       /** Set the percent of inflation set aside for parachain bond */
       setInflationDistributionConfig: AugmentedSubmittable<
-        (updated: Vec<Lookup61>) => SubmittableExtrinsic<ApiType>,
-        [Vec<Lookup61>]
+        (
+          updated: PalletParachainStakingInflationDistributionConfig
+        ) => SubmittableExtrinsic<ApiType>,
+        [PalletParachainStakingInflationDistributionConfig]
       >;
       /**
        * Deprecated: please use `set_inflation_distribution_config` instead.

@@ -12,7 +12,6 @@ import type {
   Option,
   Result,
   U8aFixed,
-  Vec,
   bool,
   u128,
   u16,
@@ -39,7 +38,7 @@ import type {
   PalletMultisigTimepoint,
   PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
   PalletParachainStakingDelegatorAdded,
-  PalletParachainStakingInflationDistributionAccount,
+  PalletParachainStakingInflationDistributionConfig,
   PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
@@ -1154,12 +1153,12 @@ declare module "@polkadot/api-base/types/events" {
       InflationDistributionConfigUpdated: AugmentedEvent<
         ApiType,
         [
-          old: Vec<PalletParachainStakingInflationDistributionAccount>,
-          new_: Vec<PalletParachainStakingInflationDistributionAccount>
+          old: PalletParachainStakingInflationDistributionConfig,
+          new_: PalletParachainStakingInflationDistributionConfig
         ],
         {
-          old: Vec<PalletParachainStakingInflationDistributionAccount>;
-          new_: Vec<PalletParachainStakingInflationDistributionAccount>;
+          old: PalletParachainStakingInflationDistributionConfig;
+          new_: PalletParachainStakingInflationDistributionConfig;
         }
       >;
       /** Annual inflation input (first 3) was used to derive new per-round inflation (last 3) */

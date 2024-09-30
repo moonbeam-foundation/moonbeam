@@ -84,6 +84,7 @@ import type {
   PalletParachainStakingDelegations,
   PalletParachainStakingDelegator,
   PalletParachainStakingInflationDistributionAccount,
+  PalletParachainStakingInflationDistributionConfig,
   PalletParachainStakingInflationInflationInfo,
   PalletParachainStakingRoundInfo,
   PalletParachainStakingSetBoundedOrderedSet,

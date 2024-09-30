@@ -223,6 +223,7 @@ import type {
   PalletParachainStakingError,
   PalletParachainStakingEvent,
   PalletParachainStakingInflationDistributionAccount,
+  PalletParachainStakingInflationDistributionConfig,
   PalletParachainStakingInflationInflationInfo,
   PalletParachainStakingRoundInfo,
   PalletParachainStakingSetBoundedOrderedSet,
@@ -624,6 +625,7 @@ declare module "@polkadot/types/types/registry" {
     PalletParachainStakingError: PalletParachainStakingError;
     PalletParachainStakingEvent: PalletParachainStakingEvent;
     PalletParachainStakingInflationDistributionAccount: PalletParachainStakingInflationDistributionAccount;
+    PalletParachainStakingInflationDistributionConfig: PalletParachainStakingInflationDistributionConfig;
     PalletParachainStakingInflationInflationInfo: PalletParachainStakingInflationInflationInfo;
     PalletParachainStakingRoundInfo: PalletParachainStakingRoundInfo;
     PalletParachainStakingSetBoundedOrderedSet: PalletParachainStakingSetBoundedOrderedSet;
