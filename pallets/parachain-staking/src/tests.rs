@@ -624,7 +624,7 @@ fn set_parachain_bond_account_event_emits_correctly() {
 fn set_parachain_bond_account_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(
-			ParachainStaking::inflation_distribution_info()[0].account,
+			ParachainStaking::inflation_distribution_info().0[0].account,
 			0
 		);
 		assert_ok!(ParachainStaking::set_parachain_bond_account(
@@ -632,7 +632,7 @@ fn set_parachain_bond_account_storage_updates_correctly() {
 			11
 		));
 		assert_eq!(
-			ParachainStaking::inflation_distribution_info()[0].account,
+			ParachainStaking::inflation_distribution_info().0[0].account,
 			11
 		);
 	});
@@ -658,7 +658,7 @@ fn set_parachain_bond_reserve_percent_event_emits_correctly() {
 fn set_parachain_bond_reserve_percent_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(
-			ParachainStaking::inflation_distribution_info()[0].percent,
+			ParachainStaking::inflation_distribution_info().0[0].percent,
 			Percent::from_percent(30)
 		);
 		assert_ok!(ParachainStaking::set_parachain_bond_reserve_percent(
@@ -666,7 +666,7 @@ fn set_parachain_bond_reserve_percent_storage_updates_correctly() {
 			Percent::from_percent(50)
 		));
 		assert_eq!(
-			ParachainStaking::inflation_distribution_info()[0].percent,
+			ParachainStaking::inflation_distribution_info().0[0].percent,
 			Percent::from_percent(50)
 		);
 	});

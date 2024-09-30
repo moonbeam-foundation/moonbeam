@@ -802,7 +802,9 @@ pub mod pallet {
 					.expect("infinite length input; no invalid inputs for type; qed"),
 				percent: Percent::zero(),
 			};
-			<InflationDistributionInfo<T>>::put([pbr, treasury]);
+			<InflationDistributionInfo<T>>::put::<InflationDistributionConfig<T::AccountId>>(
+				[pbr, treasury].into(),
+			);
 			// Set total selected candidates to value from config
 			assert!(
 				self.num_selected_candidates >= T::MinSelectedCandidates::get(),
@@ -892,12 +894,12 @@ pub mod pallet {
 			new: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
-			let old = <InflationDistributionInfo<T>>::get();
+			let old = <InflationDistributionInfo<T>>::get().0;
 			let new = InflationDistributionAccount {
 				account: new,
 				percent: old[0].percent.clone(),
 			};
-			Pallet::<T>::set_inflation_distribution_config(origin, [new, old[1].clone()])
+			Pallet::<T>::set_inflation_distribution_config(origin, [new, old[1].clone()].into())
 		}
 
 		/// Deprecated: please use `set_inflation_distribution_config` instead.
@@ -910,12 +912,12 @@ pub mod pallet {
 			new: Percent,
 		) -> DispatchResultWithPostInfo {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
-			let old = <InflationDistributionInfo<T>>::get();
+			let old = <InflationDistributionInfo<T>>::get().0;
 			let new = InflationDistributionAccount {
 				account: old[0].account.clone(),
 				percent: new,
 			};
-			Pallet::<T>::set_inflation_distribution_config(origin, [new, old[1].clone()])
+			Pallet::<T>::set_inflation_distribution_config(origin, [new, old[1].clone()].into())
 		}
 
 		/// Set the total number of collator candidates selected per round
@@ -1478,15 +1480,21 @@ pub mod pallet {
 			new: InflationDistributionConfig<T::AccountId>,
 		) -> DispatchResultWithPostInfo {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
-			let old = <InflationDistributionInfo<T>>::get();
+			let old = <InflationDistributionInfo<T>>::get().0;
+			let new = new.0;
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			let total_percent = new.iter().fold(Percent::zero(), |acc, x| acc + x.percent);
 			ensure!(
 				total_percent <= Percent::from_percent(100),
 				Error::<T>::TotalInflationDistributionPercentExceeds100,
 			);
-			<InflationDistributionInfo<T>>::put(new.clone());
-			Self::deposit_event(Event::InflationDistributionConfigUpdated { old, new });
+			<InflationDistributionInfo<T>>::put::<InflationDistributionConfig<T::AccountId>>(
+				new.clone().into(),
+			);
+			Self::deposit_event(Event::InflationDistributionConfigUpdated {
+				old: old.into(),
+				new: new.into(),
+			});
 			Ok(().into())
 		}
 	}
@@ -1863,7 +1871,7 @@ pub mod pallet {
 			// reserve portion of issuance for parachain bond account
 			let mut left_issuance = total_issuance;
 
-			let configs = <InflationDistributionInfo<T>>::get();
+			let configs = <InflationDistributionInfo<T>>::get().0;
 			for (index, config) in configs.iter().enumerate() {
 				if config.percent.is_zero() {
 					continue;

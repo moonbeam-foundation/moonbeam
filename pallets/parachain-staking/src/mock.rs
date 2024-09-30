@@ -339,6 +339,7 @@ pub(crate) fn inflation_configs(
 			percent: Percent::from_percent(treasury_percent),
 		},
 	]
+	.into()
 }
 
 pub(crate) fn events() -> Vec<pallet::Event<Test>> {

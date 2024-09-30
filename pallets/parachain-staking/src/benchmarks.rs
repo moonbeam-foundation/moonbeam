@@ -20,8 +20,8 @@
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
 	DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
-	InflationDistributionInfo, Pallet, Points, Range, RewardPayment, Round, ScheduledRequest,
-	TopDelegations,
+	InflationDistributionConfig, InflationDistributionInfo, Pallet, Points, Range, RewardPayment,
+	Round, ScheduledRequest, TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
@@ -281,13 +281,13 @@ benchmarks! {
 		let parachain_bond_account: T::AccountId = account("TEST", 0u32, USER_SEED);
 	}: _(RawOrigin::Root, parachain_bond_account.clone())
 	verify {
-		assert_eq!(Pallet::<T>::inflation_distribution_info()[0].account, parachain_bond_account);
+		assert_eq!(Pallet::<T>::inflation_distribution_info().0[0].account, parachain_bond_account);
 	}
 
 	set_parachain_bond_reserve_percent {
 	}: _(RawOrigin::Root, Percent::from_percent(33))
 	verify {
-		assert_eq!(Pallet::<T>::inflation_distribution_info()[0].percent, Percent::from_percent(33));
+		assert_eq!(Pallet::<T>::inflation_distribution_info().0[0].percent, Percent::from_percent(33));
 	}
 
 	set_inflation_distribution_config {
@@ -300,22 +300,22 @@ benchmarks! {
 			account: account("TEST2", 1u32, USER_SEED),
 			percent: Percent::from_percent(22),
 		},
-	])
+	].into())
 	verify {
 		assert_eq!(
-			Pallet::<T>::inflation_distribution_info()[0].account,
+			Pallet::<T>::inflation_distribution_info().0[0].account,
 			 account("TEST1", 0u32, USER_SEED)
 		);
 		assert_eq!(
-			Pallet::<T>::inflation_distribution_info()[0].percent,
+			Pallet::<T>::inflation_distribution_info().0[0].percent,
 			 Percent::from_percent(33)
 		);
 		assert_eq!(
-			Pallet::<T>::inflation_distribution_info()[1].account,
+			Pallet::<T>::inflation_distribution_info().0[1].account,
 			 account("TEST2", 1u32, USER_SEED)
 		);
 		assert_eq!(
-			Pallet::<T>::inflation_distribution_info()[1].percent,
+			Pallet::<T>::inflation_distribution_info().0[1].percent,
 			 Percent::from_percent(22)
 		);
 	}
@@ -1595,13 +1595,13 @@ benchmarks! {
 			0,
 			min_candidate_stk::<T>(),
 		).0;
-		<InflationDistributionInfo<T>>::put([
+		<InflationDistributionInfo<T>>::put::<InflationDistributionConfig<T::AccountId>>([
 			InflationDistributionAccount {
 			account,
 			percent: Percent::from_percent(50),
 		},
 		 Default::default(),
-		 ]);
+		 ].into());
 
 	}: { Pallet::<T>::prepare_staking_payouts(round, current_slot); }
 	verify {
