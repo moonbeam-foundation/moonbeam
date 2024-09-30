@@ -48,7 +48,7 @@
       "collators": [
         {
           "name": "alith",
-          "command": "../target/release/moonbeam",
+          "command": "tmp/moonbeam_rt",
           "ws_port": 33345,
           "args": [
             "--no-hardware-benchmarks",
@@ -62,7 +62,7 @@
           "validator": false,
           "ws_port": 33048,
           "p2p_port": 33049,
-          "command": "../target/release/moonbeam",
+          "command": "tmp/moonbeam_rt",
           "args": [
             "--no-hardware-benchmarks",
             "-lparachain=debug",
