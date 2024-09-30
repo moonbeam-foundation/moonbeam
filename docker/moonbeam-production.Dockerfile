@@ -2,7 +2,7 @@
 #
 # Requires to run from repository root and to copy the binary in the build folder (part of the release workflow)
 
-FROM docker.io/library/ubuntu:24.04 AS builder
+FROM debian:stable AS builder
 
 # Branch or tag to build moonbeam from
 ARG COMMIT="master"
@@ -39,10 +39,13 @@ RUN echo "*** Cloning Moonbeam ***" && \
 
 WORKDIR /moonbeam/moonbeam
 
+# Print target cpu
+RUN rustc --print target-cpus
+
 RUN echo "*** Building Moonbeam ***"
 RUN cargo build --profile=production --all
 
-FROM debian:trixie-slim
+FROM debian:stable-slim
 LABEL maintainer="alan@moonsonglabs.com"
 LABEL description="Binary for Moonbeam Nodes"
 

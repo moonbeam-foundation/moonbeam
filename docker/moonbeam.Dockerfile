@@ -2,11 +2,11 @@
 #
 # Requires to run from repository root and to copy the binary in the build folder (part of the release workflow)
 
-FROM docker.io/library/ubuntu:24.04 AS builder
+FROM debian:stable AS builder
 
 RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificates
 
-FROM debian:trixie-slim
+FROM debian:stable-slim
 LABEL maintainer="alan@moonsonglabs.com"
 LABEL description="Binary for Moonbeam Collator"
 
