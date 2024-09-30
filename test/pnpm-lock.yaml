@@ -8,9 +8,6 @@ dependencies:
   '@acala-network/chopsticks':
     specifier: 0.16.1
     version: 0.16.1(debug@4.3.7)
-  '@acala-network/chopsticks-core':
-    specifier: 0.16.1
-    version: 0.16.1
   '@moonbeam-network/api-augment':
     specifier: 0.2902.0
     version: 0.2902.0
