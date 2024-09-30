@@ -62,7 +62,7 @@
           "validator": false,
           "ws_port": 33048,
           "p2p_port": 33049,
-          "command": "tmp/moonbeam_rt",
+          "command": "../target/release/moonbeam",
           "args": [
             "--no-hardware-benchmarks",
             "-lparachain=trace",
