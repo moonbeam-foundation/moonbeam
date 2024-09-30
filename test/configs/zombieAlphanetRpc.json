@@ -65,7 +65,7 @@
           "command": "../target/release/moonbeam",
           "args": [
             "--no-hardware-benchmarks",
-            "-lparachain=debug",
+            "-lparachain=trace",
             "--database=paritydb"
           ]
         }

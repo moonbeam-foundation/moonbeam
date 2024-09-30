@@ -383,6 +383,7 @@ smallvec = "1.8.0"
 strum = { version = "0.24", default-features = false, features = ["derive"] }
 strum_macros = "0.24"
 p256 = { version = "0.13.2", default-features = false, features = ["ecdsa"] }
+ansi_term = "0.12.1"
 
 # Other (client)
 

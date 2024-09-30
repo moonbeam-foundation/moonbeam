@@ -31,7 +31,7 @@ pallet-xcm = { workspace = true, features = [ "std" ] }
 xcm-builder = { workspace = true, features = [ "std" ] }
 
 [features]
-default = [ "moonbase-native", "moonbeam-native", "moonriver-native" ]
+default = [ "moonbase-native", "moonbeam-native", "moonriver-native", "lazy-loading" ]
 
 rococo-native = [ "moonbeam-service/rococo-native" ]
 westend-native = [ "moonbeam-cli/westend-native", "moonbeam-service/westend-native" ]

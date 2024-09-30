@@ -328,19 +328,3 @@ where
 		self.executor.native_version()
 	}
 }
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-	use sc_executor::{NativeElseWasmExecutor, WasmExecutor};
-	use substrate_test_runtime_client::LocalExecutorDispatch;
-
-	fn executor() -> NativeElseWasmExecutor<LocalExecutorDispatch> {
-		NativeElseWasmExecutor::new_with_wasm_executor(
-			WasmExecutor::builder()
-				.with_max_runtime_instances(1)
-				.with_runtime_cache_size(2)
-				.build(),
-		)
-	}
-}

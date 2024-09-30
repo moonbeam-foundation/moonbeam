@@ -204,7 +204,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20.10.0
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - name: Run Eslint check
@@ -594,7 +594,7 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "dev-test"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -611,7 +611,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20.10.0
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - run: |
@@ -704,9 +704,10 @@ jobs:
   lazy-loading-tests:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         chain: ["moonbeam"]
     env:
@@ -723,7 +724,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20.10.0
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -740,9 +741,9 @@ jobs:
           path: target/release
       - name: "Run lazy loading tests"
         run: |
+          chmod uog+x target/release/moonbeam
           cd test
           pnpm install
-          chmod uog+x ../target/release/lazy-loading
           pnpm moonwall test lazy_loading_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
@@ -761,7 +762,7 @@ jobs:
   chopsticks-upgrade-test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
       matrix:
@@ -779,7 +780,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20.10.0
           cache: "pnpm"
           cache-dependency-path: test/pnpm-lock.yaml
       - name: Create local folders
@@ -808,9 +809,10 @@ jobs:
   zombie_upgrade_test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         ## TODO: add moonriver here when it is ready
         chain: ["moonbase", "moonbeam"]
@@ -828,7 +830,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20.10.0
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
