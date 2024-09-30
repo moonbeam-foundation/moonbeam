@@ -153,7 +153,7 @@ describeSuite({
                   retries++;
                   if (retries > 10) {
                     fail(
-                      `Failed to fetch storage entries for module ${moduleName}::${fn} after 10 retries`
+                      `Failed to fetch entries for module ${moduleName}::${fn} after 10 retries`
                     );
                   }
                 }
