@@ -63,8 +63,8 @@ describeSuite({
         const { result, block } = await context.createBlock(rawSigned);
 
         log(`block.proofSize: ${block.proofSize} (successful: ${result?.successful})`);
-        expect(block.proofSize).toBeGreaterThanOrEqual(MAX_ETH_POV_PER_TX - 20_000n);
-        expect(block.proofSize).toBeLessThanOrEqual(MAX_ETH_POV_PER_TX + emptyBlockProofSize);
+        expect(block.proofSize).toBeGreaterThanOrEqual(30_000);
+        expect(block.proofSize).toBeLessThanOrEqual(50_000n + emptyBlockProofSize);
         expect(result?.successful).to.equal(true);
       },
     });
