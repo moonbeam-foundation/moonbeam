@@ -154,6 +154,32 @@ where
 	}
 }
 
+pub struct MigrateStakingParachainBondConfig<Runtime>(PhantomData<Runtime>);
+impl<Runtime> Migration for MigrateStakingParachainBondConfig<Runtime>
+where
+	Runtime: pallet_parachain_staking::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_MigrateStakingParachainBondConfig"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_parachain_staking::migrations::MigrateParachainBondConfig::<Runtime>::on_runtime_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		pallet_parachain_staking::migrations::MigrateParachainBondConfig::<Runtime>::pre_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		pallet_parachain_staking::migrations::MigrateParachainBondConfig::<Runtime>::post_upgrade(
+			state,
+		)
+	}
+}
+
 pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> GetMigrations for CommonMigrations<Runtime>
@@ -303,6 +329,9 @@ where
 			Box::new(MigrateXcmFeesAssetsMeatdata::<Runtime>(Default::default())),
 			// permanent migrations
 			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
+			Box::new(MigrateStakingParachainBondConfig::<Runtime>(
+				Default::default(),
+			)),
 		]
 	}
 }
