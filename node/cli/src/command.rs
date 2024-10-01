@@ -707,7 +707,7 @@ pub fn run() -> Result<()> {
 				let relay_chain_id = extension.map(|e| e.relay_chain.as_str());
 				let para_id = extension.map(|e| e.para_id);
 
-					let dev_service = cli.run.dev_service
+				let dev_service = cli.run.dev_service
 					|| config.chain_spec.is_dev()
 					|| relay_chain_id == Some("dev-service");
 				if dev_service {
@@ -718,56 +718,57 @@ pub fn run() -> Result<()> {
 						"Alice",
 					));
 
-						return match &config.chain_spec {
-							#[cfg(feature = "moonriver-native")]
-							spec if spec.is_moonriver() => moonbeam_service::new_dev::<
-								moonbeam_service::moonriver_runtime::RuntimeApi,
-								moonbeam_service::MoonriverCustomizations,
-								sc_network::NetworkWorker<_, _>,
-							>(
-								config,
-								para_id,
-								author_id,
-								cli.run.sealing,
-								rpc_config,
-								hwbench,
+					return match &config.chain_spec {
+						#[cfg(feature = "moonriver-native")]
+						spec if spec.is_moonriver() => moonbeam_service::new_dev::<
+							moonbeam_service::moonriver_runtime::RuntimeApi,
+							moonbeam_service::MoonriverCustomizations,
+							sc_network::NetworkWorker<_, _>,
+						>(
+							config,
+							para_id,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
 						)
-							.await
-							.map_err(Into::into),
-							#[cfg(feature = "moonbeam-native")]
-							spec if spec.is_moonbeam() => moonbeam_service::new_dev::<
-								moonbeam_service::moonbeam_runtime::RuntimeApi,
-								moonbeam_service::MoonbeamCustomizations,
-								sc_network::NetworkWorker<_, _>,
-							>(
-								config,
-								para_id,
-								author_id,
-								cli.run.sealing,
-								rpc_config,
-								hwbench,
+						.await
+						.map_err(Into::into),
+						#[cfg(feature = "moonbeam-native")]
+						spec if spec.is_moonbeam() => moonbeam_service::new_dev::<
+							moonbeam_service::moonbeam_runtime::RuntimeApi,
+							moonbeam_service::MoonbeamCustomizations,
+							sc_network::NetworkWorker<_, _>,
+						>(
+							config,
+							para_id,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
 						)
-							.await
-							.map_err(Into::into),
-							#[cfg(feature = "moonbase-native")]
-							_ => moonbeam_service::new_dev::<
-								moonbeam_service::moonbase_runtime::RuntimeApi,
-								moonbeam_service::MoonbaseCustomizations,
-								sc_network::NetworkWorker<_, _>,
-							>(
-								config,
-								para_id,
-								author_id,
-								cli.run.sealing,
-								rpc_config,
-								hwbench,
-							)
-							.await
-							.map_err(Into::into),
-							#[cfg(not(feature = "moonbase-native"))]
-							_ => panic!("invalid chain spec"),
-						};
-					}#[cfg(feature = "lazy-loading")]
+						.await
+						.map_err(Into::into),
+						#[cfg(feature = "moonbase-native")]
+						_ => moonbeam_service::new_dev::<
+							moonbeam_service::moonbase_runtime::RuntimeApi,
+							moonbeam_service::MoonbaseCustomizations,
+							sc_network::NetworkWorker<_, _>,
+						>(
+							config,
+							para_id,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+						)
+						.await
+						.map_err(Into::into),
+						#[cfg(not(feature = "moonbase-native"))]
+						_ => panic!("invalid chain spec"),
+					};
+				}
+				#[cfg(feature = "lazy-loading")]
 				if let Some(fork_chain_from_rpc) = cli.run.fork_chain_from_rpc {
 					let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
 						"Alice",
