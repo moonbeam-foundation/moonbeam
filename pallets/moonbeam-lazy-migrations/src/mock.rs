@@ -21,7 +21,7 @@ use crate as pallet_moonbeam_lazy_migrations;
 use frame_support::{
 	construct_runtime, ord_parameter_types, parameter_types,
 	traits::{EqualPrivilegeOnly, Everything, SortedMembers},
-	weights::{constants::RocksDbWeight, Weight},
+	weights::{RuntimeDbWeight, Weight},
 };
 use frame_system::EnsureRoot;
 use pallet_evm::{AddressMapping, EnsureAddressTruncated};
@@ -54,9 +54,17 @@ parameter_types! {
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
 }
+
+parameter_types! {
+	pub const MockDbWeight: RuntimeDbWeight = RuntimeDbWeight {
+		read: 1_000_000,
+		write: 1,
+	};
+}
+
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
-	type DbWeight = RocksDbWeight;
+	type DbWeight = MockDbWeight;
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeTask = RuntimeTask;
 	type Nonce = u64;

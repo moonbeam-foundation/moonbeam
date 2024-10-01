@@ -369,9 +369,10 @@
         "launchSpec": [
           {
             "name": "moonbeam",
-            "binPath": "../target/release/lazy-loading",
+            "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
             "options": [
+              "-llazy-loading=trace",
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
               "--no-telemetry",

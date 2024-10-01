@@ -49,7 +49,7 @@
       "collator": {
         "name": "alith",
         "ws_port": 33345,
-        "command": "../target/release/moonbeam",
+        "command": "tmp/moonbeam_rt",
         "args": [
           "--no-hardware-benchmarks",
           "--force-authoring",
