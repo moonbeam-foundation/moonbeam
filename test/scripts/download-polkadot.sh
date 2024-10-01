@@ -21,10 +21,10 @@ if [[ -f tmp/polkadot ]]; then
     chmod +x tmp/polkadot
 
     wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$polkadot_release/polkadot-execute-worker -P tmp
-    chmod +x tmp/polkadot
+    chmod +x tmp/polkadot-execute-worker
 
     wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$polkadot_release/polkadot-prepare-worker -P tmp
-    chmod +x tmp/polkadot
+    chmod +x tmp/polkadot-prepare-worker
   fi
 else
   echo "Polkadot binary not found, downloading..."
@@ -32,8 +32,8 @@ else
   chmod +x tmp/polkadot
 
   wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$polkadot_release/polkadot-execute-worker -P tmp
-  chmod +x tmp/polkadot
+  chmod +x tmp/polkadot-execute-worker
 
   wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$polkadot_release/polkadot-prepare-worker -P tmp
-  chmod +x tmp/polkadot
+  chmod +x tmp/polkadot-prepare-worker
 fi
