@@ -7077,6 +7077,7 @@ dependencies = [
  "account",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcmp-queue",
+ "cumulus-primitives-storage-weight-reclaim",
  "fp-ethereum",
  "fp-evm",
  "frame-benchmarking",
@@ -7133,6 +7134,7 @@ dependencies = [
  "sp-consensus-slots",
  "sp-core",
  "sp-genesis-builder",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "staging-xcm",
@@ -9947,10 +9949,12 @@ dependencies = [
 name = "pallet-moonbeam-lazy-migrations"
 version = "0.1.0"
 dependencies = [
+ "cumulus-primitives-storage-weight-reclaim",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
+ "pallet-assets",
  "pallet-balances",
  "pallet-evm",
  "pallet-scheduler",
