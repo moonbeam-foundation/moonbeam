@@ -633,7 +633,7 @@
         {
           "name": "mb",
           "type": "polkadotJs",
-          "endpoints": ["ws://127.0.0.1:8000"]
+          "endpoints": ["ws://localhost:8000"]
         }
       ]
     },
@@ -656,7 +656,7 @@
         {
           "name": "mb",
           "type": "polkadotJs",
-          "endpoints": ["ws://127.0.0.1:8000"]
+          "endpoints": ["ws://localhost:8000"]
         }
       ]
     },
@@ -679,7 +679,7 @@
         {
           "name": "mb",
           "type": "polkadotJs",
-          "endpoints": ["ws://127.0.0.1:8000"]
+          "endpoints": ["ws://localhost:8000"]
         }
       ]
     }

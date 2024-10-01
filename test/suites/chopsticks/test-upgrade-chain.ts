@@ -45,11 +45,11 @@ const upgradeRuntime = async (context: ChopsticksContext) => {
 
   await api.tx.system.applyAuthorizedUpgrade(rtHex).signAndSend(signer);
 
-  let paraId: u32 = await api.query.parachainInfo.parachainId();
+  const paraId: u32 = await api.query.parachainInfo.parachainId();
 
   await api.rpc("dev_newBlock", {
-    count: 1,
-    relayChainStateOverrides: [[upgradeRestrictionSignal(paraId), "0x00"]],
+    count: 3,
+    relayChainStateOverrides: [[upgradeRestrictionSignal(paraId), null]],
   });
 };
 
