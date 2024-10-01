@@ -80,6 +80,8 @@ impl<T: Config> OnRuntimeUpgrade for MigrateParachainBondConfig<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		use frame_support::ensure;
+
 		let old_state: OldParachainBondConfig<T::AccountId> =
 			parity_scale_codec::Decode::decode(&mut &state[..])
 				.map_err(|_| sp_runtime::DispatchError::Other("Failed to decode old state"))?;
