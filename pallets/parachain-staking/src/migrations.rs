@@ -66,8 +66,8 @@ impl<T: Config> OnRuntimeUpgrade for MigrateParachainBondConfig<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		use parity_scale_codec::Encode;
 		use frame_support::ensure;
+		use parity_scale_codec::Encode;
 
 		let state = frame_support::storage::migration::get_storage_value::<
 			OldParachainBondConfig<T::AccountId>,
