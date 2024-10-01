@@ -236,8 +236,10 @@ pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> GetMigrations for CommonMigrations<Runtime>
 where
-	Runtime:
-		pallet_xcm::Config + pallet_transaction_payment::Config + pallet_xcm_weight_trader::Config,
+	Runtime: pallet_xcm::Config
+		+ pallet_transaction_payment::Config
+		+ pallet_xcm_weight_trader::Config
+		+ pallet_parachain_staking::Config,
 	Runtime::AccountId: Default,
 	BlockNumberFor<Runtime>: Into<u64>,
 {
