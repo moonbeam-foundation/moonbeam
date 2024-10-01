@@ -57,7 +57,7 @@ fn test_mocked_verification() {
 		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			crate::storage::ImageId::set(Some(JWT_VALIDATOR_ID_2));
+			crate::storage::ImageId::set(Some(JWT_VALIDATOR_ID));
 			let receipt = encoded_example_receipt();
 
 			precompiles()

@@ -18,10 +18,12 @@
 
 use core::marker::PhantomData;
 use fp_evm::PrecompileHandle;
+use frame_support::{ensure, traits::Time};
 use moonbeam_runtime_common::weights::pallet_precompile_benchmarks::WeightInfo;
 use pallet_precompile_benchmarks::WeightInfo as TWeightInfo;
 use precompile_utils::prelude::*;
 use sp_core::ConstU32;
+use sp_runtime::traits::UniqueSaturatedInto;
 use sp_std::vec::Vec;
 
 pub mod encoded_receipt;
@@ -37,11 +39,7 @@ pub type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 
 pub const JWT_VALIDATOR_ID: [u32; 8] = [
-	1923256869, 654795233, 2887859926, 1709721587, 1196091263, 3916749566, 1248329059, 610202488,
-];
-
-pub const JWT_VALIDATOR_ID_2: [u32; 8] = [
-	1048202052, 2631604849, 1082788656, 3479421485, 130624907, 2018137352, 3790369263, 128876623,
+	715585636, 3586935525, 3274293606, 2872050810, 564159597, 2621011314, 3667725176, 1510137221,
 ];
 
 pub struct ZkAuthVerifierPrecompile<Runtime>(PhantomData<Runtime>);
@@ -71,12 +69,21 @@ where
 			.verify(image_id)
 			.map_err(|_| RevertReason::Custom("Error verifying receipt".into()))?;
 
-		let journal: (String, Vec<u8>) = receipt
+		let (jwt_exp, user_op_hash) = receipt
 			.journal
-			.decode::<(String, Vec<u8>)>()
+			.decode::<(u128, Vec<u8>)>()
 			.map_err(|_| RevertReason::Custom("Error decoding journal".into()))?;
 
-		Ok(journal.1.into())
+		// Check JWT expiration time against relay timestamp.
+		// Relay timestamp is in milliseconds and the JWT exp time is in seconds,
+		// so we do de conversion.
+		let timestamp: u128 =
+			<Runtime as pallet_evm::Config>::Timestamp::now().unique_saturated_into();
+		let timestamp: u128 = timestamp / 1000;
+
+		ensure!(jwt_exp >= timestamp, revert("JWT expired"));
+
+		Ok(user_op_hash.into())
 	}
 }
 
