@@ -20,21 +20,20 @@ if [[ -f tmp/polkadot ]]; then
     wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$polkadot_release/polkadot -P tmp
     chmod +x tmp/polkadot
 
-    pnpm moonwall download polkadot-execute-worker $polkadot_release tmp
-    chmod +x tmp/polkadot-execute-worker
+    wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$polkadot_release/polkadot-execute-worker -P tmp
+    chmod +x tmp/polkadot
 
-    pnpm moonwall download polkadot-prepare-worker $polkadot_release tmp
-    chmod +x tmp/polkadot-prepare-worker
-
+    wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$polkadot_release/polkadot-prepare-worker -P tmp
+    chmod +x tmp/polkadot
   fi
 else
   echo "Polkadot binary not found, downloading..."
   wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$polkadot_release/polkadot -P tmp
   chmod +x tmp/polkadot
 
-  pnpm moonwall download polkadot-execute-worker $polkadot_release tmp
-  chmod +x tmp/polkadot-execute-worker
+  wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$polkadot_release/polkadot-execute-worker -P tmp
+  chmod +x tmp/polkadot
 
-  pnpm moonwall download polkadot-prepare-worker $polkadot_release tmp
-  chmod +x tmp/polkadot-prepare-worker
+  wget https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$polkadot_release/polkadot-prepare-worker -P tmp
+  chmod +x tmp/polkadot
 fi
