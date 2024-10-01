@@ -19,7 +19,14 @@ use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
 
 use crate::*;
 
-#[derive(Clone, PartialEq, Eq, parity_scale_codec::Decode, sp_runtime::RuntimeDebug)]
+#[derive(
+	Clone,
+	PartialEq,
+	Eq,
+	parity_scale_codec::Decode,
+	parity_scale_codec::Encode,
+	sp_runtime::RuntimeDebug,
+)]
 /// Reserve information { account, percent_of_inflation }
 pub struct OldParachainBondConfig<AccountId> {
 	/// Account which receives funds intended for parachain bond
@@ -59,7 +66,9 @@ impl<T: Config> OnRuntimeUpgrade for MigrateParachainBondConfig<T> {
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		use parity_scale_codec::Encode;
+
 		let state = frame_support::storage::migration::get_storage_value::<
 			OldParachainBondConfig<T::AccountId>,
 		>(b"ParachainStaking", b"ParachainBondInfo", &[]);
@@ -70,7 +79,7 @@ impl<T: Config> OnRuntimeUpgrade for MigrateParachainBondConfig<T> {
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+	fn post_upgrade(state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
 		let old_state: OldParachainBondConfig<T::AccountId> =
 			parity_scale_codec::Decode::decode(&mut &state[..])
 				.map_err(|_| sp_runtime::DispatchError::Other("Failed to decode old state"))?;
@@ -85,5 +94,7 @@ impl<T: Config> OnRuntimeUpgrade for MigrateParachainBondConfig<T> {
 		let expected_new_state: InflationDistributionConfig<T::AccountId> = [pbr, treasury].into();
 
 		ensure!(new_state == expected_new_state, "State migration failed");
+
+		Ok(())
 	}
 }
