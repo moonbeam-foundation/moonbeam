@@ -29,6 +29,10 @@ evm = { workspace = true }
 # Benchmarks
 frame-benchmarking = { workspace = true, optional = true }
 
+# Risc0
+postcard = { workspace = true }
+risc0-zkvm = { workspace = true }
+
 [features]
 default = ["std"]
 std = [
@@ -40,6 +44,7 @@ std = [
     "pallet-evm-precompile-p256verify/std",
     "precompile-utils/std",
     "parity-scale-codec/std",
+    "risc0-zkvm/std",
     "scale-info/std",
     "sp-core/std",
     "sp-std/std",

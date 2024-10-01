@@ -77,4 +77,11 @@ impl<T: frame_system::Config> pallet_precompile_benchmarks::WeightInfo for Weigh
 			// takes longer to verify
 			.saturating_mul(1u64)
 	}
+	fn zk_auth_verify() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 28_734_995_000 picoseconds.
+		Weight::from_parts(28_764_974_000, 0)
+	}
 }

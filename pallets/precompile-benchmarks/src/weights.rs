@@ -21,4 +21,5 @@ pub trait WeightInfo {
 	fn verify_entry(x: u32) -> Weight;
 	fn latest_relay_block() -> Weight;
 	fn p256_verify() -> Weight;
+	fn zk_auth_verify() -> Weight;
 }

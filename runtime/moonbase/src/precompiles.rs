@@ -56,6 +56,7 @@ use pallet_evm_precompile_xcm_transactor::{
 };
 use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
+use pallet_evm_precompile_zkauth_verifier::ZkAuthVerifierPrecompile;
 use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_precompile_benchmarks::WeightInfo;
 use precompile_foreign_asset_migrator::ForeignAssetMigratorPrecompile;
@@ -280,6 +281,11 @@ type MoonbasePrecompilesAt<R> = (
 		(CallableByContract, CallableByPrecompile),
 	>,
 	PrecompileAt<AddressU64<2075>, ForeignAssetMigratorPrecompile<R>, ()>,
+	PrecompileAt<
+		AddressU64<2076>,
+		ZkAuthVerifierPrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
+	>,
 );
 
 pub struct DisabledLocalAssets<Runtime>(sp_std::marker::PhantomData<Runtime>);
