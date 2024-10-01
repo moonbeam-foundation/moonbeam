@@ -17,7 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@acala-network/chopsticks": "0.15.0",
-    "@moonbeam-network/api-augment": "0.2902.0",
+    "@moonbeam-network/api-augment": "link:../typescript-api",
     "@moonwall/cli": "5.3.3",
     "@moonwall/util": "5.3.3",
     "@openzeppelin/contracts": "4.9.6",
