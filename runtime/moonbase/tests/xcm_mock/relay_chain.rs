@@ -213,7 +213,7 @@ impl Config for XcmConfig {
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
-	type XcmRecorder = PolkadotXcm;
+	type XcmRecorder = XcmPallet;
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, KusamaNetwork>;
@@ -294,7 +294,7 @@ impl hrmp::Config for Runtime {
 	type WeightInfo = TestHrmpWeightInfo;
 	type ChannelManager = frame_system::EnsureRoot<AccountId>;
 	type DefaultChannelSizeAndCapacityWithSystem = DefaultChannelSizeAndCapacityWithSystem;
-	type VersionWrapper = PolkadotXcm;
+	type VersionWrapper = XcmPallet;
 }
 
 impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
@@ -374,7 +374,6 @@ pub(crate) fn relay_events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-use crate::xcm_mock::statemint_like::PolkadotXcm;
 use frame_support::traits::{OnFinalize, OnInitialize};
 
 pub(crate) fn relay_roll_to(n: BlockNumber) {
