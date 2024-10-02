@@ -1472,9 +1472,10 @@ pub mod pallet {
 			Self::join_candidates_inner(account, bond, candidate_count)
 		}
 
-		/// Set the percent of inflation set aside for parachain bond
+		/// Set the inflation distribution configuration for both PBR parachain bond reserve account
+		/// and the treasury account.
 		#[pallet::call_index(32)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_reserve_percent())]
+		#[pallet::weight(<T as Config>::WeightInfo::set_inflation_distribution_config())]
 		pub fn set_inflation_distribution_config(
 			origin: OriginFor<T>,
 			new: InflationDistributionConfig<T::AccountId>,
