@@ -1484,9 +1484,9 @@ pub mod pallet {
 			let old = <InflationDistributionInfo<T>>::get().0;
 			let new = new.0;
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
-			let total_percent = new.iter().fold(Percent::zero(), |acc, x| acc + x.percent);
+			let total_percent = new.iter().fold(0, |acc, x| acc + x.percent.deconstruct());
 			ensure!(
-				total_percent <= Percent::from_percent(100),
+				total_percent <= 100,
 				Error::<T>::TotalInflationDistributionPercentExceeds100,
 			);
 			<InflationDistributionInfo<T>>::put::<InflationDistributionConfig<T::AccountId>>(
