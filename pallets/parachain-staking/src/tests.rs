@@ -780,7 +780,7 @@ fn sum_of_inflation_distribution_config_percentages_must_lte_100() {
 			(100, 100),
 		];
 
-		for (_percentage, treasury_percentage) in invalid_values {
+		for (pbr_percentage, treasury_percentage) in invalid_values {
 			assert_noop!(
 				ParachainStaking::set_inflation_distribution_config(
 					RuntimeOrigin::root(),
