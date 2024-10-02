@@ -1783,9 +1783,9 @@ impl<AccountId: Decode> Default for InflationDistributionConfig<AccountId> {
 #[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// Reserve information { account, percent_of_inflation }
 pub struct InflationDistributionAccount<AccountId> {
-	/// Account which receives funds intended for parachain bond
+	/// Account which receives funds
 	pub account: AccountId,
-	/// Percent of inflation set aside for parachain bond account
+	/// Percent of inflation set aside for the account
 	pub percent: Percent,
 }
 impl<A: Decode> Default for InflationDistributionAccount<A> {
