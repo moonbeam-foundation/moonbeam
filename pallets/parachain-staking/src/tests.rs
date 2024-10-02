@@ -25,17 +25,18 @@
 use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
-	inflation_configs, roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author,
-	set_block_author, Balances, BlockNumber, ExtBuilder, ParachainStaking, RuntimeOrigin, Test,
+	roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author, set_block_author,
+	Balances, BlockNumber, ExtBuilder, ParachainStaking, RuntimeOrigin, Test, RuntimeEvent, inflation_configs,
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded,
 	EnableMarkingOffline, Error, Event, InflationDistributionInfo, Range, DELEGATOR_LOCK_ID,
 };
+use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 use frame_support::{assert_err, assert_noop, assert_ok, pallet_prelude::*, BoundedVec};
+use pallet_balances::{Event as BalancesEvent, PositiveImbalance};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
-
 // ~~ ROOT ~~
 
 #[test]
@@ -6767,11 +6768,10 @@ fn deferred_payment_and_at_stake_storage_items_cleaned_up_for_candidates_not_pro
 
 #[test]
 fn deferred_payment_steady_state_event_flow() {
-	use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
-
 	// this test "flows" through a number of rounds, asserting that certain things do/don't happen
 	// once the staking pallet is in a "steady state" (specifically, once we are past the first few
 	// rounds to clear RewardPaymentDelay)
+	use crate::mock::System;
 
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -6815,14 +6815,19 @@ fn deferred_payment_steady_state_event_flow() {
 
 			// grab initial issuance -- we will reset it before round issuance is calculated so that
 			// it is consistent every round
+			let account: AccountId = 111;
 			let initial_issuance = Balances::total_issuance();
 			let reset_issuance = || {
 				let new_issuance = Balances::total_issuance();
-				let diff = new_issuance - initial_issuance;
-				let burned = Balances::burn(diff);
+				let amount_to_burn = new_issuance - initial_issuance;
+				let _ = Balances::burn(Some(account).into(), amount_to_burn, false);
+				System::assert_last_event(RuntimeEvent::Balances(BalancesEvent::Burned {
+					who: account,
+					amount: amount_to_burn,
+				}));
 				Balances::settle(
-					&111,
-					burned,
+					&account,
+					PositiveImbalance::new(amount_to_burn),
 					WithdrawReasons::FEE,
 					ExistenceRequirement::AllowDeath,
 				)
@@ -6837,7 +6842,6 @@ fn deferred_payment_steady_state_event_flow() {
 					roll_to_round_end(round);
 					round += 1;
 				}
-
 				reset_issuance();
 
 				round

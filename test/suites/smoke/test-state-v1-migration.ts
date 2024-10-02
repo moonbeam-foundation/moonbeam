@@ -17,6 +17,9 @@ describeSuite({
       id: "C100",
       title: "Migration status should not be in an error state",
       test: async function (context) {
+        if (paraApi.consts.system.version.specVersion.toNumber() < 3300) {
+          context.skip();
+        }
         const stateMigrationStatus =
           await paraApi.query.moonbeamLazyMigrations.stateMigrationStatusValue();
         const isError = stateMigrationStatus.toString().toLowerCase().includes("error");

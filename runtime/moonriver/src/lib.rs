@@ -99,7 +99,7 @@ use sp_runtime::{
 };
 use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
-use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
+use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
 
 use smallvec::smallvec;
 #[cfg(feature = "std")]
@@ -585,11 +585,6 @@ parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
-type TreasuryApproveOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<AccountId, TreasuryCouncilInstance, 3, 5>,
->;
-
 type TreasuryRejectOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
@@ -598,22 +593,15 @@ type TreasuryRejectOrigin = EitherOfDiverse<
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
-	// At least three-fifths majority of the council is required (or root) to approve a proposal
-	type ApproveOrigin = TreasuryApproveOrigin;
 	// More than half of the council is required (or root) to reject a proposal
 	type RejectOrigin = TreasuryRejectOrigin;
 	type RuntimeEvent = RuntimeEvent;
-	// If spending proposal rejected, transfer proposer bond to treasury
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ConstU128<{ 1 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	type SpendPeriod = ConstU32<{ 6 * DAYS }>;
 	type Burn = ();
 	type BurnDestination = ();
 	type MaxApprovals = ConstU32<100>;
 	type WeightInfo = moonriver_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
-	type ProposalBondMaximum = ();
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
 	#[cfg(feature = "runtime-benchmarks")]
@@ -1456,7 +1444,7 @@ construct_runtime! {
 		// XCM Stuff
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Storage, Event<T>} = 100,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 101,
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 102,
+		// Previously 102: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>}
 		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event<T>, Origin, Config<T>} = 103,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
@@ -1745,12 +1733,6 @@ mod tests {
 			5_u8
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROMOVR));
-
-		// treasury minimums
-		assert_eq!(
-			get!(pallet_treasury, ProposalBondMinimum, u128),
-			Balance::from(1 * MOVR)
-		);
 
 		// pallet_identity deposits
 		assert_eq!(

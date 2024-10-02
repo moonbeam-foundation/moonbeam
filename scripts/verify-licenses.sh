@@ -6,6 +6,7 @@ LICENSES=(
     "0BSD OR Apache-2.0 OR MIT"
     "Apache-2.0 AND MIT"
     "Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT"
+    "Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR CC0-1.0"
     "Apache-2.0 OR BSD-1-Clause OR MIT"
     "Apache-2.0 OR BSD-2-Clause OR MIT"
     "Apache-2.0 OR BSD-3-Clause OR MIT"
