@@ -786,7 +786,7 @@ fn sum_of_inflation_distribution_config_percentages_must_lte_100() {
 					RuntimeOrigin::root(),
 					inflation_configs(1, pbr_percentage, 2, treasury_percentage),
 				),
-				Error::<Test>::InflationDistributionConfigSumGreaterThan100,
+				Error::<Test>::TotalInflationDistributionPercentExceeds100,
 			);
 		}
 
