@@ -765,6 +765,43 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
+			impl xcm_runtime_apis::dry_run::DryRunApi<Block, RuntimeCall, RuntimeEvent, OriginCaller>
+				for Runtime {
+					fn dry_run_call(
+						origin: OriginCaller,
+						call: RuntimeCall
+					) -> Result<CallDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
+						PolkadotXcm::dry_run_call::<
+							Runtime,
+							xcm_config::XcmRouter,
+							OriginCaller,
+							RuntimeCall>(origin, call)
+					}
+
+					fn dry_run_xcm(
+						origin_location: VersionedLocation,
+						xcm: VersionedXcm<RuntimeCall>
+					) -> Result<XcmDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
+						PolkadotXcm::dry_run_xcm::<
+							Runtime,
+							xcm_config::XcmRouter,
+							RuntimeCall,
+							xcm_config::XcmExecutorConfig>(origin_location, xcm)
+					}
+				}
+
+			impl xcm_runtime_apis::conversions::LocationToAccountApi<Block, AccountId> for Runtime {
+				fn convert_location(location: VersionedLocation) -> Result<
+					AccountId,
+					xcm_runtime_apis::conversions::Error
+				> {
+					xcm_runtime_apis::conversions::LocationToAccountHelper::<
+						AccountId,
+						xcm_config::LocationToAccountId,
+					>::convert_location(location)
+				}
+			}
+
 			#[cfg(feature = "runtime-benchmarks")]
 			impl frame_benchmarking::Benchmark<Block> for Runtime {
 
