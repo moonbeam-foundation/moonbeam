@@ -95,6 +95,7 @@ use pallet_evm::{
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
 use pallet_treasury::TreasuryAccountId;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use runtime_params::*;
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_consensus_slots::Slot;
@@ -118,15 +119,8 @@ use sp_std::{
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
-use xcm::{
-	v3::{AssetId as XcmAssetId, Location},
-	IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
-};
-use xcm_config::AssetType;
-use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
-use xcm_primitives::UnitsToWeightRatio;
-
-use runtime_params::*;
+use xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
+use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
 
 use smallvec::smallvec;
 use sp_runtime::serde::{Deserialize, Serialize};
@@ -193,16 +187,32 @@ pub mod opaque {
 /// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
 /// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
 /// changes which can be skipped.
+#[cfg(feature = "runtime-benchmarks")]
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 3200,
+	spec_version: 3300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
 	state_version: 0,
+};
+
+/// We need to duplicate this because the `runtime_version` macro is conflicting with the
+/// conditional compilation at the state_version field.
+#[cfg(not(feature = "runtime-benchmarks"))]
+#[sp_version::runtime_version]
+pub const VERSION: RuntimeVersion = RuntimeVersion {
+	spec_name: create_runtime_str!("moonbase"),
+	impl_name: create_runtime_str!("moonbase"),
+	authoring_version: 4,
+	spec_version: 3300,
+	impl_version: 0,
+	apis: RUNTIME_API_VERSIONS,
+	transaction_version: 3,
+	state_version: 1,
 };
 
 /// The version information used to identify this runtime when compiled natively.
@@ -596,11 +606,6 @@ parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
-type TreasuryApproveOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<AccountId, TreasuryCouncilInstance, 3, 5>,
->;
-
 type TreasuryRejectOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
@@ -609,22 +614,15 @@ type TreasuryRejectOrigin = EitherOfDiverse<
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
-	// At least three-fifths majority of the council is required (or root) to approve a proposal
-	type ApproveOrigin = TreasuryApproveOrigin;
 	// More than half of the council is required (or root) to reject a proposal
 	type RejectOrigin = TreasuryRejectOrigin;
 	type RuntimeEvent = RuntimeEvent;
-	// If spending proposal rejected, transfer proposer bond to treasury
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	type SpendPeriod = ConstU32<{ 6 * DAYS }>;
 	type Burn = ();
 	type BurnDestination = ();
 	type MaxApprovals = ConstU32<100>;
 	type WeightInfo = moonbase_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
-	type ProposalBondMaximum = ();
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
 	#[cfg(feature = "runtime-benchmarks")]
@@ -1422,7 +1420,7 @@ construct_runtime! {
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 24,
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 25,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 27,
+		// Previously 27: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 28,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
@@ -1455,6 +1453,7 @@ construct_runtime! {
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 55,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 56,
 		Parameters: pallet_parameters = 57,
+		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 58,
 	}
 }
 
@@ -1535,6 +1534,7 @@ mod benches {
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_parameters, Parameters]
+		[pallet_xcm_weight_trader, XcmWeightTrader]
 	);
 }
 
@@ -1720,12 +1720,6 @@ mod tests {
 			5_u8
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROUNIT));
-
-		// treasury minimums
-		assert_eq!(
-			get!(pallet_treasury, ProposalBondMinimum, u128),
-			Balance::from(1 * UNIT)
-		);
 
 		// pallet_identity deposits
 		assert_eq!(

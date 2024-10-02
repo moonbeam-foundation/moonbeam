@@ -27,6 +27,7 @@ pallet-precompile-benchmarks = { workspace = true }
 pallet-randomness = { workspace = true }
 pallet-relay-storage-roots = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
+pallet-xcm-weight-trader = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -50,6 +51,7 @@ pallet-referenda = { workspace = true }
 pallet-scheduler = { workspace = true }
 pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
+pallet-transaction-payment = { workspace = true }
 pallet-treasury = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-whitelist = { workspace = true }
@@ -57,6 +59,7 @@ pallet-xcm = { workspace = true }
 sp-api = { workspace = true }
 sp-consensus-slots = { workspace = true }
 sp-core = { workspace = true }
+sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 sp-genesis-builder = { workspace = true }
@@ -79,12 +82,15 @@ pallet-author-slot-filter = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
-xcm-fee-payment-runtime-api = { workspace = true }
+xcm-runtime-apis = { workspace = true }
 
 # Parity
 parity-scale-codec = { workspace = true }
 
 account = { workspace = true }
+
+# Runtime Interfaces
+cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features = false }
 
 [features]
 std = [
@@ -108,16 +114,20 @@ std = [
 	"pallet-xcm-transactor/std",
 	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-identity/std",
+	"pallet-transaction-payment/std",
+	"pallet-xcm-weight-trader/std",
 	"pallet-message-queue/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-consensus-slots/std",
 	"sp-core/std",
+	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",
 	"sp-genesis-builder/std",
+	"cumulus-primitives-storage-weight-reclaim/std",
 	"xcm-executor/std",
-	"xcm-fee-payment-runtime-api/std",
+	"xcm-runtime-apis/std",
 	"xcm/std",
 	"account/std",
 ]

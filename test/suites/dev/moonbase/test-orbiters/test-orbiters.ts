@@ -99,7 +99,7 @@ describeSuite({
         expect(notifyInactiveOrbiter.result!.error!.name).toEqual("CannotBeNotifiedAsInactive");
 
         // Call to mark an orbiterPool that has not produced blocks offline
-        // should succeed but it should be an noop (pool will still be active) if there are is an
+        // should succeed but it should be a noop (pool will still be active) if there is an
         // active orbiter in the pool
         await context.createBlock(
           context

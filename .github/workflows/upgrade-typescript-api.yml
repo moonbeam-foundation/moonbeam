@@ -30,17 +30,16 @@ jobs:
       - name: Use pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - name: Upgrade polkadotjs for moonbeam-types-bundle
         run: |
           cd moonbeam-types-bundle
-          npm install @polkadot/api@latest
+          pnpm install
       - name: Upgrade polkadotjs for typescript-api
         run: |
           cd typescript-api
-          npm install @polkadot/api@latest
-          npm install @polkadot/typegen@latest
-          npm run build
+          pnpm install 
+          pnpm run build
       - name: regenerate typescript api with new runtime metadata
         run: |
           cd typescript-api

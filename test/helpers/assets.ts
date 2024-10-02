@@ -10,7 +10,8 @@ import type {
   PalletEvmCodeMetadata,
 } from "@polkadot/types/lookup";
 import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
-import { encodeFunctionData, keccak256, parseAbi } from "viem";
+import { encodeFunctionData, parseAbi, keccak256 } from "viem";
+import { ApiPromise, WsProvider } from "@polkadot/api";
 
 export const EVM_FOREIGN_ASSETS_PALLET_ACCOUNT = "0x6d6f646c666f7267617373740000000000000000";
 export const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
@@ -50,6 +51,200 @@ export function assetContractAddress(assetId: bigint | string): `0x${string}` {
   return `0xffffffff${BigInt(assetId).toString(16)}`;
 }
 
+export const patchLocationV4recursively = (value: any) => {
+  // e.g. Convert this: { X1: { Parachain: 1000 } } to { X1: [ { Parachain: 1000 } ] }
+  if (value && typeof value == "object") {
+    if (Array.isArray(value)) {
+      return value.map(patchLocationV4recursively);
+    }
+    for (const k of Object.keys(value)) {
+      if (k === "Concrete" || k === "Abstract") {
+        return patchLocationV4recursively(value[k]);
+      }
+      if (k.match(/^[Xx]\d$/g) && !Array.isArray(value[k])) {
+        value[k] = Object.entries(value[k]).map(([k, v]) => ({
+          [k]: patchLocationV4recursively(v),
+        }));
+      } else {
+        value[k] = patchLocationV4recursively(value[k]);
+      }
+    }
+  }
+  return value;
+};
+
+const runtimeApi = {
+  runtime: {
+    XcmPaymentApi: [
+      {
+        methods: {
+          query_acceptable_payment_assets: {
+            description: "The API to query acceptable payment assets",
+            params: [
+              {
+                name: "version",
+                type: "u32",
+              },
+            ],
+            type: "Result<Vec<XcmVersionedAssetId>, XcmPaymentApiError>",
+          },
+          query_weight_to_asset_fee: {
+            description: "",
+            params: [
+              {
+                name: "weight",
+                type: "WeightV2",
+              },
+              {
+                name: "asset",
+                type: "XcmVersionedAssetId",
+              },
+            ],
+            type: "Result<u128, XcmPaymentApiError>",
+          },
+          query_xcm_weight: {
+            description: "",
+            params: [
+              {
+                name: "message",
+                type: "XcmVersionedXcm",
+              },
+            ],
+            type: "Result<WeightV2, XcmPaymentApiError>",
+          },
+          query_delivery_fees: {
+            description: "",
+            params: [
+              {
+                name: "destination",
+                type: "XcmVersionedLocation",
+              },
+              {
+                name: "message",
+                type: "XcmVersionedXcm",
+              },
+            ],
+            type: "Result<XcmVersionedAssets, XcmPaymentApiError>",
+          },
+        },
+        version: 1,
+      },
+    ],
+    XcmWeightTrader: [
+      {
+        methods: {
+          add_asset: {
+            description: "Add an asset to the supported assets",
+            params: [
+              {
+                name: "asset",
+                type: "XcmVersionedAssetId",
+              },
+              {
+                name: "relative_price",
+                type: "u128",
+              },
+            ],
+            type: "Result<(), XcmPaymentApiError>",
+          },
+        },
+        version: 1,
+      },
+    ],
+  },
+  types: {
+    XcmPaymentApiError: {
+      _enum: {
+        Unimplemented: "Null",
+        VersionedConversionFailed: "Null",
+        WeightNotComputable: "Null",
+        UnhandledXcmVersion: "Null",
+        AssetNotFound: "Null",
+      },
+    },
+  },
+};
+
+export async function calculateRelativePrice(
+  context: any,
+  unitsPerSecond: number
+): Promise<bigint> {
+  if (unitsPerSecond === 0) {
+    return 0n;
+  }
+
+  const WEIGHT_REF_TIME_PER_SECOND = 1_000_000_000_000;
+  const weight = {
+    refTime: WEIGHT_REF_TIME_PER_SECOND,
+    proofSize: 0,
+  };
+
+  const nativeAmountPerSecond = await context
+    .polkadotJs()
+    .tx.transactionPaymentApi.queryWeightToFee(weight);
+
+  const relativePriceDecimals = new BN(18);
+  const relativePrice = nativeAmountPerSecond
+    .mul(new BN(10).pow(relativePriceDecimals))
+    .div(new BN(unitsPerSecond));
+
+  return relativePrice;
+}
+
+function getSupportedAssedStorageKey(asset: any, context: any) {
+  const assetV4 = patchLocationV4recursively(asset);
+
+  const module = xxhashAsU8a(new TextEncoder().encode("XcmWeightTrader"), 128);
+  const method = xxhashAsU8a(new TextEncoder().encode("SupportedAssets"), 128);
+
+  const assetLocationU8a = context.polkadotJs().createType("StagingXcmV4Location", assetV4).toU8a();
+
+  const blake2concatStagingXcmV4Location = new Uint8Array([
+    ...blake2AsU8a(assetLocationU8a, 128),
+    ...assetLocationU8a,
+  ]);
+
+  return new Uint8Array([...module, ...method, ...blake2concatStagingXcmV4Location]);
+}
+
+export async function addAssetToWeightTrader(asset: any, relativePrice: number, context: any) {
+  const assetV4 = patchLocationV4recursively(asset.Xcm);
+
+  if (relativePrice == 0) {
+    const addAssetWithPlaceholderPrice = context
+      .polkadotJs()
+      .tx.sudo.sudo(context.polkadotJs().tx.xcmWeightTrader.addAsset(assetV4, 1n));
+    const overallAssetKey = getSupportedAssedStorageKey(assetV4, context);
+
+    const overrideAssetPrice = context.polkadotJs().tx.sudo.sudo(
+      context.polkadotJs().tx.system.setStorage([
+        [
+          u8aToHex(overallAssetKey),
+          "0x0100000000000000000000000000000000", // (enabled bool, 0 u128)
+        ],
+      ])
+    );
+    const batch = context
+      .polkadotJs()
+      .tx.utility.batch([addAssetWithPlaceholderPrice, overrideAssetPrice]);
+
+    await context.createBlock(batch, {
+      expectEvents: [context.polkadotJs().events.xcmWeightTrader.SupportedAssetAdded],
+      allowFailures: false,
+    });
+  } else {
+    await context.createBlock(
+      context
+        .polkadotJs()
+        .tx.sudo.sudo(context.polkadotJs().tx.xcmWeightTrader.addAsset(assetV4, relativePrice)),
+      {
+        expectEvents: [context.polkadotJs().events.xcmWeightTrader.SupportedAssetAdded],
+        allowFailures: false,
+      }
+    );
+  }
+}
+
 // This registers an old foreign asset via the asset-manager pallet.
 // DEPRECATED: Please don't use for new tests
 export async function registerOldForeignAsset(
@@ -59,7 +254,6 @@ export async function registerOldForeignAsset(
   unitsPerSecond?: number,
   numAssetsWeightHint?: number
 ) {
-  unitsPerSecond = unitsPerSecond != null ? unitsPerSecond : 0;
   const { result } = await context.createBlock(
     context
       .polkadotJs()
@@ -67,26 +261,77 @@ export async function registerOldForeignAsset(
         context.polkadotJs().tx.assetManager.registerForeignAsset(asset, metadata, new BN(1), true)
       )
   );
-  // Look for assetId in events
+
+  const polkadotJs = await ApiPromise.create({
+    provider: new WsProvider(`ws://localhost:${process.env.MOONWALL_RPC_PORT}/`),
+    ...runtimeApi,
+  });
+
+  const WEIGHT_REF_TIME_PER_SECOND = 1_000_000_000_000;
+  const weight = {
+    refTime: WEIGHT_REF_TIME_PER_SECOND,
+    proofSize: 0,
+  };
+
+  const nativeAmountPerSecond = await context
+    .polkadotJs()
+    .call.transactionPaymentApi.queryWeightToFee(weight);
+
+  const relativePriceDecimals = new BN(18);
+  const relativePrice = nativeAmountPerSecond
+    .mul(new BN(10).pow(relativePriceDecimals))
+    .div(unitsPerSecond ? new BN(unitsPerSecond) : new BN(1));
+
+  const assetV4 = patchLocationV4recursively(asset.Xcm);
+  const { result: result2 } = await context.createBlock(
+    context
+      .polkadotJs()
+      .tx.sudo.sudo(context.polkadotJs().tx.xcmWeightTrader.addAsset(assetV4, relativePrice)),
+    {
+      expectEvents: [context.polkadotJs().events.xcmWeightTrader.SupportedAssetAdded],
+      allowFailures: false,
+    }
+  );
+
+  // If no unitspersecond is provided, we add the asset to the supported assets
+  // and force-set the relative price to 0
+  if (unitsPerSecond == null) {
+    const module = xxhashAsU8a(new TextEncoder().encode("XcmWeightTrader"), 128);
+    const method = xxhashAsU8a(new TextEncoder().encode("SupportedAssets"), 128);
+
+    const assetLocationU8a = context
+      .polkadotJs()
+      .createType("StagingXcmV4Location", assetV4)
+      .toU8a();
+
+    const blake2concatStagingXcmV4Location = new Uint8Array([
+      ...blake2AsU8a(assetLocationU8a, 128),
+      ...assetLocationU8a,
+    ]);
+
+    const overallAssetKey = new Uint8Array([
+      ...module,
+      ...method,
+      ...blake2concatStagingXcmV4Location,
+    ]);
+
+    await context.createBlock(
+      context.polkadotJs().tx.sudo.sudo(
+        context.polkadotJs().tx.system.setStorage([
+          [
+            u8aToHex(overallAssetKey),
+            "0x0100000000000000000000000000000000", // (enabled bool, 0 u128)
+          ],
+        ])
+      )
+    );
+  }
+
   const registeredAssetId = result!.events
     .find(({ event: { section } }) => section.toString() === "assetManager")!
     .event.data[0].toHex()
     .replace(/,/g, "");
 
-  // setAssetUnitsPerSecond
-  const { result: result2 } = await context.createBlock(
-    context
-      .polkadotJs()
-      .tx.sudo.sudo(
-        context
-          .polkadotJs()
-          .tx.assetManager.setAssetUnitsPerSecond(asset, unitsPerSecond, numAssetsWeightHint!)
-      ),
-    {
-      expectEvents: [context.polkadotJs().events.assetManager.UnitsPerSecondChanged],
-      allowFailures: false,
-    }
-  );
   // check asset in storage
   const registeredAsset = (
     (await context.polkadotJs().query.assets.asset(registeredAssetId)) as any

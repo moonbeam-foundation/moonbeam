@@ -1258,6 +1258,8 @@ import type {
   XcmVersion,
   XcmpMessageFormat,
 } from "@polkadot/types/interfaces/xcm";
+import type { XcmPaymentApiError } from "@polkadot/types/interfaces/xcmPaymentApi";
+import type { Error } from "@polkadot/types/interfaces/xcmRuntimeApi";
 
 declare module "@polkadot/types/types/registry" {
   interface InterfaceTypes {
@@ -1584,6 +1586,7 @@ declare module "@polkadot/types/types/registry" {
     EraPoints: EraPoints;
     EraRewardPoints: EraRewardPoints;
     EraRewards: EraRewards;
+    Error: Error;
     ErrorMetadataLatest: ErrorMetadataLatest;
     ErrorMetadataV10: ErrorMetadataV10;
     ErrorMetadataV11: ErrorMetadataV11;
@@ -2431,6 +2434,7 @@ declare module "@polkadot/types/types/registry" {
     XcmOrderV2: XcmOrderV2;
     XcmOrigin: XcmOrigin;
     XcmOriginKind: XcmOriginKind;
+    XcmPaymentApiError: XcmPaymentApiError;
     XcmpMessageFormat: XcmpMessageFormat;
     XcmV0: XcmV0;
     XcmV1: XcmV1;

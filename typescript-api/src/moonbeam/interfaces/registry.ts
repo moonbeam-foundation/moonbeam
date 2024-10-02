@@ -147,6 +147,7 @@ import type {
   PalletEthereumRawOrigin,
   PalletEthereumXcmCall,
   PalletEthereumXcmError,
+  PalletEthereumXcmEvent,
   PalletEthereumXcmRawOrigin,
   PalletEvmCall,
   PalletEvmCodeMetadata,
@@ -520,6 +521,7 @@ declare module "@polkadot/types/types/registry" {
     PalletEthereumRawOrigin: PalletEthereumRawOrigin;
     PalletEthereumXcmCall: PalletEthereumXcmCall;
     PalletEthereumXcmError: PalletEthereumXcmError;
+    PalletEthereumXcmEvent: PalletEthereumXcmEvent;
     PalletEthereumXcmRawOrigin: PalletEthereumXcmRawOrigin;
     PalletEvmCall: PalletEvmCall;
     PalletEvmCodeMetadata: PalletEvmCodeMetadata;

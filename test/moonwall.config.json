@@ -41,6 +41,7 @@
     {
       "name": "zombie_moonbeam_rpc",
       "testFileDir": ["suites/zombie"],
+      "multiThreads": false,
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
@@ -88,6 +89,7 @@
     {
       "name": "zombie_moonbase_rpc",
       "testFileDir": ["suites/zombie"],
+      "multiThreads": false,
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
         "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
@@ -367,9 +369,10 @@
         "launchSpec": [
           {
             "name": "moonbeam",
-            "binPath": "../target/release/lazy-loading",
+            "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
             "options": [
+              "-llazy-loading=trace",
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
               "--no-telemetry",

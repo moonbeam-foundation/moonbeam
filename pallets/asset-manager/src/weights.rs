@@ -53,10 +53,8 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for pallet_asset_manager.
 pub trait WeightInfo {
 	fn register_foreign_asset() -> Weight;
-	fn set_asset_units_per_second(x: u32, ) -> Weight;
-	fn change_existing_asset_type(x: u32, ) -> Weight;
-	fn remove_supported_asset(x: u32, ) -> Weight;
-	fn remove_existing_asset_type(x: u32, ) -> Weight;
+	fn change_existing_asset_type() -> Weight;
+	fn remove_existing_asset_type() -> Weight;
 }
 
 /// Weights for pallet_asset_manager using the Substrate node and recommended hardware.
@@ -79,25 +77,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
-	/// Storage: AssetManager AssetTypeId (r:1 w:0)
-	/// Proof Skipped: AssetManager AssetTypeId (max_values: None, max_size: None, mode: Measured)
-	/// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
-	/// Proof Skipped: AssetManager SupportedFeePaymentAssets (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: AssetManager AssetTypeUnitsPerSecond (r:0 w:1)
-	/// Proof Skipped: AssetManager AssetTypeUnitsPerSecond (max_values: None, max_size: None, mode: Measured)
-	/// The range of component `x` is `[5, 100]`.
-	fn set_asset_units_per_second(x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `611 + x * (9 ±0)`
-		//  Estimated: `6555 + x * (30 ±0)`
-		// Minimum execution time: 30_927_000 picoseconds.
-		Weight::from_parts(30_990_835, 6555)
-			// Standard Error: 2_254
-			.saturating_add(Weight::from_parts(494_375, 0).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(2_u64))
-			.saturating_add(T::DbWeight::get().writes(2_u64))
-			.saturating_add(Weight::from_parts(0, 30).saturating_mul(x.into()))
-	}
 	/// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
 	/// Proof Skipped: AssetManager SupportedFeePaymentAssets (max_values: Some(1), max_size: None, mode: Measured)
 	/// Storage: AssetManager AssetIdType (r:1 w:1)
@@ -107,34 +86,17 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Storage: AssetManager AssetTypeId (r:0 w:2)
 	/// Proof Skipped: AssetManager AssetTypeId (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `x` is `[5, 100]`.
-	fn change_existing_asset_type(x: u32, ) -> Weight {
+	fn change_existing_asset_type() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `926 + x * (13 ±0)`
 		//  Estimated: `11791 + x * (60 ±0)`
 		// Minimum execution time: 42_959_000 picoseconds.
 		Weight::from_parts(43_255_055, 11791)
 			// Standard Error: 3_394
-			.saturating_add(Weight::from_parts(543_897, 0).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(543_897, 0))
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(6_u64))
-			.saturating_add(Weight::from_parts(0, 60).saturating_mul(x.into()))
-	}
-	/// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
-	/// Proof Skipped: AssetManager SupportedFeePaymentAssets (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: AssetManager AssetTypeUnitsPerSecond (r:0 w:1)
-	/// Proof Skipped: AssetManager AssetTypeUnitsPerSecond (max_values: None, max_size: None, mode: Measured)
-	/// The range of component `x` is `[5, 100]`.
-	fn remove_supported_asset(x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `196 + x * (5 ±0)`
-		//  Estimated: `1871 + x * (10 ±0)`
-		// Minimum execution time: 25_453_000 picoseconds.
-		Weight::from_parts(24_977_319, 1871)
-			// Standard Error: 2_109
-			.saturating_add(Weight::from_parts(407_717, 0).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(2_u64))
-			.saturating_add(Weight::from_parts(0, 10).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(0, 60))
 	}
 	/// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
 	/// Proof Skipped: AssetManager SupportedFeePaymentAssets (max_values: Some(1), max_size: None, mode: Measured)
@@ -145,17 +107,17 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Storage: AssetManager AssetTypeId (r:0 w:1)
 	/// Proof Skipped: AssetManager AssetTypeId (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `x` is `[5, 100]`.
-	fn remove_existing_asset_type(x: u32, ) -> Weight {
+	fn remove_existing_asset_type() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `482 + x * (10 ±0)`
 		//  Estimated: `6910 + x * (40 ±0)`
 		// Minimum execution time: 32_960_000 picoseconds.
 		Weight::from_parts(33_257_599, 6910)
 			// Standard Error: 2_430
-			.saturating_add(Weight::from_parts(421_651, 0).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(421_651, 0))
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
-			.saturating_add(Weight::from_parts(0, 40).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(0, 40))
 	}
 }
 
@@ -178,25 +140,6 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(3_u64))
 			.saturating_add(RocksDbWeight::get().writes(4_u64))
 	}
-	/// Storage: AssetManager AssetTypeId (r:1 w:0)
-	/// Proof Skipped: AssetManager AssetTypeId (max_values: None, max_size: None, mode: Measured)
-	/// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
-	/// Proof Skipped: AssetManager SupportedFeePaymentAssets (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: AssetManager AssetTypeUnitsPerSecond (r:0 w:1)
-	/// Proof Skipped: AssetManager AssetTypeUnitsPerSecond (max_values: None, max_size: None, mode: Measured)
-	/// The range of component `x` is `[5, 100]`.
-	fn set_asset_units_per_second(x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `611 + x * (9 ±0)`
-		//  Estimated: `6555 + x * (30 ±0)`
-		// Minimum execution time: 30_927_000 picoseconds.
-		Weight::from_parts(30_990_835, 6555)
-			// Standard Error: 2_254
-			.saturating_add(Weight::from_parts(494_375, 0).saturating_mul(x.into()))
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-			.saturating_add(Weight::from_parts(0, 30).saturating_mul(x.into()))
-	}
 	/// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
 	/// Proof Skipped: AssetManager SupportedFeePaymentAssets (max_values: Some(1), max_size: None, mode: Measured)
 	/// Storage: AssetManager AssetIdType (r:1 w:1)
@@ -206,34 +149,17 @@ impl WeightInfo for () {
 	/// Storage: AssetManager AssetTypeId (r:0 w:2)
 	/// Proof Skipped: AssetManager AssetTypeId (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `x` is `[5, 100]`.
-	fn change_existing_asset_type(x: u32, ) -> Weight {
+	fn change_existing_asset_type() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `926 + x * (13 ±0)`
 		//  Estimated: `11791 + x * (60 ±0)`
 		// Minimum execution time: 42_959_000 picoseconds.
 		Weight::from_parts(43_255_055, 11791)
 			// Standard Error: 3_394
-			.saturating_add(Weight::from_parts(543_897, 0).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(543_897, 0))
 			.saturating_add(RocksDbWeight::get().reads(3_u64))
 			.saturating_add(RocksDbWeight::get().writes(6_u64))
-			.saturating_add(Weight::from_parts(0, 60).saturating_mul(x.into()))
-	}
-	/// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
-	/// Proof Skipped: AssetManager SupportedFeePaymentAssets (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: AssetManager AssetTypeUnitsPerSecond (r:0 w:1)
-	/// Proof Skipped: AssetManager AssetTypeUnitsPerSecond (max_values: None, max_size: None, mode: Measured)
-	/// The range of component `x` is `[5, 100]`.
-	fn remove_supported_asset(x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `196 + x * (5 ±0)`
-		//  Estimated: `1871 + x * (10 ±0)`
-		// Minimum execution time: 25_453_000 picoseconds.
-		Weight::from_parts(24_977_319, 1871)
-			// Standard Error: 2_109
-			.saturating_add(Weight::from_parts(407_717, 0).saturating_mul(x.into()))
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-			.saturating_add(Weight::from_parts(0, 10).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(0, 60))
 	}
 	/// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
 	/// Proof Skipped: AssetManager SupportedFeePaymentAssets (max_values: Some(1), max_size: None, mode: Measured)
@@ -244,16 +170,16 @@ impl WeightInfo for () {
 	/// Storage: AssetManager AssetTypeId (r:0 w:1)
 	/// Proof Skipped: AssetManager AssetTypeId (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `x` is `[5, 100]`.
-	fn remove_existing_asset_type(x: u32, ) -> Weight {
+	fn remove_existing_asset_type() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `482 + x * (10 ±0)`
 		//  Estimated: `6910 + x * (40 ±0)`
 		// Minimum execution time: 32_960_000 picoseconds.
 		Weight::from_parts(33_257_599, 6910)
 			// Standard Error: 2_430
-			.saturating_add(Weight::from_parts(421_651, 0).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(421_651, 0))
 			.saturating_add(RocksDbWeight::get().reads(2_u64))
 			.saturating_add(RocksDbWeight::get().writes(4_u64))
-			.saturating_add(Weight::from_parts(0, 40).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(0, 40))
 	}
 }

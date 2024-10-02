@@ -98,13 +98,8 @@ use sp_runtime::{
 	Perquintill, SaturatedConversion,
 };
 use sp_std::{convert::TryFrom, prelude::*};
-use xcm::{
-	v3::{AssetId as XcmAssetId, Location},
-	IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
-};
-use xcm_config::AssetType;
-use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
-use xcm_primitives::UnitsToWeightRatio;
+use xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
+use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
 
 use smallvec::smallvec;
 #[cfg(feature = "std")]
@@ -188,16 +183,32 @@ pub mod opaque {
 /// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
 /// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
 /// changes which can be skipped.
+#[cfg(feature = "runtime-benchmarks")]
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 3200,
+	spec_version: 3300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
 	state_version: 0,
+};
+
+/// We need to duplicate this because the `runtime_version` macro is conflicting with the
+/// conditional compilation at the state_version field.
+#[cfg(not(feature = "runtime-benchmarks"))]
+#[sp_version::runtime_version]
+pub const VERSION: RuntimeVersion = RuntimeVersion {
+	spec_name: create_runtime_str!("moonriver"),
+	impl_name: create_runtime_str!("moonriver"),
+	authoring_version: 3,
+	spec_version: 3300,
+	impl_version: 0,
+	apis: RUNTIME_API_VERSIONS,
+	transaction_version: 3,
+	state_version: 1,
 };
 
 /// The version information used to identify this runtime when compiled natively.
@@ -574,11 +585,6 @@ parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
-type TreasuryApproveOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<AccountId, TreasuryCouncilInstance, 3, 5>,
->;
-
 type TreasuryRejectOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
@@ -587,22 +593,15 @@ type TreasuryRejectOrigin = EitherOfDiverse<
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
-	// At least three-fifths majority of the council is required (or root) to approve a proposal
-	type ApproveOrigin = TreasuryApproveOrigin;
 	// More than half of the council is required (or root) to reject a proposal
 	type RejectOrigin = TreasuryRejectOrigin;
 	type RuntimeEvent = RuntimeEvent;
-	// If spending proposal rejected, transfer proposer bond to treasury
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ConstU128<{ 1 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	type SpendPeriod = ConstU32<{ 6 * DAYS }>;
 	type Burn = ();
 	type BurnDestination = ();
 	type MaxApprovals = ConstU32<100>;
 	type WeightInfo = moonriver_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
-	type ProposalBondMaximum = ();
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
 	#[cfg(feature = "runtime-benchmarks")]
@@ -1445,7 +1444,7 @@ construct_runtime! {
 		// XCM Stuff
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Storage, Event<T>} = 100,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 101,
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 102,
+		// Previously 102: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>}
 		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event<T>, Origin, Config<T>} = 103,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
@@ -1456,6 +1455,7 @@ construct_runtime! {
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 111,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 114,
+		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 115,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 116,
 
 		// Utils
@@ -1733,12 +1733,6 @@ mod tests {
 			5_u8
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROMOVR));
-
-		// treasury minimums
-		assert_eq!(
-			get!(pallet_treasury, ProposalBondMinimum, u128),
-			Balance::from(1 * MOVR)
-		);
 
 		// pallet_identity deposits
 		assert_eq!(

@@ -163,7 +163,7 @@ jobs:
           chmod +x bin/ec-linux-amd64
       - name: Check files
         # Prettier and editorconfig-checker have different ideas about indentation
-        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/src\/moon(?:base|beam|river)\/interfaces\/.*\.ts)|(test\/contracts\/lib\/.*)" -disable-indent-size
+        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/)|(test\/contracts\/lib\/.*)" -disable-indent-size
 
   check-prettier:
     name: "Check with Prettier"
@@ -200,7 +200,7 @@ jobs:
       - name: Use pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8.6.12
+          version: 9
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -594,7 +594,7 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "dev-test"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -607,7 +607,7 @@ jobs:
       - name: Use pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8.6.12
+          version: 9
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -633,12 +633,13 @@ jobs:
 
           ####  Preparing the repository
           cd moonbeam-types-bundle
-          npm ci
-          npm run build
+          pnpm i
+          pnpm build
 
           ####  Preparing the typescript api
           cd ../typescript-api
-          npm ci
+          pnpm i
+          pnpm build
       - name: Running Tracing Tests
         env:
           DEBUG_COLOURS: "1"
@@ -703,9 +704,10 @@ jobs:
   lazy-loading-tests:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         chain: ["moonbeam"]
     env:
@@ -719,7 +721,7 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20.10.0
@@ -739,9 +741,9 @@ jobs:
           path: target/release
       - name: "Run lazy loading tests"
         run: |
+          chmod uog+x target/release/moonbeam
           cd test
           pnpm install
-          chmod uog+x ../target/release/lazy-loading
           pnpm moonwall test lazy_loading_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
@@ -760,7 +762,7 @@ jobs:
   chopsticks-upgrade-test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
       matrix:
@@ -775,7 +777,7 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20.10.0
@@ -807,9 +809,10 @@ jobs:
   zombie_upgrade_test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         ## TODO: add moonriver here when it is ready
         chain: ["moonbase", "moonbeam"]
@@ -824,7 +827,7 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: 20.10.0

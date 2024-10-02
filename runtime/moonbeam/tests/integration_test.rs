@@ -133,7 +133,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::Identity>("Identity");
 	is_pallet_prefix::<moonbeam_runtime::XcmpQueue>("XcmpQueue");
 	is_pallet_prefix::<moonbeam_runtime::CumulusXcm>("CumulusXcm");
-	is_pallet_prefix::<moonbeam_runtime::DmpQueue>("DmpQueue");
 	is_pallet_prefix::<moonbeam_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonbeam_runtime::Assets>("Assets");
 	is_pallet_prefix::<moonbeam_runtime::XTokens>("XTokens");
@@ -440,7 +439,6 @@ fn verify_pallet_indices() {
 	// XCM Stuff
 	is_pallet_index::<moonbeam_runtime::XcmpQueue>(100);
 	is_pallet_index::<moonbeam_runtime::CumulusXcm>(101);
-	is_pallet_index::<moonbeam_runtime::DmpQueue>(102);
 	is_pallet_index::<moonbeam_runtime::PolkadotXcm>(103);
 	is_pallet_index::<moonbeam_runtime::Assets>(104);
 	is_pallet_index::<moonbeam_runtime::AssetManager>(105);
@@ -1780,7 +1778,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(24713)
+				.expect_cost(24673)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1845,7 +1843,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(15587)
+				.expect_cost(15571)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1866,7 +1864,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29969)
+				.expect_cost(29961)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1945,7 +1943,7 @@ fn xtokens_precompile_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(196490)
+				.expect_cost(196698)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -1997,7 +1995,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(196490)
+				.expect_cost(196698)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2148,7 +2146,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23278)
+				.expect_cost(23239)
 				.expect_no_logs()
 				.execute_returns(());
 		});

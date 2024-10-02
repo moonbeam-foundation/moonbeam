@@ -177,7 +177,7 @@ pub type XcmBarrier = (
 
 parameter_types! {
 	pub Kusama: AssetFilter = Wild(AllOf { fun: WildFungible, id: AssetId(KsmLocation::get()) });
-	pub Statemine: Location = Parachain(4).into();
+	pub Statemine: Location = Parachain(1000).into();
 	pub KusamaForStatemine: (AssetFilter, Location) = (Kusama::get(), Statemine::get());
 }
 
@@ -213,6 +213,7 @@ impl Config for XcmConfig {
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
+	type XcmRecorder = XcmPallet;
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, KusamaNetwork>;
@@ -293,6 +294,7 @@ impl hrmp::Config for Runtime {
 	type WeightInfo = TestHrmpWeightInfo;
 	type ChannelManager = frame_system::EnsureRoot<AccountId>;
 	type DefaultChannelSizeAndCapacityWithSystem = DefaultChannelSizeAndCapacityWithSystem;
+	type VersionWrapper = XcmPallet;
 }
 
 impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
@@ -373,6 +375,7 @@ pub(crate) fn relay_events() -> Vec<RuntimeEvent> {
 }
 
 use frame_support::traits::{OnFinalize, OnInitialize};
+
 pub(crate) fn relay_roll_to(n: BlockNumber) {
 	while System::block_number() < n {
 		XcmPallet::on_finalize(System::block_number());

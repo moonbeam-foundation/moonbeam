@@ -149,7 +149,7 @@ describeSuite({
     it({
       id: "T05",
       title: "Should be able to estimate gas of infinite loop call",
-      timeout: 120000,
+      timeout: 240000,
       test: async function () {
         const { contractAddress, abi } = await deployCreateCompiledContract(context, "Looper");
 

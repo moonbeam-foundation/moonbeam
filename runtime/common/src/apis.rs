@@ -741,73 +741,17 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
-			impl xcm_fee_payment_runtime_api::XcmPaymentApi<Block> for Runtime {
+			impl xcm_runtime_apis::fees::XcmPaymentApi<Block> for Runtime {
 				fn query_acceptable_payment_assets(
 					xcm_version: xcm::Version
 				) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
-					if !matches!(xcm_version, 3) {
-						return Err(XcmPaymentApiError::UnhandledXcmVersion);
-					}
-
-					let self_reserve_location: Location = Location::try_from(xcm_config::SelfReserve::get())
-						.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
-
-					Ok([VersionedAssetId::V3(XcmAssetId::from(self_reserve_location))]
-						.into_iter()
-						.chain(
-							pallet_asset_manager::AssetTypeId::<Runtime>::iter_keys().filter_map(|asset_location| {
-								if !AssetManager::payment_is_supported(asset_location.clone()) {
-									return None;
-								}
-
-								let location: Option<Location> = asset_location.into();
-								if let Some(loc) = location {
-									return Some(VersionedAssetId::V3(loc.into()))
-								}
-								None
-							})
-						)
-						.filter_map(|asset| asset.into_version(xcm_version).ok())
-						.collect())
+					XcmWeightTrader::query_acceptable_payment_assets(xcm_version)
 				}
 
 				fn query_weight_to_asset_fee(
 					weight: Weight, asset: VersionedAssetId
 				) -> Result<u128, XcmPaymentApiError> {
-					let self_reserve_location: Location = Location::try_from(xcm_config::SelfReserve::get())
-						.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
-
-					let local_asset = VersionedAssetId::V3(XcmAssetId::from(self_reserve_location));
-					let asset = asset
-						.into_version(3)
-						.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
-
-					if asset == local_asset {
-						Ok(TransactionPayment::weight_to_fee(weight))
-					}else {
-						let asset_v3: XcmAssetId = asset.try_into()
-							.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
-
-						if let XcmAssetId::Concrete(asset_location) = asset_v3 {
-							let asset_type: AssetType = AssetType::from(asset_location);
-							if !AssetManager::payment_is_supported(asset_type.clone()) {
-								return Err(XcmPaymentApiError::AssetNotFound);
-							}
-
-							let units_per_sec = AssetManager::get_units_per_second(asset_type);
-							if let None = units_per_sec {
-								return Err(XcmPaymentApiError::WeightNotComputable);
-							}
-
-							let final_asset_fee = units_per_sec
-								.unwrap_or_default()
-								.saturating_mul(weight.ref_time() as u128)
-									/ (WEIGHT_REF_TIME_PER_SECOND as u128);
-
-							return Ok(final_asset_fee)
-						}
-						Err(XcmPaymentApiError::AssetNotFound)
-					}
+					XcmWeightTrader::query_weight_to_asset_fee(weight, asset)
 				}
 
 				fn query_xcm_weight(message: VersionedXcm<()>) -> Result<Weight, XcmPaymentApiError> {
@@ -1001,19 +945,13 @@ macro_rules! impl_runtime_apis_plus_common {
 									id: AssetId(location),
 									fun: Fungible(_)
 								} = asset {
-									<AssetManager as xcm_primitives::AssetTypeGetter<
-										<Runtime as PalletAssetManagerConfig>::AssetId,
-										<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
-									>::set_asset_type_asset_id(
-										location.clone().try_into().expect("convert to v3"),
+									EvmForeignAssets::set_asset(
+										location.clone(),
 										i as u128
 									);
-									// set 1-1
-									<AssetManager as xcm_primitives::UnitsToWeightRatio<
-										<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
-									>::set_units_per_second(
-										location.clone().try_into().expect("convert to v3"),
-										1_000_000_000_000u128
+									XcmWeightTrader::set_asset_price(
+										location.clone(),
+										1u128.pow(18)
 									);
 								}
 							}

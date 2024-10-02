@@ -9,6 +9,7 @@ import {
 } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { BN } from "@polkadot/util";
+import { addAssetToWeightTrader } from "../../../../helpers";
 
 describeSuite({
   id: "D012003",
@@ -51,14 +52,8 @@ describeSuite({
 
       assetId = events.event.data[0].toHex().replace(/,/g, "");
 
-      // setAssetUnitsPerSecond
-      await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.sudo.sudo(
-            context.polkadotJs().tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0, 0)
-          )
-      );
+      // set relative price in xcmWeightTrader
+      await addAssetToWeightTrader(sourceLocation, 0, context);
     });
 
     beforeEach(async () => {

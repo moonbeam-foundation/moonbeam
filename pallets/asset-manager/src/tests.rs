@@ -76,44 +76,6 @@ fn test_asset_exists_error() {
 }
 
 #[test]
-fn test_root_can_change_units_per_second() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
-			RuntimeOrigin::root(),
-			MockAssetType::MockAsset(1),
-			0u32.into(),
-			1u32.into(),
-			true
-		));
-
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			RuntimeOrigin::root(),
-			MockAssetType::MockAsset(1),
-			200u128.into(),
-			0
-		));
-
-		assert_eq!(
-			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
-			200
-		);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
-
-		expect_events(vec![
-			crate::Event::ForeignAssetRegistered {
-				asset_id: 1,
-				asset: MockAssetType::MockAsset(1),
-				metadata: 0,
-			},
-			crate::Event::UnitsPerSecondChanged {
-				asset_type: MockAssetType::MockAsset(1),
-				units_per_second: 200,
-			},
-		])
-	});
-}
-
-#[test]
 fn test_regular_user_cannot_call_extrinsics() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
@@ -123,16 +85,6 @@ fn test_regular_user_cannot_call_extrinsics() {
 				0u32.into(),
 				1u32.into(),
 				true
-			),
-			sp_runtime::DispatchError::BadOrigin
-		);
-
-		assert_noop!(
-			AssetManager::set_asset_units_per_second(
-				RuntimeOrigin::signed(1),
-				MockAssetType::MockAsset(1),
-				200u128.into(),
-				0
 			),
 			sp_runtime::DispatchError::BadOrigin
 		);
@@ -160,13 +112,6 @@ fn test_root_can_change_asset_id_type() {
 			true
 		));
 
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			RuntimeOrigin::root(),
-			MockAssetType::MockAsset(1),
-			200u128.into(),
-			0
-		));
-
 		assert_ok!(AssetManager::change_existing_asset_type(
 			RuntimeOrigin::root(),
 			1,
@@ -174,16 +119,7 @@ fn test_root_can_change_asset_id_type() {
 			1
 		));
 
-		// New one contains the new asset type units per second
-		assert_eq!(
-			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(2)).unwrap(),
-			200
-		);
-
-		// Old one does not contain units per second
-		assert!(AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).is_none());
-
-		// New associations are stablished
+		// New associations are established
 		assert_eq!(
 			AssetManager::asset_id_type(1).unwrap(),
 			MockAssetType::MockAsset(2)
@@ -202,10 +138,6 @@ fn test_root_can_change_asset_id_type() {
 				asset: MockAssetType::MockAsset(1),
 				metadata: 0,
 			},
-			crate::Event::UnitsPerSecondChanged {
-				asset_type: MockAssetType::MockAsset(1),
-				units_per_second: 200,
-			},
 			crate::Event::ForeignAssetXcmLocationChanged {
 				asset_id: 1,
 				new_asset_type: MockAssetType::MockAsset(2),
@@ -215,152 +147,8 @@ fn test_root_can_change_asset_id_type() {
 }
 
 #[test]
-fn test_change_units_per_second_after_setting_it_once() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
-			RuntimeOrigin::root(),
-			MockAssetType::MockAsset(1),
-			0u32.into(),
-			1u32.into(),
-			true,
-		));
-
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			RuntimeOrigin::root(),
-			MockAssetType::MockAsset(1),
-			200u128.into(),
-			0
-		));
-
-		assert_eq!(
-			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
-			200
-		);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
-
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			RuntimeOrigin::root(),
-			MockAssetType::MockAsset(1),
-			100u128.into(),
-			1
-		));
-
-		assert_eq!(
-			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
-			100
-		);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
-
-		expect_events(vec![
-			crate::Event::ForeignAssetRegistered {
-				asset_id: 1,
-				asset: MockAssetType::MockAsset(1),
-				metadata: 0,
-			},
-			crate::Event::UnitsPerSecondChanged {
-				asset_type: MockAssetType::MockAsset(1),
-				units_per_second: 200,
-			},
-			crate::Event::UnitsPerSecondChanged {
-				asset_type: MockAssetType::MockAsset(1),
-				units_per_second: 100,
-			},
-		]);
-	});
-}
-
-#[test]
-fn test_root_can_change_units_per_second_and_then_remove() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
-			RuntimeOrigin::root(),
-			MockAssetType::MockAsset(1),
-			0u32.into(),
-			1u32.into(),
-			true,
-		));
-
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			RuntimeOrigin::root(),
-			MockAssetType::MockAsset(1),
-			200u128.into(),
-			0
-		));
-
-		assert_eq!(
-			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
-			200
-		);
-		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
-
-		assert_ok!(AssetManager::remove_supported_asset(
-			RuntimeOrigin::root(),
-			MockAssetType::MockAsset(1),
-			1,
-		));
-
-		assert!(
-			!AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1))
-		);
-
-		expect_events(vec![
-			crate::Event::ForeignAssetRegistered {
-				asset_id: 1,
-				asset: MockAssetType::MockAsset(1),
-				metadata: 0,
-			},
-			crate::Event::UnitsPerSecondChanged {
-				asset_type: MockAssetType::MockAsset(1),
-				units_per_second: 200,
-			},
-			crate::Event::SupportedAssetRemoved {
-				asset_type: MockAssetType::MockAsset(1),
-			},
-		]);
-	});
-}
-
-#[test]
-fn test_weight_hint_error() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
-			RuntimeOrigin::root(),
-			MockAssetType::MockAsset(1),
-			0u32.into(),
-			1u32.into(),
-			true,
-		));
-
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			RuntimeOrigin::root(),
-			MockAssetType::MockAsset(1),
-			200u128.into(),
-			0
-		));
-
-		assert_noop!(
-			AssetManager::remove_supported_asset(
-				RuntimeOrigin::root(),
-				MockAssetType::MockAsset(1),
-				0
-			),
-			Error::<Test>::TooLowNumAssetsWeightHint
-		);
-	});
-}
-
-#[test]
 fn test_asset_id_non_existent_error() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			AssetManager::set_asset_units_per_second(
-				RuntimeOrigin::root(),
-				MockAssetType::MockAsset(1),
-				200u128.into(),
-				0
-			),
-			Error::<Test>::AssetDoesNotExist
-		);
 		assert_noop!(
 			AssetManager::change_existing_asset_type(
 				RuntimeOrigin::root(),
@@ -384,13 +172,6 @@ fn test_root_can_remove_asset_association() {
 			true
 		));
 
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			RuntimeOrigin::root(),
-			MockAssetType::MockAsset(1),
-			200u128.into(),
-			0
-		));
-
 		assert_ok!(AssetManager::remove_existing_asset_type(
 			RuntimeOrigin::root(),
 			1,
@@ -401,18 +182,11 @@ fn test_root_can_remove_asset_association() {
 		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
 		assert!(AssetManager::asset_id_type(1).is_none());
 
-		// Units per second removed
-		assert!(AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).is_none());
-
 		expect_events(vec![
 			crate::Event::ForeignAssetRegistered {
 				asset_id: 1,
 				asset: MockAssetType::MockAsset(1),
 				metadata: 0,
-			},
-			crate::Event::UnitsPerSecondChanged {
-				asset_type: MockAssetType::MockAsset(1),
-				units_per_second: 200,
 			},
 			crate::Event::ForeignAssetRemoved {
 				asset_id: 1,
@@ -442,9 +216,6 @@ fn test_removing_without_asset_units_per_second_does_not_panic() {
 		// Mappings are deleted
 		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
 		assert!(AssetManager::asset_id_type(1).is_none());
-
-		// Units per second removed
-		assert!(AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).is_none());
 
 		expect_events(vec![
 			crate::Event::ForeignAssetRegistered {
@@ -480,9 +251,6 @@ fn test_destroy_foreign_asset_also_removes_everything() {
 		// Mappings are deleted
 		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
 		assert!(AssetManager::asset_id_type(1).is_none());
-
-		// Units per second removed
-		assert!(AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).is_none());
 
 		expect_events(vec![
 			crate::Event::ForeignAssetRegistered {

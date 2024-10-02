@@ -1334,6 +1334,24 @@ declare module "@polkadot/api-base/types/submittable" {
     };
     ethereumXcm: {
       /**
+       * Xcm Transact an Ethereum transaction, but allow to force the caller and create address.
+       * This call should be restricted (callable only by the runtime or governance). Weight: Gas
+       * limit plus the db reads involving the suspension and proxy checks
+       */
+      forceTransactAs: AugmentedSubmittable<
+        (
+          transactAs: H160 | string | Uint8Array,
+          xcmTransaction:
+            | XcmPrimitivesEthereumXcmEthereumXcmTransaction
+            | { V1: any }
+            | { V2: any }
+            | string
+            | Uint8Array,
+          forceCreateAddress: Option<H160> | null | Uint8Array | H160 | string
+        ) => SubmittableExtrinsic<ApiType>,
+        [H160, XcmPrimitivesEthereumXcmEthereumXcmTransaction, Option<H160>]
+      >;
+      /**
        * Resumes all Ethereum executions from XCM.
        *
        * - `origin`: Must pass `ControllerOrigin`.
