@@ -31,7 +31,7 @@ use crate::mock::{
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded,
-	EnableMarkingOffline, Error, Event, Range, DELEGATOR_LOCK_ID,
+	EnableMarkingOffline, Error, Event, InflationDistributionInfo, Range, DELEGATOR_LOCK_ID,
 };
 use frame_support::{assert_err, assert_noop, assert_ok, pallet_prelude::*, BoundedVec};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -682,6 +682,135 @@ fn cannot_set_same_parachain_bond_reserve_percent() {
 			),
 			Error::<Test>::NoWritingSameValue
 		);
+	});
+}
+
+// Set Inflation Distribution Config
+
+#[test]
+fn set_inflation_distribution_config_fails_with_normal_origin() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			ParachainStaking::set_inflation_distribution_config(
+				RuntimeOrigin::signed(45),
+				inflation_configs(1, 30, 2, 20)
+			),
+			sp_runtime::DispatchError::BadOrigin,
+		);
+	});
+}
+
+#[test]
+fn set_inflation_distribution_config_event_emits_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(ParachainStaking::set_inflation_distribution_config(
+			RuntimeOrigin::root(),
+			inflation_configs(1, 30, 2, 20),
+		));
+		assert_events_eq!(Event::InflationDistributionConfigUpdated {
+			old: inflation_configs(0, 30, 0, 0),
+			new: inflation_configs(1, 30, 2, 20),
+		});
+		roll_blocks(1);
+		assert_ok!(ParachainStaking::set_inflation_distribution_config(
+			RuntimeOrigin::root(),
+			inflation_configs(5, 10, 6, 5),
+		));
+		assert_events_eq!(Event::InflationDistributionConfigUpdated {
+			old: inflation_configs(1, 30, 2, 20),
+			new: inflation_configs(5, 10, 6, 5),
+		});
+	});
+}
+
+#[test]
+fn set_inflation_distribution_config_storage_updates_correctly() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			InflationDistributionInfo::<Test>::get(),
+			inflation_configs(0, 30, 0, 0),
+		);
+		assert_ok!(ParachainStaking::set_inflation_distribution_config(
+			RuntimeOrigin::root(),
+			inflation_configs(5, 10, 6, 5),
+		));
+		assert_eq!(
+			InflationDistributionInfo::<Test>::get(),
+			inflation_configs(5, 10, 6, 5),
+		);
+		assert_ok!(ParachainStaking::set_inflation_distribution_config(
+			RuntimeOrigin::root(),
+			inflation_configs(1, 30, 2, 20),
+		));
+		assert_eq!(
+			InflationDistributionInfo::<Test>::get(),
+			inflation_configs(1, 30, 2, 20),
+		);
+	});
+}
+
+#[test]
+fn cannot_set_same_inflation_distribution_config() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(ParachainStaking::set_inflation_distribution_config(
+			RuntimeOrigin::root(),
+			inflation_configs(1, 30, 2, 20),
+		));
+		assert_noop!(
+			ParachainStaking::set_inflation_distribution_config(
+				RuntimeOrigin::root(),
+				inflation_configs(1, 30, 2, 20)
+			),
+			Error::<Test>::NoWritingSameValue,
+		);
+	});
+}
+
+#[test]
+fn sum_of_inflation_distribution_config_percentages_must_lte_100() {
+	ExtBuilder::default().build().execute_with(|| {
+		let invalid_values: Vec<(u8, u8)> = vec![
+			(20, 90),
+			(90, 20),
+			(50, 51),
+			(100, 1),
+			(1, 100),
+			(55, 55),
+			(2, 99),
+			(100, 100),
+		];
+
+		for (_percentage, treasury_percentage) in invalid_values {
+			assert_noop!(
+				ParachainStaking::set_inflation_distribution_config(
+					RuntimeOrigin::root(),
+					inflation_configs(1, pbr_percentage, 2, treasury_percentage),
+				),
+				Error::<Test>::InflationDistributionConfigSumGreaterThan100,
+			);
+		}
+
+		let valid_values: Vec<(u8, u8)> = vec![
+			(0, 100),
+			(100, 0),
+			(0, 0),
+			(100, 0),
+			(0, 100),
+			(50, 50),
+			(1, 99),
+			(99, 1),
+			(1, 1),
+			(10, 20),
+			(34, 32),
+			(15, 10),
+		];
+
+		for (pbr_percentage, treasury_percentage) in valid_values {
+			assert_ok!(ParachainStaking::set_inflation_distribution_config(
+				RuntimeOrigin::root(),
+				inflation_configs(1, pbr_percentage, 2, treasury_percentage),
+			));
+		}
 	});
 }
 
