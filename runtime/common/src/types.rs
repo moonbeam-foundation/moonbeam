@@ -22,6 +22,7 @@ use sp_std::prelude::*;
 pub struct BoundedU128<const LOWER: u128, const UPPER: u128>(u128);
 
 impl<const L: u128, const U: u128> BoundedU128<L, U> {
+	// Create a new instance with a value. If the value is out of bounds, it will return an error.
 	pub fn new(value: u128) -> Result<Self, &'static str> {
 		if value < L || value > U {
 			return Err("Value out of bounds");
@@ -29,6 +30,8 @@ impl<const L: u128, const U: u128> BoundedU128<L, U> {
 		Ok(Self(value))
 	}
 
+	/// Create a new instance with a constant value. If the value is out of bounds, it will be
+	/// clamped to the nearest bound.
 	pub fn const_new<const VAL: u128>() -> Self {
 		if VAL < L {
 			Self(L)
@@ -39,6 +42,7 @@ impl<const L: u128, const U: u128> BoundedU128<L, U> {
 		}
 	}
 
+	/// Get the value.
 	pub fn value(&self) -> u128 {
 		self.0
 	}
@@ -58,6 +62,8 @@ impl<const L: u128, const U: u128> Decode for BoundedU128<L, U> {
 
 impl<const L: u128, const U: u128> EncodeLike<u128> for BoundedU128<L, U> {}
 
+
+/// Expose a `Get<u128>` implementation form a `Get<BoundedU128>` type.
 #[macro_export]
 macro_rules! expose_u128_get {
 	($name:ident,$bounded_get:ty) => {
@@ -89,13 +95,13 @@ mod tests {
 		let bounded = BoundedU128::<1, 10>::new(11);
 		assert_eq!(bounded, Err("Value out of bounds"));
 
-		let bounded = BoundedU128::<1, 10>::safe_new::<0>();
+		let bounded = BoundedU128::<1, 10>::const_new::<0>();
 		assert_eq!(bounded.value(), 1);
 
-		let bounded = BoundedU128::<1, 10>::safe_new::<5>();
+		let bounded = BoundedU128::<1, 10>::const_new::<5>();
 		assert_eq!(bounded.value(), 5);
 
-		let bounded = BoundedU128::<1, 10>::safe_new::<11>();
+		let bounded = BoundedU128::<1, 10>::const_new::<11>();
 		assert_eq!(bounded.value(), 10);
 	}
 
