@@ -93,7 +93,8 @@
 //                 account: event.event.data.account.toString(),
 //                 amount: event.event.data.rewards.toBigInt(),
 //               });
-//             } else if (context.polkadotJs().events.parachainStaking.InflationDistributed.is(event.event)) {
+//             } else if (context.polkadotJs().events.parachainStaking.InflationDistributed.is(event
+//.event)) {
 //               acc.push({
 //                 account: event.event.data.account.toString(),
 //                 amount: event.event.data.value.toBigInt(),
@@ -106,10 +107,12 @@
 
 //         const rewardedAlith = rewardedEvents.find(({ account }) => account == alith.address);
 //         const rewardedEthan = rewardedEvents.find(({ account }) => account == ethan.address);
-//         const rewardedBalathar = rewardedEvents.find(({ account }) => account == baltathar.address);
+//         const rewardedBalathar = rewardedEvents.find(({ account }) => account == baltathar
+//.address);
 
 //         const rewardedPbr = rewardedEvents.find(({ account }) => account == dorothy.address);
-//         const rewardedTreasury = rewardedEvents.find(({ account }) => account == charleth.address);
+//         const rewardedTreasury = rewardedEvents.find(({ account }) => account == charleth
+//.address);
 
 //         expect(rewardedAlith).is.not.undefined;
 //         expect(rewardedEthan).is.not.undefined;
