@@ -44,10 +44,11 @@ const checkBinary = async () => {
   }
 };
 
-const startMoonbeam = () => {
+const startMoonbeam = (port: string) => {
+  console.log("Starting Moonbeam node at port ", port);
   const moonbeam = spawn(
     "../target/release/moonbeam",
-    ["--tmp", "--chain=moonbase-local", "--rpc-port=9944"],
+    ["--tmp", "--chain=moonbase-local", `--rpc-port=${port}`],
     {
       detached: true,
       stdio: "ignore",
@@ -64,7 +65,7 @@ const executeUpdateAPIScript = async () => {
   await executeScript("../../typescript-api", "pnpm build");
   // Install packages
   await executeScript("../../moonbeam-types-bundle", "pnpm install");
-  const node = startMoonbeam();
+  const node = startMoonbeam("9933");
   // Wait 5 seconds
   await new Promise((resolve) => setTimeout(resolve, 5000));
   // Generate types
