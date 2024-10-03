@@ -5,7 +5,6 @@
 // import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 
 import { describeSuite, expect } from "@moonwall/cli";
-import { id } from "ethers";
 
 // dummy passing test
 describeSuite({
@@ -21,7 +20,7 @@ describeSuite({
       },
     });
   },
-})
+});
 
 // describeSuite({
 //   id: "D0134655",
