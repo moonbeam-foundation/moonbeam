@@ -4,181 +4,275 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-importers:
+dependencies:
+  '@acala-network/chopsticks':
+    specifier: 0.16.1
+    version: 0.16.1(debug@4.3.7)
+  '@moonbeam-network/api-augment':
+    specifier: 0.2902.0
+    version: 0.2902.0
+  '@moonwall/cli':
+    specifier: 5.3.3
+    version: 5.3.3(@acala-network/chopsticks@0.16.1)(@polkadot/api@13.0.1)(@types/node@22.7.0)(@vitest/ui@2.1.1)(typescript@5.6.2)(vitest@2.1.1)
+  '@moonwall/util':
+    specifier: 5.3.3
+    version: 5.3.3(@polkadot/api@13.0.1)(typescript@5.6.2)(vitest@2.1.1)
+  '@openzeppelin/contracts':
+    specifier: 4.9.6
+    version: 4.9.6
+  '@polkadot-api/merkleize-metadata':
+    specifier: 1.1.4
+    version: 1.1.4
+  '@polkadot/api':
+    specifier: 13.0.1
+    version: 13.0.1
+  '@polkadot/api-augment':
+    specifier: 13.0.1
+    version: 13.0.1
+  '@polkadot/api-derive':
+    specifier: 13.0.1
+    version: 13.0.1
+  '@polkadot/apps-config':
+    specifier: 0.143.2
+    version: 0.143.2(@polkadot/keyring@13.1.1)(react-dom@18.3.1)(react-is@18.3.1)(react@18.3.1)
+  '@polkadot/keyring':
+    specifier: 13.1.1
+    version: 13.1.1(@polkadot/util-crypto@13.1.1)(@polkadot/util@13.1.1)
+  '@polkadot/rpc-provider':
+    specifier: 13.0.1
+    version: 13.0.1
+  '@polkadot/types':
+    specifier: 13.0.1
+    version: 13.0.1
+  '@polkadot/types-codec':
+    specifier: 13.0.1
+    version: 13.0.1
+  '@polkadot/util':
+    specifier: 13.1.1
+    version: 13.1.1
+  '@polkadot/util-crypto':
+    specifier: 13.1.1
+    version: 13.1.1(@polkadot/util@13.1.1)
+  '@substrate/txwrapper-core':
+    specifier: 7.5.1
+    version: 7.5.1(@polkadot/util-crypto@13.1.1)(@polkadot/util@13.1.1)
+  '@substrate/txwrapper-substrate':
+    specifier: 7.5.1
+    version: 7.5.1(@polkadot/util-crypto@13.1.1)(@polkadot/util@13.1.1)
+  '@vitest/ui':
+    specifier: 2.1.1
+    version: 2.1.1(vitest@2.1.1)
+  '@zombienet/utils':
+    specifier: 0.0.25
+    version: 0.0.25(@types/node@22.7.0)(typescript@5.6.2)
+  chalk:
+    specifier: 5.3.0
+    version: 5.3.0
+  eth-object:
+    specifier: github:aurora-is-near/eth-object#master
+    version: github.com/aurora-is-near/eth-object/378b8dbf44a71f7049666cea5a16ab88d45aed06
+  ethers:
+    specifier: 6.13.2
+    version: 6.13.2
+  json-bigint:
+    specifier: 1.0.0
+    version: 1.0.0
+  json-stable-stringify:
+    specifier: 1.1.1
+    version: 1.1.1
+  merkle-patricia-tree:
+    specifier: 4.2.4
+    version: 4.2.4
+  node-fetch:
+    specifier: 3.3.2
+    version: 3.3.2
+  octokit:
+    specifier: ^4.0.2
+    version: 4.0.2
+  randomness:
+    specifier: 1.6.14
+    version: 1.6.14
+  rlp:
+    specifier: 3.0.0
+    version: 3.0.0
+  semver:
+    specifier: 7.6.3
+    version: 7.6.3
+  solc:
+    specifier: 0.8.25
+    version: 0.8.25(debug@4.3.7)
+  tsx:
+    specifier: 4.16.2
+    version: 4.16.2
+  viem:
+    specifier: 2.21.14
+    version: 2.21.14(typescript@5.6.2)
+  vitest:
+    specifier: 2.1.1
+    version: 2.1.1(@types/node@22.7.0)(@vitest/ui@2.1.1)
+  web3:
+    specifier: 4.13.0
+    version: 4.13.0(typescript@5.6.2)
+  yaml:
+    specifier: 2.5.1
+    version: 2.5.1
 
-  .:
-    dependencies:
-      '@acala-network/chopsticks':
-        specifier: 0.15.0
-        version: 0.15.0(bufferutil@4.0.8)(debug@4.3.7)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10)
-      '@moonbeam-network/api-augment':
-        specifier: link:../typescript-api
-        version: link:../typescript-api
-      '@moonwall/cli':
-        specifier: 5.3.3
-        version: 5.3.3(@acala-network/chopsticks@0.15.0(bufferutil@4.0.8)(debug@4.3.7)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10))(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(@types/node@22.7.0)(@vitest/ui@2.1.1(vitest@2.1.1))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(vitest@2.1.1(@types/node@22.7.0)(@vitest/ui@2.1.1)(jsdom@23.2.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)))(zod@3.23.8)
-      '@moonwall/util':
-        specifier: 5.3.3
-        version: 5.3.3(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(vitest@2.1.1(@types/node@22.7.0)(@vitest/ui@2.1.1)(jsdom@23.2.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)))(zod@3.23.8)
-      '@openzeppelin/contracts':
-        specifier: 4.9.6
-        version: 4.9.6
-      '@polkadot-api/merkleize-metadata':
-        specifier: 1.1.4
-        version: 1.1.4
-      '@polkadot/api':
-        specifier: 13.0.1
-        version: 13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/api-augment':
-        specifier: 13.0.1
-        version: 13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/api-derive':
-        specifier: 13.0.1
-        version: 13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/apps-config':
-        specifier: 0.143.2
-        version: 0.143.2(@polkadot/keyring@13.1.1(@polkadot/util-crypto@13.1.1(@polkadot/util@13.1.1))(@polkadot/util@13.1.1))(bufferutil@4.0.8)(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))(react-is@18.3.1)(react@18.3.1)(utf-8-validate@5.0.10)
-      '@polkadot/keyring':
-        specifier: 13.1.1
-        version: 13.1.1(@polkadot/util-crypto@13.1.1(@polkadot/util@13.1.1))(@polkadot/util@13.1.1)
-      '@polkadot/rpc-provider':
-        specifier: 13.0.1
-        version: 13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/types':
-        specifier: 13.0.1
-        version: 13.0.1
-      '@polkadot/types-codec':
-        specifier: 13.0.1
-        version: 13.0.1
-      '@polkadot/util':
-        specifier: 13.1.1
-        version: 13.1.1
-      '@polkadot/util-crypto':
-        specifier: 13.1.1
-        version: 13.1.1(@polkadot/util@13.1.1)
-      '@substrate/txwrapper-core':
-        specifier: 7.5.1
-        version: 7.5.1(@polkadot/util-crypto@13.1.1(@polkadot/util@13.1.1))(@polkadot/util@13.1.1)(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@substrate/txwrapper-substrate':
-        specifier: 7.5.1
-        version: 7.5.1(@polkadot/util-crypto@13.1.1(@polkadot/util@13.1.1))(@polkadot/util@13.1.1)(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@vitest/ui':
-        specifier: 2.1.1
-        version: 2.1.1(vitest@2.1.1)
-      '@zombienet/utils':
-        specifier: 0.0.25
-        version: 0.0.25(@types/node@22.7.0)(chokidar@3.6.0)(typescript@5.6.2)
-      chalk:
-        specifier: 5.3.0
-        version: 5.3.0
-      eth-object:
-        specifier: github:aurora-is-near/eth-object#master
-        version: https://codeload.github.com/aurora-is-near/eth-object/tar.gz/378b8dbf44a71f7049666cea5a16ab88d45aed06(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      ethers:
-        specifier: 6.13.2
-        version: 6.13.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      json-bigint:
-        specifier: 1.0.0
-        version: 1.0.0
-      json-stable-stringify:
-        specifier: 1.1.1
-        version: 1.1.1
-      merkle-patricia-tree:
-        specifier: 4.2.4
-        version: 4.2.4
-      node-fetch:
-        specifier: 3.3.2
-        version: 3.3.2
-      octokit:
-        specifier: ^4.0.2
-        version: 4.0.2
-      randomness:
-        specifier: 1.6.14
-        version: 1.6.14
-      rlp:
-        specifier: 3.0.0
-        version: 3.0.0
-      semver:
-        specifier: 7.6.3
-        version: 7.6.3
-      solc:
-        specifier: 0.8.25
-        version: 0.8.25(debug@4.3.7)
-      tsx:
-        specifier: 4.16.2
-        version: 4.16.2
-      viem:
-        specifier: 2.21.14
-        version: 2.21.14(bufferutil@4.0.8)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
-      vitest:
-        specifier: 2.1.1
-        version: 2.1.1(@types/node@22.7.0)(@vitest/ui@2.1.1)(jsdom@23.2.0(bufferutil@4.0.8)(utf-8-validate@5.0.10))
-      web3:
-        specifier: 4.13.0
-        version: 4.13.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
-      yaml:
-        specifier: 2.5.1
-        version: 2.5.1
-    devDependencies:
-      '@types/debug':
-        specifier: 4.1.12
-        version: 4.1.12
-      '@types/json-bigint':
-        specifier: ^1.0.4
-        version: 1.0.4
-      '@types/node':
-        specifier: 22.7.0
-        version: 22.7.0
-      '@types/semver':
-        specifier: 7.5.8
-        version: 7.5.8
-      '@types/yargs':
-        specifier: 17.0.33
-        version: 17.0.33
-      '@typescript-eslint/eslint-plugin':
-        specifier: 7.5.0
-        version: 7.5.0(@typescript-eslint/parser@7.5.0(eslint@8.57.0)(typescript@5.6.2))(eslint@8.57.0)(typescript@5.6.2)
-      '@typescript-eslint/parser':
-        specifier: 7.5.0
-        version: 7.5.0(eslint@8.57.0)(typescript@5.6.2)
-      bottleneck:
-        specifier: 2.19.5
-        version: 2.19.5
-      debug:
-        specifier: 4.3.7
-        version: 4.3.7(supports-color@8.1.1)
-      eslint:
-        specifier: 8.57.0
-        version: 8.57.0
-      eslint-plugin-unused-imports:
-        specifier: 3.1.0
-        version: 3.1.0(@typescript-eslint/eslint-plugin@7.5.0(@typescript-eslint/parser@7.5.0(eslint@8.57.0)(typescript@5.6.2))(eslint@8.57.0)(typescript@5.6.2))(eslint@8.57.0)
-      prettier:
-        specifier: 2.8.8
-        version: 2.8.8
-      typescript:
-        specifier: 5.6.2
-        version: 5.6.2
-      yargs:
-        specifier: 17.7.2
-        version: 17.7.2
+devDependencies:
+  '@types/debug':
+    specifier: 4.1.12
+    version: 4.1.12
+  '@types/json-bigint':
+    specifier: ^1.0.4
+    version: 1.0.4
+  '@types/node':
+    specifier: 22.7.0
+    version: 22.7.0
+  '@types/semver':
+    specifier: 7.5.8
+    version: 7.5.8
+  '@types/yargs':
+    specifier: 17.0.33
+    version: 17.0.33
+  '@typescript-eslint/eslint-plugin':
+    specifier: 7.5.0
+    version: 7.5.0(@typescript-eslint/parser@7.5.0)(eslint@8.57.0)(typescript@5.6.2)
+  '@typescript-eslint/parser':
+    specifier: 7.5.0
+    version: 7.5.0(eslint@8.57.0)(typescript@5.6.2)
+  bottleneck:
+    specifier: 2.19.5
+    version: 2.19.5
+  debug:
+    specifier: 4.3.7
+    version: 4.3.7(supports-color@8.1.1)
+  eslint:
+    specifier: 8.57.0
+    version: 8.57.0
+  eslint-plugin-unused-imports:
+    specifier: 3.1.0
+    version: 3.1.0(@typescript-eslint/eslint-plugin@7.5.0)(eslint@8.57.0)
+  prettier:
+    specifier: 2.8.8
+    version: 2.8.8
+  typescript:
+    specifier: 5.6.2
+    version: 5.6.2
+  yargs:
+    specifier: 17.7.2
+    version: 17.7.2
 
 packages:
 
-  '@acala-network/chopsticks-core@0.15.0':
-    resolution: {integrity: sha512-yLtgVuJUXegyO9HQ483ARl8Q74eXH4K6RsGy+NZ8nE3uJocxG8DXnI2YQlyPmyzZSOlKq6zHnZzbosNBOhVsMA==}
+  /@acala-network/chopsticks-core@0.16.1:
+    resolution: {integrity: sha512-1pOw0Avji/ejOE90gN9F/6nTt9+cr683vBLC8rg6YYGwgKlCK0DLaU+wGMFYklSVfhyGVpaZj333LAnrCKYi+g==}
+    dependencies:
+      '@acala-network/chopsticks-executor': 0.16.1
+      '@polkadot/rpc-provider': 12.4.2
+      '@polkadot/types': 12.4.2
+      '@polkadot/types-codec': 12.4.2
+      '@polkadot/types-known': 12.4.2
+      '@polkadot/util': 13.1.1
+      '@polkadot/util-crypto': 13.1.1(@polkadot/util@13.1.1)
+      comlink: 4.4.1
+      eventemitter3: 5.0.1
+      lodash: 4.17.21
+      lru-cache: 10.3.0
+      pino: 8.21.0
+      pino-pretty: 11.2.1
+      rxjs: 7.8.1
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: false
 
-  '@acala-network/chopsticks-db@0.15.0':
-    resolution: {integrity: sha512-gN2v404ZdBvQtMWZmwS1LJ2OxEvZY74sWIZwpoAQrT3Q2Ey0eW0TNjkgHsyBGLT3DyekEooLHTwAzbH3D55fNA==}
+  /@acala-network/chopsticks-db@0.16.1:
+    resolution: {integrity: sha512-FV4LTxou7pn6drVyr5jWB6T16Sfa3s74L+XHVOZO1NERzjwXtCJsoKnqtppcyB4awNm+UIqFBIOE4kgfIUvwOw==}
+    dependencies:
+      '@acala-network/chopsticks-core': 0.16.1
+      '@polkadot/util': 13.1.1
+      idb: 8.0.0
+      sqlite3: 5.1.7
+      typeorm: 0.3.20(sqlite3@5.1.7)
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@sap/hana-client'
+      - better-sqlite3
+      - bluebird
+      - bufferutil
+      - hdb-pool
+      - ioredis
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - redis
+      - sql.js
+      - supports-color
+      - ts-node
+      - typeorm-aurora-data-api-driver
+      - utf-8-validate
+    dev: false
 
-  '@acala-network/chopsticks-executor@0.15.0':
-    resolution: {integrity: sha512-j2dhg1ETKgKJqDjVeVMdUG7uqhvoMS7rjSty0CXRBUeen5TlVoEt3FqLfUDVa3S5CBnKs2YgYUAURGjfXiegTg==}
+  /@acala-network/chopsticks-executor@0.16.1:
+    resolution: {integrity: sha512-sSBTtr661XqbgXYjxLQCoWZZfd30RdZUiwIHqGr9l48jshlR1jC+QMt39XL3pV3nBh0jv7bTxt8P242ZbJ4ktA==}
+    dependencies:
+      '@polkadot/util': 13.1.1
+      '@polkadot/wasm-util': 7.3.2(@polkadot/util@13.1.1)
+    dev: false
 
-  '@acala-network/chopsticks@0.15.0':
-    resolution: {integrity: sha512-57DRkTrsZrSHzWxch9yeDjVZpUJnm42W7sgM1ihYcjcgtCWuTbPG2sul1jP/VHvueDCr+84Hu6gIb45iwdkVvw==}
+  /@acala-network/chopsticks@0.16.1(debug@4.3.7):
+    resolution: {integrity: sha512-9gWKIFDns3R7QmmNOOtRW4+RSOLav8dpIzNjTLGoUSY2MXe1iU207+bLiooXFja4sRyJIQ2RwDvCdPIzAxTXcA==}
     hasBin: true
+    dependencies:
+      '@acala-network/chopsticks-core': 0.16.1
+      '@acala-network/chopsticks-db': 0.16.1
+      '@pnpm/npm-conf': 2.2.2
+      '@polkadot/api': 12.4.2
+      '@polkadot/api-augment': 12.4.2
+      '@polkadot/rpc-provider': 12.4.2
+      '@polkadot/types': 12.4.2
+      '@polkadot/util': 13.1.1
+      '@polkadot/util-crypto': 13.1.1(@polkadot/util@13.1.1)
+      axios: 1.7.7(debug@4.3.7)
+      comlink: 4.4.1
+      dotenv: 16.4.5
+      global-agent: 3.0.0
+      js-yaml: 4.1.0
+      jsondiffpatch: 0.5.0
+      lodash: 4.17.21
+      ws: 8.18.0
+      yargs: 17.7.2
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@sap/hana-client'
+      - better-sqlite3
+      - bluebird
+      - bufferutil
+      - debug
+      - hdb-pool
+      - ioredis
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - redis
+      - sql.js
+      - supports-color
+      - ts-node
+      - typeorm-aurora-data-api-driver
+      - utf-8-validate
+    dev: false
 
-  '@acala-network/type-definitions@5.1.2':
+  /@acala-network/type-definitions@5.1.2(@polkadot/types@12.4.2):
     resolution: {integrity: sha512-di3HH8Zn8i1jkQkQiwc44A8ovN9MvK5HwcNV3ngvW3TeF0dHbpHBQHdElJYpVge5IaEyhQ0kWihIEnVqpw4G9A==}
     peerDependencies:
       '@polkadot/types': ^10.5.1
@@ -6781,11 +6875,22 @@ snapshots:
     dependencies:
       lodash.merge: 4.6.2
 
-  '@moonbeam-network/api-augment@0.2902.0': {}
+  /@moonbeam-network/api-augment@0.2902.0:
+    resolution: {integrity: sha512-lCNc1lUq7kHnTPXvT4W8F2nkxr4UjAEs5LdxXHfrATOt+ZfGfX97/4sZfSRXlVqATrOUw7+sqKM8SL0ci0nx0g==}
+    engines: {node: '>=14.0.0'}
+    dev: false
 
-  '@moonwall/cli@5.3.3(@acala-network/chopsticks@0.15.0(bufferutil@4.0.8)(debug@4.3.7)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10))(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(@types/node@22.7.0)(@vitest/ui@2.1.1(vitest@2.1.1))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(vitest@2.1.1(@types/node@22.7.0)(@vitest/ui@2.1.1)(jsdom@23.2.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)))(zod@3.23.8)':
+  /@moonwall/cli@5.3.3(@acala-network/chopsticks@0.16.1)(@polkadot/api@13.0.1)(@types/node@22.7.0)(@vitest/ui@2.1.1)(typescript@5.6.2)(vitest@2.1.1):
+    resolution: {integrity: sha512-iFJ9DnefUrwHS/FCeMrVIlBxbd8P9j3dqBwGeJ/yfNtqaurx3g8Sx3jpSueWjkZ3vozlkGYJFYgtnlXGVzvGNw==}
+    engines: {node: '>=20', pnpm: '>=7'}
+    hasBin: true
+    peerDependencies:
+      '@acala-network/chopsticks': ^0.9.10
+      '@polkadot/api': ^10.11.2
+      '@vitest/ui': ^1.2.2
+      vitest: ^1.2.2
     dependencies:
-      '@acala-network/chopsticks': 0.15.0(bufferutil@4.0.8)(debug@4.3.7)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10)
+      '@acala-network/chopsticks': 0.16.1(debug@4.3.7)
       '@moonbeam-network/api-augment': 0.2902.0
       '@moonwall/types': 5.3.3(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
       '@moonwall/util': 5.3.3(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(vitest@2.1.1(@types/node@22.7.0)(@vitest/ui@2.1.1)(jsdom@23.2.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)))(zod@3.23.8)
