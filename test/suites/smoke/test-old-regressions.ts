@@ -203,7 +203,7 @@ describeSuite({
       title: "Moonriver: eth_getLogs with more than 16 addresses filtered should return logs",
       chainType: "moonriver",
       test: async function () {
-        const addresses = Array.from({ length: 17 }, () => generateKeyringPair()).map(
+        const addresses = Array.from({ length: 1024 }, () => generateKeyringPair()).map(
           (a) => a.address as `0x${string}`
         );
 
