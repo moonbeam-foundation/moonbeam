@@ -29,9 +29,11 @@ impl<const L: u128, const U: u128> BoundedU128<L, U> {
 		Ok(Self(value))
 	}
 
-	pub fn new_or_min(value: u128) -> Self {
-		if value < L || value > U {
+	pub fn safe_new(value: u128) -> Self {
+		if value < L {
 			Self(L)
+		} else if value > U {
+			Self(U)
 		} else {
 			Self(value)
 		}
@@ -87,14 +89,14 @@ mod tests {
 		let bounded = BoundedU128::<1, 10>::new(11);
 		assert_eq!(bounded, Err("Value out of bounds"));
 
-		let bounded = BoundedU128::<1, 10>::new_or_min(0);
+		let bounded = BoundedU128::<1, 10>::safe_new(0);
 		assert_eq!(bounded.value(), 1);
 
-		let bounded = BoundedU128::<1, 10>::new_or_min(5);
+		let bounded = BoundedU128::<1, 10>::safe_new(5);
 		assert_eq!(bounded.value(), 5);
 
-		let bounded = BoundedU128::<1, 10>::new_or_min(11);
-		assert_eq!(bounded.value(), 1);
+		let bounded = BoundedU128::<1, 10>::safe_new(11);
+		assert_eq!(bounded.value(), 10);
 	}
 
 	#[test]
