@@ -41,7 +41,7 @@ pub mod dynamic_params {
 		pub static Deposit: BoundedU128<
 			{ 1 * currency::UNIT * currency::SUPPLY_FACTOR },
 			{ 1_000 * currency::UNIT * currency::SUPPLY_FACTOR },
-		> = BoundedU128::safe_new(1 * currency::UNIT * currency::SUPPLY_FACTOR);
+		> = BoundedU128::safe_new::<{1 * currency::UNIT * currency::SUPPLY_FACTOR}>();
 	}
 }
 
