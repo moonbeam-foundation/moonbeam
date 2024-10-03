@@ -32,11 +32,10 @@ use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_primitives::NimbusId;
 use parity_scale_codec::Encode;
 use polkadot_primitives::{
-	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, UpgradeGoAhead,
+	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
 };
 use sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
 use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks, StorageProvider};
-use sc_consensus_manual_seal::rpc::{ManualSeal, ManualSealApiServer};
 use sc_executor::{HeapAllocStrategy, RuntimeVersionOf, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 use sc_network::config::FullNetworkConfiguration;
 use sc_network::NetworkBackend;
@@ -631,6 +630,11 @@ where
 								}
 								.encode(),
 							),
+							// Override current slot number
+							(
+								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),
+								Slot::from(u64::from(current_para_block)).encode(),
+							),
 						];
 
 						// If there is a pending upgrade, lets mimic a GoAhead
@@ -655,6 +659,7 @@ where
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
+							para_id: ParaId::new(parachain_id),
 							current_para_block_head,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
@@ -664,7 +669,6 @@ where
 							xcm_config: MockXcmConfig::new(
 								&*client_for_cidp,
 								block,
-								ParaId::new(parachain_id),
 								Default::default(),
 							),
 							raw_downward_messages: downward_xcm_receiver.drain().collect(),
@@ -837,17 +841,6 @@ where
 	}
 
 	network_starter.start_network();
-
-	// If a manual seal channel exists, create the first block
-	if let Some(sink) = command_sink {
-		let _ = <ManualSeal<_> as ManualSealApiServer<_>>::create_block(
-			&ManualSeal::new(sink),
-			true,
-			false,
-			None,
-		)
-		.await;
-	}
 
 	log::info!("Service Ready");
 

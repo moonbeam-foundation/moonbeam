@@ -41,7 +41,7 @@ use sp_std::vec::Vec;
 use xcm::v4::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
 use xcm::{IntoVersion, VersionedAssetId};
 use xcm_executor::traits::{TransactAsset, WeightTrader};
-use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
+use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
 
 pub const RELATIVE_PRICE_DECIMALS: u32 = 18;
 

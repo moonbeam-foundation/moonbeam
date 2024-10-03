@@ -48,8 +48,6 @@ runs:
           params="$params --features ${{ inputs.features }}"
         fi
         echo "cargo build $params"
-        cargo build $params --features lazy-loading
-        cp target/release/moonbeam target/release/lazy-loading
         cargo build $params
     - name: Display binary comments
       shell: bash
@@ -76,4 +74,3 @@ runs:
       run: |
         mkdir -p build
         cp target/release/moonbeam build/moonbeam;
-        cp target/release/lazy-loading build/lazy-loading;
