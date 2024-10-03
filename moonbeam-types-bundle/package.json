@@ -35,7 +35,7 @@
     "url": "git+https://github.com/moonbeam-foundation/moonbeam.git"
   },
   "dependencies": {
-    "@polkadot/api": "13.0.1",
+    "@polkadot/api": "14.0.1",
     "@polkadot/api-base": "13.0.1",
     "@polkadot/rpc-core": "13.0.1",
     "@polkadot/typegen": "13.0.1",
