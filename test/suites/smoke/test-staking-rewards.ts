@@ -620,7 +620,7 @@ describeSuite({
         const eventTypes = payment.delayedPayoutRound.firstBlockApi.events;
         // only deduct parachainBondReward if it was transferred (event must exist)
         if (eventTypes.parachainStaking.InflationDistributed.is(event)) {
-          reservedInflation.addn(event.data.value.toNumber())
+          reservedInflation.addn(event.data.value.toNumber());
         }
       }
 

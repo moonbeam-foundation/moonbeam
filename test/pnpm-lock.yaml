@@ -4,275 +4,181 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-dependencies:
-  '@acala-network/chopsticks':
-    specifier: 0.16.1
-    version: 0.16.1(debug@4.3.7)
-  '@moonbeam-network/api-augment':
-    specifier: 0.2902.0
-    version: 0.2902.0
-  '@moonwall/cli':
-    specifier: 5.3.3
-    version: 5.3.3(@acala-network/chopsticks@0.16.1)(@polkadot/api@13.0.1)(@types/node@22.7.0)(@vitest/ui@2.1.1)(typescript@5.6.2)(vitest@2.1.1)
-  '@moonwall/util':
-    specifier: 5.3.3
-    version: 5.3.3(@polkadot/api@13.0.1)(typescript@5.6.2)(vitest@2.1.1)
-  '@openzeppelin/contracts':
-    specifier: 4.9.6
-    version: 4.9.6
-  '@polkadot-api/merkleize-metadata':
-    specifier: 1.1.4
-    version: 1.1.4
-  '@polkadot/api':
-    specifier: 13.0.1
-    version: 13.0.1
-  '@polkadot/api-augment':
-    specifier: 13.0.1
-    version: 13.0.1
-  '@polkadot/api-derive':
-    specifier: 13.0.1
-    version: 13.0.1
-  '@polkadot/apps-config':
-    specifier: 0.143.2
-    version: 0.143.2(@polkadot/keyring@13.1.1)(react-dom@18.3.1)(react-is@18.3.1)(react@18.3.1)
-  '@polkadot/keyring':
-    specifier: 13.1.1
-    version: 13.1.1(@polkadot/util-crypto@13.1.1)(@polkadot/util@13.1.1)
-  '@polkadot/rpc-provider':
-    specifier: 13.0.1
-    version: 13.0.1
-  '@polkadot/types':
-    specifier: 13.0.1
-    version: 13.0.1
-  '@polkadot/types-codec':
-    specifier: 13.0.1
-    version: 13.0.1
-  '@polkadot/util':
-    specifier: 13.1.1
-    version: 13.1.1
-  '@polkadot/util-crypto':
-    specifier: 13.1.1
-    version: 13.1.1(@polkadot/util@13.1.1)
-  '@substrate/txwrapper-core':
-    specifier: 7.5.1
-    version: 7.5.1(@polkadot/util-crypto@13.1.1)(@polkadot/util@13.1.1)
-  '@substrate/txwrapper-substrate':
-    specifier: 7.5.1
-    version: 7.5.1(@polkadot/util-crypto@13.1.1)(@polkadot/util@13.1.1)
-  '@vitest/ui':
-    specifier: 2.1.1
-    version: 2.1.1(vitest@2.1.1)
-  '@zombienet/utils':
-    specifier: 0.0.25
-    version: 0.0.25(@types/node@22.7.0)(typescript@5.6.2)
-  chalk:
-    specifier: 5.3.0
-    version: 5.3.0
-  eth-object:
-    specifier: github:aurora-is-near/eth-object#master
-    version: github.com/aurora-is-near/eth-object/378b8dbf44a71f7049666cea5a16ab88d45aed06
-  ethers:
-    specifier: 6.13.2
-    version: 6.13.2
-  json-bigint:
-    specifier: 1.0.0
-    version: 1.0.0
-  json-stable-stringify:
-    specifier: 1.1.1
-    version: 1.1.1
-  merkle-patricia-tree:
-    specifier: 4.2.4
-    version: 4.2.4
-  node-fetch:
-    specifier: 3.3.2
-    version: 3.3.2
-  octokit:
-    specifier: ^4.0.2
-    version: 4.0.2
-  randomness:
-    specifier: 1.6.14
-    version: 1.6.14
-  rlp:
-    specifier: 3.0.0
-    version: 3.0.0
-  semver:
-    specifier: 7.6.3
-    version: 7.6.3
-  solc:
-    specifier: 0.8.25
-    version: 0.8.25(debug@4.3.7)
-  tsx:
-    specifier: 4.16.2
-    version: 4.16.2
-  viem:
-    specifier: 2.21.14
-    version: 2.21.14(typescript@5.6.2)
-  vitest:
-    specifier: 2.1.1
-    version: 2.1.1(@types/node@22.7.0)(@vitest/ui@2.1.1)
-  web3:
-    specifier: 4.13.0
-    version: 4.13.0(typescript@5.6.2)
-  yaml:
-    specifier: 2.5.1
-    version: 2.5.1
+importers:
 
-devDependencies:
-  '@types/debug':
-    specifier: 4.1.12
-    version: 4.1.12
-  '@types/json-bigint':
-    specifier: ^1.0.4
-    version: 1.0.4
-  '@types/node':
-    specifier: 22.7.0
-    version: 22.7.0
-  '@types/semver':
-    specifier: 7.5.8
-    version: 7.5.8
-  '@types/yargs':
-    specifier: 17.0.33
-    version: 17.0.33
-  '@typescript-eslint/eslint-plugin':
-    specifier: 7.5.0
-    version: 7.5.0(@typescript-eslint/parser@7.5.0)(eslint@8.57.0)(typescript@5.6.2)
-  '@typescript-eslint/parser':
-    specifier: 7.5.0
-    version: 7.5.0(eslint@8.57.0)(typescript@5.6.2)
-  bottleneck:
-    specifier: 2.19.5
-    version: 2.19.5
-  debug:
-    specifier: 4.3.7
-    version: 4.3.7(supports-color@8.1.1)
-  eslint:
-    specifier: 8.57.0
-    version: 8.57.0
-  eslint-plugin-unused-imports:
-    specifier: 3.1.0
-    version: 3.1.0(@typescript-eslint/eslint-plugin@7.5.0)(eslint@8.57.0)
-  prettier:
-    specifier: 2.8.8
-    version: 2.8.8
-  typescript:
-    specifier: 5.6.2
-    version: 5.6.2
-  yargs:
-    specifier: 17.7.2
-    version: 17.7.2
+  .:
+    dependencies:
+      '@acala-network/chopsticks':
+        specifier: 0.16.1
+        version: 0.16.1(bufferutil@4.0.8)(debug@4.3.7)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10)
+      '@moonbeam-network/api-augment':
+        specifier: 0.2902.0
+        version: 0.2902.0
+      '@moonwall/cli':
+        specifier: 5.3.3
+        version: 5.3.3(@acala-network/chopsticks@0.16.1(bufferutil@4.0.8)(debug@4.3.7)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10))(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(@types/node@22.7.0)(@vitest/ui@2.1.1)(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(vitest@2.1.1)(zod@3.23.8)
+      '@moonwall/util':
+        specifier: 5.3.3
+        version: 5.3.3(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(vitest@2.1.1)(zod@3.23.8)
+      '@openzeppelin/contracts':
+        specifier: 4.9.6
+        version: 4.9.6
+      '@polkadot-api/merkleize-metadata':
+        specifier: 1.1.4
+        version: 1.1.4
+      '@polkadot/api':
+        specifier: 13.0.1
+        version: 13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/api-augment':
+        specifier: 13.0.1
+        version: 13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/api-derive':
+        specifier: 13.0.1
+        version: 13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/apps-config':
+        specifier: 0.143.2
+        version: 0.143.2(@polkadot/keyring@13.1.1(@polkadot/util-crypto@13.1.1(@polkadot/util@13.1.1))(@polkadot/util@13.1.1))(bufferutil@4.0.8)(encoding@0.1.13)(react-dom@18.3.1(react@18.3.1))(react-is@18.3.1)(react@18.3.1)(utf-8-validate@5.0.10)
+      '@polkadot/keyring':
+        specifier: 13.1.1
+        version: 13.1.1(@polkadot/util-crypto@13.1.1(@polkadot/util@13.1.1))(@polkadot/util@13.1.1)
+      '@polkadot/rpc-provider':
+        specifier: 13.0.1
+        version: 13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/types':
+        specifier: 13.0.1
+        version: 13.0.1
+      '@polkadot/types-codec':
+        specifier: 13.0.1
+        version: 13.0.1
+      '@polkadot/util':
+        specifier: 13.1.1
+        version: 13.1.1
+      '@polkadot/util-crypto':
+        specifier: 13.1.1
+        version: 13.1.1(@polkadot/util@13.1.1)
+      '@substrate/txwrapper-core':
+        specifier: 7.5.1
+        version: 7.5.1(@polkadot/util-crypto@13.1.1(@polkadot/util@13.1.1))(@polkadot/util@13.1.1)(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@substrate/txwrapper-substrate':
+        specifier: 7.5.1
+        version: 7.5.1(@polkadot/util-crypto@13.1.1(@polkadot/util@13.1.1))(@polkadot/util@13.1.1)(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@vitest/ui':
+        specifier: 2.1.1
+        version: 2.1.1(vitest@2.1.1)
+      '@zombienet/utils':
+        specifier: 0.0.25
+        version: 0.0.25(@types/node@22.7.0)(chokidar@3.6.0)(typescript@5.6.2)
+      chalk:
+        specifier: 5.3.0
+        version: 5.3.0
+      eth-object:
+        specifier: github:aurora-is-near/eth-object#master
+        version: https://codeload.github.com/aurora-is-near/eth-object/tar.gz/378b8dbf44a71f7049666cea5a16ab88d45aed06(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
+      ethers:
+        specifier: 6.13.2
+        version: 6.13.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      json-bigint:
+        specifier: 1.0.0
+        version: 1.0.0
+      json-stable-stringify:
+        specifier: 1.1.1
+        version: 1.1.1
+      merkle-patricia-tree:
+        specifier: 4.2.4
+        version: 4.2.4
+      node-fetch:
+        specifier: 3.3.2
+        version: 3.3.2
+      octokit:
+        specifier: ^4.0.2
+        version: 4.0.2
+      randomness:
+        specifier: 1.6.14
+        version: 1.6.14
+      rlp:
+        specifier: 3.0.0
+        version: 3.0.0
+      semver:
+        specifier: 7.6.3
+        version: 7.6.3
+      solc:
+        specifier: 0.8.25
+        version: 0.8.25(debug@4.3.7)
+      tsx:
+        specifier: 4.16.2
+        version: 4.16.2
+      viem:
+        specifier: 2.21.14
+        version: 2.21.14(bufferutil@4.0.8)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
+      vitest:
+        specifier: 2.1.1
+        version: 2.1.1(@types/node@22.7.0)(@vitest/ui@2.1.1)(jsdom@23.2.0(bufferutil@4.0.8)(utf-8-validate@5.0.10))
+      web3:
+        specifier: 4.13.0
+        version: 4.13.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
+      yaml:
+        specifier: 2.5.1
+        version: 2.5.1
+    devDependencies:
+      '@types/debug':
+        specifier: 4.1.12
+        version: 4.1.12
+      '@types/json-bigint':
+        specifier: ^1.0.4
+        version: 1.0.4
+      '@types/node':
+        specifier: 22.7.0
+        version: 22.7.0
+      '@types/semver':
+        specifier: 7.5.8
+        version: 7.5.8
+      '@types/yargs':
+        specifier: 17.0.33
+        version: 17.0.33
+      '@typescript-eslint/eslint-plugin':
+        specifier: 7.5.0
+        version: 7.5.0(@typescript-eslint/parser@7.5.0(eslint@8.57.0)(typescript@5.6.2))(eslint@8.57.0)(typescript@5.6.2)
+      '@typescript-eslint/parser':
+        specifier: 7.5.0
+        version: 7.5.0(eslint@8.57.0)(typescript@5.6.2)
+      bottleneck:
+        specifier: 2.19.5
+        version: 2.19.5
+      debug:
+        specifier: 4.3.7
+        version: 4.3.7(supports-color@8.1.1)
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      eslint-plugin-unused-imports:
+        specifier: 3.1.0
+        version: 3.1.0(@typescript-eslint/eslint-plugin@7.5.0(@typescript-eslint/parser@7.5.0(eslint@8.57.0)(typescript@5.6.2))(eslint@8.57.0)(typescript@5.6.2))(eslint@8.57.0)
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      typescript:
+        specifier: 5.6.2
+        version: 5.6.2
+      yargs:
+        specifier: 17.7.2
+        version: 17.7.2
 
 packages:
 
-  /@acala-network/chopsticks-core@0.16.1:
+  '@acala-network/chopsticks-core@0.16.1':
     resolution: {integrity: sha512-1pOw0Avji/ejOE90gN9F/6nTt9+cr683vBLC8rg6YYGwgKlCK0DLaU+wGMFYklSVfhyGVpaZj333LAnrCKYi+g==}
-    dependencies:
-      '@acala-network/chopsticks-executor': 0.16.1
-      '@polkadot/rpc-provider': 12.4.2
-      '@polkadot/types': 12.4.2
-      '@polkadot/types-codec': 12.4.2
-      '@polkadot/types-known': 12.4.2
-      '@polkadot/util': 13.1.1
-      '@polkadot/util-crypto': 13.1.1(@polkadot/util@13.1.1)
-      comlink: 4.4.1
-      eventemitter3: 5.0.1
-      lodash: 4.17.21
-      lru-cache: 10.3.0
-      pino: 8.21.0
-      pino-pretty: 11.2.1
-      rxjs: 7.8.1
-      zod: 3.23.8
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-    dev: false
 
-  /@acala-network/chopsticks-db@0.16.1:
+  '@acala-network/chopsticks-db@0.16.1':
     resolution: {integrity: sha512-FV4LTxou7pn6drVyr5jWB6T16Sfa3s74L+XHVOZO1NERzjwXtCJsoKnqtppcyB4awNm+UIqFBIOE4kgfIUvwOw==}
-    dependencies:
-      '@acala-network/chopsticks-core': 0.16.1
-      '@polkadot/util': 13.1.1
-      idb: 8.0.0
-      sqlite3: 5.1.7
-      typeorm: 0.3.20(sqlite3@5.1.7)
-    transitivePeerDependencies:
-      - '@google-cloud/spanner'
-      - '@sap/hana-client'
-      - better-sqlite3
-      - bluebird
-      - bufferutil
-      - hdb-pool
-      - ioredis
-      - mongodb
-      - mssql
-      - mysql2
-      - oracledb
-      - pg
-      - pg-native
-      - pg-query-stream
-      - redis
-      - sql.js
-      - supports-color
-      - ts-node
-      - typeorm-aurora-data-api-driver
-      - utf-8-validate
-    dev: false
 
-  /@acala-network/chopsticks-executor@0.16.1:
+  '@acala-network/chopsticks-executor@0.16.1':
     resolution: {integrity: sha512-sSBTtr661XqbgXYjxLQCoWZZfd30RdZUiwIHqGr9l48jshlR1jC+QMt39XL3pV3nBh0jv7bTxt8P242ZbJ4ktA==}
-    dependencies:
-      '@polkadot/util': 13.1.1
-      '@polkadot/wasm-util': 7.3.2(@polkadot/util@13.1.1)
-    dev: false
 
-  /@acala-network/chopsticks@0.16.1(debug@4.3.7):
+  '@acala-network/chopsticks@0.16.1':
     resolution: {integrity: sha512-9gWKIFDns3R7QmmNOOtRW4+RSOLav8dpIzNjTLGoUSY2MXe1iU207+bLiooXFja4sRyJIQ2RwDvCdPIzAxTXcA==}
     hasBin: true
-    dependencies:
-      '@acala-network/chopsticks-core': 0.16.1
-      '@acala-network/chopsticks-db': 0.16.1
-      '@pnpm/npm-conf': 2.2.2
-      '@polkadot/api': 12.4.2
-      '@polkadot/api-augment': 12.4.2
-      '@polkadot/rpc-provider': 12.4.2
-      '@polkadot/types': 12.4.2
-      '@polkadot/util': 13.1.1
-      '@polkadot/util-crypto': 13.1.1(@polkadot/util@13.1.1)
-      axios: 1.7.7(debug@4.3.7)
-      comlink: 4.4.1
-      dotenv: 16.4.5
-      global-agent: 3.0.0
-      js-yaml: 4.1.0
-      jsondiffpatch: 0.5.0
-      lodash: 4.17.21
-      ws: 8.18.0
-      yargs: 17.7.2
-      zod: 3.23.8
-    transitivePeerDependencies:
-      - '@google-cloud/spanner'
-      - '@sap/hana-client'
-      - better-sqlite3
-      - bluebird
-      - bufferutil
-      - debug
-      - hdb-pool
-      - ioredis
-      - mongodb
-      - mssql
-      - mysql2
-      - oracledb
-      - pg
-      - pg-native
-      - pg-query-stream
-      - redis
-      - sql.js
-      - supports-color
-      - ts-node
-      - typeorm-aurora-data-api-driver
-      - utf-8-validate
-    dev: false
 
-  /@acala-network/type-definitions@5.1.2(@polkadot/types@12.4.2):
+  '@acala-network/type-definitions@5.1.2':
     resolution: {integrity: sha512-di3HH8Zn8i1jkQkQiwc44A8ovN9MvK5HwcNV3ngvW3TeF0dHbpHBQHdElJYpVge5IaEyhQ0kWihIEnVqpw4G9A==}
     peerDependencies:
       '@polkadot/types': ^10.5.1
@@ -757,9 +663,6 @@ packages:
     resolution: {integrity: sha512-dSYZh7HhCDtCKm4QakX0xFpsRDqjjtZf/kjI/v3T3Nwt5r8/qz/M19F9ySyOqU94SXBmeG9ttTul+YnR4LOxFA==}
     engines: {node: '>=6.0.0'}
 
-  '@jridgewell/sourcemap-codec@1.4.15':
-    resolution: {integrity: sha512-eF2rxCRulEKXHTRiDrDy6erMYWqNw4LPdQ8UQA4huuxaQsVeRPFl2oM8oDGxMFhJUWZf9McpLtJasDDZb/Bpeg==}
-
   '@jridgewell/sourcemap-codec@1.5.0':
     resolution: {integrity: sha512-gv3ZRaISU3fjPAgNsriBRqGWQL6quFx04YMPW/zD8XMLsU32mhCCbfbO6KZFLjvYpCZ8zyDEgqsgf+PwPaM7GQ==}
 
@@ -1143,8 +1046,8 @@ packages:
     resolution: {integrity: sha512-r5R2U8PSPNGBsz+HxZ1JYq/KkDSnDh1aBb+H16wKj2uByXKhedpuGt/z1Myvhfm084ccTloZjXDbfpSdYBLi4Q==}
     engines: {node: '>=18'}
 
-  '@polkadot/api-augment@13.2.1':
-    resolution: {integrity: sha512-NTkI+/Hm48eWc/4Ojh/5elxnjnow5ptXK97IZdkWAe7mWi9hJR05Uq5lGt/T/57E9LSRWEuYje8cIDS3jbbAAw==}
+  '@polkadot/api-augment@14.0.1':
+    resolution: {integrity: sha512-+ZHq3JaQZ/3Q45r6/YQBeLfoP8S5ibgkOvLKnKA9cJeF7oP5Qgi6pAEnGW0accfnT9PyCEco9fD/ZOLR9Yka7w==}
     engines: {node: '>=18'}
 
   '@polkadot/api-augment@7.15.1':
@@ -1175,8 +1078,8 @@ packages:
     resolution: {integrity: sha512-TDkgcSZLd3YQ3j9Zx6coEEiBazaK6y3CboaIuUbPNxR9DchlVdIJWSm/1Agh76opsEABK9SjDfsWzVw0TStidA==}
     engines: {node: '>=18'}
 
-  '@polkadot/api-base@13.2.1':
-    resolution: {integrity: sha512-00twdIjTjzdYNdU19i2YKLoWBmf2Yr6b3qrvqIVScHipUkKMbfFBgoPRB5FtcviBbEvLurgfyzHklwnrbWo8GQ==}
+  '@polkadot/api-base@14.0.1':
+    resolution: {integrity: sha512-OVnDiztKx/1ktae9eCzO1q8lmKEfnQ71fipo8JkDJOMIN4vT1IqL9KQo4e/Xz8UtOfTJ0H8kZ6evaLqdA3ZYOA==}
     engines: {node: '>=18'}
 
   '@polkadot/api-base@7.15.1':
@@ -1207,8 +1110,8 @@ packages:
     resolution: {integrity: sha512-TiPSFp6l9ks0HLJoEWHyqKKz28eoWz3xqglFG10As0udU8J1u8trPyr+SLWHT0DVsto3u9CP+OneWWMA7fTlCw==}
     engines: {node: '>=18'}
 
-  '@polkadot/api-derive@13.2.1':
-    resolution: {integrity: sha512-npxvS0kYcSFqmYv2G8QKWAJwFhIv/MBuGU0bV7cGP9K1A3j2Do3yYjvN1dTtY20jBavWNwmWFdXBV6/TRRsgmg==}
+  '@polkadot/api-derive@14.0.1':
+    resolution: {integrity: sha512-ADQMre3DRRW/0rhJqxOVhQ1vqtyafP2dSZJ0qEAsto12q2WMSF8CZWo7pXe4DxiniDkZx3zVq4z5lqw2aBRLfg==}
     engines: {node: '>=18'}
 
   '@polkadot/api-derive@7.15.1':
@@ -1239,8 +1142,8 @@ packages:
     resolution: {integrity: sha512-st+Y5I8+7/3PCtO651viU4C7PcbDZJHB93acPjqCGzpekwrxOmnBEsupw8CcJwyRVzj/7qMadkSd0b/Uc8JqIA==}
     engines: {node: '>=18'}
 
-  '@polkadot/api@13.2.1':
-    resolution: {integrity: sha512-QvgKD3/q6KIU3ZuNYFJUNc6B8bGBoqeMF+iaPxJn3Twhh4iVD5XIymD5fVszSqiL1uPXMhzcWecjwE8rDidBoQ==}
+  '@polkadot/api@14.0.1':
+    resolution: {integrity: sha512-CDSaUiJpXu9aE6MaTg14K+9Trf8K2PBHcD3Xl5m5KOvJperWgYFxoCqV3rXLIBWt69LgHhMYlq5JSPRHxejIsw==}
     engines: {node: '>=18'}
 
   '@polkadot/api@7.15.1':
@@ -1352,8 +1255,8 @@ packages:
     resolution: {integrity: sha512-igXNG8mONVgqS4Olt7+WmPoX7G/QL/xrHkPOAD2sbS8+p8LC2gDe/+vVFIkKtEKAHgYSel3vZT3iIppjtEG6gw==}
     engines: {node: '>=18'}
 
-  '@polkadot/rpc-augment@13.2.1':
-    resolution: {integrity: sha512-HkndaAJPR1fi2xrzvP3q4g48WUCb26btGTeg1AKG9FGx9P2dgtpaPRmbMitmgVSzzRurrkxf3Meip8nC7BwDeg==}
+  '@polkadot/rpc-augment@14.0.1':
+    resolution: {integrity: sha512-M0CbN/IScqiedYI2TmoQ+SoeEdJHfxGeQD1qJf9uYv9LILK+x1/5fyr5DrZ3uCGVmLuObWAJLnHTs0BzJcSHTQ==}
     engines: {node: '>=18'}
 
   '@polkadot/rpc-augment@7.15.1':
@@ -1384,8 +1287,8 @@ packages:
     resolution: {integrity: sha512-+z7/4RUsJKiELEunZgXvi4GkGgjPhQd3+RYwCCN455efJ15SHPgdREsAOwUSBO5/dODqXeqZYojKAUIxMlJNqw==}
     engines: {node: '>=18'}
 
-  '@polkadot/rpc-core@13.2.1':
-    resolution: {integrity: sha512-hy0GksUlb/TfQ38m3ysIWj3qD+rIsyCdxx8Ug5rIx1u0odv86NZ7nTqtH066Ct2riVaPBgBkObFnlpDWTJ6auA==}
+  '@polkadot/rpc-core@14.0.1':
+    resolution: {integrity: sha512-SfgC6WU7RxaFFgm/GUpsqTywyaDeb7+r5GU3GlwC+QR148h3a7UcQ3sssOpB0MiZ2gIXngJuyIcIQm/3GfHnJw==}
     engines: {node: '>=18'}
 
   '@polkadot/rpc-core@7.15.1':
@@ -1416,8 +1319,8 @@ packages:
     resolution: {integrity: sha512-rl7jizh0b9FI2Z81vbpm+ui6cND3zxMMC8SSxkIzemC0t1L6O/I+zaPYwNpqVpa7wIeZbSfe69SrvtjeZBcn2g==}
     engines: {node: '>=18'}
 
-  '@polkadot/rpc-provider@13.2.1':
-    resolution: {integrity: sha512-bbMVYHTNFUa89aY3UQ1hFYD+dP+v+0vhjsnHYYlv37rSUTqOGqW91rkHd63xYCpLAimFt7KRw8xR+SMSYiuDjw==}
+  '@polkadot/rpc-provider@14.0.1':
+    resolution: {integrity: sha512-mNfaKZUHPXGSY7TwgOfV05RN3Men21Dw7YXrSZDFkJYsZ55yOAYdmLg9anPZGHW100YnNWrXj+3uhQOw8JgqkA==}
     engines: {node: '>=18'}
 
   '@polkadot/rpc-provider@7.15.1':
@@ -1448,8 +1351,8 @@ packages:
     resolution: {integrity: sha512-MKS8OAiKHgeeLwyjPukHRwlUlrTkdPTVdsFs6H3yWUr0G2I2nIgHuOTK/8OYVBMplNnLgPsNtpEpY+VduAEefQ==}
     engines: {node: '>=18'}
 
-  '@polkadot/types-augment@13.2.1':
-    resolution: {integrity: sha512-FpV7/2kIJmmswRmwUbp41lixdNX15olueUjHnSweFk0xEn2Ur43oC0Y3eU3Ab7Y5gPJpceMCfwYz+PjCUGedDA==}
+  '@polkadot/types-augment@14.0.1':
+    resolution: {integrity: sha512-PGo81444J5tGJxP3tu060Jx1kkeuo8SmBIt9S/w626Se49x4RLM5a7Pa5fguYVsg4TsJa9cgVPMuu6Y0F/2aCQ==}
     engines: {node: '>=18'}
 
   '@polkadot/types-augment@7.15.1':
@@ -1480,8 +1383,8 @@ packages:
     resolution: {integrity: sha512-E+8Ny8wr/BEGqchoLejP8Z6qmQQaJmBui1rlwWgKCypI4gnDvhNa+hHheIgrUfSzNwUgsxC/04G9fIRnCaxDpw==}
     engines: {node: '>=18'}
 
-  '@polkadot/types-codec@13.2.1':
-    resolution: {integrity: sha512-tFAzzS8sMYItoD5a91sFMD+rskWyv4WjSmUZaj0Y4OfLtDAiQvgO0KncdGJIB6D+zZ/T7khpgsv/CZbN3YnezA==}
+  '@polkadot/types-codec@14.0.1':
+    resolution: {integrity: sha512-IyUlkrRZ6uppbHVlMJL+btKP7dfgW65K06ggQxH7Y/IyRAQVDNjXecAZrCUMB/gtjUXNPyTHEIfPGDlg8E6rig==}
     engines: {node: '>=18'}
 
   '@polkadot/types-codec@7.15.1':
@@ -1512,8 +1415,8 @@ packages:
     resolution: {integrity: sha512-ge5ZmZOQoCqSOB1JtcZZFq2ysh4rnS9xrwC5BVbtk9GZaop5hRmLLmCXqDn49zEsgynRWHgOiKMP8T9AvOigMg==}
     engines: {node: '>=18'}
 
-  '@polkadot/types-create@13.2.1':
-    resolution: {integrity: sha512-O/WKdsrNuMaZLf+XRCdum2xJYs5OKC6N3EMPF5Uhg10b80Y/hQCbzA/iWd3/aMNDLUA5XWhixwzJdrZWIMVIzg==}
+  '@polkadot/types-create@14.0.1':
+    resolution: {integrity: sha512-R9/ac3CHKrFhvPKVUdpjnCDFSaGjfrNwtuY+AzvExAMIq7pM9dxo2N8UfnLbyFaG/n1hfYPXDIS3hLHvOZsLbw==}
     engines: {node: '>=18'}
 
   '@polkadot/types-create@7.15.1':
@@ -1544,8 +1447,8 @@ packages:
     resolution: {integrity: sha512-ZWtQSrDoO290RJu7mZDo1unKcfz1O3ylQkKH7g3oh6Mzmq9I4q7jeS1kS22rJml45berAPIVqZ3zFfODTl6ngA==}
     engines: {node: '>=18'}
 
-  '@polkadot/types-known@13.2.1':
-    resolution: {integrity: sha512-uz3c4/IvspLpgN8q15A+QH8KWFauzcrV3RfLFlMP2BkkF5qpOwNeP7c4U8j0CZGQySqBsJRCGWmgBXrXg669KA==}
+  '@polkadot/types-known@14.0.1':
+    resolution: {integrity: sha512-oGypUOQNxZ6bq10czpVadZYeDM2NBB2kX3VFHLKLEpjaRbnVYtKXL6pl8B0uHR8GK/2Z8AmPOj6kuRjaC86qXg==}
     engines: {node: '>=18'}
 
   '@polkadot/types-known@4.17.1':
@@ -1584,8 +1487,8 @@ packages:
     resolution: {integrity: sha512-UeGnjvyZSegFgzZ6HlR4H7+1itJBAEkGm9NKwEvZTTZJ0dG4zdxbHLNPURJ9UhDYCZ7bOGqkcB49o+hWY25dDA==}
     engines: {node: '>=18'}
 
-  '@polkadot/types-support@13.2.1':
-    resolution: {integrity: sha512-jSbbUTXU+yZJQPRAWmxaDoe4NRO6SjpZPzBIbpuiadx1slON8XB80fVYIGBXuM2xRVrNrB6fCjyCTG7Razj6Hg==}
+  '@polkadot/types-support@14.0.1':
+    resolution: {integrity: sha512-lcZEyOf5e3WLLtrFlLTvFfUpO0Vx/Gh5lhLLjdx1W9Xs0KJUlOxSAKxvjVieJJj6HifL0Jh6tDYOUeEc4TOrvA==}
     engines: {node: '>=18'}
 
   '@polkadot/types-support@7.15.1':
@@ -1616,8 +1519,8 @@ packages:
     resolution: {integrity: sha512-01uOx24Fjvhjt1CvKOL+oy1eExAsF4EVuwgZhwAL+WkD0zqlOlAhqlXn5Wg7sY80yzwmgDTLd8Oej/pHFOdCBQ==}
     engines: {node: '>=18'}
 
-  '@polkadot/types@13.2.1':
-    resolution: {integrity: sha512-5yQ0mHMNvwgXeHQ1RZOuHaeak3utAdcBqCpHoagnYrAnGHqtO7kg7YLtT4LkFw2nwL85axu8tOQMv6/3kpFy9w==}
+  '@polkadot/types@14.0.1':
+    resolution: {integrity: sha512-DOMzHsyVbCa12FT2Fng8iGiQJhHW2ONpv5oieU+Z2o0gFQqwNmIDXWncScG5mAUBNcDMXLuvWIKLKtUDOq8msg==}
     engines: {node: '>=18'}
 
   '@polkadot/types@4.17.1':
@@ -2139,9 +2042,6 @@ packages:
   '@substrate/smoldot-light@0.7.9':
     resolution: {integrity: sha512-HP8iP7sFYlpSgjjbo0lqHyU+gu9lL2hbDNce6dWk5/10mFFF9jKIFGfui4zCecUY808o/Go9pan/31kMJoLbug==}
 
-  '@substrate/ss58-registry@1.44.0':
-    resolution: {integrity: sha512-7lQ/7mMCzVNSEfDS4BCqnRnKCFKpcOaPrxMeGTXHX1YQzM/m2BBHjbK2C3dJvjv7GYxMiaTq/HdWQj1xS6ss+A==}
-
   '@substrate/ss58-registry@1.50.0':
     resolution: {integrity: sha512-mkmlMlcC+MSd9rA+PN8ljGAm5fVZskvVwkXIsbx4NFwaT8kt38r7e9cyDWscG3z2Zn40POviZvEMrJSk+r2SgQ==}
 
@@ -2486,11 +2386,6 @@ packages:
     resolution: {integrity: sha512-cjkyv4OtNCIeqhHrfS81QWXoCBPExR/J62oyEqepVw8WaQeSqpW2uhuLPh1m9eWhDuOo/jUXVTlifvesOWp/4A==}
     engines: {node: '>=0.4.0'}
 
-  acorn@8.11.3:
-    resolution: {integrity: sha512-Y9rRfJG5jcKOE0CLisYbojUjIrIEE7AGMzA/Sm4BslANhbS+cDMpgBdcPT91oJ7OuJ9hYJBx59RjbhxVnrF8Xg==}
-    engines: {node: '>=0.4.0'}
-    hasBin: true
-
   acorn@8.12.1:
     resolution: {integrity: sha512-tcpGyI9zbizT9JbV6oYE477V6mTlXvvi0T0G3SNIYE2apm/G5huBa1+K89VGeovbg+jycCrfhl3ADxErOuO6Jg==}
     engines: {node: '>=0.4.0'}
@@ -2521,10 +2416,6 @@ packages:
 
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
-
-  ansi-colors@4.1.1:
-    resolution: {integrity: sha512-JoX0apGbHaUJBNl6yF+p6JAFYZ666/hhCGKN5t9QFjbJQKUU/g8MNbFDbvfrgKXvI1QpZplPOnwIo99lX/AAmA==}
-    engines: {node: '>=6'}
 
   ansi-colors@4.1.3:
     resolution: {integrity: sha512-/6w/C21Pm1A7aZitlI5Ni/2J6FFQN8i1Cvz3kHABAAbw93v/NlvKdVOqz7CCWz/3iv/JplRSEEZ83XION15ovw==}
@@ -2698,10 +2589,6 @@ packages:
   brace-expansion@2.0.1:
     resolution: {integrity: sha512-XnAIvQ8eM+kC6aULx6wuQiwVsnzsi9d3WxzV3FpWTGA19F621kwdbsAcFKXgKUHZWsy+mY6iL1sHTxWEFCytDA==}
 
-  braces@3.0.2:
-    resolution: {integrity: sha512-b8um+L1RzM3WDSzvhm6gIz1yfTbBt6YTlcEKAvsmqCZZFw46z626lVj9j1yEPW33H5H+lBQpZMP1k8l+78Ha0A==}
-    engines: {node: '>=8'}
-
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
@@ -2823,10 +2710,6 @@ packages:
   check-error@2.1.1:
     resolution: {integrity: sha512-OAlb+T7V4Op9OwdkjmguYRqncdlx5JiofwOAUkmTF+jNdHwzTaTs4sRAGpzLF3oOz5xAyDGrPgeIDFQmDOTiJw==}
     engines: {node: '>= 16'}
-
-  chokidar@3.5.3:
-    resolution: {integrity: sha512-Dr3sfKRP6oTcjf2JmUmFJfeVMvXBdegxB0iVQ5eb2V10uFJUCAS8OByZdVAyVb8xXNz3GjjTgj9kLWsZTqE6kw==}
-    engines: {node: '>= 8.10.0'}
 
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
@@ -3059,15 +2942,6 @@ packages:
       supports-color:
         optional: true
 
-  debug@4.3.4:
-    resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-
   debug@4.3.5:
     resolution: {integrity: sha512-pt0bNEmneDIvdL1Xsd9oDQ/wrQRkXDT4AUWlNZNPKvW5x/jyO9VFXkJUP07vQ2upmw5PlaITaPKc31jK13V+jg==}
     engines: {node: '>=6.0'}
@@ -3178,10 +3052,6 @@ packages:
 
   diff@4.0.2:
     resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
-    engines: {node: '>=0.3.1'}
-
-  diff@5.0.0:
-    resolution: {integrity: sha512-/VTCrvm5Z0JGty/BWHljh+BAiw3IK+2j87NGMu8Nwc/f48WoDAC395uomO9ZD117ZOBaHmkX1oyLvkVM/aIT3w==}
     engines: {node: '>=0.3.1'}
 
   diff@5.2.0:
@@ -3528,10 +3398,6 @@ packages:
   file-uri-to-path@1.0.0:
     resolution: {integrity: sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==}
 
-  fill-range@7.0.1:
-    resolution: {integrity: sha512-qOo9F+dMUmC2Lcb4BbVvnKJxTPjCm+RRpe4gDuGrzkL7mEVl/djYSu2OdQ2Pa302N4oqkSg9ir6jaLWJ2USVpQ==}
-    engines: {node: '>=8'}
-
   fill-range@7.1.1:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
     engines: {node: '>=8'}
@@ -3686,9 +3552,6 @@ packages:
     resolution: {integrity: sha512-GwMlUF6PkPo3Gk21UxkCohOv0PLcIXVtKyLlpEI28R/cO/4eNOdmLk3CMW1wROV/WR/EsZOWAfBbBOqYvs88/w==}
     engines: {node: '>=16 || 14 >=14.18'}
     hasBin: true
-
-  glob@7.2.0:
-    resolution: {integrity: sha512-lmLf6gtyrPq8tTjSmrO94wBeQbFR3HbLHbuyD69wuyQkImp2hWqMGB47OX65FBkPffO641IP9jWa1z4ivqG26Q==}
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
@@ -4189,7 +4052,6 @@ packages:
     resolution: {integrity: sha512-Quz3MvAwHxVYNXsOByL7xI5EB2WYOeFswqaHIA3qOK3isRWTxiplBEocmmru6XmxDB2L7jDNYtYA4FyimoAFEw==}
     engines: {node: '>=8.17.0'}
     hasBin: true
-    bundledDependencies: []
 
   jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
@@ -4323,9 +4185,6 @@ packages:
   ltgt@2.2.1:
     resolution: {integrity: sha512-AI2r85+4MquTw9ZYqabu4nMwy9Oftlfa/e/52t9IjtfG+mGBbTNdAoZ3RQKLHR6r0wQnwZnPIEh/Ya6XTWAKNA==}
 
-  magic-string@0.30.10:
-    resolution: {integrity: sha512-iIRwTIf0QKV3UAnYK4PU8uiEc4SRh5jX0mwpIwETPpHdhVM4f53RSwS/vXvN1JhGX+Cs7B8qIq3d6AH49O5fAQ==}
-
   magic-string@0.30.11:
     resolution: {integrity: sha512-+Wri9p0QHMy+545hKww7YAu5NyzF8iomPL/RQazugQ9+Ez4Ic3mERMd8ZTX5rfK944j+560ZJi8iAwgak1Ac7A==}
 
@@ -4427,10 +4286,6 @@ packages:
   minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
 
-  minimatch@5.0.1:
-    resolution: {integrity: sha512-nLDxIFRyhDblz3qMuq+SoRZED4+miJ/G+tdDrjkkkRnjAsBexeGpgjLEQ0blJy7rHhR2b93rhQY4SvyWu9v03g==}
-    engines: {node: '>=10'}
-
   minimatch@5.1.6:
     resolution: {integrity: sha512-lKwV/1brpG6mBUFHtb7NUmtABCb2WZZmm2wNiOA5hAb8VdCS4B3dtMWyvcoViccwAW/COERjXLt0zP1zXUN26g==}
     engines: {node: '>=10'}
@@ -4515,11 +4370,6 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  mocha@10.2.0:
-    resolution: {integrity: sha512-IDY7fl/BecMwFHzoqF2sg/SHHANeBoMMXFlS9r0OXKDssYE1M5O43wUY/9BVPeIvfH2zmEbBfseqN9gBQZzXkg==}
-    engines: {node: '>= 14.0.0'}
-    hasBin: true
-
   mocha@10.6.0:
     resolution: {integrity: sha512-hxjt4+EEB0SA0ZDygSS015t65lJw/I2yRCS3Ae+SJ5FrbzrXgfYwJr96f0OvIXdj7h4lv/vLCrH3rkiuizFSvw==}
     engines: {node: '>= 14.0.0'}
@@ -4579,11 +4429,6 @@ packages:
 
   nano-json-stream-parser@0.1.2:
     resolution: {integrity: sha512-9MqxMH/BSJC7dnLsEMPyfN5Dvoo49IsPFYMcHw3Bcfc2kN0lpHRBSzlMSVx4HGyJ7s9B31CyBTVehWJoQ8Ctew==}
-
-  nanoid@3.3.3:
-    resolution: {integrity: sha512-p1sjXuopFs0xg+fPASzQ28agW1oHD7xDsd9Xkf3T15H3c/cifrFHVwrh74PdoklAPi+i7MdRsE47vm2r6JoB+w==}
-    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
 
   nanoid@3.3.7:
     resolution: {integrity: sha512-eSRppjcPIatRIMC1U6UngP8XFcz8MQWGQdt1MTBQ7NaAmvXDfvNxbvWV3x2y6CdEUciCSsDHDQZbhYaB8QEo2g==}
@@ -5231,9 +5076,6 @@ packages:
   serialize-error@7.0.1:
     resolution: {integrity: sha512-8I8TjW5KMOKsZQTvoxjuSIa7foAwPWGOts+6o7sgjz41/qMD9VQHEDxi6PBvK2l0MXUmqZyNpUK+T2tQaaElvw==}
     engines: {node: '>=10'}
-
-  serialize-javascript@6.0.0:
-    resolution: {integrity: sha512-Qr3TosvguFt8ePWqsvRfrKyQXIiW+nGbYpy8XK24NQHE83caxWt+mIymTT19DGFbNWNLfEwsrkSmN64lVWB9ag==}
 
   serialize-javascript@6.0.2:
     resolution: {integrity: sha512-Saa1xPByTTq2gdeFZYLLo+RFE35NHZkAbqZeWNd3BpzppeVisAqpDjcp8dyf6uIvEqJRd46jemmyA4iFIeVk8g==}
@@ -5922,16 +5764,8 @@ packages:
     resolution: {integrity: sha512-B6elffYm81MYZDTrat7aEhnhdtVE3lDBUZft16Z8awYMZYJDbnykEbJVS+l3mnA7AQTnSDr/1MjWofGDLBJPww==}
     engines: {node: '>=8.0.0'}
 
-  web3-core@4.5.0:
-    resolution: {integrity: sha512-Q8LIAqmF7vkRydBPiU+OC7wI44nEU6JEExolFaOakqrjMtQ1CWFHRUQMNJRDsk5bRirjyShuAsuqLeYByvvXhg==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
-
   web3-core@4.6.0:
     resolution: {integrity: sha512-j8uQ/7zSwpmLClMMeZb736Ok3V4cWSd0dnd29jkd10d1pedi32r+hSAgycxSJLLWtPHOzMBIXUjj3TF/IAClVQ==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
-
-  web3-errors@1.2.0:
-    resolution: {integrity: sha512-58Kczou5zyjcm9LuSs5Hrm6VrG8t9p2J8X0yGArZrhKNPZL66gMGkOUpPx+EopE944Sk4yE+Q25hKv4H5BH+kA==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
   web3-errors@1.3.0:
@@ -5942,10 +5776,6 @@ packages:
     resolution: {integrity: sha512-cZ0q65eJIkd/jyOlQPDjr8X4fU6CRL1eWgdLwbWEpo++MPU/2P4PFk5ZLAdye9T5Sdp+MomePPJ/gHjLMj2VfQ==}
     engines: {node: '>=8.0.0'}
 
-  web3-eth-abi@4.2.2:
-    resolution: {integrity: sha512-akbGi642UtKG3k3JuLbhl9KuG7LM/cXo/by2WfdwfOptGZrzRsWJNWje1d2xfw1n9kkVG9SAMvPJl1uSyR3dfw==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
-
   web3-eth-abi@4.2.4:
     resolution: {integrity: sha512-FGoj/ENm/Iq3+6myJyiDCwbFkha9ZCx2fRdiIdw3mp7S4lgu+ay3EVzQPRxJjNBm09UEfxB9yoSAPKj9Z3Mbxg==}
     engines: {node: '>=14', npm: '>=6.12.0'}
@@ -5954,10 +5784,6 @@ packages:
     resolution: {integrity: sha512-ysy5sVTg9snYS7tJjxVoQAH6DTOTkRGR8emEVCWNGLGiB9txj+qDvSeT0izjurS/g7D5xlMAgrEHLK1Vi6I3yg==}
     engines: {node: '>=8.0.0'}
 
-  web3-eth-accounts@4.1.2:
-    resolution: {integrity: sha512-y0JynDeTDnclyuE9mShXLeEj+BCrPHxPHOyPCgTchUBQsALF9+0OhP7WiS3IqUuu0Hle5bjG2f5ddeiPtNEuLg==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
-
   web3-eth-accounts@4.2.1:
     resolution: {integrity: sha512-aOlEZFzqAgKprKs7+DGArU4r9b+ILBjThpeq42aY7LAQcP+mSpsWcQgbIRK3r/n3OwTYZ3aLPk0Ih70O/LwnYA==}
     engines: {node: '>=14', npm: '>=6.12.0'}
@@ -5965,10 +5791,6 @@ packages:
   web3-eth-contract@1.10.4:
     resolution: {integrity: sha512-Q8PfolOJ4eV9TvnTj1TGdZ4RarpSLmHnUnzVxZ/6/NiTfe4maJz99R0ISgwZkntLhLRtw0C7LRJuklzGYCNN3A==}
     engines: {node: '>=8.0.0'}
-
-  web3-eth-contract@4.5.0:
-    resolution: {integrity: sha512-AX6OiDrIryz/T28k9Xz0gXpUrlOUjcooEgGluu2s5dFDWCPM/zlN5RsUZlXZiXpQyj52VCUy5+bkvu3yDPA4fg==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
 
   web3-eth-contract@4.7.0:
     resolution: {integrity: sha512-fdStoBOjFyMHwlyJmSUt/BTDL1ATwKGmG3zDXQ/zTKlkkW/F/074ut0Vry4GuwSBg9acMHc0ycOiZx9ZKjNHsw==}
@@ -5994,10 +5816,6 @@ packages:
     resolution: {integrity: sha512-BRa/hs6jU1hKHz+AC/YkM71RP3f0Yci1dPk4paOic53R4ZZG4MgwKRkJhgt3/GPuPliwS46f/i5A7fEGBT4F9w==}
     engines: {node: '>=8.0.0'}
 
-  web3-eth-personal@4.0.8:
-    resolution: {integrity: sha512-sXeyLKJ7ddQdMxz1BZkAwImjqh7OmKxhXoBNF3isDmD4QDpMIwv/t237S3q4Z0sZQamPa/pHebJRWVuvP8jZdw==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
-
   web3-eth-personal@4.1.0:
     resolution: {integrity: sha512-RFN83uMuvA5cu1zIwwJh9A/bAj0OBxmGN3tgx19OD/9ygeUZbifOL06jgFzN0t+1ekHqm3DXYQM8UfHpXi7yDQ==}
     engines: {node: '>=14', npm: '>=6.12.0'}
@@ -6005,10 +5823,6 @@ packages:
   web3-eth@1.10.4:
     resolution: {integrity: sha512-Sql2kYKmgt+T/cgvg7b9ce24uLS7xbFrxE4kuuor1zSCGrjhTJ5rRNG8gTJUkAJGKJc7KgnWmgW+cOfMBPUDSA==}
     engines: {node: '>=8.0.0'}
-
-  web3-eth@4.8.0:
-    resolution: {integrity: sha512-fobkdpwN9SH785/0LSLfxOMH4rZNAD/EvTKIHdpl4ZVz5XdKehX+xPMpSGDGwMlAQ7yXByjZDX3opzoqEQLWxg==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
 
   web3-eth@4.9.0:
     resolution: {integrity: sha512-lE+5rQUkQq1Mzf3uZ/tlay8nvMyC/CmaRFRFQ015OZuvSrRr/byZhhkzY5ZWkIetESTMqfWapu67yeHebcHxwA==}
@@ -6026,10 +5840,6 @@ packages:
     resolution: {integrity: sha512-m2P5Idc8hdiO0l60O6DSCPw0kw64Zgi0pMjbEFRmxKIck2Py57RQMu4bxvkxJwkF06SlGaEQF8rFZBmuX7aagQ==}
     engines: {node: '>=8.0.0'}
 
-  web3-providers-http@4.1.0:
-    resolution: {integrity: sha512-6qRUGAhJfVQM41E5t+re5IHYmb5hSaLc02BE2MaRQsz2xKA6RjmHpOA5h/+ojJxEpI9NI2CrfDKOAgtJfoUJQg==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
-
   web3-providers-http@4.2.0:
     resolution: {integrity: sha512-IPMnDtHB7dVwaB7/mMxAZzyq7d5ezfO1+Vw0bNfAeIi7gaDlJiggp85SdyAfOgov8AMUA/dyiY72kQ0KmjXKvQ==}
     engines: {node: '>=14', npm: '>=6.12.0'}
@@ -6046,20 +5856,12 @@ packages:
     resolution: {integrity: sha512-j3FBMifyuFFmUIPVQR4pj+t5ILhAexAui0opgcpu9R5LxQrLRUZxHSnU+YO25UycSOa/NAX8A+qkqZNpcFAlxA==}
     engines: {node: '>=8.0.0'}
 
-  web3-providers-ws@4.0.7:
-    resolution: {integrity: sha512-n4Dal9/rQWjS7d6LjyEPM2R458V8blRm0eLJupDEJOOIBhGYlxw5/4FthZZ/cqB7y/sLVi7K09DdYx2MeRtU5w==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
-
   web3-providers-ws@4.0.8:
     resolution: {integrity: sha512-goJdgata7v4pyzHRsg9fSegUG4gVnHZSHODhNnn6J93ykHkBI1nz4fjlGpcQLUMi4jAMz6SHl9Ibzs2jj9xqPw==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
   web3-rpc-methods@1.3.0:
     resolution: {integrity: sha512-/CHmzGN+IYgdBOme7PdqzF+FNeMleefzqs0LVOduncSaqsppeOEoskLXb2anSpzmQAP3xZJPaTrkQPWSJMORig==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
-
-  web3-rpc-providers@1.0.0-rc.0:
-    resolution: {integrity: sha512-lmBOZ4PE+wf5JyptPZJ+GHeGPyTBfnCRbrfOxWLU+Q7g+D6NukgS3fk2xcunEvUsR/b5fp+uXk0TkmhX9/GCKg==}
     engines: {node: '>=14', npm: '>=6.12.0'}
 
   web3-rpc-providers@1.0.0-rc.2:
@@ -6070,10 +5872,6 @@ packages:
     resolution: {integrity: sha512-cOH6iFFM71lCNwSQrC3niqDXagMqrdfFW85hC9PFUrAr3PUrIem8TNstTc3xna2bwZeWG6OBy99xSIhBvyIACw==}
     engines: {node: '>=8.0.0'}
 
-  web3-types@1.7.0:
-    resolution: {integrity: sha512-nhXxDJ7a5FesRw9UG5SZdP/C/3Q2EzHGnB39hkAV+YGXDMgwxBXFWebQLfEzZzuArfHnvC0sQqkIHNwSKcVjdA==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
-
   web3-types@1.8.0:
     resolution: {integrity: sha512-Z51wFLPGhZM/1uDxrxE8gzju3t2aEdRGn+YmLX463id5UjTuMEmP/9in1GFjqrsPB3m86czs8RnGBUt3ovueMw==}
     engines: {node: '>=14', npm: '>=6.12.0'}
@@ -6081,10 +5879,6 @@ packages:
   web3-utils@1.10.4:
     resolution: {integrity: sha512-tsu8FiKJLk2PzhDl9fXbGUWTkkVXYhtTA+SmEFkKft+9BgwLxfCRpU96sWv7ICC8zixBNd3JURVoiR3dUXgP8A==}
     engines: {node: '>=8.0.0'}
-
-  web3-utils@4.3.0:
-    resolution: {integrity: sha512-fGG2IZr0XB1vEoWZiyJzoy28HpsIfZgz4mgPeQA9aj5rIx8z0o80qUPtIyrCYX/Bo2gYALlV5SWIJWxJNUQn9Q==}
-    engines: {node: '>=14', npm: '>=6.12.0'}
 
   web3-utils@4.3.1:
     resolution: {integrity: sha512-kGwOk8FxOLJ9DQC68yqNQc7AzN+k9YDLaW+ZjlAXs3qORhf8zXk5SxWAAGLbLykMs3vTeB0FTb1Exut4JEYfFA==}
@@ -6167,9 +5961,6 @@ packages:
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
     engines: {node: '>=0.10.0'}
-
-  workerpool@6.2.1:
-    resolution: {integrity: sha512-ILEIE97kDZvF9Wb9f6h5aXK4swSlKGUcOEGiIYb2OOu/IrDU9iwj0fD//SsA6E5ibwJxpEvhullJY4Sl4GcpAw==}
 
   workerpool@6.5.1:
     resolution: {integrity: sha512-Fs4dNYcsdpYSAfVxhnl1L5zTksjvOJxtC5hzMNl+1t9B8hTJTdKDyZ5ju7ztgPy+ft9tBFXoOlDNiOT9WUXZlA==}
@@ -6271,10 +6062,6 @@ packages:
     engines: {node: '>= 14'}
     hasBin: true
 
-  yargs-parser@20.2.4:
-    resolution: {integrity: sha512-WOkpgNhPTlE73h4VFAFsOnomJVaovO8VqLDzy5saChRBFQFBoMYirowyW+Q9HB4HFF4Z7VZTiG3iSzJJA29yRA==}
-    engines: {node: '>=10'}
-
   yargs-parser@20.2.9:
     resolution: {integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==}
     engines: {node: '>=10'}
@@ -6312,9 +6099,9 @@ packages:
 
 snapshots:
 
-  '@acala-network/chopsticks-core@0.15.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
+  '@acala-network/chopsticks-core@0.16.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
-      '@acala-network/chopsticks-executor': 0.15.0
+      '@acala-network/chopsticks-executor': 0.16.1
       '@polkadot/rpc-provider': 12.4.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@polkadot/types': 12.4.2
       '@polkadot/types-codec': 12.4.2
@@ -6334,9 +6121,9 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@acala-network/chopsticks-db@0.15.0(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10)':
+  '@acala-network/chopsticks-db@0.16.1(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10)':
     dependencies:
-      '@acala-network/chopsticks-core': 0.15.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@acala-network/chopsticks-core': 0.16.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@polkadot/util': 13.1.1
       idb: 8.0.0
       sqlite3: 5.1.7
@@ -6363,15 +6150,15 @@ snapshots:
       - typeorm-aurora-data-api-driver
       - utf-8-validate
 
-  '@acala-network/chopsticks-executor@0.15.0':
+  '@acala-network/chopsticks-executor@0.16.1':
     dependencies:
       '@polkadot/util': 13.1.1
       '@polkadot/wasm-util': 7.3.2(@polkadot/util@13.1.1)
 
-  '@acala-network/chopsticks@0.15.0(bufferutil@4.0.8)(debug@4.3.7)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10)':
+  '@acala-network/chopsticks@0.16.1(bufferutil@4.0.8)(debug@4.3.7)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10)':
     dependencies:
-      '@acala-network/chopsticks-core': 0.15.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@acala-network/chopsticks-db': 0.15.0(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10)
+      '@acala-network/chopsticks-core': 0.16.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@acala-network/chopsticks-db': 0.16.1(bufferutil@4.0.8)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10)
       '@pnpm/npm-conf': 2.2.2
       '@polkadot/api': 12.4.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@polkadot/api-augment': 12.4.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -6839,14 +6626,12 @@ snapshots:
 
   '@jridgewell/resolve-uri@3.1.1': {}
 
-  '@jridgewell/sourcemap-codec@1.4.15': {}
-
   '@jridgewell/sourcemap-codec@1.5.0': {}
 
   '@jridgewell/trace-mapping@0.3.9':
     dependencies:
       '@jridgewell/resolve-uri': 3.1.1
-      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/sourcemap-codec': 1.5.0
 
   '@kiltprotocol/type-definitions@0.35.1': {}
 
@@ -6875,25 +6660,14 @@ snapshots:
     dependencies:
       lodash.merge: 4.6.2
 
-  /@moonbeam-network/api-augment@0.2902.0:
-    resolution: {integrity: sha512-lCNc1lUq7kHnTPXvT4W8F2nkxr4UjAEs5LdxXHfrATOt+ZfGfX97/4sZfSRXlVqATrOUw7+sqKM8SL0ci0nx0g==}
-    engines: {node: '>=14.0.0'}
-    dev: false
+  '@moonbeam-network/api-augment@0.2902.0': {}
 
-  /@moonwall/cli@5.3.3(@acala-network/chopsticks@0.16.1)(@polkadot/api@13.0.1)(@types/node@22.7.0)(@vitest/ui@2.1.1)(typescript@5.6.2)(vitest@2.1.1):
-    resolution: {integrity: sha512-iFJ9DnefUrwHS/FCeMrVIlBxbd8P9j3dqBwGeJ/yfNtqaurx3g8Sx3jpSueWjkZ3vozlkGYJFYgtnlXGVzvGNw==}
-    engines: {node: '>=20', pnpm: '>=7'}
-    hasBin: true
-    peerDependencies:
-      '@acala-network/chopsticks': ^0.9.10
-      '@polkadot/api': ^10.11.2
-      '@vitest/ui': ^1.2.2
-      vitest: ^1.2.2
+  '@moonwall/cli@5.3.3(@acala-network/chopsticks@0.16.1(bufferutil@4.0.8)(debug@4.3.7)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10))(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(@types/node@22.7.0)(@vitest/ui@2.1.1)(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(vitest@2.1.1)(zod@3.23.8)':
     dependencies:
-      '@acala-network/chopsticks': 0.16.1(debug@4.3.7)
+      '@acala-network/chopsticks': 0.16.1(bufferutil@4.0.8)(debug@4.3.7)(ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2))(utf-8-validate@5.0.10)
       '@moonbeam-network/api-augment': 0.2902.0
       '@moonwall/types': 5.3.3(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
-      '@moonwall/util': 5.3.3(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(vitest@2.1.1(@types/node@22.7.0)(@vitest/ui@2.1.1)(jsdom@23.2.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)))(zod@3.23.8)
+      '@moonwall/util': 5.3.3(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(vitest@2.1.1)(zod@3.23.8)
       '@octokit/rest': 21.0.0
       '@polkadot/api': 13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@polkadot/api-derive': 12.1.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -6924,7 +6698,7 @@ snapshots:
       vitest: 2.1.1(@types/node@22.7.0)(@vitest/ui@2.1.1)(jsdom@23.2.0(bufferutil@4.0.8)(utf-8-validate@5.0.10))
       vue: 3.4.31(typescript@5.6.2)
       web3: 4.10.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
-      web3-providers-ws: 4.0.7(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      web3-providers-ws: 4.0.8(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       yaml: 2.4.5
       yargs: 17.7.2
@@ -6967,7 +6741,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@moonwall/util@5.3.3(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(vitest@2.1.1(@types/node@22.7.0)(@vitest/ui@2.1.1)(jsdom@23.2.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)))(zod@3.23.8)':
+  '@moonwall/util@5.3.3(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(vitest@2.1.1)(zod@3.23.8)':
     dependencies:
       '@moonbeam-network/api-augment': 0.2902.0
       '@moonwall/types': 5.3.3(@polkadot/api@13.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
@@ -7349,9 +7123,9 @@ snapshots:
 
   '@polkadot-api/substrate-bindings@0.0.1':
     dependencies:
-      '@noble/hashes': 1.4.0
+      '@noble/hashes': 1.5.0
       '@polkadot-api/utils': 0.0.1
-      '@scure/base': 1.1.7
+      '@scure/base': 1.1.9
       scale-ts: 1.6.0
     optional: true
 
@@ -7471,13 +7245,13 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@polkadot/api-augment@13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
+  '@polkadot/api-augment@14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
-      '@polkadot/api-base': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/rpc-augment': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/types': 13.2.1
-      '@polkadot/types-augment': 13.2.1
-      '@polkadot/types-codec': 13.2.1
+      '@polkadot/api-base': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/rpc-augment': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/types': 14.0.1
+      '@polkadot/types-augment': 14.0.1
+      '@polkadot/types-codec': 14.0.1
       '@polkadot/util': 13.1.1
       tslib: 2.7.0
     transitivePeerDependencies:
@@ -7572,10 +7346,10 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@polkadot/api-base@13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
+  '@polkadot/api-base@14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
-      '@polkadot/rpc-core': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/types': 13.2.1
+      '@polkadot/rpc-core': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/types': 14.0.1
       '@polkadot/util': 13.1.1
       rxjs: 7.8.1
       tslib: 2.7.0
@@ -7692,14 +7466,14 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@polkadot/api-derive@13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
+  '@polkadot/api-derive@14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
-      '@polkadot/api': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/api-augment': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/api-base': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/rpc-core': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/types': 13.2.1
-      '@polkadot/types-codec': 13.2.1
+      '@polkadot/api': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/api-augment': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/api-base': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/rpc-core': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/types': 14.0.1
+      '@polkadot/types-codec': 14.0.1
       '@polkadot/util': 13.1.1
       '@polkadot/util-crypto': 13.1.1(@polkadot/util@13.1.1)
       rxjs: 7.8.1
@@ -7862,20 +7636,20 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@polkadot/api@13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
+  '@polkadot/api@14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
-      '@polkadot/api-augment': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/api-base': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/api-derive': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/api-augment': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/api-base': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/api-derive': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@polkadot/keyring': 13.1.1(@polkadot/util-crypto@13.1.1(@polkadot/util@13.1.1))(@polkadot/util@13.1.1)
-      '@polkadot/rpc-augment': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/rpc-core': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/rpc-provider': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/types': 13.2.1
-      '@polkadot/types-augment': 13.2.1
-      '@polkadot/types-codec': 13.2.1
-      '@polkadot/types-create': 13.2.1
-      '@polkadot/types-known': 13.2.1
+      '@polkadot/rpc-augment': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/rpc-core': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/rpc-provider': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/types': 14.0.1
+      '@polkadot/types-augment': 14.0.1
+      '@polkadot/types-codec': 14.0.1
+      '@polkadot/types-create': 14.0.1
+      '@polkadot/types-known': 14.0.1
       '@polkadot/util': 13.1.1
       '@polkadot/util-crypto': 13.1.1(@polkadot/util@13.1.1)
       eventemitter3: 5.0.1
@@ -8056,7 +7830,7 @@ snapshots:
   '@polkadot/networks@12.6.2':
     dependencies:
       '@polkadot/util': 12.6.2
-      '@substrate/ss58-registry': 1.44.0
+      '@substrate/ss58-registry': 1.50.0
       tslib: 2.7.0
 
   '@polkadot/networks@13.1.1':
@@ -8153,11 +7927,11 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@polkadot/rpc-augment@13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
+  '@polkadot/rpc-augment@14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
-      '@polkadot/rpc-core': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/types': 13.2.1
-      '@polkadot/types-codec': 13.2.1
+      '@polkadot/rpc-core': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/types': 14.0.1
+      '@polkadot/types-codec': 14.0.1
       '@polkadot/util': 13.1.1
       tslib: 2.7.0
     transitivePeerDependencies:
@@ -8253,11 +8027,11 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@polkadot/rpc-core@13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
+  '@polkadot/rpc-core@14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
-      '@polkadot/rpc-augment': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/rpc-provider': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/types': 13.2.1
+      '@polkadot/rpc-augment': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/rpc-provider': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/types': 14.0.1
       '@polkadot/util': 13.1.1
       rxjs: 7.8.1
       tslib: 2.7.0
@@ -8396,11 +8170,11 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@polkadot/rpc-provider@13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
+  '@polkadot/rpc-provider@14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
       '@polkadot/keyring': 13.1.1(@polkadot/util-crypto@13.1.1(@polkadot/util@13.1.1))(@polkadot/util@13.1.1)
-      '@polkadot/types': 13.2.1
-      '@polkadot/types-support': 13.2.1
+      '@polkadot/types': 14.0.1
+      '@polkadot/types-support': 14.0.1
       '@polkadot/util': 13.1.1
       '@polkadot/util-crypto': 13.1.1(@polkadot/util@13.1.1)
       '@polkadot/x-fetch': 13.1.1
@@ -8492,10 +8266,10 @@ snapshots:
       '@polkadot/util': 13.1.1
       tslib: 2.7.0
 
-  '@polkadot/types-augment@13.2.1':
+  '@polkadot/types-augment@14.0.1':
     dependencies:
-      '@polkadot/types': 13.2.1
-      '@polkadot/types-codec': 13.2.1
+      '@polkadot/types': 14.0.1
+      '@polkadot/types-codec': 14.0.1
       '@polkadot/util': 13.1.1
       tslib: 2.7.0
 
@@ -8543,7 +8317,7 @@ snapshots:
       '@polkadot/x-bigint': 13.1.1
       tslib: 2.7.0
 
-  '@polkadot/types-codec@13.2.1':
+  '@polkadot/types-codec@14.0.1':
     dependencies:
       '@polkadot/util': 13.1.1
       '@polkadot/x-bigint': 13.1.1
@@ -8590,9 +8364,9 @@ snapshots:
       '@polkadot/util': 13.1.1
       tslib: 2.7.0
 
-  '@polkadot/types-create@13.2.1':
+  '@polkadot/types-create@14.0.1':
     dependencies:
-      '@polkadot/types-codec': 13.2.1
+      '@polkadot/types-codec': 14.0.1
       '@polkadot/util': 13.1.1
       tslib: 2.7.0
 
@@ -8653,12 +8427,12 @@ snapshots:
       '@polkadot/util': 13.1.1
       tslib: 2.7.0
 
-  '@polkadot/types-known@13.2.1':
+  '@polkadot/types-known@14.0.1':
     dependencies:
       '@polkadot/networks': 13.1.1
-      '@polkadot/types': 13.2.1
-      '@polkadot/types-codec': 13.2.1
-      '@polkadot/types-create': 13.2.1
+      '@polkadot/types': 14.0.1
+      '@polkadot/types-codec': 14.0.1
+      '@polkadot/types-create': 14.0.1
       '@polkadot/util': 13.1.1
       tslib: 2.7.0
 
@@ -8719,7 +8493,7 @@ snapshots:
       '@polkadot/util': 13.1.1
       tslib: 2.7.0
 
-  '@polkadot/types-support@13.2.1':
+  '@polkadot/types-support@14.0.1':
     dependencies:
       '@polkadot/util': 13.1.1
       tslib: 2.7.0
@@ -8789,12 +8563,12 @@ snapshots:
       rxjs: 7.8.1
       tslib: 2.7.0
 
-  '@polkadot/types@13.2.1':
+  '@polkadot/types@14.0.1':
     dependencies:
       '@polkadot/keyring': 13.1.1(@polkadot/util-crypto@13.1.1(@polkadot/util@13.1.1))(@polkadot/util@13.1.1)
-      '@polkadot/types-augment': 13.2.1
-      '@polkadot/types-codec': 13.2.1
-      '@polkadot/types-create': 13.2.1
+      '@polkadot/types-augment': 14.0.1
+      '@polkadot/types-codec': 14.0.1
+      '@polkadot/types-create': 14.0.1
       '@polkadot/util': 13.1.1
       '@polkadot/util-crypto': 13.1.1(@polkadot/util@13.1.1)
       rxjs: 7.8.1
@@ -8870,14 +8644,14 @@ snapshots:
   '@polkadot/util-crypto@12.6.2(@polkadot/util@12.6.2)':
     dependencies:
       '@noble/curves': 1.4.2
-      '@noble/hashes': 1.4.0
+      '@noble/hashes': 1.5.0
       '@polkadot/networks': 12.6.2
       '@polkadot/util': 12.6.2
       '@polkadot/wasm-crypto': 7.3.2(@polkadot/util@12.6.2)(@polkadot/x-randomvalues@12.6.2(@polkadot/util@12.6.2)(@polkadot/wasm-util@7.3.2(@polkadot/util@13.1.1)))
       '@polkadot/wasm-util': 7.3.2(@polkadot/util@12.6.2)
       '@polkadot/x-bigint': 12.6.2
       '@polkadot/x-randomvalues': 12.6.2(@polkadot/util@12.6.2)(@polkadot/wasm-util@7.3.2(@polkadot/util@13.1.1))
-      '@scure/base': 1.1.7
+      '@scure/base': 1.1.9
       tslib: 2.7.0
 
   '@polkadot/util-crypto@13.1.1(@polkadot/util@13.1.1)':
@@ -9407,12 +9181,12 @@ snapshots:
     dependencies:
       '@noble/curves': 1.4.2
       '@noble/hashes': 1.4.0
-      '@scure/base': 1.1.7
+      '@scure/base': 1.1.9
 
   '@scure/bip39@1.3.0':
     dependencies:
       '@noble/hashes': 1.4.0
-      '@scure/base': 1.1.7
+      '@scure/base': 1.1.9
 
   '@scure/bip39@1.4.0':
     dependencies:
@@ -9440,7 +9214,7 @@ snapshots:
 
   '@subsocial/definitions@0.8.14(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
     dependencies:
-      '@polkadot/api': 13.2.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/api': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       lodash.camelcase: 4.3.0
     transitivePeerDependencies:
       - bufferutil
@@ -9558,8 +9332,6 @@ snapshots:
       - bufferutil
       - utf-8-validate
     optional: true
-
-  '@substrate/ss58-registry@1.44.0': {}
 
   '@substrate/ss58-registry@1.50.0': {}
 
@@ -9880,7 +9652,7 @@ snapshots:
       '@vue/compiler-ssr': 3.4.31
       '@vue/shared': 3.4.31
       estree-walker: 2.0.2
-      magic-string: 0.30.10
+      magic-string: 0.30.11
       postcss: 8.4.39
       source-map-js: 1.2.0
 
@@ -9953,7 +9725,7 @@ snapshots:
     dependencies:
       cli-table3: 0.6.3
       debug: 4.3.7(supports-color@8.1.1)
-      mocha: 10.2.0
+      mocha: 10.6.0
       nunjucks: 3.2.4(chokidar@3.6.0)
       toml: 3.0.0
       ts-node: 10.9.2(@types/node@20.14.10)(typescript@5.6.2)
@@ -9969,7 +9741,7 @@ snapshots:
     dependencies:
       cli-table3: 0.6.3
       debug: 4.3.7(supports-color@8.1.1)
-      mocha: 10.2.0
+      mocha: 10.6.0
       nunjucks: 3.2.4(chokidar@3.6.0)
       toml: 3.0.0
       ts-node: 10.9.2(@types/node@22.7.0)(typescript@5.6.2)
@@ -10035,8 +9807,6 @@ snapshots:
 
   acorn-walk@8.3.2: {}
 
-  acorn@8.11.3: {}
-
   acorn@8.12.1: {}
 
   aes-js@4.0.0-beta.5: {}
@@ -10076,8 +9846,6 @@ snapshots:
       fast-json-stable-stringify: 2.1.0
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
-
-  ansi-colors@4.1.1: {}
 
   ansi-colors@4.1.3: {}
 
@@ -10257,10 +10025,6 @@ snapshots:
     dependencies:
       balanced-match: 1.0.2
 
-  braces@3.0.2:
-    dependencies:
-      fill-range: 7.0.1
-
   braces@3.0.3:
     dependencies:
       fill-range: 7.1.1
@@ -10418,18 +10182,6 @@ snapshots:
       get-func-name: 2.0.2
 
   check-error@2.1.1: {}
-
-  chokidar@3.5.3:
-    dependencies:
-      anymatch: 3.1.3
-      braces: 3.0.2
-      glob-parent: 5.1.2
-      is-binary-path: 2.1.0
-      is-glob: 4.0.3
-      normalize-path: 3.0.0
-      readdirp: 3.6.0
-    optionalDependencies:
-      fsevents: 2.3.3
 
   chokidar@3.6.0:
     dependencies:
@@ -10668,12 +10420,6 @@ snapshots:
     dependencies:
       ms: 2.0.0
 
-  debug@4.3.4(supports-color@8.1.1):
-    dependencies:
-      ms: 2.1.2
-    optionalDependencies:
-      supports-color: 8.1.1
-
   debug@4.3.5:
     dependencies:
       ms: 2.1.2
@@ -10778,8 +10524,6 @@ snapshots:
   diff-match-patch@1.0.5: {}
 
   diff@4.0.2: {}
-
-  diff@5.0.0: {}
 
   diff@5.2.0: {}
 
@@ -11311,10 +11055,6 @@ snapshots:
 
   file-uri-to-path@1.0.0: {}
 
-  fill-range@7.0.1:
-    dependencies:
-      to-regex-range: 5.0.1
-
   fill-range@7.1.1:
     dependencies:
       to-regex-range: 5.0.1
@@ -11483,15 +11223,6 @@ snapshots:
       minipass: 7.1.2
       package-json-from-dist: 1.0.0
       path-scurry: 1.11.1
-
-  glob@7.2.0:
-    dependencies:
-      fs.realpath: 1.0.0
-      inflight: 1.0.6
-      inherits: 2.0.4
-      minimatch: 3.1.2
-      once: 1.4.0
-      path-is-absolute: 1.0.1
 
   glob@7.2.3:
     dependencies:
@@ -12177,10 +11908,6 @@ snapshots:
 
   ltgt@2.2.1: {}
 
-  magic-string@0.30.10:
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.4.15
-
   magic-string@0.30.11:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
@@ -12308,10 +12035,6 @@ snapshots:
     dependencies:
       brace-expansion: 1.1.11
 
-  minimatch@5.0.1:
-    dependencies:
-      brace-expansion: 2.0.1
-
   minimatch@5.1.6:
     dependencies:
       brace-expansion: 2.0.1
@@ -12393,30 +12116,6 @@ snapshots:
 
   mkdirp@3.0.1: {}
 
-  mocha@10.2.0:
-    dependencies:
-      ansi-colors: 4.1.1
-      browser-stdout: 1.3.1
-      chokidar: 3.5.3
-      debug: 4.3.4(supports-color@8.1.1)
-      diff: 5.0.0
-      escape-string-regexp: 4.0.0
-      find-up: 5.0.0
-      glob: 7.2.0
-      he: 1.2.0
-      js-yaml: 4.1.0
-      log-symbols: 4.1.0
-      minimatch: 5.0.1
-      ms: 2.1.3
-      nanoid: 3.3.3
-      serialize-javascript: 6.0.0
-      strip-json-comments: 3.1.1
-      supports-color: 8.1.1
-      workerpool: 6.2.1
-      yargs: 16.2.0
-      yargs-parser: 20.2.4
-      yargs-unparser: 2.0.0
-
   mocha@10.6.0:
     dependencies:
       ansi-colors: 4.1.3
@@ -12497,8 +12196,6 @@ snapshots:
       thenify-all: 1.6.0
 
   nano-json-stream-parser@0.1.2: {}
-
-  nanoid@3.3.3: {}
 
   nanoid@3.3.7: {}
 
@@ -13209,10 +12906,6 @@ snapshots:
     dependencies:
       type-fest: 0.13.1
 
-  serialize-javascript@6.0.0:
-    dependencies:
-      randombytes: 2.1.0
-
   serialize-javascript@6.0.2:
     dependencies:
       randombytes: 2.1.0
@@ -13627,7 +13320,7 @@ snapshots:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
       '@types/node': 20.14.10
-      acorn: 8.11.3
+      acorn: 8.12.1
       acorn-walk: 8.3.2
       arg: 4.1.3
       create-require: 1.1.1
@@ -13645,7 +13338,7 @@ snapshots:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
       '@types/node': 22.7.0
-      acorn: 8.11.3
+      acorn: 8.12.1
       acorn-walk: 8.3.2
       arg: 4.1.3
       create-require: 1.1.1
@@ -13980,23 +13673,6 @@ snapshots:
       - encoding
       - supports-color
 
-  web3-core@4.5.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10):
-    dependencies:
-      web3-errors: 1.2.0
-      web3-eth-accounts: 4.1.2
-      web3-eth-iban: 4.0.7
-      web3-providers-http: 4.1.0(encoding@0.1.13)
-      web3-providers-ws: 4.0.7(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      web3-types: 1.7.0
-      web3-utils: 4.3.0
-      web3-validator: 2.0.6
-    optionalDependencies:
-      web3-providers-ipc: 4.0.7
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - utf-8-validate
-
   web3-core@4.6.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10):
     dependencies:
       web3-errors: 1.3.0
@@ -14014,10 +13690,6 @@ snapshots:
       - encoding
       - utf-8-validate
 
-  web3-errors@1.2.0:
-    dependencies:
-      web3-types: 1.7.0
-
   web3-errors@1.3.0:
     dependencies:
       web3-types: 1.8.0
@@ -14026,17 +13698,6 @@ snapshots:
     dependencies:
       '@ethersproject/abi': 5.7.0
       web3-utils: 1.10.4
-
-  web3-eth-abi@4.2.2(typescript@5.6.2)(zod@3.23.8):
-    dependencies:
-      abitype: 0.7.1(typescript@5.6.2)(zod@3.23.8)
-      web3-errors: 1.2.0
-      web3-types: 1.7.0
-      web3-utils: 4.3.0
-      web3-validator: 2.0.6
-    transitivePeerDependencies:
-      - typescript
-      - zod
 
   web3-eth-abi@4.2.4(typescript@5.6.2)(zod@3.23.8):
     dependencies:
@@ -14065,16 +13726,6 @@ snapshots:
       - encoding
       - supports-color
 
-  web3-eth-accounts@4.1.2:
-    dependencies:
-      '@ethereumjs/rlp': 4.0.1
-      crc-32: 1.2.2
-      ethereum-cryptography: 2.2.1
-      web3-errors: 1.2.0
-      web3-types: 1.7.0
-      web3-utils: 4.3.0
-      web3-validator: 2.0.6
-
   web3-eth-accounts@4.2.1:
     dependencies:
       '@ethereumjs/rlp': 4.0.1
@@ -14098,22 +13749,6 @@ snapshots:
     transitivePeerDependencies:
       - encoding
       - supports-color
-
-  web3-eth-contract@4.5.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8):
-    dependencies:
-      web3-core: 4.5.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      web3-errors: 1.2.0
-      web3-eth: 4.8.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
-      web3-eth-abi: 4.2.2(typescript@5.6.2)(zod@3.23.8)
-      web3-types: 1.7.0
-      web3-utils: 4.3.0
-      web3-validator: 2.0.6
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - typescript
-      - utf-8-validate
-      - zod
 
   web3-eth-contract@4.7.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8):
     dependencies:
@@ -14188,21 +13823,6 @@ snapshots:
       - encoding
       - supports-color
 
-  web3-eth-personal@4.0.8(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8):
-    dependencies:
-      web3-core: 4.5.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      web3-eth: 4.8.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
-      web3-rpc-methods: 1.3.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      web3-types: 1.7.0
-      web3-utils: 4.3.0
-      web3-validator: 2.0.6
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - typescript
-      - utf-8-validate
-      - zod
-
   web3-eth-personal@4.1.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8):
     dependencies:
       web3-core: 4.6.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
@@ -14235,26 +13855,6 @@ snapshots:
     transitivePeerDependencies:
       - encoding
       - supports-color
-
-  web3-eth@4.8.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8):
-    dependencies:
-      setimmediate: 1.0.5
-      web3-core: 4.5.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      web3-errors: 1.2.0
-      web3-eth-abi: 4.2.2(typescript@5.6.2)(zod@3.23.8)
-      web3-eth-accounts: 4.1.2
-      web3-net: 4.1.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      web3-providers-ws: 4.0.7(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      web3-rpc-methods: 1.3.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      web3-types: 1.7.0
-      web3-utils: 4.3.0
-      web3-validator: 2.0.6
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - typescript
-      - utf-8-validate
-      - zod
 
   web3-eth@4.9.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8):
     dependencies:
@@ -14305,15 +13905,6 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  web3-providers-http@4.1.0(encoding@0.1.13):
-    dependencies:
-      cross-fetch: 4.0.0(encoding@0.1.13)
-      web3-errors: 1.2.0
-      web3-types: 1.7.0
-      web3-utils: 4.3.0
-    transitivePeerDependencies:
-      - encoding
-
   web3-providers-http@4.2.0(encoding@0.1.13):
     dependencies:
       cross-fetch: 4.0.0(encoding@0.1.13)
@@ -14343,18 +13934,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  web3-providers-ws@4.0.7(bufferutil@4.0.8)(utf-8-validate@5.0.10):
-    dependencies:
-      '@types/ws': 8.5.3
-      isomorphic-ws: 5.0.0(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@5.0.10))
-      web3-errors: 1.2.0
-      web3-types: 1.7.0
-      web3-utils: 4.3.0
-      ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
   web3-providers-ws@4.0.8(bufferutil@4.0.8)(utf-8-validate@5.0.10):
     dependencies:
       '@types/ws': 8.5.3
@@ -14369,20 +13948,9 @@ snapshots:
 
   web3-rpc-methods@1.3.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10):
     dependencies:
-      web3-core: 4.5.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      web3-types: 1.7.0
+      web3-core: 4.6.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
+      web3-types: 1.8.0
       web3-validator: 2.0.6
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - utf-8-validate
-
-  web3-rpc-providers@1.0.0-rc.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10):
-    dependencies:
-      web3-providers-http: 4.1.0(encoding@0.1.13)
-      web3-providers-ws: 4.0.7(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      web3-types: 1.7.0
-      web3-utils: 4.3.0
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -14411,8 +13979,6 @@ snapshots:
       - encoding
       - supports-color
 
-  web3-types@1.7.0: {}
-
   web3-types@1.8.0: {}
 
   web3-utils@1.10.4:
@@ -14425,14 +13991,6 @@ snapshots:
       number-to-bn: 1.7.0
       randombytes: 2.1.0
       utf8: 3.0.0
-
-  web3-utils@4.3.0:
-    dependencies:
-      ethereum-cryptography: 2.2.1
-      eventemitter3: 5.0.1
-      web3-errors: 1.2.0
-      web3-types: 1.7.0
-      web3-validator: 2.0.6
 
   web3-utils@4.3.1:
     dependencies:
@@ -14467,22 +14025,22 @@ snapshots:
 
   web3@4.10.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8):
     dependencies:
-      web3-core: 4.5.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      web3-errors: 1.2.0
-      web3-eth: 4.8.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
-      web3-eth-abi: 4.2.2(typescript@5.6.2)(zod@3.23.8)
-      web3-eth-accounts: 4.1.2
-      web3-eth-contract: 4.5.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
+      web3-core: 4.6.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
+      web3-errors: 1.3.0
+      web3-eth: 4.9.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
+      web3-eth-abi: 4.2.4(typescript@5.6.2)(zod@3.23.8)
+      web3-eth-accounts: 4.2.1
+      web3-eth-contract: 4.7.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
       web3-eth-ens: 4.4.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
       web3-eth-iban: 4.0.7
-      web3-eth-personal: 4.0.8(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
+      web3-eth-personal: 4.1.0(bufferutil@4.0.8)(encoding@0.1.13)(typescript@5.6.2)(utf-8-validate@5.0.10)(zod@3.23.8)
       web3-net: 4.1.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      web3-providers-http: 4.1.0(encoding@0.1.13)
-      web3-providers-ws: 4.0.7(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      web3-providers-http: 4.2.0(encoding@0.1.13)
+      web3-providers-ws: 4.0.8(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       web3-rpc-methods: 1.3.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      web3-rpc-providers: 1.0.0-rc.0(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      web3-types: 1.7.0
-      web3-utils: 4.3.0
+      web3-rpc-providers: 1.0.0-rc.2(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
+      web3-types: 1.8.0
+      web3-utils: 4.3.1
       web3-validator: 2.0.6
     transitivePeerDependencies:
       - bufferutil
@@ -14520,7 +14078,7 @@ snapshots:
   webauthn-p256@0.0.5:
     dependencies:
       '@noble/curves': 1.4.2
-      '@noble/hashes': 1.4.0
+      '@noble/hashes': 1.5.0
 
   webidl-conversions@3.0.1: {}
 
@@ -14596,8 +14154,6 @@ snapshots:
       is-number: 3.0.0
 
   word-wrap@1.2.5: {}
-
-  workerpool@6.2.1: {}
 
   workerpool@6.5.1: {}
 
@@ -14683,8 +14239,6 @@ snapshots:
 
   yaml@2.5.1: {}
 
-  yargs-parser@20.2.4: {}
-
   yargs-parser@20.2.9: {}
 
   yargs-parser@21.1.1: {}
@@ -14704,7 +14258,7 @@ snapshots:
       require-directory: 2.1.1
       string-width: 4.2.3
       y18n: 5.0.8
-      yargs-parser: 20.2.4
+      yargs-parser: 20.2.9
 
   yargs@17.7.2:
     dependencies:

@@ -62,19 +62,25 @@
 //         const endBlockHash = (await context.createBlock()).block.hash.toString();
 
 //         const allEvents: FrameSystemEventRecord[] = [];
-//         const parent = (await context.polkadotJs().rpc.chain.getHeader(startBlockHash)).parentHash.toString();
+//         const parent = (await context.polkadotJs().rpc.chain.getHeader(startBlockHash))
+//    .parentHash.toString();
 //         let c = 0;
-//         for (let hash = endBlockHash; hash != parent; hash = (await context.polkadotJs().rpc.chain.getHeader(hash)).parentHash.toString()) {
+//         for (let hash = endBlockHash; hash != parent; hash = (await context.polkadotJs().rpc
+//.chain.getHeader(hash)).parentHash.toString()) {
 //           const events = await (await context.polkadotJs().at(hash)).query.system.events();
-//           const bnumber = (await context.polkadotJs().rpc.chain.getHeader(hash)).number.toNumber();
+//           const bnumber = (await context.polkadotJs().rpc.chain.getHeader(hash)).number
+//.toNumber();
 //           console.log(`[${bnumber}] Events at block ${hash}`);
 //           events.forEach((event) => {
 //             if (context.polkadotJs().events.parachainStaking.Rewarded.is(event.event)) {
 //               console.log(event.event.section, event.event.method);
-//               console.log("\t>" + event.event.data.account.toString(), event.event.data.rewards.toBigInt().toString());
-//             } else if (context.polkadotJs().events.parachainStaking.InflationDistributed.is(event.event)) {
+//               console.log("\t>" + event.event.data.account.toString(), event.event.data.rewards.
+//toBigInt().toString());
+//             } else if (context.polkadotJs().events.parachainStaking.InflationDistributed.is(event
+//.event)) {
 //               console.log(event.event.section, event.event.method);
-//               console.log("\t>" + event.event.data.account.toString(), event.event.data.value.toBigInt().toString());
+//               console.log("\t>" + event.event.data.account.toString(), event.event.data.value
+//.toBigInt().toString());
 //             }
 //           });
 //           allEvents.push(...events);
@@ -105,8 +111,6 @@
 //         const rewardedPbr = rewardedEvents.find(({ account }) => account == dorothy.address);
 //         const rewardedTreasury = rewardedEvents.find(({ account }) => account == charleth.address);
 
-
-
 //         expect(rewardedAlith).is.not.undefined;
 //         expect(rewardedEthan).is.not.undefined;
 //         expect(rewardedBalathar).is.not.undefined;
@@ -129,8 +133,6 @@
 //         console.log(`Other reward percentage: ${actualOtherPercentage}`);
 //         console.log(`PBR reward: ${rewardedPbr!.amount}`);
 //         console.log(`Treasury reward: ${rewardedTreasury!.amount}`);
-
-
 
 //         expect(reservedRewardPercentage.toString(), "Reserved reward percentage is not correct")
 //           .toEqual((PBR_PERCENTAGE + TREASURY_PERCENTAGE).toString());
