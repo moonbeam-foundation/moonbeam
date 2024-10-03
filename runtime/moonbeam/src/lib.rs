@@ -101,6 +101,8 @@ use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
 use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
 
+use runtime_params::*;
+
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -120,6 +122,7 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
 pub mod asset_config;
 pub mod governance;
+pub mod runtime_params;
 pub mod xcm_config;
 use governance::councils::*;
 
@@ -345,8 +348,11 @@ where
 		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
 	) {
 		if let Some(fees) = fees_then_tips.next() {
-			// for fees, 80% are burned, 20% to the treasury
-			let (_, to_treasury) = fees.ration(80, 20);
+			let treasury_perbill =
+				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
+			let treasury_part = treasury_perbill.deconstruct();
+			let burn_part = Perbill::one().deconstruct() - treasury_part;
+			let (_, to_treasury) = fees.ration(burn_part, treasury_part);
 			// Balances pallet automatically burns dropped Credits by decreasing
 			// total_supply accordingly
 			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
@@ -1345,7 +1351,7 @@ impl pallet_randomness::Config for Runtime {
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter<Runtime>;
 	type VrfKeyLookup = AuthorMapping;
-	type Deposit = ConstU128<{ 1 * currency::GLMR * currency::SUPPLY_FACTOR }>;
+	type Deposit = runtime_params::PalletRandomnessDepositU128;
 	type MaxRandomWords = ConstU8<100>;
 	type MinBlockDelay = ConstU32<2>;
 	type MaxBlockDelay = ConstU32<2_000>;
@@ -1384,6 +1390,13 @@ impl pallet_relay_storage_roots::Config for Runtime {
 
 impl pallet_precompile_benchmarks::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_precompile_benchmarks::WeightInfo<Runtime>;
+}
+
+impl pallet_parameters::Config for Runtime {
+	type AdminOrigin = EnsureRoot<AccountId>;
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeParameters = RuntimeParameters;
+	type WeightInfo = moonbeam_weights::pallet_parameters::WeightInfo<Runtime>;
 }
 
 construct_runtime! {
@@ -1475,6 +1488,8 @@ construct_runtime! {
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
+
+		Parameters: pallet_parameters = 121,
 	}
 }
 

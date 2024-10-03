@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Dynamic runtime parameters for moonbase.
+//! Dynamic runtime parameters for moonriver.
 
 use moonbeam_runtime_common::gen_runtime_params;
 
 gen_runtime_params!(
-	UNIT: UNIT,
+	UNIT: MOVR,
 	RuntimeConfig_TreasuryProportion: Perbill::from_percent(20),
 	PalletRandomness_Deposit:
-		BoundedU128::const_new::<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>(),
+		BoundedU128::const_new::<{ 1 * currency::MOVR * currency::SUPPLY_FACTOR }>(),
 );

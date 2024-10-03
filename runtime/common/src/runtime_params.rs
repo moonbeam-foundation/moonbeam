@@ -18,6 +18,7 @@
 #[macro_export]
 macro_rules! gen_runtime_params {
 	(
+		UNIT: $UNIT:ident,
 		RuntimeConfig_TreasuryProportion: $RuntimeConfig_TreasuryProportion:expr,
 		PalletRandomness_Deposit: $PalletRandomness_Deposit:expr,
 	) => {
@@ -43,8 +44,8 @@ macro_rules! gen_runtime_params {
 			pub mod pallet_randomness {
 				#[codec(index = 0)]
 				pub static Deposit: BoundedU128<
-					{ 1 * currency::UNIT * currency::SUPPLY_FACTOR },
-					{ 1_000 * currency::UNIT * currency::SUPPLY_FACTOR },
+					{ 1 * currency::$UNIT * currency::SUPPLY_FACTOR },
+					{ 1_000 * currency::$UNIT * currency::SUPPLY_FACTOR },
 				> = $PalletRandomness_Deposit;
 			}
 		}
