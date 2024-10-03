@@ -62,7 +62,6 @@ impl<const L: u128, const U: u128> Decode for BoundedU128<L, U> {
 
 impl<const L: u128, const U: u128> EncodeLike<u128> for BoundedU128<L, U> {}
 
-
 /// Expose a `Get<u128>` implementation form a `Get<BoundedU128>` type.
 #[macro_export]
 macro_rules! expose_u128_get {
