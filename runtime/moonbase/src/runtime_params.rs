@@ -35,13 +35,11 @@ pub mod dynamic_params {
 	#[dynamic_pallet_params]
 	#[codec(index = 1)]
 	pub mod pallet_randomness {
-		use sp_core::ConstU128;
-
 		#[codec(index = 0)]
 		pub static Deposit: BoundedU128<
 			{ 1 * currency::UNIT * currency::SUPPLY_FACTOR },
 			{ 1_000 * currency::UNIT * currency::SUPPLY_FACTOR },
-		> = BoundedU128::safe_new::<{1 * currency::UNIT * currency::SUPPLY_FACTOR}>();
+		> = BoundedU128::safe_new::<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>();
 	}
 }
 
