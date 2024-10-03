@@ -36,11 +36,11 @@
   },
   "dependencies": {
     "@polkadot/api": "14.0.1",
-    "@polkadot/api-base": "13.0.1",
-    "@polkadot/rpc-core": "13.0.1",
-    "@polkadot/typegen": "13.0.1",
-    "@polkadot/types": "13.0.1",
-    "@polkadot/types-codec": "13.0.1",
+    "@polkadot/api-base": "14.0.1",
+    "@polkadot/rpc-core": "14.0.1",
+    "@polkadot/typegen": "14.0.1",
+    "@polkadot/types": "14.0.1",
+    "@polkadot/types-codec": "14.0.1",
     "prettier": "2.8.8",
     "typescript": "5.6.2"
   }

@@ -81,12 +81,12 @@
     "api"
   ],
   "dependencies": {
-    "@polkadot/api": "13.0.1",
-    "@polkadot/api-base": "13.0.1",
-    "@polkadot/rpc-core": "13.0.1",
-    "@polkadot/typegen": "13.0.1",
-    "@polkadot/types": "13.0.1",
-    "@polkadot/types-codec": "13.0.1",
+    "@polkadot/api": "14.0.1",
+    "@polkadot/api-base": "14.0.1",
+    "@polkadot/rpc-core": "14.0.1",
+    "@polkadot/typegen": "14.0.1",
+    "@polkadot/types": "14.0.1",
+    "@polkadot/types-codec": "14.0.1",
     "@types/node": "^22.5.5",
     "prettier": "2.8.8",
     "prettier-plugin-jsdoc": "^0.3.38",
