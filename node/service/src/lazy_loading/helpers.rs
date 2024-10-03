@@ -17,8 +17,9 @@
 use crate::lazy_loading;
 use crate::lazy_loading::backend::RPC;
 use cumulus_primitives_core::BlockT;
+use parity_scale_codec::Encode;
 use sc_client_api::{Backend, BlockImportOperation, NewBlockState};
-use sp_core::{twox_128, H256};
+use sp_core::{twox_128, twox_64, H256};
 use sp_runtime::traits::{Header, One};
 use sp_runtime::Saturating;
 use sp_storage::{StateVersion, Storage, StorageKey};
@@ -56,12 +57,34 @@ pub fn produce_genesis_block<TBl: BlockT + sp_runtime::DeserializeOwned>(
 
 pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 	backend: Arc<lazy_loading::backend::Backend<Block>>,
-	state_overrides: Vec<(Vec<u8>, Vec<u8>)>,
+	fork_checkpoint: Block,
+	mut state_overrides: Vec<(Vec<u8>, Vec<u8>)>,
 ) -> sp_blockchain::Result<()> {
-	use sc_client_api::HeaderBackend;
 	let mut op = backend.begin_operation()?;
 
-	let state_root = op.reset_storage(
+	let header = fork_checkpoint.header().clone();
+	let next_block_number = header.number().saturating_add(One::one());
+
+	let header: Block::Header = Block::Header::new(
+		next_block_number,
+		Default::default(),
+		Default::default(),
+		header.hash(),
+		Default::default(),
+	);
+
+	// IMPORTANT: Add first block after the fork to frame_system::BlockHash
+	// This is required by CheckMortality/CheckEra in SignedExtension
+	let key = [
+		&twox_128(b"System"),
+		&twox_128(b"BlockHash"),
+		twox_64(&next_block_number.encode()).as_slice(),
+		&next_block_number.encode(),
+	]
+	.concat();
+	state_overrides.push((key, header.hash().encode()));
+
+	let _ = op.reset_storage(
 		Storage {
 			top: state_overrides.into_iter().collect(),
 			children_default: Default::default(),
@@ -69,17 +92,7 @@ pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 		StateVersion::V0,
 	)?;
 
-	let head_info = backend.blockchain.info();
-	let next_block_number = head_info.finalized_number.saturating_add(One::one());
-
-	let header: Block::Header = Block::Header::new(
-		next_block_number,
-		Default::default(),
-		state_root,
-		head_info.finalized_hash,
-		Default::default(),
-	);
-
+	// Create empty first block
 	let _ = op.set_block_data(
 		header.clone(),
 		Some(Default::default()),

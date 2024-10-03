@@ -487,20 +487,6 @@ impl<Block: BlockT + DeserializeOwned> blockchain::Backend<Block> for Blockchain
 		Ok(self.storage.read().leaves.hashes())
 	}
 
-	fn displaced_leaves_after_finalizing(
-		&self,
-		block_number: NumberFor<Block>,
-	) -> sp_blockchain::Result<Vec<Block::Hash>> {
-		Ok(self
-			.storage
-			.read()
-			.leaves
-			.displaced_by_finalize_height(block_number)
-			.leaves()
-			.cloned()
-			.collect::<Vec<_>>())
-	}
-
 	fn children(&self, _parent_hash: Block::Hash) -> sp_blockchain::Result<Vec<Block::Hash>> {
 		unimplemented!("Not supported by the `lazy-loading` backend.")
 	}
@@ -1687,8 +1673,6 @@ where
 	Block: BlockT + DeserializeOwned,
 	Block::Hash: From<H256>,
 {
-	use sc_client_api::Backend as _;
-	use sc_client_api::BlockImportOperation as _;
 	let uri: String = lazy_loading_config.state_rpc.clone().into();
 
 	let http_client = jsonrpsee::http_client::HttpClientBuilder::default()
@@ -1756,23 +1740,8 @@ where
 
 	let _ = helpers::produce_genesis_block(backend.clone());
 
-	let mut op = backend.begin_operation().unwrap();
-	op.before_fork = true;
-
-	let extrinsics: Vec<Block::Extrinsic> = checkpoint.extrinsics().to_vec();
-
-	op.set_block_data(
-		checkpoint.header().clone(),
-		Some(extrinsics.clone()),
-		None,
-		None,
-		NewBlockState::Final,
-	)?;
-
-	backend.commit_operation(op)?;
-
 	// Produce first block after the fork
-	let _ = helpers::produce_first_block(backend.clone(), state_overrides)?;
+	let _ = helpers::produce_first_block(backend.clone(), checkpoint, state_overrides)?;
 
 	Ok(backend)
 }
