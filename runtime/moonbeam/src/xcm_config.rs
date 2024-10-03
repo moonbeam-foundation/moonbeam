@@ -72,8 +72,6 @@ use sp_std::{
 	prelude::*,
 };
 
-use xcm_primitives::parameter_type_with_key;
-
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 
 parameter_types! {
@@ -570,16 +568,6 @@ parameter_types! {
 		interior: [
 			Parachain(ParachainInfo::parachain_id().into())
 		].into()
-	};
-}
-
-parameter_type_with_key! {
-	pub ParachainMinFee: |location: Location| -> Option<u128> {
-		match (location.parents, location.first_interior()) {
-			// Polkadot AssetHub fee
-			(1, Some(Parachain(1000u32))) => Some(50_000_000u128),
-			_ => None,
-		}
 	};
 }
 

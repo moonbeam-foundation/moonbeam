@@ -583,16 +583,6 @@ parameter_types! {
 
 }
 
-xcm_primitives::parameter_type_with_key! {
-	pub ParachainMinFee: |location: Location| -> Option<u128> {
-		match (location.parents, location.first_interior()) {
-			// AssetHub fee
-			(1, Some(Parachain(1001u32))) => Some(50_000_000u128),
-			_ => None,
-		}
-	};
-}
-
 // 1 WND/ROC should be enough
 parameter_types! {
 	pub MaxHrmpRelayFee: Asset = (Location::parent(), 1_000_000_000_000u128).into();
