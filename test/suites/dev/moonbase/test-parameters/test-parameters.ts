@@ -95,13 +95,7 @@ describeSuite({
         // used as an acceptable value
         const AVG = (MIN + MAX) / 2n;
 
-
-        const param1 = parameterType(
-          context,
-          "PalletRandomness",
-          "Deposit",
-          MIN - 1n,
-        );
+        const param1 = parameterType(context, "PalletRandomness", "Deposit", MIN - 1n);
         try {
           await context.createBlock(
             context
@@ -115,12 +109,7 @@ describeSuite({
           expect(error.toString().toLowerCase()).to.contain("value out of bounds");
         }
 
-        const param2 = parameterType(
-          context,
-          "PalletRandomness",
-          "Deposit",
-          MAX + 1n,
-        );
+        const param2 = parameterType(context, "PalletRandomness", "Deposit", MAX + 1n);
         try {
           await context.createBlock(
             context
@@ -134,13 +123,7 @@ describeSuite({
           expect(error.toString().toLowerCase()).to.contain("value out of bounds");
         }
 
-
-        const param3 = parameterType(
-          context,
-          "PalletRandomness",
-          "Deposit",
-          AVG,
-        );
+        const param3 = parameterType(context, "PalletRandomness", "Deposit", AVG);
         const res3 = await context.createBlock(
           context
             .polkadotJs()
@@ -152,8 +135,6 @@ describeSuite({
           res3.result?.successful,
           "An extrinsic should be created, since the parameter is valid"
         ).to.be.true;
-
-
       },
     });
   },
