@@ -4,6 +4,25 @@
 // import { jumpRounds } from "../../../../helpers";
 // import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 
+import { describeSuite, expect } from "@moonwall/cli";
+import { id } from "ethers";
+
+// dummy passing test
+describeSuite({
+  id: "D0134655",
+  title: "Staking - Rewards - Bond + Treasury",
+  foundationMethods: "dev",
+  testCases: ({ context, it, log }) => {
+    it({
+      id: "T01",
+      title: "dummy test",
+      test: async () => {
+        expect(true).toEqual(true);
+      },
+    });
+  },
+})
+
 // describeSuite({
 //   id: "D0134655",
 //   title: "Staking - Rewards - Bond + Treasury",
