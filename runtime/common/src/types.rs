@@ -29,7 +29,7 @@ impl<const L: u128, const U: u128> BoundedU128<L, U> {
 		Ok(Self(value))
 	}
 
-	pub fn safe_new<const VAL: u128>() -> Self {
+	pub fn const_new<const VAL: u128>() -> Self {
 		if VAL < L {
 			Self(L)
 		} else if VAL > U {
