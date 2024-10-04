@@ -319,6 +319,10 @@ parameter_types! {
 	pub MaxInstructions: u32 = 100;
 
 	pub UniversalLocation: InteriorLocation = Here;
+	pub SelfLocationAbsolute: Location = Location {
+		parents: 1,
+		interior: [Parachain(ParachainId::get().into())].into(),
+	};
 }
 
 impl pallet_xcm_transactor::Config for Runtime {
@@ -336,7 +340,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
 	type AssetTransactor = DummyAssetTransactor;
-	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
+	type ReserveProvider = xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = frame_system::EnsureRoot<AccountId>;
 	type HrmpOpenOrigin = frame_system::EnsureRoot<AccountId>;
