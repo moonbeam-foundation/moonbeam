@@ -55,7 +55,7 @@ impl<T: Config> OnRuntimeUpgrade for MigrateParachainBondConfig<T> {
 
 		InflationDistributionInfo::<T>::put(configs);
 
-		// Remove storage value AssetManager::SupportedFeePaymentAssets
+		// Remove storage value ParachainStaking::ParachainBondInfo
 		frame_support::storage::unhashed::kill(&frame_support::storage::storage_prefix(
 			b"ParachainStaking",
 			b"ParachainBondInfo",
