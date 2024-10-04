@@ -66,11 +66,11 @@ describeSuite({
           { allowFailures: false }
         );
 
-        let currentHash = await context.polkadotJs().rpc.chain.getFinalizedHead();
-        let currentBlockNumber = (
+        const currentHash = await context.polkadotJs().rpc.chain.getFinalizedHead();
+        const currentBlockNumber = (
           await context.polkadotJs().rpc.chain.getHeader(currentHash)
         ).number.toNumber();
-        let blocksToJump = BLOCKS_PER_ROUND - currentBlockNumber;
+        const blocksToJump = BLOCKS_PER_ROUND - currentBlockNumber;
         console.log(`Jumping ${blocksToJump} blocks`);
         await jumpBlocks(context, blocksToJump);
 
