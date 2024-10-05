@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, fetchCompiledContract, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, createEthersTransaction } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
+import { numberToHex } from "@polkadot/util"
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult, mockOldAssetBalance } from "../../../../helpers";
@@ -74,7 +75,7 @@ describeSuite({
           to: PRECOMPILE_PALLET_XCM_ADDRESS,
           data: encodeFunctionData({
             abi: xcmInterface,
-            args: [dest, beneficiary, assetLocationInfo, 0, weight],
+            args: [dest, beneficiary, assetLocationInfo, 0],
             functionName: "transferAssetsLocation",
           }),
           gasLimit: 500_000n,
@@ -110,7 +111,7 @@ describeSuite({
           to: PRECOMPILE_PALLET_XCM_ADDRESS,
           data: encodeFunctionData({
             abi: xcmInterface,
-            args: [paraId, BALTATHAR_ADDRESS, assetAddressInfo, 0, weight],
+            args: [paraId, BALTATHAR_ADDRESS, assetAddressInfo, 0],
             functionName: "transferAssetsToPara20",
           }),
           gasLimit: 500_000n,
@@ -147,7 +148,7 @@ describeSuite({
           to: PRECOMPILE_PALLET_XCM_ADDRESS,
           data: encodeFunctionData({
             abi: xcmInterface,
-            args: [paraId, beneficiaryAddress, assetAddressInfo, 0, weight],
+            args: [paraId, beneficiaryAddress, assetAddressInfo, 0],
             functionName: "transferAssetsToPara32",
           }),
           gasLimit: 500_000n,
@@ -183,8 +184,210 @@ describeSuite({
           to: PRECOMPILE_PALLET_XCM_ADDRESS,
           data: encodeFunctionData({
             abi: xcmInterface,
-            args: [beneficiaryAddress, assetAddressInfo, 0, weight],
+            args: [beneficiaryAddress, assetAddressInfo, 0],
             functionName: "transferAssetsToRelay",
+          }),
+          gasLimit: 500_000n,
+        });
+
+        const result = await context.createBlock(rawTxn);
+        expectEVMResult(result.result!.events, "Succeed");
+
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
+        expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
+      },
+    });
+
+    it({
+      id: "T05",
+      title: "allows to call transferAssetsUsingTypeAndThenLocation::8425d893 selector",
+      test: async function () {
+        const { abi: xcmInterface } = fetchCompiledContract("XCM");
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
+
+        const dest: [number, any[]] = [1, []];
+        const assetLocation: [number, any[]] = [1, []];
+        const assetLocationInfo = [[assetLocation, amountToSend]];
+
+        // DestinationReserve
+        let assetsAndFeesTransferType = 2;
+
+        const message = {
+          V3: [
+            {
+              ClearOrigin: null,
+            },
+          ],
+        };
+        const xcmOnDest = context.polkadotJs().createType("XcmVersionedXcm", message);
+
+        const rawTxn = await createEthersTransaction(context, {
+          to: PRECOMPILE_PALLET_XCM_ADDRESS,
+          data: encodeFunctionData({
+            abi: xcmInterface,
+            args: [dest, assetLocationInfo, assetsAndFeesTransferType, 0n, assetsAndFeesTransferType,
+              xcmOnDest.toHex()],
+            functionName: "transferAssetsUsingTypeAndThenLocation",
+          }),
+          gasLimit: 500_000n,
+        });
+
+        const result = await context.createBlock(rawTxn);
+        expectEVMResult(result.result!.events, "Succeed");
+
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
+        expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
+      },
+    });
+
+    it({
+      id: "T06",
+      title: "allows to call transferAssetsUsingTypeAndThenLocation::fc19376c selector",
+      test: async function () {
+        const { abi: xcmInterface } = fetchCompiledContract("XCM");
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
+
+        const paraIdInHex = numberToHex(2000, 32);
+        const parachain_enum_selector = "0x00";
+
+        // This represents X2(Parent, Parachain(2000))
+        const dest: [number, any[]] = [1, [parachain_enum_selector + paraIdInHex.slice(2)]];
+
+        const remoteReserve: [number, any[]] = [1, []];
+        const assetLocation: [number, any[]] = [1, []];
+        const assetLocationInfo = [[assetLocation, amountToSend]];
+
+        const message = {
+          V3: [
+            {
+              ClearOrigin: null,
+            },
+          ],
+        };
+        const xcmOnDest = context.polkadotJs().createType("XcmVersionedXcm", message);
+
+        const rawTxn = await createEthersTransaction(context, {
+          to: PRECOMPILE_PALLET_XCM_ADDRESS,
+          data: encodeFunctionData({
+            abi: xcmInterface,
+            args: [dest, assetLocationInfo, 0n, xcmOnDest.toHex(), remoteReserve],
+            functionName: "transferAssetsUsingTypeAndThenLocation",
+          }),
+          gasLimit: 500_000n,
+        });
+
+        const result = await context.createBlock(rawTxn);
+        expectEVMResult(result.result!.events, "Succeed");
+
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
+        expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
+      },
+    });
+
+    it({
+      id: "T07",
+      title: "allows to call transferAssetsUsingTypeAndThenAddress::998093ee selector",
+      test: async function () {
+        const { abi: xcmInterface } = fetchCompiledContract("XCM");
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
+
+        // Relay as destination
+        const dest: [number, any[]] = [1, []];
+        const assetAddressInfo = [[ADDRESS_ERC20, amountToSend]];
+
+        // DestinationReserve
+        let assetsAndFeesTransferType = 2;
+
+        const message = {
+          V3: [
+            {
+              ClearOrigin: null,
+            },
+          ],
+        };
+        const xcmOnDest = context.polkadotJs().createType("XcmVersionedXcm", message);
+
+        const rawTxn = await createEthersTransaction(context, {
+          to: PRECOMPILE_PALLET_XCM_ADDRESS,
+          data: encodeFunctionData({
+            abi: xcmInterface,
+            args: [dest, assetAddressInfo, assetsAndFeesTransferType, 0n, assetsAndFeesTransferType,
+              xcmOnDest.toHex()],
+            functionName: "transferAssetsUsingTypeAndThenAddress",
+          }),
+          gasLimit: 500_000n,
+        });
+
+        const result = await context.createBlock(rawTxn);
+        expectEVMResult(result.result!.events, "Succeed");
+
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
+        expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
+      },
+    });
+
+    it({
+      id: "T08",
+      title: "allows to call transferAssetsUsingTypeAndThenAddress::aaecfc62 selector",
+      test: async function () {
+        const { abi: xcmInterface } = fetchCompiledContract("XCM");
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
+
+        const paraIdInHex = numberToHex(2000, 32);
+        const parachain_enum_selector = "0x00";
+
+        // This represents X2(Parent, Parachain(2000))
+        const dest: [number, any[]] = [1, [parachain_enum_selector + paraIdInHex.slice(2)]];
+        const assetAddressInfo = [[ADDRESS_ERC20, amountToSend]];
+        const remoteReserve: [number, any[]] = [1, []];
+
+        const message = {
+          V3: [
+            {
+              ClearOrigin: null,
+            },
+          ],
+        };
+        const xcmOnDest = context.polkadotJs().createType("XcmVersionedXcm", message);
+
+        const rawTxn = await createEthersTransaction(context, {
+          to: PRECOMPILE_PALLET_XCM_ADDRESS,
+          data: encodeFunctionData({
+            abi: xcmInterface,
+            args: [dest, assetAddressInfo, 0n, xcmOnDest.toHex(), remoteReserve],
+            functionName: "transferAssetsUsingTypeAndThenAddress",
           }),
           gasLimit: 500_000n,
         });

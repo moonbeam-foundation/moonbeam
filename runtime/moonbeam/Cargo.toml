@@ -171,6 +171,7 @@ nimbus-primitives = { workspace = true }
 pallet-async-backing = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
+pallet-evm-precompile-xcm = { workspace = true }
 pallet-relay-storage-roots = { workspace = true }
 
 # Benchmarking
@@ -256,6 +257,7 @@ std = [
 	"pallet-evm-precompile-referenda/std",
 	"pallet-evm-precompile-relay-encoder/std",
 	"pallet-evm-precompile-relay-verifier/std",
+	"pallet-evm-precompile-xcm/std",
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
