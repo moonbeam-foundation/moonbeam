@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, fetchCompiledContract, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, createEthersTransaction } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
-import { numberToHex } from "@polkadot/util"
+import { numberToHex } from "@polkadot/util";
 import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult, mockOldAssetBalance } from "../../../../helpers";
@@ -218,7 +218,7 @@ describeSuite({
         const assetLocationInfo = [[assetLocation, amountToSend]];
 
         // DestinationReserve
-        let assetsAndFeesTransferType = 2;
+        const assetsAndFeesTransferType = 2;
 
         const message = {
           V3: [
@@ -233,8 +233,14 @@ describeSuite({
           to: PRECOMPILE_PALLET_XCM_ADDRESS,
           data: encodeFunctionData({
             abi: xcmInterface,
-            args: [dest, assetLocationInfo, assetsAndFeesTransferType, 0n, assetsAndFeesTransferType,
-              xcmOnDest.toHex()],
+            args: [
+              dest,
+              assetLocationInfo,
+              assetsAndFeesTransferType,
+              0n,
+              assetsAndFeesTransferType,
+              xcmOnDest.toHex(),
+            ],
             functionName: "transferAssetsUsingTypeAndThenLocation",
           }),
           gasLimit: 500_000n,
@@ -320,7 +326,7 @@ describeSuite({
         const assetAddressInfo = [[ADDRESS_ERC20, amountToSend]];
 
         // DestinationReserve
-        let assetsAndFeesTransferType = 2;
+        const assetsAndFeesTransferType = 2;
 
         const message = {
           V3: [
@@ -335,8 +341,14 @@ describeSuite({
           to: PRECOMPILE_PALLET_XCM_ADDRESS,
           data: encodeFunctionData({
             abi: xcmInterface,
-            args: [dest, assetAddressInfo, assetsAndFeesTransferType, 0n, assetsAndFeesTransferType,
-              xcmOnDest.toHex()],
+            args: [
+              dest,
+              assetAddressInfo,
+              assetsAndFeesTransferType,
+              0n,
+              assetsAndFeesTransferType,
+              xcmOnDest.toHex(),
+            ],
             functionName: "transferAssetsUsingTypeAndThenAddress",
           }),
           gasLimit: 500_000n,
