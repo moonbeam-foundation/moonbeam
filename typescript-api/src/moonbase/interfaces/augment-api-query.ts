@@ -85,8 +85,9 @@ import type {
   PalletParachainStakingDelegationRequestsScheduledRequest,
   PalletParachainStakingDelegations,
   PalletParachainStakingDelegator,
+  PalletParachainStakingInflationDistributionAccount,
+  PalletParachainStakingInflationDistributionConfig,
   PalletParachainStakingInflationInflationInfo,
-  PalletParachainStakingParachainBondConfig,
   PalletParachainStakingRoundInfo,
   PalletParachainStakingSetBoundedOrderedSet,
   PalletPreimageOldRequestStatus,
@@ -907,10 +908,17 @@ declare module "@polkadot/api-base/types/storage" {
         []
       > &
         QueryableStorageEntry<ApiType, []>;
-      /** Parachain bond config info { account, percent_of_inflation } */
-      parachainBondInfo: AugmentedQuery<
+      /**
+       * Inflation distribution configuration, including accounts that should receive inflation
+       * before it is distributed to collators and delegators.
+       *
+       * The sum of the distribution percents must be less than or equal to 100.
+       *
+       * The first config is related to the parachain bond account, the second to the treasury account.
+       */
+      inflationDistributionInfo: AugmentedQuery<
         ApiType,
-        () => Observable<PalletParachainStakingParachainBondConfig>,
+        () => Observable<Vec<PalletParachainStakingInflationDistributionAccount>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
