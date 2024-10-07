@@ -1001,54 +1001,6 @@ fn evm_batch_recursion_over_limit() {
 }
 
 #[test]
-fn batch_not_callable_by_smart_contract() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice.into(), 10_000)])
-		.build()
-		.execute_with(|| {
-			// "deploy" SC to alice address
-			let alice_h160: H160 = Alice.into();
-			let code = vec![10u8];
-			let metadata: CodeMetadata = CodeMetadata {
-				size: code.len() as u64,
-				hash: H256::from(sp_io::hashing::keccak_256(&code)),
-			};
-
-			pallet_evm::AccountCodes::<Runtime>::insert(alice_h160, &code);
-			pallet_evm::AccountCodesMetadata::<Runtime>::insert(alice_h160, metadata);
-
-			// succeeds if not called by SC, see `evm_batch_recursion_under_limit`
-			let input = PCall::batch_all {
-				to: vec![Address(Batch.into())].into(),
-				value: vec![].into(),
-				gas_limit: vec![].into(),
-				call_data: vec![PCall::batch_all {
-					to: vec![Address(Bob.into())].into(),
-					value: vec![1000_u32.into()].into(),
-					gas_limit: vec![].into(),
-					call_data: vec![].into(),
-				}
-				.encode()
-				.into()]
-				.into(),
-			}
-			.into();
-
-			match RuntimeCall::Evm(evm_call(Alice, input)).dispatch(RuntimeOrigin::root()) {
-				Err(DispatchErrorWithPostInfo {
-					error:
-						DispatchError::Module(ModuleError {
-							message: Some(err_msg),
-							..
-						}),
-					..
-				}) => assert_eq!("TransactionMustComeFromEOA", err_msg),
-				_ => panic!("expected error 'TransactionMustComeFromEOA'"),
-			}
-		})
-}
-
-#[test]
 fn batch_is_not_callable_by_dummy_code() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 10_000)])
