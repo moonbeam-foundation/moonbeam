@@ -854,6 +854,21 @@ jobs:
           docker create --name moonbeam_container $DOCKER_TAG bash
           docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
           docker rm -f moonbeam_container
+      - name: Setup Moonbeam PolkadotJS types
+        shell: bash
+        run: |
+          #### Preparing the legacy types
+          cd moonbeam-types-bundle
+          pnpm i
+          pnpm build
+
+          #### Preparing the typescript api
+          cd ../typescript-api
+          pnpm i
+          pnpm build
+
+          cd ../test
+          pnpm add ../typescript-api
       - name: Prepare Chainspecs
         run: |
           cd test
