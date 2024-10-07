@@ -2,7 +2,7 @@ import { exec, spawn } from "child_process";
 import { promisify } from "util";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { readFileSync, write, writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 
 const execAsync = promisify(exec);
 
