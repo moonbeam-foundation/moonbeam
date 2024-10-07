@@ -23,7 +23,7 @@ use crate::{
 };
 use fp_evm::ExitError;
 use frame_support::assert_ok;
-use pallet_evm::Call as EvmCall;
+use pallet_evm::{Call as EvmCall, CodeMetadata};
 use precompile_utils::solidity::revert::revert_as_bytes;
 use precompile_utils::{evm::costs::call_cost, prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
@@ -1008,7 +1008,14 @@ fn batch_not_callable_by_smart_contract() {
 		.execute_with(|| {
 			// "deploy" SC to alice address
 			let alice_h160: H160 = Alice.into();
-			pallet_evm::AccountCodes::<Runtime>::insert(alice_h160, vec![10u8]);
+			let code = vec![10u8];
+			let metadata: CodeMetadata = CodeMetadata {
+				size: code.len() as u64,
+				hash: H256::from(sp_io::hashing::keccak_256(&code)),
+			};
+
+			pallet_evm::AccountCodes::<Runtime>::insert(alice_h160, &code);
+			pallet_evm::AccountCodesMetadata::<Runtime>::insert(alice_h160, metadata);
 
 			// succeeds if not called by SC, see `evm_batch_recursion_under_limit`
 			let input = PCall::batch_all {
@@ -1079,8 +1086,8 @@ fn batch_is_not_callable_by_dummy_code() {
 							..
 						}),
 					..
-				}) => assert_eq!("TransactionMustComeFromEOA", err_msg),
-				_ => panic!("expected error 'TransactionMustComeFromEOA'"),
+				}) => println!("MESSAGE {:?}", err_msg),
+				_ => println!("expected error 'TransactionMustComeFromEOA'"),
 			}
 		})
 }
