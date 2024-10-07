@@ -4,7 +4,6 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { readFileSync, write, writeFileSync } from "fs";
 
-
 const execAsync = promisify(exec);
 
 const __filename = fileURLToPath(import.meta.url);
@@ -37,7 +36,7 @@ const writeFile = async (relativeDir: string, fileName: string, data: string) =>
   const targetDir = join(__dirname, relativeDir);
   const filePath = join(targetDir, fileName);
   writeFileSync(filePath, data, { flag: "w" });
-}
+};
 
 const checkBinary = async () => {
   try {
@@ -87,7 +86,7 @@ const scrapeMetadata = async (network: string, port: string) => {
 
   const metadataJson = await metadata.json();
   writeFile(`../../typescript-api`, `metadata-${network}.json`, JSON.stringify(metadataJson));
-}
+};
 
 const executeUpdateAPIScript = async () => {
   await checkBinary();
