@@ -86,6 +86,7 @@ xcm-runtime-apis = { workspace = true }
 
 # Parity
 parity-scale-codec = { workspace = true }
+scale-info = { workspace = true }
 
 account = { workspace = true }
 
@@ -118,6 +119,7 @@ std = [
 	"pallet-xcm-weight-trader/std",
 	"pallet-message-queue/std",
 	"parity-scale-codec/std",
+	"scale-info/std",
 	"precompile-utils/std",
 	"sp-consensus-slots/std",
 	"sp-core/std",
