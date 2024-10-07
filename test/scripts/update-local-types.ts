@@ -102,7 +102,7 @@ const executeUpdateAPIScript = async () => {
   const port = "9933";
   for (const network of networks) {
     const node = startNode(network, port);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 10000));
     await scrapeMetadata(network, port);
     node.kill();
     console.log(`Metadata for ${network} saved ✅`);
