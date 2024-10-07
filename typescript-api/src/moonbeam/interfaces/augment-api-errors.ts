@@ -28,6 +28,8 @@ declare module "@polkadot/api-base/types/errors" {
       AlreadyExists: AugmentedError<ApiType>;
       /** The asset is not live, and likely being destroyed. */
       AssetNotLive: AugmentedError<ApiType>;
+      /** The asset ID must be equal to the [`NextAssetId`]. */
+      BadAssetId: AugmentedError<ApiType>;
       /** Invalid metadata given. */
       BadMetadata: AugmentedError<ApiType>;
       /** Invalid witness data given. */
@@ -210,6 +212,12 @@ declare module "@polkadot/api-base/types/errors" {
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
+    emergencyParaXcm: {
+      /** The current XCM Mode is not Paused */
+      NotInPausedMode: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
     ethereum: {
       /** Signature is invalid. */
       InvalidSignature: AugmentedError<ApiType>;
@@ -251,6 +259,24 @@ declare module "@polkadot/api-base/types/errors" {
       Undefined: AugmentedError<ApiType>;
       /** Withdraw fee failed */
       WithdrawFailed: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    evmForeignAssets: {
+      AssetAlreadyExists: AugmentedError<ApiType>;
+      AssetAlreadyFrozen: AugmentedError<ApiType>;
+      AssetDoesNotExist: AugmentedError<ApiType>;
+      AssetIdFiltered: AugmentedError<ApiType>;
+      AssetNotFrozen: AugmentedError<ApiType>;
+      CorruptedStorageOrphanLocation: AugmentedError<ApiType>;
+      Erc20ContractCreationFail: AugmentedError<ApiType>;
+      EvmCallPauseFail: AugmentedError<ApiType>;
+      EvmCallUnpauseFail: AugmentedError<ApiType>;
+      EvmInternalError: AugmentedError<ApiType>;
+      InvalidSymbol: AugmentedError<ApiType>;
+      InvalidTokenName: AugmentedError<ApiType>;
+      LocationAlreadyExists: AugmentedError<ApiType>;
+      TooManyForeignAssets: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -363,8 +389,14 @@ declare module "@polkadot/api-base/types/errors" {
     moonbeamLazyMigrations: {
       /** There must be at least one address */
       AddressesLengthCannotBeZero: AugmentedError<ApiType>;
+      /** The contract already have metadata */
+      ContractMetadataAlreadySet: AugmentedError<ApiType>;
       /** The contract is not corrupted (Still exist or properly suicided) */
       ContractNotCorrupted: AugmentedError<ApiType>;
+      /** Contract not exist */
+      ContractNotExist: AugmentedError<ApiType>;
+      /** The key lengths exceeds the maximum allowed */
+      KeyTooLong: AugmentedError<ApiType>;
       /** The limit cannot be zero */
       LimitCannotBeZero: AugmentedError<ApiType>;
       /** Generic error */
@@ -598,6 +630,8 @@ declare module "@polkadot/api-base/types/errors" {
     preimage: {
       /** Preimage has already been noted on-chain. */
       AlreadyNoted: AugmentedError<ApiType>;
+      /** No ticket with a cost was returned by [`Config::Consideration`] to store the preimage. */
+      NoCost: AugmentedError<ApiType>;
       /** The user is not authorized to perform this action. */
       NotAuthorized: AugmentedError<ApiType>;
       /** The preimage cannot be removed since it has not yet been noted. */
@@ -697,6 +731,12 @@ declare module "@polkadot/api-base/types/errors" {
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
+    sudo: {
+      /** Sender must be the Sudo account. */
+      RequireSudo: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
     system: {
       /** The origin filter prevent the call to be dispatched. */
       CallFiltered: AugmentedError<ApiType>;
@@ -734,8 +774,6 @@ declare module "@polkadot/api-base/types/errors" {
       Inconclusive: AugmentedError<ApiType>;
       /** The spend origin is valid but the amount it is allowed to spend is lower than the amount to be spent. */
       InsufficientPermission: AugmentedError<ApiType>;
-      /** Proposer's balance is too low. */
-      InsufficientProposersBalance: AugmentedError<ApiType>;
       /** No proposal, bounty or spend at that index. */
       InvalidIndex: AugmentedError<ApiType>;
       /** The payout was not yet attempted/claimed. */
@@ -804,6 +842,10 @@ declare module "@polkadot/api-base/types/errors" {
       AlreadySuspended: AugmentedError<ApiType>;
       /** Setting the queue config failed since one of its values was invalid. */
       BadQueueConfig: AugmentedError<ApiType>;
+      /** The message is too big. */
+      TooBig: AugmentedError<ApiType>;
+      /** There are too many active outbound channels. */
+      TooManyActiveOutboundChannels: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -835,6 +877,22 @@ declare module "@polkadot/api-base/types/errors" {
       UnweighableMessage: AugmentedError<ApiType>;
       WeightOverflow: AugmentedError<ApiType>;
       XcmExecuteError: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    xcmWeightTrader: {
+      /** The given asset was already added */
+      AssetAlreadyAdded: AugmentedError<ApiType>;
+      /** The given asset was already paused */
+      AssetAlreadyPaused: AugmentedError<ApiType>;
+      /** The given asset was not found */
+      AssetNotFound: AugmentedError<ApiType>;
+      /** The given asset is not paused */
+      AssetNotPaused: AugmentedError<ApiType>;
+      /** The relative price cannot be zero */
+      PriceCannotBeZero: AugmentedError<ApiType>;
+      /** XCM location filtered */
+      XcmLocationFiltered: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
