@@ -18,7 +18,7 @@ describeSuite({
   testCases: ({ context, log, it }) => {
     let contracts: HeavyContract[];
     const MAX_CONTRACTS = 50;
-    const EXPECTED_POV_ROUGH = 24_000; // bytes
+    const EXPECTED_POV_ROUGH = 20_000; // bytes
     let batchAbi: Abi;
     let proxyAbi: Abi;
     let proxyAddress: `0x${string}`;
