@@ -15,7 +15,9 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
-use crate as pallet_parachain_staking;
+use crate::{
+	self as pallet_parachain_staking, InflationDistributionAccount, InflationDistributionConfig,
+};
 use crate::{
 	pallet, AwardedPts, Config, Event as ParachainStakingEvent, InflationInfo, Points, Range,
 	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
@@ -319,6 +321,25 @@ pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
 pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
 	let block = round * GENESIS_BLOCKS_PER_ROUND - 1;
 	roll_to(block)
+}
+
+pub(crate) fn inflation_configs(
+	pbr: AccountId,
+	pbr_percent: u8,
+	treasury: AccountId,
+	treasury_percent: u8,
+) -> InflationDistributionConfig<AccountId> {
+	[
+		InflationDistributionAccount {
+			account: pbr,
+			percent: Percent::from_percent(pbr_percent),
+		},
+		InflationDistributionAccount {
+			account: treasury,
+			percent: Percent::from_percent(treasury_percent),
+		},
+	]
+	.into()
 }
 
 pub(crate) fn events() -> Vec<pallet::Event<Test>> {

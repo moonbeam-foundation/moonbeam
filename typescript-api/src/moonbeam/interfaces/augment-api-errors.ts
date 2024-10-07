@@ -541,6 +541,7 @@ declare module "@polkadot/api-base/types/errors" {
       TooLowDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowDelegationCountToLeaveDelegators: AugmentedError<ApiType>;
+      TotalInflationDistributionPercentExceeds100: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -728,12 +729,6 @@ declare module "@polkadot/api-base/types/errors" {
       RescheduleNoChange: AugmentedError<ApiType>;
       /** Given target block number is in the past. */
       TargetBlockNumberInPast: AugmentedError<ApiType>;
-      /** Generic error */
-      [key: string]: AugmentedError<ApiType>;
-    };
-    sudo: {
-      /** Sender must be the Sudo account. */
-      RequireSudo: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };

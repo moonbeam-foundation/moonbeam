@@ -26,10 +26,13 @@ describeSuite({
       id: "T02",
       title: "should check initial state - 0x0 ParachainBondAccount",
       test: async function () {
-        const parachainBondInfo = await context
+        const inflationDistributionConfig = await context
           .polkadotJs()
-          .query.parachainStaking.parachainBondInfo();
-        expect(parachainBondInfo.account.toString()).to.equal(ZERO_ADDRESS);
+          .query.parachainStaking.inflationDistributionInfo();
+        expect(inflationDistributionConfig[0].account.toString()).to.equal(ZERO_ADDRESS);
+        expect(inflationDistributionConfig[0].percent.toNumber()).to.equal(30);
+        expect(inflationDistributionConfig[1].account.toString()).to.equal(ZERO_ADDRESS);
+        expect(inflationDistributionConfig[1].percent.toNumber()).to.equal(0);
       },
     });
 

@@ -50,10 +50,10 @@ import type {
   FrameSystemEventRecord,
   FrameSystemLastRuntimeUpgradeInfo,
   FrameSystemPhase,
-  MoonbaseRuntimeRuntimeHoldReason,
-  MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
-  MoonbaseRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonbaseRuntimeXcmConfigAssetType,
+  MoonriverRuntimeRuntimeHoldReason,
+  MoonriverRuntimeRuntimeParamsRuntimeParametersKey,
+  MoonriverRuntimeRuntimeParamsRuntimeParametersValue,
+  MoonriverRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletAssetsApproval,
   PalletAssetsAssetAccount,
@@ -85,8 +85,9 @@ import type {
   PalletParachainStakingDelegationRequestsScheduledRequest,
   PalletParachainStakingDelegations,
   PalletParachainStakingDelegator,
+  PalletParachainStakingInflationDistributionAccount,
+  PalletParachainStakingInflationDistributionConfig,
   PalletParachainStakingInflationInflationInfo,
-  PalletParachainStakingParachainBondConfig,
   PalletParachainStakingRoundInfo,
   PalletParachainStakingSetBoundedOrderedSet,
   PalletPreimageOldRequestStatus,
@@ -137,7 +138,7 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg: u128 | AnyNumber | Uint8Array
-        ) => Observable<Option<MoonbaseRuntimeXcmConfigAssetType>>,
+        ) => Observable<Option<MoonriverRuntimeXcmConfigAssetType>>,
         [u128]
       > &
         QueryableStorageEntry<ApiType, [u128]>;
@@ -149,11 +150,11 @@ declare module "@polkadot/api-base/types/storage" {
       assetTypeId: AugmentedQuery<
         ApiType,
         (
-          arg: MoonbaseRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array
+          arg: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array
         ) => Observable<Option<u128>>,
-        [MoonbaseRuntimeXcmConfigAssetType]
+        [MoonriverRuntimeXcmConfigAssetType]
       > &
-        QueryableStorageEntry<ApiType, [MoonbaseRuntimeXcmConfigAssetType]>;
+        QueryableStorageEntry<ApiType, [MoonriverRuntimeXcmConfigAssetType]>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -311,7 +312,7 @@ declare module "@polkadot/api-base/types/storage" {
         (arg: AccountId20 | string | Uint8Array) => Observable<
           Vec<
             {
-              readonly id: MoonbaseRuntimeRuntimeHoldReason;
+              readonly id: MoonriverRuntimeRuntimeHoldReason;
               readonly amount: u128;
             } & Struct
           >
@@ -917,10 +918,15 @@ declare module "@polkadot/api-base/types/storage" {
         []
       > &
         QueryableStorageEntry<ApiType, []>;
-      /** Parachain bond config info { account, percent_of_inflation } */
-      parachainBondInfo: AugmentedQuery<
+      /**
+       * Inflation distribution configuration, including accounts that should receive inflation
+       * before it is distributed to collators and delegators.
+       *
+       * The sum of the distribution percents must be less than or equal to 100.
+       */
+      inflationDistributionInfo: AugmentedQuery<
         ApiType,
-        () => Observable<PalletParachainStakingParachainBondConfig>,
+        () => Observable<Vec<PalletParachainStakingInflationDistributionAccount>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1182,14 +1188,15 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg:
-            | MoonbaseRuntimeRuntimeParamsRuntimeParametersKey
+            | MoonriverRuntimeRuntimeParamsRuntimeParametersKey
             | { RuntimeConfig: any }
+            | { PalletRandomness: any }
             | string
             | Uint8Array
-        ) => Observable<Option<MoonbaseRuntimeRuntimeParamsRuntimeParametersValue>>,
-        [MoonbaseRuntimeRuntimeParamsRuntimeParametersKey]
+        ) => Observable<Option<MoonriverRuntimeRuntimeParamsRuntimeParametersValue>>,
+        [MoonriverRuntimeRuntimeParamsRuntimeParametersKey]
       > &
-        QueryableStorageEntry<ApiType, [MoonbaseRuntimeRuntimeParamsRuntimeParametersKey]>;
+        QueryableStorageEntry<ApiType, [MoonriverRuntimeRuntimeParamsRuntimeParametersKey]>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -1516,13 +1523,6 @@ declare module "@polkadot/api-base/types/storage" {
         [ITuple<[u32, u32]>]
       > &
         QueryableStorageEntry<ApiType, [ITuple<[u32, u32]>]>;
-      /** Generic query */
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
-    sudo: {
-      /** The `AccountId` of the sudo key. */
-      key: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
-        QueryableStorageEntry<ApiType, []>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };

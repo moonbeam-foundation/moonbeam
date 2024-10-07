@@ -1748,17 +1748,48 @@ impl<
 	}
 }
 
+// Type which encapsulates the configuration for the inflation distribution.
+#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
+pub struct InflationDistributionConfig<AccountId>(
+	pub(crate) [InflationDistributionAccount<AccountId>; 2],
+);
+
+impl<AccountId> From<[InflationDistributionAccount<AccountId>; 2]>
+	for InflationDistributionConfig<AccountId>
+{
+	fn from(configs: [InflationDistributionAccount<AccountId>; 2]) -> Self {
+		InflationDistributionConfig(configs)
+	}
+}
+
+impl<AccountId: Decode> Default for InflationDistributionConfig<AccountId> {
+	fn default() -> InflationDistributionConfig<AccountId> {
+		InflationDistributionConfig([
+			InflationDistributionAccount {
+				account: AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
+					.expect("infinite length input; no invalid inputs for type; qed"),
+				percent: Percent::zero(),
+			},
+			InflationDistributionAccount {
+				account: AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
+					.expect("infinite length input; no invalid inputs for type; qed"),
+				percent: Percent::zero(),
+			},
+		])
+	}
+}
+
 #[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// Reserve information { account, percent_of_inflation }
-pub struct ParachainBondConfig<AccountId> {
-	/// Account which receives funds intended for parachain bond
+pub struct InflationDistributionAccount<AccountId> {
+	/// Account which receives funds
 	pub account: AccountId,
-	/// Percent of inflation set aside for parachain bond account
+	/// Percent of inflation set aside for the account
 	pub percent: Percent,
 }
-impl<A: Decode> Default for ParachainBondConfig<A> {
-	fn default() -> ParachainBondConfig<A> {
-		ParachainBondConfig {
+impl<A: Decode> Default for InflationDistributionAccount<A> {
+	fn default() -> InflationDistributionAccount<A> {
+		InflationDistributionAccount {
 			account: A::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
 				.expect("infinite length input; no invalid inputs for type; qed"),
 			percent: Percent::zero(),

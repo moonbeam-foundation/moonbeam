@@ -77,8 +77,9 @@ describeSuite({
         expect(finishedReferendum.isOngoing, "Still ongoing").to.be.false;
         expect(finishedReferendum.isTimedOut, "Timed out").to.be.false;
 
-        const parachainBondInfo = await context.pjsApi.query.parachainStaking.parachainBondInfo();
-        expect(parachainBondInfo.account.toString()).toBe(randomAddress);
+        const inflationDistributionConfig =
+          await context.pjsApi.query.parachainStaking.inflationDistributionInfo();
+        expect(inflationDistributionConfig[0].account.toString()).toBe(randomAddress);
       },
     });
 
