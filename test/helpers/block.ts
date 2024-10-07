@@ -49,7 +49,7 @@ const getBlockDetails = async (
     block.extrinsics.map(async (ext) =>
       (
         await api.at(block.header.parentHash)
-      ).call.transactionPaymentApi.queryInfo(ext.toHex(), ext.encodedLength)
+      ).call.transactionPaymentApi.queryInfo(ext.toU8a(), ext.encodedLength)
     )
   );
 
@@ -91,6 +91,7 @@ export const verifyBlockFees = async (
 ) => {
   const api = context.polkadotJs();
   debug(`========= Checking block ${fromBlockNumber}...${toBlockNumber}`);
+
   // let sumBlockFees = 0n;
   let sumBlockBurnt = 0n;
 
@@ -221,9 +222,9 @@ export const verifyBlockFees = async (
                     "refTime" in fee.weight
                       ? fee.weight
                       : {
-                          refTime: fee.weight,
-                          proofSize: 0n,
-                        }
+                        refTime: fee.weight,
+                        proofSize: 0n,
+                      }
                   )
                 ).toBigInt();
                 const multiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
@@ -301,7 +302,7 @@ export const verifyLatestBlockFees = async (
 
 export async function jumpToRound(context: DevModeContext, round: number): Promise<string | null> {
   let lastBlockHash = "";
-  for (;;) {
+  for (; ;) {
     const currentRound = (
       await context.polkadotJs().query.parachainStaking.round()
     ).current.toNumber();
@@ -334,14 +335,14 @@ export function extractPreimageDeposit(
   request:
     | Option<ITuple<[AccountId20, u128]>>
     | {
-        readonly deposit: ITuple<[AccountId20, u128]>;
-        readonly len: u32;
-      }
+      readonly deposit: ITuple<[AccountId20, u128]>;
+      readonly len: u32;
+    }
     | {
-        readonly deposit: Option<ITuple<[AccountId20, u128]>>;
-        readonly count: u32;
-        readonly len: Option<u32>;
-      }
+      readonly deposit: Option<ITuple<[AccountId20, u128]>>;
+      readonly count: u32;
+      readonly len: Option<u32>;
+    }
 ) {
   const deposit = "deposit" in request ? request.deposit : request;
   if ("isSome" in deposit && deposit.isSome) {
