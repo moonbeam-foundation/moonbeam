@@ -320,12 +320,9 @@ pub struct TrustedReserves;
 impl ContainsPair<Asset, Location> for TrustedReserves {
 	fn contains(asset: &Asset, origin: &Location) -> bool {
 		let AssetId(location) = &asset.id;
-		match (
-			&asset.id.0.parent_count(),
-			&asset.id.0.first_interior().unwrap(),
-		) {
+		match (&asset.id.0.parent_count(), &asset.id.0.first_interior()) {
 			// Sibling parachains
-			(1, Junction::Parachain(_id)) => location.chain_location() == *origin,
+			(1, Some(Junction::Parachain(_id))) => location.chain_location() == *origin,
 			// Relay chain
 			(1, _) => location.chain_location() == *origin,
 			// Here
