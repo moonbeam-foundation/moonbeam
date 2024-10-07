@@ -1748,8 +1748,7 @@ impl<
 	}
 }
 
-// Type which encapsulates the configuration for the inflation distribution, the first account being
-// the parachain bond reserve PBR account and the second account being the treasury account.
+// Type which encapsulates the configuration for the inflation distribution.
 #[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub struct InflationDistributionConfig<AccountId>(
 	pub(crate) [InflationDistributionAccount<AccountId>; 2],

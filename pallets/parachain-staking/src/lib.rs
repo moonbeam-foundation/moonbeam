@@ -522,8 +522,6 @@ pub mod pallet {
 	/// before it is distributed to collators and delegators.
 	///
 	/// The sum of the distribution percents must be less than or equal to 100.
-	///
-	/// The first config is related to the parachain bond account, the second to the treasury account.
 	pub(crate) type InflationDistributionInfo<T: Config> =
 		StorageValue<_, InflationDistributionConfig<T::AccountId>, ValueQuery>;
 
@@ -797,13 +795,13 @@ pub mod pallet {
 					.expect("infinite length input; no invalid inputs for type; qed"),
 				percent: self.parachain_bond_reserve_percent,
 			};
-			let treasury = InflationDistributionAccount {
+			let zeroed_account = InflationDistributionAccount {
 				account: T::AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
 					.expect("infinite length input; no invalid inputs for type; qed"),
 				percent: Percent::zero(),
 			};
 			<InflationDistributionInfo<T>>::put::<InflationDistributionConfig<T::AccountId>>(
-				[pbr, treasury].into(),
+				[pbr, zeroed_account].into(),
 			);
 			// Set total selected candidates to value from config
 			assert!(
@@ -1472,8 +1470,7 @@ pub mod pallet {
 			Self::join_candidates_inner(account, bond, candidate_count)
 		}
 
-		/// Set the inflation distribution configuration for both PBR parachain bond reserve account
-		/// and the treasury account.
+		/// Set the inflation distribution configuration.
 		#[pallet::call_index(32)]
 		#[pallet::weight(<T as Config>::WeightInfo::set_inflation_distribution_config())]
 		pub fn set_inflation_distribution_config(
