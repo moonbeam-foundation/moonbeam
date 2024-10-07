@@ -6,14 +6,14 @@ settings:
 
 dependencies:
   '@acala-network/chopsticks':
-    specifier: 0.15.0
-    version: 0.15.0(debug@4.3.7)
+    specifier: 0.16.1
+    version: 0.16.1(debug@4.3.7)
   '@moonbeam-network/api-augment':
     specifier: 0.2902.0
     version: 0.2902.0
   '@moonwall/cli':
     specifier: 5.3.3
-    version: 5.3.3(@acala-network/chopsticks@0.15.0)(@polkadot/api@13.0.1)(@types/node@22.7.0)(@vitest/ui@2.1.1)(typescript@5.6.2)(vitest@2.1.1)
+    version: 5.3.3(@acala-network/chopsticks@0.16.1)(@polkadot/api@13.0.1)(@types/node@22.7.0)(@vitest/ui@2.1.1)(typescript@5.6.2)(vitest@2.1.1)
   '@moonwall/util':
     specifier: 5.3.3
     version: 5.3.3(@polkadot/api@13.0.1)(typescript@5.6.2)(vitest@2.1.1)
@@ -163,10 +163,10 @@ devDependencies:
 
 packages:
 
-  /@acala-network/chopsticks-core@0.15.0:
-    resolution: {integrity: sha512-yLtgVuJUXegyO9HQ483ARl8Q74eXH4K6RsGy+NZ8nE3uJocxG8DXnI2YQlyPmyzZSOlKq6zHnZzbosNBOhVsMA==}
+  /@acala-network/chopsticks-core@0.16.1:
+    resolution: {integrity: sha512-1pOw0Avji/ejOE90gN9F/6nTt9+cr683vBLC8rg6YYGwgKlCK0DLaU+wGMFYklSVfhyGVpaZj333LAnrCKYi+g==}
     dependencies:
-      '@acala-network/chopsticks-executor': 0.15.0
+      '@acala-network/chopsticks-executor': 0.16.1
       '@polkadot/rpc-provider': 12.4.2
       '@polkadot/types': 12.4.2
       '@polkadot/types-codec': 12.4.2
@@ -187,10 +187,10 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@acala-network/chopsticks-db@0.15.0:
-    resolution: {integrity: sha512-gN2v404ZdBvQtMWZmwS1LJ2OxEvZY74sWIZwpoAQrT3Q2Ey0eW0TNjkgHsyBGLT3DyekEooLHTwAzbH3D55fNA==}
+  /@acala-network/chopsticks-db@0.16.1:
+    resolution: {integrity: sha512-FV4LTxou7pn6drVyr5jWB6T16Sfa3s74L+XHVOZO1NERzjwXtCJsoKnqtppcyB4awNm+UIqFBIOE4kgfIUvwOw==}
     dependencies:
-      '@acala-network/chopsticks-core': 0.15.0
+      '@acala-network/chopsticks-core': 0.16.1
       '@polkadot/util': 13.1.1
       idb: 8.0.0
       sqlite3: 5.1.7
@@ -218,19 +218,19 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@acala-network/chopsticks-executor@0.15.0:
-    resolution: {integrity: sha512-j2dhg1ETKgKJqDjVeVMdUG7uqhvoMS7rjSty0CXRBUeen5TlVoEt3FqLfUDVa3S5CBnKs2YgYUAURGjfXiegTg==}
+  /@acala-network/chopsticks-executor@0.16.1:
+    resolution: {integrity: sha512-sSBTtr661XqbgXYjxLQCoWZZfd30RdZUiwIHqGr9l48jshlR1jC+QMt39XL3pV3nBh0jv7bTxt8P242ZbJ4ktA==}
     dependencies:
       '@polkadot/util': 13.1.1
       '@polkadot/wasm-util': 7.3.2(@polkadot/util@13.1.1)
     dev: false
 
-  /@acala-network/chopsticks@0.15.0(debug@4.3.7):
-    resolution: {integrity: sha512-57DRkTrsZrSHzWxch9yeDjVZpUJnm42W7sgM1ihYcjcgtCWuTbPG2sul1jP/VHvueDCr+84Hu6gIb45iwdkVvw==}
+  /@acala-network/chopsticks@0.16.1(debug@4.3.7):
+    resolution: {integrity: sha512-9gWKIFDns3R7QmmNOOtRW4+RSOLav8dpIzNjTLGoUSY2MXe1iU207+bLiooXFja4sRyJIQ2RwDvCdPIzAxTXcA==}
     hasBin: true
     dependencies:
-      '@acala-network/chopsticks-core': 0.15.0
-      '@acala-network/chopsticks-db': 0.15.0
+      '@acala-network/chopsticks-core': 0.16.1
+      '@acala-network/chopsticks-db': 0.16.1
       '@pnpm/npm-conf': 2.2.2
       '@polkadot/api': 12.4.2
       '@polkadot/api-augment': 12.4.2
@@ -1189,7 +1189,7 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: false
 
-  /@moonwall/cli@5.3.3(@acala-network/chopsticks@0.15.0)(@polkadot/api@13.0.1)(@types/node@22.7.0)(@vitest/ui@2.1.1)(typescript@5.6.2)(vitest@2.1.1):
+  /@moonwall/cli@5.3.3(@acala-network/chopsticks@0.16.1)(@polkadot/api@13.0.1)(@types/node@22.7.0)(@vitest/ui@2.1.1)(typescript@5.6.2)(vitest@2.1.1):
     resolution: {integrity: sha512-iFJ9DnefUrwHS/FCeMrVIlBxbd8P9j3dqBwGeJ/yfNtqaurx3g8Sx3jpSueWjkZ3vozlkGYJFYgtnlXGVzvGNw==}
     engines: {node: '>=20', pnpm: '>=7'}
     hasBin: true
@@ -1199,7 +1199,7 @@ packages:
       '@vitest/ui': ^1.2.2
       vitest: ^1.2.2
     dependencies:
-      '@acala-network/chopsticks': 0.15.0(debug@4.3.7)
+      '@acala-network/chopsticks': 0.16.1(debug@4.3.7)
       '@moonbeam-network/api-augment': 0.2902.0
       '@moonwall/types': 5.3.3(@polkadot/api@13.0.1)(typescript@5.6.2)
       '@moonwall/util': 5.3.3(@polkadot/api@13.0.1)(typescript@5.6.2)(vitest@2.1.1)
