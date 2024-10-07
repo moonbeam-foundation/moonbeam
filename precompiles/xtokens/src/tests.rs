@@ -15,15 +15,15 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, AssetAccount, CurrencyId, CurrencyIdToMultiLocation, ExtBuilder, PCall, Precompiles,
-	PrecompilesValue, Runtime, SelfReserveAccount,
+	events, AssetAccount, ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime,
+	SelfReserveAccount,
 };
 use crate::{Currency, EvmAsset};
-use orml_xtokens::Event as XtokensEvent;
+use pallet_xcm::Event as PolkadotXcmEvent;
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::U256;
-use sp_runtime::traits::Convert;
-use xcm::latest::{Asset, AssetId, Assets, Fungibility, Junction, Location};
+use sp_weights::Weight;
+use xcm::latest::{Junction, Location};
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -98,17 +98,13 @@ fn transfer_self_reserve_works() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected_asset: Asset = Asset {
-				id: AssetId(CurrencyIdToMultiLocation::convert(CurrencyId::SelfReserve).unwrap()),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: vec![expected_asset.clone()].into(),
-				fee: expected_asset,
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
+
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -143,17 +139,10 @@ fn transfer_to_reserve_works() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected_asset: Asset = Asset {
-				id: AssetId(
-					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(0u128)).unwrap(),
-				),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: vec![expected_asset.clone()].into(),
-				fee: expected_asset,
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
 			// Assert that the events vector contains the one expected
@@ -190,19 +179,13 @@ fn transfer_to_reserve_with_unlimited_weight_works() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected_asset: Asset = Asset {
-				id: AssetId(
-					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(0u128)).unwrap(),
-				),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: vec![expected_asset.clone()].into(),
-				fee: expected_asset,
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
+
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -230,7 +213,7 @@ fn transfer_to_reserve_with_fee_works() {
 					PCall::transfer_with_fee {
 						currency_address: Address(AssetAccount(0u128).into()),
 						amount: 500.into(),
-						fee: 50.into(),
+						_fee: 50.into(),
 						destination: destination.clone().into(),
 						weight: 4_000_000,
 					},
@@ -239,23 +222,10 @@ fn transfer_to_reserve_with_fee_works() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected_asset: Asset = Asset {
-				id: AssetId(
-					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(0u128)).unwrap(),
-				),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected_fee: Asset = Asset {
-				id: AssetId(
-					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(0u128)).unwrap(),
-				),
-				fun: Fungibility::Fungible(50),
-			};
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: vec![expected_asset.clone(), expected_fee.clone()].into(),
-				fee: expected_fee,
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
 
@@ -294,17 +264,10 @@ fn transfer_non_reserve_to_non_reserve_works() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected_asset: Asset = Asset {
-				id: AssetId(
-					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(1u128)).unwrap(),
-				),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: vec![expected_asset.clone()].into(),
-				fee: expected_asset,
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
 			// Assert that the events vector contains the one expected
@@ -334,7 +297,7 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 					PCall::transfer_with_fee {
 						currency_address: Address(AssetAccount(1u128).into()),
 						amount: 500.into(),
-						fee: 50.into(),
+						_fee: 50.into(),
 						destination: destination.clone().into(),
 						weight: 4_000_000,
 					},
@@ -343,23 +306,10 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected_asset: Asset = Asset {
-				id: AssetId(
-					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(1u128)).unwrap(),
-				),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected_fee: Asset = Asset {
-				id: AssetId(
-					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(1u128)).unwrap(),
-				),
-				fun: Fungibility::Fungible(50),
-			};
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: vec![expected_asset.clone(), expected_fee.clone()].into(),
-				fee: expected_fee,
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
 			// Assert that the events vector contains the one expected
@@ -398,15 +348,10 @@ fn transfer_multi_asset_to_reserve_works() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected_asset: Asset = Asset {
-				id: AssetId(asset),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: vec![expected_asset.clone()].into(),
-				fee: expected_asset,
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
 
@@ -446,15 +391,10 @@ fn transfer_multi_asset_self_reserve_works() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected_asset: Asset = Asset {
-				id: AssetId(self_reserve),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: vec![expected_asset.clone()].into(),
-				fee: expected_asset,
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
 			// Assert that the events vector contains the one expected
@@ -485,7 +425,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 					PCall::transfer_multiasset_with_fee {
 						asset: self_reserve.clone().into(),
 						amount: 500.into(),
-						fee: 50.into(),
+						_fee: 50.into(),
 						destination: destination.clone().into(),
 						weight: 4_000_000,
 					},
@@ -494,19 +434,10 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected_asset: Asset = Asset {
-				id: AssetId(self_reserve.clone()),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected_fee: Asset = Asset {
-				id: AssetId(self_reserve),
-				fun: Fungibility::Fungible(50),
-			};
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: vec![expected_asset.clone(), expected_fee.clone()].into(),
-				fee: expected_fee,
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
 			// Assert that the events vector contains the one expected
@@ -546,15 +477,10 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected_asset: Asset = Asset {
-				id: AssetId(asset_location),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: vec![expected_asset.clone()].into(),
-				fee: expected_asset,
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
 			// Assert that the events vector contains the one expected
@@ -586,7 +512,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 					PCall::transfer_multiasset_with_fee {
 						asset: asset_location.clone().into(),
 						amount: 500.into(),
-						fee: 50.into(),
+						_fee: 50.into(),
 						destination: destination.clone().into(),
 						weight: 4_000_000,
 					},
@@ -595,19 +521,10 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected_asset: Asset = Asset {
-				id: AssetId(asset_location.clone()),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected_fee: Asset = Asset {
-				id: AssetId(asset_location),
-				fun: Fungibility::Fungible(50),
-			};
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: vec![expected_asset.clone(), expected_fee.clone()].into(),
-				fee: expected_fee,
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
 			// Assert that the events vector contains the one expected
@@ -649,23 +566,10 @@ fn transfer_multi_currencies() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected_asset_1: Asset = Asset {
-				id: AssetId(
-					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(1u128)).unwrap(),
-				),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected_asset_2: Asset = Asset {
-				id: AssetId(
-					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(2u128)).unwrap(),
-				),
-				fun: Fungibility::Fungible(500),
-			};
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: vec![expected_asset_1.clone(), expected_asset_2].into(),
-				fee: expected_asset_1,
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
 			// Assert that the events vector contains the one expected
@@ -700,12 +604,6 @@ fn transfer_multi_assets() {
 				(asset_2_location.clone(), U256::from(500)).into(),
 			];
 
-			let multiassets = Assets::from_sorted_and_deduplicated(vec![
-				(asset_1_location.clone(), 500).into(),
-				(asset_2_location, 500).into(),
-			])
-			.unwrap();
-
 			// We are transferring 2 assets
 			precompiles()
 				.prepare_test(
@@ -722,11 +620,10 @@ fn transfer_multi_assets() {
 				.expect_no_logs()
 				.execute_returns(());
 
-			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredAssets {
-				sender: Alice.into(),
-				assets: multiassets,
-				fee: (asset_1_location, 500).into(),
-				dest: destination,
+			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
+				outcome: xcm::latest::Outcome::Complete {
+					used: Weight::zero(),
+				},
 			}
 			.into();
 			println!("Events are {:?}", events());

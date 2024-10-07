@@ -27,21 +27,27 @@ use frame_support::{
 use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
 };
-use sp_runtime::traits::MaybeEquivalence;
+use sp_runtime::traits::{Convert, MaybeEquivalence};
 use sp_std::boxed::Box;
-use xcm::latest::prelude::{
-	AccountId32, AccountKey20, All, Asset as XcmAsset, AssetId as XcmAssetId, Assets as XcmAssets,
-	BuyExecution, ClearOrigin, DepositAsset, Fungible, GeneralIndex, Junction, Junctions, Limited,
-	Location, OriginKind, PalletInstance, Parachain, QueryResponse, Reanchorable, Response,
-	WeightLimit, WithdrawAsset, Xcm,
+use xcm::{
+	latest::prelude::{
+		AccountId32, AccountKey20, All, Asset, AssetId, Assets as XcmAssets, BuyExecution,
+		ClearOrigin, DepositAsset, Fungibility, GeneralIndex, Junction, Junctions, Limited,
+		Location, OriginKind, PalletInstance, Parachain, QueryResponse, Reanchorable, Response,
+		WeightLimit, WithdrawAsset, Xcm,
+	},
+	VersionedAssets,
 };
 use xcm::{IntoVersion, VersionedLocation, WrapVersion};
 use xcm_executor::traits::ConvertLocation;
 use xcm_mock::*;
-use xcm_primitives::{UtilityEncodeCall, DEFAULT_PROOF_SIZE};
+use xcm_primitives::{
+	split_location_into_chain_part_and_beneficiary, UtilityEncodeCall, DEFAULT_PROOF_SIZE,
+};
 use xcm_simulator::TestExt;
 mod common;
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
+use parachain::PolkadotXcm;
 
 fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128) -> Result<(), ()> {
 	let parachain::AssetType::Xcm(location_v3) = asset_type;
@@ -74,6 +80,18 @@ fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128)
 		(true, relative_price),
 	);
 	Ok(())
+}
+
+fn currency_to_asset(currency_id: parachain::CurrencyId, amount: u128) -> Asset {
+	Asset {
+		id: AssetId(
+			<parachain::Runtime as pallet_xcm_transactor::Config>::CurrencyIdToLocation::convert(
+				currency_id,
+			)
+			.unwrap(),
+		),
+		fun: Fungibility::Fungible(amount),
+	}
 }
 
 // Send a relay asset (like DOT) to a parachain A
@@ -162,7 +180,7 @@ fn send_relay_asset_to_relay() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::V4(dest.clone()).into()),
 			Box::new(([], 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -180,48 +198,17 @@ fn send_relay_asset_to_relay() {
 		balance_before_sending = RelayBalances::free_balance(&RELAYALICE);
 	});
 
-	// We now send back some money to the relay
-	let dest = Location {
-		parents: 1,
-		interior: [AccountId32 {
-			network: None,
-			id: RELAYALICE.into(),
-		}]
-		.into(),
-	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 123);
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(PolkadotXcm::transfer_assets(
-					parachain::RuntimeOrigin::signed(PARAALICE.into()),
-					// dest chain part
-					Location::parent(),
-					// beneficiary
-					Location {
-						parents: 0,
-						interior: [AccountId32 {
-							network: None,
-							id: RELAYALICE.into(),
-						}]
-						.into(),
-					},
-					// assets
-					Asset {
-						id: Location,
-						fun: Fungibility::Fungible(1232)
-					}.into(),
-					// feeitem
-					0,
-					// weightLimit
-					WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
-				));
-		});
-
-		assert_ok!(XTokens::transfer(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_id),
-			123,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(asset.into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -309,13 +296,16 @@ fn send_relay_asset_to_para_b() {
 		]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 
 	ParaA::execute_with(|| {
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_id),
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -373,13 +363,17 @@ fn send_para_a_asset_to_para_b() {
 		.into(),
 	};
 
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
+
 	ParaA::execute_with(|| {
 		// Free execution, full amount received
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::SelfReserve,
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -451,13 +445,17 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
+
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::SelfReserve,
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -487,17 +485,21 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 
 	ParaB::execute_with(|| {
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_id),
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
 
+	// The message passed through parachainA so we needed to pay since its the native token
 	// The message passed through parachainA so we needed to pay since its the native token
 	ParaC::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 96);
@@ -545,12 +547,16 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
+
 	ParaA::execute_with(|| {
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::SelfReserve,
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -580,12 +586,16 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
+
 	ParaB::execute_with(|| {
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_id),
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -637,12 +647,16 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 		]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
+
 	ParaA::execute_with(|| {
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::SelfReserve,
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -802,15 +816,18 @@ fn send_para_a_asset_to_para_b_with_trader() {
 		]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
 
 	// In destination chain, we only need 4 weight
 	// We put 10 weight, 6 of which should be refunded and 4 of which should go to treasury
 	ParaA::execute_with(|| {
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::SelfReserve,
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(10u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -875,15 +892,17 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 		]
 		.into(),
 	};
-
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
+	let asset_fee = currency_to_asset(parachain::CurrencyId::SelfReserve, 1);
 	// we use transfer_with_fee
 	ParaA::execute_with(|| {
-		assert_ok!(XTokens::transfer_with_fee(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::SelfReserve,
-			100,
-			1,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1043,14 +1062,17 @@ fn transact_through_derivative_multilocation() {
 		}]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_id),
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1192,14 +1214,17 @@ fn transact_through_derivative_with_custom_fee_weight() {
 		}]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_id),
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1343,14 +1368,17 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 		}]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_id),
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1505,14 +1533,17 @@ fn transact_through_sovereign() {
 		}]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_id),
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1757,14 +1788,17 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 		}]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_id),
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1906,14 +1940,17 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 		}]
 		.into(),
 	};
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_id),
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -2210,13 +2247,16 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		.into(),
 	}
 	.into();
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::SelfReserve,
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
 		// free execution, full amount received
@@ -2827,19 +2867,21 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 		assert_eq!(StatemintAssets::account_balances(RELAYBOB), vec![]);
 	});
 
+	let (chain_part, beneficiary) =
+		split_location_into_chain_part_and_beneficiary(statemint_beneficiary).unwrap();
+	let asset = currency_to_asset(
+		parachain::CurrencyId::ForeignAsset(source_statemint_asset_id),
+		100,
+	);
+	let asset_fee = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
 	// Transfer USDC from Parachain A to Statemint using Relay asset as fee
 	ParaA::execute_with(|| {
-		assert_ok!(XTokens::transfer_multicurrencies(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			vec![
-				(
-					parachain::CurrencyId::ForeignAsset(source_statemint_asset_id),
-					100
-				),
-				(parachain::CurrencyId::ForeignAsset(source_relay_id), 100)
-			],
-			1,
-			Box::new(VersionedLocation::V4(statemint_beneficiary)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
 	});
@@ -2966,14 +3008,17 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 			},
 		],
 	);
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
 
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-		assert_ok!(XTokens::transfer(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_relay_id),
-			100,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 
@@ -3119,15 +3164,18 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 			},
 		],
 	);
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
+	let asset_fee = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 10);
 
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-		assert_ok!(XTokens::transfer_with_fee(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_relay_id),
-			100,
-			10,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 
@@ -3277,12 +3325,19 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 		],
 	);
 
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = Asset {
+		id: AssetId(Location::parent()),
+		fun: Fungibility::Fungible(100),
+	};
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-		assert_ok!(XTokens::transfer_multiasset(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new((Location::parent(), 100).into()),
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(asset.into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 
@@ -3507,19 +3562,20 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 		],
 	);
 
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = currency_to_asset(
+		parachain::CurrencyId::ForeignAsset(source_statemint_asset_id),
+		100,
+	);
+	let asset_fee = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-		assert_ok!(XTokens::transfer_multicurrencies(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			vec![
-				(
-					parachain::CurrencyId::ForeignAsset(source_statemint_asset_id),
-					100
-				),
-				(parachain::CurrencyId::ForeignAsset(source_relay_id), 100)
-			],
-			1,
-			Box::new(VersionedLocation::V4(dest)),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+			0,
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
 
@@ -3753,16 +3809,17 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 		],
 	);
 
-	let statemint_asset_to_send = XcmAsset {
-		id: XcmAssetId(statemint_asset),
-		fun: Fungible(100),
+	let statemint_asset_to_send = Asset {
+		id: AssetId(statemint_asset),
+		fun: Fungibility::Fungible(100),
 	};
 
-	let relay_asset_to_send = XcmAsset {
-		id: XcmAssetId(Location::parent()),
-		fun: Fungible(100),
+	let relay_asset_to_send = Asset {
+		id: AssetId(Location::parent()),
+		fun: Fungibility::Fungible(100),
 	};
 
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
 	let assets_to_send: XcmAssets =
 		XcmAssets::from(vec![statemint_asset_to_send, relay_asset_to_send.clone()]);
 
@@ -3772,11 +3829,12 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-		assert_ok!(XTokens::transfer_multiassets(
+		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(assets_to_send.into()),
+			Box::new(VersionedLocation::V4(chain_part)),
+			Box::new(VersionedLocation::V4(beneficiary)),
+			Box::new(VersionedAssets::V4(assets_to_send.into())),
 			0,
-			Box::new(VersionedLocation::V4(dest)),
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
 
