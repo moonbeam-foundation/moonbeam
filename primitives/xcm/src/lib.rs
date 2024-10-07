@@ -41,8 +41,6 @@ pub use transactor_traits::*;
 
 use xcm::latest::{Junction, Junctions, Location};
 
-pub type XcmV2Weight = xcm::v2::Weight;
-
 pub fn split_location_into_chain_part_and_beneficiary(
 	mut location: Location,
 ) -> Option<(Location, Location)> {

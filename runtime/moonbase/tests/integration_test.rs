@@ -157,7 +157,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::Identity>("Identity");
 	is_pallet_prefix::<moonbase_runtime::XcmpQueue>("XcmpQueue");
 	is_pallet_prefix::<moonbase_runtime::CumulusXcm>("CumulusXcm");
-	is_pallet_prefix::<moonbase_runtime::DmpQueue>("DmpQueue");
 	is_pallet_prefix::<moonbase_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonbase_runtime::Assets>("Assets");
 	is_pallet_prefix::<moonbase_runtime::AssetManager>("AssetManager");
@@ -438,7 +437,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::Identity>(24);
 	is_pallet_index::<moonbase_runtime::XcmpQueue>(25);
 	is_pallet_index::<moonbase_runtime::CumulusXcm>(26);
-	is_pallet_index::<moonbase_runtime::DmpQueue>(27);
 	is_pallet_index::<moonbase_runtime::PolkadotXcm>(28);
 	is_pallet_index::<moonbase_runtime::Assets>(29);
 	// is_pallet_index::<moonbase_runtime::XTokens>(30); Removed

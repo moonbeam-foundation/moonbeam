@@ -148,4 +148,18 @@ impl<T: frame_system::Config> pallet_balances::WeightInfo for WeightInfo<T> {
 		Weight::from_parts(5_873_000, 1501)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 	}
+	fn burn_allow_death() -> frame_support::weights::Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 22_000_000 picoseconds.
+		Weight::from_parts(23_000_000, 0)
+	}
+	fn burn_keep_alive() -> frame_support::weights::Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 16_000_000 picoseconds.
+		Weight::from_parts(17_000_000, 0)
+	}
 }

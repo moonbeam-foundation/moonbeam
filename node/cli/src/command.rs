@@ -221,18 +221,8 @@ fn validate_trace_environment(cli: &Cli) -> Result<()> {
 
 /// Parse command line arguments into service configuration.
 pub fn run() -> Result<()> {
-	let mut cli = Cli::from_args();
+	let cli = Cli::from_args();
 	let _ = validate_trace_environment(&cli)?;
-	// Set --execution wasm as default
-	let execution_strategies = cli.run.base.base.import_params.execution_strategies.clone();
-	if execution_strategies.execution.is_none() {
-		cli.run
-			.base
-			.base
-			.import_params
-			.execution_strategies
-			.execution = Some(sc_cli::ExecutionStrategy::Wasm);
-	}
 
 	match &cli.subcommand {
 		Some(Subcommand::BuildSpec(params)) => {
@@ -694,8 +684,6 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			let collator_options = cli.run.collator_options();
 
-			// It is used when feature "lazy-loading" is enabled
-			#[allow(unused_mut)]
 			runner.run_node_until_exit(|mut config| async move {
 				let hwbench = if !cli.run.no_hardware_benchmarks {
 					config.database.path().map(|database_path| {
@@ -710,11 +698,78 @@ pub fn run() -> Result<()> {
 
 				let rpc_config = cli.run.new_rpc_config();
 
-				#[cfg(feature = "lazy-loading")]
-				if let Some(fork_chain_from_rpc) = cli.run.fork_chain_from_rpc {
+				// If dev service was requested, start up manual or instant seal.
+				// Otherwise continue with the normal parachain node.
+				// Dev service can be requested in two ways.
+				// 1. by providing the --dev-service flag to the CLI
+				// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
+				// NOTE: the --dev flag triggers the dev service by way of number 2
+				let relay_chain_id = extension.map(|e| e.relay_chain.as_str());
+				let para_id = extension.map(|e| e.para_id);
+
+				let dev_service = cli.run.dev_service
+					|| config.chain_spec.is_dev()
+					|| relay_chain_id == Some("dev-service");
+				if dev_service {
 					// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
 					// the author-id flag. For now, this will work.
+					let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
+						"Alice",
+					));
+
+					return match &config.chain_spec {
+						#[cfg(feature = "moonriver-native")]
+						spec if spec.is_moonriver() => moonbeam_service::new_dev::<
+							moonbeam_service::moonriver_runtime::RuntimeApi,
+							moonbeam_service::MoonriverCustomizations,
+							sc_network::NetworkWorker<_, _>,
+						>(
+							config,
+							para_id,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+						)
+						.await
+						.map_err(Into::into),
+						#[cfg(feature = "moonbeam-native")]
+						spec if spec.is_moonbeam() => moonbeam_service::new_dev::<
+							moonbeam_service::moonbeam_runtime::RuntimeApi,
+							moonbeam_service::MoonbeamCustomizations,
+							sc_network::NetworkWorker<_, _>,
+						>(
+							config,
+							para_id,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+						)
+						.await
+						.map_err(Into::into),
+						#[cfg(feature = "moonbase-native")]
+						_ => moonbeam_service::new_dev::<
+							moonbeam_service::moonbase_runtime::RuntimeApi,
+							moonbeam_service::MoonbaseCustomizations,
+							sc_network::NetworkWorker<_, _>,
+						>(
+							config,
+							para_id,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+						)
+						.await
+						.map_err(Into::into),
+						#[cfg(not(feature = "moonbase-native"))]
+						_ => panic!("invalid chain spec"),
+					};
+				}
+				#[cfg(feature = "lazy-loading")]
+				if let Some(fork_chain_from_rpc) = cli.run.fork_chain_from_rpc {
 					let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
 						"Alice",
 					));
@@ -730,6 +785,10 @@ pub fn run() -> Result<()> {
 						chain_spec::test_spec::lazy_loading_spec_builder(Default::default());
 					config.chain_spec = Box::new(spec_builder.build());
 
+					// TODO: create a tokio runtime inside offchain_worker thread (otherwise it will panic)
+					// We just disable it for now, since it is not needed
+					config.offchain_worker.enabled = false;
+
 					return moonbeam_service::lazy_loading::new_lazy_loading_service::<
 						moonbeam_runtime::RuntimeApi,
 						moonbeam_service::MoonbeamCustomizations,
@@ -744,56 +803,6 @@ pub fn run() -> Result<()> {
 					)
 					.await
 					.map_err(Into::into);
-				}
-				#[cfg(not(feature = "lazy-loading"))]
-				{
-					// If dev service was requested, start up manual or instant seal.
-					// Otherwise continue with the normal parachain node.
-					// Dev service can be requested in two ways.
-					// 1. by providing the --dev-service flag to the CLI
-					// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
-					// NOTE: the --dev flag triggers the dev service by way of number 2
-					let relay_chain_id = extension.map(|e| e.relay_chain.as_str());
-					let dev_service = cli.run.dev_service
-						|| config.chain_spec.is_dev()
-						|| relay_chain_id == Some("dev-service");
-					if dev_service {
-						// When running the dev service, just use Alice's author inherent
-						//TODO maybe make the --alice etc flags work here, and consider bringing back
-						// the author-id flag. For now, this will work.
-						let author_id = Some(chain_spec::get_from_seed::<
-							nimbus_primitives::NimbusId,
-						>("Alice"));
-
-						return match &config.chain_spec {
-							#[cfg(feature = "moonriver-native")]
-							spec if spec.is_moonriver() => moonbeam_service::new_dev::<
-								moonbeam_service::moonriver_runtime::RuntimeApi,
-								moonbeam_service::MoonriverCustomizations,
-								sc_network::NetworkWorker<_, _>,
-							>(config, author_id, cli.run.sealing, rpc_config, hwbench)
-							.await
-							.map_err(Into::into),
-							#[cfg(feature = "moonbeam-native")]
-							spec if spec.is_moonbeam() => moonbeam_service::new_dev::<
-								moonbeam_service::moonbeam_runtime::RuntimeApi,
-								moonbeam_service::MoonbeamCustomizations,
-								sc_network::NetworkWorker<_, _>,
-							>(config, author_id, cli.run.sealing, rpc_config, hwbench)
-							.await
-							.map_err(Into::into),
-							#[cfg(feature = "moonbase-native")]
-							_ => moonbeam_service::new_dev::<
-								moonbeam_service::moonbase_runtime::RuntimeApi,
-								moonbeam_service::MoonbaseCustomizations,
-								sc_network::NetworkWorker<_, _>,
-							>(config, author_id, cli.run.sealing, rpc_config, hwbench)
-							.await
-							.map_err(Into::into),
-							#[cfg(not(feature = "moonbase-native"))]
-							_ => panic!("invalid chain spec"),
-						};
-					}
 				}
 
 				let polkadot_cli = RelayChainCli::new(

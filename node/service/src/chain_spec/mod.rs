@@ -65,7 +65,7 @@ pub mod moonbeam {
 	}
 }
 
-pub type RawChainSpec = sc_service::GenericChainSpec<(), Extensions>;
+pub type RawChainSpec = sc_service::GenericChainSpec<Extensions>;
 
 #[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension, ChainSpecGroup)]
 #[serde(rename_all = "camelCase")]

@@ -307,6 +307,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
+	type XcmRecorder = PolkadotXcm;
 }
 
 type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
@@ -369,19 +370,14 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type PriceForSiblingDelivery = polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery<
 		cumulus_primitives_core::ParaId,
 	>;
+	type MaxActiveOutboundChannels = ConstU32<128>;
+	// Most on-chain HRMP channels are configured to use 102400 bytes of max message size, so we
+	// need to set the page size larger than that until we reduce the channel size on-chain.
+	type MaxPageSize = MessageQueueHeapSize;
 }
 
 parameter_types! {
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
-}
-
-// TODO: This pallet can be removed after the lazy migration is done and
-// event `Completed` is emitted.
-// https://github.com/paritytech/polkadot-sdk/pull/1246
-impl cumulus_pallet_dmp_queue::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type DmpSink = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
-	type WeightInfo = cumulus_pallet_dmp_queue::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {

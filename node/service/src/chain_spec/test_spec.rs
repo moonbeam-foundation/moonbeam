@@ -89,9 +89,8 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 }
 
 #[cfg(feature = "lazy-loading")]
-pub fn lazy_loading_spec_builder(
-	para_id: ParaId,
-) -> sc_chain_spec::ChainSpecBuilder<crate::moonbeam_runtime::RuntimeGenesisConfig, Extensions> {
+pub fn lazy_loading_spec_builder(para_id: ParaId) -> sc_chain_spec::ChainSpecBuilder<Extensions> {
+	use moonbeam_runtime::currency::{GLMR, SUPPLY_FACTOR};
 	crate::chain_spec::moonbeam::ChainSpec::builder(
 		moonbeam_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 		Default::default(),
@@ -122,12 +121,12 @@ pub fn lazy_loading_spec_builder(
 			(
 				AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
 				get_from_seed::<NimbusId>("Alice"),
-				1_000 * moonbeam_runtime::currency::GLMR,
+				20_000 * GLMR * SUPPLY_FACTOR,
 			),
 			(
 				AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")),
 				get_from_seed::<NimbusId>("Faith"),
-				1_000 * moonbeam_runtime::currency::GLMR,
+				20_000 * GLMR * SUPPLY_FACTOR,
 			),
 		],
 		// Delegations
@@ -144,7 +143,7 @@ pub fn lazy_loading_spec_builder(
 			AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")),
 			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 		],
-		3_000_000 * moonbeam_runtime::currency::GLMR,
+		1_500_000 * GLMR * SUPPLY_FACTOR,
 		para_id,
 		// Chain ID
 		1280,

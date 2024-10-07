@@ -367,6 +367,7 @@ impl Config for XcmConfig {
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
+	type XcmRecorder = PolkadotXcm;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -428,19 +429,14 @@ parameter_types! {
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
-	type ApproveOrigin = EnsureRoot<AccountId>;
 	type RejectOrigin = EnsureRoot<AccountId>;
 	type RuntimeEvent = RuntimeEvent;
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ProposalBondMinimum;
 	type SpendPeriod = SpendPeriod;
 	type Burn = ();
 	type BurnDestination = ();
 	type MaxApprovals = MaxApprovals;
 	type WeightInfo = ();
 	type SpendFunds = ();
-	type ProposalBondMaximum = ();
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
 	type AssetKind = ();
 	type Beneficiary = AccountId;
