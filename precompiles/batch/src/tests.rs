@@ -23,7 +23,7 @@ use crate::{
 };
 use fp_evm::ExitError;
 use frame_support::assert_ok;
-use pallet_evm::{Call as EvmCall, CodeMetadata};
+use pallet_evm::Call as EvmCall;
 use precompile_utils::solidity::revert::revert_as_bytes;
 use precompile_utils::{evm::costs::call_cost, prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
