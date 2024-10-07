@@ -38,6 +38,7 @@ const MAX_CONTRACT_CODE_SIZE: u64 = 25 * 1024;
 #[pallet]
 pub mod pallet {
 	use super::*;
+	use cumulus_primitives_storage_weight_reclaim::get_proof_size;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 	use sp_core::H160;
@@ -52,6 +53,26 @@ pub mod pallet {
 	#[pallet::storage]
 	/// The total number of suicided contracts that were removed
 	pub(crate) type SuicidedContractsRemoved<T: Config> = StorageValue<_, u32, ValueQuery>;
+
+	#[pallet::storage]
+	pub(crate) type StateMigrationStatusValue<T: Config> =
+		StorageValue<_, (StateMigrationStatus, u64), ValueQuery>;
+
+	pub(crate) type StorageKey = BoundedVec<u8, ConstU32<1_024>>;
+
+	#[derive(Clone, Encode, Decode, scale_info::TypeInfo, PartialEq, Eq, MaxEncodedLen, Debug)]
+	pub enum StateMigrationStatus {
+		NotStarted,
+		Started(StorageKey),
+		Error(BoundedVec<u8, ConstU32<1024>>),
+		Complete,
+	}
+
+	impl Default for StateMigrationStatus {
+		fn default() -> Self {
+			return StateMigrationStatus::NotStarted;
+		}
+	}
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -71,6 +92,233 @@ pub mod pallet {
 		ContractMetadataAlreadySet,
 		/// Contract not exist
 		ContractNotExist,
+		/// The key lengths exceeds the maximum allowed
+		KeyTooLong,
+	}
+
+	pub(crate) const MAX_ITEM_PROOF_SIZE: u64 = 30 * 1024; // 30 KB
+	pub(crate) const PROOF_SIZE_BUFFER: u64 = 100 * 1024; // 100 KB
+
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		fn on_idle(_n: BlockNumberFor<T>, remaining_weight: Weight) -> Weight {
+			let proof_size_before: u64 = get_proof_size().unwrap_or(0);
+			let res = Pallet::<T>::handle_migration(remaining_weight);
+			let proof_size_after: u64 = get_proof_size().unwrap_or(0);
+			let proof_size_diff = proof_size_after.saturating_sub(proof_size_before);
+
+			Weight::from_parts(0, proof_size_diff)
+				.saturating_add(T::DbWeight::get().reads_writes(res.reads, res.writes))
+		}
+	}
+
+	#[derive(Default, Clone, PartialEq, Eq, Encode, Decode, Debug)]
+	pub(crate) struct ReadWriteOps {
+		pub reads: u64,
+		pub writes: u64,
+	}
+
+	impl ReadWriteOps {
+		pub fn new() -> Self {
+			Self {
+				reads: 0,
+				writes: 0,
+			}
+		}
+
+		pub fn add_one_read(&mut self) {
+			self.reads += 1;
+		}
+
+		pub fn add_one_write(&mut self) {
+			self.writes += 1;
+		}
+
+		pub fn add_reads(&mut self, reads: u64) {
+			self.reads += reads;
+		}
+
+		pub fn add_writes(&mut self, writes: u64) {
+			self.writes += writes;
+		}
+	}
+
+	#[derive(Clone)]
+	struct StateMigrationResult {
+		last_key: Option<StorageKey>,
+		error: Option<&'static str>,
+		migrated: u64,
+		reads: u64,
+		writes: u64,
+	}
+
+	enum NextKeyResult {
+		NextKey(StorageKey),
+		NoMoreKeys,
+		Error(&'static str),
+	}
+
+	impl<T: Config> Pallet<T> {
+		/// Handle the migration of the storage keys, returns the number of read and write operations
+		pub(crate) fn handle_migration(remaining_weight: Weight) -> ReadWriteOps {
+			let mut read_write_ops = ReadWriteOps::new();
+
+			// maximum number of items that can be migrated in one block
+			let migration_limit = remaining_weight
+				.proof_size()
+				.saturating_sub(PROOF_SIZE_BUFFER)
+				.saturating_div(MAX_ITEM_PROOF_SIZE);
+
+			if migration_limit == 0 {
+				return read_write_ops;
+			}
+
+			let (status, mut migrated_keys) = StateMigrationStatusValue::<T>::get();
+			read_write_ops.add_one_read();
+
+			let next_key = match &status {
+				StateMigrationStatus::NotStarted => Default::default(),
+				StateMigrationStatus::Started(storage_key) => {
+					let (reads, next_key_result) = Pallet::<T>::get_next_key(storage_key);
+					read_write_ops.add_reads(reads);
+					match next_key_result {
+						NextKeyResult::NextKey(next_key) => next_key,
+						NextKeyResult::NoMoreKeys => {
+							StateMigrationStatusValue::<T>::put((
+								StateMigrationStatus::Complete,
+								migrated_keys,
+							));
+							read_write_ops.add_one_write();
+							return read_write_ops;
+						}
+						NextKeyResult::Error(e) => {
+							StateMigrationStatusValue::<T>::put((
+								StateMigrationStatus::Error(
+									e.as_bytes().to_vec().try_into().unwrap_or_default(),
+								),
+								migrated_keys,
+							));
+							read_write_ops.add_one_write();
+							return read_write_ops;
+						}
+					}
+				}
+				StateMigrationStatus::Complete | StateMigrationStatus::Error(_) => {
+					return read_write_ops;
+				}
+			};
+
+			let res = Pallet::<T>::migrate_keys(next_key, migration_limit);
+			migrated_keys += res.migrated;
+			read_write_ops.add_reads(res.reads);
+			read_write_ops.add_writes(res.writes);
+
+			match (res.last_key, res.error) {
+				(None, None) => {
+					StateMigrationStatusValue::<T>::put((
+						StateMigrationStatus::Complete,
+						migrated_keys,
+					));
+					read_write_ops.add_one_write();
+				}
+				// maybe we should store the previous key in the storage as well
+				(_, Some(e)) => {
+					StateMigrationStatusValue::<T>::put((
+						StateMigrationStatus::Error(
+							e.as_bytes().to_vec().try_into().unwrap_or_default(),
+						),
+						migrated_keys,
+					));
+					read_write_ops.add_one_write();
+				}
+				(Some(key), None) => {
+					StateMigrationStatusValue::<T>::put((
+						StateMigrationStatus::Started(key),
+						migrated_keys,
+					));
+					read_write_ops.add_one_write();
+				}
+			}
+
+			read_write_ops
+		}
+
+		/// Tries to get the next key in the storage, returns None if there are no more keys to migrate.
+		/// Returns an error if the key is too long.
+		fn get_next_key(key: &StorageKey) -> (u64, NextKeyResult) {
+			if let Some(next) = sp_io::storage::next_key(key) {
+				let next: Result<StorageKey, _> = next.try_into();
+				match next {
+					Ok(next_key) => {
+						if next_key.as_slice() == sp_core::storage::well_known_keys::CODE {
+							let (reads, next_key_res) = Pallet::<T>::get_next_key(&next_key);
+							return (1 + reads, next_key_res);
+						}
+						(1, NextKeyResult::NextKey(next_key))
+					}
+					Err(_) => (1, NextKeyResult::Error("Key too long")),
+				}
+			} else {
+				(1, NextKeyResult::NoMoreKeys)
+			}
+		}
+
+		/// Migrate maximum of `limit` keys starting from `start`, returns the next key to migrate
+		/// Returns None if there are no more keys to migrate.
+		/// Returns an error if an error occurred during migration.
+		fn migrate_keys(start: StorageKey, limit: u64) -> StateMigrationResult {
+			let mut key = start;
+			let mut migrated = 0;
+			let mut next_key_reads = 0;
+			let mut writes = 0;
+
+			while migrated < limit {
+				let data = sp_io::storage::get(&key);
+				if let Some(data) = data {
+					sp_io::storage::set(&key, &data);
+					writes += 1;
+				}
+
+				migrated += 1;
+
+				if migrated < limit {
+					let (reads, next_key_res) = Pallet::<T>::get_next_key(&key);
+					next_key_reads += reads;
+
+					match next_key_res {
+						NextKeyResult::NextKey(next_key) => {
+							key = next_key;
+						}
+						NextKeyResult::NoMoreKeys => {
+							return StateMigrationResult {
+								last_key: None,
+								error: None,
+								migrated,
+								reads: migrated + next_key_reads,
+								writes,
+							};
+						}
+						NextKeyResult::Error(e) => {
+							return StateMigrationResult {
+								last_key: Some(key),
+								error: Some(e),
+								migrated,
+								reads: migrated + next_key_reads,
+								writes,
+							};
+						}
+					};
+				}
+			}
+
+			StateMigrationResult {
+				last_key: Some(key),
+				error: None,
+				migrated,
+				reads: migrated + next_key_reads,
+				writes,
+			}
+		}
 	}
 
 	#[pallet::call]

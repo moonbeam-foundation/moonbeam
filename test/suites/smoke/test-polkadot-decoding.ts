@@ -6,7 +6,9 @@ import { ApiPromise } from "@polkadot/api";
 import { fail } from "assert";
 
 // Change the following line to reproduce a particular case
-const STARTING_KEY_OVERRIDE = null;
+const STARTING_KEY_OVERRIDE = "";
+const MODULE_NAME = "";
+const FN_NAME = "";
 
 const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
 
@@ -62,6 +64,28 @@ describeSuite({
       title: "should be decodable",
       timeout: ONE_HOURS,
       test: async function () {
+        // Test case reproduction
+        if (STARTING_KEY_OVERRIDE) {
+          // const STARTING_KEY_OVERRIDE = "";
+          if (!MODULE_NAME || !FN_NAME) {
+            fail("MODULE_NAME and FN_NAME variables must be set when using STARTING_KEY_OVERRIDE");
+          }
+          log(`🔎 OVERRIDE SET, REPRODUCING CASE FOR ${MODULE_NAME}::${FN_NAME}`);
+          log(`🔎 STORAGE KEY: ${STARTING_KEY_OVERRIDE}`);
+          const module = apiAt.query[MODULE_NAME];
+          const fn = module[FN_NAME];
+          const entries = await fn.entriesPaged({
+            args: [],
+            pageSize,
+            startKey: STARTING_KEY_OVERRIDE,
+          });
+          log(`entries length: ${entries.length}`);
+          log(`first entry: ${entries[0][0].toString()}`);
+          log(`last entry: ${entries[entries.length - 1][0].toString()}`);
+          log(`     - ${FN_NAME}:  ${chalk.green(`✔`)} (startKey: ${STARTING_KEY_OVERRIDE})`);
+          return;
+        }
+
         let currentStartKey = "";
         const modules = Object.keys(paraApi.query);
         for (const moduleName of modules) {
@@ -97,7 +121,7 @@ describeSuite({
                 }
                 // Log emptyKeyFirstEntry
                 const emptyKeyFirstEntryKey = emptyKeyEntries[0][0].toString();
-                log(`     - ${fn}:  ${chalk.green(`🔎`)} (first key : ${emptyKeyFirstEntryKey})`);
+                log(`   - ${fn}:  ${chalk.green(`🔎`)} (first key: ${emptyKeyFirstEntryKey})`);
 
                 // If there are more entries, perform a random check
                 // 1. Get the first entry storage key
@@ -107,19 +131,32 @@ describeSuite({
                 // 2. Extract the module, fn and params keys
                 const { moduleKey, fnKey, paramsKey } = extractStorageKeyComponents(storageKey);
 
-                // 3. Generate a random startKey, will be overridden if STARTING_KEY_OVERRIDE is set
-                currentStartKey = moduleKey + fnKey + randomHex(paramsKey.length);
-                currentStartKey = STARTING_KEY_OVERRIDE || currentStartKey;
+                let randomEntriesCount = 0;
+                let randomEntries;
+                let retries = 0;
+                // Re-try on empty entries cases to avoid false positives
+                while (randomEntriesCount === 0) {
+                  // 3. Generate a random startKey
+                  // will be overridden if STARTING_KEY_OVERRIDE is set
+                  currentStartKey = moduleKey + fnKey + randomHex(paramsKey.length);
 
-                // 4. Fetch the storage entries with the random startKey
-                // Trying to decode all storage entries may cause the node to timeout, decoding
-                // random storage entries should be enough to verify if a storage migration
-                // was missed.
-                const randomEntries = await module[fn].entriesPaged({
-                  args: [],
-                  pageSize,
-                  startKey: currentStartKey,
-                });
+                  // 4. Fetch the storage entries with the random startKey
+                  // Trying to decode all storage entries may cause the node to timeout, decoding
+                  // random storage entries should be enough to verify if a storage migration
+                  // was missed.
+                  randomEntries = await module[fn].entriesPaged({
+                    args: [],
+                    pageSize,
+                    startKey: currentStartKey,
+                  });
+                  randomEntriesCount = randomEntries.length;
+                  retries++;
+                  if (retries > 10) {
+                    fail(
+                      `Failed to fetch entries for module ${moduleName}::${fn} after 10 retries`
+                    );
+                  }
+                }
                 // Log first entry storage key
                 const firstRandomEntryKey = randomEntries[0][0].toString();
                 log(`     - ${fn}:  ${chalk.green(`🔎`)} (random key: ${firstRandomEntryKey})`);
@@ -130,7 +167,7 @@ describeSuite({
               log(`     - ${fn}:  ${chalk.green(`✔`)}`);
             } catch (e) {
               const failMsg = `Failed to fetch storage at (${moduleName}::${fn}) `;
-              const RNGDetails = `using startKey "${currentStartKey} at block ${atBlockNumber}`;
+              const RNGDetails = `using startKey "${currentStartKey}" at block ${atBlockNumber}`;
               const msg = chalk.red(`${failMsg} ${RNGDetails}`);
               log(msg, e);
               const reproducing = `To reproduce this failled case, set the STARTING_KEY_OVERRIDE 

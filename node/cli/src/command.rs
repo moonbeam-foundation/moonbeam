@@ -705,6 +705,8 @@ pub fn run() -> Result<()> {
 				// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
 				// NOTE: the --dev flag triggers the dev service by way of number 2
 				let relay_chain_id = extension.map(|e| e.relay_chain.as_str());
+				let para_id = extension.map(|e| e.para_id);
+
 				let dev_service = cli.run.dev_service
 					|| config.chain_spec.is_dev()
 					|| relay_chain_id == Some("dev-service");
@@ -722,7 +724,14 @@ pub fn run() -> Result<()> {
 							moonbeam_service::moonriver_runtime::RuntimeApi,
 							moonbeam_service::MoonriverCustomizations,
 							sc_network::NetworkWorker<_, _>,
-						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						>(
+							config,
+							para_id,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+						)
 						.await
 						.map_err(Into::into),
 						#[cfg(feature = "moonbeam-native")]
@@ -730,7 +739,14 @@ pub fn run() -> Result<()> {
 							moonbeam_service::moonbeam_runtime::RuntimeApi,
 							moonbeam_service::MoonbeamCustomizations,
 							sc_network::NetworkWorker<_, _>,
-						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						>(
+							config,
+							para_id,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+						)
 						.await
 						.map_err(Into::into),
 						#[cfg(feature = "moonbase-native")]
@@ -738,7 +754,14 @@ pub fn run() -> Result<()> {
 							moonbeam_service::moonbase_runtime::RuntimeApi,
 							moonbeam_service::MoonbaseCustomizations,
 							sc_network::NetworkWorker<_, _>,
-						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
+						>(
+							config,
+							para_id,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+						)
 						.await
 						.map_err(Into::into),
 						#[cfg(not(feature = "moonbase-native"))]
