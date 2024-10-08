@@ -27,7 +27,7 @@ describeSuite({
     beforeAll(async () => {
       await execOpenTechCommitteeProposal(
         context,
-        context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode(),
+        context.polkadotJs().tx.maintenanceMode.enterMaintenanceMode()
       );
     });
 
@@ -39,8 +39,8 @@ describeSuite({
         expect(
           async () =>
             await context.createBlock(
-              context.polkadotJs().tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1n * GLMR),
-            ),
+              context.polkadotJs().tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1n * GLMR)
+            )
         ).rejects.toThrowError("1010: Invalid Transaction: Transaction call is not expected");
       },
     });
@@ -65,13 +65,13 @@ describeSuite({
                   10_000_000_000n,
                   "0",
                   null,
-                  [],
-                ),
-            ),
+                  []
+                )
+            )
         );
         expect(result?.successful).to.be.true;
         expect(await context.viem().getBalance({ address: randomAccount.address })).to.equal(
-          100n * GLMR,
+          100n * GLMR
         );
       },
     });
@@ -88,8 +88,8 @@ describeSuite({
                 .polkadotJs()
                 .tx.crowdloanRewards.initializeRewardVec([
                   [RELAYCHAIN_ARBITRARY_ADDRESS_1, CHARLETH_ADDRESS, 3_000_000n * GLMR],
-                ]),
-            ),
+                ])
+            )
         );
         const initBlock = await context.polkadotJs().query.crowdloanRewards.initRelayBlock();
         await context.createBlock(
@@ -99,13 +99,13 @@ describeSuite({
               context
                 .polkadotJs()
                 .tx.crowdloanRewards.completeInitialization(
-                  initBlock.toBigInt() + ARBITRARY_VESTING_PERIOD,
-                ),
-            ),
+                  initBlock.toBigInt() + ARBITRARY_VESTING_PERIOD
+                )
+            )
         );
 
         expect(
-          async () => await context.createBlock(context.polkadotJs().tx.crowdloanRewards.claim()),
+          async () => await context.createBlock(context.polkadotJs().tx.crowdloanRewards.claim())
         ).rejects.toThrowError("1010: Invalid Transaction: Transaction call is not expected");
       },
     });
@@ -134,14 +134,14 @@ describeSuite({
           assetDetails,
           alith,
           newAssetId,
-          ALITH_ADDRESS,
+          ALITH_ADDRESS
         );
 
         expect(
           async () =>
             await context.createBlock(
-              context.polkadotJs().tx.assets.transfer(newAssetId, BALTATHAR_ADDRESS, 1000),
-            ),
+              context.polkadotJs().tx.assets.transfer(newAssetId, BALTATHAR_ADDRESS, 1000)
+            )
         ).rejects.toThrowError("1010: Invalid Transaction: Transaction call is not expected");
       },
     });
@@ -193,10 +193,10 @@ describeSuite({
                   0, // FeeAssetItem
                   {
                     Limited: { refTime: 8000000000, proofSize: 128 * 1024 },
-                  },
+                  }
                 )
-                .signAsync(baltathar),
-            ),
+                .signAsync(baltathar)
+            )
         ).rejects.toThrowError("1010: Invalid Transaction: Transaction call is not expected");
       },
     });
@@ -232,10 +232,10 @@ describeSuite({
                   fee as any,
                   "",
                   transactWeights as any,
-                  false,
+                  false
                 )
-                .signAsync(baltathar),
-            ),
+                .signAsync(baltathar)
+            )
         ).rejects.toThrowError("1010: Invalid Transaction: Transaction call is not expected");
       },
     });
