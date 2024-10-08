@@ -260,7 +260,8 @@ describeSuite({
       test: async function () {
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const erc20XcmBridgePalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Erc20XcmBridge")!.index.toNumber();
+          .find(({ name }) => name.toString() == "Erc20XcmBridge")!
+          .index.toNumber();
 
         const dest = {
           V3: {
@@ -310,7 +311,7 @@ describeSuite({
                 Fungible: 100n * GLMR,
               },
             },
-          ]
+          ],
         };
 
         context
