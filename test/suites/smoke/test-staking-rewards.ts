@@ -612,36 +612,40 @@ describeSuite({
       // calculate total staking reward
       const firstBlockRewardedEvents =
         await payment.delayedPayoutRound.firstBlockApi.query.system.events();
-      let reservedForParachainBond = new BN(0);
+      const reservedInflation = new BN(0);
       for (const { phase, event } of firstBlockRewardedEvents) {
         if (!phase.isInitialization) {
           continue;
         }
         const eventTypes = payment.delayedPayoutRound.firstBlockApi.events;
         // only deduct parachainBondReward if it was transferred (event must exist)
-        if (eventTypes.parachainStaking.ReservedForParachainBond.is(event)) {
-          reservedForParachainBond = event.data[1] as any;
-          break;
+        if (eventTypes.parachainStaking.InflationDistributed.is(event)) {
+          reservedInflation.addn(event.data.value.toNumber());
         }
       }
 
-      const parachainBondInfo =
-        await payment.rewardRound.priorBlockApi.query.parachainStaking.parachainBondInfo();
+      const inflationDistributionConfig =
+        await payment.rewardRound.priorBlockApi.query.parachainStaking.inflationDistributionInfo();
       const totalPoints = await payment.rewardRound.priorBlockApi.query.parachainStaking.points(
         payment.roundToPay.data.current
       );
-      const parachainBondPercent = new Percent(parachainBondInfo.percent);
+
+      let percentage = 0;
+      inflationDistributionConfig.forEach((config) => {
+        percentage += config.percent.toNumber();
+      });
+      const reservedPercentage = new Percent(percentage);
       // total expected staking reward minus the amount reserved for parachain bond
       const totalStakingReward = (() => {
-        const parachainBondReward = parachainBondPercent.of(totalRoundIssuance);
-        if (!reservedForParachainBond.isZero()) {
+        const reservedReward = reservedPercentage.of(totalRoundIssuance);
+        if (!reservedInflation.isZero()) {
           expect(
-            parachainBondReward.eq(reservedForParachainBond),
+            reservedReward.eq(reservedInflation),
             `parachain bond amount does not match \
-              ${parachainBondReward.toString()} != ${reservedForParachainBond.toString()} \
+              ${reservedReward.toString()} != ${reservedInflation.toString()} \
               for round ${payment.roundToPay.data.current.toString()}`
           ).to.be.true;
-          return totalRoundIssuance.sub(parachainBondReward);
+          return totalRoundIssuance.sub(reservedReward);
         }
 
         return totalRoundIssuance;
@@ -651,12 +655,12 @@ describeSuite({
       log(`
     paidRoundNumber               ${payment.roundToPay.data.current.toString()}
     totalRoundIssuance            ${totalRoundIssuance.toString()}
-    reservedForParachainBond      ${reservedForParachainBond} \
-    (${parachainBondPercent} * totalRoundIssuance)
+    reservedInflation      ${reservedInflation} \
+    (${reservedPercentage} * totalRoundIssuance)
     totalCollatorCommissionReward ${totalCollatorCommissionReward.toString()} \
     (${collatorCommissionRate} * totalRoundIssuance)
     totalStakingReward            ${totalStakingReward} \
-    (totalRoundIssuance - reservedForParachainBond)
+    (totalRoundIssuance - reservedInflation)
     totalBondReward               ${totalBondReward} \
     (totalStakingReward - totalCollatorCommissionReward)`);
 

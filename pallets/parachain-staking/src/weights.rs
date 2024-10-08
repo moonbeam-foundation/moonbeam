@@ -56,6 +56,7 @@ pub trait WeightInfo {
 	fn set_inflation() -> Weight;
 	fn set_parachain_bond_account() -> Weight;
 	fn set_parachain_bond_reserve_percent() -> Weight;
+	fn set_inflation_distribution_config() -> Weight;
 	fn set_total_selected() -> Weight;
 	fn set_collator_commission() -> Weight;
 	fn set_blocks_per_round() -> Weight;
@@ -135,6 +136,12 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		//  Measured:  `6`
 		//  Estimated: `1491`
 		// Minimum execution time: 13_898_000 picoseconds.
+		Weight::from_parts(14_492_000, 1491)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+	fn set_inflation_distribution_config() -> Weight {
+		// TODO: regenerate this file
 		Weight::from_parts(14_492_000, 1491)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
@@ -955,6 +962,11 @@ impl WeightInfo for () {
 		//  Measured:  `6`
 		//  Estimated: `1491`
 		// Minimum execution time: 13_898_000 picoseconds.
+		Weight::from_parts(14_492_000, 1491)
+			.saturating_add(RocksDbWeight::get().reads(1_u64))
+			.saturating_add(RocksDbWeight::get().writes(1_u64))
+	}
+	fn set_inflation_distribution_config() -> Weight {
 		Weight::from_parts(14_492_000, 1491)
 			.saturating_add(RocksDbWeight::get().reads(1_u64))
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
