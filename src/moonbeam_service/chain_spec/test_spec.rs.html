@@ -151,7 +151,6 @@
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -243,9 +242,8 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"lazy-loading"</span>)]
-</span><span class="kw">pub fn </span>lazy_loading_spec_builder(
-	para_id: ParaId,
-) -&gt; sc_chain_spec::ChainSpecBuilder&lt;<span class="kw">crate</span>::moonbeam_runtime::RuntimeGenesisConfig, Extensions&gt; {
+</span><span class="kw">pub fn </span>lazy_loading_spec_builder(para_id: ParaId) -&gt; sc_chain_spec::ChainSpecBuilder&lt;Extensions&gt; {
+	<span class="kw">use </span>moonbeam_runtime::currency::{GLMR, SUPPLY_FACTOR};
 	<span class="kw">crate</span>::chain_spec::moonbeam::ChainSpec::builder(
 		moonbeam_runtime::WASM_BINARY.expect(<span class="string">"WASM binary was not build, please build it!"</span>),
 		Default::default(),
@@ -276,12 +274,12 @@
 			(
 				AccountId::from(<span class="macro">hex!</span>(<span class="string">"6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b"</span>)),
 				get_from_seed::&lt;NimbusId&gt;(<span class="string">"Alice"</span>),
-				<span class="number">1_000 </span>* moonbeam_runtime::currency::GLMR,
+				<span class="number">20_000 </span>* GLMR * SUPPLY_FACTOR,
 			),
 			(
 				AccountId::from(<span class="macro">hex!</span>(<span class="string">"C0F0f4ab324C46e55D02D0033343B4Be8A55532d"</span>)),
 				get_from_seed::&lt;NimbusId&gt;(<span class="string">"Faith"</span>),
-				<span class="number">1_000 </span>* moonbeam_runtime::currency::GLMR,
+				<span class="number">20_000 </span>* GLMR * SUPPLY_FACTOR,
 			),
 		],
 		<span class="comment">// Delegations
@@ -298,7 +296,7 @@
 			</span>AccountId::from(<span class="macro">hex!</span>(<span class="string">"Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB"</span>)),
 			AccountId::from(<span class="macro">hex!</span>(<span class="string">"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"</span>)),
 		],
-		<span class="number">3_000_000 </span>* moonbeam_runtime::currency::GLMR,
+		<span class="number">1_500_000 </span>* GLMR * SUPPLY_FACTOR,
 		para_id,
 		<span class="comment">// Chain ID
 		</span><span class="number">1280</span>,

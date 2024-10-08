@@ -1952,6 +1952,7 @@
 <span class="kw">use </span>pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
 <span class="kw">use </span>pallet_treasury::TreasuryAccountId;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+<span class="kw">use </span>runtime_params::<span class="kw-2">*</span>;
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>sp_api::impl_runtime_apis;
 <span class="kw">use </span>sp_consensus_slots::Slot;
@@ -1976,9 +1977,10 @@
 </span><span class="kw">use </span>sp_version::NativeVersion;
 <span class="kw">use </span>sp_version::RuntimeVersion;
 <span class="kw">use </span>xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
-<span class="kw">use </span>xcm_fee_payment_runtime_api::Error <span class="kw">as </span>XcmPaymentApiError;
-
-<span class="kw">use </span>runtime_params::<span class="kw-2">*</span>;
+<span class="kw">use </span>xcm_runtime_apis::{
+	dry_run::{CallDryRunEffects, Error <span class="kw">as </span>XcmDryRunApiError, XcmDryRunEffects},
+	fees::Error <span class="kw">as </span>XcmPaymentApiError,
+};
 
 <span class="kw">use </span>smallvec::smallvec;
 <span class="kw">use </span>sp_runtime::serde::{Deserialize, Serialize};
@@ -2045,7 +2047,8 @@
 /// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
 /// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
 /// changes which can be skipped.
-</span><span class="attr">#[sp_version::runtime_version]
+</span><span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
+#[sp_version::runtime_version]
 </span><span class="kw">pub const </span>VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: <span class="macro">create_runtime_str!</span>(<span class="string">"moonbase"</span>),
 	impl_name: <span class="macro">create_runtime_str!</span>(<span class="string">"moonbase"</span>),
@@ -2055,6 +2058,21 @@
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: <span class="number">3</span>,
 	state_version: <span class="number">0</span>,
+};
+
+<span class="doccomment">/// We need to duplicate this because the `runtime_version` macro is conflicting with the
+/// conditional compilation at the state_version field.
+</span><span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
+#[sp_version::runtime_version]
+</span><span class="kw">pub const </span>VERSION: RuntimeVersion = RuntimeVersion {
+	spec_name: <span class="macro">create_runtime_str!</span>(<span class="string">"moonbase"</span>),
+	impl_name: <span class="macro">create_runtime_str!</span>(<span class="string">"moonbase"</span>),
+	authoring_version: <span class="number">4</span>,
+	spec_version: <span class="number">3300</span>,
+	impl_version: <span class="number">0</span>,
+	apis: RUNTIME_API_VERSIONS,
+	transaction_version: <span class="number">3</span>,
+	state_version: <span class="number">1</span>,
 };
 
 <span class="doccomment">/// The version information used to identify this runtime when compiled natively.
@@ -2448,11 +2466,6 @@
 	<span class="kw">pub </span>TreasuryAccount: AccountId = Treasury::account_id();
 }
 
-<span class="kw">type </span>TreasuryApproveOrigin = EitherOfDiverse&lt;
-	EnsureRoot&lt;AccountId&gt;,
-	pallet_collective::EnsureProportionAtLeast&lt;AccountId, TreasuryCouncilInstance, <span class="number">3</span>, <span class="number">5</span>&gt;,
-&gt;;
-
 <span class="kw">type </span>TreasuryRejectOrigin = EitherOfDiverse&lt;
 	EnsureRoot&lt;AccountId&gt;,
 	pallet_collective::EnsureProportionMoreThan&lt;AccountId, TreasuryCouncilInstance, <span class="number">1</span>, <span class="number">2</span>&gt;,
@@ -2461,22 +2474,15 @@
 <span class="kw">impl </span>pallet_treasury::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>PalletId = TreasuryId;
 	<span class="kw">type </span>Currency = Balances;
-	<span class="comment">// At least three-fifths majority of the council is required (or root) to approve a proposal
-	</span><span class="kw">type </span>ApproveOrigin = TreasuryApproveOrigin;
 	<span class="comment">// More than half of the council is required (or root) to reject a proposal
 	</span><span class="kw">type </span>RejectOrigin = TreasuryRejectOrigin;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="comment">// If spending proposal rejected, transfer proposer bond to treasury
-	</span><span class="kw">type </span>OnSlash = Treasury;
-	<span class="kw">type </span>ProposalBond = ProposalBond;
-	<span class="kw">type </span>ProposalBondMinimum = ConstU128&lt;{ <span class="number">1 </span>* currency::UNIT * currency::SUPPLY_FACTOR }&gt;;
 	<span class="kw">type </span>SpendPeriod = ConstU32&lt;{ <span class="number">6 </span>* DAYS }&gt;;
 	<span class="kw">type </span>Burn = ();
 	<span class="kw">type </span>BurnDestination = ();
 	<span class="kw">type </span>MaxApprovals = ConstU32&lt;<span class="number">100</span>&gt;;
 	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_treasury::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>SpendFunds = ();
-	<span class="kw">type </span>ProposalBondMaximum = ();
 	<span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
 	</span><span class="kw">type </span>SpendOrigin = frame_support::traits::NeverEnsureOrigin&lt;Balance&gt;; <span class="comment">// Disabled, no spending
 	</span><span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
@@ -3196,7 +3202,7 @@
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>BabeDataGetter = BabeDataGetter&lt;Runtime&gt;;
 	<span class="kw">type </span>VrfKeyLookup = AuthorMapping;
-	<span class="kw">type </span>Deposit = ConstU128&lt;{ <span class="number">1 </span>* currency::UNIT * currency::SUPPLY_FACTOR }&gt;;
+	<span class="kw">type </span>Deposit = runtime_params::PalletRandomnessDepositU128;
 	<span class="kw">type </span>MaxRandomWords = ConstU8&lt;<span class="number">100</span>&gt;;
 	<span class="kw">type </span>MinBlockDelay = ConstU32&lt;<span class="number">2</span>&gt;;
 	<span class="kw">type </span>MaxBlockDelay = ConstU32&lt;<span class="number">2_000</span>&gt;;
@@ -3274,8 +3280,8 @@
 		Identity: pallet_identity::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">24</span>,
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">25</span>,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event&lt;T&gt;, Origin} = <span class="number">26</span>,
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">27</span>,
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event&lt;T&gt;, Origin, Config&lt;T&gt;} = <span class="number">28</span>,
+		<span class="comment">// Previously 27: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event&lt;T&gt;},
+		</span>PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event&lt;T&gt;, Origin, Config&lt;T&gt;} = <span class="number">28</span>,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">29</span>,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">30</span>,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">31</span>,
@@ -3574,12 +3580,6 @@
 			<span class="number">5_u8
 		</span>);
 		<span class="macro">assert_eq!</span>(STORAGE_BYTE_FEE, Balance::from(<span class="number">100 </span>* MICROUNIT));
-
-		<span class="comment">// treasury minimums
-		</span><span class="macro">assert_eq!</span>(
-			<span class="macro">get!</span>(pallet_treasury, ProposalBondMinimum, u128),
-			Balance::from(<span class="number">1 </span>* UNIT)
-		);
 
 		<span class="comment">// pallet_identity deposits
 		</span><span class="macro">assert_eq!</span>(

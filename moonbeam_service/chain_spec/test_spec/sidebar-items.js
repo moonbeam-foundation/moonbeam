@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["staking_spec"]};
+window.SIDEBAR_ITEMS = {"fn":["lazy_loading_spec_builder","staking_spec"]};

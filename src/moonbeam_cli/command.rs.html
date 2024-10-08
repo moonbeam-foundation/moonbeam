@@ -1049,6 +1049,15 @@
 <a href="#1047" id="1047">1047</a>
 <a href="#1048" id="1048">1048</a>
 <a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1272,18 +1281,8 @@
 
 <span class="doccomment">/// Parse command line arguments into service configuration.
 </span><span class="kw">pub fn </span>run() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-	<span class="kw">let </span><span class="kw-2">mut </span>cli = Cli::from_args();
+	<span class="kw">let </span>cli = Cli::from_args();
 	<span class="kw">let _ </span>= validate_trace_environment(<span class="kw-2">&amp;</span>cli)<span class="question-mark">?</span>;
-	<span class="comment">// Set --execution wasm as default
-	</span><span class="kw">let </span>execution_strategies = cli.run.base.base.import_params.execution_strategies.clone();
-	<span class="kw">if </span>execution_strategies.execution.is_none() {
-		cli.run
-			.base
-			.base
-			.import_params
-			.execution_strategies
-			.execution = <span class="prelude-val">Some</span>(sc_cli::ExecutionStrategy::Wasm);
-	}
 
 	<span class="kw">match </span><span class="kw-2">&amp;</span>cli.subcommand {
 		<span class="prelude-val">Some</span>(Subcommand::BuildSpec(params)) =&gt; {
@@ -1745,9 +1744,7 @@
 			<span class="kw">let </span>runner = cli.create_runner(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>cli.run).normalize())<span class="question-mark">?</span>;
 			<span class="kw">let </span>collator_options = cli.run.collator_options();
 
-			<span class="comment">// It is used when feature "lazy-loading" is enabled
-			</span><span class="attr">#[allow(unused_mut)]
-			</span>runner.run_node_until_exit(|<span class="kw-2">mut </span>config| <span class="kw">async move </span>{
+			runner.run_node_until_exit(|<span class="kw-2">mut </span>config| <span class="kw">async move </span>{
 				<span class="kw">let </span>hwbench = <span class="kw">if </span>!cli.run.no_hardware_benchmarks {
 					config.database.path().map(|database_path| {
 						<span class="kw">let _ </span>= std::fs::create_dir_all(<span class="kw-2">&amp;</span>database_path);
@@ -1761,12 +1758,79 @@
 
 				<span class="kw">let </span>rpc_config = cli.run.new_rpc_config();
 
-				<span class="attr">#[cfg(feature = <span class="string">"lazy-loading"</span>)]
-				</span><span class="kw">if let </span><span class="prelude-val">Some</span>(fork_chain_from_rpc) = cli.run.fork_chain_from_rpc {
+				<span class="comment">// If dev service was requested, start up manual or instant seal.
+				// Otherwise continue with the normal parachain node.
+				// Dev service can be requested in two ways.
+				// 1. by providing the --dev-service flag to the CLI
+				// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
+				// NOTE: the --dev flag triggers the dev service by way of number 2
+				</span><span class="kw">let </span>relay_chain_id = extension.map(|e| e.relay_chain.as_str());
+				<span class="kw">let </span>para_id = extension.map(|e| e.para_id);
+
+				<span class="kw">let </span>dev_service = cli.run.dev_service
+					|| config.chain_spec.is_dev()
+					|| relay_chain_id == <span class="prelude-val">Some</span>(<span class="string">"dev-service"</span>);
+				<span class="kw">if </span>dev_service {
 					<span class="comment">// When running the dev service, just use Alice's author inherent
 					//TODO maybe make the --alice etc flags work here, and consider bringing back
 					// the author-id flag. For now, this will work.
 					</span><span class="kw">let </span>author_id = <span class="prelude-val">Some</span>(chain_spec::get_from_seed::&lt;nimbus_primitives::NimbusId&gt;(
+						<span class="string">"Alice"</span>,
+					));
+
+					<span class="kw">return match </span><span class="kw-2">&amp;</span>config.chain_spec {
+						<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
+						</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; moonbeam_service::new_dev::&lt;
+							moonbeam_service::moonriver_runtime::RuntimeApi,
+							moonbeam_service::MoonriverCustomizations,
+							sc_network::NetworkWorker&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;,
+						&gt;(
+							config,
+							para_id,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+						)
+						.<span class="kw">await
+						</span>.map_err(Into::into),
+						<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
+						</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; moonbeam_service::new_dev::&lt;
+							moonbeam_service::moonbeam_runtime::RuntimeApi,
+							moonbeam_service::MoonbeamCustomizations,
+							sc_network::NetworkWorker&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;,
+						&gt;(
+							config,
+							para_id,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+						)
+						.<span class="kw">await
+						</span>.map_err(Into::into),
+						<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
+						</span><span class="kw">_ </span>=&gt; moonbeam_service::new_dev::&lt;
+							moonbeam_service::moonbase_runtime::RuntimeApi,
+							moonbeam_service::MoonbaseCustomizations,
+							sc_network::NetworkWorker&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;,
+						&gt;(
+							config,
+							para_id,
+							author_id,
+							cli.run.sealing,
+							rpc_config,
+							hwbench,
+						)
+						.<span class="kw">await
+						</span>.map_err(Into::into),
+						<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
+						</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
+					};
+				}
+				<span class="attr">#[cfg(feature = <span class="string">"lazy-loading"</span>)]
+				</span><span class="kw">if let </span><span class="prelude-val">Some</span>(fork_chain_from_rpc) = cli.run.fork_chain_from_rpc {
+					<span class="kw">let </span>author_id = <span class="prelude-val">Some</span>(chain_spec::get_from_seed::&lt;nimbus_primitives::NimbusId&gt;(
 						<span class="string">"Alice"</span>,
 					));
 
@@ -1780,6 +1844,10 @@
 					<span class="kw">let </span>spec_builder =
 						chain_spec::test_spec::lazy_loading_spec_builder(Default::default());
 					config.chain_spec = Box::new(spec_builder.build());
+
+					<span class="comment">// TODO: create a tokio runtime inside offchain_worker thread (otherwise it will panic)
+					// We just disable it for now, since it is not needed
+					</span>config.offchain_worker.enabled = <span class="bool-val">false</span>;
 
 					<span class="kw">return </span>moonbeam_service::lazy_loading::new_lazy_loading_service::&lt;
 						moonbeam_runtime::RuntimeApi,
@@ -1795,56 +1863,6 @@
 					)
 					.<span class="kw">await
 					</span>.map_err(Into::into);
-				}
-				<span class="attr">#[cfg(not(feature = <span class="string">"lazy-loading"</span>))]
-				</span>{
-					<span class="comment">// If dev service was requested, start up manual or instant seal.
-					// Otherwise continue with the normal parachain node.
-					// Dev service can be requested in two ways.
-					// 1. by providing the --dev-service flag to the CLI
-					// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
-					// NOTE: the --dev flag triggers the dev service by way of number 2
-					</span><span class="kw">let </span>relay_chain_id = extension.map(|e| e.relay_chain.as_str());
-					<span class="kw">let </span>dev_service = cli.run.dev_service
-						|| config.chain_spec.is_dev()
-						|| relay_chain_id == <span class="prelude-val">Some</span>(<span class="string">"dev-service"</span>);
-					<span class="kw">if </span>dev_service {
-						<span class="comment">// When running the dev service, just use Alice's author inherent
-						//TODO maybe make the --alice etc flags work here, and consider bringing back
-						// the author-id flag. For now, this will work.
-						</span><span class="kw">let </span>author_id = <span class="prelude-val">Some</span>(chain_spec::get_from_seed::&lt;
-							nimbus_primitives::NimbusId,
-						&gt;(<span class="string">"Alice"</span>));
-
-						<span class="kw">return match </span><span class="kw-2">&amp;</span>config.chain_spec {
-							<span class="attr">#[cfg(feature = <span class="string">"moonriver-native"</span>)]
-							</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; moonbeam_service::new_dev::&lt;
-								moonbeam_service::moonriver_runtime::RuntimeApi,
-								moonbeam_service::MoonriverCustomizations,
-								sc_network::NetworkWorker&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;,
-							&gt;(config, author_id, cli.run.sealing, rpc_config, hwbench)
-							.<span class="kw">await
-							</span>.map_err(Into::into),
-							<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
-							</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; moonbeam_service::new_dev::&lt;
-								moonbeam_service::moonbeam_runtime::RuntimeApi,
-								moonbeam_service::MoonbeamCustomizations,
-								sc_network::NetworkWorker&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;,
-							&gt;(config, author_id, cli.run.sealing, rpc_config, hwbench)
-							.<span class="kw">await
-							</span>.map_err(Into::into),
-							<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
-							</span><span class="kw">_ </span>=&gt; moonbeam_service::new_dev::&lt;
-								moonbeam_service::moonbase_runtime::RuntimeApi,
-								moonbeam_service::MoonbaseCustomizations,
-								sc_network::NetworkWorker&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;,
-							&gt;(config, author_id, cli.run.sealing, rpc_config, hwbench)
-							.<span class="kw">await
-							</span>.map_err(Into::into),
-							<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
-							</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
-						};
-					}
 				}
 
 				<span class="kw">let </span>polkadot_cli = RelayChainCli::new(

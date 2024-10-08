@@ -515,7 +515,7 @@
 <span class="kw">use </span>xcm::v4::{Asset, AssetId <span class="kw">as </span>XcmAssetId, Error <span class="kw">as </span>XcmError, Fungibility, Location, XcmContext};
 <span class="kw">use </span>xcm::{IntoVersion, VersionedAssetId};
 <span class="kw">use </span>xcm_executor::traits::{TransactAsset, WeightTrader};
-<span class="kw">use </span>xcm_fee_payment_runtime_api::Error <span class="kw">as </span>XcmPaymentApiError;
+<span class="kw">use </span>xcm_runtime_apis::fees::Error <span class="kw">as </span>XcmPaymentApiError;
 
 <span class="kw">pub const </span>RELATIVE_PRICE_DECIMALS: u32 = <span class="number">18</span>;
 

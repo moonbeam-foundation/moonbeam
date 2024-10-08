@@ -1845,6 +1845,58 @@
 <a href="#1843" id="1843">1843</a>
 <a href="#1844" id="1844">1844</a>
 <a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
+<a href="#1855" id="1855">1855</a>
+<a href="#1856" id="1856">1856</a>
+<a href="#1857" id="1857">1857</a>
+<a href="#1858" id="1858">1858</a>
+<a href="#1859" id="1859">1859</a>
+<a href="#1860" id="1860">1860</a>
+<a href="#1861" id="1861">1861</a>
+<a href="#1862" id="1862">1862</a>
+<a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
+<a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
+<a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
+<a href="#1877" id="1877">1877</a>
+<a href="#1878" id="1878">1878</a>
+<a href="#1879" id="1879">1879</a>
+<a href="#1880" id="1880">1880</a>
+<a href="#1881" id="1881">1881</a>
+<a href="#1882" id="1882">1882</a>
+<a href="#1883" id="1883">1883</a>
+<a href="#1884" id="1884">1884</a>
+<a href="#1885" id="1885">1885</a>
+<a href="#1886" id="1886">1886</a>
+<a href="#1887" id="1887">1887</a>
+<a href="#1888" id="1888">1888</a>
+<a href="#1889" id="1889">1889</a>
+<a href="#1890" id="1890">1890</a>
+<a href="#1891" id="1891">1891</a>
+<a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
+<a href="#1895" id="1895">1895</a>
+<a href="#1896" id="1896">1896</a>
+<a href="#1897" id="1897">1897</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1880,8 +1932,10 @@
 	prepare_node_config, start_relay_chain_tasks, CollatorSybilResistance, DARecoveryProfile,
 	ParachainHostFunctions, StartRelayChainTasksParams,
 };
-<span class="kw">use </span>cumulus_primitives_core::relay_chain::CollatorPair;
-<span class="kw">use </span>cumulus_primitives_core::ParaId;
+<span class="kw">use </span>cumulus_primitives_core::{
+	relay_chain::{well_known_keys, CollatorPair},
+	ParaId,
+};
 <span class="kw">use </span>cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 <span class="kw">use </span>cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface, RelayChainResult};
 <span class="kw">use </span>cumulus_relay_chain_minimal_node::build_minimal_relay_chain_node_with_rpc;
@@ -1901,6 +1955,7 @@
 </span><span class="kw">pub use </span>moonriver_runtime;
 <span class="kw">use </span>nimbus_consensus::NimbusManualSealConsensusDataProvider;
 <span class="kw">use </span>nimbus_primitives::{DigestsProvider, NimbusId};
+<span class="kw">use </span>polkadot_primitives::Slot;
 <span class="kw">use </span>sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
@@ -1922,6 +1977,7 @@
 <span class="kw">use </span>sp_core::{ByteArray, Encode, H256};
 <span class="kw">use </span>sp_keystore::{Keystore, KeystorePtr};
 <span class="kw">use </span>std::str::FromStr;
+<span class="kw">use </span>std::sync::atomic::{AtomicU64, Ordering};
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::{collections::BTreeMap, path::Path, sync::Mutex, time::Duration};
 <span class="kw">use </span>substrate_prometheus_endpoint::Registry;
@@ -1957,6 +2013,36 @@
 	&gt;,
 	ServiceError,
 &gt;;
+
+<span class="kw">const </span>RELAY_CHAIN_SLOT_DURATION_MILLIS: u64 = <span class="number">6_000</span>;
+
+<span class="kw">static </span>TIMESTAMP: AtomicU64 = AtomicU64::new(<span class="number">0</span>);
+
+<span class="doccomment">/// Provide a mock duration starting at 0 in millisecond for timestamp inherent.
+/// Each call will increment timestamp by slot_duration making Aura think time has passed.
+</span><span class="kw">struct </span>MockTimestampInherentDataProvider;
+<span class="attr">#[async_trait::async_trait]
+</span><span class="kw">impl </span>sp_inherents::InherentDataProvider <span class="kw">for </span>MockTimestampInherentDataProvider {
+	<span class="kw">async fn </span>provide_inherent_data(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		inherent_data: <span class="kw-2">&amp;mut </span>sp_inherents::InherentData,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_inherents::Error&gt; {
+		TIMESTAMP.fetch_add(RELAY_CHAIN_SLOT_DURATION_MILLIS, Ordering::SeqCst);
+		inherent_data.put_data(
+			sp_timestamp::INHERENT_IDENTIFIER,
+			<span class="kw-2">&amp;</span>TIMESTAMP.load(Ordering::SeqCst),
+		)
+	}
+
+	<span class="kw">async fn </span>try_handle_error(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		_identifier: <span class="kw-2">&amp;</span>sp_inherents::InherentIdentifier,
+		_error: <span class="kw-2">&amp;</span>[u8],
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(), sp_inherents::Error&gt;&gt; {
+		<span class="comment">// The pallet never reports error.
+		</span><span class="prelude-val">None
+	</span>}
+}
 
 <span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
 </span><span class="kw">pub type </span>HostFunctions = (
@@ -2966,6 +3052,7 @@
 /// the parachain inherent.
 </span><span class="kw">pub async fn </span>new_dev&lt;RuntimeApi, Customizations, Net&gt;(
 	<span class="kw-2">mut </span>config: Configuration,
+	para_id: <span class="prelude-ty">Option</span>&lt;u32&gt;,
 	_author_id: <span class="prelude-ty">Option</span>&lt;NimbusId&gt;,
 	sealing: moonbeam_cli_opt::Sealing,
 	rpc_config: RpcConfig,
@@ -3159,10 +3246,11 @@
 					<span class="kw">let </span>downward_xcm_receiver = downward_xcm_receiver.clone();
 					<span class="kw">let </span>hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
 					<span class="kw">let </span>additional_relay_offset = additional_relay_offset.clone();
+					<span class="kw">let </span>relay_slot_key = well_known_keys::CURRENT_SLOT.to_vec();
 
 					<span class="kw">let </span>client_for_xcm = client_set_aside_for_cidp.clone();
 					<span class="kw">async move </span>{
-						<span class="kw">let </span>time = sp_timestamp::InherentDataProvider::from_system_time();
+						<span class="kw">let </span>time = MockTimestampInherentDataProvider;
 
 						<span class="kw">let </span>current_para_block = maybe_current_para_block<span class="question-mark">?
 							</span>.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))<span class="question-mark">?</span>;
@@ -3171,13 +3259,23 @@
 							maybe_current_para_head<span class="question-mark">?</span>.encode(),
 						));
 
-						<span class="kw">let </span>additional_key_values = <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[(
-							moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-							sp_timestamp::Timestamp::current().encode(),
-						)]);
+						<span class="comment">// Get the mocked timestamp
+						</span><span class="kw">let </span>timestamp = TIMESTAMP.load(Ordering::SeqCst);
+						<span class="comment">// Calculate mocked slot number (should be consecutively 1, 2, ...)
+						</span><span class="kw">let </span>slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
+
+						<span class="kw">let </span>additional_key_values = <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[
+							(
+								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
+									.to_vec(),
+								sp_timestamp::Timestamp::current().encode(),
+							),
+							(relay_slot_key, Slot::from(slot).encode()),
+						]);
 
 						<span class="kw">let </span>mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
+							para_id: para_id.unwrap().into(),
 							current_para_block_head,
 							relay_offset: <span class="number">1000
 								</span>+ additional_relay_offset.load(std::sync::atomic::Ordering::SeqCst),
@@ -3188,7 +3286,6 @@
 							xcm_config: MockXcmConfig::new(
 								<span class="kw-2">&amp;*</span>client_for_xcm,
 								block,
-								Default::default(),
 								Default::default(),
 							),
 							raw_downward_messages: downward_xcm_receiver.drain().collect(),
@@ -3615,7 +3712,9 @@
 			wasmtime_precompiled: <span class="prelude-val">None</span>,
 			runtime_cache_size: <span class="number">2</span>,
 			rpc_rate_limit: Default::default(),
+			rpc_rate_limit_whitelisted_ips: <span class="macro">vec!</span>[],
 			rpc_batch_config: BatchRequestConfig::Unlimited,
+			rpc_rate_limit_trust_proxy_headers: <span class="bool-val">false</span>,
 		}
 	}
 }
@@ -3655,23 +3754,28 @@
 			</span>.client
 			.header(hash)
 			.map_err(|e| sp_inherents::Error::Application(Box::new(e)))<span class="question-mark">?
-			</span>.expect(<span class="string">"Best block header should be present"</span>)
-			.digest;
+			</span>.ok_or(sp_inherents::Error::Application(
+				<span class="string">"Best block header should be present"</span>.into(),
+			))<span class="question-mark">?
+			</span>.digest;
 		<span class="comment">// Get the nimbus id from the digest.
 		</span><span class="kw">let </span>nimbus_id = digest
 			.logs
 			.iter()
 			.find_map(|x| {
 				<span class="kw">if let </span>DigestItem::PreRuntime(nimbus_primitives::NIMBUS_ENGINE_ID, nimbus_id) = x {
-					<span class="prelude-val">Some</span>(
-						NimbusId::from_slice(nimbus_id.as_slice())
-							.expect(<span class="string">"Nimbus pre-runtime digest should be valid"</span>),
-					)
+					<span class="prelude-val">Some</span>(NimbusId::from_slice(nimbus_id.as_slice()).map_err(|<span class="kw">_</span>| {
+						sp_inherents::Error::Application(
+							<span class="string">"Nimbus pre-runtime digest should be valid"</span>.into(),
+						)
+					}))
 				} <span class="kw">else </span>{
 					<span class="prelude-val">None
 				</span>}
 			})
-			.expect(<span class="string">"Nimbus pre-runtime digest should be present"</span>);
+			.ok_or(sp_inherents::Error::Application(
+				<span class="string">"Nimbus pre-runtime digest should be present"</span>.into(),
+			))<span class="question-mark">??</span>;
 		<span class="comment">// Remove the old VRF digest.
 		</span><span class="kw">let </span>pos = digest.logs.iter().position(|x| {
 			<span class="macro">matches!</span>(

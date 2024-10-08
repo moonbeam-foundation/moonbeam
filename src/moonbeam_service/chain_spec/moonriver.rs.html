@@ -378,7 +378,7 @@
 <span class="kw">use </span>sp_runtime::{Perbill, Percent};
 
 <span class="doccomment">/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-</span><span class="kw">pub type </span>ChainSpec = sc_service::GenericChainSpec&lt;RuntimeGenesisConfig, Extensions&gt;;
+</span><span class="kw">pub type </span>ChainSpec = sc_service::GenericChainSpec&lt;Extensions&gt;;
 
 <span class="doccomment">/// Generate a chain spec for use with the development service.
 </span><span class="kw">pub fn </span>development_chain_spec(mnemonic: <span class="prelude-ty">Option</span>&lt;String&gt;, num_accounts: <span class="prelude-ty">Option</span>&lt;u32&gt;) -&gt; ChainSpec {

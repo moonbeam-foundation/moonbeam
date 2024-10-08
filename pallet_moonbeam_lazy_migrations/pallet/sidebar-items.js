@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["ARRAY_LIMIT"],"enum":["Call","Error"],"mod":["dispatchables","storage_types"],"struct":["Pallet"],"trait":["Config"],"type":["GetArrayLimit","Module"]};
+window.SIDEBAR_ITEMS = {"constant":["ARRAY_LIMIT"],"enum":["Call","Error","StateMigrationStatus"],"mod":["dispatchables","storage_types"],"struct":["Pallet"],"trait":["Config"],"type":["GetArrayLimit","Module"]};

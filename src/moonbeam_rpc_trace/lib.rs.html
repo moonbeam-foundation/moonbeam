@@ -959,6 +959,19 @@
 <a href="#957" id="957">957</a>
 <a href="#958" id="958">958</a>
 <a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -980,7 +993,7 @@
 //! executor.
 //!
 //! The implementation is composed of multiple tasks :
-//! - Many calls the the RPC handler `Trace::filter`, communicating with the main task.
+//! - Many calls the RPC handler `Trace::filter`, communicating with the main task.
 //! - A main `CacheTask` managing the cache and the communication between tasks.
 //! - For each traced block an async task responsible to wait for a permit, spawn a blocking
 //!   task and waiting for the result, then send it to the main `CacheTask`.
@@ -1820,15 +1833,28 @@
 					<span class="kw-2">&amp;</span>block_header,
 				)
 			} <span class="kw">else </span>{
-				<span class="comment">// Pre pallet-message-queue
+				<span class="comment">// Get core runtime api version
+				</span><span class="kw">let </span>core_api_version = <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(api_version)) =
+					api.api_version::&lt;<span class="kw">dyn </span>Core&lt;B&gt;&gt;(substrate_parent_hash)
+				{
+					api_version
+				} <span class="kw">else </span>{
+					<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Runtime api version call failed (core)"</span>.to_string());
+				};
 
-				// Initialize block: calls the "on_initialize" hook on every pallet
+				<span class="comment">// Initialize block: calls the "on_initialize" hook on every pallet
 				// in AllPalletsWithSystem
 				// This was fine before pallet-message-queue because the XCM messages
 				// were processed by the "setValidationData" inherent call and not on an
 				// "on_initialize" hook, which runs before enabling XCM tracing
-				</span>api.initialize_block(substrate_parent_hash, <span class="kw-2">&amp;</span>block_header)
-					.map_err(|e| <span class="macro">format!</span>(<span class="string">"Runtime api access error: {:?}"</span>, e))<span class="question-mark">?</span>;
+				</span><span class="kw">if </span>core_api_version &gt;= <span class="number">5 </span>{
+					api.initialize_block(substrate_parent_hash, <span class="kw-2">&amp;</span>block_header)
+						.map_err(|e| <span class="macro">format!</span>(<span class="string">"Runtime api access error: {:?}"</span>, e))<span class="question-mark">?</span>;
+				} <span class="kw">else </span>{
+					<span class="attr">#[allow(deprecated)]
+					</span>api.initialize_block_before_version_5(substrate_parent_hash, <span class="kw-2">&amp;</span>block_header)
+						.map_err(|e| <span class="macro">format!</span>(<span class="string">"Runtime api access error: {:?}"</span>, e))<span class="question-mark">?</span>;
+				}
 
 				<span class="attr">#[allow(deprecated)]
 				</span>api.trace_block_before_version_5(substrate_parent_hash, extrinsics, eth_tx_hashes)
