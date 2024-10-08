@@ -298,7 +298,7 @@ describeSuite({
                     X2: [
                       { PalletInstance: Number(erc20XcmBridgePalletIndex) },
                       {
-                        AccountId20: {
+                        AccountKey20: {
                           network: "Any",
                           id: "0x931715fee2d06333043d11f658c8ce934ac61d0c",
                         },
