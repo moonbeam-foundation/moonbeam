@@ -38,4 +38,3 @@ jobs:
           token: ${{ secrets.NPM_TOKEN }}
           package: typescript-api/package.json
           dry-run: ${{ github.event.inputs.DryRun }}
-          
