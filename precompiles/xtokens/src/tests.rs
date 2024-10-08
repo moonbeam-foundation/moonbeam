@@ -18,7 +18,7 @@ use crate::mock::{
 	events, AssetAccount, ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime,
 	SelfReserveAccount,
 };
-use crate::{Currency, EvmAsset};
+use crate::{Currency, EvmAsset, MAX_ASSETS};
 use pallet_xcm::Event as PolkadotXcmEvent;
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::U256;
@@ -94,13 +94,13 @@ fn transfer_self_reserve_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(3000, 3000),
 				},
 			}
 			.into();
@@ -135,13 +135,13 @@ fn transfer_to_reserve_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(4000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(2000, 2000),
 				},
 			}
 			.into();
@@ -175,13 +175,13 @@ fn transfer_to_reserve_with_unlimited_weight_works() {
 						weight: u64::MAX,
 					},
 				)
-				.expect_cost(4000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(2000, 2000),
 				},
 			}
 			.into();
@@ -218,13 +218,13 @@ fn transfer_to_reserve_with_fee_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(4000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(2000, 2000),
 				},
 			}
 			.into();
@@ -260,13 +260,13 @@ fn transfer_non_reserve_to_non_reserve_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(4000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(3000, 3000),
 				},
 			}
 			.into();
@@ -302,13 +302,13 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(4000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(3000, 3000),
 				},
 			}
 			.into();
@@ -344,13 +344,13 @@ fn transfer_multi_asset_to_reserve_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(4000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(2000, 2000),
 				},
 			}
 			.into();
@@ -387,13 +387,13 @@ fn transfer_multi_asset_self_reserve_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(3000, 3000),
 				},
 			}
 			.into();
@@ -430,13 +430,13 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(3000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(3000, 3000),
 				},
 			}
 			.into();
@@ -473,13 +473,13 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(4000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(3000, 3000),
 				},
 			}
 			.into();
@@ -517,13 +517,13 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(4000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(3000, 3000),
 				},
 			}
 			.into();
@@ -562,13 +562,13 @@ fn transfer_multi_currencies() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(4000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(3000, 3000),
 				},
 			}
 			.into();
@@ -616,13 +616,13 @@ fn transfer_multi_assets() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(4000)
+				.expect_cost(100000000)
 				.expect_no_logs()
 				.execute_returns(());
 
 			let expected: crate::mock::RuntimeEvent = PolkadotXcmEvent::Attempted {
 				outcome: xcm::latest::Outcome::Complete {
-					used: Weight::zero(),
+					used: Weight::from_parts(2000, 2000),
 				},
 			}
 			.into();
@@ -646,11 +646,10 @@ fn transfer_multi_currencies_cannot_insert_more_than_max() {
 					id: [1u8; 32],
 				}],
 			);
-			let currencies: Vec<Currency> = vec![
-				(Address(AssetAccount(1u128).into()), U256::from(500)).into(),
-				(Address(AssetAccount(2u128).into()), U256::from(500)).into(),
-				(Address(AssetAccount(3u128).into()), U256::from(500)).into(),
-			];
+			let mut currencies: Vec<Currency> = Vec::new();
+			for i in 0..MAX_ASSETS + 1 {
+				currencies.push((Address(AssetAccount(i as u128).into()), U256::from(500)).into());
+			}
 
 			// We are transferring 3 assets, when max is 2
 			precompiles()
@@ -685,19 +684,14 @@ fn transfer_multi_assets_cannot_insert_more_than_max() {
 				],
 			);
 
-			let asset_1_location =
-				Location::new(1, [Junction::Parachain(2), Junction::GeneralIndex(0u128)]);
-			let asset_2_location =
-				Location::new(1, [Junction::Parachain(2), Junction::GeneralIndex(1u128)]);
-
-			let asset_3_location =
-				Location::new(1, [Junction::Parachain(2), Junction::GeneralIndex(2u128)]);
-
-			let assets: Vec<EvmAsset> = vec![
-				(asset_1_location.clone(), U256::from(500)).into(),
-				(asset_2_location.clone(), U256::from(500)).into(),
-				(asset_3_location.clone(), U256::from(500)).into(),
-			];
+			let mut assets: Vec<EvmAsset> = Vec::new();
+			for i in 0..MAX_ASSETS + 1 {
+				let asset_location = Location::new(
+					1,
+					[Junction::Parachain(2), Junction::GeneralIndex(i as u128)],
+				);
+				assets.push((asset_location, U256::from(500)).into());
+			}
 
 			// We are transferring 3 assets, when max is 2
 			precompiles()

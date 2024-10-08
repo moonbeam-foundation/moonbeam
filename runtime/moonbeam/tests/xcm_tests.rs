@@ -37,7 +37,7 @@ use xcm::{
 			Location, OriginKind, PalletInstance, Parachain, QueryResponse, Reanchorable, Response,
 			WeightLimit, Xcm,
 		},
-		Asset, AssetId, Fungibility,
+		Asset, AssetId, Assets as XcmAssets, Fungibility,
 	},
 	IntoVersion, VersionedAssets, VersionedLocation, WrapVersion,
 };
@@ -2607,13 +2607,17 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			parachain::CurrencyId::ForeignAsset(source_statemint_asset_id),
 			100,
 		);
-		let asset_fee = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 1);
+		let asset_fee =
+			currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
+		let assets_to_send: XcmAssets = XcmAssets::from(vec![asset, asset_fee.clone()]);
+		assert_eq!(assets_to_send.get(0).unwrap(), &asset_fee);
+
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::V4(chain_part)),
 			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset, asset_fee].into())),
-			1,
+			Box::new(VersionedAssets::V4(assets_to_send)),
+			0,
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
 	});
@@ -3294,12 +3298,12 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-	let asset_1 = currency_to_asset(
-		parachain::CurrencyId::ForeignAsset(source_statemint_asset_id),
-		100,
-	);
-	let asset_2 = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
-	let assets_to_send = vec![asset_1, asset_2];
+		let asset_1 = currency_to_asset(
+			parachain::CurrencyId::ForeignAsset(source_statemint_asset_id),
+			100,
+		);
+		let asset_2 = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
+		let assets_to_send = vec![asset_1, asset_2];
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::V4(chain_part)),
@@ -3314,10 +3318,9 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 
 	Statemint::execute_with(|| {
 		// Check that Bob received relay tokens back in AssetHub
-		// (100 - MinXcmFee)
 		assert_eq!(
 			StatemintBalances::free_balance(RELAYBOB),
-			INITIAL_BALANCE + 50
+			INITIAL_BALANCE + 100
 		);
 
 		// Check that BOB received 100 USDC on AssetHub
@@ -3549,7 +3552,8 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 		fun: Fungible(100),
 	};
 
-	let assets_to_send = vec![statemint_asset_to_send, relay_asset_to_send.clone()];
+	let assets_to_send: XcmAssets =
+		XcmAssets::from(vec![statemint_asset_to_send, relay_asset_to_send.clone()]);
 	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
 	// For some reason the order of the assets is inverted when creating the array above.
 	// We need to use relay asset for fees, so we pick index 0.
@@ -3561,7 +3565,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::V4(chain_part)),
 			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(assets_to_send.into())),
+			Box::new(VersionedAssets::V4(assets_to_send)),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
@@ -3571,10 +3575,9 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 
 	Statemint::execute_with(|| {
 		// Check that Bob received relay tokens back in AssetHub
-		// (100 - MinXcmFee)
 		assert_eq!(
 			StatemintBalances::free_balance(RELAYBOB),
-			INITIAL_BALANCE + 50
+			INITIAL_BALANCE + 100
 		);
 
 		// Check that BOB received 100 USDC on AssetHub

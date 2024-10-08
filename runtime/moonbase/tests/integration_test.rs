@@ -1564,7 +1564,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(348298)
+				.expect_cost(174530)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1655,7 +1655,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(348298)
+				.expect_cost(174530)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1739,7 +1739,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(16208)
+				.expect_cost(22930)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2103,7 +2103,7 @@ fn root_can_change_default_xcm_vers() {
 					0,
 					WeightLimit::Unlimited
 				),
-				pallet_xcm::Error::<Runtime>::BadVersion
+				pallet_xcm::Error::<Runtime>::SendFailure
 			);
 
 			// Root sets the defaultXcm

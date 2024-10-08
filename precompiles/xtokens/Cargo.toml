@@ -62,6 +62,8 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-evm/std",
+	"pallet-xcm/std",
+	"pallet-xcm-transactor/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-std/std",

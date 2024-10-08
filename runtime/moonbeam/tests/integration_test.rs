@@ -1644,7 +1644,7 @@ fn root_can_change_default_xcm_vers() {
 					0,
 					WeightLimit::Unlimited
 				),
-				pallet_xcm::Error::<Runtime>::BadVersion
+				pallet_xcm::Error::<Runtime>::SendFailure
 			);
 
 			// Root sets the defaultXcm
@@ -1961,7 +1961,7 @@ fn xtokens_precompile_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(196698)
+				.expect_cost(22930)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -2013,7 +2013,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(196698)
+				.expect_cost(22930)
 				.expect_no_logs()
 				.execute_returns(());
 		})

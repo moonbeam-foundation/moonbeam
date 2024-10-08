@@ -360,7 +360,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AccountIdToLocation = AccountIdToLocation;
 	type CurrencyIdToLocation = CurrencyIdToMultiLocation;
 	type SelfLocation = SelfLocation;
-	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
+	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
 	type UniversalLocation = UniversalLocation;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
@@ -378,7 +378,7 @@ impl xcm_executor::Config for XcmConfig {
 	type XcmSender = DoNothingRouter;
 	type AssetTransactor = DummyAssetTransactor;
 	type OriginConverter = pallet_xcm::XcmPassthrough<RuntimeOrigin>;
-	type IsReserve = ();
+	type IsReserve = xcm_primitives::MultiNativeAsset<xcm_primitives::RelativeReserveProvider>;
 	type IsTeleporter = ();
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
