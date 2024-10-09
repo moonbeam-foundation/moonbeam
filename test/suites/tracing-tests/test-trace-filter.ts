@@ -1,5 +1,6 @@
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES, GLMR, alith } from "@moonwall/util";
+import { hexToU8a } from "@polkadot/util";
 
 describeSuite({
   id: "T14",
@@ -264,43 +265,54 @@ describeSuite({
           .index.toNumber();
 
         const dest = {
-          V3: {
-            parents: 1,
+          V4: {
+            parents: 1n,
             interior: {
-              X1: { Parachain: 2104n },
+              X1: [{ Parachain: 2104n }],
             },
           },
-        };
+        } as any;
 
         const beneficiary = {
-          V3: {
+          V4: {
             parents: 0n,
             interior: {
               X1: [
                 {
                   AccountId32: {
-                    network: "Any",
+                    network: null,
                     id: "0x608a07e4dfc71e7d99a3d3759ce12ccbb1e4d9f917cc67779c13aaeaea52794d",
                   },
                 },
               ],
             },
           },
-        };
+        } as any;
 
         const assetsToSend = {
-          V3: [
+          V4: [
             {
               id: {
-                Concrete: {
-                  parents: 0,
+                V4: {
+                  parents: 0n,
+                  interior: {
+                    Here: null,
+                  },
+                },
+              },
+              fun: { Fungible: 100n * GLMR },
+            },
+            {
+              id: {
+                V4: {
+                  parents: 0n,
                   interior: {
                     X2: [
                       { PalletInstance: Number(erc20XcmBridgePalletIndex) },
                       {
                         AccountKey20: {
-                          network: "Any",
-                          id: "0x931715fee2d06333043d11f658c8ce934ac61d0c",
+                          network: null,
+                          key: hexToU8a("0x931715fee2d06333043d11f658c8ce934ac61d0c"),
                         },
                       },
                     ],
