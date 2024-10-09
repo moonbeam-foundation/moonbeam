@@ -244,9 +244,6 @@ where
 		let amount = amount
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("amount"))?;
-		/*let _fee = fee
-		.try_into()
-		.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("fee"))?;*/
 
 		let dest_weight_limit = if weight == u64::MAX {
 			WeightLimit::Unlimited
