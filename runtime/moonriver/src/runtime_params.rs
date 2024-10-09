@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Dynamic runtime parameters for moonbase.
+//! Dynamic runtime parameters for moonriver.
 
 use crate::{currency, Runtime};
 use frame_support::dynamic_params::{dynamic_pallet_params, dynamic_params};
@@ -38,9 +38,9 @@ pub mod dynamic_params {
 	pub mod pallet_randomness {
 		#[codec(index = 0)]
 		pub static Deposit: BoundedU128<
-			{ 1 * currency::UNIT * currency::SUPPLY_FACTOR },
-			{ 1_000 * currency::UNIT * currency::SUPPLY_FACTOR },
-		> = BoundedU128::const_new::<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>();
+			{ 1 * currency::MOVR * currency::SUPPLY_FACTOR },
+			{ 1_000 * currency::MOVR * currency::SUPPLY_FACTOR },
+		> = BoundedU128::const_new::<{ 1 * currency::MOVR * currency::SUPPLY_FACTOR }>();
 	}
 }
 
