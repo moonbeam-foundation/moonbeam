@@ -1859,6 +1859,7 @@
 <a href="#1857" id="1857">1857</a>
 <a href="#1858" id="1858">1858</a>
 <a href="#1859" id="1859">1859</a>
+<a href="#1860" id="1860">1860</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3074,6 +3075,7 @@
 			// is populated at genesis
 			</span>RuntimeCall::PolkadotXcm(method) =&gt; <span class="kw">match </span>method {
 				pallet_xcm::Call::force_default_xcm_version { .. } =&gt; <span class="bool-val">true</span>,
+				pallet_xcm::Call::transfer_assets_using_type_and_then { .. } =&gt; <span class="bool-val">true</span>,
 				<span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
 			},
 			<span class="comment">// We filter anonymous proxy as they make "reserve" inconsistent
