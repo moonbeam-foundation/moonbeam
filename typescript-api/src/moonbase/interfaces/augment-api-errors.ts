@@ -537,6 +537,7 @@ declare module "@polkadot/api-base/types/errors" {
       TooLowDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowDelegationCountToLeaveDelegators: AugmentedError<ApiType>;
+      TotalInflationDistributionPercentExceeds100: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };

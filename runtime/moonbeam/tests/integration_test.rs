@@ -133,7 +133,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::Identity>("Identity");
 	is_pallet_prefix::<moonbeam_runtime::XcmpQueue>("XcmpQueue");
 	is_pallet_prefix::<moonbeam_runtime::CumulusXcm>("CumulusXcm");
-	is_pallet_prefix::<moonbeam_runtime::DmpQueue>("DmpQueue");
 	is_pallet_prefix::<moonbeam_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonbeam_runtime::Assets>("Assets");
 	is_pallet_prefix::<moonbeam_runtime::XTokens>("XTokens");
@@ -440,7 +439,6 @@ fn verify_pallet_indices() {
 	// XCM Stuff
 	is_pallet_index::<moonbeam_runtime::XcmpQueue>(100);
 	is_pallet_index::<moonbeam_runtime::CumulusXcm>(101);
-	is_pallet_index::<moonbeam_runtime::DmpQueue>(102);
 	is_pallet_index::<moonbeam_runtime::PolkadotXcm>(103);
 	is_pallet_index::<moonbeam_runtime::Assets>(104);
 	is_pallet_index::<moonbeam_runtime::AssetManager>(105);
@@ -2457,7 +2455,7 @@ fn precompile_existence() {
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 256, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053,
 			2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067,
-			2068, 2069, 2070, 2071, 2072, 2073,
+			2068, 2069, 2070, 2071, 2072, 2073, 2074,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

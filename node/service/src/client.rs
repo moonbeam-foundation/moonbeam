@@ -47,7 +47,7 @@ pub trait RuntimeApiCollection:
 	+ cumulus_primitives_core::CollectCollationInfo<Block>
 	+ session_keys_primitives::VrfApi<Block>
 	+ async_backing_primitives::UnincludedSegmentApi<Block>
-	+ xcm_fee_payment_runtime_api::XcmPaymentApi<Block>
+	+ xcm_runtime_apis::fees::XcmPaymentApi<Block>
 {
 }
 
@@ -68,7 +68,7 @@ impl<Api> RuntimeApiCollection for Api where
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ session_keys_primitives::VrfApi<Block>
 		+ async_backing_primitives::UnincludedSegmentApi<Block>
-		+ xcm_fee_payment_runtime_api::XcmPaymentApi<Block>
+		+ xcm_runtime_apis::fees::XcmPaymentApi<Block>
 {
 }
 

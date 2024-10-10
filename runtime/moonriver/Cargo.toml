@@ -91,6 +91,7 @@ pallet-conviction-voting = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-preimage = { workspace = true }
+pallet-parameters = { workspace = true }
 pallet-proxy = { workspace = true }
 pallet-referenda = { workspace = true }
 pallet-root-testing = { workspace = true }
@@ -150,7 +151,7 @@ polkadot-runtime-common = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
-xcm-fee-payment-runtime-api = { workspace = true }
+xcm-runtime-apis = { workspace = true }
 pallet-message-queue = { workspace = true }
 
 # Cumulus
@@ -172,6 +173,7 @@ nimbus-primitives = { workspace = true }
 pallet-async-backing = { workspace = true }
 pallet-author-inherent = { workspace = true }
 pallet-author-slot-filter = { workspace = true }
+pallet-evm-precompile-xcm = { workspace = true }
 pallet-relay-storage-roots = { workspace = true }
 
 # Benchmarking
@@ -257,6 +259,7 @@ std = [
 	"pallet-evm-precompile-referenda/std",
 	"pallet-evm-precompile-relay-encoder/std",
 	"pallet-evm-precompile-relay-verifier/std",
+	"pallet-evm-precompile-xcm/std",
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
@@ -272,6 +275,7 @@ std = [
 	"pallet-parachain-staking/std",
 	"pallet-precompile-benchmarks/std",
 	"pallet-preimage/std",
+	"pallet-parameters/std",
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness/std",
@@ -311,7 +315,7 @@ std = [
 	"strum/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
-	"xcm-fee-payment-runtime-api/std",
+	"xcm-runtime-apis/std",
 	"xcm-primitives/std",
 	"xcm/std",
 ]
@@ -367,6 +371,7 @@ runtime-benchmarks = [
 	"pallet-parachain-staking/runtime-benchmarks",
 	"pallet-precompile-benchmarks/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
+	"pallet-parameters/runtime-benchmarks",
 	"pallet-proxy/runtime-benchmarks",
 	"pallet-randomness/runtime-benchmarks",
 	"pallet-referenda/runtime-benchmarks",
@@ -384,6 +389,7 @@ runtime-benchmarks = [
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
+	"xcm-runtime-apis/runtime-benchmarks",
 ]
 try-runtime = [
 	"cumulus-pallet-parachain-system/try-runtime",
@@ -407,6 +413,7 @@ try-runtime = [
 	"pallet-parachain-staking/try-runtime",
 	"pallet-precompile-benchmarks/try-runtime",
 	"pallet-preimage/try-runtime",
+	"pallet-parameters/try-runtime",
 	"pallet-referenda/try-runtime",
 	"pallet-relay-storage-roots/try-runtime",
 	"pallet-root-testing/try-runtime",

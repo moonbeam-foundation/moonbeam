@@ -90,6 +90,12 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
+	fn set_inflation_distribution_config() -> Weight {
+		// TODO: regenerate this file
+		Weight::from_parts(14_492_000, 1491)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
 	/// Storage: `ParachainStaking::TotalSelected` (r:1 w:1)
 	/// Proof: `ParachainStaking::TotalSelected` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	fn set_total_selected() -> Weight {

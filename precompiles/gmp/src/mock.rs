@@ -37,11 +37,11 @@ use xcm_executor::{
 	traits::{TransactAsset, WeightTrader},
 	AssetsInHolding, XcmExecutor,
 };
-use xcm_primitives::XcmV2Weight;
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type AssetId = u128;
+type XcmV2Weight = u64;
 
 type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
@@ -197,6 +197,7 @@ impl xcm_executor::Config for XcmConfig {
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
+	type XcmRecorder = ();
 }
 
 pub type Precompiles<R> = PrecompileSetBuilder<

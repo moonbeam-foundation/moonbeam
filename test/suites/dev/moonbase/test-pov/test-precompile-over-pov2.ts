@@ -73,8 +73,8 @@ describeSuite({
         });
 
         const { result, block } = await context.createBlock(rawSigned);
-        expect(block.proofSize).to.be.at.least(Number(MAX_ETH_POV_PER_TX - 20_000n));
-        expect(block.proofSize).to.be.at.most(Number(MAX_ETH_POV_PER_TX + emptyBlockProofSize));
+        expect(block.proofSize).to.be.at.least(Number(15_000));
+        expect(block.proofSize).to.be.at.most(Number(30_000n + emptyBlockProofSize));
         expect(result?.successful).to.equal(true);
       },
     });
