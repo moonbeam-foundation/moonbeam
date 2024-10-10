@@ -422,6 +422,36 @@
 <a href="#420" id="420">420</a>
 <a href="#421" id="421">421</a>
 <a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -444,47 +474,31 @@
 
 </span><span class="kw">use </span>account::SYSTEM_ACCOUNT_SIZE;
 <span class="kw">use </span>fp_evm::PrecompileHandle;
-<span class="kw">use </span>frame_support::{
-	dispatch::{GetDispatchInfo, PostDispatchInfo},
-	traits::Get,
-};
+<span class="kw">use </span>frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>sp_core::{H160, U256};
-<span class="kw">use </span>sp_runtime::traits::Dispatchable;
-<span class="kw">use </span>sp_std::{
-	boxed::Box,
-	convert::{TryFrom, TryInto},
-	marker::PhantomData,
-	vec::Vec,
-};
+<span class="kw">use </span>sp_core::{ConstU32, H160, U256};
+<span class="kw">use </span>sp_runtime::traits::{Convert, Dispatchable};
+<span class="kw">use </span>sp_std::{boxed::Box, convert::TryInto, marker::PhantomData, vec::Vec};
 <span class="kw">use </span>sp_weights::Weight;
 <span class="kw">use </span>xcm::{
 	latest::{Asset, AssetId, Assets, Fungibility, Location, WeightLimit},
-	VersionedAsset, VersionedAssets, VersionedLocation,
+	VersionedAssets, VersionedLocation,
 };
-<span class="kw">use </span>xcm_primitives::{AccountIdToCurrencyId, DEFAULT_PROOF_SIZE};
+<span class="kw">use </span>xcm_primitives::{
+	split_location_into_chain_part_and_beneficiary, AccountIdToCurrencyId, DEFAULT_PROOF_SIZE,
+};
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>mock;
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="kw">pub type </span>XBalanceOf&lt;Runtime&gt; = &lt;Runtime <span class="kw">as </span>orml_xtokens::Config&gt;::Balance;
-<span class="kw">pub type </span>MaxAssetsForTransfer&lt;Runtime&gt; = &lt;Runtime <span class="kw">as </span>orml_xtokens::Config&gt;::MaxAssetsForTransfer;
+<span class="kw">pub type </span>CurrencyIdOf&lt;Runtime&gt; = &lt;Runtime <span class="kw">as </span>pallet_xcm_transactor::Config&gt;::CurrencyId;
+<span class="kw">pub type </span>CurrencyIdToLocationOf&lt;Runtime&gt; =
+	&lt;Runtime <span class="kw">as </span>pallet_xcm_transactor::Config&gt;::CurrencyIdToLocation;
 
-<span class="kw">pub type </span>CurrencyIdOf&lt;Runtime&gt; = &lt;Runtime <span class="kw">as </span>orml_xtokens::Config&gt;::CurrencyId;
-
-<span class="kw">pub struct </span>GetMaxAssets&lt;R&gt;(PhantomData&lt;R&gt;);
-
-<span class="kw">impl</span>&lt;R&gt; Get&lt;u32&gt; <span class="kw">for </span>GetMaxAssets&lt;R&gt;
-<span class="kw">where
-	</span>R: orml_xtokens::Config,
-{
-	<span class="kw">fn </span>get() -&gt; u32 {
-		&lt;R <span class="kw">as </span>orml_xtokens::Config&gt;::MaxAssetsForTransfer::get() <span class="kw">as </span>u32
-	}
-}
+<span class="kw">const </span>MAX_ASSETS: u32 = <span class="number">20</span>;
 
 <span class="doccomment">/// A precompile to wrap the functionality from xtokens
 </span><span class="kw">pub struct </span>XtokensPrecompile&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
@@ -493,11 +507,15 @@
 #[precompile::test_concrete_types(mock::Runtime)]
 </span><span class="kw">impl</span>&lt;Runtime&gt; XtokensPrecompile&lt;Runtime&gt;
 <span class="kw">where
-	</span>Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
-	Runtime::RuntimeCall: From&lt;orml_xtokens::Call&lt;Runtime&gt;&gt;,
-	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
-	XBalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + solidity::Codec,
+	</span>Runtime: pallet_evm::Config
+		+ pallet_xcm::Config
+		+ pallet_xcm_transactor::Config
+		+ frame_system::Config,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall:
+		Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;pallet_xcm::Call&lt;Runtime&gt;&gt;,
+	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
+		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	Runtime: AccountIdToCurrencyId&lt;Runtime::AccountId, CurrencyIdOf&lt;Runtime&gt;&gt;,
 {
 	<span class="attr">#[precompile::public(<span class="string">"transfer(address,uint256,(uint8,bytes[]),uint64)"</span>)]
@@ -512,9 +530,8 @@
 		<span class="kw">let </span>to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		<span class="comment">// We convert the address into a currency id xtokens understands
-		</span><span class="kw">let </span>currency_id: &lt;Runtime <span class="kw">as </span>orml_xtokens::Config&gt;::CurrencyId =
-			Runtime::account_to_currency_id(to_account)
-				.ok_or(revert(<span class="string">"cannot convert into currency id"</span>))<span class="question-mark">?</span>;
+		</span><span class="kw">let </span>currency_id: CurrencyIdOf&lt;Runtime&gt; = Runtime::account_to_currency_id(to_account)
+			.ok_or(revert(<span class="string">"cannot convert into currency id"</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>amount = amount
@@ -527,11 +544,20 @@
 			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
 		};
 
-		<span class="kw">let </span>call = orml_xtokens::Call::&lt;Runtime&gt;::transfer {
-			currency_id,
-			amount,
-			dest: Box::new(VersionedLocation::V4(destination)),
-			dest_weight_limit,
+		<span class="kw">let </span>asset = <span class="self">Self</span>::currency_to_asset(currency_id, amount).ok_or(
+			RevertReason::custom(<span class="string">"Cannot convert currency into xcm asset"</span>)
+				.in_field(<span class="string">"currency_address"</span>),
+		)<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>(chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
+			.ok_or_else(|| RevertReason::custom(<span class="string">"Invalid destination"</span>).in_field(<span class="string">"destination"</span>))<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>call = pallet_xcm::Call::&lt;Runtime&gt;::transfer_assets {
+			dest: Box::new(VersionedLocation::V4(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+			assets: Box::new(VersionedAssets::V4(asset.into())),
+			fee_asset_item: <span class="number">0</span>,
+			weight_limit: dest_weight_limit,
 		};
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
@@ -544,13 +570,16 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attr">#[precompile::public(<span class="string">"transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)"</span>)]
+	<span class="comment">// transfer_with_fee no longer take the fee parameter into account since we start using
+	// pallet-xcm. Now, if you want to limit the maximum amount of fees, you'll have to use a
+	// different asset from the one you wish to transfer and use transfer_multi* selectors.
+	</span><span class="attr">#[precompile::public(<span class="string">"transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)"</span>)]
 	#[precompile::public(<span class="string">"transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)"</span>)]
 	</span><span class="kw">fn </span>transfer_with_fee(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		currency_address: Address,
 		amount: U256,
-		fee: U256,
+		_fee: U256,
 		destination: Location,
 		weight: u64,
 	) -&gt; EvmResult {
@@ -558,8 +587,8 @@
 		<span class="kw">let </span>to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		<span class="comment">// We convert the address into a currency id xtokens understands
-		</span><span class="kw">let </span>currency_id: &lt;Runtime <span class="kw">as </span>orml_xtokens::Config&gt;::CurrencyId =
-			Runtime::account_to_currency_id(to_account).ok_or(
+		</span><span class="kw">let </span>currency_id: CurrencyIdOf&lt;Runtime&gt; = Runtime::account_to_currency_id(to_account)
+			.ok_or(
 				RevertReason::custom(<span class="string">"Cannot convert into currency id"</span>).in_field(<span class="string">"currencyAddress"</span>),
 			)<span class="question-mark">?</span>;
 
@@ -570,23 +599,26 @@
 			.try_into()
 			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"balance type"</span>).in_field(<span class="string">"amount"</span>))<span class="question-mark">?</span>;
 
-		<span class="comment">// Fee amount
-		</span><span class="kw">let </span>fee = fee
-			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"balance type"</span>).in_field(<span class="string">"fee"</span>))<span class="question-mark">?</span>;
-
 		<span class="kw">let </span>dest_weight_limit = <span class="kw">if </span>weight == u64::MAX {
 			WeightLimit::Unlimited
 		} <span class="kw">else </span>{
 			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
 		};
 
-		<span class="kw">let </span>call = orml_xtokens::Call::&lt;Runtime&gt;::transfer_with_fee {
-			currency_id,
-			amount,
-			fee,
-			dest: Box::new(VersionedLocation::V4(destination)),
-			dest_weight_limit,
+		<span class="kw">let </span>asset = <span class="self">Self</span>::currency_to_asset(currency_id, amount).ok_or(
+			RevertReason::custom(<span class="string">"Cannot convert currency into xcm asset"</span>)
+				.in_field(<span class="string">"currency_address"</span>),
+		)<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>(chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
+			.ok_or_else(|| RevertReason::custom(<span class="string">"Invalid destination"</span>).in_field(<span class="string">"destination"</span>))<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>call = pallet_xcm::Call::&lt;Runtime&gt;::transfer_assets {
+			dest: Box::new(VersionedLocation::V4(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+			assets: Box::new(VersionedAssets::V4(asset.into())),
+			fee_asset_item: <span class="number">0</span>,
+			weight_limit: dest_weight_limit,
 		};
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
@@ -619,13 +651,21 @@
 			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
 		};
 
-		<span class="kw">let </span>call = orml_xtokens::Call::&lt;Runtime&gt;::transfer_multiasset {
-			asset: Box::new(VersionedAsset::V4(Asset {
-				id: AssetId(asset),
-				fun: Fungibility::Fungible(to_balance),
-			})),
-			dest: Box::new(VersionedLocation::V4(destination)),
-			dest_weight_limit,
+		<span class="kw">let </span>(chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
+			.ok_or_else(|| RevertReason::custom(<span class="string">"Invalid destination"</span>).in_field(<span class="string">"destination"</span>))<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>call = pallet_xcm::Call::&lt;Runtime&gt;::transfer_assets {
+			dest: Box::new(VersionedLocation::V4(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+			assets: Box::new(VersionedAssets::V4(
+				Asset {
+					id: AssetId(asset),
+					fun: Fungibility::Fungible(to_balance),
+				}
+				.into(),
+			)),
+			fee_asset_item: <span class="number">0</span>,
+			weight_limit: dest_weight_limit,
 		};
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
@@ -648,7 +688,7 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		asset: Location,
 		amount: U256,
-		fee: U256,
+		_fee: U256,
 		destination: Location,
 		weight: u64,
 	) -&gt; EvmResult {
@@ -656,9 +696,6 @@
 		<span class="kw">let </span>amount = amount
 			.try_into()
 			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"balance type"</span>).in_field(<span class="string">"amount"</span>))<span class="question-mark">?</span>;
-		<span class="kw">let </span>fee = fee
-			.try_into()
-			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"balance type"</span>).in_field(<span class="string">"fee"</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>dest_weight_limit = <span class="kw">if </span>weight == u64::MAX {
 			WeightLimit::Unlimited
@@ -666,17 +703,21 @@
 			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
 		};
 
-		<span class="kw">let </span>call = orml_xtokens::Call::&lt;Runtime&gt;::transfer_multiasset_with_fee {
-			asset: Box::new(VersionedAsset::V4(Asset {
-				id: AssetId(asset.clone()),
-				fun: Fungibility::Fungible(amount),
-			})),
-			fee: Box::new(VersionedAsset::V4(Asset {
-				id: AssetId(asset),
-				fun: Fungibility::Fungible(fee),
-			})),
-			dest: Box::new(VersionedLocation::V4(destination)),
-			dest_weight_limit,
+		<span class="kw">let </span>(chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
+			.ok_or_else(|| RevertReason::custom(<span class="string">"Invalid destination"</span>).in_field(<span class="string">"destination"</span>))<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>call = pallet_xcm::Call::&lt;Runtime&gt;::transfer_assets {
+			dest: Box::new(VersionedLocation::V4(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+			assets: Box::new(VersionedAssets::V4(
+				Asset {
+					id: AssetId(asset.clone()),
+					fun: Fungibility::Fungible(amount),
+				}
+				.into(),
+			)),
+			fee_asset_item: <span class="number">0</span>,
+			weight_limit: dest_weight_limit,
 		};
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
@@ -697,7 +738,7 @@
 	</span>)]
 	</span><span class="kw">fn </span>transfer_multi_currencies(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		currencies: BoundedVec&lt;Currency, GetMaxAssets&lt;Runtime&gt;&gt;,
+		currencies: BoundedVec&lt;Currency, ConstU32&lt;MAX_ASSETS&gt;&gt;,
 		fee_item: u32,
 		destination: Location,
 		weight: u64,
@@ -706,7 +747,7 @@
 
 		<span class="comment">// Build all currencies
 		</span><span class="kw">let </span>currencies: Vec&lt;<span class="kw">_</span>&gt; = currencies.into();
-		<span class="kw">let </span>currencies = currencies
+		<span class="kw">let </span>assets = currencies
 			.into_iter()
 			.enumerate()
 			.map(|(index, currency)| {
@@ -717,19 +758,23 @@
 						.in_field(<span class="string">"currencies"</span>)
 				})<span class="question-mark">?</span>;
 
-				<span class="prelude-val">Ok</span>((
-					Runtime::account_to_currency_id(Runtime::AddressMapping::into_account_id(
-						address_as_h160,
-					))
-					.ok_or(
-						RevertReason::custom(<span class="string">"Cannot convert into currency id"</span>)
-							.in_array(index)
-							.in_field(<span class="string">"currencies"</span>),
-					)<span class="question-mark">?</span>,
-					amount,
-				))
+				<span class="kw">let </span>currency_id = Runtime::account_to_currency_id(
+					Runtime::AddressMapping::into_account_id(address_as_h160),
+				)
+				.ok_or(
+					RevertReason::custom(<span class="string">"Cannot convert into currency id"</span>)
+						.in_array(index)
+						.in_field(<span class="string">"currencies"</span>),
+				)<span class="question-mark">?</span>;
+
+				<span class="self">Self</span>::currency_to_asset(currency_id, amount).ok_or(
+					RevertReason::custom(<span class="string">"Cannot convert currency into xcm asset"</span>)
+						.in_array(index)
+						.in_field(<span class="string">"currencies"</span>)
+						.into(),
+				)
 			})
-			.collect::&lt;EvmResult&lt;<span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>;
+			.collect::&lt;EvmResult&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;&gt;()<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>dest_weight_limit = <span class="kw">if </span>weight == u64::MAX {
 			WeightLimit::Unlimited
@@ -737,11 +782,15 @@
 			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
 		};
 
-		<span class="kw">let </span>call = orml_xtokens::Call::&lt;Runtime&gt;::transfer_multicurrencies {
-			currencies,
-			fee_item,
-			dest: Box::new(VersionedLocation::V4(destination)),
-			dest_weight_limit,
+		<span class="kw">let </span>(chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
+			.ok_or_else(|| RevertReason::custom(<span class="string">"Invalid destination"</span>).in_field(<span class="string">"destination"</span>))<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>call = pallet_xcm::Call::&lt;Runtime&gt;::transfer_assets {
+			dest: Box::new(VersionedLocation::V4(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+			assets: Box::new(VersionedAssets::V4(assets.into())),
+			fee_asset_item: fee_item,
+			weight_limit: dest_weight_limit,
 		};
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
@@ -762,7 +811,7 @@
 	</span>)]
 	</span><span class="kw">fn </span>transfer_multi_assets(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		assets: BoundedVec&lt;EvmAsset, GetMaxAssets&lt;Runtime&gt;&gt;,
+		assets: BoundedVec&lt;EvmAsset, ConstU32&lt;MAX_ASSETS&gt;&gt;,
 		fee_item: u32,
 		destination: Location,
 		weight: u64,
@@ -796,11 +845,15 @@
 			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
 		};
 
-		<span class="kw">let </span>call = orml_xtokens::Call::&lt;Runtime&gt;::transfer_multiassets {
+		<span class="kw">let </span>(chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
+			.ok_or_else(|| RevertReason::custom(<span class="string">"Invalid destination"</span>).in_field(<span class="string">"destination"</span>))<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>call = pallet_xcm::Call::&lt;Runtime&gt;::transfer_assets {
+			dest: Box::new(VersionedLocation::V4(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
 			assets: Box::new(VersionedAssets::V4(assets)),
-			fee_item,
-			dest: Box::new(VersionedLocation::V4(destination)),
-			dest_weight_limit,
+			fee_asset_item: fee_item,
+			weight_limit: dest_weight_limit,
 		};
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
@@ -811,6 +864,13 @@
 		)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="kw">fn </span>currency_to_asset(currency_id: CurrencyIdOf&lt;Runtime&gt;, amount: u128) -&gt; <span class="prelude-ty">Option</span>&lt;Asset&gt; {
+		<span class="prelude-val">Some</span>(Asset {
+			fun: Fungibility::Fungible(amount),
+			id: AssetId(&lt;CurrencyIdToLocationOf&lt;Runtime&gt;&gt;::convert(currency_id)<span class="question-mark">?</span>),
+		})
 	}
 }
 

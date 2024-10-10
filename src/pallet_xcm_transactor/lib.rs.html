@@ -1420,7 +1420,6 @@
 		dispatch::DispatchResult, pallet_prelude::<span class="kw-2">*</span>, weights::constants::WEIGHT_REF_TIME_PER_SECOND,
 	};
 	<span class="kw">use </span>frame_system::{ensure_signed, pallet_prelude::<span class="kw-2">*</span>};
-	<span class="kw">use </span>orml_traits::location::{Parse, Reserve};
 	<span class="kw">use </span>sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, Convert};
 	<span class="kw">use </span>sp_std::boxed::Box;
 	<span class="kw">use </span>sp_std::convert::TryFrom;
@@ -1429,7 +1428,7 @@
 	<span class="kw">use </span>xcm::{latest::prelude::<span class="kw-2">*</span>, VersionedLocation};
 	<span class="kw">use </span>xcm_executor::traits::{TransactAsset, WeightBounds};
 	<span class="kw">use </span>xcm_primitives::{
-		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls,
+		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, Reserve, UtilityAvailableCalls,
 		UtilityEncodeCall, XcmTransact,
 	};
 
@@ -1500,7 +1499,7 @@
 
 		<span class="doccomment">/// The way to retrieve the reserve of a Asset. This can be
 		/// configured to accept absolute or relative paths for self tokens
-		</span><span class="kw">type </span>ReserveProvider: Reserve;
+		</span><span class="kw">type </span>ReserveProvider: xcm_primitives::Reserve;
 
 		<span class="doccomment">/// The way to filter the max fee to use for HRMP management operations
 		</span><span class="kw">type </span>MaxHrmpFee: FilterMaxAssetFee;
@@ -2487,8 +2486,9 @@
 
 		<span class="doccomment">/// Ensure `dest` has chain part and none recipient part.
 		</span><span class="kw">fn </span>ensure_valid_dest(dest: <span class="kw-2">&amp;</span>Location) -&gt; <span class="prelude-ty">Result</span>&lt;Location, DispatchError&gt; {
-			<span class="kw">if let </span>(<span class="prelude-val">Some</span>(dest), <span class="prelude-val">None</span>) = (dest.chain_part(), dest.non_chain_part()) {
-				<span class="prelude-val">Ok</span>(dest)
+			<span class="kw">let </span>chain_location = dest.chain_location();
+			<span class="kw">if </span><span class="kw-2">*</span>dest == chain_location {
+				<span class="prelude-val">Ok</span>(chain_location)
 			} <span class="kw">else </span>{
 				<span class="prelude-val">Err</span>(Error::&lt;T&gt;::InvalidDest.into())
 			}

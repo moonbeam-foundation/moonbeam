@@ -1853,8 +1853,6 @@
 <a href="#1851" id="1851">1851</a>
 <a href="#1852" id="1852">1852</a>
 <a href="#1853" id="1853">1853</a>
-<a href="#1854" id="1854">1854</a>
-<a href="#1855" id="1855">1855</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3039,7 +3037,6 @@
 			RuntimeCall::Ethereum(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::EVM(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::Identity(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			RuntimeCall::XTokens(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::ParachainStaking(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::MoonbeamOrbiters(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::PolkadotXcm(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
@@ -3283,8 +3280,8 @@
 		<span class="comment">// Previously 27: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event&lt;T&gt;},
 		</span>PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event&lt;T&gt;, Origin, Config&lt;T&gt;} = <span class="number">28</span>,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">29</span>,
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">30</span>,
-		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">31</span>,
+		<span class="comment">// Previously 30: XTokens
+		</span>AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">31</span>,
 		Migrations: pallet_migrations::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">32</span>,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config&lt;T&gt;, Storage, Event&lt;T&gt;} = <span class="number">33</span>,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config&lt;T&gt;} = <span class="number">34</span>,
@@ -3555,7 +3552,6 @@
 		<span class="macro">assert!</span>(
 			std::mem::size_of::&lt;pallet_maintenance_mode::Call&lt;Runtime&gt;&gt;() &lt;= CALL_ALIGN <span class="kw">as </span>usize
 		);
-		<span class="macro">assert!</span>(std::mem::size_of::&lt;orml_xtokens::Call&lt;Runtime&gt;&gt;() &lt;= CALL_ALIGN <span class="kw">as </span>usize);
 		<span class="macro">assert!</span>(std::mem::size_of::&lt;pallet_asset_manager::Call&lt;Runtime&gt;&gt;() &lt;= CALL_ALIGN <span class="kw">as </span>usize);
 		<span class="macro">assert!</span>(std::mem::size_of::&lt;pallet_migrations::Call&lt;Runtime&gt;&gt;() &lt;= CALL_ALIGN <span class="kw">as </span>usize);
 		<span class="macro">assert!</span>(

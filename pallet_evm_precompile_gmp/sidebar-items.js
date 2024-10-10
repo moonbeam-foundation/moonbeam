@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["CALL_DATA_LIMIT"],"enum":["GmpPrecompileCall"],"fn":["is_enabled"],"mod":["types"],"struct":["GmpPrecompile"],"type":["CurrencyIdOf","SystemCallOf","XBalanceOf"]};
+window.SIDEBAR_ITEMS = {"constant":["CALL_DATA_LIMIT"],"enum":["GmpPrecompileCall"],"fn":["is_enabled"],"mod":["types"],"struct":["GmpPrecompile"],"type":["CurrencyIdOf","CurrencyIdToLocationOf","SystemCallOf"]};

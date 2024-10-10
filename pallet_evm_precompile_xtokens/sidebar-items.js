@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["XtokensPrecompileCall"],"struct":["Currency","EvmAsset","GetMaxAssets","XtokensPrecompile"],"type":["CurrencyIdOf","MaxAssetsForTransfer","XBalanceOf"]};
+window.SIDEBAR_ITEMS = {"enum":["XtokensPrecompileCall"],"struct":["Currency","EvmAsset","XtokensPrecompile"],"type":["CurrencyIdOf","CurrencyIdToLocationOf"]};

@@ -779,38 +779,6 @@
 <a href="#777" id="777">777</a>
 <a href="#778" id="778">778</a>
 <a href="#779" id="779">779</a>
-<a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a>
-<a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a>
-<a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
-<a href="#789" id="789">789</a>
-<a href="#790" id="790">790</a>
-<a href="#791" id="791">791</a>
-<a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
-<a href="#801" id="801">801</a>
-<a href="#802" id="802">802</a>
-<a href="#803" id="803">803</a>
-<a href="#804" id="804">804</a>
-<a href="#805" id="805">805</a>
-<a href="#806" id="806">806</a>
-<a href="#807" id="807">807</a>
-<a href="#808" id="808">808</a>
-<a href="#809" id="809">809</a>
-<a href="#810" id="810">810</a>
-<a href="#811" id="811">811</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -870,11 +838,10 @@
 <span class="kw">use </span>xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 <span class="kw">use </span>cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
-<span class="kw">use </span>orml_xcm_support::MultiNativeAsset;
 <span class="kw">use </span>xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
-	IsBridgedConcreteAssetFrom, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall,
-	XcmTransact,
+	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
+	UtilityEncodeCall, XcmTransact,
 };
 
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
@@ -885,8 +852,6 @@
 	convert::{From, Into, TryFrom},
 	prelude::<span class="kw-2">*</span>,
 };
-
-<span class="kw">use </span>orml_traits::parameter_type_with_key;
 
 <span class="kw">use </span><span class="kw">crate</span>::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 
@@ -1394,35 +1359,6 @@
 			Parachain(ParachainInfo::parachain_id().into())
 		].into()
 	};
-}
-
-<span class="macro">parameter_type_with_key! </span>{
-	<span class="kw">pub </span>ParachainMinFee: |location: Location| -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt; {
-		<span class="kw">match </span>(location.parents, location.first_interior()) {
-			<span class="comment">// Kusama AssetHub fee
-			</span>(<span class="number">1</span>, <span class="prelude-val">Some</span>(Parachain(<span class="number">1000u32</span>))) =&gt; <span class="prelude-val">Some</span>(<span class="number">50_000_000u128</span>),
-			<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-		}
-	};
-}
-
-<span class="kw">impl </span>orml_xtokens::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>Balance = Balance;
-	<span class="kw">type </span>CurrencyId = CurrencyId;
-	<span class="kw">type </span>AccountIdToLocation = AccountIdToLocation&lt;AccountId&gt;;
-	<span class="kw">type </span>CurrencyIdConvert = CurrencyIdToLocation&lt;AsAssetType&lt;AssetId, AssetType, AssetManager&gt;&gt;;
-	<span class="kw">type </span>XcmExecutor = XcmExecutor;
-	<span class="kw">type </span>SelfLocation = SelfLocation;
-	<span class="kw">type </span>Weigher = XcmWeigher;
-	<span class="kw">type </span>BaseXcmWeight = BaseXcmWeight;
-	<span class="kw">type </span>UniversalLocation = UniversalLocation;
-	<span class="kw">type </span>MaxAssetsForTransfer = MaxAssetsForTransfer;
-	<span class="kw">type </span>MinXcmFee = ParachainMinFee;
-	<span class="kw">type </span>LocationsFilter = Everything;
-	<span class="kw">type </span>ReserveProvider = AbsoluteAndRelativeReserve&lt;SelfLocationAbsolute&gt;;
-	<span class="kw">type </span>RateLimiter = ();
-	<span class="kw">type </span>RateLimiterId = ();
 }
 
 <span class="comment">// 1 KSM should be enough

@@ -390,6 +390,46 @@
 <a href="#388" id="388">388</a>
 <a href="#389" id="389">389</a>
 <a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2023 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -415,19 +455,20 @@
 <span class="kw">use </span>fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 <span class="kw">use </span>frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
-	sp_runtime::{traits::Zero, Saturating},
+	sp_runtime::traits::Zero,
 	traits::ConstU32,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>parity_scale_codec::{Decode, DecodeLimit};
 <span class="kw">use </span>precompile_utils::{prelude::<span class="kw-2">*</span>, solidity::revert::revert_as_bytes};
 <span class="kw">use </span>sp_core::{H160, U256};
-<span class="kw">use </span>sp_runtime::traits::Dispatchable;
+<span class="kw">use </span>sp_runtime::traits::{Convert, Dispatchable};
 <span class="kw">use </span>sp_std::boxed::Box;
 <span class="kw">use </span>sp_std::{marker::PhantomData, vec::Vec};
 <span class="kw">use </span>types::<span class="kw-2">*</span>;
-<span class="kw">use </span>xcm::opaque::latest::WeightLimit;
-<span class="kw">use </span>xcm_primitives::AccountIdToCurrencyId;
+<span class="kw">use </span>xcm::opaque::latest::{Asset, AssetId, Fungibility, WeightLimit};
+<span class="kw">use </span>xcm::{VersionedAssets, VersionedLocation};
+<span class="kw">use </span>xcm_primitives::{split_location_into_chain_part_and_beneficiary, AccountIdToCurrencyId};
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>mock;
@@ -437,8 +478,10 @@
 <span class="kw">pub mod </span>types;
 
 <span class="kw">pub type </span>SystemCallOf&lt;Runtime&gt; = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall;
-<span class="kw">pub type </span>CurrencyIdOf&lt;Runtime&gt; = &lt;Runtime <span class="kw">as </span>orml_xtokens::Config&gt;::CurrencyId;
-<span class="kw">pub type </span>XBalanceOf&lt;Runtime&gt; = &lt;Runtime <span class="kw">as </span>orml_xtokens::Config&gt;::Balance;
+<span class="kw">pub type </span>CurrencyIdOf&lt;Runtime&gt; = &lt;Runtime <span class="kw">as </span>pallet_xcm_transactor::Config&gt;::CurrencyId;
+<span class="kw">pub type </span>CurrencyIdToLocationOf&lt;Runtime&gt; =
+	&lt;Runtime <span class="kw">as </span>pallet_xcm_transactor::Config&gt;::CurrencyIdToLocation;
+
 <span class="kw">pub const </span>CALL_DATA_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
 <span class="kw">type </span>GetCallDataLimit = ConstU32&lt;CALL_DATA_LIMIT&gt;;
 
@@ -458,13 +501,15 @@
 <span class="attr">#[precompile_utils::precompile]
 </span><span class="kw">impl</span>&lt;Runtime&gt; GmpPrecompile&lt;Runtime&gt;
 <span class="kw">where
-	</span>Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config + orml_xtokens::Config,
+	</span>Runtime: pallet_evm::Config
+		+ frame_system::Config
+		+ pallet_xcm::Config
+		+ pallet_xcm_transactor::Config,
 	SystemCallOf&lt;Runtime&gt;: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + Decode + GetDispatchInfo,
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin:
 		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
-	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;orml_xtokens::Call&lt;Runtime&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;pallet_xcm::Call&lt;Runtime&gt;&gt;,
 	Runtime: AccountIdToCurrencyId&lt;Runtime::AccountId, CurrencyIdOf&lt;Runtime&gt;&gt;,
-	XBalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + solidity::Codec,
 {
 	<span class="attr">#[precompile::public(<span class="string">"wormholeTransferERC20(bytes)"</span>)]
 	</span><span class="kw">pub fn </span>wormhole_transfer_erc20(
@@ -568,7 +613,7 @@
 		<span class="kw">let </span>currency_account_id =
 			Runtime::AddressMapping::into_account_id(asset_erc20_address.into());
 
-		<span class="kw">let </span>currency_id: &lt;Runtime <span class="kw">as </span>orml_xtokens::Config&gt;::CurrencyId =
+		<span class="kw">let </span>currency_id: CurrencyIdOf&lt;Runtime&gt; =
 			Runtime::account_to_currency_id(currency_account_id)
 				.ok_or(revert(<span class="string">"Unsupported asset, not a valid currency id"</span>))<span class="question-mark">?</span>;
 
@@ -599,14 +644,32 @@
 			.map_err(|<span class="kw">_</span>| revert(<span class="string">"Amount overflows balance"</span>))<span class="question-mark">?</span>;
 
 		<span class="macro">log::debug!</span>(target: <span class="string">"gmp-precompile"</span>, <span class="string">"sending XCM via xtokens::transfer..."</span>);
-		<span class="kw">let </span>call: <span class="prelude-ty">Option</span>&lt;orml_xtokens::Call&lt;Runtime&gt;&gt; = <span class="kw">match </span>user_action {
+		<span class="kw">let </span>call: <span class="prelude-ty">Option</span>&lt;pallet_xcm::Call&lt;Runtime&gt;&gt; = <span class="kw">match </span>user_action {
 			VersionedUserAction::V1(action) =&gt; {
 				<span class="macro">log::debug!</span>(target: <span class="string">"gmp-precompile"</span>, <span class="string">"Payload: V1"</span>);
-				<span class="prelude-val">Some</span>(orml_xtokens::Call::&lt;Runtime&gt;::transfer {
-					currency_id,
-					amount,
-					dest: Box::new(action.destination),
-					dest_weight_limit: WeightLimit::Unlimited,
+
+				<span class="kw">let </span>asset = Asset {
+					fun: Fungibility::Fungible(amount),
+					id: AssetId(
+						&lt;CurrencyIdToLocationOf&lt;Runtime&gt;&gt;::convert(currency_id)
+							.ok_or(revert(<span class="string">"Cannot convert CurrencyId into xcm asset"</span>))<span class="question-mark">?</span>,
+					),
+				};
+
+				<span class="kw">let </span>(chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(
+					action
+						.destination
+						.try_into()
+						.map_err(|<span class="kw">_</span>| revert(<span class="string">"Invalid destination"</span>))<span class="question-mark">?</span>,
+				)
+				.ok_or(revert(<span class="string">"Invalid destination"</span>))<span class="question-mark">?</span>;
+
+				<span class="prelude-val">Some</span>(pallet_xcm::Call::&lt;Runtime&gt;::transfer_assets {
+					dest: Box::new(VersionedLocation::V4(chain_part)),
+					beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+					assets: Box::new(VersionedAssets::V4(asset.into())),
+					fee_asset_item: <span class="number">0</span>,
+					weight_limit: WeightLimit::Unlimited,
 				})
 			}
 			VersionedUserAction::V2(action) =&gt; {
@@ -644,11 +707,28 @@
 				<span class="kw">let </span>remaining = amount.saturating_sub(fee);
 
 				<span class="kw">if </span>!remaining.is_zero() {
-					<span class="prelude-val">Some</span>(orml_xtokens::Call::&lt;Runtime&gt;::transfer {
-						currency_id,
-						amount: remaining,
-						dest: Box::new(action.destination),
-						dest_weight_limit: WeightLimit::Unlimited,
+					<span class="kw">let </span>asset = Asset {
+						fun: Fungibility::Fungible(remaining),
+						id: AssetId(
+							&lt;CurrencyIdToLocationOf&lt;Runtime&gt;&gt;::convert(currency_id)
+								.ok_or(revert(<span class="string">"Cannot convert CurrencyId into xcm asset"</span>))<span class="question-mark">?</span>,
+						),
+					};
+
+					<span class="kw">let </span>(chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(
+						action
+							.destination
+							.try_into()
+							.map_err(|<span class="kw">_</span>| revert(<span class="string">"Invalid destination"</span>))<span class="question-mark">?</span>,
+					)
+					.ok_or(revert(<span class="string">"Invalid destination"</span>))<span class="question-mark">?</span>;
+
+					<span class="prelude-val">Some</span>(pallet_xcm::Call::&lt;Runtime&gt;::transfer_assets {
+						dest: Box::new(VersionedLocation::V4(chain_part)),
+						beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+						assets: Box::new(VersionedAssets::V4(asset.into())),
+						fee_asset_item: <span class="number">0</span>,
+						weight_limit: WeightLimit::Unlimited,
 					})
 				} <span class="kw">else </span>{
 					<span class="prelude-val">None
