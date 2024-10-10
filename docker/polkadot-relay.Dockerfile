@@ -21,7 +21,7 @@ RUN cargo build --profile release --locked
 
 # ===== SECOND STAGE ======
 
-FROM debian:buster-slim
+FROM debian:stable-slim
 LABEL maintainer="alan@moonsonglabs.com"
 LABEL description="Polkadot for Moonbeam Relay Chains"
 COPY --from=builder /polkadot-sdk/target/release/polkadot /usr/local/bin
