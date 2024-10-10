@@ -55,9 +55,6 @@ pallet-xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 
-# ORML
-orml-traits = { workspace = true }
-
 [features]
 default = ["std"]
 std = [

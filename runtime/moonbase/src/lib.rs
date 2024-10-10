@@ -1182,7 +1182,6 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 			RuntimeCall::Ethereum(_) => false,
 			RuntimeCall::EVM(_) => false,
 			RuntimeCall::Identity(_) => false,
-			RuntimeCall::XTokens(_) => false,
 			RuntimeCall::ParachainStaking(_) => false,
 			RuntimeCall::MoonbeamOrbiters(_) => false,
 			RuntimeCall::PolkadotXcm(_) => false,
@@ -1426,7 +1425,7 @@ construct_runtime! {
 		// Previously 27: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 28,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
+		// Previously 30: XTokens
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
 		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config<T>, Storage, Event<T>} = 33,
@@ -1698,7 +1697,6 @@ mod tests {
 		assert!(
 			std::mem::size_of::<pallet_maintenance_mode::Call<Runtime>>() <= CALL_ALIGN as usize
 		);
-		assert!(std::mem::size_of::<orml_xtokens::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_asset_manager::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(
