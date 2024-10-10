@@ -55,9 +55,6 @@ xcm = { workspace = true, features = ["std"] }
 xcm-builder = { workspace = true, features = ["std"] }
 xcm-executor = { workspace = true, features = ["std"] }
 
-# ORML
-orml-traits = { workspace = true, features = ["std"] }
-
 [features]
 default = ["std"]
 std = [

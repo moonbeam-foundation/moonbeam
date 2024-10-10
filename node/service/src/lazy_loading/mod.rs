@@ -32,11 +32,10 @@ use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_primitives::NimbusId;
 use parity_scale_codec::Encode;
 use polkadot_primitives::{
-	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, UpgradeGoAhead,
+	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
 };
 use sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
 use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks, StorageProvider};
-use sc_consensus_manual_seal::rpc::{ManualSeal, ManualSealApiServer};
 use sc_executor::{HeapAllocStrategy, RuntimeVersionOf, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 use sc_network::config::FullNetworkConfiguration;
 use sc_network::NetworkBackend;
@@ -62,9 +61,12 @@ pub mod backend;
 pub mod call_executor;
 mod client;
 mod helpers;
+mod lock;
 mod state_overrides;
 mod wasm_override;
 mod wasm_substitutes;
+
+pub const LAZY_LOADING_LOG_TARGET: &'static str = "lazy-loading";
 
 /// Lazy loading client type.
 pub type TLazyLoadingClient<TBl, TRtApi, TExec> = sc_service::client::Client<
@@ -405,6 +407,38 @@ where
 		&lazy_loading_config,
 	)?;
 
+	let start_delay = 10;
+	let lazy_loading_startup_disclaimer = format!(
+		r#"
+
+		You are now running the Moonbeam client in lazy loading mode, where data is retrieved
+		from a live RPC node on demand.
+
+		Using remote state from: {rpc}
+		Forking from block: {fork_block}
+
+		To ensure the client works properly, please note the following:
+
+		    1. *Avoid Throttling*: Ensure that the backing RPC node is not limiting the number of
+		    requests, as this can prevent the lazy loading client from functioning correctly;
+
+		    2. *Be Patient*: As the client may take approximately 20 times longer than normal to
+		    retrieve and process the necessary data for the requested operation.
+
+
+		The service will start in {start_delay} seconds...
+
+		"#,
+		rpc = lazy_loading_config.state_rpc,
+		fork_block = backend.fork_checkpoint.number
+	);
+
+	log::warn!(
+		"{}",
+		ansi_term::Colour::Yellow.paint(lazy_loading_startup_disclaimer)
+	);
+	tokio::time::sleep(Duration::from_secs(start_delay)).await;
+
 	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
 		block_import
 	} else {
@@ -506,7 +540,7 @@ where
 			};
 
 		let select_chain = maybe_select_chain.expect(
-			"`new_partial` builds a `LongestChainRule` when building dev service.\
+			"`new_lazy_loading_partial` builds a `LongestChainRule` when building dev service.\
 				We specified the dev service when calling `new_partial`.\
 				Therefore, a `LongestChainRule` is present. qed.",
 		);
@@ -596,6 +630,11 @@ where
 								}
 								.encode(),
 							),
+							// Override current slot number
+							(
+								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),
+								Slot::from(u64::from(current_para_block)).encode(),
+							),
 						];
 
 						// If there is a pending upgrade, lets mimic a GoAhead
@@ -620,6 +659,7 @@ where
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
+							para_id: ParaId::new(parachain_id),
 							current_para_block_head,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
@@ -629,7 +669,6 @@ where
 							xcm_config: MockXcmConfig::new(
 								&*client_for_cidp,
 								block,
-								ParaId::new(parachain_id),
 								Default::default(),
 							),
 							raw_downward_messages: downward_xcm_receiver.drain().collect(),
@@ -802,17 +841,6 @@ where
 	}
 
 	network_starter.start_network();
-
-	// If a manual seal channel exists, create the first block
-	if let Some(sink) = command_sink {
-		let _ = <ManualSeal<_> as ManualSealApiServer<_>>::create_block(
-			&ManualSeal::new(sink),
-			true,
-			false,
-			None,
-		)
-		.await;
-	}
 
 	log::info!("Service Ready");
 

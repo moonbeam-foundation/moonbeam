@@ -16,11 +16,11 @@
 
 //! Test utilities
 use super::*;
+use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
 use frame_support::traits::{
 	EnsureOrigin, Everything, Nothing, OriginTrait, PalletInfo as PalletInfoTrait,
 };
 use frame_support::{construct_runtime, parameter_types, weights::Weight};
-use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
@@ -35,13 +35,13 @@ use xcm::latest::{prelude::*, Error as XcmError};
 use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds};
 use xcm_executor::{
 	traits::{TransactAsset, WeightTrader},
-	AssetsInHolding, XcmExecutor,
+	AssetsInHolding,
 };
-use xcm_primitives::XcmV2Weight;
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type AssetId = u128;
+type XcmV2Weight = u64;
 
 type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
@@ -51,8 +51,8 @@ construct_runtime!(
 		Balances: pallet_balances,
 		Evm: pallet_evm,
 		Timestamp: pallet_timestamp,
-		Xtokens: orml_xtokens,
 		PolkadotXcm: pallet_xcm,
+		XcmTransactor: pallet_xcm_transactor,
 	}
 );
 
@@ -197,6 +197,7 @@ impl xcm_executor::Config for XcmConfig {
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
+	type XcmRecorder = ();
 }
 
 pub type Precompiles<R> = PrecompileSetBuilder<
@@ -288,6 +289,92 @@ impl pallet_evm::Config for Runtime {
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 }
 
+#[derive(Encode, Decode)]
+pub enum RelayCall {
+	#[codec(index = 5u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Utility(UtilityCall),
+	#[codec(index = 6u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Hrmp(HrmpCall),
+}
+
+#[derive(Encode, Decode)]
+pub enum UtilityCall {
+	#[codec(index = 1u8)]
+	AsDerivative(u16),
+}
+
+// HRMP call encoding, needed for xcm transactor pallet
+#[derive(Encode, Decode)]
+pub enum HrmpCall {
+	#[codec(index = 0u8)]
+	InitOpenChannel(ParaId, u32, u32),
+	#[codec(index = 1u8)]
+	AcceptOpenChannel(ParaId),
+	#[codec(index = 2u8)]
+	CloseChannel(HrmpChannelId),
+	#[codec(index = 6u8)]
+	CancelOpenRequest(HrmpChannelId, u32),
+}
+
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+pub enum MockTransactors {
+	Relay,
+}
+
+impl xcm_primitives::XcmTransact for MockTransactors {
+	fn destination(self) -> Location {
+		match self {
+			MockTransactors::Relay => Location::parent(),
+		}
+	}
+}
+
+impl xcm_primitives::UtilityEncodeCall for MockTransactors {
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			MockTransactors::Relay => match call {
+				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
+					let mut call =
+						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+					call.append(&mut b.clone());
+					call
+				}
+			},
+		}
+	}
+}
+
+parameter_types! {
+	pub SelfLocationAbsolute: Location = Location {
+		parents: 1,
+		interior: [Parachain(ParachainId::get().into())].into(),
+	};
+}
+
+impl pallet_xcm_transactor::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type Transactor = MockTransactors;
+	type DerivativeAddressRegistrationOrigin = frame_system::EnsureRoot<AccountId>;
+	type SovereignAccountDispatcherOrigin = frame_system::EnsureRoot<AccountId>;
+	type CurrencyId = CurrencyId;
+	type AccountIdToLocation = AccountIdToLocation;
+	type CurrencyIdToLocation = CurrencyIdToMultiLocation;
+	type SelfLocation = SelfLocation;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
+	type UniversalLocation = UniversalLocation;
+	type BaseXcmWeight = BaseXcmWeight;
+	type XcmSender = DoNothingRouter;
+	type AssetTransactor = DummyAssetTransactor;
+	type ReserveProvider = xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
+	type WeightInfo = ();
+	type HrmpManipulatorOrigin = frame_system::EnsureRoot<AccountId>;
+	type HrmpOpenOrigin = frame_system::EnsureRoot<AccountId>;
+	type MaxHrmpFee = ();
+}
+
 parameter_types! {
 	pub const MinimumPeriod: u64 = 5;
 }
@@ -366,12 +453,6 @@ parameter_types! {
 	pub MaxInstructions: u32 = 100;
 }
 
-parameter_type_with_key! {
-	pub ParachainMinFee: |_location: Location| -> Option<u128> {
-		Some(u128::MAX)
-	};
-}
-
 pub struct CurrencyIdToMultiLocation;
 
 impl sp_runtime::traits::Convert<CurrencyId, Option<Location>> for CurrencyIdToMultiLocation {
@@ -391,25 +472,6 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<Location>> for CurrencyIdToM
 			}
 		}
 	}
-}
-
-impl orml_xtokens::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type CurrencyId = CurrencyId;
-	type AccountIdToLocation = AccountIdToLocation;
-	type CurrencyIdConvert = CurrencyIdToMultiLocation;
-	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type SelfLocation = SelfLocation;
-	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
-	type BaseXcmWeight = BaseXcmWeight;
-	type MaxAssetsForTransfer = MaxAssetsForTransfer;
-	type MinXcmFee = ParachainMinFee;
-	type LocationsFilter = Everything;
-	type ReserveProvider = AbsoluteReserveProvider;
-	type UniversalLocation = UniversalLocation;
-	type RateLimiter = ();
-	type RateLimiterId = ();
 }
 
 pub(crate) struct ExtBuilder {

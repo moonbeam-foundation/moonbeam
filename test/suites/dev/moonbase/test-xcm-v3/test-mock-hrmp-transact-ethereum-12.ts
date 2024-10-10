@@ -82,6 +82,12 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
+        // Just to make sure lazy state trie migration is done
+        // probably not needed after migration is done
+        for (let i = 0; i < 10; i++) {
+          await context.createBlock();
+        }
+
         const targetXcmWeight = 500_000n * 25000n + STORAGE_READ_COST + 4_250_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
 

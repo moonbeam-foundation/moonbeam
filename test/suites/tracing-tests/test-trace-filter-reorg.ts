@@ -52,7 +52,7 @@ describeSuite({
         // extrinsics into the pool.
         //
         // This block however will contain the transaction with nonce 1 but the
-        // chain don't expect this nonce so the the Ethereum transaction in not executed.
+        // chain don't expect this nonce so the Ethereum transaction in not executed.
         // However it is still in the list of extrinsics for this block.
         const block3a = await context.createBlock([], {
           parentHash: block2a.block.hash,
