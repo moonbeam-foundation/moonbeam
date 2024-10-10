@@ -186,7 +186,8 @@ describeSuite({
         expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
 
         // Process xcm message
-        await context.createBlock();
+        await context.createBlock(); log("Initial Fee Multiplier: ", initialValue.toString());
+        log("Post value: ", postValue.toString());
 
         const postBalance = (await context.polkadotJs().query.system.account(random.address)).data
           .free;
@@ -251,10 +252,10 @@ describeSuite({
           await context.polkadotJs().rpc.chain.getBlock()
         ).block.header.number.toNumber();
 
-        await context
-          .polkadotJs()
-          .tx.sudo.sudo(context.polkadotJs().tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
-          .signAndSend(alith, { nonce: -1 });
+        // await context
+        //   .polkadotJs()
+        //   .tx.sudo.sudo(context.polkadotJs().tx.rootTesting.fillBlock(TARGET_FILL_AMOUNT))
+        //   .signAndSend(alith, { nonce: -1 });
         const xcmMessage = new XcmFragment({
           assets: [
             {
@@ -298,6 +299,8 @@ describeSuite({
         // Enqueue XCM message
         await context.createBlock();
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
+        log("Initial Fee Multiplier: ", initialValue.toString());
+        log("Post value: ", postValue.toString());
         expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
 
         // Process xcm message
