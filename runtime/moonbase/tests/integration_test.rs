@@ -2424,7 +2424,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(13829)
+				.expect_cost(13806)
 				.expect_no_logs()
 				.execute_returns(());
 
