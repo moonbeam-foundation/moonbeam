@@ -186,7 +186,8 @@ describeSuite({
         expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
 
         // Process xcm message
-        await context.createBlock(); log("Initial Fee Multiplier: ", initialValue.toString());
+        await context.createBlock();
+        log("Initial Fee Multiplier: ", initialValue.toString());
         log("Post value: ", postValue.toString());
 
         const postBalance = (await context.polkadotJs().query.system.account(random.address)).data
