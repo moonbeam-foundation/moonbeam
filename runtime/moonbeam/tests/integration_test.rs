@@ -1882,7 +1882,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29961)
+				.expect_cost(29947)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1961,7 +1961,7 @@ fn xtokens_precompile_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(22930)
+				.expect_cost(24691)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -2013,7 +2013,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(22930)
+				.expect_cost(24691)
 				.expect_no_logs()
 				.execute_returns(());
 		})
