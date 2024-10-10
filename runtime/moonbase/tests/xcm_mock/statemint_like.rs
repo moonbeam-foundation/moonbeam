@@ -315,30 +315,13 @@ impl<AssetLocation: Get<Location>> ContainsPair<Asset, Location>
 
 pub type TrustedTeleporters = (ConcreteAssetFromRelay<RelayTokenLocation>,);
 
-/// Trust reserves from sibling parachains, relay chain, and here
-pub struct TrustedReserves;
-impl ContainsPair<Asset, Location> for TrustedReserves {
-	fn contains(asset: &Asset, origin: &Location) -> bool {
-		let AssetId(location) = &asset.id;
-		match (&asset.id.0.parent_count(), &asset.id.0.first_interior()) {
-			// Sibling parachains
-			(1, Some(Junction::Parachain(_id))) => location.chain_location() == *origin,
-			// Relay chain
-			(1, _) => location.chain_location() == *origin,
-			// Here
-			(0, _) => Location::here() == *origin,
-			_ => false,
-		}
-	}
-}
-
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
 	type XcmSender = XcmRouter;
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = TrustedReserves;
+	type IsReserve = xcm_primitives::MultiNativeAsset<xcm_primitives::RelativeReserveProvider>;
 	type IsTeleporter = TrustedTeleporters;
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;

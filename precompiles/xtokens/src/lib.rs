@@ -116,6 +116,9 @@ where
 		Ok(())
 	}
 
+	// transfer_with_fee no longer take the fee parameter into account since we start using
+	// pallet-xcm. Now, if you want to limit the maximum amount of fees, you'll have to use a
+	// different asset from the one you wish to transfer and use transfer_multi* selectors.
 	#[precompile::public("transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)")]
 	#[precompile::public("transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)")]
 	fn transfer_with_fee(
@@ -141,11 +144,6 @@ where
 		let amount = amount
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("amount"))?;
-
-		// Fee amount
-		/*let _fee = fee
-		.try_into()
-		.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("fee"))?;*/
 
 		let dest_weight_limit = if weight == u64::MAX {
 			WeightLimit::Unlimited
