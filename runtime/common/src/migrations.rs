@@ -381,7 +381,7 @@ where
 			// Box::new(remove_collectives_addresses),
 			// Box::new(MigrateCodeToStateTrieV1::<Runtime>(Default::default())),
 			// completed in runtime 3200
-			Box::new(MigrateXcmFeesAssetsMeatdata::<Runtime>(Default::default())),
+			// Box::new(MigrateXcmFeesAssetsMeatdata::<Runtime>(Default::default())),
 			// permanent migrations
 			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
 			Box::new(MigrateStakingParachainBondConfig::<Runtime>(
