@@ -95,6 +95,7 @@ use pallet_evm::{
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
 use pallet_treasury::TreasuryAccountId;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use runtime_params::*;
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_consensus_slots::Slot;
@@ -119,9 +120,10 @@ use sp_std::{
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
-use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
-
-use runtime_params::*;
+use xcm_runtime_apis::{
+	dry_run::{CallDryRunEffects, Error as XcmDryRunApiError, XcmDryRunEffects},
+	fees::Error as XcmPaymentApiError,
+};
 
 use smallvec::smallvec;
 use sp_runtime::serde::{Deserialize, Serialize};
@@ -607,11 +609,6 @@ parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
-type TreasuryApproveOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<AccountId, TreasuryCouncilInstance, 3, 5>,
->;
-
 type TreasuryRejectOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
@@ -620,22 +617,15 @@ type TreasuryRejectOrigin = EitherOfDiverse<
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
-	// At least three-fifths majority of the council is required (or root) to approve a proposal
-	type ApproveOrigin = TreasuryApproveOrigin;
 	// More than half of the council is required (or root) to reject a proposal
 	type RejectOrigin = TreasuryRejectOrigin;
 	type RuntimeEvent = RuntimeEvent;
-	// If spending proposal rejected, transfer proposer bond to treasury
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	type SpendPeriod = ConstU32<{ 6 * DAYS }>;
 	type Burn = ();
 	type BurnDestination = ();
 	type MaxApprovals = ConstU32<100>;
 	type WeightInfo = moonbase_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
-	type ProposalBondMaximum = ();
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
 	#[cfg(feature = "runtime-benchmarks")]
@@ -1192,7 +1182,6 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 			RuntimeCall::Ethereum(_) => false,
 			RuntimeCall::EVM(_) => false,
 			RuntimeCall::Identity(_) => false,
-			RuntimeCall::XTokens(_) => false,
 			RuntimeCall::ParachainStaking(_) => false,
 			RuntimeCall::MoonbeamOrbiters(_) => false,
 			RuntimeCall::PolkadotXcm(_) => false,
@@ -1355,7 +1344,7 @@ impl pallet_randomness::Config for Runtime {
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter<Runtime>;
 	type VrfKeyLookup = AuthorMapping;
-	type Deposit = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
+	type Deposit = runtime_params::PalletRandomnessDepositU128;
 	type MaxRandomWords = ConstU8<100>;
 	type MinBlockDelay = ConstU32<2>;
 	type MaxBlockDelay = ConstU32<2_000>;
@@ -1433,10 +1422,10 @@ construct_runtime! {
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 24,
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 25,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 27,
+		// Previously 27: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 28,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
+		// Previously 30: XTokens
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
 		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config<T>, Storage, Event<T>} = 33,
@@ -1708,7 +1697,6 @@ mod tests {
 		assert!(
 			std::mem::size_of::<pallet_maintenance_mode::Call<Runtime>>() <= CALL_ALIGN as usize
 		);
-		assert!(std::mem::size_of::<orml_xtokens::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_asset_manager::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(
@@ -1733,12 +1721,6 @@ mod tests {
 			5_u8
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROUNIT));
-
-		// treasury minimums
-		assert_eq!(
-			get!(pallet_treasury, ProposalBondMinimum, u128),
-			Balance::from(1 * UNIT)
-		);
 
 		// pallet_identity deposits
 		assert_eq!(

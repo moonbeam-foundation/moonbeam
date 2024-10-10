@@ -5,6 +5,7 @@ import { encodeFunctionData, Hash } from "viem";
 import moonbaseSamples from "../../helpers/moonbase-tracing-samples.json";
 import moonbeamSamples from "../../helpers/moonbeam-tracing-samples.json";
 import moonriverSamples from "../../helpers/moonriver-tracing-samples.json";
+import { generateKeyringPair } from "@moonwall/util";
 
 interface Sample {
   network: string;
@@ -135,11 +136,7 @@ describeSuite({
           try {
             expect(result.data).to.contain("0x");
           } catch (e) {
-            log(
-              `Error found for ${testCase.issue} at block ${testCase.block.toString()}: ${
-                result.data
-              }`
-            );
+            log(`${testCase.issue}: error at block ${testCase.block.toString()}: ${result.data}`);
             throw e;
           }
         }
@@ -199,6 +196,25 @@ describeSuite({
             throw e;
           }
         });
+      },
+    });
+
+    it({
+      id: "C004",
+      title: "Moonriver: eth_getLogs with more than 16 addresses filtered should return logs",
+      chainType: "moonriver",
+      test: async function () {
+        const addresses = Array.from({ length: 1024 }, () => generateKeyringPair()).map(
+          (a) => a.address as `0x${string}`
+        );
+
+        // Original case identified at this particular block height
+        const logs = await context.viem().getLogs({
+          fromBlock: 7970232n,
+          toBlock: 7970232n,
+          address: addresses,
+        });
+        log(`Logs found: ${logs.length}`);
       },
     });
   },
