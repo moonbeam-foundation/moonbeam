@@ -114,7 +114,8 @@ describeSuite({
       title: "Verify all bad block regression cases",
       test: async function () {
         for (const testCase of cases) {
-          if (testCase.network != (paraApi.consts.system.version.specName.toString() as Network)) {
+          const chain = (await paraApi.rpc.system.chain()).toString().toLowerCase();
+          if (testCase.network.toString() !== chain) {
             log(`Skipping... (Issue ${testCase.issue} specific for ${testCase.network})`);
             continue;
           }
