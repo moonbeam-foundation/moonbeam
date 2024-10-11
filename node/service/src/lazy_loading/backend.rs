@@ -575,7 +575,13 @@ impl<Block: BlockT + DeserializeOwned> BlockImportOperation<Block> {
 			self.storage_updates = storage
 				.top
 				.iter()
-				.map(|(k, v)| (k.clone(), Some(v.clone())))
+				.map(|(k, v)| {
+					if v.is_empty() {
+						(k.clone(), None)
+					} else {
+						(k.clone(), Some(v.clone()))
+					}
+				})
 				.collect();
 		}
 		Ok(root)
