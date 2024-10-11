@@ -1747,6 +1747,12 @@
 <a href="#1745" id="1745">1745</a>
 <a href="#1746" id="1746">1746</a>
 <a href="#1747" id="1747">1747</a>
+<a href="#1748" id="1748">1748</a>
+<a href="#1749" id="1749">1749</a>
+<a href="#1750" id="1750">1750</a>
+<a href="#1751" id="1751">1751</a>
+<a href="#1752" id="1752">1752</a>
+<a href="#1753" id="1753">1753</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -2324,7 +2330,13 @@
 			<span class="self">self</span>.storage_updates = storage
 				.top
 				.iter()
-				.map(|(k, v)| (k.clone(), <span class="prelude-val">Some</span>(v.clone())))
+				.map(|(k, v)| {
+					<span class="kw">if </span>v.is_empty() {
+						(k.clone(), <span class="prelude-val">None</span>)
+					} <span class="kw">else </span>{
+						(k.clone(), <span class="prelude-val">Some</span>(v.clone()))
+					}
+				})
 				.collect();
 		}
 		<span class="prelude-val">Ok</span>(root)
