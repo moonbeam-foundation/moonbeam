@@ -57,6 +57,30 @@ describeSuite({
       }
     }
 
+    function matchExpectations(
+      feeResults: FeeHistory,
+      block_count: number,
+      reward_percentiles: number[]
+    ) {
+      expect(
+        feeResults.baseFeePerGas.length,
+        "baseFeePerGas should always the requested block range + 1 (the next derived base fee)"
+      ).toBe(block_count + 1);
+      expect(feeResults.gasUsedRatio).to.be.deep.eq(Array(block_count).fill(0.0105225));
+      expect(
+        feeResults.reward.length,
+        "should return two-dimensional reward list for the requested block range"
+      ).to.be.eq(block_count);
+
+      const failures = feeResults.reward.filter((item) => {
+        item.length !== reward_percentiles.length;
+      });
+      expect(
+        failures.length,
+        "each block has a reward list which's size is the requested percentile list"
+      ).toBe(0);
+    }
+
     it({
       id: "T01",
       title: "result length should match spec",
@@ -90,25 +114,9 @@ describeSuite({
           parseGwei("10").toString()
         );
 
-        const feeResults = await feeHistory;
-        expect(
-          feeResults.baseFeePerGas.length,
-          "baseFeePerGas should always the requested block range + 1 (the next derived base fee)"
-        ).toBe(block_count + 1);
-        expect(feeResults.gasUsedRatio).to.be.deep.eq(Array(block_count).fill(0.0105225));
-        expect(
-          feeResults.reward.length,
-          "should return two-dimensional reward list for the requested block range"
-        ).to.be.eq(block_count);
+        matchExpectations(await feeHistory, block_count, reward_percentiles);
 
-        const failures = feeResults.reward.filter((item) => {
-          item.length !== reward_percentiles.length;
-        });
-        expect(
-          failures.length,
-          "each block has a reward list which's size is the requested percentile list"
-        ).toBe(0);
-      },
+      }
     });
 
     it({
@@ -164,6 +172,43 @@ describeSuite({
           "each block should have rewards matching the requested percentile list"
         ).toBe(0);
       },
+    });
+
+    it({
+      id: "T03",
+      title: "result length should match spec using an integer block count",
+      timeout: 40_000,
+      test: async function () {
+        const block_count = 2;
+        const reward_percentiles = [20, 50, 70];
+        const priority_fees = [1, 2, 3];
+        const startingBlock = await context.viem().getBlockNumber();
+
+        const feeHistory = new Promise<FeeHistory>((resolve, reject) => {
+          const unwatch = context.viem().watchBlocks({
+            onBlock: async (block) => {
+              if (Number(block.number! - startingBlock) == block_count) {
+                const result = (await customDevRpcRequest("eth_feeHistory", [
+                  block_count,
+                  "latest",
+                  reward_percentiles,
+                ])) as FeeHistory;
+                unwatch();
+                resolve(result);
+              }
+            },
+          });
+        });
+
+        await createBlocks(
+          block_count,
+          reward_percentiles,
+          priority_fees,
+          parseGwei("10").toString()
+        );
+
+        matchExpectations(await feeHistory, block_count, reward_percentiles);
+      }
     });
   },
 });
