@@ -13,6 +13,7 @@ slices = { workspace = true }
 
 # Moonbeam
 account = { workspace = true }
+pallet-xcm-transactor = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -30,8 +31,6 @@ pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 precompile-utils = { workspace = true }
 
 # Polkadot / XCM
-orml-traits = { workspace = true }
-orml-xtokens = { workspace = true }
 pallet-xcm = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }

@@ -196,7 +196,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 3300,
+	spec_version: 3400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -211,7 +211,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 3300,
+	spec_version: 3400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -1182,7 +1182,6 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 			RuntimeCall::Ethereum(_) => false,
 			RuntimeCall::EVM(_) => false,
 			RuntimeCall::Identity(_) => false,
-			RuntimeCall::XTokens(_) => false,
 			RuntimeCall::ParachainStaking(_) => false,
 			RuntimeCall::MoonbeamOrbiters(_) => false,
 			RuntimeCall::PolkadotXcm(_) => false,
@@ -1345,7 +1344,7 @@ impl pallet_randomness::Config for Runtime {
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter<Runtime>;
 	type VrfKeyLookup = AuthorMapping;
-	type Deposit = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
+	type Deposit = runtime_params::PalletRandomnessDepositU128;
 	type MaxRandomWords = ConstU8<100>;
 	type MinBlockDelay = ConstU32<2>;
 	type MaxBlockDelay = ConstU32<2_000>;
@@ -1426,7 +1425,7 @@ construct_runtime! {
 		// Previously 27: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 28,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
+		// Previously 30: XTokens
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
 		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config<T>, Storage, Event<T>} = 33,
@@ -1698,7 +1697,6 @@ mod tests {
 		assert!(
 			std::mem::size_of::<pallet_maintenance_mode::Call<Runtime>>() <= CALL_ALIGN as usize
 		);
-		assert!(std::mem::size_of::<orml_xtokens::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_asset_manager::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(

@@ -69,7 +69,7 @@ describeSuite({
         const event = events.find((event) => {
           const module = event.event.data[0].toPrimitive().err?.module;
           const parachainStaking = 12;
-          const tooLowCandidateCountWeightHintJoinCandidates = "0x1b000000";
+          const tooLowCandidateCountWeightHintJoinCandidates = "0x1c000000";
           return (
             module?.index === parachainStaking &&
             module?.error === tooLowCandidateCountWeightHintJoinCandidates

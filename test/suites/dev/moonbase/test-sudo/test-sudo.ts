@@ -26,18 +26,18 @@ describeSuite({
               context.polkadotJs().tx.parachainStaking.setParachainBondAccount(alith.address)
             )
         );
-        const parachainBondInfo = await context
+        const inflationDistributionConfig = await context
           .polkadotJs()
-          .query.parachainStaking.parachainBondInfo();
+          .query.parachainStaking.inflationDistributionInfo();
 
-        expect(parachainBondInfo.account.toString()).to.equal(alith.address);
-        expect(parachainBondInfo.percent.toNumber()).to.equal(30);
+        expect(inflationDistributionConfig[0].account.toString()).to.equal(alith.address);
+        expect(inflationDistributionConfig[0].percent.toNumber()).to.equal(30);
 
         expect(result!.events.length).to.eq(6);
         expect(
           context
             .polkadotJs()
-            .events.parachainStaking.ParachainBondAccountSet.is(result!.events[1].event)
+            .events.parachainStaking.InflationDistributionConfigUpdated.is(result!.events[1].event)
         ).to.be.true;
         expect(context.polkadotJs().events.balances.Deposit.is(result!.events[3].event)).to.be.true;
         expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(result!.events[5].event)).to
@@ -71,8 +71,8 @@ describeSuite({
       title: "should NOT be able to call sudo with another account than sudo account",
       test: async function () {
         const parachainBondAccount = (
-          await context.polkadotJs().query.parachainStaking.parachainBondInfo()
-        ).account.toString();
+          await context.polkadotJs().query.parachainStaking.inflationDistributionInfo()
+        )[0].account.toString();
 
         const { result } = await context.createBlock(
           context
@@ -86,11 +86,11 @@ describeSuite({
           { allowFailures: true }
         );
 
-        const parachainBondInfo = await context
+        const inflationDistributionConfig = await context
           .polkadotJs()
-          .query.parachainStaking.parachainBondInfo();
-        expect(parachainBondInfo.account.toString()).to.equal(parachainBondAccount);
-        expect(parachainBondInfo.percent.toNumber()).to.equal(30);
+          .query.parachainStaking.inflationDistributionInfo();
+        expect(inflationDistributionConfig[0].account.toString()).to.equal(parachainBondAccount);
+        expect(inflationDistributionConfig[0].percent.toNumber()).to.equal(30);
 
         expect(result!.events.length === 7).to.be.true;
         expect(context.polkadotJs().events.system.NewAccount.is(result!.events[2].event)).to.be
@@ -114,8 +114,8 @@ describeSuite({
       test: async function () {
         const newSigner = generateKeyringPair();
         const parachainBondAccount = (
-          await context.polkadotJs().query.parachainStaking.parachainBondInfo()
-        ).account.toString();
+          await context.polkadotJs().query.parachainStaking.inflationDistributionInfo()
+        )[0].account.toString();
 
         await context.createBlock(context.polkadotJs().tx.sudo.setKey(newSigner.address), {
           allowFailures: false,
@@ -139,10 +139,10 @@ describeSuite({
           "1010: Invalid Transaction: Inability to pay some fees , e.g. account balance too low"
         );
 
-        const parachainBondInfo = await context
+        const inflationDistributionConfig = await context
           .polkadotJs()
-          .query.parachainStaking.parachainBondInfo();
-        expect(parachainBondInfo.account.toString()).to.equal(parachainBondAccount);
+          .query.parachainStaking.inflationDistributionInfo();
+        expect(inflationDistributionConfig[0].account.toString()).to.equal(parachainBondAccount);
       },
     });
   },
