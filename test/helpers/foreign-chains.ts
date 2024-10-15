@@ -164,7 +164,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Composable",
         paraId: 2019,
-        mutedUntil: new Date("2024-10-15").getTime(),
+        mutedUntil: new Date("2025-01-27").getTime(),
       },
       {
         name: "Nodle",
