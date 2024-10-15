@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Dynamic runtime parametes.
-use crate::Runtime;
+//! Dynamic runtime parameters for moonbase.
+
+use crate::{currency, Runtime};
 use frame_support::dynamic_params::{dynamic_pallet_params, dynamic_params};
+use moonbeam_runtime_common::expose_u128_get;
+use moonbeam_runtime_common::types::BoundedU128;
 use sp_runtime::Perbill;
 
 #[dynamic_params(RuntimeParameters, pallet_parameters::Parameters::<Runtime>)]
@@ -29,7 +32,22 @@ pub mod dynamic_params {
 		#[codec(index = 0)]
 		pub static FeesTreasuryProportion: Perbill = Perbill::from_percent(20);
 	}
+
+	#[dynamic_pallet_params]
+	#[codec(index = 1)]
+	pub mod pallet_randomness {
+		#[codec(index = 0)]
+		pub static Deposit: BoundedU128<
+			{ 1 * currency::UNIT * currency::SUPPLY_FACTOR },
+			{ 1_000 * currency::UNIT * currency::SUPPLY_FACTOR },
+		> = BoundedU128::const_new::<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>();
+	}
 }
+
+expose_u128_get!(
+	PalletRandomnessDepositU128,
+	dynamic_params::pallet_randomness::Deposit
+);
 
 #[cfg(feature = "runtime-benchmarks")]
 impl Default for RuntimeParameters {

@@ -48,7 +48,7 @@ describeSuite({
         args: [0],
       });
 
-      expect(estimatedGas).toMatchInlineSnapshot(`677344n`);
+      expect(estimatedGas).toMatchInlineSnapshot(`285461n`);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",

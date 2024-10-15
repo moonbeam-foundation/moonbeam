@@ -100,7 +100,6 @@ pub mod pallet {
 		dispatch::DispatchResult, pallet_prelude::*, weights::constants::WEIGHT_REF_TIME_PER_SECOND,
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use orml_traits::location::{Parse, Reserve};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, Convert};
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
@@ -109,7 +108,7 @@ pub mod pallet {
 	use xcm::{latest::prelude::*, VersionedLocation};
 	use xcm_executor::traits::{TransactAsset, WeightBounds};
 	use xcm_primitives::{
-		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls,
+		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, Reserve, UtilityAvailableCalls,
 		UtilityEncodeCall, XcmTransact,
 	};
 
@@ -180,7 +179,7 @@ pub mod pallet {
 
 		/// The way to retrieve the reserve of a Asset. This can be
 		/// configured to accept absolute or relative paths for self tokens
-		type ReserveProvider: Reserve;
+		type ReserveProvider: xcm_primitives::Reserve;
 
 		/// The way to filter the max fee to use for HRMP management operations
 		type MaxHrmpFee: FilterMaxAssetFee;
@@ -1167,8 +1166,9 @@ pub mod pallet {
 
 		/// Ensure `dest` has chain part and none recipient part.
 		fn ensure_valid_dest(dest: &Location) -> Result<Location, DispatchError> {
-			if let (Some(dest), None) = (dest.chain_part(), dest.non_chain_part()) {
-				Ok(dest)
+			let chain_location = dest.chain_location();
+			if *dest == chain_location {
+				Ok(chain_location)
 			} else {
 				Err(Error::<T>::InvalidDest.into())
 			}

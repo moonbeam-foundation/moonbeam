@@ -73,8 +73,8 @@ describeSuite({
         });
 
         const { result, block } = await context.createBlock(rawSigned);
-        expect(block.proofSize).to.be.at.least(Number(30_000));
-        expect(block.proofSize).to.be.at.most(Number(50_000n + emptyBlockProofSize));
+        expect(block.proofSize).to.be.at.least(Number(15_000));
+        expect(block.proofSize).to.be.at.most(Number(30_000n + emptyBlockProofSize));
         expect(result?.successful).to.equal(true);
       },
     });

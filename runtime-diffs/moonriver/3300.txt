@@ -1,0 +1,85 @@
+Pallets:
+    ~ Assets
+        Storage Entries:
+            + NextAssetId
+    ~ Balances
+        Calls:
+            + burn
+    - DmpQueue
+    ~ MessageQueue
+    ~ MoonbeamLazyMigrations
+        Storage Entries:
+            + StateMigrationStatusValue
+    ~ Multisig
+        Calls:
+            ~ as_multi
+            ~ as_multi_threshold_1
+    ~ OpenTechCommitteeCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: value type)
+    ~ ParachainStaking
+        Calls:
+            + set_inflation_distribution_config
+        Storage Entries:
+            + InflationDistributionInfo
+            - ParachainBondInfo
+    + Parameters
+    ~ PolkadotXcm
+        Storage Entries:
+            + RecordedXcm
+            + ShouldRecordXcm
+    ~ Preimage
+    ~ Proxy
+        Calls:
+            ~ proxy
+            ~ proxy_announced
+    ~ Scheduler
+        Calls:
+            ~ schedule
+            ~ schedule_after
+            ~ schedule_named
+            ~ schedule_named_after
+    ~ System
+        Storage Entries:
+            ~ Events (Changed: )
+    ~ Treasury
+        Calls:
+            - approve_proposal
+            - propose_spend
+            - reject_proposal
+        Constants:
+            - ProposalBond
+            - ProposalBondMaximum
+            - ProposalBondMinimum
+    ~ TreasuryCouncilCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: value type)
+    ~ Utility
+        Calls:
+            ~ as_derivative
+            ~ batch
+            ~ batch_all
+            ~ dispatch_as
+            ~ force_batch
+            ~ with_weight
+    ~ Whitelist
+        Calls:
+            ~ dispatch_whitelisted_call_with_preimage
+    - XTokens
+    ~ XcmpQueue
+        Constants:
+            + MaxActiveOutboundChannels
+            + MaxPageSize
+        Storage Entries:
+            ~ OutboundXcmpMessages (Changed: value type)
+            ~ OutboundXcmpStatus (Changed: value type)
+            ~ SignalMessages (Changed: value type)
+Runtime APIs:
+    + DryRunApi
+    + LocationToAccountApi

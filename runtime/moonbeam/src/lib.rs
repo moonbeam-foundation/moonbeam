@@ -104,6 +104,8 @@ use xcm_runtime_apis::{
 	fees::Error as XcmPaymentApiError,
 };
 
+use runtime_params::*;
+
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -123,6 +125,7 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
 pub mod asset_config;
 pub mod governance;
+pub mod runtime_params;
 pub mod xcm_config;
 use governance::councils::*;
 
@@ -190,7 +193,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 3300,
+	spec_version: 3400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -205,7 +208,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 3300,
+	spec_version: 3400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -348,8 +351,11 @@ where
 		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
 	) {
 		if let Some(fees) = fees_then_tips.next() {
-			// for fees, 80% are burned, 20% to the treasury
-			let (_, to_treasury) = fees.ration(80, 20);
+			let treasury_perbill =
+				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
+			let treasury_part = treasury_perbill.deconstruct();
+			let burn_part = Perbill::one().deconstruct() - treasury_part;
+			let (_, to_treasury) = fees.ration(burn_part, treasury_part);
 			// Balances pallet automatically burns dropped Credits by decreasing
 			// total_supply accordingly
 			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
@@ -1167,7 +1173,6 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 			RuntimeCall::Ethereum(_) => false,
 			RuntimeCall::EVM(_) => false,
 			RuntimeCall::Identity(_) => false,
-			RuntimeCall::XTokens(_) => false,
 			RuntimeCall::ParachainStaking(_) => false,
 			RuntimeCall::MoonbeamOrbiters(_) => false,
 			RuntimeCall::PolkadotXcm(_) => false,
@@ -1203,6 +1208,8 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// is populated at genesis
 			RuntimeCall::PolkadotXcm(method) => match method {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
+				pallet_xcm::Call::transfer_assets { .. } => true,
+				pallet_xcm::Call::transfer_assets_using_type_and_then { .. } => true,
 				_ => false,
 			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
@@ -1336,7 +1343,7 @@ impl pallet_randomness::Config for Runtime {
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter<Runtime>;
 	type VrfKeyLookup = AuthorMapping;
-	type Deposit = ConstU128<{ 1 * currency::GLMR * currency::SUPPLY_FACTOR }>;
+	type Deposit = runtime_params::PalletRandomnessDepositU128;
 	type MaxRandomWords = ConstU8<100>;
 	type MinBlockDelay = ConstU32<2>;
 	type MaxBlockDelay = ConstU32<2_000>;
@@ -1377,6 +1384,13 @@ impl pallet_precompile_benchmarks::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_precompile_benchmarks::WeightInfo<Runtime>;
 }
 
+impl pallet_parameters::Config for Runtime {
+	type AdminOrigin = EnsureRoot<AccountId>;
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeParameters = RuntimeParameters;
+	type WeightInfo = moonbeam_weights::pallet_parameters::WeightInfo<Runtime>;
+}
+
 construct_runtime! {
 	pub enum Runtime
 	{
@@ -1409,6 +1423,7 @@ construct_runtime! {
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 37,
+		Parameters: pallet_parameters = 38,
 
 		// Has been permanently removed for safety reasons.
 		// Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 40,
@@ -1448,7 +1463,7 @@ construct_runtime! {
 		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event<T>, Origin, Config<T>} = 103,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
+		// Previously 106: XTokens
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 		// Previously 108: pallet_assets::<Instance1>
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin, Event<T>} = 109,
