@@ -15,7 +15,9 @@
     "/dns/apac-01.unitedbloc.com/tcp/36060/p2p/12D3KooWAosKitTohMgbKqTtcaUvyUHpP3vbnL7het3nFBSfheZ7",
     "/dns/sa-01.unitedbloc.com/tcp/36060/p2p/12D3KooWBXSNJudphGqb4TKmgfruZkY79PsN9aGYFnLgYR4ou3SH",
     "/dns/na-01.unitedbloc.com/tcp/36060/p2p/12D3KooWLVmzvBxKvJyg8u4fUuBgnSBJGS8wQFXKvyHUBzJ1pAuT",
-    "/dns4/moonriver-1.boot.onfinality.io/tcp/28871/ws/p2p/12D3KooWSpLYDMXBdDrX4LaU3NpTc7W4psLFXvnaVfyCcu3Jouq9"
+    "/dns4/moonriver-1.boot.onfinality.io/tcp/28871/ws/p2p/12D3KooWSpLYDMXBdDrX4LaU3NpTc7W4psLFXvnaVfyCcu3Jouq9",
+    "/dns/moonriver-rb-bootnode.radiumblock.com/tcp/30333/p2p/12D3KooWS9M1gTQUJPA9VRcg44DKPv1iaCMBfE6ffGBB95YziYiG",
+    "/dns/moonriver-rb-bootnode.radiumblock.com/tcp/30336/wss/p2p/12D3KooWS9M1gTQUJPA9VRcg44DKPv1iaCMBfE6ffGBB95YziYiG"
   ],
   "telemetryEndpoints": [
     ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]
