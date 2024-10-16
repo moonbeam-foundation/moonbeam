@@ -39,7 +39,6 @@ use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
-use orml_traits::parameter_type_with_key;
 use pallet_ethereum::PostLogContent;
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
@@ -341,7 +340,7 @@ type Reserves = (
 	// Relaychain (DOT) from Asset Hub
 	Case<RelayChainNativeAssetFromAssetHub>,
 	// Assets which the reserve is the same as the origin.
-	orml_xcm_support::MultiNativeAsset<
+	xcm_primitives::MultiNativeAsset<
 		xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>,
 	>,
 );
@@ -425,36 +424,6 @@ parameter_types! {
 			Parachain(MsgQueue::parachain_id().into())
 		].into()
 	};
-}
-
-parameter_type_with_key! {
-	pub ParachainMinFee: |location: Location| -> Option<u128> {
-		match (location.parents, location.first_interior()) {
-			(1, Some(Parachain(1000u32))) => Some(50u128),
-			_ => None,
-		}
-	};
-}
-
-// The XCM message wrapper wrapper
-impl orml_xtokens::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type CurrencyId = CurrencyId;
-	type AccountIdToLocation = xcm_primitives::AccountIdToLocation<AccountId>;
-	type CurrencyIdConvert =
-		CurrencyIdToLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
-	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type SelfLocation = SelfLocation;
-	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
-	type BaseXcmWeight = BaseXcmWeight;
-	type UniversalLocation = UniversalLocation;
-	type MaxAssetsForTransfer = MaxAssetsForTransfer;
-	type MinXcmFee = ParachainMinFee;
-	type LocationsFilter = Everything;
-	type ReserveProvider = xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
-	type RateLimiter = ();
-	type RateLimiterId = ();
 }
 
 parameter_types! {
@@ -1092,7 +1061,6 @@ construct_runtime!(
 		PolkadotXcm: pallet_xcm,
 		Assets: pallet_assets,
 		CumulusXcm: cumulus_pallet_xcm,
-		XTokens: orml_xtokens,
 		AssetManager: pallet_asset_manager,
 		XcmTransactor: pallet_xcm_transactor,
 		XcmWeightTrader: pallet_xcm_weight_trader,

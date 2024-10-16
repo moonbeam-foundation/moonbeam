@@ -380,6 +380,10 @@ impl SendXcm for TestSendXcm {
 
 parameter_types! {
 	pub MaxFee: Asset = (Location::parent(), 1_000_000_000_000u128).into();
+	pub SelfLocationAbsolute: Location = Location {
+		parents: 1,
+		interior: [Parachain(ParachainId::get().into())].into(),
+	};
 }
 pub type MaxHrmpRelayFee = xcm_builder::Case<MaxFee>;
 
@@ -398,7 +402,7 @@ impl Config for Test {
 	type UniversalLocation = UniversalLocation;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = TestSendXcm;
-	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
+	type ReserveProvider = xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = EnsureRoot<u64>;
 	type HrmpOpenOrigin = EnsureRoot<u64>;

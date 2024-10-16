@@ -1,5 +1,6 @@
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES, GLMR, alith } from "@moonwall/util";
+import { hexToU8a } from "@polkadot/util";
 
 describeSuite({
   id: "T14",
@@ -258,31 +259,80 @@ describeSuite({
       id: "T10",
       title: "should only trace transactions included in a block",
       test: async function () {
-        context
-          .polkadotJs()
-          .tx.xTokens.transfer(
+        const metadata = await context.polkadotJs().rpc.state.getMetadata();
+        const erc20XcmBridgePalletIndex = metadata.asLatest.pallets
+          .find(({ name }) => name.toString() == "Erc20XcmBridge")!
+          .index.toNumber();
+
+        const dest = {
+          V4: {
+            parents: 1n,
+            interior: {
+              X1: [{ Parachain: 2104n }],
+            },
+          },
+        } as any;
+
+        const beneficiary = {
+          V4: {
+            parents: 0n,
+            interior: {
+              X1: [
+                {
+                  AccountId32: {
+                    network: null,
+                    id: "0x608a07e4dfc71e7d99a3d3759ce12ccbb1e4d9f917cc67779c13aaeaea52794d",
+                  },
+                },
+              ],
+            },
+          },
+        } as any;
+
+        const assetsToSend = {
+          V4: [
             {
-              Erc20: {
-                contractAddress: "0x931715fee2d06333043d11f658c8ce934ac61d0c",
-              },
-            }, //enum
-            100n * GLMR,
-            {
-              V2: {
-                parents: 1n,
-                interior: {
-                  X2: [
-                    { Parachain: 2104n },
-                    {
-                      AccountId32: {
-                        network: "Any",
-                        id: "0x608a07e4dfc71e7d99a3d3759ce12ccbb1e4d9f917cc67779c13aaeaea52794d",
-                      },
-                    },
-                  ],
+              id: {
+                V4: {
+                  parents: 0n,
+                  interior: {
+                    Here: null,
+                  },
                 },
               },
-            } as any,
+              fun: { Fungible: 100n * GLMR },
+            },
+            {
+              id: {
+                V4: {
+                  parents: 0n,
+                  interior: {
+                    X2: [
+                      { PalletInstance: Number(erc20XcmBridgePalletIndex) },
+                      {
+                        AccountKey20: {
+                          network: null,
+                          key: hexToU8a("0x931715fee2d06333043d11f658c8ce934ac61d0c"),
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+              fun: {
+                Fungible: 100n * GLMR,
+              },
+            },
+          ],
+        };
+
+        context
+          .polkadotJs()
+          .tx.polkadotXcm.transferAssets(
+            dest,
+            beneficiary,
+            assetsToSend,
+            0, // feeAssetId
             {
               Limited: { refTime: 4000000000, proofSize: 0 },
             }

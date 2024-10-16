@@ -15,10 +15,14 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use frame_support::traits::{ContainsPair, Get, OriginTrait};
-use orml_traits::location::{RelativeReserveProvider, Reserve};
 use sp_runtime::traits::TryConvert;
 use sp_std::{convert::TryInto, marker::PhantomData};
-use xcm::latest::{Asset, AssetId, Fungibility, Junction::AccountKey20, Location, NetworkId};
+use xcm::latest::{Asset, AssetId, Fungibility, Junction, Location, NetworkId};
+
+pub trait Reserve {
+	/// Returns assets reserve location.
+	fn reserve(asset: &Asset) -> Option<Location>;
+}
 
 /// Instructs how to convert a 20 byte accountId into a Location
 pub struct AccountIdToLocation<AccountId>(sp_std::marker::PhantomData<AccountId>);
@@ -29,7 +33,7 @@ where
 	fn convert(account: AccountId) -> Location {
 		Location {
 			parents: 0,
-			interior: [AccountKey20 {
+			interior: [Junction::AccountKey20 {
 				network: None,
 				key: account.into(),
 			}]
@@ -50,7 +54,7 @@ where
 {
 	fn try_convert(o: Origin) -> Result<Location, Origin> {
 		o.try_with_caller(|caller| match caller.try_into() {
-			Ok(frame_system::RawOrigin::Signed(who)) => Ok(AccountKey20 {
+			Ok(frame_system::RawOrigin::Signed(who)) => Ok(Junction::AccountKey20 {
 				key: who.into(),
 				network: Some(Network::get()),
 			}
@@ -58,6 +62,40 @@ where
 			Ok(other) => Err(other.into()),
 			Err(other) => Err(other),
 		})
+	}
+}
+
+/// A `ContainsPair` implementation. Filters multi native assets whose
+/// reserve is same with `origin`.
+pub struct MultiNativeAsset<ReserveProvider>(PhantomData<ReserveProvider>);
+impl<ReserveProvider> ContainsPair<Asset, Location> for MultiNativeAsset<ReserveProvider>
+where
+	ReserveProvider: Reserve,
+{
+	fn contains(asset: &Asset, origin: &Location) -> bool {
+		if let Some(ref reserve) = ReserveProvider::reserve(asset) {
+			if reserve == origin {
+				return true;
+			}
+		}
+		false
+	}
+}
+
+// Provide reserve in relative path view
+// Self tokens are represeneted as Here
+pub struct RelativeReserveProvider;
+
+impl Reserve for RelativeReserveProvider {
+	fn reserve(asset: &Asset) -> Option<Location> {
+		let AssetId(location) = &asset.id;
+		if location.parents == 0
+			&& !matches!(location.first_interior(), Some(Junction::Parachain(_)))
+		{
+			Some(Location::here())
+		} else {
+			Some(location.chain_location())
+		}
 	}
 }
 

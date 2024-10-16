@@ -312,9 +312,6 @@ cumulus-relay-chain-minimal-node = { git = "https://github.com/moonbeam-foundati
 cumulus-relay-chain-rpc-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407" }
 
 # Polkadot / XCM (wasm)
-orml-traits = { git = "https://github.com/moonbeam-foundation/open-runtime-module-library", branch = "moonbeam-polkadot-stable2407", default-features = false }
-orml-xcm-support = { git = "https://github.com/moonbeam-foundation/open-runtime-module-library", branch = "moonbeam-polkadot-stable2407", default-features = false }
-orml-xtokens = { git = "https://github.com/moonbeam-foundation/open-runtime-module-library", branch = "moonbeam-polkadot-stable2407", default-features = false }
 pallet-xcm = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
 pallet-xcm-benchmarks = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
 polkadot-core-primitives = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2407", default-features = false }
@@ -442,7 +439,6 @@ crossbeam-deque = { opt-level = 3 }
 crypto-mac = { opt-level = 3 }
 curve25519-dalek = { opt-level = 3 }
 ed25519-zebra = { opt-level = 3 }
-flate2 = { opt-level = 3 }
 futures-channel = { opt-level = 3 }
 hash-db = { opt-level = 3 }
 hashbrown = { opt-level = 3 }

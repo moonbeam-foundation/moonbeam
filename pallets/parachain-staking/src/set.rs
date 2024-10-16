@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-/* TODO: use orml_utilities::OrderedSet without leaking substrate v2.0 dependencies*/
-
 use frame_support::traits::Get;
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;

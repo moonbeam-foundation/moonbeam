@@ -57,7 +57,6 @@ use moonbase_runtime::{
 	TransactionPayment,
 	TransactionPaymentAsGasPrice,
 	TreasuryCouncilCollective,
-	XTokens,
 	XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	WEEKS,
@@ -87,7 +86,7 @@ use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, H256, U256};
 use sp_runtime::{bounded_vec, DispatchError, ModuleError};
 use std::cell::Cell;
 use std::rc::Rc;
-use xcm::latest::prelude::*;
+use xcm::{latest::prelude::*, VersionedAssets, VersionedLocation};
 
 type AuthorMappingPCall =
 	pallet_evm_precompile_author_mapping::AuthorMappingPrecompileCall<Runtime>;
@@ -160,7 +159,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::CumulusXcm>("CumulusXcm");
 	is_pallet_prefix::<moonbase_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonbase_runtime::Assets>("Assets");
-	is_pallet_prefix::<moonbase_runtime::XTokens>("XTokens");
 	is_pallet_prefix::<moonbase_runtime::AssetManager>("AssetManager");
 	is_pallet_prefix::<moonbase_runtime::Migrations>("Migrations");
 	is_pallet_prefix::<moonbase_runtime::XcmTransactor>("XcmTransactor");
@@ -441,7 +439,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::CumulusXcm>(26);
 	is_pallet_index::<moonbase_runtime::PolkadotXcm>(28);
 	is_pallet_index::<moonbase_runtime::Assets>(29);
-	is_pallet_index::<moonbase_runtime::XTokens>(30);
+	// is_pallet_index::<moonbase_runtime::XTokens>(30); Removed
 	is_pallet_index::<moonbase_runtime::AssetManager>(31);
 	is_pallet_index::<moonbase_runtime::Migrations>(32);
 	is_pallet_index::<moonbase_runtime::XcmTransactor>(33);
@@ -1566,7 +1564,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(348298)
+				.expect_cost(176291)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1657,7 +1655,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(348298)
+				.expect_cost(176291)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1741,7 +1739,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(16208)
+				.expect_cost(24691)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2076,26 +2074,36 @@ fn root_can_change_default_xcm_vers() {
 		}])
 		.build()
 		.execute_with(|| {
-			let dest = Location {
-				parents: 1,
-				interior: [AccountId32 {
-					network: None,
-					id: [1u8; 32],
-				}]
-				.into(),
-			};
 			let source_id: moonbase_runtime::AssetId = 1;
+			let currency_id = moonbase_runtime::xcm_config::CurrencyId::ForeignAsset(source_id);
+			let asset = Asset {
+				id: AssetId(
+					<Runtime as pallet_xcm_transactor::Config>::CurrencyIdToLocation::convert(
+						currency_id,
+					)
+					.unwrap(),
+				),
+				fun: Fungibility::Fungible(100_000_000_000_000),
+			};
 			// Default XCM version is not set yet, so xtokens should fail because it does not
 			// know with which version to send
 			assert_noop!(
-				XTokens::transfer(
+				PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					moonbase_runtime::xcm_config::CurrencyId::ForeignAsset(source_id),
-					100_000_000_000_000,
-					Box::new(xcm::VersionedLocation::V4(dest.clone())),
+					Box::new(VersionedLocation::V4(Location::parent())),
+					Box::new(VersionedLocation::V4(Location {
+						parents: 0,
+						interior: [AccountId32 {
+							network: None,
+							id: [1u8; 32],
+						}]
+						.into(),
+					})),
+					Box::new(VersionedAssets::V4(asset.clone().into())),
+					0,
 					WeightLimit::Unlimited
 				),
-				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
+				pallet_xcm::Error::<Runtime>::SendFailure
 			);
 
 			// Root sets the defaultXcm
@@ -2105,11 +2113,19 @@ fn root_can_change_default_xcm_vers() {
 			));
 
 			// Now transferring does not fail
-			assert_ok!(XTokens::transfer(
+			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				moonbase_runtime::xcm_config::CurrencyId::ForeignAsset(source_id),
-				100_000_000_000_000,
-				Box::new(xcm::VersionedLocation::V4(dest)),
+				Box::new(VersionedLocation::V4(Location::parent())),
+				Box::new(VersionedLocation::V4(Location {
+					parents: 0,
+					interior: [AccountId32 {
+						network: None,
+						id: [1u8; 32],
+					}]
+					.into(),
+				})),
+				Box::new(VersionedAssets::V4(asset.into())),
+				0,
 				WeightLimit::Unlimited
 			));
 		})
@@ -2280,7 +2296,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(23239)
+				.expect_cost(23275)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2320,7 +2336,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23239)
+				.expect_cost(23275)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2402,7 +2418,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(14255)
+				.expect_cost(14307)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2424,7 +2440,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(13829)
+				.expect_cost(13806)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2445,7 +2461,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14294)
+				.expect_cost(14284)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2488,7 +2504,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16049)
+				.expect_cost(16075)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2513,7 +2529,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16049)
+				.expect_cost(16075)
 				.expect_no_logs()
 				.execute_returns(());
 

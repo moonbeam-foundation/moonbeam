@@ -53,15 +53,11 @@ cumulus-primitives-core = { workspace = true }
 polkadot-parachain = { workspace = true }
 xcm-builder = { workspace = true }
 
-# ORML
-orml-traits = { workspace = true }
-
 [features]
 default = ["std"]
 std = [
 	"frame-support/std",
 	"frame-system/std",
-	"orml-traits/std",
 	"pallet-balances/std",
 	"pallet-evm/std",
 	"pallet-timestamp/std",

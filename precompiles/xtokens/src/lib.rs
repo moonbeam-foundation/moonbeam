@@ -20,47 +20,31 @@
 
 use account::SYSTEM_ACCOUNT_SIZE;
 use fp_evm::PrecompileHandle;
-use frame_support::{
-	dispatch::{GetDispatchInfo, PostDispatchInfo},
-	traits::Get,
-};
+use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
-use sp_core::{H160, U256};
-use sp_runtime::traits::Dispatchable;
-use sp_std::{
-	boxed::Box,
-	convert::{TryFrom, TryInto},
-	marker::PhantomData,
-	vec::Vec,
-};
+use sp_core::{ConstU32, H160, U256};
+use sp_runtime::traits::{Convert, Dispatchable};
+use sp_std::{boxed::Box, convert::TryInto, marker::PhantomData, vec::Vec};
 use sp_weights::Weight;
 use xcm::{
 	latest::{Asset, AssetId, Assets, Fungibility, Location, WeightLimit},
-	VersionedAsset, VersionedAssets, VersionedLocation,
+	VersionedAssets, VersionedLocation,
 };
-use xcm_primitives::{AccountIdToCurrencyId, DEFAULT_PROOF_SIZE};
+use xcm_primitives::{
+	split_location_into_chain_part_and_beneficiary, AccountIdToCurrencyId, DEFAULT_PROOF_SIZE,
+};
 
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
 
-pub type XBalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
-pub type MaxAssetsForTransfer<Runtime> = <Runtime as orml_xtokens::Config>::MaxAssetsForTransfer;
+pub type CurrencyIdOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::CurrencyId;
+pub type CurrencyIdToLocationOf<Runtime> =
+	<Runtime as pallet_xcm_transactor::Config>::CurrencyIdToLocation;
 
-pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
-
-pub struct GetMaxAssets<R>(PhantomData<R>);
-
-impl<R> Get<u32> for GetMaxAssets<R>
-where
-	R: orml_xtokens::Config,
-{
-	fn get() -> u32 {
-		<R as orml_xtokens::Config>::MaxAssetsForTransfer::get() as u32
-	}
-}
+const MAX_ASSETS: u32 = 20;
 
 /// A precompile to wrap the functionality from xtokens
 pub struct XtokensPrecompile<Runtime>(PhantomData<Runtime>);
@@ -69,11 +53,15 @@ pub struct XtokensPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile::test_concrete_types(mock::Runtime)]
 impl<Runtime> XtokensPrecompile<Runtime>
 where
-	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	Runtime::RuntimeCall: From<orml_xtokens::Call<Runtime>>,
-	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
-	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
+	Runtime: pallet_evm::Config
+		+ pallet_xcm::Config
+		+ pallet_xcm_transactor::Config
+		+ frame_system::Config,
+	<Runtime as frame_system::Config>::RuntimeCall:
+		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<Runtime as frame_system::Config>::RuntimeCall: From<pallet_xcm::Call<Runtime>>,
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
+		From<Option<Runtime::AccountId>>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	#[precompile::public("transfer(address,uint256,(uint8,bytes[]),uint64)")]
@@ -88,9 +76,8 @@ where
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		// We convert the address into a currency id xtokens understands
-		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
-			Runtime::account_to_currency_id(to_account)
-				.ok_or(revert("cannot convert into currency id"))?;
+		let currency_id: CurrencyIdOf<Runtime> = Runtime::account_to_currency_id(to_account)
+			.ok_or(revert("cannot convert into currency id"))?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let amount = amount
@@ -103,11 +90,20 @@ where
 			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
 		};
 
-		let call = orml_xtokens::Call::<Runtime>::transfer {
-			currency_id,
-			amount,
-			dest: Box::new(VersionedLocation::V4(destination)),
-			dest_weight_limit,
+		let asset = Self::currency_to_asset(currency_id, amount).ok_or(
+			RevertReason::custom("Cannot convert currency into xcm asset")
+				.in_field("currency_address"),
+		)?;
+
+		let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
+			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
+
+		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
+			dest: Box::new(VersionedLocation::V4(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+			assets: Box::new(VersionedAssets::V4(asset.into())),
+			fee_asset_item: 0,
+			weight_limit: dest_weight_limit,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(
@@ -120,13 +116,16 @@ where
 		Ok(())
 	}
 
+	// transfer_with_fee no longer take the fee parameter into account since we start using
+	// pallet-xcm. Now, if you want to limit the maximum amount of fees, you'll have to use a
+	// different asset from the one you wish to transfer and use transfer_multi* selectors.
 	#[precompile::public("transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)")]
 	#[precompile::public("transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)")]
 	fn transfer_with_fee(
 		handle: &mut impl PrecompileHandle,
 		currency_address: Address,
 		amount: U256,
-		fee: U256,
+		_fee: U256,
 		destination: Location,
 		weight: u64,
 	) -> EvmResult {
@@ -134,8 +133,8 @@ where
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		// We convert the address into a currency id xtokens understands
-		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
-			Runtime::account_to_currency_id(to_account).ok_or(
+		let currency_id: CurrencyIdOf<Runtime> = Runtime::account_to_currency_id(to_account)
+			.ok_or(
 				RevertReason::custom("Cannot convert into currency id").in_field("currencyAddress"),
 			)?;
 
@@ -146,23 +145,26 @@ where
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("amount"))?;
 
-		// Fee amount
-		let fee = fee
-			.try_into()
-			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("fee"))?;
-
 		let dest_weight_limit = if weight == u64::MAX {
 			WeightLimit::Unlimited
 		} else {
 			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
 		};
 
-		let call = orml_xtokens::Call::<Runtime>::transfer_with_fee {
-			currency_id,
-			amount,
-			fee,
-			dest: Box::new(VersionedLocation::V4(destination)),
-			dest_weight_limit,
+		let asset = Self::currency_to_asset(currency_id, amount).ok_or(
+			RevertReason::custom("Cannot convert currency into xcm asset")
+				.in_field("currency_address"),
+		)?;
+
+		let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
+			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
+
+		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
+			dest: Box::new(VersionedLocation::V4(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+			assets: Box::new(VersionedAssets::V4(asset.into())),
+			fee_asset_item: 0,
+			weight_limit: dest_weight_limit,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(
@@ -195,13 +197,21 @@ where
 			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
 		};
 
-		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset {
-			asset: Box::new(VersionedAsset::V4(Asset {
-				id: AssetId(asset),
-				fun: Fungibility::Fungible(to_balance),
-			})),
-			dest: Box::new(VersionedLocation::V4(destination)),
-			dest_weight_limit,
+		let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
+			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
+
+		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
+			dest: Box::new(VersionedLocation::V4(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+			assets: Box::new(VersionedAssets::V4(
+				Asset {
+					id: AssetId(asset),
+					fun: Fungibility::Fungible(to_balance),
+				}
+				.into(),
+			)),
+			fee_asset_item: 0,
+			weight_limit: dest_weight_limit,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(
@@ -224,7 +234,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		asset: Location,
 		amount: U256,
-		fee: U256,
+		_fee: U256,
 		destination: Location,
 		weight: u64,
 	) -> EvmResult {
@@ -232,9 +242,6 @@ where
 		let amount = amount
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("amount"))?;
-		let fee = fee
-			.try_into()
-			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("fee"))?;
 
 		let dest_weight_limit = if weight == u64::MAX {
 			WeightLimit::Unlimited
@@ -242,17 +249,21 @@ where
 			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
 		};
 
-		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset_with_fee {
-			asset: Box::new(VersionedAsset::V4(Asset {
-				id: AssetId(asset.clone()),
-				fun: Fungibility::Fungible(amount),
-			})),
-			fee: Box::new(VersionedAsset::V4(Asset {
-				id: AssetId(asset),
-				fun: Fungibility::Fungible(fee),
-			})),
-			dest: Box::new(VersionedLocation::V4(destination)),
-			dest_weight_limit,
+		let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
+			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
+
+		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
+			dest: Box::new(VersionedLocation::V4(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+			assets: Box::new(VersionedAssets::V4(
+				Asset {
+					id: AssetId(asset.clone()),
+					fun: Fungibility::Fungible(amount),
+				}
+				.into(),
+			)),
+			fee_asset_item: 0,
+			weight_limit: dest_weight_limit,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(
@@ -273,7 +284,7 @@ where
 	)]
 	fn transfer_multi_currencies(
 		handle: &mut impl PrecompileHandle,
-		currencies: BoundedVec<Currency, GetMaxAssets<Runtime>>,
+		currencies: BoundedVec<Currency, ConstU32<MAX_ASSETS>>,
 		fee_item: u32,
 		destination: Location,
 		weight: u64,
@@ -282,7 +293,7 @@ where
 
 		// Build all currencies
 		let currencies: Vec<_> = currencies.into();
-		let currencies = currencies
+		let assets = currencies
 			.into_iter()
 			.enumerate()
 			.map(|(index, currency)| {
@@ -293,19 +304,23 @@ where
 						.in_field("currencies")
 				})?;
 
-				Ok((
-					Runtime::account_to_currency_id(Runtime::AddressMapping::into_account_id(
-						address_as_h160,
-					))
-					.ok_or(
-						RevertReason::custom("Cannot convert into currency id")
-							.in_array(index)
-							.in_field("currencies"),
-					)?,
-					amount,
-				))
+				let currency_id = Runtime::account_to_currency_id(
+					Runtime::AddressMapping::into_account_id(address_as_h160),
+				)
+				.ok_or(
+					RevertReason::custom("Cannot convert into currency id")
+						.in_array(index)
+						.in_field("currencies"),
+				)?;
+
+				Self::currency_to_asset(currency_id, amount).ok_or(
+					RevertReason::custom("Cannot convert currency into xcm asset")
+						.in_array(index)
+						.in_field("currencies")
+						.into(),
+				)
 			})
-			.collect::<EvmResult<_>>()?;
+			.collect::<EvmResult<Vec<_>>>()?;
 
 		let dest_weight_limit = if weight == u64::MAX {
 			WeightLimit::Unlimited
@@ -313,11 +328,15 @@ where
 			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
 		};
 
-		let call = orml_xtokens::Call::<Runtime>::transfer_multicurrencies {
-			currencies,
-			fee_item,
-			dest: Box::new(VersionedLocation::V4(destination)),
-			dest_weight_limit,
+		let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
+			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
+
+		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
+			dest: Box::new(VersionedLocation::V4(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+			assets: Box::new(VersionedAssets::V4(assets.into())),
+			fee_asset_item: fee_item,
+			weight_limit: dest_weight_limit,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(
@@ -338,7 +357,7 @@ where
 	)]
 	fn transfer_multi_assets(
 		handle: &mut impl PrecompileHandle,
-		assets: BoundedVec<EvmAsset, GetMaxAssets<Runtime>>,
+		assets: BoundedVec<EvmAsset, ConstU32<MAX_ASSETS>>,
 		fee_item: u32,
 		destination: Location,
 		weight: u64,
@@ -372,11 +391,15 @@ where
 			WeightLimit::Limited(Weight::from_parts(weight, DEFAULT_PROOF_SIZE))
 		};
 
-		let call = orml_xtokens::Call::<Runtime>::transfer_multiassets {
+		let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
+			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
+
+		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
+			dest: Box::new(VersionedLocation::V4(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
 			assets: Box::new(VersionedAssets::V4(assets)),
-			fee_item,
-			dest: Box::new(VersionedLocation::V4(destination)),
-			dest_weight_limit,
+			fee_asset_item: fee_item,
+			weight_limit: dest_weight_limit,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(
@@ -387,6 +410,13 @@ where
 		)?;
 
 		Ok(())
+	}
+
+	fn currency_to_asset(currency_id: CurrencyIdOf<Runtime>, amount: u128) -> Option<Asset> {
+		Some(Asset {
+			fun: Fungibility::Fungible(amount),
+			id: AssetId(<CurrencyIdToLocationOf<Runtime>>::convert(currency_id)?),
+		})
 	}
 }
 
