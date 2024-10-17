@@ -20,7 +20,6 @@ describeSuite({
 
     async function createBlocks(
       block_count: number,
-      reward_percentiles: number[],
       priority_fees: number[],
       max_fee_per_gas: string
     ) {
@@ -45,7 +44,7 @@ describeSuite({
       }
     }
 
-    function get_percentile(percentile: number, array: number[]) {
+    function getPercentile(percentile: number, array: number[]) {
       array.sort(function (a, b) {
         return a - b;
       });
@@ -109,13 +108,11 @@ describeSuite({
 
         await createBlocks(
           block_count,
-          reward_percentiles,
           priority_fees,
           parseGwei("10").toString()
         );
 
         matchExpectations(await feeHistory, block_count, reward_percentiles);
-
       }
     });
 
@@ -147,11 +144,11 @@ describeSuite({
           });
         });
 
-        await createBlocks(block_count, reward_percentiles, priority_fees, max_fee_per_gas);
+        await createBlocks(block_count, priority_fees, max_fee_per_gas);
 
         const feeResults = await feeHistory;
         const localRewards = reward_percentiles
-          .map((percentile) => get_percentile(percentile, priority_fees))
+          .map((percentile) => getPercentile(percentile, priority_fees))
           .map((reward) => numberToHex(reward));
         // We only test if BaseFee update is enabled.
         //
@@ -202,7 +199,6 @@ describeSuite({
 
         await createBlocks(
           block_count,
-          reward_percentiles,
           priority_fees,
           parseGwei("10").toString()
         );
