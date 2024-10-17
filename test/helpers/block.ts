@@ -49,7 +49,7 @@ const getBlockDetails = async (
     block.extrinsics.map(async (ext) =>
       (
         await api.at(block.header.parentHash)
-      ).call.transactionPaymentApi.queryInfo(ext.toHex(), ext.encodedLength)
+      ).call.transactionPaymentApi.queryInfo(ext.toU8a(), ext.encodedLength)
     )
   );
 
@@ -91,6 +91,7 @@ export const verifyBlockFees = async (
 ) => {
   const api = context.polkadotJs();
   debug(`========= Checking block ${fromBlockNumber}...${toBlockNumber}`);
+
   // let sumBlockFees = 0n;
   let sumBlockBurnt = 0n;
 
