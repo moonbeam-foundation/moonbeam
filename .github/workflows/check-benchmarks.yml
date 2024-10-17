@@ -2,7 +2,6 @@ name: Check benchmarks
 
 on:
   workflow_dispatch:
-    on:
   schedule:
     - cron: "0 5 * * 0" # Runs every Sunday at 5:00 AM UTC
     - cron: "0 5 * * 3" # Runs every Wednesday at 5:00 AM UTC
@@ -10,6 +9,8 @@ on:
 jobs:
   set-tags:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
     steps:
