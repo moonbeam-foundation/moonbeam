@@ -45,7 +45,7 @@ jobs:
           ./scripts/runtime-upgrade.sh ${{ github.event.inputs.spec_version }}
       - name: Create Pull Request
         if: ${{ !inputs.dry_run }}
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           base: master
           branch: "typescript-api-${{ github.event.inputs.spec_version }}"
