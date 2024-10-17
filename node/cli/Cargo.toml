@@ -2,7 +2,7 @@
 name = "moonbeam-cli"
 authors = { workspace = true }
 edition = "2021"
-version = "0.41.0"
+version = "0.42.0"
 
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
