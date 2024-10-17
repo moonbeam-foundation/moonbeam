@@ -24,14 +24,45 @@ pub use asset_id_conversions::*;
 mod constants;
 pub use constants::*;
 
-mod origin_conversion;
-pub use origin_conversion::*;
-
-mod transactor_traits;
-pub use transactor_traits::*;
+pub mod get_by_key;
+pub use get_by_key::*;
 
 mod ethereum_xcm;
 pub use ethereum_xcm::*;
 
 mod filter_asset_max_fee;
 pub use filter_asset_max_fee::*;
+
+mod origin_conversion;
+pub use origin_conversion::*;
+
+mod transactor_traits;
+pub use transactor_traits::*;
+
+use xcm::latest::{Junction, Junctions, Location};
+
+pub fn split_location_into_chain_part_and_beneficiary(
+	mut location: Location,
+) -> Option<(Location, Location)> {
+	let mut beneficiary_junctions = Junctions::Here;
+
+	// start popping junctions until we reach chain identifier
+	while let Some(j) = location.last() {
+		if matches!(j, Junction::Parachain(_) | Junction::GlobalConsensus(_)) {
+			// return chain subsection
+			return Some((location, beneficiary_junctions.into_location()));
+		} else {
+			let (location_prefix, maybe_last_junction) = location.split_last_interior();
+			location = location_prefix;
+			if let Some(junction) = maybe_last_junction {
+				beneficiary_junctions.push(junction).ok()?;
+			}
+		}
+	}
+
+	if location.parent_count() == 1 {
+		Some((Location::parent(), beneficiary_junctions.into_location()))
+	} else {
+		None
+	}
+}

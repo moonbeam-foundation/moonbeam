@@ -24,7 +24,6 @@ sp-std = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 
 # Polkadot / XCM
-orml-traits = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
@@ -47,7 +46,6 @@ std = [
 	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
-	"orml-traits/std",
 	"parity-scale-codec/std",
 	"sp-io/std",
 	"sp-runtime/std",

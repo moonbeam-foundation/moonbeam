@@ -195,7 +195,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 3300,
+	spec_version: 3400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -210,7 +210,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 3300,
+	spec_version: 3400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -1177,7 +1177,6 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 			RuntimeCall::Ethereum(_) => false,
 			RuntimeCall::EVM(_) => false,
 			RuntimeCall::Identity(_) => false,
-			RuntimeCall::XTokens(_) => false,
 			RuntimeCall::ParachainStaking(_) => false,
 			RuntimeCall::MoonbeamOrbiters(_) => false,
 			RuntimeCall::PolkadotXcm(_) => false,
@@ -1213,6 +1212,8 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// is populated at genesis
 			RuntimeCall::PolkadotXcm(method) => match method {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
+				pallet_xcm::Call::transfer_assets { .. } => true,
+				pallet_xcm::Call::transfer_assets_using_type_and_then { .. } => true,
 				_ => false,
 			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
@@ -1465,7 +1466,7 @@ construct_runtime! {
 		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event<T>, Origin, Config<T>} = 103,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
-		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
+		// Previously 106: XTokens
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 		// Previously 108: pallet_assets::<Instance1>
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin, Event<T>} = 109,
