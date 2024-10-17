@@ -106,14 +106,10 @@ describeSuite({
           });
         });
 
-        await createBlocks(
-          block_count,
-          priority_fees,
-          parseGwei("10").toString()
-        );
+        await createBlocks(block_count, priority_fees, parseGwei("10").toString());
 
         matchExpectations(await feeHistory, block_count, reward_percentiles);
-      }
+      },
     });
 
     it({
@@ -197,14 +193,10 @@ describeSuite({
           });
         });
 
-        await createBlocks(
-          block_count,
-          priority_fees,
-          parseGwei("10").toString()
-        );
+        await createBlocks(block_count, priority_fees, parseGwei("10").toString());
 
         matchExpectations(await feeHistory, block_count, reward_percentiles);
-      }
+      },
     });
   },
 });
