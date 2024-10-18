@@ -432,14 +432,15 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 	/// The range of component `x` is `[0, 349]`.
 	fn schedule_revoke_delegation(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `567 + x * (42 ±0)`
-		//  Estimated: `4013 + x * (43 ±0)`
-		// Minimum execution time: 15_133_000 picoseconds.
-		Weight::from_parts(22_339_126, 4013)
-			// Standard Error: 694
-			.saturating_add(Weight::from_parts(64_852, 0).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(2_u64))
-			.saturating_add(T::DbWeight::get().writes(2_u64))
+		//  Measured:  `122 + x * (42 ±0)`
+		//  Estimated: `3591 + x * (43 ±0)`
+		// Minimum execution time: 7_000_000 picoseconds.
+		Weight::from_parts(9_528_954, 0)
+			.saturating_add(Weight::from_parts(0, 3591))
+			// Standard Error: 282
+			.saturating_add(Weight::from_parts(42_380, 0).saturating_mul(x.into()))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(2))
 			.saturating_add(Weight::from_parts(0, 43).saturating_mul(x.into()))
 	}
 	/// Storage: `ParachainStaking::DelegatorState` (r:1 w:1)
