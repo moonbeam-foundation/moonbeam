@@ -65,10 +65,7 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::{
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
-	weights as moonriver_weights,
-};
+use moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
@@ -129,6 +126,9 @@ pub mod xcm_config;
 
 mod migrations;
 mod precompiles;
+mod weights;
+
+pub(crate) use weights as moonriver_weights;
 
 pub use governance::councils::*;
 
@@ -1392,7 +1392,9 @@ impl pallet_parameters::Config for Runtime {
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeParameters = RuntimeParameters;
-	type WeightInfo = moonriver_weights::pallet_parameters::WeightInfo<Runtime>;
+	// type WeightInfo = moonriver_weights::pallet_parameters::WeightInfo<Runtime>;
+
+	type WeightInfo = ();
 }
 
 construct_runtime! {

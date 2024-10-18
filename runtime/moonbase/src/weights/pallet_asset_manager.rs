@@ -65,6 +65,11 @@ impl<T: frame_system::Config> pallet_asset_manager::WeightInfo for WeightInfo<T>
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
+
+	fn set_asset_units_per_second(x: u32) -> Weight {
+		todo!()
+	}
+
 	/// Storage: `AssetManager::AssetIdType` (r:1 w:1)
 	/// Proof: `AssetManager::AssetIdType` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `AssetManager::AssetTypeId` (r:0 w:2)
@@ -82,6 +87,11 @@ impl<T: frame_system::Config> pallet_asset_manager::WeightInfo for WeightInfo<T>
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 			.saturating_add(Weight::from_parts(0, 5))
 	}
+
+	fn remove_supported_asset(x: u32) -> Weight {
+		todo!()
+	}
+
 	/// Storage: `AssetManager::AssetIdType` (r:1 w:1)
 	/// Proof: `AssetManager::AssetIdType` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `AssetManager::AssetTypeId` (r:0 w:1)

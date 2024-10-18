@@ -17,6 +17,7 @@
 //! XCM configuration for Moonbase.
 //!
 
+use super::moonbase_weights;
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
 	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo,
@@ -24,7 +25,6 @@ use super::{
 	RuntimeOrigin, Treasury, XcmpQueue,
 };
 use crate::OpenTechCommitteeInstance;
-use moonbeam_runtime_common::weights as moonbase_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
 	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
@@ -739,7 +739,8 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type RemoveSupportedAssetOrigin = EnsureRoot<AccountId>;
 	type RuntimeEvent = RuntimeEvent;
 	type ResumeSupportedAssetOrigin = EnsureRoot<AccountId>;
-	type WeightInfo = moonbase_weights::pallet_xcm_weight_trader::WeightInfo<Runtime>;
+	// type WeightInfo = moonbase_weights::pallet_ xcm_weight_trader::WeightInfo<Runtime>;
+	type WeightInfo = ();
 	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;
 	#[cfg(feature = "runtime-benchmarks")]
