@@ -9,6 +9,8 @@ on:
 jobs:
   publish-typescript-api:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,6 +33,8 @@ jobs:
 
   update-polkadot-js-for-tests-and-tools:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["publish-typescript-api"]
     steps:
       - name: Checkout
@@ -39,8 +43,6 @@ jobs:
           ref: ${{ github.event.inputs.sha }}
       - name: Use pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:

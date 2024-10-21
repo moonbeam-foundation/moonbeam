@@ -14,7 +14,9 @@ on:
 jobs:
   ####### Building binaries #######
   setup-scripts:
-    runs-on: bare-metal
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Upload tools
@@ -26,6 +28,8 @@ jobs:
   build-binary:
     needs: ["setup-scripts"]
     runs-on: bare-metal
+    permissions:
+      contents: read
     strategy:
       matrix:
         cpu: ["x86-64", "skylake", "znver3"]
@@ -67,6 +71,8 @@ jobs:
 
   publish-draft-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["build-binary"]
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}

@@ -16,6 +16,8 @@ jobs:
 
   build-binary:
     runs-on: bare-metal
+    permissions:
+      contents: read
     strategy:
       matrix:
         cpu: ["x86-64", "skylake", "znver3"]
@@ -54,6 +56,8 @@ jobs:
   ####### Prepare the release draft #######
   docker-release-candidate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["build-binary"]
     steps:
       - name: Checkout

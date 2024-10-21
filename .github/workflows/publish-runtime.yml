@@ -15,7 +15,9 @@ jobs:
   ####### Build runtimes with srtool #######
 
   setup-scripts:
-    runs-on: bare-metal
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Upload scripts
@@ -30,7 +32,9 @@ jobs:
           path: tools
 
   read-rust-version:
-    runs-on: bare-metal
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       rust_version: ${{ steps.get-version.outputs.rust_version }}
     steps:
@@ -43,6 +47,8 @@ jobs:
   build-srtool-runtimes:
     needs: ["setup-scripts", "read-rust-version"]
     runs-on: bare-metal
+    permissions:
+      contents: read
     strategy:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
@@ -123,6 +129,8 @@ jobs:
 
   publish-draft-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["setup-scripts", "build-srtool-runtimes"]
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
