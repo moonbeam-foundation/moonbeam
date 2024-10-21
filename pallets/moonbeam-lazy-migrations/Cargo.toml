@@ -13,13 +13,16 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-scheduler = { workspace = true }
 pallet-assets = { workspace = true }
+pallet-asset-manager = { workspace = true }
 pallet-balances = { workspace = true }
+pallet-moonbeam-foreign-assets = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
+xcm-primitives = { workspace = true }
 
 # Frontier
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
@@ -52,7 +55,11 @@ std = [
   "pallet-evm/std",
   "pallet-timestamp/std",
   "pallet-assets/std",
+  "pallet-moonbeam-foreign-assets/std",
+  "pallet-asset-manager/std", 
   "cumulus-primitives-storage-weight-reclaim/std",
   "rlp/std",
+   "xcm/std",
+  "xcm-primitives/std",
 ]
 try-runtime = ["frame-support/try-runtime"]

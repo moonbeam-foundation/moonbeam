@@ -1162,7 +1162,16 @@ impl pallet_migrations::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
+pub type ForeignAssetFreezerOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::GeneralAdmin,
+	>,
+>;
+
 impl pallet_moonbeam_lazy_migrations::Config for Runtime {
+	type ForeignAssetFreezerOrigin = ForeignAssetFreezerOrigin;
 	type WeightInfo = moonriver_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
 }
 

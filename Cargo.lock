@@ -9620,9 +9620,11 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
+ "pallet-asset-manager",
  "pallet-assets",
  "pallet-balances",
  "pallet-evm",
+ "pallet-moonbeam-foreign-assets",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
@@ -9632,6 +9634,8 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "staging-xcm",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
