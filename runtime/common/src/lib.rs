@@ -25,7 +25,5 @@ mod impl_xcm_evm_runner;
 pub mod migrations;
 pub mod timestamp;
 pub mod types;
-pub mod weights;
-
 #[cfg(feature = "runtime-benchmarks")]
 pub mod benchmarking;

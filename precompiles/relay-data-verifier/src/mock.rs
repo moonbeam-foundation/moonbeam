@@ -20,8 +20,10 @@
 use super::*;
 use cumulus_pallet_parachain_system::{RelayChainState, RelaychainStateProvider};
 use frame_support::{
-	construct_runtime, parameter_types, sp_runtime::traits::IdentityLookup, traits::Everything,
-	weights::Weight,
+	construct_runtime, parameter_types,
+	sp_runtime::traits::IdentityLookup,
+	traits::Everything,
+	weights::{RuntimeDbWeight, Weight},
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
 use parity_scale_codec::Decode;
@@ -146,10 +148,28 @@ impl pallet_relay_storage_roots::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub type Precompiles<R> =
-	PrecompileSetBuilder<R, PrecompileAt<AddressU64<1>, RelayDataVerifierPrecompile<R>>>;
+pub struct MockWeightInfo;
 
-pub type PCall = RelayDataVerifierPrecompileCall<Runtime>;
+impl pallet_precompile_benchmarks::WeightInfo for MockWeightInfo {
+	fn verify_entry(x: u32) -> Weight {
+		Weight::from_parts(76_430_000, 0)
+			.saturating_add(Weight::from_parts(678_469, 0).saturating_mul(x.into()))
+	}
+	fn latest_relay_block() -> Weight {
+		Weight::from_parts(4_641_000, 1606)
+			.saturating_add(<() as Get<RuntimeDbWeight>>::get().reads(1_u64))
+	}
+	fn p256_verify() -> Weight {
+		Weight::from_parts(1_580_914_000, 0).saturating_mul(1u64)
+	}
+}
+
+pub type Precompiles<R> = PrecompileSetBuilder<
+	R,
+	PrecompileAt<AddressU64<1>, RelayDataVerifierPrecompile<R, MockWeightInfo>>,
+>;
+
+pub type PCall = RelayDataVerifierPrecompileCall<Runtime, MockWeightInfo>;
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
 /// Block storage limit in bytes. Set to 40 KB.
@@ -195,7 +215,7 @@ impl pallet_evm::Config for Runtime {
 }
 
 impl pallet_precompile_benchmarks::Config for Runtime {
-	type WeightInfo = WeightInfo<Runtime>;
+	type WeightInfo = MockWeightInfo;
 }
 
 pub(crate) struct ExtBuilder {

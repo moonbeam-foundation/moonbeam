@@ -23,7 +23,7 @@ use super::{
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-use moonbeam_runtime_common::weights as moonriver_weights;
+use super::moonriver_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 
 use frame_support::{
