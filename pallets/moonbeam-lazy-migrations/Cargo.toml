@@ -22,6 +22,7 @@ sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
+xcm = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Frontier
@@ -59,7 +60,6 @@ std = [
   "pallet-asset-manager/std", 
   "cumulus-primitives-storage-weight-reclaim/std",
   "rlp/std",
-   "xcm/std",
   "xcm-primitives/std",
 ]
 try-runtime = ["frame-support/try-runtime"]

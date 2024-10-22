@@ -61,6 +61,10 @@ pub mod pallet {
 	pub(crate) type StateMigrationStatusValue<T: Config> =
 		StorageValue<_, (StateMigrationStatus, u64), ValueQuery>;
 
+	#[pallet::storage]
+	pub(crate) type ForeignAssetMigrationStatusValue<T: Config> =
+		StorageValue<_, ForeignAssetMigrationStatus, ValueQuery>;
+
 	pub(crate) type StorageKey = BoundedVec<u8, ConstU32<1_024>>;
 
 	#[derive(Clone, Encode, Decode, scale_info::TypeInfo, PartialEq, Eq, MaxEncodedLen, Debug)]
@@ -73,7 +77,26 @@ pub mod pallet {
 
 	impl Default for StateMigrationStatus {
 		fn default() -> Self {
-			return StateMigrationStatus::NotStarted;
+			StateMigrationStatus::NotStarted
+		}
+	}
+
+	#[derive(Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
+	pub enum ForeignAssetMigrationStatus {
+		/// No migration in progress
+		Idle,
+		/// Migrating a foreign asset in progress
+		Migrating(ForeignAssetMigrationInfo),
+	}
+
+	#[derive(Default, Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
+	pub struct ForeignAssetMigrationInfo {
+		pub asset_id: u128,
+	}
+
+	impl Default for ForeignAssetMigrationStatus {
+		fn default() -> Self {
+			ForeignAssetMigrationStatus::Idle
 		}
 	}
 
@@ -112,6 +135,10 @@ pub mod pallet {
 		NameTooLong,
 		/// The asset type was not found
 		AssetTypeNotFound,
+		/// The location of the asset was not found
+		LocationNotFound,
+		/// Migration is already in progress
+		MigrationInProgress,
 	}
 
 	pub(crate) const MAX_ITEM_PROOF_SIZE: u64 = 30 * 1024; // 30 KB
@@ -341,7 +368,9 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T>
-	where <T as pallet_asset_manager::Config>::ForeignAssetType: Into<Option<Location>>{
+	where
+		<T as pallet_asset_manager::Config>::ForeignAssetType: Into<Option<Location>>,
+	{
 		// TODO(rodrigo): This extrinsic should be removed once the storage of destroyed contracts
 		// has been removed
 		#[pallet::call_index(1)]
@@ -441,26 +470,36 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			<T as pallet_moonbeam_foreign_assets::Config>::ForeignAssetFreezerOrigin::ensure_origin(origin.clone())?;
 
+			// Check if a migration of a foreign asset already happening
+			ensure!(
+				ForeignAssetMigrationStatusValue::<T>::get() == ForeignAssetMigrationStatus::Idle,
+				Error::<T>::MigrationInProgress
+			);
+
 			// Freeze the asset
 			pallet_assets::Pallet::<T>::freeze_asset(origin.clone(), asset_id.into())?;
 
 			let decimals = pallet_assets::Pallet::<T>::decimals(asset_id);
+
 			let symbol = pallet_assets::Pallet::<T>::symbol(asset_id)
 				.try_into()
 				.map_err(|_| Error::<T>::SymbolTooLong)?;
+
 			let name = <pallet_assets::Pallet<T> as Inspect<_>>::name(asset_id)
 				.try_into()
 				.map_err(|_| Error::<T>::NameTooLong)?;
 
-			let location: Option<Location> =
-				pallet_asset_manager::Pallet::<T>::get_asset_type(asset_id)
-					.ok_or(Error::<T>::AssetTypeNotFound)?
-					.into();
+			let location: Location = pallet_asset_manager::Pallet::<T>::get_asset_type(asset_id)
+				.ok_or(Error::<T>::AssetTypeNotFound)?
+				.into()
+				.ok_or(Error::<T>::LocationNotFound)?;
 
 			// Create the SC for the asset with moonbeam foreign assets pallet
 			pallet_moonbeam_foreign_assets::Pallet::<T>::create_foreign_asset(
-				origin, asset_id, location.unwrap(), decimals, symbol, name,
+				origin, asset_id, location, decimals, symbol, name,
 			)?;
+
+			ForeignAssetMigrationStatusValue::<T>::put(ForeignAssetMigrationStatus::Migrating(ForeignAssetMigrationInfo { asset_id }));
 
 			Ok(Pays::No.into())
 		}
