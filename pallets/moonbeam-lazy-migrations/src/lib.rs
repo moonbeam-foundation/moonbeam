@@ -42,7 +42,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::fungibles::metadata::Inspect;
 	use frame_system::pallet_prelude::*;
-	use sp_core::H160;
+	use sp_core::{H160, U256};
 	use xcm::latest::Location;
 	use xcm_primitives::AssetTypeGetter;
 
@@ -139,6 +139,10 @@ pub mod pallet {
 		LocationNotFound,
 		/// Migration is already in progress
 		MigrationInProgress,
+		/// No migration in progress
+		NoMigrationInProgress,
+		/// Fail to mint the foreign asset
+		MintFailed,
 	}
 
 	pub(crate) const MAX_ITEM_PROOF_SIZE: u64 = 30 * 1024; // 30 KB
@@ -369,7 +373,8 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T>
 	where
-		<T as pallet_asset_manager::Config>::ForeignAssetType: Into<Option<Location>>,
+		<T as pallet_assets::Config>::Balance: Into<U256>,
+		<T as pallet_asset_manager::Config>::ForeignAssetType: Into<Option<Location>>
 	{
 		// TODO(rodrigo): This extrinsic should be removed once the storage of destroyed contracts
 		// has been removed
@@ -499,7 +504,44 @@ pub mod pallet {
 				origin, asset_id, location, decimals, symbol, name,
 			)?;
 
-			ForeignAssetMigrationStatusValue::<T>::put(ForeignAssetMigrationStatus::Migrating(ForeignAssetMigrationInfo { asset_id }));
+			ForeignAssetMigrationStatusValue::<T>::put(ForeignAssetMigrationStatus::Migrating(
+				ForeignAssetMigrationInfo { asset_id },
+			));
+
+			Ok(Pays::No.into())
+		}
+
+		#[pallet::call_index(4)]
+		#[pallet::weight(0)]
+		pub fn migrate_foreign_asset(
+			origin: OriginFor<T>,
+			limit: u64,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
+
+			let asset_id = match ForeignAssetMigrationStatusValue::<T>::get() {
+				ForeignAssetMigrationStatus::Migrating(ForeignAssetMigrationInfo { asset_id }) => {
+					asset_id
+				}
+				_ => return Err(Error::<T>::NoMigrationInProgress.into()),
+			};
+
+			let mut migrated = 0;
+			for (who, asset) in pallet_assets::Account::<T>::drain_prefix(asset_id).drain() {
+				// Mint same balance for new asset
+				pallet_moonbeam_foreign_assets::Pallet::<T>::mint_into(
+					asset_id,
+					who,
+					asset.balance.into(),
+				)
+				.map_err(|_| Error::<T>::MintFailed)?;
+
+				migrated += 1;
+				if migrated >= limit {
+					break;
+				}
+			}
 
 			Ok(Pays::No.into())
 		}
