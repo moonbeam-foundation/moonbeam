@@ -38,8 +38,7 @@ use moonriver_runtime::{
 	xcm_config::{CurrencyId, SelfReserve},
 	AssetId, Balances, CrowdloanRewards, Executive, OpenTechCommitteeCollective, PolkadotXcm,
 	Precompiles, RuntimeBlockWeights, TransactionPayment, TransactionPaymentAsGasPrice,
-	TreasuryCouncilCollective, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	WEEKS,
+	TreasuryCouncilCollective, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -64,6 +63,7 @@ use xcm::latest::prelude::*;
 use xcm::{VersionedAssets, VersionedLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
+use xcm_primitives::split_location_into_chain_part_and_beneficiary;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
 type CrowdloanRewardsPCall =
@@ -81,6 +81,18 @@ type XcmTransactorV2PCall =
 	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
 
 const BASE_FEE_GENESIS: u128 = 100 * GIGAWEI;
+
+fn currency_to_asset(currency_id: CurrencyId, amount: u128) -> Asset {
+	Asset {
+		id: AssetId(
+			<moonriver_runtime::Runtime as pallet_xcm_transactor::Config>::CurrencyIdToLocation::convert(
+				currency_id,
+			)
+			.unwrap(),
+		),
+		fun: Fungibility::Fungible(amount),
+	}
+}
 
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
@@ -131,7 +143,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::CumulusXcm>("CumulusXcm");
 	is_pallet_prefix::<moonriver_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonriver_runtime::Assets>("Assets");
-	is_pallet_prefix::<moonriver_runtime::XTokens>("XTokens");
 	is_pallet_prefix::<moonriver_runtime::AssetManager>("AssetManager");
 	is_pallet_prefix::<moonriver_runtime::Migrations>("Migrations");
 	is_pallet_prefix::<moonriver_runtime::XcmTransactor>("XcmTransactor");
@@ -437,7 +448,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::PolkadotXcm>(103);
 	is_pallet_index::<moonriver_runtime::Assets>(104);
 	is_pallet_index::<moonriver_runtime::AssetManager>(105);
-	is_pallet_index::<moonriver_runtime::XTokens>(106);
+	// is_pallet_index::<moonriver_runtime::XTokens>(106); Removed
 	is_pallet_index::<moonriver_runtime::XcmTransactor>(107);
 }
 
@@ -1607,17 +1618,21 @@ fn root_can_change_default_xcm_vers() {
 				.into(),
 			};
 			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
+			let (chain_part, beneficiary) =
+				split_location_into_chain_part_and_beneficiary(dest).unwrap();
 			// Default XCM version is not set yet, so xtokens should fail because it does not
 			// know with which version to send
 			assert_noop!(
-				XTokens::transfer(
+				PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					CurrencyId::ForeignAsset(source_id),
-					100_000_000_000_000,
-					Box::new(xcm::VersionedLocation::V4(dest.clone())),
+					Box::new(xcm::VersionedLocation::V4(chain_part.clone())),
+					Box::new(xcm::VersionedLocation::V4(beneficiary.clone())),
+					Box::new(VersionedAssets::V4(asset.clone().into())),
+					0,
 					WeightLimit::Limited(4000000000.into())
 				),
-				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
+				pallet_xcm::Error::<Runtime>::SendFailure
 			);
 
 			// Root sets the defaultXcm
@@ -1627,11 +1642,12 @@ fn root_can_change_default_xcm_vers() {
 			));
 
 			// Now transferring does not fail
-			assert_ok!(XTokens::transfer(
+			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				CurrencyId::ForeignAsset(source_id),
-				100_000_000_000_000,
-				Box::new(xcm::VersionedLocation::V4(dest)),
+				Box::new(xcm::VersionedLocation::V4(chain_part)),
+				Box::new(xcm::VersionedLocation::V4(beneficiary)),
+				Box::new(VersionedAssets::V4(asset.clone().into())),
+				0,
 				WeightLimit::Limited(4000000000.into())
 			));
 		})
@@ -1759,7 +1775,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(24673)
+				.expect_cost(24684)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1823,7 +1839,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(15571)
+				.expect_cost(15573)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1844,7 +1860,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(29961)
+				.expect_cost(29947)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1923,7 +1939,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(196698)
+				.expect_cost(24691)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -1975,7 +1991,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(196698)
+				.expect_cost(24691)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2146,7 +2162,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23239)
+				.expect_cost(23275)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2230,14 +2246,19 @@ fn call_xtokens_with_fee() {
 			let before_balance =
 				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
 
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
+			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100);
+			let (chain_part, beneficiary) =
+				split_location_into_chain_part_and_beneficiary(dest).unwrap();
+
 			// We are able to transfer with fee
-			assert_ok!(XTokens::transfer_with_fee(
+			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				CurrencyId::ForeignAsset(source_id),
-				100_000_000_000_000,
-				100,
-				Box::new(xcm::VersionedLocation::V4(dest.clone())),
-				WeightLimit::Limited(4000000000.into())
+				Box::new(VersionedLocation::V4(chain_part)),
+				Box::new(VersionedLocation::V4(beneficiary)),
+				Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+				0,
+				WeightLimit::Limited(4000000000.into()),
 			),);
 
 			let after_balance =
@@ -2367,7 +2388,7 @@ fn precompile_existence() {
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 256, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053,
 			2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066, 2067,
-			2068, 2069, 2070, 2071, 2072, 2073,
+			2068, 2069, 2070, 2071, 2072, 2073, 2074,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
