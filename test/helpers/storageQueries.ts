@@ -15,7 +15,7 @@ const startReport = (total: () => number) => {
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     log(
       `🔍️ Queried ${total()} keys @ ${qps.toFixed(0)} keys/sec,` +
-        ` ${used.toFixed(0)} MB heap used\n`
+      ` ${used.toFixed(0)} MB heap used\n`
     );
 
     timer = setTimeout(report, 5000);
@@ -50,7 +50,7 @@ export async function processAllStorage(
       prefixes.map(async (prefix) =>
         limiter.schedule(async () => {
           let startKey: string | undefined = undefined;
-          loop: for (;;) {
+          loop: for (; ;) {
             // @ts-expect-error _rpcCore is not yet exposed
             const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [
               prefix,
@@ -96,3 +96,36 @@ export async function processAllStorage(
 
   await limiter.disconnect();
 }
+
+export async function getStartingKeySample(api: ApiPromise, prefix: string, blockHash: string) {
+  // @ts-expect-error _rpcCore is not yet exposed
+  const res: string = await api._rpcCore.provider.send("state_getKeysPaged", [
+    prefix,
+    1,
+    "",
+    blockHash,
+  ]);
+
+  return res[0];
+}
+
+export const extractStorageKeyComponents = (storageKey: string) => {
+  // The full storage key is composed of
+  // - The 0x prefix (2 characters)
+  // - The module prefix (32 characters)
+  // - The method name (32 characters)
+  // - The parameters (variable length)
+  const regex = /(?<moduleKey>0x[a-f0-9]{32})(?<fnKey>[a-f0-9]{32})(?<paramsKey>[a-f0-9]*)/i;
+  const match = regex.exec(storageKey);
+
+  if (!match) {
+    throw new Error("Invalid storage key format");
+  }
+
+  const { moduleKey, fnKey, paramsKey } = match.groups!;
+  return {
+    moduleKey,
+    fnKey,
+    paramsKey,
+  };
+};
