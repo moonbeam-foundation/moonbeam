@@ -2,7 +2,7 @@
 #
 # Requires to run from repository root and to copy the binary in the build folder (part of the release workflow)
 
-FROM docker.io/library/ubuntu:20.04 AS builder
+FROM debian:stable AS builder
 
 # Branch or tag to build moonbeam from
 ARG COMMIT="master"
@@ -24,16 +24,29 @@ ENV PATH="/root/.cargo/bin:$PATH"
 RUN rustup default stable
 # rustup version are pinned in the rust-toolchain file
 
-RUN echo "*** Cloning Moonbeam ***"
-RUN git clone --depth=1 --branch $COMMIT https://github.com/purestake/moonbeam.git
+# Clone the Moonbeam repository
+RUN echo "*** Cloning Moonbeam ***" && \
+	if git ls-remote --heads https://github.com/moonbeam-foundation/moonbeam.git $COMMIT | grep -q $COMMIT; then \
+	echo "Cloning branch $COMMIT"; \
+	git clone --depth=1 --branch $COMMIT https://github.com/moonbeam-foundation/moonbeam.git; \
+	else \
+	echo "Cloning specific commit $COMMIT"; \
+	git clone --depth=1 https://github.com/moonbeam-foundation/moonbeam.git && \
+	cd moonbeam && \
+	git fetch --depth=1 origin $COMMIT && \
+	git checkout $COMMIT; \
+	fi
 
 WORKDIR /moonbeam/moonbeam
+
+# Print target cpu
+RUN rustc --print target-cpus
 
 RUN echo "*** Building Moonbeam ***"
 RUN cargo build --profile=production --all
 
-FROM debian:bookworm-slim
-LABEL maintainer "alan@purestake.com"
+FROM debian:stable-slim
+LABEL maintainer="alan@moonsonglabs.com"
 LABEL description="Binary for Moonbeam Nodes"
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbeam moonbeam && \

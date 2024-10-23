@@ -6,6 +6,8 @@ on:
 jobs:
   enforce-noteworthiness-label:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: yogevbd/enforce-label-action@2.2.2
         with:
@@ -21,6 +23,8 @@ jobs:
           BANNED_LABELS: ""
   enforce-auditability-label:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: yogevbd/enforce-label-action@2.2.2
         with:

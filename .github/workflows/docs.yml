@@ -9,7 +9,8 @@ jobs:
   deploy-docs:
     name: Deploy docs
     runs-on: bare-metal
-
+    permissions:
+      contents: read
     steps:
       # The protobuf compiler should be pre-installed on bare-metal
       #- name: Install tooling
