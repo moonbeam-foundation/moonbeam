@@ -321,8 +321,14 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = moonriver_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
+#[cfg(not(feature = "runtime-benchmarks"))]
 parameter_types! {
 	pub const ExistentialDeposit: Balance = 0;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+parameter_types! {
+	pub const ExistentialDeposit: Balance = 1;
 }
 
 impl pallet_balances::Config for Runtime {
