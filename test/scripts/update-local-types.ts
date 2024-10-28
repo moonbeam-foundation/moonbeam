@@ -3,6 +3,7 @@ import { promisify } from "util";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { readFileSync, writeFileSync } from "fs";
+import { start } from "repl";
 
 const execAsync = promisify(exec);
 
@@ -47,14 +48,14 @@ const checkBinary = async () => {
   }
 };
 
-const startNode = (network: string, port: string) => {
+const startNode = (network: string, rpcPort: string, port: string) => {
   console.log(`Starting ${network.toUpperCase()} node at port `, port);
   const node = spawn(
     "../target/release/moonbeam",
     [
       `--alice`,
-      `--chain=${network}-local`,
-      `--rpc-port=${port}`,
+      `--chain=${network}`,
+      `--rpc-port=${rpcPort}`,
       `--no-hardware-benchmarks`,
       `--unsafe-force-node-key-generation`,
       `--wasm-execution=interpreted-i-know-what-i-do`,
@@ -64,7 +65,7 @@ const startNode = (network: string, port: string) => {
     ],
     {
       detached: true,
-      stdio: "ignore",
+      stdio: "inherit",
     }
   );
   return node;
@@ -85,7 +86,16 @@ const scrapeMetadata = async (network: string, port: string) => {
   });
 
   const metadataJson = await metadata.json();
-  writeFile(`../../typescript-api`, `metadata-${network}.json`, JSON.stringify(metadataJson));
+  writeFile(`../../typescript-api`, `metadata-${network.replace("-local", "")}.json`, JSON.stringify(metadataJson));
+};
+
+const extractMetadata = async (network: string, rpcPort: string, port: string,) => {
+  const node = startNode(network, rpcPort, port);
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+  await scrapeMetadata(network, rpcPort);
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+  console.log(`Metadata for ${network} saved ✅`);
+  node.kill();
 };
 
 const executeUpdateAPIScript = async () => {
@@ -98,15 +108,10 @@ const executeUpdateAPIScript = async () => {
 
   // Generate types
   console.log("Extracting metadata for all runtimes...");
-  const networks = ["moonbase", "moonriver", "moonbeam"];
-  const port = "9933";
-  for (const network of networks) {
-    const node = startNode(network, port);
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-    await scrapeMetadata(network, port);
-    node.kill();
-    console.log(`Metadata for ${network} saved ✅`);
-  }
+  await extractMetadata("moonbase-local", "9933", "30333");
+  await executeScript("../../typescript-api", "pnpm load:meta:moonriver");
+  await executeScript("../../typescript-api", "pnpm load:meta:moonbeam");
+
 
   // Generate meta & defs
   await executeScript("../../typescript-api", "pnpm generate:defs");
@@ -125,3 +130,4 @@ const executeUpdateAPIScript = async () => {
 };
 
 executeUpdateAPIScript();
+
