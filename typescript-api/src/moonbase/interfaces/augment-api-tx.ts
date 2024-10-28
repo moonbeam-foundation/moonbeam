@@ -44,13 +44,12 @@ import type {
   EthereumTransactionTransactionV2,
   FrameSupportPreimagesBounded,
   FrameSupportScheduleDispatchTime,
-  MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
-  MoonriverRuntimeOriginCaller,
-  MoonriverRuntimeProxyType,
-  MoonriverRuntimeRuntimeParamsRuntimeParameters,
-  MoonriverRuntimeXcmConfigAssetType,
-  MoonriverRuntimeXcmConfigCurrencyId,
-  MoonriverRuntimeXcmConfigTransactors,
+  MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
+  MoonbaseRuntimeOriginCaller,
+  MoonbaseRuntimeProxyType,
+  MoonbaseRuntimeRuntimeParamsRuntimeParameters,
+  MoonbaseRuntimeXcmConfigAssetType,
+  MoonbaseRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletBalancesAdjustmentDirection,
   PalletConvictionVotingConviction,
@@ -69,7 +68,6 @@ import type {
   XcmPrimitivesEthereumXcmEthereumXcmTransaction,
   XcmV3OriginKind,
   XcmV3WeightLimit,
-  XcmVersionedAsset,
   XcmVersionedAssetId,
   XcmVersionedAssets,
   XcmVersionedLocation,
@@ -91,10 +89,10 @@ declare module "@polkadot/api-base/types/submittable" {
       changeExistingAssetType: AugmentedSubmittable<
         (
           assetId: u128 | AnyNumber | Uint8Array,
-          newAssetType: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
+          newAssetType: MoonbaseRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
           numAssetsWeightHint: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [u128, MoonriverRuntimeXcmConfigAssetType, u32]
+        [u128, MoonbaseRuntimeXcmConfigAssetType, u32]
       >;
       /**
        * Destroy a given foreign assetId The weight in this case is the one returned by the trait
@@ -110,9 +108,9 @@ declare module "@polkadot/api-base/types/submittable" {
       /** Register new asset with the asset manager */
       registerForeignAsset: AugmentedSubmittable<
         (
-          asset: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
+          asset: MoonbaseRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
           metadata:
-            | MoonriverRuntimeAssetConfigAssetRegistrarMetadata
+            | MoonbaseRuntimeAssetConfigAssetRegistrarMetadata
             | { name?: any; symbol?: any; decimals?: any; isFrozen?: any }
             | string
             | Uint8Array,
@@ -120,8 +118,8 @@ declare module "@polkadot/api-base/types/submittable" {
           isSufficient: bool | boolean | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
-          MoonriverRuntimeXcmConfigAssetType,
-          MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
+          MoonbaseRuntimeXcmConfigAssetType,
+          MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
           u128,
           bool
         ]
@@ -2707,13 +2705,13 @@ declare module "@polkadot/api-base/types/submittable" {
       setParameter: AugmentedSubmittable<
         (
           keyValue:
-            | MoonriverRuntimeRuntimeParamsRuntimeParameters
+            | MoonbaseRuntimeRuntimeParamsRuntimeParameters
             | { RuntimeConfig: any }
             | { PalletRandomness: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeRuntimeParamsRuntimeParameters]
+        [MoonbaseRuntimeRuntimeParamsRuntimeParameters]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -3309,7 +3307,7 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           delegate: AccountId20 | string | Uint8Array,
           proxyType:
-            | MoonriverRuntimeProxyType
+            | MoonbaseRuntimeProxyType
             | "Any"
             | "NonTransfer"
             | "Governance"
@@ -3322,7 +3320,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | Uint8Array,
           delay: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, MoonriverRuntimeProxyType, u32]
+        [AccountId20, MoonbaseRuntimeProxyType, u32]
       >;
       /**
        * Publish the hash of a proxy-call that will be made in the future.
@@ -3371,7 +3369,7 @@ declare module "@polkadot/api-base/types/submittable" {
       createPure: AugmentedSubmittable<
         (
           proxyType:
-            | MoonriverRuntimeProxyType
+            | MoonbaseRuntimeProxyType
             | "Any"
             | "NonTransfer"
             | "Governance"
@@ -3385,7 +3383,7 @@ declare module "@polkadot/api-base/types/submittable" {
           delay: u32 | AnyNumber | Uint8Array,
           index: u16 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeProxyType, u32, u16]
+        [MoonbaseRuntimeProxyType, u32, u16]
       >;
       /**
        * Removes a previously spawned pure proxy.
@@ -3408,7 +3406,7 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           spawner: AccountId20 | string | Uint8Array,
           proxyType:
-            | MoonriverRuntimeProxyType
+            | MoonbaseRuntimeProxyType
             | "Any"
             | "NonTransfer"
             | "Governance"
@@ -3423,7 +3421,7 @@ declare module "@polkadot/api-base/types/submittable" {
           height: Compact<u32> | AnyNumber | Uint8Array,
           extIndex: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, MoonriverRuntimeProxyType, u16, Compact<u32>, Compact<u32>]
+        [AccountId20, MoonbaseRuntimeProxyType, u16, Compact<u32>, Compact<u32>]
       >;
       /**
        * Dispatch the given `call` from an account that the sender is authorised for through `add_proxy`.
@@ -3440,10 +3438,10 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           real: AccountId20 | string | Uint8Array,
           forceProxyType:
-            | Option<MoonriverRuntimeProxyType>
+            | Option<MoonbaseRuntimeProxyType>
             | null
             | Uint8Array
-            | MoonriverRuntimeProxyType
+            | MoonbaseRuntimeProxyType
             | "Any"
             | "NonTransfer"
             | "Governance"
@@ -3455,7 +3453,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | number,
           call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, Option<MoonriverRuntimeProxyType>, Call]
+        [AccountId20, Option<MoonbaseRuntimeProxyType>, Call]
       >;
       /**
        * Dispatch the given `call` from an account that the sender is authorized for through `add_proxy`.
@@ -3475,10 +3473,10 @@ declare module "@polkadot/api-base/types/submittable" {
           delegate: AccountId20 | string | Uint8Array,
           real: AccountId20 | string | Uint8Array,
           forceProxyType:
-            | Option<MoonriverRuntimeProxyType>
+            | Option<MoonbaseRuntimeProxyType>
             | null
             | Uint8Array
-            | MoonriverRuntimeProxyType
+            | MoonbaseRuntimeProxyType
             | "Any"
             | "NonTransfer"
             | "Governance"
@@ -3490,7 +3488,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | number,
           call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, AccountId20, Option<MoonriverRuntimeProxyType>, Call]
+        [AccountId20, AccountId20, Option<MoonbaseRuntimeProxyType>, Call]
       >;
       /**
        * Remove the given announcement of a delegate.
@@ -3554,7 +3552,7 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           delegate: AccountId20 | string | Uint8Array,
           proxyType:
-            | MoonriverRuntimeProxyType
+            | MoonbaseRuntimeProxyType
             | "Any"
             | "NonTransfer"
             | "Governance"
@@ -3567,7 +3565,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | Uint8Array,
           delay: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, MoonriverRuntimeProxyType, u32]
+        [AccountId20, MoonbaseRuntimeProxyType, u32]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -3696,16 +3694,16 @@ declare module "@polkadot/api-base/types/submittable" {
       submit: AugmentedSubmittable<
         (
           proposalOrigin:
-            | MoonriverRuntimeOriginCaller
+            | MoonbaseRuntimeOriginCaller
             | { system: any }
             | { Void: any }
             | { Ethereum: any }
-            | { Origins: any }
-            | { TreasuryCouncilCollective: any }
-            | { OpenTechCommitteeCollective: any }
             | { CumulusXcm: any }
             | { PolkadotXcm: any }
             | { EthereumXcm: any }
+            | { TreasuryCouncilCollective: any }
+            | { Origins: any }
+            | { OpenTechCommitteeCollective: any }
             | string
             | Uint8Array,
           proposal:
@@ -3723,7 +3721,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
-          MoonriverRuntimeOriginCaller,
+          MoonbaseRuntimeOriginCaller,
           FrameSupportPreimagesBounded,
           FrameSupportScheduleDispatchTime
         ]
@@ -3868,6 +3866,52 @@ declare module "@polkadot/api-base/types/submittable" {
           period: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [U8aFixed, u8, u32]
+      >;
+      /** Generic tx */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    sudo: {
+      /**
+       * Permanently removes the sudo key.
+       *
+       * **This cannot be un-done.**
+       */
+      removeKey: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /** Authenticates the current sudo key and sets the given AccountId (`new`) as the new sudo key. */
+      setKey: AugmentedSubmittable<
+        (updated: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [AccountId20]
+      >;
+      /** Authenticates the sudo key and dispatches a function call with `Root` origin. */
+      sudo: AugmentedSubmittable<
+        (call: Call | IMethod | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Call]
+      >;
+      /**
+       * Authenticates the sudo key and dispatches a function call with `Signed` origin from a given account.
+       *
+       * The dispatch origin for this call must be _Signed_.
+       */
+      sudoAs: AugmentedSubmittable<
+        (
+          who: AccountId20 | string | Uint8Array,
+          call: Call | IMethod | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [AccountId20, Call]
+      >;
+      /**
+       * Authenticates the sudo key and dispatches a function call with `Root` origin. This function
+       * does not check the weight of the call, and instead allows the Sudo user to specify the
+       * weight of the call.
+       *
+       * The dispatch origin for this call must be _Signed_.
+       */
+      sudoUncheckedWeight: AugmentedSubmittable<
+        (
+          call: Call | IMethod | string | Uint8Array,
+          weight: SpWeightsWeightV2Weight | { refTime?: any; proofSize?: any } | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Call, SpWeightsWeightV2Weight]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -4415,21 +4459,21 @@ declare module "@polkadot/api-base/types/submittable" {
       dispatchAs: AugmentedSubmittable<
         (
           asOrigin:
-            | MoonriverRuntimeOriginCaller
+            | MoonbaseRuntimeOriginCaller
             | { system: any }
             | { Void: any }
             | { Ethereum: any }
-            | { Origins: any }
-            | { TreasuryCouncilCollective: any }
-            | { OpenTechCommitteeCollective: any }
             | { CumulusXcm: any }
             | { PolkadotXcm: any }
             | { EthereumXcm: any }
+            | { TreasuryCouncilCollective: any }
+            | { Origins: any }
+            | { OpenTechCommitteeCollective: any }
             | string
             | Uint8Array,
           call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeOriginCaller, Call]
+        [MoonbaseRuntimeOriginCaller, Call]
       >;
       /**
        * Send a batch of dispatch calls. Unlike `batch`, it allows errors and won't interrupt.
@@ -4494,6 +4538,57 @@ declare module "@polkadot/api-base/types/submittable" {
       whitelistCall: AugmentedSubmittable<
         (callHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [H256]
+      >;
+      /** Generic tx */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    xcmpQueue: {
+      /**
+       * Resumes all XCM executions for the XCMP queue.
+       *
+       * Note that this function doesn't change the status of the in/out bound channels.
+       *
+       * - `origin`: Must pass `ControllerOrigin`.
+       */
+      resumeXcmExecution: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /**
+       * Suspends all XCM executions for the XCMP queue, regardless of the sender's origin.
+       *
+       * - `origin`: Must pass `ControllerOrigin`.
+       */
+      suspendXcmExecution: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /**
+       * Overwrites the number of pages which must be in the queue after which we drop any further
+       * messages from the channel.
+       *
+       * - `origin`: Must pass `Root`.
+       * - `new`: Desired value for `QueueConfigData.drop_threshold`
+       */
+      updateDropThreshold: AugmentedSubmittable<
+        (updated: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [u32]
+      >;
+      /**
+       * Overwrites the number of pages which the queue must be reduced to before it signals that
+       * message sending may recommence after it has been suspended.
+       *
+       * - `origin`: Must pass `Root`.
+       * - `new`: Desired value for `QueueConfigData.resume_threshold`
+       */
+      updateResumeThreshold: AugmentedSubmittable<
+        (updated: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [u32]
+      >;
+      /**
+       * Overwrites the number of pages which must be in the queue for the other side to be told to
+       * suspend their sending.
+       *
+       * - `origin`: Must pass `Root`.
+       * - `new`: Desired value for `QueueConfigData.suspend_value`
+       */
+      updateSuspendThreshold: AugmentedSubmittable<
+        (updated: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [u32]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -4635,7 +4730,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       transactThroughDerivative: AugmentedSubmittable<
         (
-          dest: MoonriverRuntimeXcmConfigTransactors | "Relay" | number | Uint8Array,
+          dest: MoonbaseRuntimeXcmConfigTransactors | "Relay" | number | Uint8Array,
           index: u16 | AnyNumber | Uint8Array,
           fee:
             | PalletXcmTransactorCurrencyPayment
@@ -4651,7 +4746,7 @@ declare module "@polkadot/api-base/types/submittable" {
           refund: bool | boolean | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
-          MoonriverRuntimeXcmConfigTransactors,
+          MoonbaseRuntimeXcmConfigTransactors,
           u16,
           PalletXcmTransactorCurrencyPayment,
           Bytes,
@@ -4777,254 +4872,6 @@ declare module "@polkadot/api-base/types/submittable" {
           location: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [StagingXcmV4Location]
-      >;
-      /** Generic tx */
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
-    xTokens: {
-      /**
-       * Transfer native currencies.
-       *
-       * `dest_weight_limit` is the weight for XCM execution on the dest chain, and it would be
-       * charged from the transferred assets. If set below requirements, the execution may fail and
-       * assets wouldn't be received.
-       *
-       * It's a no-op if any error on local XCM execution or message sending. Note sending assets
-       * out per se doesn't guarantee they would be received. Receiving depends on if the XCM
-       * message could be delivered by the network, and if the receiving chain would handle messages
-       * correctly.
-       */
-      transfer: AugmentedSubmittable<
-        (
-          currencyId:
-            | MoonriverRuntimeXcmConfigCurrencyId
-            | { SelfReserve: any }
-            | { ForeignAsset: any }
-            | { Erc20: any }
-            | string
-            | Uint8Array,
-          amount: u128 | AnyNumber | Uint8Array,
-          dest:
-            | XcmVersionedLocation
-            | { V2: any }
-            | { V3: any }
-            | { V4: any }
-            | string
-            | Uint8Array,
-          destWeightLimit:
-            | XcmV3WeightLimit
-            | { Unlimited: any }
-            | { Limited: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeXcmConfigCurrencyId, u128, XcmVersionedLocation, XcmV3WeightLimit]
-      >;
-      /**
-       * Transfer `Asset`.
-       *
-       * `dest_weight_limit` is the weight for XCM execution on the dest chain, and it would be
-       * charged from the transferred assets. If set below requirements, the execution may fail and
-       * assets wouldn't be received.
-       *
-       * It's a no-op if any error on local XCM execution or message sending. Note sending assets
-       * out per se doesn't guarantee they would be received. Receiving depends on if the XCM
-       * message could be delivered by the network, and if the receiving chain would handle messages
-       * correctly.
-       */
-      transferMultiasset: AugmentedSubmittable<
-        (
-          asset: XcmVersionedAsset | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array,
-          dest:
-            | XcmVersionedLocation
-            | { V2: any }
-            | { V3: any }
-            | { V4: any }
-            | string
-            | Uint8Array,
-          destWeightLimit:
-            | XcmV3WeightLimit
-            | { Unlimited: any }
-            | { Limited: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedAsset, XcmVersionedLocation, XcmV3WeightLimit]
-      >;
-      /**
-       * Transfer several `Asset` specifying the item to be used as fee
-       *
-       * `dest_weight_limit` is the weight for XCM execution on the dest chain, and it would be
-       * charged from the transferred assets. If set below requirements, the execution may fail and
-       * assets wouldn't be received.
-       *
-       * `fee_item` is index of the Assets that we want to use for payment
-       *
-       * It's a no-op if any error on local XCM execution or message sending. Note sending assets
-       * out per se doesn't guarantee they would be received. Receiving depends on if the XCM
-       * message could be delivered by the network, and if the receiving chain would handle messages
-       * correctly.
-       */
-      transferMultiassets: AugmentedSubmittable<
-        (
-          assets:
-            | XcmVersionedAssets
-            | { V2: any }
-            | { V3: any }
-            | { V4: any }
-            | string
-            | Uint8Array,
-          feeItem: u32 | AnyNumber | Uint8Array,
-          dest:
-            | XcmVersionedLocation
-            | { V2: any }
-            | { V3: any }
-            | { V4: any }
-            | string
-            | Uint8Array,
-          destWeightLimit:
-            | XcmV3WeightLimit
-            | { Unlimited: any }
-            | { Limited: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedAssets, u32, XcmVersionedLocation, XcmV3WeightLimit]
-      >;
-      /**
-       * Transfer `Asset` specifying the fee and amount as separate.
-       *
-       * `dest_weight_limit` is the weight for XCM execution on the dest chain, and it would be
-       * charged from the transferred assets. If set below requirements, the execution may fail and
-       * assets wouldn't be received.
-       *
-       * `fee` is the Asset to be spent to pay for execution in destination chain. Both fee and
-       * amount will be subtracted form the callers balance For now we only accept fee and asset
-       * having the same `Location` id.
-       *
-       * If `fee` is not high enough to cover for the execution costs in the destination chain, then
-       * the assets will be trapped in the destination chain
-       *
-       * It's a no-op if any error on local XCM execution or message sending. Note sending assets
-       * out per se doesn't guarantee they would be received. Receiving depends on if the XCM
-       * message could be delivered by the network, and if the receiving chain would handle messages
-       * correctly.
-       */
-      transferMultiassetWithFee: AugmentedSubmittable<
-        (
-          asset: XcmVersionedAsset | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array,
-          fee: XcmVersionedAsset | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array,
-          dest:
-            | XcmVersionedLocation
-            | { V2: any }
-            | { V3: any }
-            | { V4: any }
-            | string
-            | Uint8Array,
-          destWeightLimit:
-            | XcmV3WeightLimit
-            | { Unlimited: any }
-            | { Limited: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedAsset, XcmVersionedAsset, XcmVersionedLocation, XcmV3WeightLimit]
-      >;
-      /**
-       * Transfer several currencies specifying the item to be used as fee
-       *
-       * `dest_weight_limit` is the weight for XCM execution on the dest chain, and it would be
-       * charged from the transferred assets. If set below requirements, the execution may fail and
-       * assets wouldn't be received.
-       *
-       * `fee_item` is index of the currencies tuple that we want to use for payment
-       *
-       * It's a no-op if any error on local XCM execution or message sending. Note sending assets
-       * out per se doesn't guarantee they would be received. Receiving depends on if the XCM
-       * message could be delivered by the network, and if the receiving chain would handle messages
-       * correctly.
-       */
-      transferMulticurrencies: AugmentedSubmittable<
-        (
-          currencies:
-            | Vec<ITuple<[MoonriverRuntimeXcmConfigCurrencyId, u128]>>
-            | [
-                (
-                  | MoonriverRuntimeXcmConfigCurrencyId
-                  | { SelfReserve: any }
-                  | { ForeignAsset: any }
-                  | { Erc20: any }
-                  | string
-                  | Uint8Array
-                ),
-                u128 | AnyNumber | Uint8Array
-              ][],
-          feeItem: u32 | AnyNumber | Uint8Array,
-          dest:
-            | XcmVersionedLocation
-            | { V2: any }
-            | { V3: any }
-            | { V4: any }
-            | string
-            | Uint8Array,
-          destWeightLimit:
-            | XcmV3WeightLimit
-            | { Unlimited: any }
-            | { Limited: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [
-          Vec<ITuple<[MoonriverRuntimeXcmConfigCurrencyId, u128]>>,
-          u32,
-          XcmVersionedLocation,
-          XcmV3WeightLimit
-        ]
-      >;
-      /**
-       * Transfer native currencies specifying the fee and amount as separate.
-       *
-       * `dest_weight_limit` is the weight for XCM execution on the dest chain, and it would be
-       * charged from the transferred assets. If set below requirements, the execution may fail and
-       * assets wouldn't be received.
-       *
-       * `fee` is the amount to be spent to pay for execution in destination chain. Both fee and
-       * amount will be subtracted form the callers balance.
-       *
-       * If `fee` is not high enough to cover for the execution costs in the destination chain, then
-       * the assets will be trapped in the destination chain
-       *
-       * It's a no-op if any error on local XCM execution or message sending. Note sending assets
-       * out per se doesn't guarantee they would be received. Receiving depends on if the XCM
-       * message could be delivered by the network, and if the receiving chain would handle messages
-       * correctly.
-       */
-      transferWithFee: AugmentedSubmittable<
-        (
-          currencyId:
-            | MoonriverRuntimeXcmConfigCurrencyId
-            | { SelfReserve: any }
-            | { ForeignAsset: any }
-            | { Erc20: any }
-            | string
-            | Uint8Array,
-          amount: u128 | AnyNumber | Uint8Array,
-          fee: u128 | AnyNumber | Uint8Array,
-          dest:
-            | XcmVersionedLocation
-            | { V2: any }
-            | { V3: any }
-            | { V4: any }
-            | string
-            | Uint8Array,
-          destWeightLimit:
-            | XcmV3WeightLimit
-            | { Unlimited: any }
-            | { Limited: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeXcmConfigCurrencyId, u128, u128, XcmVersionedLocation, XcmV3WeightLimit]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;

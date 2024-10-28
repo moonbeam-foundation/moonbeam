@@ -44,13 +44,12 @@ import type {
   EthereumTransactionTransactionV2,
   FrameSupportPreimagesBounded,
   FrameSupportScheduleDispatchTime,
-  MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
-  MoonriverRuntimeOriginCaller,
-  MoonriverRuntimeProxyType,
-  MoonriverRuntimeRuntimeParamsRuntimeParameters,
-  MoonriverRuntimeXcmConfigAssetType,
-  MoonriverRuntimeXcmConfigCurrencyId,
-  MoonriverRuntimeXcmConfigTransactors,
+  MoonbeamRuntimeAssetConfigAssetRegistrarMetadata,
+  MoonbeamRuntimeOriginCaller,
+  MoonbeamRuntimeProxyType,
+  MoonbeamRuntimeXcmConfigAssetType,
+  MoonbeamRuntimeXcmConfigCurrencyId,
+  MoonbeamRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletBalancesAdjustmentDirection,
   PalletConvictionVotingConviction,
@@ -58,7 +57,6 @@ import type {
   PalletIdentityJudgement,
   PalletIdentityLegacyIdentityInfo,
   PalletMultisigTimepoint,
-  PalletParachainStakingInflationDistributionConfig,
   PalletXcmTransactorCurrencyPayment,
   PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorTransactWeights,
@@ -67,7 +65,7 @@ import type {
   StagingXcmExecutorAssetTransferTransferType,
   StagingXcmV4Location,
   XcmPrimitivesEthereumXcmEthereumXcmTransaction,
-  XcmV3OriginKind,
+  XcmV2OriginKind,
   XcmV3WeightLimit,
   XcmVersionedAsset,
   XcmVersionedAssetId,
@@ -91,10 +89,10 @@ declare module "@polkadot/api-base/types/submittable" {
       changeExistingAssetType: AugmentedSubmittable<
         (
           assetId: u128 | AnyNumber | Uint8Array,
-          newAssetType: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
+          newAssetType: MoonbeamRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
           numAssetsWeightHint: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [u128, MoonriverRuntimeXcmConfigAssetType, u32]
+        [u128, MoonbeamRuntimeXcmConfigAssetType, u32]
       >;
       /**
        * Destroy a given foreign assetId The weight in this case is the one returned by the trait
@@ -110,9 +108,9 @@ declare module "@polkadot/api-base/types/submittable" {
       /** Register new asset with the asset manager */
       registerForeignAsset: AugmentedSubmittable<
         (
-          asset: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
+          asset: MoonbeamRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
           metadata:
-            | MoonriverRuntimeAssetConfigAssetRegistrarMetadata
+            | MoonbeamRuntimeAssetConfigAssetRegistrarMetadata
             | { name?: any; symbol?: any; decimals?: any; isFrozen?: any }
             | string
             | Uint8Array,
@@ -120,8 +118,8 @@ declare module "@polkadot/api-base/types/submittable" {
           isSufficient: bool | boolean | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
-          MoonriverRuntimeXcmConfigAssetType,
-          MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
+          MoonbeamRuntimeXcmConfigAssetType,
+          MoonbeamRuntimeAssetConfigAssetRegistrarMetadata,
           u128,
           bool
         ]
@@ -259,7 +257,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * Parameters:
        *
        * - `id`: The identifier of the new asset. This must not be currently in use to identify an
-       *   existing asset. If [`NextAssetId`] is set, then this must be equal to it.
+       *   existing asset.
        * - `admin`: The admin of this class of assets. The admin is the initial address of each member
        *   of the asset class's admin team.
        * - `min_balance`: The minimum balance of this new asset that any single account must have. If
@@ -419,7 +417,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * Unlike `create`, no funds are reserved.
        *
        * - `id`: The identifier of the new asset. This must not be currently in use to identify an
-       *   existing asset. If [`NextAssetId`] is set, then this must be equal to it.
+       *   existing asset.
        * - `owner`: The owner of this class of assets. The owner has full superuser permissions over
        *   this asset, but may later change and configure the permissions using `transfer_ownership`
        *   and `set_team`.
@@ -917,22 +915,6 @@ declare module "@polkadot/api-base/types/submittable" {
     };
     balances: {
       /**
-       * Burn the specified liquid free balance from the origin account.
-       *
-       * If the origin's account ends up below the existential deposit as a result of the burn and
-       * `keep_alive` is false, the account will be reaped.
-       *
-       * Unlike sending funds to a _burn_ address, which merely makes the funds inaccessible, this
-       * `burn` operation will reduce total issuance by the amount _burned_.
-       */
-      burn: AugmentedSubmittable<
-        (
-          value: Compact<u128> | AnyNumber | Uint8Array,
-          keepAlive: bool | boolean | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u128>, bool]
-      >;
-      /**
        * Adjust the total issuance in a saturating way.
        *
        * Can only be called by root and always needs a positive `delta`.
@@ -1310,6 +1292,10 @@ declare module "@polkadot/api-base/types/submittable" {
         (newRewardAccount: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [AccountId20]
       >;
+      /** Generic tx */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    dmpQueue: {
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
@@ -2571,27 +2557,12 @@ declare module "@polkadot/api-base/types/submittable" {
           } & Struct
         ]
       >;
-      /** Set the inflation distribution configuration. */
-      setInflationDistributionConfig: AugmentedSubmittable<
-        (
-          updated: PalletParachainStakingInflationDistributionConfig
-        ) => SubmittableExtrinsic<ApiType>,
-        [PalletParachainStakingInflationDistributionConfig]
-      >;
-      /**
-       * Deprecated: please use `set_inflation_distribution_config` instead.
-       *
-       * Set the account that will hold funds set aside for parachain bond
-       */
+      /** Set the account that will hold funds set aside for parachain bond */
       setParachainBondAccount: AugmentedSubmittable<
         (updated: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [AccountId20]
       >;
-      /**
-       * Deprecated: please use `set_inflation_distribution_config` instead.
-       *
-       * Set the percent of inflation set aside for parachain bond
-       */
+      /** Set the percent of inflation set aside for parachain bond */
       setParachainBondReservePercent: AugmentedSubmittable<
         (updated: Percent | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Percent]
@@ -2693,27 +2664,6 @@ declare module "@polkadot/api-base/types/submittable" {
       sudoSendUpwardMessage: AugmentedSubmittable<
         (message: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Bytes]
-      >;
-      /** Generic tx */
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
-    parameters: {
-      /**
-       * Set the value of a parameter.
-       *
-       * The dispatch origin of this call must be `AdminOrigin` for the given `key`. Values be
-       * deleted by setting them to `None`.
-       */
-      setParameter: AugmentedSubmittable<
-        (
-          keyValue:
-            | MoonriverRuntimeRuntimeParamsRuntimeParameters
-            | { RuntimeConfig: any }
-            | { PalletRandomness: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeRuntimeParamsRuntimeParameters]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -3173,7 +3123,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * - `assets`: The assets to be withdrawn. This should include the assets used to pay the fee on
        *   the `dest` (and possibly reserve) chains.
        * - `assets_transfer_type`: The XCM `TransferType` used to transfer the `assets`.
-       * - `remote_fees_id`: One of the included `assets` to be used to pay fees.
+       * - `remote_fees_id`: One of the included `assets` to be be used to pay fees.
        * - `fees_transfer_type`: The XCM `TransferType` used to transfer the `fees` assets.
        * - `custom_xcm_on_dest`: The XCM to be executed on `dest` chain as the last step of the
        *   transfer, which also determines what happens to the assets on the destination chain.
@@ -3309,7 +3259,7 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           delegate: AccountId20 | string | Uint8Array,
           proxyType:
-            | MoonriverRuntimeProxyType
+            | MoonbeamRuntimeProxyType
             | "Any"
             | "NonTransfer"
             | "Governance"
@@ -3322,7 +3272,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | Uint8Array,
           delay: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, MoonriverRuntimeProxyType, u32]
+        [AccountId20, MoonbeamRuntimeProxyType, u32]
       >;
       /**
        * Publish the hash of a proxy-call that will be made in the future.
@@ -3371,7 +3321,7 @@ declare module "@polkadot/api-base/types/submittable" {
       createPure: AugmentedSubmittable<
         (
           proxyType:
-            | MoonriverRuntimeProxyType
+            | MoonbeamRuntimeProxyType
             | "Any"
             | "NonTransfer"
             | "Governance"
@@ -3385,7 +3335,7 @@ declare module "@polkadot/api-base/types/submittable" {
           delay: u32 | AnyNumber | Uint8Array,
           index: u16 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeProxyType, u32, u16]
+        [MoonbeamRuntimeProxyType, u32, u16]
       >;
       /**
        * Removes a previously spawned pure proxy.
@@ -3408,7 +3358,7 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           spawner: AccountId20 | string | Uint8Array,
           proxyType:
-            | MoonriverRuntimeProxyType
+            | MoonbeamRuntimeProxyType
             | "Any"
             | "NonTransfer"
             | "Governance"
@@ -3423,7 +3373,7 @@ declare module "@polkadot/api-base/types/submittable" {
           height: Compact<u32> | AnyNumber | Uint8Array,
           extIndex: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, MoonriverRuntimeProxyType, u16, Compact<u32>, Compact<u32>]
+        [AccountId20, MoonbeamRuntimeProxyType, u16, Compact<u32>, Compact<u32>]
       >;
       /**
        * Dispatch the given `call` from an account that the sender is authorised for through `add_proxy`.
@@ -3440,10 +3390,10 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           real: AccountId20 | string | Uint8Array,
           forceProxyType:
-            | Option<MoonriverRuntimeProxyType>
+            | Option<MoonbeamRuntimeProxyType>
             | null
             | Uint8Array
-            | MoonriverRuntimeProxyType
+            | MoonbeamRuntimeProxyType
             | "Any"
             | "NonTransfer"
             | "Governance"
@@ -3455,7 +3405,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | number,
           call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, Option<MoonriverRuntimeProxyType>, Call]
+        [AccountId20, Option<MoonbeamRuntimeProxyType>, Call]
       >;
       /**
        * Dispatch the given `call` from an account that the sender is authorized for through `add_proxy`.
@@ -3475,10 +3425,10 @@ declare module "@polkadot/api-base/types/submittable" {
           delegate: AccountId20 | string | Uint8Array,
           real: AccountId20 | string | Uint8Array,
           forceProxyType:
-            | Option<MoonriverRuntimeProxyType>
+            | Option<MoonbeamRuntimeProxyType>
             | null
             | Uint8Array
-            | MoonriverRuntimeProxyType
+            | MoonbeamRuntimeProxyType
             | "Any"
             | "NonTransfer"
             | "Governance"
@@ -3490,7 +3440,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | number,
           call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, AccountId20, Option<MoonriverRuntimeProxyType>, Call]
+        [AccountId20, AccountId20, Option<MoonbeamRuntimeProxyType>, Call]
       >;
       /**
        * Remove the given announcement of a delegate.
@@ -3554,7 +3504,7 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           delegate: AccountId20 | string | Uint8Array,
           proxyType:
-            | MoonriverRuntimeProxyType
+            | MoonbeamRuntimeProxyType
             | "Any"
             | "NonTransfer"
             | "Governance"
@@ -3567,7 +3517,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | Uint8Array,
           delay: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, MoonriverRuntimeProxyType, u32]
+        [AccountId20, MoonbeamRuntimeProxyType, u32]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -3696,7 +3646,7 @@ declare module "@polkadot/api-base/types/submittable" {
       submit: AugmentedSubmittable<
         (
           proposalOrigin:
-            | MoonriverRuntimeOriginCaller
+            | MoonbeamRuntimeOriginCaller
             | { system: any }
             | { Void: any }
             | { Ethereum: any }
@@ -3723,7 +3673,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
-          MoonriverRuntimeOriginCaller,
+          MoonbeamRuntimeOriginCaller,
           FrameSupportPreimagesBounded,
           FrameSupportScheduleDispatchTime
         ]
@@ -4004,6 +3954,30 @@ declare module "@polkadot/api-base/types/submittable" {
     };
     treasury: {
       /**
+       * Approve a proposal.
+       *
+       * ## Dispatch Origin
+       *
+       * Must be [`Config::ApproveOrigin`].
+       *
+       * ## Details
+       *
+       * At a later time, the proposal will be allocated to the beneficiary and the original deposit
+       * will be returned.
+       *
+       * ### Complexity
+       *
+       * - O(1).
+       *
+       * ## Events
+       *
+       * No events are emitted from this dispatch.
+       */
+      approveProposal: AugmentedSubmittable<
+        (proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u32>]
+      >;
+      /**
        * Check the status of the spend and remove it from the storage if processed.
        *
        * ## Dispatch Origin
@@ -4034,7 +4008,7 @@ declare module "@polkadot/api-base/types/submittable" {
        *
        * ## Dispatch Origin
        *
-       * Must be signed
+       * Must be signed.
        *
        * ## Details
        *
@@ -4054,6 +4028,56 @@ declare module "@polkadot/api-base/types/submittable" {
       payout: AugmentedSubmittable<
         (index: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [u32]
+      >;
+      /**
+       * Put forward a suggestion for spending.
+       *
+       * ## Dispatch Origin
+       *
+       * Must be signed.
+       *
+       * ## Details
+       *
+       * A deposit proportional to the value is reserved and slashed if the proposal is rejected. It
+       * is returned once the proposal is awarded.
+       *
+       * ### Complexity
+       *
+       * - O(1)
+       *
+       * ## Events
+       *
+       * Emits [`Event::Proposed`] if successful.
+       */
+      proposeSpend: AugmentedSubmittable<
+        (
+          value: Compact<u128> | AnyNumber | Uint8Array,
+          beneficiary: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20]
+      >;
+      /**
+       * Reject a proposed spend.
+       *
+       * ## Dispatch Origin
+       *
+       * Must be [`Config::RejectOrigin`].
+       *
+       * ## Details
+       *
+       * The original deposit will be slashed.
+       *
+       * ### Complexity
+       *
+       * - O(1)
+       *
+       * ## Events
+       *
+       * Emits [`Event::Rejected`] if successful.
+       */
+      rejectProposal: AugmentedSubmittable<
+        (proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u32>]
       >;
       /**
        * Force a previously approved proposal to be removed from the approval queue.
@@ -4415,7 +4439,7 @@ declare module "@polkadot/api-base/types/submittable" {
       dispatchAs: AugmentedSubmittable<
         (
           asOrigin:
-            | MoonriverRuntimeOriginCaller
+            | MoonbeamRuntimeOriginCaller
             | { system: any }
             | { Void: any }
             | { Ethereum: any }
@@ -4429,7 +4453,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | Uint8Array,
           call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeOriginCaller, Call]
+        [MoonbeamRuntimeOriginCaller, Call]
       >;
       /**
        * Send a batch of dispatch calls. Unlike `batch`, it allows errors and won't interrupt.
@@ -4635,7 +4659,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       transactThroughDerivative: AugmentedSubmittable<
         (
-          dest: MoonriverRuntimeXcmConfigTransactors | "Relay" | number | Uint8Array,
+          dest: MoonbeamRuntimeXcmConfigTransactors | "Relay" | number | Uint8Array,
           index: u16 | AnyNumber | Uint8Array,
           fee:
             | PalletXcmTransactorCurrencyPayment
@@ -4651,7 +4675,7 @@ declare module "@polkadot/api-base/types/submittable" {
           refund: bool | boolean | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
-          MoonriverRuntimeXcmConfigTransactors,
+          MoonbeamRuntimeXcmConfigTransactors,
           u16,
           PalletXcmTransactorCurrencyPayment,
           Bytes,
@@ -4718,7 +4742,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | Uint8Array,
           call: Bytes | string | Uint8Array,
           originKind:
-            | XcmV3OriginKind
+            | XcmV2OriginKind
             | "Native"
             | "SovereignAccount"
             | "Superuser"
@@ -4737,7 +4761,7 @@ declare module "@polkadot/api-base/types/submittable" {
           Option<AccountId20>,
           PalletXcmTransactorCurrencyPayment,
           Bytes,
-          XcmV3OriginKind,
+          XcmV2OriginKind,
           PalletXcmTransactorTransactWeights,
           bool
         ]
@@ -4797,7 +4821,7 @@ declare module "@polkadot/api-base/types/submittable" {
       transfer: AugmentedSubmittable<
         (
           currencyId:
-            | MoonriverRuntimeXcmConfigCurrencyId
+            | MoonbeamRuntimeXcmConfigCurrencyId
             | { SelfReserve: any }
             | { ForeignAsset: any }
             | { Erc20: any }
@@ -4818,7 +4842,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeXcmConfigCurrencyId, u128, XcmVersionedLocation, XcmV3WeightLimit]
+        [MoonbeamRuntimeXcmConfigCurrencyId, u128, XcmVersionedLocation, XcmV3WeightLimit]
       >;
       /**
        * Transfer `Asset`.
@@ -4947,10 +4971,10 @@ declare module "@polkadot/api-base/types/submittable" {
       transferMulticurrencies: AugmentedSubmittable<
         (
           currencies:
-            | Vec<ITuple<[MoonriverRuntimeXcmConfigCurrencyId, u128]>>
+            | Vec<ITuple<[MoonbeamRuntimeXcmConfigCurrencyId, u128]>>
             | [
                 (
-                  | MoonriverRuntimeXcmConfigCurrencyId
+                  | MoonbeamRuntimeXcmConfigCurrencyId
                   | { SelfReserve: any }
                   | { ForeignAsset: any }
                   | { Erc20: any }
@@ -4975,7 +4999,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
-          Vec<ITuple<[MoonriverRuntimeXcmConfigCurrencyId, u128]>>,
+          Vec<ITuple<[MoonbeamRuntimeXcmConfigCurrencyId, u128]>>,
           u32,
           XcmVersionedLocation,
           XcmV3WeightLimit
@@ -5002,7 +5026,7 @@ declare module "@polkadot/api-base/types/submittable" {
       transferWithFee: AugmentedSubmittable<
         (
           currencyId:
-            | MoonriverRuntimeXcmConfigCurrencyId
+            | MoonbeamRuntimeXcmConfigCurrencyId
             | { SelfReserve: any }
             | { ForeignAsset: any }
             | { Erc20: any }
@@ -5024,7 +5048,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeXcmConfigCurrencyId, u128, u128, XcmVersionedLocation, XcmV3WeightLimit]
+        [MoonbeamRuntimeXcmConfigCurrencyId, u128, u128, XcmVersionedLocation, XcmV3WeightLimit]
       >;
       /** Generic tx */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;

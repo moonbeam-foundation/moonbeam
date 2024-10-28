@@ -6,7 +6,7 @@
 import "@polkadot/api-base/types/consts";
 
 import type { ApiTypes, AugmentedConst } from "@polkadot/api-base/types";
-import type { Bytes, Null, Option, Vec, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
+import type { Bytes, Option, Vec, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
 import type { Codec, ITuple } from "@polkadot/types-codec/types";
 import type { Perbill, Permill } from "@polkadot/types/interfaces/runtime";
 import type {
@@ -496,20 +496,6 @@ declare module "@polkadot/api-base/types/consts" {
     xcmTransactor: {
       /** The actual weight for an XCM message is `T::BaseXcmWeight + T::Weigher::weight(&msg)`. */
       baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
-      /** Self chain location. */
-      selfLocation: StagingXcmV4Location & AugmentedConst<ApiType>;
-      /** Generic const */
-      [key: string]: Codec;
-    };
-    xTokens: {
-      /**
-       * Base XCM weight.
-       *
-       * The actually weight for an XCM message is `T::BaseXcmWeight + T::Weigher::weight(&msg)`.
-       */
-      baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
-      /** The id of the RateLimiter. */
-      rateLimiterId: Null & AugmentedConst<ApiType>;
       /** Self chain location. */
       selfLocation: StagingXcmV4Location & AugmentedConst<ApiType>;
       /** Generic const */

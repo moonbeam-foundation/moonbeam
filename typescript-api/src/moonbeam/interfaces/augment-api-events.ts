@@ -30,17 +30,14 @@ import type {
   FrameSupportMessagesProcessMessageError,
   FrameSupportPreimagesBounded,
   FrameSupportTokensMiscBalanceStatus,
-  MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
-  MoonriverRuntimeProxyType,
-  MoonriverRuntimeRuntimeParamsRuntimeParametersKey,
-  MoonriverRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonriverRuntimeXcmConfigAssetType,
+  MoonbeamRuntimeAssetConfigAssetRegistrarMetadata,
+  MoonbeamRuntimeProxyType,
+  MoonbeamRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletConvictionVotingTally,
   PalletMultisigTimepoint,
   PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
   PalletParachainStakingDelegatorAdded,
-  PalletParachainStakingInflationDistributionConfig,
   PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
@@ -66,42 +63,42 @@ declare module "@polkadot/api-base/types/events" {
       /** Removed all information related to an assetId and destroyed asset */
       ForeignAssetDestroyed: AugmentedEvent<
         ApiType,
-        [assetId: u128, assetType: MoonriverRuntimeXcmConfigAssetType],
-        { assetId: u128; assetType: MoonriverRuntimeXcmConfigAssetType }
+        [assetId: u128, assetType: MoonbeamRuntimeXcmConfigAssetType],
+        { assetId: u128; assetType: MoonbeamRuntimeXcmConfigAssetType }
       >;
       /** New asset with the asset manager is registered */
       ForeignAssetRegistered: AugmentedEvent<
         ApiType,
         [
           assetId: u128,
-          asset: MoonriverRuntimeXcmConfigAssetType,
-          metadata: MoonriverRuntimeAssetConfigAssetRegistrarMetadata
+          asset: MoonbeamRuntimeXcmConfigAssetType,
+          metadata: MoonbeamRuntimeAssetConfigAssetRegistrarMetadata
         ],
         {
           assetId: u128;
-          asset: MoonriverRuntimeXcmConfigAssetType;
-          metadata: MoonriverRuntimeAssetConfigAssetRegistrarMetadata;
+          asset: MoonbeamRuntimeXcmConfigAssetType;
+          metadata: MoonbeamRuntimeAssetConfigAssetRegistrarMetadata;
         }
       >;
       /** Removed all information related to an assetId */
       ForeignAssetRemoved: AugmentedEvent<
         ApiType,
-        [assetId: u128, assetType: MoonriverRuntimeXcmConfigAssetType],
-        { assetId: u128; assetType: MoonriverRuntimeXcmConfigAssetType }
+        [assetId: u128, assetType: MoonbeamRuntimeXcmConfigAssetType],
+        { assetId: u128; assetType: MoonbeamRuntimeXcmConfigAssetType }
       >;
       /** Changed the xcm type mapping for a given asset id */
       ForeignAssetXcmLocationChanged: AugmentedEvent<
         ApiType,
-        [assetId: u128, newAssetType: MoonriverRuntimeXcmConfigAssetType],
-        { assetId: u128; newAssetType: MoonriverRuntimeXcmConfigAssetType }
+        [assetId: u128, newAssetType: MoonbeamRuntimeXcmConfigAssetType],
+        { assetId: u128; newAssetType: MoonbeamRuntimeXcmConfigAssetType }
       >;
       /** Removed all information related to an assetId and destroyed asset */
       LocalAssetDestroyed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
       /** Supported asset type for fee payment removed */
       SupportedAssetRemoved: AugmentedEvent<
         ApiType,
-        [assetType: MoonriverRuntimeXcmConfigAssetType],
-        { assetType: MoonriverRuntimeXcmConfigAssetType }
+        [assetType: MoonbeamRuntimeXcmConfigAssetType],
+        { assetType: MoonbeamRuntimeXcmConfigAssetType }
       >;
       /** Changed the amount of units we are charging per execution second for a given asset */
       UnitsPerSecondChanged: AugmentedEvent<ApiType, []>;
@@ -162,12 +159,6 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [assetId: u128, creator: AccountId20, owner: AccountId20],
         { assetId: u128; creator: AccountId20; owner: AccountId20 }
-      >;
-      /** Some assets were deposited (e.g. for transaction fees). */
-      Deposited: AugmentedEvent<
-        ApiType,
-        [assetId: u128, who: AccountId20, amount: u128],
-        { assetId: u128; who: AccountId20; amount: u128 }
       >;
       /** An asset class was destroyed. */
       Destroyed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
@@ -246,12 +237,6 @@ declare module "@polkadot/api-base/types/events" {
           destination: AccountId20;
           amount: u128;
         }
-      >;
-      /** Some assets were withdrawn from the account (e.g. for transaction fees). */
-      Withdrawn: AugmentedEvent<
-        ApiType,
-        [assetId: u128, who: AccountId20, amount: u128],
-        { assetId: u128; who: AccountId20; amount: u128 }
       >;
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
@@ -491,6 +476,40 @@ declare module "@polkadot/api-base/types/events" {
       InvalidFormat: AugmentedEvent<ApiType, [U8aFixed]>;
       /** Downward message is unsupported version of XCM. [ id ] */
       UnsupportedVersion: AugmentedEvent<ApiType, [U8aFixed]>;
+      /** Generic event */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    dmpQueue: {
+      /** Some debris was cleaned up. */
+      CleanedSome: AugmentedEvent<ApiType, [keysRemoved: u32], { keysRemoved: u32 }>;
+      /** The cleanup of remaining pallet storage completed. */
+      Completed: AugmentedEvent<ApiType, [error: bool], { error: bool }>;
+      /** The export of pages completed. */
+      CompletedExport: AugmentedEvent<ApiType, []>;
+      /** The export of overweight messages completed. */
+      CompletedOverweightExport: AugmentedEvent<ApiType, []>;
+      /** The export of a page completed. */
+      Exported: AugmentedEvent<ApiType, [page: u32], { page: u32 }>;
+      /** The export of an overweight message completed. */
+      ExportedOverweight: AugmentedEvent<ApiType, [index: u64], { index: u64 }>;
+      /**
+       * The export of a page failed.
+       *
+       * This should never be emitted.
+       */
+      ExportFailed: AugmentedEvent<ApiType, [page: u32], { page: u32 }>;
+      /**
+       * The export of an overweight message failed.
+       *
+       * This should never be emitted.
+       */
+      ExportOverweightFailed: AugmentedEvent<ApiType, [index: u64], { index: u64 }>;
+      /** The cleanup of remaining pallet storage started. */
+      StartedCleanup: AugmentedEvent<ApiType, []>;
+      /** The export of pages started. */
+      StartedExport: AugmentedEvent<ApiType, []>;
+      /** The export of overweight messages started. */
+      StartedOverweightExport: AugmentedEvent<ApiType, []>;
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
     };
@@ -1124,23 +1143,6 @@ declare module "@polkadot/api-base/types/events" {
           totalCandidateStaked: u128;
         }
       >;
-      /** Transferred to account which holds funds reserved for parachain bond. */
-      InflationDistributed: AugmentedEvent<
-        ApiType,
-        [index: u32, account: AccountId20, value: u128],
-        { index: u32; account: AccountId20; value: u128 }
-      >;
-      InflationDistributionConfigUpdated: AugmentedEvent<
-        ApiType,
-        [
-          old: PalletParachainStakingInflationDistributionConfig,
-          new_: PalletParachainStakingInflationDistributionConfig
-        ],
-        {
-          old: PalletParachainStakingInflationDistributionConfig;
-          new_: PalletParachainStakingInflationDistributionConfig;
-        }
-      >;
       /** Annual inflation input (first 3) was used to derive new per-round inflation (last 3) */
       InflationSet: AugmentedEvent<
         ApiType,
@@ -1172,6 +1174,24 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [startingBlock: u32, round: u32, selectedCollatorsNumber: u32, totalBalance: u128],
         { startingBlock: u32; round: u32; selectedCollatorsNumber: u32; totalBalance: u128 }
+      >;
+      /** Account (re)set for parachain bond treasury. */
+      ParachainBondAccountSet: AugmentedEvent<
+        ApiType,
+        [old: AccountId20, new_: AccountId20],
+        { old: AccountId20; new_: AccountId20 }
+      >;
+      /** Percent of inflation reserved for parachain bond (re)set. */
+      ParachainBondReservePercentSet: AugmentedEvent<
+        ApiType,
+        [old: Percent, new_: Percent],
+        { old: Percent; new_: Percent }
+      >;
+      /** Transferred to account which holds funds reserved for parachain bond. */
+      ReservedForParachainBond: AugmentedEvent<
+        ApiType,
+        [account: AccountId20, value: u128],
+        { account: AccountId20; value: u128 }
       >;
       /** Paid the account (delegator or collator) the balance as liquid rewards. */
       Rewarded: AugmentedEvent<
@@ -1215,28 +1235,6 @@ declare module "@polkadot/api-base/types/events" {
       ValidationFunctionDiscarded: AugmentedEvent<ApiType, []>;
       /** The validation function has been scheduled to apply. */
       ValidationFunctionStored: AugmentedEvent<ApiType, []>;
-      /** Generic event */
-      [key: string]: AugmentedEvent<ApiType>;
-    };
-    parameters: {
-      /**
-       * A Parameter was set.
-       *
-       * Is also emitted when the value was not changed.
-       */
-      Updated: AugmentedEvent<
-        ApiType,
-        [
-          key: MoonriverRuntimeRuntimeParamsRuntimeParametersKey,
-          oldValue: Option<MoonriverRuntimeRuntimeParamsRuntimeParametersValue>,
-          newValue: Option<MoonriverRuntimeRuntimeParamsRuntimeParametersValue>
-        ],
-        {
-          key: MoonriverRuntimeRuntimeParamsRuntimeParametersKey;
-          oldValue: Option<MoonriverRuntimeRuntimeParamsRuntimeParametersValue>;
-          newValue: Option<MoonriverRuntimeRuntimeParamsRuntimeParametersValue>;
-        }
-      >;
       /** Generic event */
       [key: string]: AugmentedEvent<ApiType>;
     };
@@ -1512,13 +1510,13 @@ declare module "@polkadot/api-base/types/events" {
         [
           delegator: AccountId20,
           delegatee: AccountId20,
-          proxyType: MoonriverRuntimeProxyType,
+          proxyType: MoonbeamRuntimeProxyType,
           delay: u32
         ],
         {
           delegator: AccountId20;
           delegatee: AccountId20;
-          proxyType: MoonriverRuntimeProxyType;
+          proxyType: MoonbeamRuntimeProxyType;
           delay: u32;
         }
       >;
@@ -1534,13 +1532,13 @@ declare module "@polkadot/api-base/types/events" {
         [
           delegator: AccountId20,
           delegatee: AccountId20,
-          proxyType: MoonriverRuntimeProxyType,
+          proxyType: MoonbeamRuntimeProxyType,
           delay: u32
         ],
         {
           delegator: AccountId20;
           delegatee: AccountId20;
-          proxyType: MoonriverRuntimeProxyType;
+          proxyType: MoonbeamRuntimeProxyType;
           delay: u32;
         }
       >;
@@ -1550,13 +1548,13 @@ declare module "@polkadot/api-base/types/events" {
         [
           pure: AccountId20,
           who: AccountId20,
-          proxyType: MoonriverRuntimeProxyType,
+          proxyType: MoonbeamRuntimeProxyType,
           disambiguationIndex: u16
         ],
         {
           pure: AccountId20;
           who: AccountId20;
-          proxyType: MoonriverRuntimeProxyType;
+          proxyType: MoonbeamRuntimeProxyType;
           disambiguationIndex: u16;
         }
       >;
@@ -1866,6 +1864,14 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [index: u32, paymentId: Null],
         { index: u32; paymentId: Null }
+      >;
+      /** New proposal. */
+      Proposed: AugmentedEvent<ApiType, [proposalIndex: u32], { proposalIndex: u32 }>;
+      /** A proposal was rejected; funds were slashed. */
+      Rejected: AugmentedEvent<
+        ApiType,
+        [proposalIndex: u32, slashed: u128],
+        { proposalIndex: u32; slashed: u128 }
       >;
       /** Spending has finished; this is the amount that rolls over until next spend. */
       Rollover: AugmentedEvent<ApiType, [rolloverBalance: u128], { rolloverBalance: u128 }>;

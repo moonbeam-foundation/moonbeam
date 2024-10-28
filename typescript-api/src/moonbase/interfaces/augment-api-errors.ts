@@ -732,6 +732,12 @@ declare module "@polkadot/api-base/types/errors" {
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
+    sudo: {
+      /** Sender must be the Sudo account. */
+      RequireSudo: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
     system: {
       /** The origin filter prevent the call to be dispatched. */
       CallFiltered: AugmentedError<ApiType>;
@@ -888,50 +894,6 @@ declare module "@polkadot/api-base/types/errors" {
       PriceCannotBeZero: AugmentedError<ApiType>;
       /** XCM location filtered */
       XcmLocationFiltered: AugmentedError<ApiType>;
-      /** Generic error */
-      [key: string]: AugmentedError<ApiType>;
-    };
-    xTokens: {
-      /** Asset has no reserve location. */
-      AssetHasNoReserve: AugmentedError<ApiType>;
-      /** The specified index does not exist in a Assets struct. */
-      AssetIndexNonExistent: AugmentedError<ApiType>;
-      /** The version of the `Versioned` value used is not able to be interpreted. */
-      BadVersion: AugmentedError<ApiType>;
-      /** Could not re-anchor the assets to declare the fees for the destination chain. */
-      CannotReanchor: AugmentedError<ApiType>;
-      /** The destination `Location` provided cannot be inverted. */
-      DestinationNotInvertible: AugmentedError<ApiType>;
-      /** We tried sending distinct asset and fee but they have different reserve chains. */
-      DistinctReserveForAssetAndFee: AugmentedError<ApiType>;
-      /** Fee is not enough. */
-      FeeNotEnough: AugmentedError<ApiType>;
-      /** Could not get ancestry of asset reserve location. */
-      InvalidAncestry: AugmentedError<ApiType>;
-      /** The Asset is invalid. */
-      InvalidAsset: AugmentedError<ApiType>;
-      /** Invalid transfer destination. */
-      InvalidDest: AugmentedError<ApiType>;
-      /** MinXcmFee not registered for certain reserve location */
-      MinXcmFeeNotDefined: AugmentedError<ApiType>;
-      /** Not cross-chain transfer. */
-      NotCrossChainTransfer: AugmentedError<ApiType>;
-      /** Currency is not cross-chain transferable. */
-      NotCrossChainTransferableCurrency: AugmentedError<ApiType>;
-      /** Not supported Location */
-      NotSupportedLocation: AugmentedError<ApiType>;
-      /** Asset transfer is limited by RateLimiter. */
-      RateLimited: AugmentedError<ApiType>;
-      /** The number of assets to be sent is over the maximum. */
-      TooManyAssetsBeingSent: AugmentedError<ApiType>;
-      /** The message's weight could not be determined. */
-      UnweighableMessage: AugmentedError<ApiType>;
-      /** XCM execution failed. */
-      XcmExecutionFailed: AugmentedError<ApiType>;
-      /** The transfering asset amount is zero. */
-      ZeroAmount: AugmentedError<ApiType>;
-      /** The fee is zero. */
-      ZeroFee: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
