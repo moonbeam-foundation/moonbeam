@@ -529,7 +529,7 @@ jobs:
 
   dev-test:
     runs-on:
-      labels: bare-metal
+      labels: ubuntu-latest
     needs: ["set-tags", "build"]
     timeout-minutes: 20
     strategy:
