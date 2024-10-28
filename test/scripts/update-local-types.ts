@@ -86,10 +86,14 @@ const scrapeMetadata = async (network: string, port: string) => {
   });
 
   const metadataJson = await metadata.json();
-  writeFile(`../../typescript-api`, `metadata-${network.replace("-local", "")}.json`, JSON.stringify(metadataJson));
+  writeFile(
+    `../../typescript-api`,
+    `metadata-${network.replace("-local", "")}.json`,
+    JSON.stringify(metadataJson)
+  );
 };
 
-const extractMetadata = async (network: string, rpcPort: string, port: string,) => {
+const extractMetadata = async (network: string, rpcPort: string, port: string) => {
   const node = startNode(network, rpcPort, port);
   await new Promise((resolve) => setTimeout(resolve, 10000));
   await scrapeMetadata(network, rpcPort);
@@ -112,7 +116,6 @@ const executeUpdateAPIScript = async () => {
   await executeScript("../../typescript-api", "pnpm load:meta:moonriver");
   await executeScript("../../typescript-api", "pnpm load:meta:moonbeam");
 
-
   // Generate meta & defs
   await executeScript("../../typescript-api", "pnpm generate:defs");
   await executeScript("../../typescript-api", "pnpm generate:meta");
@@ -130,4 +133,3 @@ const executeUpdateAPIScript = async () => {
 };
 
 executeUpdateAPIScript();
-
