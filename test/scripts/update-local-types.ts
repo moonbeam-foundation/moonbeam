@@ -88,7 +88,7 @@ const scrapeMetadata = async (network: string, port: string) => {
   const metadataJson = await metadata.json();
   writeFile(
     `../../typescript-api`,
-    `metadata-${network.replace("-local", "")}.json`,
+    `metadata-${network.replace("-dev", "")}.json`,
     JSON.stringify(metadataJson)
   );
 };
@@ -97,9 +97,9 @@ const extractMetadata = async (network: string, rpcPort: string, port: string) =
   const node = startNode(network, rpcPort, port);
   await new Promise((resolve) => setTimeout(resolve, 10000));
   await scrapeMetadata(network, rpcPort);
-  await new Promise((resolve) => setTimeout(resolve, 10000));
   console.log(`Metadata for ${network} saved ✅`);
   node.kill();
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 };
 
 const executeUpdateAPIScript = async () => {
@@ -112,9 +112,9 @@ const executeUpdateAPIScript = async () => {
 
   // Generate types
   console.log("Extracting metadata for all runtimes...");
-  await extractMetadata("moonbase-local", "9933", "30333");
-  await executeScript("../../typescript-api", "pnpm load:meta:moonriver");
-  await executeScript("../../typescript-api", "pnpm load:meta:moonbeam");
+  await extractMetadata("moonbase-dev", "9933", "30333");
+  await extractMetadata("moonriver-dev", "9944", "30344");
+  await extractMetadata("moonbeam-dev", "9955", "30355");
 
   // Generate meta & defs
   await executeScript("../../typescript-api", "pnpm generate:defs");
