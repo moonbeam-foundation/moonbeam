@@ -152,12 +152,12 @@ describeSuite({
         );
 
         const dryRunCall = await polkadotJs.call.dryRunApi.dryRunCall(
-          { system: { signed: alith.address } },
+          { System: { signed: alith.address } },
           polkadotXcmTx
         );
 
         expect(dryRunCall.isOk).to.be.true;
-        expect(dryRunCall.asOk.ExecutionResult.isOk).be.true;
+        expect(dryRunCall.asOk.executionResult.isOk).be.true;
       },
     });
 
@@ -202,7 +202,7 @@ describeSuite({
         );
 
         expect(dryRunXcm.isOk).to.be.true;
-        expect(dryRunXcm.asOk.ExecutionResult.isComplete).be.true;
+        expect(dryRunXcm.asOk.executionResult.isComplete).be.true;
       },
     });
   },
