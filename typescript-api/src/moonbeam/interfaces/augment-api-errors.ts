@@ -28,8 +28,6 @@ declare module "@polkadot/api-base/types/errors" {
       AlreadyExists: AugmentedError<ApiType>;
       /** The asset is not live, and likely being destroyed. */
       AssetNotLive: AugmentedError<ApiType>;
-      /** The asset ID must be equal to the [`NextAssetId`]. */
-      BadAssetId: AugmentedError<ApiType>;
       /** Invalid metadata given. */
       BadMetadata: AugmentedError<ApiType>;
       /** Invalid witness data given. */
@@ -395,8 +393,6 @@ declare module "@polkadot/api-base/types/errors" {
       ContractNotCorrupted: AugmentedError<ApiType>;
       /** Contract not exist */
       ContractNotExist: AugmentedError<ApiType>;
-      /** The key lengths exceeds the maximum allowed */
-      KeyTooLong: AugmentedError<ApiType>;
       /** The limit cannot be zero */
       LimitCannotBeZero: AugmentedError<ApiType>;
       /** Generic error */
@@ -541,7 +537,6 @@ declare module "@polkadot/api-base/types/errors" {
       TooLowDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowDelegationCountToLeaveDelegators: AugmentedError<ApiType>;
-      TotalInflationDistributionPercentExceeds100: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -631,8 +626,6 @@ declare module "@polkadot/api-base/types/errors" {
     preimage: {
       /** Preimage has already been noted on-chain. */
       AlreadyNoted: AugmentedError<ApiType>;
-      /** No ticket with a cost was returned by [`Config::Consideration`] to store the preimage. */
-      NoCost: AugmentedError<ApiType>;
       /** The user is not authorized to perform this action. */
       NotAuthorized: AugmentedError<ApiType>;
       /** The preimage cannot be removed since it has not yet been noted. */
@@ -769,6 +762,8 @@ declare module "@polkadot/api-base/types/errors" {
       Inconclusive: AugmentedError<ApiType>;
       /** The spend origin is valid but the amount it is allowed to spend is lower than the amount to be spent. */
       InsufficientPermission: AugmentedError<ApiType>;
+      /** Proposer's balance is too low. */
+      InsufficientProposersBalance: AugmentedError<ApiType>;
       /** No proposal, bounty or spend at that index. */
       InvalidIndex: AugmentedError<ApiType>;
       /** The payout was not yet attempted/claimed. */
@@ -837,10 +832,6 @@ declare module "@polkadot/api-base/types/errors" {
       AlreadySuspended: AugmentedError<ApiType>;
       /** Setting the queue config failed since one of its values was invalid. */
       BadQueueConfig: AugmentedError<ApiType>;
-      /** The message is too big. */
-      TooBig: AugmentedError<ApiType>;
-      /** There are too many active outbound channels. */
-      TooManyActiveOutboundChannels: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };
@@ -888,6 +879,50 @@ declare module "@polkadot/api-base/types/errors" {
       PriceCannotBeZero: AugmentedError<ApiType>;
       /** XCM location filtered */
       XcmLocationFiltered: AugmentedError<ApiType>;
+      /** Generic error */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    xTokens: {
+      /** Asset has no reserve location. */
+      AssetHasNoReserve: AugmentedError<ApiType>;
+      /** The specified index does not exist in a Assets struct. */
+      AssetIndexNonExistent: AugmentedError<ApiType>;
+      /** The version of the `Versioned` value used is not able to be interpreted. */
+      BadVersion: AugmentedError<ApiType>;
+      /** Could not re-anchor the assets to declare the fees for the destination chain. */
+      CannotReanchor: AugmentedError<ApiType>;
+      /** The destination `Location` provided cannot be inverted. */
+      DestinationNotInvertible: AugmentedError<ApiType>;
+      /** We tried sending distinct asset and fee but they have different reserve chains. */
+      DistinctReserveForAssetAndFee: AugmentedError<ApiType>;
+      /** Fee is not enough. */
+      FeeNotEnough: AugmentedError<ApiType>;
+      /** Could not get ancestry of asset reserve location. */
+      InvalidAncestry: AugmentedError<ApiType>;
+      /** The Asset is invalid. */
+      InvalidAsset: AugmentedError<ApiType>;
+      /** Invalid transfer destination. */
+      InvalidDest: AugmentedError<ApiType>;
+      /** MinXcmFee not registered for certain reserve location */
+      MinXcmFeeNotDefined: AugmentedError<ApiType>;
+      /** Not cross-chain transfer. */
+      NotCrossChainTransfer: AugmentedError<ApiType>;
+      /** Currency is not cross-chain transferable. */
+      NotCrossChainTransferableCurrency: AugmentedError<ApiType>;
+      /** Not supported Location */
+      NotSupportedLocation: AugmentedError<ApiType>;
+      /** Asset transfer is limited by RateLimiter. */
+      RateLimited: AugmentedError<ApiType>;
+      /** The number of assets to be sent is over the maximum. */
+      TooManyAssetsBeingSent: AugmentedError<ApiType>;
+      /** The message's weight could not be determined. */
+      UnweighableMessage: AugmentedError<ApiType>;
+      /** XCM execution failed. */
+      XcmExecutionFailed: AugmentedError<ApiType>;
+      /** The transfering asset amount is zero. */
+      ZeroAmount: AugmentedError<ApiType>;
+      /** The fee is zero. */
+      ZeroFee: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };

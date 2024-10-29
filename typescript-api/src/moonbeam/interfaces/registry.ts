@@ -7,6 +7,9 @@ import "@polkadot/types/types/registry";
 
 import type {
   AccountEthereumSignature,
+  CumulusPalletDmpQueueCall,
+  CumulusPalletDmpQueueEvent,
+  CumulusPalletDmpQueueMigrationState,
   CumulusPalletParachainSystemCall,
   CumulusPalletParachainSystemError,
   CumulusPalletParachainSystemEvent,
@@ -61,7 +64,6 @@ import type {
   FrameSupportPreimagesBounded,
   FrameSupportScheduleDispatchTime,
   FrameSupportTokensMiscBalanceStatus,
-  FrameSupportTokensMiscIdAmount,
   FrameSystemAccountInfo,
   FrameSystemCall,
   FrameSystemCodeUpgradeAuthorization,
@@ -85,21 +87,13 @@ import type {
   MoonbeamRuntimeProxyType,
   MoonbeamRuntimeRuntime,
   MoonbeamRuntimeRuntimeHoldReason,
-  MoonbeamRuntimeRuntimeParamsDynamicParamsPalletRandomnessDeposit,
-  MoonbeamRuntimeRuntimeParamsDynamicParamsPalletRandomnessParameters,
-  MoonbeamRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersKey,
-  MoonbeamRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersValue,
-  MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigFeesTreasuryProportion,
-  MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters,
-  MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey,
-  MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue,
-  MoonbeamRuntimeRuntimeParamsRuntimeParameters,
-  MoonbeamRuntimeRuntimeParamsRuntimeParametersKey,
-  MoonbeamRuntimeRuntimeParamsRuntimeParametersValue,
   MoonbeamRuntimeXcmConfigAssetType,
   MoonbeamRuntimeXcmConfigCurrencyId,
   MoonbeamRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
+  OrmlXtokensModuleCall,
+  OrmlXtokensModuleError,
+  OrmlXtokensModuleEvent,
   PalletAssetManagerCall,
   PalletAssetManagerError,
   PalletAssetManagerEvent,
@@ -127,6 +121,7 @@ import type {
   PalletBalancesCall,
   PalletBalancesError,
   PalletBalancesEvent,
+  PalletBalancesIdAmount,
   PalletBalancesReasons,
   PalletBalancesReserveData,
   PalletCollectiveCall,
@@ -190,7 +185,6 @@ import type {
   PalletMoonbeamForeignAssetsEvent,
   PalletMoonbeamLazyMigrationsCall,
   PalletMoonbeamLazyMigrationsError,
-  PalletMoonbeamLazyMigrationsStateMigrationStatus,
   PalletMoonbeamOrbitersCall,
   PalletMoonbeamOrbitersCollatorPoolInfo,
   PalletMoonbeamOrbitersCurrentOrbiter,
@@ -220,14 +214,11 @@ import type {
   PalletParachainStakingDelegatorStatus,
   PalletParachainStakingError,
   PalletParachainStakingEvent,
-  PalletParachainStakingInflationDistributionAccount,
-  PalletParachainStakingInflationDistributionConfig,
   PalletParachainStakingInflationInflationInfo,
+  PalletParachainStakingParachainBondConfig,
   PalletParachainStakingRoundInfo,
   PalletParachainStakingSetBoundedOrderedSet,
   PalletParachainStakingSetOrderedSet,
-  PalletParametersCall,
-  PalletParametersEvent,
   PalletPrecompileBenchmarksError,
   PalletPreimageCall,
   PalletPreimageError,
@@ -387,13 +378,13 @@ import type {
   XcmV3MultiassetMultiAssets,
   XcmV3MultiassetWildFungibility,
   XcmV3MultiassetWildMultiAsset,
-  XcmV3OriginKind,
   XcmV3PalletInfo,
   XcmV3QueryResponseInfo,
   XcmV3Response,
   XcmV3TraitsError,
   XcmV3WeightLimit,
   XcmV3Xcm,
+  XcmVersionedAsset,
   XcmVersionedAssetId,
   XcmVersionedAssets,
   XcmVersionedLocation,
@@ -404,6 +395,9 @@ import type {
 declare module "@polkadot/types/types/registry" {
   interface InterfaceTypes {
     AccountEthereumSignature: AccountEthereumSignature;
+    CumulusPalletDmpQueueCall: CumulusPalletDmpQueueCall;
+    CumulusPalletDmpQueueEvent: CumulusPalletDmpQueueEvent;
+    CumulusPalletDmpQueueMigrationState: CumulusPalletDmpQueueMigrationState;
     CumulusPalletParachainSystemCall: CumulusPalletParachainSystemCall;
     CumulusPalletParachainSystemError: CumulusPalletParachainSystemError;
     CumulusPalletParachainSystemEvent: CumulusPalletParachainSystemEvent;
@@ -458,7 +452,6 @@ declare module "@polkadot/types/types/registry" {
     FrameSupportPreimagesBounded: FrameSupportPreimagesBounded;
     FrameSupportScheduleDispatchTime: FrameSupportScheduleDispatchTime;
     FrameSupportTokensMiscBalanceStatus: FrameSupportTokensMiscBalanceStatus;
-    FrameSupportTokensMiscIdAmount: FrameSupportTokensMiscIdAmount;
     FrameSystemAccountInfo: FrameSystemAccountInfo;
     FrameSystemCall: FrameSystemCall;
     FrameSystemCodeUpgradeAuthorization: FrameSystemCodeUpgradeAuthorization;
@@ -482,21 +475,13 @@ declare module "@polkadot/types/types/registry" {
     MoonbeamRuntimeProxyType: MoonbeamRuntimeProxyType;
     MoonbeamRuntimeRuntime: MoonbeamRuntimeRuntime;
     MoonbeamRuntimeRuntimeHoldReason: MoonbeamRuntimeRuntimeHoldReason;
-    MoonbeamRuntimeRuntimeParamsDynamicParamsPalletRandomnessDeposit: MoonbeamRuntimeRuntimeParamsDynamicParamsPalletRandomnessDeposit;
-    MoonbeamRuntimeRuntimeParamsDynamicParamsPalletRandomnessParameters: MoonbeamRuntimeRuntimeParamsDynamicParamsPalletRandomnessParameters;
-    MoonbeamRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersKey: MoonbeamRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersKey;
-    MoonbeamRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersValue: MoonbeamRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersValue;
-    MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigFeesTreasuryProportion: MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigFeesTreasuryProportion;
-    MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters: MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters;
-    MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey: MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey;
-    MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue: MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue;
-    MoonbeamRuntimeRuntimeParamsRuntimeParameters: MoonbeamRuntimeRuntimeParamsRuntimeParameters;
-    MoonbeamRuntimeRuntimeParamsRuntimeParametersKey: MoonbeamRuntimeRuntimeParamsRuntimeParametersKey;
-    MoonbeamRuntimeRuntimeParamsRuntimeParametersValue: MoonbeamRuntimeRuntimeParamsRuntimeParametersValue;
     MoonbeamRuntimeXcmConfigAssetType: MoonbeamRuntimeXcmConfigAssetType;
     MoonbeamRuntimeXcmConfigCurrencyId: MoonbeamRuntimeXcmConfigCurrencyId;
     MoonbeamRuntimeXcmConfigTransactors: MoonbeamRuntimeXcmConfigTransactors;
     NimbusPrimitivesNimbusCryptoPublic: NimbusPrimitivesNimbusCryptoPublic;
+    OrmlXtokensModuleCall: OrmlXtokensModuleCall;
+    OrmlXtokensModuleError: OrmlXtokensModuleError;
+    OrmlXtokensModuleEvent: OrmlXtokensModuleEvent;
     PalletAssetManagerCall: PalletAssetManagerCall;
     PalletAssetManagerError: PalletAssetManagerError;
     PalletAssetManagerEvent: PalletAssetManagerEvent;
@@ -524,6 +509,7 @@ declare module "@polkadot/types/types/registry" {
     PalletBalancesCall: PalletBalancesCall;
     PalletBalancesError: PalletBalancesError;
     PalletBalancesEvent: PalletBalancesEvent;
+    PalletBalancesIdAmount: PalletBalancesIdAmount;
     PalletBalancesReasons: PalletBalancesReasons;
     PalletBalancesReserveData: PalletBalancesReserveData;
     PalletCollectiveCall: PalletCollectiveCall;
@@ -587,7 +573,6 @@ declare module "@polkadot/types/types/registry" {
     PalletMoonbeamForeignAssetsEvent: PalletMoonbeamForeignAssetsEvent;
     PalletMoonbeamLazyMigrationsCall: PalletMoonbeamLazyMigrationsCall;
     PalletMoonbeamLazyMigrationsError: PalletMoonbeamLazyMigrationsError;
-    PalletMoonbeamLazyMigrationsStateMigrationStatus: PalletMoonbeamLazyMigrationsStateMigrationStatus;
     PalletMoonbeamOrbitersCall: PalletMoonbeamOrbitersCall;
     PalletMoonbeamOrbitersCollatorPoolInfo: PalletMoonbeamOrbitersCollatorPoolInfo;
     PalletMoonbeamOrbitersCurrentOrbiter: PalletMoonbeamOrbitersCurrentOrbiter;
@@ -617,14 +602,11 @@ declare module "@polkadot/types/types/registry" {
     PalletParachainStakingDelegatorStatus: PalletParachainStakingDelegatorStatus;
     PalletParachainStakingError: PalletParachainStakingError;
     PalletParachainStakingEvent: PalletParachainStakingEvent;
-    PalletParachainStakingInflationDistributionAccount: PalletParachainStakingInflationDistributionAccount;
-    PalletParachainStakingInflationDistributionConfig: PalletParachainStakingInflationDistributionConfig;
     PalletParachainStakingInflationInflationInfo: PalletParachainStakingInflationInflationInfo;
+    PalletParachainStakingParachainBondConfig: PalletParachainStakingParachainBondConfig;
     PalletParachainStakingRoundInfo: PalletParachainStakingRoundInfo;
     PalletParachainStakingSetBoundedOrderedSet: PalletParachainStakingSetBoundedOrderedSet;
     PalletParachainStakingSetOrderedSet: PalletParachainStakingSetOrderedSet;
-    PalletParametersCall: PalletParametersCall;
-    PalletParametersEvent: PalletParametersEvent;
     PalletPrecompileBenchmarksError: PalletPrecompileBenchmarksError;
     PalletPreimageCall: PalletPreimageCall;
     PalletPreimageError: PalletPreimageError;
@@ -784,13 +766,13 @@ declare module "@polkadot/types/types/registry" {
     XcmV3MultiassetMultiAssets: XcmV3MultiassetMultiAssets;
     XcmV3MultiassetWildFungibility: XcmV3MultiassetWildFungibility;
     XcmV3MultiassetWildMultiAsset: XcmV3MultiassetWildMultiAsset;
-    XcmV3OriginKind: XcmV3OriginKind;
     XcmV3PalletInfo: XcmV3PalletInfo;
     XcmV3QueryResponseInfo: XcmV3QueryResponseInfo;
     XcmV3Response: XcmV3Response;
     XcmV3TraitsError: XcmV3TraitsError;
     XcmV3WeightLimit: XcmV3WeightLimit;
     XcmV3Xcm: XcmV3Xcm;
+    XcmVersionedAsset: XcmVersionedAsset;
     XcmVersionedAssetId: XcmVersionedAssetId;
     XcmVersionedAssets: XcmVersionedAssets;
     XcmVersionedLocation: XcmVersionedLocation;
