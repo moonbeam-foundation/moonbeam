@@ -15,7 +15,7 @@ jobs:
   ####### Building binaries #######
 
   build-binary:
-    runs-on: bare-metal
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     strategy:
