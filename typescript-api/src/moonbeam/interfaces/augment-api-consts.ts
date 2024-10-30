@@ -6,7 +6,7 @@
 import "@polkadot/api-base/types/consts";
 
 import type { ApiTypes, AugmentedConst } from "@polkadot/api-base/types";
-import type { Bytes, Null, Option, Vec, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
+import type { Bytes, Option, Vec, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
 import type { Codec, ITuple } from "@polkadot/types-codec/types";
 import type { Perbill, Permill } from "@polkadot/types/interfaces/runtime";
 import type {
@@ -445,15 +445,6 @@ declare module "@polkadot/api-base/types/consts" {
       palletId: FrameSupportPalletId & AugmentedConst<ApiType>;
       /** The period during which an approved treasury spend has to be claimed. */
       payoutPeriod: u32 & AugmentedConst<ApiType>;
-      /**
-       * Fraction of a proposal's value that should be bonded in order to place the proposal. An
-       * accepted proposal gets these back. A rejected proposal does not.
-       */
-      proposalBond: Permill & AugmentedConst<ApiType>;
-      /** Maximum amount of funds that should be placed in a deposit for making a proposal. */
-      proposalBondMaximum: Option<u128> & AugmentedConst<ApiType>;
-      /** Minimum amount of funds that should be placed in a deposit for making a proposal. */
-      proposalBondMinimum: u128 & AugmentedConst<ApiType>;
       /** Period between successive spends. */
       spendPeriod: u32 & AugmentedConst<ApiType>;
       /** Generic const */
@@ -473,6 +464,17 @@ declare module "@polkadot/api-base/types/consts" {
     };
     xcmpQueue: {
       /**
+       * Maximal number of outbound XCMP channels that can have messages queued at the same time.
+       *
+       * If this is reached, then no further messages can be sent to channels that do not yet have a
+       * message queued. This should be set to the expected maximum of outbound channels which is
+       * determined by [`Self::ChannelInfo`]. It is important to set this large enough, since
+       * otherwise the congestion control protocol will not work as intended and messages may be
+       * dropped. This value increases the PoV and should therefore not be picked too high.
+       * Governance needs to pay attention to not open more channels than this value.
+       */
+      maxActiveOutboundChannels: u32 & AugmentedConst<ApiType>;
+      /**
        * The maximum number of inbound XCMP channels that can be suspended simultaneously.
        *
        * Any further channel suspensions will fail and messages may get dropped without further
@@ -480,26 +482,20 @@ declare module "@polkadot/api-base/types/consts" {
        * [`InboundXcmpSuspended`] still applies at that scale.
        */
       maxInboundSuspended: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximal page size for HRMP message pages.
+       *
+       * A lower limit can be set dynamically, but this is the hard-limit for the PoV worst case
+       * benchmarking. The limit for the size of a message is slightly below this, since some
+       * overhead is incurred for encoding the format.
+       */
+      maxPageSize: u32 & AugmentedConst<ApiType>;
       /** Generic const */
       [key: string]: Codec;
     };
     xcmTransactor: {
       /** The actual weight for an XCM message is `T::BaseXcmWeight + T::Weigher::weight(&msg)`. */
       baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
-      /** Self chain location. */
-      selfLocation: StagingXcmV4Location & AugmentedConst<ApiType>;
-      /** Generic const */
-      [key: string]: Codec;
-    };
-    xTokens: {
-      /**
-       * Base XCM weight.
-       *
-       * The actually weight for an XCM message is `T::BaseXcmWeight + T::Weigher::weight(&msg)`.
-       */
-      baseXcmWeight: SpWeightsWeightV2Weight & AugmentedConst<ApiType>;
-      /** The id of the RateLimiter. */
-      rateLimiterId: Null & AugmentedConst<ApiType>;
       /** Self chain location. */
       selfLocation: StagingXcmV4Location & AugmentedConst<ApiType>;
       /** Generic const */
