@@ -1,3 +1,6 @@
+// TODO: update default export to make use of all definitions in moonbeam-types-bundle
+// import { moonbeamDefinitions } from "moonbeam-types-bundle";
+
 // TODO: Import this from moonbeam-types-bundle
 export default {
   types: {},
