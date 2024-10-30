@@ -1,1 +1,1 @@
-export { default as empty } from "./moon/definitions";
+export { default as moon } from "./moon/definitions";
