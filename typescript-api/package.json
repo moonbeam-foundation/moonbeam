@@ -1,6 +1,6 @@
 {
   "name": "@moonbeam-network/api-augment",
-  "version": "0.3300.0",
+  "version": "0.3200.0",
   "type": "module",
   "description": "Moonbeam types augment for @polkadot/api",
   "author": "Moonsong Labs",
