@@ -120,5 +120,6 @@ pub struct Log {
 	/// Event topics
 	pub topics: Vec<H256>,
 	/// Event data
+	#[serde(serialize_with = "bytes_0x_serialize")]
 	pub data: Vec<u8>,
 }
