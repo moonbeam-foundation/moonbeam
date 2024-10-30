@@ -123,8 +123,8 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod runtime_params;
-pub mod xcm_config;
 mod weights;
+pub mod xcm_config;
 
 use governance::councils::*;
 pub(crate) use weights as moonbeam_weights;

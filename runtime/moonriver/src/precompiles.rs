@@ -22,7 +22,9 @@ use crate::{
 	TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
-use moonkit_xcm_primitives::location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher};
+use moonkit_xcm_primitives::location_matcher::{
+	Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher,
+};
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
