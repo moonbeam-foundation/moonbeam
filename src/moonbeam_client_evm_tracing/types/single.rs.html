@@ -124,6 +124,7 @@
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -246,6 +247,7 @@
 	<span class="doccomment">/// Event topics
 	</span><span class="kw">pub </span>topics: Vec&lt;H256&gt;,
 	<span class="doccomment">/// Event data
+	</span><span class="attr">#[serde(serialize_with = <span class="string">"bytes_0x_serialize"</span>)]
 	</span><span class="kw">pub </span>data: Vec&lt;u8&gt;,
 }
 </code></pre></div></section></main></body></html>
