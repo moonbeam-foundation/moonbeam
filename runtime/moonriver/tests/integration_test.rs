@@ -1775,7 +1775,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(24684)
+				.expect_cost(23989)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1839,7 +1839,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(15573)
+				.expect_cost(15256)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1860,7 +1860,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(29947)
+				.expect_cost(29070)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1939,7 +1939,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24691)
+				.expect_cost(23161)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -1991,7 +1991,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24691)
+				.expect_cost(23161)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2162,7 +2162,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23275)
+				.expect_cost(20740)
 				.expect_no_logs()
 				.execute_returns(());
 		});
