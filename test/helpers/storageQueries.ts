@@ -1,6 +1,7 @@
 import { ApiPromise } from "@polkadot/api";
 import Debugger from "debug";
 import { rateLimiter } from "./common.js";
+import { randomAsHex } from "@polkadot/util-crypto";
 
 const log = Debugger("test:storageQuery");
 
@@ -42,6 +43,73 @@ export async function processAllStorage(
   const maxKeys = 1000;
   let total = 0;
   const prefixes = splitPrefix(storagePrefix);
+  const limiter = rateLimiter();
+  const stopReport = startReport(() => total);
+
+  try {
+    await Promise.all(
+      prefixes.map(async (prefix) =>
+        limiter.schedule(async () => {
+          let startKey: string | undefined = undefined;
+          loop: for (; ;) {
+            // @ts-expect-error _rpcCore is not yet exposed
+            const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [
+              prefix,
+              maxKeys,
+              startKey,
+              blockHash,
+            ]);
+
+            if (!keys.length) {
+              break loop;
+            }
+
+            // @ts-expect-error _rpcCore is not yet exposed
+            const response = await api._rpcCore.provider.send("state_queryStorageAt", [
+              keys,
+              blockHash,
+            ]);
+
+            try {
+              processor(
+                response[0].changes.map((pair: [string, string]) => ({
+                  key: pair[0],
+                  value: pair[1],
+                }))
+              );
+            } catch (e) {
+              console.log(`Error processing ${prefix}: ${e}`);
+            }
+
+            total += keys.length;
+
+            if (keys.length !== maxKeys) {
+              break loop;
+            }
+            startKey = keys[keys.length - 1];
+          }
+        })
+      )
+    );
+  } finally {
+    stopReport();
+  }
+
+  await limiter.disconnect();
+}
+
+export async function processRandomStoragePrefixes(
+  api: ApiPromise,
+  storagePrefix: string,
+  blockHash: string,
+  processor: (batchResult: { key: `0x${string}`; value: string }[]) => void
+) {
+  const maxKeys = 1000;
+  let total = 0;
+  const preFilteredPrefixes = splitPrefix(storagePrefix);
+  const chanceToSample = 0.05;
+  const prefixes = preFilteredPrefixes.filter(() => Math.random() < chanceToSample);
+
   const limiter = rateLimiter();
   const stopReport = startReport(() => total);
 

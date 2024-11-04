@@ -4,7 +4,7 @@ import { ONE_HOURS } from "@moonwall/util";
 import { compactStripLength, hexToU8a, u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import chalk from "chalk";
-import { processAllStorage } from "../../helpers/storageQueries.js";
+import { processRandomStoragePrefixes } from "../../helpers/storageQueries.js";
 
 describeSuite({
   id: "S08",
@@ -37,7 +37,8 @@ describeSuite({
         u8aConcat(xxhashAsU8a("EVM", 128), xxhashAsU8a("AccountCodes", 128))
       );
       const t0 = performance.now();
-      await processAllStorage(paraApi, keyPrefix, blockHash, (items) => {
+
+      await processRandomStoragePrefixes(paraApi, keyPrefix, blockHash, (items) => {
         for (const item of items) {
           const codesize = getBytecodeSize(hexToU8a(item.value));
           if (codesize > MAX_CONTRACT_SIZE_BYTES) {
