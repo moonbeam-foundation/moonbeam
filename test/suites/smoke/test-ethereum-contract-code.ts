@@ -47,7 +47,8 @@ describeSuite({
           }
         }
         totalContracts += BigInt(items.length);
-      });
+        // WHEN DEBUGGING REPLACE THE EMPTY STRING WITH A PREFIX TO FETCH
+      }, "");
 
       const t1 = performance.now();
       const checkTime = (t1 - t0) / 1000;

@@ -102,14 +102,15 @@ export async function processRandomStoragePrefixes(
   api: ApiPromise,
   storagePrefix: string,
   blockHash: string,
-  processor: (batchResult: { key: `0x${string}`; value: string }[]) => void
+  processor: (batchResult: { key: `0x${string}`; value: string }[]) => void,
+  override: string = "",
 ) {
   const maxKeys = 1000;
   let total = 0;
   const preFilteredPrefixes = splitPrefix(storagePrefix);
   const chanceToSample = 0.05;
-  const prefixes = preFilteredPrefixes.filter(() => Math.random() < chanceToSample);
-
+  const prefixes = override ? [override] : preFilteredPrefixes.filter(() => Math.random() < chanceToSample);
+  console.log(`Processing ${prefixes.length} prefixes: ${prefixes.join(", ")}`);
   const limiter = rateLimiter();
   const stopReport = startReport(() => total);
 
@@ -146,6 +147,8 @@ export async function processRandomStoragePrefixes(
               );
             } catch (e) {
               console.log(`Error processing ${prefix}: ${e}`);
+              console.log(`Replace the empty string in smoke/test-ethereum-contract-code.ts:L51
+                with the prefix to reproduce`);
             }
 
             total += keys.length;
