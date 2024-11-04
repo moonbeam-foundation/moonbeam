@@ -226,6 +226,7 @@ pub mod pallet {
 		CannotSetBelowMin,
 		RoundLengthMustBeGreaterThanTotalSelectedCollators,
 		NoWritingSameValue,
+		TotalInflationDistributionPercentExceeds100,
 		TooLowCandidateCountWeightHintJoinCandidates,
 		TooLowCandidateCountWeightHintCancelLeaveCandidates,
 		TooLowCandidateCountToLeaveCandidates,
@@ -400,17 +401,15 @@ pub mod pallet {
 			rewards: BalanceOf<T>,
 		},
 		/// Transferred to account which holds funds reserved for parachain bond.
-		ReservedForParachainBond {
+		InflationDistributed {
+			index: u32,
 			account: T::AccountId,
 			value: BalanceOf<T>,
 		},
-		/// Account (re)set for parachain bond treasury.
-		ParachainBondAccountSet {
-			old: T::AccountId,
-			new: T::AccountId,
+		InflationDistributionConfigUpdated {
+			old: InflationDistributionConfig<T::AccountId>,
+			new: InflationDistributionConfig<T::AccountId>,
 		},
-		/// Percent of inflation reserved for parachain bond (re)set.
-		ParachainBondReservePercentSet { old: Percent, new: Percent },
 		/// Annual inflation input (first 3) was used to derive new per-round inflation (last 3)
 		InflationSet {
 			annual_min: Perbill,
@@ -518,10 +517,13 @@ pub mod pallet {
 	pub(crate) type TotalSelected<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn parachain_bond_info)]
-	/// Parachain bond config info { account, percent_of_inflation }
-	pub(crate) type ParachainBondInfo<T: Config> =
-		StorageValue<_, ParachainBondConfig<T::AccountId>, ValueQuery>;
+	#[pallet::getter(fn inflation_distribution_info)]
+	/// Inflation distribution configuration, including accounts that should receive inflation
+	/// before it is distributed to collators and delegators.
+	///
+	/// The sum of the distribution percents must be less than or equal to 100.
+	pub(crate) type InflationDistributionInfo<T: Config> =
+		StorageValue<_, InflationDistributionConfig<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn round)]
@@ -787,12 +789,20 @@ pub mod pallet {
 			// Set collator commission to default config
 			<CollatorCommission<T>>::put(self.collator_commission);
 			// Set parachain bond config to default config
-			<ParachainBondInfo<T>>::put(ParachainBondConfig {
+			let pbr = InflationDistributionAccount {
 				// must be set soon; if not => due inflation will be sent to collators/delegators
 				account: T::AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
 					.expect("infinite length input; no invalid inputs for type; qed"),
 				percent: self.parachain_bond_reserve_percent,
-			});
+			};
+			let zeroed_account = InflationDistributionAccount {
+				account: T::AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
+					.expect("infinite length input; no invalid inputs for type; qed"),
+				percent: Percent::zero(),
+			};
+			<InflationDistributionInfo<T>>::put::<InflationDistributionConfig<T::AccountId>>(
+				[pbr, zeroed_account].into(),
+			);
 			// Set total selected candidates to value from config
 			assert!(
 				self.num_selected_candidates >= T::MinSelectedCandidates::get(),
@@ -872,27 +882,26 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// Set the account that will hold funds set aside for parachain bond
+		/// Deprecated: please use `set_inflation_distribution_config` instead.
+		///
+		///  Set the account that will hold funds set aside for parachain bond
 		#[pallet::call_index(2)]
 		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_account())]
 		pub fn set_parachain_bond_account(
 			origin: OriginFor<T>,
 			new: T::AccountId,
 		) -> DispatchResultWithPostInfo {
-			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
-			let ParachainBondConfig {
-				account: old,
-				percent,
-			} = <ParachainBondInfo<T>>::get();
-			ensure!(old != new, Error::<T>::NoWritingSameValue);
-			<ParachainBondInfo<T>>::put(ParachainBondConfig {
-				account: new.clone(),
-				percent,
-			});
-			Self::deposit_event(Event::ParachainBondAccountSet { old, new });
-			Ok(().into())
+			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
+			let old = <InflationDistributionInfo<T>>::get().0;
+			let new = InflationDistributionAccount {
+				account: new,
+				percent: old[0].percent.clone(),
+			};
+			Pallet::<T>::set_inflation_distribution_config(origin, [new, old[1].clone()].into())
 		}
 
+		/// Deprecated: please use `set_inflation_distribution_config` instead.
+		///
 		/// Set the percent of inflation set aside for parachain bond
 		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_reserve_percent())]
@@ -900,18 +909,13 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			new: Percent,
 		) -> DispatchResultWithPostInfo {
-			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
-			let ParachainBondConfig {
-				account,
-				percent: old,
-			} = <ParachainBondInfo<T>>::get();
-			ensure!(old != new, Error::<T>::NoWritingSameValue);
-			<ParachainBondInfo<T>>::put(ParachainBondConfig {
-				account,
+			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
+			let old = <InflationDistributionInfo<T>>::get().0;
+			let new = InflationDistributionAccount {
+				account: old[0].account.clone(),
 				percent: new,
-			});
-			Self::deposit_event(Event::ParachainBondReservePercentSet { old, new });
-			Ok(().into())
+			};
+			Pallet::<T>::set_inflation_distribution_config(origin, [new, old[1].clone()].into())
 		}
 
 		/// Set the total number of collator candidates selected per round
@@ -1465,6 +1469,32 @@ pub mod pallet {
 			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
 			Self::join_candidates_inner(account, bond, candidate_count)
 		}
+
+		/// Set the inflation distribution configuration.
+		#[pallet::call_index(32)]
+		#[pallet::weight(<T as Config>::WeightInfo::set_inflation_distribution_config())]
+		pub fn set_inflation_distribution_config(
+			origin: OriginFor<T>,
+			new: InflationDistributionConfig<T::AccountId>,
+		) -> DispatchResultWithPostInfo {
+			T::MonetaryGovernanceOrigin::ensure_origin(origin)?;
+			let old = <InflationDistributionInfo<T>>::get().0;
+			let new = new.0;
+			ensure!(old != new, Error::<T>::NoWritingSameValue);
+			let total_percent = new.iter().fold(0, |acc, x| acc + x.percent.deconstruct());
+			ensure!(
+				total_percent <= 100,
+				Error::<T>::TotalInflationDistributionPercentExceeds100,
+			);
+			<InflationDistributionInfo<T>>::put::<InflationDistributionConfig<T::AccountId>>(
+				new.clone().into(),
+			);
+			Self::deposit_event(Event::InflationDistributionConfigUpdated {
+				old: old.into(),
+				new: new.into(),
+			});
+			Ok(().into())
+		}
 	}
 
 	/// Represents a payout made via `pay_one_collator_reward`.
@@ -1836,20 +1866,24 @@ pub mod pallet {
 
 			// Compute total issuance based on round duration
 			let total_issuance = Self::compute_issuance(round_duration, round_length);
-
 			// reserve portion of issuance for parachain bond account
 			let mut left_issuance = total_issuance;
-			let bond_config = <ParachainBondInfo<T>>::get();
-			let parachain_bond_reserve = bond_config.percent * total_issuance;
-			if let Ok(imb) =
-				T::Currency::deposit_into_existing(&bond_config.account, parachain_bond_reserve)
-			{
-				// update round issuance if transfer succeeds
-				left_issuance = left_issuance.saturating_sub(imb.peek());
-				Self::deposit_event(Event::ReservedForParachainBond {
-					account: bond_config.account,
-					value: imb.peek(),
-				});
+
+			let configs = <InflationDistributionInfo<T>>::get().0;
+			for (index, config) in configs.iter().enumerate() {
+				if config.percent.is_zero() {
+					continue;
+				}
+				let reserve = config.percent * total_issuance;
+				if let Ok(imb) = T::Currency::deposit_into_existing(&config.account, reserve) {
+					// update round issuance if transfer succeeds
+					left_issuance = left_issuance.saturating_sub(imb.peek());
+					Self::deposit_event(Event::InflationDistributed {
+						index: index as u32,
+						account: config.account.clone(),
+						value: imb.peek(),
+					});
+				}
 			}
 
 			let payout = DelayedPayout {

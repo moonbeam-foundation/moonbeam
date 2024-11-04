@@ -48,57 +48,57 @@ where
 	}
 }
 
-// pub struct MigrateCodeToStateTrieV1<Runtime>(PhantomData<Runtime>);
-// impl<Runtime> Migration for MigrateCodeToStateTrieV1<Runtime>
-// where
-// 	Runtime: frame_system::Config,
-// {
-// 	fn friendly_name(&self) -> &str {
-// 		"MM_MigrateCodeToStateTrieVersion1"
-// 	}
+pub struct MigrateCodeToStateTrieV1<Runtime>(PhantomData<Runtime>);
+impl<Runtime> Migration for MigrateCodeToStateTrieV1<Runtime>
+where
+	Runtime: frame_system::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_MigrateCodeToStateTrieVersion1"
+	}
 
-// 	fn migrate(&self, _available_weight: Weight) -> Weight {
-// 		use cumulus_primitives_storage_weight_reclaim::get_proof_size;
-// 		use sp_core::Get;
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		use cumulus_primitives_storage_weight_reclaim::get_proof_size;
+		use sp_core::Get;
 
-// 		let proof_size_before: u64 = get_proof_size().unwrap_or(0);
+		let proof_size_before: u64 = get_proof_size().unwrap_or(0);
 
-// 		let key = sp_core::storage::well_known_keys::CODE;
-// 		let data = sp_io::storage::get(&key);
-// 		if let Some(data) = data {
-// 			sp_io::storage::set(&key, &data);
-// 		}
+		let key = sp_core::storage::well_known_keys::CODE;
+		let data = sp_io::storage::get(&key);
+		if let Some(data) = data {
+			sp_io::storage::set(&key, &data);
+		}
 
-// 		let proof_size_after: u64 = get_proof_size().unwrap_or(0);
-// 		let proof_size_diff = proof_size_after.saturating_sub(proof_size_before);
+		let proof_size_after: u64 = get_proof_size().unwrap_or(0);
+		let proof_size_diff = proof_size_after.saturating_sub(proof_size_before);
 
-// 		Weight::from_parts(0, proof_size_diff)
-// 			.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().reads_writes(1, 1))
-// 	}
+		Weight::from_parts(0, proof_size_diff)
+			.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().reads_writes(1, 1))
+	}
 
-// 	#[cfg(feature = "try-runtime")]
-// 	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-// 		use parity_scale_codec::Encode;
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		use parity_scale_codec::Encode;
 
-// 		let key = sp_core::storage::well_known_keys::CODE;
-// 		let data = sp_io::storage::get(&key);
-// 		Ok(Encode::encode(&data))
-// 	}
+		let key = sp_core::storage::well_known_keys::CODE;
+		let data = sp_io::storage::get(&key);
+		Ok(Encode::encode(&data))
+	}
 
-// 	#[cfg(feature = "try-runtime")]
-// 	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-// 		use frame_support::ensure;
-// 		use parity_scale_codec::Encode;
-// 		use sp_core::storage::StorageKey;
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		use frame_support::ensure;
+		use parity_scale_codec::Encode;
+		use sp_core::storage::StorageKey;
 
-// 		let key = StorageKey(sp_core::storage::well_known_keys::CODE.to_vec());
-// 		let data = sp_io::storage::get(key.as_ref());
+		let key = StorageKey(sp_core::storage::well_known_keys::CODE.to_vec());
+		let data = sp_io::storage::get(key.as_ref());
 
-// 		ensure!(Encode::encode(&data) == state, "Invalid state");
+		ensure!(Encode::encode(&data) == state, "Invalid state");
 
-// 		Ok(())
-// 	}
-// }
+		Ok(())
+	}
+}
 
 #[derive(parity_scale_codec::Decode, Eq, Ord, PartialEq, PartialOrd)]
 enum OldAssetType {
@@ -206,12 +206,40 @@ where
 	}
 }
 
+pub struct MigrateStakingParachainBondConfig<Runtime>(PhantomData<Runtime>);
+impl<Runtime> Migration for MigrateStakingParachainBondConfig<Runtime>
+where
+	Runtime: pallet_parachain_staking::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_MigrateStakingParachainBondConfig"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_parachain_staking::migrations::MigrateParachainBondConfig::<Runtime>::on_runtime_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		pallet_parachain_staking::migrations::MigrateParachainBondConfig::<Runtime>::pre_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		pallet_parachain_staking::migrations::MigrateParachainBondConfig::<Runtime>::post_upgrade(
+			state,
+		)
+	}
+}
+
 pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> GetMigrations for CommonMigrations<Runtime>
 where
-	Runtime:
-		pallet_xcm::Config + pallet_transaction_payment::Config + pallet_xcm_weight_trader::Config,
+	Runtime: pallet_xcm::Config
+		+ pallet_transaction_payment::Config
+		+ pallet_xcm_weight_trader::Config
+		+ pallet_parachain_staking::Config,
 	Runtime::AccountId: Default,
 	BlockNumberFor<Runtime>: Into<u64>,
 {
@@ -350,10 +378,14 @@ where
 			// Box::new(pallet_collective_drop_gov_v1_collectives),
 			// completed in runtime 2900
 			// Box::new(remove_pallet_democracy),
-			// Box::new(remove_collectives_addresses),
-			// Box::new(MigrateCodeToStateTrieV1::<Runtime>(Default::default())),
+			// Box::new(remove_collectives_addresses
 			// completed in runtime 3200
-			Box::new(MigrateXcmFeesAssetsMeatdata::<Runtime>(Default::default())),
+			// Box::new(MigrateXcmFeesAssetsMeatdata::<Runtime>(Default::default())),
+			// complete in runtime 3300
+			Box::new(MigrateCodeToStateTrieV1::<Runtime>(Default::default())),
+			Box::new(MigrateStakingParachainBondConfig::<Runtime>(
+				Default::default(),
+			)),
 			// permanent migrations
 			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
 		]

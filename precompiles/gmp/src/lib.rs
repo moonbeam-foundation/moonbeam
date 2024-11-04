@@ -23,19 +23,20 @@ use evm::ExitReason;
 use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 use frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
-	sp_runtime::{traits::Zero, Saturating},
+	sp_runtime::traits::Zero,
 	traits::ConstU32,
 };
 use pallet_evm::AddressMapping;
 use parity_scale_codec::{Decode, DecodeLimit};
 use precompile_utils::{prelude::*, solidity::revert::revert_as_bytes};
 use sp_core::{H160, U256};
-use sp_runtime::traits::Dispatchable;
+use sp_runtime::traits::{Convert, Dispatchable};
 use sp_std::boxed::Box;
 use sp_std::{marker::PhantomData, vec::Vec};
 use types::*;
-use xcm::opaque::latest::WeightLimit;
-use xcm_primitives::AccountIdToCurrencyId;
+use xcm::opaque::latest::{Asset, AssetId, Fungibility, WeightLimit};
+use xcm::{VersionedAssets, VersionedLocation};
+use xcm_primitives::{split_location_into_chain_part_and_beneficiary, AccountIdToCurrencyId};
 
 #[cfg(test)]
 mod mock;
@@ -45,8 +46,10 @@ mod tests;
 pub mod types;
 
 pub type SystemCallOf<Runtime> = <Runtime as frame_system::Config>::RuntimeCall;
-pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
-pub type XBalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
+pub type CurrencyIdOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::CurrencyId;
+pub type CurrencyIdToLocationOf<Runtime> =
+	<Runtime as pallet_xcm_transactor::Config>::CurrencyIdToLocation;
+
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 
@@ -66,13 +69,15 @@ pub struct GmpPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile_utils::precompile]
 impl<Runtime> GmpPrecompile<Runtime>
 where
-	Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config + orml_xtokens::Config,
+	Runtime: pallet_evm::Config
+		+ frame_system::Config
+		+ pallet_xcm::Config
+		+ pallet_xcm_transactor::Config,
 	SystemCallOf<Runtime>: Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as frame_system::Config>::RuntimeCall: From<orml_xtokens::Call<Runtime>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<pallet_xcm::Call<Runtime>>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
-	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
 {
 	#[precompile::public("wormholeTransferERC20(bytes)")]
 	pub fn wormhole_transfer_erc20(
@@ -176,7 +181,7 @@ where
 		let currency_account_id =
 			Runtime::AddressMapping::into_account_id(asset_erc20_address.into());
 
-		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
+		let currency_id: CurrencyIdOf<Runtime> =
 			Runtime::account_to_currency_id(currency_account_id)
 				.ok_or(revert("Unsupported asset, not a valid currency id"))?;
 
@@ -207,14 +212,32 @@ where
 			.map_err(|_| revert("Amount overflows balance"))?;
 
 		log::debug!(target: "gmp-precompile", "sending XCM via xtokens::transfer...");
-		let call: Option<orml_xtokens::Call<Runtime>> = match user_action {
+		let call: Option<pallet_xcm::Call<Runtime>> = match user_action {
 			VersionedUserAction::V1(action) => {
 				log::debug!(target: "gmp-precompile", "Payload: V1");
-				Some(orml_xtokens::Call::<Runtime>::transfer {
-					currency_id,
-					amount,
-					dest: Box::new(action.destination),
-					dest_weight_limit: WeightLimit::Unlimited,
+
+				let asset = Asset {
+					fun: Fungibility::Fungible(amount),
+					id: AssetId(
+						<CurrencyIdToLocationOf<Runtime>>::convert(currency_id)
+							.ok_or(revert("Cannot convert CurrencyId into xcm asset"))?,
+					),
+				};
+
+				let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(
+					action
+						.destination
+						.try_into()
+						.map_err(|_| revert("Invalid destination"))?,
+				)
+				.ok_or(revert("Invalid destination"))?;
+
+				Some(pallet_xcm::Call::<Runtime>::transfer_assets {
+					dest: Box::new(VersionedLocation::V4(chain_part)),
+					beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+					assets: Box::new(VersionedAssets::V4(asset.into())),
+					fee_asset_item: 0,
+					weight_limit: WeightLimit::Unlimited,
 				})
 			}
 			VersionedUserAction::V2(action) => {
@@ -252,11 +275,28 @@ where
 				let remaining = amount.saturating_sub(fee);
 
 				if !remaining.is_zero() {
-					Some(orml_xtokens::Call::<Runtime>::transfer {
-						currency_id,
-						amount: remaining,
-						dest: Box::new(action.destination),
-						dest_weight_limit: WeightLimit::Unlimited,
+					let asset = Asset {
+						fun: Fungibility::Fungible(remaining),
+						id: AssetId(
+							<CurrencyIdToLocationOf<Runtime>>::convert(currency_id)
+								.ok_or(revert("Cannot convert CurrencyId into xcm asset"))?,
+						),
+					};
+
+					let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(
+						action
+							.destination
+							.try_into()
+							.map_err(|_| revert("Invalid destination"))?,
+					)
+					.ok_or(revert("Invalid destination"))?;
+
+					Some(pallet_xcm::Call::<Runtime>::transfer_assets {
+						dest: Box::new(VersionedLocation::V4(chain_part)),
+						beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
+						assets: Box::new(VersionedAssets::V4(asset.into())),
+						fee_asset_item: 0,
+						weight_limit: WeightLimit::Unlimited,
 					})
 				} else {
 					None

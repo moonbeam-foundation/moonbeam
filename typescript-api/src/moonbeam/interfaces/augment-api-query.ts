@@ -33,7 +33,6 @@ import type {
   Percent,
 } from "@polkadot/types/interfaces/runtime";
 import type {
-  CumulusPalletDmpQueueMigrationState,
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   CumulusPalletParachainSystemUnincludedSegmentAncestor,
   CumulusPalletParachainSystemUnincludedSegmentSegmentTracker,
@@ -45,12 +44,15 @@ import type {
   EthereumTransactionTransactionV2,
   FpRpcTransactionStatus,
   FrameSupportDispatchPerDispatchClassWeight,
+  FrameSupportTokensMiscIdAmount,
   FrameSystemAccountInfo,
   FrameSystemCodeUpgradeAuthorization,
   FrameSystemEventRecord,
   FrameSystemLastRuntimeUpgradeInfo,
   FrameSystemPhase,
   MoonbeamRuntimeRuntimeHoldReason,
+  MoonbeamRuntimeRuntimeParamsRuntimeParametersKey,
+  MoonbeamRuntimeRuntimeParamsRuntimeParametersValue,
   MoonbeamRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletAssetsApproval,
@@ -60,17 +62,19 @@ import type {
   PalletAuthorMappingRegistrationInfo,
   PalletBalancesAccountData,
   PalletBalancesBalanceLock,
-  PalletBalancesIdAmount,
   PalletBalancesReserveData,
   PalletCollectiveVotes,
   PalletConvictionVotingVoteVoting,
   PalletCrowdloanRewardsRewardInfo,
+  PalletEmergencyParaXcmXcmMode,
   PalletEvmCodeMetadata,
   PalletIdentityAuthorityProperties,
   PalletIdentityRegistrarInfo,
   PalletIdentityRegistration,
   PalletMessageQueueBookState,
   PalletMessageQueuePage,
+  PalletMoonbeamForeignAssetsAssetStatus,
+  PalletMoonbeamLazyMigrationsStateMigrationStatus,
   PalletMoonbeamOrbitersCollatorPoolInfo,
   PalletMultisigMultisig,
   PalletParachainStakingAutoCompoundAutoCompoundConfig,
@@ -81,8 +85,9 @@ import type {
   PalletParachainStakingDelegationRequestsScheduledRequest,
   PalletParachainStakingDelegations,
   PalletParachainStakingDelegator,
+  PalletParachainStakingInflationDistributionAccount,
+  PalletParachainStakingInflationDistributionConfig,
   PalletParachainStakingInflationInflationInfo,
-  PalletParachainStakingParachainBondConfig,
   PalletParachainStakingRoundInfo,
   PalletParachainStakingSetBoundedOrderedSet,
   PalletPreimageOldRequestStatus,
@@ -111,7 +116,9 @@ import type {
   SpRuntimeDigest,
   SpTrieStorageProof,
   SpWeightsWeightV2Weight,
+  StagingXcmV4Instruction,
   StagingXcmV4Location,
+  StagingXcmV4Xcm,
   XcmVersionedAssetId,
   XcmVersionedLocation,
 } from "@polkadot/types/lookup";
@@ -148,25 +155,6 @@ declare module "@polkadot/api-base/types/storage" {
         [MoonbeamRuntimeXcmConfigAssetType]
       > &
         QueryableStorageEntry<ApiType, [MoonbeamRuntimeXcmConfigAssetType]>;
-      /**
-       * Stores the units per second for local execution for a AssetType. This is used to know how
-       * to charge for XCM execution in a particular asset Not all assets might contain units per
-       * second, hence the different storage
-       */
-      assetTypeUnitsPerSecond: AugmentedQuery<
-        ApiType,
-        (
-          arg: MoonbeamRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array
-        ) => Observable<Option<u128>>,
-        [MoonbeamRuntimeXcmConfigAssetType]
-      > &
-        QueryableStorageEntry<ApiType, [MoonbeamRuntimeXcmConfigAssetType]>;
-      supportedFeePaymentAssets: AugmentedQuery<
-        ApiType,
-        () => Observable<Vec<MoonbeamRuntimeXcmConfigAssetType>>,
-        []
-      > &
-        QueryableStorageEntry<ApiType, []>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -210,6 +198,19 @@ declare module "@polkadot/api-base/types/storage" {
         [u128]
       > &
         QueryableStorageEntry<ApiType, [u128]>;
+      /**
+       * The asset ID enforced for the next asset creation, if any present. Otherwise, this storage
+       * item has no effect.
+       *
+       * This can be useful for setting up constraints for IDs of the new assets. For example, by
+       * providing an initial [`NextAssetId`] and using the [`crate::AutoIncAssetId`] callback, an
+       * auto-increment model can be applied to all new asset IDs.
+       *
+       * The initial next asset ID can be set using the [`GenesisConfig`] or the
+       * [SetNextAssetId](`migration::next_asset_id::SetNextAssetId`) migration.
+       */
+      nextAssetId: AugmentedQuery<ApiType, () => Observable<Option<u128>>, []> &
+        QueryableStorageEntry<ApiType, []>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -301,7 +302,7 @@ declare module "@polkadot/api-base/types/storage" {
       /** Freeze locks on account balances. */
       freezes: AugmentedQuery<
         ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<Vec<PalletBalancesIdAmount>>,
+        (arg: AccountId20 | string | Uint8Array) => Observable<Vec<FrameSupportTokensMiscIdAmount>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -424,13 +425,9 @@ declare module "@polkadot/api-base/types/storage" {
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
-    dmpQueue: {
-      /** The migration state of this pallet. */
-      migrationStatus: AugmentedQuery<
-        ApiType,
-        () => Observable<CumulusPalletDmpQueueMigrationState>,
-        []
-      > &
+    emergencyParaXcm: {
+      /** Whether incoming XCM is enabled or paused */
+      mode: AugmentedQuery<ApiType, () => Observable<PalletEmergencyParaXcmXcmMode>, []> &
         QueryableStorageEntry<ApiType, []>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
@@ -517,6 +514,36 @@ declare module "@polkadot/api-base/types/storage" {
         [H160]
       > &
         QueryableStorageEntry<ApiType, [H160]>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    evmForeignAssets: {
+      /**
+       * Mapping from an asset id to a Foreign asset type. This is mostly used when receiving
+       * transaction specifying an asset directly, like transferring an asset from this chain to another.
+       */
+      assetsById: AugmentedQuery<
+        ApiType,
+        (arg: u128 | AnyNumber | Uint8Array) => Observable<Option<StagingXcmV4Location>>,
+        [u128]
+      > &
+        QueryableStorageEntry<ApiType, [u128]>;
+      /**
+       * Reverse mapping of AssetsById. Mapping from a foreign asset to an asset id. This is mostly
+       * used when receiving a multilocation XCM message to retrieve the corresponding asset in
+       * which tokens should me minted.
+       */
+      assetsByLocation: AugmentedQuery<
+        ApiType,
+        (
+          arg: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
+        ) => Observable<Option<ITuple<[u128, PalletMoonbeamForeignAssetsAssetStatus]>>>,
+        [StagingXcmV4Location]
+      > &
+        QueryableStorageEntry<ApiType, [StagingXcmV4Location]>;
+      /** Counter for the related counted storage map */
+      counterForAssetsById: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
@@ -682,6 +709,12 @@ declare module "@polkadot/api-base/types/storage" {
       [key: string]: QueryableStorageEntry<ApiType>;
     };
     moonbeamLazyMigrations: {
+      stateMigrationStatusValue: AugmentedQuery<
+        ApiType,
+        () => Observable<ITuple<[PalletMoonbeamLazyMigrationsStateMigrationStatus, u64]>>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
       /** The total number of suicided contracts that were removed */
       suicidedContractsRemoved: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
@@ -885,10 +918,15 @@ declare module "@polkadot/api-base/types/storage" {
         []
       > &
         QueryableStorageEntry<ApiType, []>;
-      /** Parachain bond config info { account, percent_of_inflation } */
-      parachainBondInfo: AugmentedQuery<
+      /**
+       * Inflation distribution configuration, including accounts that should receive inflation
+       * before it is distributed to collators and delegators.
+       *
+       * The sum of the distribution percents must be less than or equal to 100.
+       */
+      inflationDistributionInfo: AugmentedQuery<
         ApiType,
-        () => Observable<PalletParachainStakingParachainBondConfig>,
+        () => Observable<Vec<PalletParachainStakingInflationDistributionAccount>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1144,6 +1182,24 @@ declare module "@polkadot/api-base/types/storage" {
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
+    parameters: {
+      /** Stored parameters. */
+      parameters: AugmentedQuery<
+        ApiType,
+        (
+          arg:
+            | MoonbeamRuntimeRuntimeParamsRuntimeParametersKey
+            | { RuntimeConfig: any }
+            | { PalletRandomness: any }
+            | string
+            | Uint8Array
+        ) => Observable<Option<MoonbeamRuntimeRuntimeParamsRuntimeParametersValue>>,
+        [MoonbeamRuntimeRuntimeParamsRuntimeParametersKey]
+      > &
+        QueryableStorageEntry<ApiType, [MoonbeamRuntimeRuntimeParamsRuntimeParametersKey]>;
+      /** Generic query */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
     polkadotXcm: {
       /**
        * The existing asset traps.
@@ -1183,6 +1239,19 @@ declare module "@polkadot/api-base/types/storage" {
       /** The latest available query index. */
       queryCounter: AugmentedQuery<ApiType, () => Observable<u64>, []> &
         QueryableStorageEntry<ApiType, []>;
+      /**
+       * If [`ShouldRecordXcm`] is set to true, then the last XCM program executed locally will be
+       * stored here. Runtime APIs can fetch the XCM that was executed by accessing this value.
+       *
+       * Only relevant if this pallet is being used as the [`xcm_executor::traits::RecordXcm`]
+       * implementation in the XCM executor configuration.
+       */
+      recordedXcm: AugmentedQuery<
+        ApiType,
+        () => Observable<Option<Vec<StagingXcmV4Instruction>>>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
       /** Fungible assets which we know are locked on a remote chain. */
       remoteLockedFungibles: AugmentedQuery<
         ApiType,
@@ -1199,6 +1268,16 @@ declare module "@polkadot/api-base/types/storage" {
        * then the destinations whose XCM version is unknown are considered unreachable.
        */
       safeXcmVersion: AugmentedQuery<ApiType, () => Observable<Option<u32>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Whether or not incoming XCMs (both executed locally and received) should be recorded. Only
+       * one XCM program will be recorded at a time. This is meant to be used in runtime APIs, and
+       * it's advised it stays false for all other use cases, so as to not degrade regular performance.
+       *
+       * Only relevant if this pallet is being used as the [`xcm_executor::traits::RecordXcm`]
+       * implementation in the XCM executor configuration.
+       */
+      shouldRecordXcm: AugmentedQuery<ApiType, () => Observable<bool>, []> &
         QueryableStorageEntry<ApiType, []>;
       /** The Latest versions that we know various locations support. */
       supportedVersion: AugmentedQuery<
@@ -1762,7 +1841,19 @@ declare module "@polkadot/api-base/types/storage" {
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
-    xTokens: {
+    xcmWeightTrader: {
+      /**
+       * Stores all supported assets per XCM Location. The u128 is the asset price relative to
+       * native asset with 18 decimals The boolean specify if the support for this asset is active
+       */
+      supportedAssets: AugmentedQuery<
+        ApiType,
+        (
+          arg: StagingXcmV4Location | { parents?: any; interior?: any } | string | Uint8Array
+        ) => Observable<Option<ITuple<[bool, u128]>>>,
+        [StagingXcmV4Location]
+      > &
+        QueryableStorageEntry<ApiType, [StagingXcmV4Location]>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;
     };

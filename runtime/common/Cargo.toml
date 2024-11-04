@@ -82,10 +82,11 @@ pallet-author-slot-filter = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
-xcm-fee-payment-runtime-api = { workspace = true }
+xcm-runtime-apis = { workspace = true }
 
 # Parity
 parity-scale-codec = { workspace = true }
+scale-info = { workspace = true }
 
 account = { workspace = true }
 
@@ -118,6 +119,7 @@ std = [
 	"pallet-xcm-weight-trader/std",
 	"pallet-message-queue/std",
 	"parity-scale-codec/std",
+	"scale-info/std",
 	"precompile-utils/std",
 	"sp-consensus-slots/std",
 	"sp-core/std",
@@ -127,7 +129,7 @@ std = [
 	"sp-genesis-builder/std",
 	"cumulus-primitives-storage-weight-reclaim/std",
 	"xcm-executor/std",
-	"xcm-fee-payment-runtime-api/std",
+	"xcm-runtime-apis/std",
 	"xcm/std",
 	"account/std",
 ]
@@ -166,6 +168,7 @@ runtime-benchmarks = [
 	"pallet-xcm/runtime-benchmarks",
 	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"moonbeam-xcm-benchmarks/runtime-benchmarks",
+	"xcm-runtime-apis/runtime-benchmarks",
 ]
 try-runtime = [
 	"cumulus-pallet-parachain-system/try-runtime",

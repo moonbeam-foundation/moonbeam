@@ -487,20 +487,6 @@ impl<Block: BlockT + DeserializeOwned> blockchain::Backend<Block> for Blockchain
 		Ok(self.storage.read().leaves.hashes())
 	}
 
-	fn displaced_leaves_after_finalizing(
-		&self,
-		block_number: NumberFor<Block>,
-	) -> sp_blockchain::Result<Vec<Block::Hash>> {
-		Ok(self
-			.storage
-			.read()
-			.leaves
-			.displaced_by_finalize_height(block_number)
-			.leaves()
-			.cloned()
-			.collect::<Vec<_>>())
-	}
-
 	fn children(&self, _parent_hash: Block::Hash) -> sp_blockchain::Result<Vec<Block::Hash>> {
 		unimplemented!("Not supported by the `lazy-loading` backend.")
 	}
@@ -589,7 +575,13 @@ impl<Block: BlockT + DeserializeOwned> BlockImportOperation<Block> {
 			self.storage_updates = storage
 				.top
 				.iter()
-				.map(|(k, v)| (k.clone(), Some(v.clone())))
+				.map(|(k, v)| {
+					if v.is_empty() {
+						(k.clone(), None)
+					} else {
+						(k.clone(), Some(v.clone()))
+					}
+				})
 				.collect();
 		}
 		Ok(root)

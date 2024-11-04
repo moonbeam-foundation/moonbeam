@@ -385,7 +385,7 @@ pub fn ethereum_transaction(raw_hex_tx: &str) -> pallet_ethereum::Transaction {
 	transaction.unwrap()
 }
 
-pub(crate) fn increase_last_relay_slot_number(amount: u64) {
+pub fn increase_last_relay_slot_number(amount: u64) {
 	let last_relay_slot = u64::from(AsyncBacking::slot_info().unwrap_or_default().0);
 	frame_support::storage::unhashed::put(
 		&frame_support::storage::storage_prefix(b"AsyncBacking", b"SlotInfo"),
