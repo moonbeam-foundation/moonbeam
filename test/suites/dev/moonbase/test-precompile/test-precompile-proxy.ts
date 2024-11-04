@@ -505,7 +505,9 @@ describeSuite({
         // Storage growth ratio is 366
         // storage_gas = 148 * 366 = 54168
         // pov_gas = 5693 * 16 = 91088
-        const expectedGas = 91_088n;
+        // Given that the remaining pov_gas is now refunded, the effective gas is
+        // the storage_gas = 54168.
+        const expectedGas = 54_168n;
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
           functionName: "addProxy",
