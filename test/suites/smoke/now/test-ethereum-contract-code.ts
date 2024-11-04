@@ -4,7 +4,7 @@ import { ONE_HOURS } from "@moonwall/util";
 import { compactStripLength, hexToU8a, u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import chalk from "chalk";
-import { processRandomStoragePrefixes } from "../../helpers/storageQueries.js";
+import { processRandomStoragePrefixes } from "../../../helpers/storageQueries.js";
 
 describeSuite({
   id: "S08",

@@ -16,7 +16,7 @@ const startReport = (total: () => number) => {
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     log(
       `🔍️ Queried ${total()} keys @ ${qps.toFixed(0)} keys/sec,` +
-      ` ${used.toFixed(0)} MB heap used\n`
+        ` ${used.toFixed(0)} MB heap used\n`
     );
 
     timer = setTimeout(report, 5000);
@@ -51,7 +51,7 @@ export async function processAllStorage(
       prefixes.map(async (prefix) =>
         limiter.schedule(async () => {
           let startKey: string | undefined = undefined;
-          loop: for (; ;) {
+          loop: for (;;) {
             // @ts-expect-error _rpcCore is not yet exposed
             const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [
               prefix,
@@ -103,13 +103,15 @@ export async function processRandomStoragePrefixes(
   storagePrefix: string,
   blockHash: string,
   processor: (batchResult: { key: `0x${string}`; value: string }[]) => void,
-  override: string = "",
+  override: string = ""
 ) {
   const maxKeys = 1000;
   let total = 0;
   const preFilteredPrefixes = splitPrefix(storagePrefix);
   const chanceToSample = 0.05;
-  const prefixes = override ? [override] : preFilteredPrefixes.filter(() => Math.random() < chanceToSample);
+  const prefixes = override
+    ? [override]
+    : preFilteredPrefixes.filter(() => Math.random() < chanceToSample);
   console.log(`Processing ${prefixes.length} prefixes: ${prefixes.join(", ")}`);
   const limiter = rateLimiter();
   const stopReport = startReport(() => total);
@@ -119,7 +121,7 @@ export async function processRandomStoragePrefixes(
       prefixes.map(async (prefix) =>
         limiter.schedule(async () => {
           let startKey: string | undefined = undefined;
-          loop: for (; ;) {
+          loop: for (;;) {
             // @ts-expect-error _rpcCore is not yet exposed
             const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [
               prefix,
