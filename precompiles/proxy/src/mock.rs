@@ -21,7 +21,7 @@ use frame_support::{
 	traits::{Everything, InstanceFilter},
 	weights::Weight,
 };
-use pallet_evm::{EnsureAddressNever, EnsureAddressOrigin, SubstrateBlockHashMapping};
+use pallet_evm::{EnsureAddressNever, EnsureAddressOrigin, FrameSystemAccountProvider, SubstrateBlockHashMapping};
 use precompile_utils::{
 	precompile_set::{
 		AddressU64, CallableByContract, CallableByPrecompile, OnlyFrom, PrecompileAt,
@@ -185,6 +185,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
+	type AccountProvider = FrameSystemAccountProvider<Self>;
 }
 
 parameter_types! {
