@@ -486,7 +486,7 @@ checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
 [[package]]
 name = "async-backing-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "sp-api",
  "sp-consensus-slots",
@@ -786,8 +786,8 @@ dependencies = [
 
 [[package]]
 name = "binary-merkle-tree"
-version = "15.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "15.0.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "hash-db",
  "log",
@@ -818,7 +818,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "regex",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "shlex",
  "syn 2.0.77",
 ]
@@ -1016,13 +1016,14 @@ dependencies = [
 
 [[package]]
 name = "bp-xcm-bridge-hub-router"
-version = "0.14.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.14.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-core",
  "sp-runtime",
+ "staging-xcm",
 ]
 
 [[package]]
@@ -1753,8 +1754,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-client-cli"
-version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.18.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "clap",
  "parity-scale-codec",
@@ -1770,8 +1771,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-client-collator"
-version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.18.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
@@ -1793,8 +1794,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-client-consensus-common"
-version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.18.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "cumulus-client-pov-recovery",
@@ -1823,8 +1824,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-client-consensus-proposer"
-version = "0.15.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.16.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1838,8 +1839,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-client-consensus-relay-chain"
-version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.18.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -1861,8 +1862,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-client-network"
-version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.18.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "cumulus-relay-chain-interface",
@@ -1887,8 +1888,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-client-parachain-inherent"
-version = "0.11.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.12.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -1909,8 +1910,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-client-pov-recovery"
-version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.18.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -1935,8 +1936,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-client-service"
-version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-collator",
@@ -1972,8 +1973,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-pallet-dmp-queue"
-version = "0.16.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.17.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cumulus-primitives-core",
  "frame-benchmarking",
@@ -1989,8 +1990,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-pallet-parachain-system"
-version = "0.16.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.17.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bytes",
  "cumulus-pallet-parachain-system-proc-macro",
@@ -2026,7 +2027,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system-proc-macro"
 version = "0.6.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
@@ -2036,8 +2037,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-pallet-xcm"
-version = "0.16.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.17.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -2051,8 +2052,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-pallet-xcmp-queue"
-version = "0.16.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.17.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bounded-collections",
  "bp-xcm-bridge-hub-router",
@@ -2076,8 +2077,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-primitives-core"
-version = "0.15.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.16.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "polkadot-core-primitives",
@@ -2092,8 +2093,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
-version = "0.15.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.16.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -2101,15 +2102,13 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-inherents",
- "sp-runtime",
- "sp-state-machine",
  "sp-trie",
 ]
 
 [[package]]
 name = "cumulus-primitives-proof-size-hostfunction"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "sp-externalities",
  "sp-runtime-interface",
@@ -2118,8 +2117,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-primitives-storage-weight-reclaim"
-version = "7.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "8.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-proof-size-hostfunction",
@@ -2134,8 +2133,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-primitives-timestamp"
-version = "0.15.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.16.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cumulus-primitives-core",
  "sp-inherents",
@@ -2144,8 +2143,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-primitives-utility"
-version = "0.16.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.17.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -2153,8 +2152,6 @@ dependencies = [
  "pallet-asset-conversion",
  "parity-scale-codec",
  "polkadot-runtime-common",
- "polkadot-runtime-parachains",
- "sp-io",
  "sp-runtime",
  "staging-xcm",
  "staging-xcm-builder",
@@ -2163,8 +2160,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-relay-chain-inprocess-interface"
-version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -2187,13 +2184,13 @@ dependencies = [
 
 [[package]]
 name = "cumulus-relay-chain-interface"
-version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.18.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
  "futures 0.3.30",
- "jsonrpsee-core",
+ "jsonrpsee-core 0.24.7",
  "parity-scale-codec",
  "polkadot-overseer",
  "sc-client-api",
@@ -2206,8 +2203,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-relay-chain-minimal-node"
-version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "async-trait",
@@ -2241,8 +2238,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-relay-chain-rpc-interface"
-version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.18.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -2250,7 +2247,7 @@ dependencies = [
  "either",
  "futures 0.3.30",
  "futures-timer",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "parity-scale-codec",
  "pin-project",
  "polkadot-overseer",
@@ -2280,8 +2277,8 @@ dependencies = [
 
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
-version = "0.15.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.16.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cumulus-primitives-core",
  "parity-scale-codec",
@@ -2939,7 +2936,7 @@ dependencies = [
 [[package]]
 name = "evm"
 version = "0.41.2"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2407#8dea63a242ac4442607d15f7e95ab3daebcbd017"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2409#aeff7f361687b4c6a7fcbe1cf6e4fe5f2aea32b5"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -2959,7 +2956,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2407#8dea63a242ac4442607d15f7e95ab3daebcbd017"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2409#aeff7f361687b4c6a7fcbe1cf6e4fe5f2aea32b5"
 dependencies = [
  "parity-scale-codec",
  "primitive-types",
@@ -2970,7 +2967,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2407#8dea63a242ac4442607d15f7e95ab3daebcbd017"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2409#aeff7f361687b4c6a7fcbe1cf6e4fe5f2aea32b5"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2981,7 +2978,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.41.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2407#8dea63a242ac4442607d15f7e95ab3daebcbd017"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2409#aeff7f361687b4c6a7fcbe1cf6e4fe5f2aea32b5"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -3088,7 +3085,7 @@ dependencies = [
 [[package]]
 name = "fc-api"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "async-trait",
  "fp-storage",
@@ -3100,7 +3097,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "async-trait",
  "fp-consensus",
@@ -3116,7 +3113,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "async-trait",
  "ethereum",
@@ -3146,7 +3143,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "fc-db",
  "fc-storage",
@@ -3169,7 +3166,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3183,7 +3180,7 @@ dependencies = [
  "fp-storage",
  "futures 0.3.30",
  "hex",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "libsecp256k1",
  "log",
  "pallet-evm",
@@ -3223,11 +3220,11 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "ethereum",
  "ethereum-types",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "rlp",
  "rustc-hex",
  "serde",
@@ -3238,7 +3235,7 @@ dependencies = [
 [[package]]
 name = "fc-storage"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3401,7 +3398,7 @@ checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
 [[package]]
 name = "fork-tree"
 version = "13.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
 ]
@@ -3428,7 +3425,7 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "hex",
  "impl-serde",
@@ -3447,7 +3444,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -3458,7 +3455,7 @@ dependencies = [
 [[package]]
 name = "fp-ethereum"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3470,7 +3467,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "environmental",
  "evm",
@@ -3486,7 +3483,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3502,7 +3499,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -3514,7 +3511,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "parity-scale-codec",
  "serde",
@@ -3528,8 +3525,8 @@ checksum = "6c2141d6d6c8512188a7891b4b01590a45f6dac67afb4f255c4124dbb86d4eaa"
 
 [[package]]
 name = "frame-benchmarking"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "frame-support-procedural",
@@ -3552,8 +3549,8 @@ dependencies = [
 
 [[package]]
 name = "frame-benchmarking-cli"
-version = "42.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "43.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "Inflector",
  "array-bytes",
@@ -3603,7 +3600,7 @@ dependencies = [
 [[package]]
 name = "frame-election-provider-solution-type"
 version = "14.0.1"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
@@ -3613,8 +3610,8 @@ dependencies = [
 
 [[package]]
 name = "frame-election-provider-support"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-election-provider-solution-type",
  "frame-support",
@@ -3629,8 +3626,8 @@ dependencies = [
 
 [[package]]
 name = "frame-executive"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "aquamarine",
  "frame-support",
@@ -3659,8 +3656,8 @@ dependencies = [
 
 [[package]]
 name = "frame-metadata-hash-extension"
-version = "0.5.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.6.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "docify",
@@ -3674,8 +3671,8 @@ dependencies = [
 
 [[package]]
 name = "frame-support"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "aquamarine",
  "array-bytes",
@@ -3715,12 +3712,13 @@ dependencies = [
 
 [[package]]
 name = "frame-support-procedural"
-version = "30.0.2"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "30.0.3"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "Inflector",
  "cfg-expr",
  "derive-syn-parse",
+ "docify",
  "expander",
  "frame-support-procedural-tools",
  "itertools 0.11.0",
@@ -3735,7 +3733,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools"
 version = "13.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support-procedural-tools-derive",
  "proc-macro-crate 3.2.0",
@@ -3747,7 +3745,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools-derive"
 version = "12.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3756,8 +3754,8 @@ dependencies = [
 
 [[package]]
 name = "frame-system"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cfg-if",
  "docify",
@@ -3776,8 +3774,8 @@ dependencies = [
 
 [[package]]
 name = "frame-system-benchmarking"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -3791,7 +3789,7 @@ dependencies = [
 [[package]]
 name = "frame-system-rpc-runtime-api"
 version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "docify",
  "parity-scale-codec",
@@ -3800,8 +3798,8 @@ dependencies = [
 
 [[package]]
 name = "frame-try-runtime"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.44.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -4900,11 +4898,25 @@ version = "0.23.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62b089779ad7f80768693755a031cc14a7766aba707cbe886674e3f79e9b7e47"
 dependencies = [
- "jsonrpsee-core",
+ "jsonrpsee-core 0.23.2",
  "jsonrpsee-http-client",
- "jsonrpsee-proc-macros",
- "jsonrpsee-server",
- "jsonrpsee-types",
+ "jsonrpsee-proc-macros 0.23.2",
+ "jsonrpsee-server 0.23.2",
+ "jsonrpsee-types 0.23.2",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "jsonrpsee"
+version = "0.24.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c5c71d8c1a731cc4227c2f698d377e7848ca12c8a48866fc5e6951c43a4db843"
+dependencies = [
+ "jsonrpsee-core 0.24.7",
+ "jsonrpsee-proc-macros 0.24.7",
+ "jsonrpsee-server 0.24.7",
+ "jsonrpsee-types 0.24.7",
  "jsonrpsee-ws-client",
  "tokio",
  "tracing",
@@ -4912,14 +4924,14 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-client-transport"
-version = "0.23.2"
+version = "0.24.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08163edd8bcc466c33d79e10f695cdc98c00d1e6ddfb95cec41b6b0279dd5432"
+checksum = "548125b159ba1314104f5bb5f38519e03a41862786aa3925cf349aae9cdd546e"
 dependencies = [
  "base64 0.22.1",
  "futures-util",
  "http 1.1.0",
- "jsonrpsee-core",
+ "jsonrpsee-core 0.24.7",
  "pin-project",
  "rustls 0.23.13",
  "rustls-pki-types",
@@ -4943,16 +4955,39 @@ dependencies = [
  "async-trait",
  "beef",
  "bytes",
+ "futures-util",
+ "http 1.1.0",
+ "http-body 1.0.1",
+ "http-body-util",
+ "jsonrpsee-types 0.23.2",
+ "parking_lot 0.12.3",
+ "rand 0.8.5",
+ "rustc-hash 1.1.0",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "jsonrpsee-core"
+version = "0.24.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2882f6f8acb9fdaec7cefc4fd607119a9bd709831df7d7672a1d3b644628280"
+dependencies = [
+ "async-trait",
+ "bytes",
  "futures-timer",
  "futures-util",
  "http 1.1.0",
  "http-body 1.0.1",
  "http-body-util",
- "jsonrpsee-types",
+ "jsonrpsee-types 0.24.7",
  "parking_lot 0.12.3",
  "pin-project",
  "rand 0.8.5",
- "rustc-hash",
+ "rustc-hash 2.0.0",
  "serde",
  "serde_json",
  "thiserror",
@@ -4973,8 +5008,8 @@ dependencies = [
  "hyper 1.4.1",
  "hyper-rustls 0.27.3",
  "hyper-util",
- "jsonrpsee-core",
- "jsonrpsee-types",
+ "jsonrpsee-core 0.23.2",
+ "jsonrpsee-types 0.23.2",
  "rustls 0.23.13",
  "rustls-platform-verifier",
  "serde",
@@ -5000,6 +5035,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "jsonrpsee-proc-macros"
+version = "0.24.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c06c01ae0007548e73412c08e2285ffe5d723195bf268bce67b1b77c3bb2a14d"
+dependencies = [
+ "heck 0.5.0",
+ "proc-macro-crate 3.2.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.77",
+]
+
+[[package]]
 name = "jsonrpsee-server"
 version = "0.23.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5012,8 +5060,35 @@ dependencies = [
  "http-body-util",
  "hyper 1.4.1",
  "hyper-util",
- "jsonrpsee-core",
- "jsonrpsee-types",
+ "jsonrpsee-core 0.23.2",
+ "jsonrpsee-types 0.23.2",
+ "pin-project",
+ "route-recognizer",
+ "serde",
+ "serde_json",
+ "soketto 0.8.0",
+ "thiserror",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "tower",
+ "tracing",
+]
+
+[[package]]
+name = "jsonrpsee-server"
+version = "0.24.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82ad8ddc14be1d4290cd68046e7d1d37acd408efed6d3ca08aefcc3ad6da069c"
+dependencies = [
+ "futures-util",
+ "http 1.1.0",
+ "http-body 1.0.1",
+ "http-body-util",
+ "hyper 1.4.1",
+ "hyper-util",
+ "jsonrpsee-core 0.24.7",
+ "jsonrpsee-types 0.24.7",
  "pin-project",
  "route-recognizer",
  "serde",
@@ -5041,15 +5116,27 @@ dependencies = [
 ]
 
 [[package]]
-name = "jsonrpsee-ws-client"
-version = "0.23.2"
+name = "jsonrpsee-types"
+version = "0.24.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c28759775f5cb2f1ea9667672d3fe2b0e701d1f4b7b67954e60afe7fd058b5e"
+checksum = "a178c60086f24cc35bb82f57c651d0d25d99c4742b4d335de04e97fa1f08a8a1"
+dependencies = [
+ "http 1.1.0",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "jsonrpsee-ws-client"
+version = "0.24.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0fe322e0896d0955a3ebdd5bf813571c53fea29edd713bc315b76620b327e86d"
 dependencies = [
  "http 1.1.0",
  "jsonrpsee-client-transport",
- "jsonrpsee-core",
- "jsonrpsee-types",
+ "jsonrpsee-core 0.24.7",
+ "jsonrpsee-types 0.24.7",
  "url",
 ]
 
@@ -6106,8 +6193,8 @@ dependencies = [
 
 [[package]]
 name = "mmr-gadget"
-version = "39.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "40.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
  "log",
@@ -6125,10 +6212,10 @@ dependencies = [
 
 [[package]]
 name = "mmr-rpc"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "parity-scale-codec",
  "serde",
  "sp-api",
@@ -6457,7 +6544,7 @@ dependencies = [
  "flume 0.10.14",
  "futures 0.3.30",
  "hex-literal 0.4.1",
- "jsonrpsee",
+ "jsonrpsee 0.23.2",
  "parity-scale-codec",
  "staging-xcm",
  "tokio",
@@ -6491,7 +6578,7 @@ dependencies = [
  "fc-api",
  "fc-db",
  "fc-rpc",
- "jsonrpsee",
+ "jsonrpsee 0.23.2",
  "parity-scale-codec",
  "sp-api",
  "sp-blockchain",
@@ -6546,7 +6633,7 @@ dependencies = [
  "ethereum-types",
  "fc-rpc-core",
  "futures 0.3.30",
- "jsonrpsee",
+ "jsonrpsee 0.23.2",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-types",
  "serde",
@@ -6560,7 +6647,7 @@ version = "0.6.0"
 dependencies = [
  "ethereum-types",
  "futures 0.3.30",
- "jsonrpsee",
+ "jsonrpsee 0.23.2",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-types",
  "serde",
@@ -6574,7 +6661,7 @@ dependencies = [
  "ethereum",
  "ethereum-types",
  "fc-rpc-core",
- "jsonrpsee",
+ "jsonrpsee 0.23.2",
  "serde",
  "serde_json",
 ]
@@ -6603,7 +6690,7 @@ dependencies = [
  "fp-rpc",
  "futures 0.3.30",
  "hex-literal 0.4.1",
- "jsonrpsee",
+ "jsonrpsee 0.23.2",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-debug",
  "moonbeam-rpc-core-types",
@@ -6661,7 +6748,7 @@ dependencies = [
  "fc-storage",
  "fp-rpc",
  "futures 0.3.30",
- "jsonrpsee",
+ "jsonrpsee 0.23.2",
  "log",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-trace",
@@ -6691,7 +6778,7 @@ dependencies = [
  "ethereum-types",
  "fc-rpc",
  "frame-system",
- "jsonrpsee",
+ "jsonrpsee 0.23.2",
  "moonbeam-rpc-core-txpool",
  "moonbeam-rpc-primitives-txpool",
  "rlp",
@@ -6982,7 +7069,7 @@ dependencies = [
  "futures 0.3.30",
  "hex",
  "hex-literal 0.4.1",
- "jsonrpsee",
+ "jsonrpsee 0.23.2",
  "libsecp256k1",
  "log",
  "maplit",
@@ -7571,7 +7658,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "async-backing-primitives",
  "async-trait",
@@ -7611,7 +7698,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "async-trait",
  "frame-benchmarking",
@@ -8040,8 +8127,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-conversion"
-version = "19.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "20.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8078,8 +8165,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-rate"
-version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8092,8 +8179,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-tx-payment"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8109,8 +8196,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-assets"
-version = "39.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "40.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8126,7 +8213,7 @@ dependencies = [
 [[package]]
 name = "pallet-async-backing"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -8146,7 +8233,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8165,7 +8252,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-mapping"
 version = "2.0.5"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8184,7 +8271,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8201,8 +8288,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-authority-discovery"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8216,8 +8303,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-authorship"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8229,8 +8316,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-babe"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8252,8 +8339,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-bags-list"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "aquamarine",
  "docify",
@@ -8273,8 +8360,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-balances"
-version = "38.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "39.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "docify",
  "frame-benchmarking",
@@ -8288,8 +8375,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-beefy"
-version = "38.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "39.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8307,11 +8394,12 @@ dependencies = [
 
 [[package]]
 name = "pallet-beefy-mmr"
-version = "38.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "39.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "binary-merkle-tree",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
@@ -8331,8 +8419,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-bounties"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8348,8 +8436,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-broker"
-version = "0.16.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.17.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bitvec",
  "frame-benchmarking",
@@ -8366,8 +8454,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-child-bounties"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8384,8 +8472,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-collator-selection"
-version = "18.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "19.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8403,8 +8491,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-collective"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8419,8 +8507,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-conviction-voting"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "assert_matches",
  "frame-benchmarking",
@@ -8436,7 +8524,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/moonbeam-foundation/crowdloan-rewards?branch=moonbeam-polkadot-stable2407#3c0135e87804b7ba3efadb0d053086cca5e66b54"
+source = "git+https://github.com/moonbeam-foundation/crowdloan-rewards?branch=moonbeam-polkadot-stable2409#014056f7bb41e40d8b93d2284c283960f6c8b002"
 dependencies = [
  "ed25519-dalek",
  "frame-benchmarking",
@@ -8457,21 +8545,23 @@ dependencies = [
 
 [[package]]
 name = "pallet-delegated-staking"
-version = "4.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "5.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "frame-system",
+ "log",
  "parity-scale-codec",
  "scale-info",
+ "sp-io",
  "sp-runtime",
  "sp-staking",
 ]
 
 [[package]]
 name = "pallet-democracy"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8487,8 +8577,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-election-provider-multi-phase"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -8509,8 +8599,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-election-provider-support-benchmarking"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -8522,8 +8612,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-elections-phragmen"
-version = "38.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "39.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8541,7 +8631,7 @@ dependencies = [
 [[package]]
 name = "pallet-emergency-para-xcm"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -8584,7 +8674,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "environmental",
  "ethereum",
@@ -8602,6 +8692,7 @@ dependencies = [
  "scale-info",
  "sp-io",
  "sp-runtime",
+ "sp-version",
 ]
 
 [[package]]
@@ -8640,7 +8731,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "environmental",
  "evm",
@@ -8663,7 +8754,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-chain-id"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8758,7 +8849,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "fp-evm",
 ]
@@ -8766,7 +8857,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "fp-evm",
  "sp-core",
@@ -8898,7 +8989,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -8974,7 +9065,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "fp-evm",
  "num",
@@ -9219,7 +9310,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "fp-evm",
  "tiny-keccak",
@@ -9228,7 +9319,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "fp-evm",
  "ripemd",
@@ -9238,7 +9329,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-storage-cleaner"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -9253,7 +9344,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-xcm"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "cumulus-primitives-core",
  "evm",
@@ -9407,8 +9498,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-fast-unstake"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "docify",
  "frame-benchmarking",
@@ -9425,8 +9516,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-grandpa"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9447,8 +9538,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-identity"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "enumflags2",
  "frame-benchmarking",
@@ -9465,8 +9556,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-im-online"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9484,8 +9575,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-indices"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9501,7 +9592,7 @@ dependencies = [
 [[package]]
 name = "pallet-maintenance-mode"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -9516,8 +9607,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-membership"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9532,8 +9623,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-message-queue"
-version = "40.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "41.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "environmental",
  "frame-benchmarking",
@@ -9552,7 +9643,7 @@ dependencies = [
 [[package]]
 name = "pallet-migrations"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9570,8 +9661,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-mmr"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9654,8 +9745,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-multisig"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9669,8 +9760,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-nis"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9684,8 +9775,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-nomination-pools"
-version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "35.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -9702,8 +9793,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-nomination-pools-benchmarking"
-version = "35.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "36.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -9722,8 +9813,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-nomination-pools-runtime-api"
-version = "32.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "33.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "pallet-nomination-pools",
  "parity-scale-codec",
@@ -9732,8 +9823,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-offences"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -9748,8 +9839,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-offences-benchmarking"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -9793,8 +9884,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-parameters"
-version = "0.8.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.9.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cumulus-primitives-storage-weight-reclaim",
  "docify",
@@ -9831,8 +9922,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-preimage"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9847,8 +9938,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-proxy"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9880,7 +9971,7 @@ dependencies = [
 [[package]]
 name = "pallet-randomness"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "environmental",
  "frame-benchmarking",
@@ -9904,8 +9995,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-ranked-collective"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9922,8 +10013,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-recovery"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9936,8 +10027,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-referenda"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "assert_matches",
  "frame-benchmarking",
@@ -9955,7 +10046,7 @@ dependencies = [
 [[package]]
 name = "pallet-relay-storage-roots"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -9977,8 +10068,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-root-testing"
-version = "13.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "14.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -9991,8 +10082,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-scheduler"
-version = "38.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "39.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "docify",
  "frame-benchmarking",
@@ -10008,8 +10099,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-session"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -10029,8 +10120,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-session-benchmarking"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -10045,8 +10136,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-society"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -10062,8 +10153,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-staking"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -10083,20 +10174,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-staking-reward-curve"
-version = "12.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
-dependencies = [
- "proc-macro-crate 3.2.0",
- "proc-macro2",
- "quote",
- "syn 2.0.77",
-]
-
-[[package]]
 name = "pallet-staking-reward-fn"
 version = "22.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "log",
  "sp-arithmetic",
@@ -10104,8 +10184,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-staking-runtime-api"
-version = "22.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "24.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "sp-api",
@@ -10114,8 +10194,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-state-trie-migration"
-version = "39.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "40.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -10130,8 +10210,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-sudo"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "docify",
  "frame-benchmarking",
@@ -10145,8 +10225,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-timestamp"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "docify",
  "frame-benchmarking",
@@ -10164,8 +10244,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-tips"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -10182,8 +10262,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-payment"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -10197,10 +10277,10 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-payment-rpc"
-version = "40.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "41.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",
  "sp-api",
@@ -10213,8 +10293,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-payment-rpc-runtime-api"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "pallet-transaction-payment",
  "parity-scale-codec",
@@ -10225,8 +10305,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-treasury"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "docify",
  "frame-benchmarking",
@@ -10243,8 +10323,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-utility"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -10258,8 +10338,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-vesting"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -10272,8 +10352,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-whitelist"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -10286,8 +10366,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-xcm"
-version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bounded-collections",
  "frame-benchmarking",
@@ -10309,8 +10389,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-xcm-benchmarks"
-version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -10373,8 +10453,8 @@ dependencies = [
 
 [[package]]
 name = "parachains-common"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-utility",
@@ -10702,8 +10782,8 @@ checksum = "d231b230927b5e4ad203db57bbcbee2802f6bce620b1e4a9024a07d94e2907ec"
 
 [[package]]
 name = "polkadot-approval-distribution"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bitvec",
  "futures 0.3.30",
@@ -10722,8 +10802,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-availability-bitfield-distribution"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "always-assert",
  "futures 0.3.30",
@@ -10738,8 +10818,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-availability-distribution"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "derive_more",
  "fatality",
@@ -10762,8 +10842,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-availability-recovery"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "fatality",
@@ -10795,8 +10875,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-cli"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "19.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cfg-if",
  "clap",
@@ -10823,8 +10903,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-collator-protocol"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bitvec",
  "fatality",
@@ -10835,6 +10915,7 @@ dependencies = [
  "polkadot-node-subsystem",
  "polkadot-node-subsystem-util",
  "polkadot-primitives",
+ "schnellru",
  "sp-core",
  "sp-keystore",
  "sp-runtime",
@@ -10846,7 +10927,7 @@ dependencies = [
 [[package]]
 name = "polkadot-core-primitives"
 version = "15.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -10856,8 +10937,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-dispute-distribution"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "derive_more",
  "fatality",
@@ -10881,8 +10962,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-erasure-coding"
-version = "15.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "16.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "polkadot-node-primitives",
@@ -10895,8 +10976,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-gossip-support"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
  "futures-timer",
@@ -10917,8 +10998,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-network-bridge"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "always-assert",
  "async-trait",
@@ -10940,8 +11021,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-collation-generation"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
  "parity-scale-codec",
@@ -10958,8 +11039,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-approval-voting"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bitvec",
  "derive_more",
@@ -10991,8 +11072,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-av-store"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bitvec",
  "futures 0.3.30",
@@ -11013,8 +11094,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-backing"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bitvec",
  "fatality",
@@ -11033,8 +11114,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-bitfield-signing"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
  "polkadot-node-subsystem",
@@ -11048,8 +11129,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-candidate-validation"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "futures 0.3.30",
@@ -11063,14 +11144,15 @@ dependencies = [
  "polkadot-overseer",
  "polkadot-parachain-primitives",
  "polkadot-primitives",
- "sp-maybe-compressed-blob",
+ "sp-application-crypto",
+ "sp-keystore",
  "tracing-gum",
 ]
 
 [[package]]
 name = "polkadot-node-core-chain-api"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
  "polkadot-node-metrics",
@@ -11083,8 +11165,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-chain-selection"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
  "futures-timer",
@@ -11100,8 +11182,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-dispute-coordinator"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "fatality",
  "futures 0.3.30",
@@ -11119,8 +11201,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-parachains-inherent"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "futures 0.3.30",
@@ -11136,14 +11218,11 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-prospective-parachains"
-version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
- "bitvec",
  "fatality",
  "futures 0.3.30",
- "parity-scale-codec",
- "polkadot-node-primitives",
  "polkadot-node-subsystem",
  "polkadot-node-subsystem-util",
  "polkadot-primitives",
@@ -11153,8 +11232,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-provisioner"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bitvec",
  "fatality",
@@ -11171,8 +11250,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-pvf"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "always-assert",
  "array-bytes",
@@ -11200,8 +11279,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-pvf-checker"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
  "polkadot-node-primitives",
@@ -11216,8 +11295,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-pvf-common"
-version = "15.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "16.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cpu-time",
  "futures 0.3.30",
@@ -11242,8 +11321,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-core-runtime-api"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
  "polkadot-node-metrics",
@@ -11257,8 +11336,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-jaeger"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "lazy_static",
  "log",
@@ -11276,8 +11355,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-metrics"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bs58 0.5.1",
  "futures 0.3.30",
@@ -11295,8 +11374,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-network-protocol"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-channel 1.9.0",
  "async-trait",
@@ -11321,19 +11400,22 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-primitives"
-version = "15.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "16.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bitvec",
  "bounded-vec",
  "futures 0.3.30",
+ "futures-timer",
  "parity-scale-codec",
  "polkadot-parachain-primitives",
  "polkadot-primitives",
+ "sc-keystore",
  "schnorrkel 0.11.4",
  "serde",
  "sp-application-crypto",
  "sp-consensus-babe",
+ "sp-consensus-slots",
  "sp-core",
  "sp-keystore",
  "sp-maybe-compressed-blob",
@@ -11344,8 +11426,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-subsystem"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "polkadot-node-jaeger",
  "polkadot-node-subsystem-types",
@@ -11354,8 +11436,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-subsystem-types"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "bitvec",
@@ -11384,8 +11466,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-node-subsystem-util"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "derive_more",
@@ -11420,8 +11502,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-overseer"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "futures 0.3.30",
@@ -11443,7 +11525,7 @@ dependencies = [
 [[package]]
 name = "polkadot-parachain-primitives"
 version = "14.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bounded-collections",
  "derive_more",
@@ -11458,8 +11540,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-primitives"
-version = "15.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "16.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bitvec",
  "hex-literal 0.4.1",
@@ -11484,10 +11566,10 @@ dependencies = [
 
 [[package]]
 name = "polkadot-rpc"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "19.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "mmr-rpc",
  "pallet-transaction-payment-rpc",
  "polkadot-primitives",
@@ -11519,8 +11601,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-runtime-common"
-version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bitvec",
  "frame-benchmarking",
@@ -11569,8 +11651,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-runtime-metrics"
-version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bs58 0.5.1",
  "frame-benchmarking",
@@ -11581,8 +11663,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-runtime-parachains"
-version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bitflags 1.3.2",
  "bitvec",
@@ -11598,6 +11680,7 @@ dependencies = [
  "pallet-balances",
  "pallet-broker",
  "pallet-message-queue",
+ "pallet-mmr",
  "pallet-session",
  "pallet-staking",
  "pallet-timestamp",
@@ -11621,6 +11704,7 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-staking",
+ "sp-std",
  "staging-xcm",
  "staging-xcm-executor",
  "static_assertions",
@@ -11628,26 +11712,21 @@ dependencies = [
 
 [[package]]
 name = "polkadot-service"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "19.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
- "bitvec",
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "frame-metadata-hash-extension",
- "frame-support",
  "frame-system",
  "frame-system-rpc-runtime-api",
  "futures 0.3.30",
- "hex-literal 0.4.1",
  "is_executable",
  "kvdb",
  "kvdb-rocksdb",
  "log",
  "mmr-gadget",
- "pallet-babe",
- "pallet-staking",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-db",
@@ -11683,7 +11762,6 @@ dependencies = [
  "polkadot-node-subsystem-types",
  "polkadot-node-subsystem-util",
  "polkadot-overseer",
- "polkadot-parachain-primitives",
  "polkadot-primitives",
  "polkadot-rpc",
  "polkadot-runtime-parachains",
@@ -11692,10 +11770,8 @@ dependencies = [
  "rococo-runtime-constants",
  "sc-authority-discovery",
  "sc-basic-authorship",
- "sc-block-builder",
  "sc-chain-spec",
  "sc-client-api",
- "sc-client-db",
  "sc-consensus",
  "sc-consensus-babe",
  "sc-consensus-beefy",
@@ -11704,7 +11780,6 @@ dependencies = [
  "sc-executor",
  "sc-keystore",
  "sc-network",
- "sc-network-common",
  "sc-network-sync",
  "sc-offchain",
  "sc-service",
@@ -11713,7 +11788,6 @@ dependencies = [
  "sc-telemetry",
  "sc-transaction-pool",
  "sc-transaction-pool-api",
- "schnellru",
  "serde",
  "serde_json",
  "sp-api",
@@ -11725,16 +11799,14 @@ dependencies = [
  "sp-consensus-beefy",
  "sp-consensus-grandpa",
  "sp-core",
+ "sp-genesis-builder",
  "sp-inherents",
  "sp-io",
  "sp-keyring",
- "sp-keystore",
  "sp-mmr-primitives",
  "sp-offchain",
  "sp-runtime",
  "sp-session",
- "sp-state-machine",
- "sp-storage",
  "sp-timestamp",
  "sp-transaction-pool",
  "sp-version",
@@ -11750,8 +11822,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-statement-distribution"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "arrayvec 0.7.6",
  "bitvec",
@@ -11773,8 +11845,8 @@ dependencies = [
 
 [[package]]
 name = "polkadot-statement-table"
-version = "15.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "16.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "polkadot-primitives",
@@ -11976,7 +12048,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "derive_more",
  "environmental",
@@ -12005,7 +12077,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils-macro"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#439e782fb9754c38188158cd65d1eba6fe9f0e65"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#ebbca08cce3bbf41a6acfdf075772dbf8adea87c"
 dependencies = [
  "case",
  "num_enum 0.7.3",
@@ -12396,7 +12468,7 @@ dependencies = [
  "pin-project-lite",
  "quinn-proto 0.9.6",
  "quinn-udp 0.3.2",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "rustls 0.20.9",
  "thiserror",
  "tokio",
@@ -12415,7 +12487,7 @@ dependencies = [
  "pin-project-lite",
  "quinn-proto 0.10.6",
  "quinn-udp 0.4.1",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "rustls 0.21.12",
  "thiserror",
  "tokio",
@@ -12431,7 +12503,7 @@ dependencies = [
  "bytes",
  "rand 0.8.5",
  "ring 0.16.20",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "rustls 0.20.9",
  "slab",
  "thiserror",
@@ -12449,7 +12521,7 @@ dependencies = [
  "bytes",
  "rand 0.8.5",
  "ring 0.16.20",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "rustls 0.21.12",
  "slab",
  "thiserror",
@@ -12716,7 +12788,7 @@ checksum = "ad156d539c879b7a24a363a2016d77961786e71f48f2e2fc8302a92abd2429a6"
 dependencies = [
  "hashbrown 0.13.2",
  "log",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "slice-group-by",
  "smallvec",
 ]
@@ -12858,8 +12930,8 @@ dependencies = [
 
 [[package]]
 name = "rococo-runtime"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "binary-merkle-tree",
  "bitvec",
@@ -12958,8 +13030,8 @@ dependencies = [
 
 [[package]]
 name = "rococo-runtime-constants"
-version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "polkadot-primitives",
@@ -13025,6 +13097,12 @@ name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
+
+[[package]]
+name = "rustc-hash"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "583034fd73374156e66797ed8e5b0d5690409c9226b22d87cb7f19821c05d152"
 
 [[package]]
 name = "rustc-hex"
@@ -13282,7 +13360,7 @@ dependencies = [
 [[package]]
 name = "sc-allocator"
 version = "29.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "log",
  "sp-core",
@@ -13292,8 +13370,8 @@ dependencies = [
 
 [[package]]
 name = "sc-authority-discovery"
-version = "0.44.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.45.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "futures 0.3.30",
@@ -13322,8 +13400,8 @@ dependencies = [
 
 [[package]]
 name = "sc-basic-authorship"
-version = "0.44.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.45.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
  "futures-timer",
@@ -13345,7 +13423,7 @@ dependencies = [
 [[package]]
 name = "sc-block-builder"
 version = "0.42.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "sp-api",
@@ -13359,8 +13437,8 @@ dependencies = [
 
 [[package]]
 name = "sc-chain-spec"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "docify",
@@ -13387,7 +13465,7 @@ dependencies = [
 [[package]]
 name = "sc-chain-spec-derive"
 version = "12.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
@@ -13397,8 +13475,8 @@ dependencies = [
 
 [[package]]
 name = "sc-cli"
-version = "0.46.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.47.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "chrono",
@@ -13442,7 +13520,7 @@ dependencies = [
 [[package]]
 name = "sc-client-api"
 version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "fnv",
  "futures 0.3.30",
@@ -13468,8 +13546,8 @@ dependencies = [
 
 [[package]]
 name = "sc-client-db"
-version = "0.44.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.44.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "hash-db",
  "kvdb",
@@ -13494,8 +13572,8 @@ dependencies = [
 
 [[package]]
 name = "sc-consensus"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.44.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "futures 0.3.30",
@@ -13518,8 +13596,8 @@ dependencies = [
 
 [[package]]
 name = "sc-consensus-aura"
-version = "0.44.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.45.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "futures 0.3.30",
@@ -13547,8 +13625,8 @@ dependencies = [
 
 [[package]]
 name = "sc-consensus-babe"
-version = "0.44.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.45.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "fork-tree",
@@ -13583,11 +13661,11 @@ dependencies = [
 
 [[package]]
 name = "sc-consensus-babe-rpc"
-version = "0.44.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.45.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "sc-consensus-babe",
  "sc-consensus-epochs",
  "sc-rpc-api",
@@ -13605,8 +13683,8 @@ dependencies = [
 
 [[package]]
 name = "sc-consensus-beefy"
-version = "23.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "24.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "async-channel 1.9.0",
@@ -13641,11 +13719,11 @@ dependencies = [
 
 [[package]]
 name = "sc-consensus-beefy-rpc"
-version = "23.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "24.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "log",
  "parity-scale-codec",
  "parking_lot 0.12.3",
@@ -13661,8 +13739,8 @@ dependencies = [
 
 [[package]]
 name = "sc-consensus-epochs"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.44.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "fork-tree",
  "parity-scale-codec",
@@ -13674,8 +13752,8 @@ dependencies = [
 
 [[package]]
 name = "sc-consensus-grandpa"
-version = "0.29.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.30.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "ahash",
  "array-bytes",
@@ -13718,12 +13796,12 @@ dependencies = [
 
 [[package]]
 name = "sc-consensus-grandpa-rpc"
-version = "0.29.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.30.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "finality-grandpa",
  "futures 0.3.30",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "log",
  "parity-scale-codec",
  "sc-client-api",
@@ -13738,14 +13816,14 @@ dependencies = [
 
 [[package]]
 name = "sc-consensus-manual-seal"
-version = "0.45.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.46.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "assert_matches",
  "async-trait",
  "futures 0.3.30",
  "futures-timer",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "log",
  "parity-scale-codec",
  "sc-client-api",
@@ -13773,8 +13851,8 @@ dependencies = [
 
 [[package]]
 name = "sc-consensus-slots"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.44.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "futures 0.3.30",
@@ -13796,8 +13874,8 @@ dependencies = [
 
 [[package]]
 name = "sc-executor"
-version = "0.40.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.40.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "log",
  "parity-scale-codec",
@@ -13821,7 +13899,7 @@ dependencies = [
 [[package]]
 name = "sc-executor-common"
 version = "0.35.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "polkavm",
@@ -13835,7 +13913,7 @@ dependencies = [
 [[package]]
 name = "sc-executor-polkavm"
 version = "0.32.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "log",
  "polkavm",
@@ -13846,7 +13924,7 @@ dependencies = [
 [[package]]
 name = "sc-executor-wasmtime"
 version = "0.35.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -13864,10 +13942,10 @@ dependencies = [
 
 [[package]]
 name = "sc-informant"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.44.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
- "ansi_term",
+ "console",
  "futures 0.3.30",
  "futures-timer",
  "log",
@@ -13882,7 +13960,7 @@ dependencies = [
 [[package]]
 name = "sc-keystore"
 version = "33.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "parking_lot 0.12.3",
@@ -13895,8 +13973,8 @@ dependencies = [
 
 [[package]]
 name = "sc-mixnet"
-version = "0.14.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.15.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "arrayvec 0.7.6",
@@ -13924,8 +14002,8 @@ dependencies = [
 
 [[package]]
 name = "sc-network"
-version = "0.44.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.45.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "async-channel 1.9.0",
@@ -13975,8 +14053,8 @@ dependencies = [
 
 [[package]]
 name = "sc-network-common"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.44.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "bitflags 1.3.2",
@@ -13993,8 +14071,8 @@ dependencies = [
 
 [[package]]
 name = "sc-network-gossip"
-version = "0.44.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.45.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "ahash",
  "futures 0.3.30",
@@ -14012,8 +14090,8 @@ dependencies = [
 
 [[package]]
 name = "sc-network-light"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.44.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "async-channel 1.9.0",
@@ -14033,8 +14111,8 @@ dependencies = [
 
 [[package]]
 name = "sc-network-sync"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.44.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "async-channel 1.9.0",
@@ -14070,8 +14148,8 @@ dependencies = [
 
 [[package]]
 name = "sc-network-transactions"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.44.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "futures 0.3.30",
@@ -14090,7 +14168,7 @@ dependencies = [
 [[package]]
 name = "sc-network-types"
 version = "0.12.1"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bs58 0.5.1",
  "ed25519-dalek",
@@ -14106,8 +14184,8 @@ dependencies = [
 
 [[package]]
 name = "sc-offchain"
-version = "39.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "40.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "bytes",
@@ -14141,7 +14219,7 @@ dependencies = [
 [[package]]
 name = "sc-proposer-metrics"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "log",
  "substrate-prometheus-endpoint",
@@ -14149,11 +14227,11 @@ dependencies = [
 
 [[package]]
 name = "sc-rpc"
-version = "39.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "40.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "log",
  "parity-scale-codec",
  "parking_lot 0.12.3",
@@ -14181,10 +14259,10 @@ dependencies = [
 
 [[package]]
 name = "sc-rpc-api"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.44.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "parity-scale-codec",
  "sc-chain-spec",
  "sc-mixnet",
@@ -14201,9 +14279,10 @@ dependencies = [
 
 [[package]]
 name = "sc-rpc-server"
-version = "16.0.2"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
+ "dyn-clone",
  "forwarded-header-value",
  "futures 0.3.30",
  "governor",
@@ -14211,8 +14290,9 @@ dependencies = [
  "http-body-util",
  "hyper 1.4.1",
  "ip_network",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "log",
+ "sc-rpc-api",
  "serde",
  "serde_json",
  "substrate-prometheus-endpoint",
@@ -14223,14 +14303,14 @@ dependencies = [
 
 [[package]]
 name = "sc-rpc-spec-v2"
-version = "0.44.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.45.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "futures 0.3.30",
  "futures-util",
  "hex",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "log",
  "parity-scale-codec",
  "parking_lot 0.12.3",
@@ -14255,15 +14335,15 @@ dependencies = [
 
 [[package]]
 name = "sc-service"
-version = "0.45.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.46.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "directories",
  "exit-future",
  "futures 0.3.30",
  "futures-timer",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "log",
  "parity-scale-codec",
  "parking_lot 0.12.3",
@@ -14320,7 +14400,7 @@ dependencies = [
 [[package]]
 name = "sc-state-db"
 version = "0.36.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "log",
  "parity-scale-codec",
@@ -14331,7 +14411,7 @@ dependencies = [
 [[package]]
 name = "sc-storage-monitor"
 version = "0.22.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "clap",
  "fs4",
@@ -14343,10 +14423,10 @@ dependencies = [
 
 [[package]]
 name = "sc-sync-state-rpc"
-version = "0.44.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.45.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "parity-scale-codec",
  "sc-chain-spec",
  "sc-client-api",
@@ -14362,8 +14442,8 @@ dependencies = [
 
 [[package]]
 name = "sc-sysinfo"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "derive_more",
  "futures 0.3.30",
@@ -14383,8 +14463,8 @@ dependencies = [
 
 [[package]]
 name = "sc-telemetry"
-version = "24.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "25.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "chrono",
  "futures 0.3.30",
@@ -14403,19 +14483,18 @@ dependencies = [
 
 [[package]]
 name = "sc-tracing"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
- "ansi_term",
  "chrono",
+ "console",
  "is-terminal",
  "lazy_static",
  "libc",
  "log",
  "parity-scale-codec",
  "parking_lot 0.12.3",
- "regex",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "sc-client-api",
  "sc-tracing-proc-macro",
  "serde",
@@ -14434,7 +14513,7 @@ dependencies = [
 [[package]]
 name = "sc-tracing-proc-macro"
 version = "11.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
@@ -14445,7 +14524,7 @@ dependencies = [
 [[package]]
 name = "sc-transaction-pool"
 version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "futures 0.3.30",
@@ -14472,7 +14551,7 @@ dependencies = [
 [[package]]
 name = "sc-transaction-pool-api"
 version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "futures 0.3.30",
@@ -14488,7 +14567,7 @@ dependencies = [
 [[package]]
 name = "sc-utils"
 version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-channel 1.9.0",
  "futures 0.3.30",
@@ -14815,7 +14894,7 @@ dependencies = [
 [[package]]
 name = "session-keys-primitives"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -15029,7 +15108,7 @@ dependencies = [
 [[package]]
 name = "slot-range-helper"
 version = "15.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "enumn",
  "parity-scale-codec",
@@ -15236,7 +15315,7 @@ dependencies = [
 [[package]]
 name = "sp-api"
 version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "docify",
  "hash-db",
@@ -15258,7 +15337,7 @@ dependencies = [
 [[package]]
 name = "sp-api-proc-macro"
 version = "20.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "Inflector",
  "blake2 0.10.6",
@@ -15272,7 +15351,7 @@ dependencies = [
 [[package]]
 name = "sp-application-crypto"
 version = "38.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -15284,7 +15363,7 @@ dependencies = [
 [[package]]
 name = "sp-arithmetic"
 version = "26.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "docify",
  "integer-sqrt",
@@ -15298,7 +15377,7 @@ dependencies = [
 [[package]]
 name = "sp-authority-discovery"
 version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -15310,7 +15389,7 @@ dependencies = [
 [[package]]
 name = "sp-block-builder"
 version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "sp-api",
  "sp-inherents",
@@ -15319,8 +15398,8 @@ dependencies = [
 
 [[package]]
 name = "sp-blockchain"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "37.0.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
  "parity-scale-codec",
@@ -15339,7 +15418,7 @@ dependencies = [
 [[package]]
 name = "sp-consensus"
 version = "0.40.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "futures 0.3.30",
@@ -15354,7 +15433,7 @@ dependencies = [
 [[package]]
 name = "sp-consensus-aura"
 version = "0.40.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "parity-scale-codec",
@@ -15370,7 +15449,7 @@ dependencies = [
 [[package]]
 name = "sp-consensus-babe"
 version = "0.40.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "parity-scale-codec",
@@ -15387,8 +15466,8 @@ dependencies = [
 
 [[package]]
 name = "sp-consensus-beefy"
-version = "22.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "22.1.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "lazy_static",
  "parity-scale-codec",
@@ -15402,13 +15481,14 @@ dependencies = [
  "sp-keystore",
  "sp-mmr-primitives",
  "sp-runtime",
+ "sp-weights",
  "strum 0.26.3",
 ]
 
 [[package]]
 name = "sp-consensus-grandpa"
 version = "21.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "finality-grandpa",
  "log",
@@ -15424,8 +15504,8 @@ dependencies = [
 
 [[package]]
 name = "sp-consensus-slots"
-version = "0.40.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.40.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -15436,7 +15516,7 @@ dependencies = [
 [[package]]
 name = "sp-core"
 version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "bitflags 1.3.2",
@@ -15482,7 +15562,7 @@ dependencies = [
 [[package]]
 name = "sp-crypto-hashing"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "blake2b_simd",
  "byteorder",
@@ -15495,7 +15575,7 @@ dependencies = [
 [[package]]
 name = "sp-crypto-hashing-proc-macro"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "quote",
  "sp-crypto-hashing",
@@ -15505,7 +15585,7 @@ dependencies = [
 [[package]]
 name = "sp-database"
 version = "10.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "kvdb",
  "parking_lot 0.12.3",
@@ -15514,7 +15594,7 @@ dependencies = [
 [[package]]
 name = "sp-debug-derive"
 version = "14.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -15524,7 +15604,7 @@ dependencies = [
 [[package]]
 name = "sp-externalities"
 version = "0.29.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "environmental",
  "parity-scale-codec",
@@ -15533,8 +15613,8 @@ dependencies = [
 
 [[package]]
 name = "sp-genesis-builder"
-version = "0.15.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.15.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -15546,7 +15626,7 @@ dependencies = [
 [[package]]
 name = "sp-inherents"
 version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "impl-trait-for-tuples",
@@ -15559,7 +15639,7 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "38.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bytes",
  "docify",
@@ -15585,7 +15665,7 @@ dependencies = [
 [[package]]
 name = "sp-keyring"
 version = "39.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "sp-core",
  "sp-runtime",
@@ -15595,7 +15675,7 @@ dependencies = [
 [[package]]
 name = "sp-keystore"
 version = "0.40.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "parking_lot 0.12.3",
@@ -15606,7 +15686,7 @@ dependencies = [
 [[package]]
 name = "sp-maybe-compressed-blob"
 version = "11.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "thiserror",
  "zstd 0.12.4",
@@ -15615,7 +15695,7 @@ dependencies = [
 [[package]]
 name = "sp-metadata-ir"
 version = "0.7.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-metadata",
  "parity-scale-codec",
@@ -15625,7 +15705,7 @@ dependencies = [
 [[package]]
 name = "sp-mixnet"
 version = "0.12.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -15635,8 +15715,8 @@ dependencies = [
 
 [[package]]
 name = "sp-mmr-primitives"
-version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "34.1.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "log",
  "parity-scale-codec",
@@ -15653,7 +15733,7 @@ dependencies = [
 [[package]]
 name = "sp-npos-elections"
 version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -15666,7 +15746,7 @@ dependencies = [
 [[package]]
 name = "sp-offchain"
 version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "sp-api",
  "sp-core",
@@ -15676,7 +15756,7 @@ dependencies = [
 [[package]]
 name = "sp-panic-handler"
 version = "13.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "backtrace",
  "lazy_static",
@@ -15686,17 +15766,17 @@ dependencies = [
 [[package]]
 name = "sp-rpc"
 version = "32.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "serde",
  "sp-core",
 ]
 
 [[package]]
 name = "sp-runtime"
-version = "39.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "39.0.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "docify",
  "either",
@@ -15722,7 +15802,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface"
 version = "28.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bytes",
  "impl-trait-for-tuples",
@@ -15741,7 +15821,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface-proc-macro"
 version = "18.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "Inflector",
  "expander",
@@ -15753,8 +15833,8 @@ dependencies = [
 
 [[package]]
 name = "sp-session"
-version = "35.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "36.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -15767,8 +15847,8 @@ dependencies = [
 
 [[package]]
 name = "sp-staking"
-version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "36.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "impl-trait-for-tuples",
  "parity-scale-codec",
@@ -15781,7 +15861,7 @@ dependencies = [
 [[package]]
 name = "sp-state-machine"
 version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "hash-db",
  "log",
@@ -15801,7 +15881,7 @@ dependencies = [
 [[package]]
 name = "sp-statement-store"
 version = "18.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "aes-gcm",
  "curve25519-dalek",
@@ -15825,12 +15905,12 @@ dependencies = [
 [[package]]
 name = "sp-std"
 version = "14.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 
 [[package]]
 name = "sp-storage"
 version = "21.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "impl-serde",
  "parity-scale-codec",
@@ -15842,7 +15922,7 @@ dependencies = [
 [[package]]
 name = "sp-timestamp"
 version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "parity-scale-codec",
@@ -15853,8 +15933,8 @@ dependencies = [
 
 [[package]]
 name = "sp-tracing"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "tracing",
@@ -15865,7 +15945,7 @@ dependencies = [
 [[package]]
 name = "sp-transaction-pool"
 version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "sp-api",
  "sp-runtime",
@@ -15874,7 +15954,7 @@ dependencies = [
 [[package]]
 name = "sp-transaction-storage-proof"
 version = "34.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
  "parity-scale-codec",
@@ -15888,7 +15968,7 @@ dependencies = [
 [[package]]
 name = "sp-trie"
 version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "ahash",
  "hash-db",
@@ -15911,7 +15991,7 @@ dependencies = [
 [[package]]
 name = "sp-version"
 version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "impl-serde",
  "parity-scale-codec",
@@ -15928,7 +16008,7 @@ dependencies = [
 [[package]]
 name = "sp-version-proc-macro"
 version = "14.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "parity-scale-codec",
  "proc-macro2",
@@ -15938,8 +16018,8 @@ dependencies = [
 
 [[package]]
 name = "sp-wasm-interface"
-version = "21.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "21.0.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "anyhow",
  "impl-trait-for-tuples",
@@ -15951,7 +16031,7 @@ dependencies = [
 [[package]]
 name = "sp-weights"
 version = "31.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "bounded-collections",
  "parity-scale-codec",
@@ -16139,8 +16219,8 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "staging-parachain-info"
-version = "0.16.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.17.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -16152,8 +16232,8 @@ dependencies = [
 
 [[package]]
 name = "staging-xcm"
-version = "14.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "14.2.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "bounded-collections",
@@ -16164,19 +16244,21 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "sp-runtime",
  "sp-weights",
  "xcm-procedural",
 ]
 
 [[package]]
 name = "staging-xcm-builder"
-version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "frame-system",
  "impl-trait-for-tuples",
  "log",
+ "pallet-asset-conversion",
  "pallet-transaction-payment",
  "parity-scale-codec",
  "polkadot-parachain-primitives",
@@ -16191,8 +16273,8 @@ dependencies = [
 
 [[package]]
 name = "staging-xcm-executor"
-version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "environmental",
  "frame-benchmarking",
@@ -16328,7 +16410,7 @@ dependencies = [
 [[package]]
 name = "substrate-bip39"
 version = "0.6.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "hmac 0.12.1",
  "pbkdf2 0.12.2",
@@ -16353,7 +16435,7 @@ dependencies = [
 [[package]]
 name = "substrate-build-script-utils"
 version = "11.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 
 [[package]]
 name = "substrate-fixed"
@@ -16367,13 +16449,13 @@ dependencies = [
 
 [[package]]
 name = "substrate-frame-rpc-system"
-version = "38.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "39.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "docify",
  "frame-system-rpc-runtime-api",
  "futures 0.3.30",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "log",
  "parity-scale-codec",
  "sc-rpc-api",
@@ -16388,7 +16470,7 @@ dependencies = [
 [[package]]
 name = "substrate-prometheus-endpoint"
 version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "http-body-util",
  "hyper 1.4.1",
@@ -16401,11 +16483,11 @@ dependencies = [
 
 [[package]]
 name = "substrate-rpc-client"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.44.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "async-trait",
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "log",
  "sc-rpc-api",
  "serde",
@@ -16414,10 +16496,10 @@ dependencies = [
 
 [[package]]
 name = "substrate-state-trie-migration-rpc"
-version = "37.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "38.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
- "jsonrpsee",
+ "jsonrpsee 0.24.7",
  "parity-scale-codec",
  "sc-client-api",
  "sc-rpc-api",
@@ -16432,7 +16514,7 @@ dependencies = [
 [[package]]
 name = "substrate-test-client"
 version = "2.0.1"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "async-trait",
@@ -16459,7 +16541,7 @@ dependencies = [
 [[package]]
 name = "substrate-test-runtime"
 version = "2.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "frame-executive",
@@ -16503,7 +16585,7 @@ dependencies = [
 [[package]]
 name = "substrate-test-runtime-client"
 version = "2.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "futures 0.3.30",
  "sc-block-builder",
@@ -16530,8 +16612,8 @@ dependencies = [
 
 [[package]]
 name = "substrate-wasm-builder"
-version = "24.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "24.0.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "array-bytes",
  "build-helper",
@@ -16539,6 +16621,7 @@ dependencies = [
  "console",
  "filetime",
  "frame-metadata",
+ "jobserver",
  "merkleized-metadata",
  "parity-scale-codec",
  "parity-wasm",
@@ -16843,7 +16926,7 @@ dependencies = [
  "once_cell",
  "pbkdf2 0.4.0",
  "rand 0.7.3",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "sha2 0.9.9",
  "thiserror",
  "unicode-normalization",
@@ -17109,8 +17192,8 @@ dependencies = [
 
 [[package]]
 name = "tracing-gum"
-version = "15.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "16.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "coarsetime",
  "polkadot-primitives",
@@ -17121,7 +17204,7 @@ dependencies = [
 [[package]]
 name = "tracing-gum-proc-macro"
 version = "5.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "expander",
  "proc-macro-crate 3.2.0",
@@ -17155,6 +17238,7 @@ dependencies = [
  "sharded-slab",
  "smallvec",
  "thread_local",
+ "time",
  "tracing",
  "tracing-core",
  "tracing-log",
@@ -17955,8 +18039,8 @@ dependencies = [
 
 [[package]]
 name = "westend-runtime"
-version = "17.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "18.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "binary-merkle-tree",
  "bitvec",
@@ -17999,6 +18083,7 @@ dependencies = [
  "pallet-nomination-pools-runtime-api",
  "pallet-offences",
  "pallet-offences-benchmarking",
+ "pallet-parameters",
  "pallet-preimage",
  "pallet-proxy",
  "pallet-recovery",
@@ -18009,7 +18094,6 @@ dependencies = [
  "pallet-session-benchmarking",
  "pallet-society",
  "pallet-staking",
- "pallet-staking-reward-curve",
  "pallet-staking-runtime-api",
  "pallet-state-trie-migration",
  "pallet-sudo",
@@ -18030,6 +18114,7 @@ dependencies = [
  "scale-info",
  "serde",
  "serde_derive",
+ "serde_json",
  "smallvec",
  "sp-api",
  "sp-application-crypto",
@@ -18038,6 +18123,7 @@ dependencies = [
  "sp-block-builder",
  "sp-consensus-babe",
  "sp-consensus-beefy",
+ "sp-consensus-grandpa",
  "sp-core",
  "sp-genesis-builder",
  "sp-inherents",
@@ -18061,8 +18147,8 @@ dependencies = [
 
 [[package]]
 name = "westend-runtime-constants"
-version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "polkadot-primitives",
@@ -18468,7 +18554,7 @@ dependencies = [
 [[package]]
 name = "xcm-primitives"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2407#f32e4035c5b00083accd53f0f6b829feb9b88b1e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2409#27e021417e4f528e9896a49d2a153b60aaca7950"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -18511,7 +18597,7 @@ dependencies = [
 [[package]]
 name = "xcm-procedural"
 version = "10.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "Inflector",
  "proc-macro2",
@@ -18521,8 +18607,8 @@ dependencies = [
 
 [[package]]
 name = "xcm-runtime-apis"
-version = "0.3.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "0.4.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -18535,8 +18621,8 @@ dependencies = [
 
 [[package]]
 name = "xcm-simulator"
-version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2407#86b704de84221ef445b7422c1bbc7fcafb6b9e15"
+version = "17.0.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#5a1f5ef5d227692caee63eed27cbda5a9e8b99d7"
 dependencies = [
  "frame-support",
  "frame-system",
