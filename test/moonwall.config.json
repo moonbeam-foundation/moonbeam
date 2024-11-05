@@ -144,17 +144,17 @@
         {
           "name": "ethers",
           "type": "ethers",
-          "endpoints": ["wss://wss.api.moondev.network"]
+          "endpoints": ["wss://stagenet-unlimited.api.moondev.network"]
         },
         {
           "name": "viem",
           "type": "viem",
-          "endpoints": ["wss://wss.api.moondev.network"]
+          "endpoints": ["wss://stagenet-unlimited.api.moondev.network"]
         },
         {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://wss.api.moondev.network"],
+          "endpoints": ["wss://stagenet-unlimited.api.moondev.network"],
           "rpc": {
             "moon": {
               "isBlockFinalized": {
@@ -173,7 +173,7 @@
           "name": "relay",
           "type": "polkadotJs",
           "endpoints": [
-            "wss://deo-moon-moondev-1-stagenet-relay-rpc-1.rv.moondev.network "
+            "wss://stagenet-relay.api.moondev.network"
           ]
         }
       ]
