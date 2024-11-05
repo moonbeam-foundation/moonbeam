@@ -207,7 +207,7 @@ parameter_types! {
 
 impl pallet_ethereum::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type StateRoot = IntermediateStateRoot<Self>;
+	type StateRoot = IntermediateStateRoot<<Test as frame_system::Config>::Version>>;
 	type PostLogContent = PostBlockAndTxnHashes;
 	type ExtraDataLength = ConstU32<30>;
 }
