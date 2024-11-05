@@ -18,7 +18,7 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
-
+use pallet_evm::AddressMapping;
 use crate::functions::{CurrencyIdOf, GetDataLimit, TransactorOf, XcmTransactorWrapper};
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
@@ -40,6 +40,7 @@ where
 	TransactorOf<Runtime>: TryFrom<u8>,
 	Runtime::AccountId: Into<H160>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	#[precompile::public("indexToAccount(uint16)")]
 	#[precompile::public("index_to_account(uint16)")]
