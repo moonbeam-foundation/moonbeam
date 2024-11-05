@@ -181,22 +181,22 @@ describeSuite({
             scheduledRequest === undefined
               ? delegationAmount
               : scheduledRequest.action.isDecrease
-              ? delegationAmount.sub(scheduledRequest.action.asDecrease)
-              : scheduledRequest.action.isRevoke
-              ? delegationAmount.sub(scheduledRequest.action.asRevoke)
-              : delegationAmount;
+                ? delegationAmount.sub(scheduledRequest.action.asDecrease)
+                : scheduledRequest.action.isRevoke
+                  ? delegationAmount.sub(scheduledRequest.action.asRevoke)
+                  : delegationAmount;
 
           const match = expected.eq(delegatorSnapshot.amount);
           if (!match) {
             log(
               "Snapshot amount " +
-                delegatorSnapshot.amount.toString() +
-                " does not match storage amount " +
-                delegationAmount.toString() +
-                " for delegator: " +
-                delegatorSnapshot.owner.toString() +
-                " on candidate: " +
-                accountId.toString()
+              delegatorSnapshot.amount.toString() +
+              " does not match storage amount " +
+              delegationAmount.toString() +
+              " for delegator: " +
+              delegatorSnapshot.owner.toString() +
+              " on candidate: " +
+              accountId.toString()
             );
           }
           return {
@@ -233,10 +233,10 @@ describeSuite({
         const estimatedTime = ((delegationCount + atStakeSnapshot.length) / 600).toFixed(2);
         log(
           "With a count of " +
-            delegationCount +
-            " delegations, this may take upto " +
-            estimatedTime +
-            " mins."
+          delegationCount +
+          " delegations, this may take upto " +
+          estimatedTime +
+          " mins."
         );
 
         const results = await Promise.all(promises);
@@ -283,13 +283,13 @@ describeSuite({
           if (!match) {
             log(
               "Snapshot autocompound " +
-                delegatorSnapshot.autoCompound.toString() +
-                "% does not match storage autocompound " +
-                autoCompoundAmount.toString() +
-                "% for delegator: " +
-                delegatorSnapshot.owner.toString() +
-                " on candidate: " +
-                collatorId.toString()
+              delegatorSnapshot.autoCompound.toString() +
+              "% does not match storage autocompound " +
+              autoCompoundAmount.toString() +
+              "% for delegator: " +
+              delegatorSnapshot.owner.toString() +
+              " on candidate: " +
+              collatorId.toString()
             );
           }
           return {
@@ -438,27 +438,27 @@ describeSuite({
       log(
         `
       latest  ${latestRound.current.toString()} ` +
-          `(${latestBlockNumber} / ${latestBlockHash.toHex()})
+        `(${latestBlockNumber} / ${latestBlockHash.toHex()})
       rewarded round ${payment.rewardRound.data.current.toString()} - ` +
-          `spec: ${payment.rewardRound.firstBlockSpecVersion.toString()}
+        `spec: ${payment.rewardRound.firstBlockSpecVersion.toString()}
         reward: #${payment.firstRewardBlock.header.number.toString()} / ` +
-          `[${payment.firstRewardBlock.header.hash.toHex()}]
+        `[${payment.firstRewardBlock.header.hash.toHex()}]
          first: #${payment.rewardRound.firstBlock.header.number.toString()} / ` +
-          `[${payment.rewardRound.firstBlock.header.hash.toHex()}]
+        `[${payment.rewardRound.firstBlock.header.hash.toHex()}]
          prior: #${payment.rewardRound.priorBlock.header.number.toString()} / ` +
-          `[${payment.rewardRound.priorBlock.header.hash.toHex()}]
+        `[${payment.rewardRound.priorBlock.header.hash.toHex()}]
       delayed payout computation round ${payment.delayedPayoutRound.data.current.toString()} - ` +
-          `spec: ${payment.rewardRound.firstBlockSpecVersion.toString()}
+        `spec: ${payment.rewardRound.firstBlockSpecVersion.toString()}
          first: #${payment.delayedPayoutRound.firstBlock.header.number.toString()} / ` +
-          `[${payment.delayedPayoutRound.firstBlock.header.hash.toHex()}]
+        `[${payment.delayedPayoutRound.firstBlock.header.hash.toHex()}]
          prior: #${payment.delayedPayoutRound.priorBlock.header.number.toString()} / ` +
-          `[${payment.delayedPayoutRound.priorBlock.header.hash.toHex()}]
+        `[${payment.delayedPayoutRound.priorBlock.header.hash.toHex()}]
       round to pay ${payment.roundToPay.data.current.toString()} - ` +
-          `spec: ${payment.rewardRound.firstBlockSpecVersion.toString()}
+        `spec: ${payment.rewardRound.firstBlockSpecVersion.toString()}
          first: #${payment.roundToPay.firstBlock.header.number.toString()} / ` +
-          `[${payment.roundToPay.firstBlock.header.hash.toHex()}]
+        `[${payment.roundToPay.firstBlock.header.hash.toHex()}]
          prior: #${payment.roundToPay.priorBlock.header.number.toString()} / ` +
-          `[${payment.roundToPay.priorBlock.header.hash.toHex()}]`
+        `[${payment.roundToPay.priorBlock.header.hash.toHex()}]`
       );
 
       // collect info about staked value from collators and delegators
@@ -535,7 +535,7 @@ describeSuite({
           if (!Object.keys(collatorInfo.delegators).includes(topDelegation)) {
             throw new Error(
               `${topDelegation} is missing from collatorInfo ` +
-                `for round ${payment.roundToPay.data.current.toString()}`
+              `for round ${payment.roundToPay.data.current.toString()}`
             );
           }
         }
@@ -543,7 +543,7 @@ describeSuite({
           if (!topDelegations.has(delegator as any)) {
             throw new Error(
               `${delegator} is missing from topDelegations for round` +
-                ` ${payment.roundToPay.data.current.toString()}`
+              ` ${payment.roundToPay.data.current.toString()}`
             );
           }
         }
@@ -612,7 +612,7 @@ describeSuite({
       // calculate total staking reward
       const firstBlockRewardedEvents =
         await payment.delayedPayoutRound.firstBlockApi.query.system.events();
-      const reservedInflation = new BN(0);
+      let reservedInflation = new BN(0);
       for (const { phase, event } of firstBlockRewardedEvents) {
         if (!phase.isInitialization) {
           continue;
@@ -620,7 +620,7 @@ describeSuite({
         const eventTypes = payment.delayedPayoutRound.firstBlockApi.events;
         // only deduct parachainBondReward if it was transferred (event must exist)
         if (eventTypes.parachainStaking.InflationDistributed.is(event)) {
-          reservedInflation.addn(event.data.value.toNumber());
+          reservedInflation = reservedInflation.add(new BN(event.data.value.toString()));
         }
       }
 
@@ -780,16 +780,14 @@ describeSuite({
         );
         expect(
           notRewarded,
-          `delegators "${[...notRewarded].join(", ")}" were not rewarded for collator "${
-            rewarded.collator
+          `delegators "${[...notRewarded].join(", ")}" were not rewarded for collator "${rewarded.collator
           }" at block ${blockNumber}`
         ).to.be.empty;
         expect(
           unexpectedlyRewarded,
           `delegators "${[...unexpectedlyRewarded].join(
             ", "
-          )}" were unexpectedly rewarded for collator "${
-            rewarded.collator
+          )}" were unexpectedly rewarded for collator "${rewarded.collator
           }" at block ${blockNumber}`
         ).to.be.empty;
 
@@ -814,16 +812,14 @@ describeSuite({
             notAutoCompounded,
             `delegators "${[...notAutoCompounded].join(
               ", "
-            )}" were not auto-compounded for collator "${
-              rewarded.collator
+            )}" were not auto-compounded for collator "${rewarded.collator
             }" at block ${blockNumber}`
           ).to.be.empty;
           expect(
             unexpectedlyAutoCompounded,
             `delegators "${[...unexpectedlyAutoCompounded].join(
               ", "
-            )}" were unexpectedly auto-compounded for collator "${
-              rewarded.collator
+            )}" were unexpectedly auto-compounded for collator "${rewarded.collator
             }" at block ${blockNumber}`
           ).to.be.empty;
         }
