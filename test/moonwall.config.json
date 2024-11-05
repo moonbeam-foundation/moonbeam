@@ -312,17 +312,17 @@
         {
           "name": "ethers",
           "type": "ethers",
-          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
+          "endpoints": ["wss://trace.api.moonbase.moonbeam.network"]
         },
         {
           "name": "viem",
           "type": "viem",
-          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
+          "endpoints": ["wss://trace.api.moonbase.moonbeam.network"]
         },
         {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"],
+          "endpoints": ["wss://trace.api.moonbase.moonbeam.network"],
           "rpc": {
             "moon": {
               "isBlockFinalized": {
@@ -342,7 +342,7 @@
           "name": "relay",
           "type": "polkadotJs",
           "endpoints": [
-            "wss://frag-moonbase-relay-rpc-ws.g.moonbase.moonbeam.network"
+            "wss://relay.api.moonbase.moonbeam.network"
           ]
         }
       ]
