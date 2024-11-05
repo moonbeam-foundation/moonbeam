@@ -21,7 +21,7 @@ use frame_support::{
 	traits::{ConstU32, EnsureOrigin, Everything, Nothing, OriginTrait, PalletInfo as _},
 	weights::{RuntimeDbWeight, Weight},
 };
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, GasWeightMapping};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, GasWeightMapping};
 use precompile_utils::{
 	mock_account,
 	precompile_set::*,
@@ -296,6 +296,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
+	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 }
 
 parameter_types! {
