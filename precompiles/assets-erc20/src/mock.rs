@@ -25,7 +25,7 @@ use frame_support::{
 };
 
 use frame_system::{EnsureNever, EnsureRoot};
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{
 	mock_account,
 	precompile_set::*,
@@ -197,6 +197,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
+	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 }
 
 type ForeignAssetInstance = pallet_assets::Instance1;
