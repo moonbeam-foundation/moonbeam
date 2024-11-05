@@ -172,9 +172,7 @@
         {
           "name": "relay",
           "type": "polkadotJs",
-          "endpoints": [
-            "wss://stagenet-relay.api.moondev.network"
-          ]
+          "endpoints": ["wss://stagenet-relay.api.moondev.network"]
         }
       ]
     },
@@ -341,9 +339,7 @@
         {
           "name": "relay",
           "type": "polkadotJs",
-          "endpoints": [
-            "wss://relay.api.moonbase.moonbeam.network"
-          ]
+          "endpoints": ["wss://relay.api.moonbase.moonbeam.network"]
         }
       ]
     },
