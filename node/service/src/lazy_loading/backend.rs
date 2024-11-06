@@ -142,7 +142,25 @@ impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
 	pub fn id(&self, id: BlockId<Block>) -> Option<Block::Hash> {
 		match id {
 			BlockId::Hash(h) => Some(h),
-			BlockId::Number(n) => self.storage.read().hashes.get(&n).cloned(),
+			BlockId::Number(n) => {
+				let block_hash = self.storage.read().hashes.get(&n).cloned();
+				match block_hash {
+					None => {
+						let block_hash = self
+							.rpc_client
+							.block_hash::<Block>(Some(n))
+							.ok()
+							.flatten();
+
+						block_hash.clone().map(|h| {
+							self.storage.write().hashes.insert(n, h);
+						});
+
+						block_hash
+					},
+					block_hash => block_hash
+				}
+			},
 		}
 	}
 
@@ -1506,17 +1524,17 @@ impl RPC {
 
 	pub fn block_hash<Block: BlockT + DeserializeOwned>(
 		&self,
-		block_number: Option<BlockNumber>,
+		block_number: Option<<Block::Header as HeaderT>::Number>,
 	) -> Result<Option<Block::Hash>, jsonrpsee::core::ClientError> {
 		let request = &|| {
 			substrate_rpc_client::ChainApi::<
-				BlockNumber,
+				<Block::Header as HeaderT>::Number,
 				Block::Hash,
 				Block::Header,
 				SignedBlock<Block>,
 			>::block_hash(
 				&self.http_client,
-				block_number.map(|n| ListOrValue::Value(NumberOrHex::Number(n.into()))),
+				block_number.map(|n| ListOrValue::Value(NumberOrHex::Hex(n.into()))),
 			)
 		};
 
