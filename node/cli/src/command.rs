@@ -29,7 +29,10 @@ use moonbeam_service::{
 use parity_scale_codec::Encode;
 #[cfg(feature = "westend-native")]
 use polkadot_service::WestendChainSpec;
-use sc_cli::{ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams, NetworkParams, Result, RpcEndpoint, RuntimeVersion, SharedParams, SubstrateCli};
+use sc_cli::{
+	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
+	NetworkParams, Result, RpcEndpoint, RuntimeVersion, SharedParams, SubstrateCli,
+};
 use sc_service::{
 	config::{BasePath, PrometheusConfig},
 	DatabaseSource, PartialComponents,
@@ -953,12 +956,7 @@ impl CliConfiguration<Self> for RelayChainCli {
 			.prometheus_config(default_listen_port, chain_spec)
 	}
 
-	fn init<F>(
-		&self,
-		_support_url: &String,
-		_impl_version: &String,
-		_logger_hook: F,
-	) -> Result<()>
+	fn init<F>(&self, _support_url: &String, _impl_version: &String, _logger_hook: F) -> Result<()>
 	where
 		F: FnOnce(&mut sc_cli::LoggerBuilder),
 	{

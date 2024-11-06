@@ -70,7 +70,11 @@ use moonbeam_runtime_common::{
 };
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
-use pallet_evm::{Account as EVMAccount, EVMFungibleAdapter, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, FrameSystemAccountProvider, GasWeightMapping, IdentityAddressMapping, OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner};
+use pallet_evm::{
+	Account as EVMAccount, EVMFungibleAdapter, EnsureAddressNever, EnsureAddressRoot,
+	FeeCalculator, FrameSystemAccountProvider, GasWeightMapping, IdentityAddressMapping,
+	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
+};
 pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
 use pallet_treasury::TreasuryAccountId;

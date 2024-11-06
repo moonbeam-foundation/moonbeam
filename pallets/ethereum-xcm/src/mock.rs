@@ -24,7 +24,9 @@ use frame_support::{
 	ConsensusEngineId, PalletId,
 };
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureRoot};
-use pallet_evm::{AddressMapping, EnsureAddressTruncated, FeeCalculator, FrameSystemAccountProvider};
+use pallet_evm::{
+	AddressMapping, EnsureAddressTruncated, FeeCalculator, FrameSystemAccountProvider,
+};
 use rlp::RlpStream;
 use sp_core::{hashing::keccak_256, H160, H256, U256};
 use sp_runtime::{

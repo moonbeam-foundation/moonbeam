@@ -21,7 +21,9 @@ use frame_support::{
 	traits::{ConstU32, EnsureOrigin, Everything, Nothing, OriginTrait, PalletInfo as _},
 	weights::{RuntimeDbWeight, Weight},
 };
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, GasWeightMapping};
+use pallet_evm::{
+	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, GasWeightMapping,
+};
 use precompile_utils::{
 	mock_account,
 	precompile_set::*,

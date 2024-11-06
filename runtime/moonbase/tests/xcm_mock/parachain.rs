@@ -967,7 +967,8 @@ parameter_types! {
 
 impl pallet_ethereum::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type StateRoot = pallet_ethereum::IntermediateStateRoot<<Runtime as frame_system::Config>::Version>;
+	type StateRoot =
+		pallet_ethereum::IntermediateStateRoot<<Runtime as frame_system::Config>::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
 	type ExtraDataLength = ConstU32<30>;
 }
@@ -1085,8 +1086,8 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 
 use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
-use pallet_evm::FrameSystemAccountProvider;
 use moonbase_runtime::Version;
+use pallet_evm::FrameSystemAccountProvider;
 
 pub(crate) fn on_runtime_upgrade() {
 	VersionUncheckedMigrateToV1::<Runtime>::on_runtime_upgrade();

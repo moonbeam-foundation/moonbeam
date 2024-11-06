@@ -22,7 +22,9 @@ use frame_support::{
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, SubstrateBlockHashMapping};
+use pallet_evm::{
+	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, SubstrateBlockHashMapping,
+};
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_io;

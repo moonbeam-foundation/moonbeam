@@ -449,7 +449,8 @@ where
 	};
 
 	let prometheus_registry = config.prometheus_registry().cloned();
-	let net_config = FullNetworkConfiguration::<_, _, Net>::new(&config.network, prometheus_registry.clone());
+	let net_config =
+		FullNetworkConfiguration::<_, _, Net>::new(&config.network, prometheus_registry.clone());
 
 	let metrics = Net::register_notification_metrics(
 		config.prometheus_config.as_ref().map(|cfg| &cfg.registry),

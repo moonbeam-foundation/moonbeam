@@ -23,7 +23,9 @@ use frame_support::{
 	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
 	weights::{RuntimeDbWeight, Weight},
 };
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, GasWeightMapping};
+use pallet_evm::{
+	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, GasWeightMapping,
+};
 use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{
 	mock_account,
