@@ -85,9 +85,9 @@ use substrate_prometheus_endpoint::Registry;
 pub use client::*;
 pub mod chain_spec;
 mod client;
+mod frontier;
 #[cfg(feature = "lazy-loading")]
 pub mod lazy_loading;
-mod frontier;
 
 type FullClient<RuntimeApi> = TFullClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
 type FullBackend = TFullBackend<Block>;
@@ -352,8 +352,8 @@ where
 	Ok(frontier_backend)
 }
 
-use sp_runtime::{traits::BlakeTwo256, DigestItem, Percent};
 use crate::frontier::storage::FrontierStorageOverrideHandler;
+use sp_runtime::{traits::BlakeTwo256, DigestItem, Percent};
 
 pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::frontier::storage::FrontierStorageOverrideHandler;
 use crate::{
 	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, BlockImportPipeline,
 	ClientCustomizations, FrontierBlockImport, HostFunctions, PartialComponentsResult,
@@ -55,7 +56,6 @@ use std::collections::BTreeMap;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use crate::frontier::storage::FrontierStorageOverrideHandler;
 
 pub mod backend;
 pub mod call_executor;

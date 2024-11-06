@@ -39,16 +39,21 @@ struct BlockPatch {
 	pub invalid_transaction: Vec<H256>,
 }
 
-pub const MOONBASE_BLOCK_PATCHES: Vec<BlockPatch> = vec![
-	BlockPatch {
-		hash: hex_literal::hex!("dadbbbfd8a7f177c466117a6f5635eff51d698d12cec9f5e2b360909621beb43").into(),
-		invalid_transaction: vec![
-			hex_literal::hex!("006a6843eb35ad35a9ea9a99affa8d81f1ed500253c98cc9c080d84171a0afb3").into(),
-			hex_literal::hex!("64c102f664eb435206ad4fcb49b526722176bcf74801c79473c3b5b2c281a243").into(),
-			hex_literal::hex!("f546335453b6e35ce7e236ee873c96ba3a22602b3acc4f45f5d68b33a76d79ca").into(),
-			hex_literal::hex!("4ed713ccd474fc33d2022a802f064cc012e3e37cd22891d4a89c7ba3d776f2db").into(),
-			hex_literal::hex!("a5355f86844bb23fe666b10b509543fa377a9e324513eb221e0a2c926a64cae4").into(),
-			hex_literal::hex!("c14791a3a392018fc3438f39cac1d572e8baadd4ed350e0355d1ca874a169e6a").into()
-		]
-	}
-];
+pub const MOONBASE_BLOCK_PATCHES: Vec<BlockPatch> = vec![BlockPatch {
+	hash: hex_literal::hex!("dadbbbfd8a7f177c466117a6f5635eff51d698d12cec9f5e2b360909621beb43")
+		.into(),
+	invalid_transaction: vec![
+		hex_literal::hex!("006a6843eb35ad35a9ea9a99affa8d81f1ed500253c98cc9c080d84171a0afb3")
+			.into(),
+		hex_literal::hex!("64c102f664eb435206ad4fcb49b526722176bcf74801c79473c3b5b2c281a243")
+			.into(),
+		hex_literal::hex!("f546335453b6e35ce7e236ee873c96ba3a22602b3acc4f45f5d68b33a76d79ca")
+			.into(),
+		hex_literal::hex!("4ed713ccd474fc33d2022a802f064cc012e3e37cd22891d4a89c7ba3d776f2db")
+			.into(),
+		hex_literal::hex!("a5355f86844bb23fe666b10b509543fa377a9e324513eb221e0a2c926a64cae4")
+			.into(),
+		hex_literal::hex!("c14791a3a392018fc3438f39cac1d572e8baadd4ed350e0355d1ca874a169e6a")
+			.into(),
+	],
+}];

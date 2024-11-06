@@ -16,8 +16,8 @@
 
 use block_patches::MOONBASE_BLOCK_PATCHES;
 
-use std::sync::Arc;
 use fc_rpc::{StorageOverride, StorageOverrideHandler};
+use std::sync::Arc;
 
 use ethereum::{BlockV2, ReceiptV3};
 use ethereum_types::{Address, H256, U256};
@@ -26,8 +26,8 @@ use sc_client_api::{backend::Backend, StorageProvider};
 use sp_api::ProvideRuntimeApi;
 use sp_runtime::{traits::Block as BlockT, Permill};
 // Frontier
-use fp_rpc::{EthereumRuntimeRPCApi, TransactionStatus};
 use crate::frontier::block_patches;
+use fp_rpc::{EthereumRuntimeRPCApi, TransactionStatus};
 
 /// A storage override for runtimes that use different ethereum schema.
 ///
@@ -44,18 +44,18 @@ pub struct FrontierStorageOverrideHandler<B, C, BE> {
 impl<B, C, BE> FrontierStorageOverrideHandler<B, C, BE> {
 	pub fn new(client: Arc<C>) -> Self {
 		Self {
-			handler: StorageOverrideHandler::<B, C, BE>::new(client.clone())
+			handler: StorageOverrideHandler::<B, C, BE>::new(client.clone()),
 		}
 	}
 }
 
 impl<B, C, BE> StorageOverride<B> for FrontierStorageOverrideHandler<B, C, BE>
-	where
-		B: BlockT,
-		C: ProvideRuntimeApi<B>,
-		C::Api: EthereumRuntimeRPCApi<B>,
-		C: StorageProvider<B, BE> + Send + Sync + 'static,
-		BE: Backend<B> + 'static,
+where
+	B: BlockT,
+	C: ProvideRuntimeApi<B>,
+	C::Api: EthereumRuntimeRPCApi<B>,
+	C: StorageProvider<B, BE> + Send + Sync + 'static,
+	BE: Backend<B> + 'static,
 {
 	fn account_code_at(&self, at: B::Hash, address: Address) -> Option<Vec<u8>> {
 		self.handler.account_code_at(at, address)
@@ -70,13 +70,17 @@ impl<B, C, BE> StorageOverride<B> for FrontierStorageOverrideHandler<B, C, BE>
 		block.map(|mut block| {
 			for patch in MOONBASE_BLOCK_PATCHES {
 				if block.header.hash() == patch.hash {
-					block.transactions = block.transactions.iter().filter_map(|tx| {
-						if patch.invalid_transaction.contains(&tx.hash()) {
-							None
-						} else {
-							Some(tx.clone())
-						}
-					}).collect();
+					block.transactions = block
+						.transactions
+						.iter()
+						.filter_map(|tx| {
+							if patch.invalid_transaction.contains(&tx.hash()) {
+								None
+							} else {
+								Some(tx.clone())
+							}
+						})
+						.collect();
 				}
 			}
 			block
