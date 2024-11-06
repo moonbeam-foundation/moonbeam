@@ -33,8 +33,12 @@ jobs:
           pnpm i
           pnpm build
       - name: Publish typescript API
-        uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          package: typescript-api/package.json
-          dry-run: ${{ github.event.inputs.DryRun }}
+        run: |
+          cd typescript-api
+          if [ "${{ github.event.inputs.DryRun }}" == "true" ]; then
+            pnpm publish --dry-run
+          else
+            pnpm publish
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
