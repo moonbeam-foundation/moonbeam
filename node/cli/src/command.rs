@@ -44,7 +44,7 @@ use sp_runtime::{
 	},
 	StateVersion,
 };
-use std::{io::Write, net::SocketAddr};
+use std::io::Write;
 
 fn load_spec(
 	id: &str,

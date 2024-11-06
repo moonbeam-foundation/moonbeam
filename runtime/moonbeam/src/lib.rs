@@ -502,7 +502,7 @@ pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
 	MaximumMultiplier,
 >;
 
-use frame_support::traits::{FindAuthor, IsType};
+use frame_support::traits::FindAuthor;
 //TODO It feels like this shold be able to work for any T: H160, but I tried for
 // embarassingly long and couldn't figure that out.
 
