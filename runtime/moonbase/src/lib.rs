@@ -120,7 +120,6 @@ use sp_std::{
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
-use xcm_config::ForeignAssetManagerOrigin;
 use xcm_runtime_apis::{
 	dry_run::{CallDryRunEffects, Error as XcmDryRunApiError, XcmDryRunEffects},
 	fees::Error as XcmPaymentApiError,
@@ -1168,8 +1167,16 @@ impl pallet_migrations::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
+pub type ForeignAssetFreezerOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::GeneralAdmin,
+	>,
+>;
+
 impl pallet_moonbeam_lazy_migrations::Config for Runtime {
-	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetFreezerOrigin = ForeignAssetFreezerOrigin;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
 }
 

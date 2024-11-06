@@ -259,6 +259,27 @@ pub mod pallet {
 			})
 			.map_err(Into::into)
 		}
+
+		/// Aprrove a spender to spend a certain amount of tokens from the owner account
+		pub fn approve_into(
+			asset_id: AssetId,
+			owner: T::AccountId,
+			spender: T::AccountId,
+			amount: U256,
+		) -> Result<(), evm::EvmError> {
+			// We perform the evm call in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_approve(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(owner),
+					T::AccountIdToH160::convert(spender),
+					amount,
+				)
+			})
+			.map_err(Into::into)
+		}
+
 		pub fn weight_of_erc20_burn() -> Weight {
 			T::GasWeightMapping::gas_to_weight(evm::ERC20_BURN_FROM_GAS_LIMIT, true)
 		}

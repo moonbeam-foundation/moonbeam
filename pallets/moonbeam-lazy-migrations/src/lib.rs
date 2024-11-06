@@ -40,7 +40,7 @@ pub mod pallet {
 	use super::*;
 	use cumulus_primitives_storage_weight_reclaim::get_proof_size;
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::fungibles::metadata::Inspect;
+	use frame_support::traits::{fungibles::metadata::Inspect, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use sp_core::{H160, U256};
 	use xcm::latest::Location;
@@ -374,7 +374,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T>
 	where
 		<T as pallet_assets::Config>::Balance: Into<U256>,
-		<T as pallet_asset_manager::Config>::ForeignAssetType: Into<Option<Location>>
+		<T as pallet_asset_manager::Config>::ForeignAssetType: Into<Option<Location>>,
 	{
 		// TODO(rodrigo): This extrinsic should be removed once the storage of destroyed contracts
 		// has been removed
@@ -527,20 +527,41 @@ pub mod pallet {
 				_ => return Err(Error::<T>::NoMigrationInProgress.into()),
 			};
 
-			let mut migrated = 0;
-			for (who, asset) in pallet_assets::Account::<T>::drain_prefix(asset_id).drain() {
-				// Mint same balance for new asset
-				pallet_moonbeam_foreign_assets::Pallet::<T>::mint_into(
-					asset_id,
-					who,
-					asset.balance.into(),
-				)
-				.map_err(|_| Error::<T>::MintFailed)?;
+			pallet_assets::Account::<T>::drain_prefix(asset_id)
+				.drain()
+				.take(limit as usize)
+				.try_for_each(|(who, asset)| {
+					pallet_moonbeam_foreign_assets::Pallet::<T>::mint_into(
+						asset_id,
+						who.clone(),
+						asset.balance.into(),
+					)
+					.map_err(|_| Error::<T>::MintFailed)
+					.and_then(|_| {
+						pallet_assets::Approvals::<T>::drain_prefix((asset_id, who.clone()))
+							.drain()
+							.try_for_each(|(spender, approval)| {
+								<T as pallet_assets::Config>::Currency::unreserve(
+									&who,
+									approval.deposit,
+								);
+								pallet_moonbeam_foreign_assets::Pallet::<T>::approve_into(
+									asset_id,
+									who.clone(),
+									spender,
+									approval.amount.into(),
+								)
+								.map_err(|_| Error::<T>::MintFailed)
+							})
+					})
+				})?;
 
-				migrated += 1;
-				if migrated >= limit {
-					break;
-				}
+			// When all the assets are migrated, we need to set the foreign asset migration status to idle
+			if pallet_assets::Account::<T>::iter_key_prefix(asset_id)
+				.next()
+				.is_none()
+			{
+				ForeignAssetMigrationStatusValue::<T>::put(ForeignAssetMigrationStatus::Idle);
 			}
 
 			Ok(Pays::No.into())
