@@ -146,21 +146,18 @@ impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
 				let block_hash = self.storage.read().hashes.get(&n).cloned();
 				match block_hash {
 					None => {
-						let block_hash = self
-							.rpc_client
-							.block_hash::<Block>(Some(n))
-							.ok()
-							.flatten();
+						let block_hash =
+							self.rpc_client.block_hash::<Block>(Some(n)).ok().flatten();
 
 						block_hash.clone().map(|h| {
 							self.storage.write().hashes.insert(n, h);
 						});
 
 						block_hash
-					},
-					block_hash => block_hash
+					}
+					block_hash => block_hash,
 				}
-			},
+			}
 		}
 	}
 
