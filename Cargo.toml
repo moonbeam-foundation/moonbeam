@@ -391,7 +391,7 @@ clap-num = "=1.1.1"
 exit-future = "0.2"
 flume = "0.10.9"
 futures = { version = "0.3.30" }
-jsonrpsee = { version = "0.23.2", default-features = false }
+jsonrpsee = { version = "0.24.7", default-features = false }
 maplit = "1.0.2"
 nix = "0.28"
 parking_lot = "0.12.1"
