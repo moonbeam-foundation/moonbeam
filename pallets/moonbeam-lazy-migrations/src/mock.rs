@@ -24,7 +24,7 @@ use frame_support::{
 	weights::{RuntimeDbWeight, Weight},
 };
 use frame_system::EnsureRoot;
-use pallet_evm::{AddressMapping, EnsureAddressTruncated};
+use pallet_evm::{AddressMapping, EnsureAddressTruncated, FrameSystemAccountProvider};
 use sp_core::{ConstU32, H160, H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
@@ -204,6 +204,7 @@ impl pallet_evm::Config for Test {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
 	type SuicideQuickClearLimit = SuicideQuickClearLimit;
+	type AccountProvider = FrameSystemAccountProvider<Test>;
 }
 
 impl Config for Test {

@@ -1569,10 +1569,13 @@ where
 
 #[cfg(test)]
 mod tests {
+	use crate::chain_spec::moonbase::{testnet_genesis, ChainSpec};
+	use crate::chain_spec::Extensions;
 	use jsonrpsee::server::BatchRequestConfig;
 	use moonbase_runtime::{currency::UNIT, AccountId};
 	use prometheus::{proto::LabelPair, Counter};
 	use sc_network::config::NetworkConfiguration;
+	use sc_service::config::RpcConfiguration;
 	use sc_service::ChainType;
 	use sc_service::{
 		config::{BasePath, DatabaseSource, KeystoreConfig},
@@ -1580,9 +1583,6 @@ mod tests {
 	};
 	use std::path::Path;
 	use std::str::FromStr;
-
-	use crate::chain_spec::moonbase::{testnet_genesis, ChainSpec};
-	use crate::chain_spec::Extensions;
 
 	use super::*;
 
@@ -1714,7 +1714,7 @@ mod tests {
 			)
 			.unwrap(),
 		);
-		let mut client = TestClientBuilder::with_backend(backend).build();
+		let client = TestClientBuilder::with_backend(backend).build();
 
 		client
 			.execution_extensions()
@@ -1788,38 +1788,35 @@ mod tests {
 			state_pruning: Default::default(),
 			blocks_pruning: sc_service::BlocksPruning::KeepAll,
 			chain_spec: Box::new(spec),
-			wasm_method: Default::default(),
+			executor: Default::default(),
 			wasm_runtime_overrides: Default::default(),
-			rpc_id_provider: None,
-			rpc_max_connections: Default::default(),
-			rpc_cors: None,
-			rpc_methods: Default::default(),
-			rpc_max_request_size: Default::default(),
-			rpc_max_response_size: Default::default(),
-			rpc_max_subs_per_conn: Default::default(),
-			rpc_addr: None,
-			rpc_port: Default::default(),
-			rpc_message_buffer_capacity: Default::default(),
+			rpc: RpcConfiguration {
+				addr: None,
+				max_connections: Default::default(),
+				cors: None,
+				methods: Default::default(),
+				max_request_size: Default::default(),
+				max_response_size: Default::default(),
+				id_provider: None,
+				max_subs_per_conn: Default::default(),
+				port: Default::default(),
+				message_buffer_capacity: Default::default(),
+				batch_config: BatchRequestConfig::Unlimited,
+				rate_limit: Default::default(),
+				rate_limit_whitelisted_ips: vec![],
+				rate_limit_trust_proxy_headers: false,
+			},
 			data_path: Default::default(),
 			prometheus_config: None,
 			telemetry_endpoints: None,
-			default_heap_pages: None,
 			offchain_worker: Default::default(),
 			force_authoring: false,
 			disable_grandpa: false,
 			dev_key_seed: None,
 			tracing_targets: None,
 			tracing_receiver: Default::default(),
-			max_runtime_instances: 8,
 			announce_block: true,
 			base_path: BasePath::new(Path::new("")),
-			informant_output_format: Default::default(),
-			wasmtime_precompiled: None,
-			runtime_cache_size: 2,
-			rpc_rate_limit: Default::default(),
-			rpc_rate_limit_whitelisted_ips: vec![],
-			rpc_batch_config: BatchRequestConfig::Unlimited,
-			rpc_rate_limit_trust_proxy_headers: false,
 		}
 	}
 }

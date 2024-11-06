@@ -19,7 +19,9 @@ use crate as erc20_xcm_bridge;
 
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
-use pallet_evm::{AddressMapping, EnsureAddressTruncated, SubstrateBlockHashMapping};
+use pallet_evm::{
+	AddressMapping, EnsureAddressTruncated, FrameSystemAccountProvider, SubstrateBlockHashMapping,
+};
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::AccountId32;
@@ -155,6 +157,7 @@ impl pallet_evm::Config for Test {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
+	type AccountProvider = FrameSystemAccountProvider<Test>;
 }
 
 parameter_types! {
