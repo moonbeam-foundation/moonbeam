@@ -6964,6 +6964,8 @@ dependencies = [
  "cumulus-relay-chain-rpc-interface",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
+ "ethereum",
+ "ethereum-types",
  "exit-future",
  "fc-api",
  "fc-consensus",

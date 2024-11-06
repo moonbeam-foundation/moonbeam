@@ -33,6 +33,10 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 ansi_term = { workspace = true }
 
+# Ethereum
+ethereum = { workspace = true, features = [ "with-codec" ] }
+ethereum-types = { workspace = true }
+
 # Moonbeam
 moonbeam-dev-rpc = { workspace = true }
 moonbeam-cli-opt = { workspace = true }

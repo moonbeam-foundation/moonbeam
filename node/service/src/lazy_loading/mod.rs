@@ -23,7 +23,6 @@ use cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, 
 use cumulus_primitives_core::{relay_chain, BlockT, ParaId};
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-use fc_rpc::StorageOverrideHandler;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::{FutureExt, StreamExt};
 use moonbeam_cli_opt::{EthApi as EthApiCmd, LazyLoadingConfig, RpcConfig};
@@ -56,6 +55,7 @@ use std::collections::BTreeMap;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
+use crate::frontier::storage::FrontierStorageOverrideHandler;
 
 pub mod backend;
 pub mod call_executor;
@@ -489,7 +489,7 @@ where
 	}
 
 	let prometheus_registry = config.prometheus_registry().cloned();
-	let overrides = Arc::new(StorageOverrideHandler::new(client.clone()));
+	let overrides = Arc::new(FrontierStorageOverrideHandler::new(client.clone()));
 	let fee_history_limit = rpc_config.fee_history_limit;
 	let mut command_sink = None;
 	let mut dev_rpc_data = None;
