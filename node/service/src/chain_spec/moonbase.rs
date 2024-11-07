@@ -73,7 +73,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 	.with_chain_type(ChainType::Development)
 	.with_properties(
 		serde_json::from_str(
-			"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
+			"{\"tokenDecimals\": 18, \"tokenSymbol\": \"DEV\", \"SS58Prefix\": 1287}",
 		)
 		.expect("Provided valid json map"),
 	)
@@ -118,7 +118,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	.with_chain_type(ChainType::Local)
 	.with_properties(
 		serde_json::from_str(
-			"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
+			"{\"tokenDecimals\": 18, \"tokenSymbol\": \"DEV\", \"SS58Prefix\": 1287}",
 		)
 		.expect("Provided valid json map"),
 	)

@@ -2,9 +2,13 @@ name: Publish Typescript API
 on:
   workflow_dispatch:
     inputs:
-      sha:
-        description: full sha to build the npm package from
+      TargetSHA:
+        description: full sha of commit to publish ApiAugment from
         required: true
+      DryRun:
+        description: Dry run mode
+        required: false
+        default: "false"
 
 jobs:
   publish-typescript-api:
@@ -13,43 +17,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.sha }}
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.10.0
-      - name: Build typescript API
-        run: |
-          cd typescript-api
-          npm install
-          npm run build
-      - name: Publish typescript API
-        uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          package: typescript-api/build/package.json
-
-  update-polkadot-js-for-tests-and-tools:
-    runs-on: ubuntu-latest
-    needs: ["publish-typescript-api"]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.sha }}
-      - name: Use pnpm
-        uses: pnpm/action-setup@v4
+          ref: ${{ github.event.inputs.TargetSHA }}
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
         with:
           version: 9
-      - name: Use Node.js
+          run_install: false
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.10.0
-      - name: Upgrade polkadotjs for tests
+          cache: pnpm
+          registry-url: https://registry.npmjs.org/
+      - name: Build Typescript Augment API package
         run: |
-          cd test
-          pnpm install @polkadot/api@latest
-      - name: Upgrade polkadotjs for tools
+          cd typescript-api
+          pnpm i --frozen-lockfile
+          pnpm build
+      - name: Publish typescript API
         run: |
-          cd tools
-          npm install @polkadot/api@latest
+          cd typescript-api
+          if [ "${{ github.event.inputs.DryRun }}" == "true" ]; then
+            pnpm publish --access public --no-git-checks --dry-run
+          else
+            pnpm publish --access public --no-git-checks
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
