@@ -1753,6 +1753,21 @@
 <a href="#1751" id="1751">1751</a>
 <a href="#1752" id="1752">1752</a>
 <a href="#1753" id="1753">1753</a>
+<a href="#1754" id="1754">1754</a>
+<a href="#1755" id="1755">1755</a>
+<a href="#1756" id="1756">1756</a>
+<a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
+<a href="#1763" id="1763">1763</a>
+<a href="#1764" id="1764">1764</a>
+<a href="#1765" id="1765">1765</a>
+<a href="#1766" id="1766">1766</a>
+<a href="#1767" id="1767">1767</a>
+<a href="#1768" id="1768">1768</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -1897,7 +1912,22 @@
 	</span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: BlockId&lt;Block&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Block::Hash&gt; {
 		<span class="kw">match </span>id {
 			BlockId::Hash(h) =&gt; <span class="prelude-val">Some</span>(h),
-			BlockId::Number(n) =&gt; <span class="self">self</span>.storage.read().hashes.get(<span class="kw-2">&amp;</span>n).cloned(),
+			BlockId::Number(n) =&gt; {
+				<span class="kw">let </span>block_hash = <span class="self">self</span>.storage.read().hashes.get(<span class="kw-2">&amp;</span>n).cloned();
+				<span class="kw">match </span>block_hash {
+					<span class="prelude-val">None </span>=&gt; {
+						<span class="kw">let </span>block_hash =
+							<span class="self">self</span>.rpc_client.block_hash::&lt;Block&gt;(<span class="prelude-val">Some</span>(n)).ok().flatten();
+
+						block_hash.clone().map(|h| {
+							<span class="self">self</span>.storage.write().hashes.insert(n, h);
+						});
+
+						block_hash
+					}
+					block_hash =&gt; block_hash,
+				}
+			}
 		}
 	}
 
@@ -3261,17 +3291,17 @@
 
 	<span class="kw">pub fn </span>block_hash&lt;Block: BlockT + DeserializeOwned&gt;(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		block_number: <span class="prelude-ty">Option</span>&lt;BlockNumber&gt;,
+		block_number: <span class="prelude-ty">Option</span>&lt;&lt;Block::Header <span class="kw">as </span>HeaderT&gt;::Number&gt;,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Block::Hash&gt;, jsonrpsee::core::ClientError&gt; {
 		<span class="kw">let </span>request = <span class="kw-2">&amp;</span>|| {
 			substrate_rpc_client::ChainApi::&lt;
-				BlockNumber,
+				&lt;Block::Header <span class="kw">as </span>HeaderT&gt;::Number,
 				Block::Hash,
 				Block::Header,
 				SignedBlock&lt;Block&gt;,
 			&gt;::block_hash(
 				<span class="kw-2">&amp;</span><span class="self">self</span>.http_client,
-				block_number.map(|n| ListOrValue::Value(NumberOrHex::Number(n.into()))),
+				block_number.map(|n| ListOrValue::Value(NumberOrHex::Hex(n.into()))),
 			)
 		};
 

@@ -154,7 +154,7 @@
 
 	<span class="kw">let </span>genesis_block_hash: TBl::Hash = backend
 		.rpc_client
-		.block_hash::&lt;TBl&gt;(<span class="prelude-val">Some</span>(<span class="number">0</span>))
+		.block_hash::&lt;TBl&gt;(<span class="prelude-val">Some</span>(Default::default()))
 		.unwrap()
 		.expect(<span class="string">"Not able to obtain genesis block hash"</span>);
 
