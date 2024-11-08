@@ -33,7 +33,7 @@ pub fn produce_genesis_block<TBl: BlockT + sp_runtime::DeserializeOwned>(
 
 	let genesis_block_hash: TBl::Hash = backend
 		.rpc_client
-		.block_hash::<TBl>(Some(0))
+		.block_hash::<TBl>(Some(Default::default()))
 		.unwrap()
 		.expect("Not able to obtain genesis block hash");
 

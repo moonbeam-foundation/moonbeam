@@ -32,7 +32,6 @@
     "generate:meta:moonriver": "pnpm tsx node_modules/@polkadot/typegen/scripts/polkadot-types-from-chain.mjs --endpoint ./metadata-moonriver.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonriver/interfaces",
     "generate:meta:moonbeam": "pnpm tsx node_modules/@polkadot/typegen/scripts/polkadot-types-from-chain.mjs --endpoint ./metadata-moonbeam.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonbeam/interfaces",
     "build": "tsc -b --verbose",
-    "publish": "npm publish",
     "deploy": "pnpm generate && pnpm build && pnpm publish",
     "fmt:fix": "prettier --write --ignore-unknown --plugin prettier-plugin-jsdoc 'src/**/*' 'scripts/**/*'"
   },
@@ -88,7 +87,6 @@
     "@polkadot/types": "14.0.1",
     "@polkadot/types-codec": "14.0.1",
     "@types/node": "^22.5.5",
-    "moonbeam-types-bundle": "workspace:*",
     "prettier": "2.8.8",
     "prettier-plugin-jsdoc": "^0.3.38",
     "tsx": "^4.19.1",
