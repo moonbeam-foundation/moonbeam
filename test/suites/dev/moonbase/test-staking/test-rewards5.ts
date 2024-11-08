@@ -20,6 +20,7 @@ describeSuite({
     const BOND_AMOUNT = MIN_GLMR_STAKING + 1_000_000_000_000_000_000n;
     const PBR_PERCENTAGE = 10;
     const TREASURY_PERCENTAGE = 20;
+    const TREASURY_ED: bigint = BigInt(1);
 
     beforeAll(async () => {
       await context.createBlock([
@@ -96,13 +97,13 @@ describeSuite({
         expect(pbrReward).is.not.undefined;
         expect(treasuryReward).is.not.undefined;
 
-        expect((pbrReward! + treasuryReward!).toString()).to.be.eq(
+        expect((pbrReward! + treasuryReward! - TREASURY_ED!).toString()).to.be.eq(
           new Percent(PBR_PERCENTAGE + TREASURY_PERCENTAGE)
             .of(new BN(totalReward.toString()))
             .toString()
         );
 
-        expect(otherRewards.toString()).to.be.eq(
+        expect((otherRewards + TREASURY_ED).toString()).to.be.eq(
           new Percent(100 - PBR_PERCENTAGE - TREASURY_PERCENTAGE)
             .of(new BN(totalReward.toString()))
             .toString()
