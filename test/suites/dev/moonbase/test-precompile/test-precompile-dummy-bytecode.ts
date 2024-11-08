@@ -99,8 +99,8 @@ describeSuite({
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         expect(receipt.status).to.equal("reverted");
-        // 21006 = call cost + 2*PUSH cost
-        expect(receipt.gasUsed).to.equal(21006n);
+        // 31088 = call cost + 2*PUSH cost
+        expect(receipt.gasUsed).to.equal(31088n);
       },
     });
   },

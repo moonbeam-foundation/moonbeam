@@ -90,7 +90,7 @@ describeSuite({
           ],
           privateKey: BALTATHAR_PRIVATE_KEY,
           rawTxOnly: true,
-          gas: expectedGas,
+          gas: 91_088n,
         });
 
         const { result } = await context.createBlock(rawTxn2);
