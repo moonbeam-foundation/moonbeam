@@ -60,7 +60,6 @@ describeSuite({
         const base_ethereum_fee = 21000n;
         const modexp_min_cost = 200n * 20n; // see MIN_GAS_COST in frontier's modexp precompile
         const entire_fee = non_zero_byte_fee + zero_byte_fee + base_ethereum_fee + modexp_min_cost;
-        console.log("ENTIRE FEE: ", entire_fee);
         // Given that the pov is refunded, the gas used should be the minimum of the legacy gas 
         // and the pov gas.
         const expected = BigInt(Math.min(Number(entire_fee), 3797 * GAS_LIMIT_POV_RATIO));

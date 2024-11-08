@@ -90,26 +90,7 @@ describeSuite({
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
 
-        console.log("GAS USED: ", receipt.gasUsed)
-        console.log("Num Non Zero Bytes: ", numNonZeroBytes)
-        console.log("Num Zero Bytes: ", numZeroBytes)
-
-        // WITH POV CHANGE:
-        /*         2024-11-01 09:32:27 ACTUAL PROOF SIZE: 1943    
-                    2024-11-01 09:32:27 POV GAS: 31088    
-                    2024-11-01 09:32:27 STORAGE GAS: 0    
-                    2024-11-01 09:32:27 USED GAS: 23820    
-                    2024-11-01 09:32:27 EFFECTIVE GAS: 31088  */
-
-        /*                     2024-11-01 09:43:23 MEASURED PROOF SIZE BEFORE: 6514    
-                            2024-11-01 09:43:23 ACTUAL PROOF SIZE: 790    
-                            2024-11-01 09:43:23 POV GAS: 12640    
-                            2024-11-01 09:43:23 STORAGE GAS: 0    
-                            2024-11-01 09:43:23 USED GAS: 23820    
-                            2024-11-01 09:43:23 EFFECTIVE GAS: 23820  */
-
         const modExpGas =
-          //                  1088                           372                          21000
           receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
         expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
       },
