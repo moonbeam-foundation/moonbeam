@@ -27,14 +27,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.10.0
+          cache: pnpm
+          registry-url: https://registry.npmjs.org/
       - name: Build Typescript Augment API package
         run: |
           cd typescript-api
-          pnpm i
+          pnpm i --frozen-lockfile
           pnpm build
       - name: Publish typescript API
-        uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          package: typescript-api/package.json
-          dry-run: ${{ github.event.inputs.DryRun }}
+        run: |
+          cd typescript-api
+          if [ "${{ github.event.inputs.DryRun }}" == "true" ]; then
+            pnpm publish --access public --no-git-checks --dry-run
+          else
+            pnpm publish --access public --no-git-checks
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
