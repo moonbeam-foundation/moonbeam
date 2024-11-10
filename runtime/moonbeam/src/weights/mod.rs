@@ -49,5 +49,5 @@ pub mod pallet_utility;
 pub mod pallet_whitelist;
 pub mod pallet_xcm;
 pub mod pallet_xcm_transactor;
-// pub mod pallet_xcm_weight_trader;
-// pub mod pallet_parameteres;
+pub mod pallet_xcm_weight_trader;
+pub mod pallet_parameters;

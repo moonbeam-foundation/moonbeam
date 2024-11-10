@@ -1394,8 +1394,7 @@ impl pallet_parameters::Config for Runtime {
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeParameters = RuntimeParameters;
-	// type WeightInfo = moonbeam_weights::pallet_parameters::WeightInfo<Runtime>;
-	type WeightInfo = ();
+	type WeightInfo = moonbeam_weights::pallet_parameters::WeightInfo<Runtime>;
 }
 
 construct_runtime! {

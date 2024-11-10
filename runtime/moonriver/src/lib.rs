@@ -1398,9 +1398,7 @@ impl pallet_parameters::Config for Runtime {
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeParameters = RuntimeParameters;
-	// type WeightInfo = moonriver_weights::pallet_parameters::WeightInfo<Runtime>;
-
-	type WeightInfo = ();
+	type WeightInfo = moonriver_weights::pallet_parameters::WeightInfo<Runtime>;
 }
 
 construct_runtime! {
