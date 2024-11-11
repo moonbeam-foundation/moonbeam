@@ -32,7 +32,7 @@ jobs:
       labels: bare-metal
     strategy:
       matrix:
-        runtime: [ moonbeam, moonbase, moonriver ]
+        runtime: [moonbeam, moonbase, moonriver]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
