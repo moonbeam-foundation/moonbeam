@@ -261,7 +261,7 @@ pub mod pallet {
 		}
 
 		/// Aprrove a spender to spend a certain amount of tokens from the owner account
-		pub fn approve_into(
+		pub fn approve(
 			asset_id: AssetId,
 			owner: T::AccountId,
 			spender: T::AccountId,

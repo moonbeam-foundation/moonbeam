@@ -26,10 +26,14 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+mod foreign_asset;
 pub mod weights;
 pub use weights::WeightInfo;
 
 use frame_support::pallet;
+use frame_support::pallet_prelude::*;
+use frame_system::pallet_prelude::*;
+use xcm::latest::Location;
 
 pub use pallet::*;
 
@@ -38,13 +42,9 @@ const MAX_CONTRACT_CODE_SIZE: u64 = 25 * 1024;
 #[pallet]
 pub mod pallet {
 	use super::*;
+	use crate::foreign_asset::ForeignAssetMigrationStatus;
 	use cumulus_primitives_storage_weight_reclaim::get_proof_size;
-	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{fungibles::metadata::Inspect, ReservableCurrency};
-	use frame_system::pallet_prelude::*;
 	use sp_core::{H160, U256};
-	use xcm::latest::Location;
-	use xcm_primitives::AssetTypeGetter;
 
 	pub const ARRAY_LIMIT: u32 = 1000;
 	pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
@@ -80,26 +80,6 @@ pub mod pallet {
 			StateMigrationStatus::NotStarted
 		}
 	}
-
-	#[derive(Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
-	pub enum ForeignAssetMigrationStatus {
-		/// No migration in progress
-		Idle,
-		/// Migrating a foreign asset in progress
-		Migrating(ForeignAssetMigrationInfo),
-	}
-
-	#[derive(Default, Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
-	pub struct ForeignAssetMigrationInfo {
-		pub asset_id: u128,
-	}
-
-	impl Default for ForeignAssetMigrationStatus {
-		fn default() -> Self {
-			ForeignAssetMigrationStatus::Idle
-		}
-	}
-
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config:
@@ -110,8 +90,8 @@ pub mod pallet {
 		+ pallet_asset_manager::Config<AssetId = u128>
 		+ pallet_moonbeam_foreign_assets::Config
 	{
-		// Origin that is allowed to freeze foreign assets for migration
-		type ForeignAssetFreezerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+		// Origin that is allowed to start foreign assets migration
+		type ForeignAssetMigratorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		type WeightInfo: WeightInfo;
 	}
 
@@ -135,14 +115,18 @@ pub mod pallet {
 		NameTooLong,
 		/// The asset type was not found
 		AssetTypeNotFound,
+		/// Asset not found
+		AssetNotFound,
 		/// The location of the asset was not found
 		LocationNotFound,
-		/// Migration is already in progress
-		MigrationInProgress,
+		/// Migration is not finished yet
+		MigrationNotFinished,
 		/// No migration in progress
 		NoMigrationInProgress,
 		/// Fail to mint the foreign asset
 		MintFailed,
+		/// Fail to add an approval
+		ApprovalFailed,
 	}
 
 	pub(crate) const MAX_ITEM_PROOF_SIZE: u64 = 30 * 1024; // 30 KB
@@ -469,101 +453,45 @@ pub mod pallet {
 		// TODO update weights
 		#[pallet::call_index(3)]
 		#[pallet::weight(0)]
-		pub fn freeze_foreign_asset(
+		pub fn start_foreign_assets_migration(
 			origin: OriginFor<T>,
 			asset_id: u128,
 		) -> DispatchResultWithPostInfo {
-			<T as pallet_moonbeam_foreign_assets::Config>::ForeignAssetFreezerOrigin::ensure_origin(origin.clone())?;
+			T::ForeignAssetMigratorOrigin::ensure_origin(origin.clone())?;
 
-			// Check if a migration of a foreign asset already happening
-			ensure!(
-				ForeignAssetMigrationStatusValue::<T>::get() == ForeignAssetMigrationStatus::Idle,
-				Error::<T>::MigrationInProgress
-			);
-
-			// Freeze the asset
-			pallet_assets::Pallet::<T>::freeze_asset(origin.clone(), asset_id.into())?;
-
-			let decimals = pallet_assets::Pallet::<T>::decimals(asset_id);
-
-			let symbol = pallet_assets::Pallet::<T>::symbol(asset_id)
-				.try_into()
-				.map_err(|_| Error::<T>::SymbolTooLong)?;
-
-			let name = <pallet_assets::Pallet<T> as Inspect<_>>::name(asset_id)
-				.try_into()
-				.map_err(|_| Error::<T>::NameTooLong)?;
-
-			let location: Location = pallet_asset_manager::Pallet::<T>::get_asset_type(asset_id)
-				.ok_or(Error::<T>::AssetTypeNotFound)?
-				.into()
-				.ok_or(Error::<T>::LocationNotFound)?;
-
-			// Create the SC for the asset with moonbeam foreign assets pallet
-			pallet_moonbeam_foreign_assets::Pallet::<T>::create_foreign_asset(
-				origin, asset_id, location, decimals, symbol, name,
-			)?;
-
-			ForeignAssetMigrationStatusValue::<T>::put(ForeignAssetMigrationStatus::Migrating(
-				ForeignAssetMigrationInfo { asset_id },
-			));
-
+			Self::do_start_foreign_asset_migration(origin, asset_id)?;
 			Ok(Pays::No.into())
 		}
 
 		#[pallet::call_index(4)]
 		#[pallet::weight(0)]
-		pub fn migrate_foreign_asset(
+		pub fn migrate_foreign_asset_balances(
 			origin: OriginFor<T>,
 			limit: u64,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
-			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
 
-			let asset_id = match ForeignAssetMigrationStatusValue::<T>::get() {
-				ForeignAssetMigrationStatus::Migrating(ForeignAssetMigrationInfo { asset_id }) => {
-					asset_id
-				}
-				_ => return Err(Error::<T>::NoMigrationInProgress.into()),
-			};
+			Self::do_migrate_foreign_asset_balances(limit)?;
+			Ok(Pays::No.into())
+		}
+		#[pallet::call_index(5)]
+		#[pallet::weight(0)]
+		pub fn migrate_foreign_asset_approvals(
+			origin: OriginFor<T>,
+			limit: u64,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
 
-			pallet_assets::Account::<T>::drain_prefix(asset_id)
-				.drain()
-				.take(limit as usize)
-				.try_for_each(|(who, asset)| {
-					pallet_moonbeam_foreign_assets::Pallet::<T>::mint_into(
-						asset_id,
-						who.clone(),
-						asset.balance.into(),
-					)
-					.map_err(|_| Error::<T>::MintFailed)
-					.and_then(|_| {
-						pallet_assets::Approvals::<T>::drain_prefix((asset_id, who.clone()))
-							.drain()
-							.try_for_each(|(spender, approval)| {
-								<T as pallet_assets::Config>::Currency::unreserve(
-									&who,
-									approval.deposit,
-								);
-								pallet_moonbeam_foreign_assets::Pallet::<T>::approve_into(
-									asset_id,
-									who.clone(),
-									spender,
-									approval.amount.into(),
-								)
-								.map_err(|_| Error::<T>::MintFailed)
-							})
-					})
-				})?;
+			Self::do_migrate_foreign_asset_approvals(limit)?;
+			Ok(Pays::No.into())
+		}
 
-			// When all the assets are migrated, we need to set the foreign asset migration status to idle
-			if pallet_assets::Account::<T>::iter_key_prefix(asset_id)
-				.next()
-				.is_none()
-			{
-				ForeignAssetMigrationStatusValue::<T>::put(ForeignAssetMigrationStatus::Idle);
-			}
+		#[pallet::call_index(6)]
+		#[pallet::weight(0)]
+		pub fn finish_foreign_assets_migration(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
 
+			Self::do_finish_foreign_asset_migration()?;
 			Ok(Pays::No.into())
 		}
 	}

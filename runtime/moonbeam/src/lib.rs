@@ -1166,7 +1166,7 @@ pub type ForeignAssetFreezerOrigin = EitherOfDiverse<
 	>,
 >;
 impl pallet_moonbeam_lazy_migrations::Config for Runtime {
-	type ForeignAssetFreezerOrigin = ForeignAssetFreezerOrigin;
+	type ForeignAssetMigratorOrigin = ForeignAssetFreezerOrigin;
 	type WeightInfo = moonbeam_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
 }
 
