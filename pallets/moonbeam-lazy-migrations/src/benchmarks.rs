@@ -23,38 +23,7 @@ use frame_support::BoundedVec;
 use frame_system::RawOrigin;
 use sp_core::{H160, H256};
 
-benchmarks! {
-	clear_suicided_storage {
-		let caller = account("caller", 1, 100);
-		// a is the number of addresses
-		let a in 1 .. 100;
-		// l is the limit of the number of storage entries to be deleted
-		let l in 1 .. 1000;
-
-		// Create the addresses to be used in the test
-		let mut addresses = BoundedVec::<H160, GetArrayLimit>::new();
-
-		// Create the storage entries to be deleted
-		for i in 0..a {
-			let address = account("address", i, i);
-			addresses.try_push(address).expect("Cannot add more addresses to address list");
-			let n = max(1, l/a);
-			for j in 0..n {
-				pallet_evm::AccountStorages::<T>::insert(
-					address,
-					H256::from_low_u64_be(j as u64),
-					H256::from_low_u64_be(j as u64),
-				);
-			}
-		}
-	}:_(
-		RawOrigin::Signed(caller),
-		addresses,
-		l
-	)
-	verify {
-	}
-}
+benchmarks! {}
 
 #[cfg(test)]
 mod tests {
