@@ -362,13 +362,13 @@
 <span class="kw">use </span><span class="kw">crate</span>::chain_spec::{generate_accounts, get_from_seed, Extensions};
 <span class="kw">use </span>cumulus_primitives_core::ParaId;
 <span class="kw">use </span>hex_literal::hex;
-<span class="kw">use </span>moonbase_runtime::EligibilityValue;
 <span class="kw">use </span>moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CrowdloanRewardsConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisAccount,
-	InflationInfo, MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
-	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
+	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
+	GenesisAccount, InflationInfo, MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig,
+	ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range,
+	RuntimeGenesisConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS,
+	WASM_BINARY,
 };
 <span class="kw">use </span>nimbus_primitives::NimbusId;
 <span class="kw">use </span>pallet_transaction_payment::Multiplier;

@@ -1859,6 +1859,7 @@
 <a href="#1857" id="1857">1857</a>
 <a href="#1858" id="1858">1858</a>
 <a href="#1859" id="1859">1859</a>
+<a href="#1860" id="1860">1860</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1929,6 +1930,7 @@
 	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
 	weights <span class="kw">as </span>moonbeam_weights,
 };
+<span class="kw">pub use </span>pallet_author_slot_filter::EligibilityValue;
 <span class="kw">use </span>pallet_ethereum::Call::transact;
 <span class="kw">use </span>pallet_ethereum::{PostLogContent, Transaction <span class="kw">as </span>EthereumTransaction};
 <span class="kw">use </span>pallet_evm::{
