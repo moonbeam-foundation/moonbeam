@@ -9,7 +9,7 @@ output="${runtime}"
 profile="${2:-production}"
 
 echo "[+] Compiling benchmarks with $profile profile... (this will take a while)"
-#cargo build --profile=$profile --locked --features=runtime-benchmarks
+cargo build --profile=$profile --locked --features=runtime-benchmarks
 
 # Load all pallet names in an array.
 PALLETS=($(
