@@ -19,6 +19,7 @@ describeSuite({
       contractAddress = deployedAddr;
     });
 
+    // See ProxyForContractsDemo.sol for more explanation
     it({
       id: `T01`,
       title: `Proxy Call to Smart Contract account should fail`,
@@ -35,6 +36,17 @@ describeSuite({
               .signAsync(alith)
           )
         ).rejects.toThrow("Invalid Transaction: Transaction call is not expected");
+      },
+    });
+
+    it({
+      id: `T02`,
+      title: `Adding a proxy to an existing contract should succeed`,
+      test: async function () {
+        const { result } = await context.createBlock(
+          context.polkadotJs().tx.proxy.addProxy(contractAddress, "Any", 0)
+        )
+        expect(result?.successful).to.be.true;
       },
     });
   },
