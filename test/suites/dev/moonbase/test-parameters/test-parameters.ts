@@ -1,7 +1,7 @@
-import { describeSuite, DevModeContext, expect } from "@moonwall/cli";
+import {describeSuite, DevModeContext, expect} from "@moonwall/cli";
 import "@moonbeam-network/api-augment";
-import { alith } from "@moonwall/util";
-import { fail } from "assert";
+import {alith} from "@moonwall/util";
+
 export const UNIT = 1_000_000_000_000_000_000n;
 
 const RUNTIME = "MoonbaseRuntime";
@@ -40,8 +40,9 @@ describeSuite({
   id: "DTemp01",
   title: "Parameters",
   foundationMethods: "dev",
-  testCases: ({ it, context, log }) => {
+  testCases: ({it, context, log}) => {
     let testCounter = 0;
+
     function testParam(module: string, name: string, valueCreation: [string, unknown]) {
       it({
         id: `T${testCounter++} - ${module} - ${name}`,
@@ -52,7 +53,7 @@ describeSuite({
 
           const res = await context.createBlock(
             context.polkadotJs().tx.parameters.setParameter(param.toU8a()).signAsync(alith),
-            { allowFailures: true }
+            {allowFailures: true}
           );
           expect(res.result?.error?.name).toEqual("BadOrigin");
         },
@@ -70,7 +71,7 @@ describeSuite({
               .polkadotJs()
               .tx.sudo.sudo(context.polkadotJs().tx.parameters.setParameter(param.toU8a()))
               .signAsync(alith),
-            { allowFailures: false }
+            {allowFailures: false}
           );
 
           const key = parameterKey(context, module, name);

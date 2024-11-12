@@ -6,8 +6,7 @@ import {
   extractFee,
   TREASURY_ACCOUNT
 } from "@moonwall/util";
-import {fail} from "assert";
-import {parameterType, UNIT} from "./test-parameters";
+import {parameterType} from "./test-parameters";
 
 describeSuite({
   id: "DTemp02",
