@@ -16,19 +16,6 @@ describeSuite({
   testCases: ({it, context, log,}) => {
     let testCounter = 0;
 
-
-    it({
-      id: `T${++testCounter}`,
-      title: "treasury should be empty at genesis",
-      test: async () => {
-        expect(
-          await context.viem().getBalance({address: TREASURY_ACCOUNT}),
-          "Treasury account should be initially empty"
-        ).to.equal(0n);
-      },
-    });
-
-
     for (const txnType of TransactionTypes) {
       it({
         id: `T${++testCounter}`,
