@@ -58,7 +58,7 @@ describeSuite({
 
           const treasuryIncrease = balAfter - balBefore;
           const fee = extractFee(result?.events)!.amount.toBigInt();
-          expect(fee / treasuryIncrease, "0% of the fees should go to treasury").to.equal(0n);
+          expect(treasuryIncrease, "0% of the fees should go to treasury").to.equal(0n);
 
           const issuanceDecrease = issuanceBefore - issuanceAfter;
           expect((fee * 100n) / issuanceDecrease, "100% of the fees should be burned").to.equal(
