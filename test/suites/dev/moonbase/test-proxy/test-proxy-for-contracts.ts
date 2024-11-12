@@ -45,7 +45,7 @@ describeSuite({
       test: async function () {
         const { result } = await context.createBlock(
           context.polkadotJs().tx.proxy.addProxy(contractAddress, "Any", 0)
-        )
+        );
         expect(result?.successful).to.be.true;
       },
     });
