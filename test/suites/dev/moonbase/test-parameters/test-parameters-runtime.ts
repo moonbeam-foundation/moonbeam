@@ -1,18 +1,18 @@
-import {describeSuite, expect, TransactionTypes} from "@moonwall/cli";
+import { describeSuite, expect, TransactionTypes } from "@moonwall/cli";
 import {
   alith,
   BALTATHAR_ADDRESS,
   createRawTransfer,
   extractFee,
-  TREASURY_ACCOUNT
+  TREASURY_ACCOUNT,
 } from "@moonwall/util";
-import {parameterType} from "./test-parameters";
+import { parameterType } from "./test-parameters";
 
 describeSuite({
   id: "DTemp02",
   title: "Parameters - RuntimeConfig",
   foundationMethods: "dev",
-  testCases: ({it, context, log,}) => {
+  testCases: ({ it, context, log }) => {
     let testCounter = 0;
 
     for (const txnType of TransactionTypes) {
@@ -26,18 +26,18 @@ describeSuite({
               .polkadotJs()
               .tx.sudo.sudo(context.polkadotJs().tx.parameters.setParameter(param.toU8a()))
               .signAsync(alith),
-            {allowFailures: false}
+            { allowFailures: false }
           );
 
-          const balBefore = await context.viem().getBalance({address: TREASURY_ACCOUNT});
+          const balBefore = await context.viem().getBalance({ address: TREASURY_ACCOUNT });
           const issuanceBefore = (
             await context.polkadotJs().query.balances.totalIssuance()
           ).toBigInt();
-          const {result} = await context.createBlock(
-            await createRawTransfer(context, BALTATHAR_ADDRESS, 128, {type: txnType})
+          const { result } = await context.createBlock(
+            await createRawTransfer(context, BALTATHAR_ADDRESS, 128, { type: txnType })
           );
 
-          const balAfter = await context.viem().getBalance({address: TREASURY_ACCOUNT});
+          const balAfter = await context.viem().getBalance({ address: TREASURY_ACCOUNT });
           const issuanceAfter = (
             await context.polkadotJs().query.balances.totalIssuance()
           ).toBigInt();

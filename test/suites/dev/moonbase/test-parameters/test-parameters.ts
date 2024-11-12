@@ -1,6 +1,6 @@
-import {describeSuite, DevModeContext, expect} from "@moonwall/cli";
+import { describeSuite, DevModeContext, expect } from "@moonwall/cli";
 import "@moonbeam-network/api-augment";
-import {alith} from "@moonwall/util";
+import { alith } from "@moonwall/util";
 
 export const UNIT = 1_000_000_000_000_000_000n;
 
@@ -8,7 +8,12 @@ const RUNTIME = "MoonbaseRuntime";
 const CRATE = "RuntimeParams";
 const ALL_PARAMS = "DynamicParams";
 
-export function parameterType(context: DevModeContext, module: string, name: string, value: unknown) {
+export function parameterType(
+  context: DevModeContext,
+  module: string,
+  name: string,
+  value: unknown
+) {
   const paramWrapper = context
     .polkadotJs()
     .createType(`${RUNTIME}${CRATE}${ALL_PARAMS}${module}Parameters`, {
@@ -40,7 +45,7 @@ describeSuite({
   id: "DTemp01",
   title: "Parameters",
   foundationMethods: "dev",
-  testCases: ({it, context, log}) => {
+  testCases: ({ it, context, log }) => {
     let testCounter = 0;
 
     function testParam(module: string, name: string, valueCreation: [string, unknown]) {
@@ -53,7 +58,7 @@ describeSuite({
 
           const res = await context.createBlock(
             context.polkadotJs().tx.parameters.setParameter(param.toU8a()).signAsync(alith),
-            {allowFailures: true}
+            { allowFailures: true }
           );
           expect(res.result?.error?.name).toEqual("BadOrigin");
         },
@@ -71,7 +76,7 @@ describeSuite({
               .polkadotJs()
               .tx.sudo.sudo(context.polkadotJs().tx.parameters.setParameter(param.toU8a()))
               .signAsync(alith),
-            {allowFailures: false}
+            { allowFailures: false }
           );
 
           const key = parameterKey(context, module, name);
@@ -82,7 +87,6 @@ describeSuite({
         },
       });
     }
-
 
     // Add all the parameters here to test against 2 test cases:
     // 1. Parameters cannot by a normal user.

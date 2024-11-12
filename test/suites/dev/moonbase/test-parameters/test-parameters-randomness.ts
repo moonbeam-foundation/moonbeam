@@ -1,13 +1,13 @@
-import {describeSuite, expect} from "@moonwall/cli";
-import {alith} from "@moonwall/util";
-import {fail} from "assert";
-import {parameterType, UNIT} from "./test-parameters";
+import { describeSuite, expect } from "@moonwall/cli";
+import { alith } from "@moonwall/util";
+import { fail } from "assert";
+import { parameterType, UNIT } from "./test-parameters";
 
 describeSuite({
   id: "DTemp02",
   title: "Parameters - Pallet Randomness",
   foundationMethods: "dev",
-  testCases: ({it, context, log}) => {
+  testCases: ({ it, context, log }) => {
     it({
       id: `T01 - PalletRandomness - Deposit - CustomTests`,
       title: "Deposit parameter should only be accepted in bounds",
@@ -25,7 +25,7 @@ describeSuite({
               .polkadotJs()
               .tx.sudo.sudo(context.polkadotJs().tx.parameters.setParameter(param1.toU8a()))
               .signAsync(alith),
-            {allowFailures: false}
+            { allowFailures: false }
           );
           fail("An extrinsic should not be created, since the parameter is invalid");
         } catch (error) {
@@ -39,7 +39,7 @@ describeSuite({
               .polkadotJs()
               .tx.sudo.sudo(context.polkadotJs().tx.parameters.setParameter(param2.toU8a()))
               .signAsync(alith),
-            {allowFailures: false}
+            { allowFailures: false }
           );
           fail("An extrinsic should not be created, since the parameter is invalid");
         } catch (error) {
@@ -52,7 +52,7 @@ describeSuite({
             .polkadotJs()
             .tx.sudo.sudo(context.polkadotJs().tx.parameters.setParameter(param3.toU8a()))
             .signAsync(alith),
-          {allowFailures: false}
+          { allowFailures: false }
         );
         expect(
           res3.result?.successful,
