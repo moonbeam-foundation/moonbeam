@@ -1,6 +1,7 @@
 import { describeSuite, expect, TransactionTypes } from "@moonwall/cli";
 import {
   alith,
+  baltathar,
   BALTATHAR_ADDRESS,
   createRawTransfer,
   extractFee,
@@ -18,7 +19,9 @@ describeSuite({
     for (const txnType of TransactionTypes) {
       it({
         id: `T${++testCounter}`,
-        title: `should send 0% of fees to treasury for ${txnType} transfers`,
+        title:
+          `Changing FeesTreasuryProportion to zero should send 0% of fees to treasury for` +
+          ` Ethereum ${txnType} transfers`,
         test: async () => {
           const param = parameterType(context, "RuntimeConfig", "FeesTreasuryProportion", 0);
           await context.createBlock(
@@ -53,5 +56,89 @@ describeSuite({
         },
       });
     }
+
+    it({
+      id: `T${++testCounter}`,
+      title:
+        `Changing FeesTreasuryProportion to zero should send 0% of fees to treasury for` +
+        ` Substrate based transactions with no tip`,
+      test: async () => {
+        const param = parameterType(context, "RuntimeConfig", "FeesTreasuryProportion", 0);
+        await context.createBlock(
+          context
+            .polkadotJs()
+            .tx.sudo.sudo(context.polkadotJs().tx.parameters.setParameter(param.toU8a()))
+            .signAsync(alith),
+          { allowFailures: false }
+        );
+
+        const balanceBefore = await context.viem().getBalance({ address: TREASURY_ACCOUNT });
+        const issuanceBefore = (
+          await context.polkadotJs().query.balances.totalIssuance()
+        ).toBigInt();
+
+        const { result } = await context.createBlock(
+          context
+            .polkadotJs()
+            .tx.balances.transfer(alith.address, 128)
+            .signAsync(baltathar, { tip: 0 }),
+          { allowFailures: false }
+        );
+
+        const balanceAfter = await context.viem().getBalance({ address: TREASURY_ACCOUNT });
+        const issuanceAfter = (
+          await context.polkadotJs().query.balances.totalIssuance()
+        ).toBigInt();
+
+        const treasuryIncrease = balanceAfter - balanceBefore;
+        const fee = extractFee(result?.events)!.amount.toBigInt();
+        expect(treasuryIncrease, "0% of the fees should go to treasury").to.equal(0n);
+
+        const issuanceDecrease = issuanceBefore - issuanceAfter;
+        expect((fee * 100n) / issuanceDecrease, "100% of the fees should be burned").to.equal(100n);
+      },
+    });
+
+    it({
+      id: `T${++testCounter}`,
+      title:
+        `Changing FeesTreasuryProportion to zero should send 0% of fees to treasury for` +
+        ` Substrate based transactions with tip`,
+      test: async () => {
+        const param = parameterType(context, "RuntimeConfig", "FeesTreasuryProportion", 0);
+        await context.createBlock(
+          context
+            .polkadotJs()
+            .tx.sudo.sudo(context.polkadotJs().tx.parameters.setParameter(param.toU8a()))
+            .signAsync(alith),
+          { allowFailures: false }
+        );
+
+        const balanceBefore = await context.viem().getBalance({ address: TREASURY_ACCOUNT });
+        const issuanceBefore = (
+          await context.polkadotJs().query.balances.totalIssuance()
+        ).toBigInt();
+
+        const { result } = await context.createBlock(
+          context
+            .polkadotJs()
+            .tx.balances.transfer(alith.address, 128)
+            .signAsync(baltathar, { tip: 128 }),
+          { allowFailures: false }
+        );
+
+        const balanceAfter = await context.viem().getBalance({ address: TREASURY_ACCOUNT });
+        const issuanceAfter = (
+          await context.polkadotJs().query.balances.totalIssuance()
+        ).toBigInt();
+
+        const treasuryIncrease = balanceAfter - balanceBefore;
+        const fee = extractFee(result?.events)!.amount.toBigInt();
+        expect(treasuryIncrease, "0% of the fees should go to treasury").to.equal(0n);
+
+        const issuanceDecrease = issuanceBefore - issuanceAfter;
+        expect((fee * 100n) / issuanceDecrease, "100% of the fees should be burned").to.equal(100n);
+      },
+    });
   },
 });
