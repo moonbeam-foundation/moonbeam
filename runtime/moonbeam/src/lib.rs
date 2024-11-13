@@ -68,6 +68,7 @@ use moonbeam_runtime_common::{
 	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
 	weights as moonbeam_weights,
 };
+pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
