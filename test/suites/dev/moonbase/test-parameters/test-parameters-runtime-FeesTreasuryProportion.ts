@@ -25,7 +25,7 @@ describeSuite({
   testCases: ({ it, context, log }) => {
     let testCounter = 0;
 
-    let testCases: TestCase[] = [
+    const testCases: TestCase[] = [
       {
         proportion: new Perbill(0),
         transfer_amount: 10n * UNIT,
@@ -75,11 +75,11 @@ describeSuite({
       const burnPercentage = burnProportion.value().toNumber() / 1e7;
 
       const calcTreasuryIncrease = (feeWithTip: bigint): bigint => {
-        let val = t.proportion.of(new BN(feeWithTip));
+        const val = t.proportion.of(new BN(feeWithTip));
         return BigInt(val.toString());
       };
       const calcIssuanceDecrease = (feeWithTip: bigint): bigint => {
-        let val = burnProportion.of(new BN(feeWithTip));
+        const val = burnProportion.of(new BN(feeWithTip));
         return BigInt(val.toString());
       };
 
@@ -120,6 +120,11 @@ describeSuite({
             const treasuryIncrease = balAfter - balBefore;
             const issuanceDecrease = issuanceBefore - issuanceAfter;
             const fee = extractFee(result?.events)!.amount.toBigInt();
+
+            expect(
+              treasuryIncrease + issuanceDecrease,
+              `Sum of TreasuryIncrease and IssuanceDecrease should be equal to the fees`
+            ).to.equal(fee);
 
             expect(
               treasuryIncrease,
@@ -175,6 +180,11 @@ describeSuite({
             const treasuryIncrease = balanceAfter - balanceBefore;
             const issuanceDecrease = issuanceBefore - issuanceAfter;
             const fee = extractFee(result?.events)!.amount.toBigInt();
+
+            expect(
+              treasuryIncrease + issuanceDecrease,
+              `Sum of TreasuryIncrease and IssuanceDecrease should be equal to the fees`
+            ).to.equal(fee);
 
             expect(
               treasuryIncrease,
