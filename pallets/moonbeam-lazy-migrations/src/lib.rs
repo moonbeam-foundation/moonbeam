@@ -19,8 +19,6 @@
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(any(test, feature = "runtime-benchmarks"))]
-mod benchmarks;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
