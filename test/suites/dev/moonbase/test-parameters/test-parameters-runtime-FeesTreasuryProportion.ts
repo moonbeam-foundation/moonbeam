@@ -75,18 +75,22 @@ describeSuite({
       const burnPercentage = burnProportion.value().toNumber() / 1e7;
 
       const calcTreasuryIncrease = (feeWithTip: bigint): bigint => {
-        const val = t.proportion.of(new BN(feeWithTip));
+        const feeWithTipBN = new BN(feeWithTip.toString());
+        const proportion: BN = t.proportion.value();
+        const val = feeWithTipBN.mul(proportion).div(new BN(1e9));
         return BigInt(val.toString());
       };
       const calcIssuanceDecrease = (feeWithTip: bigint): bigint => {
-        const val = burnProportion.of(new BN(feeWithTip));
-        return BigInt(val.toString());
+        const treasuryIncrease = calcTreasuryIncrease(feeWithTip);
+        return feeWithTip - treasuryIncrease;
       };
 
       for (const txnType of TransactionTypes) {
         it({
           id: `T${++testCounter}`,
-          title: `Changing FeesTreasuryProportion to ${treasuryPercentage}% for Ethereum ${txnType} transfers`,
+          title:
+            `Changing FeesTreasuryProportion to ${treasuryPercentage}% for Ethereum` +
+            `${txnType} transfers`,
           test: async () => {
             const param = parameterType(
               context,
@@ -141,9 +145,9 @@ describeSuite({
       for (const withTip of [false]) {
         it({
           id: `T${++testCounter}`,
-          title: `Changing FeesTreasuryProportion to ${treasuryPercentage}% for Substrate based transactions with ${
-            withTip ? "" : "no "
-          }tip`,
+          title:
+            `Changing FeesTreasuryProportion to ${treasuryPercentage}% for Substrate based` +
+            `transactions with ${withTip ? "" : "no "}tip`,
           test: async () => {
             const param = parameterType(
               context,
