@@ -80,7 +80,7 @@ describeSuite({
         const { result } = await context.createBlock(
           context
             .polkadotJs()
-            .tx.balances.transfer(alith.address, 128)
+            .tx.balances.transferKeepAlive(alith.address, 128)
             .signAsync(baltathar, { tip: 0 }),
           { allowFailures: false }
         );
@@ -122,7 +122,7 @@ describeSuite({
         const { result } = await context.createBlock(
           context
             .polkadotJs()
-            .tx.balances.transfer(alith.address, 128)
+            .tx.balances.transferKeepAlive(alith.address, 128)
             .signAsync(baltathar, { tip: 128 }),
           { allowFailures: false }
         );
