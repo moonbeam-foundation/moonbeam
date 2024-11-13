@@ -1,6 +1,5 @@
 import { describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
-import { fail } from "assert";
 import { parameterType, UNIT } from "./test-parameters";
 
 describeSuite({
