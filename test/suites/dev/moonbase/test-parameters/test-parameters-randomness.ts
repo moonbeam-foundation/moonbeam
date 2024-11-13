@@ -27,7 +27,7 @@ describeSuite({
               .signAsync(alith),
             { allowFailures: false }
           );
-          fail("An extrinsic should not be created, since the parameter is invalid");
+          expect.fail("An extrinsic should not be created, since the parameter is invalid");
         } catch (error) {
           expect(error.toString().toLowerCase()).to.contain("value out of bounds");
         }
