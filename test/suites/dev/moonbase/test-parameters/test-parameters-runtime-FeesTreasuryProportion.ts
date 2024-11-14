@@ -74,17 +74,34 @@ describeSuite({
       const treasuryPercentage = t.proportion.value().toNumber() / 1e7;
       const burnPercentage = burnProportion.value().toNumber() / 1e7;
 
-      const calcTreasuryIncrease = (feeWithTip: bigint): bigint => {
-        // In rust code fees.ration(treasury_part, burn_part)
-        // treasury increase is being calculated this way
-        const issuanceDecrease = calcIssuanceDecrease(feeWithTip);
+      // Recreation on fees.ration(burn_part, treasury_part)
+      const split = (value: BN, part1: BN, part2: BN): [BN, BN] => {
+        const total = part1.add(part2);
+        if (total.eq(new BN(0)) || value.eq(new BN(0))) {
+          return [new BN(0), new BN(0)];
+        }
+        const part1BN = value.mul(part1).div(total);
+        const part2BN = value.sub(part1BN);
+        return [part1BN, part2BN];
+      };
+
+      const calcTreasuryIncrease = (feeWithTip: bigint, tip?: bigint): bigint => {
+        const issuanceDecrease = calcIssuanceDecrease(feeWithTip, tip);
         return feeWithTip - issuanceDecrease;
       };
-      const calcIssuanceDecrease = (feeWithTip: bigint): bigint => {
+      const calcIssuanceDecrease = (feeWithTip: bigint, tip?: bigint): bigint => {
         const feeWithTipBN = new BN(feeWithTip.toString());
-        const proportion: BN = burnProportion.value();
-        const val = feeWithTipBN.mul(proportion).div(new BN(1e9));
-        return BigInt(val.toString());
+        const tipBN = new BN(tip?.toString() || "0");
+        const feeWithoutTipBN = feeWithTipBN.sub(tipBN);
+
+        const [_, burnFeePart] = split(
+          feeWithoutTipBN,
+          burnProportion.value(),
+          t.proportion.value()
+        );
+        const [_, burnTipPart] = split(tipBN, burnProportion.value(), t.proportion.value());
+
+        return BigInt(burnFeePart.add(burnTipPart).toString());
       };
 
       for (const txnType of TransactionTypes) {
@@ -195,10 +212,10 @@ describeSuite({
             expect(
               treasuryIncrease,
               `${treasuryPercentage}% of the fees should go to treasury`
-            ).to.equal(calcTreasuryIncrease(fee));
+            ).to.equal(calcTreasuryIncrease(fee, withTip ? t.tipAmount : undefined));
 
             expect(issuanceDecrease, `${burnPercentage}% of the fees should be burned`).to.equal(
-              calcIssuanceDecrease(fee)
+              calcIssuanceDecrease(fee, withTip ? t.tipAmount : undefined)
             );
           },
         });
