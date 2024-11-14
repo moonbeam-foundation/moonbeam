@@ -99,7 +99,7 @@ describeSuite({
           burnProportion.value(),
           t.proportion.value()
         );
-        const [_, burnTipPart] = split(tipBN, burnProportion.value(), t.proportion.value());
+        const [__, burnTipPart] = split(tipBN, burnProportion.value(), t.proportion.value());
 
         return BigInt(burnFeePart.add(burnTipPart).toString());
       };
