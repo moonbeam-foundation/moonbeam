@@ -361,7 +361,7 @@ where
 {
 	// this seems to be called for substrate-based transactions
 	fn on_unbalanceds<B>(
-		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
+		mut fees_then_tips: impl Iterator<Item=Credit<R::AccountId, pallet_balances::Pallet<R>>>,
 	) {
 		if let Some(fees) = fees_then_tips.next() {
 			let treasury_proportion =
@@ -536,7 +536,7 @@ where
 {
 	fn find_author<'a, I>(digests: I) -> Option<U>
 	where
-		I: 'a + IntoIterator<Item = (sp_runtime::ConsensusEngineId, &'a [u8])>,
+		I: 'a + IntoIterator<Item=(sp_runtime::ConsensusEngineId, &'a [u8])>,
 	{
 		Inner::find_author(digests).map(Into::into)
 	}
@@ -634,7 +634,7 @@ impl pallet_treasury::Config for Runtime {
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
 	#[cfg(feature = "runtime-benchmarks")]
 	type SpendOrigin =
-		frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, benches::MaxBalance>;
+	frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, benches::MaxBalance>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
@@ -655,9 +655,9 @@ parameter_types! {
 }
 
 type IdentityForceOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 type IdentityRegistrarOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_identity::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -728,7 +728,7 @@ impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 				&delegatee,
 				Some(ProxyType::Any),
 			)
-			.map_err(|_| "proxy error: expected `ProxyType::Any`")?;
+				.map_err(|_| "proxy error: expected `ProxyType::Any`")?;
 		// We only allow to use it for delay zero proxies, as the call will immediatly be executed
 		ensure!(def.delay.is_zero(), "proxy delay is Non-zero`");
 		Ok(())
@@ -832,7 +832,7 @@ impl pallet_parachain_staking::OnInactiveCollator<Runtime> for OnInactiveCollato
 }
 
 type MonetaryGovernanceOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 pub struct RelayChainSlotProvider;
 impl Get<Slot> for RelayChainSlotProvider {
@@ -1022,14 +1022,14 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 			ProxyType::NonTransfer => {
 				call.value == U256::zero()
 					&& match PrecompileName::from_address(call.to.0) {
-						Some(
-							PrecompileName::AuthorMappingPrecompile
-							| PrecompileName::IdentityPrecompile
-							| PrecompileName::ParachainStakingPrecompile,
-						) => true,
-						Some(ref precompile) if is_governance_precompile(precompile) => true,
-						_ => false,
-					}
+					Some(
+						PrecompileName::AuthorMappingPrecompile
+						| PrecompileName::IdentityPrecompile
+						| PrecompileName::ParachainStakingPrecompile,
+					) => true,
+					Some(ref precompile) if is_governance_precompile(precompile) => true,
+					_ => false,
+				}
 			}
 			ProxyType::Governance => {
 				call.value == U256::zero()
@@ -1056,8 +1056,8 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 				// have no code.
 				!recipient_has_code
 					&& !precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(
-						call.to.0, gas,
-					)?
+					call.to.0, gas,
+				)?
 			}
 			ProxyType::AuthorMapping => {
 				call.value == U256::zero()
@@ -1259,7 +1259,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type NormalCallFilter = NormalFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
+	pallet_collective::EnsureProportionAtLeast<AccountId, OpenTechCommitteeInstance, 5, 9>;
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
@@ -1272,9 +1272,9 @@ parameter_types! {
 }
 
 type AddCollatorOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 type DelCollatorOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_moonbeam_orbiters::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -1485,10 +1485,10 @@ pub type SignedExtra = (
 );
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
-	fp_self_contained::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+fp_self_contained::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic =
-	fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra, H160>;
+fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra, H160>;
 /// Executive: handles dispatch to the various pallets.
 pub type Executive = frame_executive::Executive<
 	Runtime,
@@ -1649,8 +1649,8 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 				relay_chain_slot,
 				sp_std::time::Duration::from_secs(6),
 			)
-			.create_inherent_data()
-			.expect("Could not create the timestamp inherent data");
+				.create_inherent_data()
+				.expect("Could not create the timestamp inherent data");
 		inherent_data.check_extrinsics(block)
 	}
 }
