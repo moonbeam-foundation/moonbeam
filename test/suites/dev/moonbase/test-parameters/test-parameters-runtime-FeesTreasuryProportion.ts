@@ -18,6 +18,17 @@ interface TestCase {
   tipAmount: bigint;
 }
 
+// Recreation on fees.ration(burn_part, treasury_part)
+const split = (value: BN, part1: BN, part2: BN): [BN, BN] => {
+  const total = part1.add(part2);
+  if (total.eq(new BN(0)) || value.eq(new BN(0))) {
+    return [new BN(0), new BN(0)];
+  }
+  const part1BN = value.mul(part1).div(total);
+  const part2BN = value.sub(part1BN);
+  return [part1BN, part2BN];
+};
+
 describeSuite({
   id: "DTemp03",
   title: "Parameters - RuntimeConfig",
@@ -74,32 +85,38 @@ describeSuite({
       const treasuryPercentage = t.proportion.value().toNumber() / 1e7;
       const burnPercentage = burnProportion.value().toNumber() / 1e7;
 
-      // Recreation on fees.ration(burn_part, treasury_part)
-      const split = (value: BN, part1: BN, part2: BN): [BN, BN] => {
-        const total = part1.add(part2);
-        if (total.eq(new BN(0)) || value.eq(new BN(0))) {
-          return [new BN(0), new BN(0)];
-        }
-        const part1BN = value.mul(part1).div(total);
-        const part2BN = value.sub(part1BN);
-        return [part1BN, part2BN];
-      };
-
       const calcTreasuryIncrease = (feeWithTip: bigint, tip?: bigint): bigint => {
         const issuanceDecrease = calcIssuanceDecrease(feeWithTip, tip);
-        return feeWithTip - issuanceDecrease;
+        const treasuryIncrease = feeWithTip - issuanceDecrease;
+        console.log("issuanceDecrease", issuanceDecrease.toString());
+        console.log("treasuryIncrease", treasuryIncrease.toString());
+        return treasuryIncrease;
       };
       const calcIssuanceDecrease = (feeWithTip: bigint, tip?: bigint): bigint => {
         const feeWithTipBN = new BN(feeWithTip.toString());
         const tipBN = new BN(tip?.toString() || "0");
         const feeWithoutTipBN = feeWithTipBN.sub(tipBN);
 
-        const [_, burnFeePart] = split(
+        const [burnFeePart, _treasuryFeePart] = split(
           feeWithoutTipBN,
           burnProportion.value(),
           t.proportion.value()
         );
-        const [__, burnTipPart] = split(tipBN, burnProportion.value(), t.proportion.value());
+        const [burnTipPart, _treasuryTipPart] = split(
+          tipBN,
+          burnProportion.value(),
+          t.proportion.value()
+        );
+
+        console.log("burn percentage", burnPercentage);
+        console.log("treasury percentage", treasuryPercentage);
+        console.log("feeWithTipBN", feeWithTipBN.toString());
+        console.log("tipBN", tipBN.toString());
+        console.log("feeWithoutTipBN", feeWithoutTipBN.toString());
+        console.log("burnFeePart", burnFeePart.toString());
+        console.log("treasuryFeePart", _treasuryFeePart.toString());
+        console.log("burnTipPart", burnTipPart.toString());
+        console.log("treasuryTipPart", _treasuryTipPart.toString());
 
         return BigInt(burnFeePart.add(burnTipPart).toString());
       };
@@ -108,7 +125,7 @@ describeSuite({
         it({
           id: `T${++testCounter}`,
           title:
-            `Changing FeesTreasuryProportion to ${treasuryPercentage}% for Ethereum` +
+            `Changing FeesTreasuryProportion to ${treasuryPercentage}% for Ethereum ` +
             `${txnType} transfers`,
           test: async () => {
             const param = parameterType(
