@@ -38,6 +38,7 @@ frame-benchmarking = { workspace = true, optional = true }
 frame-benchmarking = { workspace = true, features = ["std"] }
 pallet-balances = { workspace = true, features = ["std", "insecure_zero_ed"] }
 pallet-timestamp = { workspace = true, features = ["std"] }
+precompile-utils = { workspace = true, features = ["std"] }
 rlp = { workspace = true, features = ["std"] }
 sp-io = { workspace = true, features = ["std"] }
 
@@ -58,6 +59,7 @@ std = [
   "pallet-assets/std",
   "pallet-moonbeam-foreign-assets/std",
   "pallet-asset-manager/std", 
+  "precompile-utils/std",
   "cumulus-primitives-storage-weight-reclaim/std",
   "rlp/std",
   "xcm-primitives/std",

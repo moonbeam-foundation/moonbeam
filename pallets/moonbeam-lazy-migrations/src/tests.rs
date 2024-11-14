@@ -15,9 +15,16 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
+use crate::{foreign_asset::ForeignAssetMigrationStatus, mock::AssetId};
+use pallet_evm::AddressMapping;
+use sp_runtime::DispatchError;
+use xcm::latest::Location;
 use {
 	crate::{
-		mock::{ExtBuilder, LazyMigrations, RuntimeOrigin, Test},
+		mock::{
+			AccountId, AssetManager, Assets, ExtBuilder, LazyMigrations, MockAssetType,
+			RuntimeOrigin, Test,
+		},
 		Error, StateMigrationStatus, StateMigrationStatusValue, MAX_ITEM_PROOF_SIZE,
 		PROOF_SIZE_BUFFER,
 	},
@@ -25,10 +32,8 @@ use {
 	rlp::RlpStream,
 	sp_core::{H160, H256},
 	sp_io::hashing::keccak_256,
-	sp_runtime::{traits::Bounded, AccountId32},
+	sp_runtime::traits::Bounded,
 };
-
-use pallet_evm::AddressMapping;
 
 // Helper function that calculates the contract address
 pub fn contract_address(sender: H160, nonce: u64) -> H160 {
@@ -88,7 +93,7 @@ fn test_clear_suicided_contract_succesfull() {
 
 		// Call the extrinsic to delete the storage entries
 		let _ = LazyMigrations::clear_suicided_storage(
-			RuntimeOrigin::signed(AccountId32::from([45; 32])),
+			RuntimeOrigin::signed(AccountId::from([45; 20])),
 			vec![contract_address].try_into().unwrap(),
 			1000,
 		);
@@ -116,7 +121,7 @@ fn test_clear_suicided_contract_failed() {
 
 		assert_noop!(
 			LazyMigrations::clear_suicided_storage(
-				RuntimeOrigin::signed(AccountId32::from([45; 32])),
+				RuntimeOrigin::signed(AccountId::from([45; 20])),
 				vec![contract1_address].try_into().unwrap(),
 				1000
 			),
@@ -125,7 +130,7 @@ fn test_clear_suicided_contract_failed() {
 
 		assert_noop!(
 			LazyMigrations::clear_suicided_storage(
-				RuntimeOrigin::signed(AccountId32::from([45; 32])),
+				RuntimeOrigin::signed(AccountId::from([45; 20])),
 				vec![contract2_address].try_into().unwrap(),
 				1000
 			),
@@ -152,7 +157,7 @@ fn test_clear_suicided_empty_input() {
 		let contract_address = mock_contract_with_entries(1, 1, 10);
 
 		let _ = LazyMigrations::clear_suicided_storage(
-			RuntimeOrigin::signed(AccountId32::from([45; 32])),
+			RuntimeOrigin::signed(AccountId::from([45; 20])),
 			vec![].try_into().unwrap(),
 			1000,
 		);
@@ -175,7 +180,7 @@ fn test_clear_suicided_contract_multiple_addresses() {
 
 		// Call the extrinsic to delete the storage entries
 		let _ = LazyMigrations::clear_suicided_storage(
-			RuntimeOrigin::signed(AccountId32::from([45; 32])),
+			RuntimeOrigin::signed(AccountId::from([45; 20])),
 			vec![contract_address1, contract_address2, contract_address3]
 				.try_into()
 				.unwrap(),
@@ -206,7 +211,7 @@ fn test_clear_suicided_entry_limit() {
 		let contract_address2 = mock_contract_with_entries(2, 1, 1);
 
 		let _ = LazyMigrations::clear_suicided_storage(
-			RuntimeOrigin::signed(AccountId32::from([45; 32])),
+			RuntimeOrigin::signed(AccountId::from([45; 20])),
 			vec![contract_address1, contract_address2]
 				.try_into()
 				.unwrap(),
@@ -239,7 +244,7 @@ fn test_clear_suicided_mixed_suicided_and_non_suicided() {
 
 		assert_noop!(
 			LazyMigrations::clear_suicided_storage(
-				RuntimeOrigin::signed(AccountId32::from([45; 32])),
+				RuntimeOrigin::signed(AccountId::from([45; 20])),
 				vec![
 					contract_address1,
 					contract_address2,
@@ -277,7 +282,7 @@ fn test_create_contract_metadata_contract_not_exist() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
 			LazyMigrations::create_contract_metadata(
-				RuntimeOrigin::signed(AccountId32::from([45; 32])),
+				RuntimeOrigin::signed(AccountId::from([45; 20])),
 				address_build(1),
 			),
 			Error::<Test>::ContractNotExist
@@ -292,7 +297,7 @@ fn test_create_contract_metadata_success_path() {
 		let address = create_dummy_contract_without_metadata(1);
 
 		assert_ok!(LazyMigrations::create_contract_metadata(
-			RuntimeOrigin::signed(AccountId32::from([45; 32])),
+			RuntimeOrigin::signed(AccountId::from([45; 20])),
 			address,
 		));
 
@@ -301,7 +306,7 @@ fn test_create_contract_metadata_success_path() {
 		// Should not be able to set metadata again
 		assert_noop!(
 			LazyMigrations::create_contract_metadata(
-				RuntimeOrigin::signed(AccountId32::from([45; 32])),
+				RuntimeOrigin::signed(AccountId::from([45; 20])),
 				address,
 			),
 			Error::<Test>::ContractMetadataAlreadySet
@@ -573,4 +578,195 @@ fn test_state_migration_will_migrate_10_000_items() {
 
 		assert_eq!(total_weight, weight_for(expected_reads, expected_writes));
 	})
+}
+
+// Helper function to create a foreign asset with basic metadata
+fn create_old_foreign_asset(location: Location) -> AssetId {
+	let asset = MockAssetType::Xcm(location.clone().into());
+	let asset_id: AssetId = asset.clone().into();
+	// First register asset in asset manager with a Location
+	assert_ok!(AssetManager::register_foreign_asset(
+		RuntimeOrigin::root(),
+		asset,
+		1,
+		1,
+		true,
+	));
+
+	// Create the asset through assets pallet
+	assert_ok!(Assets::create(
+		RuntimeOrigin::signed(AccountId::from([1; 20])),
+		asset_id,
+		AccountId::from([1; 20]).into(),
+		1,
+	));
+
+	// Set metadata for the asset
+	assert_ok!(Assets::set_metadata(
+		RuntimeOrigin::signed(AccountId::from([1; 20])),
+		asset_id,
+		b"Test".to_vec(),
+		b"TEST".to_vec(),
+		12,
+	));
+
+	asset_id
+}
+
+#[test]
+fn test_start_foreign_asset_migration_success() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		assert_ok!(Assets::mint(
+			RuntimeOrigin::signed(AccountId::from([1; 20])),
+			asset_id.into(),
+			AccountId::from([1; 20]).into(),
+			100,
+		));
+
+		// Verify asset is live by calling transfer in pallet assets
+		assert_ok!(Assets::transfer(
+			RuntimeOrigin::signed(AccountId::from([1; 20])),
+			asset_id.into(),
+			AccountId::from([2; 20]).into(),
+			100,
+		));
+
+		// Try to migrate the asset
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		// Verify asset is frozen by calling transfer in pallet assets
+		assert_noop!(
+			Assets::transfer(
+				RuntimeOrigin::signed(AccountId::from([1; 20])),
+				asset_id.into(),
+				AccountId::from([2; 20]).into(),
+				100,
+			),
+			pallet_assets::Error::<Test>::AssetNotLive
+		);
+
+		// Verify migration status
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.asset_id, asset_id);
+				assert_eq!(info.remaining_balances, 1);
+				assert_eq!(info.remaining_approvals, 0);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+	});
+}
+
+#[test]
+fn test_start_foreign_asset_migration_already_migrating() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Start first migrationJunction::Parachain(1000)
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		// Try to start another migration while one is in progress
+		assert_noop!(
+			LazyMigrations::start_foreign_assets_migration(RuntimeOrigin::root(), 2u128),
+			Error::<Test>::MigrationNotFinished
+		);
+	});
+}
+
+#[test]
+fn test_start_foreign_asset_migration_asset_not_found() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Try to migrate non-existent asset
+		assert_noop!(
+			LazyMigrations::start_foreign_assets_migration(RuntimeOrigin::root(), 1u128),
+			Error::<Test>::AssetNotFound
+		);
+	});
+}
+
+#[test]
+fn test_start_foreign_asset_migration_asset_type_not_found() {
+	ExtBuilder::default().build().execute_with(|| {
+		let asset_id = 1u128;
+
+		// Create asset without registering in asset manager
+		assert_ok!(Assets::create(
+			RuntimeOrigin::signed(AccountId::from([1; 20])),
+			asset_id.into(),
+			AccountId::from([1; 20]).into(),
+			1,
+		));
+
+		assert_noop!(
+			LazyMigrations::start_foreign_assets_migration(RuntimeOrigin::root(), asset_id),
+			Error::<Test>::AssetTypeNotFound
+		);
+	});
+}
+
+#[test]
+fn test_start_foreign_asset_migration_unauthorized() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Try to migrate with non-root origin
+		assert_noop!(
+			LazyMigrations::start_foreign_assets_migration(
+				RuntimeOrigin::signed(AccountId::from([1; 20])),
+				asset_id
+			),
+			DispatchError::BadOrigin
+		);
+	});
+}
+
+#[test]
+fn test_start_foreign_asset_migration_with_balances_and_approvals() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Add some balances
+		assert_ok!(Assets::mint(
+			RuntimeOrigin::signed(AccountId::from([1; 20])),
+			asset_id.into(),
+			AccountId::from([2; 20]).into(),
+			100,
+		));
+
+		// Add some approvals
+		assert_ok!(Assets::approve_transfer(
+			RuntimeOrigin::signed(AccountId::from([2; 20])),
+			asset_id.into(),
+			AccountId::from([3; 20]).into(),
+			50,
+		));
+
+		// Start migration
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		// Verify migration status includes the balances and approvals
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.asset_id, asset_id);
+				assert_eq!(info.remaining_balances, 1);
+				assert_eq!(info.remaining_approvals, 1);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+	});
 }

@@ -39,9 +39,9 @@ impl Default for ForeignAssetMigrationStatus {
 
 #[derive(Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
 pub(super) struct ForeignAssetMigreationInfo {
-	asset_id: u128,
-	remaining_balances: u32,
-	remaining_approvals: u32,
+	pub(super) asset_id: u128,
+	pub(super) remaining_balances: u32,
+	pub(super) remaining_approvals: u32,
 }
 
 impl<T: Config> Pallet<T>
@@ -61,44 +61,43 @@ where
 				Error::<T>::MigrationNotFinished
 			);
 
-			let asset =
-				pallet_assets::Asset::<T>::get(asset_id).ok_or(Error::<T>::AssetNotFound)?;
-
 			// Freeze the asset
-			pallet_assets::Pallet::<T>::freeze_asset(origin.clone(), asset_id.into())?;
+			pallet_assets::Asset::<T>::try_mutate_exists(asset_id, |maybe_details| {
+				let details = maybe_details.as_mut().ok_or(Error::<T>::AssetNotFound)?;
 
-			let decimals = pallet_assets::Pallet::<T>::decimals(asset_id);
+				details.status = pallet_assets::AssetStatus::Frozen;
 
-			let symbol = pallet_assets::Pallet::<T>::symbol(asset_id)
-				.try_into()
-				.map_err(|_| Error::<T>::SymbolTooLong)?;
+				let decimals = pallet_assets::Pallet::<T>::decimals(asset_id);
+				let symbol = pallet_assets::Pallet::<T>::symbol(asset_id)
+					.try_into()
+					.map_err(|_| Error::<T>::SymbolTooLong)?;
+				let name = <pallet_assets::Pallet<T> as Inspect<_>>::name(asset_id)
+					.try_into()
+					.map_err(|_| Error::<T>::NameTooLong)?;
+				let xcm_location: Location =
+					pallet_asset_manager::Pallet::<T>::get_asset_type(asset_id)
+						.ok_or(Error::<T>::AssetTypeNotFound)?
+						.into()
+						.ok_or(Error::<T>::LocationNotFound)?;
 
-			let name = <pallet_assets::Pallet<T> as Inspect<_>>::name(asset_id)
-				.try_into()
-				.map_err(|_| Error::<T>::NameTooLong)?;
+				// Create the SC for the asset with moonbeam foreign assets pallet
+				pallet_moonbeam_foreign_assets::Pallet::<T>::create_foreign_asset(
+					origin,
+					asset_id,
+					xcm_location,
+					decimals,
+					symbol,
+					name,
+				)?;
 
-			let xcm_location: Location =
-				pallet_asset_manager::Pallet::<T>::get_asset_type(asset_id)
-					.ok_or(Error::<T>::AssetTypeNotFound)?
-					.into()
-					.ok_or(Error::<T>::LocationNotFound)?;
+				*status = ForeignAssetMigrationStatus::Migrating(ForeignAssetMigreationInfo {
+					asset_id,
+					remaining_balances: details.accounts,
+					remaining_approvals: details.approvals,
+				});
 
-			// Create the SC for the asset with moonbeam foreign assets pallet
-			pallet_moonbeam_foreign_assets::Pallet::<T>::create_foreign_asset(
-				origin,
-				asset_id,
-				xcm_location,
-				decimals,
-				symbol,
-				name,
-			)?;
-
-			*status = ForeignAssetMigrationStatus::Migrating(ForeignAssetMigreationInfo {
-				asset_id,
-				remaining_balances: asset.accounts,
-				remaining_approvals: asset.approvals,
-			});
-			Ok(())
+				Ok(())
+			})
 		})
 	}
 

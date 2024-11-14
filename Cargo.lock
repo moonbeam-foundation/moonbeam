@@ -9554,6 +9554,7 @@ dependencies = [
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
+ "precompile-utils",
  "rlp",
  "scale-info",
  "sp-core",
