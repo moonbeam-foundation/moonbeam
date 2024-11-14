@@ -75,14 +75,16 @@ describeSuite({
       const burnPercentage = burnProportion.value().toNumber() / 1e7;
 
       const calcTreasuryIncrease = (feeWithTip: bigint): bigint => {
-        const feeWithTipBN = new BN(feeWithTip.toString());
-        const proportion: BN = t.proportion.value();
-        const val = feeWithTipBN.mul(proportion).div(new BN(1e9));
-        return BigInt(val.toString());
+        // In rust code fees.ration(treasury_part, burn_part)
+        // treasury increase is being calculated this way
+        const issuanceDecrease = calcIssuanceDecrease(feeWithTip);
+        return feeWithTip - issuanceDecrease;
       };
       const calcIssuanceDecrease = (feeWithTip: bigint): bigint => {
-        const treasuryIncrease = calcTreasuryIncrease(feeWithTip);
-        return feeWithTip - treasuryIncrease;
+        const feeWithTipBN = new BN(feeWithTip.toString());
+        const proportion: BN = burnProportion.value();
+        const val = feeWithTipBN.mul(proportion).div(new BN(1e9));
+        return BigInt(val.toString());
       };
 
       for (const txnType of TransactionTypes) {
