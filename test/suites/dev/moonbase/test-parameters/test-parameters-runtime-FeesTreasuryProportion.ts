@@ -144,7 +144,7 @@ describeSuite({
         });
       }
 
-      for (const withTip of [false]) {
+      for (const withTip of [false, true]) {
         it({
           id: `T${++testCounter}`,
           title:
