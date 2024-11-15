@@ -20,14 +20,14 @@ export const DUMMY_REVERT_BYTECODE = "0x60006000fd";
 export const RELAY_SOURCE_LOCATION = { Xcm: { parents: 1, interior: "Here" } };
 export const RELAY_SOURCE_LOCATION2 = { Xcm: { parents: 2, interior: "Here" } };
 export const RELAY_V3_SOURCE_LOCATION = { V3: { parents: 1, interior: "Here" } } as any;
-export const PARA_1000_SOURCE_LOCATION_V3 = {
+export const PARA_1000_SOURCE_LOCATION = {
   Xcm: { parents: 1, interior: { X1: { Parachain: 1000 } } },
-};
-export const PARA_2000_SOURCE_LOCATION = {
-  Xcm: { parents: 1, interior: { X1: { Parachain: 2000 } } },
 };
 export const PARA_1001_SOURCE_LOCATION = {
   Xcm: { parents: 1, interior: { X1: { Parachain: 1001 } } },
+};
+export const PARA_2000_SOURCE_LOCATION = {
+  Xcm: { parents: 1, interior: { X1: { Parachain: 2000 } } },
 };
 
 // XCM V4 Locations
@@ -191,7 +191,7 @@ export async function calculateRelativePrice(
   return relativePrice;
 }
 
-function getSupportedAssedStorageKey(asset: any, context: any) {
+function getSupportedAssetStorageKey(asset: any, context: any) {
   const assetV4 = patchLocationV4recursively(asset);
 
   const module = xxhashAsU8a(new TextEncoder().encode("XcmWeightTrader"), 128);
@@ -214,7 +214,7 @@ export async function addAssetToWeightTrader(asset: any, relativePrice: number, 
     const addAssetWithPlaceholderPrice = context
       .polkadotJs()
       .tx.sudo.sudo(context.polkadotJs().tx.xcmWeightTrader.addAsset(assetV4, 1n));
-    const overallAssetKey = getSupportedAssedStorageKey(assetV4, context);
+    const overallAssetKey = getSupportedAssetStorageKey(assetV4, context);
 
     const overrideAssetPrice = context.polkadotJs().tx.sudo.sudo(
       context.polkadotJs().tx.system.setStorage([
@@ -288,7 +288,7 @@ export async function registerOldForeignAsset(
       .polkadotJs()
       .tx.sudo.sudo(context.polkadotJs().tx.xcmWeightTrader.addAsset(assetV4, relativePrice)),
     {
-      expectEvents: [context.polkadotJs().events.xcmWeightTrader.SupportedAssetAdded],
+      expectEvents: [context.polkadotJs().events.xcmWeightTrader.SupportedAssetAdded as any],
       allowFailures: false,
     }
   );
