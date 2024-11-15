@@ -19,13 +19,12 @@
 use super::*;
 use crate as pallet_moonbeam_lazy_migrations;
 use frame_support::{
-	construct_runtime, ord_parameter_types, parameter_types,
-	traits::{EqualPrivilegeOnly, Everything, SortedMembers},
+	construct_runtime, parameter_types,
+	traits::Everything,
 	weights::{RuntimeDbWeight, Weight},
 };
-use frame_system::EnsureRoot;
 use pallet_evm::{AddressMapping, EnsureAddressTruncated};
-use sp_core::{ConstU32, H160, H256, U256};
+use sp_core::{H160, H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	AccountId32, BuildStorage, Perbill,
