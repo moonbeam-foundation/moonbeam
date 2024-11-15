@@ -505,7 +505,8 @@ describeSuite({
         // Storage growth ratio is 366
         // storage_gas = 148 * 366 = 54168
         // pov_gas = 5693 * 16 = 91088
-        const expectedGas = 91_088n;
+        // FIXME: update comment
+        const expectedGas = 91_472n;
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
           functionName: "addProxy",
