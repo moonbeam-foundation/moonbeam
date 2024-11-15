@@ -1861,6 +1861,10 @@
 <a href="#1859" id="1859">1859</a>
 <a href="#1860" id="1860">1860</a>
 <a href="#1861" id="1861">1861</a>
+<a href="#1862" id="1862">1862</a>
+<a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2217,9 +2221,9 @@
 		<span class="kw-2">mut </span>fees_then_tips: <span class="kw">impl </span>Iterator&lt;Item = Credit&lt;R::AccountId, pallet_balances::Pallet&lt;R&gt;&gt;&gt;,
 	) {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(fees) = fees_then_tips.next() {
-			<span class="kw">let </span>treasury_perbill =
+			<span class="kw">let </span>treasury_proportion =
 				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
-			<span class="kw">let </span>treasury_part = treasury_perbill.deconstruct();
+			<span class="kw">let </span>treasury_part = treasury_proportion.deconstruct();
 			<span class="kw">let </span>burn_part = Perbill::one().deconstruct() - treasury_part;
 			<span class="kw">let </span>(<span class="kw">_</span>, to_treasury) = fees.ration(burn_part, treasury_part);
 			<span class="comment">// Balances pallet automatically burns dropped Credits by decreasing
@@ -2231,7 +2235,7 @@
 			<span class="comment">// handle tip if there is one
 			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(tip) = fees_then_tips.next() {
 				<span class="comment">// for now we use the same burn/treasury strategy used for regular fees
-				</span><span class="kw">let </span>(<span class="kw">_</span>, to_treasury) = tip.ration(<span class="number">80</span>, <span class="number">20</span>);
+				</span><span class="kw">let </span>(<span class="kw">_</span>, to_treasury) = tip.ration(burn_part, treasury_part);
 				ResolveTo::&lt;TreasuryAccountId&lt;R&gt;, pallet_balances::Pallet&lt;R&gt;&gt;::on_unbalanced(
 					to_treasury,
 				);
@@ -2244,7 +2248,11 @@
 	</span><span class="kw">fn </span>on_nonzero_unbalanced(amount: Credit&lt;R::AccountId, pallet_balances::Pallet&lt;R&gt;&gt;) {
 		<span class="comment">// Balances pallet automatically burns dropped Credits by decreasing
 		// total_supply accordingly
-		</span><span class="kw">let </span>(<span class="kw">_</span>, to_treasury) = amount.ration(<span class="number">80</span>, <span class="number">20</span>);
+		</span><span class="kw">let </span>treasury_proportion =
+			runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
+		<span class="kw">let </span>treasury_part = treasury_proportion.deconstruct();
+		<span class="kw">let </span>burn_part = Perbill::one().deconstruct() - treasury_part;
+		<span class="kw">let </span>(<span class="kw">_</span>, to_treasury) = amount.ration(burn_part, treasury_part);
 		ResolveTo::&lt;TreasuryAccountId&lt;R&gt;, pallet_balances::Pallet&lt;R&gt;&gt;::on_unbalanced(to_treasury);
 	}
 }
