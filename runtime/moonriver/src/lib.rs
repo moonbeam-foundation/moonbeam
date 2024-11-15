@@ -360,9 +360,9 @@ where
 		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
 	) {
 		if let Some(fees) = fees_then_tips.next() {
-			let treasury_perbill =
+			let treasury_proportion =
 				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
-			let treasury_part = treasury_perbill.deconstruct();
+			let treasury_part = treasury_proportion.deconstruct();
 			let burn_part = Perbill::one().deconstruct() - treasury_part;
 			let (_, to_treasury) = fees.ration(burn_part, treasury_part);
 			// Balances pallet automatically burns dropped Credits by decreasing
@@ -374,7 +374,7 @@ where
 			// handle tip if there is one
 			if let Some(tip) = fees_then_tips.next() {
 				// for now we use the same burn/treasury strategy used for regular fees
-				let (_, to_treasury) = tip.ration(80, 20);
+				let (_, to_treasury) = tip.ration(burn_part, treasury_part);
 				ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
 					to_treasury,
 				);
@@ -387,7 +387,11 @@ where
 	fn on_nonzero_unbalanced(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
 		// Balances pallet automatically burns dropped Credits by decreasing
 		// total_supply accordingly
-		let (_, to_treasury) = amount.ration(80, 20);
+		let treasury_proportion =
+			runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
+		let treasury_part = treasury_proportion.deconstruct();
+		let burn_part = Perbill::one().deconstruct() - treasury_part;
+		let (_, to_treasury) = amount.ration(burn_part, treasury_part);
 		ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(to_treasury);
 	}
 }
