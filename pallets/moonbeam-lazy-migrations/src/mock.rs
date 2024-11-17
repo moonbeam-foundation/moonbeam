@@ -29,6 +29,7 @@ use pallet_asset_manager::AssetRegistrar;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::testing::MockAccount;
 use sp_core::{ConstU32, H160, H256, U256};
+use sp_runtime::traits::Ensure;
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash, IdentityLookup},
 	BuildStorage, Perbill,
@@ -270,11 +271,18 @@ pub struct MockAssetPalletRegistrar;
 
 impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 	fn create_foreign_asset(
-		_asset: u128,
-		_min_balance: u128,
+		asset: u128,
+		min_balance: u128,
 		_metadata: u32,
-		_is_sufficient: bool,
+		is_sufficient: bool,
 	) -> Result<(), DispatchError> {
+		Assets::force_create(
+			RuntimeOrigin::root(),
+			asset.into(),
+			AssetManager::account_id(),
+			is_sufficient,
+			min_balance,
+		)?;
 		Ok(())
 	}
 
@@ -325,6 +333,10 @@ impl Config for Test {
 	type ForeignAssetMigratorOrigin = EnsureRoot<AccountId>;
 }
 
+// Constants for test accounts
+pub const ALITH: AccountId = MockAccount(H160([1; 20]));
+pub const BOB: AccountId = MockAccount(H160([2; 20]));
+
 /// Externality builder for pallet migration's mock runtime
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances
@@ -335,8 +347,9 @@ impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![
-				(AccountId::from([1; 20]), 1000),
-				(AccountId::from([2; 20]), 1000),
+				(ALITH, 1000),
+				(BOB, 1000),
+				(AssetManager::account_id(), 1000),
 			],
 		}
 	}

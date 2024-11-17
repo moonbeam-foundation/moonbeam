@@ -15,7 +15,11 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::{foreign_asset::ForeignAssetMigrationStatus, mock::AssetId};
+use crate::{
+	foreign_asset::ForeignAssetMigrationStatus,
+	mock::{AssetId, Balances},
+};
+use pallet_assets::Asset;
 use pallet_evm::AddressMapping;
 use sp_runtime::DispatchError;
 use xcm::latest::Location;
@@ -23,7 +27,7 @@ use {
 	crate::{
 		mock::{
 			AccountId, AssetManager, Assets, ExtBuilder, LazyMigrations, MockAssetType,
-			RuntimeOrigin, Test,
+			RuntimeOrigin, Test, ALITH, BOB,
 		},
 		Error, StateMigrationStatus, StateMigrationStatusValue, MAX_ITEM_PROOF_SIZE,
 		PROOF_SIZE_BUFFER,
@@ -593,17 +597,9 @@ fn create_old_foreign_asset(location: Location) -> AssetId {
 		true,
 	));
 
-	// Create the asset through assets pallet
-	assert_ok!(Assets::create(
-		RuntimeOrigin::signed(AccountId::from([1; 20])),
-		asset_id,
-		AccountId::from([1; 20]).into(),
-		1,
-	));
-
 	// Set metadata for the asset
 	assert_ok!(Assets::set_metadata(
-		RuntimeOrigin::signed(AccountId::from([1; 20])),
+		RuntimeOrigin::signed(AssetManager::account_id()),
 		asset_id,
 		b"Test".to_vec(),
 		b"TEST".to_vec(),
@@ -620,17 +616,17 @@ fn test_start_foreign_asset_migration_success() {
 		let asset_id = create_old_foreign_asset(location);
 
 		assert_ok!(Assets::mint(
-			RuntimeOrigin::signed(AccountId::from([1; 20])),
+			RuntimeOrigin::signed(AssetManager::account_id()),
 			asset_id.into(),
-			AccountId::from([1; 20]).into(),
+			ALITH.into(),
 			100,
 		));
 
 		// Verify asset is live by calling transfer in pallet assets
 		assert_ok!(Assets::transfer(
-			RuntimeOrigin::signed(AccountId::from([1; 20])),
+			RuntimeOrigin::signed(ALITH),
 			asset_id.into(),
-			AccountId::from([2; 20]).into(),
+			BOB.into(),
 			100,
 		));
 
@@ -643,9 +639,9 @@ fn test_start_foreign_asset_migration_success() {
 		// Verify asset is frozen by calling transfer in pallet assets
 		assert_noop!(
 			Assets::transfer(
-				RuntimeOrigin::signed(AccountId::from([1; 20])),
+				RuntimeOrigin::signed(ALITH),
 				asset_id.into(),
-				AccountId::from([2; 20]).into(),
+				BOB.into(),
 				100,
 			),
 			pallet_assets::Error::<Test>::AssetNotLive
@@ -701,9 +697,9 @@ fn test_start_foreign_asset_migration_asset_type_not_found() {
 
 		// Create asset without registering in asset manager
 		assert_ok!(Assets::create(
-			RuntimeOrigin::signed(AccountId::from([1; 20])),
+			RuntimeOrigin::signed(ALITH),
 			asset_id.into(),
-			AccountId::from([1; 20]).into(),
+			ALITH.into(),
 			1,
 		));
 
@@ -722,10 +718,7 @@ fn test_start_foreign_asset_migration_unauthorized() {
 
 		// Try to migrate with non-root origin
 		assert_noop!(
-			LazyMigrations::start_foreign_assets_migration(
-				RuntimeOrigin::signed(AccountId::from([1; 20])),
-				asset_id
-			),
+			LazyMigrations::start_foreign_assets_migration(RuntimeOrigin::signed(ALITH), asset_id),
 			DispatchError::BadOrigin
 		);
 	});
@@ -739,15 +732,15 @@ fn test_start_foreign_asset_migration_with_balances_and_approvals() {
 
 		// Add some balances
 		assert_ok!(Assets::mint(
-			RuntimeOrigin::signed(AccountId::from([1; 20])),
+			RuntimeOrigin::signed(AssetManager::account_id()),
 			asset_id.into(),
-			AccountId::from([2; 20]).into(),
+			BOB.into(),
 			100,
 		));
 
 		// Add some approvals
 		assert_ok!(Assets::approve_transfer(
-			RuntimeOrigin::signed(AccountId::from([2; 20])),
+			RuntimeOrigin::signed(BOB),
 			asset_id.into(),
 			AccountId::from([3; 20]).into(),
 			50,
@@ -768,5 +761,181 @@ fn test_start_foreign_asset_migration_with_balances_and_approvals() {
 			}
 			_ => panic!("Expected migration status to be Migrating"),
 		}
+	});
+}
+
+#[test]
+fn test_migrate_foreign_asset_balances_without_migration_started() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			LazyMigrations::migrate_foreign_asset_balances(RuntimeOrigin::signed(ALITH), 100),
+			Error::<Test>::NoMigrationInProgress
+		);
+	});
+}
+
+#[test]
+fn test_migrate_foreign_asset_balances_zero_limit() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Start migration
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		assert_noop!(
+			LazyMigrations::migrate_foreign_asset_balances(RuntimeOrigin::signed(ALITH), 0),
+			Error::<Test>::LimitCannotBeZero
+		);
+	});
+}
+
+#[test]
+fn test_migrate_foreign_asset_balances_single_account() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Mint some tokens to an account
+		assert_ok!(Assets::mint(
+			RuntimeOrigin::signed(AssetManager::account_id()),
+			asset_id.into(),
+			BOB.into(),
+			100,
+		));
+
+		// Start migration
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		// Migrate balances
+		assert_ok!(LazyMigrations::migrate_foreign_asset_balances(
+			RuntimeOrigin::signed(ALITH),
+			10
+		));
+
+		// Verify migration status
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.asset_id, asset_id);
+				assert_eq!(info.remaining_balances, 0);
+				assert_eq!(info.remaining_approvals, 0);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+
+		// Verify the balance was migrated by
+		assert_eq!(Assets::balance(asset_id, BOB), 0);
+	});
+}
+
+#[test]
+fn test_migrate_foreign_asset_balances_multiple_accounts() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Mint tokens to multiple accounts
+		for i in 1..=5 {
+			assert_ok!(Assets::mint(
+				RuntimeOrigin::signed(AssetManager::account_id()),
+				asset_id.into(),
+				AccountId::from([i as u8; 20]).into(),
+				100 * i as u128,
+			));
+		}
+
+		// Start migration
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		// Migrate balances in batches
+		assert_ok!(LazyMigrations::migrate_foreign_asset_balances(
+			RuntimeOrigin::signed(ALITH),
+			3
+		));
+
+		// Check intermediate state
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.asset_id, asset_id);
+				assert_eq!(info.remaining_balances, 2);
+				assert_eq!(info.remaining_approvals, 0);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+
+		// Migrate remaining balances
+		assert_ok!(LazyMigrations::migrate_foreign_asset_balances(
+			RuntimeOrigin::signed(ALITH),
+			2
+		));
+
+		// Verify final state
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.asset_id, asset_id);
+				assert_eq!(info.remaining_balances, 0);
+				assert_eq!(info.remaining_approvals, 0);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+
+		// Verify all balances were migrated correctly
+		for i in 1..=5 {
+			assert_eq!(Assets::balance(asset_id, AccountId::from([i as u8; 20])), 0);
+		}
+	});
+}
+
+#[test]
+fn test_migrate_foreign_asset_balances_with_reserved_deposits() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Create account with reserved deposit
+		let account = BOB;
+		assert_ok!(Assets::touch(
+			RuntimeOrigin::signed(account.clone()),
+			asset_id.into(),
+		));
+
+		// Mint some tokens
+		assert_ok!(Assets::mint(
+			RuntimeOrigin::signed(AssetManager::account_id()),
+			asset_id.into(),
+			account.clone().into(),
+			100,
+		));
+
+		// Check initial reserved balance
+		let initial_reserved = Balances::reserved_balance(&account);
+		assert!(initial_reserved > 0);
+
+		// Start migration
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		// Migrate balances
+		assert_ok!(LazyMigrations::migrate_foreign_asset_balances(
+			RuntimeOrigin::signed(ALITH),
+			10
+		));
+
+		// Verify the balance was migrated
+		assert_eq!(Assets::balance(asset_id, account.clone()), 0);
+
+		// Verify the deposit was unreserved
+		assert_eq!(Balances::reserved_balance(&account), 0);
 	});
 }
