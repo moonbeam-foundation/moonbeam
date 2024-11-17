@@ -939,3 +939,268 @@ fn test_migrate_foreign_asset_balances_with_reserved_deposits() {
 		assert_eq!(Balances::reserved_balance(&account), 0);
 	});
 }
+
+#[test]
+fn test_migrate_foreign_asset_approvals_without_migration_started() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			LazyMigrations::migrate_foreign_asset_approvals(
+				RuntimeOrigin::signed(AccountId::from([45; 20])),
+				100
+			),
+			Error::<Test>::NoMigrationInProgress
+		);
+	});
+}
+
+#[test]
+fn test_migrate_foreign_asset_approvals_zero_limit() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Create and start migration for an asset
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		assert_noop!(
+			LazyMigrations::migrate_foreign_asset_approvals(
+				RuntimeOrigin::signed(AccountId::from([45; 20])),
+				0
+			),
+			Error::<Test>::LimitCannotBeZero
+		);
+	});
+}
+
+#[test]
+fn test_migrate_foreign_asset_approvals_single_approval() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Create an approval
+		assert_ok!(Assets::approve_transfer(
+			RuntimeOrigin::signed(BOB),
+			asset_id.into(),
+			AccountId::from([3; 20]).into(),
+			50,
+		));
+
+		// Start migration
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		// Check initial migration status
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.remaining_approvals, 1);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+
+		// Initial reserved balance for approval
+		let initial_reserved = Balances::reserved_balance(&BOB);
+		assert!(initial_reserved > 0);
+
+		// Migrate approvals
+		assert_ok!(LazyMigrations::migrate_foreign_asset_approvals(
+			RuntimeOrigin::signed(ALITH),
+			10
+		));
+
+		// Check final migration status
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.remaining_approvals, 0);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+
+		// Verify the deposit was unreserved
+		assert_eq!(Balances::reserved_balance(&BOB), 0);
+	});
+}
+
+#[test]
+fn test_migrate_foreign_asset_approvals_multiple_approvals() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Create multiple approvals from different accounts
+		for i in 1..=5 {
+			let owner = AccountId::from([i as u8; 20]);
+			// Add balance for each account
+			assert_ok!(Balances::force_set_balance(
+				RuntimeOrigin::root(),
+				owner.clone(),
+				100 * i as u128,
+			));
+
+			let spender = AccountId::from([i as u8 + 1; 20]);
+			assert_ok!(Assets::approve_transfer(
+				RuntimeOrigin::signed(owner.clone()),
+				asset_id.into(),
+				spender.into(),
+				50 * i as u128,
+			));
+		}
+
+		// Start migration
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		// Check initial migration status
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.remaining_approvals, 5);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+
+		// Migrate approvals in batches
+		assert_ok!(LazyMigrations::migrate_foreign_asset_approvals(
+			RuntimeOrigin::signed(ALITH),
+			3
+		));
+
+		// Check intermediate state
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.remaining_approvals, 2);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+
+		// Migrate remaining approvals
+		assert_ok!(LazyMigrations::migrate_foreign_asset_approvals(
+			RuntimeOrigin::signed(ALITH),
+			2
+		));
+
+		// Check final migration status
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.remaining_approvals, 0);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+
+		// Verify all deposits were unreserved
+		for i in 1..=5 {
+			let owner = AccountId::from([i as u8; 20]);
+			assert_eq!(Balances::reserved_balance(&owner), 0);
+		}
+	});
+}
+
+#[test]
+fn test_migrate_foreign_asset_approvals_with_balances() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Create balance and approval for account
+		assert_ok!(Assets::mint(
+			RuntimeOrigin::signed(AssetManager::account_id()),
+			asset_id.into(),
+			BOB.into(),
+			100,
+		));
+
+		assert_ok!(Assets::approve_transfer(
+			RuntimeOrigin::signed(BOB),
+			asset_id.into(),
+			AccountId::from([3; 20]).into(),
+			50,
+		));
+
+		// Start migration
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		// Migrate approvals first
+		assert_ok!(LazyMigrations::migrate_foreign_asset_approvals(
+			RuntimeOrigin::signed(ALITH),
+			10
+		));
+
+		// Check that approvals were migrated but balances remain
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.remaining_approvals, 0);
+				assert_eq!(info.remaining_balances, 1);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+
+		// Migrate balances
+		assert_ok!(LazyMigrations::migrate_foreign_asset_balances(
+			RuntimeOrigin::signed(ALITH),
+			10
+		));
+
+		// Verify final state
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.remaining_approvals, 0);
+				assert_eq!(info.remaining_balances, 0);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+	});
+}
+
+#[test]
+fn test_migrate_foreign_asset_approvals_exceed_limit() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		for i in 1..=10 {
+			let owner = AccountId::from([i as u8; 20]);
+			// Add balance and approval for each account
+			assert_ok!(Balances::force_set_balance(
+				RuntimeOrigin::root(),
+				owner.clone(),
+				100 * i as u128,
+			));
+
+			let spender = AccountId::from([i as u8 + 1; 20]);
+			assert_ok!(Assets::approve_transfer(
+				RuntimeOrigin::signed(owner.clone()),
+				asset_id.into(),
+				spender.into(),
+				50 * i as u128,
+			));
+		}
+
+		// Start migration
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		// Migrate with limit less than total approvals
+		assert_ok!(LazyMigrations::migrate_foreign_asset_approvals(
+			RuntimeOrigin::signed(ALITH),
+			5
+		));
+
+		// Verify partial migration
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.remaining_approvals, 5);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+	});
+}
