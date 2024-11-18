@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["StateMigrationStatusValue","SuicidedContractsRemoved"]};
+window.SIDEBAR_ITEMS = {"struct":["StateMigrationStatusValue"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["clear_suicided_storage","create_contract_metadata"]};
+window.SIDEBAR_ITEMS = {"fn":["create_contract_metadata"]};
