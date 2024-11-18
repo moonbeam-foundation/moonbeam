@@ -38,18 +38,18 @@ export const MaticAsset: AssetMetadata = {
 
 /**
  * We are going to test the following scenario:
- * 
+ *
  * An account in the origin parachain, let's say Interlay, wants to send MATIC tokens from
  * Interlay to Moonbeam through XCM, and wants to pay the transaction with in the origin
  * chain's token, INTR, so they don't need to buy GLMR.
- * 
+ *
  * From Moonbeam's point of view, this is an incoming transfer, and we need to test that
  * the XCM transaction went thorugh, and the assets in the origin account were
  * succesfully deducted.
- * 
- * For this we're going to create two foreign assets, xcINTR for paying fees and xcMATIC to be 
- * transferred. And we are going to fund an account in the origin's chain asset. 
- * 
+ *
+ * For this we're going to create two foreign assets, xcINTR for paying fees and xcMATIC to be
+ * transferred. And we are going to fund an account in the origin's chain asset.
+ *
  * Parachain 1000 would be the location of the sending parachain (INTR).
  * Parachain 1001 would be the location of MATIC.
  *
@@ -73,8 +73,11 @@ describeSuite({
     beforeAll(async () => {
       api = context.polkadotJs();
 
-      const { originAddress, descendOriginAddress } =
-        descendOriginFromAddress20(context, "0x0101010101010101010101010101010101010101", 1000);
+      const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
+        context,
+        "0x0101010101010101010101010101010101010101",
+        1000
+      );
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
 
@@ -84,7 +87,8 @@ describeSuite({
         xcIntrUnitsPerSecond,
         PARA_1000_SOURCE_LOCATION,
         initialSenderBalance,
-        descendAddress);
+        descendAddress
+      );
 
       // Register foreign asset used to transfer (i.e. xcMatic)
       xcMaticAssetId = await registerAndFundAsset(
@@ -92,14 +96,15 @@ describeSuite({
         xcMaticUnitsPerSecond,
         PARA_1001_SOURCE_LOCATION,
         initialSenderBalance,
-        descendAddress);
+        descendAddress
+      );
     });
 
     it({
       id: "T01",
-      title: "should receive horizontal foreign asset transfer, paying fees in origin chain's foreign asset",
+      title:
+        "should receive horizontal foreign asset transfer, paying fees in origin chain's foreign asset",
       test: async function () {
-
         // 3. Build incoming XCM message
         const xcmMessage = new XcmFragment({
           assets: [
@@ -121,8 +126,16 @@ describeSuite({
           .descend_origin()
           .withdraw_asset()
           .buy_execution()
-          .deposit_asset_definite(PARA_1001_SOURCE_LOCATION.Xcm, xcMaticToSend, ethan.address as `0x${string}`)
-          .deposit_asset_definite(PARA_1000_SOURCE_LOCATION.Xcm, 500_000_000n, descendAddress as `0x${string}`)
+          .deposit_asset_definite(
+            PARA_1001_SOURCE_LOCATION.Xcm,
+            xcMaticToSend,
+            ethan.address as `0x${string}`
+          )
+          .deposit_asset_definite(
+            PARA_1000_SOURCE_LOCATION.Xcm,
+            500_000_000n,
+            descendAddress as `0x${string}`
+          )
           .as_v4();
 
         await verifyLatestBlockFees(context);
@@ -162,7 +175,13 @@ describeSuite({
   },
 });
 
-async function registerAndFundAsset(context: any, unitsPerSecond: number, assetLocation: any, balance: bigint, address: string) {
+async function registerAndFundAsset(
+  context: any,
+  unitsPerSecond: number,
+  assetLocation: any,
+  balance: bigint,
+  address: string
+) {
   const api = context.polkadotJs();
 
   const { registeredAssetId } = await registerOldForeignAsset(
@@ -182,15 +201,7 @@ async function registerAndFundAsset(context: any, unitsPerSecond: number, assetL
     supply: initialBalance,
   });
 
-  await mockOldAssetBalance(
-    context,
-    assetBalance,
-    assetDetails,
-    alith,
-    assetId,
-    address
-  );
+  await mockOldAssetBalance(context, assetBalance, assetDetails, alith, assetId, address);
 
   return assetId;
 }
-

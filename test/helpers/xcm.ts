@@ -398,14 +398,16 @@ export class XcmFragment {
     this.instructions.push({
       DepositAsset: {
         assets: {
-          Definite: [{
-            id: {
-              Concrete: location
+          Definite: [
+            {
+              id: {
+                Concrete: location,
+              },
+              fun: {
+                Fungible: amount,
+              },
             },
-            fun: {
-              Fungible: amount
-            }
-          }]
+          ],
         },
         beneficiary: {
           parents: 0,
