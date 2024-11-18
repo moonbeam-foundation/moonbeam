@@ -388,6 +388,34 @@ export class XcmFragment {
     return this;
   }
 
+  // Add a `DepositAsset` instruction for specific beneficiary and token
+  deposit_asset_definite(
+    location: any,
+    amount: bigint,
+    beneficiary: `0x${string}`,
+    network: XcmV3JunctionNetworkId["type"] | null = null
+  ): this {
+    this.instructions.push({
+      DepositAsset: {
+        assets: {
+          Definite: [{
+            id: {
+              Concrete: location
+            },
+            fun: {
+              Fungible: amount
+            }
+          }]
+        },
+        beneficiary: {
+          parents: 0,
+          interior: { X1: { AccountKey20: { network, key: beneficiary } } },
+        },
+      },
+    });
+    return this;
+  }
+
   // Add a `SetErrorHandler` instruction, appending all the nested instructions
   set_error_handler_with(callbacks: XcmCallback[]): this {
     const error_instructions: any[] = [];
