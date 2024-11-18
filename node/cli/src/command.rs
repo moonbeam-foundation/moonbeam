@@ -22,10 +22,15 @@ use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 use log::{info, warn};
 use moonbeam_cli_opt::EthApi;
-use moonbeam_service::{
-	chain_spec, frontier_database_dir, moonbase_runtime, moonbeam_runtime, moonriver_runtime,
-	HostFunctions, IdentifyVariant,
-};
+
+#[cfg(feature = "moonbase-native")]
+use moonbeam_service::moonbase_runtime;
+#[cfg(feature = "moonbeam-native")]
+use moonbeam_service::moonbeam_runtime;
+#[cfg(feature = "moonriver-native")]
+use moonbeam_service::moonriver_runtime;
+
+use moonbeam_service::{chain_spec, frontier_database_dir, HostFunctions, IdentifyVariant};
 use parity_scale_codec::Encode;
 #[cfg(feature = "westend-native")]
 use polkadot_service::WestendChainSpec;
@@ -507,11 +512,14 @@ pub fn run() -> Result<()> {
 							_ => panic!("invalid chain spec"),
 						}
 					} else if cfg!(feature = "moonbase-runtime-benchmarks") {
+						#[cfg(feature = "moonbase-native")]
 						return runner.sync_run(|config| {
 							cmd.run_with_spec::<HashingFor<moonbeam_service::moonbase_runtime::Block>, HostFunctions>(
 								Some(config.chain_spec),
 							)
 						});
+						#[cfg(not(feature = "moonbase-native"))]
+						panic!("Benchmarking wasn't enabled when building the node.");
 					} else {
 						Err("Benchmarking wasn't enabled when building the node. \
 					You can enable it with `--features runtime-benchmarks`."
