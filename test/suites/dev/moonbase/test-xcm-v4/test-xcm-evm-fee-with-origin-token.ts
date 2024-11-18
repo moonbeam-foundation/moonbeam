@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { alith, ethan } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
@@ -10,7 +10,6 @@ import {
   AssetMetadata,
   PARA_1000_SOURCE_LOCATION,
   PARA_1001_SOURCE_LOCATION,
-  addAssetToWeightTrader,
   mockOldAssetBalance,
   registerOldForeignAsset,
   verifyLatestBlockFees,
@@ -103,7 +102,7 @@ describeSuite({
     it({
       id: "T01",
       title:
-        "should receive horizontal foreign asset transfer, paying fees in origin chain's foreign asset",
+        "should receive foreign asset transfer, paying fees in origin chain's foreign asset",
       test: async function () {
         // 3. Build incoming XCM message
         const xcmMessage = new XcmFragment({
@@ -140,11 +139,11 @@ describeSuite({
 
         await verifyLatestBlockFees(context);
 
-        let xcIntrBalanceBefore = (await api.query.assets.account(xcIntrAssetId, descendAddress))
+        const xcIntrBalanceBefore = (await api.query.assets.account(xcIntrAssetId, descendAddress))
           .unwrap()
           .balance.toBigInt();
 
-        let xcMaticBalanceBefore = (await api.query.assets.account(xcMaticAssetId, descendAddress))
+        const xcMaticBalanceBefore = (await api.query.assets.account(xcMaticAssetId, descendAddress))
           .unwrap()
           .balance.toBigInt();
 
@@ -154,15 +153,15 @@ describeSuite({
           payload: xcmMessage,
         } as RawXcmMessage);
 
-        let xcIntrBalanceAfter = (await api.query.assets.account(xcIntrAssetId, descendAddress))
+        const xcIntrBalanceAfter = (await api.query.assets.account(xcIntrAssetId, descendAddress))
           .unwrap()
           .balance.toBigInt();
 
-        let xcMaticBalanceAfter = (await api.query.assets.account(xcMaticAssetId, descendAddress))
+        const xcMaticBalanceAfter = (await api.query.assets.account(xcMaticAssetId, descendAddress))
           .unwrap()
           .balance.toBigInt();
 
-        let xcMaticReceivedEthan = (await api.query.assets.account(xcMaticAssetId, ethan.address))
+        const xcMaticReceivedEthan = (await api.query.assets.account(xcMaticAssetId, ethan.address))
           .unwrap()
           .balance.toBigInt();
 
