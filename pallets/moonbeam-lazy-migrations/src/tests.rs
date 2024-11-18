@@ -19,7 +19,7 @@ use crate::{
 	foreign_asset::ForeignAssetMigrationStatus,
 	mock::{AssetId, Balances},
 };
-use pallet_assets::Asset;
+use frame_support::traits::fungibles::approvals::Inspect;
 use pallet_evm::AddressMapping;
 use sp_runtime::DispatchError;
 use xcm::latest::Location;
@@ -1199,6 +1199,151 @@ fn test_migrate_foreign_asset_approvals_exceed_limit() {
 		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
 			ForeignAssetMigrationStatus::Migrating(info) => {
 				assert_eq!(info.remaining_approvals, 5);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+	});
+}
+
+#[test]
+fn test_finish_foreign_assets_migration_success() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Setup: Create and start migration for an asset
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Create balance and approval for account
+		assert_ok!(Assets::mint(
+			RuntimeOrigin::signed(AssetManager::account_id()),
+			asset_id.into(),
+			BOB.into(),
+			100,
+		));
+
+		assert_ok!(Assets::approve_transfer(
+			RuntimeOrigin::signed(BOB),
+			asset_id.into(),
+			AccountId::from([3; 20]).into(),
+			50,
+		));
+
+		// Initial balances
+		assert_eq!(Assets::balance(asset_id, BOB), 100);
+		assert!(Balances::reserved_balance(&BOB) > 0);
+		assert_eq!(
+			Assets::allowance(asset_id, &BOB, &AccountId::from([3; 20])),
+			50
+		);
+		assert!(Balances::reserved_balance(&AssetManager::account_id()) > 0);
+
+		// Start and complete migration
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		assert_ok!(LazyMigrations::migrate_foreign_asset_approvals(
+			RuntimeOrigin::signed(ALITH),
+			10
+		));
+		assert_ok!(LazyMigrations::migrate_foreign_asset_balances(
+			RuntimeOrigin::signed(ALITH),
+			10
+		));
+		assert_ok!(LazyMigrations::finish_foreign_assets_migration(
+			RuntimeOrigin::signed(ALITH)
+		));
+
+		// Verify status is reset to Idle
+		assert_eq!(
+			crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get(),
+			ForeignAssetMigrationStatus::Idle
+		);
+
+		// Verify all deposits are unreserved
+		assert_eq!(Balances::reserved_balance(&BOB), 0);
+		assert_eq!(Balances::reserved_balance(&AssetManager::account_id()), 0);
+
+		// Verify the old asset is completely removed
+		assert!(pallet_assets::Asset::<Test>::get(asset_id).is_none());
+		assert_eq!(pallet_assets::Metadata::<Test>::get(asset_id).deposit, 0);
+	});
+}
+
+#[test]
+fn test_finish_foreign_assets_migration_no_migration_in_progress() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			LazyMigrations::finish_foreign_assets_migration(RuntimeOrigin::signed(ALITH)),
+			Error::<Test>::NoMigrationInProgress
+		);
+	});
+}
+
+#[test]
+fn test_finish_foreign_assets_migration_with_remaining_balances() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Create balance but no approvals
+		assert_ok!(Assets::mint(
+			RuntimeOrigin::signed(AssetManager::account_id()),
+			asset_id.into(),
+			BOB.into(),
+			100,
+		));
+
+		// Start migration but don't migrate balances
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		assert_noop!(
+			LazyMigrations::finish_foreign_assets_migration(RuntimeOrigin::signed(ALITH)),
+			Error::<Test>::MigrationNotFinished
+		);
+
+		// Verify we're still in migrating state
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.remaining_balances, 1);
+			}
+			_ => panic!("Expected migration status to be Migrating"),
+		}
+	});
+}
+
+#[test]
+fn test_finish_foreign_assets_migration_with_remaining_approvals() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Create approval but no balances
+		assert_ok!(Assets::approve_transfer(
+			RuntimeOrigin::signed(BOB),
+			asset_id.into(),
+			AccountId::from([3; 20]).into(),
+			50,
+		));
+
+		// Start migration but don't migrate approvals
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::root(),
+			asset_id,
+		));
+
+		assert_noop!(
+			LazyMigrations::finish_foreign_assets_migration(RuntimeOrigin::signed(ALITH)),
+			Error::<Test>::MigrationNotFinished
+		);
+
+		// Verify we're still in migrating state
+		match crate::pallet::ForeignAssetMigrationStatusValue::<Test>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.remaining_approvals, 1);
 			}
 			_ => panic!("Expected migration status to be Migrating"),
 		}

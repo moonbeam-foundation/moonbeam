@@ -23,7 +23,7 @@ use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::U256;
 use xcm_primitives::AssetTypeGetter;
 
-#[derive(Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
+#[derive(Debug, Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
 pub enum ForeignAssetMigrationStatus {
 	/// No migration in progress
 	Idle,
@@ -37,7 +37,7 @@ impl Default for ForeignAssetMigrationStatus {
 	}
 }
 
-#[derive(Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
+#[derive(Debug, Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
 pub(super) struct ForeignAssetMigreationInfo {
 	pub(super) asset_id: u128,
 	pub(super) remaining_balances: u32,
