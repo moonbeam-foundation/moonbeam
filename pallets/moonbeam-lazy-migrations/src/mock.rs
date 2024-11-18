@@ -19,13 +19,12 @@
 use super::*;
 use crate as pallet_moonbeam_lazy_migrations;
 use frame_support::{
-	construct_runtime, ord_parameter_types, parameter_types,
-	traits::{EqualPrivilegeOnly, Everything, SortedMembers},
+	construct_runtime, parameter_types,
+	traits::Everything,
 	weights::{RuntimeDbWeight, Weight},
 };
-use frame_system::EnsureRoot;
 use pallet_evm::{AddressMapping, EnsureAddressTruncated};
-use sp_core::{ConstU32, H160, H256, U256};
+use sp_core::{H160, H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	AccountId32, BuildStorage, Perbill,
@@ -43,7 +42,6 @@ construct_runtime!(
 		Timestamp: pallet_timestamp,
 		EVM: pallet_evm,
 		LazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call},
-		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -111,36 +109,6 @@ impl pallet_balances::Config for Test {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
-}
-
-impl pallet_scheduler::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeOrigin = RuntimeOrigin;
-	type PalletsOrigin = OriginCaller;
-	type RuntimeCall = RuntimeCall;
-	type MaximumWeight = ();
-	type ScheduleOrigin = EnsureRoot<Self::AccountId>;
-	type MaxScheduledPerBlock = ConstU32<100>;
-	type WeightInfo = ();
-	type OriginPrivilegeCmp = EqualPrivilegeOnly;
-	type Preimages = ();
-}
-
-ord_parameter_types! {
-	pub const One: u64 = 1;
-	pub const Two: u64 = 2;
-	pub const Three: u64 = 3;
-	pub const Four: u64 = 4;
-	pub const Five: u64 = 5;
-	pub const Six: u64 = 6;
-}
-pub struct OneToFive;
-impl SortedMembers<u64> for OneToFive {
-	fn sorted_members() -> Vec<u64> {
-		vec![1, 2, 3, 4, 5]
-	}
-	#[cfg(feature = "runtime-benchmarks")]
-	fn add(_m: &u64) {}
 }
 
 parameter_types! {
