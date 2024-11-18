@@ -46,32 +46,4 @@ use sp_std::marker::PhantomData;
 /// Weights for `pallet_moonbeam_lazy_migrations`.
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_moonbeam_lazy_migrations::WeightInfo for WeightInfo<T> {
-	/// Storage: `EVM::Suicided` (r:100 w:0)
-	/// Proof: `EVM::Suicided` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `EVM::AccountCodes` (r:100 w:0)
-	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `EVM::AccountStorages` (r:1000 w:900)
-	/// Proof: `EVM::AccountStorages` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `MoonbeamLazyMigrations::SuicidedContractsRemoved` (r:1 w:1)
-	/// Proof: `MoonbeamLazyMigrations::SuicidedContractsRemoved` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
-	/// The range of component `a` is `[1, 100]`.
-	/// The range of component `l` is `[1, 1000]`.
-	fn clear_suicided_storage(a: u32, l: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `4251 + a * (12 ±0) + l * (84 ±0)`
-		//  Estimated: `37759 + a * (2229 ±74) + l * (2536 ±7)`
-		// Minimum execution time: 49_196_000 picoseconds.
-		Weight::from_parts(50_354_000, 37759)
-			// Standard Error: 2_593_683
-			.saturating_add(Weight::from_parts(42_870_661, 0).saturating_mul(a.into()))
-			// Standard Error: 259_091
-			.saturating_add(Weight::from_parts(27_114_710, 0).saturating_mul(l.into()))
-			.saturating_add(T::DbWeight::get().reads(5_u64))
-			.saturating_add(T::DbWeight::get().reads((2_u64).saturating_mul(a.into())))
-			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(l.into())))
-			.saturating_add(T::DbWeight::get().writes(41_u64))
-			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(l.into())))
-			.saturating_add(Weight::from_parts(0, 2229).saturating_mul(a.into()))
-			.saturating_add(Weight::from_parts(0, 2536).saturating_mul(l.into()))
-	}
 }
