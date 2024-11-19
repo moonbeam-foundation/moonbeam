@@ -3000,7 +3000,6 @@ dependencies = [
  "evm",
  "evm-gasometer",
  "evm-runtime",
- "log",
  "parity-scale-codec",
  "sp-runtime-interface",
 ]
