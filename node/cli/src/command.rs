@@ -625,7 +625,12 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonriver_runtime::RuntimeApi,
 									moonbeam_service::MoonriverCustomizations,
-								>(&mut config, &rpc_config, false)?;
+								>(
+									&mut config,
+									&rpc_config,
+									false,
+									cli.run.use_deprecated_fork_strategy,
+								)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -639,7 +644,12 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbeam_runtime::RuntimeApi,
 									moonbeam_service::MoonbeamCustomizations,
-								>(&mut config, &rpc_config, false)?;
+								>(
+									&mut config,
+									&rpc_config,
+									false,
+									cli.run.use_deprecated_fork_strategy,
+								)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -653,7 +663,12 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbase_runtime::RuntimeApi,
 									moonbeam_service::MoonbaseCustomizations,
-								>(&mut config, &rpc_config, false)?;
+								>(
+									&mut config,
+									&rpc_config,
+									false,
+									cli.run.use_deprecated_fork_strategy,
+								)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
