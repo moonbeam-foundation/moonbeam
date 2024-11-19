@@ -361,6 +361,7 @@ pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 pub fn new_chain_ops(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
+	use_deprecated_fork_strategy: bool,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -375,15 +376,17 @@ pub fn new_chain_ops(
 		spec if spec.is_moonriver() => new_chain_ops_inner::<
 			moonriver_runtime::RuntimeApi,
 			MoonriverCustomizations,
-		>(config, rpc_config),
+		>(config, rpc_config, use_deprecated_fork_strategy),
 		#[cfg(feature = "moonbeam-native")]
 		spec if spec.is_moonbeam() => new_chain_ops_inner::<
 			moonbeam_runtime::RuntimeApi,
 			MoonbeamCustomizations,
-		>(config, rpc_config),
+		>(config, rpc_config, use_deprecated_fork_strategy),
 		#[cfg(feature = "moonbase-native")]
 		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseCustomizations>(
-			config, rpc_config,
+			config,
+			rpc_config,
+			use_deprecated_fork_strategy,
 		),
 		#[cfg(not(feature = "moonbase-native"))]
 		_ => panic!("invalid chain spec"),
@@ -394,6 +397,7 @@ pub fn new_chain_ops(
 fn new_chain_ops_inner<RuntimeApi, Customizations>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
+	use_deprecated_fork_strategy: bool,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -416,7 +420,12 @@ where
 		import_queue,
 		task_manager,
 		..
-	} = new_partial::<RuntimeApi, Customizations>(config, rpc_config, config.chain_spec.is_dev())?;
+	} = new_partial::<RuntimeApi, Customizations>(
+		config,
+		rpc_config,
+		config.chain_spec.is_dev(),
+		use_deprecated_fork_strategy,
+	)?;
 	Ok((
 		Arc::new(Client::from(client)),
 		backend,
@@ -455,6 +464,7 @@ pub fn new_partial<RuntimeApi, Customizations>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
+	use_deprecated_fork_strategy: bool,
 ) -> PartialComponentsResult<FullClient<RuntimeApi>, FullBackend>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
@@ -557,6 +567,10 @@ where
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
+				match use_deprecated_fork_strategy {
+					true => Some(!dev_service),
+					false => None,
+				},
 			)?,
 			BlockImportPipeline::Dev(frontier_block_import),
 		)
@@ -570,6 +584,10 @@ where
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
+				match use_deprecated_fork_strategy {
+					true => Some(!dev_service),
+					false => None,
+				},
 			)?,
 			BlockImportPipeline::Parachain(parachain_block_import),
 		)
@@ -634,6 +652,7 @@ async fn start_node_impl<RuntimeApi, Customizations, Net>(
 	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: Option<sc_sysinfo::HwBench>,
+	use_deprecated_fork_strategy: bool,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
@@ -643,8 +662,12 @@ where
 {
 	let mut parachain_config = prepare_node_config(parachain_config);
 
-	let params =
-		new_partial::<RuntimeApi, Customizations>(&mut parachain_config, &rpc_config, false)?;
+	let params = new_partial::<RuntimeApi, Customizations>(
+		&mut parachain_config,
+		&rpc_config,
+		false,
+		use_deprecated_fork_strategy,
+	)?;
 	let (
 		block_import,
 		filter_pool,
@@ -1124,6 +1147,7 @@ pub async fn start_node<RuntimeApi, Customizations>(
 	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: Option<sc_sysinfo::HwBench>,
+	use_deprecated_fork_strategy: bool
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi:
@@ -1141,6 +1165,7 @@ where
 		async_backing,
 		block_authoring_duration,
 		hwbench,
+		use_deprecated_fork_strategy
 	)
 	.await
 }
@@ -1182,7 +1207,7 @@ where
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial::<RuntimeApi, Customizations>(&mut config, &rpc_config, true)?;
+	} = new_partial::<RuntimeApi, Customizations>(&mut config, &rpc_config, true, false)?;
 
 	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
 		block_import
