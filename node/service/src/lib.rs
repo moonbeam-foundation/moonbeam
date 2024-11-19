@@ -556,8 +556,7 @@ where
 				frontier_block_import.clone(),
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
-				config.prometheus_registry(),
-				!dev_service,
+				config.prometheus_registry()
 			)?,
 			BlockImportPipeline::Dev(frontier_block_import),
 		)
@@ -572,8 +571,7 @@ where
 				parachain_block_import.clone(),
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
-				config.prometheus_registry(),
-				!dev_service,
+				config.prometheus_registry()
 			)?,
 			BlockImportPipeline::Parachain(parachain_block_import),
 		)
