@@ -142,10 +142,10 @@ pub struct RunCmd {
 	#[clap(long)]
 	pub dev_service: bool,
 
-	/// Enable old nimbus block import pipeline
+	/// Enable the new block import strategy
 	/// Deprecated in: https://github.com/Moonsong-Labs/moonkit/pull/43
 	#[clap(long)]
-	pub use_deprecated_fork_strategy: bool,
+	pub experimental_block_import_strategy: bool,
 
 	#[cfg(feature = "lazy-loading")]
 	#[clap(long)]

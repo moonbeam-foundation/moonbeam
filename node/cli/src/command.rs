@@ -271,7 +271,7 @@ pub fn run() -> Result<()> {
 				let (client, _, import_queue, task_manager) = moonbeam_service::new_chain_ops(
 					&mut config,
 					&rpc_config,
-					cli.run.use_deprecated_fork_strategy,
+					cli.run.experimental_block_import_strategy,
 				)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
@@ -283,7 +283,7 @@ pub fn run() -> Result<()> {
 				let (client, _, _, task_manager) = moonbeam_service::new_chain_ops(
 					&mut config,
 					&rpc_config,
-					cli.run.use_deprecated_fork_strategy,
+					cli.run.experimental_block_import_strategy,
 				)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
@@ -295,7 +295,7 @@ pub fn run() -> Result<()> {
 				let (client, _, _, task_manager) = moonbeam_service::new_chain_ops(
 					&mut config,
 					&rpc_config,
-					cli.run.use_deprecated_fork_strategy,
+					cli.run.experimental_block_import_strategy,
 				)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
@@ -307,7 +307,7 @@ pub fn run() -> Result<()> {
 				let (client, _, import_queue, task_manager) = moonbeam_service::new_chain_ops(
 					&mut config,
 					&rpc_config,
-					cli.run.use_deprecated_fork_strategy,
+					cli.run.experimental_block_import_strategy,
 				)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
@@ -372,7 +372,7 @@ pub fn run() -> Result<()> {
 						&mut config,
 						&rpc_config,
 						false,
-						cli.run.use_deprecated_fork_strategy,
+						cli.run.experimental_block_import_strategy,
 					)?;
 
 					Ok((
@@ -389,7 +389,7 @@ pub fn run() -> Result<()> {
 						&mut config,
 						&rpc_config,
 						false,
-						cli.run.use_deprecated_fork_strategy,
+						cli.run.experimental_block_import_strategy,
 					)?;
 
 					Ok((
@@ -406,7 +406,7 @@ pub fn run() -> Result<()> {
 						&mut config,
 						&rpc_config,
 						false,
-						cli.run.use_deprecated_fork_strategy,
+						cli.run.experimental_block_import_strategy,
 					)?;
 
 					Ok((
@@ -567,7 +567,7 @@ pub fn run() -> Result<()> {
 									&mut config,
 									&rpc_config,
 									false,
-									cli.run.use_deprecated_fork_strategy,
+									cli.run.experimental_block_import_strategy,
 								)?;
 
 								cmd.run(params.client)
@@ -583,7 +583,7 @@ pub fn run() -> Result<()> {
 									&mut config,
 									&rpc_config,
 									false,
-									cli.run.use_deprecated_fork_strategy,
+									cli.run.experimental_block_import_strategy,
 								)?;
 
 								cmd.run(params.client)
@@ -599,7 +599,7 @@ pub fn run() -> Result<()> {
 									&mut config,
 									&rpc_config,
 									false,
-									cli.run.use_deprecated_fork_strategy,
+									cli.run.experimental_block_import_strategy,
 								)?;
 
 								cmd.run(params.client)
@@ -629,7 +629,7 @@ pub fn run() -> Result<()> {
 									&mut config,
 									&rpc_config,
 									false,
-									cli.run.use_deprecated_fork_strategy,
+									cli.run.experimental_block_import_strategy,
 								)?;
 
 								let db = params.backend.expose_db();
@@ -648,7 +648,7 @@ pub fn run() -> Result<()> {
 									&mut config,
 									&rpc_config,
 									false,
-									cli.run.use_deprecated_fork_strategy,
+									cli.run.experimental_block_import_strategy,
 								)?;
 
 								let db = params.backend.expose_db();
@@ -667,7 +667,7 @@ pub fn run() -> Result<()> {
 									&mut config,
 									&rpc_config,
 									false,
-									cli.run.use_deprecated_fork_strategy,
+									cli.run.experimental_block_import_strategy,
 								)?;
 
 								let db = params.backend.expose_db();
@@ -715,7 +715,7 @@ pub fn run() -> Result<()> {
 						&mut config,
 						&rpc_config,
 						false,
-						cli.run.use_deprecated_fork_strategy,
+						cli.run.experimental_block_import_strategy,
 					)?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
@@ -733,7 +733,7 @@ pub fn run() -> Result<()> {
 						&mut config,
 						&rpc_config,
 						false,
-						cli.run.use_deprecated_fork_strategy,
+						cli.run.experimental_block_import_strategy,
 					)?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
@@ -751,7 +751,7 @@ pub fn run() -> Result<()> {
 						&mut config,
 						&rpc_config,
 						false,
-						cli.run.use_deprecated_fork_strategy,
+						cli.run.experimental_block_import_strategy,
 					)?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
@@ -935,7 +935,7 @@ pub fn run() -> Result<()> {
 						true,
 						cli.run.block_authoring_duration,
 						hwbench,
-						cli.run.use_deprecated_fork_strategy,
+						cli.run.experimental_block_import_strategy,
 					)
 					.await
 					.map(|r| r.0)
@@ -953,7 +953,7 @@ pub fn run() -> Result<()> {
 						true,
 						cli.run.block_authoring_duration,
 						hwbench,
-						cli.run.use_deprecated_fork_strategy,
+						cli.run.experimental_block_import_strategy,
 					)
 					.await
 					.map(|r| r.0)
@@ -971,7 +971,7 @@ pub fn run() -> Result<()> {
 						true,
 						cli.run.block_authoring_duration,
 						hwbench,
-						cli.run.use_deprecated_fork_strategy,
+						cli.run.experimental_block_import_strategy,
 					)
 					.await
 					.map(|r| r.0)
