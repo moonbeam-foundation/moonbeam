@@ -567,10 +567,7 @@ where
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				match use_deprecated_fork_strategy {
-					true => Some(!dev_service),
-					false => None,
-				},
+				use_deprecated_fork_strategy.then(|| !dev_service),
 			)?,
 			BlockImportPipeline::Dev(frontier_block_import),
 		)
@@ -584,10 +581,7 @@ where
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				match use_deprecated_fork_strategy {
-					true => Some(!dev_service),
-					false => None,
-				},
+				use_deprecated_fork_strategy.then(|| !dev_service),
 			)?,
 			BlockImportPipeline::Parachain(parachain_block_import),
 		)
