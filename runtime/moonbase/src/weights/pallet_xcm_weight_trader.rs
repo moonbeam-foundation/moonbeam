@@ -19,7 +19,7 @@
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 42.0.0
 //! DATE: 2024-11-20, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
-//! HOSTNAME: `MacBook-Pro-de-Gonzalo.local`, CPU: `<UNKNOWN>`
+//! HOSTNAME: `ip-10-0-0-176`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
 //! WASM-EXECUTION: Compiled, CHAIN: Some("moonbase-dev"), DB CACHE: 1024
 
 // Executed Command:
@@ -52,8 +52,8 @@ impl<T: frame_system::Config> pallet_xcm_weight_trader::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `42`
 		//  Estimated: `4100`
-		// Minimum execution time: 4_000_000 picoseconds.
-		Weight::from_parts(5_000_000, 4100)
+		// Minimum execution time: 8_926_000 picoseconds.
+		Weight::from_parts(9_227_000, 4100)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -63,8 +63,8 @@ impl<T: frame_system::Config> pallet_xcm_weight_trader::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `102`
 		//  Estimated: `4100`
-		// Minimum execution time: 5_000_000 picoseconds.
-		Weight::from_parts(6_000_000, 4100)
+		// Minimum execution time: 9_822_000 picoseconds.
+		Weight::from_parts(10_322_000, 4100)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -74,8 +74,8 @@ impl<T: frame_system::Config> pallet_xcm_weight_trader::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `102`
 		//  Estimated: `4100`
-		// Minimum execution time: 5_000_000 picoseconds.
-		Weight::from_parts(6_000_000, 4100)
+		// Minimum execution time: 9_946_000 picoseconds.
+		Weight::from_parts(10_255_000, 4100)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -85,8 +85,8 @@ impl<T: frame_system::Config> pallet_xcm_weight_trader::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `102`
 		//  Estimated: `4100`
-		// Minimum execution time: 5_000_000 picoseconds.
-		Weight::from_parts(6_000_000, 4100)
+		// Minimum execution time: 9_697_000 picoseconds.
+		Weight::from_parts(10_002_000, 4100)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -96,8 +96,8 @@ impl<T: frame_system::Config> pallet_xcm_weight_trader::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `102`
 		//  Estimated: `4100`
-		// Minimum execution time: 5_000_000 picoseconds.
-		Weight::from_parts(6_000_000, 4100)
+		// Minimum execution time: 9_641_000 picoseconds.
+		Weight::from_parts(9_905_000, 4100)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
