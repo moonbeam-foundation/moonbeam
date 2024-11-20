@@ -845,9 +845,6 @@
 <a href="#843" id="843">843</a>
 <a href="#844" id="844">844</a>
 <a href="#845" id="845">845</a>
-<a href="#846" id="846">846</a>
-<a href="#847" id="847">847</a>
-<a href="#848" id="848">848</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -892,7 +889,7 @@
 <span class="kw">use </span>sc_network_common::sync::SyncMode;
 <span class="kw">use </span>sc_service::{
 	error::Error <span class="kw">as </span>ServiceError, ClientConfig, Configuration, Error, KeystoreContainer,
-	PartialComponents, TaskManager,
+	LocalCallExecutor, PartialComponents, TaskManager,
 };
 <span class="kw">use </span>sc_telemetry::{TelemetryHandle, TelemetryWorker};
 <span class="kw">use </span>sc_transaction_pool_api::OffchainTransactionPoolFactory;
@@ -913,8 +910,6 @@
 <span class="kw">mod </span>helpers;
 <span class="kw">mod </span>lock;
 <span class="kw">mod </span>state_overrides;
-<span class="kw">mod </span>wasm_override;
-<span class="kw">mod </span>wasm_substitutes;
 
 <span class="kw">pub const </span>LAZY_LOADING_LOG_TARGET: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"lazy-loading"</span>;
 
@@ -930,8 +925,10 @@
 </span><span class="kw">pub type </span>TLazyLoadingBackend&lt;TBl&gt; = backend::Backend&lt;TBl&gt;;
 
 <span class="doccomment">/// Lazy loading client call executor type.
-</span><span class="kw">pub type </span>TLazyLoadingCallExecutor&lt;TBl, TExec&gt; =
-	call_executor::LazyLoadingCallExecutor&lt;TBl, TLazyLoadingBackend&lt;TBl&gt;, TExec&gt;;
+</span><span class="kw">pub type </span>TLazyLoadingCallExecutor&lt;TBl, TExec&gt; = call_executor::LazyLoadingCallExecutor&lt;
+	TBl,
+	LocalCallExecutor&lt;TBl, TLazyLoadingBackend&lt;TBl&gt;, TExec&gt;,
+&gt;;
 
 <span class="doccomment">/// Lazy loading parts type.
 </span><span class="kw">pub type </span>TLazyLoadingParts&lt;TBl, TRtApi, TExec&gt; = (
@@ -968,7 +965,6 @@
 
 	new_lazy_loading_parts_with_genesis_builder(
 		config,
-		lazy_loading_config,
 		telemetry,
 		executor,
 		backend,
@@ -979,7 +975,6 @@
 <span class="doccomment">/// Create the initial parts of a lazy loading node.
 </span><span class="kw">pub fn </span>new_lazy_loading_parts_with_genesis_builder&lt;TBl, TRtApi, TExec, TBuildGenesisBlock&gt;(
 	config: <span class="kw-2">&amp;</span>Configuration,
-	lazy_loading_config: <span class="kw-2">&amp;</span>LazyLoadingConfig,
 	telemetry: <span class="prelude-ty">Option</span>&lt;TelemetryHandle&gt;,
 	executor: TExec,
 	backend: Arc&lt;TLazyLoadingBackend&lt;TBl&gt;&gt;,
@@ -1061,7 +1056,6 @@
 				wasm_runtime_substitutes,
 				enable_import_proof_recording: <span class="bool-val">false</span>,
 			},
-			lazy_loading_config,
 		)<span class="question-mark">?</span>;
 
 		client

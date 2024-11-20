@@ -76,10 +76,6 @@
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
 <a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -97,20 +93,20 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lazy_loading;
+<span class="kw">use </span><span class="kw">crate</span>::lazy_loading::{TLazyLoadingBackend, TLazyLoadingCallExecutor};
 <span class="kw">use </span>cumulus_primitives_core::BlockT;
-<span class="kw">use </span>moonbeam_cli_opt::LazyLoadingConfig;
 <span class="kw">use </span>sc_chain_spec::BuildGenesisBlock;
 <span class="kw">use </span>sc_client_api::execution_extensions::ExecutionExtensions;
 <span class="kw">use </span>sc_client_api::{BadBlocks, ForkBlocks};
 <span class="kw">use </span>sc_executor::RuntimeVersionOf;
 <span class="kw">use </span>sc_service::client::Client;
-<span class="kw">use </span>sc_service::ClientConfig;
+<span class="kw">use </span>sc_service::{ClientConfig, LocalCallExecutor};
 <span class="kw">use </span>sc_telemetry::TelemetryHandle;
 <span class="kw">use </span>sp_core::traits::{CodeExecutor, SpawnNamed};
 <span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">pub fn </span>new_client&lt;E, Block, RA, G, Backend&gt;(
-	backend: Arc&lt;Backend&gt;,
+<span class="kw">pub fn </span>new_client&lt;E, Block, RA, G&gt;(
+	backend: Arc&lt;TLazyLoadingBackend&lt;Block&gt;&gt;,
 	executor: E,
 	genesis_block_builder: G,
 	fork_blocks: ForkBlocks&lt;Block&gt;,
@@ -120,33 +116,29 @@
 	prometheus_registry: <span class="prelude-ty">Option</span>&lt;substrate_prometheus_endpoint::Registry&gt;,
 	telemetry: <span class="prelude-ty">Option</span>&lt;TelemetryHandle&gt;,
 	config: ClientConfig&lt;Block&gt;,
-	lazy_loading_config: <span class="kw-2">&amp;</span>LazyLoadingConfig,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;
-	Client&lt;
-		Backend,
-		lazy_loading::call_executor::LazyLoadingCallExecutor&lt;Block, Backend, E&gt;,
-		Block,
-		RA,
-	&gt;,
+	Client&lt;TLazyLoadingBackend&lt;Block&gt;, TLazyLoadingCallExecutor&lt;Block, E&gt;, Block, RA&gt;,
 	sp_blockchain::Error,
 &gt;
-	<span class="kw">where
-		</span>Block: BlockT + sp_runtime::DeserializeOwned,
-		Block::Hash: From&lt;sp_core::H256&gt;,
-		E: CodeExecutor + RuntimeVersionOf,
-		Backend: sc_client_api::Backend&lt;Block&gt; + <span class="lifetime">'static</span>,
-		G: BuildGenesisBlock&lt;
+<span class="kw">where
+	</span>Block: BlockT + sp_runtime::DeserializeOwned,
+	Block::Hash: From&lt;sp_core::H256&gt;,
+	E: CodeExecutor + RuntimeVersionOf,
+	TLazyLoadingBackend&lt;Block&gt;: sc_client_api::Backend&lt;Block&gt; + <span class="lifetime">'static</span>,
+	G: BuildGenesisBlock&lt;
+		Block,
+		BlockImportOperation = &lt;TLazyLoadingBackend&lt;Block&gt; <span class="kw">as </span>sc_client_api::backend::Backend&lt;
 			Block,
-			BlockImportOperation = &lt;Backend <span class="kw">as </span>sc_client_api::backend::Backend&lt;Block&gt;&gt;::BlockImportOperation
-		&gt;
+		&gt;&gt;::BlockImportOperation,
+	&gt;,
 {
-	<span class="kw">let </span>executor = lazy_loading::call_executor::LazyLoadingCallExecutor::new(
-		backend.clone(),
-		lazy_loading_config,
-		executor,
-		config.clone(),
-		execution_extensions,
-	)<span class="question-mark">?</span>;
+	<span class="kw">let </span>executor =
+		lazy_loading::call_executor::LazyLoadingCallExecutor::new(LocalCallExecutor::new(
+			backend.clone(),
+			executor,
+			config.clone(),
+			execution_extensions,
+		)<span class="question-mark">?</span>)<span class="question-mark">?</span>;
 
 	Client::new(
 		backend,
