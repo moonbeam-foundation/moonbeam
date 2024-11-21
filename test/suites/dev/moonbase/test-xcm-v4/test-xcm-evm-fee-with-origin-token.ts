@@ -43,7 +43,7 @@ export const MaticAsset: AssetMetadata = {
  * chain's token, INTR, so they don't need to buy GLMR.
  *
  * From Moonbeam's point of view, this is an incoming transfer, and we need to test that
- * the XCM transaction went thorugh, and the assets in the origin account were
+ * the XCM transaction went through, and the assets in the origin account were
  * succesfully deducted.
  *
  * For this we're going to create two foreign assets, xcINTR for paying fees and xcMATIC to be
