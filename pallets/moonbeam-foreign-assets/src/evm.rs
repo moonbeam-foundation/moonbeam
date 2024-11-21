@@ -26,7 +26,6 @@ use precompile_utils::solidity::Codec;
 use precompile_utils_macro::keccak256;
 use sp_runtime::traits::ConstU32;
 use sp_runtime::DispatchError;
-use sp_std::if_std;
 use sp_std::vec::Vec;
 use xcm::latest::Error as XcmError;
 
@@ -318,11 +317,6 @@ impl<T: crate::Config> EvmCaller<T> {
 			&<T as pallet_evm::Config>::config(),
 		)
 		.map_err(|_| Error::<T>::EvmInternalError)?;
-
-		if_std! {
-			println!("EVM call result: {:?}", exec_info.exit_reason);
-			println!("EVM exec_info: {:?}", exec_info);
-		}
 
 		ensure!(
 			matches!(
