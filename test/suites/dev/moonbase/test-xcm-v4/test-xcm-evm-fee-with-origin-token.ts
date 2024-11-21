@@ -166,7 +166,7 @@ describeSuite({
           .unwrap()
           .balance.toBigInt();
 
-        // Check that xcIntr where debited from Alith to pay the fees of the XCM execution
+        // Check that xcIntr where debited from Alith's descend address to pay the fees of the XCM execution
         expect(xcMaticBalanceBefore - xcMaticBalanceAfter).to.be.eq(xcMaticToSend);
         expect(xcMaticReceivedEthan).to.be.eq(xcMaticToSend);
         expect(xcIntrBalanceBefore - xcIntrBalanceAfter).to.be.eq(500_000_000n);
