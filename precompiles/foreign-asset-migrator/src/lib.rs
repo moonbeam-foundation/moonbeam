@@ -72,6 +72,7 @@ where
 	AssetIdOf<Runtime>: Display,
 	Runtime::AccountId: Into<H160>,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType: Into<Option<Location>>,
+	Runtime::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	#[precompile::public("migrateAccounts(address,uint32)")]
 	fn migrate_accounts(

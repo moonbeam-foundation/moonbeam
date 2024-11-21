@@ -23,7 +23,9 @@ use frame_support::{
 	construct_runtime, parameter_types, sp_runtime::traits::IdentityLookup, traits::Everything,
 	weights::Weight,
 };
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
+use pallet_evm::{
+	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, SubstrateBlockHashMapping,
+};
 use parity_scale_codec::Decode;
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{Get, U256};
@@ -192,6 +194,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
+	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 }
 
 impl pallet_precompile_benchmarks::Config for Runtime {

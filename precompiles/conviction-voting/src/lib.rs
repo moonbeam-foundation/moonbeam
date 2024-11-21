@@ -122,6 +122,7 @@ where
 			<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
 		>,
 	>,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	/// Internal helper function for vote* extrinsics exposed in this precompile.
 	fn vote(

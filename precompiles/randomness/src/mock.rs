@@ -18,7 +18,7 @@
 use super::*;
 use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use nimbus_primitives::NimbusId;
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use session_keys_primitives::VrfId;
 use sp_core::H256;
@@ -146,6 +146,7 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type SuicideQuickClearLimit = SuicideQuickClearLimit;
+	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 }
 
 parameter_types! {

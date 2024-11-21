@@ -19,7 +19,7 @@
 use super::*;
 
 use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{ConstU32, H256, U256};
 use sp_runtime::{
@@ -147,6 +147,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
+	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 }
 
 // Configure a mock runtime to test the pallet.
