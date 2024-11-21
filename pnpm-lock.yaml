@@ -196,26 +196,26 @@ importers:
   typescript-api:
     dependencies:
       '@polkadot/api':
-        specifier: 14.0.1
-        version: 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: 14.3.1
+        version: 14.3.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@polkadot/api-base':
-        specifier: 14.0.1
-        version: 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: 14.3.1
+        version: 14.3.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@polkadot/rpc-core':
-        specifier: 14.0.1
-        version: 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: 14.3.1
+        version: 14.3.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@polkadot/typegen':
-        specifier: 14.0.1
-        version: 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: 14.3.1
+        version: 14.3.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@polkadot/types':
-        specifier: 14.0.1
-        version: 14.0.1
+        specifier: 14.3.1
+        version: 14.3.1
       '@polkadot/types-codec':
-        specifier: 14.0.1
-        version: 14.0.1
+        specifier: 14.3.1
+        version: 14.3.1
       '@types/node':
-        specifier: ^22.5.5
-        version: 22.9.0
+        specifier: ^22.9.1
+        version: 22.9.1
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -223,10 +223,10 @@ importers:
         specifier: ^0.3.38
         version: 0.3.38(prettier@2.8.8)
       tsx:
-        specifier: ^4.19.1
+        specifier: ^4.19.2
         version: 4.19.2
       typescript:
-        specifier: ^5.6.2
+        specifier: ^5.6.3
         version: 5.6.3
 
 packages:
@@ -1276,6 +1276,11 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
+  '@polkadot/typegen@14.3.1':
+    resolution: {integrity: sha512-S6G7BwmsC57zvUKoqYMF2+3SUIB2f8r6VDgUhdO2hdgexXTDeVHFtJx3FE2opPlkVR05EKgV+rGH/9Rn91HjOQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   '@polkadot/types-augment@10.13.1':
     resolution: {integrity: sha512-TcrLhf95FNFin61qmVgOgayzQB/RqVsSg9thAso1Fh6pX4HSbvI35aGPBAn3SkA6R+9/TmtECirpSNLtIGFn0g==}
     engines: {node: '>=18'}
@@ -2023,6 +2028,9 @@ packages:
 
   '@types/node@22.9.0':
     resolution: {integrity: sha512-vuyHg81vvWA1Z1ELfvLko2c8f34gyA0zaic0+Rllc5lbCnbSyuvb2Oxpm6TAUAC/2xZN3QGqxBNggD1nNR2AfQ==}
+
+  '@types/node@22.9.1':
+    resolution: {integrity: sha512-p8Yy/8sw1caA8CdRIQBG5tiLHmxtQKObCijiAa9Ez+d4+PRffM4054xbju0msf+cvhJpnFEeNjxmVT/0ipktrg==}
 
   '@types/pbkdf2@3.1.2':
     resolution: {integrity: sha512-uRwJqmiXmh9++aSu1VNEn3iIxWOhd8AHXNSdlaLfdAAdSTY9jYVeGWnzejM3dvrkbqE3/hyQkQQ29IFATEGlew==}
@@ -6607,7 +6615,7 @@ snapshots:
       '@polkadot/typegen': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@polkadot/types': 14.0.1
       '@polkadot/types-codec': 14.0.1
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
       prettier: 2.8.8
       prettier-plugin-jsdoc: 0.3.38(prettier@2.8.8)
       tsx: 4.19.2
@@ -6702,13 +6710,13 @@ snapshots:
   '@moonwall/types@5.6.0(bufferutil@4.0.8)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8)':
     dependencies:
       '@polkadot/api': 14.3.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@polkadot/api-base': 14.0.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/api-base': 14.3.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       '@polkadot/keyring': 13.2.3(@polkadot/util-crypto@13.2.3(@polkadot/util@13.2.3))(@polkadot/util@13.2.3)
       '@polkadot/types': 14.3.1
       '@polkadot/util': 13.2.3
       '@polkadot/util-crypto': 13.2.3(@polkadot/util@13.2.3)
-      '@types/node': 22.9.0
-      '@zombienet/utils': 0.0.25(@types/node@22.9.0)(chokidar@3.6.0)(typescript@5.6.3)
+      '@types/node': 22.9.1
+      '@zombienet/utils': 0.0.25(@types/node@22.9.1)(chokidar@3.6.0)(typescript@5.6.3)
       bottleneck: 2.19.5
       debug: 4.3.7(supports-color@8.1.1)
       ethers: 6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -7871,6 +7879,28 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@polkadot/typegen@14.3.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@polkadot/api': 14.3.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/api-augment': 14.3.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/rpc-augment': 14.3.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/rpc-provider': 14.3.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@polkadot/types': 14.3.1
+      '@polkadot/types-augment': 14.3.1
+      '@polkadot/types-codec': 14.3.1
+      '@polkadot/types-create': 14.3.1
+      '@polkadot/types-support': 14.3.1
+      '@polkadot/util': 13.2.3
+      '@polkadot/util-crypto': 13.2.3(@polkadot/util@13.2.3)
+      '@polkadot/x-ws': 13.2.3(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      handlebars: 4.7.8
+      tslib: 2.8.1
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
   '@polkadot/types-augment@10.13.1':
     dependencies:
       '@polkadot/types': 10.13.1
@@ -8886,17 +8916,17 @@ snapshots:
 
   '@types/bn.js@4.11.6':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
 
   '@types/bn.js@5.1.6':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
 
   '@types/cacheable-request@6.0.3':
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       '@types/keyv': 3.1.4
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
       '@types/responselike': 1.0.3
 
   '@types/debug@4.1.12':
@@ -8913,7 +8943,7 @@ snapshots:
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
 
   '@types/level-errors@3.0.2': {}
 
@@ -8921,7 +8951,7 @@ snapshots:
     dependencies:
       '@types/abstract-leveldown': 7.2.5
       '@types/level-errors': 3.0.2
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
 
   '@types/long@4.0.2': {}
 
@@ -8933,7 +8963,7 @@ snapshots:
 
   '@types/node-fetch@2.6.12':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
       form-data: 4.0.1
 
   '@types/node@12.20.55': {}
@@ -8946,17 +8976,21 @@ snapshots:
     dependencies:
       undici-types: 6.19.8
 
+  '@types/node@22.9.1':
+    dependencies:
+      undici-types: 6.19.8
+
   '@types/pbkdf2@3.1.2':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
 
   '@types/secp256k1@4.0.6':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
 
   '@types/semver@7.5.8': {}
 
@@ -8968,11 +9002,11 @@ snapshots:
 
   '@types/websocket@1.0.10':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
 
   '@types/ws@8.5.3':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -9183,6 +9217,22 @@ snapshots:
       nunjucks: 3.2.4(chokidar@3.6.0)
       toml: 3.0.0
       ts-node: 10.9.2(@types/node@22.9.0)(typescript@5.6.3)
+    transitivePeerDependencies:
+      - '@swc/core'
+      - '@swc/wasm'
+      - '@types/node'
+      - chokidar
+      - supports-color
+      - typescript
+
+  '@zombienet/utils@0.0.25(@types/node@22.9.1)(chokidar@3.6.0)(typescript@5.6.3)':
+    dependencies:
+      cli-table3: 0.6.5
+      debug: 4.3.7(supports-color@8.1.1)
+      mocha: 10.7.3
+      nunjucks: 3.2.4(chokidar@3.6.0)
+      toml: 3.0.0
+      ts-node: 10.9.2(@types/node@22.9.1)(typescript@5.6.3)
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
@@ -9552,7 +9602,7 @@ snapshots:
 
   canvas-renderer@2.2.1:
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
 
   caseless@0.12.0: {}
 
@@ -12220,7 +12270,7 @@ snapshots:
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
       '@types/long': 4.0.2
-      '@types/node': 22.9.0
+      '@types/node': 22.9.1
       long: 4.0.0
 
   proxy-addr@2.0.7:
@@ -12932,6 +12982,24 @@ snapshots:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
       '@types/node': 22.9.0
+      acorn: 8.12.1
+      acorn-walk: 8.3.4
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.6.3
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+
+  ts-node@10.9.2(@types/node@22.9.1)(typescript@5.6.3):
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.11
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 22.9.1
       acorn: 8.12.1
       acorn-walk: 8.3.4
       arg: 4.1.3
