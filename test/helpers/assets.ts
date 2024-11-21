@@ -406,7 +406,7 @@ export async function mockAssetBalance(
 ) {
   const api = context.polkadotJs();
   // Register the asset
-  await registerForeignAsset(context, assetId, RELAY_SOURCE_LOCATION, relayAssetMetadata);
+  await registerForeignAsset(context, assetId, assetLocation, relayAssetMetadata);
 
   const xcmTransaction = {
     V2: {
