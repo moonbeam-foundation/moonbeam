@@ -24,11 +24,11 @@ use super::{
 	RuntimeOrigin, Treasury, XcmpQueue,
 };
 
+use super::moonriver_weights;
 use frame_support::{
 	parameter_types,
 	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
-use moonbeam_runtime_common::weights as moonriver_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
 	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
@@ -741,6 +741,7 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
 	type RuntimeEvent = RuntimeEvent;
 	type ResumeSupportedAssetOrigin = RemoveSupportedAssetOrigin;
+
 	type WeightInfo = moonriver_weights::pallet_xcm_weight_trader::WeightInfo<Runtime>;
 	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;
