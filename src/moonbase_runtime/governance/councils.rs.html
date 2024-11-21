@@ -80,8 +80,8 @@
 
 </span><span class="doccomment">//! Councils for Gov1 and Gov2
 
-</span><span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbase_weights;
+</span><span class="kw">use </span><span class="kw">super</span>::moonbase_weights;
+<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
 <span class="kw">pub type </span>TreasuryCouncilInstance = pallet_collective::Instance3;
 <span class="kw">pub type </span>OpenTechCommitteeInstance = pallet_collective::Instance4;

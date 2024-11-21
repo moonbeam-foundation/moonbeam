@@ -796,14 +796,14 @@
 </span><span class="doccomment">//! XCM configuration for Moonbase.
 //!
 
-</span><span class="kw">use super</span>::{
+</span><span class="kw">use </span><span class="kw">super</span>::moonbase_weights;
+<span class="kw">use super</span>::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
 	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo,
 	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
 	RuntimeOrigin, Treasury, XcmpQueue,
 };
 <span class="kw">use </span><span class="kw">crate</span>::OpenTechCommitteeInstance;
-<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbase_weights;
 <span class="kw">use </span>moonkit_xcm_primitives::AccountIdAssetIdConversion;
 <span class="kw">use </span>sp_runtime::{
 	traits::{Hash <span class="kw">as </span>THash, MaybeEquivalence, PostDispatchInfoOf},

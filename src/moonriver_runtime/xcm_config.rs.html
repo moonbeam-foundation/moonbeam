@@ -779,6 +779,7 @@
 <a href="#777" id="777">777</a>
 <a href="#778" id="778">778</a>
 <a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -805,11 +806,11 @@
 	RuntimeOrigin, Treasury, XcmpQueue,
 };
 
+<span class="kw">use </span><span class="kw">super</span>::moonriver_weights;
 <span class="kw">use </span>frame_support::{
 	parameter_types,
 	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
-<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonriver_weights;
 <span class="kw">use </span>moonkit_xcm_primitives::AccountIdAssetIdConversion;
 <span class="kw">use </span>sp_runtime::{
 	traits::{Hash <span class="kw">as </span>THash, MaybeEquivalence, PostDispatchInfoOf},
@@ -1522,6 +1523,7 @@
 	<span class="kw">type </span>RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>ResumeSupportedAssetOrigin = RemoveSupportedAssetOrigin;
+
 	<span class="kw">type </span>WeightInfo = moonriver_weights::pallet_xcm_weight_trader::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>WeightToFee = &lt;Runtime <span class="kw">as </span>pallet_transaction_payment::Config&gt;::WeightToFee;
 	<span class="kw">type </span>XcmFeesAccount = XcmFeesAccount;

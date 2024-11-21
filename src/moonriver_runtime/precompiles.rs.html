@@ -297,6 +297,9 @@
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
 <a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -313,14 +316,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use crate</span>::{
+</span><span class="kw">use </span><span class="kw">super</span>::moonriver_weights;
+<span class="kw">use crate</span>::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{AssetType, XcmExecutorConfig},
 	AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, OpenTechCommitteeInstance, Runtime,
 	TreasuryCouncilInstance,
 };
 <span class="kw">use </span>frame_support::parameter_types;
-<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonriver_weights;
 <span class="kw">use </span>moonkit_xcm_primitives::location_matcher::{
 	Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher,
 };
@@ -561,7 +564,10 @@
 	&gt;,
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2073</span>&gt;,
-		RelayDataVerifierPrecompile&lt;R&gt;,
+		RelayDataVerifierPrecompile&lt;
+			R,
+			moonriver_weights::pallet_precompile_benchmarks::WeightInfo&lt;Runtime&gt;,
+		&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
 	PrecompileAt&lt;

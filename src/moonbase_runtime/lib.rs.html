@@ -1938,10 +1938,7 @@
 <span class="kw">use </span>frame_system::{EnsureRoot, EnsureSigned};
 <span class="kw">use </span>governance::councils::<span class="kw-2">*</span>;
 <span class="kw">use </span>moonbeam_rpc_primitives_txpool::TxPoolResponse;
-<span class="kw">use </span>moonbeam_runtime_common::{
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
-	weights <span class="kw">as </span>moonbase_weights,
-};
+<span class="kw">use </span>moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
 <span class="kw">use </span>nimbus_primitives::CanAuthor;
 <span class="kw">use </span>pallet_ethereum::Call::transact;
 <span class="kw">use </span>pallet_ethereum::{PostLogContent, Transaction <span class="kw">as </span>EthereumTransaction};
@@ -1990,6 +1987,9 @@
 </span><span class="kw">pub use </span>sp_runtime::BuildStorage;
 
 <span class="kw">pub type </span>Precompiles = MoonbasePrecompiles&lt;Runtime&gt;;
+
+<span class="kw">mod </span>weights;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>weights <span class="kw">as </span>moonbase_weights;
 
 <span class="doccomment">/// UNIT, the native token, uses 18 decimals of precision.
 </span><span class="kw">pub mod </span>currency {

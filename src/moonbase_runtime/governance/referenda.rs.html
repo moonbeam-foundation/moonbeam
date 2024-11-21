@@ -123,11 +123,11 @@
 //! 2. pallet-whitelist
 //! 3. pallet-referenda
 
-</span><span class="kw">use super</span>::<span class="kw-2">*</span>;
+</span><span class="kw">use </span><span class="kw">super</span>::moonbase_weights;
+<span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::currency::<span class="kw-2">*</span>;
 <span class="kw">use </span>frame_support::traits::{EitherOf, MapSuccess};
 <span class="kw">use </span>frame_system::EnsureRootWithSuccess;
-<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbase_weights;
 <span class="kw">use </span>sp_runtime::traits::Replace;
 
 <span class="macro">parameter_types! </span>{

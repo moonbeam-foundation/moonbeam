@@ -1864,6 +1864,16 @@
 <a href="#1862" id="1862">1862</a>
 <a href="#1863" id="1863">1863</a>
 <a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
+<a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1931,10 +1941,7 @@
 	Index, Signature,
 };
 <span class="kw">use </span>moonbeam_rpc_primitives_txpool::TxPoolResponse;
-<span class="kw">use </span>moonbeam_runtime_common::{
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
-	weights <span class="kw">as </span>moonriver_weights,
-};
+<span class="kw">use </span>moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
 <span class="kw">pub use </span>pallet_author_slot_filter::EligibilityValue;
 <span class="kw">use </span>pallet_ethereum::Call::transact;
 <span class="kw">use </span>pallet_ethereum::{PostLogContent, Transaction <span class="kw">as </span>EthereumTransaction};
@@ -1996,6 +2003,9 @@
 
 <span class="kw">mod </span>migrations;
 <span class="kw">mod </span>precompiles;
+<span class="kw">mod </span>weights;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>weights <span class="kw">as </span>moonriver_weights;
 
 <span class="kw">pub use </span>governance::councils::<span class="kw-2">*</span>;
 
@@ -2188,8 +2198,14 @@
 	<span class="kw">type </span>WeightInfo = moonriver_weights::pallet_timestamp::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="macro">parameter_types! </span>{
+<span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
+</span><span class="macro">parameter_types! </span>{
 	<span class="kw">pub const </span>ExistentialDeposit: Balance = <span class="number">0</span>;
+}
+
+<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
+</span><span class="macro">parameter_types! </span>{
+	<span class="kw">pub const </span>ExistentialDeposit: Balance = <span class="number">1</span>;
 }
 
 <span class="kw">impl </span>pallet_balances::Config <span class="kw">for </span>Runtime {
@@ -3385,6 +3401,7 @@
 		[pallet_xcm, PalletXcmExtrinsicsBenchmark::&lt;Runtime&gt;]
 		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
+		[pallet_moonbeam_foreign_assets, EvmForeignAssets]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
 		[pallet_randomness, Randomness]
 		[pallet_conviction_voting, ConvictionVoting]
@@ -3393,6 +3410,9 @@
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
 		[pallet_relay_storage_roots, RelayStorageRoots]
+		[pallet_precompile_benchmarks, PrecompileBenchmarks]
+		[pallet_parameters, Parameters]
+		[pallet_xcm_weight_trader, XcmWeightTrader]
 	);
 }
 

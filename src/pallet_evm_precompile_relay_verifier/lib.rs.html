@@ -189,7 +189,6 @@
 <span class="kw">use </span>cumulus_primitives_core::relay_chain::BlockNumber <span class="kw">as </span>RelayBlockNumber;
 <span class="kw">use </span>fp_evm::{PrecompileFailure, PrecompileHandle};
 <span class="kw">use </span>frame_support::{ensure, traits::ConstU32};
-<span class="kw">use </span>moonbeam_runtime_common::weights::pallet_precompile_benchmarks::WeightInfo;
 <span class="kw">use </span>pallet_precompile_benchmarks::WeightInfo <span class="kw">as </span>TWeightInfo;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::H256;
@@ -212,15 +211,16 @@
 <span class="kw">pub type </span>RawKey = BoundedBytes&lt;GetKeyLengthLimit&gt;;
 
 <span class="doccomment">/// Relay Data Verifier precompile.
-</span><span class="kw">pub struct </span>RelayDataVerifierPrecompile&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
+</span><span class="kw">pub struct </span>RelayDataVerifierPrecompile&lt;Runtime, WeightInfo&gt;(PhantomData&lt;(Runtime, WeightInfo)&gt;);
 
 <span class="attr">#[precompile_utils::precompile]
-</span><span class="kw">impl</span>&lt;Runtime&gt; RelayDataVerifierPrecompile&lt;Runtime&gt;
+</span><span class="kw">impl</span>&lt;Runtime, WeightInfo&gt; RelayDataVerifierPrecompile&lt;Runtime, WeightInfo&gt;
 <span class="kw">where
 	</span>Runtime: frame_system::Config
 		+ pallet_relay_storage_roots::Config
 		+ pallet_evm::Config
 		+ pallet_precompile_benchmarks::Config,
+	WeightInfo: TWeightInfo,
 {
 	<span class="doccomment">/// Verify the storage entry using the provided relay block number and proof. Return the value
 	/// of the storage entry if the proof is valid and the entry exists.
@@ -233,7 +233,7 @@
 		key: RawKey,
 	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
 		<span class="comment">// Charge gas for storage proof verification
-		</span><span class="kw">let </span>weight = WeightInfo::&lt;Runtime&gt;::verify_entry(proof.proof.len() <span class="kw">as </span>u32);
+		</span><span class="kw">let </span>weight = WeightInfo::verify_entry(proof.proof.len() <span class="kw">as </span>u32);
 		handle.record_external_cost(<span class="prelude-val">Some</span>(weight.ref_time()), <span class="prelude-val">Some</span>(<span class="number">0</span>), <span class="prelude-val">Some</span>(<span class="number">0</span>))<span class="question-mark">?</span>;
 
 		<span class="comment">// Get the storage root of the relay block
@@ -262,7 +262,7 @@
 		<span class="macro">ensure!</span>(keys.len() &gt; <span class="number">0</span>, revert(<span class="string">"Keys must not be empty"</span>));
 
 		<span class="comment">//  Charge gas for storage proof verification
-		</span><span class="kw">let </span>weight = WeightInfo::&lt;Runtime&gt;::verify_entry(proof.proof.len() <span class="kw">as </span>u32);
+		</span><span class="kw">let </span>weight = WeightInfo::verify_entry(proof.proof.len() <span class="kw">as </span>u32);
 		handle.record_external_cost(<span class="prelude-val">Some</span>(weight.ref_time()), <span class="prelude-val">Some</span>(<span class="number">0</span>), <span class="prelude-val">Some</span>(<span class="number">0</span>))<span class="question-mark">?</span>;
 
 		<span class="comment">// Get the storage root of the relay block
@@ -286,7 +286,7 @@
 	#[precompile::public(<span class="string">"latest_relay_block_number()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>latest_relay_block(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;RelayBlockNumber&gt; {
-		<span class="kw">let </span>weight = WeightInfo::&lt;Runtime&gt;::latest_relay_block();
+		<span class="kw">let </span>weight = WeightInfo::latest_relay_block();
 		handle.record_external_cost(<span class="prelude-val">Some</span>(weight.ref_time()), <span class="prelude-val">Some</span>(weight.proof_size()), <span class="prelude-val">Some</span>(<span class="number">0</span>))<span class="question-mark">?</span>;
 
 		pallet_relay_storage_roots::RelayStorageRootKeys::&lt;Runtime&gt;::get()

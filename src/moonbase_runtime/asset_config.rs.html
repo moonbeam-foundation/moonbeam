@@ -244,7 +244,7 @@
 	RuntimeCall, RuntimeEvent, RuntimeOrigin, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-<span class="kw">use </span>moonbeam_runtime_common::weights <span class="kw">as </span>moonbase_weights;
+<span class="kw">use </span><span class="kw">super</span>::moonbase_weights;
 <span class="kw">use </span>moonkit_xcm_primitives::AccountIdAssetIdConversion;
 
 <span class="kw">use </span>frame_support::{
