@@ -1840,22 +1840,6 @@
 <a href="#1838" id="1838">1838</a>
 <a href="#1839" id="1839">1839</a>
 <a href="#1840" id="1840">1840</a>
-<a href="#1841" id="1841">1841</a>
-<a href="#1842" id="1842">1842</a>
-<a href="#1843" id="1843">1843</a>
-<a href="#1844" id="1844">1844</a>
-<a href="#1845" id="1845">1845</a>
-<a href="#1846" id="1846">1846</a>
-<a href="#1847" id="1847">1847</a>
-<a href="#1848" id="1848">1848</a>
-<a href="#1849" id="1849">1849</a>
-<a href="#1850" id="1850">1850</a>
-<a href="#1851" id="1851">1851</a>
-<a href="#1852" id="1852">1852</a>
-<a href="#1853" id="1853">1853</a>
-<a href="#1854" id="1854">1854</a>
-<a href="#1855" id="1855">1855</a>
-<a href="#1856" id="1856">1856</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2048,23 +2032,7 @@
 /// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
 /// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
 /// changes which can be skipped.
-</span><span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
-#[sp_version::runtime_version]
-</span><span class="kw">pub const </span>VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: <span class="macro">create_runtime_str!</span>(<span class="string">"moonbase"</span>),
-	impl_name: <span class="macro">create_runtime_str!</span>(<span class="string">"moonbase"</span>),
-	authoring_version: <span class="number">4</span>,
-	spec_version: <span class="number">3400</span>,
-	impl_version: <span class="number">0</span>,
-	apis: RUNTIME_API_VERSIONS,
-	transaction_version: <span class="number">3</span>,
-	state_version: <span class="number">0</span>,
-};
-
-<span class="doccomment">/// We need to duplicate this because the `runtime_version` macro is conflicting with the
-/// conditional compilation at the state_version field.
-</span><span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
-#[sp_version::runtime_version]
+</span><span class="attr">#[sp_version::runtime_version]
 </span><span class="kw">pub const </span>VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: <span class="macro">create_runtime_str!</span>(<span class="string">"moonbase"</span>),
 	impl_name: <span class="macro">create_runtime_str!</span>(<span class="string">"moonbase"</span>),
