@@ -66,21 +66,21 @@ describeSuite({
     let descendAddress: `0x${string}`;
     let api: ApiPromise;
 
-    const initialBalance: bigint = 10_000_000_000_000n;
+    const initialBalance: bigint = 500_000_000_000_000n
     const xcMaticToSend = 3_500_000_000n;
 
     const xcIntrAsset: TestAsset = {
       id: 1000100010001000n,
       location: PARA_1000_SOURCE_LOCATION,
       metadata: InterlayAssetMetadata,
-      relativePrice: 500_000,
+      relativePrice: 1_000_000_000_000_000_000n,
     };
 
     const xcMaticAsset: TestAsset = {
       id: 1001100110011001n,
       location: PARA_1001_SOURCE_LOCATION,
       metadata: MaticAssetMetadata,
-      relativePrice: 600_000,
+      relativePrice: 1_000_000_000_000_000_000n,
     };
 
     beforeAll(async () => {
@@ -100,7 +100,6 @@ describeSuite({
 
       // Register foreign asset used to transfer(i.e.xcMatic)
       await registerAndFundAsset(context, xcMaticAsset, initialBalance, descendAddress);
-      await mockAssetBalance(context, initialBalance, BigInt(xcIntrAsset.id), alith, ethan.address);
     });
 
     it({
@@ -112,7 +111,7 @@ describeSuite({
           assets: [
             {
               multilocation: PARA_1000_SOURCE_LOCATION.Xcm,
-              fungible: 1_000_000_000n,
+              fungible: 200_000_000_000_000n,
             },
             {
               multilocation: PARA_1001_SOURCE_LOCATION.Xcm,
@@ -130,12 +129,12 @@ describeSuite({
           .buy_execution()
           .deposit_asset_definite(
             PARA_1001_SOURCE_LOCATION.Xcm,
-            xcMaticToSend,
+            500_000n,
             ethan.address as `0x${string}`
           )
           .deposit_asset_definite(
             PARA_1000_SOURCE_LOCATION.Xcm,
-            500_000_000n,
+            500_000n,
             descendAddress as `0x${string}`
           )
           .as_v4();
@@ -172,7 +171,7 @@ describeSuite({
           descendAddress
         );
 
-        const xcMaticReceivedEthan = await foreignAssetBalance(
+        const xcMaticBalanceEthan = await foreignAssetBalance(
           context,
           BigInt(xcMaticAsset.id),
           ethan.address as `0x${string}`
@@ -180,8 +179,8 @@ describeSuite({
 
         // Check that xcIntr where debited from Alith's descend address to pay the fees of the XCM execution
         expect(xcMaticBalanceBefore - xcMaticBalanceAfter).to.be.eq(xcMaticToSend);
-        expect(initialBalance - xcMaticReceivedEthan).to.be.eq(xcMaticToSend);
-        expect(xcIntrBalanceBefore - xcIntrBalanceAfter).to.be.eq(500_000_000n);
+        expect(xcMaticBalanceEthan).to.be.eq(500_000n);
+        expect(xcIntrBalanceBefore - xcIntrBalanceAfter).to.be.eq(199_999_999_500_000n);
       },
     });
   },
