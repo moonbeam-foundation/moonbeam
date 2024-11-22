@@ -80,10 +80,7 @@ use frame_support::{
 use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::{
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
-	weights as moonbase_weights,
-};
+use moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
 use nimbus_primitives::CanAuthor;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
@@ -132,6 +129,9 @@ use sp_runtime::serde::{Deserialize, Serialize};
 pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
+
+mod weights;
+pub(crate) use weights as moonbase_weights;
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -196,7 +196,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 3300,
+	spec_version: 3400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -211,7 +211,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 3300,
+	spec_version: 3400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -364,9 +364,9 @@ where
 		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
 	) {
 		if let Some(fees) = fees_then_tips.next() {
-			let treasury_perbill =
+			let treasury_proportion =
 				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
-			let treasury_part = treasury_perbill.deconstruct();
+			let treasury_part = treasury_proportion.deconstruct();
 			let burn_part = Perbill::one().deconstruct() - treasury_part;
 			let (_, to_treasury) = fees.ration(burn_part, treasury_part);
 			// Balances pallet automatically burns dropped Credits by decreasing
@@ -378,7 +378,7 @@ where
 			// handle tip if there is one
 			if let Some(tip) = fees_then_tips.next() {
 				// for now we use the same burn/treasury strategy used for regular fees
-				let (_, to_treasury) = tip.ration(80, 20);
+				let (_, to_treasury) = tip.ration(burn_part, treasury_part);
 				ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
 					to_treasury,
 				);
@@ -391,7 +391,11 @@ where
 	fn on_nonzero_unbalanced(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
 		// Balances pallet automatically burns dropped Credits by decreasing
 		// total_supply accordingly
-		let (_, to_treasury) = amount.ration(80, 20);
+		let treasury_proportion =
+			runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
+		let treasury_part = treasury_proportion.deconstruct();
+		let burn_part = Perbill::one().deconstruct() - treasury_part;
+		let (_, to_treasury) = amount.ration(burn_part, treasury_part);
 		ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(to_treasury);
 	}
 }
@@ -1543,7 +1547,6 @@ mod benches {
 		[pallet_multisig, Multisig]
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
-		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_parameters, Parameters]
 		[pallet_xcm_weight_trader, XcmWeightTrader]
 	);

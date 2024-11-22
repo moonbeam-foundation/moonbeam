@@ -1419,7 +1419,7 @@ fn transfer_ed_0_substrate() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), (1 * GLMR) + (1 * WEI)),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1442,7 +1442,7 @@ fn transfer_ed_0_evm() {
 				AccountId::from(ALICE),
 				((1 * GLMR) + (21_000 * BASE_FEE_GENESIS)) + (1 * WEI),
 			),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1470,9 +1470,9 @@ fn refund_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * GLMR) + (21_777 * BASE_FEE_GENESIS)),
+				((1 * GLMR) + (21_777 * BASE_FEE_GENESIS) + existential_deposit()),
 			),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1492,7 +1492,7 @@ fn refund_ed_0_evm() {
 			// ALICE is refunded
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				777 * BASE_FEE_GENESIS,
+				777 * BASE_FEE_GENESIS + existential_deposit(),
 			);
 		});
 }
@@ -1534,10 +1534,16 @@ fn author_does_not_receive_priority_fee() {
 #[test]
 fn total_issuance_after_evm_transaction_with_priority_fee() {
 	ExtBuilder::default()
-		.with_balances(vec![(
-			AccountId::from(BOB),
-			(1 * GLMR) + (21_000 * (200 * GIGAWEI)),
-		)])
+		.with_balances(vec![
+			(
+				AccountId::from(BOB),
+				(1 * GLMR) + (21_000 * (200 * GIGAWEI) + existential_deposit()),
+			),
+			(
+				<pallet_treasury::TreasuryAccountId<Runtime> as sp_core::TypedGet>::get(),
+				existential_deposit(),
+			),
+		])
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
@@ -1570,10 +1576,16 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 #[test]
 fn total_issuance_after_evm_transaction_without_priority_fee() {
 	ExtBuilder::default()
-		.with_balances(vec![(
-			AccountId::from(BOB),
-			(1 * GLMR) + (21_000 * BASE_FEE_GENESIS),
-		)])
+		.with_balances(vec![
+			(
+				AccountId::from(BOB),
+				(1 * GLMR) + (21_000 * BASE_FEE_GENESIS + existential_deposit()),
+			),
+			(
+				<pallet_treasury::TreasuryAccountId<Runtime> as sp_core::TypedGet>::get(),
+				existential_deposit(),
+			),
+		])
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
@@ -1796,7 +1808,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(24684)
+				.expect_cost(24753)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1861,7 +1873,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(15573)
+				.expect_cost(15568)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1882,7 +1894,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29947)
+				.expect_cost(30053)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1961,7 +1973,7 @@ fn xtokens_precompile_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24691)
+				.expect_cost(24680)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -2013,7 +2025,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24691)
+				.expect_cost(24680)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2175,7 +2187,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23275)
+				.expect_cost(21456)
 				.expect_no_logs()
 				.execute_returns(());
 		});

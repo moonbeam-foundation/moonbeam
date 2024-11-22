@@ -64,10 +64,8 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::{
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
-	weights as moonbeam_weights,
-};
+use moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
+pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
@@ -126,8 +124,11 @@ pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod runtime_params;
+mod weights;
 pub mod xcm_config;
+
 use governance::councils::*;
+pub(crate) use weights as moonbeam_weights;
 
 /// GLMR, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -193,7 +194,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 3300,
+	spec_version: 3400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -208,7 +209,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 3300,
+	spec_version: 3400,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -319,8 +320,14 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
+#[cfg(not(feature = "runtime-benchmarks"))]
 parameter_types! {
 	pub const ExistentialDeposit: Balance = 0;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+parameter_types! {
+	pub const ExistentialDeposit: Balance = 1;
 }
 
 impl pallet_balances::Config for Runtime {
@@ -351,9 +358,9 @@ where
 		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
 	) {
 		if let Some(fees) = fees_then_tips.next() {
-			let treasury_perbill =
+			let treasury_proportion =
 				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
-			let treasury_part = treasury_perbill.deconstruct();
+			let treasury_part = treasury_proportion.deconstruct();
 			let burn_part = Perbill::one().deconstruct() - treasury_part;
 			let (_, to_treasury) = fees.ration(burn_part, treasury_part);
 			// Balances pallet automatically burns dropped Credits by decreasing
@@ -365,7 +372,7 @@ where
 			// handle tip if there is one
 			if let Some(tip) = fees_then_tips.next() {
 				// for now we use the same burn/treasury strategy used for regular fees
-				let (_, to_treasury) = tip.ration(80, 20);
+				let (_, to_treasury) = tip.ration(burn_part, treasury_part);
 				ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
 					to_treasury,
 				);
@@ -378,7 +385,11 @@ where
 	fn on_nonzero_unbalanced(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
 		// Balances pallet automatically burns dropped Credits by decreasing
 		// total_supply accordingly
-		let (_, to_treasury) = amount.ration(80, 20);
+		let treasury_proportion =
+			runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
+		let treasury_part = treasury_proportion.deconstruct();
+		let burn_part = Perbill::one().deconstruct() - treasury_part;
+		let (_, to_treasury) = amount.ration(burn_part, treasury_part);
 		ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(to_treasury);
 	}
 }
@@ -1521,6 +1532,7 @@ mod benches {
 		[pallet_xcm, PalletXcmExtrinsicsBenchmark::<Runtime>]
 		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
+		[pallet_moonbeam_foreign_assets, EvmForeignAssets]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
 		[pallet_randomness, Randomness]
 		[pallet_conviction_voting, ConvictionVoting]
@@ -1528,8 +1540,10 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
-		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
+		[pallet_precompile_benchmarks, PrecompileBenchmarks]
+		[pallet_parameters, Parameters]
+		[pallet_xcm_weight_trader, XcmWeightTrader]
 	);
 }
 

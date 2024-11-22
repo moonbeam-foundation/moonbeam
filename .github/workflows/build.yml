@@ -66,7 +66,7 @@ jobs:
       - name: Get Latest RT Release
         id: get-latest-rt
         run: |
-          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1 | tr -d '[:blank:]') && [[ ! -z "${LATEST_RUNTIME_RELEASE}" ]]
+          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | sort -rs | head -n 1 | tr -d '[:blank:]') && [[ ! -z "${LATEST_RUNTIME_RELEASE}" ]]
           echo $LATEST_RUNTIME_RELEASE
           echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
       - name: Get Sha
@@ -206,7 +206,7 @@ jobs:
         with:
           node-version: 20.10.0
           cache: "pnpm"
-          cache-dependency-path: test/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
       - name: Run Eslint check
         run: |
           cd test
@@ -500,7 +500,7 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.5
+        uses: mozilla-actions/sccache-action@v0.0.6
       - name: Setup Variables
         shell: bash
         run: |
@@ -613,7 +613,7 @@ jobs:
         with:
           node-version: 20.10.0
           cache: "pnpm"
-          cache-dependency-path: test/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
       - run: |
           mkdir -p target/release
       - name: "Download branch built node"
@@ -739,6 +739,21 @@ jobs:
         with:
           name: moonbeam
           path: target/release
+      - name: Setup Moonbeam PolkadotJS types
+        shell: bash
+        run: |
+          #### Preparing the legacy types
+          cd moonbeam-types-bundle
+          pnpm i
+          pnpm build
+
+          #### Preparing the typescript api
+          cd ../typescript-api
+          pnpm i
+          pnpm build
+
+          cd ../test
+          pnpm add ../typescript-api
       - name: "Run lazy loading tests"
         run: |
           chmod uog+x target/release/moonbeam
@@ -782,7 +797,7 @@ jobs:
         with:
           node-version: 20.10.0
           cache: "pnpm"
-          cache-dependency-path: test/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -792,6 +807,21 @@ jobs:
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
+      - name: Setup Moonbeam PolkadotJS types
+        shell: bash
+        run: |
+          #### Preparing the legacy types
+          cd moonbeam-types-bundle
+          pnpm i
+          pnpm build
+
+          #### Preparing the typescript api
+          cd ../typescript-api
+          pnpm i
+          pnpm build
+
+          cd ../test
+          pnpm add ../typescript-api
       - name: "Install and run upgrade test"
         run: |
           cd test
@@ -854,6 +884,21 @@ jobs:
           docker create --name moonbeam_container $DOCKER_TAG bash
           docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
           docker rm -f moonbeam_container
+      - name: Setup Moonbeam PolkadotJS types
+        shell: bash
+        run: |
+          #### Preparing the legacy types
+          cd moonbeam-types-bundle
+          pnpm i
+          pnpm build
+
+          #### Preparing the typescript api
+          cd ../typescript-api
+          pnpm i
+          pnpm build
+
+          cd ../test
+          pnpm add ../typescript-api
       - name: Prepare Chainspecs
         run: |
           cd test

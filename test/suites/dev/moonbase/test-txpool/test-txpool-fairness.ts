@@ -93,7 +93,7 @@ describeSuite({
           .tx.balances.transferAllowDeath(alith.address, GLMR);
         const info = await context
           .polkadotJs()
-          .call.transactionPaymentApi.queryInfo(dummyTransfer.toHex(), dummyTransfer.encodedLength);
+          .call.transactionPaymentApi.queryInfo(dummyTransfer.toU8a(), dummyTransfer.encodedLength);
         const weight = info.weight.refTime.toBigInt();
         const balances_transfer_effective_gas = weight / WEIGHT_PER_GAS;
 
