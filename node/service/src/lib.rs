@@ -1209,7 +1209,7 @@ where
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial::<RuntimeApi, Customizations>(&mut config, &rpc_config, true, false)?;
+	} = new_partial::<RuntimeApi, Customizations>(&mut config, &rpc_config, true, true)?;
 
 	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
 		block_import
