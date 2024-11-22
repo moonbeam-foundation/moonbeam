@@ -3,17 +3,19 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { alith, ethan } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
-import { u128 } from "@polkadot/types";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { hexToBigInt } from "@polkadot/util";
+
+
 import {
   AssetMetadata,
   PARA_1000_SOURCE_LOCATION,
   PARA_1001_SOURCE_LOCATION,
-  mockOldAssetBalance,
-  registerOldForeignAsset,
+  TestAsset,
+  foreignAssetBalance,
+  registerAndFundAsset,
   verifyLatestBlockFees,
+  mockAssetBalance,
 } from "../../../../helpers/index.js";
+
 import {
   RawXcmMessage,
   XcmFragment,
@@ -21,19 +23,21 @@ import {
   injectHrmpMessageAndSeal,
 } from "../../../../helpers/xcm.js";
 
-export const InterlayAsset: AssetMetadata = {
+export const InterlayAssetMetadata: AssetMetadata = {
   name: "INTR",
   symbol: "INTR",
   decimals: 12n,
   isFrozen: false,
 };
 
-export const MaticAsset: AssetMetadata = {
+export const MaticAssetMetadata: AssetMetadata = {
   name: "MATIC",
   symbol: "MATIC",
   decimals: 12n,
   isFrozen: false,
 };
+
+const DEFAULT_ADDRESS = "0x0101010101010101010101010101010101010101";
 
 /**
  * We are going to test the following scenario:
@@ -61,42 +65,42 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let api: ApiPromise;
-    let xcIntrAssetId: u128;
-    let xcMaticAssetId: u128;
 
-    const xcIntrUnitsPerSecond: number = 10;
-    const xcMaticUnitsPerSecond: number = 12;
-    const initialSenderBalance: bigint = 10_000_000_000_000n;
+    const initialBalance: bigint = 10_000_000_000_000n;
     const xcMaticToSend = 3_500_000_000n;
+
+    const xcIntrAsset: TestAsset = {
+      id: 1000100010001000n,
+      location: PARA_1000_SOURCE_LOCATION,
+      metadata: InterlayAssetMetadata,
+      relativePrice: 500_000,
+    };
+
+    const xcMaticAsset: TestAsset = {
+      id: 1001100110011001n,
+      location: PARA_1001_SOURCE_LOCATION,
+      metadata: MaticAssetMetadata,
+      relativePrice: 600_000,
+    };
 
     beforeAll(async () => {
       api = context.polkadotJs();
 
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
         context,
-        "0x0101010101010101010101010101010101010101",
+        DEFAULT_ADDRESS,
         1000
       );
+
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
 
       // Register foreign asset used to pay fees (i.e. xcINTR)
-      xcIntrAssetId = await registerAndFundAsset(
-        context,
-        xcIntrUnitsPerSecond,
-        PARA_1000_SOURCE_LOCATION,
-        initialSenderBalance,
-        descendAddress
-      );
+      await registerAndFundAsset(context, xcIntrAsset, initialBalance, descendAddress);
 
-      // Register foreign asset used to transfer (i.e. xcMatic)
-      xcMaticAssetId = await registerAndFundAsset(
-        context,
-        xcMaticUnitsPerSecond,
-        PARA_1001_SOURCE_LOCATION,
-        initialSenderBalance,
-        descendAddress
-      );
+      // Register foreign asset used to transfer(i.e.xcMatic)
+      await registerAndFundAsset(context, xcMaticAsset, initialBalance, descendAddress);
+      await mockAssetBalance(context, initialBalance, BigInt(xcIntrAsset.id), alith, ethan.address);
     });
 
     it({
@@ -138,15 +142,17 @@ describeSuite({
 
         await verifyLatestBlockFees(context);
 
-        const xcIntrBalanceBefore = (await api.query.assets.account(xcIntrAssetId, descendAddress))
-          .unwrap()
-          .balance.toBigInt();
+        const xcIntrBalanceBefore = await foreignAssetBalance(
+          context,
+          BigInt(xcIntrAsset.id),
+          descendAddress
+        );
 
-        const xcMaticBalanceBefore = (
-          await api.query.assets.account(xcMaticAssetId, descendAddress)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const xcMaticBalanceBefore = await foreignAssetBalance(
+          context,
+          BigInt(xcMaticAsset.id),
+          descendAddress
+        );
 
         // Simulate reception of an incoming XCM message and create block to execute it
         await injectHrmpMessageAndSeal(context, 1000, {
@@ -154,54 +160,29 @@ describeSuite({
           payload: xcmMessage,
         } as RawXcmMessage);
 
-        const xcIntrBalanceAfter = (await api.query.assets.account(xcIntrAssetId, descendAddress))
-          .unwrap()
-          .balance.toBigInt();
+        const xcIntrBalanceAfter = await foreignAssetBalance(
+          context,
+          BigInt(xcIntrAsset.id),
+          descendAddress
+        );
 
-        const xcMaticBalanceAfter = (await api.query.assets.account(xcMaticAssetId, descendAddress))
-          .unwrap()
-          .balance.toBigInt();
+        const xcMaticBalanceAfter = await foreignAssetBalance(
+          context,
+          BigInt(xcMaticAsset.id),
+          descendAddress
+        );
 
-        const xcMaticReceivedEthan = (await api.query.assets.account(xcMaticAssetId, ethan.address))
-          .unwrap()
-          .balance.toBigInt();
+        const xcMaticReceivedEthan = await foreignAssetBalance(
+          context,
+          BigInt(xcMaticAsset.id),
+          ethan.address as `0x${string}`
+        );
 
         // Check that xcIntr where debited from Alith's descend address to pay the fees of the XCM execution
         expect(xcMaticBalanceBefore - xcMaticBalanceAfter).to.be.eq(xcMaticToSend);
-        expect(xcMaticReceivedEthan).to.be.eq(xcMaticToSend);
+        expect(initialBalance - xcMaticReceivedEthan).to.be.eq(xcMaticToSend);
         expect(xcIntrBalanceBefore - xcIntrBalanceAfter).to.be.eq(500_000_000n);
       },
     });
   },
 });
-
-async function registerAndFundAsset(
-  context: any,
-  unitsPerSecond: number,
-  assetLocation: any,
-  balance: bigint,
-  address: string
-) {
-  const api = context.polkadotJs();
-
-  const { registeredAssetId } = await registerOldForeignAsset(
-    context,
-    assetLocation,
-    InterlayAsset as any,
-    unitsPerSecond
-  );
-
-  const initialBalance = api.createType("Balance", balance);
-  const assetId = api.createType("u128", hexToBigInt(registeredAssetId as `0x${string}`));
-
-  const assetBalance: PalletAssetsAssetAccount = api.createType("PalletAssetsAssetAccount", {
-    balance: initialBalance,
-  });
-  const assetDetails: PalletAssetsAssetDetails = api.createType("PalletAssetsAssetDetails", {
-    supply: initialBalance,
-  });
-
-  await mockOldAssetBalance(context, assetBalance, assetDetails, alith, assetId, address);
-
-  return assetId;
-}
