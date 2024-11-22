@@ -62,7 +62,7 @@ export interface TestAsset {
   // The asset's metadata
   metadata: AssetMetadata;
   // The asset's relative price as required by pallet - xcm - weight - trader
-  relativePrice?: number;
+  relativePrice?: bigint;
 }
 
 export function assetContractAddress(assetId: bigint | string): `0x${string}` {
@@ -238,15 +238,16 @@ function getSupportedAssetStorageKey(asset: any, context: any) {
  * If the relative price is 0, the asset will be added with a placeholder price.
  *
  * @param assetLocation XCM v4 location of asset
- * @param relativePrice 18 decimals balance needed to equal 1 unit of native asset.
- *                      For example, if the asset price is twice as low as the GLMR price,
+ * @param relativePrice the pallet requires 18 decimals balance needed to equal 1 unit of native
+ *                      asset. For example, if the asset price is twice as low as the GLMR price,
  *                      the relative price should be 500_000_000_000_000_000n.
+ *                     
  * @param context
  */
-export async function addAssetToWeightTrader(asset: any, relativePrice: number, context: any) {
+export async function addAssetToWeightTrader(asset: any, relativePrice: bigint, context: any) {
   const assetV4 = patchLocationV4recursively(asset.Xcm);
 
-  if (relativePrice == 0) {
+  if (relativePrice == 0n) {
     const addAssetWithPlaceholderPrice = context
       .polkadotJs()
       .tx.sudo.sudo(context.polkadotJs().tx.xcmWeightTrader.addAsset(assetV4, 1n));
@@ -491,7 +492,7 @@ export async function registerAndFundAsset(
     asset.metadata
   );
 
-  await addAssetToWeightTrader(asset.location, asset.relativePrice || 0, context);
+  await addAssetToWeightTrader(asset.location, asset.relativePrice || 0n, context);
 
   await mockAssetBalance(context, amount, BigInt(asset.id), alith, address);
 
