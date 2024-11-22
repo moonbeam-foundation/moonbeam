@@ -10,8 +10,13 @@ import type {
   PalletEvmCodeMetadata,
 } from "@polkadot/types/lookup";
 import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
-import { encodeFunctionData, parseAbi, keccak256 } from "viem";
+import {
+  encodeFunctionData,
+  parseAbi,
+  keccak256,
+} from "viem";
 import { ApiPromise, WsProvider } from "@polkadot/api";
+import { alith } from "@moonwall/util";
 
 export const EVM_FOREIGN_ASSETS_PALLET_ACCOUNT = "0x6d6f646c666f7267617373740000000000000000";
 export const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
@@ -33,6 +38,8 @@ export const PARA_2000_SOURCE_LOCATION = {
 // XCM V4 Locations
 export const RELAY_SOURCE_LOCATION_V4 = { parents: 1, interior: { here: null } };
 export const PARA_1000_SOURCE_LOCATION_V4 = { parents: 1, interior: { X1: [{ Parachain: 1000 }] } };
+export const PARA_1001_SOURCE_LOCATION_V4 = { parents: 1, interior: { X1: [{ Parachain: 1001 }] } };
+
 export interface AssetMetadata {
   name: string;
   symbol: string;
@@ -47,12 +54,31 @@ export const relayAssetMetadata: AssetMetadata = {
   isFrozen: false,
 };
 
+export interface TestAsset {
+  // The asset id as required by pallet - moonbeam - foreign - assets
+  id: bigint | string;
+  // The asset's XCM location (preferably a v4)
+  location: any;
+  // The asset's metadata
+  metadata: AssetMetadata;
+  // The asset's relative price as required by pallet - xcm - weight - trader
+  relativePrice?: number;
+}
+
 export function assetContractAddress(assetId: bigint | string): `0x${string}` {
-  return `0xffffffff${BigInt(assetId).toString(16)}`;
+  // Prefix as defined in pallet - moonbeam - foreign - assets (4 bytes)
+  const contractBaseAddress = "0xffffffff";
+  // Asset part (padded to 16 bytes)
+  const assetAddressBytes = BigInt(assetId).toString(16).padStart(32, "0");
+  return `${contractBaseAddress}${assetAddressBytes}`;
 }
 
 export const patchLocationV4recursively = (value: any) => {
   // e.g. Convert this: { X1: { Parachain: 1000 } } to { X1: [ { Parachain: 1000 } ] }
+  // Also, will remove the Xcm key if it exists.
+  if (value.Xcm !== undefined) {
+    value = value.Xcm;
+  }
   if (value && typeof value == "object") {
     if (Array.isArray(value)) {
       return value.map(patchLocationV4recursively);
@@ -207,6 +233,16 @@ function getSupportedAssetStorageKey(asset: any, context: any) {
   return new Uint8Array([...module, ...method, ...blake2concatStagingXcmV4Location]);
 }
 
+/**
+ * Adds asset to the pallet - xcm - weight - trader, with the relative provided.
+ * If the relative price is 0, the asset will be added with a placeholder price.
+ *
+ * @param assetLocation XCM v4 location of asset
+ * @param relativePrice 18 decimals balance needed to equal 1 unit of native asset.
+ *                      For example, if the asset price is twice as low as the GLMR price,
+ *                      the relative price should be 500_000_000_000_000_000n.
+ * @param context
+ */
 export async function addAssetToWeightTrader(asset: any, relativePrice: number, context: any) {
   const assetV4 = patchLocationV4recursively(asset.Xcm);
 
@@ -344,9 +380,16 @@ export async function registerOldForeignAsset(
 }
 
 /**
- * This registers a foreign asset via the moonbeam-foreign-assets pallet.
+ *
+ * This registers a foreign asset via the moonbeam - foreign - assets pallet.
  * This call will deploy the contract and make the erc20 contract of the asset available
- * in the following address: 0xffffffff + metadata.id
+ * in the following address: 0xffffffff + assetId
+ *
+ * @param context
+ * @param assetId a bigint representing the assetId (it can be arbitrary for tests)
+ * @param xcmLocation the XCM location of the asset in Polkadot
+ * @param metadata
+ * @returns
  */
 export async function registerForeignAsset(
   context: DevModeContext,
@@ -355,6 +398,10 @@ export async function registerForeignAsset(
   metadata: AssetMetadata
 ) {
   const { decimals, name, symbol } = metadata;
+
+  // Sanitize Xcm Location
+  xcmLocation = patchLocationV4recursively(xcmLocation);
+
   const { result } = await context.createBlock(
     context
       .polkadotJs()
@@ -400,13 +447,10 @@ export async function mockAssetBalance(
   context: DevModeContext,
   assetBalance: bigint,
   assetId: bigint,
-  assetLocation: any,
   sudoAccount: KeyringPair,
-  account: string | AccountId20
+  account: `0x${string}`
 ) {
   const api = context.polkadotJs();
-  // Register the asset
-  await registerForeignAsset(context, assetId, assetLocation, relayAssetMetadata);
 
   const xcmTransaction = {
     V2: {
@@ -431,6 +475,27 @@ export async function mockAssetBalance(
       .signAsync(sudoAccount)
   );
   return;
+}
+
+/* Registers foreign asset and calls mock asset balance */
+export async function registerAndFundAsset(
+  context: any,
+  asset: TestAsset,
+  amount: bigint,
+  address: `0x${string}`
+) {
+  const { registeredAssetId } = await registerForeignAsset(
+    context,
+    BigInt(asset.id),
+    asset.location,
+    asset.metadata
+  );
+
+  await addAssetToWeightTrader(asset.location, asset.relativePrice || 0, context);
+
+  await mockAssetBalance(context, amount, BigInt(asset.id), alith, address);
+
+  return registeredAssetId;
 }
 
 // Mock balance for old foreign assets
