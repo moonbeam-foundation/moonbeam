@@ -142,6 +142,11 @@ pub struct RunCmd {
 	#[clap(long)]
 	pub dev_service: bool,
 
+	/// Enable the new block import strategy
+	/// Deprecated in: https://github.com/Moonsong-Labs/moonkit/pull/43
+	#[clap(long)]
+	pub experimental_block_import_strategy: bool,
+
 	#[cfg(feature = "lazy-loading")]
 	#[clap(long)]
 	pub fork_chain_from_rpc: Option<String>,
