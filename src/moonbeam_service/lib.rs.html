@@ -1897,6 +1897,29 @@
 <a href="#1895" id="1895">1895</a>
 <a href="#1896" id="1896">1896</a>
 <a href="#1897" id="1897">1897</a>
+<a href="#1898" id="1898">1898</a>
+<a href="#1899" id="1899">1899</a>
+<a href="#1900" id="1900">1900</a>
+<a href="#1901" id="1901">1901</a>
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2260,6 +2283,7 @@
 </span><span class="kw">pub fn </span>new_chain_ops(
 	config: <span class="kw-2">&amp;mut </span>Configuration,
 	rpc_config: <span class="kw-2">&amp;</span>RpcConfig,
+	experimental_block_import_strategy: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;
 	(
 		Arc&lt;Client&gt;,
@@ -2274,15 +2298,17 @@
 		</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; new_chain_ops_inner::&lt;
 			moonriver_runtime::RuntimeApi,
 			MoonriverCustomizations,
-		&gt;(config, rpc_config),
+		&gt;(config, rpc_config, experimental_block_import_strategy),
 		<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 		</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; new_chain_ops_inner::&lt;
 			moonbeam_runtime::RuntimeApi,
 			MoonbeamCustomizations,
-		&gt;(config, rpc_config),
+		&gt;(config, rpc_config, experimental_block_import_strategy),
 		<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 		</span><span class="kw">_ </span>=&gt; new_chain_ops_inner::&lt;moonbase_runtime::RuntimeApi, MoonbaseCustomizations&gt;(
-			config, rpc_config,
+			config,
+			rpc_config,
+			experimental_block_import_strategy,
 		),
 		<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
 		</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
@@ -2293,6 +2319,7 @@
 </span><span class="kw">fn </span>new_chain_ops_inner&lt;RuntimeApi, Customizations&gt;(
 	config: <span class="kw-2">&amp;mut </span>Configuration,
 	rpc_config: <span class="kw-2">&amp;</span>RpcConfig,
+	experimental_block_import_strategy: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;
 	(
 		Arc&lt;Client&gt;,
@@ -2315,7 +2342,12 @@
 		import_queue,
 		task_manager,
 		..
-	} = new_partial::&lt;RuntimeApi, Customizations&gt;(config, rpc_config, config.chain_spec.is_dev())<span class="question-mark">?</span>;
+	} = new_partial::&lt;RuntimeApi, Customizations&gt;(
+		config,
+		rpc_config,
+		config.chain_spec.is_dev(),
+		experimental_block_import_strategy,
+	)<span class="question-mark">?</span>;
 	<span class="prelude-val">Ok</span>((
 		Arc::new(Client::from(client)),
 		backend,
@@ -2354,6 +2386,7 @@
 	config: <span class="kw-2">&amp;mut </span>Configuration,
 	rpc_config: <span class="kw-2">&amp;</span>RpcConfig,
 	dev_service: bool,
+	experimental_block_import_strategy: bool,
 ) -&gt; PartialComponentsResult&lt;FullClient&lt;RuntimeApi&gt;, FullBackend&gt;
 <span class="kw">where
 	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
@@ -2456,15 +2489,17 @@
 				create_inherent_data_providers,
 				<span class="kw-2">&amp;</span>task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				!dev_service,
+				<span class="kw">if </span>experimental_block_import_strategy {
+					<span class="prelude-val">None
+				</span>} <span class="kw">else </span>{
+					<span class="prelude-val">Some</span>(!dev_service)
+				},
 			)<span class="question-mark">?</span>,
 			BlockImportPipeline::Dev(frontier_block_import),
 		)
 	} <span class="kw">else </span>{
-		<span class="kw">let </span>parachain_block_import = ParachainBlockImport::new_with_delayed_best_block(
-			frontier_block_import,
-			backend.clone(),
-		);
+		<span class="kw">let </span>parachain_block_import =
+			ParachainBlockImport::new(frontier_block_import, backend.clone());
 		(
 			nimbus_consensus::import_queue(
 				client.clone(),
@@ -2472,7 +2507,11 @@
 				create_inherent_data_providers,
 				<span class="kw-2">&amp;</span>task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				!dev_service,
+				<span class="kw">if </span>experimental_block_import_strategy {
+					<span class="prelude-val">None
+				</span>} <span class="kw">else </span>{
+					<span class="prelude-val">Some</span>(!dev_service)
+				},
 			)<span class="question-mark">?</span>,
 			BlockImportPipeline::Parachain(parachain_block_import),
 		)
@@ -2537,6 +2576,7 @@
 	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
+	experimental_block_import_strategy: bool,
 ) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;)&gt;
 <span class="kw">where
 	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
@@ -2546,8 +2586,12 @@
 {
 	<span class="kw">let </span><span class="kw-2">mut </span>parachain_config = prepare_node_config(parachain_config);
 
-	<span class="kw">let </span>params =
-		new_partial::&lt;RuntimeApi, Customizations&gt;(<span class="kw-2">&amp;mut </span>parachain_config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+	<span class="kw">let </span>params = new_partial::&lt;RuntimeApi, Customizations&gt;(
+		<span class="kw-2">&amp;mut </span>parachain_config,
+		<span class="kw-2">&amp;</span>rpc_config,
+		<span class="bool-val">false</span>,
+		experimental_block_import_strategy,
+	)<span class="question-mark">?</span>;
 	<span class="kw">let </span>(
 		block_import,
 		filter_pool,
@@ -3027,6 +3071,7 @@
 	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
+	experimental_block_import_strategy: bool
 ) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;)&gt;
 <span class="kw">where
 	</span>RuntimeApi:
@@ -3044,6 +3089,7 @@
 		async_backing,
 		block_authoring_duration,
 		hwbench,
+		experimental_block_import_strategy
 	)
 	.<span class="kw">await
 </span>}
@@ -3085,7 +3131,7 @@
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial::&lt;RuntimeApi, Customizations&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+	} = new_partial::&lt;RuntimeApi, Customizations&gt;(<span class="kw-2">&amp;mut </span>config, <span class="kw-2">&amp;</span>rpc_config, <span class="bool-val">true</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
 	<span class="kw">let </span>block_import = <span class="kw">if let </span>BlockImportPipeline::Dev(block_import) = block_import_pipeline {
 		block_import

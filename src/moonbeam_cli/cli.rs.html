@@ -371,6 +371,11 @@
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -514,6 +519,11 @@
 	<span class="doccomment">/// Enable the development service to run without a backing relay chain
 	</span><span class="attr">#[clap(long)]
 	</span><span class="kw">pub </span>dev_service: bool,
+
+	<span class="doccomment">/// Enable the new block import strategy
+	/// Deprecated in: https://github.com/Moonsong-Labs/moonkit/pull/43
+	</span><span class="attr">#[clap(long)]
+	</span><span class="kw">pub </span>experimental_block_import_strategy: bool,
 
 	<span class="attr">#[cfg(feature = <span class="string">"lazy-loading"</span>)]
 	#[clap(long)]
