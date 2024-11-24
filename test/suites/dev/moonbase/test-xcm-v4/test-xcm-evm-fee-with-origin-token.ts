@@ -175,10 +175,12 @@ describeSuite({
           ethan.address as `0x${string}`
         );
 
-        // Check that xcIntr where debited from Alith's descend address to pay the fees of the XCM execution
+        // Check that xcIntr where debited from Alith's descend address
+        // to pay the fees of the XCM execution
+        expect(xcIntrBalanceBefore - xcIntrBalanceAfter).to.be.eq(199_999_999_500_000n);
+        // Check that xcMatic where transferred to Ethan
         expect(xcMaticBalanceBefore - xcMaticBalanceAfter).to.be.eq(xcMaticToSend);
         expect(xcMaticBalanceEthan).to.be.eq(500_000n);
-        expect(xcIntrBalanceBefore - xcIntrBalanceAfter).to.be.eq(199_999_999_500_000n);
       },
     });
   },
