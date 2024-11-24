@@ -76,7 +76,7 @@ export function assetContractAddress(assetId: bigint | string): `0x${string}` {
 export const patchLocationV4recursively = (value: any) => {
   // e.g. Convert this: { X1: { Parachain: 1000 } } to { X1: [ { Parachain: 1000 } ] }
   // Also, will remove the Xcm key if it exists.
-  if (value.Xcm !== undefined) {
+  if (value && value.Xcm !== undefined) {
     value = value.Xcm;
   }
   if (value && typeof value == "object") {
