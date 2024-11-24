@@ -1,9 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { alith, ethan } from "@moonwall/util";
+import { ethan } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
-
 
 import {
   AssetMetadata,
@@ -13,7 +12,6 @@ import {
   foreignAssetBalance,
   registerAndFundAsset,
   verifyLatestBlockFees,
-  mockAssetBalance,
 } from "../../../../helpers/index.js";
 
 import {
@@ -66,7 +64,7 @@ describeSuite({
     let descendAddress: `0x${string}`;
     let api: ApiPromise;
 
-    const initialBalance: bigint = 500_000_000_000_000n
+    const initialBalance: bigint = 500_000_000_000_000n;
     const xcMaticToSend = 3_500_000_000n;
 
     const xcIntrAsset: TestAsset = {

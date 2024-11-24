@@ -10,11 +10,7 @@ import type {
   PalletEvmCodeMetadata,
 } from "@polkadot/types/lookup";
 import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
-import {
-  encodeFunctionData,
-  parseAbi,
-  keccak256,
-} from "viem";
+import { encodeFunctionData, parseAbi, keccak256 } from "viem";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { alith } from "@moonwall/util";
 
@@ -241,7 +237,7 @@ function getSupportedAssetStorageKey(asset: any, context: any) {
  * @param relativePrice the pallet requires 18 decimals balance needed to equal 1 unit of native
  *                      asset. For example, if the asset price is twice as low as the GLMR price,
  *                      the relative price should be 500_000_000_000_000_000n.
- *                     
+ *
  * @param context
  */
 export async function addAssetToWeightTrader(asset: any, relativePrice: bigint, context: any) {
