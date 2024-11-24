@@ -1407,7 +1407,7 @@ where
 									max_upward_message_num_per_candidate: 16,
 									hrmp_max_message_num_per_candidate: 10,
 									validation_upgrade_cooldown: 6,
-									validation_upgrade_delay: 600,
+									validation_upgrade_delay: 6,
 									async_backing_params: AsyncBackingParams {
 										max_candidate_depth: 3,
 										allowed_ancestry_len: 2,
