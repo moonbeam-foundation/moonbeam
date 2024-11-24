@@ -29,7 +29,6 @@ use pallet_asset_manager::AssetRegistrar;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::testing::MockAccount;
 use sp_core::{ConstU32, H160, H256, U256};
-use sp_runtime::traits::Ensure;
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash, IdentityLookup},
 	BuildStorage, Perbill,
