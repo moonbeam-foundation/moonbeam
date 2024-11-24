@@ -34,6 +34,7 @@ use cumulus_client_service::{
 	ParachainHostFunctions, StartRelayChainTasksParams,
 };
 use cumulus_primitives_core::{
+	relay_chain,
 	relay_chain::{well_known_keys, CollatorPair},
 	ParaId,
 };
@@ -56,7 +57,7 @@ use moonbeam_vrf::VrfDigestsProvider;
 pub use moonriver_runtime;
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_primitives::{DigestsProvider, NimbusId};
-use polkadot_primitives::Slot;
+use polkadot_primitives::{AbridgedHostConfiguration, AsyncBackingParams, Slot};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
@@ -1395,6 +1396,25 @@ where
 								sp_timestamp::Timestamp::current().encode(),
 							),
 							(relay_slot_key, Slot::from(slot).encode()),
+							(
+								relay_chain::well_known_keys::ACTIVE_CONFIG.to_vec(),
+								AbridgedHostConfiguration {
+									max_code_size: 3_145_728,
+									max_head_data_size: 20_480,
+									max_upward_queue_count: 174_762,
+									max_upward_queue_size: 1_048_576,
+									max_upward_message_size: 65_531,
+									max_upward_message_num_per_candidate: 16,
+									hrmp_max_message_num_per_candidate: 10,
+									validation_upgrade_cooldown: 14_400,
+									validation_upgrade_delay: 600,
+									async_backing_params: AsyncBackingParams {
+										max_candidate_depth: 3,
+										allowed_ancestry_len: 2,
+									},
+								}
+								.encode(),
+							),
 						]);
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
