@@ -24,7 +24,7 @@ use super::{
 	RuntimeCall, RuntimeEvent, RuntimeOrigin, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-use moonbeam_runtime_common::weights as moonbase_weights;
+use super::moonbase_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 
 use frame_support::{

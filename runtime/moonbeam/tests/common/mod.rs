@@ -38,6 +38,10 @@ use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
 
+pub fn existential_deposit() -> u128 {
+	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
+}
+
 // A valid signed Alice transfer.
 pub const VALID_ETH_TX: &str =
 	"02f869820501808085e8d4a51000825208943cd0a705a2dc65e5b1e1205896baa2be8a07c6e00180c\

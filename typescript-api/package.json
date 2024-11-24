@@ -1,6 +1,6 @@
 {
   "name": "@moonbeam-network/api-augment",
-  "version": "0.3300.0",
+  "version": "0.3300.1",
   "type": "module",
   "description": "Moonbeam types augment for @polkadot/api",
   "author": "Moonsong Labs",
@@ -80,16 +80,16 @@
     "api"
   ],
   "dependencies": {
-    "@polkadot/api": "14.0.1",
-    "@polkadot/api-base": "14.0.1",
-    "@polkadot/rpc-core": "14.0.1",
-    "@polkadot/typegen": "14.0.1",
-    "@polkadot/types": "14.0.1",
-    "@polkadot/types-codec": "14.0.1",
-    "@types/node": "^22.5.5",
+    "@polkadot/api": "14.3.1",
+    "@polkadot/api-base": "14.3.1",
+    "@polkadot/rpc-core": "14.3.1",
+    "@polkadot/typegen": "14.3.1",
+    "@polkadot/types": "14.3.1",
+    "@polkadot/types-codec": "14.3.1",
+    "@types/node": "^22.9.1",
     "prettier": "2.8.8",
     "prettier-plugin-jsdoc": "^0.3.38",
-    "tsx": "^4.19.1",
-    "typescript": "^5.6.2"
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
   }
 }

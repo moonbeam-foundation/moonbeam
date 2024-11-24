@@ -30,6 +30,9 @@ jobs:
     needs: ["set-tags"]
     runs-on:
       labels: bare-metal
+    strategy:
+      matrix:
+        runtime: [moonbeam, moonbase, moonriver]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,7 +61,7 @@ jobs:
       - name: Run benchmarks
         shell: bash
         run: |
-          ./scripts/run-benches-for-runtime.sh moonbase release
+          ./scripts/run-benches-for-runtime.sh ${{ matrix.runtime }} release
           if test -f "benchmarking_errors.txt"; then
             cat benchmarking_errors.txt
             false
