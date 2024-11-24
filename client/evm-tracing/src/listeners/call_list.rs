@@ -236,6 +236,20 @@ impl Listener {
 					context.gas = snapshot.gas();
 				}
 			}
+			GasometerEvent::RecordRefund { snapshot, refund } => {
+				// Probably not the best solution, but for now we need to record the PoV gas refund
+				// which is emitted after EvmEvent::Exit
+				if self.context_stack.is_empty() {
+					if let Some(entry) = self.entries.last_mut() {
+						if let Some(call) =
+							entry.get_mut(&(self.entries_next_index.saturating_sub(1)))
+						{
+							call.gas_used =
+								call.gas_used.saturating_add(U256::from(refund.clone()));
+						}
+					}
+				}
+			}
 			GasometerEvent::RecordTransaction { cost, .. } => {
 				self.transaction_cost = cost;
 				self.record_transaction_event_only = true;
