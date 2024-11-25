@@ -12,6 +12,7 @@ futures = { workspace = true, features = [ "compat" ] }
 hex-literal = { workspace = true }
 jsonrpsee = { workspace = true, features = [ "macros", "server" ] }
 tokio = { workspace = true, features = [ "sync", "time" ] }
+log = { workspace = true }
 
 # Moonbeam
 moonbeam-client-evm-tracing = { workspace = true }
@@ -28,6 +29,7 @@ sp-blockchain = { workspace = true }
 sp-core = { workspace = true, features = [ "std" ] }
 sp-io = { workspace = true, features = [ "std" ] }
 sp-runtime = { workspace = true, features = [ "std" ] }
+sp-trie = { workspace = true, features = [ "std" ] }
 
 # Frontier
 ethereum = { workspace = true, features = [ "std", "with-codec" ] }

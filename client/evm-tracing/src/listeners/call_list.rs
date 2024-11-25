@@ -236,7 +236,7 @@ impl Listener {
 					context.gas = snapshot.gas();
 				}
 			}
-			GasometerEvent::RecordRefund { snapshot, refund } => {
+			GasometerEvent::RecordRefund { refund, .. } => {
 				// Probably not the best solution, but for now we need to record the PoV gas refund
 				// which is emitted after EvmEvent::Exit
 				if self.context_stack.is_empty() {
@@ -244,8 +244,14 @@ impl Listener {
 						if let Some(call) =
 							entry.get_mut(&(self.entries_next_index.saturating_sub(1)))
 						{
-							call.gas_used =
-								call.gas_used.saturating_add(U256::from(refund.clone()));
+							// The refund will be:
+							// - [- Negative] if extra gas needs to be accounted
+							// - [+ Positive] if less gas needs to be accounted
+							call.gas_used = if refund.is_negative() {
+								call.gas_used.saturating_add(U256::from(refund.abs()))
+							} else {
+								call.gas_used.saturating_sub(U256::from(refund))
+							}
 						}
 					}
 				}
