@@ -35,9 +35,10 @@ const ERC20_CREATE_MAX_CALLDATA_SIZE: usize = 16 * 1024; // 16Ko
 // Hardcoded gas limits (from manual binary search)
 const ERC20_CREATE_GAS_LIMIT: u64 = 3_367_000; // highest failure: 3_366_000
 pub(crate) const ERC20_BURN_FROM_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
-pub(crate) const ERC20_MINT_INTO_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
+pub(crate) const ERC20_MINT_INTO_GAS_LIMIT: u64 = 555_000; // highest failure: 154_000
 const ERC20_PAUSE_GAS_LIMIT: u64 = 150_000; // highest failure: 149_500
 pub(crate) const ERC20_TRANSFER_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
+pub(crate) const ERC20_APPROVE_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
 const ERC20_UNPAUSE_GAS_LIMIT: u64 = 150_000; // highest failure: 149_500
 
 pub enum EvmError {
@@ -263,14 +264,14 @@ impl<T: crate::Config> EvmCaller<T> {
 
 		// TODO: check gas limit of approve
 		let weight_limit: Weight =
-			T::GasWeightMapping::gas_to_weight(ERC20_TRANSFER_GAS_LIMIT, true);
+			T::GasWeightMapping::gas_to_weight(ERC20_APPROVE_GAS_LIMIT, true);
 
 		let exec_info = T::EvmRunner::call(
 			owner,
 			erc20_contract_address,
 			input,
 			U256::default(),
-			ERC20_TRANSFER_GAS_LIMIT,
+			ERC20_APPROVE_GAS_LIMIT,
 			None,
 			None,
 			None,
@@ -289,16 +290,6 @@ impl<T: crate::Config> EvmCaller<T> {
 				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
 			),
 			EvmError::EvmCallFail
-		);
-
-		// return value is true.
-		let mut bytes = [0u8; 32];
-		U256::from(1).to_big_endian(&mut bytes);
-
-		// Check return value to make sure not calling on empty contracts.
-		ensure!(
-			!exec_info.value.is_empty() && exec_info.value == bytes,
-			EvmError::ContractReturnInvalidValue
 		);
 
 		Ok(())

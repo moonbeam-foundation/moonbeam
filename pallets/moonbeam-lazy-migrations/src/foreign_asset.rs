@@ -21,7 +21,6 @@ use frame_support::sp_runtime::Saturating;
 use frame_support::traits::{fungibles::metadata::Inspect, ReservableCurrency};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::U256;
-use xcm_primitives::AssetTypeGetter;
 
 #[derive(Debug, Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
 pub enum ForeignAssetMigrationStatus {
@@ -74,11 +73,10 @@ where
 				let name = <pallet_assets::Pallet<T> as Inspect<_>>::name(asset_id)
 					.try_into()
 					.map_err(|_| Error::<T>::NameTooLong)?;
+				let asset_type = pallet_asset_manager::AssetIdType::<T>::take(asset_id)
+					.ok_or(Error::<T>::AssetTypeNotFound)?;
 				let xcm_location: Location =
-					pallet_asset_manager::Pallet::<T>::get_asset_type(asset_id)
-						.ok_or(Error::<T>::AssetTypeNotFound)?
-						.into()
-						.ok_or(Error::<T>::LocationNotFound)?;
+					asset_type.into().ok_or(Error::<T>::LocationNotFound)?;
 
 				// Create the SC for the asset with moonbeam foreign assets pallet
 				pallet_moonbeam_foreign_assets::Pallet::<T>::create_foreign_asset(

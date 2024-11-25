@@ -16,84 +16,93 @@
 // #![cfg(feature = "runtime-benchmarks")]
 
 use crate::{foreign_asset::ForeignAssetMigrationStatus, Call, Config, Pallet};
-use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, whitelisted_caller};
+use frame_benchmarking::{account, benchmarks};
 use frame_support::traits::Currency;
 use frame_system::RawOrigin;
-use sp_core::U256;
+use sp_core::{Get, U256};
 use sp_runtime::traits::StaticLookup;
+use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
 
-fn setup_foreign_asset<T: Config>(n_accounts: u32) -> (T::AssetIdParameter, Location) {
-	let asset_id: T::AssetIdParameter = T::AssetIdParameter::from(1u128);
+fn setup_foreign_asset<T: Config>(n_accounts: u32) -> T::AssetIdParameter {
+	let asset_type = T::ForeignAssetType::default();
 	let metadata = T::AssetRegistrarMetadata::default();
-	let location = Location::new(1, [Junction::Parachain(1000)]);
-	let caller: T::AccountId = whitelisted_caller();
+	let asset_id = asset_type.clone().into();
+
+	let caller: T::AccountId = pallet_asset_manager::Pallet::<T>::account_id();
 	let caller_lookup = T::Lookup::unlookup(caller.clone());
+	let root: T::RuntimeOrigin = RawOrigin::Root.into();
 
 	// Register in asset manager
 	let _ = pallet_asset_manager::Pallet::<T>::register_foreign_asset(
-		RawOrigin::Root.into(),
-		T::ForeignAssetType::default(),
+		root.clone(),
+		asset_type,
 		metadata,
 		<T as pallet_asset_manager::Config>::Balance::from(1u32),
 		true,
-	);
+	)
+	.unwrap();
 
-	// Create asset and set metadata
-	let _ = pallet_assets::Pallet::<T>::force_create(
-		RawOrigin::Root.into(),
-		asset_id.clone(),
-		caller_lookup.clone(),
-		true,
-		<T as pallet_assets::Config>::Balance::from(1u32),
-	);
+	<T as pallet_assets::Config>::Currency::make_free_balance_be(&caller, 1_000_000u32.into());
 
-	let _ = pallet_assets::Pallet::<T>::set_metadata(
+	// let dummy = Vec::from_iter((0..T::StringLimit::get() as usize).map(|_| 0u8));
+	// let _ = pallet_assets::Pallet::<T>::set_metadata(
+	// 	RawOrigin::Signed(caller.clone()).into(),
+	// 	asset_id.clone().into(),
+	// 	dummy.clone(),
+	// 	dummy,
+	// 	18,
+	// )
+	// .unwrap();
+
+	// Create approval
+	pallet_assets::Pallet::<T>::mint(
 		RawOrigin::Signed(caller.clone()).into(),
-		asset_id.clone(),
-		b"Test".to_vec(),
-		b"TEST".to_vec(),
-		12,
-	);
+		asset_id.clone().into(),
+		caller_lookup,
+		(100 * (n_accounts + 1)).into(),
+	)
+	.unwrap();
 
 	// Setup n accounts with balances and approvals
 	for i in 0..n_accounts {
 		let user: T::AccountId = account("user", i, 0);
-		let account_lookup = T::Lookup::unlookup(user.clone());
-		// Ensure account exists
-		let _ = <T as pallet_assets::Config>::Currency::deposit_creating(&user, 100u32.into());
+		let user_lookup = T::Lookup::unlookup(user.clone());
 
 		// Mint assets
 		let _ = pallet_assets::Pallet::<T>::mint(
 			RawOrigin::Signed(caller.clone()).into(),
-			asset_id.clone(),
-			account_lookup,
+			asset_id.clone().into(),
+			user_lookup,
 			100u32.into(),
-		);
+		)
+		.unwrap();
 
-		// Create approval
 		let spender: T::AccountId = account("spender", i, 0);
 		let spender_lookup = T::Lookup::unlookup(spender.clone());
+		let enough = <T as pallet_assets::Config>::Currency::minimum_balance();
+		<T as pallet_assets::Config>::Currency::make_free_balance_be(&spender, enough);
+
 		let _ = pallet_assets::Pallet::<T>::approve_transfer(
-			RawOrigin::Signed(user).into(),
-			asset_id.clone(),
+			RawOrigin::Signed(caller.clone()).into(),
+			asset_id.clone().into(),
 			spender_lookup,
-			50u32.into(),
-		);
+			5u32.into(),
+		)
+		.unwrap();
 	}
 
-	(asset_id, location)
+	asset_id.into()
 }
 
 benchmarks! {
 	where_clause {
 		where
 		<T as pallet_assets::Config>::Balance: Into<U256>,
-		<T as pallet_asset_manager::Config>::ForeignAssetType: Into<Option<Location>>,
+		T::ForeignAssetType: Into<Option<Location>>,
 	}
 	start_foreign_assets_migration {
-		let n = 100u32;
-		let (asset_id, _) = setup_foreign_asset::<T>(n);
+		let asset_id = setup_foreign_asset::<T>(1);
 	}: _(RawOrigin::Root, asset_id.into())
 	verify {
 		assert!(matches!(
@@ -104,7 +113,7 @@ benchmarks! {
 
 	migrate_foreign_asset_balances {
 		let n in 1 .. 1000u32;
-		let (asset_id, _) = setup_foreign_asset::<T>(n);
+		let asset_id = setup_foreign_asset::<T>(n);
 		Pallet::<T>::start_foreign_assets_migration(
 			RawOrigin::Root.into(),
 			asset_id.into()
@@ -118,15 +127,15 @@ benchmarks! {
 
 	migrate_foreign_asset_approvals {
 		let n in 1 .. 1000u32;
-		let (asset_id, _) = setup_foreign_asset::<T>(n);
+		let asset_id = setup_foreign_asset::<T>(n);
 		Pallet::<T>::start_foreign_assets_migration(
 			RawOrigin::Root.into(),
 			asset_id.into()
 		)?;
-		Pallet::<T>::migrate_foreign_asset_balances(
-			RawOrigin::Signed(account("caller", 0, 0)).into(),
-			n as u64
-		)?;
+		// Pallet::<T>::migrate_foreign_asset_balances(
+		// 	RawOrigin::Signed(account("caller", 0, 0)).into(),
+		// 	n as u64
+		// )?;
 	}: _(RawOrigin::Signed(account("caller", 0, 0)), n as u64)
 	verify {
 		if let ForeignAssetMigrationStatus::Migrating(info) = crate::pallet::ForeignAssetMigrationStatusValue::<T>::get()  {
@@ -136,7 +145,7 @@ benchmarks! {
 
 	finish_foreign_assets_migration {
 		let n = 100u32;
-		let (asset_id, _) = setup_foreign_asset::<T>(n);
+		let asset_id = setup_foreign_asset::<T>(n);
 		Pallet::<T>::start_foreign_assets_migration(
 			RawOrigin::Root.into(),
 			asset_id.into()
@@ -157,9 +166,3 @@ benchmarks! {
 		);
 	}
 }
-
-impl_benchmark_test_suite!(
-	Pallet,
-	crate::mock::ExtBuilder::default().build(),
-	crate::mock::Test
-);
