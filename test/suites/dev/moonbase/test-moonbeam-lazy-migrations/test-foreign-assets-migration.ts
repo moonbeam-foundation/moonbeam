@@ -10,8 +10,10 @@ import {
     registerOldForeignAsset,
     PARA_1000_SOURCE_LOCATION_V3,
     assetContractAddress,
+    mockOldAssetBalance,
 } from "../../../../helpers/assets";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS } from "@moonwall/util";
+import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
+import { u128 } from "@polkadot/types-codec";
 
 describeSuite({
     id: "D012202",
@@ -19,7 +21,7 @@ describeSuite({
     foundationMethods: "dev",
     testCases: ({ context, it, log }) => {
         let api: ApiPromise;
-        let assetId: string;
+        let assetId: u128;
 
         beforeAll(async () => {
             api = context.polkadotJs();
@@ -36,15 +38,50 @@ describeSuite({
                 }
             );
 
-            assetId = registeredAssetId;
+            assetId = context.polkadotJs().createType("u128", registeredAssetId);
             log(`Created foreign asset with ID: ${assetId}`);
 
-            // Create balances for test accounts
-            await expectOk(context.createBlock([
-                api.tx.assets.mint(assetId, ALITH_ADDRESS, parseEther("100")),
-                api.tx.assets.mint(assetId, BALTATHAR_ADDRESS, parseEther("50")),
-                api.tx.assets.mint(assetId, CHARLETH_ADDRESS, parseEther("25"))
-            ]));
+            // Define test accounts and their balances
+            const accounts = [
+                { address: ALITH_ADDRESS, balance: "100" },
+                { address: BALTATHAR_ADDRESS, balance: "50" },
+                { address: CHARLETH_ADDRESS, balance: "25" }
+            ];
+
+            const totalSupply = accounts.reduce(
+                (sum, account) => sum + parseFloat(account.balance), 0
+            ).toString();
+
+            // Create asset details
+            const assetDetails = context.polkadotJs().createType("PalletAssetsAssetDetails", {
+                supply: parseEther(totalSupply),
+                owner: ALITH_ADDRESS,
+                deposit: 1,
+                isSufficient: false,
+                minBalance: 1,
+                isFrozen: false,
+                sufficients: 0,
+                approvals: 0
+            });
+
+            // Create balances for all test accounts
+            for (const { address, balance } of accounts) {
+                const assetBalance = context.polkadotJs().createType("PalletAssetsAssetAccount", {
+                    balance: parseEther(balance),
+                    isFrozen: false,
+                    reason: "Consumer",
+                    extra: null
+                });
+
+                await mockOldAssetBalance(
+                    context,
+                    assetBalance,
+                    assetDetails,
+                    alith,
+                    assetId,
+                    address
+                );
+            }
 
             // Create approvals
             await expectOk(
@@ -93,7 +130,7 @@ describeSuite({
                 // Attempt to start another migration
                 const { result: res } = await context.createBlock(
                     api.tx.sudo.sudo(
-                        api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId + 1)
+                        api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId.toBigInt() + 1n)
                     )
                 );
 
@@ -185,7 +222,7 @@ describeSuite({
                 ];
 
                 // Get contract address from assetId
-                const contractAddress = assetContractAddress(assetId);
+                const contractAddress = assetContractAddress(assetId.toBigInt());
                 const foreignAssetContract = new ethers.Contract(
                     contractAddress,
                     erc20Abi,
