@@ -14,24 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-
-impl<Block, C> sp_api::ConstructRuntimeApi<Block, C> for RuntimeApi where C: sp_api::CallApiAt<Block> + 'static {
-	type RuntimeApi = RuntimeApiImpl<Block, C>;
-
-	fn construct_runtime_api<'a>(call: &'a C) -> sp_api::ApiRef<'a, RuntimeApi> {
-		use core::default::Default;
-		RuntimeApiImpl {
-			call: unsafe { core::mem::transmute(call) },
-			transaction_depth: 0.into(),
-			changes: Default::default(),
-			recorder: Default::default(),
-			call_context: sp_core::traits::CallContext::Offchain,
-			extensions: Default::default(),
-			extensions_generated_for: Default::default()
-		}.into()
-	}
-}
-
 #[macro_export]
 macro_rules! impl_runtime_apis_plus_common {
 	{$($custom:tt)*} => {
