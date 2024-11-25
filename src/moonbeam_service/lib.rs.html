@@ -1920,6 +1920,43 @@
 <a href="#1918" id="1918">1918</a>
 <a href="#1919" id="1919">1919</a>
 <a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
+<a href="#1936" id="1936">1936</a>
+<a href="#1937" id="1937">1937</a>
+<a href="#1938" id="1938">1938</a>
+<a href="#1939" id="1939">1939</a>
+<a href="#1940" id="1940">1940</a>
+<a href="#1941" id="1941">1941</a>
+<a href="#1942" id="1942">1942</a>
+<a href="#1943" id="1943">1943</a>
+<a href="#1944" id="1944">1944</a>
+<a href="#1945" id="1945">1945</a>
+<a href="#1946" id="1946">1946</a>
+<a href="#1947" id="1947">1947</a>
+<a href="#1948" id="1948">1948</a>
+<a href="#1949" id="1949">1949</a>
+<a href="#1950" id="1950">1950</a>
+<a href="#1951" id="1951">1951</a>
+<a href="#1952" id="1952">1952</a>
+<a href="#1953" id="1953">1953</a>
+<a href="#1954" id="1954">1954</a>
+<a href="#1955" id="1955">1955</a>
+<a href="#1956" id="1956">1956</a>
+<a href="#1957" id="1957">1957</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1956,6 +1993,7 @@
 	ParachainHostFunctions, StartRelayChainTasksParams,
 };
 <span class="kw">use </span>cumulus_primitives_core::{
+	relay_chain,
 	relay_chain::{well_known_keys, CollatorPair},
 	ParaId,
 };
@@ -1978,7 +2016,7 @@
 </span><span class="kw">pub use </span>moonriver_runtime;
 <span class="kw">use </span>nimbus_consensus::NimbusManualSealConsensusDataProvider;
 <span class="kw">use </span>nimbus_primitives::{DigestsProvider, NimbusId};
-<span class="kw">use </span>polkadot_primitives::Slot;
+<span class="kw">use </span>polkadot_primitives::{AbridgedHostConfiguration, AsyncBackingParams, Slot};
 <span class="kw">use </span>sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
@@ -1997,7 +2035,7 @@
 <span class="kw">use </span>sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 <span class="kw">use </span>sp_blockchain::{Error <span class="kw">as </span>BlockChainError, HeaderBackend, HeaderMetadata};
 <span class="kw">use </span>sp_consensus::SyncOracle;
-<span class="kw">use </span>sp_core::{ByteArray, Encode, H256};
+<span class="kw">use </span>sp_core::{twox_128, ByteArray, Encode, H256};
 <span class="kw">use </span>sp_keystore::{Keystore, KeystorePtr};
 <span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>std::sync::atomic::{AtomicU64, Ordering};
@@ -3310,14 +3348,50 @@
 						<span class="comment">// Calculate mocked slot number (should be consecutively 1, 2, ...)
 						</span><span class="kw">let </span>slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
-						<span class="kw">let </span>additional_key_values = <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[
+						<span class="kw">let </span><span class="kw-2">mut </span>additional_key_values = <span class="macro">vec!</span>[
 							(
 								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
 									.to_vec(),
 								sp_timestamp::Timestamp::current().encode(),
 							),
 							(relay_slot_key, Slot::from(slot).encode()),
-						]);
+							(
+								relay_chain::well_known_keys::ACTIVE_CONFIG.to_vec(),
+								AbridgedHostConfiguration {
+									max_code_size: <span class="number">3_145_728</span>,
+									max_head_data_size: <span class="number">20_480</span>,
+									max_upward_queue_count: <span class="number">174_762</span>,
+									max_upward_queue_size: <span class="number">1_048_576</span>,
+									max_upward_message_size: <span class="number">65_531</span>,
+									max_upward_message_num_per_candidate: <span class="number">16</span>,
+									hrmp_max_message_num_per_candidate: <span class="number">10</span>,
+									validation_upgrade_cooldown: <span class="number">6</span>,
+									validation_upgrade_delay: <span class="number">6</span>,
+									async_backing_params: AsyncBackingParams {
+										max_candidate_depth: <span class="number">3</span>,
+										allowed_ancestry_len: <span class="number">2</span>,
+									},
+								}
+								.encode(),
+							),
+						];
+
+						<span class="kw">let </span>storage_key = [
+							twox_128(<span class="string">b"ParachainSystem"</span>),
+							twox_128(<span class="string">b"PendingValidationCode"</span>),
+						]
+						.concat();
+						<span class="kw">let </span>has_pending_upgrade = client_for_xcm
+							.storage(block, <span class="kw-2">&amp;</span>sp_storage::StorageKey(storage_key))
+							.map_or(<span class="bool-val">false</span>, |ok| ok.map_or(<span class="bool-val">false</span>, |some| !some.<span class="number">0</span>.is_empty()));
+						<span class="kw">if </span>has_pending_upgrade {
+							additional_key_values.push((
+								relay_chain::well_known_keys::upgrade_go_ahead_signal(ParaId::new(
+									para_id.unwrap(),
+								)),
+								<span class="prelude-val">Some</span>(relay_chain::UpgradeGoAhead::GoAhead).encode(),
+							));
+						}
 
 						<span class="kw">let </span>mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
@@ -3336,7 +3410,7 @@
 							),
 							raw_downward_messages: downward_xcm_receiver.drain().collect(),
 							raw_horizontal_messages: hrmp_xcm_receiver.drain().collect(),
-							additional_key_values,
+							additional_key_values: <span class="prelude-val">Some</span>(additional_key_values),
 						};
 
 						<span class="kw">let </span>randomness = session_keys_primitives::InherentDataProvider;
