@@ -1768,6 +1768,8 @@
 <a href="#1766" id="1766">1766</a>
 <a href="#1767" id="1767">1767</a>
 <a href="#1768" id="1768">1768</a>
+<a href="#1769" id="1769">1769</a>
+<a href="#1770" id="1770">1770</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -3120,40 +3122,42 @@
 			.read()
 			.get(<span class="kw-2">&amp;</span>hash)
 			.cloned()
-			.map(|state| (state, <span class="bool-val">false</span>))
+			.map(|state| <span class="prelude-val">Ok</span>((state, <span class="bool-val">false</span>)))
 			.unwrap_or_else(|| {
-				<span class="kw">let </span>header: Block::Header = <span class="self">self
-					</span>.rpc_client
+				<span class="self">self</span>.rpc_client
 					.header::&lt;Block&gt;(<span class="prelude-val">Some</span>(hash))
 					.ok()
 					.flatten()
-					.expect(<span class="string">"block header"</span>);
+					.ok_or(sp_blockchain::Error::UnknownBlock(
+						<span class="macro">format!</span>(<span class="string">"Failed to fetch block header: {:?}"</span>, hash).into(),
+					))
+					.map(|header| {
+						<span class="kw">let </span>checkpoint = <span class="self">self</span>.fork_checkpoint.clone();
+						<span class="kw">let </span>state = <span class="kw">if </span>header.number().gt(checkpoint.number()) {
+							<span class="kw">let </span>parent = <span class="self">self</span>.state_at(<span class="kw-2">*</span>header.parent_hash()).ok();
 
-				<span class="kw">let </span>checkpoint = <span class="self">self</span>.fork_checkpoint.clone();
-				<span class="kw">let </span>state = <span class="kw">if </span>header.number().gt(checkpoint.number()) {
-					<span class="kw">let </span>parent = <span class="self">self</span>.state_at(<span class="kw-2">*</span>header.parent_hash()).ok();
+							ForkedLazyBackend::&lt;Block&gt; {
+								rpc_client: <span class="self">self</span>.rpc_client.clone(),
+								block_hash: <span class="prelude-val">Some</span>(hash),
+								fork_block: checkpoint.hash(),
+								db: parent.clone().map_or(Default::default(), |p| p.db),
+								removed_keys: parent.map_or(Default::default(), |p| p.removed_keys),
+								before_fork: <span class="bool-val">false</span>,
+							}
+						} <span class="kw">else </span>{
+							ForkedLazyBackend::&lt;Block&gt; {
+								rpc_client: <span class="self">self</span>.rpc_client.clone(),
+								block_hash: <span class="prelude-val">Some</span>(hash),
+								fork_block: checkpoint.hash(),
+								db: Default::default(),
+								removed_keys: Default::default(),
+								before_fork: <span class="bool-val">true</span>,
+							}
+						};
 
-					ForkedLazyBackend::&lt;Block&gt; {
-						rpc_client: <span class="self">self</span>.rpc_client.clone(),
-						block_hash: <span class="prelude-val">Some</span>(hash),
-						fork_block: checkpoint.hash(),
-						db: parent.clone().map_or(Default::default(), |p| p.db),
-						removed_keys: parent.map_or(Default::default(), |p| p.removed_keys),
-						before_fork: <span class="bool-val">false</span>,
-					}
-				} <span class="kw">else </span>{
-					ForkedLazyBackend::&lt;Block&gt; {
-						rpc_client: <span class="self">self</span>.rpc_client.clone(),
-						block_hash: <span class="prelude-val">Some</span>(hash),
-						fork_block: checkpoint.hash(),
-						db: Default::default(),
-						removed_keys: Default::default(),
-						before_fork: <span class="bool-val">true</span>,
-					}
-				};
-
-				(state, <span class="bool-val">true</span>)
-			});
+						(state, <span class="bool-val">true</span>)
+					})
+			})<span class="question-mark">?</span>;
 
 		<span class="kw">if </span>should_write {
 			<span class="self">self</span>.states.write().insert(hash, backend.clone());
