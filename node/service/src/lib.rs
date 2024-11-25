@@ -34,6 +34,7 @@ use cumulus_client_service::{
 	ParachainHostFunctions, StartRelayChainTasksParams,
 };
 use cumulus_primitives_core::{
+	relay_chain,
 	relay_chain::{well_known_keys, CollatorPair},
 	ParaId,
 };
@@ -56,7 +57,7 @@ use moonbeam_vrf::VrfDigestsProvider;
 pub use moonriver_runtime;
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_primitives::{DigestsProvider, NimbusId};
-use polkadot_primitives::Slot;
+use polkadot_primitives::{AbridgedHostConfiguration, AsyncBackingParams, Slot};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
@@ -75,7 +76,7 @@ use session_keys_primitives::VrfApi;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_consensus::SyncOracle;
-use sp_core::{ByteArray, Encode, H256};
+use sp_core::{twox_128, ByteArray, Encode, H256};
 use sp_keystore::{Keystore, KeystorePtr};
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -1388,14 +1389,50 @@ where
 						// Calculate mocked slot number (should be consecutively 1, 2, ...)
 						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
-						let additional_key_values = Some(vec![
+						let mut additional_key_values = vec![
 							(
 								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
 									.to_vec(),
 								sp_timestamp::Timestamp::current().encode(),
 							),
 							(relay_slot_key, Slot::from(slot).encode()),
-						]);
+							(
+								relay_chain::well_known_keys::ACTIVE_CONFIG.to_vec(),
+								AbridgedHostConfiguration {
+									max_code_size: 3_145_728,
+									max_head_data_size: 20_480,
+									max_upward_queue_count: 174_762,
+									max_upward_queue_size: 1_048_576,
+									max_upward_message_size: 65_531,
+									max_upward_message_num_per_candidate: 16,
+									hrmp_max_message_num_per_candidate: 10,
+									validation_upgrade_cooldown: 6,
+									validation_upgrade_delay: 6,
+									async_backing_params: AsyncBackingParams {
+										max_candidate_depth: 3,
+										allowed_ancestry_len: 2,
+									},
+								}
+								.encode(),
+							),
+						];
+
+						let storage_key = [
+							twox_128(b"ParachainSystem"),
+							twox_128(b"PendingValidationCode"),
+						]
+						.concat();
+						let has_pending_upgrade = client_for_xcm
+							.storage(block, &sp_storage::StorageKey(storage_key))
+							.map_or(false, |ok| ok.map_or(false, |some| !some.0.is_empty()));
+						if has_pending_upgrade {
+							additional_key_values.push((
+								relay_chain::well_known_keys::upgrade_go_ahead_signal(ParaId::new(
+									para_id.unwrap(),
+								)),
+								Some(relay_chain::UpgradeGoAhead::GoAhead).encode(),
+							));
+						}
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
@@ -1414,7 +1451,7 @@ where
 							),
 							raw_downward_messages: downward_xcm_receiver.drain().collect(),
 							raw_horizontal_messages: hrmp_xcm_receiver.drain().collect(),
-							additional_key_values,
+							additional_key_values: Some(additional_key_values),
 						};
 
 						let randomness = session_keys_primitives::InherentDataProvider;
