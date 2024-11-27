@@ -611,7 +611,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version: 22
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
       - run: |
@@ -724,7 +724,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version: 22
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -795,7 +795,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version: 22
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
       - name: Create local folders
@@ -860,7 +860,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version: 22
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
