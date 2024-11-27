@@ -99,17 +99,8 @@ jobs:
           path: |
             ${{ matrix.chain }}-runtime.compact.compressed.wasm
             ${{ matrix.chain }}-srtool-digest.json
-      - name: Cleanup
-        run: |
-          echo "Removing runtime/${{ matrix.chain }}/target"
-          ls -lna runtime/${{ matrix.chain }}/target
-
-          # Removing using docker root to ensure we have permissions
-          docker run -u 0 -v $(pwd)/runtime/${{ matrix.chain }}/:/runtime \
-            -it --entrypoint bash ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }} -c "id; ls -lna /runtime/target; rm -rf /runtime/target"
 
   ####### Prepare the release draft #######
-
   publish-draft-release:
     runs-on: ubuntu-latest
     permissions:
