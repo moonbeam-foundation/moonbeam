@@ -3088,7 +3088,7 @@ dependencies = [
 [[package]]
 name = "fc-api"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "async-trait",
  "fp-storage",
@@ -3100,7 +3100,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "async-trait",
  "fp-consensus",
@@ -3116,7 +3116,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "async-trait",
  "ethereum",
@@ -3146,7 +3146,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "fc-db",
  "fc-storage",
@@ -3169,7 +3169,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3178,7 +3178,7 @@ dependencies = [
  "fc-mapping-sync",
  "fc-rpc-core",
  "fc-storage",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "fp-rpc",
  "fp-storage",
  "futures 0.3.30",
@@ -3186,7 +3186,7 @@ dependencies = [
  "jsonrpsee",
  "libsecp256k1",
  "log",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "parity-scale-codec",
  "prometheus",
  "rand 0.8.5",
@@ -3224,7 +3224,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3239,7 +3239,7 @@ dependencies = [
 [[package]]
 name = "fc-storage"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3429,26 +3429,7 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#4b579efb1fe54c69f2ac8181eb7e8956677b4272"
-dependencies = [
- "hex",
- "impl-serde",
- "libsecp256k1",
- "log",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-runtime-interface",
- "staging-xcm",
-]
-
-[[package]]
-name = "fp-account"
-version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "hex",
  "impl-serde",
@@ -3467,7 +3448,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -3478,11 +3459,11 @@ dependencies = [
 [[package]]
 name = "fp-ethereum"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "ethereum",
  "ethereum-types",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "parity-scale-codec",
 ]
@@ -3490,23 +3471,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#4b579efb1fe54c69f2ac8181eb7e8956677b4272"
-dependencies = [
- "environmental",
- "evm",
- "frame-support",
- "num_enum 0.7.3",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-runtime",
-]
-
-[[package]]
-name = "fp-evm"
-version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "environmental",
  "evm",
@@ -3522,11 +3487,11 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "ethereum",
  "ethereum-types",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "parity-scale-codec",
  "scale-info",
  "sp-api",
@@ -3538,7 +3503,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -3550,7 +3515,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "parity-scale-codec",
  "serde",
@@ -6246,7 +6211,7 @@ dependencies = [
  "cumulus-test-relay-sproof-builder",
  "ethereum",
  "evm-tracing-events",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -6284,7 +6249,7 @@ dependencies = [
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
  "pallet-ethereum-xcm",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-evm-chain-id",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
@@ -6354,7 +6319,7 @@ dependencies = [
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
  "precompile-foreign-asset-migrator",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "rlp",
  "scale-info",
  "serde",
@@ -6509,9 +6474,9 @@ dependencies = [
  "evm-gasometer",
  "evm-runtime",
  "evm-tracing-events",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "moonbeam-primitives-ext",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "parity-scale-codec",
  "sp-core",
  "sp-io",
@@ -6761,7 +6726,7 @@ dependencies = [
  "cumulus-test-relay-sproof-builder",
  "ethereum",
  "evm-tracing-events",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -6799,7 +6764,7 @@ dependencies = [
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
  "pallet-ethereum-xcm",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-evm-chain-id",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
@@ -6866,7 +6831,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "rlp",
  "scale-info",
  "serde",
@@ -6910,7 +6875,7 @@ dependencies = [
  "cumulus-pallet-xcmp-queue",
  "cumulus-primitives-storage-weight-reclaim",
  "fp-ethereum",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -6932,7 +6897,7 @@ dependencies = [
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
  "pallet-ethereum-xcm",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-evm-chain-id",
  "pallet-identity",
  "pallet-message-queue",
@@ -6960,7 +6925,7 @@ dependencies = [
  "pallet-xcm-transactor",
  "pallet-xcm-weight-trader",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "sp-api",
  "sp-consensus-slots",
@@ -7191,7 +7156,7 @@ dependencies = [
  "cumulus-test-relay-sproof-builder",
  "ethereum",
  "evm-tracing-events",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -7229,7 +7194,7 @@ dependencies = [
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
  "pallet-ethereum-xcm",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-evm-chain-id",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
@@ -7296,7 +7261,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "rlp",
  "scale-info",
  "serde",
@@ -8600,12 +8565,12 @@ version = "1.0.0"
 dependencies = [
  "environmental",
  "ethereum-types",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
@@ -8621,7 +8586,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "environmental",
  "ethereum",
@@ -8629,12 +8594,12 @@ dependencies = [
  "evm",
  "fp-consensus",
  "fp-ethereum",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "fp-rpc",
  "fp-storage",
  "frame-support",
  "frame-system",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "parity-scale-codec",
  "scale-info",
  "sp-io",
@@ -8649,7 +8614,7 @@ dependencies = [
  "ethereum",
  "ethereum-types",
  "fp-ethereum",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -8659,7 +8624,7 @@ dependencies = [
  "libsecp256k1",
  "pallet-balances",
  "pallet-ethereum",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-evm-precompile-proxy",
  "pallet-proxy",
  "pallet-timestamp",
@@ -8677,37 +8642,13 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#4b579efb1fe54c69f2ac8181eb7e8956677b4272"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "cumulus-primitives-storage-weight-reclaim",
  "environmental",
  "evm",
- "fp-account 1.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407)",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407)",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hash-db",
- "hex-literal 0.4.1",
- "impl-trait-for-tuples",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
-]
-
-[[package]]
-name = "pallet-evm"
-version = "6.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
-dependencies = [
- "cumulus-primitives-storage-weight-reclaim",
- "environmental",
- "evm",
- "fp-account 1.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-account",
+ "fp-evm",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -8725,7 +8666,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-chain-id"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8738,7 +8679,7 @@ name = "pallet-evm-precompile-author-mapping"
 version = "0.2.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
@@ -8747,11 +8688,11 @@ dependencies = [
  "num_enum 0.5.11",
  "pallet-author-mapping",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sp-core",
@@ -8766,7 +8707,7 @@ version = "0.1.0"
 dependencies = [
  "account",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
@@ -8774,11 +8715,11 @@ dependencies = [
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -8795,18 +8736,18 @@ version = "0.1.0"
 dependencies = [
  "derive_more",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -8820,17 +8761,17 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
 ]
 
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "sp-core",
  "substrate-bn",
 ]
@@ -8841,7 +8782,7 @@ version = "0.1.0"
 dependencies = [
  "derive_more",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
@@ -8849,11 +8790,11 @@ dependencies = [
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -8871,7 +8812,7 @@ dependencies = [
  "account",
  "derive_more",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
@@ -8879,12 +8820,12 @@ dependencies = [
  "num_enum 0.5.11",
  "pallet-balances",
  "pallet-collective",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-timestamp",
  "pallet-treasury",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -8903,7 +8844,7 @@ version = "0.1.0"
 dependencies = [
  "account",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
@@ -8911,10 +8852,10 @@ dependencies = [
  "num_enum 0.5.11",
  "pallet-balances",
  "pallet-conviction-voting",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -8934,19 +8875,19 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
  "pallet-crowdloan-rewards",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-message-queue",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -8960,11 +8901,11 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "parity-scale-codec",
  "sp-runtime",
 ]
@@ -8977,7 +8918,7 @@ dependencies = [
  "cumulus-primitives-core",
  "derive_more",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex",
@@ -8985,13 +8926,13 @@ dependencies = [
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
  "pallet-xcm-transactor",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -9012,18 +8953,18 @@ version = "0.1.0"
 dependencies = [
  "enumflags2",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex",
  "hex-literal 0.4.1",
  "log",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-identity",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -9036,9 +8977,9 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "num",
 ]
 
@@ -9046,11 +8987,11 @@ dependencies = [
 name = "pallet-evm-precompile-p256verify"
 version = "0.1.0"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "hex-literal 0.4.1",
  "p256",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
 ]
 
 [[package]]
@@ -9058,17 +8999,17 @@ name = "pallet-evm-precompile-parachain-staking"
 version = "1.0.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-parachain-staking",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9085,18 +9026,18 @@ name = "pallet-evm-precompile-preimage"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-preimage",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9114,18 +9055,18 @@ dependencies = [
  "account",
  "derive_more",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-proxy",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9141,7 +9082,7 @@ name = "pallet-evm-precompile-randomness"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
@@ -9150,12 +9091,12 @@ dependencies = [
  "num_enum 0.5.11",
  "pallet-author-mapping",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-randomness",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "session-keys-primitives",
  "sp-core",
@@ -9169,20 +9110,20 @@ name = "pallet-evm-precompile-referenda"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-preimage",
  "pallet-referenda",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9198,17 +9139,17 @@ name = "pallet-evm-precompile-registry"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
  "log",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sp-core",
@@ -9224,20 +9165,20 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-message-queue",
  "pallet-staking",
  "pallet-timestamp",
  "pallet-xcm-transactor",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9258,18 +9199,18 @@ version = "0.1.0"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex",
  "moonbeam-runtime-common",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-precompile-benchmarks",
  "pallet-relay-storage-roots",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -9281,18 +9222,18 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "tiny-keccak",
 ]
 
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "ripemd",
  "sp-io",
 ]
@@ -9300,14 +9241,14 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-storage-cleaner"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "sp-core",
  "sp-runtime",
 ]
@@ -9319,15 +9260,15 @@ source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-
 dependencies = [
  "cumulus-primitives-core",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
  "num_enum 0.7.3",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407)",
+ "pallet-evm",
  "pallet-xcm",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407)",
+ "precompile-utils",
  "scale-info",
  "sp-core",
  "sp-runtime",
@@ -9345,18 +9286,18 @@ dependencies = [
  "cumulus-primitives-core",
  "derive_more",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
  "pallet-xcm-transactor",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9378,17 +9319,17 @@ version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
  "parity-scale-codec",
  "polkadot-parachain-primitives",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -9410,18 +9351,18 @@ dependencies = [
  "account",
  "cumulus-primitives-core",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
  "num_enum 0.5.11",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
  "pallet-xcm-transactor",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "rustc-hex",
  "scale-info",
  "serde",
@@ -9443,7 +9384,7 @@ version = "0.1.0"
 dependencies = [
  "account",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
@@ -9452,11 +9393,11 @@ dependencies = [
  "num_enum 0.5.11",
  "pallet-assets",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -9652,18 +9593,18 @@ name = "pallet-moonbeam-foreign-assets"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "hex",
  "log",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
- "precompile-utils-macro 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
+ "precompile-utils-macro",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -9684,7 +9625,7 @@ dependencies = [
  "log",
  "pallet-assets",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
@@ -9877,14 +9818,14 @@ version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "pallet-evm-precompile-p256verify",
  "pallet-relay-storage-roots",
  "parity-scale-codec",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "sp-core",
  "sp-std",
@@ -12008,7 +11949,7 @@ version = "0.1.0"
 dependencies = [
  "account",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal 0.4.1",
@@ -12018,12 +11959,12 @@ dependencies = [
  "pallet-asset-manager",
  "pallet-assets",
  "pallet-balances",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "pallet-moonbeam-foreign-assets",
  "pallet-timestamp",
  "parity-scale-codec",
  "paste",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "scale-info",
  "serde",
  "sha3",
@@ -12038,36 +11979,12 @@ dependencies = [
 [[package]]
 name = "precompile-utils"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#4b579efb1fe54c69f2ac8181eb7e8956677b4272"
-dependencies = [
- "environmental",
- "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407)",
- "frame-support",
- "frame-system",
- "hex",
- "impl-trait-for-tuples",
- "log",
- "num_enum 0.7.3",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407)",
- "parity-scale-codec",
- "precompile-utils-macro 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407)",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-weights",
- "staging-xcm",
-]
-
-[[package]]
-name = "precompile-utils"
-version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "derive_more",
  "environmental",
  "evm",
- "fp-evm 3.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex",
@@ -12075,9 +11992,9 @@ dependencies = [
  "impl-trait-for-tuples",
  "log",
  "num_enum 0.7.3",
- "pallet-evm 6.0.0-dev (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "pallet-evm",
  "parity-scale-codec",
- "precompile-utils-macro 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils-macro",
  "scale-info",
  "serde",
  "similar-asserts",
@@ -12091,21 +12008,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils-macro"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#4b579efb1fe54c69f2ac8181eb7e8956677b4272"
-dependencies = [
- "case",
- "num_enum 0.7.3",
- "prettyplease 0.2.22",
- "proc-macro2",
- "quote",
- "sp-crypto-hashing",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "precompile-utils-macro"
-version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim#9de3e0110d47e8a1d2db2b548f279c5bdcf32538"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2407#56349814c1e029d99a9c433cc229e81d32cb0aff"
 dependencies = [
  "case",
  "num_enum 0.7.3",
@@ -16682,7 +16585,7 @@ dependencies = [
  "moonbase-runtime",
  "moonbeam-runtime",
  "moonriver-runtime",
- "precompile-utils 0.1.0 (git+https://github.com/moonbeam-foundation/frontier?branch=rq/fix-pov-reclaim)",
+ "precompile-utils",
  "serde_json",
 ]
 
