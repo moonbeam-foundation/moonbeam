@@ -1,3 +1,0 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`🗃️  D011607 Substrate Length Fees - Ethereum txn Interaction > 📁  D011607T01 should not charge length fee for precompile from Ethereum txn 1`] = `60752n`;

@@ -1,9 +1,0 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`🗃️  D013504 Storage growth limit - Precompiles > 📁  D013504T01 should fail transfer due to insufficient gas required to cover the storage growth > Estimated gas for Proxy.addProxy call 1`] = `102539n`;
-
-exports[`🗃️  D013504 Storage growth limit - Precompiles > 📁  D013504T01 should fail transfer due to insufficient gas required to cover the storage growth > Estimated gas for Proxy.proxy call 1`] = `91908n`;
-
-exports[`🗃️  D013504 Storage growth limit - Precompiles > 📁  D013504T02 should transfer correctly with the required gas to cover the storage growth > Actual gas for (Proxy.proxy ERC20.transfer) call 1`] = `91908n`;
-
-exports[`🗃️  D013504 Storage growth limit - Precompiles > 📁  D013504T02 should transfer correctly with the required gas to cover the storage growth > Estimated gas for (Proxy.proxy ERC20.transfer) call 1`] = `91908n`;

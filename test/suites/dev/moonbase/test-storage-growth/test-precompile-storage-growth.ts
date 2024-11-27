@@ -18,9 +18,6 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     const newAccount = "0x1ced798a66b803d0dbb665680283980a939a6432";
-    // The tx can create an account, so record 148 bytes of storage growth
-    // Storage growth ratio is 366
-    // storage_gas = 148 * 366 = 54168
 
     it({
       id: "T01",
@@ -40,7 +37,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchSnapshot("Estimated gas for Proxy.addProxy call");
+        expect(estimatedGas).toMatchInlineSnapshot(`102539n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
@@ -72,7 +69,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(proxyProxyEstimatedGas).toMatchSnapshot("Estimated gas for Proxy.proxy call");
+        expect(proxyProxyEstimatedGas).toMatchInlineSnapshot(`91908n`);
 
         const balBefore = await context.viem().getBalance({ address: FAITH_ADDRESS });
         const rawTxn2 = await context.writePrecompile!({
@@ -89,7 +86,7 @@ describeSuite({
           ],
           privateKey: BALTATHAR_PRIVATE_KEY,
           rawTxOnly: true,
-          gas: 40_000n,
+          gas: proxyProxyEstimatedGas - 10_000n,
         });
 
         const { result: result2 } = await context.createBlock(rawTxn2);
@@ -128,7 +125,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchSnapshot("Estimated gas for (Proxy.proxy ERC20.transfer) call");
+        expect(estimatedGas).toMatchInlineSnapshot(`91908n`);
 
         const rawTxn2 = await context.writePrecompile!({
           precompileName: "Proxy",
@@ -154,8 +151,12 @@ describeSuite({
         const { gasUsed } = await context
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
-        // Snapshot actual gas
-        expect(estimatedGas).toMatchSnapshot("Actual gas for (Proxy.proxy ERC20.transfer) call");
+
+        // The tx can create an account, so record 148 bytes of storage growth
+        // Storage growth ratio is 366
+        // storage_gas = 148 * 366 = 54168
+        // pov_gas = proof_size * GAS_LIMIT_POV_RATIO
+        expect(gasUsed).toMatchInlineSnapshot(`60768n`);
 
         const balAfter = await context.viem().getBalance({ address: FAITH_ADDRESS });
         expect(balBefore - balAfter).to.equal(parseEther("5"));

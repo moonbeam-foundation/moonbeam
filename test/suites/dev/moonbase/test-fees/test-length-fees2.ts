@@ -63,9 +63,6 @@ describeSuite({
         // the gas used should be the maximum of the legacy gas and the pov gas
         const expected = BigInt(Math.max(Number(entire_fee), 3797 * GAS_LIMIT_POV_RATIO));
         expect(receipt.gasUsed, "gasUsed does not match manual calculation").toBe(expected);
-
-        // Snapshot gas usage
-        expect(receipt.gasUsed).toMatchSnapshot();
       },
     });
   },
