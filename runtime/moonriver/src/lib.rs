@@ -65,10 +65,7 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::{
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
-	weights as moonriver_weights,
-};
+use moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
 pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
@@ -130,6 +127,9 @@ pub mod xcm_config;
 
 mod migrations;
 mod precompiles;
+mod weights;
+
+pub(crate) use weights as moonriver_weights;
 
 pub use governance::councils::*;
 
@@ -190,22 +190,6 @@ pub mod opaque {
 /// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
 /// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
 /// changes which can be skipped.
-#[cfg(feature = "runtime-benchmarks")]
-#[sp_version::runtime_version]
-pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonriver"),
-	impl_name: create_runtime_str!("moonriver"),
-	authoring_version: 3,
-	spec_version: 3400,
-	impl_version: 0,
-	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 3,
-	state_version: 0,
-};
-
-/// We need to duplicate this because the `runtime_version` macro is conflicting with the
-/// conditional compilation at the state_version field.
-#[cfg(not(feature = "runtime-benchmarks"))]
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
@@ -322,8 +306,14 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = moonriver_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
+#[cfg(not(feature = "runtime-benchmarks"))]
 parameter_types! {
 	pub const ExistentialDeposit: Balance = 0;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+parameter_types! {
+	pub const ExistentialDeposit: Balance = 1;
 }
 
 impl pallet_balances::Config for Runtime {
@@ -1519,6 +1509,7 @@ mod benches {
 		[pallet_xcm, PalletXcmExtrinsicsBenchmark::<Runtime>]
 		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
+		[pallet_moonbeam_foreign_assets, EvmForeignAssets]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
 		[pallet_randomness, Randomness]
 		[pallet_conviction_voting, ConvictionVoting]
@@ -1526,8 +1517,10 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
-		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
+		[pallet_precompile_benchmarks, PrecompileBenchmarks]
+		[pallet_parameters, Parameters]
+		[pallet_xcm_weight_trader, XcmWeightTrader]
 	);
 }
 

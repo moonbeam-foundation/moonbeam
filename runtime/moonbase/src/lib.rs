@@ -80,10 +80,7 @@ use frame_support::{
 use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::{
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
-	weights as moonbase_weights,
-};
+use moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
 use nimbus_primitives::CanAuthor;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
@@ -132,6 +129,9 @@ use sp_runtime::serde::{Deserialize, Serialize};
 pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
+
+mod weights;
+pub(crate) use weights as moonbase_weights;
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -190,22 +190,6 @@ pub mod opaque {
 /// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
 /// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
 /// changes which can be skipped.
-#[cfg(feature = "runtime-benchmarks")]
-#[sp_version::runtime_version]
-pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonbase"),
-	impl_name: create_runtime_str!("moonbase"),
-	authoring_version: 4,
-	spec_version: 3400,
-	impl_version: 0,
-	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 3,
-	state_version: 0,
-};
-
-/// We need to duplicate this because the `runtime_version` macro is conflicting with the
-/// conditional compilation at the state_version field.
-#[cfg(not(feature = "runtime-benchmarks"))]
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
@@ -1538,7 +1522,6 @@ mod benches {
 		[pallet_multisig, Multisig]
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
-		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_parameters, Parameters]
 		[pallet_xcm_weight_trader, XcmWeightTrader]
 	);

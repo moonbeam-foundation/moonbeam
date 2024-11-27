@@ -9,7 +9,6 @@ version = "0.1.0"
 # Moonbeam
 storage-proof-primitives = { workspace = true }
 pallet-precompile-benchmarks = { workspace = true }
-moonbeam-runtime-common = { workspace = true }
 
 # Substrate
 cumulus-primitives-core = { workspace = true }
@@ -46,7 +45,6 @@ std = [
     "frame-support/std",
     "frame-system/std",
     "fp-evm/std",
-    "moonbeam-runtime-common/std",
     "parity-scale-codec/std",
     "precompile-utils/std",
     "pallet-evm/std",

@@ -20,11 +20,11 @@
 //! 2. pallet-whitelist
 //! 3. pallet-referenda
 
+use super::moonbase_weights;
 use super::*;
 use crate::currency::*;
 use frame_support::traits::{EitherOf, MapSuccess};
 use frame_system::EnsureRootWithSuccess;
-use moonbeam_runtime_common::weights as moonbase_weights;
 use sp_runtime::traits::Replace;
 
 parameter_types! {
