@@ -65,7 +65,7 @@ describeSuite({
       id: "T03",
       title: "EIP example 1 - gas",
       test: async function () {
-        const expectedModExpGasCost = 9156n;
+        const expectedModExpGasCost = 1360n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000001" + // base length
           "0000000000000000000000000000000000000000000000000000000000000020" + // exponent length
@@ -89,7 +89,6 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-
         const modExpGas =
           receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
         expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
@@ -126,7 +125,7 @@ describeSuite({
       id: "T05",
       title: "EIP example 2 - gas",
       test: async function () {
-        const expectedModExpGasCost = 8656n;
+        const expectedModExpGasCost = 1360n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000000" + // base length
           "0000000000000000000000000000000000000000000000000000000000000020" + // exponent length
@@ -159,7 +158,7 @@ describeSuite({
       id: "T06",
       title: "nagydani-1-square - gas",
       test: async function () {
-        const expectedModExpGasCost = 7604n;
+        const expectedModExpGasCost = 200n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000040" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -194,7 +193,7 @@ describeSuite({
       id: "T07",
       title: "nagydani-1-qube - gas",
       test: async function () {
-        const expectedModExpGasCost = 7604n;
+        const expectedModExpGasCost = 200n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000040" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -228,7 +227,7 @@ describeSuite({
       id: "T08",
       title: "nagydani-1-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 7584n;
+        const expectedModExpGasCost = 341n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000040" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -262,7 +261,7 @@ describeSuite({
       id: "T09",
       title: "nagydani-2-square - gas",
       test: async function () {
-        const expectedModExpGasCost = 5592n;
+        const expectedModExpGasCost = 200n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000080" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -296,7 +295,7 @@ describeSuite({
       id: "T10",
       title: "nagydani-2-qube - gas",
       test: async function () {
-        const expectedModExpGasCost = 5592n;
+        const expectedModExpGasCost = 200n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000080" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -330,7 +329,7 @@ describeSuite({
       id: "T11",
       title: "nagydani-2-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 5572n;
+        const expectedModExpGasCost = 1365n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000080" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -364,7 +363,7 @@ describeSuite({
       id: "T12",
       title: "nagydani-3-square - gas",
       test: async function () {
-        const expectedModExpGasCost = 1472n;
+        const expectedModExpGasCost = 341n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000100" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -398,7 +397,7 @@ describeSuite({
       id: "T13",
       title: "nagydani-3-qube - gas",
       test: async function () {
-        const expectedModExpGasCost = 1472n;
+        const expectedModExpGasCost = 341n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000100" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length

@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`🗃️  D012838 Precompiles - precompiles dummy bytecode > 📁  D012838T02 should revert when dummy bytecode is called 1`] = `21006n`;

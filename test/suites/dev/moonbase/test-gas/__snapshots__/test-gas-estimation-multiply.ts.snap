@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`🗃️  D011804 Estimate Gas - Multiply > 📁  D011804T01 should return correct gas estimation 1`] = `22363n`;
+
+exports[`🗃️  D011804 Estimate Gas - Multiply > 📁  D011804T02 should work without gas limit 1`] = `22363n`;
+
+exports[`🗃️  D011804 Estimate Gas - Multiply > 📁  D011804T03 should work with gas limit 1`] = `22363n`;
+
+exports[`🗃️  D011804 Estimate Gas - Multiply > 📁  D011804T04 should ignore from balance (?) 1`] = `22363n`;

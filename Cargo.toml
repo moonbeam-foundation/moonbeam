@@ -246,41 +246,41 @@ ethereum-types = { version = "0.14", default-features = false }
 evm = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-stable2407", default-features = false }
 evm-gasometer = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-stable2407", default-features = false }
 evm-runtime = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-stable2407", default-features = false }
-fp-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
-fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
-fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
-fp-self-contained = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
-pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false, features = [
+fp-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
+fp-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
+fp-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
+fp-self-contained = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
+pallet-ethereum = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false, features = [
     "forbid-evm-reentrancy",
 ] }
-pallet-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false, features = [
+pallet-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false, features = [
     "forbid-evm-reentrancy",
 ] }
-pallet-evm-chain-id = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
-pallet-evm-precompile-blake2 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
-pallet-evm-precompile-bn128 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
-pallet-evm-precompile-dispatch = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
-pallet-evm-precompile-modexp = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
-pallet-evm-precompile-sha3fips = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
-pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
-pallet-evm-precompile-storage-cleaner = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
+pallet-evm-chain-id = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
+pallet-evm-precompile-blake2 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
+pallet-evm-precompile-bn128 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
+pallet-evm-precompile-dispatch = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
+pallet-evm-precompile-modexp = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
+pallet-evm-precompile-sha3fips = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
+pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
+pallet-evm-precompile-storage-cleaner = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
 
-precompile-utils = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
-precompile-utils-macro = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", default-features = false }
+precompile-utils = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
+precompile-utils-macro = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", default-features = false }
 
 
 # Frontier (client)
-fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407" }
-fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407" }
-fc-api = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407" }
-fc-mapping-sync = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407" }
-fc-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407", features = [
+fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim" }
+fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim" }
+fc-api = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim" }
+fc-mapping-sync = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim" }
+fc-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim", features = [
     "rpc-binary-search-estimate",
 ] }
-fc-rpc-core = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407" }
-fc-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407" }
-fp-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407" }
-fp-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2407" }
+fc-rpc-core = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim" }
+fc-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim" }
+fp-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim" }
+fp-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch = "rq/fix-pov-reclaim" }
 
 # Cumulus (wasm)
 

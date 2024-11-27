@@ -32,7 +32,8 @@ describeSuite({
           value: 0n,
         });
 
-        expect(estimatedGas).to.equal(22363n);
+        // Snapshot estimated gas
+        expect(estimatedGas).toMatchSnapshot();
       },
     });
 
@@ -52,7 +53,8 @@ describeSuite({
           value: 0n,
         });
 
-        expect(estimatedGas).to.equal(22363n);
+        // Snapshot estimated gas
+        expect(estimatedGas).toMatchSnapshot();
       },
     });
 
@@ -71,7 +73,7 @@ describeSuite({
           value: 0n,
         });
 
-        expect(estimatedGas).to.equal(22363n);
+        expect(estimatedGas).toMatchSnapshot();
       },
     });
 
@@ -91,7 +93,8 @@ describeSuite({
           value: 0n,
         });
 
-        expect(estimatedGas).to.equal(22363n);
+        // Snapshot estimated gas
+        expect(estimatedGas).toMatchSnapshot();
       },
     });
 

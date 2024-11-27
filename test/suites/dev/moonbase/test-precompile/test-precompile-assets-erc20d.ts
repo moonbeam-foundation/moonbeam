@@ -127,10 +127,24 @@ describeSuite({
           .query.assets.approvals(assetId.toU8a(), erc20InstanceAddress, BALTATHAR_ADDRESS);
         expect(newApprovals.unwrap().amount.toBigInt()).to.equal(1000n);
 
+        const estimatedGas = await context.viem().estimateGas({
+          account: BALTATHAR_ADDRESS,
+          to: ADDRESS_ERC20,
+          data: encodeFunctionData({
+            abi: erc20Abi,
+            functionName: "transferFrom",
+            args: [erc20InstanceAddress, CHARLETH_ADDRESS, 1000],
+          }),
+        });
+
+        // Snapshot estimated gas
+        expect(estimatedGas).toMatchSnapshot();
+
         // this time we call directly from Baltathar the ERC20 contract
         const directBlock = await context.createBlock(
           createViemTransaction(context, {
             privateKey: BALTATHAR_PRIVATE_KEY,
+            gas: estimatedGas,
             to: ADDRESS_ERC20,
             data: encodeFunctionData({
               functionName: "transferFrom",

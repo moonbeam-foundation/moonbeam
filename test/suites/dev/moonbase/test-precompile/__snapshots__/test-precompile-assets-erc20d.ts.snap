@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`🗃️  D012807 Precompiles - Assets-ERC20 Wasm > 📁  D012807T01 allows to approve transfer and use transferFrom from contract calls 1`] = `111252n`;

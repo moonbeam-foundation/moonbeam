@@ -20,6 +20,13 @@ async function metadataHash(api: ApiPromise) {
   return u8aToHex(merkleizedMetadata.digest());
 }
 
+async function isMetadataHashEnabled(api: ApiPromise) {
+  const metadata = await api.rpc.state.getMetadata();
+  return metadata.asLatest.extrinsic.signedExtensions.some(
+    (ext) => ext.identifier.toString() === "CheckMetadataHash"
+  );
+}
+
 describeSuite({
   id: "D010501",
   title: "Test transaction with metadata hash",
@@ -28,7 +35,11 @@ describeSuite({
     it({
       id: "T01",
       title: "Should fail with an invalid metadata hash",
-      test: async function () {
+      test: async function (ctx) {
+        if (!(await isMetadataHashEnabled(context.polkadotJs()))) {
+          ctx.skip();
+        }
+
         const withMetadataOpts: Partial<SignerOptions> = {
           mode: 1,
           metadataHash: "0x" + "00".repeat(32),
@@ -48,7 +59,11 @@ describeSuite({
     it({
       id: "T02",
       title: "Should succeed with a valid metadata hash",
-      test: async function () {
+      test: async function (ctx) {
+        if (!(await isMetadataHashEnabled(context.polkadotJs()))) {
+          ctx.skip();
+        }
+
         const withMetadataOpts = {
           mode: 1,
           metadataHash: await metadataHash(context.polkadotJs()),

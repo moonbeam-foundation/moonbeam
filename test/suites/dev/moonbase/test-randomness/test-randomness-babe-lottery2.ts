@@ -47,7 +47,7 @@ describeSuite({
         args: [0],
         account: BALTATHAR_ADDRESS,
       });
-      expect(estimatedGas).toMatchInlineSnapshot(`303092n`);
+      expect(estimatedGas).toMatchInlineSnapshot(`295530n`);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",
@@ -64,7 +64,7 @@ describeSuite({
       fulFillReceipt = await context
         .viem()
         .getTransactionReceipt({ hash: result![1].hash as `0x${string}` });
-      expect(fulFillReceipt.gasUsed).toMatchInlineSnapshot(`153712n`);
+      expect(fulFillReceipt.gasUsed).toMatchInlineSnapshot(`158480n`);
     });
 
     it({
@@ -175,11 +175,11 @@ describeSuite({
         ).to.be.true;
         expect(
           (await context.polkadotJs().query.system.account(charleth.address)).data.free.toBigInt() >
-          DEFAULT_GENESIS_BALANCE
+            DEFAULT_GENESIS_BALANCE
         ).to.be.false;
         expect(
           (await context.polkadotJs().query.system.account(dorothy.address)).data.free.toBigInt() >
-          DEFAULT_GENESIS_BALANCE
+            DEFAULT_GENESIS_BALANCE
         ).to.be.true;
       },
     });
