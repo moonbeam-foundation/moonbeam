@@ -20,7 +20,7 @@ use crate::types::{
 	single::{Call, TransactionTrace},
 	CallResult, CallType, CreateResult,
 };
-use ethereum_types::{H160, U256};
+use ethereum_types::{H160, H256, U256};
 use parity_scale_codec::{Decode, Encode};
 use serde::Serialize;
 
@@ -73,6 +73,7 @@ pub enum BlockscoutCallInner {
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BlockscoutCall {
+	pub tx_hash: H256,
 	pub from: H160,
 	/// Indices of parent calls.
 	pub trace_address: Vec<u32>,

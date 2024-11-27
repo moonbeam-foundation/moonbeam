@@ -17,6 +17,7 @@
 use crate::formatters::blockscout::BlockscoutCall as Call;
 use crate::formatters::blockscout::BlockscoutCallInner as CallInner;
 use crate::types::{single::Log, CallResult, CallType, ContextType, CreateResult};
+use ethereum_types::H256;
 use ethereum_types::{H160, U256};
 use evm_tracing_events::{
 	runtime::{Capture, ExitError, ExitReason, ExitSucceed},
@@ -154,6 +155,7 @@ impl Listener {
 							.to_vec(),
 					);
 					Call {
+						tx_hash: H256::zero(),
 						from: context.from,
 						trace_address: context.trace_address,
 						subtraces: context.subtraces,
@@ -175,6 +177,7 @@ impl Listener {
 						};
 
 					Call {
+						tx_hash: H256::zero(),
 						value: context.value,
 						trace_address: context.trace_address,
 						subtraces: context.subtraces,
@@ -204,6 +207,7 @@ impl Listener {
 			);
 
 			let entry = Call {
+				tx_hash: H256::zero(),
 				from: H160::repeat_byte(0),
 				trace_address: vec![],
 				subtraces: 0,
@@ -501,6 +505,7 @@ impl Listener {
 				self.insert_entry(
 					self.entries_next_index,
 					Call {
+						tx_hash: H256::zero(),
 						from: address, // this contract is self destructing
 						trace_address,
 						subtraces: 0,
@@ -600,6 +605,7 @@ impl Listener {
 						};
 
 						Call {
+							tx_hash: H256::zero(),
 							from: context.from,
 							trace_address: context.trace_address,
 							subtraces: context.subtraces,
@@ -631,6 +637,7 @@ impl Listener {
 						};
 
 						Call {
+							tx_hash: H256::zero(),
 							value: context.value,
 							trace_address: context.trace_address,
 							subtraces: context.subtraces,

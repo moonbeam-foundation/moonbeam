@@ -25,7 +25,7 @@ use crate::listeners::call_list::Listener;
 use crate::types::serialization::*;
 use serde::Serialize;
 
-use ethereum_types::{H160, U256};
+use ethereum_types::{H160, H256, U256};
 use parity_scale_codec::{Decode, Encode};
 use sp_std::{cmp::Ordering, vec::Vec};
 
@@ -44,6 +44,7 @@ impl super::ResponseFormatter for Formatter {
 			let mut result: Vec<Call> = entry
 				.into_iter()
 				.map(|(_, it)| {
+					let tx_hash= it.tx_hash;
 					let from = it.from;
 					let trace_address = it.trace_address.clone();
 					let value = it.value;
@@ -51,6 +52,7 @@ impl super::ResponseFormatter for Formatter {
 					let gas_used = it.gas_used;
 					let inner = it.inner.clone();
 					Call::CallTracer(CallTracerCall {
+						tx_hash: tx_hash,
 						from: from,
 						gas: gas,
 						gas_used: gas_used,
@@ -256,6 +258,8 @@ impl super::ResponseFormatter for Formatter {
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CallTracerCall {
+	pub tx_hash: H256,
+
 	pub from: H160,
 
 	/// Indices of parent calls. Used to build the Etherscan nested response.
