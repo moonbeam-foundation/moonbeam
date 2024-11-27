@@ -53,7 +53,7 @@ jobs:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
         srtool_image:
-          - moonbeamfoundation/srtool
+          - paritytech/srtool
         srtool_image_tag:
           - ${{ needs.read-rust-version.outputs.rust_version }}
     steps:
@@ -72,23 +72,6 @@ jobs:
         with:
           name: original-scripts
           path: original-scripts
-      - name: Build & Push moonbeamfoundation/srtool image
-        if: github.repository == 'moonbeam-foundation/moonbeam'
-        run: |
-          docker pull "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}" && image_exists=true || image_exists=false
-
-          if [[ $image_exists = "false" ]]; then
-            echo building "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
-            docker build --pull --no-cache . \
-              -f docker/moonbeam-srtool.Dockerfile \
-              --build-arg SRTOOL_IMAGE_TAG=${{ matrix.srtool_image_tag }} \
-              -t ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}
-
-            echo pushing "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
-            docker push "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
-          else
-            echo skiping build "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}", image already exists
-          fi
       - name: Build runtime using "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
         id: srtool_build
         env:

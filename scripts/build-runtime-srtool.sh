@@ -16,9 +16,6 @@ CMD="docker run \
   -e PROFILE=${RUNTIME_BUILD_PROFILE} \
   -e WASM_BUILD_STD=0 \
   -v ${PWD}:/build \
-  -v /home/${USER}/srtool/.ssh:/home/builder/.ssh \
-  -v /home/${USER}/srtool/entrypoint.sh:/srtool/entrypoint.sh \
-  --entrypoint /srtool/entrypoint.sh \
   ${GH_WORKFLOW_MATRIX_SRTOOL_IMAGE}:${GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG} \
     build --app --json -cM"
 
