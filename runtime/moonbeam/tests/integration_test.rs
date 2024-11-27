@@ -2822,7 +2822,7 @@ mod fee_tests {
 			let actual = TransactionPaymentAsGasPrice::min_gas_price().0;
 			let expected: U256 = multiplier
 				.saturating_mul_int(
-					(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128),
+					(currency::WEIGHT_FEE).saturating_mul(WEIGHT_PER_GAS as u128),
 				)
 				.into();
 
@@ -2861,7 +2861,7 @@ mod fee_tests {
 			.into();
 		t.execute_with(|| {
 			let weight_fee_per_gas =
-				(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128);
+				(currency::WEIGHT_FEE).saturating_mul(WEIGHT_PER_GAS as u128);
 			let sim = |start_gas_price: u128, fullness: Perbill, num_blocks: u64| -> U256 {
 				let start_multiplier =
 					FixedU128::from_rational(start_gas_price, weight_fee_per_gas);
