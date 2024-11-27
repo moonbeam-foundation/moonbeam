@@ -938,6 +938,30 @@
 <a href="#936" id="936">936</a>
 <a href="#937" id="937">937</a>
 <a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1332,7 +1356,15 @@
 		}<span class="question-mark">?</span>;
 
 		<span class="comment">// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
-		</span><span class="kw">let </span>api = client.runtime_api();
+		</span><span class="kw">let </span><span class="kw-2">mut </span>api = client.runtime_api();
+
+		<span class="comment">// Enable proof recording
+		</span>api.record_proof();
+		api.proof_recorder().map(|recorder| {
+			<span class="kw">let </span>ext = sp_trie::proof_size_extension::ProofSizeExt::new(recorder);
+			api.register_extension(ext);
+		});
+
 		<span class="comment">// Get Blockchain backend
 		</span><span class="kw">let </span>blockchain = backend.blockchain();
 		<span class="comment">// Get the header I want to work with.
@@ -1496,7 +1528,15 @@
 				<span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
 			};
 		<span class="comment">// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
-		</span><span class="kw">let </span>api = client.runtime_api();
+		</span><span class="kw">let </span><span class="kw-2">mut </span>api = client.runtime_api();
+
+		<span class="comment">// Enable proof recording
+		</span>api.record_proof();
+		api.proof_recorder().map(|recorder| {
+			<span class="kw">let </span>ext = sp_trie::proof_size_extension::ProofSizeExt::new(recorder);
+			api.register_extension(ext);
+		});
+
 		<span class="comment">// Get Blockchain backend
 		</span><span class="kw">let </span>blockchain = backend.blockchain();
 		<span class="comment">// Get the header I want to work with.
@@ -1702,7 +1742,15 @@
 		}<span class="question-mark">?</span>;
 
 		<span class="comment">// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
-		</span><span class="kw">let </span>api = client.runtime_api();
+		</span><span class="kw">let </span><span class="kw-2">mut </span>api = client.runtime_api();
+
+		<span class="comment">// Enable proof recording
+		</span>api.record_proof();
+		api.proof_recorder().map(|recorder| {
+			<span class="kw">let </span>ext = sp_trie::proof_size_extension::ProofSizeExt::new(recorder);
+			api.register_extension(ext);
+		});
+
 		<span class="comment">// Get the header I want to work with.
 		</span><span class="kw">let </span><span class="prelude-val">Ok</span>(hash) = client.expect_block_hash_from_id(<span class="kw-2">&amp;</span>reference_id) <span class="kw">else </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">"Block header not found"</span>));
