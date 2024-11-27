@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use std::fs;
-use std::path::Path;
 use std::io::prelude::*;
+use std::path::Path;
 
 // Length of encoded constructor parameters
 const PARAMS_LEN: usize = 256;
@@ -41,16 +41,12 @@ fn main() {
 
 	let file_path = "resources/foreign_erc20_initcode.bin";
 
-    if Path::new(file_path).exists() {
-        let existing_content = fs::read(file_path).expect("Unable to read file");
-        let existing_hex_code = hex::encode(existing_content);
-
-        if existing_hex_code == hex_str {
-            println!("File already exists and matches the expected hex code.");
-            return;
-        }
-    } else {
-		println!("File does not exist or does not match the expected hex code.");
+	if Path::new(file_path).exists() {
+		let existing_content = fs::read(file_path).expect("Unable to read file");
+		let existing_hex_code = hex::encode(existing_content);
+		if existing_hex_code == hex::encode(&bytecode[..bytecode_end]) {
+			return;
+		}
 	}
 
 	let mut file = fs::File::create(file_path)
