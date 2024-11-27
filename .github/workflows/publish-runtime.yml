@@ -46,7 +46,7 @@ jobs:
 
   build-srtool-runtimes:
     needs: ["setup-scripts", "read-rust-version"]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-32core-64gb
     permissions:
       contents: read
     strategy:
