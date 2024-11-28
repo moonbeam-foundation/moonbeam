@@ -1,8 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeEach, TransactionTypes } from "@moonwall/cli";
-import { ALITH_ADDRESS, baltathar, GLMR, MIN_GAS_PRICE } from "@moonwall/util";
+import { ALITH_ADDRESS, baltathar, GLMR } from "@moonwall/util";
 import { createRawTransfer } from "@moonwall/util";
 import { Wallet } from "ethers";
+
+const MIN_GAS_PRICE = 2500000000n;
 
 describeSuite({
   id: "D010301",

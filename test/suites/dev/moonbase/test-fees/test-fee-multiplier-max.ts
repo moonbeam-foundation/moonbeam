@@ -49,7 +49,7 @@ describeSuite({
         ).toBigInt();
         expect(multiplier).toBe(100_000_000_000_000_000_000_000n);
         const gasPrice = await context.viem().getGasPrice();
-        expect(gasPrice).toBe(125_000_000_000_000n);
+        expect(gasPrice).toBe(31_250_000_000_000n);
       },
     });
 
@@ -128,7 +128,7 @@ describeSuite({
         let blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
         let baseFeePerGas = (await context.viem().getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
-        expect(baseFeePerGas).to.equal(125_000_000_000_000n);
+        expect(baseFeePerGas).to.equal(31_250_000_000_000n);
 
         const {
           hash: createTxHash,

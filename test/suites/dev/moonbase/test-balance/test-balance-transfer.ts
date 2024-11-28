@@ -7,7 +7,6 @@ import {
   CHARLETH_PRIVATE_KEY,
   GERALD_PRIVATE_KEY,
   GLMR,
-  MIN_GAS_PRICE,
   checkBalance,
   createViemTransaction,
   createRawTransfer,
@@ -17,6 +16,8 @@ import {
 import { ALITH_GENESIS_TRANSFERABLE_BALANCE, verifyLatestBlockFees } from "../../../../helpers";
 
 import { parseGwei } from "viem";
+
+const MIN_GAS_PRICE = 2500000000n;
 
 describeSuite({
   id: "D010306",
@@ -43,7 +44,7 @@ describeSuite({
 
         await context.createBlock(createRawTransfer(context, randomAddress, 0n));
         expect(await context.viem().getBalance({ address: ALITH_ADDRESS })).toBe(
-          ALITH_GENESIS_TRANSFERABLE_BALANCE - 21000n * 10_000_000_000n
+          ALITH_GENESIS_TRANSFERABLE_BALANCE - 21000n * 2_500_000_000n
         );
       },
     });

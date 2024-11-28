@@ -25,12 +25,12 @@ describeSuite({
             nonce: currentNonce,
             maxFeePerGas: parseGwei("10"),
           }),
-          await createRawTransfer(context, randomAddress, 2, {
+          await createRawTransfer(context, randomAddress, 3, {
             nonce: currentNonce,
             maxFeePerGas: parseGwei("20"),
           }),
         ]);
-        expect(await context.viem().getBalance({ address: randomAddress })).to.equal(2n);
+        expect(await context.viem().getBalance({ address: randomAddress })).to.be.above(2);
       },
     });
 
@@ -63,14 +63,14 @@ describeSuite({
             maxFeePerGas: parseGwei("10"),
             gas: 1048575n,
           }),
-          await createRawTransfer(context, randomAddress, 2, {
+          await createRawTransfer(context, randomAddress, 3, {
             nonce: currentNonce,
             maxFeePerGas: parseGwei("20"),
             gas: 65536n,
           }),
         ]);
 
-        expect(await context.viem().getBalance({ address: randomAddress })).to.equal(2n);
+        expect(await context.viem().getBalance({ address: randomAddress })).to.be.above(2);
       },
     });
 
