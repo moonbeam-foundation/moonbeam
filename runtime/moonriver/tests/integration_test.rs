@@ -1393,10 +1393,7 @@ fn min_gas_fee_is_correct() {
 
 		assert_eq!(
 			TransactionPaymentAsGasPrice::min_gas_price(),
-			(
-				312_500_000u128.into(),
-				Weight::from_parts(41_742_000u64, 0)
-			)
+			(312_500_000u128.into(), Weight::from_parts(41_742_000u64, 0))
 		);
 	});
 }
@@ -2778,7 +2775,6 @@ mod fee_tests {
 			// the fee calculation are changed, and should be updated accordingly.
 			// If a test fails when nothing specific to fees has changed,
 			// it may indicate an unexpected collateral effect and should be investigated
-
 
 			assert_eq!(
 				sim(100_000_000, Perbill::from_percent(0), 1),
