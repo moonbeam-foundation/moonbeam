@@ -12,7 +12,9 @@ describeSuite({
       title: "should start with genesis value",
       test: async () => {
         const { specVersion } = await context.polkadotJs().consts.system.version;
-        const GENESIS_BASE_FEE = ConstantStore(context).GENESIS_BASE_FEE.get(specVersion.toNumber());
+        const GENESIS_BASE_FEE = ConstantStore(context).GENESIS_BASE_FEE.get(
+          specVersion.toNumber()
+        );
         const initialValue = (
           await context.polkadotJs().query.transactionPayment.nextFeeMultiplier()
         ).toBigInt();

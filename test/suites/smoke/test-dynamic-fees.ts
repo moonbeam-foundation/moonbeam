@@ -124,7 +124,7 @@ describeSuite({
       ) {
         log(
           `Runtime ${specName.toString()} version ` +
-          `${specVersion.toString()} is less than 2200, skipping test suite.`
+            `${specVersion.toString()} is less than 2200, skipping test suite.`
         );
         skipAll = true;
       }
@@ -132,7 +132,7 @@ describeSuite({
       if (specVersion.toNumber() < 2300 && specName.toString() == "moonbeam") {
         log(
           `Runtime ${specName.toString()} version ` +
-          `${specVersion.toString()} is less than 2300, skipping test suite.`
+            `${specVersion.toString()} is less than 2300, skipping test suite.`
         );
         skipAll = true;
       }
@@ -143,9 +143,9 @@ describeSuite({
 
       log(
         `Collecting ${hours} hours worth of data ` +
-        `[from #${blockNumArray[0]} ` +
-        `to #${blockNumArray[blockNumArray.length - 1]}] ` +
-        `(${blockNumArray.length} blocks, RT${specVersion.toNumber()})`
+          `[from #${blockNumArray[0]} ` +
+          `to #${blockNumArray[blockNumArray.length - 1]}] ` +
+          `(${blockNumArray.length} blocks, RT${specVersion.toNumber()})`
       );
 
       const getBlockData = async (blockNum: number) => {
@@ -195,7 +195,7 @@ describeSuite({
       if (result) {
         log(
           `Time slice of blocks intersects with upgrade ` +
-          `from RT ${onChainRt} to RT ${specVersion}, skipping tests.`
+            `from RT ${onChainRt} to RT ${specVersion}, skipping tests.`
         );
         skipAll = true;
       }
@@ -293,9 +293,9 @@ describeSuite({
         const failures = blockData.filter(({ baseFeePerGasInGwei }) => {
           return (
             ethers.parseUnits(baseFeePerGasInGwei, "gwei") <
-            RUNTIME_CONSTANTS[runtime].MIN_BASE_FEE.get(specVersion.toNumber()) ||
+              RUNTIME_CONSTANTS[runtime].MIN_BASE_FEE.get(specVersion.toNumber()) ||
             ethers.parseUnits(baseFeePerGasInGwei, "gwei") >
-            RUNTIME_CONSTANTS[runtime].MAX_BASE_FEE.get(specVersion.toNumber())
+              RUNTIME_CONSTANTS[runtime].MAX_BASE_FEE.get(specVersion.toNumber())
           );
         });
 
