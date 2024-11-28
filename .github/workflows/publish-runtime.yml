@@ -104,7 +104,8 @@ jobs:
   publish-draft-release:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
+      contents: write
     needs: ["setup-scripts", "build-srtool-runtimes"]
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
