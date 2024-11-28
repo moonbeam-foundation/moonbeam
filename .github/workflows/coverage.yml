@@ -92,6 +92,7 @@ jobs:
       labels: bare-metal
     permissions:
       contents: read
+      pull-requests: write
     needs: ["set-tags"]
     if: ${{ !github.event.pull_request.head.repo.fork }}
     timeout-minutes: 90
