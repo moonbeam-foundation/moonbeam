@@ -143,7 +143,7 @@ describeSuite({
         blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
         baseFeePerGas = (await context.viem().getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
-        expect(baseFeePerGas).to.equal(124_827_007_821_127n);
+        expect(baseFeePerGas).to.equal(31_206_751_955_281n);
 
         const rawSigned = await createEthersTransaction(context, {
           to: contractAddress,

@@ -16,7 +16,7 @@ describeSuite({
         expect(initialValue).to.equal(8_000_000_000_000_000_000n);
 
         const gasPrice = await context.viem().getGasPrice();
-        expect(gasPrice).to.eq(10_000_000_000n);
+        expect(gasPrice).to.eq(2_500_000_000n); // min gas price
       },
     });
   },
