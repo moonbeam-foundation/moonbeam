@@ -34,11 +34,12 @@ pub use weights::WeightInfo;
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_system::pallet_prelude::*;
+pub use pallet::*;
 use xcm::latest::Location;
 
-pub use pallet::*;
-
 const MAX_CONTRACT_CODE_SIZE: u64 = 25 * 1024;
+
+environmental::environmental!(MIGRATING_FOREIGN_ASSETS: bool);
 
 #[pallet]
 pub mod pallet {
@@ -449,4 +450,8 @@ pub mod pallet {
 				)
 		}
 	}
+}
+
+pub fn is_migrating_foreign_assets() -> bool {
+	MIGRATING_FOREIGN_ASSETS::with(|v| *v).unwrap_or(false)
 }

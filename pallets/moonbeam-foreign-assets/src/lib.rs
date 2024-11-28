@@ -235,7 +235,7 @@ pub mod pallet {
 
 		/// Compute asset contract address from asset id
 		#[inline]
-		pub(crate) fn contract_address_from_asset_id(asset_id: AssetId) -> H160 {
+		pub fn contract_address_from_asset_id(asset_id: AssetId) -> H160 {
 			let mut buffer = [0u8; 20];
 			buffer[..4].copy_from_slice(&FOREIGN_ASSETS_PREFIX);
 			buffer[4..].copy_from_slice(&asset_id.to_be_bytes());

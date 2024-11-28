@@ -35,10 +35,10 @@ const ERC20_CREATE_MAX_CALLDATA_SIZE: usize = 16 * 1024; // 16Ko
 // Hardcoded gas limits (from manual binary search)
 const ERC20_CREATE_GAS_LIMIT: u64 = 3_367_000; // highest failure: 3_366_000
 pub(crate) const ERC20_BURN_FROM_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
-pub(crate) const ERC20_MINT_INTO_GAS_LIMIT: u64 = 555_000; // highest failure: 154_000
+pub(crate) const ERC20_MINT_INTO_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
 const ERC20_PAUSE_GAS_LIMIT: u64 = 150_000; // highest failure: 149_500
 pub(crate) const ERC20_TRANSFER_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
-pub(crate) const ERC20_APPROVE_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
+pub(crate) const ERC20_APPROVE_GAS_LIMIT: u64 = 154_000; // highest failure: 153_000
 const ERC20_UNPAUSE_GAS_LIMIT: u64 = 150_000; // highest failure: 149_500
 
 pub enum EvmError {
@@ -261,8 +261,6 @@ impl<T: crate::Config> EvmCaller<T> {
 		input.extend_from_slice(H256::from(spender).as_bytes());
 		// append amount to be approved
 		input.extend_from_slice(H256::from_uint(&amount).as_bytes());
-
-		// TODO: check gas limit of approve
 		let weight_limit: Weight =
 			T::GasWeightMapping::gas_to_weight(ERC20_APPROVE_GAS_LIMIT, true);
 

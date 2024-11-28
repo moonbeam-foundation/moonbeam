@@ -78,6 +78,15 @@ where
 				let xcm_location: Location =
 					asset_type.into().ok_or(Error::<T>::LocationNotFound)?;
 
+				// Remove the precompile for the old foreign asset.
+				// Cleaning the precompile is done by removing the code and metadata
+				let contract_addr =
+					pallet_moonbeam_foreign_assets::Pallet::<T>::contract_address_from_asset_id(
+						asset_id,
+					);
+				pallet_evm::AccountCodes::<T>::remove(contract_addr);
+				pallet_evm::AccountCodesMetadata::<T>::remove(contract_addr);
+
 				// Create the SC for the asset with moonbeam foreign assets pallet
 				pallet_moonbeam_foreign_assets::Pallet::<T>::create_foreign_asset(
 					origin,
@@ -128,11 +137,13 @@ where
 						_ => {}
 					};
 
-					pallet_moonbeam_foreign_assets::Pallet::<T>::mint_into(
-						info.asset_id,
-						who.clone(),
-						asset.balance.into(),
-					)
+					MIGRATING_FOREIGN_ASSETS::using_once(&mut true, || {
+						pallet_moonbeam_foreign_assets::Pallet::<T>::mint_into(
+							info.asset_id,
+							who.clone(),
+							asset.balance.into(),
+						)
+					})
 					.map_err(|_| Error::<T>::MintFailed)?;
 
 					info.remaining_balances = info.remaining_balances.saturating_sub(1);
@@ -157,12 +168,14 @@ where
 				.try_for_each(|((owner, beneficiary), approval)| {
 					<T as pallet_assets::Config>::Currency::unreserve(&owner, approval.deposit);
 
-					pallet_moonbeam_foreign_assets::Pallet::<T>::approve(
-						info.asset_id,
-						owner.clone(),
-						beneficiary,
-						approval.amount.into(),
-					)
+					MIGRATING_FOREIGN_ASSETS::using_once(&mut true, || {
+						pallet_moonbeam_foreign_assets::Pallet::<T>::approve(
+							info.asset_id,
+							owner.clone(),
+							beneficiary,
+							approval.amount.into(),
+						)
+					})
 					.map_err(|_| Error::<T>::ApprovalFailed)?;
 
 					info.remaining_approvals = info.remaining_approvals.saturating_sub(1);

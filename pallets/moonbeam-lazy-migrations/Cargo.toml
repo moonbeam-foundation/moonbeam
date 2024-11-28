@@ -25,6 +25,8 @@ sp-std = { workspace = true }
 xcm = { workspace = true }
 xcm-primitives = { workspace = true }
 
+environmental = { workspace = true }
+
 # Frontier
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 
@@ -46,6 +48,7 @@ sp-io = { workspace = true, features = ["std"] }
 default = ["std"]
 runtime-benchmarks = ["frame-benchmarking"]
 std = [
+  "environmental/std",
   "pallet-balances/std",
   "frame-support/std",
   "frame-system/std",

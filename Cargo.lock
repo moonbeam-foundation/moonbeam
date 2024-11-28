@@ -9390,6 +9390,7 @@ dependencies = [
  "pallet-assets",
  "pallet-balances",
  "pallet-evm",
+ "pallet-moonbeam-lazy-migrations",
  "pallet-timestamp",
  "parity-scale-codec",
  "paste",
@@ -9615,6 +9616,7 @@ name = "pallet-moonbeam-lazy-migrations"
 version = "0.1.0"
 dependencies = [
  "cumulus-primitives-storage-weight-reclaim",
+ "environmental",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
