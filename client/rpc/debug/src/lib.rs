@@ -516,11 +516,8 @@ where
 								.map_err(|e| internal_err(format!("{:?}", e)))?
 								.into_iter()
 								.map(|mut trace| {
-									match eth_tx_hashes.get(&trace.tx_position) {
-										Some(transaction_hash) => {
-											trace.tx_hash = *transaction_hash;
-										}
-										None => {}
+									if let Some(transaction_hash) = eth_tx_hashes.get(&trace.tx_position) {
+										trace.tx_hash = *transaction_hash;
 									}
 									trace
 								})
