@@ -423,9 +423,7 @@ where
 			.unwrap_or_default();
 
 		// Known ethereum transaction hashes.
-		let eth_tx_hashes: Vec<_> = statuses.iter().map(|t| t.transaction_hash).collect();
-
-		let eth_transactions_by_index: BTreeMap<u32, H256> = statuses
+		let eth_tx_hashes: BTreeMap<u32, H256> = statuses
 			.iter()
 			.map(|t| (t.transaction_index, t.transaction_hash))
 			.collect();
@@ -456,7 +454,7 @@ where
 		let f = || -> RpcResult<_> {
 			let result = if trace_api_version >= 5 {
 				// The block is initialized inside "trace_block"
-				api.trace_block(parent_block_hash, exts, eth_tx_hashes, &header)
+				api.trace_block(parent_block_hash, exts, eth_tx_hashes.values().cloned().collect(), &header)
 			} else {
 				// Get core runtime api version
 				let core_api_version = if let Ok(Some(api_version)) =
@@ -484,7 +482,7 @@ where
 				}
 
 				#[allow(deprecated)]
-				api.trace_block_before_version_5(parent_block_hash, exts, eth_tx_hashes)
+				api.trace_block_before_version_5(parent_block_hash, exts, eth_tx_hashes.values().cloned().collect())
 			};
 
 			result
@@ -518,7 +516,7 @@ where
 								.map_err(|e| internal_err(format!("{:?}", e)))?
 								.into_iter()
 								.map(|mut trace| {
-									match eth_transactions_by_index.get(&trace.tx_position) {
+									match eth_tx_hashes.get(&trace.tx_position) {
 										Some(transaction_hash) => {
 											trace.tx_hash = *transaction_hash;
 										}
