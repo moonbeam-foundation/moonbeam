@@ -26,6 +26,8 @@ use ethereum_types::H256;
 use fc_rpc::{frontier_backend_client, internal_err};
 use fc_storage::StorageOverride;
 use fp_rpc::EthereumRuntimeRPCApi;
+use moonbeam_client_evm_tracing::types::block;
+use moonbeam_client_evm_tracing::types::block::BlockTransactionTrace;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
 use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
@@ -40,6 +42,7 @@ use sp_runtime::{
 	generic::BlockId,
 	traits::{BlakeTwo256, Block as BlockT, Header as HeaderT, UniqueSaturatedInto},
 };
+use std::collections::BTreeMap;
 use std::{future::Future, marker::PhantomData, sync::Arc};
 
 pub enum RequesterInput {
@@ -50,7 +53,7 @@ pub enum RequesterInput {
 
 pub enum Response {
 	Single(single::TransactionTrace),
-	Block(Vec<single::TransactionTrace>),
+	Block(Vec<block::BlockTransactionTrace>),
 }
 
 pub type Responder = oneshot::Sender<RpcResult<Response>>;
@@ -422,6 +425,11 @@ where
 		// Known ethereum transaction hashes.
 		let eth_tx_hashes: Vec<_> = statuses.iter().map(|t| t.transaction_hash).collect();
 
+		let eth_transactions_by_index: BTreeMap<u32, H256> = statuses
+			.iter()
+			.map(|t| (t.transaction_index, t.transaction_hash))
+			.collect();
+
 		// If there are no ethereum transactions in the block return empty trace right away.
 		if eth_tx_hashes.is_empty() {
 			return Ok(Response::Block(vec![]));
@@ -504,9 +512,23 @@ where
 				proxy.finish_transaction();
 				let response = match tracer_input {
 					TracerInput::CallTracer => {
-						moonbeam_client_evm_tracing::formatters::CallTracer::format(proxy)
-							.ok_or("Trace result is empty.")
-							.map_err(|e| internal_err(format!("{:?}", e)))
+						let result =
+							moonbeam_client_evm_tracing::formatters::CallTracer::format(proxy)
+								.ok_or("Trace result is empty.")
+								.map_err(|e| internal_err(format!("{:?}", e)))?
+								.into_iter()
+								.map(|mut trace| {
+									match eth_transactions_by_index.get(&trace.tx_position) {
+										Some(transaction_hash) => {
+											trace.tx_hash = *transaction_hash;
+										}
+										None => {}
+									}
+									trace
+								})
+								.collect::<Vec<BlockTransactionTrace>>();
+
+						Ok(result)
 					}
 					_ => Err(internal_err(
 						"Bug: failed to resolve the tracer format.".to_string(),
