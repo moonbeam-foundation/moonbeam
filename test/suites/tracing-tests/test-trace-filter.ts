@@ -1,6 +1,7 @@
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import { afterAll, beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES, GLMR, alith } from "@moonwall/util";
 import { hexToU8a } from "@polkadot/util";
+import { sleep } from "../../helpers";
 
 describeSuite({
   id: "T14",
@@ -34,6 +35,10 @@ describeSuite({
         rawTxOnly: true,
       });
       await context.createBlock(rawTx3, { allowFailures: false });
+    });
+
+    afterAll(async () => {
+      await sleep(500); // Add sleep to allow for graceful teardown
     });
 
     it({

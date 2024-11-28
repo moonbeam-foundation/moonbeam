@@ -126,3 +126,12 @@ export function chunk<T>(array: Array<T>, size: number): Array<Array<T>> {
 
   return chunks;
 }
+
+/**
+ * Pauses the execution for a specified duration.
+ * @param durationMs The duration to sleep in milliseconds.
+ * @returns A Promise that resolves after the specified duration.
+ */
+export async function sleep(durationMs: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, durationMs));
+}
