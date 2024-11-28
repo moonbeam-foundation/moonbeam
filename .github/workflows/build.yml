@@ -739,8 +739,6 @@ jobs:
       labels: bare-metal
     permissions:
       contents: read
-    permissions:
-      contents: read
     needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
