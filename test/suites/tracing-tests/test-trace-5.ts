@@ -116,8 +116,8 @@ describeSuite({
         ]);
         expect(block.transactions.length).to.be.equal(traceTx.length);
         traceTx.forEach((trace: { [key: string]: any }) => {
-          expect(trace.calls.length).to.be.equal(1);
-          expect(Object.keys(trace).sort()).to.deep.equal([
+          expect(trace.result.calls.length).to.be.equal(1);
+          expect(Object.keys(trace.result).sort()).to.deep.equal([
             "calls",
             "from",
             "gas",
@@ -136,8 +136,7 @@ describeSuite({
         ]);
         expect(block.transactions.length).to.be.equal(traceTx.length);
         traceTx.forEach((trace: { [key: string]: any }) => {
-          expect(trace.calls.length).to.be.equal(1);
-          expect(Object.keys(trace).sort()).to.deep.equal([
+          expect(Object.keys(trace.result).sort()).to.deep.equal([
             "calls",
             "from",
             "gas",
