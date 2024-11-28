@@ -423,10 +423,12 @@ where
 			.unwrap_or_default();
 
 		// Known ethereum transaction hashes.
-		let eth_tx_hashes: BTreeMap<u32, H256> = statuses
+		let eth_transactions_by_index: BTreeMap<u32, H256> = statuses
 			.iter()
 			.map(|t| (t.transaction_index, t.transaction_hash))
 			.collect();
+
+		let eth_tx_hashes: Vec<_> = eth_transactions_by_index.values().cloned().collect();
 
 		// If there are no ethereum transactions in the block return empty trace right away.
 		if eth_tx_hashes.is_empty() {
@@ -454,7 +456,7 @@ where
 		let f = || -> RpcResult<_> {
 			let result = if trace_api_version >= 5 {
 				// The block is initialized inside "trace_block"
-				api.trace_block(parent_block_hash, exts, eth_tx_hashes.values().cloned().collect(), &header)
+				api.trace_block(parent_block_hash, exts, eth_tx_hashes, &header)
 			} else {
 				// Get core runtime api version
 				let core_api_version = if let Ok(Some(api_version)) =
@@ -482,7 +484,7 @@ where
 				}
 
 				#[allow(deprecated)]
-				api.trace_block_before_version_5(parent_block_hash, exts, eth_tx_hashes.values().cloned().collect())
+				api.trace_block_before_version_5(parent_block_hash, exts, eth_tx_hashes)
 			};
 
 			result
@@ -516,7 +518,9 @@ where
 								.map_err(|e| internal_err(format!("{:?}", e)))?
 								.into_iter()
 								.map(|mut trace| {
-									if let Some(transaction_hash) = eth_tx_hashes.get(&trace.tx_position) {
+									if let Some(transaction_hash) =
+										eth_transactions_by_index.get(&trace.tx_position)
+									{
 										trace.tx_hash = *transaction_hash;
 									}
 									trace
