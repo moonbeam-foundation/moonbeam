@@ -4,11 +4,20 @@ import { RUNTIME_CONSTANTS } from "../../helpers";
 import { ApiPromise } from "@polkadot/api";
 import fs from "fs/promises";
 import { u8aToHex } from "@polkadot/util";
+import assert from "node:assert";
+import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
 describeSuite({
   id: "LD01",
   title: "Lazy Loading - Runtime Upgrade",
   foundationMethods: "dev",
+  options: {
+    forkConfig: {
+      url: process.env.FORK_URL ?? "https://moonbeam.unitedbloc.com",
+      stateOverridePath: "tmp/lazyLoadingStateOverrides.json",
+      verbose: true,
+    },
+  },
   testCases: ({ it, context, log }) => {
     let api: ApiPromise;
 
@@ -34,6 +43,8 @@ describeSuite({
         api.tx.system.applyAuthorizedUpgrade(runtimeWasmHex),
         { finalize: false }
       );
+
+      assert(result, "Block has no extrinsic results");
       const errors = result.events
         // find/filter for failed events
         .filter(({ event }) => api.events.system.ExtrinsicFailed.is(event))
@@ -45,9 +56,10 @@ describeSuite({
               data: [error, info],
             },
           }) => {
-            if (error.isModule) {
+            const dispatchError = error as SpRuntimeDispatchError;
+            if (dispatchError.isModule) {
               // for module errors, we have the section indexed, lookup
-              const decoded = api.registry.findMetaError(error.asModule);
+              const decoded = api.registry.findMetaError(dispatchError.asModule);
               const { docs, method, section } = decoded;
 
               return `${section}.${method}: ${docs.join(" ")}`;

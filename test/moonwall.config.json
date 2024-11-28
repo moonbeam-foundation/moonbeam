@@ -368,7 +368,6 @@
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
             "options": [
-              "-llazy-loading=trace",
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
               "--no-telemetry",
@@ -381,10 +380,13 @@
               "--rpc-cors=all",
               "--alice",
               "--sealing=manual",
-              "--tmp",
-              "--fork-chain-from-rpc=https://moonbeam.unitedbloc.com",
-              "--fork-state-overrides=tmp/lazyLoadingStateOverrides.json"
-            ]
+              "--tmp"
+            ],
+            "defaultForkConfig": {
+              "url": "https://moonbeam.unitedbloc.com",
+              "stateOverridePath": "tmp/lazyLoadingStateOverrides.json",
+              "verbose": true
+            }
           }
         ]
       }
