@@ -46,7 +46,7 @@ jobs:
 
   build-srtool-runtimes:
     needs: ["setup-scripts", "read-rust-version"]
-    runs-on: moonbeam-release
+    runs-on: moonbeam-release-medium
     permissions:
       contents: read
     strategy:
