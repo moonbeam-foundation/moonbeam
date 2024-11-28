@@ -13,11 +13,13 @@ import {
   generateKeyringPair,
   sendRawTransaction,
 } from "@moonwall/util";
-import { ALITH_GENESIS_TRANSFERABLE_BALANCE, verifyLatestBlockFees } from "../../../../helpers";
+import {
+  ALITH_GENESIS_TRANSFERABLE_BALANCE,
+  ConstantStore,
+  verifyLatestBlockFees,
+} from "../../../../helpers";
 
 import { parseGwei } from "viem";
-
-const MIN_GAS_PRICE = 2500000000n;
 
 describeSuite({
   id: "D010306",
@@ -25,10 +27,13 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
     let randomAddress: `0x${string}`;
+    let GENESIS_BASE_FEE;
 
     beforeEach(async function () {
       const randomAccount = generateKeyringPair();
       randomAddress = randomAccount.address as `0x${string}`;
+      const { specVersion } = await context.polkadotJs().consts.system.version;
+      GENESIS_BASE_FEE = ConstantStore(context).GENESIS_BASE_FEE.get(specVersion.toNumber());
     });
 
     it({
@@ -56,7 +61,7 @@ describeSuite({
         await context.createBlock();
         const rawTx = (await createRawTransfer(context, randomAddress, 512n, {
           privateKey: CHARLETH_PRIVATE_KEY,
-          gasPrice: MIN_GAS_PRICE,
+          gasPrice: GENESIS_BASE_FEE,
           gas: 21000n,
           txnType: "legacy",
         })) as `0x${string}`;
@@ -73,11 +78,11 @@ describeSuite({
       title: "should decrease from account",
       test: async function () {
         const balanceBefore = await context.viem().getBalance({ address: ALITH_ADDRESS });
-        const fees = 21000n * MIN_GAS_PRICE;
+        const fees = 21000n * GENESIS_BASE_FEE;
         await context.createBlock(
           await createRawTransfer(context, randomAddress, 512n, {
             gas: 21000n,
-            gasPrice: MIN_GAS_PRICE,
+            gasPrice: GENESIS_BASE_FEE,
             txnType: "legacy",
           })
         );
@@ -95,7 +100,7 @@ describeSuite({
         await context.createBlock(
           await createRawTransfer(context, randomAddress, 512n, {
             gas: 21000n,
-            gasPrice: MIN_GAS_PRICE,
+            gasPrice: GENESIS_BASE_FEE,
             type: "legacy",
           })
         );
@@ -112,7 +117,7 @@ describeSuite({
         await context.createBlock(
           await createRawTransfer(context, randomAddress, 512n, {
             gas: 21000n,
-            gasPrice: MIN_GAS_PRICE,
+            gasPrice: GENESIS_BASE_FEE,
             type: "legacy",
           })
         );
@@ -141,7 +146,7 @@ describeSuite({
         await context.createBlock(
           await createRawTransfer(context, randomAddress, 512n, {
             gas: 21000n,
-            gasPrice: MIN_GAS_PRICE,
+            gasPrice: GENESIS_BASE_FEE,
             type: "legacy",
           })
         );
@@ -189,14 +194,14 @@ describeSuite({
         await context.createBlock(
           await createRawTransfer(context, randomAddress, 1n * GLMR, {
             gas: 21000n,
-            maxFeePerGas: MIN_GAS_PRICE,
+            maxFeePerGas: GENESIS_BASE_FEE,
             maxPriorityFeePerGas: parseGwei("0.2"),
-            gasPrice: MIN_GAS_PRICE,
+            gasPrice: GENESIS_BASE_FEE,
             type: "eip1559",
           })
         );
         const balanceAfter = await checkBalance(context);
-        const fee = 21000n * MIN_GAS_PRICE;
+        const fee = 21000n * GENESIS_BASE_FEE;
 
         expect(balanceAfter + fee + 1n * GLMR).toBe(balanceBefore);
       },

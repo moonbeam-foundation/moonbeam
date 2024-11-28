@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { WEIGHT_FEE, WEIGHT_PER_GAS, getBlockArray } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { GenericExtrinsic } from "@polkadot/types";
-import type { u128 } from "@polkadot/types-codec";
+import type { u128, u32 } from "@polkadot/types-codec";
 import {
   EthereumBlock,
   EthereumReceiptReceiptV3,
@@ -56,6 +56,7 @@ describeSuite({
     // includes blockData and also the previous block, needed for fee change computation.
     let allBlocks: BlockFilteredRecord[];
     let runtime: "MOONRIVER" | "MOONBEAM" | "MOONBASE";
+    let specVersion: u32;
     let paraApi: ApiPromise;
     let skipAll = false;
     let targetFillPermill: bigint;
@@ -112,7 +113,9 @@ describeSuite({
       const endsAtBlockHash = await paraApi.rpc.chain.getBlockHash(
         blockNumArray[blockNumArray.length - 1]
       );
-      const { specVersion, specName } = (await paraApi.at(endsAtBlockHash)).consts.system.version;
+      const version = (await paraApi.at(endsAtBlockHash)).consts.system.version;
+      specVersion = version.specVersion;
+      let specName = version.specName;
       runtime = specName.toUpperCase() as any;
 
       if (
@@ -290,9 +293,9 @@ describeSuite({
         const failures = blockData.filter(({ baseFeePerGasInGwei }) => {
           return (
             ethers.parseUnits(baseFeePerGasInGwei, "gwei") <
-              BigInt(RUNTIME_CONSTANTS[runtime].MIN_BASE_FEE_IN_WEI) ||
+              RUNTIME_CONSTANTS[runtime].MIN_BASE_FEE.get(specVersion.toNumber()) ||
             ethers.parseUnits(baseFeePerGasInGwei, "gwei") >
-              BigInt(RUNTIME_CONSTANTS[runtime].MAX_BASE_FEE_IN_WEI)
+              RUNTIME_CONSTANTS[runtime].MAX_BASE_FEE.get(specVersion.toNumber())
           );
         });
 

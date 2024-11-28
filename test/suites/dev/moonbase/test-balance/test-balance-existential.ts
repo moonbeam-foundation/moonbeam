@@ -3,8 +3,7 @@ import { expect, describeSuite, beforeEach, TransactionTypes } from "@moonwall/c
 import { ALITH_ADDRESS, baltathar, GLMR } from "@moonwall/util";
 import { createRawTransfer } from "@moonwall/util";
 import { Wallet } from "ethers";
-
-const MIN_GAS_PRICE = 2500000000n;
+import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D010301",
@@ -14,8 +13,12 @@ describeSuite({
     // let randomAccount: PrivateKeyAccount;
     let privateKey: `0x${string}`;
     let randomWeb3Account: any;
+    let GENESIS_BASE_FEE;
 
     beforeEach(async function () {
+      const { specVersion } = await context.polkadotJs().consts.system.version;
+      GENESIS_BASE_FEE = ConstantStore(context).GENESIS_BASE_FEE.get(specVersion.toNumber());
+
       // privateKey = generatePrivateKey();
       // randomAccount = privateKeyToAccount(privateKey);
       randomWeb3Account = context.web3().eth.accounts.create();
@@ -34,13 +37,13 @@ describeSuite({
           const raw = await createRawTransfer(
             context,
             ALITH_ADDRESS,
-            10n * GLMR - 21000n * MIN_GAS_PRICE,
+            10n * GLMR - 21000n * GENESIS_BASE_FEE,
             {
               privateKey,
               type: txnType,
-              gasPrice: MIN_GAS_PRICE,
+              gasPrice: GENESIS_BASE_FEE,
               gas: 21000n,
-              maxFeePerGas: MIN_GAS_PRICE,
+              maxFeePerGas: GENESIS_BASE_FEE,
             }
           );
           const { result } = await context.createBlock(raw);
@@ -61,8 +64,8 @@ describeSuite({
         const signer = new Wallet(privateKey, context.ethers().provider);
         await signer.sendTransaction({
           to: baltathar.address,
-          value: 10n * GLMR - 21000n * MIN_GAS_PRICE - 1n,
-          gasPrice: MIN_GAS_PRICE,
+          value: 10n * GLMR - 21000n * GENESIS_BASE_FEE - 1n,
+          gasPrice: GENESIS_BASE_FEE,
           gasLimit: 21000n,
         });
 

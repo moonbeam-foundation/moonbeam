@@ -7,8 +7,10 @@ describeSuite({
   title: "Block genesis",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+    let specVersion: number;
     beforeAll(async () => {
       expect(await context.viem().getBlockNumber()).toBe(0n);
+      specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
     });
 
     it({
@@ -21,7 +23,7 @@ describeSuite({
           author: "0x0000000000000000000000000000000000000000",
           difficulty: 0n,
           extraData: "0x",
-          gasLimit: ConstantStore(context).GAS_LIMIT,
+          gasLimit: ConstantStore(context).GAS_LIMIT.get(specVersion),
           gasUsed: 0n,
           logsBloom: `0x${"0".repeat(512)}`,
           number: 0n,
@@ -50,7 +52,7 @@ describeSuite({
           author: "0x0000000000000000000000000000000000000000",
           difficulty: 0n,
           extraData: "0x",
-          gasLimit: ConstantStore(context).GAS_LIMIT,
+          gasLimit: ConstantStore(context).GAS_LIMIT.get(specVersion),
           gasUsed: 0n,
           logsBloom: `0x${"0".repeat(512)}`,
           number: 0n,
