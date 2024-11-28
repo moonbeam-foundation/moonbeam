@@ -103,7 +103,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Heiko",
         paraId: 2085,
-        mutedUntil: new Date("2024-10-01").getTime(),
       },
       {
         name: "Picasso",
@@ -133,6 +132,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "InvArch",
         paraId: 2125,
+        mutedUntil: new Date("2024-12-30").getTime(),
       },
     ],
   },
