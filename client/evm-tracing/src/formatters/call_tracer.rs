@@ -243,7 +243,7 @@ impl super::ResponseFormatter for Formatter {
 			}
 			if result.len() == 1 {
 				traces.push(BlockTransactionTrace {
-					transaction_position: eth_tx_index as u32,
+					tx_position: eth_tx_index as u32,
 					// Use default, the correct value will be set upstream
 					tx_hash: Default::default(),
 					result: TransactionTrace::CallListNested(

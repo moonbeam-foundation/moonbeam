@@ -25,7 +25,7 @@ use sp_std::vec::Vec;
 
 /// Block transaction trace.
 #[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, Serialize)]
-#[serde(rename_all = "camelCase", untagged)]
+#[serde(rename_all = "camelCase")]
 pub struct BlockTransactionTrace {
 	#[serde(serialize_with = "h256_0x_serialize")]
 	pub tx_hash: H256,

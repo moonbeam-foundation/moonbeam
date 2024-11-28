@@ -105,7 +105,7 @@ impl DebugServer for Debug {
 		&self,
 		id: RequestBlockId,
 		params: Option<TraceParams>,
-	) -> RpcResult<Vec<single::TransactionTrace>> {
+	) -> RpcResult<Vec<BlockTransactionTrace>> {
 		let requester = self.requester.clone();
 
 		let (tx, rx) = oneshot::channel();
@@ -747,7 +747,7 @@ where
 									)
 									.ok_or("Trace result is empty.")
 									.map_err(|e| internal_err(format!("{:?}", e)))?;
-								Ok(res.pop().expect("Trace result is empty."))
+								Ok(res.pop().expect("Trace result is empty.").result)
 							}
 							_ => Err(internal_err(
 								"Bug: failed to resolve the tracer format.".to_string(),
@@ -967,7 +967,7 @@ where
 							moonbeam_client_evm_tracing::formatters::CallTracer::format(proxy)
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))?;
-						Ok(res.pop().expect("Trace result is empty."))
+						Ok(res.pop().expect("Trace result is empty.").result)
 					}
 					_ => Err(internal_err(
 						"Bug: failed to resolve the tracer format.".to_string(),
