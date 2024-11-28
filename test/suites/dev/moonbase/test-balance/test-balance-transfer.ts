@@ -49,7 +49,7 @@ describeSuite({
 
         await context.createBlock(createRawTransfer(context, randomAddress, 0n));
         expect(await context.viem().getBalance({ address: ALITH_ADDRESS })).toBe(
-          ALITH_GENESIS_TRANSFERABLE_BALANCE - 21000n * 2_500_000_000n
+          ALITH_GENESIS_TRANSFERABLE_BALANCE - 21000n * GENESIS_BASE_FEE
         );
       },
     });
@@ -133,8 +133,8 @@ describeSuite({
 
         expect(await context.viem().getBalance({ blockNumber, address: ALITH_ADDRESS })).to.equal(
           balance.data.free.toBigInt() +
-            balance.data.reserved.toBigInt() -
-            balance.data.frozen.toBigInt()
+          balance.data.reserved.toBigInt() -
+          balance.data.frozen.toBigInt()
         );
       },
     });
