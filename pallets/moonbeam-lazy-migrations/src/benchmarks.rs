@@ -129,8 +129,11 @@ benchmarks! {
 		)?;
 	}: _(RawOrigin::Signed(account("caller", 0, 0)), n + 1)
 	verify {
-		if let ForeignAssetMigrationStatus::Migrating(info) = crate::pallet::ForeignAssetMigrationStatusValue::<T>::get()  {
-			assert_eq!(info.remaining_balances, 0);
+		match crate::pallet::ForeignAssetMigrationStatusValue::<T>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.remaining_balances, 0);
+			},
+			_ => panic!("Expected Migrating status"),
 		}
 	}
 
@@ -147,8 +150,11 @@ benchmarks! {
 		)?;
 	}: _(RawOrigin::Signed(account("caller", 0, 0)), n)
 	verify {
-		if let ForeignAssetMigrationStatus::Migrating(info) = crate::pallet::ForeignAssetMigrationStatusValue::<T>::get()  {
-			assert_eq!(info.remaining_approvals, 0);
+		match crate::pallet::ForeignAssetMigrationStatusValue::<T>::get() {
+			ForeignAssetMigrationStatus::Migrating(info) => {
+				assert_eq!(info.remaining_approvals, 0);
+			},
+			_ => panic!("Expected Migrating status"),
 		}
 	}
 
