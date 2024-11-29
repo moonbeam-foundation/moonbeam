@@ -14,7 +14,9 @@ on:
 jobs:
   ####### Building binaries #######
   setup-scripts:
-    runs-on: bare-metal
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Upload tools
@@ -25,7 +27,9 @@ jobs:
 
   build-binary:
     needs: ["setup-scripts"]
-    runs-on: bare-metal
+    runs-on: moonbeam-release-medium
+    permissions:
+      contents: read
     strategy:
       matrix:
         cpu: ["x86-64", "skylake", "znver3"]
@@ -67,6 +71,8 @@ jobs:
 
   publish-draft-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: ["build-binary"]
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
@@ -85,7 +91,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: "test/.nvmrc"
       - name: Download Original Tools
         uses: actions/download-artifact@v4
         with:

@@ -19,8 +19,9 @@ jobs:
   ####### Check files and formatting #######
 
   set-tags:
-    runs-on:
-      labels: bare-metal
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_target_branch: ${{ steps.check-git-ref.outputs.git_target_branch }}
@@ -89,6 +90,9 @@ jobs:
   build-and-coverage:
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
+      pull-requests: write
     needs: ["set-tags"]
     if: ${{ !github.event.pull_request.head.repo.fork }}
     timeout-minutes: 90
