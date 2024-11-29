@@ -191,11 +191,7 @@ describeSuite({
                 );
 
                 // Verify reserves were unreserved
-
-                // Get Alith initial reserves
                 const alithReservedAfter = await api.query.system.account(ALITH_ADDRESS);
-
-
                 expect(alithReservedAfter.data.reserved.toBigInt())
                     .to.equal(alithBalanceBefore.data.reserved.toBigInt() - 1n);
 

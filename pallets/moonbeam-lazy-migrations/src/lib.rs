@@ -391,7 +391,7 @@ pub mod pallet {
 
 		// TODO update weights
 		#[pallet::call_index(3)]
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::start_foreign_assets_migration())]
 		pub fn start_foreign_assets_migration(
 			origin: OriginFor<T>,
 			asset_id: u128,
@@ -403,21 +403,22 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(4)]
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::migrate_foreign_asset_balances(*limit))]
 		pub fn migrate_foreign_asset_balances(
 			origin: OriginFor<T>,
-			limit: u64,
+			limit: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 
 			Self::do_migrate_foreign_asset_balances(limit)?;
 			Ok(Pays::No.into())
 		}
+
 		#[pallet::call_index(5)]
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::migrate_foreign_asset_approvals(*limit))]
 		pub fn migrate_foreign_asset_approvals(
 			origin: OriginFor<T>,
-			limit: u64,
+			limit: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 
@@ -426,7 +427,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(6)]
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::finish_foreign_assets_migration())]
 		pub fn finish_foreign_assets_migration(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 

@@ -108,7 +108,7 @@ where
 		})
 	}
 
-	pub(super) fn do_migrate_foreign_asset_balances(limit: u64) -> DispatchResult {
+	pub(super) fn do_migrate_foreign_asset_balances(limit: u32) -> DispatchResult {
 		use pallet_assets::ExistenceReason::*;
 
 		ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
@@ -154,7 +154,7 @@ where
 		})
 	}
 
-	pub(super) fn do_migrate_foreign_asset_approvals(limit: u64) -> DispatchResult {
+	pub(super) fn do_migrate_foreign_asset_approvals(limit: u32) -> DispatchResult {
 		ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
 
 		ForeignAssetMigrationStatusValue::<T>::try_mutate(|status| -> DispatchResult {

@@ -21,6 +21,7 @@ use frame_support::traits::Currency;
 use frame_system::RawOrigin;
 use sp_core::{Get, U256};
 use sp_runtime::traits::StaticLookup;
+use sp_runtime::Saturating;
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
 
@@ -43,17 +44,25 @@ fn setup_foreign_asset<T: Config>(n_accounts: u32) -> T::AssetIdParameter {
 	)
 	.unwrap();
 
-	<T as pallet_assets::Config>::Currency::make_free_balance_be(&caller, 1_000_000u32.into());
+	let _ = <T as pallet_assets::Config>::Currency::deposit_creating(
+		&caller,
+		<T as pallet_assets::Config>::MetadataDepositBase::get()
+			.saturating_add(
+				<T as pallet_assets::Config>::MetadataDepositPerByte::get()
+					.saturating_mul((T::StringLimit::get() as u32).into()),
+			)
+			.saturating_mul(2u32.into()),
+	);
 
-	// let dummy = Vec::from_iter((0..T::StringLimit::get() as usize).map(|_| 0u8));
-	// let _ = pallet_assets::Pallet::<T>::set_metadata(
-	// 	RawOrigin::Signed(caller.clone()).into(),
-	// 	asset_id.clone().into(),
-	// 	dummy.clone(),
-	// 	dummy,
-	// 	18,
-	// )
-	// .unwrap();
+	let dummy = Vec::from_iter((0..T::StringLimit::get() as usize).map(|_| 0u8));
+	let _ = pallet_assets::Pallet::<T>::set_metadata(
+		RawOrigin::Signed(caller.clone()).into(),
+		asset_id.clone().into(),
+		dummy.clone(),
+		dummy,
+		18,
+	)
+	.unwrap();
 
 	// Create approval
 	pallet_assets::Pallet::<T>::mint(
@@ -118,7 +127,7 @@ benchmarks! {
 			RawOrigin::Root.into(),
 			asset_id.into()
 		)?;
-	}: _(RawOrigin::Signed(account("caller", 0, 0)), n as u64)
+	}: _(RawOrigin::Signed(account("caller", 0, 0)), n + 1)
 	verify {
 		if let ForeignAssetMigrationStatus::Migrating(info) = crate::pallet::ForeignAssetMigrationStatusValue::<T>::get()  {
 			assert_eq!(info.remaining_balances, 0);
@@ -132,11 +141,11 @@ benchmarks! {
 			RawOrigin::Root.into(),
 			asset_id.into()
 		)?;
-		// Pallet::<T>::migrate_foreign_asset_balances(
-		// 	RawOrigin::Signed(account("caller", 0, 0)).into(),
-		// 	n as u64
-		// )?;
-	}: _(RawOrigin::Signed(account("caller", 0, 0)), n as u64)
+		Pallet::<T>::migrate_foreign_asset_balances(
+			RawOrigin::Signed(account("caller", 0, 0)).into(),
+			n + 1
+		)?;
+	}: _(RawOrigin::Signed(account("caller", 0, 0)), n)
 	verify {
 		if let ForeignAssetMigrationStatus::Migrating(info) = crate::pallet::ForeignAssetMigrationStatusValue::<T>::get()  {
 			assert_eq!(info.remaining_approvals, 0);
@@ -152,11 +161,11 @@ benchmarks! {
 		)?;
 		Pallet::<T>::migrate_foreign_asset_balances(
 			RawOrigin::Signed(account("caller", 0, 0)).into(),
-			n as u64
+			n + 1
 		)?;
 		Pallet::<T>::migrate_foreign_asset_approvals(
 			RawOrigin::Signed(account("caller", 0, 0)).into(),
-			n as u64
+			n + 1
 		)?;
 	}: _(RawOrigin::Signed(account("caller", 0, 0)))
 	verify {
