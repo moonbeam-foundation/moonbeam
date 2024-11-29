@@ -470,7 +470,7 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 		// There's still some precision loss when the final `gas_price` (used_gas * min_gas_price)
 		// is computed in frontier, but that's currently unavoidable.
 		let min_gas_price = TransactionPayment::next_fee_multiplier()
-			.saturating_mul_int((currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128));
+			.saturating_mul_int((currency::WEIGHT_FEE).saturating_mul(WEIGHT_PER_GAS as u128));
 		(
 			min_gas_price.into(),
 			<Runtime as frame_system::Config>::DbWeight::get().reads(1),

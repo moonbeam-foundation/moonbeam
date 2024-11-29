@@ -1385,7 +1385,7 @@ fn initial_gas_fee_is_correct() {
 		assert_eq!(
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
-				125_000_000_000u128.into(),
+				31_250_000_000u128.into(),
 				Weight::from_parts(41_742_000u64, 0)
 			)
 		);
@@ -1407,7 +1407,7 @@ fn min_gas_fee_is_correct() {
 		assert_eq!(
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
-				125_000_000_000u128.into(),
+				31_250_000_000u128.into(),
 				Weight::from_parts(41_742_000u64, 0)
 			)
 		);
@@ -1554,7 +1554,7 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(200 * GIGAWEI),
+				max_fee_per_gas: U256::from(125 * GIGAWEI),
 				max_priority_fee_per_gas: Some(U256::from(100 * GIGAWEI)),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -1562,8 +1562,8 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			// Fee is 100 GWEI base fee + 100 GWEI tip.
-			let fee = ((200 * GIGAWEI) * 21_000) as f64;
+			// Fee is 25 GWEI base fee + 100 GWEI tip.
+			let fee = ((125 * GIGAWEI) * 21_000) as f64;
 			// 80% was burned.
 			let expected_burn = (fee * 0.8) as u128;
 			assert_eq!(issuance_after, issuance_before - expected_burn,);
@@ -2821,9 +2821,7 @@ mod fee_tests {
 			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
 			let actual = TransactionPaymentAsGasPrice::min_gas_price().0;
 			let expected: U256 = multiplier
-				.saturating_mul_int(
-					(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128),
-				)
+				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
 				.into();
 
 			assert_eq!(expected, actual);
@@ -2860,8 +2858,7 @@ mod fee_tests {
 			.unwrap()
 			.into();
 		t.execute_with(|| {
-			let weight_fee_per_gas =
-				(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128);
+			let weight_fee_per_gas = (currency::WEIGHT_FEE).saturating_mul(WEIGHT_PER_GAS as u128);
 			let sim = |start_gas_price: u128, fullness: Perbill, num_blocks: u64| -> U256 {
 				let start_multiplier =
 					FixedU128::from_rational(start_gas_price, weight_fee_per_gas);
@@ -2886,55 +2883,55 @@ mod fee_tests {
 
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 1),
-				U256::from(125_000_000_000u128),
+				U256::from(31_250_000_000u128), // lower bound enforced
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 1),
-				U256::from(125_000_000_000u128),
+				U256::from(31_250_000_000u128),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 1),
-				U256::from(125_075_022_500u128),
+				U256::from(31_268_755_625u128), // slightly higher than lower bound
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 1),
-				U256::from(125_325_422_500u128),
+				U256::from(31_331_355_625u128), // a bit higher than before
 			);
 
 			// 1 "real" hour (at 12-second blocks)
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 600),
-				U256::from(125_000_000_000u128),
+				U256::from(31_250_000_000u128), // lower bound enforced
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 600),
-				U256::from(125_000_000_000u128),
+				U256::from(31_250_000_000u128),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 600),
-				U256::from(179_166_172_951u128),
+				U256::from(44_791_543_237u128), // a bit higher than lower bound
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 600),
-				U256::from(594_851_612_166u128),
+				U256::from(148_712_903_041u128), // a lot more
 			);
 
 			// 1 "real" day (at 12-second blocks)
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 14400),
-				U256::from(125_000_000_000u128), // lower bound enforced
+				U256::from(31_250_000_000u128), // lower bound enforced
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 14400),
-				U256::from(125_000_000_000u128),
+				U256::from(31_250_000_000u128),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 14400),
-				U256::from(706_665_861_883_635u128),
+				U256::from(176_666_465_470_908u128), // significantly higher
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 14400),
-				U256::from(12_500_000_000_000_000u128), // upper bound enforced
+				U256::from(3_125_000_000_000_000u128), // upper bound enforced
 			);
 		});
 	}
