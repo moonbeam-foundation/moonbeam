@@ -1,8 +1,4 @@
-import {
-    describeSuite,
-    expect,
-    beforeAll,
-} from "@moonwall/cli";
+import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { ApiPromise } from "@polkadot/api";
 import { ethers, parseEther } from "ethers";
 import { expectOk } from "../../../../helpers";
@@ -44,12 +40,12 @@ describeSuite({
             const accounts = [
                 { address: ALITH_ADDRESS, balance: "100" },
                 { address: BALTATHAR_ADDRESS, balance: "50" },
-                { address: CHARLETH_ADDRESS, balance: "25" }
+                { address: CHARLETH_ADDRESS, balance: "25" },
             ];
 
-            const totalSupply = accounts.reduce(
-                (sum, account) => sum + parseFloat(account.balance), 0
-            ).toString();
+            const totalSupply = accounts
+                .reduce((sum, account) => sum + parseFloat(account.balance), 0)
+                .toString();
 
             // Create asset details
             const assetDetails = context.polkadotJs().createType("PalletAssetsAssetDetails", {
@@ -60,7 +56,7 @@ describeSuite({
                 minBalance: 1,
                 isFrozen: false,
                 sufficients: 0,
-                approvals: 0
+                approvals: 0,
             });
 
             // Create balances for all test accounts
@@ -69,17 +65,10 @@ describeSuite({
                     balance: parseEther(balance),
                     isFrozen: false,
                     reason: "Consumer",
-                    extra: null
+                    extra: null,
                 });
 
-                await mockOldAssetBalance(
-                    context,
-                    assetBalance,
-                    assetDetails,
-                    alith,
-                    assetId,
-                    address
-                );
+                await mockOldAssetBalance(context, assetBalance, assetDetails, alith, assetId, address);
             }
             await context.createBlock([]);
             // Create approvals
@@ -117,9 +106,7 @@ describeSuite({
                 // Start migration with sudo
                 await expectOk(
                     context.createBlock(
-                        api.tx.sudo.sudo(
-                            api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId)
-                        )
+                        api.tx.sudo.sudo(api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId))
                     )
                 );
 
@@ -156,15 +143,15 @@ describeSuite({
                     api.query.assets.approvals(assetId, ALITH_ADDRESS, BALTATHAR_ADDRESS),
                     api.query.assets.approvals(assetId, ALITH_ADDRESS, CHARLETH_ADDRESS),
                 ]);
-                expect(initialApprovals[0].unwrap().amount.toString()).to.equal(parseEther("10").toString());
+                expect(initialApprovals[0].unwrap().amount.toString()).to.equal(
+                    parseEther("10").toString()
+                );
                 expect(initialApprovals[1].unwrap().amount.toString()).to.equal(parseEther("5").toString());
 
                 // Start migration
                 await expectOk(
                     context.createBlock(
-                        api.tx.sudo.sudo(
-                            api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId)
-                        )
+                        api.tx.sudo.sudo(api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId))
                     )
                 );
                 const alithBalanceBefore = await api.query.system.account(ALITH_ADDRESS);
@@ -192,8 +179,9 @@ describeSuite({
 
                 // Verify reserves were unreserved
                 const alithReservedAfter = await api.query.system.account(ALITH_ADDRESS);
-                expect(alithReservedAfter.data.reserved.toBigInt())
-                    .to.equal(alithBalanceBefore.data.reserved.toBigInt() - 1n);
+                expect(alithReservedAfter.data.reserved.toBigInt()).to.equal(
+                    alithBalanceBefore.data.reserved.toBigInt() - 1n
+                );
 
                 // Verify cleanup
                 const oldAsset = await api.query.assets.asset(assetId);
@@ -223,12 +211,13 @@ describeSuite({
                 // Check balances were properly migrated
                 const contractBalances = await Promise.all(
                     accounts.map((account, index) =>
-                        foreignAssetContract.balanceOf(account)
-                            .then(balance => expect(balance.toString())
-                                .to.equal(parseEther(balances[index]).toString()))
+                        foreignAssetContract
+                            .balanceOf(account)
+                            .then((balance) =>
+                                expect(balance.toString()).to.equal(parseEther(balances[index]).toString())
+                            )
                     )
                 );
-
 
                 // Verify approvals were migrated correctly
                 const migratedAllowances = await Promise.all([
@@ -238,7 +227,6 @@ describeSuite({
 
                 expect(migratedAllowances[0].toString()).to.equal(parseEther("10").toString());
                 expect(migratedAllowances[1].toString()).to.equal(parseEther("5").toString());
-
             },
         });
     },
