@@ -18,8 +18,8 @@
   "dependencies": {
     "@acala-network/chopsticks": "1.0.1",
     "@moonbeam-network/api-augment": "workspace:*",
-    "@moonwall/cli": "5.6.0",
-    "@moonwall/util": "5.6.0",
+    "@moonwall/cli": "5.8.0",
+    "@moonwall/util": "5.8.0",
     "@openzeppelin/contracts": "4.9.6",
     "@polkadot-api/merkleize-metadata": "1.1.9",
     "@polkadot/api": "14.3.1",

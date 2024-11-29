@@ -190,22 +190,6 @@ pub mod opaque {
 /// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
 /// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
 /// changes which can be skipped.
-#[cfg(feature = "runtime-benchmarks")]
-#[sp_version::runtime_version]
-pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonriver"),
-	impl_name: create_runtime_str!("moonriver"),
-	authoring_version: 3,
-	spec_version: 3400,
-	impl_version: 0,
-	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 3,
-	state_version: 0,
-};
-
-/// We need to duplicate this because the `runtime_version` macro is conflicting with the
-/// conditional compilation at the state_version field.
-#[cfg(not(feature = "runtime-benchmarks"))]
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
@@ -488,7 +472,7 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 		// There's still some precision loss when the final `gas_price` (used_gas * min_gas_price)
 		// is computed in frontier, but that's currently unavoidable.
 		let min_gas_price = TransactionPayment::next_fee_multiplier()
-			.saturating_mul_int((currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128));
+			.saturating_mul_int((currency::WEIGHT_FEE).saturating_mul(WEIGHT_PER_GAS as u128));
 		(
 			min_gas_price.into(),
 			<Runtime as frame_system::Config>::DbWeight::get().reads(1),

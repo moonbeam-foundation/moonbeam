@@ -25,6 +25,8 @@ jobs:
   ####### Check files and formatting #######
   set-tags:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
@@ -116,6 +118,8 @@ jobs:
 
   check-copyright:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -134,6 +138,8 @@ jobs:
 
   check-links:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -148,6 +154,8 @@ jobs:
   check-editorconfig:
     name: "Check editorconfig"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -168,6 +176,8 @@ jobs:
   check-prettier:
     name: "Check with Prettier"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -191,6 +201,8 @@ jobs:
   check-eslint:
     name: "Check with EsLint"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -204,7 +216,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version-file: "test/.nvmrc"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
       - name: Run Eslint check
@@ -216,7 +228,9 @@ jobs:
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
     runs-on:
-      labels: bare-metal
+      labels: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -235,6 +249,8 @@ jobs:
   check-forbid-evm-reentrancy:
     name: "Check 'forbid-evm-reentrancy'"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -251,6 +267,8 @@ jobs:
   check-rust-fmt:
     name: "Check with rustfmt"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -271,6 +289,8 @@ jobs:
   cargo-clippy:
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -296,6 +316,8 @@ jobs:
   build:
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -325,6 +347,9 @@ jobs:
   check-wasm-size:
     name: "Check WASM runtimes with Twiggy"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     if: github.event_name == 'pull_request'
     needs: ["set-tags", "build"]
     env:
@@ -489,6 +514,8 @@ jobs:
   rust-test:
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
     needs: ["set-tags"]
     env:
       RUSTC_WRAPPER: "sccache"
@@ -530,6 +557,8 @@ jobs:
   dev-test:
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
     needs: ["set-tags", "build"]
     timeout-minutes: 20
     strategy:
@@ -594,6 +623,8 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
     needs: ["set-tags", "build", "dev-test"]
     steps:
       - name: Checkout
@@ -611,7 +642,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version-file: "test/.nvmrc"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
       - run: |
@@ -652,6 +683,8 @@ jobs:
 
   docker-moonbeam:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags", "build"]
     if: ${{ needs.set-tags.outputs.image_exists == 'false' && !github.event.pull_request.head.repo.fork }}
     steps:
@@ -704,6 +737,8 @@ jobs:
   lazy-loading-tests:
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
     needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
@@ -724,7 +759,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version-file: "test/.nvmrc"
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -795,7 +830,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version-file: "test/.nvmrc"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
       - name: Create local folders
@@ -860,7 +895,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version-file: "test/.nvmrc"
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
