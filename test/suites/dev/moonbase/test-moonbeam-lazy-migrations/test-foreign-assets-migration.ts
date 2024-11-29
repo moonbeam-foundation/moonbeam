@@ -4,7 +4,7 @@ import { ethers, parseEther } from "ethers";
 import { expectOk } from "../../../../helpers";
 import {
   registerOldForeignAsset,
-  PARA_1000_SOURCE_LOCATION_V3,
+  PARA_1000_SOURCE_LOCATION,
   assetContractAddress,
   mockOldAssetBalance,
 } from "../../../../helpers/assets";
@@ -25,7 +25,7 @@ describeSuite({
       // Register foreign asset using helper
       const { registeredAssetId } = await registerOldForeignAsset(
         context,
-        PARA_1000_SOURCE_LOCATION_V3,
+        PARA_1000_SOURCE_LOCATION,
         {
           name: "Foreign Asset",
           symbol: "FA",
