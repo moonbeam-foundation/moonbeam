@@ -6407,6 +6407,7 @@ dependencies = [
  "sp-wasm-interface",
  "substrate-build-script-utils",
  "substrate-prometheus-endpoint",
+ "url",
 ]
 
 [[package]]
