@@ -107,7 +107,7 @@
 <span class="kw">use </span>ethereum_types::{H160, H256, U256};
 <span class="kw">use </span>fc_rpc_core::types::Bytes;
 <span class="kw">use </span>jsonrpsee::{core::RpcResult, proc_macros::rpc};
-<span class="kw">use </span>moonbeam_client_evm_tracing::types::single;
+<span class="kw">use </span>moonbeam_client_evm_tracing::types::{block, single};
 <span class="kw">use </span>moonbeam_rpc_core_types::RequestBlockId;
 <span class="kw">use </span>serde::Deserialize;
 
@@ -172,6 +172,6 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		id: RequestBlockId,
 		params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;,
-	) -&gt; RpcResult&lt;Vec&lt;single::TransactionTrace&gt;&gt;;
+	) -&gt; RpcResult&lt;Vec&lt;block::BlockTransactionTrace&gt;&gt;;
 }
 </code></pre></div></section></main></body></html>

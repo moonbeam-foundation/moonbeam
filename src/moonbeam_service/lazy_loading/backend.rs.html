@@ -1770,6 +1770,9 @@
 <a href="#1768" id="1768">1768</a>
 <a href="#1769" id="1769">1769</a>
 <a href="#1770" id="1770">1770</a>
+<a href="#1771" id="1771">1771</a>
+<a href="#1772" id="1772">1772</a>
+<a href="#1773" id="1773">1773</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -3227,16 +3230,16 @@
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>RPC {
 	http_client: HttpClient,
-	delay_between_requests_ms: u64,
-	max_retries_per_request: usize,
+	delay_between_requests_ms: u32,
+	max_retries_per_request: u32,
 	counter: Arc&lt;ReadWriteLock&lt;u64&gt;&gt;,
 }
 
 <span class="kw">impl </span>RPC {
 	<span class="kw">pub fn </span>new(
 		http_client: HttpClient,
-		delay_between_requests_ms: u64,
-		max_retries_per_request: usize,
+		delay_between_requests_ms: u32,
+		max_retries_per_request: u32,
 	) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{
 			http_client,
@@ -3426,7 +3429,8 @@
 
 		tokio::task::block_in_place(<span class="kw">move </span>|| {
 			Handle::current().block_on(<span class="kw">async move </span>{
-				<span class="kw">let </span>delay_between_requests = Duration::from_millis(<span class="self">self</span>.delay_between_requests_ms);
+				<span class="kw">let </span>delay_between_requests =
+					Duration::from_millis(<span class="self">self</span>.delay_between_requests_ms.into());
 
 				<span class="kw">let </span>start = std::time::Instant::now();
 				<span class="self">self</span>.counter.write().add_assign(<span class="number">1</span>);
@@ -3441,8 +3445,8 @@
 
 				<span class="comment">// Retry request in case of failure
 				// The maximum number of retries is specified by `self.max_retries_per_request`
-				</span><span class="kw">let </span>retry_strategy =
-					FixedInterval::new(delay_between_requests).take(<span class="self">self</span>.max_retries_per_request);
+				</span><span class="kw">let </span>retry_strategy = FixedInterval::new(delay_between_requests)
+					.take(<span class="self">self</span>.max_retries_per_request <span class="kw">as </span>usize);
 				<span class="kw">let </span>result = Retry::spawn(retry_strategy, f).<span class="kw">await</span>;
 
 				<span class="macro">log::debug!</span>(
@@ -3468,20 +3472,22 @@
 	</span>Block: BlockT + DeserializeOwned,
 	Block::Hash: From&lt;H256&gt;,
 {
-	<span class="kw">let </span>uri: String = lazy_loading_config.state_rpc.clone().into();
-
 	<span class="kw">let </span>http_client = jsonrpsee::http_client::HttpClientBuilder::default()
 		.max_request_size(u32::MAX)
 		.max_response_size(u32::MAX)
 		.request_timeout(Duration::from_secs(<span class="number">10</span>))
-		.build(uri)
+		.build(lazy_loading_config.state_rpc.clone())
 		.map_err(|e| {
 			sp_blockchain::Error::Backend(
 				<span class="macro">format!</span>(<span class="string">"failed to build http client: {:?}"</span>, e).to_string(),
 			)
 		})<span class="question-mark">?</span>;
 
-	<span class="kw">let </span>rpc = RPC::new(http_client, <span class="number">100</span>, <span class="number">10</span>);
+	<span class="kw">let </span>rpc = RPC::new(
+		http_client,
+		lazy_loading_config.delay_between_requests,
+		lazy_loading_config.max_retries_per_request,
+	);
 	<span class="kw">let </span>block_hash = lazy_loading_config
 		.from_block
 		.map(|block| Into::&lt;Block::Hash&gt;::into(block));

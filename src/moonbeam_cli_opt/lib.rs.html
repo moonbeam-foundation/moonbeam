@@ -122,6 +122,8 @@
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -239,9 +241,11 @@
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>LazyLoadingConfig {
-	<span class="kw">pub </span>state_rpc: String,
+	<span class="kw">pub </span>state_rpc: url::Url,
 	<span class="kw">pub </span>from_block: <span class="prelude-ty">Option</span>&lt;H256&gt;,
 	<span class="kw">pub </span>state_overrides_path: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 	<span class="kw">pub </span>runtime_override: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+	<span class="kw">pub </span>delay_between_requests: u32,
+	<span class="kw">pub </span>max_retries_per_request: u32,
 }
 </code></pre></div></section></main></body></html>

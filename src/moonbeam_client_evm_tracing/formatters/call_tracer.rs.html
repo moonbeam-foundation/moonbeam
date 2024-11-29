@@ -321,6 +321,14 @@
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
 <a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -348,6 +356,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::types::serialization::<span class="kw-2">*</span>;
 <span class="kw">use </span>serde::Serialize;
 
+<span class="kw">use </span><span class="kw">crate</span>::types::block::BlockTransactionTrace;
 <span class="kw">use </span>ethereum_types::{H160, U256};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>sp_std::{cmp::Ordering, vec::Vec};
@@ -356,14 +365,14 @@
 
 <span class="kw">impl </span><span class="kw">super</span>::ResponseFormatter <span class="kw">for </span>Formatter {
 	<span class="kw">type </span>Listener = Listener;
-	<span class="kw">type </span>Response = Vec&lt;TransactionTrace&gt;;
+	<span class="kw">type </span>Response = Vec&lt;BlockTransactionTrace&gt;;
 
-	<span class="kw">fn </span>format(<span class="kw-2">mut </span>listener: Listener) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;TransactionTrace&gt;&gt; {
+	<span class="kw">fn </span>format(<span class="kw-2">mut </span>listener: Listener) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;BlockTransactionTrace&gt;&gt; {
 		<span class="comment">// Remove empty BTreeMaps pushed to `entries`.
 		// I.e. InvalidNonce or other pallet_evm::runner exits
 		</span>listener.entries.retain(|x| !x.is_empty());
 		<span class="kw">let </span><span class="kw-2">mut </span>traces = Vec::new();
-		<span class="kw">for </span>entry <span class="kw">in </span>listener.entries.iter() {
+		<span class="kw">for </span>(eth_tx_index, entry) <span class="kw">in </span>listener.entries.iter().enumerate() {
 			<span class="kw">let </span><span class="kw-2">mut </span>result: Vec&lt;Call&gt; = entry
 				.into_iter()
 				.map(|(<span class="kw">_</span>, it)| {
@@ -564,9 +573,16 @@
 				<span class="kw-2">*</span>trace_address = <span class="prelude-val">None</span>;
 			}
 			<span class="kw">if </span>result.len() == <span class="number">1 </span>{
-				traces.push(TransactionTrace::CallListNested(result.pop().expect(
-					<span class="string">"result.len() == 1, so pop() necessarily returns this element"</span>,
-				)));
+				traces.push(BlockTransactionTrace {
+					tx_position: eth_tx_index <span class="kw">as </span>u32,
+					<span class="comment">// Use default, the correct value will be set upstream
+					</span>tx_hash: Default::default(),
+					result: TransactionTrace::CallListNested(
+						result
+							.pop()
+							.expect(<span class="string">"result.len() == 1, so pop() necessarily returns this element"</span>),
+					),
+				});
 			}
 		}
 		<span class="kw">if </span>traces.is_empty() {

@@ -1141,6 +1141,8 @@
 <a href="#1139" id="1139">1139</a>
 <a href="#1140" id="1140">1140</a>
 <a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1992,16 +1994,18 @@
 					};
 				}
 				<span class="attr">#[cfg(feature = <span class="string">"lazy-loading"</span>)]
-				</span><span class="kw">if let </span><span class="prelude-val">Some</span>(fork_chain_from_rpc) = cli.run.fork_chain_from_rpc {
+				</span><span class="kw">if let </span><span class="prelude-val">Some</span>(lazy_loading_remote_rpc) = cli.run.lazy_loading_remote_rpc {
 					<span class="kw">let </span>author_id = <span class="prelude-val">Some</span>(chain_spec::get_from_seed::&lt;nimbus_primitives::NimbusId&gt;(
 						<span class="string">"Alice"</span>,
 					));
 
 					<span class="kw">let </span>lazy_loading_config = moonbeam_cli_opt::LazyLoadingConfig {
-						state_rpc: fork_chain_from_rpc,
-						from_block: cli.run.block,
-						state_overrides_path: cli.run.fork_state_overrides,
-						runtime_override: cli.run.runtime_override,
+						state_rpc: lazy_loading_remote_rpc,
+						from_block: cli.run.lazy_loading_block,
+						state_overrides_path: cli.run.lazy_loading_state_overrides,
+						runtime_override: cli.run.lazy_loading_runtime_override,
+						delay_between_requests: cli.run.lazy_loading_delay_between_requests,
+						max_retries_per_request: cli.run.lazy_loading_max_retries_per_request,
 					};
 
 					<span class="kw">let </span>spec_builder =
