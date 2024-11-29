@@ -18,6 +18,7 @@ import { rateLimiter, getPreviousRound, getNextRound } from "../../helpers";
 import { AccountId20, Block } from "@polkadot/types/interfaces";
 
 const limiter = rateLimiter();
+const DIV_PRECISION = 1000;
 
 interface RoundData {
   data: PalletParachainStakingRoundInfo;
@@ -582,7 +583,12 @@ describeSuite({
         ).round.ideal;
         const idealIssuance = new Perbill(idealInflation).of(totalIssuance);
 
-        totalRoundIssuance = roundDuration.mul(idealIssuance).div(idealDuration);
+        totalRoundIssuance = roundDuration
+            .mul(idealIssuance)
+            .mul(new BN(DIV_PRECISION))
+            .div(idealDuration)
+            .divRound(new BN(DIV_PRECISION));
+
       } else {
         // Always apply max inflation
         // It works because the total staked amount is already 1000 times more than the max on
@@ -630,9 +636,9 @@ describeSuite({
         payment.roundToPay.data.current
       );
 
-      let percentage = 0;
+      let percentage = new BN(0);
       inflationDistributionConfig.forEach((config) => {
-        percentage += config.percent.toNumber();
+        percentage = percentage.add(config.percent);
       });
       const reservedPercentage = new Percent(percentage);
       // total expected staking reward minus the amount reserved for parachain bond
