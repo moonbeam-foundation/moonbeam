@@ -1,6 +1,7 @@
 name: Publish Rust Docs
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
@@ -10,7 +11,7 @@ jobs:
     name: Deploy docs
     runs-on: bare-metal
     permissions:
-      contents: read
+      contents: write
     steps:
       # The protobuf compiler should be pre-installed on bare-metal
       #- name: Install tooling
