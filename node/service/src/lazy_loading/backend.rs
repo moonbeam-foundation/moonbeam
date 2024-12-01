@@ -31,7 +31,10 @@ use std::time::Duration;
 use std::{
 	collections::{HashMap, HashSet},
 	ptr,
-	sync::Arc,
+	sync::{
+		atomic::{AtomicU64, Ordering},
+		Arc,
+	},
 };
 
 use sc_client_api::{
@@ -1457,7 +1460,7 @@ pub struct RPC {
 	http_client: HttpClient,
 	delay_between_requests_ms: u64,
 	max_retries_per_request: usize,
-	counter: Arc<ReadWriteLock<u64>>,
+	counter: Arc<AtomicU64>,
 }
 
 impl RPC {
@@ -1652,16 +1655,18 @@ impl RPC {
 	{
 		use tokio::runtime::Handle;
 
+		let id = self.counter.fetch_add(1, Ordering::SeqCst);
+		let start = std::time::Instant::now();
+
 		tokio::task::block_in_place(move || {
 			Handle::current().block_on(async move {
 				let delay_between_requests = Duration::from_millis(self.delay_between_requests_ms);
 
-				let start = std::time::Instant::now();
-				self.counter.write().add_assign(1);
+				let start_req = std::time::Instant::now();
 				log::debug!(
 					target: super::LAZY_LOADING_LOG_TARGET,
 					"Sending request: {}",
-					self.counter.read()
+					id
 				);
 
 				// Explicit request delay, to avoid getting 429 errors
@@ -1675,10 +1680,11 @@ impl RPC {
 
 				log::debug!(
 					target: super::LAZY_LOADING_LOG_TARGET,
-					"Completed request (id: {}, successful: {}, elapsed_time: {:?})",
-					self.counter.read(),
+					"Completed request (id: {}, successful: {}, elapsed_time: {:?}, query_time: {:?})",
+					id,
 					result.is_ok(),
-					start.elapsed()
+					start.elapsed(),
+					start_req.elapsed()
 				);
 
 				result
