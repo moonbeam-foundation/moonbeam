@@ -26,7 +26,6 @@ use sp_state_machine::{
 };
 use std::future::Future;
 use std::marker::PhantomData;
-use std::ops::AddAssign;
 use std::time::Duration;
 use std::{
 	collections::{HashMap, HashSet},
