@@ -15,7 +15,9 @@ jobs:
   ####### Build runtimes with srtool #######
 
   setup-scripts:
-    runs-on: bare-metal
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Upload scripts
@@ -30,7 +32,9 @@ jobs:
           path: tools
 
   read-rust-version:
-    runs-on: bare-metal
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       rust_version: ${{ steps.get-version.outputs.rust_version }}
     steps:
@@ -42,12 +46,14 @@ jobs:
 
   build-srtool-runtimes:
     needs: ["setup-scripts", "read-rust-version"]
-    runs-on: bare-metal
+    runs-on: moonbeam-release-medium
+    permissions:
+      contents: read
     strategy:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
         srtool_image:
-          - moonbeamfoundation/srtool
+          - paritytech/srtool
         srtool_image_tag:
           - ${{ needs.read-rust-version.outputs.rust_version }}
     steps:
@@ -66,23 +72,6 @@ jobs:
         with:
           name: original-scripts
           path: original-scripts
-      - name: Build & Push moonbeamfoundation/srtool image
-        if: github.repository == 'moonbeam-foundation/moonbeam'
-        run: |
-          docker pull "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}" && image_exists=true || image_exists=false
-
-          if [[ $image_exists = "false" ]]; then
-            echo building "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
-            docker build --pull --no-cache . \
-              -f docker/moonbeam-srtool.Dockerfile \
-              --build-arg SRTOOL_IMAGE_TAG=${{ matrix.srtool_image_tag }} \
-              -t ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}
-
-            echo pushing "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
-            docker push "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
-          else
-            echo skiping build "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}", image already exists
-          fi
       - name: Build runtime using "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
         id: srtool_build
         env:
@@ -110,19 +99,12 @@ jobs:
           path: |
             ${{ matrix.chain }}-runtime.compact.compressed.wasm
             ${{ matrix.chain }}-srtool-digest.json
-      - name: Cleanup
-        run: |
-          echo "Removing runtime/${{ matrix.chain }}/target"
-          ls -lna runtime/${{ matrix.chain }}/target
-
-          # Removing using docker root to ensure we have permissions
-          docker run -u 0 -v $(pwd)/runtime/${{ matrix.chain }}/:/runtime \
-            -it --entrypoint bash ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }} -c "id; ls -lna /runtime/target; rm -rf /runtime/target"
 
   ####### Prepare the release draft #######
-
   publish-draft-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: ["setup-scripts", "build-srtool-runtimes"]
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
@@ -151,7 +133,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: "test/.nvmrc"
       - name: Download Original Tools
         uses: actions/download-artifact@v4
         with:
