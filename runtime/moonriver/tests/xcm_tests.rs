@@ -2623,10 +2623,10 @@ fn empty_account_should_not_be_reset() {
 		assert_eq!(ParaBalances::free_balance(&evm_account_id), 0);
 		// Remove the account from the evm context.
 		// This decreases the sufficients reference by 1 and now is Zero.
-		parachain::EVM::remove_account(&evm_account());
+		parachain::EVM::remove_account_if_empty(&evm_account());
 		// Verify reference count.
 		let account = parachain::System::account(evm_account_id);
-		assert_eq!(account.sufficients, 0);
+		assert_eq!(account.sufficients, 1);
 		assert_eq!(account.consumers, 0);
 		assert_eq!(account.providers, 1);
 		// We expect the account to be alive in a Zero ED context.
