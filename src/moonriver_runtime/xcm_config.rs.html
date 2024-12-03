@@ -818,9 +818,9 @@
 
 </span><span class="kw">use super</span>::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
-	Erc20XcmBridge, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance, ParachainInfo,
-	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin, Treasury, XcmpQueue,
+	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance,
+	ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 
 <span class="kw">use </span><span class="kw">super</span>::moonriver_weights;
@@ -965,6 +965,7 @@
 // we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
 </span><span class="kw">pub type </span>AssetTransactors = (
 	LocalAssetTransactor,
+	EvmForeignAssets,
 	ForeignFungiblesTransactor,
 	Erc20XcmBridge,
 );
@@ -1082,11 +1083,10 @@
 	</span><span class="kw">type </span>UniversalLocation = UniversalLocation;
 	<span class="kw">type </span>Barrier = XcmBarrier;
 	<span class="kw">type </span>Weigher = XcmWeigher;
-	<span class="comment">// We use two traders
-	// When we receive the relative representation of the self-reserve asset,
-	// we use UsingComponents and the local way of handling fees
-	// When we receive a non-reserve asset, we use AssetManager to fetch how many
-	// units per second we should charge
+	<span class="comment">// As trader we use the XcmWeightTrader pallet.
+	// For each foreign asset, the fee is computed based on its relative price (also
+	// stored in the XcmWeightTrader pallet) against the native asset.
+	// For the native asset fee is computed using WeightToFee implementation.
 	</span><span class="kw">type </span>Trader = pallet_xcm_weight_trader::Trader&lt;Runtime&gt;;
 	<span class="kw">type </span>ResponseHandler = PolkadotXcm;
 	<span class="kw">type </span>SubscriptionService = PolkadotXcm;
