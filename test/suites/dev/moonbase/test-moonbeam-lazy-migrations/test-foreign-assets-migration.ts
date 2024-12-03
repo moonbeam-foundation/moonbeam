@@ -7,9 +7,18 @@ import {
   PARA_1000_SOURCE_LOCATION,
   assetContractAddress,
   mockOldAssetBalance,
+  foreignAssetBalance,
 } from "../../../../helpers/assets";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  CHARLETH_ADDRESS,
+  alith,
+  createEthersTransaction,
+} from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
+import { DispatchResult } from "@polkadot/types/interfaces/system/types";
+import { encodeFunctionData, parseAbi } from "viem";
 
 describeSuite({
   id: "D012202",
@@ -127,36 +136,44 @@ describeSuite({
           )
         );
 
-        // expect(res?.error?.name).to.equal("MigrationNotFinished");
+        // Find Sudid event and extract inner result
+        const sudidEvent = res?.events.find((e) => api.events.sudo.Sudid.is(e.event));
+        const innerResult = sudidEvent?.event.data[0] as DispatchResult;
+
+        // Verify inner transaction failed with correct error
+        const { section, name } = api.registry.findMetaError(innerResult.asErr.asModule);
+        expect(`${section}.${name}`).to.equal("moonbeamLazyMigrations.MigrationNotFinished");
       },
     });
 
     it({
       id: "T03",
-      title: "Should handle migrating multiple balances and approvals with propper cleanup",
+      title: "Should handle migrating multiple balances and approvals with proper cleanup",
       test: async function () {
         const accounts = [ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS];
-        const balances = ["100", "50", "25"];
+
+        // Verify initial balances
+        const initialBalances = await Promise.all([
+          foreignAssetBalance(context, assetId.toBigInt(), ALITH_ADDRESS),
+          foreignAssetBalance(context, assetId.toBigInt(), BALTATHAR_ADDRESS),
+          foreignAssetBalance(context, assetId.toBigInt(), CHARLETH_ADDRESS),
+        ]);
 
         // Verify initial approvals
         const initialApprovals = await Promise.all([
           api.query.assets.approvals(assetId, ALITH_ADDRESS, BALTATHAR_ADDRESS),
           api.query.assets.approvals(assetId, ALITH_ADDRESS, CHARLETH_ADDRESS),
         ]);
-        expect(initialApprovals[0].unwrap().amount.toString()).to.equal(
-          parseEther("10").toString()
-        );
-        expect(initialApprovals[1].unwrap().amount.toString()).to.equal(parseEther("5").toString());
 
         // Start migration
+        const alithBalanceBefore = await api.query.system.account(ALITH_ADDRESS);
         await expectOk(
           context.createBlock(
             api.tx.sudo.sudo(api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId))
           )
         );
-        const alithBalanceBefore = await api.query.system.account(ALITH_ADDRESS);
 
-        // Migrate remaining balances
+        // 2. Execute migration
         await expectOk(
           context.createBlock(api.tx.moonbeamLazyMigrations.migrateForeignAssetBalances(3))
         );
@@ -172,20 +189,18 @@ describeSuite({
           context.createBlock(api.tx.moonbeamLazyMigrations.migrateForeignAssetApprovals(3))
         );
 
-        // Complete migration
         await expectOk(
           context.createBlock(api.tx.moonbeamLazyMigrations.finishForeignAssetsMigration())
         );
 
-        // Verify reserves were unreserved
-        const alithReservedAfter = await api.query.system.account(ALITH_ADDRESS);
-        expect(alithReservedAfter.data.reserved.toBigInt()).to.equal(
+        // 3. Verify migration success
+        expect((await api.query.assets.asset(assetId)).isNone).to.be.true;
+
+        // Verify reserved was unreserved
+        const alithAccountBalanceAfter = await api.query.system.account(ALITH_ADDRESS);
+        expect(alithAccountBalanceAfter.data.reserved.toBigInt()).to.equal(
           alithBalanceBefore.data.reserved.toBigInt() - 1n
         );
-
-        // Verify cleanup
-        const oldAsset = await api.query.assets.asset(assetId);
-        expect(oldAsset.isNone).to.be.true;
 
         // Verify new asset functionality
         const erc20Abi = [
@@ -209,13 +224,11 @@ describeSuite({
         expect(decimals).to.equal(18n);
 
         // Check balances were properly migrated
-        const contractBalances = await Promise.all(
+        await Promise.all(
           accounts.map((account, index) =>
             foreignAssetContract
               .balanceOf(account)
-              .then((balance) =>
-                expect(balance.toString()).to.equal(parseEther(balances[index]).toString())
-              )
+              .then((balance) => expect(balance).to.equal(initialBalances[index]))
           )
         );
 
@@ -224,9 +237,55 @@ describeSuite({
           foreignAssetContract.allowance(ALITH_ADDRESS, BALTATHAR_ADDRESS),
           foreignAssetContract.allowance(ALITH_ADDRESS, CHARLETH_ADDRESS),
         ]);
+        expect(migratedAllowances[0].toString()).to.equal(
+          initialApprovals[0].unwrap().amount.toString()
+        );
+        expect(migratedAllowances[1].toString()).to.equal(
+          initialApprovals[1].unwrap().amount.toString()
+        );
 
-        expect(migratedAllowances[0].toString()).to.equal(parseEther("10").toString());
-        expect(migratedAllowances[1].toString()).to.equal(parseEther("5").toString());
+        // Test transfer
+        const transferAmount = parseEther("5");
+        const [alithBefore, baltatharBefore] = await Promise.all([
+          foreignAssetContract.balanceOf(ALITH_ADDRESS),
+          foreignAssetContract.balanceOf(BALTATHAR_ADDRESS),
+        ]);
+
+        await context.createBlock(
+          await createEthersTransaction(context, {
+            to: contractAddress,
+            data: encodeFunctionData({
+              abi: parseAbi(["function transfer(address,uint256)"]),
+              functionName: "transfer",
+              args: [BALTATHAR_ADDRESS, transferAmount],
+            }),
+          })
+        );
+
+        expect(await foreignAssetBalance(context, assetId.toBigInt(), ALITH_ADDRESS)).to.equal(
+          alithBefore - transferAmount
+        );
+        expect(await foreignAssetBalance(context, assetId.toBigInt(), BALTATHAR_ADDRESS)).to.equal(
+          baltatharBefore + transferAmount
+        );
+
+        // Test approve & transferFrom
+        const approvalAmount = parseEther("20");
+        await context.createBlock(
+          await createEthersTransaction(context, {
+            to: contractAddress,
+            data: encodeFunctionData({
+              abi: parseAbi(["function approve(address,uint256)"]),
+              functionName: "approve",
+              args: [CHARLETH_ADDRESS, approvalAmount],
+            }),
+          })
+        );
+
+        // Check approval
+        expect(await foreignAssetContract.allowance(ALITH_ADDRESS, CHARLETH_ADDRESS)).to.equal(
+          approvalAmount
+        );
       },
     });
   },
