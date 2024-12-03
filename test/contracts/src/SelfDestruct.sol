@@ -48,6 +48,6 @@ contract SelfDestructAfterCreate2 {
             contractAddress2 := create2(0, add(bytecode, 32), mload(bytecode), SALT)
         }
         require(contractAddress1 != address(0), "First address must not be null");
-        require(contractAddress2 == address(0), "Seconds address must be null");
+        require(contractAddress2 == address(0), "Second address must be null");
     }
 }
