@@ -3,10 +3,10 @@
   "id": "moonbeam",
   "chainType": "Live",
   "bootNodes": [
-    "/dns4/fro-moon-bootcol-2-moonbeam-bootnode-1.moonbeam.ol-infra.network/tcp/30333/p2p/12D3KooWK42po5j3v6CygnpcnFY8rmZDAkqHM3QMRCt1sJPVthXV",
-    "/dns4/qco-moon-bootcol-2-moonbeam-bootnode-1.moonbeam.ol-infra.network/tcp/30333/p2p/12D3KooWMbG1Epo8yA6MJjUoUBNDbbupMCorSEKdDmxDChkffiRP",
-    "/dns4/del-moon-bootcol-2-moonbeam-bootnode-1.moonbeam.ol-infra.network/tcp/30333/p2p/12D3KooWJt9iUmvcKAsz6PjzjYvjzgYwJdXoxeLVuGF1gYXLK9jC",
-    "/dns4/ukl-moon-bootcol-2-moonbeam-bootnode-1.moonbeam.ol-infra.network/tcp/30333/p2p/12D3KooWMbG1Epo8yA6MJjUoUBNDbbupMCorSEKdDmxDChkffiRP",
+    "/dns4/del-moonbeam-boot-1.moonbeam.ol-infra.network/tcp/30333/p2p/12D3KooWCSHmCQYeSpt7LC8B6sePi6zN89saSWEhBs9VbkDvxHar",
+    "/dns4/fro-moonbeam-boot-1.moonbeam.ol-infra.network/tcp/30333/p2p/12D3KooWN9HEoJHEi6VzemrFgyiY2vjTPhcSMKAb4qQ9hUyRKQsU",
+    "/dns4/ukl-moonbeam-boot-1.moonbeam.ol-infra.network/tcp/30333/p2p/12D3KooWAHrxxSWaV2WGaP2a3Fyueurxi6SAMCRzgjzUtVZSu9Zx",
+    "/dns4/sino-moonbeam-boot-1.moonbeam.ol-infra.network/tcp/30333/p2p/12D3KooWREsu1J1T76YGHL77BLrJYTdfWZBd4eY4Kbwfa2DqUhoh",
     "/dns/na-02.unitedbloc.com/tcp/7060/p2p/12D3KooWS9aDbVwmLHrWKjehiGGzDSsTUVYyjvwuguz8jyFVDG2q",
     "/dns/eu-02.unitedbloc.com/tcp/37060/p2p/12D3KooWRwPNbahHG9pnPd5hSyHCMZo8aV5qaJwH2qCoxTbMA3KJ",
     "/dns/eu-03.unitedbloc.com/tcp/37060/p2p/12D3KooWF43rrtXewLGW8X9Pp6nyV6ESAZRnNCHVkZy1kzG1MueB",
@@ -16,7 +16,8 @@
     "/dns/apac-01.unitedbloc.com/tcp/37060/p2p/12D3KooWCnXymVyowL5YymVk6RNzRzFAWUvurX7eTTYAFcCbs4nj",
     "/dns/sa-01.unitedbloc.com/tcp/37060/p2p/12D3KooWC3FoL2bFJ79C5CeLDjLmL2yRyozPxSjTQbm9RY95KNsV",
     "/dns/na-01.unitedbloc.com/tcp/37060/p2p/12D3KooWLEZwHD8tWvWiEqKcD976wxdE5JRUnq1JG9a6VJxHUjiS",
-    "/dns4/moonbeam-1.boot.onfinality.io/tcp/28868/ws/p2p/12D3KooWEvop16VcctRftvTDdi5dSGWAA2FA9tXiZyZwzfBpH83L"
+    "/dns/moonbeam-boot-ng.dwellir.com/tcp/443/wss/p2p/12D3KooWSKaKdqWFhNK8XTBhqNUZL2LUTZNCgFt1iXRN2HfvoLsh",
+    "/dns/moonbeam-boot-ng.dwellir.com/tcp/30364/p2p/12D3KooWSKaKdqWFhNK8XTBhqNUZL2LUTZNCgFt1iXRN2HfvoLsh"
   ],
   "telemetryEndpoints": [
     ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]

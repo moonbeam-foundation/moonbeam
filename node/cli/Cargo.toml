@@ -9,6 +9,7 @@ clap = { workspace = true, features = ["derive"] }
 clap-num = { workspace = true }
 log = { workspace = true }
 parity-scale-codec = { workspace = true }
+url = { workspace = true }
 
 # Moonbeam
 moonbeam-cli-opt = { workspace = true }

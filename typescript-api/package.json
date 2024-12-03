@@ -1,6 +1,6 @@
 {
   "name": "@moonbeam-network/api-augment",
-  "version": "0.3300.0",
+  "version": "0.3300.1",
   "type": "module",
   "description": "Moonbeam types augment for @polkadot/api",
   "author": "Moonsong Labs",
@@ -32,7 +32,6 @@
     "generate:meta:moonriver": "pnpm tsx node_modules/@polkadot/typegen/scripts/polkadot-types-from-chain.mjs --endpoint ./metadata-moonriver.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonriver/interfaces",
     "generate:meta:moonbeam": "pnpm tsx node_modules/@polkadot/typegen/scripts/polkadot-types-from-chain.mjs --endpoint ./metadata-moonbeam.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonbeam/interfaces",
     "build": "tsc -b --verbose",
-    "publish": "npm publish",
     "deploy": "pnpm generate && pnpm build && pnpm publish",
     "fmt:fix": "prettier --write --ignore-unknown --plugin prettier-plugin-jsdoc 'src/**/*' 'scripts/**/*'"
   },
@@ -81,17 +80,16 @@
     "api"
   ],
   "dependencies": {
-    "@polkadot/api": "14.0.1",
-    "@polkadot/api-base": "14.0.1",
-    "@polkadot/rpc-core": "14.0.1",
-    "@polkadot/typegen": "14.0.1",
-    "@polkadot/types": "14.0.1",
-    "@polkadot/types-codec": "14.0.1",
-    "@types/node": "^22.5.5",
-    "moonbeam-types-bundle": "workspace:*",
+    "@polkadot/api": "14.3.1",
+    "@polkadot/api-base": "14.3.1",
+    "@polkadot/rpc-core": "14.3.1",
+    "@polkadot/typegen": "14.3.1",
+    "@polkadot/types": "14.3.1",
+    "@polkadot/types-codec": "14.3.1",
+    "@types/node": "^22.9.1",
     "prettier": "2.8.8",
     "prettier-plugin-jsdoc": "^0.3.38",
-    "tsx": "^4.19.1",
-    "typescript": "^5.6.2"
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
   }
 }

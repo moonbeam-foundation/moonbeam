@@ -2,13 +2,14 @@
 #
 # Requires to run from repository root and to copy the binary in the build folder (part of the release workflow)
 
-FROM docker.io/library/ubuntu:20.04 AS builder
+FROM debian:stable AS builder
 
 RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificates
 
-FROM debian:bookworm-slim
+FROM debian:stable-slim
 LABEL maintainer="alan@moonsonglabs.com"
 LABEL description="Binary for Moonbeam Collator"
+
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbeam moonbeam && \
 	mkdir -p /moonbeam/.local/share && \

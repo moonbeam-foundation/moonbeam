@@ -7,13 +7,12 @@ import {
   DOROTHY_ADDRESS,
   GOLIATH_ADDRESS,
   GOLIATH_PRIVATE_KEY,
-  MIN_GAS_PRICE,
   createEthersTransaction,
   createRawTransfer,
   sendRawTransaction,
 } from "@moonwall/util";
 import { parseGwei } from "viem";
-import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../../helpers";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE, ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D011102",
@@ -101,13 +100,18 @@ describeSuite({
       id: "T04",
       title: "already known #2",
       test: async function () {
+        const { specVersion } = await context.polkadotJs().consts.system.version;
+        const GENESIS_BASE_FEE = ConstantStore(context).GENESIS_BASE_FEE.get(
+          specVersion.toNumber()
+        );
+
         const nonce = await context
           .viem("public")
           .getTransactionCount({ address: GOLIATH_ADDRESS });
 
         const tx1 = await createRawTransfer(context, BALTATHAR_ADDRESS, 1, {
           nonce: nonce + 1,
-          gasPrice: MIN_GAS_PRICE,
+          gasPrice: GENESIS_BASE_FEE,
           privateKey: GOLIATH_PRIVATE_KEY,
         });
         await context.createBlock(tx1);

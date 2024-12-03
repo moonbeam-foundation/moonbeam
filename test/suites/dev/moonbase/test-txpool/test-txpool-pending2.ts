@@ -1,12 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  MIN_GAS_PRICE,
-  createEthersTransaction,
-  sendRawTransaction,
-} from "@moonwall/util";
+import { ALITH_ADDRESS, createEthersTransaction, sendRawTransaction } from "@moonwall/util";
 import { encodeFunctionData, toHex } from "viem";
+import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D013908",
@@ -17,6 +13,9 @@ describeSuite({
     let txHash: `0x${string}`;
 
     beforeAll(async () => {
+      const { specVersion } = await context.polkadotJs().consts.system.version;
+      const GENESIS_BASE_FEE = ConstantStore(context).GENESIS_BASE_FEE.get(specVersion.toNumber());
+
       const { contractAddress, abi } = await context.deployContract!("MultiplyBy7", {
         gas: 1048576n,
       });
@@ -31,7 +30,7 @@ describeSuite({
         to: contractAddress,
         data,
         gasLimit: 12000000n,
-        gasPrice: MIN_GAS_PRICE,
+        gasPrice: GENESIS_BASE_FEE,
       });
 
       txHash = await sendRawTransaction(context, rawTx);
@@ -49,7 +48,7 @@ describeSuite({
 
         expect(data).to.not.be.undefined;
         expect(data).to.be.equal(
-          multiplyBy7Contract.toLowerCase() + ": 0 wei + 12000000 gas x 10000000000 wei"
+          multiplyBy7Contract.toLowerCase() + ": 0 wei + 12000000 gas x 2500000000 wei"
         );
       },
     });
@@ -67,7 +66,7 @@ describeSuite({
           blockNumber: null,
           from: ALITH_ADDRESS.toLowerCase(),
           gas: "0xb71b00",
-          gasPrice: "0x2540be400",
+          gasPrice: "0x9502f900",
           hash: txHash,
           nonce: toHex(1),
           to: multiplyBy7Contract.toLowerCase(),

@@ -9,7 +9,6 @@
 CMD="docker run \
   -i \
   --rm \
-  $(~/srtool/uid-gid-mapping.sh 1001 | xargs) \
   -e CARGO_NET_GIT_FETCH_WITH_CLI=true \
   -e PACKAGE=${GH_WORKFLOW_MATRIX_CHAIN}-runtime \
   -e RUNTIME_DIR=runtime/${GH_WORKFLOW_MATRIX_CHAIN} \
@@ -17,9 +16,6 @@ CMD="docker run \
   -e PROFILE=${RUNTIME_BUILD_PROFILE} \
   -e WASM_BUILD_STD=0 \
   -v ${PWD}:/build \
-  -v /home/${USER}/srtool/.ssh:/home/builder/.ssh \
-  -v /home/${USER}/srtool/entrypoint.sh:/srtool/entrypoint.sh \
-  --entrypoint /srtool/entrypoint.sh \
   ${GH_WORKFLOW_MATRIX_SRTOOL_IMAGE}:${GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG} \
     build --app --json -cM"
 

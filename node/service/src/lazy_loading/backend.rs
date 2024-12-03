@@ -142,7 +142,22 @@ impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
 	pub fn id(&self, id: BlockId<Block>) -> Option<Block::Hash> {
 		match id {
 			BlockId::Hash(h) => Some(h),
-			BlockId::Number(n) => self.storage.read().hashes.get(&n).cloned(),
+			BlockId::Number(n) => {
+				let block_hash = self.storage.read().hashes.get(&n).cloned();
+				match block_hash {
+					None => {
+						let block_hash =
+							self.rpc_client.block_hash::<Block>(Some(n)).ok().flatten();
+
+						block_hash.clone().map(|h| {
+							self.storage.write().hashes.insert(n, h);
+						});
+
+						block_hash
+					}
+					block_hash => block_hash,
+				}
+			}
 		}
 	}
 
@@ -1335,40 +1350,42 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 			.read()
 			.get(&hash)
 			.cloned()
-			.map(|state| (state, false))
+			.map(|state| Ok((state, false)))
 			.unwrap_or_else(|| {
-				let header: Block::Header = self
-					.rpc_client
+				self.rpc_client
 					.header::<Block>(Some(hash))
 					.ok()
 					.flatten()
-					.expect("block header");
+					.ok_or(sp_blockchain::Error::UnknownBlock(
+						format!("Failed to fetch block header: {:?}", hash).into(),
+					))
+					.map(|header| {
+						let checkpoint = self.fork_checkpoint.clone();
+						let state = if header.number().gt(checkpoint.number()) {
+							let parent = self.state_at(*header.parent_hash()).ok();
 
-				let checkpoint = self.fork_checkpoint.clone();
-				let state = if header.number().gt(checkpoint.number()) {
-					let parent = self.state_at(*header.parent_hash()).ok();
+							ForkedLazyBackend::<Block> {
+								rpc_client: self.rpc_client.clone(),
+								block_hash: Some(hash),
+								fork_block: checkpoint.hash(),
+								db: parent.clone().map_or(Default::default(), |p| p.db),
+								removed_keys: parent.map_or(Default::default(), |p| p.removed_keys),
+								before_fork: false,
+							}
+						} else {
+							ForkedLazyBackend::<Block> {
+								rpc_client: self.rpc_client.clone(),
+								block_hash: Some(hash),
+								fork_block: checkpoint.hash(),
+								db: Default::default(),
+								removed_keys: Default::default(),
+								before_fork: true,
+							}
+						};
 
-					ForkedLazyBackend::<Block> {
-						rpc_client: self.rpc_client.clone(),
-						block_hash: Some(hash),
-						fork_block: checkpoint.hash(),
-						db: parent.clone().map_or(Default::default(), |p| p.db),
-						removed_keys: parent.map_or(Default::default(), |p| p.removed_keys),
-						before_fork: false,
-					}
-				} else {
-					ForkedLazyBackend::<Block> {
-						rpc_client: self.rpc_client.clone(),
-						block_hash: Some(hash),
-						fork_block: checkpoint.hash(),
-						db: Default::default(),
-						removed_keys: Default::default(),
-						before_fork: true,
-					}
-				};
-
-				(state, true)
-			});
+						(state, true)
+					})
+			})?;
 
 		if should_write {
 			self.states.write().insert(hash, backend.clone());
@@ -1438,16 +1455,16 @@ pub fn check_genesis_storage(storage: &Storage) -> sp_blockchain::Result<()> {
 #[derive(Debug, Clone)]
 pub struct RPC {
 	http_client: HttpClient,
-	delay_between_requests_ms: u64,
-	max_retries_per_request: usize,
+	delay_between_requests_ms: u32,
+	max_retries_per_request: u32,
 	counter: Arc<ReadWriteLock<u64>>,
 }
 
 impl RPC {
 	pub fn new(
 		http_client: HttpClient,
-		delay_between_requests_ms: u64,
-		max_retries_per_request: usize,
+		delay_between_requests_ms: u32,
+		max_retries_per_request: u32,
 	) -> Self {
 		Self {
 			http_client,
@@ -1506,17 +1523,17 @@ impl RPC {
 
 	pub fn block_hash<Block: BlockT + DeserializeOwned>(
 		&self,
-		block_number: Option<BlockNumber>,
+		block_number: Option<<Block::Header as HeaderT>::Number>,
 	) -> Result<Option<Block::Hash>, jsonrpsee::core::ClientError> {
 		let request = &|| {
 			substrate_rpc_client::ChainApi::<
-				BlockNumber,
+				<Block::Header as HeaderT>::Number,
 				Block::Hash,
 				Block::Header,
 				SignedBlock<Block>,
 			>::block_hash(
 				&self.http_client,
-				block_number.map(|n| ListOrValue::Value(NumberOrHex::Number(n.into()))),
+				block_number.map(|n| ListOrValue::Value(NumberOrHex::Hex(n.into()))),
 			)
 		};
 
@@ -1637,7 +1654,8 @@ impl RPC {
 
 		tokio::task::block_in_place(move || {
 			Handle::current().block_on(async move {
-				let delay_between_requests = Duration::from_millis(self.delay_between_requests_ms);
+				let delay_between_requests =
+					Duration::from_millis(self.delay_between_requests_ms.into());
 
 				let start = std::time::Instant::now();
 				self.counter.write().add_assign(1);
@@ -1652,8 +1670,8 @@ impl RPC {
 
 				// Retry request in case of failure
 				// The maximum number of retries is specified by `self.max_retries_per_request`
-				let retry_strategy =
-					FixedInterval::new(delay_between_requests).take(self.max_retries_per_request);
+				let retry_strategy = FixedInterval::new(delay_between_requests)
+					.take(self.max_retries_per_request as usize);
 				let result = Retry::spawn(retry_strategy, f).await;
 
 				log::debug!(
@@ -1679,20 +1697,22 @@ where
 	Block: BlockT + DeserializeOwned,
 	Block::Hash: From<H256>,
 {
-	let uri: String = lazy_loading_config.state_rpc.clone().into();
-
 	let http_client = jsonrpsee::http_client::HttpClientBuilder::default()
 		.max_request_size(u32::MAX)
 		.max_response_size(u32::MAX)
 		.request_timeout(Duration::from_secs(10))
-		.build(uri)
+		.build(lazy_loading_config.state_rpc.clone())
 		.map_err(|e| {
 			sp_blockchain::Error::Backend(
 				format!("failed to build http client: {:?}", e).to_string(),
 			)
 		})?;
 
-	let rpc = RPC::new(http_client, 100, 10);
+	let rpc = RPC::new(
+		http_client,
+		lazy_loading_config.delay_between_requests,
+		lazy_loading_config.max_retries_per_request,
+	);
 	let block_hash = lazy_loading_config
 		.from_block
 		.map(|block| Into::<Block::Hash>::into(block));

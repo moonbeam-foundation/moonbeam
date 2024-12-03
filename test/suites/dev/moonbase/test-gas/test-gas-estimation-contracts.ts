@@ -149,21 +149,23 @@ describeSuite({
     it({
       id: "T05",
       title: "Should be able to estimate gas of infinite loop call",
-      timeout: 240000,
+      timeout: 60000,
       test: async function () {
         const { contractAddress, abi } = await deployCreateCompiledContract(context, "Looper");
 
         expect(
           async () =>
-            await context.viem().estimateGas({
-              account: ALITH_ADDRESS,
-              to: contractAddress,
-              data: encodeFunctionData({
-                abi: abi,
-                functionName: "infinite",
-                args: [],
-              }),
-            })
+            await customDevRpcRequest("eth_estimateGas", [
+              {
+                from: ALITH_ADDRESS,
+                to: contractAddress,
+                data: encodeFunctionData({
+                  abi: abi,
+                  functionName: "infinite",
+                  args: [],
+                }),
+              },
+            ])
         ).rejects.toThrowError("gas required exceeds allowance 6000000");
       },
     });

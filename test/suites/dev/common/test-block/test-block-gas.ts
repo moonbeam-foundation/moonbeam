@@ -4,6 +4,7 @@ import {
   describeSuite,
   expect,
   deployCreateCompiledContract,
+  beforeAll,
 } from "@moonwall/cli";
 import { ConstantStore } from "../../../../helpers";
 
@@ -12,6 +13,11 @@ describeSuite({
   title: "Block creation - suite 2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+    let specVersion: number;
+    beforeAll(async () => {
+      specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+    });
+
     for (const txnType of TransactionTypes) {
       it({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,
@@ -19,7 +25,7 @@ describeSuite({
         test: async function () {
           const { hash, status } = await deployCreateCompiledContract(context, "MultiplyBy7", {
             type: txnType,
-            gas: ConstantStore(context).EXTRINSIC_GAS_LIMIT,
+            gas: ConstantStore(context).EXTRINSIC_GAS_LIMIT.get(specVersion),
           });
           expect(status).toBe("success");
           const receipt = await context.viem().getTransactionReceipt({ hash });
@@ -35,7 +41,7 @@ describeSuite({
             async () =>
               await deployCreateCompiledContract(context, "MultiplyBy7", {
                 type: txnType,
-                gas: ConstantStore(context).EXTRINSIC_GAS_LIMIT + 1n,
+                gas: ConstantStore(context).EXTRINSIC_GAS_LIMIT.get(specVersion) + 1n,
               }),
             "Transaction should be reverted but instead contract deployed"
           ).rejects.toThrowError("exceeds block gas limit");
@@ -57,7 +63,7 @@ describeSuite({
             args: [],
             functionName: "getGasLimit",
           })
-        ).to.equal(ConstantStore(context).GAS_LIMIT);
+        ).to.equal(ConstantStore(context).GAS_LIMIT.get(specVersion));
       },
     });
   },

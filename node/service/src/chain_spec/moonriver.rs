@@ -24,13 +24,13 @@ use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pa
 use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
-use moonbase_runtime::EligibilityValue;
 use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CrowdloanRewardsConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisAccount,
-	InflationInfo, MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
-	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
+	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
+	GenesisAccount, InflationInfo, MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig,
+	ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range,
+	RuntimeGenesisConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS,
+	WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;

@@ -12,6 +12,7 @@ describeSuite({
       id: "T01",
       title: "should not charge length fee for precompile from Ethereum txn",
       test: async () => {
+        const { specVersion } = await context.polkadotJs().consts.system.version;
         // we use modexp here because it allows us to send large-ish transactions
         const MODEXP_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000005";
 
@@ -28,7 +29,7 @@ describeSuite({
 
         const tx = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
-          gas: BigInt(ConstantStore(context).EXTRINSIC_GAS_LIMIT),
+          gas: BigInt(ConstantStore(context).EXTRINSIC_GAS_LIMIT.get(specVersion.toNumber())),
           data: ("0x0000000000000000000000000000000000000000000000000000000000000004" + // base
             "0000000000000000000000000000000000000000000000000000000000000004" + // exp
             "0000000000000000000000000000000000000000000000000000000000000004" + // mod

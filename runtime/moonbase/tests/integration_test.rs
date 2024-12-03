@@ -108,7 +108,7 @@ type XcmTransactorV2PCall =
 	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
 
 // TODO: can we construct a const U256...?
-const BASE_FEE_GENISIS: u128 = 10 * GIGAWEI;
+const BASE_FEE_GENISIS: u128 = 10 * GIGAWEI / 4;
 
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
@@ -1564,7 +1564,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(176291)
+				.expect_cost(176190)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1655,7 +1655,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(176291)
+				.expect_cost(176190)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1739,7 +1739,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24691)
+				.expect_cost(24590)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -1864,7 +1864,7 @@ fn initial_gas_fee_is_correct() {
 		assert_eq!(
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
-				10_000_000_000u128.into(),
+				2_500_000_000u128.into(),
 				Weight::from_parts(41_742_000u64, 0)
 			)
 		);
@@ -2296,7 +2296,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(23275)
+				.expect_cost(23248)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2336,7 +2336,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23275)
+				.expect_cost(23248)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2418,7 +2418,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(14307)
+				.expect_cost(14217)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2440,7 +2440,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(13806)
+				.expect_cost(13783)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2461,7 +2461,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14284)
+				.expect_cost(14248)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2504,7 +2504,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16075)
+				.expect_cost(16012)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2529,7 +2529,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16075)
+				.expect_cost(16012)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -3035,9 +3035,7 @@ mod fee_tests {
 			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
 			let actual = TransactionPaymentAsGasPrice::min_gas_price().0;
 			let expected: U256 = multiplier
-				.saturating_mul_int(
-					(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128),
-				)
+				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
 				.into();
 
 			assert_eq!(expected, actual);
@@ -3074,8 +3072,7 @@ mod fee_tests {
 			.unwrap()
 			.into();
 		t.execute_with(|| {
-			let weight_fee_per_gas =
-				(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128);
+			let weight_fee_per_gas = (currency::WEIGHT_FEE).saturating_mul(WEIGHT_PER_GAS as u128);
 			let sim = |start_gas_price: u128, fullness: Perbill, num_blocks: u64| -> U256 {
 				let start_multiplier =
 					FixedU128::from_rational(start_gas_price, weight_fee_per_gas);
@@ -3136,11 +3133,11 @@ mod fee_tests {
 			// 1 "real" day (at 6-second blocks)
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 14400),
-				U256::from(125_000_000), // lower bound enforced
+				U256::from(31_250_000), // lower bound enforced
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 14400),
-				U256::from(125_000_000),
+				U256::from(31_250_000), // lower bound enforced if threshold not reached
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 14400),
@@ -3148,7 +3145,8 @@ mod fee_tests {
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 14400),
-				U256::from(125_000_000_000_000u128), // upper bound enforced
+				U256::from(31_250_000_000_000u128),
+				// upper bound enforced (min_gas_price * MaximumMultiplier)
 			);
 		});
 	}

@@ -15,20 +15,20 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::lazy_loading;
+use crate::lazy_loading::{TLazyLoadingBackend, TLazyLoadingCallExecutor};
 use cumulus_primitives_core::BlockT;
-use moonbeam_cli_opt::LazyLoadingConfig;
 use sc_chain_spec::BuildGenesisBlock;
 use sc_client_api::execution_extensions::ExecutionExtensions;
 use sc_client_api::{BadBlocks, ForkBlocks};
 use sc_executor::RuntimeVersionOf;
 use sc_service::client::Client;
-use sc_service::ClientConfig;
+use sc_service::{ClientConfig, LocalCallExecutor};
 use sc_telemetry::TelemetryHandle;
 use sp_core::traits::{CodeExecutor, SpawnNamed};
 use std::sync::Arc;
 
-pub fn new_client<E, Block, RA, G, Backend>(
-	backend: Arc<Backend>,
+pub fn new_client<E, Block, RA, G>(
+	backend: Arc<TLazyLoadingBackend<Block>>,
 	executor: E,
 	genesis_block_builder: G,
 	fork_blocks: ForkBlocks<Block>,
@@ -38,33 +38,29 @@ pub fn new_client<E, Block, RA, G, Backend>(
 	prometheus_registry: Option<substrate_prometheus_endpoint::Registry>,
 	telemetry: Option<TelemetryHandle>,
 	config: ClientConfig<Block>,
-	lazy_loading_config: &LazyLoadingConfig,
 ) -> Result<
-	Client<
-		Backend,
-		lazy_loading::call_executor::LazyLoadingCallExecutor<Block, Backend, E>,
-		Block,
-		RA,
-	>,
+	Client<TLazyLoadingBackend<Block>, TLazyLoadingCallExecutor<Block, E>, Block, RA>,
 	sp_blockchain::Error,
 >
-	where
-		Block: BlockT + sp_runtime::DeserializeOwned,
-		Block::Hash: From<sp_core::H256>,
-		E: CodeExecutor + RuntimeVersionOf,
-		Backend: sc_client_api::Backend<Block> + 'static,
-		G: BuildGenesisBlock<
+where
+	Block: BlockT + sp_runtime::DeserializeOwned,
+	Block::Hash: From<sp_core::H256>,
+	E: CodeExecutor + RuntimeVersionOf,
+	TLazyLoadingBackend<Block>: sc_client_api::Backend<Block> + 'static,
+	G: BuildGenesisBlock<
+		Block,
+		BlockImportOperation = <TLazyLoadingBackend<Block> as sc_client_api::backend::Backend<
 			Block,
-			BlockImportOperation = <Backend as sc_client_api::backend::Backend<Block>>::BlockImportOperation
-		>
+		>>::BlockImportOperation,
+	>,
 {
-	let executor = lazy_loading::call_executor::LazyLoadingCallExecutor::new(
-		backend.clone(),
-		lazy_loading_config,
-		executor,
-		config.clone(),
-		execution_extensions,
-	)?;
+	let executor =
+		lazy_loading::call_executor::LazyLoadingCallExecutor::new(LocalCallExecutor::new(
+			backend.clone(),
+			executor,
+			config.clone(),
+			execution_extensions,
+		)?)?;
 
 	Client::new(
 		backend,

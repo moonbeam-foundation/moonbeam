@@ -23,13 +23,13 @@ use super::{
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
+use super::moonbeam_weights;
 use frame_support::{
 	dispatch::GetDispatchInfo,
 	parameter_types,
 	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, EitherOfDiverse},
 	weights::Weight,
 };
-use moonbeam_runtime_common::weights as moonbeam_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 
 use frame_system::{EnsureNever, EnsureRoot};

@@ -42,7 +42,7 @@ use sc_network::NetworkBackend;
 use sc_network_common::sync::SyncMode;
 use sc_service::{
 	error::Error as ServiceError, ClientConfig, Configuration, Error, KeystoreContainer,
-	PartialComponents, TaskManager,
+	LocalCallExecutor, PartialComponents, TaskManager,
 };
 use sc_telemetry::{TelemetryHandle, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
@@ -63,8 +63,6 @@ mod client;
 mod helpers;
 mod lock;
 mod state_overrides;
-mod wasm_override;
-mod wasm_substitutes;
 
 pub const LAZY_LOADING_LOG_TARGET: &'static str = "lazy-loading";
 
@@ -80,8 +78,10 @@ pub type TLazyLoadingClient<TBl, TRtApi, TExec> = sc_service::client::Client<
 pub type TLazyLoadingBackend<TBl> = backend::Backend<TBl>;
 
 /// Lazy loading client call executor type.
-pub type TLazyLoadingCallExecutor<TBl, TExec> =
-	call_executor::LazyLoadingCallExecutor<TBl, TLazyLoadingBackend<TBl>, TExec>;
+pub type TLazyLoadingCallExecutor<TBl, TExec> = call_executor::LazyLoadingCallExecutor<
+	TBl,
+	LocalCallExecutor<TBl, TLazyLoadingBackend<TBl>, TExec>,
+>;
 
 /// Lazy loading parts type.
 pub type TLazyLoadingParts<TBl, TRtApi, TExec> = (
@@ -118,7 +118,6 @@ where
 
 	new_lazy_loading_parts_with_genesis_builder(
 		config,
-		lazy_loading_config,
 		telemetry,
 		executor,
 		backend,
@@ -129,7 +128,6 @@ where
 /// Create the initial parts of a lazy loading node.
 pub fn new_lazy_loading_parts_with_genesis_builder<TBl, TRtApi, TExec, TBuildGenesisBlock>(
 	config: &Configuration,
-	lazy_loading_config: &LazyLoadingConfig,
 	telemetry: Option<TelemetryHandle>,
 	executor: TExec,
 	backend: Arc<TLazyLoadingBackend<TBl>>,
@@ -211,7 +209,6 @@ where
 				wasm_runtime_substitutes,
 				enable_import_proof_recording: false,
 			},
-			lazy_loading_config,
 		)?;
 
 		client
@@ -340,7 +337,7 @@ where
 		create_inherent_data_providers,
 		&task_manager.spawn_essential_handle(),
 		config.prometheus_registry(),
-		false,
+		None,
 	)?;
 	let block_import = BlockImportPipeline::Dev(frontier_block_import);
 

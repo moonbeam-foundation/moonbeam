@@ -18,7 +18,7 @@ use ethereum::AccessListItem;
 use ethereum_types::{H160, H256, U256};
 use fc_rpc_core::types::Bytes;
 use jsonrpsee::{core::RpcResult, proc_macros::rpc};
-use moonbeam_client_evm_tracing::types::single;
+use moonbeam_client_evm_tracing::types::{block, single};
 use moonbeam_rpc_core_types::RequestBlockId;
 use serde::Deserialize;
 
@@ -83,5 +83,5 @@ pub trait Debug {
 		&self,
 		id: RequestBlockId,
 		params: Option<TraceParams>,
-	) -> RpcResult<Vec<single::TransactionTrace>>;
+	) -> RpcResult<Vec<block::BlockTransactionTrace>>;
 }

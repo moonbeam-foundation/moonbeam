@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::fs::File;
+use std::fs;
 use std::io::prelude::*;
+use std::path::Path;
 
 // Length of encoded constructor parameters
 const PARAMS_LEN: usize = 256;
@@ -38,7 +39,17 @@ fn main() {
 		0
 	};
 
-	let mut file = File::create("resources/foreign_erc20_initcode.bin")
+	let file_path = "resources/foreign_erc20_initcode.bin";
+
+	if Path::new(file_path).exists() {
+		let existing_content = fs::read(file_path).expect("Unable to read file");
+		let existing_hex_code = hex::encode(existing_content);
+		if existing_hex_code == hex::encode(&bytecode[..bytecode_end]) {
+			return;
+		}
+	}
+
+	let mut file = fs::File::create(file_path)
 		.expect("Fail to create file resources/foreign_erc20_initcode.bin");
 	file.write_all(&bytecode[..bytecode_end])
 		.expect("fail to write bytecode in /foreign_erc20_initcode.bin");

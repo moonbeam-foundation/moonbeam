@@ -17,6 +17,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod apis;
+#[cfg(feature = "runtime-benchmarks")]
+pub mod benchmarking;
 mod impl_moonbeam_xcm_call;
 mod impl_moonbeam_xcm_call_tracing;
 mod impl_on_charge_evm_transaction;
@@ -25,7 +27,3 @@ mod impl_xcm_evm_runner;
 pub mod migrations;
 pub mod timestamp;
 pub mod types;
-pub mod weights;
-
-#[cfg(feature = "runtime-benchmarks")]
-pub mod benchmarking;

@@ -7,6 +7,8 @@ import {
   RELAY_SOURCE_LOCATION_V4,
   foreignAssetBalance,
   mockAssetBalance,
+  registerForeignAsset,
+  relayAssetMetadata,
 } from "../../../../helpers";
 
 describeSuite({
@@ -22,7 +24,10 @@ describeSuite({
         const assetLocation = RELAY_SOURCE_LOCATION_V4;
         const assetId = ARBITRARY_ASSET_ID;
 
-        await mockAssetBalance(context, someBalance, assetId, assetLocation, alith, ALITH_ADDRESS);
+        // Register the asset
+        await registerForeignAsset(context, assetId, assetLocation, relayAssetMetadata);
+        // Mock asset balance
+        await mockAssetBalance(context, someBalance, assetId, alith, ALITH_ADDRESS);
 
         const newBalance = await foreignAssetBalance(context, assetId, ALITH_ADDRESS);
         expect(newBalance).toBe(someBalance);

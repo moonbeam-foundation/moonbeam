@@ -19,16 +19,16 @@
 
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
-	Erc20XcmBridge, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance, ParachainInfo,
-	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin, Treasury, XcmpQueue,
+	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance,
+	ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 
+use super::moonriver_weights;
 use frame_support::{
 	parameter_types,
 	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
-use moonbeam_runtime_common::weights as moonriver_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
 	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
@@ -166,6 +166,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 // we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
 pub type AssetTransactors = (
 	LocalAssetTransactor,
+	EvmForeignAssets,
 	ForeignFungiblesTransactor,
 	Erc20XcmBridge,
 );
@@ -283,11 +284,10 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type UniversalLocation = UniversalLocation;
 	type Barrier = XcmBarrier;
 	type Weigher = XcmWeigher;
-	// We use two traders
-	// When we receive the relative representation of the self-reserve asset,
-	// we use UsingComponents and the local way of handling fees
-	// When we receive a non-reserve asset, we use AssetManager to fetch how many
-	// units per second we should charge
+	// As trader we use the XcmWeightTrader pallet.
+	// For each foreign asset, the fee is computed based on its relative price (also
+	// stored in the XcmWeightTrader pallet) against the native asset.
+	// For the native asset fee is computed using WeightToFee implementation.
 	type Trader = pallet_xcm_weight_trader::Trader<Runtime>;
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
@@ -685,14 +685,31 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 	}
 }
 
+pub struct EvmForeignAssetIdFilter;
+impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
+	fn contains(asset_id: &AssetId) -> bool {
+		use xcm_primitives::AssetTypeGetter as _;
+		// We should return true only if the AssetId doesn't exist in AssetManager
+		AssetManager::get_asset_type(*asset_id).is_none()
+	}
+}
+
+pub type ForeignAssetManagerOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::FastGeneralAdmin,
+	>,
+>;
+
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
-	type AssetIdFilter = Nothing;
+	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type ForeignAssetCreatorOrigin = frame_system::EnsureNever<AccountId>;
-	type ForeignAssetFreezerOrigin = frame_system::EnsureNever<AccountId>;
-	type ForeignAssetModifierOrigin = frame_system::EnsureNever<AccountId>;
-	type ForeignAssetUnfreezerOrigin = frame_system::EnsureNever<AccountId>;
+	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
 	type RuntimeEvent = RuntimeEvent;
@@ -741,6 +758,7 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
 	type RuntimeEvent = RuntimeEvent;
 	type ResumeSupportedAssetOrigin = RemoveSupportedAssetOrigin;
+
 	type WeightInfo = moonriver_weights::pallet_xcm_weight_trader::WeightInfo<Runtime>;
 	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;

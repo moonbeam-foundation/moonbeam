@@ -30,6 +30,11 @@ interface IProxy{
     ) external payable;
 }
 
+// This contract adds Alith (0xf24....) as proxy to itself when it gets deployed.
+// The purpose is to trigger a proxy creation BEFORE the contract code is stored.
+// It bypasses the restriction of "no proxy for smart contract" but cannot be exploited
+// because runtimes block the execution of a proxy if the proxied account contains code
+// see https://github.com/moonbeam-foundation/moonbeam/pull/2533/files#diff-95857a497fb7c3739b385c704d94c0f41293c05703b539cb139093f78e0a4cfbR1122
 contract ProxyForContractsDemo {
 
     address immutable PROXY_ADDRESS = 0x000000000000000000000000000000000000080b;

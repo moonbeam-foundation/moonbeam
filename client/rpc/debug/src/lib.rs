@@ -26,6 +26,8 @@ use ethereum_types::H256;
 use fc_rpc::{frontier_backend_client, internal_err};
 use fc_storage::StorageOverride;
 use fp_rpc::EthereumRuntimeRPCApi;
+use moonbeam_client_evm_tracing::types::block;
+use moonbeam_client_evm_tracing::types::block::BlockTransactionTrace;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
 use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
@@ -40,6 +42,7 @@ use sp_runtime::{
 	generic::BlockId,
 	traits::{BlakeTwo256, Block as BlockT, Header as HeaderT, UniqueSaturatedInto},
 };
+use std::collections::BTreeMap;
 use std::{future::Future, marker::PhantomData, sync::Arc};
 
 pub enum RequesterInput {
@@ -50,7 +53,7 @@ pub enum RequesterInput {
 
 pub enum Response {
 	Single(single::TransactionTrace),
-	Block(Vec<single::TransactionTrace>),
+	Block(Vec<block::BlockTransactionTrace>),
 }
 
 pub type Responder = oneshot::Sender<RpcResult<Response>>;
@@ -102,7 +105,7 @@ impl DebugServer for Debug {
 		&self,
 		id: RequestBlockId,
 		params: Option<TraceParams>,
-	) -> RpcResult<Vec<single::TransactionTrace>> {
+	) -> RpcResult<Vec<BlockTransactionTrace>> {
 		let requester = self.requester.clone();
 
 		let (tx, rx) = oneshot::channel();
@@ -392,7 +395,15 @@ where
 		}?;
 
 		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
-		let api = client.runtime_api();
+		let mut api = client.runtime_api();
+
+		// Enable proof recording
+		api.record_proof();
+		api.proof_recorder().map(|recorder| {
+			let ext = sp_trie::proof_size_extension::ProofSizeExt::new(recorder);
+			api.register_extension(ext);
+		});
+
 		// Get Blockchain backend
 		let blockchain = backend.blockchain();
 		// Get the header I want to work with.
@@ -412,7 +423,12 @@ where
 			.unwrap_or_default();
 
 		// Known ethereum transaction hashes.
-		let eth_tx_hashes: Vec<_> = statuses.iter().map(|t| t.transaction_hash).collect();
+		let eth_transactions_by_index: BTreeMap<u32, H256> = statuses
+			.iter()
+			.map(|t| (t.transaction_index, t.transaction_hash))
+			.collect();
+
+		let eth_tx_hashes: Vec<_> = eth_transactions_by_index.values().cloned().collect();
 
 		// If there are no ethereum transactions in the block return empty trace right away.
 		if eth_tx_hashes.is_empty() {
@@ -496,9 +512,22 @@ where
 				proxy.finish_transaction();
 				let response = match tracer_input {
 					TracerInput::CallTracer => {
-						moonbeam_client_evm_tracing::formatters::CallTracer::format(proxy)
-							.ok_or("Trace result is empty.")
-							.map_err(|e| internal_err(format!("{:?}", e)))
+						let result =
+							moonbeam_client_evm_tracing::formatters::CallTracer::format(proxy)
+								.ok_or("Trace result is empty.")
+								.map_err(|e| internal_err(format!("{:?}", e)))?
+								.into_iter()
+								.map(|mut trace| {
+									if let Some(transaction_hash) =
+										eth_transactions_by_index.get(&trace.tx_position)
+									{
+										trace.tx_hash = *transaction_hash;
+									}
+									trace
+								})
+								.collect::<Vec<BlockTransactionTrace>>();
+
+						Ok(result)
 					}
 					_ => Err(internal_err(
 						"Bug: failed to resolve the tracer format.".to_string(),
@@ -556,7 +585,15 @@ where
 				Err(e) => return Err(e),
 			};
 		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
-		let api = client.runtime_api();
+		let mut api = client.runtime_api();
+
+		// Enable proof recording
+		api.record_proof();
+		api.proof_recorder().map(|recorder| {
+			let ext = sp_trie::proof_size_extension::ProofSizeExt::new(recorder);
+			api.register_extension(ext);
+		});
+
 		// Get Blockchain backend
 		let blockchain = backend.blockchain();
 		// Get the header I want to work with.
@@ -709,7 +746,7 @@ where
 									)
 									.ok_or("Trace result is empty.")
 									.map_err(|e| internal_err(format!("{:?}", e)))?;
-								Ok(res.pop().expect("Trace result is empty."))
+								Ok(res.pop().expect("Trace result is empty.").result)
 							}
 							_ => Err(internal_err(
 								"Bug: failed to resolve the tracer format.".to_string(),
@@ -762,7 +799,15 @@ where
 		}?;
 
 		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
-		let api = client.runtime_api();
+		let mut api = client.runtime_api();
+
+		// Enable proof recording
+		api.record_proof();
+		api.proof_recorder().map(|recorder| {
+			let ext = sp_trie::proof_size_extension::ProofSizeExt::new(recorder);
+			api.register_extension(ext);
+		});
+
 		// Get the header I want to work with.
 		let Ok(hash) = client.expect_block_hash_from_id(&reference_id) else {
 			return Err(internal_err("Block header not found"));
@@ -921,7 +966,7 @@ where
 							moonbeam_client_evm_tracing::formatters::CallTracer::format(proxy)
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))?;
-						Ok(res.pop().expect("Trace result is empty."))
+						Ok(res.pop().expect("Trace result is empty.").result)
 					}
 					_ => Err(internal_err(
 						"Bug: failed to resolve the tracer format.".to_string(),

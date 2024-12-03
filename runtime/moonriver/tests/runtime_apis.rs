@@ -42,7 +42,10 @@ fn ethereum_runtime_rpc_api_chain_id() {
 #[test]
 fn ethereum_runtime_rpc_api_account_basic() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 2_000 * MOVR)])
+		.with_balances(vec![(
+			AccountId::from(ALICE),
+			2_000 * MOVR + existential_deposit(),
+		)])
 		.build()
 		.execute_with(|| {
 			assert_eq!(
