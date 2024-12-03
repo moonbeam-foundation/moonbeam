@@ -21,6 +21,7 @@ use frame_support::sp_runtime::Saturating;
 use frame_support::traits::{fungibles::metadata::Inspect, ReservableCurrency};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::U256;
+use sp_std::vec::Vec;
 
 #[derive(Debug, Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
 pub enum ForeignAssetMigrationStatus {
@@ -48,56 +49,72 @@ where
 	<T as pallet_assets::Config>::Balance: Into<U256>,
 	<T as pallet_asset_manager::Config>::ForeignAssetType: Into<Option<Location>>,
 {
+	pub(super) fn do_approve_assets_to_migrate(
+		origin: OriginFor<T>,
+		assets: Vec<u128>,
+	) -> DispatchResult {
+		assets.iter().try_for_each(|asset_id| {
+			ensure!(
+				pallet_assets::Asset::<T>::contains_key(*asset_id),
+				Error::<T>::AssetNotFound
+			);
+
+			ApprovedForeignAssets::<T>::insert(asset_id, ());
+
+			let decimals = pallet_assets::Pallet::<T>::decimals(*asset_id);
+			let symbol = pallet_assets::Pallet::<T>::symbol(*asset_id)
+				.try_into()
+				.map_err(|_| Error::<T>::SymbolTooLong)?;
+			let name = <pallet_assets::Pallet<T> as Inspect<_>>::name(*asset_id)
+				.try_into()
+				.map_err(|_| Error::<T>::NameTooLong)?;
+			let asset_type = pallet_asset_manager::AssetIdType::<T>::take(*asset_id)
+				.ok_or(Error::<T>::AssetTypeNotFound)?;
+			let xcm_location: Location = asset_type.into().ok_or(Error::<T>::LocationNotFound)?;
+
+			// We need to remove the contract code to deploy the new SC
+			let contract_addr =
+				pallet_moonbeam_foreign_assets::Pallet::<T>::contract_address_from_asset_id(
+					*asset_id,
+				);
+			pallet_evm::AccountCodes::<T>::remove(contract_addr);
+			pallet_evm::AccountCodesMetadata::<T>::remove(contract_addr);
+
+			// Create the SC for the asset with moonbeam foreign assets pallet
+			pallet_moonbeam_foreign_assets::Pallet::<T>::create_foreign_asset(
+				origin.clone(),
+				*asset_id,
+				xcm_location,
+				decimals,
+				symbol,
+				name,
+			)?;
+
+			Ok(())
+		})
+	}
+
 	/// Start a foreign asset migration by freezing the asset and creating the SC with the moonbeam
 	/// foreign assets pallet.
-	pub(super) fn do_start_foreign_asset_migration(
-		origin: OriginFor<T>,
-		asset_id: u128,
-	) -> DispatchResult {
+	pub(super) fn do_start_foreign_asset_migration(asset_id: u128) -> DispatchResult {
 		ForeignAssetMigrationStatusValue::<T>::try_mutate(|status| -> DispatchResult {
 			ensure!(
 				*status == ForeignAssetMigrationStatus::Idle,
 				Error::<T>::MigrationNotFinished
 			);
 
+			// ensure asset_id is in the approved list
+			ensure!(
+				ApprovedForeignAssets::<T>::contains_key(asset_id),
+				Error::<T>::AssetNotFound
+			);
+
 			// Freeze the asset
 			pallet_assets::Asset::<T>::try_mutate_exists(asset_id, |maybe_details| {
 				let details = maybe_details.as_mut().ok_or(Error::<T>::AssetNotFound)?;
-
 				details.status = pallet_assets::AssetStatus::Frozen;
 
-				let decimals = pallet_assets::Pallet::<T>::decimals(asset_id);
-				let symbol = pallet_assets::Pallet::<T>::symbol(asset_id)
-					.try_into()
-					.map_err(|_| Error::<T>::SymbolTooLong)?;
-				let name = <pallet_assets::Pallet<T> as Inspect<_>>::name(asset_id)
-					.try_into()
-					.map_err(|_| Error::<T>::NameTooLong)?;
-				let asset_type = pallet_asset_manager::AssetIdType::<T>::take(asset_id)
-					.ok_or(Error::<T>::AssetTypeNotFound)?;
-				let xcm_location: Location =
-					asset_type.into().ok_or(Error::<T>::LocationNotFound)?;
-
-				// Remove the precompile for the old foreign asset.
-				// Cleaning the precompile is done by removing the code and metadata
-				let contract_addr =
-					pallet_moonbeam_foreign_assets::Pallet::<T>::contract_address_from_asset_id(
-						asset_id,
-					);
-				pallet_evm::AccountCodes::<T>::remove(contract_addr);
-				pallet_evm::AccountCodesMetadata::<T>::remove(contract_addr);
-
-				// Create the SC for the asset with moonbeam foreign assets pallet
-				pallet_moonbeam_foreign_assets::Pallet::<T>::create_foreign_asset(
-					origin,
-					asset_id,
-					xcm_location,
-					decimals,
-					symbol,
-					name,
-				)?;
-
-				*status = ForeignAssetMigrationStatus::Migrating(ForeignAssetMigreationInfo {
+				*status = ForeignAssetMigrationStatus::Migrating(ForeignAssetMigrationInfo {
 					asset_id,
 					remaining_balances: details.accounts,
 					remaining_approvals: details.approvals,
@@ -214,6 +231,7 @@ where
 				},
 			)?;
 
+			ApprovedForeignAssets::<T>::remove(migration_info.asset_id);
 			*status = ForeignAssetMigrationStatus::Idle;
 			Ok(())
 		})

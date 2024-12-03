@@ -63,6 +63,11 @@ pub mod pallet {
 	pub(crate) type ForeignAssetMigrationStatusValue<T: Config> =
 		StorageValue<_, ForeignAssetMigrationStatus, ValueQuery>;
 
+	// List of approved foreign assets to be migrated
+	#[pallet::storage]
+	pub(crate) type ApprovedForeignAssets<T: Config> =
+		StorageMap<_, Twox64Concat, u128, (), OptionQuery>;
+
 	pub(crate) type StorageKey = BoundedVec<u8, ConstU32<1_024>>;
 
 	#[derive(Clone, Encode, Decode, scale_info::TypeInfo, PartialEq, Eq, MaxEncodedLen, Debug)]
@@ -390,18 +395,31 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(3)]
+		#[pallet::weight(0)]
+		pub fn set_approved_foreign_assets(
+			origin: OriginFor<T>,
+			assets: BoundedVec<u128, GetArrayLimit>,
+		) -> DispatchResultWithPostInfo {
+			T::ForeignAssetMigratorOrigin::ensure_origin(origin.clone())?;
+
+			Self::do_approve_assets_to_migrate(origin, assets.into())?;
+
+			Ok(Pays::No.into())
+		}
+
+		#[pallet::call_index(4)]
 		#[pallet::weight(<T as pallet::Config>::WeightInfo::start_foreign_assets_migration())]
 		pub fn start_foreign_assets_migration(
 			origin: OriginFor<T>,
 			asset_id: u128,
 		) -> DispatchResultWithPostInfo {
-			T::ForeignAssetMigratorOrigin::ensure_origin(origin.clone())?;
+			ensure_signed(origin)?;
 
-			Self::do_start_foreign_asset_migration(origin, asset_id)?;
+			Self::do_start_foreign_asset_migration(asset_id)?;
 			Ok(Pays::No.into())
 		}
 
-		#[pallet::call_index(4)]
+		#[pallet::call_index(5)]
 		#[pallet::weight(<T as pallet::Config>::WeightInfo::migrate_foreign_asset_balances(*limit))]
 		pub fn migrate_foreign_asset_balances(
 			origin: OriginFor<T>,
@@ -413,7 +431,7 @@ pub mod pallet {
 			Ok(Pays::No.into())
 		}
 
-		#[pallet::call_index(5)]
+		#[pallet::call_index(6)]
 		#[pallet::weight(<T as pallet::Config>::WeightInfo::migrate_foreign_asset_approvals(*limit))]
 		pub fn migrate_foreign_asset_approvals(
 			origin: OriginFor<T>,
@@ -425,7 +443,7 @@ pub mod pallet {
 			Ok(Pays::No.into())
 		}
 
-		#[pallet::call_index(6)]
+		#[pallet::call_index(7)]
 		#[pallet::weight(<T as pallet::Config>::WeightInfo::finish_foreign_assets_migration())]
 		pub fn finish_foreign_assets_migration(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
