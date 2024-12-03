@@ -389,7 +389,6 @@ pub mod pallet {
 				.into())
 		}
 
-		// TODO update weights
 		#[pallet::call_index(3)]
 		#[pallet::weight(<T as pallet::Config>::WeightInfo::start_foreign_assets_migration())]
 		pub fn start_foreign_assets_migration(
