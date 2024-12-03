@@ -368,6 +368,8 @@
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
             "options": [
+              "--lazy-loading-delay-between-requests=10",
+              "--lazy-loading-max-retries-per-request=5",
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
               "--no-telemetry",

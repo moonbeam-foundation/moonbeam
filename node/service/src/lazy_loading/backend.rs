@@ -1457,16 +1457,16 @@ pub fn check_genesis_storage(storage: &Storage) -> sp_blockchain::Result<()> {
 #[derive(Debug, Clone)]
 pub struct RPC {
 	http_client: HttpClient,
-	delay_between_requests_ms: u64,
-	max_retries_per_request: usize,
+	delay_between_requests_ms: u32,
+	max_retries_per_request: u32,
 	counter: Arc<AtomicU64>,
 }
 
 impl RPC {
 	pub fn new(
 		http_client: HttpClient,
-		delay_between_requests_ms: u64,
-		max_retries_per_request: usize,
+		delay_between_requests_ms: u32,
+		max_retries_per_request: u32,
 	) -> Self {
 		Self {
 			http_client,
@@ -1659,7 +1659,8 @@ impl RPC {
 
 		tokio::task::block_in_place(move || {
 			Handle::current().block_on(async move {
-				let delay_between_requests = Duration::from_millis(self.delay_between_requests_ms);
+				let delay_between_requests =
+					Duration::from_millis(self.delay_between_requests_ms.into());
 
 				let start_req = std::time::Instant::now();
 				log::debug!(
@@ -1673,8 +1674,8 @@ impl RPC {
 
 				// Retry request in case of failure
 				// The maximum number of retries is specified by `self.max_retries_per_request`
-				let retry_strategy =
-					FixedInterval::new(delay_between_requests).take(self.max_retries_per_request);
+				let retry_strategy = FixedInterval::new(delay_between_requests)
+					.take(self.max_retries_per_request as usize);
 				let result = Retry::spawn(retry_strategy, f).await;
 
 				log::debug!(
@@ -1701,20 +1702,22 @@ where
 	Block: BlockT + DeserializeOwned,
 	Block::Hash: From<H256>,
 {
-	let uri: String = lazy_loading_config.state_rpc.clone().into();
-
 	let http_client = jsonrpsee::http_client::HttpClientBuilder::default()
 		.max_request_size(u32::MAX)
 		.max_response_size(u32::MAX)
 		.request_timeout(Duration::from_secs(10))
-		.build(uri)
+		.build(lazy_loading_config.state_rpc.clone())
 		.map_err(|e| {
 			sp_blockchain::Error::Backend(
 				format!("failed to build http client: {:?}", e).to_string(),
 			)
 		})?;
 
-	let rpc = RPC::new(http_client, 100, 10);
+	let rpc = RPC::new(
+		http_client,
+		lazy_loading_config.delay_between_requests,
+		lazy_loading_config.max_retries_per_request,
+	);
 	let block_hash = lazy_loading_config
 		.from_block
 		.map(|block| Into::<Block::Hash>::into(block));
