@@ -27,7 +27,7 @@ pub enum ForeignAssetMigrationStatus {
 	/// No migration in progress
 	Idle,
 	/// Migrating a foreign asset in progress
-	Migrating(ForeignAssetMigreationInfo),
+	Migrating(ForeignAssetMigrationInfo),
 }
 
 impl Default for ForeignAssetMigrationStatus {
@@ -37,7 +37,7 @@ impl Default for ForeignAssetMigrationStatus {
 }
 
 #[derive(Debug, Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
-pub(super) struct ForeignAssetMigreationInfo {
+pub(super) struct ForeignAssetMigrationInfo {
 	pub(super) asset_id: u128,
 	pub(super) remaining_balances: u32,
 	pub(super) remaining_approvals: u32,
