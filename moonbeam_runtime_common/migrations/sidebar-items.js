@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["CommonMigrations","MigrateCodeToStateTrieV1","MigrateStakingParachainBondConfig","MigrateToLatestXcmVersion","MigrateXcmFeesAssetsMeatdata"]};
+window.SIDEBAR_ITEMS = {"struct":["CommonMigrations","MigrateToLatestXcmVersion"]};
