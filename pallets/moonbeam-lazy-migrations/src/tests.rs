@@ -21,7 +21,7 @@ use crate::{
 };
 use frame_support::traits::fungibles::approvals::Inspect;
 use pallet_evm::AddressMapping;
-use sp_runtime::DispatchError;
+use sp_runtime::{BoundedVec, DispatchError};
 use xcm::latest::Location;
 use {
 	crate::{
@@ -410,6 +410,42 @@ fn create_old_foreign_asset(location: Location) -> AssetId {
 }
 
 #[test]
+fn test_approve_foreign_asset_migration_unauthorized() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Try to approve migration with non-root origin
+		assert_noop!(
+			LazyMigrations::approve_assets_to_migrate(
+				RuntimeOrigin::signed(BOB),
+				BoundedVec::try_from(vec![asset_id]).unwrap()
+			),
+			DispatchError::BadOrigin
+		);
+	});
+}
+
+#[test]
+fn test_approve_foreign_asset_migration_success() {
+	ExtBuilder::default().build().execute_with(|| {
+		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
+		let asset_id = create_old_foreign_asset(location);
+
+		// Try to approve migration with root origin
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap()
+		));
+
+		// Verify the asset is approved for migration
+		assert!(crate::pallet::ApprovedForeignAssets::<Test>::contains_key(
+			asset_id
+		));
+	});
+}
+
+#[test]
 fn test_start_foreign_asset_migration_success() {
 	ExtBuilder::default().build().execute_with(|| {
 		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
@@ -430,9 +466,15 @@ fn test_start_foreign_asset_migration_success() {
 			100,
 		));
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Try to migrate the asset
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -465,15 +507,21 @@ fn test_start_foreign_asset_migration_already_migrating() {
 		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
 		let asset_id = create_old_foreign_asset(location);
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start first migrationJunction::Parachain(1000)
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
 		// Try to start another migration while one is in progress
 		assert_noop!(
-			LazyMigrations::start_foreign_assets_migration(RuntimeOrigin::root(), 2u128),
+			LazyMigrations::start_foreign_assets_migration(RuntimeOrigin::signed(ALITH), 2u128),
 			Error::<Test>::MigrationNotFinished
 		);
 	});
@@ -484,7 +532,7 @@ fn test_start_foreign_asset_migration_asset_not_found() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Try to migrate non-existent asset
 		assert_noop!(
-			LazyMigrations::start_foreign_assets_migration(RuntimeOrigin::root(), 1u128),
+			LazyMigrations::start_foreign_assets_migration(RuntimeOrigin::signed(ALITH), 1u128),
 			Error::<Test>::AssetNotFound
 		);
 	});
@@ -503,23 +551,15 @@ fn test_start_foreign_asset_migration_asset_type_not_found() {
 			1,
 		));
 
-		assert_noop!(
-			LazyMigrations::start_foreign_assets_migration(RuntimeOrigin::root(), asset_id),
-			Error::<Test>::AssetTypeNotFound
-		);
-	});
-}
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
 
-#[test]
-fn test_start_foreign_asset_migration_unauthorized() {
-	ExtBuilder::default().build().execute_with(|| {
-		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
-		let asset_id = create_old_foreign_asset(location);
-
-		// Try to migrate with non-root origin
 		assert_noop!(
 			LazyMigrations::start_foreign_assets_migration(RuntimeOrigin::signed(ALITH), asset_id),
-			DispatchError::BadOrigin
+			Error::<Test>::AssetTypeNotFound
 		);
 	});
 }
@@ -546,9 +586,15 @@ fn test_start_foreign_asset_migration_with_balances_and_approvals() {
 			50,
 		));
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start migration
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -580,9 +626,15 @@ fn test_migrate_foreign_asset_balances_zero_limit() {
 		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
 		let asset_id = create_old_foreign_asset(location);
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start migration
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -607,9 +659,15 @@ fn test_migrate_foreign_asset_balances_single_account() {
 			100,
 		));
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start migration
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -650,9 +708,15 @@ fn test_migrate_foreign_asset_balances_multiple_accounts() {
 			));
 		}
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start migration
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -720,9 +784,15 @@ fn test_migrate_foreign_asset_balances_with_reserved_deposits() {
 		let initial_reserved = Balances::reserved_balance(&account);
 		assert!(initial_reserved > 0);
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start migration
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -759,8 +829,15 @@ fn test_migrate_foreign_asset_approvals_zero_limit() {
 		// Create and start migration for an asset
 		let location = xcm::latest::Location::new(1, [xcm::latest::Junction::Parachain(1000)]);
 		let asset_id = create_old_foreign_asset(location);
-		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
 			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
+		assert_ok!(LazyMigrations::start_foreign_assets_migration(
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -788,9 +865,15 @@ fn test_migrate_foreign_asset_approvals_single_approval() {
 			50,
 		));
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start migration
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -850,9 +933,15 @@ fn test_migrate_foreign_asset_approvals_multiple_approvals() {
 			));
 		}
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start migration
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -921,9 +1010,15 @@ fn test_migrate_foreign_asset_approvals_with_balances() {
 			50,
 		));
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start migration
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -983,9 +1078,15 @@ fn test_migrate_foreign_asset_approvals_exceed_limit() {
 			));
 		}
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start migration
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -1036,9 +1137,15 @@ fn test_finish_foreign_assets_migration_success() {
 		);
 		assert!(Balances::reserved_balance(&AssetManager::account_id()) > 0);
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start and complete migration
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -1094,9 +1201,15 @@ fn test_finish_foreign_assets_migration_with_remaining_balances() {
 			100,
 		));
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start migration but don't migrate balances
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
@@ -1129,9 +1242,15 @@ fn test_finish_foreign_assets_migration_with_remaining_approvals() {
 			50,
 		));
 
+		// Approve the migration of the asset
+		assert_ok!(LazyMigrations::approve_assets_to_migrate(
+			RuntimeOrigin::root(),
+			BoundedVec::try_from(vec![asset_id]).unwrap(),
+		));
+
 		// Start migration but don't migrate approvals
 		assert_ok!(LazyMigrations::start_foreign_assets_migration(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(ALITH),
 			asset_id,
 		));
 
