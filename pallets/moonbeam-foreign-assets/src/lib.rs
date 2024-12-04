@@ -235,11 +235,59 @@ pub mod pallet {
 
 		/// Compute asset contract address from asset id
 		#[inline]
-		pub(crate) fn contract_address_from_asset_id(asset_id: AssetId) -> H160 {
+		pub fn contract_address_from_asset_id(asset_id: AssetId) -> H160 {
 			let mut buffer = [0u8; 20];
 			buffer[..4].copy_from_slice(&FOREIGN_ASSETS_PREFIX);
 			buffer[4..].copy_from_slice(&asset_id.to_be_bytes());
 			H160(buffer)
+		}
+
+		pub fn register_foreign_asset(
+			asset_id: AssetId,
+			xcm_location: Location,
+			decimals: u8,
+			symbol: BoundedVec<u8, ConstU32<256>>,
+			name: BoundedVec<u8, ConstU32<256>>,
+		) -> DispatchResult {
+			// Ensure such an assetId does not exist
+			ensure!(
+				!AssetsById::<T>::contains_key(&asset_id),
+				Error::<T>::AssetAlreadyExists
+			);
+
+			ensure!(
+				!AssetsByLocation::<T>::contains_key(&xcm_location),
+				Error::<T>::LocationAlreadyExists
+			);
+
+			ensure!(
+				AssetsById::<T>::count() < T::MaxForeignAssets::get(),
+				Error::<T>::TooManyForeignAssets
+			);
+
+			ensure!(
+				T::AssetIdFilter::contains(&asset_id),
+				Error::<T>::AssetIdFiltered
+			);
+
+			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidSymbol)?;
+			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
+
+			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
+
+			// Insert the association assetId->foreigAsset
+			// Insert the association foreigAsset->assetId
+			AssetsById::<T>::insert(&asset_id, &xcm_location);
+			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, AssetStatus::Active));
+
+			T::OnForeignAssetCreated::on_asset_created(&xcm_location, &asset_id);
+
+			Self::deposit_event(Event::ForeignAssetCreated {
+				contract_address,
+				asset_id,
+				xcm_location,
+			});
+			Ok(())
 		}
 
 		/// Mint an asset into a specific account
@@ -259,6 +307,25 @@ pub mod pallet {
 			})
 			.map_err(Into::into)
 		}
+
+		/// Aprrove a spender to spend a certain amount of tokens from the owner account
+		pub fn approve(
+			asset_id: AssetId,
+			owner: T::AccountId,
+			spender: T::AccountId,
+			amount: U256,
+		) -> Result<(), evm::EvmError> {
+			// We perform the evm call in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			EvmCaller::<T>::erc20_approve(
+				Self::contract_address_from_asset_id(asset_id),
+				T::AccountIdToH160::convert(owner),
+				T::AccountIdToH160::convert(spender),
+				amount,
+			)
+			.map_err(Into::into)
+		}
+
 		pub fn weight_of_erc20_burn() -> Weight {
 			T::GasWeightMapping::gas_to_weight(evm::ERC20_BURN_FROM_GAS_LIMIT, true)
 		}
