@@ -98,10 +98,10 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should not allow non-root to start migration",
+      title: "Should not allow non-root to approve migration of assets",
       test: async function () {
         const { result } = await context.createBlock(
-          api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId)
+          api.tx.moonbeamLazyMigrations.approveAssetsToMigrate([assetId])
         );
 
         expect(result?.error?.name).to.equal("BadOrigin");
@@ -112,11 +112,15 @@ describeSuite({
       id: "T02",
       title: "Should start migration and freeze asset",
       test: async function () {
-        // Start migration with sudo
+        // Approve migration with sudo
         await expectOk(
           context.createBlock(
-            api.tx.sudo.sudo(api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId))
+            api.tx.sudo.sudo(api.tx.moonbeamLazyMigrations.approveAssetsToMigrate([assetId]))
           )
+        );
+
+        await expectOk(
+          context.createBlock(api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId))
         );
 
         // Asset should be frozen
@@ -131,18 +135,10 @@ describeSuite({
 
         // Attempt to start another migration
         const { result: res } = await context.createBlock(
-          api.tx.sudo.sudo(
-            api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId.toBigInt() + 1n)
-          )
+          api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId.toBigInt())
         );
 
-        // Find Sudid event and extract inner result
-        const sudidEvent = res?.events.find((e) => api.events.sudo.Sudid.is(e.event));
-        const innerResult = sudidEvent?.event.data[0] as DispatchResult;
-
-        // Verify inner transaction failed with correct error
-        const { section, name } = api.registry.findMetaError(innerResult.asErr.asModule);
-        expect(`${section}.${name}`).to.equal("moonbeamLazyMigrations.MigrationNotFinished");
+        expect(res?.error?.name).to.equal("MigrationNotFinished");
       },
     });
 
@@ -165,13 +161,7 @@ describeSuite({
           api.query.assets.approvals(assetId, ALITH_ADDRESS, CHARLETH_ADDRESS),
         ]);
 
-        // Start migration
         const alithBalanceBefore = await api.query.system.account(ALITH_ADDRESS);
-        await expectOk(
-          context.createBlock(
-            api.tx.sudo.sudo(api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId))
-          )
-        );
 
         // 2. Execute migration
         await expectOk(
