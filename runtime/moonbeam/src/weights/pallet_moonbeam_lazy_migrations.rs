@@ -47,6 +47,23 @@ use sp_std::marker::PhantomData;
 pub struct WeightInfo<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> pallet_moonbeam_lazy_migrations::WeightInfo for WeightInfo<T> {
+	/// Storage: `Assets::Asset` (r:100 w:0)
+	/// Proof: `Assets::Asset` (`max_values`: None, `max_size`: Some(174), added: 2649, mode: `MaxEncodedLen`)
+	/// Storage: `MoonbeamLazyMigrations::ApprovedForeignAssets` (r:0 w:100)
+	/// Proof: `MoonbeamLazyMigrations::ApprovedForeignAssets` (`max_values`: None, `max_size`: Some(24), added: 2499, mode: `MaxEncodedLen`)
+	/// The range of component `n` is `[1, 100]`.
+	fn approve_assets_to_migrate(n: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `73 + n * (69 ±0)`
+		//  Estimated: `990 + n * (2649 ±0)`
+		// Minimum execution time: 6_000_000 picoseconds.
+		Weight::from_parts(1_043_425, 990)
+			// Standard Error: 5_952
+			.saturating_add(Weight::from_parts(3_473_582, 0).saturating_mul(n.into()))
+			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(n.into())))
+			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(n.into())))
+			.saturating_add(Weight::from_parts(0, 2649).saturating_mul(n.into()))
+	}
 	/// Storage: `MoonbeamLazyMigrations::ForeignAssetMigrationStatusValue` (r:1 w:1)
 	/// Proof: `MoonbeamLazyMigrations::ForeignAssetMigrationStatusValue` (`max_values`: Some(1), `max_size`: Some(25), added: 520, mode: `MaxEncodedLen`)
 	/// Storage: `Assets::Asset` (r:1 w:1)

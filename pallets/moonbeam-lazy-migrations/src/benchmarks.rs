@@ -18,10 +18,13 @@
 use crate::{foreign_asset::ForeignAssetMigrationStatus, Call, Config, Pallet};
 use frame_benchmarking::{account, benchmarks};
 use frame_support::traits::Currency;
+use frame_support::BoundedVec;
 use frame_system::RawOrigin;
+use pallet_asset_manager::AssetRegistrar;
 use sp_core::{Get, U256};
 use sp_runtime::traits::StaticLookup;
 use sp_runtime::Saturating;
+use sp_std::vec;
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
 
@@ -110,9 +113,29 @@ benchmarks! {
 		<T as pallet_assets::Config>::Balance: Into<U256>,
 		T::ForeignAssetType: Into<Option<Location>>,
 	}
+	approve_assets_to_migrate {
+		let n in 1 .. 100u32;
+		let assets: Vec<u128> = (0..n).map(|i| {
+			let metadata = T::AssetRegistrarMetadata::default();
+			let asset_id: u128 = i.into();
+			T::AssetRegistrar::create_foreign_asset(
+				asset_id,
+				1u32.into(),
+				metadata.clone(),
+				true,
+			).expect("failed to create asset");
+			asset_id
+		}).collect();
+	}: _(RawOrigin::Root, BoundedVec::try_from(assets.clone()).unwrap())
+	verify {
+		for asset_id in assets {
+			assert!(crate::pallet::ApprovedForeignAssets::<T>::contains_key(asset_id));
+		}
+	}
+
 	start_foreign_assets_migration {
 		let asset_id = setup_foreign_asset::<T>(1);
-	}: _(RawOrigin::Root, asset_id.into())
+	}: _(RawOrigin::Signed(account("caller", 0, 0)), asset_id.into())
 	verify {
 		assert!(matches!(
 			crate::pallet::ForeignAssetMigrationStatusValue::<T>::get(),
@@ -123,8 +146,14 @@ benchmarks! {
 	migrate_foreign_asset_balances {
 		let n in 1 .. 1000u32;
 		let asset_id = setup_foreign_asset::<T>(n);
-		Pallet::<T>::start_foreign_assets_migration(
+
+		Pallet::<T>::approve_assets_to_migrate(
 			RawOrigin::Root.into(),
+			BoundedVec::try_from(vec![asset_id.clone().into()]).unwrap()
+		)?;
+
+		Pallet::<T>::start_foreign_assets_migration(
+			RawOrigin::Signed(account("caller", 0, 0)).into(),
 			asset_id.into()
 		)?;
 	}: _(RawOrigin::Signed(account("caller", 0, 0)), n + 1)
@@ -140,10 +169,17 @@ benchmarks! {
 	migrate_foreign_asset_approvals {
 		let n in 1 .. 1000u32;
 		let asset_id = setup_foreign_asset::<T>(n);
-		Pallet::<T>::start_foreign_assets_migration(
+
+		Pallet::<T>::approve_assets_to_migrate(
 			RawOrigin::Root.into(),
+			BoundedVec::try_from(vec![asset_id.clone().into()]).unwrap()
+		)?;
+
+		Pallet::<T>::start_foreign_assets_migration(
+			RawOrigin::Signed(account("caller", 0, 0)).into(),
 			asset_id.into()
 		)?;
+
 		Pallet::<T>::migrate_foreign_asset_balances(
 			RawOrigin::Signed(account("caller", 0, 0)).into(),
 			n + 1
@@ -161,14 +197,22 @@ benchmarks! {
 	finish_foreign_assets_migration {
 		let n = 100u32;
 		let asset_id = setup_foreign_asset::<T>(n);
-		Pallet::<T>::start_foreign_assets_migration(
+
+		Pallet::<T>::approve_assets_to_migrate(
 			RawOrigin::Root.into(),
+			BoundedVec::try_from(vec![asset_id.clone().into()]).unwrap()
+		)?;
+
+		Pallet::<T>::start_foreign_assets_migration(
+			RawOrigin::Signed(account("caller", 0, 0)).into(),
 			asset_id.into()
 		)?;
+
 		Pallet::<T>::migrate_foreign_asset_balances(
 			RawOrigin::Signed(account("caller", 0, 0)).into(),
 			n + 1
 		)?;
+
 		Pallet::<T>::migrate_foreign_asset_approvals(
 			RawOrigin::Signed(account("caller", 0, 0)).into(),
 			n + 1
