@@ -117,23 +117,13 @@ export const ForeignChainsEndpoints = [
         paraId: 2105,
       },
       {
-        name: "Litmus",
-        paraId: 2106,
-        mutedUntil: new Date("2024-11-30").getTime(),
-      },
-      {
         name: "Mangata",
         paraId: 2110,
       },
       {
         name: "Turing",
         paraId: 2114,
-      },
-      {
-        name: "InvArch",
-        paraId: 2125,
-        mutedUntil: new Date("2024-12-30").getTime(),
-      },
+      }
     ],
   },
   {
