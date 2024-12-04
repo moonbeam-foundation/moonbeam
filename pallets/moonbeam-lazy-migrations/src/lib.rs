@@ -395,15 +395,22 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(3)]
-		#[pallet::weight(0)]
-		pub fn set_approved_foreign_assets(
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::approve_assets_to_migrate(assets.len() as u32))]
+		pub fn approve_assets_to_migrate(
 			origin: OriginFor<T>,
 			assets: BoundedVec<u128, GetArrayLimit>,
 		) -> DispatchResultWithPostInfo {
 			T::ForeignAssetMigratorOrigin::ensure_origin(origin.clone())?;
 
-			Self::do_approve_assets_to_migrate(origin, assets.into())?;
+			assets.iter().try_for_each(|asset_id| {
+				ensure!(
+					pallet_assets::Asset::<T>::contains_key(*asset_id),
+					Error::<T>::AssetNotFound
+				);
 
+				ApprovedForeignAssets::<T>::insert(asset_id, ());
+				Ok::<(), Error<T>>(())
+			})?;
 			Ok(Pays::No.into())
 		}
 
