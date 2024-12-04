@@ -395,7 +395,9 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(3)]
-		#[pallet::weight(<T as pallet::Config>::WeightInfo::approve_assets_to_migrate(assets.len() as u32))]
+		#[pallet::weight(
+			<T as pallet::Config>::WeightInfo::approve_assets_to_migrate(assets.len() as u32)
+		)]
 		pub fn approve_assets_to_migrate(
 			origin: OriginFor<T>,
 			assets: BoundedVec<u128, GetArrayLimit>,

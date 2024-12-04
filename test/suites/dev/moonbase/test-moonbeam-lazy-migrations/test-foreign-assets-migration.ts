@@ -17,7 +17,6 @@ import {
   createEthersTransaction,
 } from "@moonwall/util";
 import { u128 } from "@polkadot/types-codec";
-import { DispatchResult } from "@polkadot/types/interfaces/system/types";
 import { encodeFunctionData, parseAbi } from "viem";
 
 describeSuite({
