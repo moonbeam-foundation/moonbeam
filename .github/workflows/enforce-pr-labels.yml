@@ -41,7 +41,7 @@ jobs:
         run: |
           echo "Pull Request Labels: $PR_LABELS"
           echo "Pull Request Body: $PR_BODY"
-          
+
           # Check if "breaking" label is set
           if echo "$PR_LABELS" | grep -q '"breaking"'; then
             echo "Label 'breaking' is present. Checking description..."
