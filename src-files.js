@@ -54,7 +54,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["pallet_evm_precompile_xtokens",["",[],["lib.rs"]]],\
 ["pallet_evm_precompileset_assets_erc20",["",[],["eip2612.rs","lib.rs"]]],\
 ["pallet_moonbeam_foreign_assets",["",[],["evm.rs","lib.rs","weights.rs"]]],\
-["pallet_moonbeam_lazy_migrations",["",[],["lib.rs","weights.rs"]]],\
+["pallet_moonbeam_lazy_migrations",["",[],["foreign_asset.rs","lib.rs","weights.rs"]]],\
 ["pallet_moonbeam_orbiters",["",[],["lib.rs","types.rs","weights.rs"]]],\
 ["pallet_parachain_staking",["",[],["auto_compound.rs","delegation_requests.rs","inflation.rs","lib.rs","migrations.rs","set.rs","traits.rs","types.rs","weights.rs"]]],\
 ["pallet_precompile_benchmarks",["",[],["lib.rs","weights.rs"]]],\

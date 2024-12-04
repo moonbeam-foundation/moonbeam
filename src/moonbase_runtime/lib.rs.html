@@ -1840,6 +1840,16 @@
 <a href="#1838" id="1838">1838</a>
 <a href="#1839" id="1839">1839</a>
 <a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2997,7 +3007,16 @@
 	<span class="kw">type </span>XcmExecutionManager = XcmExecutionManager;
 }
 
+<span class="kw">pub type </span>ForeignAssetMigratorOrigin = EitherOfDiverse&lt;
+	EnsureRoot&lt;AccountId&gt;,
+	EitherOfDiverse&lt;
+		pallet_collective::EnsureProportionMoreThan&lt;AccountId, OpenTechCommitteeInstance, <span class="number">5</span>, <span class="number">9</span>&gt;,
+		governance::custom_origins::FastGeneralAdmin,
+	&gt;,
+&gt;;
+
 <span class="kw">impl </span>pallet_moonbeam_lazy_migrations::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>ForeignAssetMigratorOrigin = ForeignAssetMigratorOrigin;
 	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_moonbeam_lazy_migrations::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -3362,6 +3381,7 @@
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
+		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_parameters, Parameters]

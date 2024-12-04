@@ -549,6 +549,7 @@
 <a href="#547" id="547">547</a>
 <a href="#548" id="548">548</a>
 <a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -586,6 +587,7 @@
 <span class="kw">use </span>sp_runtime::traits::{Bounded, Dispatchable};
 <span class="kw">use </span>sp_std::vec::Vec;
 
+<span class="kw">use </span>pallet_moonbeam_lazy_migrations::is_migrating_foreign_assets;
 <span class="kw">use </span>sp_core::{MaxEncodedLen, H160, H256, U256};
 <span class="kw">use </span>sp_std::{
 	convert::{TryFrom, TryInto},
@@ -680,7 +682,7 @@
 		};
 
 		<span class="kw">if </span>pallet_assets::Pallet::&lt;Runtime, Instance&gt;::maybe_total_supply(asset_id.clone())
-			.is_some()
+			.is_some() &amp;&amp; !is_migrating_foreign_assets()
 		{
 			DiscriminantResult::Some(asset_id, extra_cost)
 		} <span class="kw">else </span>{
