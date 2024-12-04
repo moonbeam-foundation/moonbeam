@@ -123,7 +123,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Turing",
         paraId: 2114,
-      }
+      },
     ],
   },
   {
