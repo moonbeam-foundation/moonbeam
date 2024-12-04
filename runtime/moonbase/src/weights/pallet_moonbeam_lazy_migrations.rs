@@ -45,4 +45,169 @@ use sp_std::marker::PhantomData;
 
 /// Weights for `pallet_moonbeam_lazy_migrations`.
 pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_moonbeam_lazy_migrations::WeightInfo for WeightInfo<T> {}
+
+impl<T: frame_system::Config> pallet_moonbeam_lazy_migrations::WeightInfo for WeightInfo<T> {
+	/// Storage: `Assets::Asset` (r:100 w:0)
+	/// Proof: `Assets::Asset` (`max_values`: None, `max_size`: Some(174), added: 2649, mode: `MaxEncodedLen`)
+	/// Storage: `MoonbeamLazyMigrations::ApprovedForeignAssets` (r:0 w:100)
+	/// Proof: `MoonbeamLazyMigrations::ApprovedForeignAssets` (`max_values`: None, `max_size`: Some(24), added: 2499, mode: `MaxEncodedLen`)
+	/// The range of component `n` is `[1, 100]`.
+	fn approve_assets_to_migrate(n: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `73 + n * (69 ±0)`
+		//  Estimated: `990 + n * (2649 ±0)`
+		// Minimum execution time: 6_000_000 picoseconds.
+		Weight::from_parts(1_043_425, 990)
+			// Standard Error: 5_952
+			.saturating_add(Weight::from_parts(3_473_582, 0).saturating_mul(n.into()))
+			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(n.into())))
+			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(n.into())))
+			.saturating_add(Weight::from_parts(0, 2649).saturating_mul(n.into()))
+	}
+	/// Storage: `MoonbeamLazyMigrations::ForeignAssetMigrationStatusValue` (r:1 w:1)
+	/// Proof: `MoonbeamLazyMigrations::ForeignAssetMigrationStatusValue` (`max_values`: Some(1), `max_size`: Some(25), added: 520, mode: `MaxEncodedLen`)
+	/// Storage: `Assets::Asset` (r:1 w:1)
+	/// Proof: `Assets::Asset` (`max_values`: None, `max_size`: Some(174), added: 2649, mode: `MaxEncodedLen`)
+	/// Storage: `Assets::Metadata` (r:1 w:0)
+	/// Proof: `Assets::Metadata` (`max_values`: None, `max_size`: Some(152), added: 2627, mode: `MaxEncodedLen`)
+	/// Storage: `AssetManager::AssetIdType` (r:1 w:1)
+	/// Proof: `AssetManager::AssetIdType` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EvmForeignAssets::AssetsById` (r:1 w:1)
+	/// Proof: `EvmForeignAssets::AssetsById` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EvmForeignAssets::AssetsByLocation` (r:1 w:1)
+	/// Proof: `EvmForeignAssets::AssetsByLocation` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EvmForeignAssets::CounterForAssetsById` (r:1 w:1)
+	/// Proof: `EvmForeignAssets::CounterForAssetsById` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
+	/// Storage: `EthereumXcm::EthereumXcmSuspended` (r:1 w:0)
+	/// Proof: `EthereumXcm::EthereumXcmSuspended` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EthereumXcm::Nonce` (r:1 w:1)
+	/// Proof: `EthereumXcm::Nonce` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EthereumChainId::ChainId` (r:1 w:0)
+	/// Proof: `EthereumChainId::ChainId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+	/// Storage: `TransactionPayment::NextFeeMultiplier` (r:1 w:0)
+	/// Proof: `TransactionPayment::NextFeeMultiplier` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
+	/// Storage: `EVM::AccountCodesMetadata` (r:1 w:1)
+	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `System::Account` (r:2 w:2)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `EVM::AccountStorages` (r:11 w:11)
+	/// Proof: `EVM::AccountStorages` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::Suicided` (r:1 w:0)
+	/// Proof: `EVM::Suicided` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Ethereum::Pending` (r:1 w:1)
+	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodes` (r:0 w:1)
+	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn start_foreign_assets_migration() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `2036`
+		//  Estimated: `30251`
+		// Minimum execution time: 571_000_000 picoseconds.
+		Weight::from_parts(575_000_000, 30251)
+			.saturating_add(T::DbWeight::get().reads(27_u64))
+			.saturating_add(T::DbWeight::get().writes(23_u64))
+	}
+	/// Storage: `MoonbeamLazyMigrations::ForeignAssetMigrationStatusValue` (r:1 w:1)
+	/// Proof: `MoonbeamLazyMigrations::ForeignAssetMigrationStatusValue` (`max_values`: Some(1), `max_size`: Some(25), added: 520, mode: `MaxEncodedLen`)
+	/// Storage: `Assets::Account` (r:1001 w:1000)
+	/// Proof: `Assets::Account` (`max_values`: None, `max_size`: Some(122), added: 2597, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:1001 w:1001)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EthereumXcm::EthereumXcmSuspended` (r:1 w:0)
+	/// Proof: `EthereumXcm::EthereumXcmSuspended` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EthereumXcm::Nonce` (r:1 w:1)
+	/// Proof: `EthereumXcm::Nonce` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EthereumChainId::ChainId` (r:1 w:0)
+	/// Proof: `EthereumChainId::ChainId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+	/// Storage: `TransactionPayment::NextFeeMultiplier` (r:1 w:0)
+	/// Proof: `TransactionPayment::NextFeeMultiplier` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
+	/// Storage: `EVM::AccountCodesMetadata` (r:2 w:0)
+	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `System::Digest` (r:1 w:0)
+	/// Proof: `System::Digest` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodes` (r:1 w:0)
+	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Assets::Asset` (r:1 w:0)
+	/// Proof: `Assets::Asset` (`max_values`: None, `max_size`: Some(174), added: 2649, mode: `MaxEncodedLen`)
+	/// Storage: `EVM::AccountStorages` (r:1002 w:1001)
+	/// Proof: `EVM::AccountStorages` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Ethereum::Pending` (r:1 w:1)
+	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// The range of component `n` is `[1, 1000]`.
+	fn migrate_foreign_asset_balances(n: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `24733 + n * (215 ±0)`
+		//  Estimated: `33276 + n * (2691 ±0)`
+		// Minimum execution time: 350_000_000 picoseconds.
+		Weight::from_parts(354_000_000, 33276)
+			// Standard Error: 6_615_203
+			.saturating_add(Weight::from_parts(746_018_198, 0).saturating_mul(n.into()))
+			.saturating_add(T::DbWeight::get().reads(19_u64))
+			.saturating_add(T::DbWeight::get().reads((3_u64).saturating_mul(n.into())))
+			.saturating_add(T::DbWeight::get().writes(8_u64))
+			.saturating_add(T::DbWeight::get().writes((3_u64).saturating_mul(n.into())))
+			.saturating_add(Weight::from_parts(0, 2691).saturating_mul(n.into()))
+	}
+	/// Storage: `MoonbeamLazyMigrations::ForeignAssetMigrationStatusValue` (r:1 w:1)
+	/// Proof: `MoonbeamLazyMigrations::ForeignAssetMigrationStatusValue` (`max_values`: Some(1), `max_size`: Some(25), added: 520, mode: `MaxEncodedLen`)
+	/// Storage: `Assets::Approvals` (r:1000 w:999)
+	/// Proof: `Assets::Approvals` (`max_values`: None, `max_size`: Some(136), added: 2611, mode: `MaxEncodedLen`)
+	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EthereumXcm::EthereumXcmSuspended` (r:1 w:0)
+	/// Proof: `EthereumXcm::EthereumXcmSuspended` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EthereumXcm::Nonce` (r:1 w:1)
+	/// Proof: `EthereumXcm::Nonce` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EthereumChainId::ChainId` (r:1 w:0)
+	/// Proof: `EthereumChainId::ChainId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+	/// Storage: `TransactionPayment::NextFeeMultiplier` (r:1 w:0)
+	/// Proof: `TransactionPayment::NextFeeMultiplier` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
+	/// Storage: `EVM::AccountCodesMetadata` (r:2 w:0)
+	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `System::Account` (r:1 w:1)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `System::Digest` (r:1 w:0)
+	/// Proof: `System::Digest` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodes` (r:1 w:0)
+	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Assets::Asset` (r:1 w:0)
+	/// Proof: `Assets::Asset` (`max_values`: None, `max_size`: Some(174), added: 2649, mode: `MaxEncodedLen`)
+	/// Storage: `EVM::AccountStorages` (r:1000 w:999)
+	/// Proof: `EVM::AccountStorages` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Ethereum::Pending` (r:1 w:1)
+	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// The range of component `n` is `[1, 1000]`.
+	fn migrate_foreign_asset_approvals(n: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `26751 + n * (1367 ±0)`
+		//  Estimated: `32664 + n * (3843 ±0)`
+		// Minimum execution time: 162_000_000 picoseconds.
+		Weight::from_parts(163_000_000, 32664)
+			// Standard Error: 22_761_178
+			.saturating_add(Weight::from_parts(1_982_250_264, 0).saturating_mul(n.into()))
+			.saturating_add(T::DbWeight::get().reads(15_u64))
+			.saturating_add(T::DbWeight::get().reads((2_u64).saturating_mul(n.into())))
+			.saturating_add(T::DbWeight::get().writes(4_u64))
+			.saturating_add(T::DbWeight::get().writes((2_u64).saturating_mul(n.into())))
+			.saturating_add(Weight::from_parts(0, 3843).saturating_mul(n.into()))
+	}
+	/// Storage: `MoonbeamLazyMigrations::ForeignAssetMigrationStatusValue` (r:1 w:1)
+	/// Proof: `MoonbeamLazyMigrations::ForeignAssetMigrationStatusValue` (`max_values`: Some(1), `max_size`: Some(25), added: 520, mode: `MaxEncodedLen`)
+	/// Storage: `Assets::Asset` (r:1 w:1)
+	/// Proof: `Assets::Asset` (`max_values`: None, `max_size`: Some(174), added: 2649, mode: `MaxEncodedLen`)
+	/// Storage: `Assets::Metadata` (r:1 w:1)
+	/// Proof: `Assets::Metadata` (`max_values`: None, `max_size`: Some(152), added: 2627, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:1 w:1)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	fn finish_foreign_assets_migration() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `829`
+		//  Estimated: `3639`
+		// Minimum execution time: 30_000_000 picoseconds.
+		Weight::from_parts(31_000_000, 3639)
+			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(4_u64))
+	}
+}
