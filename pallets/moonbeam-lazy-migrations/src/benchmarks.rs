@@ -135,6 +135,11 @@ benchmarks! {
 
 	start_foreign_assets_migration {
 		let asset_id = setup_foreign_asset::<T>(1);
+
+		Pallet::<T>::approve_assets_to_migrate(
+			RawOrigin::Root.into(),
+			BoundedVec::try_from(vec![asset_id.clone().into()]).unwrap()
+		)?;
 	}: _(RawOrigin::Signed(account("caller", 0, 0)), asset_id.into())
 	verify {
 		assert!(matches!(
