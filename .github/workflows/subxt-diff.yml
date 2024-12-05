@@ -30,7 +30,7 @@ jobs:
 
   local-diff:
     needs: build
-    runs-on: bare-metal
+    runs-on: moonbeam-release-medium
     permissions:
       contents: read
     strategy:
@@ -139,5 +139,5 @@ jobs:
           commit-message: "runtime diff: v0.${{ github.event.inputs.spec_version }}.0"
           draft: true
           title: "Notorize runtime upgrade differences: runtime-${{ github.event.inputs.spec_version }}"
-          reviewers: "librelois,noandrea"
+          reviewers: "RomarQ,stiiifff"
           labels: "B0-silent,D2-notlive"
