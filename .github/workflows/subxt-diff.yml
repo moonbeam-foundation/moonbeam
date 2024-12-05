@@ -48,7 +48,7 @@ jobs:
         run: |
           rustup override unset
           rustup show
-          cargo install subxt-cli --locked
+          cargo install subxt-cli@0.37.0 --locked
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - name: Run last_release node via Docker
         run: |
