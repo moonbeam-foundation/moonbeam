@@ -4106,13 +4106,23 @@ export default {
   PalletMoonbeamLazyMigrationsCall: {
     _enum: {
       __Unused0: "Null",
-      clear_suicided_storage: {
-        addresses: "Vec<H160>",
-        limit: "u32",
-      },
+      __Unused1: "Null",
       create_contract_metadata: {
         address: "H160",
       },
+      approve_assets_to_migrate: {
+        assets: "Vec<u128>",
+      },
+      start_foreign_assets_migration: {
+        assetId: "u128",
+      },
+      migrate_foreign_asset_balances: {
+        limit: "u32",
+      },
+      migrate_foreign_asset_approvals: {
+        limit: "u32",
+      },
+      finish_foreign_assets_migration: "Null",
     },
   },
   /** Lookup367: pallet_message_queue::pallet::Call<T> */
@@ -5787,22 +5797,42 @@ export default {
       Complete: "Null",
     },
   },
-  /** Lookup674: pallet_moonbeam_lazy_migrations::pallet::Error<T> */
+  /** Lookup674: pallet_moonbeam_lazy_migrations::foreign_asset::ForeignAssetMigrationStatus */
+  PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus: {
+    _enum: {
+      Idle: "Null",
+      Migrating: "PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo",
+    },
+  },
+  /** Lookup675: pallet_moonbeam_lazy_migrations::foreign_asset::ForeignAssetMigrationInfo */
+  PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo: {
+    assetId: "u128",
+    remainingBalances: "u32",
+    remainingApprovals: "u32",
+  },
+  /** Lookup676: pallet_moonbeam_lazy_migrations::pallet::Error<T> */
   PalletMoonbeamLazyMigrationsError: {
     _enum: [
       "LimitCannotBeZero",
-      "AddressesLengthCannotBeZero",
-      "ContractNotCorrupted",
       "ContractMetadataAlreadySet",
       "ContractNotExist",
       "KeyTooLong",
+      "SymbolTooLong",
+      "NameTooLong",
+      "AssetTypeNotFound",
+      "AssetNotFound",
+      "LocationNotFound",
+      "MigrationNotFinished",
+      "NoMigrationInProgress",
+      "MintFailed",
+      "ApprovalFailed",
     ],
   },
-  /** Lookup676: pallet_precompile_benchmarks::pallet::Error<T> */
+  /** Lookup678: pallet_precompile_benchmarks::pallet::Error<T> */
   PalletPrecompileBenchmarksError: {
     _enum: ["BenchmarkError"],
   },
-  /** Lookup677: pallet_message_queue::BookState<cumulus_primitives_core::AggregateMessageOrigin> */
+  /** Lookup679: pallet_message_queue::BookState<cumulus_primitives_core::AggregateMessageOrigin> */
   PalletMessageQueueBookState: {
     _alias: {
       size_: "size",
@@ -5814,12 +5844,12 @@ export default {
     messageCount: "u64",
     size_: "u64",
   },
-  /** Lookup679: pallet_message_queue::Neighbours<cumulus_primitives_core::AggregateMessageOrigin> */
+  /** Lookup681: pallet_message_queue::Neighbours<cumulus_primitives_core::AggregateMessageOrigin> */
   PalletMessageQueueNeighbours: {
     prev: "CumulusPrimitivesCoreAggregateMessageOrigin",
     next: "CumulusPrimitivesCoreAggregateMessageOrigin",
   },
-  /** Lookup681: pallet_message_queue::Page<Size, HeapSize> */
+  /** Lookup683: pallet_message_queue::Page<Size, HeapSize> */
   PalletMessageQueuePage: {
     remaining: "u32",
     remainingSize: "u32",
@@ -5828,7 +5858,7 @@ export default {
     last: "u32",
     heap: "Bytes",
   },
-  /** Lookup683: pallet_message_queue::pallet::Error<T> */
+  /** Lookup685: pallet_message_queue::pallet::Error<T> */
   PalletMessageQueueError: {
     _enum: [
       "NotReapable",
@@ -5842,19 +5872,19 @@ export default {
       "RecursiveDisallowed",
     ],
   },
-  /** Lookup684: pallet_emergency_para_xcm::XcmMode */
+  /** Lookup686: pallet_emergency_para_xcm::XcmMode */
   PalletEmergencyParaXcmXcmMode: {
     _enum: ["Normal", "Paused"],
   },
-  /** Lookup685: pallet_emergency_para_xcm::pallet::Error<T> */
+  /** Lookup687: pallet_emergency_para_xcm::pallet::Error<T> */
   PalletEmergencyParaXcmError: {
     _enum: ["NotInPausedMode"],
   },
-  /** Lookup687: pallet_moonbeam_foreign_assets::AssetStatus */
+  /** Lookup689: pallet_moonbeam_foreign_assets::AssetStatus */
   PalletMoonbeamForeignAssetsAssetStatus: {
     _enum: ["Active", "FrozenXcmDepositAllowed", "FrozenXcmDepositForbidden"],
   },
-  /** Lookup688: pallet_moonbeam_foreign_assets::pallet::Error<T> */
+  /** Lookup690: pallet_moonbeam_foreign_assets::pallet::Error<T> */
   PalletMoonbeamForeignAssetsError: {
     _enum: [
       "AssetAlreadyExists",
@@ -5873,7 +5903,7 @@ export default {
       "TooManyForeignAssets",
     ],
   },
-  /** Lookup690: pallet_xcm_weight_trader::pallet::Error<T> */
+  /** Lookup692: pallet_xcm_weight_trader::pallet::Error<T> */
   PalletXcmWeightTraderError: {
     _enum: [
       "AssetAlreadyAdded",
@@ -5884,30 +5914,30 @@ export default {
       "PriceCannotBeZero",
     ],
   },
-  /** Lookup693: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T> */
+  /** Lookup695: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T> */
   FrameSystemExtensionsCheckNonZeroSender: "Null",
-  /** Lookup694: frame_system::extensions::check_spec_version::CheckSpecVersion<T> */
+  /** Lookup696: frame_system::extensions::check_spec_version::CheckSpecVersion<T> */
   FrameSystemExtensionsCheckSpecVersion: "Null",
-  /** Lookup695: frame_system::extensions::check_tx_version::CheckTxVersion<T> */
+  /** Lookup697: frame_system::extensions::check_tx_version::CheckTxVersion<T> */
   FrameSystemExtensionsCheckTxVersion: "Null",
-  /** Lookup696: frame_system::extensions::check_genesis::CheckGenesis<T> */
+  /** Lookup698: frame_system::extensions::check_genesis::CheckGenesis<T> */
   FrameSystemExtensionsCheckGenesis: "Null",
-  /** Lookup699: frame_system::extensions::check_nonce::CheckNonce<T> */
+  /** Lookup701: frame_system::extensions::check_nonce::CheckNonce<T> */
   FrameSystemExtensionsCheckNonce: "Compact<u32>",
-  /** Lookup700: frame_system::extensions::check_weight::CheckWeight<T> */
+  /** Lookup702: frame_system::extensions::check_weight::CheckWeight<T> */
   FrameSystemExtensionsCheckWeight: "Null",
-  /** Lookup701: pallet_transaction_payment::ChargeTransactionPayment<T> */
+  /** Lookup703: pallet_transaction_payment::ChargeTransactionPayment<T> */
   PalletTransactionPaymentChargeTransactionPayment: "Compact<u128>",
-  /** Lookup702: frame_metadata_hash_extension::CheckMetadataHash<T> */
+  /** Lookup704: frame_metadata_hash_extension::CheckMetadataHash<T> */
   FrameMetadataHashExtensionCheckMetadataHash: {
     mode: "FrameMetadataHashExtensionMode",
   },
-  /** Lookup703: frame_metadata_hash_extension::Mode */
+  /** Lookup705: frame_metadata_hash_extension::Mode */
   FrameMetadataHashExtensionMode: {
     _enum: ["Disabled", "Enabled"],
   },
-  /** Lookup704: cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<T> */
+  /** Lookup706: cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<T> */
   CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim: "Null",
-  /** Lookup706: moonbase_runtime::Runtime */
+  /** Lookup708: moonbase_runtime::Runtime */
   MoonbaseRuntimeRuntime: "Null",
 };
