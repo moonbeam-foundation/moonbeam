@@ -569,9 +569,9 @@ where
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
 				if experimental_block_import_strategy {
-					None
+					true
 				} else {
-					Some(!dev_service)
+					!dev_service
 				},
 			)?,
 			BlockImportPipeline::Dev(frontier_block_import),
@@ -593,9 +593,9 @@ where
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
 				if experimental_block_import_strategy {
-					None
+					true
 				} else {
-					Some(!dev_service)
+					!dev_service
 				},
 			)?,
 			BlockImportPipeline::Parachain(parachain_block_import),
