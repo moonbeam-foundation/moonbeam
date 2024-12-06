@@ -577,8 +577,14 @@ where
 			BlockImportPipeline::Dev(frontier_block_import),
 		)
 	} else {
-		let parachain_block_import =
+		let parachain_block_import = if experimental_block_import_strategy {
 			ParachainBlockImport::new(frontier_block_import, backend.clone());
+		} else {
+			ParachainBlockImport::new_with_delayed_best_block(
+				frontier_block_import,
+				backend.clone(),
+			);
+		};
 		(
 			nimbus_consensus::import_queue(
 				client.clone(),
