@@ -568,11 +568,7 @@ where
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				if experimental_block_import_strategy {
-					true
-				} else {
-					!dev_service
-				},
+				!experimental_block_import_strategy,
 			)?,
 			BlockImportPipeline::Dev(frontier_block_import),
 		)
@@ -592,11 +588,7 @@ where
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				if experimental_block_import_strategy {
-					true
-				} else {
-					!dev_service
-				},
+				!experimental_block_import_strategy,
 			)?,
 			BlockImportPipeline::Parachain(parachain_block_import),
 		)
