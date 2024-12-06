@@ -337,7 +337,7 @@ where
 		create_inherent_data_providers,
 		&task_manager.spawn_essential_handle(),
 		config.prometheus_registry(),
-		None,
+		false,
 	)?;
 	let block_import = BlockImportPipeline::Dev(frontier_block_import);
 
