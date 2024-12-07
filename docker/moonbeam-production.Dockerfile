@@ -29,11 +29,14 @@ RUN echo "*** Cloning Moonbeam ***" && \
 	if git ls-remote --heads https://github.com/moonbeam-foundation/moonbeam.git $COMMIT | grep -q $COMMIT; then \
 	echo "Cloning branch $COMMIT"; \
 	git clone --depth=1 --branch $COMMIT https://github.com/moonbeam-foundation/moonbeam.git; \
+	elif git ls-remote --tags https://github.com/moonbeam-foundation/moonbeam.git $COMMIT | grep -q $COMMIT; then \
+	echo "Cloning tag $COMMIT"; \
+	git clone --depth=1 --branch $COMMIT https://github.com/moonbeam-foundation/moonbeam.git; \
 	else \
 	echo "Cloning specific commit $COMMIT"; \
 	git clone --depth=1 https://github.com/moonbeam-foundation/moonbeam.git && \
 	cd moonbeam && \
-	git fetch --depth=1 origin $COMMIT && \
+	git fetch origin $COMMIT && \
 	git checkout $COMMIT; \
 	fi
 
