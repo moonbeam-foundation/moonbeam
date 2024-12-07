@@ -1,19 +1,19 @@
 export declare type DefinitionTypeType = string;
 export declare type DefinitionTypeEnum =
   | {
-      _enum: DefinitionTypeType[];
-    }
+    _enum: DefinitionTypeType[];
+  }
   | {
-      _enum: Record<string, DefinitionTypeType | null>;
-    };
+    _enum: Record<string, DefinitionTypeType | null>;
+  };
 export declare type DefinitionTypeSet = {
   _set: Record<string, number>;
 };
 export declare type DefinitionTypeStruct =
   | Record<string, DefinitionTypeType>
   | ({
-      _alias?: Record<string, DefinitionTypeType>;
-    } & Record<string, unknown>);
+    _alias?: Record<string, DefinitionTypeType>;
+  } & Record<string, unknown>);
 export declare type DefinitionType =
   | string
   | DefinitionTypeEnum
@@ -64,7 +64,7 @@ export default function rpcTypes(): Record<string, Record<string, DefinitionRpc>
       ]),
       chainId: generateDescription(
         "Returns the chain ID used for transaction signing at " +
-          "the current best block. None is returned if not available.",
+        "the current best block. None is returned if not available.",
         "U64"
       ),
       coinbase: generateDescription("Returns block author.", "H160"),
@@ -154,7 +154,7 @@ export default function rpcTypes(): Record<string, Record<string, DefinitionRpc>
       ),
       getWork: generateDescription(
         "Returns the hash of the current block, the seedHash," +
-          " and the boundary condition to be met.",
+        " and the boundary condition to be met.",
         "Work"
       ),
       hashrate: generateDescription(
@@ -165,6 +165,10 @@ export default function rpcTypes(): Record<string, Record<string, DefinitionRpc>
       protocolVersion: generateDescription(
         "Returns protocol version encoded as a string (quotes are necessary).",
         "u64"
+      ),
+      pendingTransactions: generateDescription(
+        "Returns a list of pending transactions.",
+        "Vec<Transaction>"
       ),
       sendRawTransaction: generateDescription(
         "Sends signed transaction, returning its hash.",
