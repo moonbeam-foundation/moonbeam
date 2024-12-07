@@ -1,7 +1,5 @@
 [workspace]
-exclude = ["bin/utils/moonkey"]
 members = [
-    "bin/utils/moonkey",
     "client/rpc/dev",
     "client/rpc/finality",
     "client/vrf",
@@ -411,6 +409,7 @@ tracing-core = "0.1.32"
 trie-root = "0.18.0"
 url = { version = "2.4.0" }
 thiserror = "1.0.63"
+colored = { version = "2.1.0" }
 
 # The list of dependencies below (which can be both direct and indirect dependencies) are crates
 # that are suspected to be CPU-intensive, and that are unlikely to require debugging (as some of
