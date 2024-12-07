@@ -20,6 +20,7 @@
 //! It is built using clap and inherits behavior from Substrate's sc_cli crate.
 
 use clap::Parser;
+use colored::Colorize;
 use moonbeam_cli_opt::{account_key::GenerateAccountKey, EthApi, FrontierBackendType, Sealing};
 use moonbeam_service::chain_spec;
 use sc_cli::{Error as CliError, SubstrateCli};
@@ -372,7 +373,10 @@ pub enum KeyCmd {
 	#[clap(flatten)]
 	BaseCli(sc_cli::KeySubcommand),
 	/// Generate an Ethereum account.
+	#[clap(about = "This command is deprecated, please use `generate-moonbeam-key` instead.")]
 	GenerateAccountKey(GenerateAccountKey),
+	/// Generate a Moonbeam account.
+	GenerateMoonbeamKey(GenerateAccountKey),
 }
 
 impl KeyCmd {
@@ -381,7 +385,18 @@ impl KeyCmd {
 		match self {
 			KeyCmd::BaseCli(cmd) => cmd.run(cli),
 			KeyCmd::GenerateAccountKey(cmd) => {
-				cmd.run();
+				eprintln!(
+				"\n{}\n",
+				"Warning: This command is deprecated, please use `generate-moonbeam-key`instead."
+					.on_yellow()
+					.black()
+					.bold()
+				);
+				cmd.run(true);
+				Ok(())
+			}
+			KeyCmd::GenerateMoonbeamKey(cmd) => {
+				cmd.run(false);
 				Ok(())
 			}
 		}
