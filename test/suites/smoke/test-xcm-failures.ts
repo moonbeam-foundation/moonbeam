@@ -412,7 +412,7 @@ describeSuite({
           (await relayApi.query.hrmp.hrmpIngressChannelsIndex(paraId)) as any
         ).map((a: any) => a.toNumber());
         const outChannels = (
-          (await relayApi.query.hrmp.hrmpIngressChannelsIndex(paraId)) as any
+          (await relayApi.query.hrmp.hrmpEgressChannelsIndex(paraId)) as any
         ).map((a: any) => a.toNumber());
         const channels = [...new Set([...inChannels, ...outChannels])];
 
