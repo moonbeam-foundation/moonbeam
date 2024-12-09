@@ -26,12 +26,12 @@
     "@polkadot/util": "13.2.3",
     "@polkadot/util-crypto": "13.2.3",
     "ethers": "6.13.4",
-    "tsup": "^8.3.5"
+    "tsup": "8.3.5"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",
     "eslint": "^8.55.0",
-    "prettier": "^3.1.0",
+    "prettier": "3.1.0",
     "tsx": "^4.19.2",
     "typescript": "^5.3.3"
   },

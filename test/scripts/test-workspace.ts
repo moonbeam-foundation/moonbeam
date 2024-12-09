@@ -1,4 +1,4 @@
-// import "@moonbeam-network/api-augment"
+import "@moonbeam-network/api-augment"
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { typesBundlePre900 } from "moonbeam-types-bundle";
 
@@ -14,3 +14,13 @@ console.log(api.consts.system.version.specVersion.toNumber());
 const headBlock = (await api.rpc.chain.getHeader()).hash.toHex();
 
 console.log((await api.rpc.moon.isBlockFinalized(headBlock)).toHuman());
+
+console.log((await api.query.system.events()).toHuman())
+
+console.log(
+  (await api.query.parachainStaking.round()
+  ).toHuman())
+
+
+
+await api.disconnect();

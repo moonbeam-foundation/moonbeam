@@ -4,6 +4,8 @@
     "rootDir": ".",
     "baseUrl": "./",
     "outDir": "../../dist/moonriver",
+    "declarationDir": "../../dist/moonriver/types",
+    "declarationMap": true,
     "paths": {
       "@moonbeam/api-augment/moonriver/*": ["src/moonriver/*"],
       "@polkadot/api/augment": ["src/moonriver/interfaces/augment-api.ts"],
