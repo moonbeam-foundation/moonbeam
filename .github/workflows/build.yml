@@ -695,6 +695,10 @@ jobs:
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
           mkdir -p test/moonbase-overrides/
           mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm test/moonbase-overrides/
+      - name: Preparing the repository
+        run: |
+          chmod uog+x build/moonbeam
+          chmod uog+x target/release/moonbeam
       - name: Running Tracing Tests
         env:
           DEBUG_COLOURS: "1"
