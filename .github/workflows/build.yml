@@ -553,7 +553,7 @@ jobs:
           cargo test --profile testnet --workspace --features=evm-tracing,runtime-benchmarks
       - name: Run sccache stat for check pre test
         run: ${SCCACHE_PATH} --show-stats
-  
+
   typegen_check:
     needs: ["set-tags", "build"]
     name: "Check Rust/TS bindings are up to date"
@@ -570,19 +570,19 @@ jobs:
           path: target/release
       - name: Run Typegen
         run: |
-            cd test
-            pnpm i
-            pnpm typegen
+          cd test
+          pnpm i
+          pnpm typegen
       - name: Check for changes
         run: |
-            cd typescript-api
-            if [ -n "$(git status --porcelain .)" ]; then
-              echo "Typegen produced changes. Please run 'pnpm typegen' locally and commit the changes."
-              false
-            else
-              echo "No changes"
-              true
-            fi
+          cd typescript-api
+          if [ -n "$(git status --porcelain .)" ]; then
+            echo "Typegen produced changes. Please run 'pnpm typegen' locally and commit the changes."
+            false
+          else
+            echo "No changes"
+            true
+          fi
 
   dev-test:
     runs-on:
@@ -938,5 +938,3 @@ jobs:
         with:
           name: failed-node-logs
           path: ${{ env.NODE_LOGS_ZIP }}
-
-  
