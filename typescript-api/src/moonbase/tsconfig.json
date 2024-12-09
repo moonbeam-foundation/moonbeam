@@ -4,6 +4,8 @@
     "rootDir": ".",
     "baseUrl": "./",
     "outDir": "../../dist/moonbase",
+    "declarationDir": "../../dist/moonbase/types",
+    "declarationMap": true,
     "paths": {
       "@moonbeam/api-augment/moonbase/*": ["src/moonbase/*"],
       "@polkadot/api/augment": ["src/moonbase/interfaces/augment-api.ts"],

@@ -2,21 +2,36 @@
   "name": "moonbeam-types-bundle",
   "version": "3.0.0",
   "description": "Bundled types to instantiate the Polkadot JS api with a Moonbeam network",
-  "main": "dist/index.js",
+  "main": "./dist/definitions.cjs",
   "prepublish": "tsc",
   "type": "module",
   "module": "./dist/definitions.js",
-  "types": "./dist/types/definitions.d.ts",
+  "types": "./dist/definitions.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/definitions.d.ts",
-      "module": "./dist/definitions.js",
-      "default": "./dist/definitions.js"
+      "types": "./dist/definitions.d.ts",
+      "import": "./dist/definitions.js",
+      "require": "./dist/definitions.cjs"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js",
+      "require": "./dist/types.cjs"
+    },
+    "./rpc": {
+      "types": "./dist/rpc.d.ts",
+      "import": "./dist/rpc.js",
+      "require": "./dist/rpc.cjs"
     }
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
+    "clean": "rm -rf node_modules && rm -rf dist",
     "tsc": "tsc --noEmit --pretty",
-    "build": "tsc -b --verbose",
+    "build": "tsup src --format cjs,esm --dts --no-splitting",
     "publish-package": "npm run build && npm publish",
     "fmt:fix": "prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'"
   },
@@ -35,13 +50,14 @@
     "url": "git+https://github.com/moonbeam-foundation/moonbeam.git"
   },
   "dependencies": {
-    "@polkadot/api": "14.0.1",
-    "@polkadot/api-base": "14.0.1",
-    "@polkadot/rpc-core": "14.0.1",
-    "@polkadot/typegen": "14.0.1",
-    "@polkadot/types": "14.0.1",
-    "@polkadot/types-codec": "14.0.1",
-    "prettier": "2.8.8",
-    "typescript": "5.6.2"
+    "@polkadot/api": "*",
+    "@polkadot/api-base": "*",
+    "@polkadot/rpc-core": "*",
+    "@polkadot/typegen": "*",
+    "@polkadot/types": "*",
+    "@polkadot/types-codec": "*",
+    "prettier": "*",
+    "tsup": "*",
+    "typescript": "*"
   }
 }
