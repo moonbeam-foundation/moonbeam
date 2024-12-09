@@ -6,14 +6,15 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "bundle-types": "cd ../moonbeam-types-bundle && pnpm i && pnpm build && pnpm fmt:fix; cd ../test",
+		"typegen": "pnpm bundle-types && cd ../typescript-api && pnpm generate && pnpm build && pnpm fmt:fix; cd ../test",
     "clean": "rm -rf node_modules",
     "fmt": "prettier --check --trailing-comma es5  --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
     "fmt:fix": "prettier --write --trailing-comma es5  --ignore-path ../.prettierignore '**/*.(yml|js|ts|json)'",
     "lint": "eslint './helpers/**/*.ts' './suites/**/*.ts'",
     "lint:fix": "eslint './helpers/**/*.ts' './suites/**/*.ts' --fix",
     "compile-solidity": "tsx scripts/compile-contracts.ts compile",
-    "typecheck": "pnpm tsc --noEmit",
-    "typegen": "echo 'generate typesBundle' && echo 'generate apiAugment'"
+    "typecheck": "pnpm tsc --noEmit"
   },
   "keywords": [],
   "author": "",

@@ -298,8 +298,7 @@ declare module "@polkadot/api-base/types/consts" {
        *
        * This is held for adding 32 bytes plus an instance of `ProxyType` more into a pre-existing
        * storage value. Thus, when configuring `ProxyDepositFactor` one should take into account `32
-       *
-       * - Proxy_type.encode().len()` bytes of data.
+       * + proxy_type.encode().len()` bytes of data.
        */
       proxyDepositFactor: u128 & AugmentedConst<ApiType>;
       /** Generic const */
