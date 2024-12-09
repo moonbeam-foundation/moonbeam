@@ -323,8 +323,7 @@ describeSuite({
           log("Skipping test suite due to runtime version");
           return;
         }
-        const supplyFactor =
-          paraApi.consts.system.version.specName.toString() === "moonbeam" ? 100n : 1n;
+        const supplyFactor = ConstantStore(context).SUPPLY_FACTOR;
         const weightFee = ConstantStore(context).WEIGHT_FEE;
 
         const failures = blockData
