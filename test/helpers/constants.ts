@@ -1,11 +1,13 @@
 // constants.ts -  Any common values here should be moved to moonwall if suitable
 
-import { DevModeContext } from "@moonwall/cli";
 import {
   ALITH_GENESIS_FREE_BALANCE,
   ALITH_GENESIS_LOCK_BALANCE,
   ALITH_GENESIS_RESERVE_BALANCE,
 } from "@moonwall/util";
+import { GenericContext } from "@moonwall/types/dist/types/runner";
+
+const KILOWEI = 1_000n;
 
 /**
  * Class allowing to store multiple value for a runtime constant based on the runtime version
@@ -64,13 +66,14 @@ export const RUNTIME_CONSTANTS = {
     GENESIS_FEE_MULTIPLIER: 8_000_000_000_000_000_000n,
     MIN_FEE_MULTIPLIER: 100_000_000_000_000_000n,
     MAX_FEE_MULTIPLIER: 100_000_000_000_000_000_000_000n,
+    WEIGHT_FEE: (50n * KILOWEI * 1n) /* SUPPLY_FACTOR */ / 4n,
 
     GENESIS_BASE_FEE: new RuntimeConstant({ 3400: 2_500_000_000n, 0: 10_000_000_000n }),
     MIN_BASE_FEE: new RuntimeConstant({ 3400: 312_500_000n, 0: 1_250_000_000n }),
     MAX_BASE_FEE: new RuntimeConstant({ 3400: 31_250_000_000_000n, 0: 125_000_000_000_000n }),
 
     TARGET_FILL_PERMILL: new RuntimeConstant({ 3000: 350_000n, 2801: 500_000n, 0: 250_000n }),
-    // Deadline for block production in miliseconds
+    // Deadline for block production in milliseconds
     DEADLINE_MILISECONDS: new RuntimeConstant({ 2800: 2000n, 0: 500n }),
     // 2 seconds of weight
     BLOCK_WEIGHT_LIMIT: new RuntimeConstant({ 2900: 2_000_000_000_000n, 0: 500_000_000_000n }),
@@ -83,22 +86,23 @@ export const RUNTIME_CONSTANTS = {
     GAS_PER_POV_BYTES: new RuntimeConstant({ 2900: 16n, 0: 4n }),
     // Storage read/write costs
     STORAGE_READ_COST: 41_742_000n,
-    // Weight to gas convertion ratio
+    // Weight to gas conversion ratio
     WEIGHT_TO_GAS_RATIO: 25_000n,
   },
   MOONRIVER: {
     GENESIS_FEE_MULTIPLIER: 10_000_000_000_000_000_000n,
     MIN_FEE_MULTIPLIER: 1_000_000_000_000_000_000n,
     MAX_FEE_MULTIPLIER: 100_000_000_000_000_000_000_000n,
+    WEIGHT_FEE: (50n * KILOWEI * 1n) /* SUPPLY_FACTOR */ / 4n,
 
     GENESIS_BASE_FEE: new RuntimeConstant({ 3400: 3_125_000_000n, 0: 12_500_000_000n }),
     MIN_BASE_FEE: new RuntimeConstant({ 3400: 312_500_000n, 0: 1_250_000_000n }),
     MAX_BASE_FEE: new RuntimeConstant({ 3400: 31_250_000_000_000n, 0: 125_000_000_000_000n }),
 
     TARGET_FILL_PERMILL: new RuntimeConstant({ 3000: 350_000n, 2801: 500_000n, 0: 250_000n }),
-    // Deadline for block production in miliseconds
+    // Deadline for block production in milliseconds
     DEADLINE_MILISECONDS: new RuntimeConstant({ 3000: 2000n, 0: 500n }),
-    // Caclulated as the weight per second by the deadline in seconds
+    // Calculated as the weight per second by the deadline in seconds
     BLOCK_WEIGHT_LIMIT: new RuntimeConstant({
       3100: 2_000_000_000_000n,
       3000: 1_000_000_000_000n,
@@ -120,15 +124,16 @@ export const RUNTIME_CONSTANTS = {
     GENESIS_FEE_MULTIPLIER: 8_000_000_000_000_000_000n,
     MIN_FEE_MULTIPLIER: 1_000_000_000_000_000_000n,
     MAX_FEE_MULTIPLIER: 100_000_000_000_000_000_000_000n,
+    WEIGHT_FEE: (50n * KILOWEI * 100n) /* SUPPLY_FACTOR */ / 4n,
 
     GENESIS_BASE_FEE: new RuntimeConstant({ 3400: 250_000_000_000n, 0: 1_000_000_000_000n }),
     MIN_BASE_FEE: new RuntimeConstant({ 3400: 31_250_000_000n, 0: 125_000_000_000n }),
     MAX_BASE_FEE: new RuntimeConstant({ 3400: 3_125_000_000_000_000n, 0: 12_500_000_000_000_000n }),
 
     TARGET_FILL_PERMILL: new RuntimeConstant({ 3000: 350_000n, 2801: 500_000n, 0: 250_000n }),
-    // Deadline for block production in miliseconds
+    // Deadline for block production in milliseconds
     DEADLINE_MILISECONDS: new RuntimeConstant({ 3000: 2000n, 0: 500n }),
-    // Caclulated as the weight per second by the deadline in seconds
+    // Calculated as the weight per second by the deadline in seconds
     BLOCK_WEIGHT_LIMIT: new RuntimeConstant({
       3200: 2_000_000_000_000n,
       3100: 1_000_000_000_000n,
@@ -155,8 +160,8 @@ export const MAX_ETH_POV_PER_TX = 3_250_000n;
 
 type ConstantStoreType = (typeof RUNTIME_CONSTANTS)["MOONBASE"];
 
-export function ConstantStore(context: DevModeContext): ConstantStoreType {
-  const runtimeChain = context.pjsApi.runtimeChain.toUpperCase();
+export function ConstantStore(context: GenericContext): ConstantStoreType {
+  const runtimeChain = context.polkadotJs().runtimeChain.toUpperCase();
   const runtime = runtimeChain
     .split(" ")
     .filter((v) => Object.keys(RUNTIME_CONSTANTS).includes(v))

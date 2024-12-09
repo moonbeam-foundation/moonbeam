@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { WEIGHT_FEE, WEIGHT_PER_GAS, getBlockArray } from "@moonwall/util";
+import { WEIGHT_PER_GAS, getBlockArray, WEIGHT_FEE } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { GenericExtrinsic } from "@polkadot/types";
 import type { u128, u32 } from "@polkadot/types-codec";
@@ -14,7 +14,12 @@ import {
 } from "@polkadot/types/lookup";
 import { AnyTuple } from "@polkadot/types/types";
 import { ethers } from "ethers";
-import { checkTimeSliceForUpgrades, rateLimiter, RUNTIME_CONSTANTS } from "../../helpers";
+import {
+  checkTimeSliceForUpgrades,
+  ConstantStore,
+  rateLimiter,
+  RUNTIME_CONSTANTS,
+} from "../../helpers";
 import Debug from "debug";
 import { DispatchInfo } from "@polkadot/types/interfaces";
 const debug = Debug("smoke:dynamic-fees");
@@ -313,29 +318,39 @@ describeSuite({
       id: "C400",
       title: "BaseFeePerGas is correctly calculated",
       timeout: 30000,
-      test: function () {
+      test: async () => {
         if (skipAll) {
           log("Skipping test suite due to runtime version");
           return;
         }
         const supplyFactor =
           paraApi.consts.system.version.specName.toString() === "moonbeam" ? 100n : 1n;
+        const weightFee = ConstantStore(context).WEIGHT_FEE;
 
         const failures = blockData
           .map(({ blockNum, nextFeeMultiplier, baseFeePerGasInGwei }) => {
             const baseFeePerGasInWei = ethers.parseUnits(baseFeePerGasInGwei, "gwei");
 
-            const expectedBaseFeePerGasInWei =
+            let expectedBaseFeePerGasInWei =
               (nextFeeMultiplier.toBigInt() * WEIGHT_FEE * WEIGHT_PER_GAS * supplyFactor) /
               ethers.parseEther("1");
+            // The min_gas_price was divided by 4 on runtime 3400
+            if (specVersion.toNumber() > 3300) {
+              expectedBaseFeePerGasInWei =
+                (nextFeeMultiplier.toBigInt() * weightFee * WEIGHT_PER_GAS) /
+                ethers.parseEther("1");
+            }
 
             const valid = baseFeePerGasInWei == expectedBaseFeePerGasInWei;
-            return { blockNum, baseFeePerGasInGwei, valid };
+            return { blockNum, baseFeePerGasInGwei, valid, expectedBaseFeePerGasInWei };
           })
           .filter(({ valid }) => !valid);
 
-        failures.forEach(({ blockNum, baseFeePerGasInGwei }) => {
-          log(`Block #${blockNum} has incorrect baseFeePerGas: ${baseFeePerGasInGwei}`);
+        failures.forEach(({ blockNum, baseFeePerGasInGwei, expectedBaseFeePerGasInWei }) => {
+          const expected = `expected: ${ethers.formatUnits(expectedBaseFeePerGasInWei, "gwei")}`;
+          log(
+            `Block #${blockNum} has incorrect baseFeePerGas: ${baseFeePerGasInGwei}, ${expected}`
+          );
         });
         expect(
           failures.length,
