@@ -58,6 +58,7 @@ use xcm::latest::prelude::{
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
+use parachains_common::BlockNumber;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
 	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
@@ -695,13 +696,13 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 	}
 }
 
-pub type ForeignAssetManagerOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		governance::custom_origins::FastGeneralAdmin,
-	>,
->;
+parameter_types! {
+	/// Balance in the native currency that will be reserved from the user
+	/// to create a new foreign asset
+	pub ForeignAssetDeposit: u64 = 100;
+}
+
+pub type ForeignAssetManagerOrigin = frame_system::EnsureSigned<AccountId>;
 
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
@@ -716,6 +717,10 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
+	type ForeignAssetDeposit = ForeignAssetDeposit;
+	type BlockNumber = BlockNumber;
+	type Currency = Balances;
+	type Balance = Balance;
 }
 
 pub struct AssetFeesFilter;

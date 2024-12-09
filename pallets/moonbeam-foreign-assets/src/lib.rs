@@ -108,10 +108,11 @@ pub enum AssetStatus {
 pub mod pallet {
 	use super::*;
 	use pallet_evm::{GasWeightMapping, Runner};
-	use sp_runtime::traits::{AccountIdConversion, Convert};
+	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned, BlockNumber, Convert};
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::Error as MatchError;
 	use xcm_executor::AssetsInHolding;
+	use frame_support::traits::{Currency, ReservableCurrency};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -147,7 +148,7 @@ pub mod pallet {
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
 
-		/// Maximum nulmbers of differnt foreign assets
+		/// Maximum numbers of differnt foreign assets
 		type MaxForeignAssets: Get<u32>;
 
 		/// The overarching event type.
@@ -158,7 +159,29 @@ pub mod pallet {
 
 		// Convert XCM Location to H160
 		type XcmLocationToH160: ConvertLocation<H160>;
+
+		/// Amount of tokens required to lock for creating a new foreign asset
+		type ForeignAssetDeposit: Get<BalanceOf<Self>>;
+
+		/// The block number type for the pallet
+		type BlockNumber: BlockNumber;
+
+		/// The balance type for locking funds
+		type Balance: Member
+			+ Parameter
+			+ AtLeast32BitUnsigned
+			+ Default
+			+ Copy
+			+ MaybeSerializeDeserialize
+			+ MaxEncodedLen
+			+ TypeInfo;
+
+		/// The currency type for locking funds
+		type Currency: ReservableCurrency<Self::AccountId>;
 	}
+
+	type BalanceOf<T> =
+		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 	pub type AssetBalance = U256;
 	pub type AssetId = u128;
@@ -177,6 +200,8 @@ pub mod pallet {
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
 		EvmInternalError,
+		/// Account has insufficient balance for locking
+		InsufficientBalance,
 		InvalidSymbol,
 		InvalidTokenName,
 		LocationAlreadyExists,
@@ -191,6 +216,7 @@ pub mod pallet {
 			contract_address: H160,
 			asset_id: AssetId,
 			xcm_location: Location,
+			deposit: BalanceOf<T>
 		},
 		/// Changed the xcm type mapping for a given asset id
 		ForeignAssetXcmLocationChanged {
@@ -207,6 +233,10 @@ pub mod pallet {
 			asset_id: AssetId,
 			xcm_location: Location,
 		},
+		/// Tokens have been locked for asset creation
+		TokensLocked(T::AccountId, AssetId, AssetBalance),
+		/// Lock verification failed
+		LockVerificationFailed(T::AccountId, AssetId),
 	}
 
 	/// Mapping from an asset id to a Foreign asset type.
@@ -224,6 +254,22 @@ pub mod pallet {
 	#[pallet::getter(fn assets_by_location)]
 	pub type AssetsByLocation<T: Config> =
 		StorageMap<_, Blake2_128Concat, Location, (AssetId, AssetStatus)>;
+
+	/// Mapping from an asset id to it's details information
+	#[pallet::storage]
+	#[pallet::getter(fn assets_creation_details)]
+	pub type AssetsCreationDetails<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		AssetId,
+		AssetCreationDetails<T::AccountId, BalanceOf<T>>
+	>;
+
+	#[derive(Clone, Copy, Decode, Encode, Eq, PartialEq, Debug, TypeInfo, MaxEncodedLen)]
+	pub struct AssetCreationDetails<AccountId, Balance> {
+		pub creator: AccountId,
+		pub deposit: Balance
+	}
 
 	impl<T: Config> Pallet<T> {
 		/// The account ID of this pallet
@@ -279,13 +325,13 @@ pub mod pallet {
 			// Insert the association foreigAsset->assetId
 			AssetsById::<T>::insert(&asset_id, &xcm_location);
 			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, AssetStatus::Active));
-
-			T::OnForeignAssetCreated::on_asset_created(&xcm_location, &asset_id);
+			let deposit = T::ForeignAssetDeposit::get();
 
 			Self::deposit_event(Event::ForeignAssetCreated {
 				contract_address,
 				asset_id,
 				xcm_location,
+				deposit
 			});
 			Ok(())
 		}
@@ -355,7 +401,7 @@ pub mod pallet {
 			symbol: BoundedVec<u8, ConstU32<256>>,
 			name: BoundedVec<u8, ConstU32<256>>,
 		) -> DispatchResult {
-			T::ForeignAssetCreatorOrigin::ensure_origin(origin)?;
+			T::ForeignAssetCreatorOrigin::ensure_origin(origin.clone())?;
 
 			// Ensure such an assetId does not exist
 			ensure!(
@@ -380,13 +426,23 @@ pub mod pallet {
 
 			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidSymbol)?;
 			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
-
+			let creator = ensure_signed(origin)?;
 			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
+			let deposit = T::ForeignAssetDeposit::get();
 
 			// Insert the association assetId->foreigAsset
 			// Insert the association foreigAsset->assetId
 			AssetsById::<T>::insert(&asset_id, &xcm_location);
 			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, AssetStatus::Active));
+
+			// Reserve _deposit_ amount of funds from the caller
+			<T as Config>::Currency::reserve(&creator, deposit)?;
+
+			// Insert the amount that is reserved from the user
+			AssetsCreationDetails::<T>::insert(&asset_id, AssetCreationDetails {
+				creator,
+				deposit
+			});
 
 			T::OnForeignAssetCreated::on_asset_created(&xcm_location, &asset_id);
 
@@ -394,6 +450,7 @@ pub mod pallet {
 				contract_address,
 				asset_id,
 				xcm_location,
+				deposit
 			});
 			Ok(())
 		}

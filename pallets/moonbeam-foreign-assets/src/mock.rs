@@ -29,6 +29,7 @@ use xcm::latest::Location;
 
 pub type Balance = u128;
 
+pub type BlockNumber = u32;
 type AccountId = MockAccount;
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -175,6 +176,10 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 	}
 }
 
+parameter_types! {
+	pub const ForeignAssetDeposit: u64 = 1;
+}
+
 impl crate::Config for Test {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
@@ -188,6 +193,12 @@ impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type XcmLocationToH160 = ();
+	type ForeignAssetDeposit = ();
+	type BlockNumber = BlockNumber;
+	type Balance = Balance;
+
+	type Currency = Balances;
+
 }
 
 pub(crate) struct ExtBuilder {

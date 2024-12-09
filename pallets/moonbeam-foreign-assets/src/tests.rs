@@ -18,7 +18,7 @@ use crate::*;
 use mock::*;
 
 use frame_support::{assert_noop, assert_ok};
-use precompile_utils::testing::Bob;
+use precompile_utils::testing::{Alice, Bob};
 use xcm::latest::prelude::*;
 
 fn encode_ticker(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
@@ -34,7 +34,7 @@ fn create_foreign_and_freeze_unfreeze() {
 	ExtBuilder::default().build().execute_with(|| {
 		// create foreign asset
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::from(Some(Alice.into())),
 			1,
 			Location::parent(),
 			18,
@@ -47,12 +47,22 @@ fn create_foreign_and_freeze_unfreeze() {
 			EvmForeignAssets::assets_by_location(Location::parent()),
 			Some((1, AssetStatus::Active)),
 		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(Location::parent()),
+			Some((1, AssetStatus::Active)),
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_creation_details(&1),
+			Some(AssetCreationDetails { creator: Alice.into(), deposit: 1})
+		);
+
 		expect_events(vec![crate::Event::ForeignAssetCreated {
 			contract_address: H160([
 				255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 			]),
 			asset_id: 1,
 			xcm_location: Location::parent(),
+			deposit: 1,
 		}]);
 
 		let (xcm_location, asset_id): (Location, u128) = get_asset_created_hook_invocation()
@@ -65,6 +75,10 @@ fn create_foreign_and_freeze_unfreeze() {
 		assert_eq!(
 			EvmForeignAssets::assets_by_location(&Location::parent()),
 			Some((1, AssetStatus::Active))
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_creation_details(&1),
+			Some(AssetCreationDetails { creator: Alice.into(), deposit: 1})
 		);
 
 		// Unfreeze should return AssetNotFrozen error
@@ -192,6 +206,7 @@ fn test_root_can_change_foreign_asset_for_asset_id() {
 				]),
 				asset_id: 1,
 				xcm_location: Location::parent(),
+				deposit: 1
 			},
 			crate::Event::ForeignAssetXcmLocationChanged {
 				asset_id: 1,
@@ -216,7 +231,7 @@ fn test_location_already_exist_error() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Setup: create a first foreign asset taht we will try to override
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::from(Some(Alice.into())),
 			1,
 			Location::parent(),
 			18,
@@ -226,7 +241,7 @@ fn test_location_already_exist_error() {
 
 		assert_noop!(
 			EvmForeignAssets::create_foreign_asset(
-				RuntimeOrigin::root(),
+				RuntimeOrigin::from(Some(Alice.into())),
 				2,
 				Location::parent(),
 				18,
@@ -238,7 +253,7 @@ fn test_location_already_exist_error() {
 
 		// Setup: create a second foreign asset that will try to override the first one
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::from(Some(Alice.into())),
 			2,
 			Location::new(2, *&[]),
 			18,

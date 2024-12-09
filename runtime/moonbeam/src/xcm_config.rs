@@ -71,7 +71,7 @@ use sp_std::{
 	convert::{From, Into, TryFrom},
 	prelude::*,
 };
-
+use moonbeam_core_primitives::BlockNumber;
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 
 parameter_types! {
@@ -689,6 +689,12 @@ pub type ForeignAssetManagerOrigin = EitherOfDiverse<
 	>,
 >;
 
+parameter_types! {
+	/// Balance in the native currency that will be reserved from the user
+	/// to create a new foreign asset
+	pub ForeignAssetDeposit: u64 = 100;
+}
+
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
@@ -702,6 +708,10 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbeam_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
+	type ForeignAssetDeposit = ForeignAssetDeposit;
+	type BlockNumber = BlockNumber;
+	type Currency = Balances;
+	type Balance = Balance;
 }
 
 pub struct AssetFeesFilter;
