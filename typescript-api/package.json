@@ -15,6 +15,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
+    "clean": "rm -rf node_modules && rm -rf dist",
     "generate": "pnpm load:meta && pnpm generate:defs && pnpm generate:meta",
     "scrape": "pnpm tsx scripts/scrapeMetadata.ts",
     "postgenerate": "pnpm pretty",
@@ -80,16 +81,16 @@
     "api"
   ],
   "dependencies": {
-    "@polkadot/api": "14.3.1",
-    "@polkadot/api-base": "14.3.1",
-    "@polkadot/rpc-core": "14.3.1",
-    "@polkadot/typegen": "14.3.1",
-    "@polkadot/types": "14.3.1",
-    "@polkadot/types-codec": "14.3.1",
-    "@types/node": "^22.9.1",
-    "prettier": "2.8.8",
+    "@polkadot/api": "*",
+    "@polkadot/api-base": "*",
+    "@polkadot/rpc-core": "*",
+    "@polkadot/typegen": "*",
+    "@polkadot/types": "*",
+    "@polkadot/types-codec": "*",
+    "@types/node": "*",
+    "prettier": "*",
     "prettier-plugin-jsdoc": "^0.3.38",
-    "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "tsx": "*",
+    "typescript": "*"
   }
 }

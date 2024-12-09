@@ -1,0 +1,41 @@
+{
+  "name": "moonbeam",
+  "version": "1.0.0",
+  "description": "Moonbeam Network Monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "test",
+    "typescript-api",
+    "moonbeam-types-bundle"
+  ],
+  "scripts": {
+    "clean-all": "rm -rf node_modules && pnpm -r clean",
+    "lint": "pnpm -r lint",
+    "fmt": "pnpm -r fmt",
+    "fmt:fix": "pnpm -r fmt:fix"
+  },
+  "dependencies": {
+    "@polkadot/api": "14.3.1",
+    "@polkadot/api-augment": "14.3.1",
+    "@polkadot/api-derive": "14.3.1",
+    "@polkadot/keyring": "13.2.3",
+    "@polkadot/rpc-provider": "14.3.1",
+    "@polkadot/types": "14.3.1",
+    "@polkadot/types-codec": "14.3.1",
+    "@polkadot/util": "13.2.3",
+    "@polkadot/util-crypto": "13.2.3",
+    "ethers": "6.13.4",
+    "tsup": "^8.3.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
