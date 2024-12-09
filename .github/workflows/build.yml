@@ -171,7 +171,7 @@ jobs:
           chmod +x bin/ec-linux-amd64
       - name: Check files
         # Prettier and editorconfig-checker have different ideas about indentation
-        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/)|(test\/contracts\/lib\/.*)" -disable-indent-size
+        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/)|(test\/contracts\/lib\/.*)|(\/?dist\/)" -disable-indent-size
 
   check-prettier:
     name: "Check with Prettier"
