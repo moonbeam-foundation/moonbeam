@@ -18,7 +18,7 @@
     "clean": "rm -rf node_modules && rm -rf dist",
     "scrape": "pnpm tsx scripts/scrapeMetadata.ts",
     "generate": "pnpm generate:defs && pnpm generate:meta",
-    "postgenerate": "pnpm build; pnpm fmt:fix",
+    "postgenerate": "pnpm build && pnpm fmt:fix",
     "load:meta": "pnpm load:meta:moonbase && pnpm load:meta:moonriver && pnpm load:meta:moonbeam",
     "load:meta:local": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' http://localhost:9933 > metadata-moonbase.json",
     "load:meta:moonbase": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' https://rpc.api.moonbase.moonbeam.network > metadata-moonbase.json",

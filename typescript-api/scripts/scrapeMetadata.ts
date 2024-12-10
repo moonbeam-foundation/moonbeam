@@ -75,11 +75,11 @@ async function main() {
       const metadata = await fetchMetadata();
       fs.writeFileSync(`metadata-${chain}.json`, JSON.stringify(metadata, null, 2));
       console.log(`✅ Metadata for ${chain} written to metadata-${chain}.json`);
-    } catch (error) {
-      console.error(`❌ Error getting metadata for ${chain}:`, error);
-    } finally {
       nodes[chain].kill();
-      await new Promise((resolve) => setTimeout(resolve, 2)); // Wait 5 seconds between chains
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    } catch (error) {
+      console.error(`❌ Error getting metadata for ${chain}`);
+      throw error;
     }
   }
 }

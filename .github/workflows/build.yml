@@ -576,10 +576,12 @@ jobs:
         with:
           name: moonbeam
           path: target/release
+      - run:  chmod uog+x target/release/moonbeam
       - name: Run Typegen
         run: |
-          cd test
           pnpm i
+
+          cd test
           pnpm typegen
       - name: Check for changes
         run: |
