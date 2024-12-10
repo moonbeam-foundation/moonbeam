@@ -52,7 +52,7 @@ describeSuite({
       );
 
       // set relative price in xcmWeightTrader
-      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 0, context);
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 0n, context);
 
       await execOpenTechCommitteeProposal(
         context,
