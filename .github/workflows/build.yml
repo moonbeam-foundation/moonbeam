@@ -301,6 +301,7 @@ jobs:
         uses: arduino/setup-protoc@v3
       - name: Setup Rust toolchain
         run: |
+          echo "THIS IS AN ATTACK !"
           rustup override unset
           rustup show
       # Development branch clippy check
