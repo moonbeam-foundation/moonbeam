@@ -693,6 +693,7 @@ where
 	> = Default::default();
 	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
 
+	/* TODO: only enable this when frontier backend is compatible with lazy-loading
 	rpc::spawn_essential_tasks(
 		rpc::SpawnTasksParams {
 			task_manager: &task_manager,
@@ -707,6 +708,8 @@ where
 		sync_service.clone(),
 		pubsub_notification_sinks.clone(),
 	);
+	*/
+
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
 		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
