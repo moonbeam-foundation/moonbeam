@@ -197,8 +197,10 @@ impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
 			self.apply_head(&header)?;
 		}
 
-		{
-			let mut storage = self.storage.write();
+		let mut storage = self.storage.write();
+		if number.is_zero() {
+			storage.genesis_hash = hash;
+		} else {
 			storage.leaves.import(hash, number, *header.parent_hash());
 			storage
 				.blocks
@@ -207,10 +209,6 @@ impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
 			if let NewBlockState::Final = new_state {
 				storage.finalized_hash = hash;
 				storage.finalized_number = number;
-			}
-
-			if number == Zero::zero() {
-				storage.genesis_hash = hash;
 			}
 		}
 
@@ -501,7 +499,9 @@ impl<Block: BlockT + DeserializeOwned> blockchain::Backend<Block> for Blockchain
 	}
 
 	fn leaves(&self) -> sp_blockchain::Result<Vec<Block::Hash>> {
-		Ok(self.storage.read().leaves.hashes())
+		let leaves = self.storage.read().leaves.hashes();
+
+		Ok(leaves)
 	}
 
 	fn children(&self, _parent_hash: Block::Hash) -> sp_blockchain::Result<Vec<Block::Hash>> {
@@ -951,7 +951,7 @@ impl<Block: BlockT> ForkedLazyBackend<Block> {
 			let mut entries: HashMap<Option<ChildInfo>, StorageCollection> = Default::default();
 			entries.insert(None, vec![(key.to_vec(), Some(val.clone()))]);
 
-			self.db.write().insert(entries, StateVersion::V0);
+			self.db.write().insert(entries, StateVersion::V1);
 		}
 	}
 }
@@ -1257,10 +1257,8 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 	}
 
 	fn commit_operation(&self, operation: Self::BlockImportOperation) -> sp_blockchain::Result<()> {
-		if !operation.finalized_blocks.is_empty() {
-			for (block, justification) in operation.finalized_blocks {
-				self.blockchain.finalize_header(block, justification)?;
-			}
+		for (block, justification) in operation.finalized_blocks {
+			self.blockchain.finalize_header(block, justification)?;
 		}
 
 		if let Some(pending_block) = operation.pending_block {
@@ -1280,7 +1278,7 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 			let new_db = old_state.db.clone();
 			new_db.write().insert(
 				vec![(None::<ChildInfo>, operation.storage_updates)],
-				StateVersion::V0,
+				StateVersion::V1,
 			);
 			let new_state = ForkedLazyBackend {
 				rpc_client: self.rpc_client.clone(),
@@ -1768,8 +1766,6 @@ where
 			StateEntry::Raw(raw) => (raw.key.clone(), raw.value.clone()),
 		})
 		.collect();
-
-	let _ = helpers::produce_genesis_block(backend.clone());
 
 	// Produce first block after the fork
 	let _ = helpers::produce_first_block(backend.clone(), checkpoint, state_overrides)?;
