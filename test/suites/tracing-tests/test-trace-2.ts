@@ -1,5 +1,7 @@
 import { customDevRpcRequest, describeSuite, expect, TransactionTypes } from "@moonwall/cli";
-import BS_TRACER_V2 from "../../helpers/tracer/blockscout_tracer_v2.min.json" assert { type: "json" }; // editorconfig-checker-disable-line
+import BS_TRACER_V2 from "../../helpers/tracer/blockscout_tracer_v2.min.json" assert {
+  type: "json",
+};
 import { nestedSingle } from "../../helpers";
 
 describeSuite({

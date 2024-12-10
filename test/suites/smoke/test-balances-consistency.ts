@@ -1,19 +1,19 @@
 import "@moonbeam-network/api-augment/moonbase";
 import "@polkadot/api-augment";
-import { ApiDecoration } from "@polkadot/api/types";
+import type { ApiDecoration } from "@polkadot/api/types";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { hexToBigInt, u8aConcat, u8aToHex } from "@polkadot/util";
-import { u16 } from "@polkadot/types";
-import { AccountId20 } from "@polkadot/types/interfaces";
+import type { u16 } from "@polkadot/types";
+import type { AccountId20 } from "@polkadot/types/interfaces";
 import type {
   PalletReferendaDeposit,
   PalletConvictionVotingVoteVoting,
 } from "@polkadot/types/lookup";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { TWO_HOURS, printTokens } from "@moonwall/util";
-import { StorageKey } from "@polkadot/types";
+import type { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit, AccountShortfalls } from "../../helpers";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { processAllStorage } from "../../helpers/storageQueries.js";
 
 enum ReserveType {
@@ -59,12 +59,12 @@ describeSuite({
     const locksMap = new Map<string, { total: bigint }>();
     const failedLocks: any[] = [];
     const failedReserved: any[] = [];
-    let atBlockNumber: number = 0;
+    let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
-    let specVersion: number = 0;
+    let specVersion = 0;
     let runtimeName: string;
-    let totalAccounts: bigint = 0n;
-    let totalIssuance: bigint = 0n;
+    let totalAccounts = 0n;
+    let totalIssuance = 0n;
     let symbol: string;
     let paraApi: ApiPromise;
 
@@ -145,7 +145,7 @@ describeSuite({
     beforeAll(async function () {
       paraApi = context.polkadotJs("para");
       const blockHash = process.env.BLOCK_NUMBER
-        ? (await paraApi.rpc.chain.getBlockHash(parseInt(process.env.BLOCK_NUMBER))).toHex()
+        ? (await paraApi.rpc.chain.getBlockHash(Number.parseInt(process.env.BLOCK_NUMBER))).toHex()
         : (await paraApi.rpc.chain.getFinalizedHead()).toHex();
       atBlockNumber = (await paraApi.rpc.chain.getHeader(blockHash)).number.toNumber();
       apiAt = await paraApi.at(blockHash);
@@ -357,11 +357,10 @@ describeSuite({
                 .map((depositOf) =>
                   depositOf[1]
                     .unwrap()[0]
-                    .map((deposit) => ({
+                    .flatMap((deposit) => ({
                       accountId: deposit.toHex(),
                       reserved: depositOf[1].unwrap()[1].toBigInt(),
                     }))
-                    .flat()
                     .reduce(
                       (p, deposit) => {
                         // We merge multiple reserves together for same account
@@ -393,13 +392,12 @@ describeSuite({
 
               Object.values(
                 democracyDeposits
-                  .map((depositOf) =>
+                  .flatMap((depositOf) =>
                     depositOf[1].unwrap()[0].map((deposit) => ({
                       accountId: deposit.toHex(),
                       reserved: depositOf[1].unwrap()[1].toBigInt(),
                     }))
                   )
-                  .flat()
                   .reduce(
                     (p, deposit) => {
                       // We merge multiple reserves together for same account
@@ -456,7 +454,7 @@ describeSuite({
       });
 
       await new Promise((resolve, reject) => {
-        if ((specVersion >= 1900 && runtimeName == "moonbase") || specVersion >= 2000) {
+        if ((specVersion >= 1900 && runtimeName === "moonbase") || specVersion >= 2000) {
           apiAt.query.preimage.statusFor
             .entries()
             .then((preimageStatuses) => {
@@ -477,7 +475,7 @@ describeSuite({
                 .filter((value) => typeof value !== "undefined")
                 .forEach(({ deposit, accountId }: any) => {
                   updateReserveMap(accountId, {
-                    [ReserveType.PreimageStatus]: deposit == 0n ? 0n : deposit.toBigInt(),
+                    [ReserveType.PreimageStatus]: deposit === 0n ? 0n : deposit.toBigInt(),
                   });
                 });
             })
@@ -491,9 +489,9 @@ describeSuite({
 
       await new Promise((resolve, reject) => {
         if (
-          (specVersion >= 1900 && runtimeName == "moonbase") ||
-          (specVersion >= 2100 && runtimeName == "moonriver") ||
-          (specVersion >= 2300 && runtimeName == "moonbeam")
+          (specVersion >= 1900 && runtimeName === "moonbase") ||
+          (specVersion >= 2100 && runtimeName === "moonriver") ||
+          (specVersion >= 2300 && runtimeName === "moonbeam")
         ) {
           apiAt.query.referenda.referendumInfoFor
             .entries()
@@ -506,26 +504,26 @@ describeSuite({
                         info[1].unwrap().asApproved[2].unwrapOr(null),
                       ]
                     : info[1].unwrap().isRejected
-                    ? [
-                        info[1].unwrap().asRejected[1].unwrapOr(null),
-                        info[1].unwrap().asRejected[2].unwrapOr(null),
-                      ]
-                    : info[1].unwrap().isCancelled
-                    ? [
-                        info[1].unwrap().asCancelled[1].unwrapOr(null),
-                        info[1].unwrap().asCancelled[2].unwrapOr(null),
-                      ]
-                    : info[1].unwrap().isTimedOut
-                    ? [
-                        info[1].unwrap().asTimedOut[1].unwrapOr(null),
-                        info[1].unwrap().asTimedOut[2].unwrapOr(null),
-                      ]
-                    : info[1].unwrap().isOngoing
-                    ? [
-                        info[1].unwrap().asOngoing.submissionDeposit,
-                        info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
-                      ]
-                    : ([] as PalletReferendaDeposit[])
+                      ? [
+                          info[1].unwrap().asRejected[1].unwrapOr(null),
+                          info[1].unwrap().asRejected[2].unwrapOr(null),
+                        ]
+                      : info[1].unwrap().isCancelled
+                        ? [
+                            info[1].unwrap().asCancelled[1].unwrapOr(null),
+                            info[1].unwrap().asCancelled[2].unwrapOr(null),
+                          ]
+                        : info[1].unwrap().isTimedOut
+                          ? [
+                              info[1].unwrap().asTimedOut[1].unwrapOr(null),
+                              info[1].unwrap().asTimedOut[2].unwrapOr(null),
+                            ]
+                          : info[1].unwrap().isOngoing
+                            ? [
+                                info[1].unwrap().asOngoing.submissionDeposit,
+                                info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
+                              ]
+                            : ([] as PalletReferendaDeposit[])
                 ).filter((value) => !!value);
 
                 deposits.forEach((deposit) => {
@@ -565,7 +563,7 @@ describeSuite({
                       assets
                         .find(
                           (asset) =>
-                            asset[0].toHex().slice(-64) == assetMetadata[0].toHex().slice(-64)
+                            asset[0].toHex().slice(-64) === assetMetadata[0].toHex().slice(-64)
                         )![1]
                         .unwrap()
                         .owner.toHex()
@@ -611,7 +609,7 @@ describeSuite({
                         localAssets
                           .find(
                             (localAsset) =>
-                              localAsset[0].toHex().slice(-64) ==
+                              localAsset[0].toHex().slice(-64) ===
                               localAssetMetadata[0].toHex().slice(-64)
                           )![1]
                           .unwrap()
@@ -725,8 +723,8 @@ describeSuite({
       log(`Retrieved ${expectedReserveMap.size} deposits`);
       expectedReserveMap.forEach(({ reserved }, key) => {
         const total = Object.values(reserved!).reduce((total, amount) => {
-          total += amount;
-          return total;
+          const subtotal = total + amount;
+          return subtotal;
         }, 0n);
         expectedReserveMap.set(key, { reserved, total });
       });
@@ -754,9 +752,9 @@ describeSuite({
 
       // Only applies to OpenGov
       if (
-        (specVersion >= 1900 && runtimeName == "moonbase") ||
-        (specVersion >= 2100 && runtimeName == "moonriver") ||
-        (specVersion >= 2300 && runtimeName == "moonbeam")
+        (specVersion >= 1900 && runtimeName === "moonbase") ||
+        (specVersion >= 2100 && runtimeName === "moonriver") ||
+        (specVersion >= 2300 && runtimeName === "moonbeam")
       ) {
         await new Promise((resolve, reject) => {
           apiAt.query.convictionVoting.votingFor
@@ -771,12 +769,12 @@ describeSuite({
                     const amount = curr[1].isStandard
                       ? curr[1].asStandard.balance.toBigInt()
                       : curr[1].isSplit
-                      ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
-                      : curr[1].isSplitAbstain
-                      ? curr[1].asSplitAbstain.aye.toBigInt() +
-                        curr[1].asSplitAbstain.nay.toBigInt() +
-                        curr[1].asSplitAbstain.abstain.toBigInt()
-                      : 0n;
+                        ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
+                        : curr[1].isSplitAbstain
+                          ? curr[1].asSplitAbstain.aye.toBigInt() +
+                            curr[1].asSplitAbstain.nay.toBigInt() +
+                            curr[1].asSplitAbstain.abstain.toBigInt()
+                          : 0n;
 
                     return acc > amount ? acc : amount;
                   }, 0n);
@@ -829,8 +827,8 @@ describeSuite({
               const subTotal = curr[1].isStandard
                 ? curr[1].asStandard.balance.toBigInt()
                 : curr[1].isSplit
-                ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
-                : 0n;
+                  ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
+                  : 0n;
               return acc > subTotal ? acc : subTotal;
             }, 0n);
             updateExpectedLocksMap(accountId, { democracy });
@@ -848,8 +846,8 @@ describeSuite({
 
       expectedLocksMap.forEach(({ locks }, key) => {
         const total = Object.values(locks!).reduce((total, amount) => {
-          total += amount;
-          return total;
+          const subtotal = total + amount;
+          return subtotal;
         }, 0n);
         expectedLocksMap.set(key, { locks, total });
       });

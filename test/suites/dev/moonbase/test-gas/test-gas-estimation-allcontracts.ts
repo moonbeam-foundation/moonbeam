@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import {
-  EthTransactionType,
+  type EthTransactionType,
   TransactionTypes,
   beforeAll,
   customDevRpcRequest,
@@ -28,7 +28,7 @@ describeSuite({
     beforeAll(async function () {
       // Estimation for storage need to happen in a block > than genesis.
       // Otherwise contracts that uses block number as storage will remove instead of storing
-      // (as block.number == H256::default).
+      // (as block.number === H256::default).
       await context.createBlock();
     });
 
@@ -52,24 +52,26 @@ describeSuite({
           title: `should be enough for contract ${contractName} via ${txnType}`,
           test: async function () {
             const { bytecode, abi } = fetchCompiledContract(contractName);
-            const constructorAbi = abi.find((call) => call.type == "constructor") as AbiConstructor;
+            const constructorAbi = abi.find(
+              (call) => call.type === "constructor"
+            ) as AbiConstructor;
             // ask RPC for an gas estimate of deploying this contract
 
             const args = constructorAbi
               ? constructorAbi.inputs.map((input) =>
-                  input.type == "bool"
+                  input.type === "bool"
                     ? true
-                    : input.type == "address"
-                    ? faith.address
-                    : input.type.startsWith("uint")
-                    ? `0x${Buffer.from(
-                        randomBytes(Number(input.type.split("uint")[1]) / 8)
-                      ).toString("hex")}`
-                    : input.type.startsWith("bytes")
-                    ? `0x${Buffer.from(randomBytes(Number(input.type.split("bytes")[1]))).toString(
-                        "hex"
-                      )}`
-                    : "0x"
+                    : input.type === "address"
+                      ? faith.address
+                      : input.type.startsWith("uint")
+                        ? `0x${Buffer.from(
+                            randomBytes(Number(input.type.split("uint")[1]) / 8)
+                          ).toString("hex")}`
+                        : input.type.startsWith("bytes")
+                          ? `0x${Buffer.from(
+                              randomBytes(Number(input.type.split("bytes")[1]))
+                            ).toString("hex")}`
+                          : "0x"
                 )
               : [];
 
@@ -90,7 +92,7 @@ describeSuite({
               ]);
               creationResult = "Succeed";
             } catch (e: any) {
-              if (e.message == "VM Exception while processing transaction: revert") {
+              if (e.message === "VM Exception while processing transaction: revert") {
                 estimate = 12_000_000n;
                 creationResult = "Revert";
               } else {
@@ -110,7 +112,7 @@ describeSuite({
               .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
             expectEVMResult(result!.events, creationResult);
-            expect(receipt.status == "success").to.equal(creationResult == "Succeed");
+            expect(receipt.status === "success").to.equal(creationResult === "Succeed");
           },
         });
       }

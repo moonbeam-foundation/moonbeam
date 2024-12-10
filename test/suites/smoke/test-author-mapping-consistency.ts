@@ -1,8 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { FIVE_MINS } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
-import { ApiDecoration } from "@polkadot/api/types";
+import type { ApiPromise } from "@polkadot/api";
+import type { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
 
 describeSuite({
@@ -12,7 +12,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     const nimbusIdPerAccount: { [account: string]: string } = {};
 
-    let atBlockNumber: number = 0;
+    let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
     let paraApi: ApiPromise;
 
@@ -26,7 +26,7 @@ describeSuite({
       // (to avoid inconsistency querying over multiple block when the test takes a long time to
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
-        ? parseInt(process.env.BLOCK_NUMBER)
+        ? Number.parseInt(process.env.BLOCK_NUMBER)
         : (await paraApi.rpc.chain.getHeader()).number.toNumber();
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
 
@@ -38,7 +38,7 @@ describeSuite({
           startKey: last_key,
         });
 
-        if (query.length == 0) {
+        if (query.length === 0) {
           break;
         }
         count += query.length;
@@ -51,7 +51,7 @@ describeSuite({
         }
 
         // Debug logs to make sure it keeps progressing
-        if (count % (10 * limit) == 0) {
+        if (count % (10 * limit) === 0) {
           log(`Retrieved ${count} nimbus ids`);
         }
       }
@@ -87,7 +87,7 @@ describeSuite({
           // ensure that keys exist and smell legitimate
           const keys_ = registrationInfo.unwrap().keys_;
           const zeroes = Array.from(keys_.toString()).reduce((prev, c) => {
-            return prev + (c == "0" ? 1 : 0);
+            return prev + (c === "0" ? 1 : 0);
           }, 0);
           if (zeroes > 32) {
             // this isn't an inconsistent state, so we will just warn.

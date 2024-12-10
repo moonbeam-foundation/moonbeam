@@ -57,7 +57,7 @@ describeSuite({
         expect(extrinsic).to.exist;
         expect(resultEvent?.method).to.equal("ExtrinsicSuccess");
         expect(
-          (events.find((e) => e.section == "ethereum" && e.method == "Executed")?.data[3] as any)
+          (events.find((e) => e.section === "ethereum" && e.method === "Executed")?.data[3] as any)
             .isSucceed
         ).to.be.true;
       },
@@ -73,7 +73,7 @@ describeSuite({
           "ethereum",
           "transact"
         );
-        expect(events.find((e) => e.section == "authorMapping" && e.method == "KeysRemoved")).to
+        expect(events.find((e) => e.section === "authorMapping" && e.method === "KeysRemoved")).to
           .exist;
       },
     });

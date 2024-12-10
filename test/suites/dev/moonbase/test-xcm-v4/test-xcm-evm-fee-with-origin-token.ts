@@ -2,20 +2,20 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { ethan } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 
 import {
-  AssetMetadata,
+  type AssetMetadata,
   PARA_1000_SOURCE_LOCATION,
   PARA_1001_SOURCE_LOCATION,
-  TestAsset,
+  type TestAsset,
   foreignAssetBalance,
   registerAndFundAsset,
   verifyLatestBlockFees,
 } from "../../../../helpers/index.js";
 
 import {
-  RawXcmMessage,
+  type RawXcmMessage,
   XcmFragment,
   descendOriginFromAddress20,
   injectHrmpMessageAndSeal,

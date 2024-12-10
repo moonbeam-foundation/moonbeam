@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { ApiDecoration } from "@polkadot/api/types";
+import type { ApiDecoration } from "@polkadot/api/types";
 import { BN, hexToBigInt } from "@polkadot/util";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import randomLib from "randomness";
-import { Bit } from "randomness/lib/types";
+import type { Bit } from "randomness/lib/types";
 import chalk from "chalk";
 
 const RANDOMNESS_ACCOUNT_ID = "0x6d6f646c6d6f6f6e72616e640000000000000000";
@@ -14,11 +14,11 @@ describeSuite({
   title: "Verify randomness consistency",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
-    let atBlockNumber: number = 0;
+    let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
     const requestStates: { id: number; state: any }[] = [];
-    let numRequests: number = 0; // our own count
-    let requestCount: number = 0; // from pallet storage
+    let numRequests = 0; // our own count
+    let requestCount = 0; // from pallet storage
     let isRandomnessAvailable = true;
     let paraApi: ApiPromise;
 
@@ -27,7 +27,7 @@ describeSuite({
       const runtimeVersion = paraApi.runtimeVersion.specVersion.toNumber();
       const runtimeName = paraApi.runtimeVersion.specName.toString();
       isRandomnessAvailable =
-        (runtimeVersion >= 1700 && runtimeName == "moonbase") || runtimeVersion >= 1900;
+        (runtimeVersion >= 1700 && runtimeName === "moonbase") || runtimeVersion >= 1900;
 
       if (!isRandomnessAvailable) {
         log(`Skipping test [RT${runtimeVersion} ${runtimeName}]`);
@@ -39,7 +39,7 @@ describeSuite({
       let count = 0;
 
       atBlockNumber = process.env.BLOCK_NUMBER
-        ? parseInt(process.env.BLOCK_NUMBER)
+        ? Number.parseInt(process.env.BLOCK_NUMBER)
         : (await paraApi.rpc.chain.getHeader()).number.toNumber();
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
 
@@ -50,7 +50,7 @@ describeSuite({
           startKey: last_key,
         });
 
-        if (query.length == 0) {
+        if (query.length === 0) {
           break;
         }
         count += query.length;
@@ -67,7 +67,7 @@ describeSuite({
           last_key = key;
         }
 
-        if (count % (10 * limit) == 0) {
+        if (count % (10 * limit) === 0) {
           log(`Retrieved ${count} requests`);
           log(`Requests: ${requestStates.map((r) => r.id).join(",")}`);
         }
@@ -481,10 +481,13 @@ describeSuite({
 
     // Tests uniform distribution of outputs bytes by checking if any repeated bytes
     function outputWithinExpectedRepetition(bytes: Uint8Array, maxRepeats: number) {
-      const counts = bytes.reduce((acc, byte) => {
-        acc[byte] = (acc[byte] || 0) + 1;
-        return acc;
-      }, {} as { [byte: string]: number });
+      const counts = bytes.reduce(
+        (acc, byte) => {
+          acc[byte] = (acc[byte] || 0) + 1;
+          return acc;
+        },
+        {} as { [byte: string]: number }
+      );
 
       const exceededRepeats = Object.values(counts).some((count) => count > maxRepeats);
 

@@ -3,9 +3,9 @@ import {
   XcmFragment,
   injectHrmpMessage,
   descendOriginFromAddress20,
-  RawXcmMessage,
+  type RawXcmMessage,
 } from "../../helpers";
-import { hexToNumber, Abi, encodeFunctionData } from "viem";
+import { hexToNumber, type Abi, encodeFunctionData } from "viem";
 
 describeSuite({
   id: "T12",
@@ -46,7 +46,7 @@ describeSuite({
       // Get Pallet balances index
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
       const balancesPalletIndex = metadata.asLatest.pallets
-        .find(({ name }) => name.toString() == "Balances")!
+        .find(({ name }) => name.toString() === "Balances")!
         .index.toNumber();
 
       const xcmTransaction = {

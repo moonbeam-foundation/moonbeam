@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import { Abi, decodeEventLog, encodeFunctionData } from "viem";
+import { type Abi, decodeEventLog, encodeFunctionData } from "viem";
 
 describeSuite({
   id: "D011805",

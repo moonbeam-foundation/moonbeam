@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { u128 } from "@polkadot/types";
+import type { u128 } from "@polkadot/types";
 import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
-import { expect, DevModeContext } from "@moonwall/cli";
+import { expect, type DevModeContext } from "@moonwall/cli";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
-import { KeyringPair } from "@polkadot/keyring/types";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import type {
   PalletAssetsAssetAccount,
   PalletAssetsAssetDetails,
@@ -70,29 +70,30 @@ export function assetContractAddress(assetId: bigint | string): `0x${string}` {
 }
 
 export const patchLocationV4recursively = (value: any) => {
+  let result = value;
   // e.g. Convert this: { X1: { Parachain: 1000 } } to { X1: [ { Parachain: 1000 } ] }
   // Also, will remove the Xcm key if it exists.
-  if (value && value.Xcm !== undefined) {
-    value = value.Xcm;
+  if (result && result.Xcm !== undefined) {
+    result = result.Xcm;
   }
-  if (value && typeof value == "object") {
-    if (Array.isArray(value)) {
-      return value.map(patchLocationV4recursively);
+  if (result && typeof result === "object") {
+    if (Array.isArray(result)) {
+      return result.map(patchLocationV4recursively);
     }
-    for (const k of Object.keys(value)) {
+    for (const k of Object.keys(result)) {
       if (k === "Concrete" || k === "Abstract") {
-        return patchLocationV4recursively(value[k]);
+        return patchLocationV4recursively(result[k]);
       }
-      if (k.match(/^[Xx]\d$/g) && !Array.isArray(value[k])) {
-        value[k] = Object.entries(value[k]).map(([k, v]) => ({
+      if (k.match(/^[Xx]\d$/g) && !Array.isArray(result[k])) {
+        result[k] = Object.entries(result[k]).map(([k, v]) => ({
           [k]: patchLocationV4recursively(v),
         }));
       } else {
-        value[k] = patchLocationV4recursively(value[k]);
+        result[k] = patchLocationV4recursively(result[k]);
       }
     }
   }
-  return value;
+  return result;
 };
 
 const runtimeApi = {
@@ -243,7 +244,7 @@ function getSupportedAssetStorageKey(asset: any, context: any) {
 export async function addAssetToWeightTrader(asset: any, relativePrice: bigint, context: any) {
   const assetV4 = patchLocationV4recursively(asset.Xcm);
 
-  if (relativePrice == 0n) {
+  if (relativePrice === 0n) {
     const addAssetWithPlaceholderPrice = context
       .polkadotJs()
       .tx.sudo.sudo(context.polkadotJs().tx.xcmWeightTrader.addAsset(assetV4, 1n));
@@ -397,7 +398,7 @@ export async function registerForeignAsset(
   const { decimals, name, symbol } = metadata;
 
   // Sanitize Xcm Location
-  xcmLocation = patchLocationV4recursively(xcmLocation);
+  const xcmLoc = patchLocationV4recursively(xcmLocation);
 
   const { result } = await context.createBlock(
     context
@@ -405,7 +406,7 @@ export async function registerForeignAsset(
       .tx.sudo.sudo(
         context
           .polkadotJs()
-          .tx.evmForeignAssets.createForeignAsset(assetId, xcmLocation, decimals, symbol, name)
+          .tx.evmForeignAssets.createForeignAsset(assetId, xcmLoc, decimals, symbol, name)
       )
   );
 
@@ -547,9 +548,9 @@ export async function mockOldAssetBalance(
   // Get keys to modify total supply & dummyCode (TODO: remove once dummy code inserted by node)
   const assetKey = xxhashAsU8a(new TextEncoder().encode("Asset"), 128);
   const overallAssetKey = new Uint8Array([...module, ...assetKey, ...blake2concatAssetId]);
-  const evmCodeAssetKey = api.query.evm.accountCodes.key("0xFfFFfFff" + assetId.toHex().slice(2));
+  const evmCodeAssetKey = api.query.evm.accountCodes.key(`0xFfFFfFff${assetId.toHex().slice(2)}`);
   const evmCodesMetadataAssetKey = api.query.evm.accountCodesMetadata.key(
-    "0xFfFFfFff" + assetId.toHex().slice(2)
+    `0xFfFFfFff${assetId.toHex().slice(2)}`
   );
 
   const codeSize = DUMMY_REVERT_BYTECODE.slice(2).length / 2;

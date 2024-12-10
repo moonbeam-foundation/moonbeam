@@ -1,4 +1,4 @@
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import Debugger from "debug";
 import { rateLimiter } from "./common.js";
 
@@ -50,7 +50,7 @@ export async function processAllStorage(
       prefixes.map(async (prefix) =>
         limiter.schedule(async () => {
           let startKey: string | undefined = undefined;
-          loop: for (;;) {
+          for (;;) {
             // @ts-expect-error _rpcCore is not yet exposed
             const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [
               prefix,
@@ -60,7 +60,7 @@ export async function processAllStorage(
             ]);
 
             if (!keys.length) {
-              break loop;
+              break;
             }
 
             // @ts-expect-error _rpcCore is not yet exposed
@@ -83,7 +83,7 @@ export async function processAllStorage(
             total += keys.length;
 
             if (keys.length !== maxKeys) {
-              break loop;
+              break;
             }
             startKey = keys[keys.length - 1];
           }

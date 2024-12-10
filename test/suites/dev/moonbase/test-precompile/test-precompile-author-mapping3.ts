@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwa
 import {
   ALITH_ADDRESS,
   DEFAULT_GENESIS_MAPPING,
-  KeyringPair,
+  type KeyringPair,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
   createViemTransaction,
   generateKeyringPair,

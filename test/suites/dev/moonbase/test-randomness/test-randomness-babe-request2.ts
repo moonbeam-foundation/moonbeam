@@ -29,7 +29,7 @@ describeSuite({
       id: "T01",
       title: "should store a request with id:0",
       test: async function () {
-        const requestId = parseInt(
+        const requestId = Number.parseInt(
           (await context.polkadotJs().query.randomness.requests.entries())[0][0].toHex().slice(-16),
           16
         );

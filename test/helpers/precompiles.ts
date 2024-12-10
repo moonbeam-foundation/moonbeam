@@ -1,4 +1,4 @@
-import { DevModeContext, expect, fetchCompiledContract } from "@moonwall/cli";
+import { type DevModeContext, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_PRIVATE_KEY,
@@ -9,7 +9,7 @@ import {
   charleth,
   createViemTransaction,
 } from "@moonwall/util";
-import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import type { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 import { blake2AsHex } from "@polkadot/util-crypto";
 import { encodeFunctionData, parseEther } from "viem";
 import { expectEVMResult } from "./eth-transactions.js";
@@ -19,7 +19,7 @@ export const setAuthorMappingKeysViaPrecompile = async (
   account: string,
   privateKey: `0x${string}`,
   keys: string,
-  handleFail: boolean = false
+  handleFail = false
 ) => {
   const { abi: authorMappingAbi } = fetchCompiledContract("AuthorMapping");
 
@@ -59,7 +59,7 @@ export const concatNewKeys = `0x${newKeys.map((key) => key.slice(2)).join("")}`;
 
 export const notePreimagePrecompile = async <
   Call extends SubmittableExtrinsic<ApiType>,
-  ApiType extends ApiTypes
+  ApiType extends ApiTypes,
 >(
   context: DevModeContext,
   proposal: Call
@@ -86,7 +86,7 @@ export const notePreimagePrecompile = async <
 export async function getAuthorMappingInfo(
   context: DevModeContext,
   authorId: string
-): Promise<void | { account: string; deposit: bigint }> {
+): Promise<undefined | { account: string; deposit: bigint }> {
   const mapping = await context.polkadotJs().query.authorMapping.mappingWithDeposit(authorId);
   if (mapping.isSome) {
     return {

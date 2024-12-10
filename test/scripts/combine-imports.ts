@@ -2,8 +2,8 @@
 //             useful for old test cases that had multiple imports from helpers in the same file.
 // Usage: pnpm tsx ./scripts/combine-imports.ts <directory>
 
-import fs from "fs/promises";
-import { join } from "path";
+import fs from "node:fs/promises";
+import { join } from "node:path";
 
 const processFile = async (filePath: string): Promise<void> => {
   const content = await fs.readFile(filePath, "utf-8");
@@ -11,12 +11,13 @@ const processFile = async (filePath: string): Promise<void> => {
   const importRegex = /import \{ ([^\}]+) \} from "\.\.\/\.\.\/\.\.\/helpers";/g;
 
   const allImports: string[] = [];
-  let match;
   let firstMatchIndex = -1;
 
-  while ((match = importRegex.exec(content)) !== null) {
+  let match = importRegex.exec(content);
+  while (match !== null) {
     if (firstMatchIndex === -1) firstMatchIndex = match.index;
     allImports.push(match[1].trim());
+    match = importRegex.exec(content);
   }
 
   if (allImports.length > 0) {

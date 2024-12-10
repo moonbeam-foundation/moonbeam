@@ -14,7 +14,7 @@ describeSuite({
       test: async function () {
         const referendumCount = await context.polkadotJs().query.referenda.referendumCount();
         const blockNum = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
-        if (blockNum == 0n) {
+        if (blockNum === 0n) {
           expect(referendumCount.toNumber()).to.equal(0);
         } else {
           log(`Skipping test T01 because block number is ${blockNum}`);

@@ -1,12 +1,12 @@
-import { BlockCreationResponse, expect } from "@moonwall/cli";
+import { type BlockCreationResponse, expect } from "@moonwall/cli";
 import type { EventRecord } from "@polkadot/types/interfaces";
-import {
+import type {
   ApiTypes,
   AugmentedEvent,
   AugmentedEvents,
   SubmittableExtrinsic,
 } from "@polkadot/api/types";
-import { IEvent } from "@polkadot/types/types";
+import type { IEvent } from "@polkadot/types/types";
 
 export type ExtractTuple<P> = P extends AugmentedEvent<"rxjs", infer T> ? T : never;
 
@@ -22,7 +22,7 @@ export async function expectOk<
     ApiType,
     // @ts-expect-error TODO: fix this
     Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>
-  >
+  >,
 >(call: Promise<BlockCreation>): Promise<BlockCreation> {
   const block = await call;
   if (Array.isArray(block.result)) {
@@ -56,7 +56,7 @@ export function expectSubstrateEvent<
   Event extends AugmentedEvents<ApiType>,
   Section extends keyof Event,
   Method extends keyof Event[Section],
-  Tuple extends ExtractTuple<Event[Section][Method]>
+  Tuple extends ExtractTuple<Event[Section][Method]>,
 >(
   //@ts-expect-error TODO: fix this
   block: BlockCreationResponse<ApiType, Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>>,
@@ -67,7 +67,7 @@ export function expectSubstrateEvent<
   if (Array.isArray(block.result)) {
     block.result.forEach((r) => {
       const foundEvents = r.events.filter(
-        ({ event }) => event.section.toString() == section && event.method.toString() == method
+        ({ event }) => event.section.toString() === section && event.method.toString() === method
       );
       if (foundEvents.length > 0) {
         expect(
@@ -84,7 +84,7 @@ export function expectSubstrateEvent<
   } else {
     const foundEvents = (block.result! as any).events!.filter(
       (item: any) =>
-        item.event.section.toString() == section && item.event.method.toString() == method
+        item.event.section.toString() === section && item.event.method.toString() === method
     );
     if (foundEvents.length > 0) {
       expect(
@@ -97,10 +97,10 @@ export function expectSubstrateEvent<
   expect(
     event,
     `Event ${section.toString()}.${method.toString()} not found:\n${(Array.isArray(block.result)
-      ? block.result.map((r) => r.events).flat()
+      ? block.result.flatMap((r) => r.events)
       : block.result
-      ? block.result.events
-      : []
+        ? block.result.events
+        : []
     )
       .map(({ event }) => `       - ${event.section.toString()}.${event.method.toString()}\n`)
       .join("")}`
@@ -119,7 +119,7 @@ export function expectSubstrateEvents<
   Event extends AugmentedEvents<ApiType>,
   Section extends keyof Event,
   Method extends keyof Event[Section],
-  Tuple extends ExtractTuple<Event[Section][Method]>
+  Tuple extends ExtractTuple<Event[Section][Method]>,
 >(
   //@ts-expect-error TODO: fix this
   block: BlockCreationResponse<ApiType, Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>>,
@@ -130,7 +130,7 @@ export function expectSubstrateEvents<
   if (Array.isArray(block.result)) {
     block.result.forEach((r) => {
       const foundEvents = r.events.filter(
-        ({ event }) => event.section.toString() == section && event.method.toString() == method
+        ({ event }) => event.section.toString() === section && event.method.toString() === method
       );
       if (foundEvents.length > 0) {
         events.push(...foundEvents);
@@ -139,7 +139,7 @@ export function expectSubstrateEvents<
   } else {
     const foundEvents = (block.result! as any).events.filter(
       (item: any) =>
-        item.event.section.toString() == section && item.event.method.toString() == method
+        item.event.section.toString() === section && item.event.method.toString() === method
     );
     if (foundEvents.length > 0) {
       events.push(...foundEvents);

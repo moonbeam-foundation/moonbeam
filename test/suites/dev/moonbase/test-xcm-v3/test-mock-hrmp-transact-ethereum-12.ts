@@ -2,10 +2,10 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { GAS_LIMIT_POV_RATIO, generateKeyringPair } from "@moonwall/util";
-import { KeyringPair } from "@polkadot/keyring/types";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
@@ -51,7 +51,7 @@ describeSuite({
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
 
         const amountToTransfer = transferredBalance / 10n;

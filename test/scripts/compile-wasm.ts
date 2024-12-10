@@ -1,6 +1,6 @@
-import fs from "fs/promises";
-import path from "path";
-import child_process from "child_process";
+import fs from "node:fs/promises";
+import path from "node:path";
+import child_process from "node:child_process";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
@@ -40,7 +40,7 @@ yargs(hideBin(process.argv))
 
 async function spawn(cmd: string) {
   return new Promise((resolve, reject) => {
-    var spawned = child_process.spawn(cmd, { shell: true });
+    const spawned = child_process.spawn(cmd, { shell: true });
 
     let errData = "";
     let outData = "";

@@ -1,13 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext, expect } from "@moonwall/cli";
-import { EventRecord } from "@polkadot/types/interfaces";
-import {
+import { type DevModeContext, expect } from "@moonwall/cli";
+import type { EventRecord } from "@polkadot/types/interfaces";
+import type {
   EvmCoreErrorExitError,
   EvmCoreErrorExitFatal,
   EvmCoreErrorExitReason,
   EvmCoreErrorExitRevert,
   EvmCoreErrorExitSucceed,
 } from "@polkadot/types/lookup";
+import assert from "node:assert";
 import { fromHex } from "viem";
 
 export type Errors = {
@@ -18,7 +19,10 @@ export type Errors = {
 };
 
 export async function extractRevertReason(context: DevModeContext, responseHash: string) {
-  const tx = (await context.ethers().provider!.getTransaction(responseHash))!;
+  const tx = await context.ethers().provider?.getTransaction(responseHash);
+
+  assert(tx, "Transaction not found");
+
   try {
     await context.ethers().call({ to: tx.to, data: tx.data, gasLimit: tx.gasLimit });
     return null;
@@ -33,18 +37,18 @@ export function expectEVMResult<T extends Errors, Type extends keyof T>(
   resultType: Type,
   reason?: T[Type]
 ) {
-  expect(events, `Missing events, probably failed execution`).to.be.length.at.least(1);
+  expect(events, "Missing events, probably failed execution").to.be.length.at.least(1);
   const ethereumResult = events.find(
-    ({ event: { section, method } }) => section == "ethereum" && method == "Executed"
+    ({ event: { section, method } }) => section === "ethereum" && method === "Executed"
   )!.event.data[3] as EvmCoreErrorExitReason;
 
   const foundReason = ethereumResult.isError
     ? ethereumResult.asError.type
     : ethereumResult.isFatal
-    ? ethereumResult.asFatal.type
-    : ethereumResult.isRevert
-    ? ethereumResult.asRevert.type
-    : ethereumResult.asSucceed.type;
+      ? ethereumResult.asFatal.type
+      : ethereumResult.isRevert
+        ? ethereumResult.asRevert.type
+        : ethereumResult.asSucceed.type;
 
   expect(
     ethereumResult.type,

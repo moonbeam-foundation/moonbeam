@@ -4,7 +4,7 @@ import { hexToNumber, parseEther } from "viem";
 import {
   ERC20_TOTAL_SUPPLY,
   XcmFragment,
-  XcmFragmentConfig,
+  type XcmFragmentConfig,
   expectEVMResult,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
@@ -32,10 +32,10 @@ describeSuite({
       // Get pallet indices
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
       const balancesPalletIndex = metadata.asLatest.pallets
-        .find(({ name }) => name.toString() == "Balances")!
+        .find(({ name }) => name.toString() === "Balances")!
         .index.toNumber();
       const erc20XcmPalletIndex = metadata.asLatest.pallets
-        .find(({ name }) => name.toString() == "Erc20XcmBridge")!
+        .find(({ name }) => name.toString() === "Erc20XcmBridge")!
         .index.toNumber();
 
       // Send some native tokens to the sovereign account of paraId (to pay fees)

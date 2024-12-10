@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { ApiDecoration } from "@polkadot/api/types";
+import type { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
 import { expect, beforeAll, describeSuite } from "@moonwall/cli";
 import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { rateLimiter } from "../../helpers/common.js";
 
 describeSuite({
@@ -14,7 +14,7 @@ describeSuite({
     const proxiesPerAccount: { [account: string]: PalletProxyProxyDefinition[] } = {};
     const proxyAccList: string[] = [];
     const limiter = rateLimiter();
-    let atBlockNumber: number = 0;
+    let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
     let paraApi: ApiPromise;
 
@@ -28,7 +28,7 @@ describeSuite({
       // (to avoid inconsistency querying over multiple block when the test takes a long time to
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
-        ? parseInt(process.env.BLOCK_NUMBER)
+        ? Number.parseInt(process.env.BLOCK_NUMBER)
         : (await paraApi.rpc.chain.getHeader()).number.toNumber();
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
 
@@ -40,7 +40,7 @@ describeSuite({
           startKey: last_key,
         });
 
-        if (query.length == 0) {
+        if (query.length === 0) {
           break;
         }
         count += query.length;
@@ -55,7 +55,7 @@ describeSuite({
 
         // log logs to make sure it keeps progressing
         // TEMPLATE: Adapt log line
-        if (count % (10 * limit) == 0) {
+        if (count % (10 * limit) === 0) {
           log(`Retrieved ${count} proxies`);
         }
       }
@@ -148,7 +148,7 @@ describeSuite({
         // For each account with a registered proxy, check whether it is a non-SC address
         const promises = proxyAccList.map(async (address) => {
           const resp = await limiter.schedule(() => apiAt.query.evm.accountCodes(address));
-          const contract = resp.toJSON() == "0x" ? false : true;
+          const contract = resp.toJSON() !== "0x";
           return { address, contract };
         });
 
@@ -157,7 +157,7 @@ describeSuite({
           if (item.contract)
             log(`Proxy account for non-external address detected: ${item.address} `);
         });
-        expect(results.every((item) => item.contract == false)).to.be.true;
+        expect(results.every((item) => item.contract === false)).to.be.true;
       },
     });
   },

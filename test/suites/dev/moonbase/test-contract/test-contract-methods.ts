@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import { encodeFunctionData, Abi } from "viem";
+import { encodeFunctionData, type Abi } from "viem";
 
 describeSuite({
   id: "D010609",

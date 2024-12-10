@@ -1,16 +1,16 @@
-import { ApiDecoration } from "@polkadot/api/types";
+import type { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
 import { describeSuite, beforeAll } from "@moonwall/cli";
 import { ONE_HOURS } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
-import { fail } from "assert";
+import type { ApiPromise } from "@polkadot/api";
+import { fail } from "node:assert";
 
 // Change the following line to reproduce a particular case
 const STARTING_KEY_OVERRIDE = "";
 const MODULE_NAME = "";
 const FN_NAME = "";
 
-const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
+const pageSize = (process.env.PAGE_SIZE && Number.parseInt(process.env.PAGE_SIZE)) || 500;
 
 const extractStorageKeyComponents = (storageKey: string) => {
   // The full storage key is composed of
@@ -44,9 +44,9 @@ describeSuite({
   title: "Polkadot API - Storage items",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
-    let atBlockNumber: number = 0;
+    let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
-    let specVersion: number = 0;
+    let specVersion = 0;
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
@@ -160,7 +160,7 @@ describeSuite({
                 // Log first entry storage key
                 const firstRandomEntryKey = randomEntries[0][0].toString();
                 log(`     - ${fn}:  ${chalk.green(`🔎`)} (random key: ${firstRandomEntryKey})`);
-              } else if (fn != "code") {
+              } else if (fn !== "code") {
                 await module[fn]();
               }
 

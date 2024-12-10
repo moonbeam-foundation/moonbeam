@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
-import { CumulusPrimitivesParachainInherentParachainInherentData } from "@polkadot/types/lookup";
+import type { CumulusPrimitivesParachainInherentParachainInherentData } from "@polkadot/types/lookup";
 
 describeSuite({
   id: "D010405",

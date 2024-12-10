@@ -20,5 +20,6 @@ tools/*-local.json
 tools/*-local-raw.json
 tools/build
 
-# RustRover
+# IDEs
 .idea/
+.vscode/

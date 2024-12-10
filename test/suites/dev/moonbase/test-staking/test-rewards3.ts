@@ -54,7 +54,7 @@ describeSuite({
         );
 
         expect(
-          rewardedEvents.some(({ account }) => account == ethan.address),
+          rewardedEvents.some(({ account }) => account === ethan.address),
           "delegator was incorrectly rewarded"
         ).to.be.false;
       },

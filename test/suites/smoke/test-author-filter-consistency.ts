@@ -1,16 +1,16 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { ApiDecoration } from "@polkadot/api/types";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiDecoration } from "@polkadot/api/types";
+import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({
   id: "S01",
   title: `Verify author filter consistency`,
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
-    let atBlockNumber: number = 0;
+    let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
-    let specVersion: number = 0;
+    let specVersion = 0;
     let paraApi: ApiPromise;
 
     beforeAll(async function () {

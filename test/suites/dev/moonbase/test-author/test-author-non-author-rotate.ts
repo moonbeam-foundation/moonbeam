@@ -6,7 +6,7 @@ import {
   BALTATHAR_SESSION_ADDRESS,
   CHARLETH_SESSION_ADDRESS,
 } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({

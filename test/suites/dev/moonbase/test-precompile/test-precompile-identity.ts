@@ -29,7 +29,9 @@ describeSuite({
         //    ..the other variants
         //
         // See BitWise operator (<<) for more info.
-        context.polkadotJs().tx.identity.setFields(0, 0b111 as any)
+        context
+          .polkadotJs()
+          .tx.identity.setFields(0, 0b111 as any)
       );
 
       await context.createBlock(

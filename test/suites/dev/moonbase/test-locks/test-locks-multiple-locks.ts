@@ -60,7 +60,7 @@ describeSuite({
           await context.polkadotJs().query.system.account(randomAddress)
         ).data.frozen.toBigInt();
 
-        // BigInt doesn't have max()- we are testing frozenBalance == max(GLMR, MIN_GLMR_DELEGATOR)
+        // BigInt doesn't have max()- we are testing frozenBalance === max(GLMR, MIN_GLMR_DELEGATOR)
         if (GLMR > MIN_GLMR_DELEGATOR) {
           expect(frozenBalance).to.equal(GLMR);
         } else {

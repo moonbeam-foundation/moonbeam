@@ -11,9 +11,9 @@
  */
 
 import yargs from "yargs";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import * as path from "path";
-import * as child_process from "child_process";
+import * as child_process from "node:child_process";
 import { killAll, run } from "polkadot-launch";
 
 export async function getDockerBuildBinary(

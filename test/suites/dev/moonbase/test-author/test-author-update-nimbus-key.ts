@@ -7,7 +7,7 @@ import {
   getBlockExtrinsic,
   DOROTHY_ADDRESS,
 } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 
 // Keys used to set author-mapping in the tests
 const originalKeys = [
@@ -60,7 +60,7 @@ describeSuite({
           "authorMapping",
           "removeKeys"
         );
-        expect(events.find((e) => e.section == "authorMapping")).to.not.exist;
+        expect(events.find((e) => e.section === "authorMapping")).to.not.exist;
       },
     });
 

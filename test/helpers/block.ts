@@ -1,21 +1,21 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { DevModeContext, expect } from "@moonwall/cli";
+import { type DevModeContext, expect } from "@moonwall/cli";
 import {
-  BlockRangeOption,
+  type BlockRangeOption,
   EXTRINSIC_BASE_WEIGHT,
   WEIGHT_PER_GAS,
   calculateFeePortions,
   mapExtrinsics,
 } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
-import { Option, u128, u32 } from "@polkadot/types";
+import type { Option, u128, u32 } from "@polkadot/types";
 import type { ITuple } from "@polkadot/types-codec/types";
-import { BlockHash, DispatchInfo, RuntimeDispatchInfo } from "@polkadot/types/interfaces";
+import type { BlockHash, DispatchInfo, RuntimeDispatchInfo } from "@polkadot/types/interfaces";
 import type { RuntimeDispatchInfoV1 } from "@polkadot/types/interfaces/payment";
 import type { AccountId20, Block } from "@polkadot/types/interfaces/runtime/types";
 import chalk from "chalk";
-import { Debugger } from "debug";
+import type { Debugger } from "debug";
 import Debug from "debug";
 
 const debug = Debug("test:blocks");
@@ -47,9 +47,10 @@ const getBlockDetails = async (
 
   const fees = await Promise.all(
     block.extrinsics.map(async (ext) =>
-      (
-        await api.at(block.header.parentHash)
-      ).call.transactionPaymentApi.queryInfo(ext.toU8a(), ext.encodedLength)
+      (await api.at(block.header.parentHash)).call.transactionPaymentApi.queryInfo(
+        ext.toU8a(),
+        ext.encodedLength
+      )
     )
   );
 
@@ -120,10 +121,10 @@ export const verifyBlockFees = async (
         // This hash will only exist if the transaction was executed through ethereum.
         let ethereumAddress = "";
 
-        if (extrinsic.method.section == "ethereum") {
+        if (extrinsic.method.section === "ethereum") {
           // Search for ethereum execution
           events.forEach((event) => {
-            if (event.section == "ethereum" && event.method == "Executed") {
+            if (event.section === "ethereum" && event.method === "Executed") {
               ethereumAddress = event.data[0].toString();
             }
           });
@@ -131,7 +132,7 @@ export const verifyBlockFees = async (
 
         // Payment event is submitted for substrate transactions
         const paymentEvent = events.find(
-          (event) => event.section == "transactionPayment" && event.method == "TransactionFeePaid"
+          (event) => event.section === "transactionPayment" && event.method === "TransactionFeePaid"
         );
 
         let txFees = 0n;
@@ -144,7 +145,7 @@ export const verifyBlockFees = async (
             api.events.system.ExtrinsicFailed.is(event)
           ) {
             const dispatchInfo =
-              event.method == "ExtrinsicSuccess"
+              event.method === "ExtrinsicSuccess"
                 ? (event.data[0] as DispatchInfo)
                 : (event.data[1] as DispatchInfo);
 
@@ -152,9 +153,9 @@ export const verifyBlockFees = async (
             // Either ethereum transactions or signed extrinsics with fees (substrate tx)
             if (
               (dispatchInfo.paysFee.isYes && !extrinsic.signer.isEmpty) ||
-              extrinsic.method.section == "ethereum"
+              extrinsic.method.section === "ethereum"
             ) {
-              if (extrinsic.method.section == "ethereum") {
+              if (extrinsic.method.section === "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
                 const gasUsed = (dispatchInfo as any).weight.refTime.toBigInt() / WEIGHT_PER_GAS;
                 const ethTxWrapper = extrinsic.method.args[0] as any;
@@ -308,7 +309,8 @@ export async function jumpToRound(context: DevModeContext, round: number): Promi
     ).current.toNumber();
     if (currentRound === round) {
       return lastBlockHash;
-    } else if (currentRound > round) {
+    }
+    if (currentRound > round) {
       return null;
     }
 
@@ -317,9 +319,10 @@ export async function jumpToRound(context: DevModeContext, round: number): Promi
 }
 
 export async function jumpBlocks(context: DevModeContext, blockCount: number) {
-  while (blockCount > 0) {
+  let blocksToCreate = blockCount;
+  while (blocksToCreate > 0) {
     (await context.createBlock()).block.hash.toString();
-    blockCount--;
+    blocksToCreate--;
   }
 }
 
@@ -350,7 +353,8 @@ export function extractPreimageDeposit(
       accountId: deposit.unwrap()[0].toHex(),
       amount: deposit.unwrap()[1],
     };
-  } else if ("isNone" in deposit && deposit.isNone) {
+  }
+  if ("isNone" in deposit && deposit.isNone) {
     return undefined;
   }
 

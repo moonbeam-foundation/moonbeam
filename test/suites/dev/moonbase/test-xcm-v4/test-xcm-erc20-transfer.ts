@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
 import { expectEVMResult, getTransactionFees } from "../../../../helpers";
 import {
   XcmFragment,
-  XcmFragmentConfig,
+  type XcmFragmentConfig,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../../../helpers/xcm.js";
@@ -101,10 +101,10 @@ describeSuite({
         // Get pallet indices
         const metadata = await polkadotJs.rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
         const erc20XcmPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Erc20XcmBridge")!
+          .find(({ name }) => name.toString() === "Erc20XcmBridge")!
           .index.toNumber();
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)

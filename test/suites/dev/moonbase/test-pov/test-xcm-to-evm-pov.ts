@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, beforeAll, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { Abi, encodeFunctionData } from "viem";
-import { HeavyContract, deployHeavyContracts, expectOk } from "../../../../helpers";
+import { type Abi, encodeFunctionData } from "viem";
+import { type HeavyContract, deployHeavyContracts, expectOk } from "../../../../helpers";
 
 import {
-  RawXcmMessage,
+  type RawXcmMessage,
   XcmFragment,
   descendOriginFromAddress20,
   injectHrmpMessage,

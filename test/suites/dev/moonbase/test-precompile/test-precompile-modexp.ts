@@ -75,7 +75,7 @@ describeSuite({
           "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"; // modulus
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -135,7 +135,7 @@ describeSuite({
           "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"; // modulus
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -168,7 +168,7 @@ describeSuite({
           testVectors["nagydani-1-square"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -203,7 +203,7 @@ describeSuite({
           testVectors["nagydani-1-qube"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -237,7 +237,7 @@ describeSuite({
           testVectors["nagydani-1-pow0x10001"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -271,7 +271,7 @@ describeSuite({
           testVectors["nagydani-2-square"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -305,7 +305,7 @@ describeSuite({
           testVectors["nagydani-2-qube"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -339,7 +339,7 @@ describeSuite({
           testVectors["nagydani-2-pow0x10001"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -373,7 +373,7 @@ describeSuite({
           testVectors["nagydani-3-square"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -407,7 +407,7 @@ describeSuite({
           testVectors["nagydani-3-qube"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -441,7 +441,7 @@ describeSuite({
           testVectors["nagydani-3-pow0x10001"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -475,7 +475,7 @@ describeSuite({
           testVectors["nagydani-4-square"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -509,7 +509,7 @@ describeSuite({
           testVectors["nagydani-4-qube"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -543,7 +543,7 @@ describeSuite({
           testVectors["nagydani-4-pow0x10001"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -577,7 +577,7 @@ describeSuite({
           testVectors["nagydani-5-square"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -611,7 +611,7 @@ describeSuite({
           testVectors["nagydani-5-qube"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -645,7 +645,7 @@ describeSuite({
           testVectors["nagydani-5-pow0x10001"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -697,7 +697,7 @@ describeSuite({
         ]);
         const inputData = u8aToHex(byteArray);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {

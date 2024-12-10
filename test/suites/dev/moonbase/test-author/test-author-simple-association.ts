@@ -8,7 +8,7 @@ import {
   GLMR,
 } from "@moonwall/util";
 import { expect, describeSuite } from "@moonwall/cli";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({

@@ -19,7 +19,7 @@ describeSuite({
           );
           const info = extractInfo(result?.events)!;
           expect(info).to.not.be.empty;
-          expect(info.paysFee.isYes, "Transaction should be marked as paysFees == no").to.be.false;
+          expect(info.paysFee.isYes, "Transaction should be marked as paysFees === no").to.be.false;
         },
       });
     }

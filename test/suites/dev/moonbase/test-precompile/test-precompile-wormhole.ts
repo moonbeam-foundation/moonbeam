@@ -5,8 +5,8 @@ import { Enum, Struct } from "@polkadot/types";
 import type { Registry } from "@polkadot/types/types/registry";
 import { u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
-import { InterfaceAbi, ethers } from "ethers";
-import { Abi, encodeFunctionData } from "viem";
+import { type InterfaceAbi, ethers } from "ethers";
+import { type Abi, encodeFunctionData } from "viem";
 import {
   expectEVMResult,
   expectSubstrateEvents,
@@ -192,9 +192,8 @@ describeSuite({
       const finality = 1;
       // Deploy bridge (based on wormhole)
       // wormhole-foundation/wormhole/blob/main/ethereum/migrations/3_deploy_bridge.js
-      const { contractAddress: tokenImplAddr } = await context.deployContract!(
-        "TokenImplementation"
-      );
+      const { contractAddress: tokenImplAddr } =
+        await context.deployContract!("TokenImplementation");
       log(`wormhole token impl deployed to ${tokenImplAddr}`);
       const { contractAddress: bridgeSetupAddr, abi: bridgeSetupAbi } =
         await context.deployContract!("BridgeSetup");

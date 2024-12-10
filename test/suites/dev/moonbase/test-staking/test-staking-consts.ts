@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   GLMR,
-  KeyringPair,
+  type KeyringPair,
   MIN_GLMR_DELEGATOR,
   MIN_GLMR_STAKING,
   alith,

@@ -7,7 +7,7 @@ import {
   ETHAN_PRIVATE_KEY,
   GLMR,
 } from "@moonwall/util";
-import { Abi, decodeEventLog } from "viem";
+import { type Abi, decodeEventLog } from "viem";
 import {
   ConvictionVoting,
   cancelProposal,

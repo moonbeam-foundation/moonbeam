@@ -1,8 +1,8 @@
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { CHARLETH_ADDRESS, BALTATHAR_ADDRESS, alith, setupLogger } from "@moonwall/util";
-import { parseEther, formatEther, Signer } from "ethers";
+import { parseEther, formatEther, type Signer } from "ethers";
 import { BN } from "@polkadot/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({
   id: "D014301",

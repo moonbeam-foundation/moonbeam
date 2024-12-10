@@ -7,8 +7,8 @@ import {
   execOpenTechCommitteeProposal,
 } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith, baltathar } from "@moonwall/util";
-import { u128 } from "@polkadot/types-codec";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { u128 } from "@polkadot/types-codec";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import {
   RELAY_SOURCE_LOCATION,
   addAssetToWeightTrader,

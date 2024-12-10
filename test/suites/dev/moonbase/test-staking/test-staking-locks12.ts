@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   GLMR,
-  KeyringPair,
+  type KeyringPair,
   MILLIGLMR,
   MIN_GLMR_DELEGATOR,
   alith,
@@ -86,7 +86,7 @@ describeSuite({
             .polkadotJs()
             .query.balances.locks.multi(topDelegators.map((delegator) => delegator.address));
           const numDelegatorLocks = topLocks.filter((lockSet) =>
-            lockSet.find((lock) => fromBytes(lock.id.toU8a(), "string") == "stkngdel")
+            lockSet.find((lock) => fromBytes(lock.id.toU8a(), "string") === "stkngdel")
           ).length;
 
           if (numDelegatorLocks < topDelegators.length) {
@@ -132,7 +132,7 @@ describeSuite({
           .query.balances.locks.multi(bottomDelegators.map((delegator) => delegator.address));
         expect(
           bottomLocks.filter((lockSet) =>
-            lockSet.find((lock) => fromBytes(lock.id.toU8a(), "string") == "stkngdel")
+            lockSet.find((lock) => fromBytes(lock.id.toU8a(), "string") === "stkngdel")
           ).length
         ).to.equal(
           context.polkadotJs().consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber()

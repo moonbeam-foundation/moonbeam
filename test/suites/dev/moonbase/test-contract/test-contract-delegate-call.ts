@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeAll, deployCreateCompiledContract } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import { encodeFunctionData, Abi } from "viem";
+import { encodeFunctionData, type Abi } from "viem";
 
 const PRECOMPILE_PREFIXES = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2052, 2053, 2054, 2055, 2056, 2057, 2058,
@@ -12,7 +12,7 @@ const PRECOMPILE_PREFIXES = [
 const ALLOWED_PRECOMPILE_PREFIXES = PRECOMPILE_PREFIXES.filter((add) => add <= 9);
 const FORBIDDEN_PRECOMPILE_PREFIXES = PRECOMPILE_PREFIXES.filter((add) => add > 9);
 const DELEGATECALL_FORDIDDEN_MESSAGE =
-  // contract call result (boolean). False == failed.
+  // contract call result (boolean). False === failed.
   "0x0000000000000000000000000000000000000000000000000000000000000000" +
   "0000000000000000000000000000000000000000000000000000000000000040" + // result offset
   "0000000000000000000000000000000000000000000000000000000000000084" + // result length

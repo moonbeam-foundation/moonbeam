@@ -111,7 +111,7 @@ describeSuite({
         );
 
         // grab the first withdraw event and hope it's the right one...
-        const withdrawEvent = result?.events.filter(({ event }) => event.method == "Withdraw")[0];
+        const withdrawEvent = result?.events.filter(({ event }) => event.method === "Withdraw")[0];
         const amount = withdrawEvent.event.data.amount.toBigInt();
         // ~/4 to compensate for the ref time XCM fee changes
         // Previous value: 6_000_000_012_598_000_941_192n
@@ -164,13 +164,13 @@ describeSuite({
         expect(receipt2.status).toBe("success");
 
         const successEvent = interactionResult?.events.filter(
-          ({ event }) => event.method == "ExtrinsicSuccess"
+          ({ event }) => event.method === "ExtrinsicSuccess"
         )[0];
         const weight = successEvent.event.data.dispatchInfo.weight.refTime.toBigInt();
         expect(weight).to.equal(1_734_300_000n);
 
         const withdrawEvents = interactionResult?.events.filter(
-          ({ event }) => event.method == "Withdraw"
+          ({ event }) => event.method === "Withdraw"
         );
         expect(withdrawEvents?.length).to.equal(1);
         const withdrawEvent = withdrawEvents![0];

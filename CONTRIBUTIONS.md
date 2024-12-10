@@ -25,8 +25,7 @@ and are expected to pass before a PR is considered mergeable. They can also be r
 
 - [clippy](https://github.com/rust-lang/rust-clippy) - run with `cargo clippy --release --workspace`
 - [rustfmt](https://github.com/rust-lang/rustfmt) - run with `cargo fmt -- --check`
-- [editorconfig](https://editorconfig.org/) - integrate into your text editor / IDE
-- [prettier](https://prettier.io/) - run with `npx prettier --check --ignore-path .gitignore '**/*.(yml|js|ts|json)'` (runs against `typescript` code)
+- [biome](https://biomejs.dev/) - run with `pnpm check` (runs against `typescript` code)
 
 ### Directory Structure
 

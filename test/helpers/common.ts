@@ -1,8 +1,8 @@
-import { DevModeContext, importJsonConfig } from "@moonwall/cli";
-import { ApiPromise } from "@polkadot/api";
-import { u32 } from "@polkadot/types";
+import { type DevModeContext, importJsonConfig } from "@moonwall/cli";
+import type { ApiPromise } from "@polkadot/api";
+import type { u32 } from "@polkadot/types";
 import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
-import { createMetadata, KeyringPair, OptionsWithMeta } from "@substrate/txwrapper-core";
+import { createMetadata, type KeyringPair, type OptionsWithMeta } from "@substrate/txwrapper-core";
 import Bottleneck from "bottleneck";
 
 export function rateLimiter(options?: Bottleneck.ConstructorOptions) {
@@ -53,7 +53,7 @@ export async function getMappingInfo(context: DevModeContext, authorId: string) 
 
 export async function getProviderPath() {
   const globalConfig = await importJsonConfig();
-  const env = globalConfig.environments.find(({ name }) => name == process.env.MOON_TEST_ENV)!;
+  const env = globalConfig.environments.find(({ name }) => name === process.env.MOON_TEST_ENV)!;
   return env.connections
     ? env.connections[0].endpoints[0].replace("ws://", "http://")
     : `http://127.0.0.1:${10000 + Number(process.env.VITEST_POOL_ID || 1) * 100}`;

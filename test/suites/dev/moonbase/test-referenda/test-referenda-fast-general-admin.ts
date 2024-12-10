@@ -54,7 +54,7 @@ describeSuite({
         const refInfo = await context.polkadotJs().query.referenda.referendumInfoFor(refIndex);
         const track = refInfo.unwrap().asOngoing.track.toString();
         const tracks = context.polkadotJs().consts.referenda.tracks;
-        const trackName = tracks.find(([index, info]) => index.toString() == track)![1].name;
+        const trackName = tracks.find(([index, info]) => index.toString() === track)![1].name;
 
         expect(trackName.toString()).to.be.eq("fast_general_admin");
       },

@@ -13,10 +13,10 @@ import {
   alith,
   createEthersTransaction,
 } from "@moonwall/util";
-import { u128 } from "@polkadot/types";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { u128 } from "@polkadot/types";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { nToHex } from "@polkadot/util";
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 import { mockOldAssetBalance } from "../../../../helpers";
 
 describeSuite({

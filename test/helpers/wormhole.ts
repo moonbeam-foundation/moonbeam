@@ -2,14 +2,14 @@ import { SigningKey } from "ethers";
 import { encodePacked, keccak256, pad, toBytes } from "viem";
 
 function encode(type: string, val: any) {
-  if (type == "uint8") return encodePacked(["uint8"], [val]).slice(2);
-  if (type == "uint16") return encodePacked(["uint16"], [val]).slice(2);
-  if (type == "uint32") return encodePacked(["uint32"], [val]).slice(2);
-  if (type == "uint64") return encodePacked(["uint64"], [val]).slice(2);
-  if (type == "uint128") return encodePacked(["uint128"], [val]).slice(2);
-  if (type == "address32") return pad(encodePacked(["address"], [`0x${val.slice(-40)}`])).slice(2);
-  if (type == "uint256") return encodePacked(["uint256"], [val]).slice(2);
-  if (type == "bytes32")
+  if (type === "uint8") return encodePacked(["uint8"], [val]).slice(2);
+  if (type === "uint16") return encodePacked(["uint16"], [val]).slice(2);
+  if (type === "uint32") return encodePacked(["uint32"], [val]).slice(2);
+  if (type === "uint64") return encodePacked(["uint64"], [val]).slice(2);
+  if (type === "uint128") return encodePacked(["uint128"], [val]).slice(2);
+  if (type === "address32") return pad(encodePacked(["address"], [`0x${val.slice(-40)}`])).slice(2);
+  if (type === "uint256") return encodePacked(["uint256"], [val]).slice(2);
+  if (type === "bytes32")
     return encodePacked(["bytes32"], [pad(val as `0x${string}`, { size: 32 })]).slice(2);
 }
 
@@ -35,7 +35,7 @@ export async function createSignedVAA(
     payload.slice(2),
   ];
 
-  const hash = keccak256(keccak256(("0x" + body.join("")) as `0x${string}`));
+  const hash = keccak256(keccak256(`0x${body.join("")}` as `0x${string}`));
 
   let signatures = "";
   for (const i in signers) {
@@ -114,8 +114,8 @@ export async function genAssetMeta(
     encode("address32", tokenAddress),
     encode("uint16", tokenChain),
     encode("uint8", decimals),
-    encode("bytes32", "0x" + Buffer.from(symbol).toString("hex")),
-    encode("bytes32", "0x" + Buffer.from(name).toString("hex")),
+    encode("bytes32", `0x${Buffer.from(symbol).toString("hex")}`),
+    encode("bytes32", `0x${Buffer.from(name).toString("hex")}`),
   ];
 
   const seconds = Math.floor(new Date().getTime() / 1000.0);

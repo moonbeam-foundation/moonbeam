@@ -60,8 +60,10 @@ describeSuite({
           []
         );
 
-        const rewardedEthan = rewardedEvents.find(({ account }) => account == ethan.address);
-        const rewardedBalathar = rewardedEvents.find(({ account }) => account == baltathar.address);
+        const rewardedEthan = rewardedEvents.find(({ account }) => account === ethan.address);
+        const rewardedBalathar = rewardedEvents.find(
+          ({ account }) => account === baltathar.address
+        );
         expect(rewardedEthan).is.not.undefined;
         expect(rewardedBalathar).is.not.undefined;
         expect(

@@ -1317,7 +1317,6 @@ fn length_fee_is_sensible() {
 				.len_fee
 		};
 
-		// editorconfig-checker-disable
 		//                  left: cost of length fee, right: size in bytes
 		//                             /------------- proportional component: O(N * 1B)
 		//                             |           /- exponential component: O(N ** 3)
@@ -1331,7 +1330,6 @@ fn length_fee_is_sensible() {
 		assert_eq!(        100_100_000_000_000_000_000, calc_fee(1_000_000)); // 100 GLMR, ~ 1MB
 		assert_eq!(    100_001_000_000_000_000_000_000, calc_fee(10_000_000));
 		assert_eq!(100_000_010_000_000_000_000_000_000, calc_fee(100_000_000));
-		// editorconfig-checker-enable
 	});
 }
 

@@ -1,5 +1,5 @@
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { ethers, parseEther } from "ethers";
 import { expectOk } from "../../../../helpers";
 import {
@@ -16,7 +16,7 @@ import {
   alith,
   createEthersTransaction,
 } from "@moonwall/util";
-import { u128 } from "@polkadot/types-codec";
+import type { u128 } from "@polkadot/types-codec";
 import { encodeFunctionData, parseAbi } from "viem";
 
 describeSuite({
@@ -52,7 +52,7 @@ describeSuite({
       ];
 
       const totalSupply = accounts
-        .reduce((sum, account) => sum + parseFloat(account.balance), 0)
+        .reduce((sum, account) => sum + Number.parseFloat(account.balance), 0)
         .toString();
 
       // Create asset details

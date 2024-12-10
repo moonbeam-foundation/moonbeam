@@ -7,7 +7,7 @@ import {
   whiteListTrackNoSend,
 } from "@moonwall/cli";
 import { DEFAULT_GENESIS_BALANCE, ethan, GLMR, GOLIATH_ADDRESS } from "@moonwall/util";
-import { SubmittableExtrinsic } from "@polkadot/api/promise/types";
+import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 import {
   getAccountPayable,
   RELAYCHAIN_ARBITRARY_ADDRESS_1,

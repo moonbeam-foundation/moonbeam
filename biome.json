@@ -1,0 +1,65 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "files": {
+    "include": [
+      "*.js",
+      "*.ts",
+      "*.yml",
+      "*.md"
+    ],
+    "ignore": [
+      "./node_modules/*",
+      "./dist/*",
+      "./target/*",
+      "**/tmp/*",
+      "*.spec.json"
+    ]
+  },
+  "organizeImports": {
+    "enabled": false
+  },
+  "formatter": {
+    "enabled": true,
+    "lineWidth": 100,
+    "attributePosition": "multiline"
+  },
+  "json": {
+    "formatter": {
+      "enabled": false
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "trailingCommas": "es5",
+      "semicolons": "always",
+      "indentStyle": "space",
+      "lineWidth": 100,
+      "quoteStyle": "double"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noImplicitAnyLet": "off",
+        "noAsyncPromiseExecutor": "off"
+      },
+      "performance": {
+        "noAccumulatingSpread": "off",
+        "noDelete": "off"
+      },
+      "complexity": {
+        "useArrowFunction": "off",
+        "useLiteralKeys": "off",
+        "noForEach": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "noUnusedTemplateLiteral": "off",
+        "useTemplate": "off"
+      }
+    }
+  }
+}

@@ -1,8 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect, execOpenTechCommitteeProposal } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
-import { Result } from "@polkadot/types";
-import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
+import type { Result } from "@polkadot/types";
+import type { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
 describeSuite({
   id: "D012004",

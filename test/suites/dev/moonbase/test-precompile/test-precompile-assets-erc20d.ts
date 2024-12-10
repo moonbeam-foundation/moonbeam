@@ -7,9 +7,9 @@ import {
   alith,
   createViemTransaction,
 } from "@moonwall/util";
-import { u128 } from "@polkadot/types-codec";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { Abi, encodeFunctionData } from "viem";
+import type { u128 } from "@polkadot/types-codec";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import { type Abi, encodeFunctionData } from "viem";
 import { mockOldAssetBalance } from "../../../../helpers";
 
 describeSuite({

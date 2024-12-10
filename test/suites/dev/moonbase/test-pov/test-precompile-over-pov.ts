@@ -6,9 +6,9 @@ import {
   deployCreateCompiledContract,
   fetchCompiledContract,
 } from "@moonwall/cli";
-import { HeavyContract, deployHeavyContracts, expectEVMResult } from "../../../../helpers";
+import { type HeavyContract, deployHeavyContracts, expectEVMResult } from "../../../../helpers";
 
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 import { ALITH_ADDRESS, PRECOMPILE_BATCH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 
 describeSuite({

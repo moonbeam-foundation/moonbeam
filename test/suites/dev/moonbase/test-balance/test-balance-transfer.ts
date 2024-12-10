@@ -127,9 +127,9 @@ describeSuite({
         ).block.header.number.toBigInt();
 
         const block1Hash = await context.polkadotJs().rpc.chain.getBlockHash(blockNumber);
-        const balance = await (
-          await context.polkadotJs().at(block1Hash)
-        ).query.system.account(ALITH_ADDRESS);
+        const balance = await (await context.polkadotJs().at(block1Hash)).query.system.account(
+          ALITH_ADDRESS
+        );
 
         expect(await context.viem().getBalance({ blockNumber, address: ALITH_ADDRESS })).to.equal(
           balance.data.free.toBigInt() +

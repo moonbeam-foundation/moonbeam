@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, alith } from "@moonwall/util";
-import { PrivateKeyAccount, generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { type PrivateKeyAccount, generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { VESTING_PERIOD, getAccountPayable } from "../../../../helpers";
 
 describeSuite({

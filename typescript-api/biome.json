@@ -1,0 +1,22 @@
+{
+    "extends": [
+        "../biome.json"
+    ],
+    "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+    "javascript": {
+        "formatter": {
+            "trailingCommas": "none",
+            "semicolons": "always",
+            "indentStyle": "space",
+            "lineWidth": 100,
+            "quoteStyle": "double"
+        }
+    },
+    "linter": {
+        "rules": {
+            "suspicious": {
+                "noShadowRestrictedNames": "off"
+            }
+        }
+    }
+}

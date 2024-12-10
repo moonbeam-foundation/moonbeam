@@ -54,7 +54,7 @@ describeSuite({
         // ethereum revert is still a successful substrate extrinsic
         expect(resultEvent?.method).to.equal("ExtrinsicSuccess");
         expect(
-          (events.find((e) => e.section == "ethereum" && e.method == "Executed")?.data[3] as any)
+          (events.find((e) => e.section === "ethereum" && e.method === "Executed")?.data[3] as any)
             .isRevert
         ).to.be.true;
       },
@@ -70,7 +70,7 @@ describeSuite({
           "ethereum",
           "transact"
         );
-        expect(events.find((e) => e.section == "authorMapping")).to.not.exist;
+        expect(events.find((e) => e.section === "authorMapping")).to.not.exist;
       },
     });
 
@@ -128,7 +128,7 @@ describeSuite({
 //     expect(extrinsic).to.exist;
 //     expect(resultEvent.method).to.equal("ExtrinsicSuccess");
 //     expect(
-//       (events.find((e) => e.section == "ethereum" && e.method == "Executed").data[3] as any)
+//       (events.find((e) => e.section === "ethereum" && e.method === "Executed").data[3] as any)
 //         .isRevert
 //     ).to.be.true;
 //   });
@@ -147,7 +147,7 @@ describeSuite({
 //     expect(extrinsic).to.exist;
 //     expect(resultEvent.method).to.equal("ExtrinsicSuccess");
 //     expect(
-//       (events.find((e) => e.section == "ethereum" && e.method == "Executed").data[3] as any)
+//       (events.find((e) => e.section === "ethereum" && e.method === "Executed").data[3] as any)
 //         .isRevert
 //     ).to.be.true;
 //   });

@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
+import { BALTATHAR_ADDRESS, type KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
 import { bnToHex } from "@polkadot/util";
 import {
-  RawXcmMessage,
+  type RawXcmMessage,
   XcmFragment,
   descendOriginFromAddress20,
   expectOk,
@@ -70,7 +70,7 @@ describeSuite({
 
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
       balancesPalletIndex = metadata.asLatest.pallets
-        .find(({ name }) => name.toString() == "Balances")!
+        .find(({ name }) => name.toString() === "Balances")!
         .index.toNumber();
     });
 

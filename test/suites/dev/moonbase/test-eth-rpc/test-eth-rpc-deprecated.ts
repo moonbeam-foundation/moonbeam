@@ -18,7 +18,7 @@ describeSuite({
 
     for (const { method, params } of deprecatedMethods) {
       it({
-        id: `T0${deprecatedMethods.findIndex((item) => item.method == method) + 1}`,
+        id: `T0${deprecatedMethods.findIndex((item) => item.method === method) + 1}`,
         title: `${method} should be mark as not found`,
         test: async function () {
           expect(async () => await customDevRpcRequest(method, params)).rejects.toThrowError(
