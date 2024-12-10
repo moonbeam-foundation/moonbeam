@@ -38,10 +38,9 @@ describeSuite({
       log("Current runtime:", rtBefore);
       log("About to upgrade to runtime at:", wasmPath);
 
-      await context.createBlock([], { finalize: false });
+      await context.createBlock();
       const { result } = await context.createBlock(
-        api.tx.system.applyAuthorizedUpgrade(runtimeWasmHex),
-        { finalize: false }
+        api.tx.system.applyAuthorizedUpgrade(runtimeWasmHex)
       );
 
       assert(result, "Block has no extrinsic results");
@@ -75,9 +74,9 @@ describeSuite({
       }
 
       // This next block will receive the GoAhead signal
-      await context.createBlock([], { finalize: false });
+      await context.createBlock();
       // The next block will process the runtime upgrade
-      await context.createBlock([], { finalize: false });
+      await context.createBlock();
 
       const events = (await api.query.system.events()).filter(({ event }) =>
         api.events.migrations.RuntimeUpgradeCompleted.is(event)
