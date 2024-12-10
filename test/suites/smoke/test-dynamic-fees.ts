@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { WEIGHT_PER_GAS, getBlockArray, WEIGHT_FEE } from "@moonwall/util";
+import { WEIGHT_PER_GAS, getBlockArray } from "@moonwall/util";
 import { ApiPromise } from "@polkadot/api";
 import { GenericExtrinsic } from "@polkadot/types";
 import type { u128, u32 } from "@polkadot/types-codec";
@@ -122,25 +122,6 @@ describeSuite({
       specVersion = version.specVersion;
       const specName = version.specName;
       runtime = specName.toUpperCase() as any;
-
-      if (
-        specVersion.toNumber() < 2200 &&
-        (specName.toString() == "moonbase" || specName.toString() == "moonriver")
-      ) {
-        log(
-          `Runtime ${specName.toString()} version ` +
-            `${specVersion.toString()} is less than 2200, skipping test suite.`
-        );
-        skipAll = true;
-      }
-
-      if (specVersion.toNumber() < 2300 && specName.toString() == "moonbeam") {
-        log(
-          `Runtime ${specName.toString()} version ` +
-            `${specVersion.toString()} is less than 2300, skipping test suite.`
-        );
-        skipAll = true;
-      }
 
       targetFillPermill = RUNTIME_CONSTANTS[runtime].TARGET_FILL_PERMILL.get(
         specVersion.toNumber()
@@ -323,22 +304,14 @@ describeSuite({
           log("Skipping test suite due to runtime version");
           return;
         }
-        const supplyFactor = ConstantStore(context).SUPPLY_FACTOR;
-        const weightFee = ConstantStore(context).WEIGHT_FEE;
+        const weightFee = ConstantStore(context).WEIGHT_FEE.get(specVersion.toNumber());
 
         const failures = blockData
           .map(({ blockNum, nextFeeMultiplier, baseFeePerGasInGwei }) => {
             const baseFeePerGasInWei = ethers.parseUnits(baseFeePerGasInGwei, "gwei");
 
-            let expectedBaseFeePerGasInWei =
-              (nextFeeMultiplier.toBigInt() * WEIGHT_FEE * WEIGHT_PER_GAS * supplyFactor) /
-              ethers.parseEther("1");
-            // The min_gas_price was divided by 4 on runtime 3400
-            if (specVersion.toNumber() > 3300) {
-              expectedBaseFeePerGasInWei =
-                (nextFeeMultiplier.toBigInt() * weightFee * WEIGHT_PER_GAS) /
-                ethers.parseEther("1");
-            }
+            const expectedBaseFeePerGasInWei =
+              (nextFeeMultiplier.toBigInt() * weightFee * WEIGHT_PER_GAS) / ethers.parseEther("1");
 
             const valid = baseFeePerGasInWei == expectedBaseFeePerGasInWei;
             return { blockNum, baseFeePerGasInGwei, valid, expectedBaseFeePerGasInWei };
