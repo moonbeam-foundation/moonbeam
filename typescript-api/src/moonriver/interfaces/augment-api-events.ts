@@ -17,7 +17,7 @@ import type {
   u16,
   u32,
   u64,
-  u8,
+  u8
 } from "@polkadot/types-codec";
 import type { ITuple } from "@polkadot/types-codec/types";
 import type { AccountId20, H160, H256, Perbill, Percent } from "@polkadot/types/interfaces/runtime";
@@ -54,7 +54,7 @@ import type {
   StagingXcmV4Xcm,
   XcmV3TraitsError,
   XcmVersionedAssets,
-  XcmVersionedLocation,
+  XcmVersionedLocation
 } from "@polkadot/types/lookup";
 
 export type __AugmentedEvent<ApiType extends ApiTypes> = AugmentedEvent<ApiType>;

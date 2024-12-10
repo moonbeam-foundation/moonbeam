@@ -1,6 +1,6 @@
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
 import { Octokit } from "octokit";
-import { readFileSync } from "fs";
+import { readFileSync } from "node:fs";
 import yargs from "yargs";
 import path from "path";
 import { getCommitAndLabels, getCompareLink } from "./github-utils";
@@ -36,12 +36,12 @@ function getRuntimeInfo(srtoolReportFolder: string, runtimeName: string) {
 // the pallet parachain_system is at index 6, so we have to recalculate the hash of the
 // authorizeUpgrade call in the case of moonbase by hand.
 function authorizeUpgradeHash(runtimeName: string, srtool: any): string {
-  if (runtimeName == "moonbase") {
+  if (runtimeName === "moonbase") {
     return blake2AsHex(
       MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE +
         srtool.runtimes.compressed.blake2_256.substr(2) // remove "0x" prefix
     );
-  } else if (runtimeName == "moonriver") {
+  } else if (runtimeName === "moonriver") {
     return blake2AsHex(
       MOONRIVER_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE +
         srtool.runtimes.compressed.blake2_256.substr(2) // remove "0x" prefix

@@ -14,7 +14,7 @@ describeSuite({
     // fixed by:
     // https://github.com/rust-blockchain/evm/commit/19ade858c430ab13eb562764a870ac9f8506f8dd
     it({
-      id: `T01`,
+      id: "T01",
       title: "should fail with out of gas",
       test: async function () {
         const bytecode = new Uint8Array([
@@ -22,7 +22,7 @@ describeSuite({
           249, 0, 224, 111, 1, 0, 0, 0, 247, 30, 1, 0, 0, 0, 0, 0, 0,
         ]);
 
-        const value = "0x" + 993452714685890559n.toString(16);
+        const value = `0x${993452714685890559n.toString(16)}`;
 
         const rawSigned = await createEthersTransaction(context, {
           from: ALITH_ADDRESS,

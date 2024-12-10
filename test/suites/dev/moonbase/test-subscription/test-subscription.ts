@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, createRawTransfer } from "@moonwall/util";
-import { PublicClient, createPublicClient, webSocket } from "viem";
+import { type PublicClient, createPublicClient, webSocket } from "viem";
 
 describeSuite({
   id: "D013605",

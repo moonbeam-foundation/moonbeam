@@ -1,5 +1,5 @@
-import { LogsSubscription } from "node_modules/web3/lib/types/eth.exports.js";
-import { Log, Web3 } from "web3";
+import type { LogsSubscription } from "node_modules/web3/lib/types/eth.exports.js";
+import type { Log, Web3 } from "web3";
 
 export async function web3SubscribeHistoricalLogs(
   web3: Web3,

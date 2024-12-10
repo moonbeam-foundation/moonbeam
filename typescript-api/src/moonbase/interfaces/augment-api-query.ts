@@ -21,7 +21,7 @@ import type {
   u128,
   u16,
   u32,
-  u64,
+  u64
 } from "@polkadot/types-codec";
 import type { AnyNumber, ITuple } from "@polkadot/types-codec/types";
 import type {
@@ -30,7 +30,7 @@ import type {
   H160,
   H256,
   Perbill,
-  Percent,
+  Percent
 } from "@polkadot/types/interfaces/runtime";
 import type {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
@@ -121,7 +121,7 @@ import type {
   StagingXcmV4Location,
   StagingXcmV4Xcm,
   XcmVersionedAssetId,
-  XcmVersionedLocation,
+  XcmVersionedLocation
 } from "@polkadot/types/lookup";
 import type { Observable } from "@polkadot/types/types";
 
@@ -404,7 +404,7 @@ declare module "@polkadot/api-base/types/storage" {
       initialized: AugmentedQuery<ApiType, () => Observable<bool>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
-       * Total initialized amount so far. We store this to make pallet funds == contributors reward
+       * Total initialized amount so far. We store this to make pallet funds === contributors reward
        * check easier and more efficient
        */
       initializedRewardAmount: AugmentedQuery<ApiType, () => Observable<u128>, []> &
@@ -1405,7 +1405,7 @@ declare module "@polkadot/api-base/types/storage" {
         QueryableStorageEntry<ApiType, []>;
       /**
        * Snapshot of randomness to fulfill all requests that are for the same raw randomness Removed
-       * once $value.request_count == 0
+       * once $value.request_count === 0
        */
       randomnessResults: AugmentedQuery<
         ApiType,

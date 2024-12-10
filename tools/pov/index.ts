@@ -1,9 +1,9 @@
 #!/usr/bin/env ts-node
 
-import { exec as execProcess } from "child_process";
+import { exec as execProcess } from "node:child_process";
 import yargs from "yargs";
 import util from "node:util";
-import fs from "fs";
+import fs from "node:fs";
 import os from "os";
 import path from "path";
 import { strict as assert } from "node:assert";

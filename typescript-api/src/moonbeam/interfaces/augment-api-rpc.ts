@@ -20,7 +20,7 @@ import type {
   bool,
   f64,
   u32,
-  u64,
+  u64
 } from "@polkadot/types-codec";
 import type { AnyNumber, Codec } from "@polkadot/types-codec/types";
 import type { ExtrinsicOrHash, ExtrinsicStatus } from "@polkadot/types/interfaces/author";
@@ -35,7 +35,7 @@ import type {
   ContractCallRequest,
   ContractExecResult,
   ContractInstantiateResult,
-  InstantiateRequestV1,
+  InstantiateRequestV1
 } from "@polkadot/types/interfaces/contracts";
 import type { BlockStats } from "@polkadot/types/interfaces/dev";
 import type { CreatedBlock } from "@polkadot/types/interfaces/engine";
@@ -53,13 +53,13 @@ import type {
   EthSyncStatus,
   EthTransaction,
   EthTransactionRequest,
-  EthWork,
+  EthWork
 } from "@polkadot/types/interfaces/eth";
 import type { Extrinsic } from "@polkadot/types/interfaces/extrinsics";
 import type {
   EncodedFinalityProofs,
   JustificationNotification,
-  ReportedRoundStates,
+  ReportedRoundStates
 } from "@polkadot/types/interfaces/grandpa";
 import type { MmrHash, MmrLeafBatchProof } from "@polkadot/types/interfaces/mmr";
 import type { StorageKind } from "@polkadot/types/interfaces/offchain";
@@ -77,13 +77,13 @@ import type {
   Justification,
   KeyValue,
   SignedBlock,
-  StorageData,
+  StorageData
 } from "@polkadot/types/interfaces/runtime";
 import type {
   MigrationStatusResult,
   ReadProof,
   RuntimeVersion,
-  TraceBlockResponse,
+  TraceBlockResponse
 } from "@polkadot/types/interfaces/state";
 import type {
   ApplyExtrinsicResult,
@@ -93,7 +93,7 @@ import type {
   NetworkState,
   NodeRole,
   PeerInfo,
-  SyncState,
+  SyncState
 } from "@polkadot/types/interfaces/system";
 import type { IExtrinsic, Observable } from "@polkadot/types/types";
 

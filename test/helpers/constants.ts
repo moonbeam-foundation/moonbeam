@@ -1,6 +1,6 @@
 // constants.ts -  Any common values here should be moved to moonwall if suitable
 
-import { DevModeContext } from "@moonwall/cli";
+import type { DevModeContext } from "@moonwall/cli";
 import {
   ALITH_GENESIS_FREE_BALANCE,
   ALITH_GENESIS_LOCK_BALANCE,

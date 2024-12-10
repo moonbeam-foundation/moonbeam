@@ -17,7 +17,7 @@ import type {
   u128,
   u256,
   u32,
-  u64,
+  u64
 } from "@polkadot/types-codec";
 import type { AnyNumber, IMethod, ITuple } from "@polkadot/types-codec/types";
 import type { CheckInherentsResult, InherentData } from "@polkadot/types/interfaces/blockbuilder";
@@ -26,13 +26,13 @@ import type { CollationInfo } from "@polkadot/types/interfaces/cumulus";
 import type {
   CallDryRunEffects,
   XcmDryRunApiError,
-  XcmDryRunEffects,
+  XcmDryRunEffects
 } from "@polkadot/types/interfaces/dryRunApi";
 import type {
   BlockV2,
   EthReceiptV3,
   EthTransactionStatus,
-  TransactionV2,
+  TransactionV2
 } from "@polkadot/types/interfaces/eth";
 import type { EvmAccount, EvmCallInfoV2, EvmCreateInfoV2 } from "@polkadot/types/interfaces/evm";
 import type { Extrinsic } from "@polkadot/types/interfaces/extrinsics";
@@ -53,7 +53,7 @@ import type {
   Permill,
   RuntimeCall,
   Weight,
-  WeightV2,
+  WeightV2
 } from "@polkadot/types/interfaces/runtime";
 import type { RuntimeVersion } from "@polkadot/types/interfaces/state";
 import type { ApplyExtrinsicResult, DispatchError } from "@polkadot/types/interfaces/system";
@@ -64,7 +64,7 @@ import type { Error } from "@polkadot/types/interfaces/xcmRuntimeApi";
 import type {
   XcmVersionedAssetId,
   XcmVersionedLocation,
-  XcmVersionedXcm,
+  XcmVersionedXcm
 } from "@polkadot/types/lookup";
 import type { IExtrinsic, Observable } from "@polkadot/types/types";
 

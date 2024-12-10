@@ -9,7 +9,7 @@ import type {
   ApiTypes,
   AugmentedSubmittable,
   SubmittableExtrinsic,
-  SubmittableExtrinsicFunction,
+  SubmittableExtrinsicFunction
 } from "@polkadot/api-base/types";
 import type { Data } from "@polkadot/types";
 import type {
@@ -26,7 +26,7 @@ import type {
   u16,
   u32,
   u64,
-  u8,
+  u8
 } from "@polkadot/types-codec";
 import type { AnyNumber, IMethod, ITuple } from "@polkadot/types-codec/types";
 import type {
@@ -35,7 +35,7 @@ import type {
   H160,
   H256,
   Perbill,
-  Percent,
+  Percent
 } from "@polkadot/types/interfaces/runtime";
 import type {
   AccountEthereumSignature,
@@ -71,7 +71,7 @@ import type {
   XcmVersionedAssetId,
   XcmVersionedAssets,
   XcmVersionedLocation,
-  XcmVersionedXcm,
+  XcmVersionedXcm
 } from "@polkadot/types/lookup";
 
 export type __AugmentedSubmittable = AugmentedSubmittable<() => unknown>;
@@ -2231,7 +2231,7 @@ declare module "@polkadot/api-base/types/submittable" {
        *
        * - `proposal_weight_bound`: The maximum amount of weight consumed by executing the closed proposal.
        * - `length_bound`: The upper bound for the length of the proposal in storage. Checked via
-       *   `storage::read` so it is `size_of::<u32>() == 4` larger than the pure length.
+       *   `storage::read` so it is `size_of::<u32>() === 4` larger than the pure length.
        *
        * ## Complexity
        *
@@ -4245,7 +4245,7 @@ declare module "@polkadot/api-base/types/submittable" {
        *
        * - `proposal_weight_bound`: The maximum amount of weight consumed by executing the closed proposal.
        * - `length_bound`: The upper bound for the length of the proposal in storage. Checked via
-       *   `storage::read` so it is `size_of::<u32>() == 4` larger than the pure length.
+       *   `storage::read` so it is `size_of::<u32>() === 4` larger than the pure length.
        *
        * ## Complexity
        *

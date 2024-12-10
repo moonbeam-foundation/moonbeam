@@ -1,11 +1,11 @@
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
 import { expectEVMResult } from "../../../../helpers";
 import {
   XcmFragment,
-  XcmFragmentConfig,
+  type XcmFragmentConfig,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
   weightMessage,
@@ -42,7 +42,7 @@ describeSuite({
         // Get pallet index
         const metadata = await polkadotJs.rpc.state.getMetadata();
         const erc20XcmPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Erc20XcmBridge")!
+          .find(({ name }) => name.toString() === "Erc20XcmBridge")!
           .index.toNumber();
 
         // Send some erc20 tokens to the sovereign account of paraId
@@ -142,10 +142,10 @@ describeSuite({
         // Get pallet index
         const metadata = await polkadotJs.rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
         const erc20XcmPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Erc20XcmBridge")!
+          .find(({ name }) => name.toString() === "Erc20XcmBridge")!
           .index.toNumber();
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)
@@ -270,7 +270,7 @@ describeSuite({
         // Search for AssetsClaimed event
         const records = await polkadotJs.query.system.events();
         const events = records.filter(
-          ({ event }) => event.section == "polkadotXcm" && event.method == "AssetsClaimed"
+          ({ event }) => event.section === "polkadotXcm" && event.method === "AssetsClaimed"
         );
         expect(events).to.have.lengthOf(1);
 
