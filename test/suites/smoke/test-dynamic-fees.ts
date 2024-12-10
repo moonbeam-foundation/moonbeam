@@ -16,7 +16,6 @@ import { AnyTuple } from "@polkadot/types/types";
 import { ethers } from "ethers";
 import {
   checkTimeSliceForUpgrades,
-  ConstantStore,
   rateLimiter,
   RUNTIME_CONSTANTS,
 } from "../../helpers";
