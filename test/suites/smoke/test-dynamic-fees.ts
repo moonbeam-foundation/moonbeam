@@ -14,11 +14,7 @@ import {
 } from "@polkadot/types/lookup";
 import { AnyTuple } from "@polkadot/types/types";
 import { ethers } from "ethers";
-import {
-  checkTimeSliceForUpgrades,
-  rateLimiter,
-  RUNTIME_CONSTANTS,
-} from "../../helpers";
+import { checkTimeSliceForUpgrades, rateLimiter, RUNTIME_CONSTANTS } from "../../helpers";
 import Debug from "debug";
 import { DispatchInfo } from "@polkadot/types/interfaces";
 const debug = Debug("smoke:dynamic-fees");
