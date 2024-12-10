@@ -25,24 +25,12 @@ __export(definitions_exports, {
 module.exports = __toCommonJS(definitions_exports);
 
 // src/moonbase/interfaces/moon/definitions.ts
+var import_moonbeam_types_bundle = require("moonbeam-types-bundle");
+var _a;
 var definitions_default = {
   types: {},
   rpc: {
-    isBlockFinalized: {
-      description: "Returns whether an Ethereum block is finalized",
-      params: [{ name: "blockHash", type: "Hash" }],
-      type: "bool"
-    },
-    isTxFinalized: {
-      description: "Returns whether an Ethereum transaction is finalized",
-      params: [{ name: "txHash", type: "Hash" }],
-      type: "bool"
-    },
-    getLatestSyncedBlock: {
-      description: "Returns the latest synced block from Frontier's backend",
-      params: [],
-      type: "u32"
-    }
+    ...(_a = import_moonbeam_types_bundle.moonbeamDefinitions.rpc) == null ? void 0 : _a.moon
   }
 };
 // Annotate the CommonJS export names for ESM import in node:

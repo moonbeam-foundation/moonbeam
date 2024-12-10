@@ -56,8 +56,6 @@ async function main() {
     throw new Error("File not found");
   }
 
-  execSync("pnpm install", { stdio: "inherit" });
-
   for (const chain of CHAINS) {
     console.log(`Starting ${chain} node`);
     nodes[chain] = spawn(nodePath, [

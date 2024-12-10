@@ -1,2 +1,0 @@
-// src/moonbeam/interfaces/augment-api-runtime.ts
-import "@polkadot/api-base/types/calls";

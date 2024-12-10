@@ -1,27 +1,7 @@
 declare const _default: {
     types: {};
     rpc: {
-        isBlockFinalized: {
-            description: string;
-            params: {
-                name: string;
-                type: string;
-            }[];
-            type: string;
-        };
-        isTxFinalized: {
-            description: string;
-            params: {
-                name: string;
-                type: string;
-            }[];
-            type: string;
-        };
-        getLatestSyncedBlock: {
-            description: string;
-            params: never[];
-            type: string;
-        };
+        [x: string]: import("@polkadot/types/types").DefinitionRpc | import("@polkadot/types/types").DefinitionRpcSub;
     };
 };
 export default _default;

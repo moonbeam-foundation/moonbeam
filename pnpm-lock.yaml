@@ -49,8 +49,8 @@ importers:
         specifier: ^8.55.0
         version: 8.57.0
       prettier:
-        specifier: 3.1.0
-        version: 3.1.0
+        specifier: 2.8.8
+        version: 2.8.8
       tsx:
         specifier: ^4.19.2
         version: 4.19.2
@@ -239,7 +239,7 @@ importers:
         specifier: 12.2.0
         version: 12.2.0(@types/node@22.10.1)
       prettier:
-        specifier: 2.8.8
+        specifier: '*'
         version: 2.8.8
       typescript:
         specifier: '*'
@@ -271,6 +271,9 @@ importers:
       '@types/node':
         specifier: '*'
         version: 22.9.1
+      moonbeam-types-bundle:
+        specifier: workspace:*
+        version: link:../moonbeam-types-bundle
       prettier:
         specifier: '*'
         version: 2.8.8
@@ -5278,11 +5281,6 @@ packages:
   prettier@2.8.8:
     resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
     engines: {node: '>=10.13.0'}
-    hasBin: true
-
-  prettier@3.1.0:
-    resolution: {integrity: sha512-TQLvXjq5IAibjh8EpBIkNKxO749UEWABoiIZehEPiY4GNpVdhaFKqSTu+QrlU6D2dPAfubRmtJTi4K4YkQ5eXw==}
-    engines: {node: '>=14'}
     hasBin: true
 
   pretty-ms@9.2.0:
@@ -13687,8 +13685,6 @@ snapshots:
       - supports-color
 
   prettier@2.8.8: {}
-
-  prettier@3.1.0: {}
 
   pretty-ms@9.2.0:
     dependencies:

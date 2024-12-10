@@ -71,7 +71,7 @@
     "eslint": "8.57.0",
     "eslint-plugin-unused-imports": "3.1.0",
     "inquirer": "12.2.0",
-    "prettier": "2.8.8",
+    "prettier": "*",
     "typescript": "*",
     "yargs": "17.7.2"
   },

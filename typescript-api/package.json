@@ -17,8 +17,8 @@
   "scripts": {
     "clean": "rm -rf node_modules && rm -rf dist",
     "scrape": "pnpm tsx scripts/scrapeMetadata.ts",
-    "generate": "pnpm scrape && pnpm generate:defs && pnpm generate:meta",
-    "postgenerate": "pnpm fmt:fix",
+    "generate": "pnpm generate:defs && pnpm generate:meta",
+    "postgenerate": "pnpm build; pnpm fmt:fix",
     "load:meta": "pnpm load:meta:moonbase && pnpm load:meta:moonriver && pnpm load:meta:moonbeam",
     "load:meta:local": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' http://localhost:9933 > metadata-moonbase.json",
     "load:meta:moonbase": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' https://rpc.api.moonbase.moonbeam.network > metadata-moonbase.json",
@@ -36,20 +36,19 @@
     "deploy": "pnpm generate && pnpm build && pnpm publish",
     "fmt:fix": "prettier --write --ignore-unknown --plugin prettier-plugin-jsdoc 'src/**/*' 'scripts/**/*'"
   },
-  "main": "./dist/interfaces/index.cjs",
-  "module": "./dist/interfaces/index.js",
-  "types":  "./dist/types/index.d.ts",
+  "main": "./dist/moonbeam/interfaces/index.cjs",
+  "module": "./dist/moonbeam/interfaces/index.js",
+  "types": "./dist/moonbeam/types/index.d.ts",
   "exports": {
     ".": {
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.js",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/moonbeam/index.cjs",
+      "import": "./dist/moonbeam/index.js",
+      "types": "./dist/moonbeam/types/index.d.ts"
     },
     "./moonbeam": {
-      "require": "./dist/interfaces/index.cjs",
-      "import": "./dist/interfaces/index.js",
-      "types": "./dist/types/index.d.ts"
-
+      "require": "./dist/moonbeam/interfaces/index.cjs",
+      "import": "./dist/moonbeam/interfaces/index.js",
+      "types": "./dist/moonbeam/types/index.d.ts"
     },
     "./moonriver": {
       "require": "./dist/moonriver/interfaces/index.cjs",
@@ -90,6 +89,7 @@
     "@polkadot/types": "*",
     "@polkadot/types-codec": "*",
     "@types/node": "*",
+    "moonbeam-types-bundle": "workspace:*",
     "prettier": "*",
     "prettier-plugin-jsdoc": "^0.3.38",
     "tsup": "*",

@@ -351,6 +351,66 @@ var TYPES_900_undefined_deprecated = {
     total_counted: "Balance",
     total_backing: "Balance",
     state: "CollatorStatus"
+  },
+  TransactionTraceAction: {
+    _enum: ["Call", "Create", "Suicide"]
+  },
+  TransactionTraceActionCall: {
+    from: "H160",
+    to: "H160",
+    value: "U256",
+    gas: "U256",
+    gasPrice: "U256",
+    input: "Vec<u8>",
+    callType: "CallType"
+  },
+  TransactionTraceActionCreate: {
+    from: "H160",
+    value: "U256",
+    gas: "U256",
+    gasPrice: "U256",
+    init: "Vec<u8>",
+    callType: "CreateType"
+  },
+  TransactionTraceActionSuicide: {
+    address: "H160",
+    balance: "U256",
+    refundAddress: "H160",
+    callType: "CallType"
+  },
+  TransactionTrace: {
+    action: "TransactionTraceAction",
+    blockHash: "H256",
+    blockNumber: "u32",
+    output: "TransactionTraceOutput",
+    subtraces: "u32",
+    traceAddress: "Vec<u32>",
+    transactionHash: "H256",
+    transactionPosition: "u32"
+  },
+  TransactionTraceOutput: {
+    _enum: {
+      Result: "TransactionTraceResult",
+      Error: "Vec<u8>"
+    }
+  },
+  TransactionTraceResultCall: {
+    gasUsed: "U256",
+    output: "Vec<u8>"
+  },
+  TransactionTraceResultCreate: {
+    address: "H160",
+    code: "Vec<u8>",
+    gasUsed: "U256"
+  },
+  TransactionTraceResult: {
+    _enum: ["Call", "Create", "Suicide"]
+  },
+  CallType: {
+    _enum: ["Call", "CallCode", "DelegateCall", "StaticCall"]
+  },
+  CreateType: {
+    _enum: ["Create"]
   }
 };
 var TYPES_POST_900 = {

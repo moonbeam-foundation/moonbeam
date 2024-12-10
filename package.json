@@ -11,6 +11,8 @@
   ],
   "scripts": {
     "clean-all": "rm -rf node_modules && pnpm -r clean",
+    "build": "pnpm -r build",
+    "postinstall": "pnpm build",
     "lint": "pnpm -r lint",
     "fmt": "pnpm -r fmt",
     "fmt:fix": "pnpm -r fmt:fix"
@@ -31,7 +33,7 @@
   "devDependencies": {
     "@types/node": "^22.10.1",
     "eslint": "^8.55.0",
-    "prettier": "3.1.0",
+    "prettier": "2.8.8",
     "tsx": "^4.19.2",
     "typescript": "^5.3.3"
   },
