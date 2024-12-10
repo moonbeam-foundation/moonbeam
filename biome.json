@@ -20,6 +20,7 @@
   },
   "formatter": {
     "enabled": true,
+    "lineWidth": 100,
     "attributePosition": "multiline"
   },
   "json": {

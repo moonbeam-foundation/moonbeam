@@ -151,27 +151,6 @@ jobs:
           use-quiet-mode: "yes"
           max-depth: 4
 
-  check-editorconfig:
-    name: "Check editorconfig"
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    needs: ["set-tags"]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Setup editorconfig checker
-        run: |
-          ls /tmp/bin/ec-linux-amd64 || \
-          cd /tmp && \
-          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.7.0/ec-linux-amd64.tar.gz && \
-          tar xvf ec-linux-amd64.tar.gz && \
-          chmod +x bin/ec-linux-amd64
-      - name: Check files
-        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/)|(test\/contracts\/lib\/.*)|(\/?dist\/)" -disable-indent-size
-
   check-biome:
     name: "Check with Biome"
     runs-on: ubuntu-latest

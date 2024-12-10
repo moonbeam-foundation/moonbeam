@@ -256,7 +256,6 @@ async function view(input: string, output: string, open: boolean) {
   const totalWrites = data.map((x: any) => x["totalWrites"]);
   const extrinsicTime = data.map((x: any) => x["extrinsicTime"]);
 
-  // editorconfig-checker-disable
   fs.writeFileSync(
     output,
     `<html>
@@ -446,7 +445,6 @@ async function view(input: string, output: string, open: boolean) {
     <body>
   </html>`
   );
-  // editorconfig-checker-enable
 
   if (open) {
     await exec(`${openCmd} ${output}`);
@@ -474,7 +472,6 @@ async function analyze(inputs: string[], output: string) {
   }
   const colors = new Array(inputs.length).fill(0).map((x) => random_rgb());
 
-  // editorconfig-checker-disable
   fs.writeFileSync(
     output,
     `<html>
@@ -675,7 +672,6 @@ async function analyze(inputs: string[], output: string) {
     <body>
   </html>`
   );
-  // editorconfig-checker-enable
 
   await exec(`${openCmd} ${output}`);
 }
