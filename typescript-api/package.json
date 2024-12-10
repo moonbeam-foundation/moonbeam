@@ -36,41 +36,41 @@
     "deploy": "pnpm generate && pnpm build && pnpm publish",
     "fmt:fix": "prettier --write --ignore-unknown --plugin prettier-plugin-jsdoc 'src/**/*' 'scripts/**/*'"
   },
-  "main": "./dist/moonbeam/interfaces/index.cjs",
-  "module": "./dist/moonbeam/interfaces/index.js",
-  "types": "./dist/moonbeam/types/index.d.ts",
+  "main": "./dist/moonbeam/index.cjs",
+  "module": "./dist/moonbeam/index.js",
+  "types": "./dist/moonbeam/index.d.ts",
   "exports": {
     ".": {
       "require": "./dist/moonbeam/index.cjs",
       "import": "./dist/moonbeam/index.js",
-      "types": "./dist/moonbeam/types/index.d.ts"
+      "types": "./dist/moonbeam/index.d.ts"
     },
     "./moonbeam": {
-      "require": "./dist/moonbeam/interfaces/index.cjs",
-      "import": "./dist/moonbeam/interfaces/index.js",
-      "types": "./dist/moonbeam/types/index.d.ts"
+      "require": "./dist/moonbeam/index.cjs",
+      "import": "./dist/moonbeam/index.js",
+      "types": "./dist/moonbeam/index.d.ts"
     },
     "./moonriver": {
-      "require": "./dist/moonriver/interfaces/index.cjs",
-      "import": "./dist/moonriver/interfaces/index.js",
-      "types": "./dist/moonriver/types/index.d.ts"
+      "require": "./dist/moonriver/index.cjs",
+      "import": "./dist/moonriver/index.js",
+      "types": "./dist/moonriver/index.d.ts"
     },
     "./moonbase": {
-      "require": "./dist/moonbase/interfaces/index.cjs",
-      "import": "./dist/moonbase/interfaces/index.js",
-      "types": "./dist/moonbase/types/index.d.ts"
+      "require": "./dist/moonbase/index.cjs",
+      "import": "./dist/moonbase/index.js",
+      "types": "./dist/moonbase/index.d.ts"
     }
   },
   "typesVersions": {
     "*": {
       "moonbeam": [
-        "./dist/types/index.d.ts"
+        "./dist/moonbeam/index.d.ts"
       ],
       "moonriver": [
-        "./dist/moonriver/types/index.d.ts"
+        "./dist/moonriver/index.d.ts"
       ],
       "moonbase": [
-        "./dist/moonbase/types/index.d.ts"
+        "./dist/moonbase/index.d.ts"
       ]
     }
   },

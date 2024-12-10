@@ -1,4 +1,4 @@
-import { moonbeamDefinitions, types } from "moonbeam-types-bundle";
+import { moonbeamDefinitions } from "moonbeam-types-bundle";
 
 export default {
   types: {},

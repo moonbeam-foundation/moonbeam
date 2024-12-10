@@ -4,7 +4,7 @@
     "rootDir": ".",
     "baseUrl": "./",
     "outDir": "../../dist/moonbeam",
-    "declarationDir": "../../dist/moonbeam/types",
+    "declarationDir": "../../dist/moonbeam",
     "declarationMap": true,
     "paths": {
       "@moonbeam/api-augment/*": ["src/moonbeam/*"],
