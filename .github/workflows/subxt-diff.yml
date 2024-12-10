@@ -30,7 +30,7 @@ jobs:
 
   local-diff:
     needs: build
-    runs-on: bare-metal
+    runs-on: moonbeam-release-medium
     permissions:
       contents: read
     strategy:
@@ -48,7 +48,7 @@ jobs:
         run: |
           rustup override unset
           rustup show
-          cargo install subxt-cli --locked
+          cargo install subxt-cli@0.37.0 --locked
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - name: Run last_release node via Docker
         run: |
@@ -139,5 +139,5 @@ jobs:
           commit-message: "runtime diff: v0.${{ github.event.inputs.spec_version }}.0"
           draft: true
           title: "Notorize runtime upgrade differences: runtime-${{ github.event.inputs.spec_version }}"
-          reviewers: "librelois,noandrea"
+          reviewers: "RomarQ,stiiifff"
           labels: "B0-silent,D2-notlive"
