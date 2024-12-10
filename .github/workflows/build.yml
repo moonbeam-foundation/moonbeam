@@ -576,7 +576,7 @@ jobs:
         with:
           name: moonbeam
           path: target/release
-      - run:  chmod uog+x target/release/moonbeam
+      - run: chmod uog+x target/release/moonbeam
       - name: Run Typegen
         run: |
           pnpm i
