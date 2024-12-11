@@ -25,36 +25,6 @@ use sp_runtime::Saturating;
 use sp_storage::{StateVersion, Storage, StorageKey};
 use std::sync::Arc;
 
-pub fn produce_genesis_block<TBl: BlockT + sp_runtime::DeserializeOwned>(
-	backend: Arc<lazy_loading::backend::Backend<TBl>>,
-) -> sp_blockchain::Result<()> {
-	let mut op = backend.begin_operation()?;
-	op.before_fork = true;
-
-	let genesis_block_hash: TBl::Hash = backend
-		.rpc_client
-		.block_hash::<TBl>(Some(Default::default()))
-		.unwrap()
-		.expect("Not able to obtain genesis block hash");
-
-	let genesis_block = backend
-		.rpc_client
-		.block::<TBl, _>(Some(genesis_block_hash))
-		.unwrap()
-		.unwrap()
-		.block;
-
-	let _ = op.set_block_data(
-		genesis_block.header().clone(),
-		Some(genesis_block.extrinsics().to_vec()),
-		None,
-		None,
-		NewBlockState::Final,
-	);
-
-	backend.commit_operation(op)
-}
-
 pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 	backend: Arc<lazy_loading::backend::Backend<Block>>,
 	fork_checkpoint: Block,
@@ -89,7 +59,7 @@ pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 			top: state_overrides.into_iter().collect(),
 			children_default: Default::default(),
 		},
-		StateVersion::V0,
+		StateVersion::V1,
 	)?;
 
 	// Create empty first block
