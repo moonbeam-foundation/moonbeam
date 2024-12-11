@@ -299,7 +299,7 @@ describeSuite({
           log("Skipping test suite due to runtime version");
           return;
         }
-        const runtime = paraApi.runtimeChain.toUpperCase();
+        const runtime = paraApi.consts.system.version.specName.toUpperCase();
         const weightFee = RUNTIME_CONSTANTS[runtime].WEIGHT_FEE.get(specVersion.toNumber());
 
         const failures = blockData
