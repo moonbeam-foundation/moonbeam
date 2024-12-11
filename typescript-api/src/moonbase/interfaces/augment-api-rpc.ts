@@ -614,7 +614,7 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
       >;
     };
     moon: {
-      /** Returns the latest synced block from Frontier's backend */
+      /** Returns the latest synced block from frontier's backend */
       getLatestSyncedBlock: AugmentedRpc<() => Observable<u32>>;
       /** Returns whether an Ethereum block is finalized */
       isBlockFinalized: AugmentedRpc<(blockHash: Hash | string | Uint8Array) => Observable<bool>>;
