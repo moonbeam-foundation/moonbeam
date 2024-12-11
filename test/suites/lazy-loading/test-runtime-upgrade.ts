@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { RUNTIME_CONSTANTS } from "../../helpers";
 import { ApiPromise } from "@polkadot/api";
 import fs from "fs/promises";
 import { u8aToHex } from "@polkadot/util";
@@ -24,12 +23,7 @@ describeSuite({
     beforeAll(async () => {
       api = context.polkadotJs();
 
-      const runtimeChain = api.consts.system.version.specName.toUpperCase();
-      const runtime = runtimeChain
-        .split(" ")
-        .filter((v) => Object.keys(RUNTIME_CONSTANTS).includes(v))
-        .join()
-        .toLowerCase();
+      const runtime = api.consts.system.version.specName.toLowerCase();
       const wasmPath = `../target/release/wbuild/${runtime}-runtime/${runtime}_runtime.compact.compressed.wasm`; // editorconfig-checker-disable-line
 
       const runtimeWasmHex = u8aToHex(await fs.readFile(wasmPath));
