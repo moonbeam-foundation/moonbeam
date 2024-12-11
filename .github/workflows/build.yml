@@ -554,45 +554,47 @@ jobs:
       - name: Run sccache stat for check pre test
         run: ${SCCACHE_PATH} --show-stats
 
-  typegen_check:
-    needs: ["set-tags", "build"]
-    name: "Check Rust/TS bindings are up to date"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: "test/.nvmrc"
-          cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
-      - name: "Download branch built node"
-        uses: actions/download-artifact@v4
-        with:
-          name: moonbeam
-          path: target/release
-      - run: chmod uog+x target/release/moonbeam
-      - name: Run Typegen
-        run: |
-          pnpm i
+  # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
 
-          cd test
-          pnpm typegen
-      - name: Check for changes
-        run: |
-          cd typescript-api
-          if [ -n "$(git status --porcelain .)" ]; then
-            echo "Typegen produced changes. Please run 'pnpm typegen' locally and commit the changes."
-            false
-          else
-            echo "No changes"
-            true
-          fi
+  # typegen_check:
+  #   needs: ["set-tags", "build"]
+  #   name: "Check Rust/TS bindings are up to date"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ needs.set-tags.outputs.git_ref }}
+  #     - uses: pnpm/action-setup@v4
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version-file: "test/.nvmrc"
+  #         cache: "pnpm"
+  #         cache-dependency-path: pnpm-lock.yaml
+  #     - name: "Download branch built node"
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: moonbeam
+  #         path: target/release
+  #     - run: chmod uog+x target/release/moonbeam
+  #     - name: Run Typegen
+  #       run: |
+  #         pnpm i
+
+  #         cd test
+  #         pnpm typegen
+  #     - name: Check for changes
+  #       run: |
+  #         cd typescript-api
+  #         if [ -n "$(git status --porcelain .)" ]; then
+  #           echo "Typegen produced changes. Please run 'pnpm typegen' locally and commit the changes."
+  #           false
+  #         else
+  #           echo "No changes"
+  #           true
+  #         fi
 
   dev-test:
     runs-on:
