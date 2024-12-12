@@ -16,7 +16,7 @@ const startReport = (total: () => number) => {
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     log(
       `🔍️ Queried ${total()} keys @ ${qps.toFixed(0)} keys/sec,` +
-      ` ${used.toFixed(0)} MB heap used\n`
+        ` ${used.toFixed(0)} MB heap used\n`
     );
 
     timer = setTimeout(report, 5000);
@@ -51,7 +51,7 @@ export async function processAllStorage(
       prefixes.map(async (prefix) =>
         limiter.schedule(async () => {
           let startKey: string | undefined = undefined;
-          loop: for (; ;) {
+          loop: for (;;) {
             // @ts-expect-error _rpcCore is not yet exposed
             const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [
               prefix,
@@ -124,7 +124,7 @@ export async function processRandomStoragePrefixes(
       prefixes.map(async (prefix) =>
         limiter.schedule(async () => {
           let startKey: string | undefined = undefined;
-          loop: for (; ;) {
+          loop: for (;;) {
             // @ts-expect-error _rpcCore is not yet exposed
             const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [
               prefix,
