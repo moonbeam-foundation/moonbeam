@@ -107,12 +107,12 @@ pub enum AssetStatus {
 #[pallet]
 pub mod pallet {
 	use super::*;
+	use frame_support::traits::{Currency, ReservableCurrency};
 	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned, BlockNumber, Convert};
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::Error as MatchError;
 	use xcm_executor::AssetsInHolding;
-	use frame_support::traits::{Currency, ReservableCurrency};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -122,7 +122,7 @@ pub mod pallet {
 	pub const PALLET_ID: frame_support::PalletId = frame_support::PalletId(*b"forgasst");
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_evm::Config {
+	pub trait Config: frame_system::Config + pallet_evm::Config + scale_info::TypeInfo {
 		// Convert AccountId to H160
 		type AccountIdToH160: Convert<Self::AccountId, H160>;
 
@@ -202,6 +202,7 @@ pub mod pallet {
 		EvmInternalError,
 		/// Account has insufficient balance for locking
 		InsufficientBalance,
+		OriginIsNotAssetCreator,
 		InvalidSymbol,
 		InvalidTokenName,
 		LocationAlreadyExists,
@@ -216,7 +217,7 @@ pub mod pallet {
 			contract_address: H160,
 			asset_id: AssetId,
 			xcm_location: Location,
-			deposit: BalanceOf<T>
+			deposit: BalanceOf<T>,
 		},
 		/// Changed the xcm type mapping for a given asset id
 		ForeignAssetXcmLocationChanged {
@@ -255,20 +256,23 @@ pub mod pallet {
 	pub type AssetsByLocation<T: Config> =
 		StorageMap<_, Blake2_128Concat, Location, (AssetId, AssetStatus)>;
 
-	/// Mapping from an asset id to it's details information
+	/// Mapping from an asset id to its creation details
 	#[pallet::storage]
 	#[pallet::getter(fn assets_creation_details)]
-	pub type AssetsCreationDetails<T: Config> = StorageMap<
-		_,
-		Blake2_128Concat,
-		AssetId,
-		AssetCreationDetails<T::AccountId, BalanceOf<T>>
-	>;
+	pub type AssetsCreationDetails<T: Config> =
+		StorageMap<_, Blake2_128Concat, AssetId, AssetCreationDetails<T>>;
 
-	#[derive(Clone, Copy, Decode, Encode, Eq, PartialEq, Debug, TypeInfo, MaxEncodedLen)]
-	pub struct AssetCreationDetails<AccountId, Balance> {
-		pub creator: AccountId,
-		pub deposit: Balance
+	#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, TypeInfo, MaxEncodedLen)]
+	pub enum AssetOwner<T: Config + scale_info::TypeInfo> {
+		Governance,
+		Root,
+		Account(T::AccountId),
+	}
+
+	#[derive(Clone, Decode, Encode, Eq, PartialEq, Debug, TypeInfo, MaxEncodedLen)]
+	pub struct AssetCreationDetails<T: Config + scale_info::TypeInfo> {
+		pub owner: AssetOwner<T>,
+		pub deposit: BalanceOf<T>,
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -331,7 +335,7 @@ pub mod pallet {
 				contract_address,
 				asset_id,
 				xcm_location,
-				deposit
+				deposit,
 			});
 			Ok(())
 		}
@@ -385,6 +389,28 @@ pub mod pallet {
 		pub fn set_asset(asset_location: Location, asset_id: AssetId) {
 			AssetsByLocation::<T>::insert(&asset_location, (asset_id, AssetStatus::Active));
 			AssetsById::<T>::insert(&asset_id, asset_location);
+		}
+
+		/// Ensures that the origin has the required permissions to modifiy an asset
+		fn ensure_asset_owner(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
+			let asset_details = AssetsCreationDetails::<T>::get(&asset_id);
+			let caller = ensure_signed(origin.clone())?;
+
+			match asset_details {
+				Some(data) => match data.owner {
+					AssetOwner::Account(account) => {
+						ensure!(account == caller, Error::<T>::OriginIsNotAssetCreator);
+					}
+					AssetOwner::Governance | AssetOwner::Root => {
+						<T as Config>::ForeignAssetFreezerOrigin::ensure_origin(origin)?;
+					}
+				},
+				None => {
+					<T as Config>::ForeignAssetFreezerOrigin::ensure_origin(origin)?;
+				}
+			}
+
+			Ok(())
 		}
 	}
 
@@ -463,7 +489,7 @@ pub mod pallet {
 			asset_id: AssetId,
 			new_xcm_location: Location,
 		) -> DispatchResult {
-			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
+			Self::ensure_asset_owner(origin.clone(), asset_id)?;
 
 			let previous_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
@@ -496,7 +522,7 @@ pub mod pallet {
 			asset_id: AssetId,
 			allow_xcm_deposit: bool,
 		) -> DispatchResult {
-			T::ForeignAssetFreezerOrigin::ensure_origin(origin)?;
+			Self::ensure_asset_owner(origin.clone(), asset_id)?;
 
 			let xcm_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
@@ -530,7 +556,7 @@ pub mod pallet {
 		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::unfreeze_foreign_asset())]
 		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
-			T::ForeignAssetUnfreezerOrigin::ensure_origin(origin)?;
+			Self::ensure_asset_owner(origin.clone(), asset_id)?;
 
 			let xcm_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
