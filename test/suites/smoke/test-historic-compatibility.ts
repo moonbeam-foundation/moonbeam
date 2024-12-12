@@ -51,7 +51,7 @@ describeSuite({
         if (skipTest.skip) {
           log(
             "No test data available for " +
-              `${skipTest.networkName} #${skipTest.chainId} , skipping test.`
+            `${skipTest.networkName} #${skipTest.chainId} , skipping test.`
           );
           return; // TODO: replace this with this.skip() when added to vitest
         }
@@ -77,7 +77,7 @@ describeSuite({
           if (a.error === true) {
             log(
               `Failure tracing in runtime ${a.runtime}, blocknumber ${a.blockNumber} ` +
-                `: ${a.result}`
+              `: ${a.result}`
             );
             return true;
           }
@@ -94,8 +94,8 @@ describeSuite({
         if (skipTest.skip) {
           log(
             "No test data available for " +
-              `${skipTest.networkName} #${skipTest.chainId}` +
-              " , skipping test."
+            `${skipTest.networkName} #${skipTest.chainId}` +
+            " , skipping test."
           );
           return; // TODO: replace this with this.skip() when added to vitest
         }
@@ -121,7 +121,7 @@ describeSuite({
           if (a.error === true) {
             log(
               `Failure fetching txn receipt on runtime ${a.runtime}, blocknumber ${a.blockNumber}` +
-                ` and result: ${JSON.stringify(a.result)}`
+              ` and result: ${JSON.stringify(a.result)}`
             );
             return true;
           }
@@ -139,6 +139,17 @@ describeSuite({
           []
         );
         expect(result).to.be.greaterThan(0);
+      },
+    });
+
+    it({
+      id: "C350",
+      title: "can call eth_pendingTransactions",
+      test: async function () {
+        const result = await (context.ethers().provider as ethers.JsonRpcProvider).send(
+          "eth_pendingTransactions",
+          []
+        );
       },
     });
 
@@ -261,7 +272,7 @@ describeSuite({
         if (skipTest.skip) {
           log(
             "No test data available for" +
-              `${skipTest.networkName} #${skipTest.chainId} , skipping test.`
+            `${skipTest.networkName} #${skipTest.chainId} , skipping test.`
           );
           return; // TODO: replace this with this.skip() when added to vitest
         }

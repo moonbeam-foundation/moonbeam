@@ -230,13 +230,13 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
           callRequest:
             | ContractCallRequest
             | {
-                origin?: any;
-                dest?: any;
-                value?: any;
-                gasLimit?: any;
-                storageDepositLimit?: any;
-                inputData?: any;
-              }
+              origin?: any;
+              dest?: any;
+              value?: any;
+              gasLimit?: any;
+              storageDepositLimit?: any;
+              inputData?: any;
+            }
             | string
             | Uint8Array,
           at?: BlockHash | string | Uint8Array
@@ -323,14 +323,14 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
           request:
             | EthCallRequest
             | {
-                from?: any;
-                to?: any;
-                gasPrice?: any;
-                gas?: any;
-                value?: any;
-                data?: any;
-                nonce?: any;
-              }
+              from?: any;
+              to?: any;
+              gasPrice?: any;
+              gas?: any;
+              value?: any;
+              data?: any;
+              nonce?: any;
+            }
             | string
             | Uint8Array,
           number?: BlockNumber | AnyNumber | Uint8Array
@@ -349,14 +349,14 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
           request:
             | EthCallRequest
             | {
-                from?: any;
-                to?: any;
-                gasPrice?: any;
-                gas?: any;
-                value?: any;
-                data?: any;
-                nonce?: any;
-              }
+              from?: any;
+              to?: any;
+              gasPrice?: any;
+              gas?: any;
+              value?: any;
+              data?: any;
+              nonce?: any;
+            }
             | string
             | Uint8Array,
           number?: BlockNumber | AnyNumber | Uint8Array
@@ -518,6 +518,8 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
       /** Returns protocol version encoded as a string (quotes are necessary). */
       protocolVersion: AugmentedRpc<() => Observable<u64>>;
       /** Sends signed transaction, returning its hash. */
+      /** Returns a list of pending transactions. */
+      pendingTransactions: AugmentedRpc<() => Observable<Vec<EthTransaction>>>;
       sendRawTransaction: AugmentedRpc<(bytes: Bytes | string | Uint8Array) => Observable<H256>>;
       /** Sends transaction; will block waiting for signer to return the transaction hash */
       sendTransaction: AugmentedRpc<
@@ -525,14 +527,14 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
           tx:
             | EthTransactionRequest
             | {
-                from?: any;
-                to?: any;
-                gasPrice?: any;
-                gas?: any;
-                value?: any;
-                data?: any;
-                nonce?: any;
-              }
+              from?: any;
+              to?: any;
+              gasPrice?: any;
+              gas?: any;
+              value?: any;
+              data?: any;
+              nonce?: any;
+            }
             | string
             | Uint8Array
         ) => Observable<H256>
