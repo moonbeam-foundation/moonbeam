@@ -170,4 +170,8 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 			.saturating_add(T::DbWeight::get().reads(15_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
+
+	fn create_foreign_asset_reserve() -> Weight {
+        Weight::default()
+    }
 }
