@@ -25,6 +25,8 @@ jobs:
   ####### Check files and formatting #######
   set-tags:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
@@ -66,7 +68,7 @@ jobs:
       - name: Get Latest RT Release
         id: get-latest-rt
         run: |
-          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1 | tr -d '[:blank:]') && [[ ! -z "${LATEST_RUNTIME_RELEASE}" ]]
+          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | sort -rs | head -n 1 | tr -d '[:blank:]') && [[ ! -z "${LATEST_RUNTIME_RELEASE}" ]]
           echo $LATEST_RUNTIME_RELEASE
           echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
       - name: Get Sha
@@ -116,6 +118,8 @@ jobs:
 
   check-copyright:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -134,6 +138,8 @@ jobs:
 
   check-links:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -148,6 +154,8 @@ jobs:
   check-editorconfig:
     name: "Check editorconfig"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -163,11 +171,13 @@ jobs:
           chmod +x bin/ec-linux-amd64
       - name: Check files
         # Prettier and editorconfig-checker have different ideas about indentation
-        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/)|(test\/contracts\/lib\/.*)" -disable-indent-size
+        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/)|(test\/contracts\/lib\/.*)|(\/?dist\/)" -disable-indent-size
 
   check-prettier:
     name: "Check with Prettier"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -191,6 +201,8 @@ jobs:
   check-eslint:
     name: "Check with EsLint"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -204,7 +216,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version-file: "test/.nvmrc"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
       - name: Run Eslint check
@@ -216,7 +228,9 @@ jobs:
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
     runs-on:
-      labels: bare-metal
+      labels: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -235,6 +249,8 @@ jobs:
   check-forbid-evm-reentrancy:
     name: "Check 'forbid-evm-reentrancy'"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -251,6 +267,8 @@ jobs:
   check-rust-fmt:
     name: "Check with rustfmt"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -271,6 +289,8 @@ jobs:
   cargo-clippy:
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -296,6 +316,8 @@ jobs:
   build:
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
@@ -325,6 +347,9 @@ jobs:
   check-wasm-size:
     name: "Check WASM runtimes with Twiggy"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     if: github.event_name == 'pull_request'
     needs: ["set-tags", "build"]
     env:
@@ -489,6 +514,8 @@ jobs:
   rust-test:
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
     needs: ["set-tags"]
     env:
       RUSTC_WRAPPER: "sccache"
@@ -527,9 +554,53 @@ jobs:
       - name: Run sccache stat for check pre test
         run: ${SCCACHE_PATH} --show-stats
 
+  # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
+
+  # typegen_check:
+  #   needs: ["set-tags", "build"]
+  #   name: "Check Rust/TS bindings are up to date"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ needs.set-tags.outputs.git_ref }}
+  #     - uses: pnpm/action-setup@v4
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version-file: "test/.nvmrc"
+  #         cache: "pnpm"
+  #         cache-dependency-path: pnpm-lock.yaml
+  #     - name: "Download branch built node"
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: moonbeam
+  #         path: target/release
+  #     - run: chmod uog+x target/release/moonbeam
+  #     - name: Run Typegen
+  #       run: |
+  #         pnpm i
+
+  #         cd test
+  #         pnpm typegen
+  #     - name: Check for changes
+  #       run: |
+  #         cd typescript-api
+  #         if [ -n "$(git status --porcelain .)" ]; then
+  #           echo "Typegen produced changes. Please run 'pnpm typegen' locally and commit the changes."
+  #           false
+  #         else
+  #           echo "No changes"
+  #           true
+  #         fi
+
   dev-test:
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
     needs: ["set-tags", "build"]
     timeout-minutes: 20
     strategy:
@@ -594,6 +665,8 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
     needs: ["set-tags", "build", "dev-test"]
     steps:
       - name: Checkout
@@ -611,7 +684,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version-file: "test/.nvmrc"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
       - run: |
@@ -630,16 +703,6 @@ jobs:
         run: |
           chmod uog+x build/moonbeam
           chmod uog+x target/release/moonbeam
-
-          ####  Preparing the repository
-          cd moonbeam-types-bundle
-          pnpm i
-          pnpm build
-
-          ####  Preparing the typescript api
-          cd ../typescript-api
-          pnpm i
-          pnpm build
       - name: Running Tracing Tests
         env:
           DEBUG_COLOURS: "1"
@@ -652,6 +715,8 @@ jobs:
 
   docker-moonbeam:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["set-tags", "build"]
     if: ${{ needs.set-tags.outputs.image_exists == 'false' && !github.event.pull_request.head.repo.fork }}
     steps:
@@ -673,7 +738,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.6.1
+        uses: docker/setup-buildx-action@v3.7.1
         with:
           version: latest
           driver-opts: |
@@ -704,6 +769,8 @@ jobs:
   lazy-loading-tests:
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
     needs: ["set-tags", "build", "typescript-tracing-tests"]
     strategy:
       fail-fast: false
@@ -724,7 +791,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version-file: "test/.nvmrc"
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -739,21 +806,6 @@ jobs:
         with:
           name: moonbeam
           path: target/release
-      - name: Setup Moonbeam PolkadotJS types
-        shell: bash
-        run: |
-          #### Preparing the legacy types
-          cd moonbeam-types-bundle
-          pnpm i
-          pnpm build
-
-          #### Preparing the typescript api
-          cd ../typescript-api
-          pnpm i
-          pnpm build
-
-          cd ../test
-          pnpm add ../typescript-api
       - name: "Run lazy loading tests"
         run: |
           chmod uog+x target/release/moonbeam
@@ -795,7 +847,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version-file: "test/.nvmrc"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
       - name: Create local folders
@@ -807,21 +859,6 @@ jobs:
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
-      - name: Setup Moonbeam PolkadotJS types
-        shell: bash
-        run: |
-          #### Preparing the legacy types
-          cd moonbeam-types-bundle
-          pnpm i
-          pnpm build
-
-          #### Preparing the typescript api
-          cd ../typescript-api
-          pnpm i
-          pnpm build
-
-          cd ../test
-          pnpm add ../typescript-api
       - name: "Install and run upgrade test"
         run: |
           cd test
@@ -860,7 +897,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version-file: "test/.nvmrc"
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -884,21 +921,6 @@ jobs:
           docker create --name moonbeam_container $DOCKER_TAG bash
           docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
           docker rm -f moonbeam_container
-      - name: Setup Moonbeam PolkadotJS types
-        shell: bash
-        run: |
-          #### Preparing the legacy types
-          cd moonbeam-types-bundle
-          pnpm i
-          pnpm build
-
-          #### Preparing the typescript api
-          cd ../typescript-api
-          pnpm i
-          pnpm build
-
-          cd ../test
-          pnpm add ../typescript-api
       - name: Prepare Chainspecs
         run: |
           cd test

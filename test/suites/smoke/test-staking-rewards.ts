@@ -612,7 +612,7 @@ describeSuite({
       // calculate total staking reward
       const firstBlockRewardedEvents =
         await payment.delayedPayoutRound.firstBlockApi.query.system.events();
-      const reservedInflation = new BN(0);
+      let reservedInflation = new BN(0);
       for (const { phase, event } of firstBlockRewardedEvents) {
         if (!phase.isInitialization) {
           continue;
@@ -620,7 +620,7 @@ describeSuite({
         const eventTypes = payment.delayedPayoutRound.firstBlockApi.events;
         // only deduct parachainBondReward if it was transferred (event must exist)
         if (eventTypes.parachainStaking.InflationDistributed.is(event)) {
-          reservedInflation.addn(event.data.value.toNumber());
+          reservedInflation = reservedInflation.add(new BN(event.data.value.toString()));
         }
       }
 

@@ -19,8 +19,9 @@ jobs:
   ####### Check files and formatting #######
 
   set-tags:
-    runs-on:
-      labels: bare-metal
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_target_branch: ${{ steps.check-git-ref.outputs.git_target_branch }}
@@ -60,7 +61,7 @@ jobs:
       - name: Get Latest RT Release
         id: get-latest-rt
         run: |
-          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | head -n 1 | tr -d '[:blank:]')
+          LATEST_RUNTIME_RELEASE=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("runtime";"i")) | .tag_name' | sort -rs | head -n 1 | tr -d '[:blank:]')
           echo $LATEST_RUNTIME_RELEASE
           echo "latest_rt=$LATEST_RUNTIME_RELEASE" >> $GITHUB_OUTPUT
       - name: Get Sha
@@ -89,6 +90,9 @@ jobs:
   build-and-coverage:
     runs-on:
       labels: bare-metal
+    permissions:
+      contents: read
+      pull-requests: write
     needs: ["set-tags"]
     if: ${{ !github.event.pull_request.head.repo.fork }}
     timeout-minutes: 90

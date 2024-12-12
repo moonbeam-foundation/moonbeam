@@ -25,11 +25,23 @@ use moonbeam_service::chain_spec;
 use sc_cli::{Error as CliError, SubstrateCli};
 use std::path::PathBuf;
 use std::time::Duration;
+use url::Url;
 
 #[cfg(feature = "lazy-loading")]
 fn parse_block_hash(s: &str) -> Result<sp_core::H256, String> {
 	use std::str::FromStr;
 	sp_core::H256::from_str(s).map_err(|err| err.to_string())
+}
+
+fn validate_url(arg: &str) -> Result<Url, String> {
+	let url = Url::parse(arg).map_err(|e| e.to_string())?;
+
+	let scheme = url.scheme();
+	if scheme == "http" || scheme == "https" {
+		Ok(url)
+	} else {
+		Err(format!("'{}' URL scheme not supported.", url.scheme()))
+	}
 }
 
 /// Sub-commands supported by the collator.
@@ -142,21 +154,74 @@ pub struct RunCmd {
 	#[clap(long)]
 	pub dev_service: bool,
 
+	/// Enable the new block import strategy
+	/// Deprecated in: https://github.com/Moonsong-Labs/moonkit/pull/43
+	#[clap(long)]
+	pub experimental_block_import_strategy: bool,
+
+	/// Specifies the URL used to fetch chain data via RPC.
+	///
+	/// The URL should point to the RPC endpoint of the chain being forked.
+	/// Ensure that the RPC has sufficient rate limits to handle the expected load.
 	#[cfg(feature = "lazy-loading")]
 	#[clap(long)]
-	pub fork_chain_from_rpc: Option<String>,
+	#[arg(
+		long,
+		value_parser = validate_url,
+		alias = "fork-chain-from-rpc"
+	)]
+	pub lazy_loading_remote_rpc: Option<Url>,
 
+	/// Optional parameter to specify the block hash for lazy loading.
+	///
+	/// This parameter allows the user to specify a block hash from which to start loading data.
+	///
+	/// If not provided, the latest block will be used.
 	#[cfg(feature = "lazy-loading")]
-	#[arg(long, value_name = "BLOCK", value_parser = parse_block_hash)]
-	pub block: Option<sp_core::H256>,
+	#[arg(
+		long,
+		value_name = "BLOCK",
+		value_parser = parse_block_hash,
+		alias = "block"
+	)]
+	pub lazy_loading_block: Option<sp_core::H256>,
 
+	/// Optional parameter to specify state overrides during lazy loading.
+	///
+	/// This parameter allows the user to provide a path to a file containing state overrides.
+	/// The file can contain any custom state modifications that should be applied.
 	#[cfg(feature = "lazy-loading")]
-	#[clap(long, value_name = "PATH", value_parser)]
-	pub fork_state_overrides: Option<PathBuf>,
+	#[clap(
+		long,
+		value_name = "PATH",
+		value_parser,
+		alias = "fork-state-overrides"
+	)]
+	pub lazy_loading_state_overrides: Option<PathBuf>,
 
+	/// Optional parameter to specify a runtime override when starting the lazy loading.
+	///
+	/// If not provided, it will fetch the runtime from the block being forked.
 	#[cfg(feature = "lazy-loading")]
-	#[clap(long, value_name = "PATH", value_parser)]
-	pub runtime_override: Option<PathBuf>,
+	#[clap(long, value_name = "PATH", value_parser, alias = "runtime-override")]
+	pub lazy_loading_runtime_override: Option<PathBuf>,
+
+	/// The delay (in milliseconds) between RPC requests when using lazy loading.
+	///
+	/// This parameter controls the amount of time (in milliseconds) to wait between consecutive
+	/// RPC requests. This can help manage request rate and avoid overwhelming the server.
+	///
+	/// The default value is 100 milliseconds.
+	#[cfg(feature = "lazy-loading")]
+	#[clap(long, default_value = "100")]
+	pub lazy_loading_delay_between_requests: u32,
+
+	/// The maximum number of retries for an RPC request when using lazy loading.
+	///
+	/// The default value is 10 retries.
+	#[cfg(feature = "lazy-loading")]
+	#[clap(long, default_value = "10")]
+	pub lazy_loading_max_retries_per_request: u32,
 
 	/// When blocks should be sealed in the dev service.
 	///

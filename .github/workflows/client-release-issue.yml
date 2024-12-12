@@ -11,7 +11,9 @@ on:
 
 jobs:
   setup-scripts:
-    runs-on: bare-metal
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Upload tools
@@ -23,13 +25,16 @@ jobs:
   create_client_ticket:
     needs: ["setup-scripts"]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.10.0
+          node-version-file: "test/.nvmrc"
       - name: Download Original Tools
         uses: actions/download-artifact@v4
         with:
