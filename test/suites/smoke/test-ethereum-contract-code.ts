@@ -51,8 +51,9 @@ describeSuite({
             }
           }
           totalContracts += BigInt(items.length);
-          // WHEN DEBUGGING REPLACE THE EMPTY STRING WITH A PREFIX TO FETCH
+
         },
+        // WHEN DEBUGGING REPLACE THE EMPTY STRING WITH A PREFIX TO FETCH
         ""
       );
 
