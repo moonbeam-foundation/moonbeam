@@ -426,9 +426,10 @@ pub mod pallet {
 
 			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidSymbol)?;
 			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
-			let creator = ensure_signed(origin)?;
+			let owner_account = ensure_signed(origin)?;
 			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
 			let deposit = T::ForeignAssetDeposit::get();
+			let owner = AssetOwner::<T>::Account(owner_account.clone());
 
 			// Insert the association assetId->foreigAsset
 			// Insert the association foreigAsset->assetId
@@ -436,13 +437,10 @@ pub mod pallet {
 			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, AssetStatus::Active));
 
 			// Reserve _deposit_ amount of funds from the caller
-			<T as Config>::Currency::reserve(&creator, deposit)?;
+			<T as Config>::Currency::reserve(&owner_account, deposit)?;
 
 			// Insert the amount that is reserved from the user
-			AssetsCreationDetails::<T>::insert(&asset_id, AssetCreationDetails {
-				creator,
-				deposit
-			});
+			AssetsCreationDetails::<T>::insert(&asset_id, AssetCreationDetails { owner, deposit });
 
 			T::OnForeignAssetCreated::on_asset_created(&xcm_location, &asset_id);
 
@@ -450,7 +448,7 @@ pub mod pallet {
 				contract_address,
 				asset_id,
 				xcm_location,
-				deposit
+				deposit,
 			});
 			Ok(())
 		}
@@ -553,6 +551,68 @@ pub mod pallet {
 			Self::deposit_event(Event::ForeignAssetUnfrozen {
 				asset_id,
 				xcm_location,
+			});
+			Ok(())
+		}
+
+		#[pallet::call_index(4)]
+		#[pallet::weight(<T as Config>::WeightInfo::create_foreign_asset_reserve())]
+		pub fn create_foreign_asset_reserve(
+			origin: OriginFor<T>,
+			asset_id: AssetId,
+			xcm_location: Location,
+			decimals: u8,
+			symbol: BoundedVec<u8, ConstU32<256>>,
+			name: BoundedVec<u8, ConstU32<256>>,
+		) -> DispatchResult {
+			let owner_account = ensure_signed(origin)?;
+
+			// Ensure such an assetId does not exist
+			ensure!(
+				!AssetsById::<T>::contains_key(&asset_id),
+				Error::<T>::AssetAlreadyExists
+			);
+
+			ensure!(
+				!AssetsByLocation::<T>::contains_key(&xcm_location),
+				Error::<T>::LocationAlreadyExists
+			);
+
+			ensure!(
+				AssetsById::<T>::count() < T::MaxForeignAssets::get(),
+				Error::<T>::TooManyForeignAssets
+			);
+
+			ensure!(
+				T::AssetIdFilter::contains(&asset_id),
+				Error::<T>::AssetIdFiltered
+			);
+
+			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidSymbol)?;
+			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
+			let contract_address =
+				crate::evm::EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
+			let deposit = T::ForeignAssetDeposit::get();
+			let owner = AssetOwner::<T>::Account(owner_account.clone());
+
+			// Insert the association assetId->foreigAsset
+			// Insert the association foreigAsset->assetId
+			AssetsById::<T>::insert(&asset_id, &xcm_location);
+			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, crate::AssetStatus::Active));
+
+			// Reserve _deposit_ amount of funds from the caller
+			<T as Config>::Currency::reserve(&owner_account, deposit)?;
+
+			// Insert the amount that is reserved from the user
+			AssetsCreationDetails::<T>::insert(&asset_id, AssetCreationDetails { owner, deposit });
+
+			T::OnForeignAssetCreated::on_asset_created(&xcm_location, &asset_id);
+
+			Self::deposit_event(Event::ForeignAssetCreated {
+				contract_address,
+				asset_id,
+				xcm_location,
+				deposit,
 			});
 			Ok(())
 		}
