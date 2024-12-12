@@ -14,12 +14,7 @@ import type {
 } from "@polkadot/types/lookup";
 import type { AnyTuple } from "@polkadot/types/types";
 import { ethers } from "ethers";
-import {
-  checkTimeSliceForUpgrades,
-  ConstantStore,
-  rateLimiter,
-  RUNTIME_CONSTANTS,
-} from "../../helpers";
+import { checkTimeSliceForUpgrades, rateLimiter, RUNTIME_CONSTANTS } from "../../helpers";
 import Debug from "debug";
 import type { DispatchInfo } from "@polkadot/types/interfaces";
 const debug = Debug("smoke:dynamic-fees");
@@ -304,7 +299,8 @@ describeSuite({
           log("Skipping test suite due to runtime version");
           return;
         }
-        const weightFee = ConstantStore(context).WEIGHT_FEE.get(specVersion.toNumber());
+        const runtime = paraApi.consts.system.version.specName.toUpperCase();
+        const weightFee = RUNTIME_CONSTANTS[runtime].WEIGHT_FEE.get(specVersion.toNumber());
 
         const failures = blockData
           .map(({ blockNum, nextFeeMultiplier, baseFeePerGasInGwei }) => {
