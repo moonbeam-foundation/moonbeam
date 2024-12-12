@@ -109,9 +109,12 @@ export async function processRandomStoragePrefixes(
   let total = 0;
   const preFilteredPrefixes = splitPrefix(storagePrefix);
   const chanceToSample = 0.05;
-  const prefixes = override
+  let prefixes = override
     ? [override]
     : preFilteredPrefixes.filter(() => Math.random() < chanceToSample);
+  if (prefixes.length > 25) {
+    prefixes = prefixes.slice(0, 25);
+  }
   console.log(`Processing ${prefixes.length} prefixes: ${prefixes.join(", ")}`);
   const limiter = rateLimiter();
   const stopReport = startReport(() => total);
