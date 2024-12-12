@@ -1,4 +1,4 @@
-# ![Moonbeam](media/Banner.jpg)
+# ![Moonbeam](mb.png)
 
 # Information
 
