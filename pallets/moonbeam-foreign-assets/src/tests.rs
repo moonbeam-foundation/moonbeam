@@ -53,7 +53,10 @@ fn create_foreign_and_freeze_unfreeze() {
 		);
 		assert_eq!(
 			EvmForeignAssets::assets_creation_details(&1),
-			Some(AssetCreationDetails { creator: Alice.into(), deposit: 1})
+			Some(AssetCreationDetails {
+				creator: Alice.into(),
+				deposit: 1
+			})
 		);
 
 		expect_events(vec![crate::Event::ForeignAssetCreated {
@@ -78,7 +81,10 @@ fn create_foreign_and_freeze_unfreeze() {
 		);
 		assert_eq!(
 			EvmForeignAssets::assets_creation_details(&1),
-			Some(AssetCreationDetails { creator: Alice.into(), deposit: 1})
+			Some(AssetCreationDetails {
+				creator: Alice.into(),
+				deposit: 1
+			})
 		);
 
 		// Unfreeze should return AssetNotFrozen error
@@ -206,7 +212,7 @@ fn test_root_can_change_foreign_asset_for_asset_id() {
 				]),
 				asset_id: 1,
 				xcm_location: Location::parent(),
-				deposit: 1
+				deposit: 1,
 			},
 			crate::Event::ForeignAssetXcmLocationChanged {
 				asset_id: 1,
