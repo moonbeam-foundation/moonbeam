@@ -88,8 +88,6 @@ describeSuite({
       const calcTreasuryIncrease = (feeWithTip: bigint, tip?: bigint): bigint => {
         const issuanceDecrease = calcIssuanceDecrease(feeWithTip, tip);
         const treasuryIncrease = feeWithTip - issuanceDecrease;
-        console.log("issuanceDecrease", issuanceDecrease.toString());
-        console.log("treasuryIncrease", treasuryIncrease.toString());
         return treasuryIncrease;
       };
       const calcIssuanceDecrease = (feeWithTip: bigint, tip?: bigint): bigint => {
@@ -107,16 +105,6 @@ describeSuite({
           burnProportion.value(),
           t.proportion.value()
         );
-
-        console.log("burn percentage", burnPercentage);
-        console.log("treasury percentage", treasuryPercentage);
-        console.log("feeWithTipBN", feeWithTipBN.toString());
-        console.log("tipBN", tipBN.toString());
-        console.log("feeWithoutTipBN", feeWithoutTipBN.toString());
-        console.log("burnFeePart", burnFeePart.toString());
-        console.log("treasuryFeePart", _treasuryFeePart.toString());
-        console.log("burnTipPart", burnTipPart.toString());
-        console.log("treasuryTipPart", _treasuryTipPart.toString());
 
         return BigInt(burnFeePart.add(burnTipPart).toString());
       };

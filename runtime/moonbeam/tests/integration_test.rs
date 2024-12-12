@@ -1385,7 +1385,7 @@ fn initial_gas_fee_is_correct() {
 		assert_eq!(
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
-				125_000_000_000u128.into(),
+				31_250_000_000u128.into(),
 				Weight::from_parts(41_742_000u64, 0)
 			)
 		);
@@ -1407,7 +1407,7 @@ fn min_gas_fee_is_correct() {
 		assert_eq!(
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
-				125_000_000_000u128.into(),
+				31_250_000_000u128.into(),
 				Weight::from_parts(41_742_000u64, 0)
 			)
 		);
@@ -1419,7 +1419,7 @@ fn transfer_ed_0_substrate() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), (1 * GLMR) + (1 * WEI)),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1442,7 +1442,7 @@ fn transfer_ed_0_evm() {
 				AccountId::from(ALICE),
 				((1 * GLMR) + (21_000 * BASE_FEE_GENESIS)) + (1 * WEI),
 			),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1470,9 +1470,9 @@ fn refund_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * GLMR) + (21_777 * BASE_FEE_GENESIS)),
+				((1 * GLMR) + (21_777 * BASE_FEE_GENESIS) + existential_deposit()),
 			),
-			(AccountId::from(BOB), 0),
+			(AccountId::from(BOB), existential_deposit()),
 		])
 		.build()
 		.execute_with(|| {
@@ -1492,7 +1492,7 @@ fn refund_ed_0_evm() {
 			// ALICE is refunded
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				777 * BASE_FEE_GENESIS,
+				777 * BASE_FEE_GENESIS + existential_deposit(),
 			);
 		});
 }
@@ -1534,10 +1534,16 @@ fn author_does_not_receive_priority_fee() {
 #[test]
 fn total_issuance_after_evm_transaction_with_priority_fee() {
 	ExtBuilder::default()
-		.with_balances(vec![(
-			AccountId::from(BOB),
-			(1 * GLMR) + (21_000 * (200 * GIGAWEI)),
-		)])
+		.with_balances(vec![
+			(
+				AccountId::from(BOB),
+				(1 * GLMR) + (21_000 * (200 * GIGAWEI) + existential_deposit()),
+			),
+			(
+				<pallet_treasury::TreasuryAccountId<Runtime> as sp_core::TypedGet>::get(),
+				existential_deposit(),
+			),
+		])
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
@@ -1548,7 +1554,7 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 				input: Vec::new(),
 				value: (1 * GLMR).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(200 * GIGAWEI),
+				max_fee_per_gas: U256::from(125 * GIGAWEI),
 				max_priority_fee_per_gas: Some(U256::from(100 * GIGAWEI)),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -1556,8 +1562,8 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			// Fee is 100 GWEI base fee + 100 GWEI tip.
-			let fee = ((200 * GIGAWEI) * 21_000) as f64;
+			// Fee is 25 GWEI base fee + 100 GWEI tip.
+			let fee = ((125 * GIGAWEI) * 21_000) as f64;
 			// 80% was burned.
 			let expected_burn = (fee * 0.8) as u128;
 			assert_eq!(issuance_after, issuance_before - expected_burn,);
@@ -1570,10 +1576,16 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 #[test]
 fn total_issuance_after_evm_transaction_without_priority_fee() {
 	ExtBuilder::default()
-		.with_balances(vec![(
-			AccountId::from(BOB),
-			(1 * GLMR) + (21_000 * BASE_FEE_GENESIS),
-		)])
+		.with_balances(vec![
+			(
+				AccountId::from(BOB),
+				(1 * GLMR) + (21_000 * BASE_FEE_GENESIS + existential_deposit()),
+			),
+			(
+				<pallet_treasury::TreasuryAccountId<Runtime> as sp_core::TypedGet>::get(),
+				existential_deposit(),
+			),
+		])
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
@@ -1796,7 +1808,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(24684)
+				.expect_cost(24753)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1861,7 +1873,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(15573)
+				.expect_cost(15568)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1882,7 +1894,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(29947)
+				.expect_cost(30053)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1961,7 +1973,7 @@ fn xtokens_precompile_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24691)
+				.expect_cost(24680)
 				.expect_no_logs()
 				.execute_returns(())
 		})
@@ -2013,7 +2025,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24691)
+				.expect_cost(24680)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2175,7 +2187,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23275)
+				.expect_cost(21456)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2809,9 +2821,7 @@ mod fee_tests {
 			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
 			let actual = TransactionPaymentAsGasPrice::min_gas_price().0;
 			let expected: U256 = multiplier
-				.saturating_mul_int(
-					(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128),
-				)
+				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
 				.into();
 
 			assert_eq!(expected, actual);
@@ -2848,8 +2858,7 @@ mod fee_tests {
 			.unwrap()
 			.into();
 		t.execute_with(|| {
-			let weight_fee_per_gas =
-				(currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128);
+			let weight_fee_per_gas = (currency::WEIGHT_FEE).saturating_mul(WEIGHT_PER_GAS as u128);
 			let sim = |start_gas_price: u128, fullness: Perbill, num_blocks: u64| -> U256 {
 				let start_multiplier =
 					FixedU128::from_rational(start_gas_price, weight_fee_per_gas);
@@ -2874,55 +2883,55 @@ mod fee_tests {
 
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 1),
-				U256::from(125_000_000_000u128),
+				U256::from(31_250_000_000u128), // lower bound enforced
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 1),
-				U256::from(125_000_000_000u128),
+				U256::from(31_250_000_000u128),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 1),
-				U256::from(125_075_022_500u128),
+				U256::from(31_268_755_625u128), // slightly higher than lower bound
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 1),
-				U256::from(125_325_422_500u128),
+				U256::from(31_331_355_625u128), // a bit higher than before
 			);
 
 			// 1 "real" hour (at 12-second blocks)
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 600),
-				U256::from(125_000_000_000u128),
+				U256::from(31_250_000_000u128), // lower bound enforced
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 600),
-				U256::from(125_000_000_000u128),
+				U256::from(31_250_000_000u128),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 600),
-				U256::from(179_166_172_951u128),
+				U256::from(44_791_543_237u128), // a bit higher than lower bound
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 600),
-				U256::from(594_851_612_166u128),
+				U256::from(148_712_903_041u128), // a lot more
 			);
 
 			// 1 "real" day (at 12-second blocks)
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(0), 14400),
-				U256::from(125_000_000_000u128), // lower bound enforced
+				U256::from(31_250_000_000u128), // lower bound enforced
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(25), 14400),
-				U256::from(125_000_000_000u128),
+				U256::from(31_250_000_000u128),
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(50), 14400),
-				U256::from(706_665_861_883_635u128),
+				U256::from(176_666_465_470_908u128), // significantly higher
 			);
 			assert_eq!(
 				sim(1_000_000_000, Perbill::from_percent(100), 14400),
-				U256::from(12_500_000_000_000_000u128), // upper bound enforced
+				U256::from(3_125_000_000_000_000u128), // upper bound enforced
 			);
 		});
 	}

@@ -19,29 +19,34 @@
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(any(test, feature = "runtime-benchmarks"))]
-mod benchmarks;
 #[cfg(test)]
-mod mock;
+pub mod mock;
 #[cfg(test)]
 mod tests;
 
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
+
+mod foreign_asset;
 pub mod weights;
 pub use weights::WeightInfo;
 
 use frame_support::pallet;
-
+use frame_support::pallet_prelude::*;
+use frame_system::pallet_prelude::*;
 pub use pallet::*;
+use xcm::latest::Location;
 
 const MAX_CONTRACT_CODE_SIZE: u64 = 25 * 1024;
+
+environmental::environmental!(MIGRATING_FOREIGN_ASSETS: bool);
 
 #[pallet]
 pub mod pallet {
 	use super::*;
+	use crate::foreign_asset::ForeignAssetMigrationStatus;
 	use cumulus_primitives_storage_weight_reclaim::get_proof_size;
-	use frame_support::pallet_prelude::*;
-	use frame_system::pallet_prelude::*;
-	use sp_core::H160;
+	use sp_core::{H160, U256};
 
 	pub const ARRAY_LIMIT: u32 = 1000;
 	pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
@@ -51,12 +56,17 @@ pub mod pallet {
 	pub struct Pallet<T>(PhantomData<T>);
 
 	#[pallet::storage]
-	/// The total number of suicided contracts that were removed
-	pub(crate) type SuicidedContractsRemoved<T: Config> = StorageValue<_, u32, ValueQuery>;
-
-	#[pallet::storage]
 	pub(crate) type StateMigrationStatusValue<T: Config> =
 		StorageValue<_, (StateMigrationStatus, u64), ValueQuery>;
+
+	#[pallet::storage]
+	pub(crate) type ForeignAssetMigrationStatusValue<T: Config> =
+		StorageValue<_, ForeignAssetMigrationStatus, ValueQuery>;
+
+	// List of approved foreign assets to be migrated
+	#[pallet::storage]
+	pub(crate) type ApprovedForeignAssets<T: Config> =
+		StorageMap<_, Twox64Concat, u128, (), OptionQuery>;
 
 	pub(crate) type StorageKey = BoundedVec<u8, ConstU32<1_024>>;
 
@@ -70,13 +80,21 @@ pub mod pallet {
 
 	impl Default for StateMigrationStatus {
 		fn default() -> Self {
-			return StateMigrationStatus::NotStarted;
+			StateMigrationStatus::NotStarted
 		}
 	}
-
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_evm::Config + pallet_balances::Config {
+	pub trait Config:
+		frame_system::Config
+		+ pallet_evm::Config
+		+ pallet_balances::Config
+		+ pallet_assets::Config<AssetId = u128>
+		+ pallet_asset_manager::Config<AssetId = u128>
+		+ pallet_moonbeam_foreign_assets::Config
+	{
+		// Origin that is allowed to start foreign assets migration
+		type ForeignAssetMigratorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		type WeightInfo: WeightInfo;
 	}
 
@@ -84,16 +102,30 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// The limit cannot be zero
 		LimitCannotBeZero,
-		/// There must be at least one address
-		AddressesLengthCannotBeZero,
-		/// The contract is not corrupted (Still exist or properly suicided)
-		ContractNotCorrupted,
 		/// The contract already have metadata
 		ContractMetadataAlreadySet,
 		/// Contract not exist
 		ContractNotExist,
 		/// The key lengths exceeds the maximum allowed
 		KeyTooLong,
+		/// The symbol length exceeds the maximum allowed
+		SymbolTooLong,
+		/// The name length exceeds the maximum allowed
+		NameTooLong,
+		/// The asset type was not found
+		AssetTypeNotFound,
+		/// Asset not found
+		AssetNotFound,
+		/// The location of the asset was not found
+		LocationNotFound,
+		/// Migration is not finished yet
+		MigrationNotFinished,
+		/// No migration in progress
+		NoMigrationInProgress,
+		/// Fail to mint the foreign asset
+		MintFailed,
+		/// Fail to add an approval
+		ApprovalFailed,
 	}
 
 	pub(crate) const MAX_ITEM_PROOF_SIZE: u64 = 30 * 1024; // 30 KB
@@ -322,62 +354,11 @@ pub mod pallet {
 	}
 
 	#[pallet::call]
-	impl<T: Config> Pallet<T> {
-		// TODO(rodrigo): This extrinsic should be removed once the storage of destroyed contracts
-		// has been removed
-		#[pallet::call_index(1)]
-		#[pallet::weight({
-			let addresses_len = addresses.len() as u32;
-			<T as crate::Config>::WeightInfo::clear_suicided_storage(addresses_len, *limit)
-		})]
-		pub fn clear_suicided_storage(
-			origin: OriginFor<T>,
-			addresses: BoundedVec<H160, GetArrayLimit>,
-			limit: u32,
-		) -> DispatchResultWithPostInfo {
-			ensure_signed(origin)?;
-
-			ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
-			ensure!(
-				addresses.len() != 0,
-				Error::<T>::AddressesLengthCannotBeZero
-			);
-
-			let mut limit = limit as usize;
-
-			for address in &addresses {
-				// Ensure that the contract is corrupted by checking
-				// that it has no code and at least one storage entry.
-				let suicided = pallet_evm::Suicided::<T>::contains_key(&address);
-				let has_code = pallet_evm::AccountCodes::<T>::contains_key(&address);
-				ensure!(
-					!suicided
-						&& !has_code && pallet_evm::AccountStorages::<T>::iter_key_prefix(&address)
-						.next()
-						.is_some(),
-					Error::<T>::ContractNotCorrupted
-				);
-
-				let deleted = pallet_evm::AccountStorages::<T>::drain_prefix(*address)
-					.take(limit)
-					.count();
-
-				// Check if the storage of this contract has been completly removed
-				if pallet_evm::AccountStorages::<T>::iter_key_prefix(&address)
-					.next()
-					.is_none()
-				{
-					// All entries got removed, lets count this address as migrated
-					SuicidedContractsRemoved::<T>::mutate(|x| *x = x.saturating_add(1));
-				}
-
-				limit = limit.saturating_sub(deleted);
-				if limit == 0 {
-					return Ok(Pays::No.into());
-				}
-			}
-			Ok(Pays::No.into())
-		}
+	impl<T: Config> Pallet<T>
+	where
+		<T as pallet_assets::Config>::Balance: Into<U256>,
+		<T as pallet_asset_manager::Config>::ForeignAssetType: Into<Option<Location>>,
+	{
 		#[pallet::call_index(2)]
 		#[pallet::weight(Pallet::<T>::create_contract_metadata_weight(MAX_CONTRACT_CODE_SIZE))]
 		pub fn create_contract_metadata(
@@ -412,6 +393,73 @@ pub mod pallet {
 			)
 				.into())
 		}
+
+		#[pallet::call_index(3)]
+		#[pallet::weight(
+			<T as pallet::Config>::WeightInfo::approve_assets_to_migrate(assets.len() as u32)
+		)]
+		pub fn approve_assets_to_migrate(
+			origin: OriginFor<T>,
+			assets: BoundedVec<u128, GetArrayLimit>,
+		) -> DispatchResultWithPostInfo {
+			T::ForeignAssetMigratorOrigin::ensure_origin(origin.clone())?;
+
+			assets.iter().try_for_each(|asset_id| {
+				ensure!(
+					pallet_assets::Asset::<T>::contains_key(*asset_id),
+					Error::<T>::AssetNotFound
+				);
+
+				ApprovedForeignAssets::<T>::insert(asset_id, ());
+				Ok::<(), Error<T>>(())
+			})?;
+			Ok(Pays::No.into())
+		}
+
+		#[pallet::call_index(4)]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::start_foreign_assets_migration())]
+		pub fn start_foreign_assets_migration(
+			origin: OriginFor<T>,
+			asset_id: u128,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+
+			Self::do_start_foreign_asset_migration(asset_id)?;
+			Ok(Pays::No.into())
+		}
+
+		#[pallet::call_index(5)]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::migrate_foreign_asset_balances(*limit))]
+		pub fn migrate_foreign_asset_balances(
+			origin: OriginFor<T>,
+			limit: u32,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+
+			Self::do_migrate_foreign_asset_balances(limit)?;
+			Ok(Pays::No.into())
+		}
+
+		#[pallet::call_index(6)]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::migrate_foreign_asset_approvals(*limit))]
+		pub fn migrate_foreign_asset_approvals(
+			origin: OriginFor<T>,
+			limit: u32,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+
+			Self::do_migrate_foreign_asset_approvals(limit)?;
+			Ok(Pays::No.into())
+		}
+
+		#[pallet::call_index(7)]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::finish_foreign_assets_migration())]
+		pub fn finish_foreign_assets_migration(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+
+			Self::do_finish_foreign_asset_migration()?;
+			Ok(Pays::No.into())
+		}
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -429,4 +477,8 @@ pub mod pallet {
 				)
 		}
 	}
+}
+
+pub fn is_migrating_foreign_assets() -> bool {
+	MIGRATING_FOREIGN_ASSETS::with(|v| *v).unwrap_or(false)
 }

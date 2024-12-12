@@ -74,6 +74,7 @@ import type {
   PalletMessageQueueBookState,
   PalletMessageQueuePage,
   PalletMoonbeamForeignAssetsAssetStatus,
+  PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus,
   PalletMoonbeamLazyMigrationsStateMigrationStatus,
   PalletMoonbeamOrbitersCollatorPoolInfo,
   PalletMultisigMultisig,
@@ -709,14 +710,23 @@ declare module "@polkadot/api-base/types/storage" {
       [key: string]: QueryableStorageEntry<ApiType>;
     };
     moonbeamLazyMigrations: {
+      approvedForeignAssets: AugmentedQuery<
+        ApiType,
+        (arg: u128 | AnyNumber | Uint8Array) => Observable<Option<Null>>,
+        [u128]
+      > &
+        QueryableStorageEntry<ApiType, [u128]>;
+      foreignAssetMigrationStatusValue: AugmentedQuery<
+        ApiType,
+        () => Observable<PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
       stateMigrationStatusValue: AugmentedQuery<
         ApiType,
         () => Observable<ITuple<[PalletMoonbeamLazyMigrationsStateMigrationStatus, u64]>>,
         []
       > &
-        QueryableStorageEntry<ApiType, []>;
-      /** The total number of suicided contracts that were removed */
-      suicidedContractsRemoved: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
       /** Generic query */
       [key: string]: QueryableStorageEntry<ApiType>;

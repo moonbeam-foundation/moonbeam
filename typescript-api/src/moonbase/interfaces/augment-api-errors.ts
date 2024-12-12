@@ -387,18 +387,32 @@ declare module "@polkadot/api-base/types/errors" {
       [key: string]: AugmentedError<ApiType>;
     };
     moonbeamLazyMigrations: {
-      /** There must be at least one address */
-      AddressesLengthCannotBeZero: AugmentedError<ApiType>;
+      /** Fail to add an approval */
+      ApprovalFailed: AugmentedError<ApiType>;
+      /** Asset not found */
+      AssetNotFound: AugmentedError<ApiType>;
+      /** The asset type was not found */
+      AssetTypeNotFound: AugmentedError<ApiType>;
       /** The contract already have metadata */
       ContractMetadataAlreadySet: AugmentedError<ApiType>;
-      /** The contract is not corrupted (Still exist or properly suicided) */
-      ContractNotCorrupted: AugmentedError<ApiType>;
       /** Contract not exist */
       ContractNotExist: AugmentedError<ApiType>;
       /** The key lengths exceeds the maximum allowed */
       KeyTooLong: AugmentedError<ApiType>;
       /** The limit cannot be zero */
       LimitCannotBeZero: AugmentedError<ApiType>;
+      /** The location of the asset was not found */
+      LocationNotFound: AugmentedError<ApiType>;
+      /** Migration is not finished yet */
+      MigrationNotFinished: AugmentedError<ApiType>;
+      /** Fail to mint the foreign asset */
+      MintFailed: AugmentedError<ApiType>;
+      /** The name length exceeds the maximum allowed */
+      NameTooLong: AugmentedError<ApiType>;
+      /** No migration in progress */
+      NoMigrationInProgress: AugmentedError<ApiType>;
+      /** The symbol length exceeds the maximum allowed */
+      SymbolTooLong: AugmentedError<ApiType>;
       /** Generic error */
       [key: string]: AugmentedError<ApiType>;
     };

@@ -80,10 +80,7 @@ use frame_support::{
 use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::{
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
-	weights as moonbase_weights,
-};
+use moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
 use nimbus_primitives::CanAuthor;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
@@ -132,6 +129,9 @@ use sp_runtime::serde::{Deserialize, Serialize};
 pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
+
+mod weights;
+pub(crate) use weights as moonbase_weights;
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -190,28 +190,12 @@ pub mod opaque {
 /// The spec_version is composed of 2x2 digits. The first 2 digits represent major changes
 /// that can't be skipped, such as data migration upgrades. The last 2 digits represent minor
 /// changes which can be skipped.
-#[cfg(feature = "runtime-benchmarks")]
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 3400,
-	impl_version: 0,
-	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 3,
-	state_version: 0,
-};
-
-/// We need to duplicate this because the `runtime_version` macro is conflicting with the
-/// conditional compilation at the state_version field.
-#[cfg(not(feature = "runtime-benchmarks"))]
-#[sp_version::runtime_version]
-pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonbase"),
-	impl_name: create_runtime_str!("moonbase"),
-	authoring_version: 4,
-	spec_version: 3400,
+	spec_version: 3500,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -498,7 +482,7 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 		// There's still some precision loss when the final `gas_price` (used_gas * min_gas_price)
 		// is computed in frontier, but that's currently unavoidable.
 		let min_gas_price = TransactionPayment::next_fee_multiplier()
-			.saturating_mul_int((currency::WEIGHT_FEE * 4).saturating_mul(WEIGHT_PER_GAS as u128));
+			.saturating_mul_int((currency::WEIGHT_FEE).saturating_mul(WEIGHT_PER_GAS as u128));
 		(
 			min_gas_price.into(),
 			<Runtime as frame_system::Config>::DbWeight::get().reads(1),
@@ -1171,7 +1155,16 @@ impl pallet_migrations::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
+pub type ForeignAssetMigratorOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::FastGeneralAdmin,
+	>,
+>;
+
 impl pallet_moonbeam_lazy_migrations::Config for Runtime {
+	type ForeignAssetMigratorOrigin = ForeignAssetMigratorOrigin;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
 }
 
@@ -1536,9 +1529,9 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
+		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
-		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_parameters, Parameters]
 		[pallet_xcm_weight_trader, XcmWeightTrader]
 	);

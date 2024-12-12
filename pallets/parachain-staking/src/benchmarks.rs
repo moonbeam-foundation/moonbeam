@@ -963,6 +963,8 @@ benchmarks! {
 	verify {
 		let state = Pallet::<T>::delegator_state(&last_top_delegator)
 			.expect("delegator must exist");
+		let current_round = Pallet::<T>::round().current;
+		let delegator_delay = <<T as Config>::LeaveDelegatorsDelay>::get();
 		assert_eq!(
 			Pallet::<T>::delegation_scheduled_requests(&collator)
 				.iter()
@@ -970,7 +972,7 @@ benchmarks! {
 				.cloned(),
 			Some(ScheduledRequest {
 				delegator: last_top_delegator,
-				when_executable: 3,
+				when_executable: current_round + delegator_delay,
 				action: DelegationAction::Revoke(last_top_delegator_bond),
 			}),
 		);
@@ -1185,6 +1187,8 @@ benchmarks! {
 	verify {
 		let state = Pallet::<T>::delegator_state(&last_top_delegator)
 			.expect("just request bonded less so exists");
+		let current_round = Pallet::<T>::round().current;
+		let delegator_delay = <<T as Config>::DelegationBondLessDelay>::get();
 		assert_eq!(
 			Pallet::<T>::delegation_scheduled_requests(&collator)
 				.iter()
@@ -1192,7 +1196,7 @@ benchmarks! {
 				.cloned(),
 			Some(ScheduledRequest {
 				delegator: last_top_delegator,
-				when_executable: 3,
+				when_executable: current_round + delegator_delay,
 				action: DelegationAction::Decrease(bond_less),
 			}),
 		);

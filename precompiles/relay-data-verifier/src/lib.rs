@@ -22,7 +22,6 @@ use core::marker::PhantomData;
 use cumulus_primitives_core::relay_chain::BlockNumber as RelayBlockNumber;
 use fp_evm::{PrecompileFailure, PrecompileHandle};
 use frame_support::{ensure, traits::ConstU32};
-use moonbeam_runtime_common::weights::pallet_precompile_benchmarks::WeightInfo;
 use pallet_precompile_benchmarks::WeightInfo as TWeightInfo;
 use precompile_utils::prelude::*;
 use sp_core::H256;
@@ -45,15 +44,16 @@ pub type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 pub type RawKey = BoundedBytes<GetKeyLengthLimit>;
 
 /// Relay Data Verifier precompile.
-pub struct RelayDataVerifierPrecompile<Runtime>(PhantomData<Runtime>);
+pub struct RelayDataVerifierPrecompile<Runtime, WeightInfo>(PhantomData<(Runtime, WeightInfo)>);
 
 #[precompile_utils::precompile]
-impl<Runtime> RelayDataVerifierPrecompile<Runtime>
+impl<Runtime, WeightInfo> RelayDataVerifierPrecompile<Runtime, WeightInfo>
 where
 	Runtime: frame_system::Config
 		+ pallet_relay_storage_roots::Config
 		+ pallet_evm::Config
 		+ pallet_precompile_benchmarks::Config,
+	WeightInfo: TWeightInfo,
 {
 	/// Verify the storage entry using the provided relay block number and proof. Return the value
 	/// of the storage entry if the proof is valid and the entry exists.
@@ -66,7 +66,7 @@ where
 		key: RawKey,
 	) -> EvmResult<UnboundedBytes> {
 		// Charge gas for storage proof verification
-		let weight = WeightInfo::<Runtime>::verify_entry(proof.proof.len() as u32);
+		let weight = WeightInfo::verify_entry(proof.proof.len() as u32);
 		handle.record_external_cost(Some(weight.ref_time()), Some(0), Some(0))?;
 
 		// Get the storage root of the relay block
@@ -95,7 +95,7 @@ where
 		ensure!(keys.len() > 0, revert("Keys must not be empty"));
 
 		//  Charge gas for storage proof verification
-		let weight = WeightInfo::<Runtime>::verify_entry(proof.proof.len() as u32);
+		let weight = WeightInfo::verify_entry(proof.proof.len() as u32);
 		handle.record_external_cost(Some(weight.ref_time()), Some(0), Some(0))?;
 
 		// Get the storage root of the relay block
@@ -119,7 +119,7 @@ where
 	#[precompile::public("latest_relay_block_number()")]
 	#[precompile::view]
 	fn latest_relay_block(handle: &mut impl PrecompileHandle) -> EvmResult<RelayBlockNumber> {
-		let weight = WeightInfo::<Runtime>::latest_relay_block();
+		let weight = WeightInfo::latest_relay_block();
 		handle.record_external_cost(Some(weight.ref_time()), Some(weight.proof_size()), Some(0))?;
 
 		pallet_relay_storage_roots::RelayStorageRootKeys::<Runtime>::get()

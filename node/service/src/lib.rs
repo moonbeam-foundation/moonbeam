@@ -34,6 +34,7 @@ use cumulus_client_service::{
 	ParachainHostFunctions, StartRelayChainTasksParams,
 };
 use cumulus_primitives_core::{
+	relay_chain,
 	relay_chain::{well_known_keys, CollatorPair},
 	ParaId,
 };
@@ -56,7 +57,7 @@ use moonbeam_vrf::VrfDigestsProvider;
 pub use moonriver_runtime;
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_primitives::{DigestsProvider, NimbusId};
-use polkadot_primitives::Slot;
+use polkadot_primitives::{AbridgedHostConfiguration, AsyncBackingParams, Slot};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
@@ -75,7 +76,7 @@ use session_keys_primitives::VrfApi;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_consensus::SyncOracle;
-use sp_core::{ByteArray, Encode, H256};
+use sp_core::{twox_128, ByteArray, Encode, H256};
 use sp_keystore::{Keystore, KeystorePtr};
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -361,6 +362,7 @@ pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 pub fn new_chain_ops(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
+	experimental_block_import_strategy: bool,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -375,15 +377,17 @@ pub fn new_chain_ops(
 		spec if spec.is_moonriver() => new_chain_ops_inner::<
 			moonriver_runtime::RuntimeApi,
 			MoonriverCustomizations,
-		>(config, rpc_config),
+		>(config, rpc_config, experimental_block_import_strategy),
 		#[cfg(feature = "moonbeam-native")]
 		spec if spec.is_moonbeam() => new_chain_ops_inner::<
 			moonbeam_runtime::RuntimeApi,
 			MoonbeamCustomizations,
-		>(config, rpc_config),
+		>(config, rpc_config, experimental_block_import_strategy),
 		#[cfg(feature = "moonbase-native")]
 		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseCustomizations>(
-			config, rpc_config,
+			config,
+			rpc_config,
+			experimental_block_import_strategy,
 		),
 		#[cfg(not(feature = "moonbase-native"))]
 		_ => panic!("invalid chain spec"),
@@ -394,6 +398,7 @@ pub fn new_chain_ops(
 fn new_chain_ops_inner<RuntimeApi, Customizations>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
+	experimental_block_import_strategy: bool,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -416,7 +421,12 @@ where
 		import_queue,
 		task_manager,
 		..
-	} = new_partial::<RuntimeApi, Customizations>(config, rpc_config, config.chain_spec.is_dev())?;
+	} = new_partial::<RuntimeApi, Customizations>(
+		config,
+		rpc_config,
+		config.chain_spec.is_dev(),
+		experimental_block_import_strategy,
+	)?;
 	Ok((
 		Arc::new(Client::from(client)),
 		backend,
@@ -455,6 +465,7 @@ pub fn new_partial<RuntimeApi, Customizations>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
+	experimental_block_import_strategy: bool,
 ) -> PartialComponentsResult<FullClient<RuntimeApi>, FullBackend>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
@@ -557,15 +568,19 @@ where
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				!dev_service,
+				!experimental_block_import_strategy,
 			)?,
 			BlockImportPipeline::Dev(frontier_block_import),
 		)
 	} else {
-		let parachain_block_import = ParachainBlockImport::new_with_delayed_best_block(
-			frontier_block_import,
-			backend.clone(),
-		);
+		let parachain_block_import = if experimental_block_import_strategy {
+			ParachainBlockImport::new(frontier_block_import, backend.clone())
+		} else {
+			ParachainBlockImport::new_with_delayed_best_block(
+				frontier_block_import,
+				backend.clone(),
+			)
+		};
 		(
 			nimbus_consensus::import_queue(
 				client.clone(),
@@ -573,7 +588,7 @@ where
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				!dev_service,
+				!experimental_block_import_strategy,
 			)?,
 			BlockImportPipeline::Parachain(parachain_block_import),
 		)
@@ -638,6 +653,7 @@ async fn start_node_impl<RuntimeApi, Customizations, Net>(
 	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: Option<sc_sysinfo::HwBench>,
+	experimental_block_import_strategy: bool,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
@@ -647,8 +663,12 @@ where
 {
 	let mut parachain_config = prepare_node_config(parachain_config);
 
-	let params =
-		new_partial::<RuntimeApi, Customizations>(&mut parachain_config, &rpc_config, false)?;
+	let params = new_partial::<RuntimeApi, Customizations>(
+		&mut parachain_config,
+		&rpc_config,
+		false,
+		experimental_block_import_strategy,
+	)?;
 	let (
 		block_import,
 		filter_pool,
@@ -1128,6 +1148,7 @@ pub async fn start_node<RuntimeApi, Customizations>(
 	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: Option<sc_sysinfo::HwBench>,
+	experimental_block_import_strategy: bool
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi:
@@ -1145,6 +1166,7 @@ where
 		async_backing,
 		block_authoring_duration,
 		hwbench,
+		experimental_block_import_strategy
 	)
 	.await
 }
@@ -1186,7 +1208,7 @@ where
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial::<RuntimeApi, Customizations>(&mut config, &rpc_config, true)?;
+	} = new_partial::<RuntimeApi, Customizations>(&mut config, &rpc_config, true, true)?;
 
 	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
 		block_import
@@ -1365,14 +1387,50 @@ where
 						// Calculate mocked slot number (should be consecutively 1, 2, ...)
 						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
-						let additional_key_values = Some(vec![
+						let mut additional_key_values = vec![
 							(
 								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
 									.to_vec(),
 								sp_timestamp::Timestamp::current().encode(),
 							),
 							(relay_slot_key, Slot::from(slot).encode()),
-						]);
+							(
+								relay_chain::well_known_keys::ACTIVE_CONFIG.to_vec(),
+								AbridgedHostConfiguration {
+									max_code_size: 3_145_728,
+									max_head_data_size: 20_480,
+									max_upward_queue_count: 174_762,
+									max_upward_queue_size: 1_048_576,
+									max_upward_message_size: 65_531,
+									max_upward_message_num_per_candidate: 16,
+									hrmp_max_message_num_per_candidate: 10,
+									validation_upgrade_cooldown: 6,
+									validation_upgrade_delay: 6,
+									async_backing_params: AsyncBackingParams {
+										max_candidate_depth: 3,
+										allowed_ancestry_len: 2,
+									},
+								}
+								.encode(),
+							),
+						];
+
+						let storage_key = [
+							twox_128(b"ParachainSystem"),
+							twox_128(b"PendingValidationCode"),
+						]
+						.concat();
+						let has_pending_upgrade = client_for_xcm
+							.storage(block, &sp_storage::StorageKey(storage_key))
+							.map_or(false, |ok| ok.map_or(false, |some| !some.0.is_empty()));
+						if has_pending_upgrade {
+							additional_key_values.push((
+								relay_chain::well_known_keys::upgrade_go_ahead_signal(ParaId::new(
+									para_id.unwrap(),
+								)),
+								Some(relay_chain::UpgradeGoAhead::GoAhead).encode(),
+							));
+						}
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
@@ -1391,7 +1449,7 @@ where
 							),
 							raw_downward_messages: downward_xcm_receiver.drain().collect(),
 							raw_horizontal_messages: hrmp_xcm_receiver.drain().collect(),
-							additional_key_values,
+							additional_key_values: Some(additional_key_values),
 						};
 
 						let randomness = session_keys_primitives::InherentDataProvider;
