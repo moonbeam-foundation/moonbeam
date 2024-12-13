@@ -871,8 +871,6 @@
 <a href="#869" id="869">869</a>
 <a href="#870" id="870">870</a>
 <a href="#871" id="871">871</a>
-<a href="#872" id="872">872</a>
-<a href="#873" id="873">873</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2023 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -961,14 +959,12 @@
 	<span class="comment">// Note: addRegistrar(address) &amp; killIdentity(address) are not supported since they use a
 	// force origin.
 
-	// editorconfig-checker-disable
 	</span><span class="attr">#[precompile::public(<span class="string">"setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))"</span>)]
 	</span><span class="kw">fn </span>set_identity(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		info: IdentityInfo&lt;MaxAdditionalFields&gt;,
 	) -&gt; EvmResult {
-		<span class="comment">// editorconfig-checker-enable
-		</span><span class="kw">let </span>caller = handle.context().caller;
+		<span class="kw">let </span>caller = handle.context().caller;
 
 		<span class="kw">let </span>event = log1(
 			handle.context().address,
