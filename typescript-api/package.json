@@ -34,7 +34,10 @@
     "generate:meta:moonbeam": "pnpm tsx node_modules/@polkadot/typegen/scripts/polkadot-types-from-chain.mjs --endpoint ./metadata-moonbeam.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonbeam/interfaces",
     "build": "tsup",
     "deploy": "pnpm generate && pnpm build && pnpm publish",
-    "fmt:fix": "prettier --write --ignore-unknown --plugin prettier-plugin-jsdoc 'src/**/*' 'scripts/**/*'"
+    "fmt": "biome format .",
+    "fmt:fix": "biome format . --write",
+    "check":"biome check .",
+    "check:fix": "biome check . --write"
   },
   "main": "./dist/moonbeam/index.cjs",
   "module": "./dist/moonbeam/index.js",
@@ -82,6 +85,7 @@
     "api"
   ],
   "dependencies": {
+    "@biomejs/biome": "*",
     "@polkadot/api": "*",
     "@polkadot/api-base": "*",
     "@polkadot/rpc-core": "*",
@@ -90,8 +94,6 @@
     "@polkadot/types-codec": "*",
     "@types/node": "*",
     "moonbeam-types-bundle": "workspace:*",
-    "prettier": "*",
-    "prettier-plugin-jsdoc": "^0.3.38",
     "tsup": "*",
     "tsx": "*",
     "typescript": "*"

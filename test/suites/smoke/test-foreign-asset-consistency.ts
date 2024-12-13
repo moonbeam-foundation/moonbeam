@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { ApiDecoration } from "@polkadot/api/types";
+import type { ApiDecoration } from "@polkadot/api/types";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { patchLocationV4recursively } from "../../helpers";
 
 describeSuite({
@@ -9,7 +9,7 @@ describeSuite({
   title: `Verifying foreign asset count, mapping, assetIds and deposits`,
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
-    let atBlockNumber: number = 0;
+    let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
     const foreignAssetIdType: { [assetId: string]: string } = {};
     const foreignAssetTypeId: { [assetType: string]: string } = {};
@@ -24,7 +24,7 @@ describeSuite({
       // (to avoid inconsistency querying over multiple block when the test takes a long time to
       // query data and blocks are being produced)
       atBlockNumber = process.env.BLOCK_NUMBER
-        ? parseInt(process.env.BLOCK_NUMBER)
+        ? Number.parseInt(process.env.BLOCK_NUMBER)
         : (await paraApi.rpc.chain.getHeader()).number.toNumber();
 
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
@@ -89,7 +89,7 @@ describeSuite({
 
         for (const assetId of Object.keys(foreignAssetIdType)) {
           const assetType = foreignAssetIdType[assetId];
-          if (foreignAssetTypeId[assetType] != assetId) {
+          if (foreignAssetTypeId[assetType] !== assetId) {
             failedAssetReserveMappings.push({ assetId: assetId });
           }
         }

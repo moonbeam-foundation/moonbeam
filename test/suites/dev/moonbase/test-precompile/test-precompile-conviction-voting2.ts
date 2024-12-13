@@ -33,7 +33,7 @@ describeSuite({
             .polkadotJs()
             .query.referenda.referendumInfoFor(proposalIndex);
           expect(referendum.unwrap().asOngoing.tally.ayes.toBigInt()).to.equal(
-            1n * 10n ** 17n * (conviction == 0n ? 1n : conviction * 10n)
+            1n * 10n ** 17n * (conviction === 0n ? 1n : conviction * 10n)
           );
         },
       });

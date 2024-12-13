@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { ApiPromise } from "@polkadot/api";
-import { encodeFunctionData, Hash } from "viem";
+import type { ApiPromise } from "@polkadot/api";
+import { encodeFunctionData, type Hash } from "viem";
 import moonbaseSamples from "../../helpers/moonbase-tracing-samples.json";
 import moonbeamSamples from "../../helpers/moonbeam-tracing-samples.json";
 import moonriverSamples from "../../helpers/moonriver-tracing-samples.json";
@@ -251,7 +251,7 @@ type TraceTransactionSchema = {
             withLog?: boolean;
           };
         }
-      | undefined
+      | undefined,
   ];
   ReturnType: {
     from: string;

@@ -46,10 +46,10 @@ describeSuite({
         const roundLength = (await paraApi.query.parachainStaking.round()).length.toNumber();
 
         const blocksToWait = process.env.BATCH_OF
-          ? parseInt(process.env.BATCH_OF)
+          ? Number.parseInt(process.env.BATCH_OF)
           : process.env.ROUNDS_TO_WAIT
-          ? Math.floor(Number(process.env.ROUNDS_TO_WAIT) * roundLength)
-          : 200;
+            ? Math.floor(Number(process.env.ROUNDS_TO_WAIT) * roundLength)
+            : 200;
         const firstBlockNumber = Math.max(lastBlockNumber - blocksToWait + 1, 1);
 
         for (const blockNumber of range(firstBlockNumber, lastBlockNumber)) {
@@ -68,7 +68,7 @@ describeSuite({
           );
 
           // No transactions
-          if (block.transactions.length == 0) {
+          if (block.transactions.length === 0) {
             // Receipt trie
             expect(block.header.receiptsRoot.toString()).to.be.equal(
               EMPTY_TRIE_ROOT,

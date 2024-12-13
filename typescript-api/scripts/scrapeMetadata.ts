@@ -1,10 +1,11 @@
 import fs from "node:fs";
-import { ChildProcessWithoutNullStreams, execSync, spawn } from "node:child_process";
+import { execSync, spawn } from "node:child_process";
+import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import path from "node:path";
 
 const CHAINS = ["moonbase", "moonriver", "moonbeam"];
 
-const fetchMetadata = async (port: number = 9933) => {
+const fetchMetadata = async (port = 9933) => {
   const maxRetries = 60;
   const sleepTime = 500;
   const url = `http://localhost:${port}`;
@@ -12,7 +13,7 @@ const fetchMetadata = async (port: number = 9933) => {
     id: "1",
     jsonrpc: "2.0",
     method: "state_getMetadata",
-    params: [],
+    params: []
   };
 
   for (let i = 0; i < maxRetries; i++) {
@@ -20,9 +21,9 @@ const fetchMetadata = async (port: number = 9933) => {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -40,7 +41,7 @@ const fetchMetadata = async (port: number = 9933) => {
   throw new Error("Error fetching metadata");
 };
 
-let nodes: { [key: string]: ChildProcessWithoutNullStreams } = {};
+const nodes: { [key: string]: ChildProcessWithoutNullStreams } = {};
 
 async function main() {
   const runtimeChainSpec = process.argv[2];
@@ -67,7 +68,7 @@ async function main() {
       "--tmp",
       `--chain=${chain}-dev`,
       "--wasm-execution=interpreted-i-know-what-i-do",
-      "--rpc-port=9933",
+      "--rpc-port=9933"
     ]);
 
     console.log(`Getting ${chain} metadata`);

@@ -12,13 +12,13 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     let atBlockNumber: number;
-    let totalContracts: bigint = 0n;
+    let totalContracts = 0n;
     const failedContractCodes: { accountId: string; codesize: number }[] = [];
 
     beforeAll(async function () {
       const paraApi = context.polkadotJs("para");
       const blockHash = process.env.BLOCK_NUMBER
-        ? (await paraApi.rpc.chain.getBlockHash(parseInt(process.env.BLOCK_NUMBER))).toHex()
+        ? (await paraApi.rpc.chain.getBlockHash(Number.parseInt(process.env.BLOCK_NUMBER))).toHex()
         : (await paraApi.rpc.chain.getFinalizedHead()).toHex();
       atBlockNumber = (await paraApi.rpc.chain.getHeader(blockHash)).number.toNumber();
 

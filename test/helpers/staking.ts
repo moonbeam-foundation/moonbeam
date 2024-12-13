@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext } from "@moonwall/cli";
+import type { DevModeContext } from "@moonwall/cli";
 
 export async function getRewardedAndCompoundedEvents(context: DevModeContext, blockHash: string) {
   return (

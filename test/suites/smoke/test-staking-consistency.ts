@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { ApiDecoration } from "@polkadot/api/types";
-import { AccountId20 } from "@polkadot/types/interfaces/runtime";
-import { StorageKey, Option } from "@polkadot/types";
+import type { ApiDecoration } from "@polkadot/api/types";
+import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
+import type { StorageKey, Option } from "@polkadot/types";
 import type {
   PalletParachainStakingDelegator,
   PalletParachainStakingDelegations,
@@ -10,20 +10,20 @@ import type {
   PalletParachainStakingSetOrderedSet,
 } from "@polkadot/types/lookup";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({
   id: "S21",
   title: "Verify staking consistency",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
-    let atBlockNumber: number = 0;
+    let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
-    let specVersion: number = 0;
-    let maxTopDelegationsPerCandidate: number = 0;
+    let specVersion = 0;
+    let maxTopDelegationsPerCandidate = 0;
     let allCandidateInfo: [
       StorageKey<[AccountId20]>,
-      Option<PalletParachainStakingCandidateMetadata>
+      Option<PalletParachainStakingCandidateMetadata>,
     ][];
     let candidatePool: PalletParachainStakingSetOrderedSet;
     let allDelegatorState: [StorageKey<[AccountId20]>, Option<PalletParachainStakingDelegator>][];
@@ -132,7 +132,7 @@ describeSuite({
         for (const candidate of allCandidateInfo) {
           const accountId = `0x${candidate[0].toHex().slice(-40)}`;
           const topDelegation = allTopDelegations
-            .find((t) => `0x${t[0].toHex().slice(-40)}` == accountId)![1]
+            .find((t) => `0x${t[0].toHex().slice(-40)}` === accountId)![1]
             .unwrap();
           expect(topDelegation.total.toBigInt()).to.equal(
             candidate[1].unwrap().totalCounted.toBigInt() - candidate[1].unwrap().bond.toBigInt()
@@ -154,13 +154,13 @@ describeSuite({
               a.delegation.amount.toBigInt() < b.delegation.amount.toBigInt()
                 ? 1
                 : a.delegation.amount.toBigInt() > b.delegation.amount.toBigInt()
-                ? -1
-                : 0
+                  ? -1
+                  : 0
             )
             .filter((_, i) => i < maxTopDelegationsPerCandidate);
 
           const topDelegations = allTopDelegations
-            .find((t) => `0x${t[0].toHex().slice(-40)}` == accountId)![1]
+            .find((t) => `0x${t[0].toHex().slice(-40)}` === accountId)![1]
             .unwrap();
 
           expect(topDelegations.total.toBigInt()).to.equal(
@@ -199,16 +199,19 @@ describeSuite({
         if (specVersion >= 1500) {
           const delegationScheduledRequests =
             await apiAt.query.parachainStaking.delegationScheduledRequests.entries();
-          const delegatorRequests = delegationScheduledRequests.reduce((p, requests: any) => {
-            for (const request of requests[1]) {
-              const delegator = request.delegator.toHex();
-              if (!p[delegator]) {
-                p[delegator] = [];
+          const delegatorRequests = delegationScheduledRequests.reduce(
+            (p, requests: any) => {
+              for (const request of requests[1]) {
+                const delegator = request.delegator.toHex();
+                if (!p[delegator]) {
+                  p[delegator] = [];
+                }
+                p[delegator].push(request);
               }
-              p[delegator].push(request);
-            }
-            return p;
-          }, {} as { [delegator: string]: { delegator: any; whenExecutable: any; action: any }[] });
+              return p;
+            },
+            {} as { [delegator: string]: { delegator: any; whenExecutable: any; action: any }[] }
+          );
 
           for (const state of allDelegatorState) {
             const delegator = `0x${state[0].toHex().slice(-40)}`;
@@ -259,12 +262,12 @@ describeSuite({
 
           if (candidateData.status.isLeaving || candidateData.status.isIdle) {
             expect(
-              candidatePool.find((c) => c.owner.toHex() == candidateId),
+              candidatePool.find((c) => c.owner.toHex() === candidateId),
               `Candidate ${candidateId} is leaving and should not be in the candidate pool`
             ).to.be.undefined;
           } else {
             expect(
-              candidatePool.find((c) => c.owner.toHex() == candidateId),
+              candidatePool.find((c) => c.owner.toHex() === candidateId),
               `Candidate ${candidateId} is active and should be in the candidate pool`
             ).to.not.be.undefined;
             foundCandidateInPool++;

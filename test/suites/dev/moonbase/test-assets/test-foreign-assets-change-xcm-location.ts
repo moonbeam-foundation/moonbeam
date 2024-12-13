@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import {
   PARA_1000_SOURCE_LOCATION_V4,
   RELAY_SOURCE_LOCATION_V4,

@@ -46,7 +46,7 @@ describeSuite({
         );
 
         expect(
-          rewardedEvents.some(({ account }) => account == ethan.address),
+          rewardedEvents.some(({ account }) => account === ethan.address),
           "delegator was not rewarded"
         ).to.be.true;
       },
