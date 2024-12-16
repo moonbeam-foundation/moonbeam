@@ -7,7 +7,7 @@ import {
   createRawTransfer,
   mapExtrinsics,
 } from "@moonwall/util";
-import { PrivateKeyAccount } from "viem";
+import type { PrivateKeyAccount } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
@@ -44,7 +44,7 @@ describeSuite({
           const txsWithEvents = mapExtrinsics(signedBlock.block.extrinsics, allRecords);
 
           const ethTx = txsWithEvents.find(
-            ({ extrinsic: { method } }) => method.section == "ethereum"
+            ({ extrinsic: { method } }) => method.section === "ethereum"
           )!;
 
           context.polkadotJs().events.parachainStaking.candidate;

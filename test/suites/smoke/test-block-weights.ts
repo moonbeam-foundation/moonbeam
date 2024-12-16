@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { THIRTY_MINS, WEIGHT_PER_GAS, extractWeight, getBlockArray } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import "@polkadot/api-augment";
-import { GenericExtrinsic } from "@polkadot/types";
-import { FrameSystemEventRecord } from "@polkadot/types/lookup";
-import { AnyTuple } from "@polkadot/types/types";
+import type { GenericExtrinsic } from "@polkadot/types";
+import type { FrameSystemEventRecord } from "@polkadot/types/lookup";
+import type { AnyTuple } from "@polkadot/types/types";
 import { rateLimiter } from "../../helpers/common.js";
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : THIRTY_MINS;
@@ -166,9 +166,9 @@ describeSuite({
           const ethBlock = (await apiAt.query.ethereum.currentBlock()).unwrap();
           const balTxns = blockInfo.extrinsics
             .map((ext, index) =>
-              ext.method.method == "transfer" && ext.method.section == "balances" ? index : -1
+              ext.method.method === "transfer" && ext.method.section === "balances" ? index : -1
             )
-            .filter((a) => a != -1);
+            .filter((a) => a !== -1);
           const balTxnWeights = blockInfo.events
             .map((event) =>
               paraApi.events.system.ExtrinsicSuccess.is(event.event) &&
@@ -237,7 +237,7 @@ describeSuite({
           // Skip this block if substrate balance transfer ext, due to weight reporting
           if (
             blockInfo.extrinsics.find(
-              (x) => x.method.method == "transfer" && x.method.section == "balances"
+              (x) => x.method.method === "transfer" && x.method.section === "balances"
             )
           ) {
             return {
@@ -250,9 +250,9 @@ describeSuite({
 
           const signedExtTotal = blockInfo.events
             .filter(
-              (a) => a.event.method == "ExtrinsicSuccess" || a.event.method == "ExtrinsicFailed"
+              (a) => a.event.method === "ExtrinsicSuccess" || a.event.method === "ExtrinsicFailed"
             )
-            .filter((a) => (a.event.data as any).dispatchInfo.class.toString() == "Normal")
+            .filter((a) => (a.event.data as any).dispatchInfo.class.toString() === "Normal")
             .reduce(
               (acc, curr) =>
                 acc + extractWeight((curr.event.data as any).dispatchInfo.weight).toNumber(),
@@ -264,8 +264,8 @@ describeSuite({
             log(
               `Block #${blockInfo.blockNum} signed extrinsic weight - reported: ${signedExtTotal}, 
             accounted: ${normalWeights} (${difference > 0 ? "+" : "-"}${(difference * 100).toFixed(
-                2
-              )}%).`
+              2
+            )}%).`
             );
           }
           return { blockNum: blockInfo.blockNum, signedExtTotal, normalWeights, difference };
@@ -311,20 +311,19 @@ describeSuite({
           const gasWeight = gasUsed * Number(WEIGHT_PER_GAS);
           const ethTxnsWeight = signedBlock.block.extrinsics
             .map((item, index) => {
-              if (item.method.method == "transact" && item.method.section == "ethereum") {
+              if (item.method.method === "transact" && item.method.section === "ethereum") {
                 return blockInfo.events
                   .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
                   .filter(
-                    ({ event }) => event.method == "ExtrinsicSuccess" && event.section == "system"
+                    ({ event }) => event.method === "ExtrinsicSuccess" && event.section === "system"
                   )
                   .reduce(
                     (acc, curr) =>
                       acc + extractWeight((curr.event.data as any).dispatchInfo.weight).toNumber(),
                     0
                   );
-              } else {
-                return 0;
               }
+              return 0;
             })
             .reduce((acc, curr) => acc + curr, 0);
           const difference = ethTxnsWeight - gasWeight;

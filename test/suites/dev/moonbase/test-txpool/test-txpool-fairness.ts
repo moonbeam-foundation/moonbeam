@@ -136,8 +136,8 @@ describeSuite({
         const { block } = await context.polkadotJs().rpc.chain.getBlock(hash);
         const transferExts = block.extrinsics.filter((ext) => {
           return (
-            (ext.method.section == "balances" && ext.method.method == "transferAllowDeath") ||
-            (ext.method.section == "ethereum" && ext.method.method == "transact")
+            (ext.method.section === "balances" && ext.method.method === "transferAllowDeath") ||
+            (ext.method.section === "ethereum" && ext.method.method === "transact")
           );
         });
 

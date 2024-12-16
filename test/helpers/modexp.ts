@@ -1,4 +1,3 @@
-// editorconfig-checker-disable-file
 export const testVectors = {
   "nagydani-1-square": {
     base: "e09ad9675465c53a109fac66a445c91b292d2bb2c5268addb30cd82f80fcb0033ff97c80a5fc6f39193ae969c6ede6710a6b7ac27078a06d90ef1c72e5c85fb5",

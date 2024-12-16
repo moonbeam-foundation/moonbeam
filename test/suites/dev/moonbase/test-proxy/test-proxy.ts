@@ -3,7 +3,7 @@ import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   CHARLETH_ADDRESS,
-  KeyringPair,
+  type KeyringPair,
   alith,
   generateKeyringPair,
 } from "@moonwall/util";
@@ -197,7 +197,7 @@ describeSuite({
         const beforeCharlethBalance = await context
           .viem()
           .getBalance({ address: CHARLETH_ADDRESS });
-        const { result: result } = await context.createBlock(
+        const { result } = await context.createBlock(
           context.polkadotJs().tx.proxy.addProxy(signer.address, "Any", 6),
           { signer: alith, allowFailures: false }
         );

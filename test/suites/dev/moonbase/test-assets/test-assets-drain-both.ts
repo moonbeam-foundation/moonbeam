@@ -1,8 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, GLMR, alith, baltathar, generateKeyringPair } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
-import { u128 } from "@polkadot/types";
+import type { ApiPromise } from "@polkadot/api";
+import type { u128 } from "@polkadot/types";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { BN } from "@polkadot/util";
 import { mockOldAssetBalance } from "../../../../helpers";

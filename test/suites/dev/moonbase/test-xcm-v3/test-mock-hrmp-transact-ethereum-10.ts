@@ -2,10 +2,10 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { GAS_LIMIT_POV_RATIO } from "@moonwall/util";
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
@@ -50,11 +50,11 @@ describeSuite({
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
 
         // Matches the BoundedVec limit in the runtime.
-        const CALL_INPUT_SIZE_LIMIT = Math.pow(2, 16);
+        const CALL_INPUT_SIZE_LIMIT = 2 ** 16;
 
         const GAS_LIMIT = 1_100_000;
 

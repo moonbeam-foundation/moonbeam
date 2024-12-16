@@ -6,9 +6,9 @@ import {
   beforeEach,
 } from "@moonwall/cli";
 import { createEthersTransaction } from "@moonwall/util";
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 import { expectEVMResult, expectOk, extractRevertReason } from "../../../../helpers";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({
   id: "D012929",

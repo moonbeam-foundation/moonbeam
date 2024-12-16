@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
@@ -49,7 +49,7 @@ describeSuite({
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
 
         const xcmTransactions = [
