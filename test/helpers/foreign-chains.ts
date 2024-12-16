@@ -125,6 +125,12 @@ export const ForeignChainsEndpoints = [
         name: "Turing",
         paraId: 2114,
       },
+      // Litmus has become a para-thread
+      {
+        name: "Litmus",
+        paraId: 2106,
+        mutedUntil: new Date("2025-01-30").getTime(),
+      },
     ],
   },
   {
