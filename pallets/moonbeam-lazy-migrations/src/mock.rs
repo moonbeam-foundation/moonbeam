@@ -19,11 +19,8 @@
 use super::*;
 use crate as pallet_moonbeam_lazy_migrations;
 use frame_support::traits::AsEnsureOriginWithArg;
-use frame_support::{
-	construct_runtime, parameter_types,
-	traits::Everything,
-	weights::{RuntimeDbWeight, Weight},
-};
+use frame_support::weights::constants::RocksDbWeight;
+use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_asset_manager::AssetRegistrar;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
@@ -62,16 +59,9 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 
-parameter_types! {
-	pub const MockDbWeight: RuntimeDbWeight = RuntimeDbWeight {
-		read: 1_000_000,
-		write: 1,
-	};
-}
-
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
-	type DbWeight = MockDbWeight;
+	type DbWeight = RocksDbWeight;
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeTask = RuntimeTask;
 	type Nonce = u64;
