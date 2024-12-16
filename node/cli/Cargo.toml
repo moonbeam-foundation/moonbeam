@@ -2,13 +2,14 @@
 name = "moonbeam-cli"
 authors = { workspace = true }
 edition = "2021"
-version = "0.42.0"
+version = "0.43.0"
 
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
 clap-num = { workspace = true }
 log = { workspace = true }
 parity-scale-codec = { workspace = true }
+url = { workspace = true }
 
 # Moonbeam
 moonbeam-cli-opt = { workspace = true }

@@ -8,6 +8,7 @@
 # Typescript directories
 **/node_modules
 **/.yarn
+**/dist
 
 # Spec/Wasm build directory
 /build/
@@ -19,5 +20,6 @@ tools/*-local.json
 tools/*-local-raw.json
 tools/build
 
-# RustRover
+# IDEs
 .idea/
+.vscode/

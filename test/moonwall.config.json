@@ -346,7 +346,7 @@
     {
       "name": "lazy_loading_moonbeam",
       "testFileDir": ["suites/lazy-loading"],
-      "include": ["**/*test*"],
+      "include": ["**/*test*.ts"],
       "timeout": 180000,
       "contracts": "contracts/",
       "runScripts": [
@@ -368,7 +368,8 @@
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
             "options": [
-              "-llazy-loading=trace",
+              "--lazy-loading-delay-between-requests=10",
+              "--lazy-loading-max-retries-per-request=5",
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
               "--no-telemetry",
@@ -381,10 +382,13 @@
               "--rpc-cors=all",
               "--alice",
               "--sealing=manual",
-              "--tmp",
-              "--fork-chain-from-rpc=https://moonbeam.unitedbloc.com",
-              "--fork-state-overrides=tmp/lazyLoadingStateOverrides.json"
-            ]
+              "--tmp"
+            ],
+            "defaultForkConfig": {
+              "url": "https://moonbeam.unitedbloc.com",
+              "stateOverridePath": "tmp/lazyLoadingStateOverrides.json",
+              "verbose": true
+            }
           }
         ]
       }
@@ -392,7 +396,7 @@
     {
       "name": "dev_moonbeam",
       "testFileDir": ["suites/dev/moonbeam", "suites/dev/common"],
-      "include": ["**/*test*"],
+      "include": ["**/*test*.ts"],
       "timeout": 180000,
       "contracts": "contracts/",
       "runScripts": [
@@ -435,7 +439,7 @@
     {
       "name": "dev_moonriver",
       "testFileDir": ["suites/dev/common"],
-      "include": ["**/*test*"],
+      "include": ["**/*test*.ts"],
       "timeout": 180000,
       "contracts": "contracts/",
       "runScripts": [
@@ -478,7 +482,7 @@
     {
       "name": "dev_moonbase",
       "testFileDir": ["suites/dev/moonbase", "suites/dev/common"],
-      "include": ["**/*test*"],
+      "include": ["**/*test*.ts"],
       "timeout": 180000,
       "contracts": "contracts/",
       "runScripts": [
@@ -521,7 +525,7 @@
     {
       "name": "dev_moonbase_tracing",
       "testFileDir": ["suites/tracing-tests"],
-      "include": ["**/*test*"],
+      "include": ["**/*test*.ts"],
       "contracts": "contracts/",
       "runScripts": [
         "compile-contracts.ts compile",

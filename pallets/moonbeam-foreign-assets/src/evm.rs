@@ -32,13 +32,14 @@ use xcm::latest::Error as XcmError;
 const ERC20_CALL_MAX_CALLDATA_SIZE: usize = 4 + 32 + 32; // selector + address + uint256
 const ERC20_CREATE_MAX_CALLDATA_SIZE: usize = 16 * 1024; // 16Ko
 
-// Hardcoded gas limits (from manueal binary search)
-const ERC20_CREATE_GAS_LIMIT: u64 = 3_367_000; // highest failure: 3_366_000
+// Hardcoded gas limits (from manual binary search)
+const ERC20_CREATE_GAS_LIMIT: u64 = 3_410_000; // highest failure: 3_406_000
 pub(crate) const ERC20_BURN_FROM_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
 pub(crate) const ERC20_MINT_INTO_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
 const ERC20_PAUSE_GAS_LIMIT: u64 = 150_500; // highest failure: 150_500
 pub(crate) const ERC20_TRANSFER_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
-const ERC20_UNPAUSE_GAS_LIMIT: u64 = 151_000; // highest failure: 150_200
+pub(crate) const ERC20_APPROVE_GAS_LIMIT: u64 = 154_000; // highest failure: 153_000
+const ERC20_UNPAUSE_GAS_LIMIT: u64 = 150_000; // highest failure: 149_500
 
 pub enum EvmError {
 	BurnFromFail,
@@ -242,6 +243,51 @@ impl<T: crate::Config> EvmCaller<T> {
 		ensure!(
 			!exec_info.value.is_empty() && exec_info.value == bytes,
 			EvmError::ContractReturnInvalidValue
+		);
+
+		Ok(())
+	}
+
+	pub(crate) fn erc20_approve(
+		erc20_contract_address: H160,
+		owner: H160,
+		spender: H160,
+		amount: U256,
+	) -> Result<(), EvmError> {
+		let mut input = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
+		// Selector
+		input.extend_from_slice(&keccak256!("approve(address,uint256)")[..4]);
+		// append spender address
+		input.extend_from_slice(H256::from(spender).as_bytes());
+		// append amount to be approved
+		input.extend_from_slice(H256::from_uint(&amount).as_bytes());
+		let weight_limit: Weight =
+			T::GasWeightMapping::gas_to_weight(ERC20_APPROVE_GAS_LIMIT, true);
+
+		let exec_info = T::EvmRunner::call(
+			owner,
+			erc20_contract_address,
+			input,
+			U256::default(),
+			ERC20_APPROVE_GAS_LIMIT,
+			None,
+			None,
+			None,
+			Default::default(),
+			false,
+			false,
+			Some(weight_limit),
+			Some(0),
+			&<T as pallet_evm::Config>::config(),
+		)
+		.map_err(|_| EvmError::EvmCallFail)?;
+
+		ensure!(
+			matches!(
+				exec_info.exit_reason,
+				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
+			),
+			EvmError::EvmCallFail
 		);
 
 		Ok(())

@@ -1,6 +1,7 @@
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import { afterAll, beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES, GLMR, alith } from "@moonwall/util";
 import { hexToU8a } from "@polkadot/util";
+import { sleep } from "../../helpers";
 
 describeSuite({
   id: "T14",
@@ -34,6 +35,10 @@ describeSuite({
         rawTxOnly: true,
       });
       await context.createBlock(rawTx3, { allowFailures: false });
+    });
+
+    afterAll(async () => {
+      await sleep(500); // Add sleep to allow for graceful teardown
     });
 
     it({
@@ -261,7 +266,7 @@ describeSuite({
       test: async function () {
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const erc20XcmBridgePalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Erc20XcmBridge")!
+          .find(({ name }) => name.toString() === "Erc20XcmBridge")!
           .index.toNumber();
 
         const dest = {

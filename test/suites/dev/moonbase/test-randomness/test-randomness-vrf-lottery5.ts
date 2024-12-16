@@ -8,7 +8,7 @@ import {
   GLMR,
   MILLIGLMR,
 } from "@moonwall/util";
-import { TransactionReceipt, decodeEventLog } from "viem";
+import { type TransactionReceipt, decodeEventLog } from "viem";
 import { setupLotteryWithParticipants } from "../../../../helpers";
 
 describeSuite({
@@ -48,7 +48,7 @@ describeSuite({
         args: [0],
       });
 
-      expect(estimatedGas).toMatchInlineSnapshot(`286203n`);
+      expect(estimatedGas).toMatchInlineSnapshot(`284196n`);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",
@@ -63,7 +63,7 @@ describeSuite({
         .viem()
         .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
-      expect(fulFillReceipt.gasUsed).toMatchInlineSnapshot(`281344n`);
+      expect(fulFillReceipt.gasUsed).toMatchInlineSnapshot(`164016n`);
     });
     it({
       id: "T01",

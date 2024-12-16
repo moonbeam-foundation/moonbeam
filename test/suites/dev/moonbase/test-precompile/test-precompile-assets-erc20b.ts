@@ -9,11 +9,11 @@ import {
   createEthersTransaction,
   createViemTransaction,
 } from "@moonwall/util";
-import { u128 } from "@polkadot/types-codec";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { u128 } from "@polkadot/types-codec";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { mockOldAssetBalance } from "../../../../helpers";
 
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 
 describeSuite({
   id: "D012805",

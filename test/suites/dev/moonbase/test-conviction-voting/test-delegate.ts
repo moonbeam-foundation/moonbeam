@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext, describeSuite, expect } from "@moonwall/cli";
+import { type DevModeContext, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   GLMR,
-  KeyringPair,
+  type KeyringPair,
   MIN_GLMR_STAKING,
   alith,
   generateKeyringPair,
@@ -30,16 +30,19 @@ describeSuite({
         );
 
         const events = await context.polkadotJs().query.system.events();
-        const delegatedEvents = events.reduce((acc, event) => {
-          if (context.polkadotJs().events.convictionVoting.Delegated.is(event.event)) {
-            acc.push({
-              from: event.event.data[0].toString(),
-              to: event.event.data[1].toString(),
-            });
-          }
+        const delegatedEvents = events.reduce(
+          (acc, event) => {
+            if (context.polkadotJs().events.convictionVoting.Delegated.is(event.event)) {
+              acc.push({
+                from: event.event.data[0].toString(),
+                to: event.event.data[1].toString(),
+              });
+            }
 
-          return acc;
-        }, [] as { from: string; to: string }[]);
+            return acc;
+          },
+          [] as { from: string; to: string }[]
+        );
 
         expect(delegatedEvents.length).to.be.greaterThanOrEqual(10);
       },

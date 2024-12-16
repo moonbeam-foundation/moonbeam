@@ -49,7 +49,7 @@ describeSuite({
         ).toBigInt();
         expect(multiplier).toBe(100_000_000_000_000_000_000_000n);
         const gasPrice = await context.viem().getGasPrice();
-        expect(gasPrice).toBe(125_000_000_000_000n);
+        expect(gasPrice).toBe(31_250_000_000_000n);
       },
     });
 
@@ -109,7 +109,7 @@ describeSuite({
         );
 
         // grab the first withdraw event and hope it's the right one...
-        const withdrawEvent = result?.events.filter(({ event }) => event.method == "Withdraw")[0];
+        const withdrawEvent = result?.events.filter(({ event }) => event.method === "Withdraw")[0];
         const amount = withdrawEvent.event.data.amount.toBigInt();
         // ~/4 to compensate for the ref time XCM fee changes
         // Previous value: 6_000_000_012_598_000_941_192n
@@ -126,7 +126,7 @@ describeSuite({
         let blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
         let baseFeePerGas = (await context.viem().getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
-        expect(baseFeePerGas).to.equal(125_000_000_000_000n);
+        expect(baseFeePerGas).to.equal(31_250_000_000_000n);
 
         const {
           hash: createTxHash,
@@ -141,7 +141,7 @@ describeSuite({
         blockNumber = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
         baseFeePerGas = (await context.viem().getBlock({ blockNumber: blockNumber }))
           .baseFeePerGas!;
-        expect(baseFeePerGas).to.equal(124_827_007_821_127n);
+        expect(baseFeePerGas).to.equal(31_206_751_955_281n);
 
         const rawSigned = await createEthersTransaction(context, {
           to: contractAddress,
@@ -162,18 +162,18 @@ describeSuite({
         expect(receipt2.status).toBe("success");
 
         const successEvent = interactionResult?.events.filter(
-          ({ event }) => event.method == "ExtrinsicSuccess"
+          ({ event }) => event.method === "ExtrinsicSuccess"
         )[0];
         const weight = successEvent.event.data.dispatchInfo.weight.refTime.toBigInt();
         expect(weight).to.equal(1_734_300_000n);
 
         const withdrawEvents = interactionResult?.events.filter(
-          ({ event }) => event.method == "Withdraw"
+          ({ event }) => event.method === "Withdraw"
         );
         expect(withdrawEvents?.length).to.equal(1);
         const withdrawEvent = withdrawEvents![0];
         const amount = withdrawEvent.event.data.amount.toBigInt();
-        expect(amount).to.equal(11_875_042_908_039_453_764n);
+        expect(amount).to.equal(2_968_760_727_009_792_092n);
       },
     });
   },

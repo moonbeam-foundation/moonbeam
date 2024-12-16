@@ -268,8 +268,11 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			let rpc_config = cli.run.new_rpc_config();
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) =
-					moonbeam_service::new_chain_ops(&mut config, &rpc_config)?;
+				let (client, _, import_queue, task_manager) = moonbeam_service::new_chain_ops(
+					&mut config,
+					&rpc_config,
+					cli.run.experimental_block_import_strategy,
+				)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -277,8 +280,11 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			let rpc_config = cli.run.new_rpc_config();
 			runner.async_run(|mut config| {
-				let (client, _, _, task_manager) =
-					moonbeam_service::new_chain_ops(&mut config, &rpc_config)?;
+				let (client, _, _, task_manager) = moonbeam_service::new_chain_ops(
+					&mut config,
+					&rpc_config,
+					cli.run.experimental_block_import_strategy,
+				)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
@@ -286,8 +292,11 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			let rpc_config = cli.run.new_rpc_config();
 			runner.async_run(|mut config| {
-				let (client, _, _, task_manager) =
-					moonbeam_service::new_chain_ops(&mut config, &rpc_config)?;
+				let (client, _, _, task_manager) = moonbeam_service::new_chain_ops(
+					&mut config,
+					&rpc_config,
+					cli.run.experimental_block_import_strategy,
+				)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
@@ -295,8 +304,11 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			let rpc_config = cli.run.new_rpc_config();
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) =
-					moonbeam_service::new_chain_ops(&mut config, &rpc_config)?;
+				let (client, _, import_queue, task_manager) = moonbeam_service::new_chain_ops(
+					&mut config,
+					&rpc_config,
+					cli.run.experimental_block_import_strategy,
+				)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -356,7 +368,12 @@ pub fn run() -> Result<()> {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonriver_runtime::RuntimeApi,
 						moonbeam_service::MoonriverCustomizations,
-					>(&mut config, &rpc_config, false)?;
+					>(
+						&mut config,
+						&rpc_config,
+						false,
+						cli.run.experimental_block_import_strategy,
+					)?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -368,7 +385,12 @@ pub fn run() -> Result<()> {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
 						moonbeam_service::MoonbeamCustomizations,
-					>(&mut config, &rpc_config, false)?;
+					>(
+						&mut config,
+						&rpc_config,
+						false,
+						cli.run.experimental_block_import_strategy,
+					)?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -380,7 +402,12 @@ pub fn run() -> Result<()> {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonbase_runtime::RuntimeApi,
 						moonbeam_service::MoonbaseCustomizations,
-					>(&mut config, &rpc_config, false)?;
+					>(
+						&mut config,
+						&rpc_config,
+						false,
+						cli.run.experimental_block_import_strategy,
+					)?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -536,7 +563,12 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonriver_runtime::RuntimeApi,
 									moonbeam_service::MoonriverCustomizations,
-								>(&mut config, &rpc_config, false)?;
+								>(
+									&mut config,
+									&rpc_config,
+									false,
+									cli.run.experimental_block_import_strategy,
+								)?;
 
 								cmd.run(params.client)
 							})
@@ -547,7 +579,12 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbeam_runtime::RuntimeApi,
 									moonbeam_service::MoonbeamCustomizations,
-								>(&mut config, &rpc_config, false)?;
+								>(
+									&mut config,
+									&rpc_config,
+									false,
+									cli.run.experimental_block_import_strategy,
+								)?;
 
 								cmd.run(params.client)
 							})
@@ -558,7 +595,12 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbase_runtime::RuntimeApi,
 									moonbeam_service::MoonbaseCustomizations,
-								>(&mut config, &rpc_config, false)?;
+								>(
+									&mut config,
+									&rpc_config,
+									false,
+									cli.run.experimental_block_import_strategy,
+								)?;
 
 								cmd.run(params.client)
 							})
@@ -583,7 +625,12 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonriver_runtime::RuntimeApi,
 									moonbeam_service::MoonriverCustomizations,
-								>(&mut config, &rpc_config, false)?;
+								>(
+									&mut config,
+									&rpc_config,
+									false,
+									cli.run.experimental_block_import_strategy,
+								)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -597,7 +644,12 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbeam_runtime::RuntimeApi,
 									moonbeam_service::MoonbeamCustomizations,
-								>(&mut config, &rpc_config, false)?;
+								>(
+									&mut config,
+									&rpc_config,
+									false,
+									cli.run.experimental_block_import_strategy,
+								)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -611,7 +663,12 @@ pub fn run() -> Result<()> {
 								let params = moonbeam_service::new_partial::<
 									moonbeam_service::moonbase_runtime::RuntimeApi,
 									moonbeam_service::MoonbaseCustomizations,
-								>(&mut config, &rpc_config, false)?;
+								>(
+									&mut config,
+									&rpc_config,
+									false,
+									cli.run.experimental_block_import_strategy,
+								)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -654,7 +711,12 @@ pub fn run() -> Result<()> {
 					} = moonbeam_service::new_partial::<
 						moonbeam_service::moonriver_runtime::RuntimeApi,
 						moonbeam_service::MoonriverCustomizations,
-					>(&mut config, &rpc_config, false)?;
+					>(
+						&mut config,
+						&rpc_config,
+						false,
+						cli.run.experimental_block_import_strategy,
+					)?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
 				}
@@ -667,7 +729,12 @@ pub fn run() -> Result<()> {
 					} = moonbeam_service::new_partial::<
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
 						moonbeam_service::MoonbeamCustomizations,
-					>(&mut config, &rpc_config, false)?;
+					>(
+						&mut config,
+						&rpc_config,
+						false,
+						cli.run.experimental_block_import_strategy,
+					)?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
 				}
@@ -680,7 +747,12 @@ pub fn run() -> Result<()> {
 					} = moonbeam_service::new_partial::<
 						moonbeam_service::moonbase_runtime::RuntimeApi,
 						moonbeam_service::MoonbaseCustomizations,
-					>(&mut config, &rpc_config, false)?;
+					>(
+						&mut config,
+						&rpc_config,
+						false,
+						cli.run.experimental_block_import_strategy,
+					)?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
 				}
@@ -780,16 +852,18 @@ pub fn run() -> Result<()> {
 					};
 				}
 				#[cfg(feature = "lazy-loading")]
-				if let Some(fork_chain_from_rpc) = cli.run.fork_chain_from_rpc {
+				if let Some(lazy_loading_remote_rpc) = cli.run.lazy_loading_remote_rpc {
 					let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
 						"Alice",
 					));
 
 					let lazy_loading_config = moonbeam_cli_opt::LazyLoadingConfig {
-						state_rpc: fork_chain_from_rpc,
-						from_block: cli.run.block,
-						state_overrides_path: cli.run.fork_state_overrides,
-						runtime_override: cli.run.runtime_override,
+						state_rpc: lazy_loading_remote_rpc,
+						from_block: cli.run.lazy_loading_block,
+						state_overrides_path: cli.run.lazy_loading_state_overrides,
+						runtime_override: cli.run.lazy_loading_runtime_override,
+						delay_between_requests: cli.run.lazy_loading_delay_between_requests,
+						max_retries_per_request: cli.run.lazy_loading_max_retries_per_request,
 					};
 
 					let spec_builder =
@@ -866,6 +940,7 @@ pub fn run() -> Result<()> {
 						true,
 						cli.run.block_authoring_duration,
 						hwbench,
+						cli.run.experimental_block_import_strategy,
 					)
 					.await
 					.map(|r| r.0)
@@ -883,6 +958,7 @@ pub fn run() -> Result<()> {
 						true,
 						cli.run.block_authoring_duration,
 						hwbench,
+						cli.run.experimental_block_import_strategy,
 					)
 					.await
 					.map(|r| r.0)
@@ -900,6 +976,7 @@ pub fn run() -> Result<()> {
 						true,
 						cli.run.block_authoring_duration,
 						hwbench,
+						cli.run.experimental_block_import_strategy,
 					)
 					.await
 					.map(|r| r.0)

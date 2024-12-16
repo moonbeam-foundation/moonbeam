@@ -1,14 +1,23 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { RUNTIME_CONSTANTS } from "../../helpers";
-import { ApiPromise } from "@polkadot/api";
-import fs from "fs/promises";
+import type { ApiPromise } from "@polkadot/api";
+import fs from "node:fs/promises";
 import { u8aToHex } from "@polkadot/util";
+import assert from "node:assert";
+import type { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
 describeSuite({
   id: "LD01",
   title: "Lazy Loading - Runtime Upgrade",
   foundationMethods: "dev",
+  options: {
+    forkConfig: {
+      url: process.env.FORK_URL ?? "https://moonbeam.unitedbloc.com",
+      stateOverridePath: "tmp/lazyLoadingStateOverrides.json",
+      verbose: true,
+    },
+  },
   testCases: ({ it, context, log }) => {
     let api: ApiPromise;
 
@@ -21,8 +30,7 @@ describeSuite({
         .filter((v) => Object.keys(RUNTIME_CONSTANTS).includes(v))
         .join()
         .toLowerCase();
-      const wasmPath = `../target/release/wbuild/${runtime}-runtime/${runtime}_runtime.compact.compressed.wasm`; // editorconfig-checker-disable-line
-
+      const wasmPath = `../target/release/wbuild/${runtime}-runtime/${runtime}_runtime.compact.compressed.wasm`;
       const runtimeWasmHex = u8aToHex(await fs.readFile(wasmPath));
 
       const rtBefore = api.consts.system.version.specVersion.toNumber();
@@ -34,6 +42,8 @@ describeSuite({
         api.tx.system.applyAuthorizedUpgrade(runtimeWasmHex),
         { finalize: false }
       );
+
+      assert(result, "Block has no extrinsic results");
       const errors = result.events
         // find/filter for failed events
         .filter(({ event }) => api.events.system.ExtrinsicFailed.is(event))
@@ -45,16 +55,16 @@ describeSuite({
               data: [error, info],
             },
           }) => {
-            if (error.isModule) {
+            const dispatchError = error as SpRuntimeDispatchError;
+            if (dispatchError.isModule) {
               // for module errors, we have the section indexed, lookup
-              const decoded = api.registry.findMetaError(error.asModule);
+              const decoded = api.registry.findMetaError(dispatchError.asModule);
               const { docs, method, section } = decoded;
 
               return `${section}.${method}: ${docs.join(" ")}`;
-            } else {
-              // Other, CannotLookup, BadOrigin, no extra info
-              return error.toString();
             }
+            // Other, CannotLookup, BadOrigin, no extra info
+            return error.toString();
           }
         );
 
