@@ -408,7 +408,8 @@ describeSuite({
 
     it({
       id: "T06",
-      title: "allows to call transferAssetsUsingTypeAndThenAddress::998093ee selector",
+      title:
+        "transferAssetsUsingTypeAndThenAddress (8425d893): allows to pay fees with native asset",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
         const assetBalanceBefore = (
