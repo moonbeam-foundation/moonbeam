@@ -30,38 +30,41 @@ describeSuite({
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
       specVersion = apiAt.consts.system.version.specVersion.toNumber();
 
-      let query = await apiAt.query.assetManager.assetIdType.entries();
-      query.forEach(([key, exposure]) => {
+      // Query all assets mapped by identifier
+      const legacyAssets = await apiAt.query.assetManager.assetIdType.entries();
+      const evmForeignAssets = await apiAt.query.evmForeignAssets.assetsById.entries();
+      [...legacyAssets, ...evmForeignAssets].forEach(([key, exposure]) => {
         const assetId = key.args.toString();
         foreignAssetIdType[assetId] = exposure.unwrap().toString();
       });
-      query = await apiAt.query.assetManager.assetTypeId.entries();
-      query.forEach(([key, exposure]) => {
+
+      // Query all assets mapped by location
+      const legacyAssetsByLocation = await apiAt.query.assetManager.assetTypeId.entries();
+      legacyAssetsByLocation.forEach(([key, exposure]) => {
         const assetType = key.args.toString();
         foreignAssetTypeId[assetType] = exposure.unwrap().toString();
       });
+      const assetsByLocation = await apiAt.query.evmForeignAssets.assetsByLocation.entries();
+      assetsByLocation.forEach(([key, exposure]) => {
+        const assetType = key.args.toString();
+        const [assetId, assetStatus] = exposure.unwrap();
+        foreignAssetTypeId[assetType] = assetId.toString();
+      });
 
-      if (specVersion >= 3200) {
-        query = await apiAt.query.xcmWeightTrader.supportedAssets.entries();
-        query.forEach(([key, _]) => {
-          const assetType = key.args.toString();
-          xcmWeightManagerSupportedAssets.push(assetType);
-        });
-      }
-      // log(`Foreign Xcm Accepted Assets: ${foreignXcmAcceptedAssets}`);
-      // log(`Foreign AssetId<->AssetType: ${JSON.stringify(foreignAssetIdType)}`);
-      // foreignAssetTypeId
-      // log(`Foreign AssetType<->AssetId: ${JSON.stringify(foreignAssetTypeId)}`);
+      // Query supported assets
+      (await apiAt.query.xcmWeightTrader.supportedAssets.entries()).forEach(([key, _]) => {
+        const assetType = key.args.toString();
+        xcmWeightManagerSupportedAssets.push(assetType);
+      });
 
-      if (specVersion >= 2200) {
-        liveForeignAssets = (await apiAt.query.assets.asset.entries()).reduce(
-          (acc, [key, value]) => {
-            acc[key.args.toString()] = (value.unwrap() as any).status.isLive;
-            return acc;
-          },
-          {} as any
-        );
-      }
+      log(`Foreign Xcm Supported Assets: ${xcmWeightManagerSupportedAssets}`);
+      log(`Foreign AssetId -> AssetLocation: ${JSON.stringify(foreignAssetIdType)}`);
+      log(`Foreign AssetLocation -> AssetId: ${JSON.stringify(foreignAssetTypeId)}`);
+
+      liveForeignAssets = (await apiAt.query.assets.asset.entries()).reduce((acc, [key, value]) => {
+        acc[key.args.toString()] = (value.unwrap() as any).status.isLive;
+        return acc;
+      }, {} as any);
     });
 
     it({
