@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ApiPromise, WsProvider } from "@polkadot/api";
-import { KeyringPair } from "@polkadot/keyring/types";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
@@ -110,7 +110,7 @@ describeSuite({
       // Get Pallet balances index
       const metadata = await polkadotJs.rpc.state.getMetadata();
       balancesPalletIndex = metadata.asLatest.pallets
-        .find(({ name }) => name.toString() == "Balances")!
+        .find(({ name }) => name.toString() === "Balances")!
         .index.toNumber();
 
       // Fetch the exact amount of native fees that we will use given

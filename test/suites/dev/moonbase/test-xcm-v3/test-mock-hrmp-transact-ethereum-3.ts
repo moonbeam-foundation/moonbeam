@@ -2,15 +2,15 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { BN } from "@polkadot/util";
-import { KeyringPair } from "@polkadot/keyring/types";
-import { Abi, encodeFunctionData } from "viem";
+import type { KeyringPair } from "@polkadot/keyring/types";
+import { type Abi, encodeFunctionData } from "viem";
 import { generateKeyringPair, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
-  MultiLocation,
+  type MultiLocation,
   weightMessage,
 } from "../../../../helpers/xcm.js";
 import { registerOldForeignAsset } from "../../../../helpers/assets.js";

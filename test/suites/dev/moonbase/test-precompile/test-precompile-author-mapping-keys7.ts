@@ -29,7 +29,7 @@ describeSuite({
         expect(extrinsic).to.exist;
         expect(resultEvent?.method).to.equal("ExtrinsicSuccess");
         expect(
-          (events.find((e) => e.section == "ethereum" && e.method == "Executed")?.data[3] as any)
+          (events.find((e) => e.section === "ethereum" && e.method === "Executed")?.data[3] as any)
             .isRevert
         ).to.be.true;
       },

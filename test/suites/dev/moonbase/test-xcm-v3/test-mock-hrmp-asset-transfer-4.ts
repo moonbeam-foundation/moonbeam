@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { KeyringPair } from "@polkadot/keyring/types";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../../../helpers/xcm.js";
@@ -44,7 +44,7 @@ describeSuite({
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
 
         // We are charging 100_000_000 weight for every XCM instruction

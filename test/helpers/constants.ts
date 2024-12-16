@@ -1,11 +1,11 @@
 // constants.ts -  Any common values here should be moved to moonwall if suitable
 
+import type { GenericContext } from "@moonwall/cli";
 import {
   ALITH_GENESIS_FREE_BALANCE,
   ALITH_GENESIS_LOCK_BALANCE,
   ALITH_GENESIS_RESERVE_BALANCE,
 } from "@moonwall/util";
-import { GenericContext } from "@moonwall/types/dist/types/runner";
 
 const KILOWEI = 1_000n;
 
@@ -191,10 +191,6 @@ export const MAX_ETH_POV_PER_TX = 3_250_000n;
 type ConstantStoreType = (typeof RUNTIME_CONSTANTS)["MOONBASE"];
 
 export function ConstantStore(context: GenericContext): ConstantStoreType {
-  const runtimeChain = context.polkadotJs().runtimeChain.toUpperCase();
-  const runtime = runtimeChain
-    .split(" ")
-    .filter((v) => Object.keys(RUNTIME_CONSTANTS).includes(v))
-    .join();
+  const runtime = context.polkadotJs().consts.system.version.specName.toUpperCase();
   return RUNTIME_CONSTANTS[runtime];
 }

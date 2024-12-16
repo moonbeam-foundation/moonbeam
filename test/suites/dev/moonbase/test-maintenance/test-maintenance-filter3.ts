@@ -53,7 +53,7 @@ describeSuite({
       assetId = events.event.data[0].toHex().replace(/,/g, "");
 
       // set relative price in xcmWeightTrader
-      await addAssetToWeightTrader(sourceLocation, 0, context);
+      await addAssetToWeightTrader(sourceLocation, 0n, context);
     });
 
     beforeEach(async () => {
