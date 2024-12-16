@@ -30,6 +30,11 @@ describeSuite({
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
       specVersion = apiAt.consts.system.version.specVersion.toNumber();
 
+      liveForeignAssets = (await apiAt.query.assets.asset.entries()).reduce((acc, [key, value]) => {
+        acc[key.args.toString()] = (value.unwrap() as any).status.isLive;
+        return acc;
+      }, {});
+
       // Query all assets mapped by identifier
       const legacyAssets = await apiAt.query.assetManager.assetIdType.entries();
       const evmForeignAssets = await apiAt.query.evmForeignAssets.assetsById.entries();
@@ -48,6 +53,7 @@ describeSuite({
       assetsByLocation.forEach(([key, exposure]) => {
         const assetType = key.args.toString();
         const [assetId, assetStatus] = exposure.unwrap();
+        liveForeignAssets[assetType] = assetStatus.isActive;
         foreignAssetTypeId[assetType] = assetId.toString();
       });
 
@@ -60,11 +66,6 @@ describeSuite({
       log(`Foreign Xcm Supported Assets: ${xcmWeightManagerSupportedAssets}`);
       log(`Foreign AssetId -> AssetLocation: ${JSON.stringify(foreignAssetIdType)}`);
       log(`Foreign AssetLocation -> AssetId: ${JSON.stringify(foreignAssetTypeId)}`);
-
-      liveForeignAssets = (await apiAt.query.assets.asset.entries()).reduce((acc, [key, value]) => {
-        acc[key.args.toString()] = (value.unwrap() as any).status.isLive;
-        return acc;
-      }, {} as any);
     });
 
     it({
