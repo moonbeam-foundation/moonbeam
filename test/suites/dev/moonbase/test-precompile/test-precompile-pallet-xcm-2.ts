@@ -14,17 +14,18 @@ import {
   createEthersTransaction,
   PRECOMPILE_NATIVE_ERC20_ADDRESS,
 } from "@moonwall/util";
-import { u128 } from "@polkadot/types-codec";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { u128 } from "@polkadot/types-codec";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { checksumAddress, encodeFunctionData } from "viem";
 import {
   expectEVMResult,
   mockOldAssetBalance,
   PARA_1000_SOURCE_LOCATION,
   registerOldForeignAsset,
-  AssetMetadata,
   mockHrmpChannelExistanceTx,
 } from "../../../../helpers";
+
+import type { AssetMetadata } from "../../../../helpers";
 
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
@@ -185,7 +186,7 @@ describeSuite({
         const sudoKeyTx = context.polkadotJs().tx.sudo.setKey(baltathar.address);
         await context.createBlock(await sudoKeyTx.signAsync(alith), { allowFailures: false });
 
-        let alithNonce = (
+        const alithNonce = (
           await context.polkadotJs().query.system.account(alith.address)
         ).nonce.toNumber();
         const rawTxn = await createEthersTransaction(context, {
@@ -242,7 +243,7 @@ describeSuite({
         // 32 bytes beneficiary
         const beneficiaryAddress = "01010101010101010101010101010101";
 
-        let alithNonce = (
+        const alithNonce = (
           await context.polkadotJs().query.system.account(alith.address)
         ).nonce.toNumber();
         const rawTxn = await createEthersTransaction(context, {
@@ -298,7 +299,7 @@ describeSuite({
         // 32 bytes beneficiary
         const beneficiaryAddress = "01010101010101010101010101010101";
 
-        let alithNonce = (
+        const alithNonce = (
           await context.polkadotJs().query.system.account(alith.address)
         ).nonce.toNumber();
         const rawTxn = await createEthersTransaction(context, {
@@ -320,6 +321,143 @@ describeSuite({
 
         const events = await context.polkadotJs().query.system.events();
         expectEVMResult(events, "Succeed");
+
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
+        expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
+      },
+    });
+
+    it({
+      id: "T05",
+      title:
+        "transferAssetsUsingTypeAndThenLocation (8425d893): allows to pay fees with native asset",
+      test: async function () {
+        const { abi: xcmInterface } = fetchCompiledContract("XCM");
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
+
+        const dest: [number, any[]] = [1, []];
+        const assetLocation: [number, any[]] = [1, []];
+
+        const x1_pallet_instance_enum_selector = "0x04";
+        const x1_instance = "03";
+
+        const nativeAssetLocation = [
+          // zero parents
+          0,
+          // X1(PalletInstance)
+          // PalletInstance: Selector (04) + balances pallet instance 1 byte (03)
+          [x1_pallet_instance_enum_selector + x1_instance],
+        ];
+
+        const assetLocationInfo = [
+          [nativeAssetLocation, amountToSend],
+          [assetLocation, amountToSend],
+        ];
+
+        // LocalReserve
+        const feesTransferType = 1;
+
+        // DestinationReserve
+        const assetsTransferType = 2;
+
+        const message = {
+          V3: [
+            {
+              ClearOrigin: null,
+            },
+          ],
+        };
+        const xcmOnDest = context.polkadotJs().createType("XcmVersionedXcm", message);
+
+        const rawTxn = await createEthersTransaction(context, {
+          to: PRECOMPILE_PALLET_XCM_ADDRESS,
+          data: encodeFunctionData({
+            abi: xcmInterface,
+            args: [
+              dest,
+              assetLocationInfo,
+              assetsTransferType,
+              0n,
+              feesTransferType,
+              xcmOnDest.toHex(),
+            ],
+            functionName: "transferAssetsUsingTypeAndThenLocation",
+          }),
+          gasLimit: 500_000n,
+        });
+
+        const result = await context.createBlock(rawTxn);
+        expectEVMResult(result.result!.events, "Succeed");
+
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
+        expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
+      },
+    });
+
+    it({
+      id: "T06",
+      title: "allows to call transferAssetsUsingTypeAndThenAddress::998093ee selector",
+      test: async function () {
+        const { abi: xcmInterface } = fetchCompiledContract("XCM");
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
+
+        // Relay as destination
+        const dest: [number, any[]] = [1, []];
+        const assetAddressInfo = [
+          [PRECOMPILE_NATIVE_ERC20_ADDRESS, amountToSend],
+          [ADDRESS_RELAY_ERC20, amountToSend],
+        ];
+
+        // LocalReserve
+        const feesTransferType = 1;
+
+        // DestinationReserve
+        const assetsTransferType = 2;
+
+        const message = {
+          V3: [
+            {
+              ClearOrigin: null,
+            },
+          ],
+        };
+        const xcmOnDest = context.polkadotJs().createType("XcmVersionedXcm", message);
+
+        const rawTxn = await createEthersTransaction(context, {
+          to: PRECOMPILE_PALLET_XCM_ADDRESS,
+          data: encodeFunctionData({
+            abi: xcmInterface,
+            args: [
+              dest,
+              assetAddressInfo,
+              assetsTransferType,
+              0n,
+              feesTransferType,
+              xcmOnDest.toHex(),
+            ],
+            functionName: "transferAssetsUsingTypeAndThenAddress",
+          }),
+          gasLimit: 500_000n,
+        });
+
+        const result = await context.createBlock(rawTxn);
+        expectEVMResult(result.result!.events, "Succeed");
 
         const assetBalanceAfter = (
           await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
