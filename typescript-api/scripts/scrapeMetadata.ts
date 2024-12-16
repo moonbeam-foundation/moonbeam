@@ -1,6 +1,5 @@
 import fs from "node:fs";
-import { execSync, spawn } from "node:child_process";
-import type { ChildProcessWithoutNullStreams } from "node:child_process";
+import { type ChildProcessWithoutNullStreams, execSync, spawn } from "node:child_process";
 import path from "node:path";
 
 const CHAINS = ["moonbase", "moonriver", "moonbeam"];
@@ -86,7 +85,9 @@ async function main() {
 }
 
 process.on("SIGINT", () => {
-  Object.values(nodes).forEach((node) => node.kill());
+  for (const chain of CHAINS) {
+    nodes[chain].kill();
+  }
   process.exit();
 });
 
@@ -96,5 +97,7 @@ main()
     process.exitCode = 1;
   })
   .finally(() => {
-    Object.values(nodes).forEach((node) => node.kill());
+    for (const chain of CHAINS) {
+      nodes[chain].kill();
+    }
   });
