@@ -239,10 +239,6 @@ describeSuite({
           .polkadotJs()
           .tx.sudo.sudo(mockHrmpChannelExistanceTx(context, destinationPara, 1000, 102400, 102400));
 
-        // Change the sudo key so that we avoid nonce issues.
-        const sudoKeyTx = context.polkadotJs().tx.sudo.setKey(baltathar.address);
-        await context.createBlock(await sudoKeyTx.signAsync(alith), { allowFailures: false });
-
         // 32 bytes beneficiary
         const beneficiaryAddress = "01010101010101010101010101010101";
 
@@ -261,6 +257,7 @@ describeSuite({
         });
 
         // Insert the two txs in the same block.
+        // First one with baltathar as sudo.
         await mockHrmp1000Tx.signAndSend(baltathar);
         await customDevRpcRequest("eth_sendRawTransaction", [rawTxn]);
         await context.createBlock();
@@ -298,10 +295,6 @@ describeSuite({
           .polkadotJs()
           .tx.sudo.sudo(mockHrmpChannelExistanceTx(context, destinationPara, 1000, 102400, 102400));
 
-        // Change the sudo key so that we avoid nonce issues.
-        const sudoKeyTx = context.polkadotJs().tx.sudo.setKey(baltathar.address);
-        await context.createBlock(await sudoKeyTx.signAsync(alith), { allowFailures: false });
-
         // 32 bytes beneficiary
         const beneficiaryAddress = "01010101010101010101010101010101";
 
@@ -320,6 +313,7 @@ describeSuite({
         });
 
         // Insert the two txs in the same block.
+        // First one with baltathar as sudo.
         await mockHrmp1000Tx.signAndSend(baltathar);
         await customDevRpcRequest("eth_sendRawTransaction", [rawTxn]);
         await context.createBlock();
