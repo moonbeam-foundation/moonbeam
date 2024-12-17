@@ -39,7 +39,7 @@ pub(crate) const ERC20_MINT_INTO_GAS_LIMIT: u64 = 155_000; // highest failure: 1
 const ERC20_PAUSE_GAS_LIMIT: u64 = 150_500; // highest failure: 150_500
 pub(crate) const ERC20_TRANSFER_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
 pub(crate) const ERC20_APPROVE_GAS_LIMIT: u64 = 154_000; // highest failure: 153_000
-const ERC20_UNPAUSE_GAS_LIMIT: u64 = 150_000; // highest failure: 149_500
+const ERC20_UNPAUSE_GAS_LIMIT: u64 = 151_000; // highest failure: 149_500
 
 pub enum EvmError {
 	BurnFromFail,
