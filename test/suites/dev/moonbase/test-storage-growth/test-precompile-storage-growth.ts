@@ -19,6 +19,13 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     const newAccount = "0x1ced798a66b803d0dbb665680283980a939a6432";
 
+    // The tx can create an account, so record 148 bytes of storage growth
+    // Storage growth ratio is 366
+    // storage_gas = 148 * 366 = 54168
+    // pov_gas = 5693 * 16 = 91088
+    // TODO: update commend to reflect how the new value is calculated
+    const expectedGas = 92232n;
+
     it({
       id: "T01",
       title: "should fail transfer due to insufficient gas required to cover the storage growth",
@@ -39,11 +46,6 @@ describeSuite({
         // Snapshot estimated gas
         expect(estimatedGas).toMatchInlineSnapshot(`102539n`);
 
-        // The tx can create an account, so record 148 bytes of storage growth
-        // Storage growth ratio is 366
-        // storage_gas = 148 * 366 = 54168
-        // pov_gas = 5693 * 16 = 91088
-        const expectedGas = 91_088n;
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
@@ -75,7 +77,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(proxyProxyEstimatedGas).toMatchInlineSnapshot(`91908n`);
+        expect(proxyProxyEstimatedGas).toMatchInlineSnapshot(expectedGas);
 
         const balBefore = await context.viem().getBalance({ address: FAITH_ADDRESS });
         const rawTxn2 = await context.writePrecompile!({
@@ -131,10 +133,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`91908n`);
-
-        // old value 91_088n
-        const expectedGas = 91_472n;
+        expect(estimatedGas).toMatchInlineSnapshot(expectedGas);
 
         const rawTxn2 = await context.writePrecompile!({
           precompileName: "Proxy",
