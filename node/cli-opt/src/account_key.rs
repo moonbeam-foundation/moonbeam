@@ -40,7 +40,7 @@ pub struct GenerateAccountKey {
 }
 
 impl GenerateAccountKey {
-	pub fn run(&self) {
+	pub fn run(&self, deprecated: bool) {
 		// Retrieve the mnemonic from the args or generate random ones
 		let mnemonic = if let Some(phrase) = &self.mnemonic {
 			Mnemonic::from_phrase(phrase, Language::English).expect("invalid mnemonic")
@@ -53,7 +53,11 @@ impl GenerateAccountKey {
 
 		// Retrieves the seed from the mnemonic
 		let seed = Seed::new(&mnemonic, "");
-		let derivation_path = format!("m/44'/60'/0'/0/{}", self.account_index.unwrap_or(0));
+		let derivation_path = if deprecated {
+			format!("m/44'/60'/0'/0/{}", self.account_index.unwrap_or(0))
+		} else {
+			format!("m/44'/1284'/0'/0/{}", self.account_index.unwrap_or(0))
+		};
 		let private_key = if let Some(private_key) =
 			derivation_path.parse().ok().and_then(|derivation_path| {
 				let extended = ExtendedPrivateKey::<Secp256k1SecretKey>::derive_from_path(
