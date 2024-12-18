@@ -8,12 +8,12 @@ import { blake2AsHex } from "@polkadot/util-crypto";
 
 const BREAKING_CHANGES_LABEL = "breaking";
 const RUNTIME_CHANGES_LABEL = "B7-runtimenoteworthy";
-// `ParachainSystem` is pallet index 6. `authorize_upgrade` is extrinsic index 2.
-const MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0602";
-// `ParachainSystem` is pallet index 1. `authorize_upgrade` is extrinsic index 2.
-const MOONRIVER_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0102";
-// `ParachainSystem` is pallet index 1. `authorize_upgrade` is extrinsic index 2.
-const MOONBEAM_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0102";
+// `ParachainSystem` is pallet index 0. `authorize_upgrade` is extrinsic index 9.
+const MOONBASE_PREFIX_SYSTEM_AUTHORIZE_UPGRADE = "0x0009";
+// `ParachainSystem` is pallet index 0. `authorize_upgrade` is extrinsic index 9.
+const MOONRIVER_PREFIX_SYSTEM_AUTHORIZE_UPGRADE = "0x0009";
+// `ParachainSystem` is pallet index 0. `authorize_upgrade` is extrinsic index 9.
+const MOONBEAM_PREFIX_SYSTEM_AUTHORIZE_UPGRADE = "0x0009";
 
 function capitalize(s) {
   return s[0].toUpperCase() + s.slice(1);
@@ -32,23 +32,24 @@ function getRuntimeInfo(srtoolReportFolder: string, runtimeName: string) {
   };
 }
 
-// Srtool expects the pallet parachain_system to be at index 1. However, in the case of moonbase,
-// the pallet parachain_system is at index 6, so we have to recalculate the hash of the
-// authorizeUpgrade call in the case of moonbase by hand.
+// This function computes the preimage of the `system.authorize_upgrade` call
+// for the given runtime code hash. The preimage is the BLAKE2b-256 hash of 
+// the given call. It is to be used in the governance proposal to authorize
+// the runtime upgrade.
 function authorizeUpgradeHash(runtimeName: string, srtool: any): string {
   if (runtimeName === "moonbase") {
     return blake2AsHex(
-      MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE +
+      MOONBASE_PREFIX_SYSTEM_AUTHORIZE_UPGRADE +
         srtool.runtimes.compressed.blake2_256.substr(2) // remove "0x" prefix
     );
   } else if (runtimeName === "moonriver") {
     return blake2AsHex(
-      MOONRIVER_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE +
+      MOONRIVER_PREFIX_SYSTEM_AUTHORIZE_UPGRADE +
         srtool.runtimes.compressed.blake2_256.substr(2) // remove "0x" prefix
     );
   } else {
     return blake2AsHex(
-      MOONBEAM_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE +
+      MOONBEAM_PREFIX_SYSTEM_AUTHORIZE_UPGRADE +
         srtool.runtimes.compressed.blake2_256.substr(2) // remove "0x" prefix
     );
   }
