@@ -102,7 +102,7 @@ export async function processRandomStoragePrefixes(
   storagePrefix: string,
   blockHash: string,
   processor: (batchResult: { key: `0x${string}`; value: string }[]) => void,
-  override: string = ""
+  override = ""
 ) {
   const maxKeys = 1000;
   let total = 0;
