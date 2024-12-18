@@ -11,7 +11,7 @@ import {
   charleth,
   dorothy,
 } from "@moonwall/util";
-import { TransactionReceipt, decodeEventLog } from "viem";
+import { type TransactionReceipt, decodeEventLog } from "viem";
 import {
   fakeBabeResultTransaction,
   setupLotteryWithParticipants,

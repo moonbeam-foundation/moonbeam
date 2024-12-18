@@ -59,7 +59,7 @@ describeSuite({
         const { abi: abiIncrementor, hash: hash1 } = await context.deployContract!("Incrementor");
         const receipt = await context.viem().getTransactionReceipt({ hash: hash1 });
 
-        // In our case, the total number of transactions == the max value of the incrementer.
+        // In our case, the total number of transactions === the max value of the incrementer.
         // If we trace the last transaction of the block, should return the total number of
         // transactions we executed (10).
         // If we trace the 5th transaction, should return 5 and so on.
@@ -116,10 +116,10 @@ describeSuite({
         const traceTx = await customDevRpcRequest("debug_traceTransaction", [send]);
         const logs: any[] = [];
         for (const log of traceTx.structLogs) {
-          if (logs.length == 1) {
+          if (logs.length === 1) {
             logs.push(log);
           }
-          if (log.op == "RETURN") {
+          if (log.op === "RETURN") {
             logs.push(log);
           }
         }

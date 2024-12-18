@@ -5,7 +5,9 @@ import {
   createEthersTransaction,
   PRECOMPILE_CROWDLOAN_REWARDS_ADDRESS,
 } from "@moonwall/util";
-import BS_TRACER_V2 from "../../helpers/tracer/blockscout_tracer_v2.min.json" assert { type: "json" }; // editorconfig-checker-disable-line
+import BS_TRACER_V2 from "../../helpers/tracer/blockscout_tracer_v2.min.json" assert {
+  type: "json",
+};
 
 describeSuite({
   id: "T03",

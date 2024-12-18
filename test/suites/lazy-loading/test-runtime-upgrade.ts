@@ -1,10 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ApiPromise } from "@polkadot/api";
-import fs from "fs/promises";
+import { RUNTIME_CONSTANTS } from "../../helpers";
+import type { ApiPromise } from "@polkadot/api";
+import fs from "node:fs/promises";
 import { u8aToHex } from "@polkadot/util";
 import assert from "node:assert";
-import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
+import type { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
 describeSuite({
   id: "LD01",
@@ -23,9 +24,13 @@ describeSuite({
     beforeAll(async () => {
       api = context.polkadotJs();
 
-      const runtime = api.consts.system.version.specName.toLowerCase();
-      const wasmPath = `../target/release/wbuild/${runtime}-runtime/${runtime}_runtime.compact.compressed.wasm`; // editorconfig-checker-disable-line
-
+      const runtimeChain = api.runtimeChain.toUpperCase();
+      const runtime = runtimeChain
+        .split(" ")
+        .filter((v) => Object.keys(RUNTIME_CONSTANTS).includes(v))
+        .join()
+        .toLowerCase();
+      const wasmPath = `../target/release/wbuild/${runtime}-runtime/${runtime}_runtime.compact.compressed.wasm`;
       const runtimeWasmHex = u8aToHex(await fs.readFile(wasmPath));
 
       const rtBefore = api.consts.system.version.specVersion.toNumber();
@@ -57,10 +62,9 @@ describeSuite({
               const { docs, method, section } = decoded;
 
               return `${section}.${method}: ${docs.join(" ")}`;
-            } else {
-              // Other, CannotLookup, BadOrigin, no extra info
-              return error.toString();
             }
+            // Other, CannotLookup, BadOrigin, no extra info
+            return error.toString();
           }
         );
 

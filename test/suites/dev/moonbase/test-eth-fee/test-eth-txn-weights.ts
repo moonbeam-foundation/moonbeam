@@ -54,7 +54,7 @@ describeSuite({
 
         const wholeBlock = await context.polkadotJs().rpc.chain.getBlock(block.hash);
         const index = wholeBlock.block.extrinsics.findIndex(
-          (ext) => ext.method.method == "transact" && ext.method.section == "ethereum"
+          (ext) => ext.method.method === "transact" && ext.method.section === "ethereum"
         );
         const extSuccessEvent = result?.events
           .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))

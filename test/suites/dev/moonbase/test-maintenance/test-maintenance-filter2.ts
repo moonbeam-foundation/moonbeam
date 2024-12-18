@@ -7,8 +7,8 @@ import {
   execOpenTechCommitteeProposal,
 } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith, baltathar } from "@moonwall/util";
-import { u128 } from "@polkadot/types-codec";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { u128 } from "@polkadot/types-codec";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import {
   RELAY_SOURCE_LOCATION,
   addAssetToWeightTrader,
@@ -52,7 +52,7 @@ describeSuite({
       );
 
       // set relative price in xcmWeightTrader
-      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 0, context);
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 0n, context);
 
       await execOpenTechCommitteeProposal(
         context,

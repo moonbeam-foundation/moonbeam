@@ -8,7 +8,7 @@ import {
   GLMR,
   MILLIGLMR,
 } from "@moonwall/util";
-import { TransactionReceipt, decodeEventLog } from "viem";
+import { type TransactionReceipt, decodeEventLog } from "viem";
 import { setupLotteryWithParticipants } from "../../../../helpers";
 
 describeSuite({

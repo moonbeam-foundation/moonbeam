@@ -1,11 +1,11 @@
 import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { BN } from "@polkadot/util";
-import { QueryableStorageEntry } from "@polkadot/api/types";
-import { u32 } from "@polkadot/types";
+import type { BN } from "@polkadot/util";
+import type { QueryableStorageEntry } from "@polkadot/api/types";
+import type { u32 } from "@polkadot/types";
 import type { AccountId20 } from "@polkadot/types/interfaces";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { TEN_MINS } from "@moonwall/util";
 import { rateLimiter } from "../../helpers/common.js";
 
@@ -14,7 +14,7 @@ const limiter = rateLimiter();
 type InvalidRounds = { [round: number]: number };
 
 async function getKeysBeforeRound<
-  T extends QueryableStorageEntry<"promise", [u32] | [u32, AccountId20]>
+  T extends QueryableStorageEntry<"promise", [u32] | [u32, AccountId20]>,
 >(lastUnpaidRound: BN, storage: T): Promise<InvalidRounds> {
   const invalidRounds: InvalidRounds = {};
   let startKey = "";
@@ -74,13 +74,13 @@ describeSuite({
         }
 
         // TODO: Remove once moonsama first 129667 blocks are cleaned
-        if (chainName == "Moonsama") {
+        if (chainName === "Moonsama") {
           log(`Moonsama is broken, skipping it`);
           return;
         }
 
         const atBlockNumber = process.env.BLOCK_NUMBER
-          ? parseInt(process.env.BLOCK_NUMBER)
+          ? Number.parseInt(process.env.BLOCK_NUMBER)
           : currentBlock;
 
         const atBlockHash = await paraApi.rpc.chain.getBlockHash(atBlockNumber);
@@ -112,16 +112,16 @@ describeSuite({
         );
 
         // TODO: remove this once the storage has been cleaned (root vote or upgrade)
-        if (specName == "moonriver") {
+        if (specName === "moonriver") {
           delete awardedPtsInvalidRounds[12440];
           delete pointsInvalidRounds[12440];
           delete atStakeInvalidRounds[12440];
-        } else if (specName == "moonbeam") {
+        } else if (specName === "moonbeam") {
           // Only used for Moonlama
           delete awardedPtsInvalidRounds[3107];
           delete pointsInvalidRounds[3107];
           delete atStakeInvalidRounds[3107];
-        } else if (specName == "moonbase") {
+        } else if (specName === "moonbase") {
           // alphanet
           delete awardedPtsInvalidRounds[10349];
           delete pointsInvalidRounds[10349];

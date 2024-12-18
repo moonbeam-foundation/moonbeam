@@ -55,7 +55,8 @@ export const isMuted = (moonbeamNetworkName: MoonbeamNetworkName, paraId: ParaId
 
     const currentTime = new Date().getTime();
     return match.mutedUntil && match.mutedUntil >= currentTime;
-  } else return false;
+  }
+  return false;
 };
 
 export const ForeignChainsEndpoints = [
@@ -123,6 +124,12 @@ export const ForeignChainsEndpoints = [
       {
         name: "Turing",
         paraId: 2114,
+      },
+      // Litmus has become a para-thread
+      {
+        name: "Litmus",
+        paraId: 2106,
+        mutedUntil: new Date("2025-01-30").getTime(),
       },
     ],
   },

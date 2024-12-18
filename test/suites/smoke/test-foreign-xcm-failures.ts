@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { getBlockArray, TEN_MINS } from "@moonwall/util";
-import { FrameSystemEventRecord } from "@polkadot/types/lookup";
+import type { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js";
 import { ForeignChainsEndpoints, getEndpoints } from "../../helpers/foreign-chains.js";
@@ -49,8 +49,8 @@ describeSuite({
         networkName === "Moonbeam"
           ? "Polkadot"
           : networkName === "Moonriver"
-          ? "Kusama"
-          : "Unsupported";
+            ? "Kusama"
+            : "Unsupported";
       const chainsWithRpcs = foreignChainInfos.foreignChains.map((chain) => {
         const endpoints = getEndpoints(relayName, chain.paraId);
         return { ...chain, endpoints };
@@ -159,7 +159,7 @@ describeSuite({
         );
 
         expect(
-          failures.flatMap((a) => a).length,
+          failures.flat().length,
           `Unexpected UnsupportedVersion XCM errors in networks ${failures
             .map((a) => a.networkName)
             .join(`, `)}; please investigate.`
@@ -199,7 +199,7 @@ describeSuite({
         );
 
         expect(
-          failures.flatMap((a) => a).length,
+          failures.flat().length,
           `Unexpected BadVersion XCM errors in networks ${failures
             .map((a) => a.networkName)
             .join(`, `)}; please investigate.`
@@ -241,7 +241,7 @@ describeSuite({
         );
 
         expect(
-          failures.flatMap((a) => a).length,
+          failures.flat().length,
           `Unexpected Barrier XCM errors in networks ${failures
             .map((a) => a.networkName)
             .join(`, `)}; please investigate.`
@@ -283,7 +283,7 @@ describeSuite({
         );
 
         expect(
-          failures.flatMap((a) => a).length,
+          failures.flat().length,
           `Unexpected Overflow XCM errors in networks ${failures
             .map((a) => a.networkName)
             .join(`, `)}; please investigate.`
@@ -332,7 +332,7 @@ describeSuite({
         );
 
         expect(
-          failures.flatMap((a) => a).length,
+          failures.flat().length,
           `Unexpected MultiLocationFull XCM errors in networks ${failures
             .map((a) => a.networkName)
             .join(`, `)}; please investigate.`
@@ -376,7 +376,7 @@ describeSuite({
         );
 
         expect(
-          failures.flatMap((a) => a).length,
+          failures.flat().length,
           `Unexpected AssetNotFound XCM errors in networks ${failures
             .map((a) => a.networkName)
             .join(`, `)}; please investigate.`
@@ -425,7 +425,7 @@ describeSuite({
         );
 
         expect(
-          failures.flatMap((a) => a).length,
+          failures.flat().length,
           `Unexpected DestinationUnsupported XCM errors in networks ${failures
             .map((a) => a.networkName)
             .join(`, `)}; please investigate.`
@@ -467,7 +467,7 @@ describeSuite({
         );
 
         expect(
-          failures.flatMap((a) => a).length,
+          failures.flat().length,
           `Unexpected Transport XCM errors in networks ${failures
             .map((a) => a.networkName)
             .join(`, `)}; please investigate.`
@@ -512,7 +512,7 @@ describeSuite({
         );
 
         expect(
-          failures.flatMap((a) => a).length,
+          failures.flat().length,
           `Unexpected FailedToDecode XCM errors in networks ${failures
             .map((a) => a.networkName)
             .join(`, `)}; please investigate.`
@@ -561,7 +561,7 @@ describeSuite({
         );
 
         expect(
-          failures.flatMap((a) => a).length,
+          failures.flat().length,
           `Unexpected UnhandledXcmVersion XCM errors in networks ${failures
             .map((a) => a.networkName)
             .join(`, `)}; please investigate.`
@@ -610,7 +610,7 @@ describeSuite({
         );
 
         expect(
-          failures.flatMap((a) => a).length,
+          failures.flat().length,
           `Unexpected WeightNotComputable XCM errors in networks ${failures
             .map((a) => a.networkName)
             .join(`, `)}; please investigate.`

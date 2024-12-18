@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { WEIGHT_PER_GAS, getBlockArray } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
-import { GenericExtrinsic } from "@polkadot/types";
+import type { ApiPromise } from "@polkadot/api";
+import type { GenericExtrinsic } from "@polkadot/types";
 import type { u128, u32 } from "@polkadot/types-codec";
-import {
+import type {
   EthereumBlock,
   EthereumReceiptReceiptV3,
   FpRpcTransactionStatus,
@@ -12,11 +12,11 @@ import {
   FrameSystemEventRecord,
   SpWeightsWeightV2Weight,
 } from "@polkadot/types/lookup";
-import { AnyTuple } from "@polkadot/types/types";
+import type { AnyTuple } from "@polkadot/types/types";
 import { ethers } from "ethers";
 import { checkTimeSliceForUpgrades, rateLimiter, RUNTIME_CONSTANTS } from "../../helpers";
 import Debug from "debug";
-import { DispatchInfo } from "@polkadot/types/interfaces";
+import type { DispatchInfo } from "@polkadot/types/interfaces";
 const debug = Debug("smoke:dynamic-fees");
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
@@ -80,21 +80,21 @@ describeSuite({
 
     const isChangeDirectionValid = (fillPermill: bigint, change: Change, feeMultiplier: bigint) => {
       switch (true) {
-        case fillPermill > targetFillPermill && change == Change.Increased:
+        case fillPermill > targetFillPermill && change === Change.Increased:
           return true;
         case fillPermill > targetFillPermill &&
-          change == Change.Unchanged &&
+          change === Change.Unchanged &&
           feeMultiplier === RUNTIME_CONSTANTS[runtime].MAX_FEE_MULTIPLIER:
           return true;
-        case fillPermill < targetFillPermill && change == Change.Decreased:
+        case fillPermill < targetFillPermill && change === Change.Decreased:
           return true;
         case fillPermill < targetFillPermill &&
-          change == Change.Unchanged &&
+          change === Change.Unchanged &&
           feeMultiplier === RUNTIME_CONSTANTS[runtime].MIN_FEE_MULTIPLIER:
           return true;
-        case fillPermill === targetFillPermill && change == Change.Unchanged:
+        case fillPermill === targetFillPermill && change === Change.Unchanged:
           return true;
-        case change == Change.Unknown:
+        case change === Change.Unknown:
           return true;
         default:
           return false;
@@ -201,7 +201,7 @@ describeSuite({
         }
         const enriched = blockData.map(({ blockNum, fillPermill, nextFeeMultiplier }) => {
           const change = checkMultiplier(
-            allBlocks.find((blockDatum) => blockDatum.blockNum == blockNum - 1)!,
+            allBlocks.find((blockDatum) => blockDatum.blockNum === blockNum - 1)!,
             nextFeeMultiplier
           );
 
@@ -240,7 +240,7 @@ describeSuite({
         }
         const enriched = blockData.map(({ blockNum, nextFeeMultiplier, fillPermill }) => {
           const change = checkMultiplier(
-            allBlocks.find((blockDatum) => blockDatum.blockNum == blockNum - 1)!,
+            allBlocks.find((blockDatum) => blockDatum.blockNum === blockNum - 1)!,
             nextFeeMultiplier
           );
           const valid = isChangeDirectionValid(fillPermill, change, nextFeeMultiplier.toBigInt());
@@ -309,7 +309,7 @@ describeSuite({
             const expectedBaseFeePerGasInWei =
               (nextFeeMultiplier.toBigInt() * weightFee * WEIGHT_PER_GAS) / ethers.parseEther("1");
 
-            const valid = baseFeePerGasInWei == expectedBaseFeePerGasInWei;
+            const valid = baseFeePerGasInWei === expectedBaseFeePerGasInWei;
             return { blockNum, baseFeePerGasInGwei, valid, expectedBaseFeePerGasInWei };
           })
           .filter(({ valid }) => !valid);
@@ -390,27 +390,24 @@ describeSuite({
                 return fee.refTime;
               });
 
-            const gasUsed = filteredTxnEvents
-              .map((txnEvent) => {
-                if (
-                  txnEvent.phase.isApplyExtrinsic && // Exclude XCM => EVM calls
-                  isEthereumTxn(blockNum, txnEvent.phase.asApplyExtrinsic.toNumber())
-                ) {
-                  const txnHash = (txnEvent.event.data as any).transactionHash;
-                  const index = transactionStatuses.findIndex((status) =>
-                    status.transactionHash.eq(txnHash)
-                  );
-                  // Gas used is cumulative measure, so we have to derive individuals
-                  const gasUsed =
-                    index === 0
-                      ? extractGasAmount(receipts[index])
-                      : extractGasAmount(receipts[index]) - extractGasAmount(receipts[index - 1]);
-                  return gasUsed;
-                } else {
-                  return [];
-                }
-              })
-              .flatMap((item) => item);
+            const gasUsed = filteredTxnEvents.flatMap((txnEvent) => {
+              if (
+                txnEvent.phase.isApplyExtrinsic && // Exclude XCM => EVM calls
+                isEthereumTxn(blockNum, txnEvent.phase.asApplyExtrinsic.toNumber())
+              ) {
+                const txnHash = (txnEvent.event.data as any).transactionHash;
+                const index = transactionStatuses.findIndex((status) =>
+                  status.transactionHash.eq(txnHash)
+                );
+                // Gas used is cumulative measure, so we have to derive individuals
+                const gasUsed =
+                  index === 0
+                    ? extractGasAmount(receipts[index])
+                    : extractGasAmount(receipts[index]) - extractGasAmount(receipts[index - 1]);
+                return gasUsed;
+              }
+              return [];
+            });
 
             expect(fees.length, "More eth reciepts than expected, this test needs fixing").to.equal(
               gasUsed.length

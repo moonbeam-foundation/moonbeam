@@ -23,10 +23,10 @@ describeSuite({
         const traceTx = await customDevRpcRequest("debug_traceCall", [callParams, "latest"]);
         const logs: any[] = [];
         for (const log of traceTx.structLogs) {
-          if (logs.length == 1) {
+          if (logs.length === 1) {
             logs.push(log);
           }
-          if (log.op == "RETURN") {
+          if (log.op === "RETURN") {
             logs.push(log);
           }
         }

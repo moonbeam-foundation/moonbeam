@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { ApiPromise } from "@polkadot/api";
-import { PalletParachainStakingRoundInfo } from "@polkadot/types/lookup";
-import { BN, BN_ONE, BN_ZERO } from "@polkadot/util";
+import type { ApiPromise } from "@polkadot/api";
+import type { PalletParachainStakingRoundInfo } from "@polkadot/types/lookup";
+import { type BN, BN_ONE, BN_ZERO } from "@polkadot/util";
 
 /*
  * Get any block of a given round.
