@@ -172,18 +172,6 @@ export async function processRandomStoragePrefixes(
   await limiter.disconnect();
 }
 
-export async function getStartingKeySample(api: ApiPromise, prefix: string, blockHash: string) {
-  // @ts-expect-error _rpcCore is not yet exposed
-  const res: string = await api._rpcCore.provider.send("state_getKeysPaged", [
-    prefix,
-    1,
-    "",
-    blockHash,
-  ]);
-
-  return res[0];
-}
-
 export const extractStorageKeyComponents = (storageKey: string) => {
   // The full storage key is composed of
   // - The 0x prefix (2 characters)
