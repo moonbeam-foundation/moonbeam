@@ -45,7 +45,7 @@ use xcm_builder::{
 	EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
 	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, WeightInfoBounds, WithComputedOrigin,
+	TakeWeightCredit, TrailingSetTopicAsId, WeightInfoBounds, WithComputedOrigin,
 };
 
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -197,7 +197,7 @@ pub type XcmWeigher = WeightInfoBounds<
 	MaxInstructions,
 >;
 
-pub type XcmBarrier = (
+pub type XcmBarrier = TrailingSetTopicAsId<(
 	// Weight that is paid for may be consumed.
 	TakeWeightCredit,
 	// Expected responses are OK.
@@ -212,7 +212,7 @@ pub type XcmBarrier = (
 		UniversalLocation,
 		ConstU32<8>,
 	>,
-);
+)>;
 
 parameter_types! {
 	/// Xcm fees will go to the treasury account
