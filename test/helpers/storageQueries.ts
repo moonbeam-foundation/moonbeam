@@ -96,3 +96,99 @@ export async function processAllStorage(
 
   await limiter.disconnect();
 }
+
+export async function processRandomStoragePrefixes(
+  api: ApiPromise,
+  storagePrefix: string,
+  blockHash: string,
+  processor: (batchResult: { key: `0x${string}`; value: string }[]) => void,
+  override = ""
+) {
+  const maxKeys = 1000;
+  let total = 0;
+  const preFilteredPrefixes = splitPrefix(storagePrefix);
+  const chanceToSample = 0.05;
+  let prefixes = override
+    ? [override]
+    : preFilteredPrefixes.filter(() => Math.random() < chanceToSample);
+  if (prefixes.length > 25) {
+    prefixes = prefixes.slice(0, 25);
+  }
+  console.log(`Processing ${prefixes.length} prefixes: ${prefixes.join(", ")}`);
+  const limiter = rateLimiter();
+  const stopReport = startReport(() => total);
+
+  try {
+    await Promise.all(
+      prefixes.map(async (prefix) =>
+        limiter.schedule(async () => {
+          let startKey: string | undefined = undefined;
+          while (true) {
+            // @ts-expect-error _rpcCore is not yet exposed
+            const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [
+              prefix,
+              maxKeys,
+              startKey,
+              blockHash,
+            ]);
+
+            if (!keys.length) {
+              break;
+            }
+
+            // @ts-expect-error _rpcCore is not yet exposed
+            const response = await api._rpcCore.provider.send("state_queryStorageAt", [
+              keys,
+              blockHash,
+            ]);
+
+            try {
+              processor(
+                response[0].changes.map((pair: [string, string]) => ({
+                  key: pair[0],
+                  value: pair[1],
+                }))
+              );
+            } catch (e) {
+              console.log(`Error processing ${prefix}: ${e}`);
+              console.log(`Replace the empty string in smoke/test-ethereum-contract-code.ts
+                with the prefix to reproduce`);
+            }
+
+            total += keys.length;
+
+            if (keys.length !== maxKeys) {
+              break;
+            }
+            startKey = keys[keys.length - 1];
+          }
+        })
+      )
+    );
+  } finally {
+    stopReport();
+  }
+
+  await limiter.disconnect();
+}
+
+export const extractStorageKeyComponents = (storageKey: string) => {
+  // The full storage key is composed of
+  // - The 0x prefix (2 characters)
+  // - The module prefix (32 characters)
+  // - The method name (32 characters)
+  // - The parameters (variable length)
+  const regex = /(?<moduleKey>0x[a-f0-9]{32})(?<fnKey>[a-f0-9]{32})(?<paramsKey>[a-f0-9]*)/i;
+  const match = regex.exec(storageKey);
+
+  if (!match) {
+    throw new Error("Invalid storage key format");
+  }
+
+  const { moduleKey, fnKey, paramsKey } = match.groups!;
+  return {
+    moduleKey,
+    fnKey,
+    paramsKey,
+  };
+};
