@@ -18,7 +18,6 @@ describeSuite({
     const ADDRESS_ERC20 = "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080";
     const ASSET_ID = 42259045809535163221576417993425387648n;
     const amountToSend = 100n;
-    const weight = { refTime: 5000000000, proofSize: 40000 };
 
     beforeAll(async () => {
       const balance = 200000000000000n;
