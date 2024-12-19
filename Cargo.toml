@@ -477,9 +477,10 @@ zeroize = { opt-level = 3 }
 inherits = "release"
 
 [profile.production]
+inherits = "release"
+debug-assertions = false # Disable debug-assert! for production builds
 codegen-units = 1
 incremental = false
-inherits = "release"
 lto = true
 
 [profile.release]
