@@ -154,6 +154,7 @@ where
 	GovOrigin: FromStr,
 	H256: From<<Runtime as frame_system::Config>::Hash>
 		+ Into<<Runtime as frame_system::Config>::Hash>,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	// The accessors are first. They directly return their result.
 	#[precompile::public("referendumCount()")]

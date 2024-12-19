@@ -61,7 +61,7 @@ describeSuite({
           await paraApi.rpc.chain.getBlock()
         ).block.header.number.toNumber();
 
-        await paraApi.tx.parachainSystem.enactAuthorizedUpgrade(rtHex).signAndSend(alith);
+        await paraApi.tx.system.applyAuthorizedUpgrade(rtHex).signAndSend(alith);
 
         await context.waitBlock(15);
 

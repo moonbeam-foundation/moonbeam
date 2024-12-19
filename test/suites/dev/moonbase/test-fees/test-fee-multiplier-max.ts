@@ -70,12 +70,9 @@ describeSuite({
         const size = 4194304; // 2MB bytes represented in hex
         const hex = "0x" + "F".repeat(size);
 
-        // send an enactAuthorizedUpgrade. we expect this to fail, but we just want to see that it
+        // send an applyAuthorizedUpgrade. we expect this to fail, but we just want to see that it
         // was included in a block (not rejected) and was charged based on its length
-        await context
-          .polkadotJs()
-          .tx.parachainSystem.enactAuthorizedUpgrade(hex)
-          .signAndSend(baltathar);
+        await context.polkadotJs().tx.system.applyAuthorizedUpgrade(hex).signAndSend(baltathar);
         await context.createBlock();
 
         const afterBalance = (
@@ -86,7 +83,8 @@ describeSuite({
         // derived from the length_fee, which is not scaled by the multiplier
         // ~/4 to compensate for the ref time XCM fee changes
         // Previous value: 449_284_776_265_723_667_008n
-        expect(initialBalance - afterBalance).to.equal(119_241_298_837_127_813_277n);
+        // Previous value: 119_241_298_837_127_813_277n
+        expect(initialBalance - afterBalance).to.equal(119_241_297_050_552_813_277n);
       },
     });
 

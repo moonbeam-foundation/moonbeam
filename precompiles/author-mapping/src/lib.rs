@@ -64,6 +64,7 @@ where
 	Runtime::RuntimeCall: From<AuthorMappingCall<Runtime>>,
 	Runtime::Hash: From<H256>,
 	Runtime::AccountId: Into<H160>,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
 	#[precompile::public("addAssociation(bytes32)")]

@@ -20,7 +20,7 @@ use crate as pallet_moonbeam_foreign_assets;
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
 use frame_system::EnsureRoot;
-use pallet_evm::SubstrateBlockHashMapping;
+use pallet_evm::{FrameSystemAccountProvider, SubstrateBlockHashMapping};
 use precompile_utils::testing::MockAccount;
 use sp_core::{H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
@@ -139,6 +139,7 @@ impl pallet_evm::Config for Test {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
+	type AccountProvider = FrameSystemAccountProvider<Test>;
 }
 
 /// Gets parameters of last `ForeignAssetCreatedHook::on_asset_created` hook invocation
