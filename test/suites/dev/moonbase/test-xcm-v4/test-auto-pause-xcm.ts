@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 
-import { KeyringPair } from "@polkadot/keyring/types";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   sovereignAccountOfSibling,
   injectHrmpMessage,
 } from "../../../../helpers/xcm.js";
@@ -39,7 +39,7 @@ describeSuite({
 
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
       balancesPalletIndex = metadata.asLatest.pallets
-        .find(({ name }) => name.toString() == "Balances")!
+        .find(({ name }) => name.toString() === "Balances")!
         .index.toNumber();
     });
 

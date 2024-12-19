@@ -6,7 +6,7 @@ import {
   deployCreateCompiledContract,
   customDevRpcRequest,
 } from "@moonwall/cli";
-import { TransactionReceipt } from "viem";
+import type { TransactionReceipt } from "viem";
 
 describeSuite({
   id: "D011203",

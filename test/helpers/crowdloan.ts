@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext } from "@moonwall/cli";
+import type { DevModeContext } from "@moonwall/cli";
 import { VESTING_PERIOD } from "./constants.js";
 
 export async function calculate_vested_amount(

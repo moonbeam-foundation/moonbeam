@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { charleth, getBlockExtrinsic } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 
 // Keys used to set author-mapping in the tests
 const originalKeys = [
@@ -52,8 +52,8 @@ describeSuite({
           "authorMapping",
           "setKeys"
         );
-        expect(events.find((e) => e.section == "authorMapping" && e.method == "KeysRegistered")).to
-          .exist;
+        expect(events.find((e) => e.section === "authorMapping" && e.method === "KeysRegistered"))
+          .to.exist;
       },
     });
 

@@ -3,7 +3,9 @@
   "compilerOptions": {
     "rootDir": ".",
     "baseUrl": "./",
-    "outDir": "../../dist",
+    "outDir": "../../dist/moonbeam",
+    "declarationDir": "../../dist/moonbeam",
+    "declarationMap": true,
     "paths": {
       "@moonbeam/api-augment/*": ["src/moonbeam/*"],
       "@polkadot/api/augment": ["src/moonbeam/interfaces/augment-api.ts"],

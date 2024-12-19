@@ -79,9 +79,9 @@ describeSuite({
 
         (await context.polkadotJs().query.system.events()).forEach((event) => {
           if (context.polkadotJs().events.parachainStaking.InflationDistributed.is(event.event)) {
-            if (event.event.data.account.toString() == dorothy.address) {
+            if (event.event.data.account.toString() === dorothy.address) {
               pbrReward = event.event.data.value.toBigInt();
-            } else if (event.event.data.account.toString() == charleth.address) {
+            } else if (event.event.data.account.toString() === charleth.address) {
               treasuryReward = event.event.data.value.toBigInt();
             }
           }

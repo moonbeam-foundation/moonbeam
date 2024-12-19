@@ -8,8 +8,8 @@ import {
   GLMR,
   alith,
 } from "@moonwall/util";
-import { Option } from "@polkadot/types";
-import { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
+import type { Option } from "@polkadot/types";
+import type { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
 import { SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({

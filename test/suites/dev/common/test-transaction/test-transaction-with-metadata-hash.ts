@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
-import { SignerOptions } from "@polkadot/api/types";
+import type { SignerOptions } from "@polkadot/api/types";
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata";
 import { u8aToHex } from "@polkadot/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 
 async function metadataHash(api: ApiPromise) {
   const m = await api.call.metadata.metadataAtVersion(15);

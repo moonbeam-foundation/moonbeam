@@ -26,7 +26,7 @@ import type {
   u16,
   u32,
   u64,
-  u8,
+  u8
 } from "@polkadot/types-codec";
 import type { ITuple } from "@polkadot/types-codec/types";
 import type { Vote } from "@polkadot/types/interfaces/elections";
@@ -36,7 +36,7 @@ import type {
   H160,
   H256,
   Perbill,
-  Percent,
+  Percent
 } from "@polkadot/types/interfaces/runtime";
 import type { Event } from "@polkadot/types/interfaces/system";
 

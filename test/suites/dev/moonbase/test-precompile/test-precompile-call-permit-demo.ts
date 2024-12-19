@@ -13,7 +13,7 @@ import {
   PRECOMPILE_CALL_PERMIT_ADDRESS,
   createViemTransaction,
 } from "@moonwall/util";
-import { Abi, encodeFunctionData, fromHex } from "viem";
+import { type Abi, encodeFunctionData, fromHex } from "viem";
 import { expectEVMResult, getSignatureParameters } from "../../../../helpers";
 
 describeSuite({

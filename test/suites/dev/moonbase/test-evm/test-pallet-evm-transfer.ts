@@ -71,7 +71,8 @@ describeSuite({
 
         expect(
           result?.events.find(
-            ({ event: { section, method } }) => section == "system" && method == "ExtrinsicSuccess"
+            ({ event: { section, method } }) =>
+              section === "system" && method === "ExtrinsicSuccess"
           )
         ).to.exist;
         expect(await context.viem().getBalance({ address: baltathar.address })).to.equal(
