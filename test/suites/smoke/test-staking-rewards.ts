@@ -18,6 +18,7 @@ import { rateLimiter, getPreviousRound, getNextRound } from "../../helpers";
 import type { AccountId20, Block } from "@polkadot/types/interfaces";
 
 const limiter = rateLimiter();
+const DIV_PRECISION = 1000;
 
 interface RoundData {
   data: PalletParachainStakingRoundInfo;
@@ -348,6 +349,18 @@ describeSuite({
       },
     });
 
+    // Test cases for reproducing rounding/precision issues
+    it({
+      id: "C501",
+      title: "(debug): rewards are given as expected for opposing scenarios",
+      timeout: TEN_MINS,
+      chainType: "moonbase",
+      test: async () => {
+        await assertRewardsAtRoundBefore(paraApi, 9527400);
+        await assertRewardsAtRoundBefore(paraApi, 9917400);
+      },
+    });
+
     const assertRewardsAtRoundBefore = async (api: ApiPromise, nowBlockNumber: number) => {
       const nowBlockHash = await api.rpc.chain.getBlockHash(nowBlockNumber);
       const nowRound = await (await api.at(nowBlockHash)).query.parachainStaking.round();
@@ -580,7 +593,11 @@ describeSuite({
         ).round.ideal;
         const idealIssuance = new Perbill(idealInflation).of(totalIssuance);
 
-        totalRoundIssuance = roundDuration.mul(idealIssuance).div(idealDuration);
+        totalRoundIssuance = roundDuration
+          .mul(idealIssuance)
+          .mul(new BN(DIV_PRECISION))
+          .div(idealDuration)
+          .divRound(new BN(DIV_PRECISION));
       } else {
         // Always apply max inflation
         // It works because the total staked amount is already 1000 times more than the max on
@@ -628,9 +645,9 @@ describeSuite({
         payment.roundToPay.data.current
       );
 
-      let percentage = 0;
+      let percentage = new BN(0);
       inflationDistributionConfig.forEach((config) => {
-        percentage += config.percent.toNumber();
+        percentage = percentage.add(config.percent);
       });
       const reservedPercentage = new Percent(percentage);
       // total expected staking reward minus the amount reserved for parachain bond
