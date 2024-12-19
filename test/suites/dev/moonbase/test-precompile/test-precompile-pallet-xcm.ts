@@ -5,7 +5,7 @@ import type { u128 } from "@polkadot/types-codec";
 import { numberToHex } from "@polkadot/util";
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { encodeFunctionData } from "viem";
-import { expectEVMResult, mockOldAssetBalance } from "../../../../helpers";
+import { expectEVMResult, mockOldAssetBalance, mockAssetBalance, registerForeignAsset, relayAssetMetadata, ARBITRARY_ASSET_ID, RELAY_SOURCE_LOCATION_V4, foreignAssetBalance } from "../../../../helpers";
 
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
@@ -26,7 +26,7 @@ describeSuite({
         .createType("PalletAssetsAssetAccount", {
           balance: balance,
         });
-      assetId = context.polkadotJs().createType("u128", ASSET_ID);
+      assetId = context.polkadotJs().createType("u128", ARBITRARY_ASSET_ID);
 
       const assetDetails: PalletAssetsAssetDetails = context
         .polkadotJs()
@@ -34,7 +34,7 @@ describeSuite({
           supply: balance,
         });
 
-      await mockOldAssetBalance(
+/*       await mockOldAssetBalance(
         context,
         assetBalance,
         assetDetails,
@@ -42,7 +42,18 @@ describeSuite({
         assetId,
         ALITH_ADDRESS,
         true
-      );
+      ); */
+
+      const someBalance = 100_000_000_000_000_000_000_000_000n;
+      const assetLocation = RELAY_SOURCE_LOCATION_V4;
+
+      // Register the asset
+      const {registeredAssetId, registeredAssetLocation, contractAddress} = await registerForeignAsset(context, ARBITRARY_ASSET_ID, assetLocation, relayAssetMetadata);
+
+      console.log("contract address: ", contractAddress);
+      console.log("asset id: ", registeredAssetId);
+      // Mock asset balance
+      await mockAssetBalance(context, someBalance, ARBITRARY_ASSET_ID, alith, ALITH_ADDRESS);
     });
 
     it({
@@ -50,11 +61,9 @@ describeSuite({
       title: "allows to call transferAssetsLocation function",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = (
-          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceBefore = await foreignAssetBalance(context, ARBITRARY_ASSET_ID, ALITH_ADDRESS);
+
+        console.log("BALANCE BEFORE: ", assetBalanceBefore); 
 
         const dest: [number, any[]] = [1, []];
 
@@ -83,11 +92,7 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = (
-          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceAfter = await foreignAssetBalance(context, ARBITRARY_ASSET_ID, ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
