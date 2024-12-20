@@ -280,7 +280,7 @@ type MoonbeamPrecompilesAt<R> = (
 		(
 			CallableByContract,
 			CallableByPrecompile,
-			SubcallWithMaxNesting<0>,
+			SubcallWithMaxNesting<1>,
 		),
 	>,
 );

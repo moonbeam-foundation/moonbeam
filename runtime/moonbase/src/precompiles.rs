@@ -281,7 +281,7 @@ type MoonbasePrecompilesAt<R> = (
 		(
 			CallableByContract,
 			CallableByPrecompile,
-			SubcallWithMaxNesting<0>,
+			SubcallWithMaxNesting<1>,
 		),
 	>,
 	PrecompileAt<AddressU64<2075>, ForeignAssetMigratorPrecompile<R>, ()>,

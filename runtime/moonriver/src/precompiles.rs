@@ -274,7 +274,7 @@ type MoonriverPrecompilesAt<R> = (
 		(
 			CallableByContract,
 			CallableByPrecompile,
-			SubcallWithMaxNesting<0>,
+			SubcallWithMaxNesting<1>,
 		),
 	>,
 );
