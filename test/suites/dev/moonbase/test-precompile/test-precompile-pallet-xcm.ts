@@ -10,10 +10,8 @@ import {
   relayAssetMetadata,
   ARBITRARY_ASSET_ID,
   RELAY_SOURCE_LOCATION_V4,
-  foreignAssetBalance,
 } from "../../../../helpers";
 import { ethers } from "ethers";
-
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
 describeSuite({
@@ -22,7 +20,6 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let foreignAssetContract: ethers.Contract;
-    let foreignAssetAddress: string;
     const amountToSend = 100n;
 
     beforeAll(async () => {
@@ -35,8 +32,6 @@ describeSuite({
         RELAY_SOURCE_LOCATION_V4,
         relayAssetMetadata
       );
-
-      foreignAssetAddress = contractAddress;
 
       console.log("contract address: ", contractAddress);
       console.log("asset id: ", registeredAssetId);
@@ -52,11 +47,7 @@ describeSuite({
       title: "allows to call transferAssetsLocation function",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignAssetBalance(
-          context,
-          ARBITRARY_ASSET_ID,
-          ALITH_ADDRESS
-        );
+        const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
 
         console.log("BALANCE BEFORE: ", assetBalanceBefore);
 
@@ -87,11 +78,7 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = await foreignAssetBalance(
-          context,
-          ARBITRARY_ASSET_ID,
-          ALITH_ADDRESS
-        );
+        const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -104,7 +91,7 @@ describeSuite({
         const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
 
         const paraId = 1000n;
-        const assetAddressInfo = [[foreignAssetAddress, amountToSend]];
+        const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
 
         const rawTxn = await createEthersTransaction(context, {
           to: PRECOMPILE_PALLET_XCM_ADDRESS,
@@ -120,7 +107,6 @@ describeSuite({
         expectEVMResult(result.result!.events, "Succeed");
 
         const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
-
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -133,7 +119,7 @@ describeSuite({
         const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
 
         const paraId = 1000n;
-        const assetAddressInfo = [[foreignAssetAddress, amountToSend]];
+        const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
         const beneficiaryAddress = "01010101010101010101010101010101";
 
         const rawTxn = await createEthersTransaction(context, {
@@ -161,7 +147,7 @@ describeSuite({
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
         const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
 
-        const assetAddressInfo = [[foreignAssetAddress, amountToSend]];
+        const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
         const beneficiaryAddress = "01010101010101010101010101010101";
 
         const rawTxn = await createEthersTransaction(context, {
@@ -283,7 +269,7 @@ describeSuite({
 
         // Relay as destination
         const dest: [number, any[]] = [1, []];
-        const assetAddressInfo = [[foreignAssetAddress, amountToSend]];
+        const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
 
         // DestinationReserve
         const assetsAndFeesTransferType = 2;
@@ -334,7 +320,7 @@ describeSuite({
 
         // This represents X2(Parent, Parachain(2000))
         const dest: [number, any[]] = [1, [parachain_enum_selector + paraIdInHex.slice(2)]];
-        const assetAddressInfo = [[foreignAssetAddress, amountToSend]];
+        const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
         const remoteReserve: [number, any[]] = [1, []];
 
         const message = {

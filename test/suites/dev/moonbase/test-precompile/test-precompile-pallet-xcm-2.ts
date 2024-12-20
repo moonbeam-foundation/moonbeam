@@ -24,7 +24,6 @@ import {
   registerForeignAsset,
   relayAssetMetadata,
   RELAY_SOURCE_LOCATION_V4,
-  assetContractAddress,
 } from "../../../../helpers";
 import type { AssetMetadata } from "../../../../helpers";
 import { ethers } from "ethers";
