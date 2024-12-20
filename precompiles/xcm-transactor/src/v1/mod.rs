@@ -16,10 +16,10 @@
 
 //! Precompile to xcm transactor runtime methods via the EVM
 
+use crate::functions::{CurrencyIdOf, GetDataLimit, TransactorOf, XcmTransactorWrapper};
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
-
-use crate::functions::{CurrencyIdOf, GetDataLimit, TransactorOf, XcmTransactorWrapper};
+use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_runtime::traits::Dispatchable;
@@ -40,6 +40,7 @@ where
 	TransactorOf<Runtime>: TryFrom<u8>,
 	Runtime::AccountId: Into<H160>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	#[precompile::public("indexToAccount(uint16)")]
 	#[precompile::public("index_to_account(uint16)")]

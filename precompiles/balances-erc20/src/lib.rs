@@ -188,6 +188,7 @@ where
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
 	Metadata: Erc20Metadata,
 	Instance: InstanceToPrefix + 'static,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	#[precompile::public("totalSupply()")]
 	#[precompile::view]

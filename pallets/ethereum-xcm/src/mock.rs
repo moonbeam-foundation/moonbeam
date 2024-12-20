@@ -24,7 +24,9 @@ use frame_support::{
 	ConsensusEngineId, PalletId,
 };
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureRoot};
-use pallet_evm::{AddressMapping, EnsureAddressTruncated, FeeCalculator};
+use pallet_evm::{
+	AddressMapping, EnsureAddressTruncated, FeeCalculator, FrameSystemAccountProvider,
+};
 use rlp::RlpStream;
 use sp_core::{hashing::keccak_256, H160, H256, U256};
 use sp_runtime::{
@@ -198,6 +200,7 @@ impl pallet_evm::Config for Test {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
+	type AccountProvider = FrameSystemAccountProvider<Test>;
 }
 
 parameter_types! {
@@ -206,7 +209,7 @@ parameter_types! {
 
 impl pallet_ethereum::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type StateRoot = IntermediateStateRoot<Self>;
+	type StateRoot = IntermediateStateRoot<<Test as frame_system::Config>::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
 	type ExtraDataLength = ConstU32<30>;
 }
