@@ -21,7 +21,7 @@ use frame_support::traits::{
 	ConstU32, EnsureOrigin, Everything, Nothing, OriginTrait, PalletInfo as PalletInfoTrait,
 };
 use frame_support::{construct_runtime, parameter_types, weights::Weight};
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{
 	mock_account,
@@ -178,6 +178,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
+	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 }
 
 parameter_types! {
