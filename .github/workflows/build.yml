@@ -297,7 +297,8 @@ jobs:
     name: "Check WASM runtimes with Twiggy"
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      issues: write
       pull-requests: write
     if: github.event_name == 'pull_request'
     needs: ["set-tags", "build"]
