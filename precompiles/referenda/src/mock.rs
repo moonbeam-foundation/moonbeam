@@ -22,7 +22,7 @@ use frame_support::{
 	weights::Weight,
 };
 use frame_system::{EnsureRoot, EnsureSigned, EnsureSignedBy, RawOrigin};
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use pallet_referenda::{impl_tracksinfo_get, Curve, TrackInfo};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use precompile_utils::{precompile_set::*, testing::*};
@@ -162,6 +162,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
+	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 }
 
 parameter_types! {

@@ -123,6 +123,7 @@ where
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin: OriginTrait,
 	AssetIdOf<Runtime, Instance>: Display,
 	Runtime::AccountId: Into<H160>,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	fn compute_domain_separator(address: H160, asset_id: AssetIdOf<Runtime, Instance>) -> [u8; 32] {
 		let asset_name = pallet_assets::Pallet::<Runtime, Instance>::name(asset_id.clone());
