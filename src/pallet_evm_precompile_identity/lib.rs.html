@@ -871,6 +871,7 @@
 <a href="#869" id="869">869</a>
 <a href="#870" id="870">870</a>
 <a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2023 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -955,6 +956,7 @@
 	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	Runtime::RuntimeCall: From&lt;pallet_identity::Call&lt;Runtime&gt;&gt;,
 	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + solidity::Codec,
+	&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::AddressMapping: AddressMapping&lt;Runtime::AccountId&gt;,
 {
 	<span class="comment">// Note: addRegistrar(address) &amp; killIdentity(address) are not supported since they use a
 	// force origin.

@@ -112,6 +112,7 @@
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -168,6 +169,7 @@
 		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash: Into&lt;H256&gt;,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall: From&lt;PreimageCall&lt;Runtime&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::AddressMapping: AddressMapping&lt;Runtime::AccountId&gt;,
 {
 	<span class="doccomment">/// Register a preimage on-chain.
 	///

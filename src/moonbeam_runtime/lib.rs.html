@@ -1867,6 +1867,7 @@
 <a href="#1865" id="1865">1865</a>
 <a href="#1866" id="1866">1866</a>
 <a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1939,7 +1940,7 @@
 <span class="kw">use </span>pallet_ethereum::{PostLogContent, Transaction <span class="kw">as </span>EthereumTransaction};
 <span class="kw">use </span>pallet_evm::{
 	Account <span class="kw">as </span>EVMAccount, EVMFungibleAdapter, EnsureAddressNever, EnsureAddressRoot,
-	FeeCalculator, GasWeightMapping, IdentityAddressMapping,
+	FeeCalculator, FrameSystemAccountProvider, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction <span class="kw">as </span>OnChargeEVMTransactionT, Runner,
 };
 <span class="kw">pub use </span>pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
@@ -2207,7 +2208,7 @@
 	</span>R: pallet_balances::Config + pallet_treasury::Config,
 {
 	<span class="comment">// this seems to be called for substrate-based transactions
-	</span><span class="kw">fn </span>on_unbalanceds&lt;B&gt;(
+	</span><span class="kw">fn </span>on_unbalanceds(
 		<span class="kw-2">mut </span>fees_then_tips: <span class="kw">impl </span>Iterator&lt;Item = Credit&lt;R::AccountId, pallet_balances::Pallet&lt;R&gt;&gt;&gt;,
 	) {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(fees) = fees_then_tips.next() {
@@ -2410,6 +2411,7 @@
 	<span class="kw">type </span>SuicideQuickClearLimit = ConstU32&lt;<span class="number">0</span>&gt;;
 	<span class="kw">type </span>GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	<span class="kw">type </span>Timestamp = RelayTimestamp;
+	<span class="kw">type </span>AccountProvider = FrameSystemAccountProvider&lt;Runtime&gt;;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_evm::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -2556,7 +2558,7 @@
 
 <span class="kw">impl </span>pallet_ethereum::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>StateRoot = pallet_ethereum::IntermediateStateRoot&lt;<span class="self">Self</span>&gt;;
+	<span class="kw">type </span>StateRoot = pallet_ethereum::IntermediateStateRoot&lt;<span class="self">Self</span>::Version&gt;;
 	<span class="kw">type </span>PostLogContent = PostBlockAndTxnHashes;
 	<span class="kw">type </span>ExtraDataLength = ConstU32&lt;<span class="number">30</span>&gt;;
 }

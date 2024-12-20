@@ -764,6 +764,7 @@
 <a href="#762" id="762">762</a>
 <a href="#763" id="763">763</a>
 <a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -888,6 +889,7 @@
 			&lt;Runtime <span class="kw">as </span>pallet_conviction_voting::Config&gt;::MaxTurnout,
 		&gt;,
 	&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::AddressMapping: AddressMapping&lt;Runtime::AccountId&gt;,
 {
 	<span class="doccomment">/// Internal helper function for vote* extrinsics exposed in this precompile.
 	</span><span class="kw">fn </span>vote(

@@ -920,6 +920,7 @@
 <a href="#918" id="918">918</a>
 <a href="#919" id="919">919</a>
 <a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -977,6 +978,7 @@
 	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	Runtime::RuntimeCall: From&lt;pallet_parachain_staking::Call&lt;Runtime&gt;&gt;,
 	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + solidity::Codec,
+	&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::AddressMapping: AddressMapping&lt;Runtime::AccountId&gt;,
 {
 	<span class="comment">// Constants
 	</span><span class="attr">#[precompile::public(<span class="string">"minDelegation()"</span>)]

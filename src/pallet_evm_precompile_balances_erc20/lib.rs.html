@@ -496,6 +496,7 @@
 <a href="#494" id="494">494</a>
 <a href="#495" id="495">495</a>
 <a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -686,6 +687,7 @@
 	BalanceOf&lt;Runtime, Instance&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt;,
 	Metadata: Erc20Metadata,
 	Instance: InstanceToPrefix + <span class="lifetime">'static</span>,
+	&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::AddressMapping: AddressMapping&lt;Runtime::AccountId&gt;,
 {
 	<span class="attr">#[precompile::public(<span class="string">"totalSupply()"</span>)]
 	#[precompile::view]

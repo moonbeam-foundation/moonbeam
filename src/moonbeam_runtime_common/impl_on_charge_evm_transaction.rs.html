@@ -62,6 +62,7 @@
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -91,11 +92,12 @@
 		<span class="kw">impl</span>&lt;T, OU&gt; OnChargeEVMTransactionT&lt;T&gt; <span class="kw">for </span>OnChargeEVMTransaction&lt;OU&gt;
 		<span class="kw">where
 			</span>T: pallet_evm::Config,
-			T::Currency: Balanced&lt;T::AccountId&gt;,
-			OU: OnUnbalanced&lt;Credit&lt;T::AccountId, T::Currency&gt;&gt;,
-			U256: UniqueSaturatedInto&lt;BalanceFor&lt;T&gt;&gt;
+			T::Currency: Balanced&lt;pallet_evm::AccountIdOf&lt;T&gt;&gt;,
+			OU: OnUnbalanced&lt;Credit&lt;pallet_evm::AccountIdOf&lt;T&gt;, T::Currency&gt;&gt;,
+			U256: UniqueSaturatedInto&lt;&lt;T::Currency <span class="kw">as </span>Inspect&lt;pallet_evm::AccountIdOf&lt;T&gt;&gt;&gt;::Balance&gt;,
+			T::AddressMapping: pallet_evm::AddressMapping&lt;T::AccountId&gt;,
 		{
-			<span class="kw">type </span>LiquidityInfo = <span class="prelude-ty">Option</span>&lt;Credit&lt;T::AccountId, T::Currency&gt;&gt;;
+			<span class="kw">type </span>LiquidityInfo = <span class="prelude-ty">Option</span>&lt;Credit&lt;pallet_evm::AccountIdOf&lt;T&gt;, T::Currency&gt;&gt;;
 
 			<span class="kw">fn </span>withdraw_fee(who: <span class="kw-2">&amp;</span>H160, fee: U256) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::LiquidityInfo, pallet_evm::Error&lt;T&gt;&gt; {
 				EVMFungibleAdapter::&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency, ()&gt;::withdraw_fee(who, fee)

@@ -192,6 +192,8 @@
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
 <a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -213,6 +215,7 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::functions::{CurrencyIdOf, GetDataLimit, TransactorOf, XcmTransactorWrapper};
 <span class="kw">use </span>fp_evm::PrecompileHandle;
 <span class="kw">use </span>frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
+<span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, U256};
 <span class="kw">use </span>sp_runtime::traits::Dispatchable;
@@ -233,6 +236,7 @@
 	TransactorOf&lt;Runtime&gt;: TryFrom&lt;u8&gt;,
 	Runtime::AccountId: Into&lt;H160&gt;,
 	Runtime: AccountIdToCurrencyId&lt;Runtime::AccountId, CurrencyIdOf&lt;Runtime&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::AddressMapping: AddressMapping&lt;Runtime::AccountId&gt;,
 {
 	<span class="attr">#[precompile::public(<span class="string">"indexToAccount(uint16)"</span>)]
 	#[precompile::view]

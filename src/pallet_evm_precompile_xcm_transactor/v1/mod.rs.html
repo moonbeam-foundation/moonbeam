@@ -180,6 +180,7 @@
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -198,10 +199,10 @@
 
 </span><span class="doccomment">//! Precompile to xcm transactor runtime methods via the EVM
 
-</span><span class="kw">use </span>fp_evm::PrecompileHandle;
+</span><span class="kw">use </span><span class="kw">crate</span>::functions::{CurrencyIdOf, GetDataLimit, TransactorOf, XcmTransactorWrapper};
+<span class="kw">use </span>fp_evm::PrecompileHandle;
 <span class="kw">use </span>frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
-
-<span class="kw">use </span><span class="kw">crate</span>::functions::{CurrencyIdOf, GetDataLimit, TransactorOf, XcmTransactorWrapper};
+<span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, U256};
 <span class="kw">use </span>sp_runtime::traits::Dispatchable;
@@ -222,6 +223,7 @@
 	TransactorOf&lt;Runtime&gt;: TryFrom&lt;u8&gt;,
 	Runtime::AccountId: Into&lt;H160&gt;,
 	Runtime: AccountIdToCurrencyId&lt;Runtime::AccountId, CurrencyIdOf&lt;Runtime&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::AddressMapping: AddressMapping&lt;Runtime::AccountId&gt;,
 {
 	<span class="attr">#[precompile::public(<span class="string">"indexToAccount(uint16)"</span>)]
 	#[precompile::public(<span class="string">"index_to_account(uint16)"</span>)]

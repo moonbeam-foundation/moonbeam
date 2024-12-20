@@ -393,6 +393,9 @@
 <a href="#391" id="391">391</a>
 <a href="#392" id="392">392</a>
 <a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -502,6 +505,7 @@
 <span class="attr">#[frame_support::pallet(dev_mode)]
 </span><span class="kw">pub mod </span>pallet {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>fp_evm::AccountProvider;
 	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 
 	<span class="attr">#[pallet::config]
@@ -517,7 +521,9 @@
 		<span class="doccomment">/// Maximum Weight reserved for xcm in a block
 		</span><span class="kw">type </span>ReservedXcmpWeight: Get&lt;Weight&gt;;
 		<span class="doccomment">/// Ensure proxy
-		</span><span class="kw">type </span>EnsureProxy: EnsureProxy&lt;<span class="self">Self</span>::AccountId&gt;;
+		</span><span class="kw">type </span>EnsureProxy: EnsureProxy&lt;
+			&lt;&lt;<span class="self">Self </span><span class="kw">as </span>pallet_evm::Config&gt;::AccountProvider <span class="kw">as </span>AccountProvider&gt;::AccountId,
+		&gt;;
 		<span class="doccomment">/// The origin that is allowed to resume or suspend the XCM to Ethereum executions.
 		</span><span class="kw">type </span>ControllerOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin&gt;;
 		<span class="doccomment">/// An origin that can submit a create tx type

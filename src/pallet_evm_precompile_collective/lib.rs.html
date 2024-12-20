@@ -358,6 +358,7 @@
 <a href="#356" id="356">356</a>
 <a href="#357" id="357">357</a>
 <a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -463,6 +464,7 @@
 	Runtime::AccountId: Into&lt;H160&gt;,
 	H256: From&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;
 		+ Into&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::AddressMapping: AddressMapping&lt;Runtime::AccountId&gt;,
 {
 	<span class="attr">#[precompile::public(<span class="string">"execute(bytes)"</span>)]
 	</span><span class="kw">fn </span>execute(

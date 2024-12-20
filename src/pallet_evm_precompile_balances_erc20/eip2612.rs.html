@@ -181,6 +181,7 @@
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -228,6 +229,7 @@
 	BalanceOf&lt;Runtime, Instance&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt;,
 	Metadata: Erc20Metadata,
 	Instance: InstanceToPrefix + <span class="lifetime">'static</span>,
+	&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::AddressMapping: AddressMapping&lt;Runtime::AccountId&gt;,
 {
 	<span class="kw">pub fn </span>compute_domain_separator(address: H160) -&gt; [u8; <span class="number">32</span>] {
 		<span class="kw">let </span>name: H256 = keccak_256(Metadata::name().as_bytes()).into();

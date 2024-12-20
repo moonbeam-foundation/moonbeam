@@ -845,6 +845,8 @@
 <a href="#843" id="843">843</a>
 <a href="#844" id="844">844</a>
 <a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -1047,7 +1049,7 @@
 			ClientConfig {
 				offchain_worker_enabled: config.offchain_worker.enabled,
 				offchain_indexing_api: config.offchain_worker.indexing_enabled,
-				wasmtime_precompiled: config.wasmtime_precompiled.clone(),
+				wasmtime_precompiled: config.executor.wasmtime_precompiled.clone(),
 				wasm_runtime_overrides: config.wasm_runtime_overrides.clone(),
 				no_genesis: <span class="macro">matches!</span>(
 					config.network.sync_mode,
@@ -1079,7 +1081,7 @@
 	set_prometheus_registry(config, rpc_config.no_prometheus_prefix)<span class="question-mark">?</span>;
 
 	<span class="comment">// Use ethereum style for subscription ids
-	</span>config.rpc_id_provider = <span class="prelude-val">Some</span>(Box::new(fc_rpc::EthereumSubIdProvider));
+	</span>config.rpc.id_provider = <span class="prelude-val">Some</span>(Box::new(fc_rpc::EthereumSubIdProvider));
 
 	<span class="kw">let </span>telemetry = config
 		.telemetry_endpoints
@@ -1093,19 +1095,20 @@
 		.transpose()<span class="question-mark">?</span>;
 
 	<span class="kw">let </span>heap_pages = config
+		.executor
 		.default_heap_pages
 		.map_or(DEFAULT_HEAP_ALLOC_STRATEGY, |h| HeapAllocStrategy::Static {
 			extra_pages: h <span class="kw">as _</span>,
 		});
 	<span class="kw">let </span><span class="kw-2">mut </span>wasm_builder = WasmExecutor::builder()
-		.with_execution_method(config.wasm_method)
+		.with_execution_method(config.executor.wasm_method)
 		.with_onchain_heap_alloc_strategy(heap_pages)
 		.with_offchain_heap_alloc_strategy(heap_pages)
 		.with_ignore_onchain_heap_pages(<span class="bool-val">true</span>)
-		.with_max_runtime_instances(config.max_runtime_instances)
-		.with_runtime_cache_size(config.runtime_cache_size);
+		.with_max_runtime_instances(config.executor.max_runtime_instances)
+		.with_runtime_cache_size(config.executor.runtime_cache_size);
 
-	<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>wasmtime_precompiled_path) = config.wasmtime_precompiled {
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>wasmtime_precompiled_path) = config.executor.wasmtime_precompiled {
 		wasm_builder = wasm_builder.with_wasmtime_precompiled_path(wasmtime_precompiled_path);
 	}
 
@@ -1291,7 +1294,9 @@
 		));
 	};
 
-	<span class="kw">let </span>net_config = FullNetworkConfiguration::&lt;<span class="kw">_</span>, <span class="kw">_</span>, Net&gt;::new(<span class="kw-2">&amp;</span>config.network);
+	<span class="kw">let </span>prometheus_registry = config.prometheus_registry().cloned();
+	<span class="kw">let </span>net_config =
+		FullNetworkConfiguration::&lt;<span class="kw">_</span>, <span class="kw">_</span>, Net&gt;::new(<span class="kw-2">&amp;</span>config.network, prometheus_registry.clone());
 
 	<span class="kw">let </span>metrics = Net::register_notification_metrics(
 		config.prometheus_config.as_ref().map(|cfg| <span class="kw-2">&amp;</span>cfg.registry),
@@ -1305,7 +1310,7 @@
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
 			block_announce_validator_builder: <span class="prelude-val">None</span>,
-			warp_sync_params: <span class="prelude-val">None</span>,
+			warp_sync_config: <span class="prelude-val">None</span>,
 			net_config,
 			block_relay: <span class="prelude-val">None</span>,
 			metrics,
@@ -1601,12 +1606,11 @@
 
 		<span class="kw">let </span>keystore = keystore_container.keystore();
 		<span class="kw">let </span>command_sink_for_task = command_sink.clone();
-		<span class="kw">move </span>|deny_unsafe, subscription_task_executor| {
+		<span class="kw">move </span>|subscription_task_executor| {
 			<span class="kw">let </span>deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
 				command_sink: command_sink_for_task.clone(),
-				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
 				frontier_backend: <span class="kw">match </span><span class="kw-2">*</span>frontier_backend {

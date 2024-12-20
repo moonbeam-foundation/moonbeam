@@ -487,6 +487,16 @@
 <a href="#485" id="485">485</a>
 <a href="#486" id="486">486</a>
 <a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -973,5 +983,15 @@
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
 	}
+
+    <span class="kw">fn </span>transfer_all() -&gt; Weight {
+        <span class="comment">// Proof Size summary in bytes:
+        //  Measured:  `0`
+        //  Estimated: `3593`
+        // Minimum execution time: 46_573_000 picoseconds.
+        </span>Weight::from_parts(<span class="number">47_385_000</span>, <span class="number">3593</span>)
+            .saturating_add(T::DbWeight::get().reads(<span class="number">1_u64</span>))
+            .saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
+    }
 }
 </code></pre></div></section></main></body></html>

@@ -1140,9 +1140,6 @@
 <a href="#1138" id="1138">1138</a>
 <a href="#1139" id="1139">1139</a>
 <a href="#1140" id="1140">1140</a>
-<a href="#1141" id="1141">1141</a>
-<a href="#1142" id="1142">1142</a>
-<a href="#1143" id="1143">1143</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1164,7 +1161,7 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
 <span class="kw">use </span>cumulus_client_cli::extract_genesis_wasm;
 <span class="kw">use </span>cumulus_primitives_core::ParaId;
-<span class="kw">use </span>frame_benchmarking_cli::BenchmarkCmd;
+<span class="kw">use </span>frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 <span class="kw">use </span>log::{info, warn};
 <span class="kw">use </span>moonbeam_cli_opt::EthApi;
 
@@ -1181,7 +1178,7 @@
 </span><span class="kw">use </span>polkadot_service::WestendChainSpec;
 <span class="kw">use </span>sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
-	NetworkParams, <span class="prelude-ty">Result</span>, RuntimeVersion, SharedParams, SubstrateCli,
+	NetworkParams, <span class="prelude-ty">Result</span>, RpcEndpoint, RuntimeVersion, SharedParams, SubstrateCli,
 };
 <span class="kw">use </span>sc_service::{
 	config::{BasePath, PrometheusConfig},
@@ -1194,7 +1191,7 @@
 	},
 	StateVersion,
 };
-<span class="kw">use </span>std::{io::Write, net::SocketAddr};
+<span class="kw">use </span>std::io::Write;
 
 <span class="kw">fn </span>load_spec(
 	id: <span class="kw-2">&amp;</span>str,
@@ -1913,7 +1910,10 @@
 				<span class="kw">let </span>hwbench = <span class="kw">if </span>!cli.run.no_hardware_benchmarks {
 					config.database.path().map(|database_path| {
 						<span class="kw">let _ </span>= std::fs::create_dir_all(<span class="kw-2">&amp;</span>database_path);
-						sc_sysinfo::gather_hwbench(<span class="prelude-val">Some</span>(database_path))
+						sc_sysinfo::gather_hwbench(
+							<span class="prelude-val">Some</span>(database_path),
+							<span class="kw-2">&amp;</span>SUBSTRATE_REFERENCE_HARDWARE,
+						)
 					})
 				} <span class="kw">else </span>{
 					<span class="prelude-val">None
@@ -2043,7 +2043,7 @@
 				<span class="kw">let </span>id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(<span class="number">1000</span>));
 
 				<span class="kw">let </span>parachain_account =
-					AccountIdConversion::&lt;polkadot_primitives::v7::AccountId&gt;::into_account_truncating(<span class="kw-2">&amp;</span>id);
+					AccountIdConversion::&lt;polkadot_primitives::v8::AccountId&gt;::into_account_truncating(<span class="kw-2">&amp;</span>id);
 
 				<span class="kw">let </span>tokio_handle = config.tokio_handle.clone();
 				<span class="kw">let </span>polkadot_config =
@@ -2169,7 +2169,7 @@
 			</span>.or_else(|| <span class="prelude-val">Some</span>(<span class="self">self</span>.base_path.clone().into())))
 	}
 
-	<span class="kw">fn </span>rpc_addr(<span class="kw-2">&amp;</span><span class="self">self</span>, default_listen_port: u16) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SocketAddr&gt;&gt; {
+	<span class="kw">fn </span>rpc_addr(<span class="kw-2">&amp;</span><span class="self">self</span>, default_listen_port: u16) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;RpcEndpoint&gt;&gt;&gt; {
 		<span class="self">self</span>.base.base.rpc_addr(default_listen_port)
 	}
 
@@ -2183,15 +2183,9 @@
 			.prometheus_config(default_listen_port, chain_spec)
 	}
 
-	<span class="kw">fn </span>init&lt;F&gt;(
-		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		_support_url: <span class="kw-2">&amp;</span>String,
-		_impl_version: <span class="kw-2">&amp;</span>String,
-		_logger_hook: F,
-		_config: <span class="kw-2">&amp;</span>sc_service::Configuration,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+	<span class="kw">fn </span>init&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _support_url: <span class="kw-2">&amp;</span>String, _impl_version: <span class="kw-2">&amp;</span>String, _logger_hook: F) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
 	<span class="kw">where
-		</span>F: FnOnce(<span class="kw-2">&amp;mut </span>sc_cli::LoggerBuilder, <span class="kw-2">&amp;</span>sc_service::Configuration),
+		</span>F: FnOnce(<span class="kw-2">&amp;mut </span>sc_cli::LoggerBuilder),
 	{
 		<span class="macro">unreachable!</span>(<span class="string">"PolkadotCli is never initialized; qed"</span>);
 	}

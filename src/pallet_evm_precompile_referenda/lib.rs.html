@@ -672,6 +672,7 @@
 <a href="#670" id="670">670</a>
 <a href="#671" id="671">671</a>
 <a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -828,6 +829,7 @@
 	GovOrigin: FromStr,
 	H256: From&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;
 		+ Into&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::AddressMapping: AddressMapping&lt;Runtime::AccountId&gt;,
 {
 	<span class="comment">// The accessors are first. They directly return their result.
 	</span><span class="attr">#[precompile::public(<span class="string">"referendumCount()"</span>)]

@@ -213,6 +213,7 @@
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
@@ -287,6 +288,7 @@
 	AssetIdOf&lt;Runtime&gt;: Display,
 	Runtime::AccountId: Into&lt;H160&gt;,
 	&lt;Runtime <span class="kw">as </span>pallet_asset_manager::Config&gt;::ForeignAssetType: Into&lt;<span class="prelude-ty">Option</span>&lt;Location&gt;&gt;,
+	Runtime::AddressMapping: AddressMapping&lt;Runtime::AccountId&gt;,
 {
 	<span class="attr">#[precompile::public(<span class="string">"migrateAccounts(address,uint32)"</span>)]
 	</span><span class="kw">fn </span>migrate_accounts(

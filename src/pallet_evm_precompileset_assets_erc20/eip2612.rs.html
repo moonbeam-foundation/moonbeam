@@ -284,6 +284,7 @@
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -409,6 +410,7 @@
 	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: OriginTrait,
 	AssetIdOf&lt;Runtime, Instance&gt;: Display,
 	Runtime::AccountId: Into&lt;H160&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::AddressMapping: AddressMapping&lt;Runtime::AccountId&gt;,
 {
 	<span class="kw">fn </span>compute_domain_separator(address: H160, asset_id: AssetIdOf&lt;Runtime, Instance&gt;) -&gt; [u8; <span class="number">32</span>] {
 		<span class="kw">let </span>asset_name = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::name(asset_id.clone());
