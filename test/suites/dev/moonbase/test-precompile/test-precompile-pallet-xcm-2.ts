@@ -14,18 +14,20 @@ import {
   createEthersTransaction,
   PRECOMPILE_NATIVE_ERC20_ADDRESS,
 } from "@moonwall/util";
-import type { u128 } from "@polkadot/types-codec";
-import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { checksumAddress, encodeFunctionData } from "viem";
+import { encodeFunctionData, erc20Abi } from "viem";
 import {
   expectEVMResult,
-  mockOldAssetBalance,
   PARA_1000_SOURCE_LOCATION,
-  registerOldForeignAsset,
   mockHrmpChannelExistanceTx,
+  ARBITRARY_ASSET_ID,
+  mockAssetBalance,
+  registerForeignAsset,
+  relayAssetMetadata,
+  RELAY_SOURCE_LOCATION_V4,
+  assetContractAddress,
 } from "../../../../helpers";
-
 import type { AssetMetadata } from "../../../../helpers";
+import { ethers } from "ethers";
 
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
@@ -41,60 +43,55 @@ describeSuite({
   title: "Precompiles - PalletXcm: Native fee",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
-    let relayAssetId: u128;
-    let para1000AssetId: u128;
-    let ADDRESS_PARA_1000_ERC20: string;
+    let foreignRelayAssetContract: ethers.Contract;
+    let foreignParaAssetContract: ethers.Contract;
+
     const destinationPara = 1000;
-    const ADDRESS_RELAY_ERC20 = "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080";
-    const RELAY_ASSET_ID = 42259045809535163221576417993425387648n;
     const amountToSend = 100n;
 
     beforeAll(async () => {
       const balance = 200000000000000n;
-      const assetBalance: PalletAssetsAssetAccount = context
-        .polkadotJs()
-        .createType("PalletAssetsAssetAccount", {
-          balance: balance,
-        });
-      relayAssetId = context.polkadotJs().createType("u128", RELAY_ASSET_ID);
 
-      const assetDetails: PalletAssetsAssetDetails = context
-        .polkadotJs()
-        .createType("PalletAssetsAssetDetails", {
-          supply: balance,
-        });
+      // Register the asset
+      const { registeredAssetId: relayAssetId, contractAddress: relayAssetAddress } =
+        await registerForeignAsset(
+          context,
+          ARBITRARY_ASSET_ID,
+          RELAY_SOURCE_LOCATION_V4,
+          relayAssetMetadata
+        );
 
-      await mockOldAssetBalance(
-        context,
-        assetBalance,
-        assetDetails,
-        alith,
-        relayAssetId,
-        ALITH_ADDRESS,
-        true
+      console.log("Foreign Relay asset address: ", relayAssetAddress);
+      console.log("Foreign Relay asset id: ", relayAssetId);
+
+      // Mock asset balance
+      await mockAssetBalance(context, balance, relayAssetId, alith, ALITH_ADDRESS);
+
+      foreignRelayAssetContract = new ethers.Contract(
+        relayAssetAddress,
+        erc20Abi,
+        context.ethers()
       );
 
-      const { registeredAssetId } = await registerOldForeignAsset(
-        context,
-        PARA_1000_SOURCE_LOCATION,
-        para1000AssetMetadata as any,
-        1
-      );
+      // Register the asset
+      const { registeredAssetId: paraAssetId, contractAddress: paraAssetAddress } =
+        await registerForeignAsset(
+          context,
+          ARBITRARY_ASSET_ID + 1n,
+          PARA_1000_SOURCE_LOCATION,
+          para1000AssetMetadata
+        );
 
-      para1000AssetId = context.polkadotJs().createType("u128", registeredAssetId);
+      console.log("Foreign Para asset address: ", paraAssetAddress);
+      console.log("Foreign Para asset id: ", paraAssetId);
 
-      await mockOldAssetBalance(
-        context,
-        assetBalance,
-        assetDetails,
-        alith,
-        para1000AssetId,
-        ALITH_ADDRESS,
-        true
-      );
+      await mockAssetBalance(context, balance, paraAssetId, alith, ALITH_ADDRESS);
 
-      ADDRESS_PARA_1000_ERC20 = "0xFfFFfFff" + para1000AssetId.toHex().slice(2);
-      ADDRESS_PARA_1000_ERC20 = checksumAddress(ADDRESS_PARA_1000_ERC20 as `0x${string}`);
+      foreignParaAssetContract = new ethers.Contract(paraAssetAddress, erc20Abi, context.ethers());
+
+      // Change the sudo key so that we avoid nonce issues.
+      const sudoKeyTx = context.polkadotJs().tx.sudo.setKey(baltathar.address);
+      await context.createBlock(await sudoKeyTx.signAsync(alith), { allowFailures: false });
     });
 
     it({
@@ -102,11 +99,7 @@ describeSuite({
       title: "transferAssetsLocation: allows to pay fees with native asset",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = (
-          await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceBefore = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
 
         const dest: [number, any[]] = [1, []];
 
@@ -150,11 +143,7 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = (
-          await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceAfter = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -164,27 +153,19 @@ describeSuite({
       title: "transferAssetsToPara20: allows to pay fees with native asset",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = (
-          await context.polkadotJs().query.assets.account(para1000AssetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceBefore = await foreignParaAssetContract.balanceOf(ALITH_ADDRESS);
 
         const paraId = destinationPara;
 
         // Assets must be sorted, so we put the native one first as it has a lower "parents" field.
         const assetAddressInfo = [
           [PRECOMPILE_NATIVE_ERC20_ADDRESS, amountToSend],
-          [ADDRESS_PARA_1000_ERC20, amountToSend],
+          [await foreignParaAssetContract.getAddress(), amountToSend],
         ];
 
         const mockHrmp1000Tx = context
           .polkadotJs()
           .tx.sudo.sudo(mockHrmpChannelExistanceTx(context, destinationPara, 1000, 102400, 102400));
-
-        // Change the sudo key so that we avoid nonce issues.
-        const sudoKeyTx = context.polkadotJs().tx.sudo.setKey(baltathar.address);
-        await context.createBlock(await sudoKeyTx.signAsync(alith), { allowFailures: false });
 
         const alithNonce = (
           await context.polkadotJs().query.system.account(alith.address)
@@ -208,11 +189,7 @@ describeSuite({
         const events = await context.polkadotJs().query.system.events();
         expectEVMResult(events, "Succeed");
 
-        const assetBalanceAfter = (
-          await context.polkadotJs().query.assets.account(para1000AssetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceAfter = await foreignParaAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -222,18 +199,14 @@ describeSuite({
       title: "transferAssetsToPara32: allows to pay fees with native asset",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = (
-          await context.polkadotJs().query.assets.account(para1000AssetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceBefore = await foreignParaAssetContract.balanceOf(ALITH_ADDRESS);
 
         const paraId = destinationPara;
 
         // Assets must be sorted, so we put the native one first as it has a lower "parents" field.
         const assetAddressInfo = [
           [PRECOMPILE_NATIVE_ERC20_ADDRESS, amountToSend],
-          [ADDRESS_PARA_1000_ERC20, amountToSend],
+          [await foreignParaAssetContract.getAddress(), amountToSend],
         ];
 
         const mockHrmp1000Tx = context
@@ -266,11 +239,7 @@ describeSuite({
         const events = await context.polkadotJs().query.system.events();
         expectEVMResult(events, "Succeed");
 
-        const assetBalanceAfter = (
-          await context.polkadotJs().query.assets.account(para1000AssetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceAfter = await foreignParaAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -280,16 +249,12 @@ describeSuite({
       title: "transferAssetsToRelay: allows to pay fees with native asset",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = (
-          await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceBefore = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
 
         // Assets must be sorted, so we put the native one first as it has a lower "parents" field.
         const assetAddressInfo = [
           [PRECOMPILE_NATIVE_ERC20_ADDRESS, amountToSend],
-          [ADDRESS_RELAY_ERC20, amountToSend],
+          [await foreignRelayAssetContract.getAddress(), amountToSend],
         ];
 
         const mockHrmp1000Tx = context
@@ -322,11 +287,7 @@ describeSuite({
         const events = await context.polkadotJs().query.system.events();
         expectEVMResult(events, "Succeed");
 
-        const assetBalanceAfter = (
-          await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceAfter = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -337,11 +298,7 @@ describeSuite({
         "transferAssetsUsingTypeAndThenLocation (8425d893): allows to pay fees with native asset",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = (
-          await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceBefore = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
 
         const dest: [number, any[]] = [1, []];
         const assetLocation: [number, any[]] = [1, []];
@@ -397,11 +354,7 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = (
-          await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceAfter = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -412,17 +365,13 @@ describeSuite({
         "transferAssetsUsingTypeAndThenAddress (8425d893): allows to pay fees with native asset",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = (
-          await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceBefore = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
 
         // Relay as destination
         const dest: [number, any[]] = [1, []];
         const assetAddressInfo = [
           [PRECOMPILE_NATIVE_ERC20_ADDRESS, amountToSend],
-          [ADDRESS_RELAY_ERC20, amountToSend],
+          [await foreignRelayAssetContract.getAddress(), amountToSend],
         ];
 
         // LocalReserve
@@ -460,11 +409,7 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = (
-          await context.polkadotJs().query.assets.account(relayAssetId.toU8a(), ALITH_ADDRESS)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const assetBalanceAfter = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
