@@ -23,7 +23,7 @@ use frame_support::weights::constants::RocksDbWeight;
 use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_asset_manager::AssetRegistrar;
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::testing::MockAccount;
 use sp_core::{ConstU32, H160, H256, U256};
 use sp_runtime::{
@@ -152,6 +152,7 @@ impl pallet_evm::Config for Test {
 	type Timestamp = Timestamp;
 	type WeightInfo = ();
 	type SuicideQuickClearLimit = SuicideQuickClearLimit;
+	type AccountProvider = FrameSystemAccountProvider<Test>;
 }
 
 parameter_types! {

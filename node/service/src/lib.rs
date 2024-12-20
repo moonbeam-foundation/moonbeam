@@ -475,7 +475,7 @@ where
 	set_prometheus_registry(config, rpc_config.no_prometheus_prefix)?;
 
 	// Use ethereum style for subscription ids
-	config.rpc_id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
+	config.rpc.id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
 
 	let telemetry = config
 		.telemetry_endpoints
@@ -489,19 +489,20 @@ where
 		.transpose()?;
 
 	let heap_pages = config
+		.executor
 		.default_heap_pages
 		.map_or(DEFAULT_HEAP_ALLOC_STRATEGY, |h| HeapAllocStrategy::Static {
 			extra_pages: h as _,
 		});
 	let mut wasm_builder = WasmExecutor::builder()
-		.with_execution_method(config.wasm_method)
+		.with_execution_method(config.executor.wasm_method)
 		.with_onchain_heap_alloc_strategy(heap_pages)
 		.with_offchain_heap_alloc_strategy(heap_pages)
 		.with_ignore_onchain_heap_pages(true)
-		.with_max_runtime_instances(config.max_runtime_instances)
-		.with_runtime_cache_size(config.runtime_cache_size);
+		.with_max_runtime_instances(config.executor.max_runtime_instances)
+		.with_runtime_cache_size(config.executor.runtime_cache_size);
 
-	if let Some(ref wasmtime_precompiled_path) = config.wasmtime_precompiled {
+	if let Some(ref wasmtime_precompiled_path) = config.executor.wasmtime_precompiled {
 		wasm_builder = wasm_builder.with_wasmtime_precompiled_path(wasmtime_precompiled_path);
 	}
 
@@ -698,7 +699,10 @@ where
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
 	let import_queue_service = params.import_queue.service();
-	let net_config = FullNetworkConfiguration::<_, _, Net>::new(&parachain_config.network);
+	let net_config = FullNetworkConfiguration::<_, _, Net>::new(
+		&parachain_config.network,
+		prometheus_registry.clone(),
+	);
 
 	let (network, system_rpc_tx, tx_handler_controller, start_network, sync_service) =
 		cumulus_client_service::build_network(cumulus_client_service::BuildNetworkParams {
@@ -791,7 +795,7 @@ where
 		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 
 		let keystore = params.keystore_container.keystore();
-		move |deny_unsafe, subscription_task_executor| {
+		move |subscription_task_executor| {
 			#[cfg(feature = "moonbase-native")]
 			let forced_parent_hashes = {
 				let mut forced_parent_hashes = BTreeMap::new();
@@ -816,7 +820,6 @@ where
 				backend: backend.clone(),
 				client: client.clone(),
 				command_sink: None,
-				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
 				frontier_backend: match &*frontier_backend {
@@ -1218,7 +1221,9 @@ where
 		));
 	};
 
-	let net_config = FullNetworkConfiguration::<_, _, Net>::new(&config.network);
+	let prometheus_registry = config.prometheus_registry().cloned();
+	let net_config =
+		FullNetworkConfiguration::<_, _, Net>::new(&config.network, prometheus_registry.clone());
 
 	let metrics = Net::register_notification_metrics(
 		config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
@@ -1232,7 +1237,7 @@ where
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
-			warp_sync_params: None,
+			warp_sync_config: None,
 			net_config,
 			block_relay: None,
 			metrics,
@@ -1532,12 +1537,11 @@ where
 		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
 
 		let keystore = keystore_container.keystore();
-		move |deny_unsafe, subscription_task_executor| {
+		move |subscription_task_executor| {
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
 				command_sink: command_sink.clone(),
-				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
 				frontier_backend: match &*frontier_backend {
@@ -1623,10 +1627,13 @@ where
 
 #[cfg(test)]
 mod tests {
+	use crate::chain_spec::moonbase::{testnet_genesis, ChainSpec};
+	use crate::chain_spec::Extensions;
 	use jsonrpsee::server::BatchRequestConfig;
 	use moonbase_runtime::{currency::UNIT, AccountId};
 	use prometheus::{proto::LabelPair, Counter};
 	use sc_network::config::NetworkConfiguration;
+	use sc_service::config::RpcConfiguration;
 	use sc_service::ChainType;
 	use sc_service::{
 		config::{BasePath, DatabaseSource, KeystoreConfig},
@@ -1634,9 +1641,6 @@ mod tests {
 	};
 	use std::path::Path;
 	use std::str::FromStr;
-
-	use crate::chain_spec::moonbase::{testnet_genesis, ChainSpec};
-	use crate::chain_spec::Extensions;
 
 	use super::*;
 
@@ -1768,7 +1772,7 @@ mod tests {
 			)
 			.unwrap(),
 		);
-		let mut client = TestClientBuilder::with_backend(backend).build();
+		let client = TestClientBuilder::with_backend(backend).build();
 
 		client
 			.execution_extensions()
@@ -1842,38 +1846,35 @@ mod tests {
 			state_pruning: Default::default(),
 			blocks_pruning: sc_service::BlocksPruning::KeepAll,
 			chain_spec: Box::new(spec),
-			wasm_method: Default::default(),
+			executor: Default::default(),
 			wasm_runtime_overrides: Default::default(),
-			rpc_id_provider: None,
-			rpc_max_connections: Default::default(),
-			rpc_cors: None,
-			rpc_methods: Default::default(),
-			rpc_max_request_size: Default::default(),
-			rpc_max_response_size: Default::default(),
-			rpc_max_subs_per_conn: Default::default(),
-			rpc_addr: None,
-			rpc_port: Default::default(),
-			rpc_message_buffer_capacity: Default::default(),
+			rpc: RpcConfiguration {
+				addr: None,
+				max_connections: Default::default(),
+				cors: None,
+				methods: Default::default(),
+				max_request_size: Default::default(),
+				max_response_size: Default::default(),
+				id_provider: None,
+				max_subs_per_conn: Default::default(),
+				port: Default::default(),
+				message_buffer_capacity: Default::default(),
+				batch_config: BatchRequestConfig::Unlimited,
+				rate_limit: Default::default(),
+				rate_limit_whitelisted_ips: vec![],
+				rate_limit_trust_proxy_headers: false,
+			},
 			data_path: Default::default(),
 			prometheus_config: None,
 			telemetry_endpoints: None,
-			default_heap_pages: None,
 			offchain_worker: Default::default(),
 			force_authoring: false,
 			disable_grandpa: false,
 			dev_key_seed: None,
 			tracing_targets: None,
 			tracing_receiver: Default::default(),
-			max_runtime_instances: 8,
 			announce_block: true,
 			base_path: BasePath::new(Path::new("")),
-			informant_output_format: Default::default(),
-			wasmtime_precompiled: None,
-			runtime_cache_size: 2,
-			rpc_rate_limit: Default::default(),
-			rpc_rate_limit_whitelisted_ips: vec![],
-			rpc_batch_config: BatchRequestConfig::Unlimited,
-			rpc_rate_limit_trust_proxy_headers: false,
 		}
 	}
 }

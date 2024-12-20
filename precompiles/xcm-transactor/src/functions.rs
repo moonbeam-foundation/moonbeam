@@ -59,6 +59,7 @@ where
 	TransactorOf<Runtime>: TryFrom<u8>,
 	Runtime::AccountId: Into<H160>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	pub(crate) fn account_index(
 		handle: &mut impl PrecompileHandle,
