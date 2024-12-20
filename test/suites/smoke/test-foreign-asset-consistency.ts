@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import type { ApiDecoration } from "@polkadot/api/types";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import type { ApiPromise } from "@polkadot/api";
-import { patchLocationV4recursively } from "../../helpers";
+import { type MultiLocation, patchLocationV4recursively } from "../../helpers";
 
 describeSuite({
   id: "S12",
@@ -11,7 +11,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
-    const foreignAssetIdType: { [assetId: string]: string } = {};
+    const foreignAssetIdType: { [assetId: string]: MultiLocation } = {};
     const foreignAssetTypeId: { [assetType: string]: string } = {};
     const xcmWeightManagerSupportedAssets: string[] = [];
     let liveForeignAssets: { [key: string]: boolean };
@@ -30,38 +30,43 @@ describeSuite({
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
       specVersion = apiAt.consts.system.version.specVersion.toNumber();
 
-      let query = await apiAt.query.assetManager.assetIdType.entries();
-      query.forEach(([key, exposure]) => {
+      liveForeignAssets = (await apiAt.query.assets.asset.entries()).reduce((acc, [key, value]) => {
+        acc[key.args.toString()] = (value.unwrap() as any).status.isLive;
+        return acc;
+      }, {});
+
+      // Query all assets mapped by identifier
+      const legacyAssets = await apiAt.query.assetManager.assetIdType.entries();
+      const evmForeignAssets = await apiAt.query.evmForeignAssets.assetsById.entries();
+      [...legacyAssets, ...evmForeignAssets].forEach(([key, exposure]) => {
         const assetId = key.args.toString();
-        foreignAssetIdType[assetId] = exposure.unwrap().toString();
+        const location: any = exposure.unwrap().toJSON();
+        foreignAssetIdType[assetId] = location.xcm || location;
       });
-      query = await apiAt.query.assetManager.assetTypeId.entries();
-      query.forEach(([key, exposure]) => {
+
+      // Query all assets mapped by location
+      const legacyAssetsByLocation = await apiAt.query.assetManager.assetTypeId.entries();
+      legacyAssetsByLocation.forEach(([key, exposure]) => {
+        const assetType: any = key.args[0].toJSON();
+        foreignAssetTypeId[JSON.stringify(assetType.xcm)] = exposure.unwrap().toString();
+      });
+      const assetsByLocation = await apiAt.query.evmForeignAssets.assetsByLocation.entries();
+      assetsByLocation.forEach(([key, exposure]) => {
+        const assetType: any = key.args[0].toString();
+        const [assetId, assetStatus] = exposure.unwrap();
+        liveForeignAssets[assetId.toString()] = assetStatus.isActive;
+        foreignAssetTypeId[assetType] = assetId.toString();
+      });
+
+      // Query supported assets
+      (await apiAt.query.xcmWeightTrader.supportedAssets.entries()).forEach(([key, _]) => {
         const assetType = key.args.toString();
-        foreignAssetTypeId[assetType] = exposure.unwrap().toString();
+        xcmWeightManagerSupportedAssets.push(assetType);
       });
 
-      if (specVersion >= 3200) {
-        query = await apiAt.query.xcmWeightTrader.supportedAssets.entries();
-        query.forEach(([key, _]) => {
-          const assetType = key.args.toString();
-          xcmWeightManagerSupportedAssets.push(assetType);
-        });
-      }
-      // log(`Foreign Xcm Accepted Assets: ${foreignXcmAcceptedAssets}`);
-      // log(`Foreign AssetId<->AssetType: ${JSON.stringify(foreignAssetIdType)}`);
-      // foreignAssetTypeId
-      // log(`Foreign AssetType<->AssetId: ${JSON.stringify(foreignAssetTypeId)}`);
-
-      if (specVersion >= 2200) {
-        liveForeignAssets = (await apiAt.query.assets.asset.entries()).reduce(
-          (acc, [key, value]) => {
-            acc[key.args.toString()] = (value.unwrap() as any).status.isLive;
-            return acc;
-          },
-          {} as any
-        );
-      }
+      log(`Foreign Xcm Supported Assets: ${xcmWeightManagerSupportedAssets}`);
+      log(`Foreign AssetId -> AssetLocation: ${JSON.stringify(foreignAssetIdType)}`);
+      log(`Foreign AssetLocation -> AssetId: ${JSON.stringify(foreignAssetTypeId)}`);
     });
 
     it({
@@ -88,7 +93,7 @@ describeSuite({
         const failedAssetReserveMappings: { assetId: string }[] = [];
 
         for (const assetId of Object.keys(foreignAssetIdType)) {
-          const assetType = foreignAssetIdType[assetId];
+          const assetType = JSON.stringify(foreignAssetIdType[assetId]);
           if (foreignAssetTypeId[assetType] !== assetId) {
             failedAssetReserveMappings.push({ assetId: assetId });
           }
@@ -118,8 +123,8 @@ describeSuite({
 
         // Patch the location
         const xcmForForeignAssets = Object.values(foreignAssetIdType).map((type) => {
-          const parents = JSON.parse(type).xcm.parents;
-          const interior = JSON.parse(type).xcm.interior;
+          const parents = type.parents;
+          const interior = type.interior;
           patchLocationV4recursively(interior);
           return JSON.stringify({
             parents,
