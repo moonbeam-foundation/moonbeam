@@ -609,9 +609,7 @@ jobs:
       #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
 
   typescript-tracing-tests:
-    if: >
-      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    if: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/master') }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -720,7 +718,7 @@ jobs:
       labels: bare-metal
     permissions:
       contents: read
-    needs: ["set-tags", "build", "typescript-tracing-tests"]
+    needs: ["set-tags", "build"]
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -778,7 +776,7 @@ jobs:
   chopsticks-upgrade-test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build", "typescript-tracing-tests"]
+    needs: ["set-tags", "build"]
     strategy:
       fail-fast: false
       matrix:
@@ -825,7 +823,7 @@ jobs:
   zombie_upgrade_test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build", "typescript-tracing-tests"]
+    needs: ["set-tags", "build"]
     strategy:
       fail-fast: false
       max-parallel: 1
