@@ -45,7 +45,6 @@ environmental::environmental!(MIGRATING_FOREIGN_ASSETS: bool);
 pub mod pallet {
 	use super::*;
 	use crate::foreign_asset::ForeignAssetMigrationStatus;
-	use cumulus_primitives_storage_weight_reclaim::get_proof_size;
 	use sp_core::{H160, U256};
 
 	pub const ARRAY_LIMIT: u32 = 1000;
