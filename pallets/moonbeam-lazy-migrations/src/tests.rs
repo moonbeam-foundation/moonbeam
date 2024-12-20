@@ -20,7 +20,6 @@ use crate::{
 	mock::{AssetId, Balances},
 };
 use frame_support::traits::fungibles::approvals::Inspect;
-use pallet_evm::AddressMapping;
 use sp_runtime::{BoundedVec, DispatchError};
 use xcm::latest::Location;
 use {
@@ -32,44 +31,13 @@ use {
 		Error,
 	},
 	frame_support::{assert_noop, assert_ok},
-	rlp::RlpStream,
 	sp_core::{H160, H256},
 	sp_io::hashing::keccak_256,
 };
 
-// Helper function that calculates the contract address
-pub fn contract_address(sender: H160, nonce: u64) -> H160 {
-	let mut rlp = RlpStream::new_list(2);
-	rlp.append(&sender);
-	rlp.append(&nonce);
-
-	H160::from_slice(&keccak_256(&rlp.out())[12..])
-}
-
 fn address_build(seed: u8) -> H160 {
 	let address = H160::from(H256::from(keccak_256(&[seed; 32])));
 	address
-}
-
-// Helper function that creates a `num_entries` storage entries for a contract
-fn mock_contract_with_entries(seed: u8, nonce: u64, num_entries: u32) -> H160 {
-	let address = address_build(seed);
-
-	let contract_address = contract_address(address, nonce);
-	let account_id =
-		<Test as pallet_evm::Config>::AddressMapping::into_account_id(contract_address);
-	let _ = frame_system::Pallet::<Test>::inc_sufficients(&account_id);
-
-	// Add num_entries storage entries to the suicided contract
-	for i in 0..num_entries {
-		pallet_evm::AccountStorages::<Test>::insert(
-			contract_address,
-			H256::from_low_u64_be(i as u64),
-			H256::from_low_u64_be(i as u64),
-		);
-	}
-
-	contract_address
 }
 
 fn create_dummy_contract_without_metadata(seed: u8) -> H160 {
