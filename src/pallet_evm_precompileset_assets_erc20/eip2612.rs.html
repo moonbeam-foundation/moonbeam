@@ -285,6 +285,7 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -435,7 +436,7 @@
 			Address(address),
 		));
 
-		keccak_256(<span class="kw-2">&amp;</span>domain_separator_inner).into()
+		keccak_256(<span class="kw-2">&amp;</span>domain_separator_inner)
 	}
 
 	<span class="kw">pub fn </span>generate_permit(
@@ -468,6 +469,7 @@
 
 	<span class="comment">// Translated from
 	// https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2ERC20.sol#L81
+	</span><span class="attr">#[allow(clippy::too_many_arguments)]
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>permit(
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -507,8 +509,8 @@
 		);
 
 		<span class="kw">let </span><span class="kw-2">mut </span>sig = [<span class="number">0u8</span>; <span class="number">65</span>];
-		sig[<span class="number">0</span>..<span class="number">32</span>].copy_from_slice(<span class="kw-2">&amp;</span>r.as_bytes());
-		sig[<span class="number">32</span>..<span class="number">64</span>].copy_from_slice(<span class="kw-2">&amp;</span>s.as_bytes());
+		sig[<span class="number">0</span>..<span class="number">32</span>].copy_from_slice(r.as_bytes());
+		sig[<span class="number">32</span>..<span class="number">64</span>].copy_from_slice(s.as_bytes());
 		sig[<span class="number">64</span>] = v;
 
 		<span class="kw">let </span>signer = sp_io::crypto::secp256k1_ecdsa_recover(<span class="kw-2">&amp;</span>sig, <span class="kw-2">&amp;</span>permit)

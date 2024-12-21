@@ -497,6 +497,7 @@
 <a href="#495" id="495">495</a>
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -786,7 +787,7 @@
 				<span class="prelude-val">Some</span>(origin).into(),
 				pallet_balances::Call::&lt;Runtime, Instance&gt;::transfer_allow_death {
 					dest: Runtime::Lookup::unlookup(to),
-					value: value,
+					value,
 				},
 				SYSTEM_ACCOUNT_SIZE,
 			)<span class="question-mark">?</span>;
@@ -852,7 +853,7 @@
 				<span class="prelude-val">Some</span>(from).into(),
 				pallet_balances::Call::&lt;Runtime, Instance&gt;::transfer_allow_death {
 					dest: Runtime::Lookup::unlookup(to),
-					value: value,
+					value,
 				},
 				SYSTEM_ACCOUNT_SIZE,
 			)<span class="question-mark">?</span>;
@@ -961,6 +962,7 @@
 	}
 
 	<span class="attr">#[precompile::public(<span class="string">"permit(address,address,uint256,uint256,uint8,bytes32,bytes32)"</span>)]
+	#[allow(clippy::too_many_arguments)]
 	</span><span class="kw">fn </span>eip2612_permit(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		owner: Address,

@@ -551,6 +551,7 @@
 <a href="#549" id="549">549</a>
 <a href="#550" id="550">550</a>
 <a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -620,7 +621,7 @@
 /// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
 /// 2048-4095 Moonbeam specific precompiles
 /// Asset precompiles can only fall between
-/// 	0xFFFFFFFF00000000000000000000000000000000 - 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+///     0xFFFFFFFF00000000000000000000000000000000 - 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 /// The precompile for AssetId X, where X is a u128 (i.e.16 bytes), if 0XFFFFFFFF + Bytes(AssetId)
 /// In order to route the address to Erc20AssetsPrecompile&lt;R&gt;, we first check whether the AssetId
 /// exists in pallet-assets
@@ -889,7 +890,7 @@
 		{
 			<span class="kw">let </span>caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(handle.context().caller);
-			<span class="kw">let </span>from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
+			<span class="kw">let </span>from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from);
 			<span class="kw">let </span>to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
 
 			<span class="comment">// If caller is "from", it can spend as much as it wants from its own balance.
@@ -1061,6 +1062,7 @@
 	}
 
 	<span class="attr">#[precompile::public(<span class="string">"permit(address,address,uint256,uint256,uint8,bytes32,bytes32)"</span>)]
+	#[allow(clippy::too_many_arguments)]
 	</span><span class="kw">fn </span>eip2612_permit(
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
