@@ -18,7 +18,6 @@ import { rateLimiter, getPreviousRound, getNextRound } from "../../helpers";
 import type { AccountId20, Block } from "@polkadot/types/interfaces";
 
 const limiter = rateLimiter();
-const DIV_PRECISION = 1000;
 
 interface RoundData {
   data: PalletParachainStakingRoundInfo;
@@ -349,18 +348,6 @@ describeSuite({
       },
     });
 
-    // Test cases for reproducing rounding/precision issues
-    it({
-      id: "C501",
-      title: "(debug): rewards are given as expected for opposing scenarios",
-      timeout: TEN_MINS,
-      chainType: "moonbase",
-      test: async () => {
-        await assertRewardsAtRoundBefore(paraApi, 9527400);
-        await assertRewardsAtRoundBefore(paraApi, 9917400);
-      },
-    });
-
     const assertRewardsAtRoundBefore = async (api: ApiPromise, nowBlockNumber: number) => {
       const nowBlockHash = await api.rpc.chain.getBlockHash(nowBlockNumber);
       const nowRound = await (await api.at(nowBlockHash)).query.parachainStaking.round();
@@ -593,11 +580,7 @@ describeSuite({
         ).round.ideal;
         const idealIssuance = new Perbill(idealInflation).of(totalIssuance);
 
-        totalRoundIssuance = roundDuration
-          .mul(idealIssuance)
-          .mul(new BN(DIV_PRECISION))
-          .div(idealDuration)
-          .divRound(new BN(DIV_PRECISION));
+        totalRoundIssuance = roundDuration.mul(idealIssuance).div(idealDuration);
       } else {
         // Always apply max inflation
         // It works because the total staked amount is already 1000 times more than the max on
@@ -616,6 +599,20 @@ describeSuite({
 
         totalRoundIssuance = range.max;
       }
+
+      const delayedPayout = (
+        await payment.rewardRound.firstBlockApi.query.parachainStaking.delayedPayouts(
+          payment.roundToPay.data.current
+        )
+      ).unwrap();
+
+      // Validate round issuance calculation
+      expect(
+        delayedPayout.roundIssuance.eq(totalRoundIssuance),
+        `round issuance amounts do not match \
+        ${delayedPayout.roundIssuance.toString()} != ${totalRoundIssuance.toString()} \
+        for round ${payment.roundToPay.data.current.toString()}`
+      ).to.be.true;
 
       const collatorCommissionRate =
         await payment.rewardRound.priorBlockApi.query.parachainStaking.collatorCommission();
@@ -645,33 +642,30 @@ describeSuite({
         payment.roundToPay.data.current
       );
 
-      let percentage = new BN(0);
-      inflationDistributionConfig.forEach((config) => {
-        percentage = percentage.add(config.percent);
-      });
-      const reservedPercentage = new Percent(percentage);
+      let reservedReward = new BN(0);
       // total expected staking reward minus the amount reserved for parachain bond
-      const totalStakingReward = (() => {
-        const reservedReward = reservedPercentage.of(totalRoundIssuance);
-        if (!reservedInflation.isZero()) {
-          expect(
-            reservedReward.eq(reservedInflation),
-            `parachain bond amount does not match \
-              ${reservedReward.toString()} != ${reservedInflation.toString()} \
-              for round ${payment.roundToPay.data.current.toString()}`
-          ).to.be.true;
-          return totalRoundIssuance.sub(reservedReward);
-        }
+      let totalStakingReward = totalRoundIssuance;
+      inflationDistributionConfig.forEach((config) => {
+        const distribution = new Percent(config.percent.toBn()).of(totalRoundIssuance);
+        totalStakingReward = totalStakingReward.sub(distribution);
+        reservedReward = reservedReward.add(distribution);
+      });
 
-        return totalRoundIssuance;
-      })();
+      if (!reservedInflation.isZero()) {
+        expect(
+          reservedReward.eq(reservedInflation),
+          `parachain bond amount does not match \
+            ${reservedReward.toString()} != ${reservedInflation.toString()} \
+            for round ${payment.roundToPay.data.current.toString()}`
+        ).to.be.true;
+      }
+
       const totalBondReward = totalStakingReward.sub(totalCollatorCommissionReward);
 
       log(`
     paidRoundNumber               ${payment.roundToPay.data.current.toString()}
     totalRoundIssuance            ${totalRoundIssuance.toString()}
-    reservedInflation      ${reservedInflation} \
-    (${reservedPercentage} * totalRoundIssuance)
+    reservedInflation             ${reservedInflation}
     totalCollatorCommissionReward ${totalCollatorCommissionReward.toString()} \
     (${collatorCommissionRate} * totalRoundIssuance)
     totalStakingReward            ${totalStakingReward} \
@@ -679,11 +673,6 @@ describeSuite({
     totalBondReward               ${totalBondReward} \
     (totalStakingReward - totalCollatorCommissionReward)`);
 
-      const delayedPayout = (
-        await payment.rewardRound.firstBlockApi.query.parachainStaking.delayedPayouts(
-          payment.roundToPay.data.current
-        )
-      ).unwrap();
       expect(
         delayedPayout.totalStakingReward.eq(totalStakingReward),
         `reward amounts do not match \
