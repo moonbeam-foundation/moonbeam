@@ -34,7 +34,7 @@ use xcm_primitives::DEFAULT_PROOF_SIZE;
 #[jsonrpsee::core::async_trait]
 pub trait DevApi {
 	/// Inject a downward xcm message - A message that comes from the relay chain.
-	/// You may provide an arbitrary message, or if you provide an emtpy byte array,
+	/// You may provide an arbitrary message, or if you provide an empty byte array,
 	/// Then a default message (DOT transfer down to ALITH) will be injected
 	#[method(name = "xcm_injectDownwardMessage")]
 	async fn inject_downward_message(&self, message: Vec<u8>) -> RpcResult<()>;
@@ -144,7 +144,7 @@ impl DevApiServer for DevRpc {
 		};
 
 		// Push the message to the shared channel where it will be queued up
-		// to be injected in to an upcoming block.
+		// to be injected into an upcoming block.
 		hrmp_message_channel
 			.send_async((sender, msg))
 			.await
