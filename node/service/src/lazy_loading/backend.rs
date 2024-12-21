@@ -26,12 +26,14 @@ use sp_state_machine::{
 };
 use std::future::Future;
 use std::marker::PhantomData;
-use std::ops::AddAssign;
 use std::time::Duration;
 use std::{
 	collections::{HashMap, HashSet},
 	ptr,
-	sync::Arc,
+	sync::{
+		atomic::{AtomicU64, Ordering},
+		Arc,
+	},
 };
 
 use sc_client_api::{
@@ -195,8 +197,10 @@ impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
 			self.apply_head(&header)?;
 		}
 
-		{
-			let mut storage = self.storage.write();
+		let mut storage = self.storage.write();
+		if number.is_zero() {
+			storage.genesis_hash = hash;
+		} else {
 			storage.leaves.import(hash, number, *header.parent_hash());
 			storage
 				.blocks
@@ -205,10 +209,6 @@ impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
 			if let NewBlockState::Final = new_state {
 				storage.finalized_hash = hash;
 				storage.finalized_number = number;
-			}
-
-			if number == Zero::zero() {
-				storage.genesis_hash = hash;
 			}
 		}
 
@@ -499,7 +499,9 @@ impl<Block: BlockT + DeserializeOwned> blockchain::Backend<Block> for Blockchain
 	}
 
 	fn leaves(&self) -> sp_blockchain::Result<Vec<Block::Hash>> {
-		Ok(self.storage.read().leaves.hashes())
+		let leaves = self.storage.read().leaves.hashes();
+
+		Ok(leaves)
 	}
 
 	fn children(&self, _parent_hash: Block::Hash) -> sp_blockchain::Result<Vec<Block::Hash>> {
@@ -949,7 +951,7 @@ impl<Block: BlockT> ForkedLazyBackend<Block> {
 			let mut entries: HashMap<Option<ChildInfo>, StorageCollection> = Default::default();
 			entries.insert(None, vec![(key.to_vec(), Some(val.clone()))]);
 
-			self.db.write().insert(entries, StateVersion::V0);
+			self.db.write().insert(entries, StateVersion::V1);
 		}
 	}
 }
@@ -1255,10 +1257,8 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 	}
 
 	fn commit_operation(&self, operation: Self::BlockImportOperation) -> sp_blockchain::Result<()> {
-		if !operation.finalized_blocks.is_empty() {
-			for (block, justification) in operation.finalized_blocks {
-				self.blockchain.finalize_header(block, justification)?;
-			}
+		for (block, justification) in operation.finalized_blocks {
+			self.blockchain.finalize_header(block, justification)?;
 		}
 
 		if let Some(pending_block) = operation.pending_block {
@@ -1278,7 +1278,7 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 			let new_db = old_state.db.clone();
 			new_db.write().insert(
 				vec![(None::<ChildInfo>, operation.storage_updates)],
-				StateVersion::V0,
+				StateVersion::V1,
 			);
 			let new_state = ForkedLazyBackend {
 				rpc_client: self.rpc_client.clone(),
@@ -1457,7 +1457,7 @@ pub struct RPC {
 	http_client: HttpClient,
 	delay_between_requests_ms: u32,
 	max_retries_per_request: u32,
-	counter: Arc<ReadWriteLock<u64>>,
+	counter: Arc<AtomicU64>,
 }
 
 impl RPC {
@@ -1652,17 +1652,19 @@ impl RPC {
 	{
 		use tokio::runtime::Handle;
 
+		let id = self.counter.fetch_add(1, Ordering::SeqCst);
+		let start = std::time::Instant::now();
+
 		tokio::task::block_in_place(move || {
 			Handle::current().block_on(async move {
 				let delay_between_requests =
 					Duration::from_millis(self.delay_between_requests_ms.into());
 
-				let start = std::time::Instant::now();
-				self.counter.write().add_assign(1);
+				let start_req = std::time::Instant::now();
 				log::debug!(
 					target: super::LAZY_LOADING_LOG_TARGET,
 					"Sending request: {}",
-					self.counter.read()
+					id
 				);
 
 				// Explicit request delay, to avoid getting 429 errors
@@ -1676,10 +1678,11 @@ impl RPC {
 
 				log::debug!(
 					target: super::LAZY_LOADING_LOG_TARGET,
-					"Completed request (id: {}, successful: {}, elapsed_time: {:?})",
-					self.counter.read(),
+					"Completed request (id: {}, successful: {}, elapsed_time: {:?}, query_time: {:?})",
+					id,
 					result.is_ok(),
-					start.elapsed()
+					start.elapsed(),
+					start_req.elapsed()
 				);
 
 				result
@@ -1763,8 +1766,6 @@ where
 			StateEntry::Raw(raw) => (raw.key.clone(), raw.value.clone()),
 		})
 		.collect();
-
-	let _ = helpers::produce_genesis_block(backend.clone());
 
 	// Produce first block after the fork
 	let _ = helpers::produce_first_block(backend.clone(), checkpoint, state_overrides)?;

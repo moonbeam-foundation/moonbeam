@@ -62,6 +62,7 @@ pub mod call_executor;
 mod client;
 mod helpers;
 mod lock;
+mod manual_sealing;
 mod state_overrides;
 
 pub const LAZY_LOADING_LOG_TARGET: &'static str = "lazy-loading";
@@ -380,7 +381,7 @@ where
 {
 	use async_io::Timer;
 	use futures::Stream;
-	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
+	use sc_consensus_manual_seal::{EngineCommand, ManualSealParams};
 
 	let sc_service::PartialComponents {
 		client,
@@ -575,7 +576,7 @@ where
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			Some("block-authoring"),
-			run_manual_seal(ManualSealParams {
+			manual_sealing::run_manual_seal(ManualSealParams {
 				block_import,
 				env,
 				client: client.clone(),
@@ -696,6 +697,7 @@ where
 	> = Default::default();
 	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
 
+	/* TODO: only enable this when frontier backend is compatible with lazy-loading
 	rpc::spawn_essential_tasks(
 		rpc::SpawnTasksParams {
 			task_manager: &task_manager,
@@ -710,6 +712,8 @@ where
 		sync_service.clone(),
 		pubsub_notification_sinks.clone(),
 	);
+	*/
+
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
 		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
