@@ -126,7 +126,7 @@ jobs:
       - name: Enable coverage gathering
         run: |
           # Enable coverage when running tests
-          echo "LLVM_PROFILE_FILE=$(pwd)/proffiles/default_%m_%p.profraw" >> $GITHUB_ENV
+          echo "LLVM_PROFILE_FILE=$(pwd)/profiles/default_%m_%p.profraw" >> $GITHUB_ENV
       - name: Unit tests
         run: |
           # curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
