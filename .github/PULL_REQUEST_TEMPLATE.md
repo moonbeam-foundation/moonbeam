@@ -1,6 +1,6 @@
 ### What does it do?
 
-### What important points reviewers should know?
+### What important points should reviewers know?
 
 ### Is there something left for follow-up PRs?
 
