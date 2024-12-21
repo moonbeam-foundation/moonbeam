@@ -97,7 +97,7 @@ impl DevApiServer for DevRpc {
 		};
 
 		// Push the message to the shared channel where it will be queued up
-		// to be injected in to an upcoming block.
+		// to be injected into an upcoming block.
 		downward_message_channel
 			.send_async(msg)
 			.await
