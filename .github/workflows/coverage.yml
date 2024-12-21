@@ -142,11 +142,11 @@ jobs:
       - name: Retrieve coverage
         id: coverage
         run: |
-          du -sh proffiles
+          du -sh profiles
 
           echo "Executing grcov"
           mkdir -p coverage
-          ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
+          ./grcov profiles/ -s ./ --binary-path ./target/release/ \
             -t html,covdir --branch --ignore-not-existing --ignore "target/release/build/*" \
             --ignore "$HOME/.cargo/**" -o coverage/ --llvm 2>&1 \
             | tee grcov.log
@@ -157,13 +157,13 @@ jobs:
           echo "Invalid files: $INVALID"
           if [ -n "$INVALID" ]; then
             echo "Removing invalid files: $INVALID"
-            cd proffiles/
+            cd profiles/
             rm $INVALID
             cd ..
             echo "Executing grcov again"
             rm -rf coverage
             mkdir -p coverage
-            ./grcov proffiles/ -s ./ --binary-path ./target/release/ \
+            ./grcov profiles/ -s ./ --binary-path ./target/release/ \
             -t html,covdir --branch --ignore-not-existing --ignore "target/release/build/*" \
             --ignore "$HOME/.cargo/**" -o coverage/ --llvm
           fi
@@ -184,7 +184,7 @@ jobs:
             echo "coverage_date=\"$(date)\"" >> $GITHUB_OUTPUT
           fi
 
-          rm -rf proffiles/
+          rm -rf profiles/
       - name: Upload coverage to gha
         uses: actions/upload-artifact@v4
         with:
