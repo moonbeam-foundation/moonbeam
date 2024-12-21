@@ -11,7 +11,7 @@ import {
   charleth,
   dorothy,
 } from "@moonwall/util";
-import { TransactionReceipt, decodeEventLog } from "viem";
+import { type TransactionReceipt, decodeEventLog } from "viem";
 import {
   fakeBabeResultTransaction,
   setupLotteryWithParticipants,
@@ -47,7 +47,7 @@ describeSuite({
         args: [0],
         account: BALTATHAR_ADDRESS,
       });
-      expect(estimatedGas).toMatchInlineSnapshot(`303092n`);
+      expect(estimatedGas).toMatchInlineSnapshot(`295530n`);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",
@@ -64,7 +64,7 @@ describeSuite({
       fulFillReceipt = await context
         .viem()
         .getTransactionReceipt({ hash: result![1].hash as `0x${string}` });
-      expect(fulFillReceipt.gasUsed).toMatchInlineSnapshot(`280576n`);
+      expect(fulFillReceipt.gasUsed).toMatchInlineSnapshot(`158480n`);
     });
 
     it({

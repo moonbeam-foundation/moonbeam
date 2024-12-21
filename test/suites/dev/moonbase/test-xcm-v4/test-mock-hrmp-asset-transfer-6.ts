@@ -2,7 +2,11 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { alith } from "@moonwall/util";
-import { XcmFragment, RawXcmMessage, injectHrmpMessageAndSeal } from "../../../../helpers/xcm.js";
+import {
+  XcmFragment,
+  type RawXcmMessage,
+  injectHrmpMessageAndSeal,
+} from "../../../../helpers/xcm.js";
 import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";

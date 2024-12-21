@@ -1,16 +1,16 @@
-import { CompiledContract } from "@moonwall/cli";
+import type { CompiledContract } from "@moonwall/cli";
 import chalk from "chalk";
-import fs from "fs/promises";
-import path from "path";
+import fs from "node:fs/promises";
+import path from "node:path";
 import solc from "solc";
-import { Abi } from "viem";
-import crypto from "crypto";
+import type { Abi } from "viem";
+import crypto from "node:crypto";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-let sourceByReference = {} as { [ref: string]: string };
-let countByReference = {} as { [ref: string]: number };
-let refByContract = {} as { [contract: string]: string };
+const sourceByReference = {} as { [ref: string]: string };
+const countByReference = {} as { [ref: string]: number };
+const refByContract = {} as { [contract: string]: string };
 let contractMd5 = {} as { [contract: string]: string };
 const solcVersion = solc.version();
 
@@ -85,7 +85,7 @@ async function main(args: any) {
     const contracts = (await getFiles(contractPath.filepath)).filter((filename) =>
       filename.endsWith(".sol")
     );
-    for (let filepath of contracts) {
+    for (const filepath of contracts) {
       const ref = filepath
         .replace(contractPath.filepath, contractPath.importPath)
         .replace(/^\//, "");
@@ -112,7 +112,7 @@ async function main(args: any) {
     for (const contract of Object.keys(sourceToCompile)) {
       const path = filePaths.find((path) => path.includes(contract));
       const contractHash = computeHash((await fs.readFile(path!)).toString());
-      if (contractHash != contractMd5[contract]) {
+      if (contractHash !== contractMd5[contract]) {
         console.log(`  - Change in ${chalk.yellow(contract)}, compiling ⚙️`);
         contractsToCompile.push(contract);
       } else if (args.argv.Verbose) {
@@ -130,12 +130,12 @@ async function main(args: any) {
       await compile(ref, outputDirectory);
 
       await fs.writeFile(tempFile, JSON.stringify(contractMd5, null, 2));
-    } catch (e) {
+    } catch (e: any) {
       console.log(`Failed to compile: ${ref}`);
       if (e.errors) {
-        e.errors.forEach((error) => {
+        for (const error of e.errors) {
           console.log(error.formattedMessage);
-        });
+        }
       } else {
         console.log(e);
       }
@@ -163,9 +163,6 @@ const getImports = (fileRef: string) => (dependency: string) => {
       return { contents: sourceByReference[localRef] };
     }
     base = path.dirname(base);
-    if (base == ".") {
-      continue;
-    }
   }
   return { error: "Source not found" };
 };
@@ -202,15 +199,18 @@ function compileSolidity(
   if (!result.contracts) {
     throw result;
   }
-  return Object.keys(result.contracts[filename]).reduce((p, contractName) => {
-    p[contractName] = {
-      byteCode: ("0x" +
-        result.contracts[filename][contractName].evm.bytecode.object) as `0x${string}`,
-      contract: result.contracts[filename][contractName],
-      sourceCode: contractContent,
-    };
-    return p;
-  }, {} as { [name: string]: CompiledContract<Abi> });
+  return Object.keys(result.contracts[filename]).reduce(
+    (p, contractName) => {
+      p[contractName] = {
+        byteCode:
+          `0x${result.contracts[filename][contractName].evm.bytecode.object}` as `0x${string}`,
+        contract: result.contracts[filename][contractName],
+        sourceCode: contractContent,
+      };
+      return p;
+    },
+    {} as { [name: string]: CompiledContract<Abi> }
+  );
 }
 
 // Shouldn't be run concurrently with the same 'name'
@@ -231,9 +231,7 @@ async function compile(
       if (refByContract[dest]) {
         console.warn(
           chalk.red(
-            `Contract ${contractName} already exist from ` +
-              `${refByContract[dest]}. ` +
-              `Erasing previous version`
+            `Contract ${contractName} already exist from ${refByContract[dest]}. Erasing previous version`
           )
         );
       }

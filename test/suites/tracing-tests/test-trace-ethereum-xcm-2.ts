@@ -1,8 +1,8 @@
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 import {
-  RawXcmMessage,
+  type RawXcmMessage,
   XcmFragment,
   descendOriginFromAddress20,
   injectHrmpMessage,
@@ -40,7 +40,7 @@ describeSuite({
       // Get Pallet balances index
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
       const balancesPalletIndex = metadata.asLatest.pallets
-        .find(({ name }) => name.toString() == "Balances")!
+        .find(({ name }) => name.toString() === "Balances")!
         .index.toNumber();
 
       const xcmTransaction = {
@@ -123,15 +123,17 @@ describeSuite({
         // 1st transaction is regular ethereum transaction.
         // - `From` is Alith's adddress.
         // - `To` is the ethereum contract address.
-        expect(trace[0].from).to.eq(alith.address.toLowerCase());
-        expect(trace[0].to).to.eq(ethContractAddress.toLowerCase());
-        expect(trace[0].type).be.eq("CREATE");
+        const call = trace[0].result;
+        expect(call.from).to.eq(alith.address.toLowerCase());
+        expect(call.to).to.eq(ethContractAddress.toLowerCase());
+        expect(call.type).be.eq("CREATE");
         // 2nd transaction is xcm.
         // - `From` is the descended origin.
         // - `To` is the xcm contract address.
-        expect(trace[1].from).to.eq(ethereumXcmDescendedOrigin.toLowerCase());
-        expect(trace[1].to).to.eq(xcmContractAddress.toLowerCase());
-        expect(trace[1].type).to.eq("CALL");
+        const call2 = trace[1].result;
+        expect(call2.from).to.eq(ethereumXcmDescendedOrigin.toLowerCase());
+        expect(call2.to).to.eq(xcmContractAddress.toLowerCase());
+        expect(call2.type).to.eq("CALL");
       },
     });
   },

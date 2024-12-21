@@ -49,7 +49,7 @@ describeSuite({
       id: "T01",
       title: "should fail to fulfill before the delay",
       test: async function () {
-        expect(estimatedGasBefore).toMatchInlineSnapshot(`218380n`);
+        expect(estimatedGasBefore).toMatchInlineSnapshot(`218919n`);
 
         expect(
           await context.readPrecompile!({
@@ -86,7 +86,7 @@ describeSuite({
       id: "T02",
       title: "should succeed to fulfill after the delay",
       test: async function () {
-        expect(estimatedGasBefore).toMatchInlineSnapshot(`218380n`);
+        expect(estimatedGasBefore).toMatchInlineSnapshot(`218919n`);
         // await context.createBlock();
 
         await context.createBlock([
@@ -110,7 +110,7 @@ describeSuite({
           account: BALTATHAR_ADDRESS,
         });
         log("Estimated Gas for startLottery", estimatedGas);
-        expect(estimatedGas).toMatchInlineSnapshot(`303092n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`298280n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Randomness",

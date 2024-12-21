@@ -1,4 +1,4 @@
-import { describeSuite, DevModeContext, expect } from "@moonwall/cli";
+import { describeSuite, type DevModeContext, expect } from "@moonwall/cli";
 import "@moonbeam-network/api-augment";
 import { alith } from "@moonwall/util";
 

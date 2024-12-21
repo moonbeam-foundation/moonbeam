@@ -7,7 +7,7 @@ import {
   maximizeConvictionVotingOf,
   whiteListTrackNoSend,
 } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, KeyringPair, ethan, generateKeyringPair } from "@moonwall/util";
+import { ALITH_ADDRESS, GLMR, type KeyringPair, ethan, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
   id: "D013303",

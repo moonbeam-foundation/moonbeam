@@ -1,7 +1,7 @@
 import { runtimes } from "helpers/runtimes";
-import { Chain, createPublicClient, http } from "viem";
-import fs from "fs";
-import path from "path";
+import { type Chain, createPublicClient, http } from "viem";
+import fs from "node:fs";
+import path from "node:path";
 
 interface Network {
   name: string;
@@ -61,7 +61,7 @@ const main = async () => {
     `Generating tracing samples for networks ${networks.flatMap((n) => n.name).join(", ")}`
   );
   networks.forEach(async (network) => {
-    let samples: Sample[] = [];
+    const samples: Sample[] = [];
     const chain = createChain(network);
     const client = createPublicClient({
       chain,
@@ -97,7 +97,7 @@ const main = async () => {
       const sample: Sample = {
         network: network.name,
         runtime: runtime.specVersion,
-        blockNumber: parseInt(block.number.toString()),
+        blockNumber: Number.parseInt(block.number.toString()),
         txHash: block.transactions[0],
       };
       samples.push(sample);

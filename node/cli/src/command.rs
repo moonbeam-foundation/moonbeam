@@ -19,7 +19,7 @@
 use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
 use cumulus_client_cli::extract_genesis_wasm;
 use cumulus_primitives_core::ParaId;
-use frame_benchmarking_cli::BenchmarkCmd;
+use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 use log::{info, warn};
 use moonbeam_cli_opt::EthApi;
 
@@ -36,7 +36,7 @@ use parity_scale_codec::Encode;
 use polkadot_service::WestendChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
-	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
+	NetworkParams, Result, RpcEndpoint, RuntimeVersion, SharedParams, SubstrateCli,
 };
 use sc_service::{
 	config::{BasePath, PrometheusConfig},
@@ -49,7 +49,7 @@ use sp_runtime::{
 	},
 	StateVersion,
 };
-use std::{io::Write, net::SocketAddr};
+use std::io::Write;
 
 fn load_spec(
 	id: &str,
@@ -768,7 +768,10 @@ pub fn run() -> Result<()> {
 				let hwbench = if !cli.run.no_hardware_benchmarks {
 					config.database.path().map(|database_path| {
 						let _ = std::fs::create_dir_all(&database_path);
-						sc_sysinfo::gather_hwbench(Some(database_path))
+						sc_sysinfo::gather_hwbench(
+							Some(database_path),
+							&SUBSTRATE_REFERENCE_HARDWARE,
+						)
 					})
 				} else {
 					None
@@ -849,16 +852,18 @@ pub fn run() -> Result<()> {
 					};
 				}
 				#[cfg(feature = "lazy-loading")]
-				if let Some(fork_chain_from_rpc) = cli.run.fork_chain_from_rpc {
+				if let Some(lazy_loading_remote_rpc) = cli.run.lazy_loading_remote_rpc {
 					let author_id = Some(chain_spec::get_from_seed::<nimbus_primitives::NimbusId>(
 						"Alice",
 					));
 
 					let lazy_loading_config = moonbeam_cli_opt::LazyLoadingConfig {
-						state_rpc: fork_chain_from_rpc,
-						from_block: cli.run.block,
-						state_overrides_path: cli.run.fork_state_overrides,
-						runtime_override: cli.run.runtime_override,
+						state_rpc: lazy_loading_remote_rpc,
+						from_block: cli.run.lazy_loading_block,
+						state_overrides_path: cli.run.lazy_loading_state_overrides,
+						runtime_override: cli.run.lazy_loading_runtime_override,
+						delay_between_requests: cli.run.lazy_loading_delay_between_requests,
+						max_retries_per_request: cli.run.lazy_loading_max_retries_per_request,
 					};
 
 					let spec_builder =
@@ -896,7 +901,7 @@ pub fn run() -> Result<()> {
 				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
 
 				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::v7::AccountId>::into_account_truncating(&id);
+					AccountIdConversion::<polkadot_primitives::v8::AccountId>::into_account_truncating(&id);
 
 				let tokio_handle = config.tokio_handle.clone();
 				let polkadot_config =
@@ -1022,7 +1027,7 @@ impl CliConfiguration<Self> for RelayChainCli {
 			.or_else(|| Some(self.base_path.clone().into())))
 	}
 
-	fn rpc_addr(&self, default_listen_port: u16) -> Result<Option<SocketAddr>> {
+	fn rpc_addr(&self, default_listen_port: u16) -> Result<Option<Vec<RpcEndpoint>>> {
 		self.base.base.rpc_addr(default_listen_port)
 	}
 
@@ -1036,15 +1041,9 @@ impl CliConfiguration<Self> for RelayChainCli {
 			.prometheus_config(default_listen_port, chain_spec)
 	}
 
-	fn init<F>(
-		&self,
-		_support_url: &String,
-		_impl_version: &String,
-		_logger_hook: F,
-		_config: &sc_service::Configuration,
-	) -> Result<()>
+	fn init<F>(&self, _support_url: &String, _impl_version: &String, _logger_hook: F) -> Result<()>
 	where
-		F: FnOnce(&mut sc_cli::LoggerBuilder, &sc_service::Configuration),
+		F: FnOnce(&mut sc_cli::LoggerBuilder),
 	{
 		unreachable!("PolkadotCli is never initialized; qed");
 	}

@@ -7,69 +7,82 @@ on:
       sha:
         description: full sha to build the binary from
         required: true
+      tag:
+        description: docker tag to apply to the image
+        required: true
 
 jobs:
   ####### Building binaries #######
 
   build-binary:
-    runs-on: bare-metal
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
-        cpu: ["", "skylake"]
-    env:
-      RUSTFLAGS: "-C target-cpu=${{ matrix.cpu }}"
+        cpu: ["x86-64", "skylake", "znver3"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.sha }}
-      - name: Setup Rust toolchain
+      - name: Build production moonbeam
         run: |
-          rustup override unset
-          rustup show
-      - name: Build Node
-        run: cargo build --profile=production --all
+          # Build moonbeam
+          # (we don't use volumes because of ownership/permissions issues)
+          docker build \
+            --tag prod --no-cache \
+            --build-arg="COMMIT=${{ github.event.inputs.sha }}" \
+            --build-arg="RUSTFLAGS=-C target-cpu=${{ matrix.cpu }}" \
+            - < docker/moonbeam-production.Dockerfile
+
+          # Copy moonbeam binary
+          docker rm -f dummy 2> /dev/null | true
+          docker create -ti --name dummy prod bash
+          docker cp dummy:/moonbeam/moonbeam moonbeam
+          docker rm -f dummy
+
+          # Cleanup
+          docker rmi prod
+
       - name: Save parachain binary
-        if: ${{ matrix.cpu == '' }}
         run: |
           mkdir -p build
-          cp target/production/moonbeam build/moonbeam
-      - name: Save parachain custom binary
-        if: ${{ matrix.cpu != '' }}
-        run: |
-          mkdir -p build
-          cp target/production/moonbeam build/moonbeam-${{matrix.cpu}}
+          cp moonbeam build/moonbeam-${{matrix.cpu}}
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: moonbeam
-          path: build
+          name: binaries-${{matrix.cpu}}
+          path: build/moonbeam-${{matrix.cpu}}
 
   ####### Prepare the release draft #######
-  docker-moonbeam:
+  docker-release-candidate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: ["build-binary"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.sha }}
       - uses: actions/download-artifact@v4
         with:
-          name: moonbeam
+          pattern: binaries-*
+          merge-multiple: true
           path: build
       - name: Prepare
         id: prep
         run: |
+          echo "rename default binary"
+          mv build/moonbeam-x86-64 build/moonbeam
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
-          SHA8="$(git log -1 --format="%H" | cut -c1-8)"
-          TAGS="${DOCKER_IMAGE}:sha-${SHA8}-opt"
+          COMMIT_SHA8=`echo ${{ github.event.inputs.sha }} | cut -c1-8`
+          TAG_SHA="${DOCKER_IMAGE}:sha-${COMMIT_SHA8}"
+          TAG_VER="${DOCKER_IMAGE}:${{ github.event.inputs.tag }}"
+          TAGS="${TAG_SHA},${TAG_VER}"
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.6.1
+        uses: docker/setup-buildx-action@v3.7.1
         with:
           version: latest
           driver-opts: |

@@ -7,9 +7,9 @@ import {
   alith,
   createViemTransaction,
 } from "@moonwall/util";
-import { u128 } from "@polkadot/types-codec";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { Abi, encodeFunctionData } from "viem";
+import type { u128 } from "@polkadot/types-codec";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import { type Abi, encodeFunctionData } from "viem";
 import { mockOldAssetBalance } from "../../../../helpers";
 
 describeSuite({
@@ -127,10 +127,24 @@ describeSuite({
           .query.assets.approvals(assetId.toU8a(), erc20InstanceAddress, BALTATHAR_ADDRESS);
         expect(newApprovals.unwrap().amount.toBigInt()).to.equal(1000n);
 
+        const estimatedGas = await context.viem().estimateGas({
+          account: BALTATHAR_ADDRESS,
+          to: ADDRESS_ERC20,
+          data: encodeFunctionData({
+            abi: erc20Abi,
+            functionName: "transferFrom",
+            args: [erc20InstanceAddress, CHARLETH_ADDRESS, 1000],
+          }),
+        });
+
+        // Snapshot estimated gas
+        expect(estimatedGas).toMatchInlineSnapshot(`111252n`);
+
         // this time we call directly from Baltathar the ERC20 contract
         const directBlock = await context.createBlock(
           createViemTransaction(context, {
             privateKey: BALTATHAR_PRIVATE_KEY,
+            gas: estimatedGas,
             to: ADDRESS_ERC20,
             data: encodeFunctionData({
               functionName: "transferFrom",

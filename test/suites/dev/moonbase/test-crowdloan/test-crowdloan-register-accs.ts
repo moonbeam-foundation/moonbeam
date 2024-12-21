@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, alith } from "@moonwall/util";
-import { PrivateKeyAccount, generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { type PrivateKeyAccount, generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { VESTING_PERIOD, getAccountPayable } from "../../../../helpers";
 
 describeSuite({
@@ -9,7 +9,7 @@ describeSuite({
   title: "Crowdloan - many accounts",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let numberOfAccounts: number = -1;
+    let numberOfAccounts = -1;
     let largInput: [string, string, bigint][];
 
     beforeAll(async () => {
@@ -31,7 +31,7 @@ describeSuite({
           .map((_) => privateKeyToAccount(generatePrivateKey()));
         largInput = accounts.map((acc: PrivateKeyAccount) => {
           return [
-            acc.address + "111111111111111111111111",
+            `${acc.address}111111111111111111111111`,
             acc.address,
             (3_000_000n * GLMR) / BigInt(numberOfAccounts),
           ];

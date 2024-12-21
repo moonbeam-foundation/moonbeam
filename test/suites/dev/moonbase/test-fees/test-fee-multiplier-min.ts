@@ -51,7 +51,7 @@ describeSuite({
         expect(multiplier).to.equal(100_000_000_000_000_000n);
 
         const gasPrice = await context.viem().getGasPrice();
-        expect(gasPrice).to.eq(125_000_000n);
+        expect(gasPrice).to.eq(31_250_000n);
       },
     });
   },

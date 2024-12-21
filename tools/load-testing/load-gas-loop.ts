@@ -24,13 +24,13 @@ contract Loop {
 }`;
 
 init(
-  argv["net"] == "stagenet"
+  argv["net"] === "stagenet"
     ? "https://rpc.stagenet.moonbeam.gcp.purestake.run"
-    : argv["net"] == "localhost"
+    : argv["net"] === "localhost"
     ? "http://127.0.0.1:9944"
-    : argv["net"] == "alan"
+    : argv["net"] === "alan"
     ? "http://127.0.0.1:56053"
-    : argv["net"] == "alan-standalone"
+    : argv["net"] === "alan-standalone"
     ? "http://127.0.0.1:55543"
     : argv["net"]
 );
