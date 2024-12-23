@@ -271,7 +271,11 @@ type MoonriverPrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2074>,
 		PalletXcmPrecompile<R, (SingleAddressMatch, ForeignAssetMatch, Erc20Match)>,
-		(CallableByContract, CallableByPrecompile),
+		(
+			CallableByContract,
+			CallableByPrecompile,
+			SubcallWithMaxNesting<1>,
+		),
 	>,
 );
 
