@@ -287,7 +287,7 @@ where
 				Some(origin).into(),
 				pallet_balances::Call::<Runtime, Instance>::transfer_allow_death {
 					dest: Runtime::Lookup::unlookup(to),
-					value: value,
+					value,
 				},
 				SYSTEM_ACCOUNT_SIZE,
 			)?;
@@ -353,7 +353,7 @@ where
 				Some(from).into(),
 				pallet_balances::Call::<Runtime, Instance>::transfer_allow_death {
 					dest: Runtime::Lookup::unlookup(to),
-					value: value,
+					value,
 				},
 				SYSTEM_ACCOUNT_SIZE,
 			)?;
@@ -462,6 +462,7 @@ where
 	}
 
 	#[precompile::public("permit(address,address,uint256,uint256,uint8,bytes32,bytes32)")]
+	#[allow(clippy::too_many_arguments)]
 	fn eip2612_permit(
 		handle: &mut impl PrecompileHandle,
 		owner: Address,
