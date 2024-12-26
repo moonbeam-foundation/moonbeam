@@ -30,7 +30,7 @@ To fix a bug in a release already published (in github releases page), please fo
 
 1. Create a release branch dedicated to the hotfix release, based on the tag of the last published
 version.
-1. Push a commit that bump the version on the release branch.
+1. Push a commit that bumps the version on the release branch.
 1. Submit a PR against `master` to fix the bug upstream.
 1. Once the fix is merged on master, cherry-pick the merge commit on the release branch.
 1. Make the git tag on the release branch and follow the delivery process.
@@ -38,7 +38,7 @@ version.
 ### Hotfix workflow example runtime hotfix for runtime 1501. 
 
 1. Create the release branch `perm-runtime-1502`, based on tag `runtime-1501`
-1. Push a commit on `perm-runtime-1502` that bump spec versions from 1501 to 1502.
+1. Push a commit on `perm-runtime-1502` that bumps spec versions from 1501 to 1502.
 1. Submit a PR against `master` to fix the bug upstream.
 1. Once the fix is merged on master, cherry-pick the merge commit on the `perm-runtime-1502` branch.
 1. Make the git tag on the `perm-runtime-1502` branch and follow the delivery process.
