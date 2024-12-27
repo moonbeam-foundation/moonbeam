@@ -37,7 +37,7 @@ use fp_rpc::TransactionStatus;
 use cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
-use frame_support::pallet_prelude::{TypedGet, PhantomData};
+use frame_support::pallet_prelude::{PhantomData, TypedGet};
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime,
