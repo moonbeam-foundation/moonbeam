@@ -60,7 +60,7 @@ use frame_support::{
 	construct_runtime,
 	dispatch::{DispatchClass, GetDispatchInfo, PostDispatchInfo},
 	ensure,
-	pallet_prelude::DispatchResult,
+	pallet_prelude::{DispatchResult, PhantomData},
 	parameter_types,
 	traits::{
 		fungible::{Balanced, Credit, HoldConsideration, Inspect},
@@ -125,6 +125,7 @@ use xcm_runtime_apis::{
 use smallvec::smallvec;
 use sp_runtime::serde::{Deserialize, Serialize};
 
+use sp_runtime::traits::TypedGet;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
@@ -338,40 +339,13 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_balances::WeightInfo<Runtime>;
 }
 
-pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
-impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
+/// Deal with substrate based fees and tip. This should be used with pallet_transaction_payment.
+pub struct DealWithSubstrateFeesAndTip<R>(sp_std::marker::PhantomData<R>);
+impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>>
+	for DealWithSubstrateFeesAndTip<R>
 where
 	R: pallet_balances::Config + pallet_treasury::Config,
 {
-	// this seems to be called for substrate-based transactions
-	fn on_unbalanceds(
-		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
-	) {
-		if let Some(fees) = fees_then_tips.next() {
-			let treasury_proportion =
-				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
-			let treasury_part = treasury_proportion.deconstruct();
-			let burn_part = Perbill::one().deconstruct() - treasury_part;
-			let (_, to_treasury) = fees.ration(burn_part, treasury_part);
-			// Balances pallet automatically burns dropped Credits by decreasing
-			// total_supply accordingly
-			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
-				to_treasury,
-			);
-
-			// handle tip if there is one
-			if let Some(tip) = fees_then_tips.next() {
-				// for now we use the same burn/treasury strategy used for regular fees
-				let (_, to_treasury) = tip.ration(burn_part, treasury_part);
-				ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
-					to_treasury,
-				);
-			}
-		}
-	}
-
-	// this is called from pallet_evm for Ethereum-based transactions
-	// (technically, it calls on_unbalanced, which calls this when non-zero)
 	fn on_nonzero_unbalanced(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
 		// Balances pallet automatically burns dropped Credits by decreasing
 		// total_supply accordingly
@@ -381,6 +355,50 @@ where
 		let burn_part = Perbill::one().deconstruct() - treasury_part;
 		let (_, to_treasury) = amount.ration(burn_part, treasury_part);
 		ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(to_treasury);
+	}
+}
+
+/// Deal with ethereum based fees. To handle tips/priority fees, use DealWithEthereumPriorityFees.
+pub struct DealWithEthereumBaseFees<R>(sp_std::marker::PhantomData<R>);
+impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>>
+	for DealWithEthereumBaseFees<R>
+where
+	R: pallet_balances::Config + pallet_treasury::Config,
+{
+	fn on_nonzero_unbalanced(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
+		// Balances pallet automatically burns dropped Credits by decreasing
+		// total_supply accordingly
+		let treasury_proportion =
+			runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
+		let treasury_part = treasury_proportion.deconstruct();
+		let burn_part = Perbill::one().deconstruct() - treasury_part;
+		let (_, to_treasury) = amount.ration(burn_part, treasury_part);
+		ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(to_treasury);
+	}
+}
+
+pub struct BlockAuthorAccountId<R>(PhantomData<R>);
+impl<R> TypedGet for BlockAuthorAccountId<R>
+where
+	R: frame_system::Config + pallet_author_inherent::Config,
+	pallet_author_inherent::Pallet<R>: Get<R::AccountId>,
+{
+	type Type = R::AccountId;
+	fn get() -> Self::Type {
+		<pallet_author_inherent::Pallet<R> as Get<R::AccountId>>::get()
+	}
+}
+
+/// Deal with ethereum based priority fees/tips. See DealWithEthereumBaseFees for base fees.
+pub struct DealWithEthereumPriorityFees<R>(sp_std::marker::PhantomData<R>);
+impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>>
+	for DealWithEthereumPriorityFees<R>
+where
+	R: pallet_balances::Config + pallet_author_inherent::Config,
+	pallet_author_inherent::Pallet<R>: Get<R::AccountId>,
+{
+	fn on_nonzero_unbalanced(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
+		ResolveTo::<BlockAuthorAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(amount);
 	}
 }
 
@@ -408,7 +426,7 @@ impl WeightToFeePolynomial for LengthToFee {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = FungibleAdapter<Balances, DealWithFees<Runtime>>;
+	type OnChargeTransaction = FungibleAdapter<Balances, DealWithSubstrateFeesAndTip<Runtime>>;
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
 	type LengthToFee = LengthToFee;
@@ -542,7 +560,10 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesType = MoonbasePrecompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = EthereumChainId;
-	type OnChargeTransaction = OnChargeEVMTransaction<DealWithFees<Runtime>>;
+	type OnChargeTransaction = OnChargeEVMTransaction<
+		DealWithEthereumBaseFees<Runtime>,
+		DealWithEthereumPriorityFees<Runtime>,
+	>;
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AccountId20, H160, AuthorInherent>;
 	type OnCreate = ();

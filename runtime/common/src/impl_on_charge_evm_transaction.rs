@@ -22,13 +22,17 @@ macro_rules! impl_on_charge_evm_transaction {
 		type BalanceFor<T> =
 			<<T as pallet_evm::Config>::Currency as Inspect<FungibleAccountId<T>>>::Balance;
 
-		pub struct OnChargeEVMTransaction<OU>(sp_std::marker::PhantomData<OU>);
+		pub struct OnChargeEVMTransaction<BaseFeesOU, PriorityFeesOU>(
+			sp_std::marker::PhantomData<(BaseFeesOU, PriorityFeesOU)>
+		);
 
-		impl<T, OU> OnChargeEVMTransactionT<T> for OnChargeEVMTransaction<OU>
+		impl<T, BaseFeesOU, PriorityFeesOU> OnChargeEVMTransactionT<T>
+			for OnChargeEVMTransaction<BaseFeesOU, PriorityFeesOU>
 		where
 			T: pallet_evm::Config,
 			T::Currency: Balanced<pallet_evm::AccountIdOf<T>>,
-			OU: OnUnbalanced<Credit<pallet_evm::AccountIdOf<T>, T::Currency>>,
+			BaseFeesOU: OnUnbalanced<Credit<pallet_evm::AccountIdOf<T>, T::Currency>>,
+			PriorityFeesOU: OnUnbalanced<Credit<pallet_evm::AccountIdOf<T>, T::Currency>>,
 			U256: UniqueSaturatedInto<<T::Currency as Inspect<pallet_evm::AccountIdOf<T>>>::Balance>,
 			T::AddressMapping: pallet_evm::AddressMapping<T::AccountId>,
 		{
@@ -48,14 +52,14 @@ macro_rules! impl_on_charge_evm_transaction {
 				base_fee: U256,
 				already_withdrawn: Self::LiquidityInfo,
 			) -> Self::LiquidityInfo {
-				<EVMFungibleAdapter<<T as pallet_evm::Config>::Currency, OU> as OnChargeEVMTransactionT<
+				<EVMFungibleAdapter<<T as pallet_evm::Config>::Currency, BaseFeesOU> as OnChargeEVMTransactionT<
 					T,
 				>>::correct_and_deposit_fee(who, corrected_fee, base_fee, already_withdrawn)
 			}
 
 			fn pay_priority_fee(tip: Self::LiquidityInfo) {
 				if let Some(tip) = tip {
-					OU::on_unbalanced(tip);
+					PriorityFeesOU::on_unbalanced(tip);
 				}
 			}
 		}
