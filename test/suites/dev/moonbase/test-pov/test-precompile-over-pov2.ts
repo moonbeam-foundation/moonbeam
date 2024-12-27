@@ -7,8 +7,8 @@ import {
   fetchCompiledContract,
 } from "@moonwall/cli";
 import { PRECOMPILE_BATCH_ADDRESS, createEthersTransaction } from "@moonwall/util";
-import { Abi, encodeFunctionData } from "viem";
-import { HeavyContract, deployHeavyContracts, MAX_ETH_POV_PER_TX } from "../../../../helpers";
+import { type Abi, encodeFunctionData } from "viem";
+import { type HeavyContract, deployHeavyContracts, MAX_ETH_POV_PER_TX } from "../../../../helpers";
 
 describeSuite({
   id: "D012705",

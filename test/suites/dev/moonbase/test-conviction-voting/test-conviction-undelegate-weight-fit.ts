@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { KeyringPair, alith } from "@moonwall/util";
+import { type KeyringPair, alith } from "@moonwall/util";
 import { createAccounts, chunk, expectSubstrateEvents } from "../../../../helpers";
 
 describeSuite({

@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { Abi, decodeEventLog } from "viem";
+import { type Abi, decodeEventLog } from "viem";
 import { Preimage, expectEVMResult, expectSubstrateEvent } from "../../../../helpers";
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)

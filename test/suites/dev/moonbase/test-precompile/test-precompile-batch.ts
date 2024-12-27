@@ -94,9 +94,9 @@ describeSuite({
         const STORAGE_READ_GAS_COST = // One storage read gas cost
           ConstantStore(context).STORAGE_READ_COST / ConstantStore(context).WEIGHT_TO_GAS_RATIO;
 
-        expect(batchAllReceipt["gasUsed"]).to.equal(43932n + STORAGE_READ_GAS_COST);
-        expect(batchSomeReceipt["gasUsed"]).to.equal(43932n + STORAGE_READ_GAS_COST);
-        expect(batchSomeUntilFailureReceipt["gasUsed"]).to.equal(43932n + STORAGE_READ_GAS_COST);
+        expect(batchAllReceipt.gasUsed).to.equal(43932n + STORAGE_READ_GAS_COST);
+        expect(batchSomeReceipt.gasUsed).to.equal(43932n + STORAGE_READ_GAS_COST);
+        expect(batchSomeUntilFailureReceipt.gasUsed).to.equal(43932n + STORAGE_READ_GAS_COST);
       },
     });
 

@@ -1,4 +1,4 @@
-import { DevModeContext } from "@moonwall/cli";
+import type { DevModeContext } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith } from "@moonwall/util";
 
 export interface HeavyContract {

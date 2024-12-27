@@ -82,17 +82,16 @@ where
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::RuntimeCall: From<pallet_identity::Call<Runtime>>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	// Note: addRegistrar(address) & killIdentity(address) are not supported since they use a
 	// force origin.
 
-	// editorconfig-checker-disable
 	#[precompile::public("setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))")]
 	fn set_identity(
 		handle: &mut impl PrecompileHandle,
 		info: IdentityInfo<MaxAdditionalFields>,
 	) -> EvmResult {
-		// editorconfig-checker-enable
 		let caller = handle.context().caller;
 
 		let event = log1(

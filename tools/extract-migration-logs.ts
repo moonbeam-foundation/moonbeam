@@ -1,6 +1,6 @@
 import yargs from "yargs";
 import chalk from "chalk";
-import fs from "fs";
+import fs from "node:fs";
 
 const argv = yargs(process.argv.slice(2))
   .usage("Usage: $0")

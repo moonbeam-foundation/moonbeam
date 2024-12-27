@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { numberToHex } from "@polkadot/util";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { NetworkTestArtifact, tracingTxns } from "../../helpers/tracing-txns.js";
-import { ApiPromise } from "@polkadot/api";
+import { type NetworkTestArtifact, tracingTxns } from "../../helpers/tracing-txns.js";
+import type { ApiPromise } from "@polkadot/api";
 import { rateLimiter } from "../../helpers/common.js";
-import { ethers } from "ethers";
+import type { ethers } from "ethers";
 
 const limiter = rateLimiter();
 
@@ -72,7 +72,7 @@ describeSuite({
           }
         });
 
-        const results = await Promise.all(promises.flatMap((a) => a));
+        const results = await Promise.all(promises.flat());
         const failures = results.filter((a) => {
           if (a.error === true) {
             log(
@@ -116,7 +116,7 @@ describeSuite({
           }
         });
 
-        const results = await Promise.all(promises.flatMap((a) => a));
+        const results = await Promise.all(promises.flat());
         const failures = results.filter((a) => {
           if (a.error === true) {
             log(
@@ -150,7 +150,7 @@ describeSuite({
           "eth_syncing",
           []
         );
-        expect(result).to.satisfy((s: any) => typeof s == "number" || typeof s == "boolean");
+        expect(result).to.satisfy((s: any) => typeof s === "number" || typeof s === "boolean");
       },
     });
 
@@ -250,7 +250,7 @@ describeSuite({
           "eth_getBalance",
           [treasuryAddress, "latest"]
         );
-        expect(BigInt(result) == 0n).to.be.false;
+        expect(BigInt(result) === 0n).to.be.false;
       },
     });
 
@@ -270,7 +270,7 @@ describeSuite({
           "eth_getStorageAt",
           [traceStatic.WETH, "0x0", "latest"]
         );
-        expect(BigInt(result) == 0n).to.be.false;
+        expect(BigInt(result) === 0n).to.be.false;
       },
     });
 
@@ -509,9 +509,8 @@ describeSuite({
           if (e.toString().includes("Error: Filter pool is full")) {
             log(`Filter pool is full, skipping test.`);
             return; // TODO: replace this with this.skip() when added to vitest
-          } else {
-            expect.fail(null, null, e.toString());
           }
+          expect.fail(null, null, e.toString());
         }
       },
     });
@@ -530,9 +529,8 @@ describeSuite({
           if (e.toString().includes("Error: Filter pool is full")) {
             log(`Filter pool is full, skipping test.`);
             return; // TODO: replace this with this.skip() when added to vitest
-          } else {
-            expect.fail(null, null, e.toString());
           }
+          expect.fail(null, null, e.toString());
         }
       },
     });
@@ -555,9 +553,8 @@ describeSuite({
           if (e.toString().includes("Error: Filter pool is full")) {
             log(`Filter pool is full, skipping test.`);
             return; // TODO: replace this with this.skip() when added to vitest
-          } else {
-            expect.fail(null, null, e.toString());
           }
+          expect.fail(null, null, e.toString());
         }
       },
     });
@@ -580,9 +577,8 @@ describeSuite({
           if (e.toString().includes("Error: Filter pool is full")) {
             log(`Filter pool is full, skipping test.`);
             return; // TODO: replace this with this.skip() when added to vitest
-          } else {
-            expect.fail(null, null, e.toString());
           }
+          expect.fail(null, null, e.toString());
         }
       },
     });
@@ -605,9 +601,8 @@ describeSuite({
           if (e.toString().includes("Error: Filter pool is full")) {
             log(`Filter pool is full, skipping test.`);
             return; // TODO: replace this with this.skip() when added to vitest
-          } else {
-            expect.fail(null, null, e.toString());
           }
+          expect.fail(null, null, e.toString());
         }
       },
     });

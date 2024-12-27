@@ -400,7 +400,7 @@ import type {
   XcmVersionedAssets,
   XcmVersionedLocation,
   XcmVersionedResponse,
-  XcmVersionedXcm,
+  XcmVersionedXcm
 } from "@polkadot/types/lookup";
 
 declare module "@polkadot/types/types/registry" {

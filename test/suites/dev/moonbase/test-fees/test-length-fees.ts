@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext, describeSuite, expect } from "@moonwall/cli";
+import { type DevModeContext, describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, baltathar } from "@moonwall/util";
 
 //TODO: Change these to be less literal
@@ -58,9 +58,9 @@ const testRuntimeUpgrade = async (context: DevModeContext) => {
   const size = 4194304; // 2MB bytes represented in hex
   const hex = "0x" + "F".repeat(size);
 
-  // send an enactAuthorizedUpgrade. we expect this to fail, but we just want to see that it was
+  // send an applyAuthorizedUpgrade. we expect this to fail, but we just want to see that it was
   // included in a block (not rejected) and was charged based on its length
-  await context.polkadotJs().tx.parachainSystem.enactAuthorizedUpgrade(hex).signAndSend(baltathar);
+  await context.polkadotJs().tx.system.applyAuthorizedUpgrade(hex).signAndSend(baltathar);
   await context.createBlock();
 
   const afterBalance = (

@@ -1,8 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
 import { createEthersTransaction } from "@moonwall/util";
-import { Abi, encodeFunctionData } from "viem";
-import { HeavyContract, deployHeavyContracts } from "../../../../helpers";
+import { type Abi, encodeFunctionData } from "viem";
+import { type HeavyContract, deployHeavyContracts } from "../../../../helpers";
 import { MAX_ETH_POV_PER_TX } from "../../../../helpers/constants";
 
 describeSuite({

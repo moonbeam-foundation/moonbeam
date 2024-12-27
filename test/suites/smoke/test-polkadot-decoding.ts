@@ -1,37 +1,17 @@
-import { ApiDecoration } from "@polkadot/api/types";
+import type { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
 import { describeSuite, beforeAll } from "@moonwall/cli";
 import { ONE_HOURS } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
-import { fail } from "assert";
+import type { ApiPromise } from "@polkadot/api";
+import { extractStorageKeyComponents } from "../../helpers/storageQueries";
+import { fail } from "node:assert";
 
 // Change the following line to reproduce a particular case
 const STARTING_KEY_OVERRIDE = "";
 const MODULE_NAME = "";
 const FN_NAME = "";
 
-const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
-
-const extractStorageKeyComponents = (storageKey: string) => {
-  // The full storage key is composed of
-  // - The 0x prefix (2 characters)
-  // - The module prefix (32 characters)
-  // - The method name (32 characters)
-  // - The parameters (variable length)
-  const regex = /(?<moduleKey>0x[a-f0-9]{32})(?<fnKey>[a-f0-9]{32})(?<paramsKey>[a-f0-9]*)/i;
-  const match = regex.exec(storageKey);
-
-  if (!match) {
-    throw new Error("Invalid storage key format");
-  }
-
-  const { moduleKey, fnKey, paramsKey } = match.groups!;
-  return {
-    moduleKey,
-    fnKey,
-    paramsKey,
-  };
-};
+const pageSize = (process.env.PAGE_SIZE && Number.parseInt(process.env.PAGE_SIZE)) || 500;
 
 const randomHex = (nBytes) =>
   [...crypto.getRandomValues(new Uint8Array(nBytes))]
@@ -44,9 +24,9 @@ describeSuite({
   title: "Polkadot API - Storage items",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
-    let atBlockNumber: number = 0;
+    let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
-    let specVersion: number = 0;
+    let specVersion = 0;
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
@@ -160,7 +140,7 @@ describeSuite({
                 // Log first entry storage key
                 const firstRandomEntryKey = randomEntries[0][0].toString();
                 log(`     - ${fn}:  ${chalk.green(`🔎`)} (random key: ${firstRandomEntryKey})`);
-              } else if (fn != "code") {
+              } else if (fn !== "code") {
                 await module[fn]();
               }
 

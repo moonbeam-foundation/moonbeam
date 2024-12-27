@@ -46,7 +46,7 @@
       "chain_spec_path": "tmp/moonbeam-modified-raw-spec.json",
       "collator": {
         "name": "alith",
-        "command": "tmp/moonbeam_rt",
+        "command": "../target/release/moonbeam",
         "ws_port": 33345,
         "args": [
           "--no-hardware-benchmarks",

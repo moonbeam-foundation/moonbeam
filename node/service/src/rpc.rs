@@ -43,7 +43,6 @@ use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApiServ
 use sc_network::service::traits::NetworkService;
 use sc_network_sync::SyncingService;
 use sc_rpc::SubscriptionTaskExecutor;
-use sc_rpc_api::DenyUnsafe;
 use sc_service::TaskManager;
 use sc_transaction_pool::{ChainApi, Pool};
 use sc_transaction_pool_api::TransactionPool;
@@ -105,8 +104,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub pool: Arc<P>,
 	/// Graph pool instance.
 	pub graph: Arc<Pool<A>>,
-	/// Whether to deny unsafe calls
-	pub deny_unsafe: DenyUnsafe,
 	/// The Node authority flag
 	pub is_authority: bool,
 	/// Network service
@@ -190,7 +187,6 @@ where
 		client,
 		pool,
 		graph,
-		deny_unsafe,
 		is_authority,
 		network,
 		sync,
@@ -208,7 +204,7 @@ where
 		forced_parent_hashes,
 	} = deps;
 
-	io.merge(System::new(Arc::clone(&client), Arc::clone(&pool), deny_unsafe).into_rpc())?;
+	io.merge(System::new(Arc::clone(&client), Arc::clone(&pool)).into_rpc())?;
 	io.merge(TransactionPayment::new(Arc::clone(&client)).into_rpc())?;
 
 	// TODO: are we supporting signing?

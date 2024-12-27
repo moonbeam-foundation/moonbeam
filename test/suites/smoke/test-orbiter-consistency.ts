@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { ApiDecoration } from "@polkadot/api/types";
-import { bool, Option, u32 } from "@polkadot/types-codec";
+import type { ApiDecoration } from "@polkadot/api/types";
+import type { bool, Option, u32 } from "@polkadot/types-codec";
 import type {
   FrameSystemEventRecord,
   PalletMoonbeamOrbitersCollatorPoolInfo,
@@ -8,33 +8,33 @@ import type {
 import type { AccountId20 } from "@polkadot/types/interfaces";
 import { sortObjectByKeys } from "../../helpers/common.js";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { StorageKey } from "@polkadot/types";
-import { ApiPromise } from "@polkadot/api";
+import type { StorageKey } from "@polkadot/types";
+import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({
   id: "S15",
   title: "Verify orbiters",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
-    let atBlockNumber: number = 0;
+    let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
     let collatorsPools: [
       StorageKey<[AccountId20]>,
-      Option<PalletMoonbeamOrbitersCollatorPoolInfo>
+      Option<PalletMoonbeamOrbitersCollatorPoolInfo>,
     ][];
     let registeredOrbiters: [StorageKey<[AccountId20]>, Option<bool>][];
     let counterForCollatorsPool: u32;
     let currentRound: number;
     let orbiterPerRound: [StorageKey<[u32, AccountId20]>, Option<AccountId20>][];
     let events: FrameSystemEventRecord[];
-    let specVersion: number = 0;
+    let specVersion = 0;
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
       paraApi = context.polkadotJs("para");
       const runtimeVersion = paraApi.runtimeVersion.specVersion.toNumber();
       atBlockNumber = process.env.BLOCK_NUMBER
-        ? parseInt(process.env.BLOCK_NUMBER)
+        ? Number.parseInt(process.env.BLOCK_NUMBER)
         : (await paraApi.rpc.chain.getHeader()).number.toNumber();
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
       collatorsPools = await apiAt.query.moonbeamOrbiters.collatorsPool.entries();
@@ -56,7 +56,7 @@ describeSuite({
         const reserves = await apiAt.query.balances.reserves.entries();
         const orbiterReserves = reserves
           .map((reserveSet) =>
-            reserveSet[1].find((r) => r.id.toUtf8() == "orbi")
+            reserveSet[1].find((r) => r.id.toUtf8() === "orbi")
               ? `0x${reserveSet[0].toHex().slice(-40)}`
               : null
           )
@@ -152,8 +152,8 @@ describeSuite({
           for (const { event, phase } of events) {
             if (
               phase.isInitialization &&
-              event.section == "parachainStaking" &&
-              event.method == "Rewarded"
+              event.section === "parachainStaking" &&
+              event.method === "Rewarded"
             ) {
               const data = event.data as any;
               const account = data.account.toHex();
@@ -174,7 +174,7 @@ describeSuite({
               const [round, collator] = o[0].args;
               const orbiter = o[1];
 
-              if (round.toNumber() == lastRotateRound && collatorRewards[collator.toHex()]) {
+              if (round.toNumber() === lastRotateRound && collatorRewards[collator.toHex()]) {
                 expectedOrbiterRewards[orbiter.unwrap().toHex()] =
                   collatorRewards[collator.toHex()];
               }
@@ -186,8 +186,8 @@ describeSuite({
             for (const { event, phase } of events) {
               if (
                 phase.isInitialization &&
-                event.section == "MoonbeamOrbiters" &&
-                event.method == "OrbiterRewarded"
+                event.section === "MoonbeamOrbiters" &&
+                event.method === "OrbiterRewarded"
               ) {
                 const data = event.data as any;
                 const orbiter = data.account.toHex();
