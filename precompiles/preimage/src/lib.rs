@@ -54,6 +54,7 @@ where
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::Hash: Into<H256>,
 	<Runtime as frame_system::Config>::RuntimeCall: From<PreimageCall<Runtime>>,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	/// Register a preimage on-chain.
 	///

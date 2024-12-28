@@ -103,6 +103,7 @@ where
 	Runtime::AccountId: Into<H160>,
 	H256: From<<Runtime as frame_system::Config>::Hash>
 		+ Into<<Runtime as frame_system::Config>::Hash>,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	#[precompile::public("execute(bytes)")]
 	fn execute(

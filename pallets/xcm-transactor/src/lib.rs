@@ -104,6 +104,7 @@ pub mod pallet {
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
+	use sp_std::vec;
 	use sp_std::vec::Vec;
 	use xcm::{latest::prelude::*, VersionedLocation};
 	use xcm_executor::traits::{TransactAsset, WeightBounds};
