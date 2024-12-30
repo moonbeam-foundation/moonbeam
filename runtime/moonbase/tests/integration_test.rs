@@ -77,17 +77,17 @@ use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 //use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
+use moonbase_runtime::runtime_params::dynamic_params;
 use pallet_moonbeam_foreign_assets::AssetStatus;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
-use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, H256, U256, Get};
+use sp_core::{crypto::UncheckedFrom, ByteArray, Get, Pair, H160, H256, U256};
 use sp_runtime::{bounded_vec, DispatchError, ModuleError};
 use std::cell::Cell;
 use std::rc::Rc;
 use xcm::{latest::prelude::*, VersionedAssets, VersionedLocation};
-use moonbase_runtime::runtime_params::dynamic_params;
 
 type AuthorMappingPCall =
 	pallet_evm_precompile_author_mapping::AuthorMappingPrecompileCall<Runtime>;
@@ -2833,11 +2833,17 @@ fn deal_with_fees_handles_tip() {
 		let burnt_tip_part: Balance = 1000 - treasury_tip_part;
 
 		// treasury should have received FeesTreasuryProportion
-		assert_eq!(Balances::free_balance(&Treasury::account_id()), treasury_fee_part + treasury_tip_part);
+		assert_eq!(
+			Balances::free_balance(&Treasury::account_id()),
+			treasury_fee_part + treasury_tip_part
+		);
 
 		// verify the rest is burned
 		let total_supply_after = Balances::total_issuance();
-		assert_eq!(total_supply_before - total_supply_after, burnt_fee_part + burnt_tip_part);
+		assert_eq!(
+			total_supply_before - total_supply_after,
+			burnt_fee_part + burnt_tip_part
+		);
 	});
 }
 

@@ -33,6 +33,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbeam_runtime::currency::{GIGAWEI, WEI};
+use moonbeam_runtime::runtime_params::dynamic_params;
 use moonbeam_runtime::{
 	asset_config::ForeignAssetInstance,
 	currency::GLMR,
@@ -57,7 +58,7 @@ use precompile_utils::{
 	testing::*,
 };
 use sha3::{Digest, Keccak256};
-use sp_core::{ByteArray, Pair, H160, U256, Get};
+use sp_core::{ByteArray, Get, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, Dispatchable},
 	BuildStorage, DispatchError, ModuleError,
@@ -66,7 +67,6 @@ use std::str::from_utf8;
 use xcm::{latest::prelude::*, VersionedAssets, VersionedLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
-use moonbeam_runtime::runtime_params::dynamic_params;
 use xcm_primitives::split_location_into_chain_part_and_beneficiary;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
@@ -2651,11 +2651,17 @@ fn deal_with_fees_handles_tip() {
 		let burnt_tip_part: Balance = 1000 - treasury_tip_part;
 
 		// treasury should have received 20%
-		assert_eq!(Balances::free_balance(&Treasury::account_id()), treasury_fee_part + treasury_tip_part);
+		assert_eq!(
+			Balances::free_balance(&Treasury::account_id()),
+			treasury_fee_part + treasury_tip_part
+		);
 
 		// verify 80% burned
 		let total_supply_after = Balances::total_issuance();
-		assert_eq!(total_supply_before - total_supply_after, burnt_fee_part + burnt_tip_part);
+		assert_eq!(
+			total_supply_before - total_supply_after,
+			burnt_fee_part + burnt_tip_part
+		);
 	});
 }
 
