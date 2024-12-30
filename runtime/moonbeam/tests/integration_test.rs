@@ -57,7 +57,7 @@ use precompile_utils::{
 	testing::*,
 };
 use sha3::{Digest, Keccak256};
-use sp_core::{ByteArray, Pair, H160, U256};
+use sp_core::{ByteArray, Pair, H160, U256, Get};
 use sp_runtime::{
 	traits::{Convert, Dispatchable},
 	BuildStorage, DispatchError, ModuleError,
@@ -66,6 +66,7 @@ use std::str::from_utf8;
 use xcm::{latest::prelude::*, VersionedAssets, VersionedLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
+use moonbeam_runtime::runtime_params::dynamic_params;
 use xcm_primitives::split_location_into_chain_part_and_beneficiary;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
@@ -1474,6 +1475,7 @@ fn refund_ed_0_evm() {
 		])
 		.build()
 		.execute_with(|| {
+			set_parachain_inherent_data();
 			// EVM transfer that zeroes ALICE
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(ALICE),
@@ -1496,7 +1498,7 @@ fn refund_ed_0_evm() {
 }
 
 #[test]
-fn author_does_not_receive_priority_fee() {
+fn author_does_receive_priority_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![(
 			AccountId::from(BOB),
@@ -1506,6 +1508,7 @@ fn author_does_not_receive_priority_fee() {
 		.execute_with(|| {
 			// Some block author as seen by pallet-evm.
 			let author = AccountId::from(<pallet_evm::Pallet<Runtime>>::find_author());
+			pallet_author_inherent::Author::<Runtime>::put(author);
 			// Currently the default impl of the evm uses `deposit_into_existing`.
 			// If we were to use this implementation, and for an author to receive eventual tips,
 			// the account needs to be somehow initialized, otherwise the deposit would fail.
@@ -1524,8 +1527,10 @@ fn author_does_not_receive_priority_fee() {
 				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
-			// Author free balance didn't change.
-			assert_eq!(Balances::free_balance(author), 100 * GLMR,);
+
+			let priority_fee = 200 * GIGAWEI * 21_000;
+			// Author free balance increased by priority fee.
+			assert_eq!(Balances::free_balance(author), 100 * GLMR + priority_fee,);
 		});
 }
 
@@ -1545,6 +1550,8 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
+			let author = AccountId::from(<pallet_evm::Pallet<Runtime>>::find_author());
+			pallet_author_inherent::Author::<Runtime>::put(author);
 			// EVM transfer.
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
@@ -1586,6 +1593,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 		])
 		.build()
 		.execute_with(|| {
+			set_parachain_inherent_data();
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
 			// EVM transfer.
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
@@ -2598,12 +2606,11 @@ fn deal_with_fees_handles_tip() {
 	use moonbeam_runtime::{DealWithSubstrateFeesAndTip, Treasury};
 
 	ExtBuilder::default().build().execute_with(|| {
-		// This test checks the functionality of the `DealWithSubstrateFeesAndTip` trait
-		// implementation in the runtime. It simulates a scenario where a fee and a tip are issued
-		// to an account and ensures that the treasury receives the correct amount (20% of the
-		// total), and the rest is burned (80%).
+		// This test checks the functionality of the `DealWithSubstrateFeesAndTip` trait implementation in the runtime.
+		// It simulates a scenario where a fee and a tip are issued to an account and ensures that the
+		// treasury receives the correct amount (set by FeesTreasuryProportion), and the rest is burned.
 		//
-		// The test follows these steps:
+		// The test follows these steps: (Assuming FeesTreasuryProportion is set to 20%)
 		// 1. It issues a fee of 100 and a tip of 1000.
 		// 2. It checks the total supply before the fee and tip are dealt with, which should be 1_100.
 		// 3. It checks that the treasury's balance is initially 0.
@@ -2624,12 +2631,19 @@ fn deal_with_fees_handles_tip() {
 
 		DealWithSubstrateFeesAndTip::on_unbalanceds(vec![fee, tip].into_iter());
 
+		let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
+
+		let treasury_fee_part: Balance = treasury_proportion.mul_floor(100);
+		let burnt_fee_part: Balance = 100 - treasury_fee_part;
+		let treasury_tip_part: Balance = treasury_proportion.mul_floor(1000);
+		let burnt_tip_part: Balance = 1000 - treasury_tip_part;
+
 		// treasury should have received 20%
-		assert_eq!(Balances::free_balance(&Treasury::account_id()), 220);
+		assert_eq!(Balances::free_balance(&Treasury::account_id()), treasury_fee_part + treasury_tip_part);
 
 		// verify 80% burned
 		let total_supply_after = Balances::total_issuance();
-		assert_eq!(total_supply_before - total_supply_after, 880);
+		assert_eq!(total_supply_before - total_supply_after, burnt_fee_part + burnt_tip_part);
 	});
 }
 
