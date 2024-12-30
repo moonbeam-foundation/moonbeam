@@ -36,7 +36,7 @@ use moonriver_runtime::currency::{GIGAWEI, WEI};
 use moonriver_runtime::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve},
-	AssetId, Balances, CrowdloanRewards, DealWithSubstrateFeesAndTip, Executive,
+	AssetId, Balances, CrowdloanRewards, Executive,
 	OpenTechCommitteeCollective, PolkadotXcm, Precompiles, RuntimeBlockWeights, TransactionPayment,
 	TransactionPaymentAsGasPrice, TreasuryCouncilCollective, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
@@ -55,7 +55,7 @@ use precompile_utils::{
 };
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256, Get};
-use sp_runtime::{traits::{Convert, Dispatchable}, BuildStorage, DispatchError, ModuleError, Perbill, Saturating};
+use sp_runtime::{traits::{Convert, Dispatchable}, BuildStorage, DispatchError, ModuleError};
 use std::str::from_utf8;
 use xcm::latest::prelude::*;
 use xcm::{VersionedAssets, VersionedLocation};
