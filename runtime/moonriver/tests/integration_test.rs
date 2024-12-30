@@ -36,9 +36,10 @@ use moonriver_runtime::currency::{GIGAWEI, WEI};
 use moonriver_runtime::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve},
-	AssetId, Balances, CrowdloanRewards, Executive, OpenTechCommitteeCollective, PolkadotXcm,
-	Precompiles, RuntimeBlockWeights, TransactionPayment, TransactionPaymentAsGasPrice,
-	TreasuryCouncilCollective, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	AssetId, Balances, CrowdloanRewards, DealWithSubstrateFeesAndTip, Executive,
+	OpenTechCommitteeCollective, PolkadotXcm, Precompiles, RuntimeBlockWeights, TransactionPayment,
+	TransactionPaymentAsGasPrice, TreasuryCouncilCollective, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -2493,10 +2494,10 @@ fn removed_precompiles() {
 #[test]
 fn deal_with_fees_handles_tip() {
 	use frame_support::traits::OnUnbalanced;
-	use moonriver_runtime::{DealWithFees, Treasury};
+	use moonriver_runtime::{DealWithSubstrateFeesAndTip, Treasury};
 
 	ExtBuilder::default().build().execute_with(|| {
-		// This test checks the functionality of the `DealWithFees` trait implementation in the runtime.
+		// This test checks the functionality of the `DealWithSubstrateFeesAndTip` trait implementation in the runtime.
 		// It simulates a scenario where a fee and a tip are issued to an account and ensures that the
 		// treasury receives the correct amount (20% of the total), and the rest is burned (80%).
 		//
@@ -2504,7 +2505,7 @@ fn deal_with_fees_handles_tip() {
 		// 1. It issues a fee of 100 and a tip of 1000.
 		// 2. It checks the total supply before the fee and tip are dealt with, which should be 1_100.
 		// 3. It checks that the treasury's balance is initially 0.
-		// 4. It calls `DealWithFees::on_unbalanceds` with the fee and tip.
+		// 4. It calls `DealWithSubstrateFeesAndTip::on_unbalanceds` with the fee and tip.
 		// 5. It checks that the treasury's balance is now 220 (20% of the fee and tip).
 		// 6. It checks that the total supply has decreased by 880 (80% of the fee and tip), indicating
 		//    that this amount was burned.
@@ -2519,7 +2520,7 @@ fn deal_with_fees_handles_tip() {
 		assert_eq!(total_supply_before, 1_100);
 		assert_eq!(Balances::free_balance(&Treasury::account_id()), 0);
 
-		DealWithFees::on_unbalanceds(vec![fee, tip].into_iter());
+		DealWithSubstrateFeesAndTip::on_unbalanceds(vec![fee, tip].into_iter());
 
 		// treasury should have received 20%
 		assert_eq!(Balances::free_balance(&Treasury::account_id()), 220);
