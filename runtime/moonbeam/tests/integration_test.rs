@@ -1585,6 +1585,7 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 
 #[test]
 fn total_issuance_after_evm_transaction_without_priority_fee() {
+	use fp_evm::FeeCalculator;
 	ExtBuilder::default()
 		.with_balances(vec![
 			(
