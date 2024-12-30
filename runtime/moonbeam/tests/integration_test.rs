@@ -1445,6 +1445,7 @@ fn transfer_ed_0_evm() {
 		])
 		.build()
 		.execute_with(|| {
+			set_parachain_inherent_data();
 			// EVM transfer
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(ALICE),
