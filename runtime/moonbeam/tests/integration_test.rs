@@ -1629,7 +1629,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 
 			assert_eq!(issuance_after, issuance_before - burnt_base_fee_part);
 
-			assert_eq!(moonbase_runtime::Treasury::pot(), treasury_base_fee_part);
+			assert_eq!(moonbeam_runtime::Treasury::pot(), treasury_base_fee_part);
 		});
 }
 
