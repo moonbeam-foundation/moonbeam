@@ -1568,14 +1568,18 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			// Fee is 25 GWEI base fee + 100 GWEI tip.
-			let fee = ((125 * GIGAWEI) * 21_000) as f64;
-			// 80% was burned.
-			let expected_burn = (fee * 0.8) as u128;
-			assert_eq!(issuance_after, issuance_before - expected_burn,);
-			// 20% was sent to treasury.
-			let expected_treasury = (fee * 0.2) as u128;
-			assert_eq!(moonbeam_runtime::Treasury::pot(), expected_treasury);
+
+			let base_fee: Balance = 125 * GIGAWEI * 21_000;
+
+			let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
+
+			// only base fee is split between being burned and sent to treasury
+			let treasury_base_fee_part: Balance = treasury_proportion.mul_floor(base_fee);
+			let burnt_base_fee_part: Balance = base_fee - treasury_base_fee_part;
+
+			assert_eq!(issuance_after, issuance_before - burnt_base_fee_part);
+
+			assert_eq!(moonbeam_runtime::Treasury::pot(), treasury_base_fee_part);
 		});
 }
 
@@ -1611,14 +1615,21 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			// Fee is 100 GWEI base fee.
-			let fee = (BASE_FEE_GENESIS * 21_000) as f64;
-			// 80% was burned.
-			let expected_burn = (fee * 0.8) as u128;
-			assert_eq!(issuance_after, issuance_before - expected_burn,);
-			// 20% was sent to treasury.
-			let expected_treasury = (fee * 0.2) as u128;
-			assert_eq!(moonbeam_runtime::Treasury::pot(), expected_treasury);
+			// Fee is 1 GWEI base fee.
+			let base_fee = TransactionPaymentAsGasPrice::min_gas_price().0;
+			assert_eq!(base_fee.as_u128(), BASE_FEE_GENESIS); // hint in case following asserts fail
+
+			let base_fee: Balance = BASE_FEE_GENESIS * 21_000;
+
+			let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
+
+			// only base fee is split between being burned and sent to treasury
+			let treasury_base_fee_part: Balance = treasury_proportion.mul_floor(base_fee);
+			let burnt_base_fee_part: Balance = base_fee - treasury_base_fee_part;
+
+			assert_eq!(issuance_after, issuance_before - burnt_base_fee_part);
+
+			assert_eq!(moonbase_runtime::Treasury::pot(), treasury_base_fee_part);
 		});
 }
 
