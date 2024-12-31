@@ -1460,6 +1460,7 @@ fn refund_ed_0_evm() {
 		])
 		.build()
 		.execute_with(|| {
+			set_parachain_inherent_data();
 			// EVM transfer that zeroes ALICE
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(ALICE),
@@ -1520,6 +1521,7 @@ fn author_does_receive_priority_fee() {
 
 #[test]
 fn total_issuance_after_evm_transaction_with_priority_fee() {
+	use fp_evm::FeeCalculator;
 	ExtBuilder::default()
 		.with_balances(vec![
 			(
@@ -1552,7 +1554,9 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
 
-			let base_fee: Balance = BASE_FEE_GENESIS * 21_000;
+			let base_fee = TransactionPaymentAsGasPrice::min_gas_price().0.as_u128();
+
+			let base_fee: Balance = base_fee * 21_000;
 
 			let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
 
@@ -1568,6 +1572,7 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 
 #[test]
 fn total_issuance_after_evm_transaction_without_priority_fee() {
+	use fp_evm::FeeCalculator;
 	ExtBuilder::default()
 		.with_balances(vec![
 			(
@@ -1590,20 +1595,27 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 				value: (1 * MOVR).into(),
 				gas_limit: 21_000u64,
 				max_fee_per_gas: U256::from(BASE_FEE_GENESIS),
-				max_priority_fee_per_gas: Some(U256::from(BASE_FEE_GENESIS)),
+				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			let fee = ((1 * BASE_FEE_GENESIS) * 21_000) as f64;
-			// 80% was burned.
-			let expected_burn = (fee * 0.8) as u128;
-			assert_eq!(issuance_after, issuance_before - expected_burn,);
-			// 20% was sent to treasury.
-			let expected_treasury = (fee * 0.2) as u128;
-			assert_eq!(moonriver_runtime::Treasury::pot(), expected_treasury);
+
+			let base_fee = TransactionPaymentAsGasPrice::min_gas_price().0.as_u128();
+
+			let base_fee: Balance = base_fee * 21_000;
+
+			let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
+
+			// only base fee is split between being burned and sent to treasury
+			let treasury_base_fee_part: Balance = treasury_proportion.mul_floor(base_fee);
+			let burnt_base_fee_part: Balance = base_fee - treasury_base_fee_part;
+
+			assert_eq!(issuance_after, issuance_before - burnt_base_fee_part);
+
+			assert_eq!(moonriver_runtime::Treasury::pot(), treasury_base_fee_part);
 		});
 }
 

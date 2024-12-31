@@ -1537,6 +1537,7 @@ fn author_does_receive_priority_fee() {
 
 #[test]
 fn total_issuance_after_evm_transaction_with_priority_fee() {
+	use fp_evm::FeeCalculator;
 	ExtBuilder::default()
 		.with_balances(vec![
 			(
@@ -1569,7 +1570,9 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
 
-			let base_fee: Balance = 125 * GIGAWEI * 21_000;
+			let base_fee = TransactionPaymentAsGasPrice::min_gas_price().0.as_u128();
+
+			let base_fee: Balance = base_fee * 21_000;
 
 			let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
 
@@ -1616,11 +1619,10 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			// Fee is 1 GWEI base fee.
-			let base_fee = TransactionPaymentAsGasPrice::min_gas_price().0;
-			assert_eq!(base_fee.as_u128(), BASE_FEE_GENESIS); // hint in case following asserts fail
 
-			let base_fee: Balance = BASE_FEE_GENESIS * 21_000;
+			let base_fee = TransactionPaymentAsGasPrice::min_gas_price().0.as_u128();
+
+			let base_fee: Balance = base_fee * 21_000;
 
 			let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
 
