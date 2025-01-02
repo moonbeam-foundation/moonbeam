@@ -1,6 +1,6 @@
 # PoV Benchmarking
 
-This scripts runs a parameterized benchmark with the given `params` and collects the result over them
+This script runs a parameterized benchmark with the given `params` and collects the result over them
 into a json file. Additionally this file may be used to visualize the following metrics as charts:
 
 - PoV Size
