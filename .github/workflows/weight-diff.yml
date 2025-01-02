@@ -1,0 +1,31 @@
+name: Weight Difference Report
+
+on:
+  pull_request:
+    paths:
+        - runtime/moonbase/weights/**/*
+        - runtime/moonriver/weights/**/*
+        - runtime/moonbeam/weights/**/*
+
+jobs:
+    weight-diff:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Write comment
+              run: echo "Weight Difference Report" >> weight_diff_report.md
+
+            - name: Find Comment
+              uses: peter-evans/find-comment@v3
+              id: fc
+              with:
+                issue-number: ${{ github.event.pull_request.number }}
+                comment-author: "github-actions[bot]"
+                body-includes: "Weight Difference Report"
+
+            - name: Create or update comment
+              uses: peter-evans/create-or-update-comment@v4
+              with:
+                comment-id: ${{ steps.fc.outputs.comment-id }}
+                issue-number: ${{ github.event.pull_request.number }}
+                body-path: weight_diff_report.md
+                edit-mode: replace
