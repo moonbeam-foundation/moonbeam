@@ -479,20 +479,23 @@ export async function registerAndFundAsset(
   context: any,
   asset: TestAsset,
   amount: bigint,
-  address: `0x${string}`
+  address: `0x${string}`,
+  addToWeightTrader = true
 ) {
-  const { registeredAssetId } = await registerForeignAsset(
+  const result = await registerForeignAsset(
     context,
     BigInt(asset.id),
     asset.location,
     asset.metadata
   );
 
-  await addAssetToWeightTrader(asset.location, asset.relativePrice || 0n, context);
+  if (addToWeightTrader) {
+    await addAssetToWeightTrader(asset.location, asset.relativePrice || 0n, context);
+  }
 
   await mockAssetBalance(context, amount, BigInt(asset.id), alith, address);
 
-  return registeredAssetId;
+  return result;
 }
 
 // Mock balance for old foreign assets
