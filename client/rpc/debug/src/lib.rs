@@ -394,7 +394,7 @@ where
 			}
 		}?;
 
-		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
+		// Get ApiRef. This handle allows to keep changes between txs in an internal buffer.
 		let mut api = client.runtime_api();
 
 		// Enable proof recording
@@ -546,11 +546,11 @@ where
 
 	/// Replays a transaction in the Runtime at a given block height.
 	///
-	/// In order to succesfully reproduce the result of the original transaction we need a correct
+	/// In order to successfully reproduce the result of the original transaction we need a correct
 	/// state to replay over.
 	///
 	/// Substrate allows to apply extrinsics in the Runtime and thus creating an overlayed state.
-	/// This overlayed changes will live in-memory for the lifetime of the ApiRef.
+	/// These overlayed changes will live in-memory for the lifetime of the ApiRef.
 	fn handle_transaction_request(
 		client: Arc<C>,
 		backend: Arc<BE>,

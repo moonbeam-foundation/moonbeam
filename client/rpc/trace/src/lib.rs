@@ -109,7 +109,7 @@ where
 		}
 	}
 
-	/// `trace_filter` endpoint (wrapped in the trait implementation with futures compatibilty)
+	/// `trace_filter` endpoint (wrapped in the trait implementation with futures compatibility)
 	async fn filter(self, req: FilterRequest) -> TxsTraceRes {
 		let from_block = self.block_id(req.from_block)?;
 		let to_block = self.block_id(req.to_block)?;
@@ -360,7 +360,7 @@ impl CacheRequester {
 
 /// Data stored for each block in the cache.
 /// `active_batch_count` represents the number of batches using this
-/// block. It will increase immediatly when a batch is created, but will be
+/// block. It will increase immediately when a batch is created, but will be
 /// decrease only after the batch ends and its expiration delay passes.
 /// It allows to keep the data in the cache for following requests that would use
 /// this block, which is important to handle pagination efficiently.
@@ -386,7 +386,7 @@ enum CacheBlockState {
 		#[allow(dead_code)]
 		unqueue_sender: oneshot::Sender<()>,
 	},
-	/// Tracing has completed and the result is available. No Runtime API call
+	/// Tracing has been completed and the result is available. No Runtime API call
 	/// will be needed until this block cache is removed.
 	Cached { traces: TxsTraceRes },
 }
@@ -399,7 +399,7 @@ enum BlockingTaskMessage {
 	/// the semaphore. This is used to prevent the deletion of a cache entry for a block that has
 	/// started being traced.
 	Started { block_hash: H256 },
-	/// The tracing is finished and the result is send to the main task.
+	/// The tracing is finished and the result is sent to the main task.
 	Finished {
 		block_hash: H256,
 		result: TxsTraceRes,
@@ -435,7 +435,7 @@ where
 {
 	/// Create a new cache task.
 	///
-	/// Returns a Future that needs to be added to a tokio executor, and an handle allowing to
+	/// Returns a Future that needs to be added to a tokio executor, and a handle allowing to
 	/// send requests to the task.
 	pub fn create(
 		client: Arc<C>,
@@ -468,7 +468,7 @@ where
 				None
 			};
 			// Contains the inner state of the cache task, excluding the pooled futures/channels.
-			// Having this object allow to refactor each event into its own function, simplifying
+			// Having this object allows to refactor each event into its own function, simplifying
 			// the main loop.
 			let mut inner = Self {
 				client,
@@ -541,7 +541,7 @@ where
 		self.batches.insert(self.next_batch_id, blocks.clone());
 
 		for block in blocks {
-			// The block is already in the cache, awesome !
+			// The block is already in the cache, awesome!
 			if let Some(block_cache) = self.cached_blocks.get_mut(&block) {
 				block_cache.active_batch_count += 1;
 				tracing::trace!(
@@ -563,7 +563,7 @@ where
 
 				// Spawn all block caching asynchronously.
 				// It will wait to obtain a permit, then spawn a blocking task.
-				// When the blocking task returns its result, it is send
+				// When the blocking task returns its result, it is sent
 				// thought a channel to the main task loop.
 				tokio::spawn(
 					async move {
@@ -599,7 +599,7 @@ where
 
 						tracing::trace!("Block tracing finished, sending result to main task.");
 
-						// Send response to main task.
+						// Send a response to the main task.
 						let _ = blocking_tx
 							.send(BlockingTaskMessage::Finished {
 								block_hash: block,
@@ -628,13 +628,13 @@ where
 		// Respond with the batch ID.
 		let _ = sender.send(CacheBatchId(self.next_batch_id));
 
-		// Increase batch ID for next request.
+		// Increase batch ID for the next request.
 		self.next_batch_id = self.next_batch_id.overflowing_add(1).0;
 	}
 
 	/// Handle a request to get the traces of the provided block.
-	/// - If the result is stored in the cache, it sends it immediatly.
-	/// - If the block is currently being pooled, it is added in this block cache waiting list,
+	/// - If the result is stored in the cache, it sends it immediately.
+	/// - If the block is currently being pooled, it is added to this block cache waiting list,
 	///   and all requests concerning this block will be satisfied when the tracing for this block
 	///   is finished.
 	/// - If this block is missing from the cache, it means no batch asked for it. All requested
