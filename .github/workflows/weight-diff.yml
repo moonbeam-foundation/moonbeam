@@ -3,12 +3,12 @@ name: Weight Difference Report
 on:
   pull_request:
     paths:
-        - 'runtime/moonbase/weights/**/*.rs'
-        - 'runtime/moonbase/weights/*.rs'
-        - 'runtime/moonriver/weights/**/*.rs'
-        - 'runtime/moonriver/weights/*.rs'
-        - 'runtime/moonbeam/weights/**/*.rs'
-        - 'runtime/moonbeam/weights/*.rs'
+        - 'runtime/moonbase/src/weights/**/*.rs'
+        - 'runtime/moonbase/src/weights/*.rs'
+        - 'runtime/moonriver/src/weights/**/*.rs'
+        - 'runtime/moonriver/src/weights/*.rs'
+        - 'runtime/moonbeam/src/weights/**/*.rs'
+        - 'runtime/moonbeam/src/weights/*.rs'
 
 
 jobs:
