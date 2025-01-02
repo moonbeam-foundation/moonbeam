@@ -390,28 +390,6 @@ pub mod pallet {
 			AssetsByLocation::<T>::insert(&asset_location, (asset_id, AssetStatus::Active));
 			AssetsById::<T>::insert(&asset_id, asset_location);
 		}
-
-		/// Ensures that the origin has the required permissions to modifiy an asset
-		fn ensure_asset_owner(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
-			let asset_details = AssetsCreationDetails::<T>::get(&asset_id);
-			let caller = ensure_signed(origin.clone())?;
-
-			match asset_details {
-				Some(data) => match data.owner {
-					AssetOwner::Account(account) => {
-						ensure!(account == caller, Error::<T>::OriginIsNotAssetCreator);
-					}
-					AssetOwner::Governance | AssetOwner::Root => {
-						<T as Config>::ForeignAssetFreezerOrigin::ensure_origin(origin)?;
-					}
-				},
-				None => {
-					<T as Config>::ForeignAssetFreezerOrigin::ensure_origin(origin)?;
-				}
-			}
-
-			Ok(())
-		}
 	}
 
 	#[pallet::call]
@@ -489,7 +467,7 @@ pub mod pallet {
 			asset_id: AssetId,
 			new_xcm_location: Location,
 		) -> DispatchResult {
-			Self::ensure_asset_owner(origin.clone(), asset_id)?;
+			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
 			let previous_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
@@ -522,7 +500,7 @@ pub mod pallet {
 			asset_id: AssetId,
 			allow_xcm_deposit: bool,
 		) -> DispatchResult {
-			Self::ensure_asset_owner(origin.clone(), asset_id)?;
+			T::ForeignAssetFreezerOrigin::ensure_origin(origin)?;
 
 			let xcm_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
@@ -556,7 +534,7 @@ pub mod pallet {
 		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::unfreeze_foreign_asset())]
 		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
-			Self::ensure_asset_owner(origin.clone(), asset_id)?;
+			T::ForeignAssetUnfreezerOrigin::ensure_origin(origin)?;
 
 			let xcm_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;

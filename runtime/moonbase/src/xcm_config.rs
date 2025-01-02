@@ -36,7 +36,7 @@ use frame_support::{
 	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
 
-use frame_system::{EnsureRoot, RawOrigin};
+use frame_system::{EnsureRoot, EnsureSigned, RawOrigin};
 use sp_core::{ConstU32, H160, H256};
 use sp_weights::Weight;
 use xcm_builder::{
@@ -708,7 +708,7 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetCreatorOrigin = EnsureSigned<AccountId>;
 	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
