@@ -10,8 +10,11 @@ import {
   relayAssetMetadata,
   ARBITRARY_ASSET_ID,
   RELAY_SOURCE_LOCATION_V4,
+  registerAndFundAsset,
+  PARA_1000_SOURCE_LOCATION,
 } from "../../../../helpers";
 import { ethers } from "ethers";
+import { para1000AssetMetadata } from "./test-precompile-pallet-xcm-2";
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
 describeSuite({
@@ -26,20 +29,23 @@ describeSuite({
       const someBalance = 100_000_000_000_000_000_000_000_000n;
 
       // Register the asset
-      const { registeredAssetId, contractAddress } = await registerForeignAsset(
+      const { registeredAssetId, contractAddress } = await registerAndFundAsset(
         context,
-        ARBITRARY_ASSET_ID,
-        RELAY_SOURCE_LOCATION_V4,
-        relayAssetMetadata
+        {
+          id: ARBITRARY_ASSET_ID,
+          location: RELAY_SOURCE_LOCATION_V4,
+          metadata: relayAssetMetadata,
+          relativePrice: 1_000_000_000_000_000_000n,
+        },
+        someBalance,
+        ALITH_ADDRESS,
+        false
       );
 
       console.log("contract address: ", contractAddress);
       console.log("asset id: ", registeredAssetId);
 
       foreignAssetContract = new ethers.Contract(contractAddress, erc20Abi, context.ethers());
-
-      // Mock asset balance
-      await mockAssetBalance(context, someBalance, ARBITRARY_ASSET_ID, alith, ALITH_ADDRESS);
     });
 
     it({

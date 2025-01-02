@@ -24,6 +24,7 @@ import {
   registerForeignAsset,
   relayAssetMetadata,
   RELAY_SOURCE_LOCATION_V4,
+  registerAndFundAsset,
 } from "../../../../helpers";
 import type { AssetMetadata } from "../../../../helpers";
 import { ethers } from "ethers";
@@ -53,18 +54,21 @@ describeSuite({
 
       // Register the asset
       const { registeredAssetId: relayAssetId, contractAddress: relayAssetAddress } =
-        await registerForeignAsset(
+        await registerAndFundAsset(
           context,
-          ARBITRARY_ASSET_ID,
-          RELAY_SOURCE_LOCATION_V4,
-          relayAssetMetadata
+          {
+            id: ARBITRARY_ASSET_ID,
+            location: RELAY_SOURCE_LOCATION_V4,
+            metadata: relayAssetMetadata,
+            relativePrice: 1_000_000_000_000_000_000n,
+          },
+          balance,
+          ALITH_ADDRESS,
+          false
         );
 
       console.log("Foreign Relay asset address: ", relayAssetAddress);
       console.log("Foreign Relay asset id: ", relayAssetId);
-
-      // Mock asset balance
-      await mockAssetBalance(context, balance, relayAssetId, alith, ALITH_ADDRESS);
 
       foreignRelayAssetContract = new ethers.Contract(
         relayAssetAddress,
@@ -74,17 +78,20 @@ describeSuite({
 
       // Register the asset
       const { registeredAssetId: paraAssetId, contractAddress: paraAssetAddress } =
-        await registerForeignAsset(
+        await registerAndFundAsset(
           context,
-          ARBITRARY_ASSET_ID + 1n,
-          PARA_1000_SOURCE_LOCATION,
-          para1000AssetMetadata
+          {
+            id: ARBITRARY_ASSET_ID + 1n,
+            location: PARA_1000_SOURCE_LOCATION,
+            metadata: para1000AssetMetadata,
+            relativePrice: 1_000_000_000_000_000_000n,
+          },
+          balance,
+          ALITH_ADDRESS
         );
 
       console.log("Foreign Para asset address: ", paraAssetAddress);
       console.log("Foreign Para asset id: ", paraAssetId);
-
-      await mockAssetBalance(context, balance, paraAssetId, alith, ALITH_ADDRESS);
 
       foreignParaAssetContract = new ethers.Contract(paraAssetAddress, erc20Abi, context.ethers());
 
