@@ -355,6 +355,8 @@
 <a href="#353" id="353">353</a>
 <a href="#354" id="354">354</a>
 <a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -373,11 +375,10 @@
 
 </span><span class="kw">use </span><span class="kw">super</span>::moonbase_weights;
 <span class="kw">use crate</span>::{
-	asset_config::ForeignAssetInstance,
-	xcm_config::{AssetType, XcmExecutorConfig},
-	OpenTechCommitteeInstance, TreasuryCouncilInstance,
+	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
+	TreasuryCouncilInstance,
 };
-<span class="kw">use crate</span>::{AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, Runtime, H160};
+<span class="kw">use crate</span>::{AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime, H160};
 <span class="kw">use </span>frame_support::parameter_types;
 <span class="kw">use </span>moonkit_xcm_primitives::{
 	location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher},
@@ -418,7 +419,6 @@
 <span class="kw">use </span>precompile_foreign_asset_migrator::ForeignAssetMigratorPrecompile;
 <span class="kw">use </span>precompile_utils::precompile_set::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>xcm_primitives::AsAssetType;
 
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub </span>P256VerifyWeight: frame_support::weights::Weight =
@@ -470,7 +470,7 @@
 
 <span class="comment">// Pallet-xcm precompile types.
 // Type that converts AssetId into Location
-</span><span class="kw">type </span>AssetIdToLocationManager = AsAssetType&lt;AssetId, AssetType, AssetManager&gt;;
+</span><span class="kw">type </span>AssetIdToLocationManager = EvmForeignAssets;
 
 <span class="comment">// The pallet-balances address is identified by ERC20_BALANCES_PRECOMPILE const
 </span><span class="kw">type </span>SingleAddressMatch = SingleAddressMatcher&lt;AccountId, ERC20_BALANCES_PRECOMPILE, Balances&gt;;
@@ -637,7 +637,11 @@
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2074</span>&gt;,
 		PalletXcmPrecompile&lt;R, (SingleAddressMatch, ForeignAssetMatch, Erc20Match)&gt;,
-		(CallableByContract, CallableByPrecompile),
+		(
+			CallableByContract,
+			CallableByPrecompile,
+			SubcallWithMaxNesting&lt;<span class="number">1</span>&gt;,
+		),
 	&gt;,
 	PrecompileAt&lt;AddressU64&lt;<span class="number">2075</span>&gt;, ForeignAssetMigratorPrecompile&lt;R&gt;, ()&gt;,
 );
