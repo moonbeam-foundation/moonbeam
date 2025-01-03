@@ -42,6 +42,13 @@ pub mod dynamic_params {
 			{ 1_000 * currency::GLMR * currency::SUPPLY_FACTOR },
 		> = BoundedU128::const_new::<{ 1 * currency::GLMR * currency::SUPPLY_FACTOR }>();
 	}
+
+	#[dynamic_pallet_params]
+	#[codec(index = 2)]
+	pub mod xcm_config {
+		#[codec(index = 0)]
+		pub static ForeignAssetCreationDeposit: u64 = 10_000;
+	}
 }
 
 expose_u128_get!(

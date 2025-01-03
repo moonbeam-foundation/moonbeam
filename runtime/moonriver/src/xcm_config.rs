@@ -17,12 +17,7 @@
 //! XCM configuration for Moonbase.
 //!
 
-use super::{
-	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
-	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance,
-	ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights,
-	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
-};
+use super::{governance, runtime_params, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue};
 
 use super::moonriver_weights;
 use frame_support::{
@@ -36,7 +31,7 @@ use sp_runtime::{
 };
 use sp_weights::Weight;
 
-use frame_system::{EnsureRoot, RawOrigin};
+use frame_system::{EnsureRoot, EnsureSigned, RawOrigin};
 use sp_core::{ConstU32, H160, H256};
 
 use xcm_builder::{
@@ -66,13 +61,13 @@ use xcm_primitives::{
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
+use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
+use moonbeam_core_primitives::BlockNumber;
 use sp_core::Get;
 use sp_std::{
 	convert::{From, Into, TryFrom},
 	prelude::*,
 };
-
-use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 
 parameter_types! {
 	// The network Id of the relay
@@ -694,19 +689,20 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 	}
 }
 
-pub type ForeignAssetManagerOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		governance::custom_origins::FastGeneralAdmin,
-	>,
->;
+parameter_types! {
+	/// Balance in the native currency that will be reserved from the user
+	/// to create a new foreign asset
+	pub ForeignAssetCreationDeposit: u64 =
+		runtime_params::dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
+}
+
+pub type ForeignAssetManagerOrigin = frame_system::EnsureSigned<AccountId>;
 
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetCreatorOrigin = EnsureSigned<AccountId>;
 	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
@@ -715,6 +711,10 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonriver_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
+	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
+	type BlockNumber = BlockNumber;
+	type Currency = Balances;
+	type Balance = Balance;
 }
 
 pub struct AssetFeesFilter;

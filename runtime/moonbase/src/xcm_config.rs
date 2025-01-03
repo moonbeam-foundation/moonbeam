@@ -17,7 +17,7 @@
 //! XCM configuration for Moonbase.
 //!
 
-use super::moonbase_weights;
+use super::{moonbase_weights, runtime_params};
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
 	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo,
@@ -36,7 +36,7 @@ use frame_support::{
 	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
 
-use frame_system::{EnsureRoot, RawOrigin};
+use frame_system::{EnsureRoot, EnsureSigned, RawOrigin};
 use sp_core::{ConstU32, H160, H256};
 use sp_weights::Weight;
 use xcm_builder::{
@@ -58,6 +58,7 @@ use xcm::latest::prelude::{
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
+use parachains_common::BlockNumber;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
 	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
@@ -695,19 +696,20 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 	}
 }
 
-pub type ForeignAssetManagerOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		governance::custom_origins::FastGeneralAdmin,
-	>,
->;
+parameter_types! {
+	/// Balance in the native currency that will be reserved from the user
+	/// to create a new foreign asset
+	pub ForeignAssetCreationDeposit: u64 =
+		runtime_params::dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
+}
+
+pub type ForeignAssetManagerOrigin = frame_system::EnsureSigned<AccountId>;
 
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetCreatorOrigin = EnsureSigned<AccountId>;
 	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
@@ -716,6 +718,10 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
+	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
+	type BlockNumber = BlockNumber;
+	type Currency = Balances;
+	type Balance = Balance;
 }
 
 pub struct AssetFeesFilter;
