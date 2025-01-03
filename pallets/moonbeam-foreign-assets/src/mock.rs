@@ -178,7 +178,7 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 }
 
 parameter_types! {
-	pub const ForeignAssetDeposit: u64 = 1;
+	pub const ForeignAssetCreationDeposit: u64 = 1;
 }
 
 impl crate::Config for Test {
@@ -194,7 +194,7 @@ impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type XcmLocationToH160 = ();
-	type ForeignAssetDeposit = ();
+	type ForeignAssetCreationDeposit = ();
 	type BlockNumber = BlockNumber;
 	type Balance = Balance;
 

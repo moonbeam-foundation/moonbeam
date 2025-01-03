@@ -692,7 +692,7 @@ pub type ForeignAssetManagerOrigin = EitherOfDiverse<
 parameter_types! {
 	/// Balance in the native currency that will be reserved from the user
 	/// to create a new foreign asset
-	pub ForeignAssetDeposit: u64 = 100;
+	pub ForeignAssetCreationDeposit: u64 = 100;
 }
 
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
@@ -708,7 +708,7 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbeam_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
-	type ForeignAssetDeposit = ForeignAssetDeposit;
+	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
 	type BlockNumber = BlockNumber;
 	type Currency = Balances;
 	type Balance = Balance;

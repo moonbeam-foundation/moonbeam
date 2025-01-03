@@ -697,7 +697,7 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 parameter_types! {
 	/// Balance in the native currency that will be reserved from the user
 	/// to create a new foreign asset
-	pub ForeignAssetDeposit: u64 = 100;
+	pub ForeignAssetCreationDeposit: u64 = 100;
 }
 
 pub type ForeignAssetManagerOrigin = frame_system::EnsureSigned<AccountId>;
@@ -715,7 +715,7 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonriver_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
-	type ForeignAssetDeposit = ForeignAssetDeposit;
+	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
 	type BlockNumber = BlockNumber;
 	type Currency = Balances;
 	type Balance = Balance;

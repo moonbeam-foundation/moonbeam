@@ -161,7 +161,7 @@ pub mod pallet {
 		type XcmLocationToH160: ConvertLocation<H160>;
 
 		/// Amount of tokens required to lock for creating a new foreign asset
-		type ForeignAssetDeposit: Get<BalanceOf<Self>>;
+		type ForeignAssetCreationDeposit: Get<BalanceOf<Self>>;
 
 		/// The block number type for the pallet
 		type BlockNumber: BlockNumber;
@@ -217,7 +217,7 @@ pub mod pallet {
 			contract_address: H160,
 			asset_id: AssetId,
 			xcm_location: Location,
-			deposit: BalanceOf<T>,
+			deposit: Option<BalanceOf<T>>,
 		},
 		/// Changed the xcm type mapping for a given asset id
 		ForeignAssetXcmLocationChanged {
@@ -265,14 +265,13 @@ pub mod pallet {
 	#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, TypeInfo, MaxEncodedLen)]
 	pub enum AssetOwner<T: Config + scale_info::TypeInfo> {
 		Governance,
-		Root,
 		Account(T::AccountId),
 	}
 
 	#[derive(Clone, Decode, Encode, Eq, PartialEq, Debug, TypeInfo, MaxEncodedLen)]
 	pub struct AssetCreationDetails<T: Config + scale_info::TypeInfo> {
 		pub owner: AssetOwner<T>,
-		pub deposit: BalanceOf<T>,
+		pub deposit: Option<BalanceOf<T>>,
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -292,6 +291,8 @@ pub mod pallet {
 			H160(buffer)
 		}
 
+		/// This method only exists for migration purposes and will be deleted once the
+		/// foreign assets migration is finished.
 		pub fn register_foreign_asset(
 			asset_id: AssetId,
 			xcm_location: Location,
@@ -324,18 +325,22 @@ pub mod pallet {
 			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
 
 			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
+			let owner = AssetOwner::<T>::Governance;
 
 			// Insert the association assetId->foreigAsset
 			// Insert the association foreigAsset->assetId
 			AssetsById::<T>::insert(&asset_id, &xcm_location);
 			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, AssetStatus::Active));
-			let deposit = T::ForeignAssetDeposit::get();
+			AssetsCreationDetails::<T>::insert(
+				&asset_id,
+				AssetCreationDetails { owner, deposit: None }
+			);
 
 			Self::deposit_event(Event::ForeignAssetCreated {
 				contract_address,
 				asset_id,
 				xcm_location,
-				deposit,
+				deposit: None,
 			});
 			Ok(())
 		}
@@ -432,7 +437,7 @@ pub mod pallet {
 			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
 			let owner_account = ensure_signed(origin)?;
 			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
-			let deposit = T::ForeignAssetDeposit::get();
+			let deposit = T::ForeignAssetCreationDeposit::get();
 			let owner = AssetOwner::<T>::Account(owner_account.clone());
 
 			// Insert the association assetId->foreigAsset
@@ -444,7 +449,10 @@ pub mod pallet {
 			<T as Config>::Currency::reserve(&owner_account, deposit)?;
 
 			// Insert the amount that is reserved from the user
-			AssetsCreationDetails::<T>::insert(&asset_id, AssetCreationDetails { owner, deposit });
+			AssetsCreationDetails::<T>::insert(
+				&asset_id,
+				AssetCreationDetails { owner, deposit: Some(deposit) }
+			);
 
 			T::OnForeignAssetCreated::on_asset_created(&xcm_location, &asset_id);
 
@@ -452,7 +460,7 @@ pub mod pallet {
 				contract_address,
 				asset_id,
 				xcm_location,
-				deposit,
+				deposit: Some(deposit),
 			});
 			Ok(())
 		}
