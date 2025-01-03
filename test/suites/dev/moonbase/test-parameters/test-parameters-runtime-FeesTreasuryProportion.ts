@@ -92,21 +92,13 @@ describeSuite({
       };
       const calcIssuanceDecrease = (feeWithTip: bigint, tip?: bigint): bigint => {
         const feeWithTipBN = new BN(feeWithTip.toString());
-        const tipBN = new BN(tip?.toString() || "0");
-        const feeWithoutTipBN = feeWithTipBN.sub(tipBN);
-
-        const [burnFeePart, _treasuryFeePart] = split(
-          feeWithoutTipBN,
-          burnProportion.value(),
-          t.proportion.value()
-        );
-        const [burnTipPart, _treasuryTipPart] = split(
-          tipBN,
+        const [burnFeeWithTipPart, _treasuryFeeWithTipPart] = split(
+          feeWithTipBN,
           burnProportion.value(),
           t.proportion.value()
         );
 
-        return BigInt(burnFeePart.add(burnTipPart).toString());
+        return BigInt(burnFeeWithTipPart.toString());
       };
 
       for (const txnType of TransactionTypes) {
