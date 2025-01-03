@@ -17,7 +17,7 @@
 //! XCM configuration for Moonbase.
 //!
 
-use super::moonbase_weights;
+use super::{moonbase_weights, runtime_params};
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
 	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo,
@@ -699,7 +699,8 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 parameter_types! {
 	/// Balance in the native currency that will be reserved from the user
 	/// to create a new foreign asset
-	pub ForeignAssetCreationDeposit: u64 = 100;
+	pub ForeignAssetCreationDeposit: u64 =
+		runtime_params::dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
 }
 
 pub type ForeignAssetManagerOrigin = frame_system::EnsureSigned<AccountId>;
