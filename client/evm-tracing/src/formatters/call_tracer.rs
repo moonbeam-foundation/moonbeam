@@ -37,10 +37,15 @@ impl super::ResponseFormatter for Formatter {
 	type Response = Vec<BlockTransactionTrace>;
 
 	fn format(mut listener: Listener) -> Option<Vec<BlockTransactionTrace>> {
-		// Remove empty BTreeMaps pushed to `entries`.
-		// I.e. InvalidNonce or other pallet_evm::runner exits
+		// Skip empty transactions early to avoid unnecessary processing
+		if listener.entries.is_empty() {
+			return None;
+		}
+
+		// Remove empty BTreeMaps
 		listener.entries.retain(|x| !x.is_empty());
-		let mut traces = Vec::new();
+		
+		let mut traces = Vec::with_capacity(listener.entries.len());
 		for (eth_tx_index, entry) in listener.entries.iter().enumerate() {
 			let mut result: Vec<Call> = entry
 				.into_iter()
@@ -169,28 +174,8 @@ impl super::ResponseFormatter for Formatter {
 							trace_address: Some(b),
 							..
 						}),
-					) => {
-						let a_len = a.len();
-						let b_len = b.len();
-						let sibling_greater_than = |a: &Vec<u32>, b: &Vec<u32>| -> bool {
-							for (i, a_value) in a.iter().enumerate() {
-								if a_value > &b[i] {
-									return true;
-								} else if a_value < &b[i] {
-									return false;
-								} else {
-									continue;
-								}
-							}
-							return false;
-						};
-						if b_len > a_len || (a_len == b_len && sibling_greater_than(&a, &b)) {
-							Ordering::Less
-						} else {
-							Ordering::Greater
-						}
-					}
-					_ => unreachable!(),
+					) => compare_trace_address(a, b),
+					_ => unreachable!("All calls should have trace addresses"),
 				});
 				// Stack pop-and-push.
 				while result.len() > 1 {
@@ -279,6 +264,7 @@ pub struct CallTracerCall {
 	pub inner: CallTracerInner,
 
 	#[serde(skip_serializing_if = "Vec::is_empty")]
+	#[serde(default)]
 	pub calls: Vec<Call>,
 }
 
@@ -296,6 +282,7 @@ pub enum CallTracerInner {
 		res: CallResult,
 
 		#[serde(skip_serializing_if = "Option::is_none")]
+		#[serde(default)]
 		value: Option<U256>,
 
 		#[serde(skip_serializing_if = "Vec::is_empty")]
@@ -326,4 +313,21 @@ pub enum CallTracerInner {
 		to: H160,
 		value: U256,
 	},
+}
+
+fn compare_trace_address(a: &[u32], b: &[u32]) -> Ordering {
+	let a_len = a.len();
+	let b_len = b.len();
+	
+	if b_len != a_len {
+		return a_len.cmp(&b_len);
+	}
+	
+	for (a_value, b_value) in a.iter().zip(b.iter()) {
+		match a_value.cmp(b_value) {
+			Ordering::Equal => continue,
+			other => return other,
+		}
+	}
+	Ordering::Equal
 }
