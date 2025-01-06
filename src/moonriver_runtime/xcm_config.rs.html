@@ -844,7 +844,7 @@
 	EnsureXcmOrigin, FungibleAdapter <span class="kw">as </span>XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
 	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, WeightInfoBounds, WithComputedOrigin,
+	TakeWeightCredit, TrailingSetTopicAsId, WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
 };
 
 <span class="kw">use </span>parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -1004,7 +1004,7 @@
 	MaxInstructions,
 &gt;;
 
-<span class="kw">pub type </span>XcmBarrier = (
+<span class="kw">pub type </span>XcmBarrier = TrailingSetTopicAsId&lt;(
 	<span class="comment">// Weight that is paid for may be consumed.
 	</span>TakeWeightCredit,
 	<span class="comment">// Expected responses are OK.
@@ -1019,7 +1019,7 @@
 		UniversalLocation,
 		ConstU32&lt;<span class="number">8</span>&gt;,
 	&gt;,
-);
+)&gt;;
 
 <span class="macro">parameter_types! </span>{
 	<span class="doccomment">/// Xcm fees will go to the treasury account
@@ -1119,12 +1119,12 @@
 
 <span class="doccomment">/// The means for routing XCM messages which are not for local execution into the right message
 /// queues.
-</span><span class="kw">pub type </span>XcmRouter = (
+</span><span class="kw">pub type </span>XcmRouter = WithUniqueTopic&lt;(
 	<span class="comment">// Two routers - use UMP to communicate with the relay chain:
 	</span>cumulus_primitives_utility::ParentAsUmp&lt;ParachainSystem, PolkadotXcm, ()&gt;,
 	<span class="comment">// ..and XCMP to communicate with the sibling chains.
 	</span>XcmpQueue,
-);
+)&gt;;
 
 <span class="kw">impl </span>pallet_xcm::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
