@@ -34,11 +34,16 @@ jobs:
                     - 'runtime/moonbeam/src/weights/**'
 
             - name: Moonbase Report
-              if: steps.changed-files-yaml.outputs.moonbase_any_changed == 'true'  
+              if: steps.changed-files-yaml.outputs.moonbase_any_changed == 'true'
+              env:
+                ALL_CHANGED_FILES: ${{ steps.changed-files-yaml.outputs.all_changed_files }}
               run: |
                 echo "## Moonbase Weight Difference Report" >> weight_diff_report.md
                 subweight compare commits --no-color --format markdown --method exact-worst --path-pattern runtime/moonbase/src/weights/cumulus_pallet_parachain_system.rs ${{github.base_ref}} ${{github.head_ref}} >> weight_diff_report.md
-
+                for file in ${ALL_CHANGED_FILES}; do
+                  echo "$file was changed"
+                  subweight compare commits --no-color --format markdown --method exact-worst --path-pattern $file ${{github.base_ref}} ${{github.head_ref}} >> weight_diff_report.md
+                done
 
             - name: Moonriver Report
               if: steps.changed-files-yaml.outputs.moonriver_any_changed == 'true'  
