@@ -104,6 +104,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Heiko",
         paraId: 2085,
+        mutedUntil: new Date("2025-02-28").getTime(),
       },
       {
         name: "Picasso",
