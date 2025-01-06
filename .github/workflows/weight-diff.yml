@@ -36,8 +36,9 @@ jobs:
             - name: Moonbase Report
               if: steps.changed-files-yaml.outputs.moonbase_any_changed == 'true'  
               run: |
-                subweight compare commits --method exact-worst --path-pattern runtime/moonbase/src/weights/cumulus_pallet_parachain_system.rs ${{github.base_ref}} ${{github.head_ref}}
                 echo "## Moonbase Weight Difference Report" >> weight_diff_report.md
+                subweight compare commits --method exact-worst --path-pattern runtime/moonbase/src/weights/cumulus_pallet_parachain_system.rs ${{github.base_ref}} ${{github.head_ref}} >> weight_diff_report.md
+
 
             - name: Moonriver Report
               if: steps.changed-files-yaml.outputs.moonriver_any_changed == 'true'  
