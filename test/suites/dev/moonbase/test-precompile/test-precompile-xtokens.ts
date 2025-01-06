@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, PRECOMPILES, createViemTransaction } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  GLMR,
+  PRECOMPILES,
+  createViemTransaction,
+  CHARLETH_ADDRESS,
+  CHARLETH_PRIVATE_KEY,
+} from "@moonwall/util";
 import {
   verifyLatestBlockFees,
   expectEVMResult,
@@ -214,7 +221,7 @@ describeSuite({
         const fee_item = 0;
         const weight = 100;
 
-        const balBefore = await context.viem().getBalance({ address: ALITH_ADDRESS });
+        const balBefore = await context.viem().getBalance({ address: CHARLETH_ADDRESS });
         const { abi } = fetchCompiledContract("Xtokens");
         const data = encodeFunctionData({
           abi,
@@ -229,10 +236,11 @@ describeSuite({
           txnType: "legacy",
           gas: 500_000n,
           gasPrice: BigInt(DEFAULT_TXN_MAX_BASE_FEE),
+          privateKey: CHARLETH_PRIVATE_KEY,
         });
 
         const { result } = await context.createBlock(rawTxn);
-        const balAfter = await context.viem().getBalance({ address: ALITH_ADDRESS });
+        const balAfter = await context.viem().getBalance({ address: CHARLETH_ADDRESS });
         const receipt = await context
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });

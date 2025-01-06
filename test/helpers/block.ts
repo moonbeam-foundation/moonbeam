@@ -197,12 +197,14 @@ export const verifyBlockFees = async (
                 const baseFeesPaid = gasUsed * baseFeePerGas;
                 const tipAsFeesPaid = gasUsed * effectiveTipPerGas;
 
+                // TODO: [calculateFeePortions] needs to be updated.
                 const baseFeePortions = calculateFeePortions(baseFeesPaid);
-                const tipFeePortions = calculateFeePortions(tipAsFeesPaid);
+                // we send tips to collator
+                // const tipFeePortions = calculateFeePortions(tipAsFeesPaid);
 
                 txFees += baseFeesPaid + tipAsFeesPaid;
                 txBurnt += baseFeePortions.burnt;
-                txBurnt += tipFeePortions.burnt;
+                // txBurnt += tipFeePortions.burnt;
               } else {
                 // For a regular substrate tx, we use the partialFee
                 const feePortions = calculateFeePortions(fee.partialFee.toBigInt());
