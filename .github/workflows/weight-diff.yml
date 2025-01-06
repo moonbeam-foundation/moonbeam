@@ -32,6 +32,16 @@ jobs:
                     - 'runtime/moonriver/src/weights/**'
                     moonbeam:
                     - 'runtime/moonbeam/src/weights/**'
+                files_ignore_yaml: |
+                    moonbase:
+                    - 'runtime/moonbase/src/weights/mod.rs'
+                    - 'runtime/moonbase/src/weights/db/mod.rs'
+                    moonriver:
+                    - 'runtime/moonriver/src/weights/mod.rs'
+                    - 'runtime/moonriver/src/weights/db/mod.rs'
+                    moonbeam:
+                    - 'runtime/moonbeam/src/weights/mod.rs'
+                    - 'runtime/moonbeam/src/weights/db/mod.rs'
 
             - name: Moonbase Report
               if: steps.changed-files-yaml.outputs.moonbase_any_changed == 'true'
