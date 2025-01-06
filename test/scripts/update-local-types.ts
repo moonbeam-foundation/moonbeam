@@ -60,6 +60,7 @@ const startNode = (network: string, rpcPort: string, port: string) => {
       "--wasm-execution=interpreted-i-know-what-i-do",
       "--no-telemetry",
       "--no-prometheus",
+      "--rpc-cors=all",
       "--tmp",
     ],
     {
@@ -107,7 +108,7 @@ const executeUpdateAPIScript = async () => {
   // Bundle types
   await executeScript("../../moonbeam-types-bundle", "pnpm i");
   await executeScript("../../moonbeam-types-bundle", "pnpm build");
-  await executeScript("../../moonbeam-types-bundle", "pnpm fmt:fix");
+  await executeScript("../../moonbeam-types-bundle", "pnpm check:fix");
 
   // Generate types
   console.log("Extracting metadata for all runtimes...");
