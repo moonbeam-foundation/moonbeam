@@ -52,9 +52,9 @@ jobs:
                 echo "| File | Extrinsic | Old | New | Change [%] |" >> weight_diff_report.md
                 echo "|------|-----------|-----|-----|------------|" >> weight_diff_report.md
                 for file in ${ALL_CHANGED_FILES}; do
-                  subweight compare commits --no-color --format markdown --method exact-worst --path-pattern $file ${{github.base_ref}} ${{github.head_ref}}  >> weight_diff_report.md
+                  subweight compare commits --no-color --format markdown --method exact-worst --path-pattern $file ${{github.base_ref}} ${{github.head_ref}} | sed 1,d2  >> weight_diff_report.md
                 done
-                
+
             - name: Moonriver Report
               if: steps.changed-files-yaml.outputs.moonriver_any_changed == 'true'
               env:
