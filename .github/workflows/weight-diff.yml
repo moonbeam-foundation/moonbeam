@@ -50,7 +50,7 @@ jobs:
               run: |
                 echo "## Moonbase Weight Difference Report" >> weight_diff_report.md
                 for file in ${ALL_CHANGED_FILES}; do
-                  subweight compare commits --no-color --format markdown --method exact-worst --path-pattern $file ${{github.base_ref}} ${{github.head_ref}} >> weight_diff_report.md
+                  subweight compare commits --no-color --format markdown --method exact-worst --path-pattern $file ${{github.base_ref}} ${{github.head_ref}} | sed 1,2d >> weight_diff_report.md
                 done
 
             - name: Moonriver Report
@@ -59,6 +59,7 @@ jobs:
                 ALL_CHANGED_FILES: ${{ steps.changed-files-yaml.outputs.moonriver_all_changed_files }}
               run: |
                 echo "## Moonriver Weight Difference Report" >> weight_diff_report.md
+                export HEADER=1
                 for file in ${ALL_CHANGED_FILES}; do
                   subweight compare commits --no-color --format markdown --method exact-worst --path-pattern $file ${{github.base_ref}} ${{github.head_ref}} >> weight_diff_report.md
                 done
