@@ -6,24 +6,23 @@ import {
   describeSuite,
   expect,
 } from "@moonwall/cli";
-import {CHARLETH_PRIVATE_KEY, CHARLETH_ADDRESS, createEthersTransaction} from "@moonwall/util";
-import {encodeFunctionData, type Abi} from "viem";
-import {verifyLatestBlockFees} from "../../../../helpers";
+import { CHARLETH_PRIVATE_KEY, CHARLETH_ADDRESS, createEthersTransaction } from "@moonwall/util";
+import { encodeFunctionData, type Abi } from "viem";
+import { verifyLatestBlockFees } from "../../../../helpers";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
   id: "D010603",
   title: "Contract loop error",
   foundationMethods: "dev",
-  testCases: ({context, it, log}) => {
+  testCases: ({ context, it, log }) => {
     let looperAddress: `0x${string}`;
     let looperAbi: Abi;
 
     beforeAll(async () => {
-      const {
-        contractAddress,
-        abi
-      } = await deployCreateCompiledContract(context, "Looper", {privateKey: CHARLETH_PRIVATE_KEY});
+      const { contractAddress, abi } = await deployCreateCompiledContract(context, "Looper", {
+        privateKey: CHARLETH_PRIVATE_KEY,
+      });
 
       looperAddress = contractAddress;
       looperAbi = abi;
@@ -39,7 +38,7 @@ describeSuite({
               await context.viem().call({
                 account: CHARLETH_ADDRESS,
                 to: looperAddress,
-                data: encodeFunctionData({abi: looperAbi, functionName: "infinite", args: []}),
+                data: encodeFunctionData({ abi: looperAbi, functionName: "infinite", args: [] }),
                 gas: 12_000_000n,
               }),
             "Execution succeeded but should have failed"
@@ -54,14 +53,14 @@ describeSuite({
           const rawSigned = await createEthersTransaction(context, {
             privateKey: CHARLETH_PRIVATE_KEY,
             to: looperAddress,
-            data: encodeFunctionData({abi: looperAbi, functionName: "infinite", args: []}),
+            data: encodeFunctionData({ abi: looperAbi, functionName: "infinite", args: [] }),
             txnType,
           });
 
-          const {result} = await context.createBlock(rawSigned);
+          const { result } = await context.createBlock(rawSigned);
           const receipt = await context
             .viem("public")
-            .getTransactionReceipt({hash: result!.hash as `0x${string}`});
+            .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
           expect(receipt.status).toBe("reverted");
         },
       });
@@ -73,7 +72,7 @@ describeSuite({
           const rawSigned = await createEthersTransaction(context, {
             privateKey: CHARLETH_PRIVATE_KEY,
             to: looperAddress,
-            data: encodeFunctionData({abi: looperAbi, functionName: "infinite", args: []}),
+            data: encodeFunctionData({ abi: looperAbi, functionName: "infinite", args: [] }),
             txnType,
           });
 

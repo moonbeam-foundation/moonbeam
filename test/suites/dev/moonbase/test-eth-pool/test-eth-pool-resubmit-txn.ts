@@ -4,7 +4,7 @@ import {
   CHARLETH_PRIVATE_KEY,
   createRawTransfer,
   GLMR,
-  sendRawTransaction
+  sendRawTransaction,
 } from "@moonwall/util";
 import { parseGwei } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -106,7 +106,7 @@ describeSuite({
             maxFeePerGas: 1n * GLMR,
             maxPriorityFeePerGas: 1n * GLMR,
             privateKey: actorPrivateKey,
-          }),
+          })
         );
 
         const testParameters = [1n * GLMR, 2n * GLMR, 20n * GLMR, 4n * GLMR, 10n * GLMR];

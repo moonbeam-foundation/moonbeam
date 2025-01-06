@@ -1,4 +1,4 @@
-import {afterEach, beforeAll, customDevRpcRequest, describeSuite, expect} from "@moonwall/cli";
+import { afterEach, beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -11,15 +11,15 @@ import {
   createRawTransfer,
   sendRawTransaction,
 } from "@moonwall/util";
-import {parseGwei} from "viem";
-import {ALITH_GENESIS_TRANSFERABLE_BALANCE, ConstantStore} from "../../../../helpers";
-import {UNIT} from "../test-parameters/test-parameters";
+import { parseGwei } from "viem";
+import { ALITH_GENESIS_TRANSFERABLE_BALANCE, ConstantStore } from "../../../../helpers";
+import { UNIT } from "../test-parameters/test-parameters";
 
 describeSuite({
   id: "D011102",
   title: "Ethereum Rpc pool errors",
   foundationMethods: "dev",
-  testCases: ({context, it, log}) => {
+  testCases: ({ context, it, log }) => {
     beforeAll(async () => {
       await context.createBlock(await createRawTransfer(context, BALTATHAR_ADDRESS, 3n));
     });
@@ -45,7 +45,7 @@ describeSuite({
       id: "T02",
       title: "replacement transaction underpriced",
       test: async function () {
-        const nonce = await context.viem().getTransactionCount({address: ALITH_ADDRESS});
+        const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
 
         const tx1 = await createEthersTransaction(context, {
           to: CHARLETH_ADDRESS,
@@ -75,7 +75,7 @@ describeSuite({
       id: "T03",
       title: "nonce too low",
       test: async function () {
-        const nonce = await context.viem().getTransactionCount({address: CHARLETH_ADDRESS});
+        const nonce = await context.viem().getTransactionCount({ address: CHARLETH_ADDRESS });
         const tx1 = await context.createTxn!({
           to: BALTATHAR_ADDRESS,
           value: 1n,
@@ -101,14 +101,14 @@ describeSuite({
       id: "T04",
       title: "already known #2",
       test: async function () {
-        const {specVersion} = await context.polkadotJs().consts.system.version;
+        const { specVersion } = await context.polkadotJs().consts.system.version;
         const GENESIS_BASE_FEE = ConstantStore(context).GENESIS_BASE_FEE.get(
           specVersion.toNumber()
         );
 
         const nonce = await context
           .viem("public")
-          .getTransactionCount({address: GOLIATH_ADDRESS});
+          .getTransactionCount({ address: GOLIATH_ADDRESS });
 
         const tx1 = await createRawTransfer(context, BALTATHAR_ADDRESS, 1, {
           nonce: nonce + 1,
@@ -156,7 +156,8 @@ describeSuite({
       id: "T07",
       title: "insufficient funds for gas * price + value",
       test: async function () {
-        const CHARLETH_GENESIS_TRANSFERABLE_BALANCE = ALITH_GENESIS_TRANSFERABLE_BALANCE + 1000n * UNIT + 10n * 100_000_000_000_000n;
+        const CHARLETH_GENESIS_TRANSFERABLE_BALANCE =
+          ALITH_GENESIS_TRANSFERABLE_BALANCE + 1000n * UNIT + 10n * 100_000_000_000_000n;
         const amount = CHARLETH_GENESIS_TRANSFERABLE_BALANCE - 21000n * 10_000_000_000n + 1n;
         const tx = await createRawTransfer(context, BALTATHAR_ADDRESS, amount, {
           privateKey: CHARLETH_PRIVATE_KEY,
