@@ -37,15 +37,10 @@ impl super::ResponseFormatter for Formatter {
 	type Response = Vec<BlockTransactionTrace>;
 
 	fn format(mut listener: Listener) -> Option<Vec<BlockTransactionTrace>> {
-		// Skip empty transactions early to avoid unnecessary processing
-		if listener.entries.is_empty() {
-			return None;
-		}
-
-		// Remove empty BTreeMaps
+		// Remove empty BTreeMaps pushed to `entries`.
+		// I.e. InvalidNonce or other pallet_evm::runner exits
 		listener.entries.retain(|x| !x.is_empty());
-		
-		let mut traces = Vec::with_capacity(listener.entries.len());
+		let mut traces = Vec::new();
 		for (eth_tx_index, entry) in listener.entries.iter().enumerate() {
 			let mut result: Vec<Call> = entry
 				.into_iter()
@@ -174,8 +169,28 @@ impl super::ResponseFormatter for Formatter {
 							trace_address: Some(b),
 							..
 						}),
-					) => compare_trace_address(a, b),
-					_ => unreachable!("All calls should have trace addresses"),
+					) => {
+						let a_len = a.len();
+						let b_len = b.len();
+						let sibling_greater_than = |a: &Vec<u32>, b: &Vec<u32>| -> bool {
+							for (i, a_value) in a.iter().enumerate() {
+								if a_value > &b[i] {
+									return true;
+								} else if a_value < &b[i] {
+									return false;
+								} else {
+									continue;
+								}
+							}
+							return false;
+						};
+						if b_len > a_len || (a_len == b_len && sibling_greater_than(&a, &b)) {
+							Ordering::Less
+						} else {
+							Ordering::Greater
+						}
+					}
+					_ => unreachable!(),
 				});
 				// Stack pop-and-push.
 				while result.len() > 1 {
@@ -251,20 +266,16 @@ impl super::ResponseFormatter for Formatter {
 pub struct CallTracerCall {
 	pub from: H160,
 
-	/// Indices of parent calls. Used to build the Etherscan nested response.
-	#[serde(skip_serializing_if = "Option::is_none")]
+	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub trace_address: Option<Vec<u32>>,
 
-	/// Remaining gas in the runtime.
 	pub gas: U256,
-	/// Gas used by this context.
 	pub gas_used: U256,
 
 	#[serde(flatten)]
 	pub inner: CallTracerInner,
 
-	#[serde(skip_serializing_if = "Vec::is_empty")]
-	#[serde(default)]
+	#[serde(default, skip_serializing_if = "Vec::is_empty")]
 	pub calls: Vec<Call>,
 }
 
@@ -277,15 +288,11 @@ pub enum CallTracerInner {
 		to: H160,
 		#[serde(serialize_with = "bytes_0x_serialize")]
 		input: Vec<u8>,
-		/// "output" or "error" field
 		#[serde(flatten)]
 		res: CallResult,
-
-		#[serde(skip_serializing_if = "Option::is_none")]
-		#[serde(default)]
+		#[serde(default, skip_serializing_if = "Option::is_none")]
 		value: Option<U256>,
-
-		#[serde(skip_serializing_if = "Vec::is_empty")]
+		#[serde(default, skip_serializing_if = "Vec::is_empty")]
 		logs: Vec<Log>,
 	},
 	Create {
@@ -293,17 +300,11 @@ pub enum CallTracerInner {
 		call_type: Vec<u8>,
 		#[serde(serialize_with = "bytes_0x_serialize")]
 		input: Vec<u8>,
-		#[serde(skip_serializing_if = "Option::is_none")]
+		#[serde(default, skip_serializing_if = "Option::is_none")]
 		to: Option<H160>,
-		#[serde(
-			skip_serializing_if = "Option::is_none",
-			serialize_with = "option_bytes_0x_serialize"
-		)]
+		#[serde(default, skip_serializing_if = "Option::is_none", serialize_with = "option_bytes_0x_serialize")]
 		output: Option<Vec<u8>>,
-		#[serde(
-			skip_serializing_if = "Option::is_none",
-			serialize_with = "option_string_serialize"
-		)]
+		#[serde(default, skip_serializing_if = "Option::is_none", serialize_with = "option_string_serialize")]
 		error: Option<Vec<u8>>,
 		value: U256,
 	},
@@ -313,21 +314,4 @@ pub enum CallTracerInner {
 		to: H160,
 		value: U256,
 	},
-}
-
-fn compare_trace_address(a: &[u32], b: &[u32]) -> Ordering {
-	let a_len = a.len();
-	let b_len = b.len();
-	
-	if b_len != a_len {
-		return a_len.cmp(&b_len);
-	}
-	
-	for (a_value, b_value) in a.iter().zip(b.iter()) {
-		match a_value.cmp(b_value) {
-			Ordering::Equal => continue,
-			other => return other,
-		}
-	}
-	Ordering::Equal
 }
