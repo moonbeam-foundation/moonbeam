@@ -36,7 +36,7 @@ jobs:
             - name: Moonbase Report
               if: steps.changed-files-yaml.outputs.moonbase_any_changed == 'true'
               env:
-                ALL_CHANGED_FILES: ${{ steps.changed-files-yaml.outputs.moonbase_changed_files }}
+                ALL_CHANGED_FILES: ${{ steps.changed-files-yaml.outputs.moonbase_all_changed_files }}
               run: |
                 echo "## Moonbase Weight Difference Report" >> weight_diff_report.md
                 for file in ${ALL_CHANGED_FILES}; do
