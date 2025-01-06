@@ -4,7 +4,6 @@ import {
   type BlockRangeOption,
   EXTRINSIC_BASE_WEIGHT,
   WEIGHT_PER_GAS,
-  calculateFeePortions,
   mapExtrinsics,
 } from "@moonwall/util";
 import type { ApiPromise } from "@polkadot/api";
@@ -17,6 +16,8 @@ import type { AccountId20, Block } from "@polkadot/types/interfaces/runtime/type
 import chalk from "chalk";
 import type { Debugger } from "debug";
 import Debug from "debug";
+import { calculateFeePortions, split } from "./fees.ts";
+import { getFeesTreasuryProportion } from "./parameters.ts";
 
 const debug = Debug("test:blocks");
 
@@ -149,6 +150,8 @@ export const verifyBlockFees = async (
                 ? (event.data[0] as DispatchInfo)
                 : (event.data[1] as DispatchInfo);
 
+            const feesTreasuryProportion = await getFeesTreasuryProportion(context);
+
             // We are only interested in fee paying extrinsics:
             // Either ethereum transactions or signed extrinsics with fees (substrate tx)
             if (
@@ -191,24 +194,29 @@ export const verifyBlockFees = async (
                   effectiveTipPerGas = 0n;
                 }
 
-                // Calculate the fees paid for base fee independently from tip fee. Both are subject
-                // to 80/20 split (burn/treasury) but calculating these over the sum of the two
+                // Calculate the fees paid for base fee independently of tip fee. Both are subject
+                // to split between (burn/treasury) but calculating these over the sum of the two
                 // rather than independently leads to off-by-one errors.
                 const baseFeesPaid = gasUsed * baseFeePerGas;
                 const tipAsFeesPaid = gasUsed * effectiveTipPerGas;
 
-                // TODO: [calculateFeePortions] needs to be updated.
-                const baseFeePortions = calculateFeePortions(baseFeesPaid);
-                // we send tips to collator
-                // const tipFeePortions = calculateFeePortions(tipAsFeesPaid);
+                const { burnt: baseFeePortionsBurnt } = calculateFeePortions(
+                  feesTreasuryProportion,
+                  baseFeesPaid
+                );
 
                 txFees += baseFeesPaid + tipAsFeesPaid;
-                txBurnt += baseFeePortions.burnt;
-                // txBurnt += tipFeePortions.burnt;
+                txBurnt += baseFeePortionsBurnt;
               } else {
                 // For a regular substrate tx, we use the partialFee
-                const feePortions = calculateFeePortions(fee.partialFee.toBigInt());
-                const tipPortions = calculateFeePortions(extrinsic.tip.toBigInt());
+                const feePortions = calculateFeePortions(
+                  feesTreasuryProportion,
+                  fee.partialFee.toBigInt()
+                );
+                const tipPortions = calculateFeePortions(
+                  extrinsic.tip.toBigInt(),
+                  feesTreasuryProportion
+                );
                 txFees += fee.partialFee.toBigInt() + extrinsic.tip.toBigInt();
                 txBurnt += feePortions.burnt + tipPortions.burnt;
 

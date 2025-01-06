@@ -10,6 +10,7 @@ import {
 } from "@moonwall/util";
 import { parameterType, UNIT } from "./test-parameters";
 import { BN } from "@polkadot/util";
+import { calculateFeePortions } from "../../../../helpers";
 
 interface TestCase {
   proportion: Perbill;
@@ -17,17 +18,6 @@ interface TestCase {
   transfer_amount: bigint;
   tipAmount: bigint;
 }
-
-// Recreation on fees.ration(burn_part, treasury_part)
-const split = (value: BN, part1: BN, part2: BN): [BN, BN] => {
-  const total = part1.add(part2);
-  if (total.eq(new BN(0)) || value.eq(new BN(0))) {
-    return [new BN(0), new BN(0)];
-  }
-  const part1BN = value.mul(part1).div(total);
-  const part2BN = value.sub(part1BN);
-  return [part1BN, part2BN];
-};
 
 describeSuite({
   id: "DTemp03",
@@ -80,10 +70,9 @@ describeSuite({
     ];
 
     for (const t of testCases) {
-      const burnProportion = new Perbill(new BN(1e9).sub(t.proportion.value()));
-
+      const treasuryPerbill = new BN(1e9).sub(t.proportion.value());
       const treasuryPercentage = t.proportion.value().toNumber() / 1e7;
-      const burnPercentage = burnProportion.value().toNumber() / 1e7;
+      const burnPercentage = 100 - treasuryPercentage;
 
       const calcTreasuryIncrease = (feeWithTip: bigint, tip?: bigint): bigint => {
         const issuanceDecrease = calcIssuanceDecrease(feeWithTip, tip);
@@ -92,13 +81,9 @@ describeSuite({
       };
       const calcIssuanceDecrease = (feeWithTip: bigint, tip?: bigint): bigint => {
         const feeWithTipBN = new BN(feeWithTip.toString());
-        const [burnFeeWithTipPart, _treasuryFeeWithTipPart] = split(
-          feeWithTipBN,
-          burnProportion.value(),
-          t.proportion.value()
-        );
+        const { burnt } = calculateFeePortions(treasuryPerbill, feeWithTipBN);
 
-        return BigInt(burnFeeWithTipPart.toString());
+        return BigInt(burnt.toString());
       };
 
       for (const txnType of TransactionTypes) {
