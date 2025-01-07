@@ -328,7 +328,7 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type FreezeIdentifier = ();
-	type MaxFreezes = ConstU32<50>;
+	type MaxFreezes = ConstU32<0>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type WeightInfo = moonriver_weights::pallet_balances::WeightInfo<Runtime>;
