@@ -1526,7 +1526,7 @@ fn xtokens_precompiles_transfer() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
@@ -1624,7 +1624,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
@@ -1710,7 +1710,7 @@ fn xtokens_precompiles_transfer_native() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
@@ -2255,7 +2255,7 @@ fn transact_through_signed_precompile_works_v1() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			// Destination
@@ -2307,7 +2307,7 @@ fn transact_through_signed_precompile_works_v2() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			// Destination
@@ -2347,7 +2347,7 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			// Destination
