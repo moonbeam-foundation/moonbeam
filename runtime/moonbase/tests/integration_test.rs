@@ -1266,48 +1266,54 @@ fn update_reward_address_via_precompile() {
 
 #[test]
 fn create_and_manipulate_foreign_asset() {
-	ExtBuilder::default().build().execute_with(|| {
-		let source_location = xcm::v4::Location::parent();
+	let alice = AccountId::from(ALICE);
+	ExtBuilder::default()
+		.with_balances(vec![
+			(alice, 1_000 * UNIT),
+		])
+		.build()
+		.execute_with(|| {
+			let source_location = xcm::v4::Location::parent();
 
-		// Create foreign asset
-		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			moonbase_runtime::RuntimeOrigin::root(),
-			1,
-			source_location.clone(),
-			12,
-			bounded_vec![b'M', b'T'],
-			bounded_vec![b'M', b'y', b'T', b'o', b'k'],
-		));
-		assert_eq!(
-			EvmForeignAssets::assets_by_id(1),
-			Some(source_location.clone())
-		);
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(&source_location),
-			Some((1, AssetStatus::Active))
-		);
+			// Create foreign asset
+			assert_ok!(EvmForeignAssets::create_foreign_asset(
+				moonbase_runtime::RuntimeOrigin::signed(alice),
+				1,
+				source_location.clone(),
+				12,
+				bounded_vec![b'M', b'T'],
+				bounded_vec![b'M', b'y', b'T', b'o', b'k'],
+			));
+			assert_eq!(
+				EvmForeignAssets::assets_by_id(1),
+				Some(source_location.clone())
+			);
+			assert_eq!(
+				EvmForeignAssets::assets_by_location(&source_location),
+				Some((1, AssetStatus::Active))
+			);
 
-		// Freeze foreign asset
-		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
-			moonbase_runtime::RuntimeOrigin::root(),
-			1,
-			true
-		));
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(&source_location),
-			Some((1, AssetStatus::FrozenXcmDepositAllowed))
-		);
+			// Freeze foreign asset
+			assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+				root_origin(),
+				1,
+				true
+			));
+			assert_eq!(
+				EvmForeignAssets::assets_by_location(&source_location),
+				Some((1, AssetStatus::FrozenXcmDepositAllowed))
+			);
 
-		// Unfreeze foreign asset
-		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
-			moonbase_runtime::RuntimeOrigin::root(),
-			1,
-		));
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(&source_location),
-			Some((1, AssetStatus::Active))
-		);
-	});
+			// Unfreeze foreign asset
+			assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
+				root_origin(),
+				1,
+			));
+			assert_eq!(
+				EvmForeignAssets::assets_by_location(&source_location),
+				Some((1, AssetStatus::Active))
+			);
+		});
 }
 
 // The precoompile asset-erc20 is deprecated and not used anymore for new evm foreign assets

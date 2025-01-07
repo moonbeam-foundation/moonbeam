@@ -19,7 +19,7 @@ use crate as pallet_moonbeam_foreign_assets;
 
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_evm::{FrameSystemAccountProvider, SubstrateBlockHashMapping};
 use precompile_utils::testing::MockAccount;
 use sp_core::{H256, U256};
@@ -178,14 +178,14 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 }
 
 parameter_types! {
-	pub const ForeignAssetCreationDeposit: u64 = 1;
+	pub const ForeignAssetCreationDeposit: u128 = 0;
 }
 
 impl crate::Config for Test {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
-	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetCreatorOrigin = EnsureSigned<AccountId>;
 	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
 	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
@@ -194,7 +194,7 @@ impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type XcmLocationToH160 = ();
-	type ForeignAssetCreationDeposit = ();
+	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
 	type Balance = Balance;
 
 	type Currency = Balances;

@@ -294,7 +294,7 @@ impl ExtBuilder {
 			for xcm_asset_initialization in xcm_assets {
 				let asset_id = xcm_asset_initialization.asset_id;
 				EvmForeignAssets::create_foreign_asset(
-					root_origin(),
+					moonbase_runtime::RuntimeOrigin::signed(AccountId::from(ALICE)),
 					asset_id,
 					xcm_asset_initialization.xcm_location,
 					xcm_asset_initialization.decimals,
