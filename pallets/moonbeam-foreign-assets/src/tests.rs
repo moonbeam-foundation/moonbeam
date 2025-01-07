@@ -31,7 +31,9 @@ fn encode_token_name(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
 
 #[test]
 fn create_foreign_and_freeze_unfreeze() {
-	ExtBuilder::default().build().execute_with(|| {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1_000)])
+		.build().execute_with(|| {
 		// create foreign asset
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			RuntimeOrigin::from(Some(Alice.into())),
@@ -124,9 +126,11 @@ fn create_foreign_and_freeze_unfreeze() {
 
 #[test]
 fn test_asset_exists_error() {
-	ExtBuilder::default().build().execute_with(|| {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1_000)])
+		.build().execute_with(|| {
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(Alice.into()),
 			1,
 			Location::parent(),
 			18,
@@ -139,7 +143,7 @@ fn test_asset_exists_error() {
 		);
 		assert_noop!(
 			EvmForeignAssets::create_foreign_asset(
-				RuntimeOrigin::root(),
+				RuntimeOrigin::signed(Alice.into()),
 				1,
 				Location::parent(),
 				18,
@@ -152,20 +156,8 @@ fn test_asset_exists_error() {
 }
 
 #[test]
-fn test_regular_user_cannot_call_extrinsics() {
+fn test_regular_user_cannot_call_some_extrinsics() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			EvmForeignAssets::create_foreign_asset(
-				RuntimeOrigin::signed(Bob.into()),
-				1,
-				Location::parent(),
-				18,
-				encode_ticker("MTT"),
-				encode_token_name("Mytoken"),
-			),
-			sp_runtime::DispatchError::BadOrigin
-		);
-
 		assert_noop!(
 			EvmForeignAssets::change_xcm_location(
 				RuntimeOrigin::signed(Bob.into()),
@@ -174,14 +166,34 @@ fn test_regular_user_cannot_call_extrinsics() {
 			),
 			sp_runtime::DispatchError::BadOrigin
 		);
+
+		assert_noop!(
+			EvmForeignAssets::freeze_foreign_asset(
+				RuntimeOrigin::signed(Bob.into()),
+				1,
+				false
+			),
+			sp_runtime::DispatchError::BadOrigin
+		);
+
+		assert_noop!(
+			EvmForeignAssets::unfreeze_foreign_asset(
+				RuntimeOrigin::signed(Bob.into()),
+				1,
+			),
+			sp_runtime::DispatchError::BadOrigin
+		);
+
 	});
 }
 
 #[test]
 fn test_root_can_change_foreign_asset_for_asset_id() {
-	ExtBuilder::default().build().execute_with(|| {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1_000)])
+		.build().execute_with(|| {
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			RuntimeOrigin::root(),
+			RuntimeOrigin::signed(Alice.into()),
 			1,
 			Location::parent(),
 			18,
@@ -234,7 +246,9 @@ fn test_asset_id_non_existent_error() {
 
 #[test]
 fn test_location_already_exist_error() {
-	ExtBuilder::default().build().execute_with(|| {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1_000)])
+		.build().execute_with(|| {
 		// Setup: create a first foreign asset taht we will try to override
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			RuntimeOrigin::from(Some(Alice.into())),

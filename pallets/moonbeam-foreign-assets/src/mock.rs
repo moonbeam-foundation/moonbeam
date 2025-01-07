@@ -178,7 +178,7 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 }
 
 parameter_types! {
-	pub const ForeignAssetCreationDeposit: u128 = 0;
+	pub const ForeignAssetCreationDeposit: u128 = 1;
 }
 
 impl crate::Config for Test {
@@ -225,6 +225,11 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
+	}
+
+	pub fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
+		self.balances = balances;
+		self
 	}
 }
 
