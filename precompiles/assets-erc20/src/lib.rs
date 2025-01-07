@@ -35,6 +35,7 @@ use precompile_utils::prelude::*;
 use sp_runtime::traits::{Bounded, Dispatchable};
 use sp_std::vec::Vec;
 
+use pallet_moonbeam_lazy_migrations::is_migrating_foreign_assets;
 use sp_core::{MaxEncodedLen, H160, H256, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
@@ -66,7 +67,7 @@ pub type AssetIdOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<I
 /// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
 /// 2048-4095 Moonbeam specific precompiles
 /// Asset precompiles can only fall between
-/// 	0xFFFFFFFF00000000000000000000000000000000 - 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+///     0xFFFFFFFF00000000000000000000000000000000 - 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 /// The precompile for AssetId X, where X is a u128 (i.e.16 bytes), if 0XFFFFFFFF + Bytes(AssetId)
 /// In order to route the address to Erc20AssetsPrecompile<R>, we first check whether the AssetId
 /// exists in pallet-assets
@@ -112,6 +113,7 @@ where
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin: OriginTrait,
 	AssetIdOf<Runtime, Instance>: Display,
 	Runtime::AccountId: Into<H160>,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	/// PrecompileSet discriminant. Allows to knows if the address maps to an asset id,
 	/// and if this is the case which one.
@@ -129,7 +131,7 @@ where
 		};
 
 		if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id.clone())
-			.is_some()
+			.is_some() && !is_migrating_foreign_assets()
 		{
 			DiscriminantResult::Some(asset_id, extra_cost)
 		} else {
@@ -334,7 +336,7 @@ where
 		{
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
+			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from);
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
 
 			// If caller is "from", it can spend as much as it wants from its own balance.
@@ -506,6 +508,7 @@ where
 	}
 
 	#[precompile::public("permit(address,address,uint256,uint256,uint8,bytes32,bytes32)")]
+	#[allow(clippy::too_many_arguments)]
 	fn eip2612_permit(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,

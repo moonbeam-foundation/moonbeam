@@ -2,11 +2,11 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { alith } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
-import { u128 } from "@polkadot/types";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { ApiPromise } from "@polkadot/api";
+import type { u128 } from "@polkadot/types";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { hexToBigInt } from "@polkadot/util";
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 import {
   RELAY_SOURCE_LOCATION,
   mockOldAssetBalance,
@@ -15,9 +15,9 @@ import {
   verifyLatestBlockFees,
 } from "../../../../helpers/index.js";
 import {
-  RawXcmMessage,
+  type RawXcmMessage,
   XcmFragment,
-  XcmFragmentConfig,
+  type XcmFragmentConfig,
   descendOriginFromAddress20,
   injectHrmpMessageAndSeal,
 } from "../../../../helpers/xcm.js";

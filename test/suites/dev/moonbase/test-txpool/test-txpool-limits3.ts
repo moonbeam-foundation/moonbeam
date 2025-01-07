@@ -82,7 +82,7 @@ describeSuite({
           ).length;
           log(`Transactions left in pool: ${txPoolSize}`);
 
-          if ((await context.viem().getBlock()).transactions.length == 0) {
+          if ((await context.viem().getBlock()).transactions.length === 0) {
             break;
           }
           blocks++;

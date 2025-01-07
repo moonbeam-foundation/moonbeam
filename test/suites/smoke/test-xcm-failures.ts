@@ -1,15 +1,15 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js";
-import { FrameSystemEventRecord, XcmV3MultiLocation } from "@polkadot/types/lookup";
+import type { FrameSystemEventRecord, XcmV3MultiLocation } from "@polkadot/types/lookup";
 import {
-  MoonbeamNetworkName,
-  ParaId,
+  type MoonbeamNetworkName,
+  type ParaId,
   isMuted,
   ForeignChainsEndpoints,
 } from "../../helpers/foreign-chains.js";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { getBlockArray, FIVE_MINS, ONE_HOURS } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : ONE_HOURS;
 const atBlock = process.env.AT_BLOCK ? Number(process.env.AT_BLOCK) : -1;
@@ -61,7 +61,7 @@ describeSuite({
       );
 
       // PolkadotSDK 1.7.2 removes XCM errors, so we can skip these tests
-      aboveRt2900 = onChainRt.toNumber() >= 2900 ? true : false;
+      aboveRt2900 = onChainRt.toNumber() >= 2900;
 
       if (result) {
         log(
@@ -412,7 +412,7 @@ describeSuite({
           (await relayApi.query.hrmp.hrmpIngressChannelsIndex(paraId)) as any
         ).map((a: any) => a.toNumber());
         const outChannels = (
-          (await relayApi.query.hrmp.hrmpIngressChannelsIndex(paraId)) as any
+          (await relayApi.query.hrmp.hrmpEgressChannelsIndex(paraId)) as any
         ).map((a: any) => a.toNumber());
         const channels = [...new Set([...inChannels, ...outChannels])];
 

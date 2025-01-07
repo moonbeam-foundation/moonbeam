@@ -26,7 +26,7 @@ import type {
   u16,
   u32,
   u64,
-  u8,
+  u8
 } from "@polkadot/types-codec";
 import type { ITuple } from "@polkadot/types-codec/types";
 import type { Vote } from "@polkadot/types/interfaces/elections";
@@ -36,7 +36,7 @@ import type {
   H160,
   H256,
   Perbill,
-  Percent,
+  Percent
 } from "@polkadot/types/interfaces/runtime";
 import type { Event } from "@polkadot/types/interfaces/system";
 
@@ -5732,16 +5732,34 @@ declare module "@polkadot/types/lookup" {
 
   /** @name PalletMoonbeamLazyMigrationsCall (364) */
   interface PalletMoonbeamLazyMigrationsCall extends Enum {
-    readonly isClearSuicidedStorage: boolean;
-    readonly asClearSuicidedStorage: {
-      readonly addresses: Vec<H160>;
-      readonly limit: u32;
-    } & Struct;
     readonly isCreateContractMetadata: boolean;
     readonly asCreateContractMetadata: {
       readonly address: H160;
     } & Struct;
-    readonly type: "ClearSuicidedStorage" | "CreateContractMetadata";
+    readonly isApproveAssetsToMigrate: boolean;
+    readonly asApproveAssetsToMigrate: {
+      readonly assets: Vec<u128>;
+    } & Struct;
+    readonly isStartForeignAssetsMigration: boolean;
+    readonly asStartForeignAssetsMigration: {
+      readonly assetId: u128;
+    } & Struct;
+    readonly isMigrateForeignAssetBalances: boolean;
+    readonly asMigrateForeignAssetBalances: {
+      readonly limit: u32;
+    } & Struct;
+    readonly isMigrateForeignAssetApprovals: boolean;
+    readonly asMigrateForeignAssetApprovals: {
+      readonly limit: u32;
+    } & Struct;
+    readonly isFinishForeignAssetsMigration: boolean;
+    readonly type:
+      | "CreateContractMetadata"
+      | "ApproveAssetsToMigrate"
+      | "StartForeignAssetsMigration"
+      | "MigrateForeignAssetBalances"
+      | "MigrateForeignAssetApprovals"
+      | "FinishForeignAssetsMigration";
   }
 
   /** @name PalletMessageQueueCall (367) */
@@ -7931,30 +7949,59 @@ declare module "@polkadot/types/lookup" {
     readonly type: "NotStarted" | "Started" | "Error" | "Complete";
   }
 
-  /** @name PalletMoonbeamLazyMigrationsError (674) */
+  /** @name PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus (674) */
+  interface PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus extends Enum {
+    readonly isIdle: boolean;
+    readonly isMigrating: boolean;
+    readonly asMigrating: PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo;
+    readonly type: "Idle" | "Migrating";
+  }
+
+  /** @name PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo (675) */
+  interface PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo extends Struct {
+    readonly assetId: u128;
+    readonly remainingBalances: u32;
+    readonly remainingApprovals: u32;
+  }
+
+  /** @name PalletMoonbeamLazyMigrationsError (676) */
   interface PalletMoonbeamLazyMigrationsError extends Enum {
     readonly isLimitCannotBeZero: boolean;
-    readonly isAddressesLengthCannotBeZero: boolean;
-    readonly isContractNotCorrupted: boolean;
     readonly isContractMetadataAlreadySet: boolean;
     readonly isContractNotExist: boolean;
     readonly isKeyTooLong: boolean;
+    readonly isSymbolTooLong: boolean;
+    readonly isNameTooLong: boolean;
+    readonly isAssetTypeNotFound: boolean;
+    readonly isAssetNotFound: boolean;
+    readonly isLocationNotFound: boolean;
+    readonly isMigrationNotFinished: boolean;
+    readonly isNoMigrationInProgress: boolean;
+    readonly isMintFailed: boolean;
+    readonly isApprovalFailed: boolean;
     readonly type:
       | "LimitCannotBeZero"
-      | "AddressesLengthCannotBeZero"
-      | "ContractNotCorrupted"
       | "ContractMetadataAlreadySet"
       | "ContractNotExist"
-      | "KeyTooLong";
+      | "KeyTooLong"
+      | "SymbolTooLong"
+      | "NameTooLong"
+      | "AssetTypeNotFound"
+      | "AssetNotFound"
+      | "LocationNotFound"
+      | "MigrationNotFinished"
+      | "NoMigrationInProgress"
+      | "MintFailed"
+      | "ApprovalFailed";
   }
 
-  /** @name PalletPrecompileBenchmarksError (676) */
+  /** @name PalletPrecompileBenchmarksError (678) */
   interface PalletPrecompileBenchmarksError extends Enum {
     readonly isBenchmarkError: boolean;
     readonly type: "BenchmarkError";
   }
 
-  /** @name PalletMessageQueueBookState (677) */
+  /** @name PalletMessageQueueBookState (679) */
   interface PalletMessageQueueBookState extends Struct {
     readonly begin: u32;
     readonly end: u32;
@@ -7964,13 +8011,13 @@ declare module "@polkadot/types/lookup" {
     readonly size_: u64;
   }
 
-  /** @name PalletMessageQueueNeighbours (679) */
+  /** @name PalletMessageQueueNeighbours (681) */
   interface PalletMessageQueueNeighbours extends Struct {
     readonly prev: CumulusPrimitivesCoreAggregateMessageOrigin;
     readonly next: CumulusPrimitivesCoreAggregateMessageOrigin;
   }
 
-  /** @name PalletMessageQueuePage (681) */
+  /** @name PalletMessageQueuePage (683) */
   interface PalletMessageQueuePage extends Struct {
     readonly remaining: u32;
     readonly remainingSize: u32;
@@ -7980,7 +8027,7 @@ declare module "@polkadot/types/lookup" {
     readonly heap: Bytes;
   }
 
-  /** @name PalletMessageQueueError (683) */
+  /** @name PalletMessageQueueError (685) */
   interface PalletMessageQueueError extends Enum {
     readonly isNotReapable: boolean;
     readonly isNoPage: boolean;
@@ -8003,20 +8050,20 @@ declare module "@polkadot/types/lookup" {
       | "RecursiveDisallowed";
   }
 
-  /** @name PalletEmergencyParaXcmXcmMode (684) */
+  /** @name PalletEmergencyParaXcmXcmMode (686) */
   interface PalletEmergencyParaXcmXcmMode extends Enum {
     readonly isNormal: boolean;
     readonly isPaused: boolean;
     readonly type: "Normal" | "Paused";
   }
 
-  /** @name PalletEmergencyParaXcmError (685) */
+  /** @name PalletEmergencyParaXcmError (687) */
   interface PalletEmergencyParaXcmError extends Enum {
     readonly isNotInPausedMode: boolean;
     readonly type: "NotInPausedMode";
   }
 
-  /** @name PalletMoonbeamForeignAssetsAssetStatus (687) */
+  /** @name PalletMoonbeamForeignAssetsAssetStatus (689) */
   interface PalletMoonbeamForeignAssetsAssetStatus extends Enum {
     readonly isActive: boolean;
     readonly isFrozenXcmDepositAllowed: boolean;
@@ -8024,7 +8071,7 @@ declare module "@polkadot/types/lookup" {
     readonly type: "Active" | "FrozenXcmDepositAllowed" | "FrozenXcmDepositForbidden";
   }
 
-  /** @name PalletMoonbeamForeignAssetsError (688) */
+  /** @name PalletMoonbeamForeignAssetsError (690) */
   interface PalletMoonbeamForeignAssetsError extends Enum {
     readonly isAssetAlreadyExists: boolean;
     readonly isAssetAlreadyFrozen: boolean;
@@ -8057,7 +8104,7 @@ declare module "@polkadot/types/lookup" {
       | "TooManyForeignAssets";
   }
 
-  /** @name PalletXcmWeightTraderError (690) */
+  /** @name PalletXcmWeightTraderError (692) */
   interface PalletXcmWeightTraderError extends Enum {
     readonly isAssetAlreadyAdded: boolean;
     readonly isAssetAlreadyPaused: boolean;
@@ -8074,42 +8121,42 @@ declare module "@polkadot/types/lookup" {
       | "PriceCannotBeZero";
   }
 
-  /** @name FrameSystemExtensionsCheckNonZeroSender (693) */
+  /** @name FrameSystemExtensionsCheckNonZeroSender (695) */
   type FrameSystemExtensionsCheckNonZeroSender = Null;
 
-  /** @name FrameSystemExtensionsCheckSpecVersion (694) */
+  /** @name FrameSystemExtensionsCheckSpecVersion (696) */
   type FrameSystemExtensionsCheckSpecVersion = Null;
 
-  /** @name FrameSystemExtensionsCheckTxVersion (695) */
+  /** @name FrameSystemExtensionsCheckTxVersion (697) */
   type FrameSystemExtensionsCheckTxVersion = Null;
 
-  /** @name FrameSystemExtensionsCheckGenesis (696) */
+  /** @name FrameSystemExtensionsCheckGenesis (698) */
   type FrameSystemExtensionsCheckGenesis = Null;
 
-  /** @name FrameSystemExtensionsCheckNonce (699) */
+  /** @name FrameSystemExtensionsCheckNonce (701) */
   interface FrameSystemExtensionsCheckNonce extends Compact<u32> {}
 
-  /** @name FrameSystemExtensionsCheckWeight (700) */
+  /** @name FrameSystemExtensionsCheckWeight (702) */
   type FrameSystemExtensionsCheckWeight = Null;
 
-  /** @name PalletTransactionPaymentChargeTransactionPayment (701) */
+  /** @name PalletTransactionPaymentChargeTransactionPayment (703) */
   interface PalletTransactionPaymentChargeTransactionPayment extends Compact<u128> {}
 
-  /** @name FrameMetadataHashExtensionCheckMetadataHash (702) */
+  /** @name FrameMetadataHashExtensionCheckMetadataHash (704) */
   interface FrameMetadataHashExtensionCheckMetadataHash extends Struct {
     readonly mode: FrameMetadataHashExtensionMode;
   }
 
-  /** @name FrameMetadataHashExtensionMode (703) */
+  /** @name FrameMetadataHashExtensionMode (705) */
   interface FrameMetadataHashExtensionMode extends Enum {
     readonly isDisabled: boolean;
     readonly isEnabled: boolean;
     readonly type: "Disabled" | "Enabled";
   }
 
-  /** @name CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim (704) */
+  /** @name CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim (706) */
   type CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim = Null;
 
-  /** @name MoonbaseRuntimeRuntime (706) */
+  /** @name MoonbaseRuntimeRuntime (708) */
   type MoonbaseRuntimeRuntime = Null;
 } // declare module

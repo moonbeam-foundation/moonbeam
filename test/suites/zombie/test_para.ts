@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { MoonwallContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, alith, charleth } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { ethers } from "ethers";
 import fs from "node:fs";
 
@@ -61,7 +61,7 @@ describeSuite({
           await paraApi.rpc.chain.getBlock()
         ).block.header.number.toNumber();
 
-        await paraApi.tx.parachainSystem.enactAuthorizedUpgrade(rtHex).signAndSend(alith);
+        await paraApi.tx.system.applyAuthorizedUpgrade(rtHex).signAndSend(alith);
 
         await context.waitBlock(15);
 

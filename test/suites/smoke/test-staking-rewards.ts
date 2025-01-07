@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment";
 import { BN, BN_BILLION } from "@polkadot/util";
-import { u128, u32, StorageKey, u64 } from "@polkadot/types";
-import { ApiPromise } from "@polkadot/api";
-import { HexString } from "@polkadot/util/types";
-import {
+import type { u128, u32, StorageKey, u64 } from "@polkadot/types";
+import type { ApiPromise } from "@polkadot/api";
+import type { HexString } from "@polkadot/util/types";
+import type {
   PalletParachainStakingDelegationRequestsScheduledRequest,
   PalletParachainStakingDelegator,
   PalletParachainStakingCollatorSnapshot,
@@ -11,11 +11,11 @@ import {
   PalletParachainStakingBondWithAutoCompound,
   PalletParachainStakingRoundInfo,
 } from "@polkadot/types/lookup";
-import { ApiDecoration } from "@polkadot/api/types";
+import type { ApiDecoration } from "@polkadot/api/types";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { FIVE_MINS, ONE_HOURS, Perbill, Percent, TEN_MINS } from "@moonwall/util";
 import { rateLimiter, getPreviousRound, getNextRound } from "../../helpers";
-import { AccountId20, Block } from "@polkadot/types/interfaces";
+import type { AccountId20, Block } from "@polkadot/types/interfaces";
 
 const limiter = rateLimiter();
 
@@ -50,7 +50,7 @@ describeSuite({
       paraApi = context.polkadotJs("para");
 
       const atBlockNumber = process.env.BLOCK_NUMBER
-        ? parseInt(process.env.BLOCK_NUMBER)
+        ? Number.parseInt(process.env.BLOCK_NUMBER)
         : (await paraApi.rpc.chain.getHeader()).number.toNumber();
       const queriedBlockHash = await paraApi.rpc.chain.getBlockHash(atBlockNumber);
       const queryApi = await paraApi.at(queriedBlockHash);
@@ -88,7 +88,7 @@ describeSuite({
         const totalSelected = (await apiAt.query.parachainStaking.totalSelected()).toNumber();
         expect(atStakeSnapshot.length).to.be.lessThanOrEqual(totalSelected);
         const extras = atStakeSnapshot.filter((item) =>
-          selectedCandidates.some((a) => item[0].args[1] == a)
+          selectedCandidates.some((a) => item[0].args[1] === a)
         );
         expect(atStakeSnapshot.length).to.be.equal(selectedCandidates.length);
         expect(extras, `Non-selected candidates in snapshot: ${extras.map((a) => a[0]).join(", ")}`)
@@ -120,7 +120,7 @@ describeSuite({
 
             const bondsMatch: boolean = bond.eq(candidateInfo.bond);
             const delegationsTotalMatch: boolean =
-              delegations.length ==
+              delegations.length ===
               Math.min(
                 candidateInfo.delegationCount.toNumber(),
                 predecessorApiAt.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber()
@@ -151,7 +151,7 @@ describeSuite({
       timeout: ONE_HOURS,
       test: async () => {
         // This test is slow due to rate limiting, and should be run ad-hoc only
-        if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
+        if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS !== "true") {
           log("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
           return; // Replace this with skip() when added to vitest
         }
@@ -169,22 +169,22 @@ describeSuite({
           ).unwrap();
 
           const delegationAmount = delegatorDelegations.find(
-            (candidate) => candidate.owner.toString() == accountId.toString()
+            (candidate) => candidate.owner.toString() === accountId.toString()
           )!.amount;
 
           // Querying for pending withdrawals which affect the total
           const scheduledRequest = scheduledRequests.find((a) => {
-            return a.delegator.toString() == delegatorSnapshot.owner.toString();
+            return a.delegator.toString() === delegatorSnapshot.owner.toString();
           });
 
           const expected =
             scheduledRequest === undefined
               ? delegationAmount
               : scheduledRequest.action.isDecrease
-              ? delegationAmount.sub(scheduledRequest.action.asDecrease)
-              : scheduledRequest.action.isRevoke
-              ? delegationAmount.sub(scheduledRequest.action.asRevoke)
-              : delegationAmount;
+                ? delegationAmount.sub(scheduledRequest.action.asDecrease)
+                : scheduledRequest.action.isRevoke
+                  ? delegationAmount.sub(scheduledRequest.action.asRevoke)
+                  : delegationAmount;
 
           const match = expected.eq(delegatorSnapshot.amount);
           if (!match) {
@@ -240,7 +240,7 @@ describeSuite({
         );
 
         const results = await Promise.all(promises);
-        const mismatches = results.flatMap((a) => a).filter((item) => item.match == false);
+        const mismatches = results.flat().filter((item) => item.match === false);
         expect(
           mismatches,
           `Mismatched amounts for ${mismatches
@@ -258,7 +258,7 @@ describeSuite({
       title: "should snapshot delegate autocompound preferences correctly",
       timeout: ONE_HOURS,
       test: async () => {
-        if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
+        if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS !== "true") {
           log("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
           return; // Replace this with skip() when added to vitest
         }
@@ -275,10 +275,10 @@ describeSuite({
           autoCompoundPrefs: any[]
         ) => {
           const autoCompoundQuery = autoCompoundPrefs.find(
-            (a) => a.delegator.toString() == delegatorSnapshot.owner.toString()
+            (a) => a.delegator.toString() === delegatorSnapshot.owner.toString()
           );
           const autoCompoundAmount =
-            autoCompoundQuery == undefined ? new BN(0) : autoCompoundQuery.value;
+            autoCompoundQuery === undefined ? new BN(0) : autoCompoundQuery.value;
           const match = autoCompoundAmount.eq(delegatorSnapshot.autoCompound);
           if (!match) {
             log(
@@ -300,31 +300,29 @@ describeSuite({
         };
 
         log(`Gathering snapshot query requests for ${atStakeSnapshot.length} collators.`);
-        const promises = atStakeSnapshot
-          .map(
-            async ([
-              {
-                args: [_, accountId],
-              },
-              { delegations },
-            ]) => {
-              const autoCompoundPrefs = (await limiter.schedule(() =>
-                predecessorApiAt.query.parachainStaking.autoCompoundingDelegations(accountId)
-              )) as any;
+        const promises = atStakeSnapshot.flatMap(
+          async ([
+            {
+              args: [_, accountId],
+            },
+            { delegations },
+          ]) => {
+            const autoCompoundPrefs = (await limiter.schedule(() =>
+              predecessorApiAt.query.parachainStaking.autoCompoundingDelegations(accountId)
+            )) as any;
 
-              return delegations.map((delegation) =>
-                checkDelegatorAutocompound(accountId, delegation, autoCompoundPrefs)
-              );
-            }
-          )
-          .flatMap((a) => a);
+            return delegations.map((delegation) =>
+              checkDelegatorAutocompound(accountId, delegation, autoCompoundPrefs)
+            );
+          }
+        );
 
         // RPC endpoints roughly rate limit to 10 queries a second
         const estimatedTime = (promises.length / 600).toFixed(2);
         log("Verifying autoCompound preferences, estimated time " + estimatedTime + " mins.");
 
         const results: any = await Promise.all(promises);
-        const mismatches = results.filter((item: any) => item.match == false);
+        const mismatches = results.filter((item: any) => item.match === false);
         expect(
           mismatches,
           `Mismatched autoCompound for ${mismatches
@@ -343,7 +341,7 @@ describeSuite({
       timeout: TEN_MINS,
       test: async () => {
         const atBlockNumber = process.env.BLOCK_NUMBER
-          ? parseInt(process.env.BLOCK_NUMBER)
+          ? Number.parseInt(process.env.BLOCK_NUMBER)
           : (await paraApi.rpc.chain.getHeader()).number.toNumber();
 
         await assertRewardsAtRoundBefore(paraApi, atBlockNumber);
@@ -602,6 +600,20 @@ describeSuite({
         totalRoundIssuance = range.max;
       }
 
+      const delayedPayout = (
+        await payment.rewardRound.firstBlockApi.query.parachainStaking.delayedPayouts(
+          payment.roundToPay.data.current
+        )
+      ).unwrap();
+
+      // Validate round issuance calculation
+      expect(
+        delayedPayout.roundIssuance.eq(totalRoundIssuance),
+        `round issuance amounts do not match \
+        ${delayedPayout.roundIssuance.toString()} != ${totalRoundIssuance.toString()} \
+        for round ${payment.roundToPay.data.current.toString()}`
+      ).to.be.true;
+
       const collatorCommissionRate =
         await payment.rewardRound.priorBlockApi.query.parachainStaking.collatorCommission();
 
@@ -630,33 +642,30 @@ describeSuite({
         payment.roundToPay.data.current
       );
 
-      let percentage = 0;
-      inflationDistributionConfig.forEach((config) => {
-        percentage += config.percent.toNumber();
-      });
-      const reservedPercentage = new Percent(percentage);
+      let reservedReward = new BN(0);
       // total expected staking reward minus the amount reserved for parachain bond
-      const totalStakingReward = (() => {
-        const reservedReward = reservedPercentage.of(totalRoundIssuance);
-        if (!reservedInflation.isZero()) {
-          expect(
-            reservedReward.eq(reservedInflation),
-            `parachain bond amount does not match \
-              ${reservedReward.toString()} != ${reservedInflation.toString()} \
-              for round ${payment.roundToPay.data.current.toString()}`
-          ).to.be.true;
-          return totalRoundIssuance.sub(reservedReward);
-        }
+      let totalStakingReward = totalRoundIssuance;
+      inflationDistributionConfig.forEach((config) => {
+        const distribution = new Percent(config.percent.toBn()).of(totalRoundIssuance);
+        totalStakingReward = totalStakingReward.sub(distribution);
+        reservedReward = reservedReward.add(distribution);
+      });
 
-        return totalRoundIssuance;
-      })();
+      if (!reservedInflation.isZero()) {
+        expect(
+          reservedReward.eq(reservedInflation),
+          `parachain bond amount does not match \
+            ${reservedReward.toString()} != ${reservedInflation.toString()} \
+            for round ${payment.roundToPay.data.current.toString()}`
+        ).to.be.true;
+      }
+
       const totalBondReward = totalStakingReward.sub(totalCollatorCommissionReward);
 
       log(`
     paidRoundNumber               ${payment.roundToPay.data.current.toString()}
     totalRoundIssuance            ${totalRoundIssuance.toString()}
-    reservedInflation      ${reservedInflation} \
-    (${reservedPercentage} * totalRoundIssuance)
+    reservedInflation             ${reservedInflation}
     totalCollatorCommissionReward ${totalCollatorCommissionReward.toString()} \
     (${collatorCommissionRate} * totalRoundIssuance)
     totalStakingReward            ${totalStakingReward} \
@@ -664,11 +673,6 @@ describeSuite({
     totalBondReward               ${totalBondReward} \
     (totalStakingReward - totalCollatorCommissionReward)`);
 
-      const delayedPayout = (
-        await payment.rewardRound.firstBlockApi.query.parachainStaking.delayedPayouts(
-          payment.roundToPay.data.current
-        )
-      ).unwrap();
       expect(
         delayedPayout.totalStakingReward.eq(totalStakingReward),
         `reward amounts do not match \
@@ -962,7 +966,7 @@ describeSuite({
               );
 
             const collator = `0x${collators
-              .find((orbit) => orbit[1].toHex() == event.data[0].toHex())![0]
+              .find((orbit) => orbit[1].toHex() === event.data[0].toHex())![0]
               .toHex()
               .slice(-40)}`;
             rewards[collator as HexString] = {

@@ -9,7 +9,7 @@ import {
   baltathar,
   createRawTransfer,
 } from "@moonwall/util";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { hexToU8a } from "@polkadot/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { mockOldAssetBalance } from "../../../../helpers";

@@ -1303,7 +1303,6 @@ fn length_fee_is_sensible() {
 				.len_fee
 		};
 
-		// editorconfig-checker-disable
 		//                  left: cost of length fee, right: size in bytes
 		//                             /------------- proportional component: O(N * 1B)
 		//                             |           /- exponential component: O(N ** 3)
@@ -1317,7 +1316,6 @@ fn length_fee_is_sensible() {
 		assert_eq!(        1_001_000_000_000_000_000, calc_fee(1_000_000)); // one MOVR, ~ 1MB
 		assert_eq!(    1_000_010_000_000_000_000_000, calc_fee(10_000_000));
 		assert_eq!(1_000_000_100_000_000_000_000_000, calc_fee(100_000_000));
-		// editorconfig-checker-enable
 	});
 }
 
@@ -1647,7 +1645,7 @@ fn root_can_change_default_xcm_vers() {
 			// Root sets the defaultXcm
 			assert_ok!(PolkadotXcm::force_default_xcm_version(
 				root_origin(),
-				Some(2)
+				Some(3)
 			));
 
 			// Now transferring does not fail
@@ -1912,7 +1910,7 @@ fn xtokens_precompiles_transfer() {
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
@@ -1972,7 +1970,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
@@ -2144,7 +2142,7 @@ fn transact_through_signed_precompile_works_v2() {
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			// Destination
@@ -2184,7 +2182,7 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			// Destination
@@ -2227,7 +2225,7 @@ fn call_xtokens_with_fee() {
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
 			metadata: AssetRegistrarMetadata {

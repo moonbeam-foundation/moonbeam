@@ -70,7 +70,7 @@ use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
 	Account as EVMAccount, EVMFungibleAdapter, EnsureAddressNever, EnsureAddressRoot,
-	FeeCalculator, GasWeightMapping, IdentityAddressMapping,
+	FeeCalculator, FrameSystemAccountProvider, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
@@ -193,7 +193,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 3400,
+	spec_version: 3500,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -338,7 +338,7 @@ where
 	R: pallet_balances::Config + pallet_treasury::Config,
 {
 	// this seems to be called for substrate-based transactions
-	fn on_unbalanceds<B>(
+	fn on_unbalanceds(
 		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
 	) {
 		if let Some(fees) = fees_then_tips.next() {
@@ -541,6 +541,7 @@ impl pallet_evm::Config for Runtime {
 	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = RelayTimestamp;
+	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 	type WeightInfo = moonbeam_weights::pallet_evm::WeightInfo<Runtime>;
 }
 
@@ -687,7 +688,7 @@ parameter_types! {
 
 impl pallet_ethereum::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
+	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
 	type ExtraDataLength = ConstU32<30>;
 }
@@ -1153,7 +1154,16 @@ impl pallet_migrations::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
+pub type ForeignAssetMigratorOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::FastGeneralAdmin,
+	>,
+>;
+
 impl pallet_moonbeam_lazy_migrations::Config for Runtime {
+	type ForeignAssetMigratorOrigin = ForeignAssetMigratorOrigin;
 	type WeightInfo = moonbeam_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
 }
 
@@ -1516,6 +1526,7 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
+		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_parameters, Parameters]

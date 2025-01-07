@@ -56,7 +56,7 @@ describeSuite({
         // check the event 'NewMultisig' was emitted
         const records = await context.polkadotJs().query.system.events();
         const events = records.filter(
-          ({ event }) => event.section == "multisig" && event.method == "NewMultisig"
+          ({ event }) => event.section === "multisig" && event.method === "NewMultisig"
         );
         expect(events).to.have.lengthOf(1);
         expect(block.result!.successful).to.be.true;
@@ -99,7 +99,7 @@ describeSuite({
         // check the event 'MultisigApproval' was emitted
         const records = await context.polkadotJs().query.system.events();
         const events = records.filter(
-          ({ event }) => event.section == "multisig" && event.method == "MultisigApproval"
+          ({ event }) => event.section === "multisig" && event.method === "MultisigApproval"
         );
         expect(events).to.have.lengthOf(1);
         expect(block.result!.successful).to.be.true;
@@ -138,7 +138,7 @@ describeSuite({
 
         const records = await context.polkadotJs().query.system.events();
         const events = records.filter(
-          ({ event }) => event.section == "multisig" && event.method == "MultisigCancelled"
+          ({ event }) => event.section === "multisig" && event.method === "MultisigCancelled"
         );
         expect(events, "event 'MultisigCancelled' was not emitted").to.have.lengthOf(1);
         expect(block.result!.successful).to.be.true;
