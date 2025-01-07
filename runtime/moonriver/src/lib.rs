@@ -337,12 +337,11 @@ impl pallet_balances::Config for Runtime {
 
 /// Deal with substrate based fees and tip. This should be used with pallet_transaction_payment.
 pub struct DealWithSubstrateFeesAndTip<R>(sp_std::marker::PhantomData<R>);
-impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>>
-	for DealWithSubstrateFeesAndTip<R>
+impl<R> DealWithSubstrateFeesAndTip<R>
 where
 	R: pallet_balances::Config + pallet_treasury::Config,
 {
-	fn on_nonzero_unbalanced(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
+	fn deal_with_fees(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
 		// Balances pallet automatically burns dropped Credits by decreasing
 		// total_supply accordingly
 		let treasury_proportion =
@@ -351,6 +350,28 @@ where
 		let burn_part = Perbill::one().deconstruct() - treasury_part;
 		let (_, to_treasury) = amount.ration(burn_part, treasury_part);
 		ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(to_treasury);
+	}
+
+	fn deal_with_tip(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
+		// same as fees
+		Self::deal_with_fees(amount)
+	}
+}
+
+impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>>
+for DealWithSubstrateFeesAndTip<R>
+where
+	R: pallet_balances::Config + pallet_treasury::Config,
+{
+	fn on_unbalanceds(
+		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
+	) {
+		if let Some(fees) = fees_then_tips.next() {
+			Self::deal_with_fees(fees);
+			if let Some(tip) = fees_then_tips.next() {
+				Self::deal_with_tip(tip);
+			}
+		}
 	}
 }
 

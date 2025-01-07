@@ -79,11 +79,13 @@ describeSuite({
         const treasuryIncrease = feeWithTip - issuanceDecrease;
         return treasuryIncrease;
       };
-      const calcIssuanceDecrease = (feeWithTip: bigint, tip?: bigint): bigint => {
-        const feeWithTipBN = new BN(feeWithTip.toString());
-        const { burnt } = calculateFeePortions(treasuryPerbill, feeWithTipBN);
+      const calcIssuanceDecrease = (feeWithTip: bigint, maybeTip?: bigint): bigint => {
+        const tip = maybeTip ?? 0n;
+        const feeWithoutTip = feeWithTip - tip;
+        const { burnt: feeBurnt } = calculateFeePortions(treasuryPerbill, feeWithoutTip);
+        const { burnt: tipBurnt } = calculateFeePortions(treasuryPerbill, tip);
 
-        return BigInt(burnt.toString());
+        return feeBurnt + tipBurnt;
       };
 
       for (const txnType of TransactionTypes) {
