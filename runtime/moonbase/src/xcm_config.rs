@@ -702,7 +702,13 @@ parameter_types! {
 		runtime_params::dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
 }
 
-pub type ForeignAssetManagerOrigin = frame_system::EnsureSigned<AccountId>;
+pub type ForeignAssetManagerOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::FastGeneralAdmin,
+	>,
+>;
 
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
