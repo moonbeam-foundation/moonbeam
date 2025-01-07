@@ -357,7 +357,7 @@ where
 }
 
 impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>>
-for DealWithSubstrateFeesAndTip<R>
+	for DealWithSubstrateFeesAndTip<R>
 where
 	R: pallet_balances::Config + pallet_treasury::Config,
 {
@@ -536,9 +536,7 @@ pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
 	MaximumMultiplier,
 >;
 
-use frame_support::traits::tokens::imbalance::TryMerge;
 use frame_support::traits::FindAuthor;
-use pallet_balances::Pallet;
 //TODO It feels like this shold be able to work for any T: H160, but I tried for
 // embarassingly long and couldn't figure that out.
 
