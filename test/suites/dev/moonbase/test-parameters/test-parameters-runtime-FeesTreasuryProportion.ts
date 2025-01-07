@@ -199,6 +199,8 @@ describeSuite({
             expect(issuanceDecrease, `${burnPercentage}% of the fees should be burned`).to.equal(
               calcIssuanceDecrease(fee, withTip ? t.tipAmount : undefined)
             );
+
+            await verifyLatestBlockFees(context, t.transfer_amount);
           },
         });
       }

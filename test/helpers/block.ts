@@ -215,7 +215,7 @@ export const verifyBlockFees = async (
                 );
                 const tipPortions = calculateFeePortions(
                   feesTreasuryProportion,
-                extrinsic.tip.toBigInt(),
+                  extrinsic.tip.toBigInt()
                 );
                 txFees += fee.partialFee.toBigInt() + extrinsic.tip.toBigInt();
                 txBurnt += feePortions.burnt + tipPortions.burnt;
@@ -249,11 +249,12 @@ export const verifyBlockFees = async (
                   })) as any
                 ).toBigInt();
 
-                // const tip = extrinsic.tip.toBigInt();
+                const tip = extrinsic.tip.toBigInt();
                 const expectedPartialFee = lengthFee + weightFee + baseFee;
 
-                // Verify the computed fees are equal to the actual fees
-                expect(expectedPartialFee).to.eq((paymentEvent!.data[1] as u128).toBigInt());
+                // Verify the computed fees are equal to the actual fees + tip
+                expect(expectedPartialFee + tip).to.eq((paymentEvent!.data[1] as u128).toBigInt());
+                expect(tip).to.eq((paymentEvent!.data[2] as u128).toBigInt());
 
                 // Verify the computed fees are equal to the rpc computed fees
                 expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());
