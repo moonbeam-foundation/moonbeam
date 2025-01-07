@@ -58,7 +58,6 @@ use xcm::latest::prelude::{
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
-use parachains_common::BlockNumber;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
 	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
@@ -719,7 +718,6 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
 	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
-	type BlockNumber = BlockNumber;
 	type Currency = Balances;
 	type Balance = Balance;
 }

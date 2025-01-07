@@ -109,7 +109,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use pallet_evm::{GasWeightMapping, Runner};
-	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned, BlockNumber, Convert};
+	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned, Convert};
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::Error as MatchError;
 	use xcm_executor::AssetsInHolding;
@@ -162,9 +162,6 @@ pub mod pallet {
 
 		/// Amount of tokens required to lock for creating a new foreign asset
 		type ForeignAssetCreationDeposit: Get<BalanceOf<Self>>;
-
-		/// The block number type for the pallet
-		type BlockNumber: BlockNumber;
 
 		/// The balance type for locking funds
 		type Balance: Member

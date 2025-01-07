@@ -195,7 +195,6 @@ impl crate::Config for Test {
 	type WeightInfo = ();
 	type XcmLocationToH160 = ();
 	type ForeignAssetCreationDeposit = ();
-	type BlockNumber = BlockNumber;
 	type Balance = Balance;
 
 	type Currency = Balances;

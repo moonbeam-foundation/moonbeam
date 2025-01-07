@@ -62,7 +62,6 @@ use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
-use moonbeam_core_primitives::BlockNumber;
 use sp_core::Get;
 use sp_std::{
 	convert::{From, Into, TryFrom},
@@ -705,9 +704,8 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
 	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
-	type BlockNumber = BlockNumber;
-	type Currency = Balances;
 	type Balance = Balance;
+	type Currency = Balances;
 }
 
 pub struct AssetFeesFilter;
