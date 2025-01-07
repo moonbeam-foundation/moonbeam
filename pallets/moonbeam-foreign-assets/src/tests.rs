@@ -33,126 +33,128 @@ fn encode_token_name(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
 fn create_foreign_and_freeze_unfreeze() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1_000)])
-		.build().execute_with(|| {
-		// create foreign asset
-		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			RuntimeOrigin::from(Some(Alice.into())),
-			1,
-			Location::parent(),
-			18,
-			encode_ticker("MTT"),
-			encode_token_name("Mytoken"),
-		));
+		.build()
+		.execute_with(|| {
+			// create foreign asset
+			assert_ok!(EvmForeignAssets::create_foreign_asset(
+				RuntimeOrigin::from(Some(Alice.into())),
+				1,
+				Location::parent(),
+				18,
+				encode_ticker("MTT"),
+				encode_token_name("Mytoken"),
+			));
 
-		assert_eq!(EvmForeignAssets::assets_by_id(1), Some(Location::parent()));
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(Location::parent()),
-			Some((1, AssetStatus::Active)),
-		);
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(Location::parent()),
-			Some((1, AssetStatus::Active)),
-		);
-		assert_eq!(
-			EvmForeignAssets::assets_creation_details(&1),
-			Some(AssetCreationDetails {
-				owner: AssetOwner::Account(Alice.into()),
-				deposit: Some(ForeignAssetCreationDeposit::get())
-			})
-		);
+			assert_eq!(EvmForeignAssets::assets_by_id(1), Some(Location::parent()));
+			assert_eq!(
+				EvmForeignAssets::assets_by_location(Location::parent()),
+				Some((1, AssetStatus::Active)),
+			);
+			assert_eq!(
+				EvmForeignAssets::assets_by_location(Location::parent()),
+				Some((1, AssetStatus::Active)),
+			);
+			assert_eq!(
+				EvmForeignAssets::assets_creation_details(&1),
+				Some(AssetCreationDetails {
+					owner: AssetOwner::Account(Alice.into()),
+					deposit: Some(ForeignAssetCreationDeposit::get())
+				})
+			);
 
-		expect_events(vec![crate::Event::ForeignAssetCreated {
-			contract_address: H160([
-				255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-			]),
-			asset_id: 1,
-			xcm_location: Location::parent(),
-			deposit: Some(ForeignAssetCreationDeposit::get()),
-		}]);
+			expect_events(vec![crate::Event::ForeignAssetCreated {
+				contract_address: H160([
+					255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+				]),
+				asset_id: 1,
+				xcm_location: Location::parent(),
+				deposit: Some(ForeignAssetCreationDeposit::get()),
+			}]);
 
-		let (xcm_location, asset_id): (Location, u128) = get_asset_created_hook_invocation()
-			.expect("Decoding of invocation data should not fail");
-		assert_eq!(xcm_location, Location::parent());
-		assert_eq!(asset_id, 1u128);
+			let (xcm_location, asset_id): (Location, u128) = get_asset_created_hook_invocation()
+				.expect("Decoding of invocation data should not fail");
+			assert_eq!(xcm_location, Location::parent());
+			assert_eq!(asset_id, 1u128);
 
-		// Check storage
-		assert_eq!(EvmForeignAssets::assets_by_id(&1), Some(Location::parent()));
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(&Location::parent()),
-			Some((1, AssetStatus::Active))
-		);
-		assert_eq!(
-			EvmForeignAssets::assets_creation_details(&1),
-			Some(AssetCreationDetails {
-				owner: AssetOwner::Account(Alice.into()),
-				deposit: Some(1)
-			})
-		);
+			// Check storage
+			assert_eq!(EvmForeignAssets::assets_by_id(&1), Some(Location::parent()));
+			assert_eq!(
+				EvmForeignAssets::assets_by_location(&Location::parent()),
+				Some((1, AssetStatus::Active))
+			);
+			assert_eq!(
+				EvmForeignAssets::assets_creation_details(&1),
+				Some(AssetCreationDetails {
+					owner: AssetOwner::Account(Alice.into()),
+					deposit: Some(1)
+				})
+			);
 
-		// Unfreeze should return AssetNotFrozen error
-		assert_noop!(
-			EvmForeignAssets::unfreeze_foreign_asset(RuntimeOrigin::root(), 1),
-			Error::<Test>::AssetNotFrozen
-		);
+			// Unfreeze should return AssetNotFrozen error
+			assert_noop!(
+				EvmForeignAssets::unfreeze_foreign_asset(RuntimeOrigin::root(), 1),
+				Error::<Test>::AssetNotFrozen
+			);
 
-		// Freeze should work
-		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
-			RuntimeOrigin::root(),
-			1,
-			true
-		),);
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(&Location::parent()),
-			Some((1, AssetStatus::FrozenXcmDepositAllowed))
-		);
+			// Freeze should work
+			assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+				RuntimeOrigin::root(),
+				1,
+				true
+			),);
+			assert_eq!(
+				EvmForeignAssets::assets_by_location(&Location::parent()),
+				Some((1, AssetStatus::FrozenXcmDepositAllowed))
+			);
 
-		// Should not be able to freeze an asset already frozen
-		assert_noop!(
-			EvmForeignAssets::freeze_foreign_asset(RuntimeOrigin::root(), 1, true),
-			Error::<Test>::AssetAlreadyFrozen
-		);
+			// Should not be able to freeze an asset already frozen
+			assert_noop!(
+				EvmForeignAssets::freeze_foreign_asset(RuntimeOrigin::root(), 1, true),
+				Error::<Test>::AssetAlreadyFrozen
+			);
 
-		// Unfreeze should work
-		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
-			RuntimeOrigin::root(),
-			1
-		),);
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(&Location::parent()),
-			Some((1, AssetStatus::Active))
-		);
-	});
+			// Unfreeze should work
+			assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
+				RuntimeOrigin::root(),
+				1
+			),);
+			assert_eq!(
+				EvmForeignAssets::assets_by_location(&Location::parent()),
+				Some((1, AssetStatus::Active))
+			);
+		});
 }
 
 #[test]
 fn test_asset_exists_error() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1_000)])
-		.build().execute_with(|| {
-		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			RuntimeOrigin::signed(Alice.into()),
-			1,
-			Location::parent(),
-			18,
-			encode_ticker("MTT"),
-			encode_token_name("Mytoken"),
-		));
-		assert_eq!(
-			EvmForeignAssets::assets_by_id(1).unwrap(),
-			Location::parent()
-		);
-		assert_noop!(
-			EvmForeignAssets::create_foreign_asset(
+		.build()
+		.execute_with(|| {
+			assert_ok!(EvmForeignAssets::create_foreign_asset(
 				RuntimeOrigin::signed(Alice.into()),
 				1,
 				Location::parent(),
 				18,
 				encode_ticker("MTT"),
 				encode_token_name("Mytoken"),
-			),
-			Error::<Test>::AssetAlreadyExists
-		);
-	});
+			));
+			assert_eq!(
+				EvmForeignAssets::assets_by_id(1).unwrap(),
+				Location::parent()
+			);
+			assert_noop!(
+				EvmForeignAssets::create_foreign_asset(
+					RuntimeOrigin::signed(Alice.into()),
+					1,
+					Location::parent(),
+					18,
+					encode_ticker("MTT"),
+					encode_token_name("Mytoken"),
+				),
+				Error::<Test>::AssetAlreadyExists
+			);
+		});
 }
 
 #[test]
@@ -168,22 +170,14 @@ fn test_regular_user_cannot_call_some_extrinsics() {
 		);
 
 		assert_noop!(
-			EvmForeignAssets::freeze_foreign_asset(
-				RuntimeOrigin::signed(Bob.into()),
-				1,
-				false
-			),
+			EvmForeignAssets::freeze_foreign_asset(RuntimeOrigin::signed(Bob.into()), 1, false),
 			sp_runtime::DispatchError::BadOrigin
 		);
 
 		assert_noop!(
-			EvmForeignAssets::unfreeze_foreign_asset(
-				RuntimeOrigin::signed(Bob.into()),
-				1,
-			),
+			EvmForeignAssets::unfreeze_foreign_asset(RuntimeOrigin::signed(Bob.into()), 1,),
 			sp_runtime::DispatchError::BadOrigin
 		);
-
 	});
 }
 
@@ -191,47 +185,48 @@ fn test_regular_user_cannot_call_some_extrinsics() {
 fn test_root_can_change_foreign_asset_for_asset_id() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1_000)])
-		.build().execute_with(|| {
-		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			RuntimeOrigin::signed(Alice.into()),
-			1,
-			Location::parent(),
-			18,
-			encode_ticker("MTT"),
-			encode_token_name("Mytoken"),
-		));
+		.build()
+		.execute_with(|| {
+			assert_ok!(EvmForeignAssets::create_foreign_asset(
+				RuntimeOrigin::signed(Alice.into()),
+				1,
+				Location::parent(),
+				18,
+				encode_ticker("MTT"),
+				encode_token_name("Mytoken"),
+			));
 
-		assert_ok!(EvmForeignAssets::change_xcm_location(
-			RuntimeOrigin::root(),
-			1,
-			Location::here()
-		));
+			assert_ok!(EvmForeignAssets::change_xcm_location(
+				RuntimeOrigin::root(),
+				1,
+				Location::here()
+			));
 
-		// New associations are stablished
-		assert_eq!(EvmForeignAssets::assets_by_id(1).unwrap(), Location::here());
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(Location::here()).unwrap(),
-			(1, AssetStatus::Active),
-		);
+			// New associations are stablished
+			assert_eq!(EvmForeignAssets::assets_by_id(1).unwrap(), Location::here());
+			assert_eq!(
+				EvmForeignAssets::assets_by_location(Location::here()).unwrap(),
+				(1, AssetStatus::Active),
+			);
 
-		// Old ones are deleted
-		assert!(EvmForeignAssets::assets_by_location(Location::parent()).is_none());
+			// Old ones are deleted
+			assert!(EvmForeignAssets::assets_by_location(Location::parent()).is_none());
 
-		expect_events(vec![
-			crate::Event::ForeignAssetCreated {
-				contract_address: H160([
-					255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-				]),
-				asset_id: 1,
-				xcm_location: Location::parent(),
-				deposit: Some(ForeignAssetCreationDeposit::get()),
-			},
-			crate::Event::ForeignAssetXcmLocationChanged {
-				asset_id: 1,
-				new_xcm_location: Location::here(),
-			},
-		])
-	});
+			expect_events(vec![
+				crate::Event::ForeignAssetCreated {
+					contract_address: H160([
+						255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+					]),
+					asset_id: 1,
+					xcm_location: Location::parent(),
+					deposit: Some(ForeignAssetCreationDeposit::get()),
+				},
+				crate::Event::ForeignAssetXcmLocationChanged {
+					asset_id: 1,
+					new_xcm_location: Location::here(),
+				},
+			])
+		});
 }
 
 #[test]
@@ -248,42 +243,43 @@ fn test_asset_id_non_existent_error() {
 fn test_location_already_exist_error() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1_000)])
-		.build().execute_with(|| {
-		// Setup: create a first foreign asset taht we will try to override
-		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			RuntimeOrigin::from(Some(Alice.into())),
-			1,
-			Location::parent(),
-			18,
-			encode_ticker("MTT"),
-			encode_token_name("Mytoken"),
-		));
-
-		assert_noop!(
-			EvmForeignAssets::create_foreign_asset(
+		.build()
+		.execute_with(|| {
+			// Setup: create a first foreign asset taht we will try to override
+			assert_ok!(EvmForeignAssets::create_foreign_asset(
 				RuntimeOrigin::from(Some(Alice.into())),
-				2,
+				1,
 				Location::parent(),
 				18,
 				encode_ticker("MTT"),
 				encode_token_name("Mytoken"),
-			),
-			Error::<Test>::LocationAlreadyExists
-		);
+			));
 
-		// Setup: create a second foreign asset that will try to override the first one
-		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			RuntimeOrigin::from(Some(Alice.into())),
-			2,
-			Location::new(2, *&[]),
-			18,
-			encode_ticker("MTT"),
-			encode_token_name("Mytoken"),
-		));
+			assert_noop!(
+				EvmForeignAssets::create_foreign_asset(
+					RuntimeOrigin::from(Some(Alice.into())),
+					2,
+					Location::parent(),
+					18,
+					encode_ticker("MTT"),
+					encode_token_name("Mytoken"),
+				),
+				Error::<Test>::LocationAlreadyExists
+			);
 
-		assert_noop!(
-			EvmForeignAssets::change_xcm_location(RuntimeOrigin::root(), 2, Location::parent()),
-			Error::<Test>::LocationAlreadyExists
-		);
-	});
+			// Setup: create a second foreign asset that will try to override the first one
+			assert_ok!(EvmForeignAssets::create_foreign_asset(
+				RuntimeOrigin::from(Some(Alice.into())),
+				2,
+				Location::new(2, *&[]),
+				18,
+				encode_ticker("MTT"),
+				encode_token_name("Mytoken"),
+			));
+
+			assert_noop!(
+				EvmForeignAssets::change_xcm_location(RuntimeOrigin::root(), 2, Location::parent()),
+				Error::<Test>::LocationAlreadyExists
+			);
+		});
 }
