@@ -214,8 +214,8 @@ export const verifyBlockFees = async (
                   fee.partialFee.toBigInt()
                 );
                 const tipPortions = calculateFeePortions(
-                  extrinsic.tip.toBigInt(),
-                  feesTreasuryProportion
+                  feesTreasuryProportion,
+                extrinsic.tip.toBigInt(),
                 );
                 txFees += fee.partialFee.toBigInt() + extrinsic.tip.toBigInt();
                 txBurnt += feePortions.burnt + tipPortions.burnt;
