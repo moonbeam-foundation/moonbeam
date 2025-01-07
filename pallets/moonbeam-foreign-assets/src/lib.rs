@@ -330,7 +330,10 @@ pub mod pallet {
 			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, AssetStatus::Active));
 			AssetsCreationDetails::<T>::insert(
 				&asset_id,
-				AssetCreationDetails { owner, deposit: None }
+				AssetCreationDetails {
+					owner,
+					deposit: None,
+				},
 			);
 
 			Self::deposit_event(Event::ForeignAssetCreated {
@@ -448,7 +451,10 @@ pub mod pallet {
 			// Insert the amount that is reserved from the user
 			AssetsCreationDetails::<T>::insert(
 				&asset_id,
-				AssetCreationDetails { owner, deposit: Some(deposit) }
+				AssetCreationDetails {
+					owner,
+					deposit: Some(deposit),
+				},
 			);
 
 			T::OnForeignAssetCreated::on_asset_created(&xcm_location, &asset_id);

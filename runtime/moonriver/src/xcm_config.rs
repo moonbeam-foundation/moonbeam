@@ -17,7 +17,12 @@
 //! XCM configuration for Moonbase.
 //!
 
-use super::{governance, runtime_params, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue};
+use super::{
+	governance, runtime_params, AccountId, AssetId, AssetManager, Balance, Balances,
+	EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue,
+	OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+};
 
 use super::moonriver_weights;
 use frame_support::{

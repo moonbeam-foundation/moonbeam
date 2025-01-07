@@ -198,7 +198,6 @@ impl crate::Config for Test {
 	type Balance = Balance;
 
 	type Currency = Balances;
-
 }
 
 pub(crate) struct ExtBuilder {

@@ -17,13 +17,13 @@
 //! XCM configuration for Moonbase.
 //!
 
-use super::{moonbase_weights, runtime_params};
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
 	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo,
 	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
 	RuntimeOrigin, Treasury, XcmpQueue,
 };
+use super::{moonbase_weights, runtime_params};
 use crate::OpenTechCommitteeInstance;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
@@ -724,8 +724,8 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
 	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
-	type Currency = Balances;
 	type Balance = Balance;
+	type Currency = Balances;
 }
 
 pub struct AssetFeesFilter;
