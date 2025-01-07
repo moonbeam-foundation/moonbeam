@@ -10,7 +10,7 @@ import {
 } from "@moonwall/util";
 import { parameterType, UNIT } from "./test-parameters";
 import { BN } from "@polkadot/util";
-import { calculateFeePortions } from "../../../../helpers";
+import { calculateFeePortions, verifyLatestBlockFees } from "../../../../helpers";
 
 interface TestCase {
   proportion: Perbill;
@@ -70,7 +70,7 @@ describeSuite({
     ];
 
     for (const t of testCases) {
-      const treasuryPerbill = new BN(1e9).sub(t.proportion.value());
+      const treasuryPerbill = new BN(t.proportion.value());
       const treasuryPercentage = t.proportion.value().toNumber() / 1e7;
       const burnPercentage = 100 - treasuryPercentage;
 
@@ -147,7 +147,7 @@ describeSuite({
         it({
           id: `T${++testCounter}`,
           title:
-            `Changing FeesTreasuryProportion to ${treasuryPercentage}% for Substrate based` +
+            `Changing FeesTreasuryProportion to ${treasuryPercentage}% for Substrate based ` +
             `transactions with ${withTip ? "" : "no "}tip`,
           test: async () => {
             const param = parameterType(
