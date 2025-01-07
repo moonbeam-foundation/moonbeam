@@ -359,7 +359,7 @@ where
 }
 
 impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>>
-for DealWithSubstrateFeesAndTip<R>
+	for DealWithSubstrateFeesAndTip<R>
 where
 	R: pallet_balances::Config + pallet_treasury::Config,
 {
