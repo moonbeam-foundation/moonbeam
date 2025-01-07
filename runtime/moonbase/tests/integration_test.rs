@@ -1268,9 +1268,7 @@ fn update_reward_address_via_precompile() {
 fn create_and_manipulate_foreign_asset() {
 	let alice = AccountId::from(ALICE);
 	ExtBuilder::default()
-		.with_balances(vec![
-			(alice, 1_000 * UNIT),
-		])
+		.with_balances(vec![(alice, 1_000 * UNIT)])
 		.build()
 		.execute_with(|| {
 			let source_location = xcm::v4::Location::parent();
@@ -1305,10 +1303,7 @@ fn create_and_manipulate_foreign_asset() {
 			);
 
 			// Unfreeze foreign asset
-			assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
-				root_origin(),
-				1,
-			));
+			assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(root_origin(), 1,));
 			assert_eq!(
 				EvmForeignAssets::assets_by_location(&source_location),
 				Some((1, AssetStatus::Active))
