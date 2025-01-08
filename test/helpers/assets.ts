@@ -403,11 +403,7 @@ export async function registerForeignAsset(
   const { result } = await context.createBlock(
     context
       .polkadotJs()
-      .tx.sudo.sudoAs(
-        alith.address,
-        context
-          .polkadotJs()
-          .tx.evmForeignAssets.createForeignAsset(assetId, xcmLoc, decimals, symbol, name)
+      .tx.evmForeignAssets.createForeignAsset(assetId, xcmLoc, decimals, symbol, name)
       )
   );
 
