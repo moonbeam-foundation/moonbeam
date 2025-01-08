@@ -16,18 +16,27 @@
 
 #![cfg(feature = "runtime-benchmarks")]
 
-use crate::{AssetStatus, Call, Config, Pallet};
-use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
+use crate::{pallet, AssetStatus, Call, Config, Pallet};
+use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::pallet_prelude::*;
+use frame_support::traits::Currency;
 use frame_system::RawOrigin;
 use sp_runtime::traits::ConstU32;
 use sp_runtime::BoundedVec;
 use xcm::latest::prelude::*;
 
+fn create_funded_user<T: Config>(string: &'static str, n: u32, balance: u32) -> T::AccountId {
+	const SEED: u32 = 0;
+	let user = account(string, n, SEED);
+	let _ =  <T as pallet::Config>::Currency::make_free_balance_be(&user, balance.into());
+	let _ =  <T as pallet::Config>::Currency::issue(balance.into());
+	user
+}
 fn create_n_foreign_asset<T: Config>(n: u32) -> DispatchResult {
+	let user: T::AccountId = create_funded_user::<T>("user", n, 100);
 	for i in 1..=n {
 		Pallet::<T>::create_foreign_asset(
-			RawOrigin::Root.into(),
+			RawOrigin::Signed(user.clone()).into(),
 			i as u128,
 			location_of(i),
 			18,
@@ -53,7 +62,7 @@ benchmarks! {
 	create_foreign_asset {
 		create_n_foreign_asset::<T>(T::MaxForeignAssets::get().saturating_sub(1))?;
 		let asset_id = T::MaxForeignAssets::get() as u128;
-	}: _(RawOrigin::Root, asset_id, Location::parent(), 18, str_to_bv("MT"), str_to_bv("Mytoken"))
+	}: _(RawOrigin::Signed(create_funded_user::<T>("user", 1, 100)), asset_id, Location::parent(), 18, str_to_bv("MT"), str_to_bv("Mytoken"))
 	verify {
 		assert_eq!(
 			Pallet::<T>::assets_by_id(asset_id),
