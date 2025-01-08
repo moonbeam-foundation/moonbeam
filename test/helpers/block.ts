@@ -178,33 +178,48 @@ export const verifyBlockFees = async (
                 const baseFeePerGas = (
                   await context.viem().getBlock({ blockNumber: BigInt(number - 1) })
                 ).baseFeePerGas!;
-                let priorityFee;
 
+                console.log("baseFeePerGas", baseFeePerGas);
+
+                let priorityFee;
+                let gasFee;
                 // Transaction is an enum now with as many variants as supported transaction types.
                 if (ethTxWrapper.isLegacy) {
                   priorityFee = ethTxWrapper.asLegacy.gasPrice.toBigInt();
+                  gasFee = priorityFee;
                 } else if (ethTxWrapper.isEip2930) {
                   priorityFee = ethTxWrapper.asEip2930.gasPrice.toBigInt();
+                  gasFee = priorityFee;
                 } else if (ethTxWrapper.isEip1559) {
                   priorityFee = ethTxWrapper.asEip1559.maxPriorityFeePerGas.toBigInt();
+                  gasFee = ethTxWrapper.asEip1559.maxFeePerGas.toBigInt();
                 }
 
-                let effectiveTipPerGas = priorityFee - baseFeePerGas;
-                if (effectiveTipPerGas < 0n) {
-                  effectiveTipPerGas = 0n;
+                console.log("priorityFee", priorityFee);
+                console.log("gasFee", gasFee);
+
+                let effectiveTipPerGas = gasFee - baseFeePerGas;
+                if (effectiveTipPerGas > priorityFee) {
+                  effectiveTipPerGas = priorityFee;
                 }
 
-                // Calculate the fees paid for base fee independently of tip fee. Both are subject
-                // to split between (burn/treasury) but calculating these over the sum of the two
-                // rather than independently leads to off-by-one errors.
+                console.log("effectiveTipPerGas", effectiveTipPerGas);
+
+                // Calculate the fees paid for the base fee and tip fee independently.
+                // Only the base fee is subject to the split between burn and treasury.
                 const baseFeesPaid = gasUsed * baseFeePerGas;
                 const tipAsFeesPaid = gasUsed * effectiveTipPerGas;
+
+                console.log("baseFeesPaid", baseFeesPaid);
+                console.log("tipAsFeesPaid", tipAsFeesPaid);
 
                 const { burnt: baseFeePortionsBurnt } = calculateFeePortions(
                   feesTreasuryProportion,
                   baseFeesPaid
                 );
 
+                console.log("baseFeesPaid", baseFeesPaid);
+                console.log("tipAsFeesPaid", tipAsFeesPaid);
                 txFees += baseFeesPaid + tipAsFeesPaid;
                 txBurnt += baseFeePortionsBurnt;
               } else {
@@ -274,6 +289,11 @@ export const verifyBlockFees = async (
               const toBalance = (await (
                 await api.at(blockDetails.block.hash)
               ).query.system.account(origin)) as any;
+
+              console.log("origin", origin);
+              console.log("txFees", txFees);
+              console.log("diff", (((fromBalance.data.free.toBigInt() as any) -
+                toBalance.data.free.toBigInt()) as any) - expectedBalanceDiff);
 
               expect(txFees.toString()).to.eq(
                 (
