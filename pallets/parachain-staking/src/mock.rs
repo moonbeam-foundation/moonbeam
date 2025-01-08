@@ -280,7 +280,7 @@ impl ExtBuilder {
 fn roll_one_block() -> BlockNumber {
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
-	ParachainStaking::on_finalize(0);
+	ParachainStaking::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
 	System::reset_events();
 	System::on_initialize(System::block_number());
