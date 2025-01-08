@@ -52,7 +52,11 @@ jobs:
                 echo "| File | Extrinsic | Old | New | Change [%] |" >> weight_diff_report.md
                 echo "|------|-----------|-----|-----|------------|" >> weight_diff_report.md
                 for file in ${ALL_CHANGED_FILES}; do
-                  subweight compare commits --threshold 1 --strip-path-prefix ".*/" --format markdown --method exact-worst --path-pattern $file ${{github.base_ref}} ${{github.head_ref}} | sed 1,2d  >> weight_diff_report.md
+                  subweight compare commits --threshold 1 --strip-path-prefix ".*/" --format csv --method exact-worst --path-pattern $file ${{github.base_ref}} ${{github.head_ref}} > temp.csv
+                  # Add absolute change column and sort by it
+                  awk -F, 'NR==1{print $0 ",AbsChange"} NR>1{print $0 "," ( ($5 < 0) ? -$5 : $5 )}' temp.csv | sort -t, -k6,6nr > sorted_temp.csv
+                  # Convert sorted CSV to markdown and append to the report
+                  awk -F, 'NR==1{print "| " $1 " | " $2 " | " $3 " | " $4 " | " $5 " |"} NR>1{print "| " $1 " | " $2 " | " $3 " | " $4 " | " $5 " |"}' sorted_temp.csv >> weight_diff_report.md
                 done
 
             - name: Moonriver Report
