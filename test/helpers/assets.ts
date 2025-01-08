@@ -404,10 +404,10 @@ export async function registerForeignAsset(
     context
       .polkadotJs()
       .tx.sudo.sudoAs(
-          alith.address,
-          context
-            .polkadotJs()
-            .tx.evmForeignAssets.createForeignAsset(assetId, xcmLoc, decimals, symbol, name)
+        alith.address,
+        context
+          .polkadotJs()
+          .tx.evmForeignAssets.createForeignAsset(assetId, xcmLoc, decimals, symbol, name)
       )
   );
 
