@@ -404,7 +404,6 @@ export async function registerForeignAsset(
     context
       .polkadotJs()
       .tx.evmForeignAssets.createForeignAsset(assetId, xcmLoc, decimals, symbol, name)
-      )
   );
 
   // Fetch the relevant event
