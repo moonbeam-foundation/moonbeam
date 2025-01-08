@@ -698,7 +698,7 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 parameter_types! {
 	/// Balance in the native currency that will be reserved from the user
 	/// to create a new foreign asset
-	pub ForeignAssetCreationDeposit: u64 =
+	pub ForeignAssetCreationDeposit: u128 =
 		runtime_params::dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
 }
 

@@ -47,7 +47,7 @@ pub mod dynamic_params {
 	#[codec(index = 2)]
 	pub mod xcm_config {
 		#[codec(index = 0)]
-		pub static ForeignAssetCreationDeposit: u64 = 10_000;
+		pub static ForeignAssetCreationDeposit: u128 = 10_000 * currency::GLMR;
 	}
 }
 
