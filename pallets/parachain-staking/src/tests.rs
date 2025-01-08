@@ -1183,29 +1183,19 @@ fn notify_inactive_collator_works() {
 			// Enable killswitch
 			<EnableMarkingOffline<Test>>::set(true);
 
-			// Round 2
-			roll_to_round_begin(2);
-
-			// Change block author
-			set_block_author(1);
-
-			// Finalize the first block of round 2
-			ParachainStaking::on_finalize(5);
-
-			// We don't produce blocks on round 3
-			roll_to_round_begin(3);
-			roll_blocks(1);
-
-			// We don't produce blocks on round 4
-			roll_to_round_begin(4);
-			roll_blocks(1);
-
-			// Round 6 - notify the collator as inactive
-			roll_to_round_begin(6);
-			roll_blocks(1);
-
 			assert_eq!(<Test as crate::Config>::MaxOfflineRounds::get(), 1);
 			assert_eq!(<Test as crate::Config>::RewardPaymentDelay::get(), 2);
+
+			// Round 2 - collator 1 authors blocks
+			set_block_author(1);
+			roll_to_round_end(2);
+
+			// Change block author
+			set_block_author(2);
+
+			// Collator 1 does not produce blocks on round 3
+			roll_to_round_begin(4);
+			roll_blocks(1);
 
 			// Call 'notify_inactive_collator' extrinsic
 			assert_ok!(ParachainStaking::notify_inactive_collator(
@@ -1214,6 +1204,46 @@ fn notify_inactive_collator_works() {
 			));
 
 			// Check the collator was marked as offline as it hasn't produced blocks
+			assert_events_eq!(Event::CandidateWentOffline { candidate: 1 },);
+		});
+}
+
+#[test]
+fn notify_inactive_collator_debug() {
+	use crate::*;
+
+	let balances = vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)];
+	let collators = vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)];
+
+	ExtBuilder::default()
+		.with_balances(balances)
+		.with_candidates(collators.clone())
+		.build()
+		.execute_with(|| {
+			// Enable killswitch
+			<EnableMarkingOffline<Test>>::set(true);
+
+			set_block_author(1);
+			roll_to_round_begin(2);
+
+			roll_blocks(1);
+			ParachainStaking::on_finalize(0); // ignored argument
+			assert!(<AtStake<Test>>::contains_key(2, 1));
+
+			for i in 1..299 {
+				roll_blocks(1);
+				//ParachainStaking::on_finalize(0); // ignored argument
+
+				assert!(<AtStake<Test>>::contains_key(2, 1));
+				assert_eq!(<AwardedPts<Test>>::get(2, 1), 40 + 20 * i);
+			}
+
+			// Call 'notify_inactive_collator' extrinsic
+			assert_ok!(ParachainStaking::notify_inactive_collator(
+				RuntimeOrigin::signed(1),
+				1
+			));
+
 			assert_events_eq!(Event::CandidateWentOffline { candidate: 1 },);
 		});
 }
