@@ -52,7 +52,6 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for pallet_foreign_asset_creator.
 pub trait WeightInfo {
 	fn create_foreign_asset() -> Weight;
-	fn create_foreign_asset_reserve() -> Weight;
 	fn change_xcm_location() -> Weight;
 	fn freeze_foreign_asset() -> Weight;
 	fn unfreeze_foreign_asset() -> Weight;
@@ -77,9 +76,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
 
-	fn create_foreign_asset_reserve() -> Weight {
-		Weight::default()
-	}
 
 	/// Storage: `ForeignAssetsCreator::AssetIdToForeignAsset` (r:1 w:1)
 	/// Proof: `ForeignAssetsCreator::AssetIdToForeignAsset` (`max_values`: None, `max_size`: None, mode: `Measured`)
@@ -182,8 +178,4 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(2_u64))
 			.saturating_add(RocksDbWeight::get().writes(3_u64))
 	}
-
-	fn create_foreign_asset_reserve() -> Weight {
-        Weight::default()
-    }
 }
