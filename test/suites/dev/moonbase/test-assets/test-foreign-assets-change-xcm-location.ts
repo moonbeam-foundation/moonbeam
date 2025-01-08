@@ -27,7 +27,7 @@ describeSuite({
       assetId = registeredAssetId;
 
       // Expect a balance diff after creating an asset due to the deposit
-      let assetCreationDeposit = 100;
+      const assetCreationDeposit = 100;
       await verifyLatestBlockFees(context, BigInt(assetCreationDeposit));
     });
 
