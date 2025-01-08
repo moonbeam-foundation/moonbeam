@@ -1209,46 +1209,6 @@ fn notify_inactive_collator_works() {
 }
 
 #[test]
-fn notify_inactive_collator_debug() {
-	use crate::*;
-
-	let balances = vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)];
-	let collators = vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)];
-
-	ExtBuilder::default()
-		.with_balances(balances)
-		.with_candidates(collators.clone())
-		.build()
-		.execute_with(|| {
-			// Enable killswitch
-			<EnableMarkingOffline<Test>>::set(true);
-
-			set_block_author(1);
-			roll_to_round_begin(2);
-
-			roll_blocks(1);
-			ParachainStaking::on_finalize(0); // ignored argument
-			assert!(<AtStake<Test>>::contains_key(2, 1));
-
-			for i in 1..299 {
-				roll_blocks(1);
-				//ParachainStaking::on_finalize(0); // ignored argument
-
-				assert!(<AtStake<Test>>::contains_key(2, 1));
-				assert_eq!(<AwardedPts<Test>>::get(2, 1), 40 + 20 * i);
-			}
-
-			// Call 'notify_inactive_collator' extrinsic
-			assert_ok!(ParachainStaking::notify_inactive_collator(
-				RuntimeOrigin::signed(1),
-				1
-			));
-
-			assert_events_eq!(Event::CandidateWentOffline { candidate: 1 },);
-		});
-}
-
-#[test]
 fn notify_inactive_collator_fails_too_low_collator_count() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20)])
