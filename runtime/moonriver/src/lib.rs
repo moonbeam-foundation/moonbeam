@@ -353,8 +353,7 @@ where
 	}
 
 	fn deal_with_tip(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
-		// same as fees
-		Self::deal_with_fees(amount)
+		ResolveTo::<BlockAuthorAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(amount);
 	}
 }
 
