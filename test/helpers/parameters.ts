@@ -6,7 +6,7 @@ export const getFeesTreasuryProportion = async (context: DevModeContext): Promis
   });
 
   // 20% default value
-  let feesTreasuryProportion = 50_000_000n;
+  let feesTreasuryProportion = 200_000_000n;
   if (parameter.isSome) {
     feesTreasuryProportion = parameter.value.asRuntimeConfig.asFeesTreasuryProportion.toBigInt();
   }
