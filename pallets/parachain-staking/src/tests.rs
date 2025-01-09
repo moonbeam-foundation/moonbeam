@@ -1210,8 +1210,6 @@ fn notify_inactive_collator_works() {
 
 #[test]
 fn notify_inactive_collator_succeeds_even_after_rewards_are_distributed() {
-	use crate::*;
-
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
