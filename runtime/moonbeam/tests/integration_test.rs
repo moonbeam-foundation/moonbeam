@@ -2618,12 +2618,12 @@ fn removed_precompiles() {
 #[test]
 fn deal_with_fees_handles_tip() {
 	use frame_support::traits::OnUnbalanced;
-	use moonriver_runtime::{DealWithSubstrateFeesAndTip, Treasury};
+	use moonbeam_runtime::{DealWithSubstrateFeesAndTip, Treasury};
 
 	ExtBuilder::default().build().execute_with(|| {
 		set_parachain_inherent_data();
 		// This test validates the functionality of the `DealWithSubstrateFeesAndTip` trait implementation
-		// in the Moonriver runtime. It verifies that:
+		// in the Moonbeam runtime. It verifies that:
 		// - The correct proportion of the fee is sent to the treasury.
 		// - The remaining fee is burned (removed from the total supply).
 		// - The entire tip is sent to the block author.
