@@ -277,8 +277,10 @@ impl ExtBuilder {
 }
 
 /// Rolls forward one block. Returns the new block number.
-fn roll_one_block() -> BlockNumber {
-	ParachainStaking::on_finalize(System::block_number());
+fn roll_one_block(finalize_parachain_staking: bool) -> BlockNumber {
+	if finalize_parachain_staking {
+		ParachainStaking::on_finalize(System::block_number());
+	}
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
@@ -290,21 +292,27 @@ fn roll_one_block() -> BlockNumber {
 }
 
 /// Rolls to the desired block. Returns the number of blocks played.
-pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
+/// Allows to decide whther to finalize blocks with ParachainStaking::on_finalize or not.
+fn roll_to_block(n: BlockNumber, finalize_parachain_staking: bool) -> BlockNumber {
 	let mut num_blocks = 0;
 	let mut block = System::block_number();
 	while block < n {
-		block = roll_one_block();
+		block = roll_one_block(finalize_parachain_staking);
 		num_blocks += 1;
 	}
 	num_blocks
+}
+
+/// Rolls to the desired block. Returns the number of blocks played.
+pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
+	roll_to_block(n, false)
 }
 
 /// Rolls desired number of blocks. Returns the final block.
 pub(crate) fn roll_blocks(num_blocks: u32) -> BlockNumber {
 	let mut block = System::block_number();
 	for _ in 0..num_blocks {
-		block = roll_one_block();
+		block = roll_one_block(false);
 	}
 	block
 }
@@ -335,7 +343,7 @@ pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
 /// NOTE: this function is aware of changes to [`ParachainStaking::round()`].
 pub(crate) fn roll_to_next_round_begin() -> BlockNumber {
 	let block = ParachainStaking::round().first + ParachainStaking::round().length;
-	roll_to(block)
+	roll_to_block(block, true)
 }
 
 /// Rolls block-by-block to the end of the current round.
@@ -344,7 +352,7 @@ pub(crate) fn roll_to_next_round_begin() -> BlockNumber {
 /// NOTE: this function is aware of changes to [`ParachainStaking::round()`].
 pub(crate) fn roll_to_current_round_end() -> BlockNumber {
 	let block = ParachainStaking::round().first + ParachainStaking::round().length - 1;
-	roll_to(block)
+	roll_to_block(block, true)
 }
 
 pub(crate) fn inflation_configs(

@@ -1183,18 +1183,19 @@ fn notify_inactive_collator_works() {
 			// Enable killswitch
 			<EnableMarkingOffline<Test>>::set(true);
 
-			assert_eq!(<Test as crate::Config>::MaxOfflineRounds::get(), 1);
+			assert_eq!(<Test as crate::Config>::MaxOfflineRounds::get(), 2);
 			assert_eq!(<Test as crate::Config>::RewardPaymentDelay::get(), 2);
 
 			// Round 2 - collator 1 authors blocks
 			set_block_author(1);
-			roll_to_round_end(2);
+			roll_to_next_round_begin();
 
 			// Change block author
 			set_block_author(2);
 
-			// Collator 1 does not produce blocks on round 3
-			roll_to_round_begin(4);
+			// Collator 1 does not produce blocks on round 2 and 3
+			roll_to_next_round_begin();
+			roll_to_next_round_begin();
 			roll_blocks(1);
 
 			// Call 'notify_inactive_collator' extrinsic
