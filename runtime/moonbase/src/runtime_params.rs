@@ -55,7 +55,7 @@ impl Default for RuntimeParameters {
 		RuntimeParameters::RuntimeConfig(
 			dynamic_params::runtime_config::Parameters::FeesTreasuryProportion(
 				dynamic_params::runtime_config::FeesTreasuryProportion,
-				Some(Perbill::from_percent(5)),
+				Some(Perbill::from_percent(20)),
 			),
 		)
 	}
