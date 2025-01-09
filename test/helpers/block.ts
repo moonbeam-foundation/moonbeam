@@ -216,12 +216,9 @@ export const verifyBlockFees = async (
                   feesTreasuryProportion,
                   fee.partialFee.toBigInt()
                 );
-                const tipPortions = calculateFeePortions(
-                  feesTreasuryProportion,
-                  extrinsic.tip.toBigInt()
-                );
+
                 txFees += fee.partialFee.toBigInt() + extrinsic.tip.toBigInt();
-                txBurnt += feePortions.burnt + tipPortions.burnt;
+                txBurnt += feePortions.burnt;
 
                 // verify entire substrate txn fee
                 const apiAt = await context.polkadotJs().at(previousBlockHash);

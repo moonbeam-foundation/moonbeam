@@ -238,6 +238,7 @@ describeSuite({
             const issuanceBefore = (
               await context.polkadotJs().query.balances.totalIssuance()
             ).toBigInt();
+            const collatorBalBefore = await context.viem().getBalance({ address: collatorAddress });
 
             const { result } = await context.createBlock(
               context
@@ -251,24 +252,35 @@ describeSuite({
             const issuanceAfter = (
               await context.polkadotJs().query.balances.totalIssuance()
             ).toBigInt();
+            const collatorBalAfter = await context.viem().getBalance({ address: collatorAddress });
 
             const treasuryIncrease = balanceAfter - balanceBefore;
             const issuanceDecrease = issuanceBefore - issuanceAfter;
-            const fee = extractFee(result?.events)!.amount.toBigInt();
+            const collatorIncrease = collatorBalAfter - collatorBalBefore;
+            const tipPaid = withTip ? t.tipAmount : 0n;
+            const feeWithoutTip = extractFee(result?.events)!.amount.toBigInt() - tipPaid;
 
             expect(
               treasuryIncrease + issuanceDecrease,
-              `Sum of TreasuryIncrease and IssuanceDecrease should be equal to the fees`
-            ).to.equal(fee);
+              `Sum of TreasuryIncrease and IssuanceDecrease should be equal to the fees without tip`
+            ).to.equal(feeWithoutTip);
 
             expect(
               treasuryIncrease,
               `${treasuryPercentage}% of the fees should go to treasury`
-            ).to.equal(calcTreasuryIncrease(fee, withTip ? t.tipAmount : undefined));
+            ).to.equal(calcTreasuryIncrease(feeWithoutTip));
 
             expect(issuanceDecrease, `${burnPercentage}% of the fees should be burned`).to.equal(
-              calcIssuanceDecrease(fee, withTip ? t.tipAmount : undefined)
+              calcIssuanceDecrease(feeWithoutTip)
             );
+
+            if (withTip) {
+              expect(collatorIncrease, "100% of the tip should go to the collator").to.equal(
+                t.tipAmount
+              );
+            } else {
+              expect(collatorIncrease, "No tip should be paid to the collator").to.equal(0n);
+            }
 
             await verifyLatestBlockFees(context, t.transfer_amount);
           },

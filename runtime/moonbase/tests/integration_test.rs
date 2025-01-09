@@ -2797,21 +2797,26 @@ fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 #[test]
 fn deal_with_fees_handles_tip() {
 	use frame_support::traits::OnUnbalanced;
-	use moonbase_runtime::{DealWithSubstrateFeesAndTip, Treasury};
+	use moonriver_runtime::{DealWithSubstrateFeesAndTip, Treasury};
 
 	ExtBuilder::default().build().execute_with(|| {
-		// This test checks the functionality of the `DealWithSubstrateFeesAndTip` trait implementation in the runtime.
-		// It simulates a scenario where a fee and a tip are issued to an account and ensures that the
-		// treasury receives the correct amount (set by FeesTreasuryProportion), and the rest is burned.
-		//
-		// The test follows these steps: (Assuming FeesTreasuryProportion is set to 20%)
-		// 1. It issues a fee of 100 and a tip of 1000.
-		// 2. It checks the total supply before the fee and tip are dealt with, which should be 1_100.
-		// 3. It checks that the treasury's balance is initially 0.
-		// 4. It calls `DealWithSubstrateFeesAndTip::on_unbalanceds` with the fee and tip.
-		// 5. It checks that the treasury's balance is now 220 (20% of the fee and tip).
-		// 6. It checks that the total supply has decreased by 880 (80% of the fee and tip), indicating
-		//    that this amount was burned.
+		set_parachain_inherent_data();
+		// This test validates the functionality of the `DealWithSubstrateFeesAndTip` trait implementation
+		// in the Moonriver runtime. It verifies that:
+		// - The correct proportion of the fee is sent to the treasury.
+		// - The remaining fee is burned (removed from the total supply).
+		// - The entire tip is sent to the block author.
+
+		// The test details:
+		// 1. Simulate issuing a `fee` of 100 and a `tip` of 1000.
+		// 2. Confirm the initial total supply is 1,100 (equal to the sum of the issued fee and tip).
+		// 3. Confirm the treasury's balance is initially 0.
+		// 4. Execute the `DealWithSubstrateFeesAndTip::on_unbalanceds` function with the `fee` and `tip`.
+		// 5. Validate that the treasury's balance has increased by 20% of the fee (based on FeesTreasuryProportion).
+		// 6. Validate that 80% of the fee is burned, and the total supply decreases accordingly.
+		// 7. Validate that the entire tip (100%) is sent to the block author (collator).
+
+		// Step 1: Issue the fee and tip amounts.
 		let fee = <pallet_balances::Pallet<Runtime> as frame_support::traits::fungible::Balanced<
 			AccountId,
 		>>::issue(100);
@@ -2819,30 +2824,37 @@ fn deal_with_fees_handles_tip() {
 			AccountId,
 		>>::issue(1000);
 
+		// Step 2: Validate the initial supply and balances.
 		let total_supply_before = Balances::total_issuance();
+		let block_author = pallet_author_inherent::Pallet::<Runtime>::get();
+		let block_author_balance_before = Balances::free_balance(&block_author);
 		assert_eq!(total_supply_before, 1_100);
 		assert_eq!(Balances::free_balance(&Treasury::account_id()), 0);
 
+		// Step 3: Execute the fees handling logic.
 		DealWithSubstrateFeesAndTip::on_unbalanceds(vec![fee, tip].into_iter());
 
+		// Step 4: Compute the split between treasury and burned fees based on FeesTreasuryProportion (20%).
 		let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
 
 		let treasury_fee_part: Balance = treasury_proportion.mul_floor(100);
 		let burnt_fee_part: Balance = 100 - treasury_fee_part;
-		let treasury_tip_part: Balance = treasury_proportion.mul_floor(1000);
-		let burnt_tip_part: Balance = 1000 - treasury_tip_part;
 
-		// treasury should have received FeesTreasuryProportion
+		// Step 5: Validate the treasury received 20% of the fee.
 		assert_eq!(
 			Balances::free_balance(&Treasury::account_id()),
-			treasury_fee_part + treasury_tip_part
+			treasury_fee_part,
 		);
 
-		// verify the rest is burned
+		// Step 6: Verify that 80% of the fee was burned (removed from the total supply).
 		let total_supply_after = Balances::total_issuance();
+		assert_eq!(total_supply_before - total_supply_after, burnt_fee_part,);
+
+		// Step 7: Validate that the block author (collator) received 100% of the tip.
+		let block_author_balance_after = Balances::free_balance(&block_author);
 		assert_eq!(
-			total_supply_before - total_supply_after,
-			burnt_fee_part + burnt_tip_part
+			block_author_balance_after - block_author_balance_before,
+			1000,
 		);
 	});
 }
