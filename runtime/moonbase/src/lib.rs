@@ -343,7 +343,8 @@ impl pallet_balances::Config for Runtime {
 pub struct DealWithSubstrateFeesAndTip<R>(sp_std::marker::PhantomData<R>);
 impl<R> DealWithSubstrateFeesAndTip<R>
 where
-	R: pallet_balances::Config + pallet_treasury::Config,
+	R: pallet_balances::Config + pallet_treasury::Config + pallet_author_inherent::Config,
+	pallet_author_inherent::Pallet<R>: Get<R::AccountId>,
 {
 	fn deal_with_fees(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
 		// Balances pallet automatically burns dropped Credits by decreasing
@@ -362,9 +363,10 @@ where
 }
 
 impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>>
-	for DealWithSubstrateFeesAndTip<R>
+for DealWithSubstrateFeesAndTip<R>
 where
-	R: pallet_balances::Config + pallet_treasury::Config,
+	R: pallet_balances::Config + pallet_treasury::Config + pallet_author_inherent::Config,
+	pallet_author_inherent::Pallet<R>: Get<R::AccountId>,
 {
 	fn on_unbalanceds(
 		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
