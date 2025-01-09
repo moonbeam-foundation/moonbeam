@@ -118,7 +118,7 @@ const GENESIS_PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30
 const GENESIS_NUM_SELECTED_CANDIDATES: u32 = 5;
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
-	pub const MaxOfflineRounds: u32 = 1;
+	pub const MaxOfflineRounds: u32 = 2;
 	pub const LeaveCandidatesDelay: u32 = 2;
 	pub const CandidateBondLessDelay: u32 = 2;
 	pub const LeaveDelegatorsDelay: u32 = 2;
