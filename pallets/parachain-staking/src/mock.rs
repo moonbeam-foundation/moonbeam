@@ -278,9 +278,9 @@ impl ExtBuilder {
 
 /// Rolls forward one block. Returns the new block number.
 fn roll_one_block() -> BlockNumber {
+	ParachainStaking::on_finalize(System::block_number());
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
-	ParachainStaking::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
 	System::reset_events();
 	System::on_initialize(System::block_number());
