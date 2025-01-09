@@ -32,7 +32,8 @@ use crate::mock::{
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded,
-	EnableMarkingOffline, Error, Event, InflationDistributionInfo, Range, DELEGATOR_LOCK_ID,
+	EnableMarkingOffline, Error, Event, HadStake, InflationDistributionInfo, Range,
+	DELEGATOR_LOCK_ID,
 };
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 use frame_support::{assert_err, assert_noop, assert_ok, pallet_prelude::*, BoundedVec};
@@ -1174,7 +1175,61 @@ fn enable_marking_offline_fails_bad_origin() {
 }
 
 #[test]
+fn hadstake_is_cleaned_up_after_max_offline_rounds() {
+	const ACTIVE_COLLATOR: AccountId = 1;
+
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(<Test as crate::Config>::MaxOfflineRounds::get(), 2);
+			assert_eq!(<Test as crate::Config>::RewardPaymentDelay::get(), 2);
+
+			// ACTIVE_COLLATOR authors all the blocks
+			set_block_author(ACTIVE_COLLATOR);
+
+			// Round 2
+			roll_to_next_round_begin();
+
+			// ACTIVE_COLLATOR has a stake in round 1
+			assert!(<AtStake<Test>>::contains_key(1, ACTIVE_COLLATOR));
+			assert!(<HadStake<Test>>::contains_key(1, ACTIVE_COLLATOR));
+
+			// Round 3
+			roll_to_next_round_begin();
+
+			// ACTIVE_COLLATOR has a stake in round 2
+			assert!(<AtStake<Test>>::contains_key(2, ACTIVE_COLLATOR));
+			assert!(<HadStake<Test>>::contains_key(2, ACTIVE_COLLATOR));
+
+			// End of round 3
+			roll_to_current_round_end();
+
+			// ACTIVE_COLLATOR has a no stake in round 1 anymore due to the distribution of rewards
+			// HadStake is still present
+			assert!(!<AtStake<Test>>::contains_key(1, ACTIVE_COLLATOR));
+			assert!(<HadStake<Test>>::contains_key(1, ACTIVE_COLLATOR));
+
+			// Round 4
+			roll_to_next_round_begin();
+			roll_to_current_round_end();
+
+			assert!(
+				!<HadStake<Test>>::contains_key(1, ACTIVE_COLLATOR),
+				"Round 1 HadStake should be cleaned up after MaxOfflineRounds"
+			);
+			assert!(<HadStake<Test>>::contains_key(2, ACTIVE_COLLATOR));
+			assert!(<HadStake<Test>>::contains_key(3, ACTIVE_COLLATOR));
+			assert!(<HadStake<Test>>::contains_key(4, ACTIVE_COLLATOR));
+		});
+}
+
+#[test]
 fn notify_inactive_collator_works() {
+	const INACTIVE_COLLATOR: AccountId = 1;
+	const ACTIVE_COLLATOR: AccountId = 2;
+
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
@@ -1186,14 +1241,14 @@ fn notify_inactive_collator_works() {
 			assert_eq!(<Test as crate::Config>::MaxOfflineRounds::get(), 2);
 			assert_eq!(<Test as crate::Config>::RewardPaymentDelay::get(), 2);
 
-			// Round 2 - collator 1 authors blocks
-			set_block_author(1);
+			// Round 2 - INACTIVE_COLLATOR authors blocks
+			set_block_author(INACTIVE_COLLATOR);
 			roll_to_next_round_begin();
 
 			// Change block author
-			set_block_author(2);
+			set_block_author(ACTIVE_COLLATOR);
 
-			// Collator 1 does not produce blocks on round 2 and 3
+			// INACTIVE_COLLATOR does not produce blocks on round 2 and 3
 			roll_to_next_round_begin();
 			roll_to_next_round_begin();
 			roll_blocks(1);
@@ -1201,16 +1256,21 @@ fn notify_inactive_collator_works() {
 			// On round 4 notify inactive collator
 			assert_ok!(ParachainStaking::notify_inactive_collator(
 				RuntimeOrigin::signed(1),
-				1
+				INACTIVE_COLLATOR
 			));
 
 			// Check the collator was marked as offline as it hasn't produced blocks
-			assert_events_eq!(Event::CandidateWentOffline { candidate: 1 },);
+			assert_events_eq!(Event::CandidateWentOffline {
+				candidate: INACTIVE_COLLATOR
+			},);
 		});
 }
 
 #[test]
 fn notify_inactive_collator_succeeds_even_after_rewards_are_distributed() {
+	const INACTIVE_COLLATOR: AccountId = 1;
+	const ACTIVE_COLLATOR: AccountId = 2;
+
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
@@ -1219,12 +1279,6 @@ fn notify_inactive_collator_succeeds_even_after_rewards_are_distributed() {
 			// Enable killswitch
 			<EnableMarkingOffline<Test>>::set(true);
 
-			// Rewards are distributed before a collator is marked as offline
-			assert!(
-				<Test as crate::Config>::MaxOfflineRounds::get()
-					<= <Test as crate::Config>::RewardPaymentDelay::get()
-			);
-
 			// We need (strictly) more blocks per round than collators so rewards
 			// can be distributed before the end of a round
 			assert_ok!(ParachainStaking::set_blocks_per_round(
@@ -1232,36 +1286,44 @@ fn notify_inactive_collator_succeeds_even_after_rewards_are_distributed() {
 				6u32
 			));
 
-			// Collator 1 authors all the blocks while collator 2 stays inactive
-			set_block_author(1);
+			// ACTIVE_COLLATOR authors all the blocks while INACTIVE_COLLATOR stays inactive
+			set_block_author(ACTIVE_COLLATOR);
 
 			// Round 2
 			roll_to_next_round_begin();
 			roll_blocks(1);
 
-			// Collator 2 has a stake in round 1
-			assert!(<AtStake<Test>>::contains_key(1, 2));
+			// INACTIVE_COLLATOR has a stake in round 1
+			assert!(<AtStake<Test>>::contains_key(1, INACTIVE_COLLATOR));
 
 			// Round 3
 			roll_to_next_round_begin();
 			roll_blocks(1);
 
-			// Collator 2 has a stake in round 2
-			assert!(<AtStake<Test>>::contains_key(2, 2));
+			// INACTIVE_COLLATOR has a stake in round 2
+			assert!(<AtStake<Test>>::contains_key(2, INACTIVE_COLLATOR));
 
 			// End of round 3
 			roll_to_current_round_end();
 
-			// Collator 2 has a no stake in round 1 anymore due to the distribution of rewards
-			assert!(!<AtStake<Test>>::contains_key(1, 2));
+			// INACTIVE_COLLATOR has a no stake in round 1 anymore due to the distribution of rewards
+			assert!(!<AtStake<Test>>::contains_key(1, INACTIVE_COLLATOR));
 
-			// Call 'notify_inactive_collator' extrinsic on collator 2
+			// Call 'notify_inactive_collator' extrinsic on INACTIVE_COLLATOR
 			assert_ok!(ParachainStaking::notify_inactive_collator(
 				RuntimeOrigin::signed(1),
-				2
+				INACTIVE_COLLATOR
 			));
 
-			assert_events_eq!(Event::CandidateWentOffline { candidate: 2 },);
+			assert_events_eq!(
+				Event::Rewarded {
+					account: 2,
+					rewards: 0,
+				},
+				Event::CandidateWentOffline {
+					candidate: INACTIVE_COLLATOR
+				},
+			);
 		});
 }
 

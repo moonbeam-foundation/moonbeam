@@ -503,6 +503,7 @@ pub mod pallet {
 		}
 		fn on_finalize(_n: BlockNumberFor<T>) {
 			Self::award_points_to_block_author();
+			Self::cleanup_stake_info();
 		}
 	}
 
@@ -642,6 +643,13 @@ pub mod pallet {
 		CollatorSnapshot<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn had_stake)]
+	/// Records collator's delegation stake presence at round start.
+	/// Data persists for MaxOfflineRounds + 1 rounds before being pruned.
+	pub type HadStake<T: Config> =
+		StorageDoubleMap<_, Twox64Concat, RoundIndex, Twox64Concat, T::AccountId, (), OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn delayed_payouts)]
@@ -1424,7 +1432,7 @@ pub mod pallet {
 			// If the previous condition is met in all rounds of rounds_to_check,
 			// the collator is notified as inactive
 			for r in rounds_to_check {
-				let stake = <AtStake<T>>::get(r, &collator);
+				let stake = <HadStake<T>>::get(r, &collator);
 				let pts = <AwardedPts<T>>::get(r, &collator);
 
 				if stake.is_some() && pts.is_zero() {
@@ -1704,8 +1712,8 @@ pub mod pallet {
 			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
 				// remove delegation from delegator state
 				let mut delegator = DelegatorState::<T>::get(&bond.owner).expect(
-					"Collator state and delegator state are consistent. 
-						Collator state has a record of this delegation. Therefore, 
+					"Collator state and delegator state are consistent.
+						Collator state has a record of this delegation. Therefore,
 						Delegator state also has a record. qed.",
 				);
 
@@ -2171,6 +2179,7 @@ pub mod pallet {
 					total: total_counted,
 				};
 				<AtStake<T>>::insert(now, account, snapshot);
+				<HadStake<T>>::insert(now, account, ());
 				Self::deposit_event(Event::CollatorChosen {
 					round: now,
 					collator_account: account.clone(),
@@ -2344,6 +2353,21 @@ pub mod pallet {
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author).saturating_add(20);
 			<AwardedPts<T>>::insert(now, author, score_plus_20);
 			<Points<T>>::mutate(now, |x| *x = x.saturating_add(20));
+		}
+
+		/// Cleans up historical staking information that is older than MaxOfflineRounds
+		/// by removing entries from the HadStake storage map.
+		fn cleanup_stake_info() {
+			let now = <Round<T>>::get().current;
+			let minimum_rounds_required = T::MaxOfflineRounds::get() + 1;
+
+			if now < minimum_rounds_required {
+				return;
+			}
+
+			let _ = <HadStake<T>>::iter_prefix(now - minimum_rounds_required)
+				.drain()
+				.next();
 		}
 	}
 
