@@ -312,6 +312,8 @@ pub(crate) fn roll_blocks(num_blocks: u32) -> BlockNumber {
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
 /// Returns the number of blocks played.
+///
+/// WARNING: this function is NOT aware of changes to [`ParachainStaking::round()`].
 pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
 	let block = (round - 1) * GENESIS_BLOCKS_PER_ROUND;
 	roll_to(block)
@@ -319,8 +321,29 @@ pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
 
 /// Rolls block-by-block to the end of the specified round.
 /// The block following will be the one in which the specified round change occurs.
+///
+/// WARNING: this function is NOT aware of changes to [`ParachainStaking::round()`].
 pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
 	let block = round * GENESIS_BLOCKS_PER_ROUND - 1;
+	roll_to(block)
+}
+
+/// Rolls block-by-block to the beginning of the next round.
+/// This will complete the block in which the round change occurs.
+/// Returns the number of blocks played.
+///
+/// NOTE: this function is aware of changes to [`ParachainStaking::round()`].
+pub(crate) fn roll_to_next_round_begin() -> BlockNumber {
+	let block = ParachainStaking::round().first + ParachainStaking::round().length;
+	roll_to(block)
+}
+
+/// Rolls block-by-block to the end of the current round.
+/// The block following will be the one in which the specified round change occurs.
+///
+/// NOTE: this function is aware of changes to [`ParachainStaking::round()`].
+pub(crate) fn roll_to_current_round_end() -> BlockNumber {
+	let block = ParachainStaking::round().first + ParachainStaking::round().length - 1;
 	roll_to(block)
 }
 
