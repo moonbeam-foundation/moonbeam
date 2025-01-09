@@ -847,6 +847,10 @@
 <a href="#845" id="845">845</a>
 <a href="#846" id="846">846</a>
 <a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -911,6 +915,7 @@
 <span class="kw">mod </span>client;
 <span class="kw">mod </span>helpers;
 <span class="kw">mod </span>lock;
+<span class="kw">mod </span>manual_sealing;
 <span class="kw">mod </span>state_overrides;
 
 <span class="kw">pub const </span>LAZY_LOADING_LOG_TARGET: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"lazy-loading"</span>;
@@ -1229,7 +1234,7 @@
 {
 	<span class="kw">use </span>async_io::Timer;
 	<span class="kw">use </span>futures::Stream;
-	<span class="kw">use </span>sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
+	<span class="kw">use </span>sc_consensus_manual_seal::{EngineCommand, ManualSealParams};
 
 	<span class="kw">let </span>sc_service::PartialComponents {
 		client,
@@ -1424,7 +1429,7 @@
 		task_manager.spawn_essential_handle().spawn_blocking(
 			<span class="string">"authorship_task"</span>,
 			<span class="prelude-val">Some</span>(<span class="string">"block-authoring"</span>),
-			run_manual_seal(ManualSealParams {
+			manual_sealing::run_manual_seal(ManualSealParams {
 				block_import,
 				env,
 				client: client.clone(),
@@ -1545,9 +1550,10 @@
 	&gt; = Default::default();
 	<span class="kw">let </span>pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
 
+	<span class="comment">/* TODO: only enable this when frontier backend is compatible with lazy-loading
 	rpc::spawn_essential_tasks(
 		rpc::SpawnTasksParams {
-			task_manager: <span class="kw-2">&amp;</span>task_manager,
+			task_manager: &amp;task_manager,
 			client: client.clone(),
 			substrate_backend: backend.clone(),
 			frontier_backend: frontier_backend.clone(),
@@ -1559,7 +1565,9 @@
 		sync_service.clone(),
 		pubsub_notification_sinks.clone(),
 	);
-	<span class="kw">let </span>ethapi_cmd = rpc_config.ethapi.clone();
+	*/
+
+	</span><span class="kw">let </span>ethapi_cmd = rpc_config.ethapi.clone();
 	<span class="kw">let </span>tracing_requesters =
 		<span class="kw">if </span>ethapi_cmd.contains(<span class="kw-2">&amp;</span>EthApiCmd::Debug) || ethapi_cmd.contains(<span class="kw-2">&amp;</span>EthApiCmd::Trace) {
 			rpc::tracing::spawn_tracing_tasks(

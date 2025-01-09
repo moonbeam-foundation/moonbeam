@@ -1773,6 +1773,7 @@
 <a href="#1771" id="1771">1771</a>
 <a href="#1772" id="1772">1772</a>
 <a href="#1773" id="1773">1773</a>
+<a href="#1774" id="1774">1774</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -1801,12 +1802,14 @@
 };
 <span class="kw">use </span>std::future::Future;
 <span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span>std::ops::AddAssign;
 <span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>std::{
 	collections::{HashMap, HashSet},
 	ptr,
-	sync::Arc,
+	sync::{
+		atomic::{AtomicU64, Ordering},
+		Arc,
+	},
 };
 
 <span class="kw">use </span>sc_client_api::{
@@ -1970,8 +1973,10 @@
 			<span class="self">self</span>.apply_head(<span class="kw-2">&amp;</span>header)<span class="question-mark">?</span>;
 		}
 
-		{
-			<span class="kw">let </span><span class="kw-2">mut </span>storage = <span class="self">self</span>.storage.write();
+		<span class="kw">let </span><span class="kw-2">mut </span>storage = <span class="self">self</span>.storage.write();
+		<span class="kw">if </span>number.is_zero() {
+			storage.genesis_hash = hash;
+		} <span class="kw">else </span>{
 			storage.leaves.import(hash, number, <span class="kw-2">*</span>header.parent_hash());
 			storage
 				.blocks
@@ -1980,10 +1985,6 @@
 			<span class="kw">if let </span>NewBlockState::Final = new_state {
 				storage.finalized_hash = hash;
 				storage.finalized_number = number;
-			}
-
-			<span class="kw">if </span>number == Zero::zero() {
-				storage.genesis_hash = hash;
 			}
 		}
 
@@ -2274,7 +2275,9 @@
 	}
 
 	<span class="kw">fn </span>leaves(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; sp_blockchain::Result&lt;Vec&lt;Block::Hash&gt;&gt; {
-		<span class="prelude-val">Ok</span>(<span class="self">self</span>.storage.read().leaves.hashes())
+		<span class="kw">let </span>leaves = <span class="self">self</span>.storage.read().leaves.hashes();
+
+		<span class="prelude-val">Ok</span>(leaves)
 	}
 
 	<span class="kw">fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>, _parent_hash: Block::Hash) -&gt; sp_blockchain::Result&lt;Vec&lt;Block::Hash&gt;&gt; {
@@ -2724,7 +2727,7 @@
 			<span class="kw">let </span><span class="kw-2">mut </span>entries: HashMap&lt;<span class="prelude-ty">Option</span>&lt;ChildInfo&gt;, StorageCollection&gt; = Default::default();
 			entries.insert(<span class="prelude-val">None</span>, <span class="macro">vec!</span>[(key.to_vec(), <span class="prelude-val">Some</span>(val.clone()))]);
 
-			<span class="self">self</span>.db.write().insert(entries, StateVersion::V0);
+			<span class="self">self</span>.db.write().insert(entries, StateVersion::V1);
 		}
 	}
 }
@@ -3030,10 +3033,8 @@
 	}
 
 	<span class="kw">fn </span>commit_operation(<span class="kw-2">&amp;</span><span class="self">self</span>, operation: <span class="self">Self</span>::BlockImportOperation) -&gt; sp_blockchain::Result&lt;()&gt; {
-		<span class="kw">if </span>!operation.finalized_blocks.is_empty() {
-			<span class="kw">for </span>(block, justification) <span class="kw">in </span>operation.finalized_blocks {
-				<span class="self">self</span>.blockchain.finalize_header(block, justification)<span class="question-mark">?</span>;
-			}
+		<span class="kw">for </span>(block, justification) <span class="kw">in </span>operation.finalized_blocks {
+			<span class="self">self</span>.blockchain.finalize_header(block, justification)<span class="question-mark">?</span>;
 		}
 
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(pending_block) = operation.pending_block {
@@ -3053,7 +3054,7 @@
 			<span class="kw">let </span>new_db = old_state.db.clone();
 			new_db.write().insert(
 				<span class="macro">vec!</span>[(<span class="prelude-val">None</span>::&lt;ChildInfo&gt;, operation.storage_updates)],
-				StateVersion::V0,
+				StateVersion::V1,
 			);
 			<span class="kw">let </span>new_state = ForkedLazyBackend {
 				rpc_client: <span class="self">self</span>.rpc_client.clone(),
@@ -3232,7 +3233,7 @@
 	http_client: HttpClient,
 	delay_between_requests_ms: u32,
 	max_retries_per_request: u32,
-	counter: Arc&lt;ReadWriteLock&lt;u64&gt;&gt;,
+	counter: Arc&lt;AtomicU64&gt;,
 }
 
 <span class="kw">impl </span>RPC {
@@ -3427,17 +3428,19 @@
 	{
 		<span class="kw">use </span>tokio::runtime::Handle;
 
+		<span class="kw">let </span>id = <span class="self">self</span>.counter.fetch_add(<span class="number">1</span>, Ordering::SeqCst);
+		<span class="kw">let </span>start = std::time::Instant::now();
+
 		tokio::task::block_in_place(<span class="kw">move </span>|| {
 			Handle::current().block_on(<span class="kw">async move </span>{
 				<span class="kw">let </span>delay_between_requests =
 					Duration::from_millis(<span class="self">self</span>.delay_between_requests_ms.into());
 
-				<span class="kw">let </span>start = std::time::Instant::now();
-				<span class="self">self</span>.counter.write().add_assign(<span class="number">1</span>);
+				<span class="kw">let </span>start_req = std::time::Instant::now();
 				<span class="macro">log::debug!</span>(
 					target: <span class="kw">super</span>::LAZY_LOADING_LOG_TARGET,
 					<span class="string">"Sending request: {}"</span>,
-					<span class="self">self</span>.counter.read()
+					id
 				);
 
 				<span class="comment">// Explicit request delay, to avoid getting 429 errors
@@ -3451,10 +3454,11 @@
 
 				<span class="macro">log::debug!</span>(
 					target: <span class="kw">super</span>::LAZY_LOADING_LOG_TARGET,
-					<span class="string">"Completed request (id: {}, successful: {}, elapsed_time: {:?})"</span>,
-					<span class="self">self</span>.counter.read(),
+					<span class="string">"Completed request (id: {}, successful: {}, elapsed_time: {:?}, query_time: {:?})"</span>,
+					id,
 					result.is_ok(),
-					start.elapsed()
+					start.elapsed(),
+					start_req.elapsed()
 				);
 
 				result
@@ -3538,8 +3542,6 @@
 			StateEntry::Raw(raw) =&gt; (raw.key.clone(), raw.value.clone()),
 		})
 		.collect();
-
-	<span class="kw">let _ </span>= helpers::produce_genesis_block(backend.clone());
 
 	<span class="comment">// Produce first block after the fork
 	</span><span class="kw">let _ </span>= helpers::produce_first_block(backend.clone(), checkpoint, state_overrides)<span class="question-mark">?</span>;
