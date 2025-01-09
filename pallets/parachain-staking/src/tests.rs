@@ -1198,7 +1198,7 @@ fn notify_inactive_collator_works() {
 			roll_to_next_round_begin();
 			roll_blocks(1);
 
-			// Call 'notify_inactive_collator' extrinsic
+			// On round 4 notify inactive collator
 			assert_ok!(ParachainStaking::notify_inactive_collator(
 				RuntimeOrigin::signed(1),
 				1
