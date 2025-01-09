@@ -30,7 +30,7 @@ pub mod dynamic_params {
 	pub mod runtime_config {
 		// for fees, 80% are burned, 20% to the treasury
 		#[codec(index = 0)]
-		pub static FeesTreasuryProportion: Perbill = Perbill::from_percent(20);
+		pub static FeesTreasuryProportion: Perbill = Perbill::from_percent(5);
 	}
 
 	#[dynamic_pallet_params]
