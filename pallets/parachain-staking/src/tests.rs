@@ -7188,7 +7188,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 		.build()
 		.execute_with(|| {
 			// preset rewards for rounds 1, 2 and 3
-			(1..=3).for_each(|round| set_author(round, 1, 100));
+			(1..=3).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				RuntimeOrigin::signed(2),
@@ -7255,7 +7255,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 		.build()
 		.execute_with(|| {
 			// preset rewards for rounds 2, 3 and 4
-			(2..=4).for_each(|round| set_author(round, 1, 100));
+			(2..=4).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				RuntimeOrigin::signed(2),
@@ -7329,7 +7329,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 		.build()
 		.execute_with(|| {
 			// preset rewards for rounds 1, 2 and 3
-			(1..=3).for_each(|round| set_author(round, 1, 100));
+			(1..=3).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
 				RuntimeOrigin::signed(2),
@@ -7403,7 +7403,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 		.build()
 		.execute_with(|| {
 			// preset rewards for rounds 2, 3 and 4
-			(2..=4).for_each(|round| set_author(round, 1, 100));
+			(2..=4).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
 				RuntimeOrigin::signed(2),
@@ -7483,7 +7483,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_for_previous_rounds_but_not_fo
 		.build()
 		.execute_with(|| {
 			// preset rewards for rounds 1, 2 and 3
-			(1..=3).for_each(|round| set_author(round, 1, 100));
+			(1..=3).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				RuntimeOrigin::signed(2),
@@ -7562,7 +7562,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 		.build()
 		.execute_with(|| {
 			// preset rewards for rounds 2, 3 and 4
-			(2..=4).for_each(|round| set_author(round, 1, 100));
+			(2..=4).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				RuntimeOrigin::signed(2),
@@ -8290,7 +8290,7 @@ fn test_rewards_do_not_auto_compound_on_payment_if_delegation_scheduled_revoke_e
 		.with_delegations(vec![(2, 1, 200), (3, 1, 200)])
 		.build()
 		.execute_with(|| {
-			(2..=5).for_each(|round| set_author(round, 1, 100));
+			(2..=5).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 			assert_ok!(ParachainStaking::set_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
@@ -8359,7 +8359,7 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 		.with_delegations(vec![(2, 1, 200), (3, 1, 200), (4, 1, 200), (5, 1, 200)])
 		.build()
 		.execute_with(|| {
-			(2..=6).for_each(|round| set_author(round, 1, 100));
+			(2..=6).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 			assert_ok!(ParachainStaking::set_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
