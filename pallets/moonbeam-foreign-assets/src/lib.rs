@@ -260,13 +260,13 @@ pub mod pallet {
 		StorageMap<_, Blake2_128Concat, AssetId, AssetCreationDetails<T>>;
 
 	#[derive(Clone, Eq, PartialEq, Debug, Encode, Decode, TypeInfo, MaxEncodedLen)]
-	pub enum AssetOwner<T: Config + scale_info::TypeInfo> {
+	pub enum AssetOwner<T: Config> {
 		Governance,
 		Account(T::AccountId),
 	}
 
 	#[derive(Clone, Decode, Encode, Eq, PartialEq, Debug, TypeInfo, MaxEncodedLen)]
-	pub struct AssetCreationDetails<T: Config + scale_info::TypeInfo> {
+	pub struct AssetCreationDetails<T: Config> {
 		pub owner: AssetOwner<T>,
 		pub deposit: Option<BalanceOf<T>>,
 	}
