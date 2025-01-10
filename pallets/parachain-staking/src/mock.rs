@@ -116,6 +116,10 @@ const GENESIS_BLOCKS_PER_ROUND: BlockNumber = 5;
 const GENESIS_COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const GENESIS_PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 const GENESIS_NUM_SELECTED_CANDIDATES: u32 = 5;
+
+pub const POINTS_PER_BLOCK: u32 = 20;
+pub const POINTS_PER_ROUND: u32 = GENESIS_BLOCKS_PER_ROUND * POINTS_PER_BLOCK;
+
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
 	pub const MaxOfflineRounds: u32 = 2;
@@ -277,10 +281,8 @@ impl ExtBuilder {
 }
 
 /// Rolls forward one block. Returns the new block number.
-fn roll_one_block(finalize_parachain_staking: bool) -> BlockNumber {
-	if finalize_parachain_staking {
-		ParachainStaking::on_finalize(System::block_number());
-	}
+fn roll_one_block() -> BlockNumber {
+	ParachainStaking::on_finalize(System::block_number());
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
@@ -292,27 +294,21 @@ fn roll_one_block(finalize_parachain_staking: bool) -> BlockNumber {
 }
 
 /// Rolls to the desired block. Returns the number of blocks played.
-/// Allows to decide whther to finalize blocks with ParachainStaking::on_finalize or not.
-fn roll_to_block(n: BlockNumber, finalize_parachain_staking: bool) -> BlockNumber {
+pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
 	let mut num_blocks = 0;
 	let mut block = System::block_number();
 	while block < n {
-		block = roll_one_block(finalize_parachain_staking);
+		block = roll_one_block();
 		num_blocks += 1;
 	}
 	num_blocks
-}
-
-/// Rolls to the desired block. Returns the number of blocks played.
-pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
-	roll_to_block(n, false)
 }
 
 /// Rolls desired number of blocks. Returns the final block.
 pub(crate) fn roll_blocks(num_blocks: u32) -> BlockNumber {
 	let mut block = System::block_number();
 	for _ in 0..num_blocks {
-		block = roll_one_block(false);
+		block = roll_one_block();
 	}
 	block
 }
@@ -320,8 +316,6 @@ pub(crate) fn roll_blocks(num_blocks: u32) -> BlockNumber {
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
 /// Returns the number of blocks played.
-///
-/// NOTE: this function is aware of changes to [`ParachainStaking::round()`].
 pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
 	let r = ParachainStaking::round();
 
@@ -337,8 +331,6 @@ pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
 
 /// Rolls block-by-block to the end of the specified round.
 /// The block following will be the one in which the specified round change occurs.
-///
-/// NOTE: this function is aware of changes to [`ParachainStaking::round()`].
 pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
 	let r = ParachainStaking::round();
 
@@ -350,25 +342,6 @@ pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
 	// Calculate target block by adding round length for each round difference
 	let target = r.first + (round - r.current + 1) * r.length - 1;
 	roll_to(target)
-}
-
-/// Rolls block-by-block to the beginning of the next round.
-/// This will complete the block in which the round change occurs.
-/// Returns the number of blocks played.
-///
-/// NOTE: this function is aware of changes to [`ParachainStaking::round()`].
-pub(crate) fn roll_to_next_round_begin() -> BlockNumber {
-	let block = ParachainStaking::round().first + ParachainStaking::round().length;
-	roll_to_block(block, true)
-}
-
-/// Rolls block-by-block to the end of the current round.
-/// The block following will be the one in which the specified round change occurs.
-///
-/// NOTE: this function is aware of changes to [`ParachainStaking::round()`].
-pub(crate) fn roll_to_current_round_end() -> BlockNumber {
-	let block = ParachainStaking::round().first + ParachainStaking::round().length - 1;
-	roll_to_block(block, true)
 }
 
 pub(crate) fn inflation_configs(
