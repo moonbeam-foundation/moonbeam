@@ -489,6 +489,8 @@ pub mod pallet {
 					selected_collators_number: collator_count,
 					total_balance: total_staked,
 				});
+				// record inactive collators
+				Self::mark_collators_as_inactive(round.current);
 				// account for Round write
 				weight = weight.saturating_add(T::DbWeight::get().reads_writes(0, 1));
 			} else {
@@ -503,7 +505,7 @@ pub mod pallet {
 		}
 		fn on_finalize(_n: BlockNumberFor<T>) {
 			Self::award_points_to_block_author();
-			Self::cleanup_stake_info();
+			Self::cleanup_inactive_collator_info();
 		}
 	}
 
@@ -645,10 +647,10 @@ pub mod pallet {
 	>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn had_stake)]
-	/// Records collator's delegation stake presence at round start.
+	#[pallet::getter(fn was_inactive)]
+	/// Records collators' inactivity.
 	/// Data persists for MaxOfflineRounds + 1 rounds before being pruned.
-	pub type HadStake<T: Config> =
+	pub type WasInactive<T: Config> =
 		StorageDoubleMap<_, Twox64Concat, RoundIndex, Twox64Concat, T::AccountId, (), OptionQuery>;
 
 	#[pallet::storage]
@@ -1425,17 +1427,9 @@ pub mod pallet {
 			// the collator should be notified as inactive
 			let mut inactive_counter: RoundIndex = 0u32;
 
-			// Iter rounds to check
-			//
-			// - The collator has AtStake associated and their AwardedPts are zero
-			//
-			// If the previous condition is met in all rounds of rounds_to_check,
-			// the collator is notified as inactive
+			// Iter rounds and check whether the collator has been inactive
 			for r in rounds_to_check {
-				let stake = <HadStake<T>>::get(r, &collator);
-				let pts = <AwardedPts<T>>::get(r, &collator);
-
-				if stake.is_some() && pts.is_zero() {
+				if <WasInactive<T>>::get(r, &collator).is_some() {
 					inactive_counter = inactive_counter.saturating_add(1);
 				}
 			}
@@ -2179,7 +2173,6 @@ pub mod pallet {
 					total: total_counted,
 				};
 				<AtStake<T>>::insert(now, account, snapshot);
-				<HadStake<T>>::insert(now, account, ());
 				Self::deposit_event(Event::CollatorChosen {
 					round: now,
 					collator_account: account.clone(),
@@ -2342,11 +2335,9 @@ pub mod pallet {
 				});
 			};
 		}
-	}
 
-	/// Add reward points to block authors:
-	/// * 20 points to the block producer for producing a block in the chain
-	impl<T: Config> Pallet<T> {
+		/// Add reward points to block authors:
+		/// * 20 points to the block producer for producing a block in the chain
 		fn award_points_to_block_author() {
 			let author = T::BlockAuthor::get();
 			let now = <Round<T>>::get().current;
@@ -2355,9 +2346,23 @@ pub mod pallet {
 			<Points<T>>::mutate(now, |x| *x = x.saturating_add(20));
 		}
 
+		/// Marks collators as inactive for the previous round if they received zero awarded points.
+		fn mark_collators_as_inactive(cur: RoundIndex) {
+			if cur == 0 {
+				return;
+			}
+
+			let prev = cur - 1;
+			for (account, _) in <AtStake<T>>::iter_prefix(prev) {
+				if <AwardedPts<T>>::get(prev, &account).is_zero() {
+					<WasInactive<T>>::insert(prev, account, ());
+				}
+			}
+		}
+
 		/// Cleans up historical staking information that is older than MaxOfflineRounds
-		/// by removing entries from the HadStake storage map.
-		fn cleanup_stake_info() {
+		/// by removing entries from the WasIactive storage map.
+		fn cleanup_inactive_collator_info() {
 			let now = <Round<T>>::get().current;
 			let minimum_rounds_required = T::MaxOfflineRounds::get() + 1;
 
@@ -2365,7 +2370,7 @@ pub mod pallet {
 				return;
 			}
 
-			let _ = <HadStake<T>>::iter_prefix(now - minimum_rounds_required)
+			let _ = <WasInactive<T>>::iter_prefix(now - minimum_rounds_required)
 				.drain()
 				.next();
 		}

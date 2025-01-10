@@ -32,7 +32,7 @@ use crate::mock::{
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded,
-	EnableMarkingOffline, Error, Event, HadStake, InflationDistributionInfo, Range,
+	EnableMarkingOffline, Error, Event, InflationDistributionInfo, Range, WasInactive,
 	DELEGATOR_LOCK_ID,
 };
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
@@ -1175,12 +1175,13 @@ fn enable_marking_offline_fails_bad_origin() {
 }
 
 #[test]
-fn hadstake_is_cleaned_up_after_max_offline_rounds() {
+fn was_inactive_is_cleaned_up_after_max_offline_rounds() {
 	const ACTIVE_COLLATOR: AccountId = 1;
+	const INACTIVE_COLLATOR: AccountId = 2;
 
 	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
 		.build()
 		.execute_with(|| {
 			assert_eq!(<Test as crate::Config>::MaxOfflineRounds::get(), 2);
@@ -1192,16 +1193,20 @@ fn hadstake_is_cleaned_up_after_max_offline_rounds() {
 			// Round 2
 			roll_to_round_begin(2);
 
-			// ACTIVE_COLLATOR has a stake in round 1
 			assert!(<AtStake<Test>>::contains_key(1, ACTIVE_COLLATOR));
-			assert!(<HadStake<Test>>::contains_key(1, ACTIVE_COLLATOR));
+			assert!(!<WasInactive<Test>>::contains_key(1, ACTIVE_COLLATOR));
+
+			assert!(<AtStake<Test>>::contains_key(1, INACTIVE_COLLATOR));
+			assert!(<WasInactive<Test>>::contains_key(1, INACTIVE_COLLATOR));
 
 			// Round 3
 			roll_to_round_begin(3);
 
-			// ACTIVE_COLLATOR has a stake in round 2
 			assert!(<AtStake<Test>>::contains_key(2, ACTIVE_COLLATOR));
-			assert!(<HadStake<Test>>::contains_key(2, ACTIVE_COLLATOR));
+			assert!(!<WasInactive<Test>>::contains_key(2, ACTIVE_COLLATOR));
+
+			assert!(<AtStake<Test>>::contains_key(2, INACTIVE_COLLATOR));
+			assert!(<WasInactive<Test>>::contains_key(2, INACTIVE_COLLATOR));
 
 			// End of round 3
 			roll_to_round_end(3);
@@ -1211,20 +1216,28 @@ fn hadstake_is_cleaned_up_after_max_offline_rounds() {
 				"Active collator should have no stake in round 1 due to the distribution of rewards"
 			);
 			assert!(
-				<HadStake<Test>>::contains_key(1, ACTIVE_COLLATOR),
-				"Active collator should still be in HadStake for round 1"
+				!<AtStake<Test>>::contains_key(1, INACTIVE_COLLATOR),
+				"Inactive collator should have no stake in round 1 due to the distribution of rewards"
+			);
+
+			assert!(
+				!<WasInactive<Test>>::contains_key(1, ACTIVE_COLLATOR),
+				"Active collator should not be in WasInactive for round 1"
+			);
+			assert!(
+				<WasInactive<Test>>::contains_key(1, INACTIVE_COLLATOR),
+				"Inactive collator should still be in WasInactive for round 1"
 			);
 
 			// Round 4
 			roll_to_round_end(4);
 
 			assert!(
-				!<HadStake<Test>>::contains_key(1, ACTIVE_COLLATOR),
-				"Round 1 HadStake should be cleaned up after MaxOfflineRounds"
+				!<WasInactive<Test>>::contains_key(1, INACTIVE_COLLATOR),
+				"Round 1 WasInactive should be cleaned up after MaxOfflineRounds"
 			);
-			assert!(<HadStake<Test>>::contains_key(2, ACTIVE_COLLATOR));
-			assert!(<HadStake<Test>>::contains_key(3, ACTIVE_COLLATOR));
-			assert!(<HadStake<Test>>::contains_key(4, ACTIVE_COLLATOR));
+			assert!(<WasInactive<Test>>::contains_key(2, INACTIVE_COLLATOR));
+			assert!(<WasInactive<Test>>::contains_key(3, INACTIVE_COLLATOR));
 		});
 }
 
